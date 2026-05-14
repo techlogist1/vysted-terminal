@@ -4,6 +4,59 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## Scope update — global broker execution in v1.0 (2026-05-14)
+
+**Docs-only.** No code changed — `types/plugin.ts` and every other source file are
+untouched. The existing plugin contract already supports broker plugins via
+`getDataSources` / `getPanels` / `executeCommand`. This entry records a scope
+decision taken between Phase 0 and Phase 1.
+
+### Decision
+
+Broker integrations move from the v1.1/v2.0 deferred lists into v1.0 with full
+execution capability. Vysted Terminal is an open-source platform from day one, and
+its value proposition — see your portfolio, analyze it with AI, execute — is
+incomplete without the execute step. A read-only-only v1.0 ships a thinner product
+than the positioning promises. Execution belongs in the first release.
+
+### Scope
+
+- Six broker plugins plus a ccxt crypto execution wrap (seven broker integrations
+  total): Dhan, Angel One SmartAPI, Zerodha Kite Connect, Alpaca, Interactive
+  Brokers, OANDA v20, and ccxt for crypto. Each is a separate plugin on the existing
+  `VystedPlugin` contract.
+- A shared execution safety layer is baked in, not optional — paper-mode default,
+  per-order confirmation, configurable position-size limits, a local SQLite audit
+  log, a global kill switch, an extra gate on AI-initiated orders, per-plugin
+  read-only mode, and layered liability disclaimers. Full design in
+  `docs/BLUEPRINT.md` §6.5.
+- Phase 5 absorbs this: its estimate grows from ~3-5 days (Tradesa V2 alone) to
+  ~6-8 days (Tradesa V2 + broker integration + safety layer). The phase is not split
+  and the numbering is unchanged. The v1.0 calendar target still holds at the
+  operator's 2-3 sessions/day velocity.
+
+### Research corrections
+
+The broker landscape was verified by web search this session. Four corrections to
+earlier assumptions, recorded as historical decisions:
+
+- **IBKR Python SDK is `ib_async`, not `ib_insync`.** `ib_insync` was forked to the
+  `ib-api-reloaded` org and renamed `ib_async` after the original maintainer, Ewald
+  de Wit, passed away in early 2024. `ib_async` (current v2.1.0) is the active
+  library; use it going forward.
+- **Zerodha Kite Connect pricing is ₹500/month (~$6 USD)**, not the ~$14/month
+  figure assumed earlier. The price was reduced in May 2025 after NSE algo-trading
+  regulatory clarification.
+- **Kite Connect Personal API is free for execution + account data.** Order
+  placement and account/holdings/positions endpoints are included at no cost; the
+  paid ₹500/month Connect tier adds real-time and historical market data only.
+- **Kite requires a static IP for order placement, since 1 April 2025.** This is a
+  SEBI/NSE algo-trading regulation, not a Zerodha policy. Order requests from
+  unregistered IPs are rejected; up to 2 static IPs are allowed per account; other
+  endpoints (data, holdings, positions) work from any IP. A material UX constraint
+  for Vysted users on residential dynamic IPs — the Kite plugin must surface it
+  in-app.
+
 ## v0.1.0 — Phase 0: Foundation (2026-05-14)
 
 The greenfield foundation: a working local dev environment plus all scaffolding
