@@ -10,9 +10,8 @@ use tauri_plugin_shell::ShellExt;
 /// Holds the running Python sidecar process so it can be killed when the app exits.
 struct SidecarProcess(Mutex<Option<CommandChild>>);
 
-/// The localhost port the Python sidecar is bound to. Stored in Tauri state now
-/// so Phase 1+ panels can reach the sidecar; not read within Phase 0 itself.
-#[expect(dead_code)]
+/// The localhost port the Python sidecar is bound to. Stored in Tauri state and
+/// exposed to the frontend via the `get_sidecar_port` command.
 struct SidecarPort(u16);
 
 /// Bind to port 0 so the OS picks a free port, read it back, then release it.
@@ -36,20 +35,39 @@ fn wait_for_sidecar(port: u16) -> bool {
     false
 }
 
+/// Expose the sidecar's localhost port to the frontend so it can issue HTTP and
+/// WebSocket requests to the Python data layer.
+#[tauri::command]
+fn get_sidecar_port(port: tauri::State<'_, SidecarPort>) -> u16 {
+    port.0
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .invoke_handler(tauri::generate_handler![get_sidecar_port])
         .setup(|app| {
             let port = pick_free_port();
             app.manage(SidecarPort(port));
+
+            // Resolve the per-OS application data directory and hand it to the
+            // sidecar; the sidecar owns the portfolio SQLite database and the
+            // saved-workspace files beneath it.
+            let data_dir = app
+                .path()
+                .app_data_dir()
+                .expect("failed to resolve the application data directory");
+            std::fs::create_dir_all(&data_dir)
+                .expect("failed to create the application data directory");
+            let data_dir = data_dir.to_string_lossy().to_string();
 
             let sidecar = app
                 .shell()
                 .sidecar("vysted-sidecar")
                 .expect("failed to create the sidecar command")
-                .args(["--port", &port.to_string()]);
+                .args(["--port", &port.to_string(), "--data-dir", &data_dir]);
 
             let (mut rx, child) = sidecar.spawn().expect("failed to spawn the Python sidecar");
             app.manage(SidecarProcess(Mutex::new(Some(child))));
