@@ -3,6 +3,7 @@
 import { DockviewReact, type DockviewReadyEvent } from "dockview";
 import { useMemo } from "react";
 
+import { applyDefaultLayout } from "@/config/default-layout";
 import { collectPanelComponents } from "@/lib/module-registry";
 import { useModulesStore } from "@/store/modules";
 import { useWorkspaceStore } from "@/store/workspace";
@@ -10,8 +11,7 @@ import { useWorkspaceStore } from "@/store/workspace";
 /**
  * The dockview-backed panel host. Resolves each module's `PanelSpec.component`
  * id to its React component, hands the layout API to the workspace store, and
- * — for the Phase 1.A-2 scaffold — opens every enabled panel on ready. The
- * curated first-launch layout (BLUEPRINT §5.1) is wired in Phase 1.C.
+ * applies the first-launch layout (BLUEPRINT §5.1) on ready.
  *
  * `DockviewReact` is only mounted once modules have registered, which keeps the
  * static-export build SSR-safe (the prerender pass sees the loading state).
@@ -25,13 +25,13 @@ export function PanelHost() {
 
   function handleReady(event: DockviewReadyEvent) {
     useWorkspaceStore.getState().setDockviewApi(event.api);
-    for (const panel of useModulesStore.getState().enabledPanels()) {
-      event.api.addPanel({
-        id: panel.id,
-        component: panel.component,
-        title: panel.title,
-      });
-    }
+    const enabledPanelIds = new Set(
+      useModulesStore
+        .getState()
+        .enabledPanels()
+        .map((panel) => panel.id),
+    );
+    applyDefaultLayout(event.api, enabledPanelIds);
   }
 
   if (modules.length === 0) {
