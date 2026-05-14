@@ -1,20 +1,75 @@
-"""Indicators router — STUB owned by Teammate A (Phase 1.B, chart panel).
+"""Indicators router — technical-indicator computation for the chart panel.
 
-Teammate A replaces the ``_status`` placeholder with technical-indicator
-computation endpoints consumed by the chart panel. Compute indicators
-server-side (numpy/pandas already available via yfinance) and return them in a
-shape the chart panel can overlay. This file is already mounted by
-``app.create_app`` — only edit this file, not ``app.py``.
+Computes the requested indicators server-side (numpy/pandas) against a symbol's
+OHLCV history fetched through the provider registry, and returns them in the
+``IndicatorResponse`` shape the chart panel overlays. This file is already
+mounted by ``app.create_app`` — only edit this file, not ``app.py``.
+
+Provider failures raise ``services.errors.ProviderError``, which the app-level
+handler translates to HTTP 502. Unknown indicator keys return HTTP 400.
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Query
+
+from models.indicators import IndicatorResponse
+from services import indicators as indicator_service
+from services import provider_registry
 
 router = APIRouter(prefix="/indicators", tags=["indicators"])
 
 
+def _parse_indicators(raw: str) -> list[str]:
+    """Split the comma-separated ``indicators`` query value into clean tokens."""
+    return [token.strip() for token in raw.split(",") if token.strip()]
+
+
+# NOTE: the static routes below are declared before ``/{symbol}`` so FastAPI
+# matches them first — otherwise ``/indicators/_status`` would resolve as a
+# symbol named "_status".
+
+
 @router.get("/_status")
 def status() -> dict[str, str]:
-    """Placeholder so the router mounts cleanly; Teammate A replaces this."""
+    """Wiring probe — kept so the shared ``test_app`` mount check stays valid.
+
+    The router is fully implemented; this endpoint only confirms it is mounted.
+    """
     return {"status": "stub", "router": "indicators", "owner": "teammate-a"}
+
+
+@router.get("")
+def list_indicators() -> dict[str, list[str]]:
+    """Return every indicator key the chart panel may request."""
+    return {"indicators": list(indicator_service.SUPPORTED_INDICATORS)}
+
+
+@router.get("/{symbol}")
+def get_indicators(
+    symbol: str,
+    indicators: str = Query(
+        ...,
+        description="Comma-separated indicator keys, e.g. rsi,macd,bollinger.",
+    ),
+    timeframe: str = "1d",
+    range_: str | None = Query(None, alias="range"),
+    asset_class: str = "equity",
+) -> IndicatorResponse:
+    """Compute the requested indicators for ``symbol`` over its OHLCV history."""
+    requested = _parse_indicators(indicators)
+    if not requested:
+        raise HTTPException(status_code=400, detail="No indicators requested.")
+
+    unknown = [token for token in requested if indicator_service.normalize_key(token) is None]
+    if unknown:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Unknown indicator(s): {', '.join(unknown)}. "
+                f"Supported: {', '.join(indicator_service.SUPPORTED_INDICATORS)}."
+            ),
+        )
+
+    series = provider_registry.get_history(symbol, timeframe, range_, asset_class)
+    return indicator_service.compute(series, requested)

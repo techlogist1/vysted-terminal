@@ -15,6 +15,12 @@ from models.fundamentals import (
     IncomeStatement,
     StatementLine,
 )
+from models.indicators import (
+    IndicatorLine,
+    IndicatorPoint,
+    IndicatorResponse,
+    IndicatorSeries,
+)
 from models.market import (
     MacroObservation,
     MacroSeries,
@@ -32,6 +38,10 @@ __all__ = [
     "FinancialStatement",
     "Fundamentals",
     "IncomeStatement",
+    "IndicatorLine",
+    "IndicatorPoint",
+    "IndicatorResponse",
+    "IndicatorSeries",
     "MacroObservation",
     "MacroSeries",
     "NewsItem",
