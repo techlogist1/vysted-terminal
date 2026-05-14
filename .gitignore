@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+sidecar/.venv/
+
+# Build output
+.next/
+out/
+dist/
+src-tauri/target/
+src-tauri/binaries/
+sidecar/build/
+sidecar/dist/
+sidecar/__pycache__/
+**/__pycache__/
+
+# Tauri updater private signing key — never commit
+src-tauri/*.key
+
+# Env / secrets
+.env
+.env.*
+
+# Logs
+*.log
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+
+# Local planning artifacts (not a repo deliverable)
+docs/superpowers/
+
+# Source blueprint is relocated to docs/BLUEPRINT.md in Task 2
+/vystedterminalblueprint.md
