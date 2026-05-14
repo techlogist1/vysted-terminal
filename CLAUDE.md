@@ -53,7 +53,9 @@ file in the project. Every plugin and every future phase plugs into it. Six
 capabilities: data, panels, commands, agents, nodes, control plane. **Changing
 this contract is a breaking change for every downstream plugin.** Never edit it
 without weighing the blast radius. Tradesa V2 (Phase 5) must implement all six
-capabilities without contract changes.
+capabilities without contract changes. Phase 5 also ships global broker execution
+plugins on the same contract — broker execution is v1.0 scope, gated behind the
+safety layer in `docs/BLUEPRINT.md` §6.5.
 
 ## Model assignment (multi-phase build)
 
