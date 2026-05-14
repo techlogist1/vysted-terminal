@@ -110,6 +110,13 @@ the next session does not re-learn them. (Phase 0 build notes live in
   `ensure-sidecar.mjs` copy with `EBUSY`. When running the binary directly, kill
   it by name wildcard (`Get-Process vysted-sidecar*`), not by the spawned PID.
   The stdin-EOF watchdog only covers the Tauri-managed path.
+- **dockview is the panel layout engine.** Panels render inside `dockview`
+  (`src/components/PanelHost.tsx`); a module registers a `PanelSpec` whose
+  `component` id maps to a React component via `VystedModule.panelComponents`.
+  dockview's base CSS is imported in `globals.css` before the
+  `.dockview-theme-vysted` override so the override wins the cascade. `PanelHost`
+  only mounts `DockviewReact` after modules register, which keeps the
+  static-export build SSR-safe.
 
 ## Reference docs
 
