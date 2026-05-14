@@ -1,7 +1,10 @@
 """Vysted Terminal Python sidecar — a FastAPI service on localhost.
 
-Phase 0 scope: a single /health endpoint. The Tauri core assigns a free port
-at app launch and passes it in via the --port CLI argument.
+The Tauri core assigns a free port at app launch and passes it via ``--port``,
+and resolves the per-OS application data directory and passes it via
+``--data-dir``. The data directory is exported as the ``VYSTED_DATA_DIR``
+environment variable so the persistence layer (portfolio SQLite, saved
+workspaces) can find it — see ``config.py``.
 """
 
 from __future__ import annotations
@@ -12,15 +15,9 @@ import sys
 import threading
 
 import uvicorn
-from fastapi import FastAPI
 
-app = FastAPI(title="Vysted Terminal Sidecar", version="0.1.0")
-
-
-@app.get("/health")
-def health() -> dict[str, str]:
-    """Liveness probe consumed by the Tauri core on app launch."""
-    return {"status": "ok", "service": "vysted-sidecar", "version": "0.1.0"}
+from app import app
+from config import DATA_DIR_ENV
 
 
 def _exit_when_parent_closes_stdin() -> None:
@@ -51,7 +48,15 @@ def main() -> None:
         help="Localhost port assigned by the Tauri core at launch.",
     )
     parser.add_argument("--host", default="127.0.0.1", help="Bind host.")
+    parser.add_argument(
+        "--data-dir",
+        default=None,
+        help="Application data directory resolved by the Tauri core.",
+    )
     args = parser.parse_args()
+
+    if args.data_dir:
+        os.environ[DATA_DIR_ENV] = args.data_dir
 
     threading.Thread(target=_exit_when_parent_closes_stdin, daemon=True).start()
 

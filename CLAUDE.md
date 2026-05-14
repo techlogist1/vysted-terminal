@@ -70,23 +70,23 @@ safety layer in `docs/BLUEPRINT.md` §6.5.
 How a session resolves a choice depends on its blast radius. Four tiers:
 
 1. **Locked** — decisions in `docs/BLUEPRINT.md` §2 "Locked Decisions Summary".
-   Never reopen. *E.g.* the stack (Tauri + Next.js + Python sidecar); AGPL-3.0 +
+   Never reopen. _E.g._ the stack (Tauri + Next.js + Python sidecar); AGPL-3.0 +
    commercial dual license; global broker execution in v1.0 scope.
 2. **Spec-derivable** — the phase brief or blueprint settles it on a careful
    read. Decide and proceed; no asking, no documentation beyond the commit.
-   *E.g.* which Pydantic models a phase needs (the brief enumerates them); a
+   _E.g._ which Pydantic models a phase needs (the brief enumerates them); a
    brief's stated teammate merge order; that the AI chat sidebar is Phase 3.
 3. **Spec-ambiguous, derives from DNA** — the spec is silent, but the product
    positioning (finance sandbox, max extensibility, local-first, BYOK,
    research-lab voice) points to an answer. Decide from positioning, record it
    as a one-line append to `CHANGELOG.md` or `docs/BLUEPRINT.md`, continue.
-   *E.g.* dockview chosen as layout engine; rationale: max sandboxability per
+   _E.g._ dockview chosen as layout engine; rationale: max sandboxability per
    product positioning; supports BLUEPRINT §5.2 customization primitives
-   natively. *E.g.* sidecar-owned vs Tauri-owned persistence; lexicon vs
+   natively. _E.g._ sidecar-owned vs Tauri-owned persistence; lexicon vs
    model-based sentiment given the PyInstaller `--onefile` constraint.
 4. **High blast radius** — the plugin contract (`types/plugin.ts`), licensing,
    the §6.5 execution safety model, or core architecture (the layer model, the
-   sidecar boundary). Block and ask the operator. *E.g.* any `types/plugin.ts`
+   sidecar boundary). Block and ask the operator. _E.g._ any `types/plugin.ts`
    change; altering AGPL/commercial terms; weakening a §6.5 safeguard.
 
 Only Tier 4 surfaces to the operator. Tiers 2 and 3 are autonomous — Tier 3 with
@@ -97,8 +97,19 @@ Tier-4 blocks and hard blockers hit while the operator is unavailable.
 ## Gotchas
 
 Non-obvious traps and their fixes — append a line or two as they are found, so
-the next session does not re-learn them. (Empty at the end of Phase 0; the
-Phase 0 build notes live in `CHANGELOG.md`.)
+the next session does not re-learn them. (Phase 0 build notes live in
+`CHANGELOG.md`.)
+
+- **`types/data.ts` mirrors `sidecar/models/` by hand.** The sidecar's Pydantic
+  models and their TypeScript counterparts in `types/data.ts` are kept in sync
+  manually. Change a Pydantic model → update the matching interface in
+  `types/data.ts` in the same commit.
+- **Smoke-testing the sidecar binary orphans a worker.** The PyInstaller
+  `--onefile` binary re-execs a worker child; `Stop-Process` on the bootloader
+  PID leaves the worker alive, holding the binary locked — which breaks the next
+  `ensure-sidecar.mjs` copy with `EBUSY`. When running the binary directly, kill
+  it by name wildcard (`Get-Process vysted-sidecar*`), not by the spawned PID.
+  The stdin-EOF watchdog only covers the Tauri-managed path.
 
 ## Reference docs
 
