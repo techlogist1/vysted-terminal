@@ -1,0 +1,13 @@
+.next/
+out/
+node_modules/
+src-tauri/target/
+src-tauri/binaries/
+src-tauri/gen/
+sidecar/.venv/
+sidecar/build/
+sidecar/dist/
+pnpm-lock.yaml
+docs/BLUEPRINT.md
+docs/superpowers/
+LICENSE
