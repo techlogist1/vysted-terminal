@@ -44,3 +44,8 @@ ADX, Stochastic, ATR, OBV, MFI, CCI, Williams %R, ROC.
   live watchlist store, because the watchlist's symbol store lives in a
   different module and the parallel teammates could not cross module boundaries.
   Wiring the news feed to the watchlist store is a small Phase 2 task.
+- **Equity Overview dividend yield units.** yfinance 1.3.0 appears to return
+  `dividendYield` already as a percentage, and the panel multiplies by 100 again
+  — AAPL renders as "36.00%" instead of ~0.36%. Cosmetic, single field; the
+  panel is otherwise correct. Fix in a Phase 2 polish pass once the yfinance
+  units behaviour is pinned down across symbols.
