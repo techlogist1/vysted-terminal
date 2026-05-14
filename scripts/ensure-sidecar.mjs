@@ -35,6 +35,29 @@ function run(cmd, opts = {}) {
   execSync(cmd, { stdio: "inherit", ...opts });
 }
 
+/** Synchronous sleep — used only for the copy-retry backoff. */
+function sleepSync(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+/**
+ * Copy a file, retrying on transient locks. A freshly built .exe is often held
+ * briefly by antivirus or the search indexer, which surfaces as EBUSY/EPERM.
+ */
+function copyWithRetry(src, dest, attempts = 10) {
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      copyFileSync(src, dest);
+      return;
+    } catch (err) {
+      const transient = ["EBUSY", "EPERM", "EACCES"].includes(err.code);
+      if (!transient || i === attempts) throw err;
+      console.log(`[ensure-sidecar] ${dest} locked (${err.code}), retry ${i}/${attempts}...`);
+      sleepSync(2000);
+    }
+  }
+}
+
 const triple = targetTriple();
 const ext = isWin ? ".exe" : "";
 const outName = `vysted-sidecar-${triple}${ext}`;
@@ -83,7 +106,7 @@ run(
 
 // 4. Copy to src-tauri/binaries with the Tauri target-triple suffix.
 const built = join(distDir, isWin ? "vysted-sidecar.exe" : "vysted-sidecar");
-copyFileSync(built, outPath);
+copyWithRetry(built, outPath);
 console.log(`[ensure-sidecar] wrote ${outPath}`);
 
 // 5. Tidy PyInstaller scratch directories.
