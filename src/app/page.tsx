@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { CommandPalette } from "@/components/CommandPalette";
 import { PanelHost } from "@/components/PanelHost";
 import { vystedModules } from "@/modules";
+import { WorkspaceDialog } from "@/modules/platform/WorkspaceDialog";
 import { useAppStore } from "@/store/app";
 import { useCommandPalette } from "@/store/command-palette";
 import { useModulesStore } from "@/store/modules";
@@ -18,11 +19,23 @@ export default function Page() {
     useModulesStore.getState().registerModules(vystedModules);
     useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
     void useAppStore.getState().connectSidecar();
+
+    // Keep the cmd+K command list in sync with the module toggles: when the
+    // `enabled` map changes (Settings panel, or a loaded workspace), refresh the
+    // palette so a disabled module's commands disappear and a re-enabled
+    // module's reappear. Subscribing to the `enabled` slice keeps this cheap.
+    const unsubscribe = useModulesStore.subscribe((state, previous) => {
+      if (state.enabled !== previous.enabled) {
+        useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
+      }
+    });
+    return unsubscribe;
   }, []);
 
   return (
     <main className="bg-charcoal-950 h-screen w-screen overflow-hidden">
       <CommandPalette />
+      <WorkspaceDialog />
       <PanelHost />
     </main>
   );
