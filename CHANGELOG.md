@@ -4,6 +4,99 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## v0.2.0 — Phase 1: Data Layer + Core Panels (2026-05-15)
+
+Real market data flowing through five core panels, a dockview layout engine,
+module toggles, workspace save/load, and a wired command palette. Built as a
+five-agent autonomous sprint: a lead-owned data-layer + scaffold foundation,
+four parallel teammates in isolated worktrees, then lead integration.
+
+### Shipped
+
+- **Sidecar data layer.** Restructured into `models/` + `services/` +
+  `routers/`. Providers: yfinance (no-key equity default) and ccxt including
+  ccxt.pro WebSockets (Bybit/Binance/Kraken/Coinbase), behind a provider
+  registry. Pydantic models — `Quote`, `OHLCV*`, `Macro*`, `Fundamentals`, the
+  three financial statements, `AnalystRating`, `NewsItem`, `Position`,
+  `Indicator*` — mirrored by hand in `types/data.ts`. REST plus a crypto
+  WebSocket stream; documented in `docs/SIDECAR_API.md`. Tests mock every
+  provider — no live API calls in CI.
+- **Five panels with real data.** Chart (lightweight-charts, multi-pane,
+  20 server-computed indicators), Watchlist (pre-loaded SPY/QQQ/BTC/ETH/NVDA/
+  AAPL, add-remove, polled live quotes), News (RSS + optional NewsAPI, VADER
+  sentiment per item), Portfolio (manual positions in local SQLite, P&L /
+  weight / concentration computed client-side), Equity Overview (fundamentals +
+  ratios + statement excerpts + analyst ratings).
+- **Platform.** dockview layout engine with a curated first-launch layout
+  (BLUEPRINT §5.1); a `VystedModule` registry; a Settings panel with per-module
+  enable/disable; `.vysted-workspace` save/load (sidecar-owned persistence);
+  cmd+K wired to list, filter, keyboard-navigate, and execute commands.
+- **Tauri core.** `get_sidecar_port` command; per-OS app-data directory passed
+  to the sidecar as `--data-dir`.
+- **CLAUDE.md** gained a "Decision authority" section (four decision tiers) so
+  future autonomous sessions self-resolve spec ambiguities.
+
+### Decisions
+
+- **OpenBB ODP deferred to Phase 2** (Tier-3). The PyInstaller `--onefile`
+  macOS bundle of the OpenBB meta-package cannot be vetted locally, and the
+  blueprint already schedules an OpenBB ODP wrap _plugin_ for Phase 2 — cleaner
+  than baking it into the core sidecar then re-extracting it. yfinance + ccxt
+  serve every Phase 1 panel; the provider registry slots OpenBB in later with
+  no router or panel changes.
+- **dockview** as the layout engine (Tier-3): a native fit for the BLUEPRINT
+  §5.2 customization primitives, maximum sandboxability per product positioning.
+- **Sidecar-owned persistence** (Tier-3): the sidecar owns the portfolio SQLite
+  database and the `workspaces/` directory, avoiding a `tauri-plugin-fs`
+  dependency; the frontend never touches the filesystem.
+- **Lexicon sentiment (VADER)** over a model-based scorer (Tier-3): FinBERT/torch
+  cannot be safely bundled in the `--onefile` binary. Tradeoff: coarser,
+  social-media-tuned scores.
+- **Phase 1.A shipped as two lead commits** — the sidecar data layer plus a
+  frontend module-registry/dockview scaffold — because the brief assumed a
+  "module registry pattern" that Phase 0 had not actually built. The four
+  teammates branched from both.
+- **Conflict-free teammate decomposition.** Each teammate owned a disjoint file
+  set (own module directory + own sidecar router/service/test); only one
+  touched `package.json`, one `requirements.txt`, one the shared stores. All
+  four merges were clean — zero conflicts.
+- Visual verification used the **chrome-devtools MCP** — the session-available
+  browser-automation MCP — driving the browser-rendered frontend against a live
+  sidecar via a mocked Tauri bridge.
+
+### Failed approaches & fixes
+
+- **Local `main` diverged from `origin/main`.** Lead doc commits were made to
+  local `main` but not pushed before branching; the rebase-merge of the Phase
+  1.A PR re-created all four commits with fresh SHAs and `git pull --ff-only`
+  then failed. Fixed with `git reset --hard origin/main` — no content lost,
+  origin was the superset.
+- **PyInstaller `--onefile` orphan-worker `EBUSY`.** Smoke-testing the sidecar
+  binary directly and killing the bootloader PID left the re-exec'd worker
+  alive, holding the binary locked and breaking the next `ensure-sidecar.mjs`
+  copy. Fixed by killing by name wildcard (`vysted-sidecar*`); recorded in
+  CLAUDE.md Gotchas.
+- **`test_app.py` scaffold test went stale.** The Phase 1.A-2 test asserted four
+  stub routers returned a `_status` payload; Phase 1.B replaced the stubs with
+  real endpoints. At integration the test was rewritten to verify the real
+  routers are mounted via the OpenAPI schema, and the vestigial `_status`
+  endpoints were removed.
+
+### Known issues / cosmetic
+
+Recorded in `BLOCKERS.md` — none needs operator action:
+
+- **Chart indicators**: all 20 are computed and unit-tested server-side; five
+  have simplified rendering/semantics — Volume Profile is computed but not yet
+  drawn (needs a horizontal-histogram renderer), Parabolic SAR draws as a line
+  rather than dots, VWAP is running rather than session-anchored, Ichimoku has
+  no forward cloud projection.
+- **News ↔ watchlist linking** is deferred — the feed filters a built-in symbol
+  set rather than the live watchlist store (a module boundary the parallel
+  teammates could not cross).
+- **Equity Overview dividend yield** renders ~100× too large (a yfinance 1.3.0
+  units quirk) — cosmetic, single field.
+
 ## Scope update — global broker execution in v1.0 (2026-05-14)
 
 **Docs-only.** No code changed — `types/plugin.ts` and every other source file are
