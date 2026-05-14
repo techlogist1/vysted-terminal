@@ -1,12 +1,14 @@
-import { createPlaceholderPanel } from "@/components/PlaceholderPanel";
 import type { VystedModule } from "@/lib/module-registry";
 
+import { NewsFeedPanel } from "./NewsFeedPanel";
+
 /**
- * News module — placeholder. Owned by Teammate C (Phase 1.B).
+ * News module — owned by Teammate C (Phase 1.B).
  *
- * Teammate C replaces `panelComponents["news-panel"]` with the real news feed
- * (filtered to watchlist symbols, per-item sentiment score). Keep the module
- * id, the `news-panel` component id, and the `news` panel id stable.
+ * Contributes the News Feed panel: a scrollable feed of headlines with a
+ * per-item lexicon sentiment indicator, tagged with the watchlist symbols each
+ * item mentions. The module id, the `news-panel` component id, and the `news`
+ * panel id are kept stable.
  */
 export const newsModule: VystedModule = {
   id: "news",
@@ -32,6 +34,6 @@ export const newsModule: VystedModule = {
     },
   ],
   panelComponents: {
-    "news-panel": createPlaceholderPanel("News"),
+    "news-panel": NewsFeedPanel,
   },
 };
