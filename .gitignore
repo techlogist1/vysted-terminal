@@ -31,10 +31,3 @@ Thumbs.db
 
 # Local planning artifacts (not a repo deliverable)
 docs/superpowers/
-
-# Source blueprint is relocated to docs/BLUEPRINT.md in Task 2
-/vystedterminalblueprint.md
-
-# Blueprint stays untracked until operator sanitization (Gate 2 / Task 18);
-# remove this line then to commit the sanitized docs/BLUEPRINT.md.
-/docs/BLUEPRINT.md
