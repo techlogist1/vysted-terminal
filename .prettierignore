@@ -7,6 +7,7 @@ src-tauri/gen/
 sidecar/.venv/
 sidecar/build/
 sidecar/dist/
+**/.pytest_cache/
 pnpm-lock.yaml
 docs/BLUEPRINT.md
 docs/superpowers/

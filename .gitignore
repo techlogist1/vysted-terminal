@@ -13,6 +13,7 @@ sidecar/build/
 sidecar/dist/
 sidecar/__pycache__/
 **/__pycache__/
+**/.pytest_cache/
 
 # Tauri updater private signing key — never commit
 src-tauri/*.key
