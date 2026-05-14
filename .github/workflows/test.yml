@@ -42,13 +42,18 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      # Guarantee `cargo` resolves to the rustup proxy. On some macOS runner
-      # images a stale binary shadows it and `cargo metadata` hits rustup-init.
-      - name: Pin cargo to the rustup toolchain
+      # GitHub's macos-latest image ships a non-standard Rust layout: every
+      # ~/.cargo/bin proxy is a symlink to `rustup`, which symlinks to the
+      # `rustup-init` binary. Point CARGO and PATH straight at the real
+      # toolchain binary so tooling never resolves cargo to rustup-init.
+      - name: Use the real rustup toolchain cargo (macOS)
+        if: matrix.os == 'macos-latest'
         shell: bash
         run: |
-          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          rustup default stable
+          toolchain_bin="$(dirname "$(rustup which cargo)")"
+          echo "CARGO=$toolchain_bin/cargo" >> "$GITHUB_ENV"
+          echo "$toolchain_bin" >> "$GITHUB_PATH"
+          "$toolchain_bin/cargo" --version
 
       - uses: Swatinem/rust-cache@v2
         with:
