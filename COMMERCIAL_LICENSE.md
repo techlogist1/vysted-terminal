@@ -29,6 +29,20 @@ You need a commercial license if any of the following apply:
   releasing the complete corresponding source under the AGPL-3.0.
 - Your organization's policy prohibits AGPL-3.0 software.
 
+## No warranty for trading losses
+
+From v1.0, Vysted Terminal can place live orders against real brokerage accounts. It
+is a tool, not financial advice — nothing it displays or generates, including
+AI-agent output, is a recommendation to trade.
+
+This commercial license is provided **without warranty of any kind**. To the maximum
+extent permitted by law, the licensor is not liable for any trading or financial loss
+arising from use of the software — including losses from defects, data errors,
+latency, failed or duplicated orders, or AI-agent behaviour. This mirrors the warranty
+and liability disclaimers of the AGPL-3.0 (§15–16) and applies equally to commercial
+licensees. The software is provided "as is." The licensee is responsible for their own
+broker relationship and for all trading decisions and outcomes.
+
 ## Pricing tiers (DRAFT — TBD, finalized at v1.0 launch)
 
 | Tier                 | Audience                    | Price (DRAFT) |
