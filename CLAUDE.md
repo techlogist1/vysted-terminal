@@ -65,6 +65,35 @@ safety layer in `docs/BLUEPRINT.md` §6.5.
   docs). The lead reviews every diff before merge.
 - **Haiku** — log parsing and high-volume mechanical scanning.
 
+## Decision authority
+
+How a session resolves a choice depends on its blast radius. Four tiers:
+
+1. **Locked** — decisions in `docs/BLUEPRINT.md` §2 "Locked Decisions Summary".
+   Never reopen. *E.g.* the stack (Tauri + Next.js + Python sidecar); AGPL-3.0 +
+   commercial dual license; global broker execution in v1.0 scope.
+2. **Spec-derivable** — the phase brief or blueprint settles it on a careful
+   read. Decide and proceed; no asking, no documentation beyond the commit.
+   *E.g.* which Pydantic models a phase needs (the brief enumerates them); a
+   brief's stated teammate merge order; that the AI chat sidebar is Phase 3.
+3. **Spec-ambiguous, derives from DNA** — the spec is silent, but the product
+   positioning (finance sandbox, max extensibility, local-first, BYOK,
+   research-lab voice) points to an answer. Decide from positioning, record it
+   as a one-line append to `CHANGELOG.md` or `docs/BLUEPRINT.md`, continue.
+   *E.g.* dockview chosen as layout engine; rationale: max sandboxability per
+   product positioning; supports BLUEPRINT §5.2 customization primitives
+   natively. *E.g.* sidecar-owned vs Tauri-owned persistence; lexicon vs
+   model-based sentiment given the PyInstaller `--onefile` constraint.
+4. **High blast radius** — the plugin contract (`types/plugin.ts`), licensing,
+   the §6.5 execution safety model, or core architecture (the layer model, the
+   sidecar boundary). Block and ask the operator. *E.g.* any `types/plugin.ts`
+   change; altering AGPL/commercial terms; weakening a §6.5 safeguard.
+
+Only Tier 4 surfaces to the operator. Tiers 2 and 3 are autonomous — Tier 3 with
+a documentation trail. Do not ask permission for spec ambiguities that DNA can
+settle; that is what Tier 3 is for. `BLOCKERS.md` (repo root) is for genuine
+Tier-4 blocks and hard blockers hit while the operator is unavailable.
+
 ## Gotchas
 
 Non-obvious traps and their fixes — append a line or two as they are found, so
