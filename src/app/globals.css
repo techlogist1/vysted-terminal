@@ -3,6 +3,10 @@
 /* Vysted design-token primitives (charcoal/amber/sage palette, serif+mono fonts). */
 @import "../../styles/tokens.css";
 
+/* dockview layout-engine base styles — imported here, before the Vysted theme
+   override below, so the override reliably wins the cascade. */
+@import "dockview/dist/styles/dockview.css";
+
 /* Map the Vysted primitives onto shadcn/ui's semantic names. Literal fallbacks
    keep this resilient if a token is ever missing. */
 @theme inline {
@@ -45,4 +49,30 @@
   h3 {
     font-family: var(--font-serif, ui-serif, Georgia, serif);
   }
+}
+
+/* dockview layout-engine theme, mapped to the Vysted palette. The panel host
+   applies `dockview-theme-dark dockview-theme-vysted`; the dark theme supplies
+   defaults and this rule overrides the visible surfaces. */
+.dockview-theme-vysted {
+  --dv-group-view-background-color: var(--color-charcoal-900, #1c1916);
+  --dv-activegroup-visiblepanel-tab-background-color: var(--color-charcoal-900, #1c1916);
+  --dv-activegroup-visiblepanel-tab-color: var(--color-charcoal-100, #e8e3d6);
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--color-charcoal-850, #232019);
+  --dv-activegroup-hiddenpanel-tab-color: var(--color-charcoal-400, #8a8170);
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--color-charcoal-850, #232019);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--color-charcoal-400, #8a8170);
+  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--color-charcoal-850, #232019);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--color-charcoal-600, #4d4639);
+  --dv-separator-border: 1px solid var(--color-charcoal-700, #3a352c);
+  --dv-tab-divider-color: var(--color-charcoal-700, #3a352c);
+  --dv-paneview-header-border-color: var(--color-charcoal-700, #3a352c);
+  --dv-paneview-active-outline-color: var(--color-amber-400, #e9a94d);
+  --dv-active-sash-color: var(--color-amber-500, #d98e2b);
+  --dv-sash-color: transparent;
+  --dv-context-menu-background-color: var(--color-charcoal-850, #232019);
+  --dv-context-menu-color: var(--color-charcoal-200, #c9c2b2);
+  --dv-icon-hover-background-color: var(--color-charcoal-700, #3a352c);
+  --dv-drag-over-background-color: rgb(233 169 77 / 0.12);
+  --dv-tab-font-size: 12px;
 }
