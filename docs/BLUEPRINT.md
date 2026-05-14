@@ -62,6 +62,7 @@ Vysted Terminal is an **open-source AI-native finance terminal** — Bloomberg-l
 | MCP server | In v1.0 |
 | Backtest engine | In v1.0 (Python sidecar) |
 | Node editor | In v1.0 (react-flow) |
+| Broker execution | Global broker support + execution in v1.0 — six brokers + ccxt crypto wrap, paper-mode default, shared safety layer (§6.5) |
 | Web companion | Deferred to v2.0+ |
 | Hosted backend | None — fully local, BYOK |
 
@@ -283,13 +284,28 @@ Adding agents = adding JSON configs. Plugins can contribute agents. Custom Agent
 - Module toggle UI in settings (every module enable/disable)
 - Workspace save/load/export/import (`.vysted-workspace` JSON files)
 
-### Tradesa V2 Plugin (one plugin, multi-panel)
-Implements all six plugin capabilities:
+### Broker & Trading Plugins
+
+Execution is a v1.0 capability, not a deferral. Each broker is a **separate plugin** implementing the existing `VystedPlugin` contract — no contract changes (data via `getDataSources`, panels via `getPanels`, order actions via `executeCommand`). Every broker plugin routes execution through the shared safety layer in §6.5.
+
+**Tradesa V2 plugin** (one plugin, multi-panel) — still the proof-of-platform exercise, implementing all six plugin capabilities:
 - 9-12 panels (decisions feed, open positions, P&L chart, trade history, watcher activity, sentinel/health, alerts, LLM cost, settings drift, reflection stream)
-- Real-time WebSocket connection to Tradesa bot
+- Real-time WebSocket connection to the Tradesa bot
+- Crypto execution via Bybit testnet, wrapped in the §6.5 safety layer
 - Optional control plane (kill switch trigger, manual position close)
-- Tradesa-specific agents (Decision Reviewer, Reflection Analyst)
-- Tradesa-specific node-editor nodes (e.g., "Wait for Tradesa decision")
+- Tradesa-specific agents (Decision Reviewer, Reflection Analyst) and node-editor nodes (e.g., "Wait for Tradesa decision")
+
+**Broker execution plugins** (v1.0) — six brokers plus a ccxt crypto execution wrap, seven broker integrations in total, each free or near-free for retail:
+
+| Plugin | Region | API cost | Python SDK | Notes |
+|--------|--------|----------|------------|-------|
+| Dhan | India | Free | `dhanhq` (MIT, v2.1.0+) | Orders, holdings, 200-level market depth, WebSocket; built-in static-IP management |
+| Angel One SmartAPI | India | Free, incl. historical data | `smartapi-python` | REST + WebSocket; no static-IP requirement |
+| Zerodha Kite Connect | India | Personal API free for execution + account data; Connect API ₹500/mo (~$6 USD) adds real-time + historical data | `kiteconnect` | **Static IP required for order placement since 1 April 2025** — SEBI/NSE algo-trading rule, not a Zerodha policy; up to 2 static IPs per account; data/holdings/positions endpoints unaffected |
+| Alpaca | US / global | Free Basic trading (commission-free US equities/options/crypto); paid Algo Trader Plus for full market data; paper trading free | `alpaca-py` | Use `alpaca-py` — not the deprecated `alpaca-trade-api` |
+| Interactive Brokers | Global, multi-asset | Free, account-based | `ib_async` (v2.1.0) | Use `ib_async` (github.com/ib-api-reloaded/ib_async) — not the discontinued `ib_insync`; requires TWS or IB Gateway running locally |
+| OANDA v20 | Forex | Free with an fxTrade account (demo or live) | `oandapyV20` (community) | No API cost beyond holding the brokerage account |
+| Crypto (ccxt) | Global | Per-exchange | `ccxt` | Execution wrap over the Phase 1 ccxt data layer — same §6.5 safety layer as every other broker plugin |
 
 ### Infrastructure (5, not user-facing)
 - MCP server for external AI tool access
@@ -378,6 +394,42 @@ Until paid Apple Developer cert: `terminal.vysted.com/install/mac` shows:
 - OR: "System Settings → Privacy & Security → Click 'Open Anyway' next to Vysted Terminal"
 - ~30 second one-time bypass per Mac
 
+### 6.4 Execution liability
+
+From v1.0, Vysted Terminal places live orders against real brokerage accounts. Order placement carries real financial risk — market, execution, and operational risk all sit with the user, not the software.
+
+- **Vysted Terminal is a tool, not financial advice.** Nothing the terminal displays, computes, or generates — including AI-agent output — is a recommendation to buy, sell, or hold any instrument. Trading decisions and their consequences are the user's alone.
+- **No warranty for trading losses.** The AGPL-3.0 (§15 Disclaimer of Warranty, §16 Limitation of Liability) already disclaims all warranties and all liability for the software. For the avoidance of doubt, that disclaimer extends explicitly to trading and financial losses — including losses arising from defects, data errors, latency, failed or duplicated orders, or AI-agent behaviour. The software is provided "as is."
+- **The user owns the broker relationship.** Each broker's own terms, margin rules, and regulatory obligations continue to apply. Vysted Terminal is not a broker, an introducing broker, or an investment adviser.
+
+`COMMERCIAL_LICENSE.md` mirrors this with an explicit no-warranty-for-trading-losses clause, so commercial licensees carry the same disclaimer in their own contract. The operational safety design that backs these commitments is §6.5.
+
+### 6.5 Safety Architecture for Execution
+
+Live order placement is gated behind a fixed set of safeguards. These are non-negotiable design constraints for every broker plugin — Phase 5 implements them, and no broker plugin ships without them.
+
+**1. Paper mode is the default.** Every broker plugin starts in paper-trading mode. Live trading is opt-in per broker, toggled by the user, and the first time a plugin is switched to live it shows a dedicated disclaimer dialog that must be explicitly acknowledged. There is no global "enable everything" shortcut — the decision is made one broker at a time.
+
+**2. Every order is confirmed.** No order — paper or live — is placed without a confirmation dialog showing the full order: symbol, quantity, side, order type, limit price, estimated value, broker, and account ID. There are no one-click trades anywhere in the app, in any panel, for any broker.
+
+**3. Position-size limits are configurable per plugin.** Each broker plugin carries soft default caps — maximum order value, maximum percentage of account, and maximum position size per symbol. The user can raise a limit, but only through an explicit confirmation step; the defaults are conservative on purpose.
+
+**4. Every order is audit-logged.** Each order — whether placed manually or initiated by an AI agent — is written to a local SQLite audit log: timestamp, broker, full request payload, broker response, and outcome. The log is exportable and survives app restarts. It is the user's own record of what the terminal did on their behalf.
+
+**5. There is a global kill switch.** A prominent, always-visible "Halt All Trading" control in the main UI immediately disables order placement across every broker plugin at once. It is designed to be found and used under stress, without hunting through settings.
+
+**6. AI-initiated orders carry an extra gate.** When a node-editor workflow or an AI agent attempts to place an order, the confirmation dialog opens **defaulted to declined** and names the agent: "AI agent `<name>` is requesting this order." An optional auto-approve mode exists but is off by default and must be enabled explicitly, per agent. The terminal never lets an AI place an order the user did not see.
+
+**7. Plugins can be marked read-only.** Even with live trading globally enabled, any individual broker plugin can be set to view-only — useful, for example, for an Interactive Brokers institutional account the user wants to research from but never execute against. Read-only is enforced at the plugin boundary, not just in the UI.
+
+**8. Liability is disclosed at every entry point.** The disclaimers in §6.4 are surfaced to the user at four touchpoints, not buried in a file:
+- **AGPL-3.0 `LICENSE`** — §15–16 disclaim all warranty and liability; §6.4 records that this extends explicitly to trading losses. (The AGPL text itself is verbatim and unmodified.)
+- **`COMMERCIAL_LICENSE.md`** — an explicit no-warranty-for-trading-losses clause, so commercial licensees carry the same disclaimer.
+- **First-launch app TOS dialog** — a one-time acknowledgment the user must accept before *any* broker plugin can be enabled at all.
+- **Per-broker first-connect dialog** — a broker-specific terms-and-conditions reminder shown the first time the user connects each broker.
+
+Together these make the execution path conservative by construction: paper by default, confirmed every time, capped, logged, haltable, extra-gated for AI, and disclosed up front.
+
 ---
 
 ## 7. Phase Breakdown (Phase 0 → v1.0 Launch)
@@ -439,14 +491,12 @@ All phases ship as part of v1.0 — no MVP, no Phase 2 deferrals. Phases are **C
 - AI Strategy Critic agent (analyzes backtest results)
 - Workspace export/import as `.vysted-workspace` files
 
-### Phase 5 — Tradesa V2 Plugin
-- Tradesa V2 full plugin implementation
-- 9-12 panels for Tradesa observability
-- Real-time WebSocket to Tradesa bot
-- Optional control plane (kill switch, manual position close)
-- Settings drift detection
-- LLM cost tracking
-- Tradesa-specific agents + nodes
+### Phase 5 — Broker & Trading Plugins
+- **Shared execution safety layer** (§6.5) — paper-mode default, per-order confirmation dialog, configurable position-size limits, SQLite audit log, global kill switch, AI-order gate, per-plugin read-only mode, layered disclaimer dialogs. Built once, used by every broker plugin.
+- **Tradesa V2 full plugin** — all six plugin capabilities; 9-12 observability panels; real-time WebSocket to the Tradesa bot; crypto execution via Bybit testnet; optional control plane (kill switch, manual position close); settings drift detection; LLM cost tracking; Tradesa-specific agents + nodes.
+- **Global broker execution plugins** — Dhan, Angel One SmartAPI, Zerodha Kite Connect, Alpaca, Interactive Brokers, OANDA v20, and a ccxt crypto execution wrap. Each is a separate plugin on the existing `VystedPlugin` contract, routed through the shared safety layer. Kite's static-IP-for-orders constraint is surfaced in-app.
+
+Original Phase 5 was the Tradesa V2 plugin alone (~3-5 days); the scope grows to absorb broker integration and the safety layer (~6-8 days). The phase is not split — the numbering is unchanged.
 
 ### Phase 6 — Macro + Research + QuantLib
 - Macro/economic data panels (FRED, ECB, IMF, World Bank)
@@ -488,7 +538,7 @@ All phases ship as part of v1.0 — no MVP, no Phase 2 deferrals. Phases are **C
 **v1.1 (post-launch patches, weeks 1-4 after launch):**
 - Additional indicators (50 → 100)
 - More AI agents (12 → 20+)
-- Broker integration scaffold (read-only at first)
+- Additional broker plugins — Upstox, Fyers, Samco, Shoonya, Tradier, DEGIRO, MT5 bridge — community-pluggable on the existing plugin contract
 - Plugin marketplace UI (locally browse, no online catalog yet)
 
 **v1.5 (months 2-6 after launch):**
@@ -502,8 +552,7 @@ All phases ship as part of v1.0 — no MVP, no Phase 2 deferrals. Phases are **C
 - Online plugin marketplace + community workspace gallery
 - Workspace sharing community
 - Hosted version (subscription SaaS option) — requires hosted backend, decided when revenue justifies it
-- Real broker integrations (16+ brokers like Fincept)
-- Multi-bot plugins (Forge Bot, Kite real-trading, etc.)
+- Multi-bot plugins (Forge Bot, etc.)
 - Alternative data (maritime tracking, satellite, geopolitical)
 - Mac App Store / Microsoft Store submissions
 
@@ -528,6 +577,9 @@ Workspace with yield curves + central bank tracker + commodity dashboard → AI 
 
 ### Use Case 6: Plugin Ecosystem (year 2+)
 Indie trading bot devs implement Vysted's plugin contract → their users get Vysted Terminal as free dashboard → Vysted becomes standard UX layer for open-source trading infrastructure.
+
+### Use Case 7: Multi-Broker Portfolio Aggregation
+A user holds positions across Zerodha Kite, Dhan, and Alpaca. One Vysted workspace pulls all three broker plugins into a unified view: aggregate P&L up top, per-broker drilldown panels below, and cross-broker risk metrics — concentration, correlation, total exposure — computed across the combined book. Execution stays per-broker and behind every §6.5 safeguard; the aggregation is read-side only.
 
 ---
 
