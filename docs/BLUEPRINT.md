@@ -49,7 +49,7 @@ Vysted Terminal is an **open-source AI-native finance terminal** — Bloomberg-l
 | Product name | Vysted Terminal |
 | Org name | Vysted |
 | Domain | vysted.com + terminal.vysted.com |
-| Stack (UI) | Tauri 2.x + Next.js 14 + TypeScript + Tailwind + shadcn/ui |
+| Stack (UI) | Tauri 2.x + Next.js 16 + TypeScript + Tailwind 4 + shadcn/ui |
 | Stack (charts) | lightweight-charts + react-flow + Framer Motion + Zustand |
 | Backend | Local Python sidecar (FastAPI on localhost) |
 | Data layer | OpenBB ODP wrapped as runtime sidecar (~100 providers) |
@@ -87,7 +87,7 @@ Vysted Terminal is an **open-source AI-native finance terminal** — Bloomberg-l
 - ccxt for unified crypto WebSockets (Bybit, Binance, Kraken, Coinbase)
 - MCP server for external AI tool access
 
-**TypeScript + React layer (Next.js 14):**
+**TypeScript + React layer (Next.js 16 + React 19):**
 - All UI rendering
 - Lightweight-charts for financial charting
 - react-flow for node editor
@@ -229,7 +229,7 @@ Adding agents = adding JSON configs. Plugins can contribute agents. Custom Agent
 
 ### Foundation (8)
 1. Tauri 2.x desktop shell (Win/Mac/Linux)
-2. Next.js 14 frontend skeleton
+2. Next.js 16 frontend skeleton
 3. Tailwind + shadcn/ui design system (Vysted aesthetic: charcoal + warm amber + sage + serif-meets-monospace typography)
 4. Command bar with slash commands (cmd+K)
 5. Multi-window / multi-tab layout
