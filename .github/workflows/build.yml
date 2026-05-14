@@ -46,6 +46,14 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
+      # Guarantee `cargo` resolves to the rustup proxy. On some macOS runner
+      # images a stale binary shadows it and `cargo metadata` hits rustup-init.
+      - name: Pin cargo to the rustup toolchain
+        shell: bash
+        run: |
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          rustup default stable
+
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
