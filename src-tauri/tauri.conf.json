@@ -1,0 +1,50 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Vysted Terminal",
+  "version": "0.1.0",
+  "identifier": "com.vysted.terminal",
+  "build": {
+    "frontendDist": "../out",
+    "devUrl": "http://localhost:3000",
+    "beforeDevCommand": "node scripts/ensure-sidecar.mjs && pnpm dev",
+    "beforeBuildCommand": "node scripts/ensure-sidecar.mjs && pnpm build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Vysted Terminal",
+        "width": 1280,
+        "height": 832,
+        "minWidth": 960,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "theme": "Dark"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["deb", "appimage", "nsis", "app", "dmg"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "externalBin": ["binaries/vysted-sidecar"],
+    "createUpdaterArtifacts": false
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/techlogist1/vysted-terminal/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVFMzkyRTdGQTAzNUM1MTQKUldRVXhUV2dmeTQ1WHQ5WTFJVUV5VjIvVm8rNTdhTzJSaHllbGloTm9PWWcwbHBZazRKRHZZckQK"
+    }
+  }
+}
