@@ -46,6 +46,13 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
+      - name: DEBUG cargo state after rust-toolchain
+        shell: bash
+        run: |
+          echo "which cargo: $(command -v cargo || echo none)"
+          file "$(command -v cargo)" || true
+          cargo --version || echo "cargo --version FAILED"
+
       # Guarantee `cargo` resolves to the rustup proxy. On some macOS runner
       # images a stale binary shadows it and `cargo metadata` hits rustup-init.
       - name: Pin cargo to the rustup toolchain
@@ -60,6 +67,19 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: DEBUG cargo state before tauri build
+        shell: bash
+        run: |
+          echo "=== PATH ==="; echo "$PATH" | tr ':' '\n'
+          echo "=== which -a cargo ==="; which -a cargo || true
+          echo "=== file cargo ==="; file "$(command -v cargo)" || true
+          echo "=== cargo --version ==="; cargo --version || echo FAILED
+          echo "=== cargo metadata (direct) ==="; (cd src-tauri && cargo metadata --no-deps --format-version 1 >/dev/null && echo OK || echo FAILED)
+          echo "=== ls -la ~/.cargo/bin ==="; ls -la "$HOME/.cargo/bin" || true
+          echo "=== which -a rustup-init ==="; which -a rustup-init || true
+          echo "=== rustup which cargo ==="; rustup which cargo || true
+          echo "=== env CARGO/RUSTUP ==="; env | grep -iE '^(CARGO|RUSTUP)' || true
 
       - name: Build Tauri bundle (unsigned)
         run: pnpm tauri build
