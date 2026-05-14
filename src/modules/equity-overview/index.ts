@@ -1,13 +1,11 @@
-import { createPlaceholderPanel } from "@/components/PlaceholderPanel";
 import type { VystedModule } from "@/lib/module-registry";
 
+import { EquityOverviewPanel } from "./EquityOverviewPanel";
+
 /**
- * Equity Overview module — placeholder. Owned by Teammate B (Phase 1.B).
- *
- * Teammate B replaces `panelComponents["equity-overview-panel"]` with the real
- * panel (price + ratios + statement excerpts + analyst ratings for the selected
- * symbol). Keep the module id, the `equity-overview-panel` component id, and the
- * `equity-overview` panel id stable.
+ * Equity Overview module — price, valuation ratios, financial-statement
+ * excerpts, and analyst ratings for a selected symbol in one view. Owned by
+ * Teammate B (Phase 1.B).
  */
 export const equityOverviewModule: VystedModule = {
   id: "equity-overview",
@@ -33,6 +31,6 @@ export const equityOverviewModule: VystedModule = {
     },
   ],
   panelComponents: {
-    "equity-overview-panel": createPlaceholderPanel("Equity Overview"),
+    "equity-overview-panel": EquityOverviewPanel,
   },
 };

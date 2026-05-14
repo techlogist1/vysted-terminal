@@ -1,13 +1,11 @@
-import { createPlaceholderPanel } from "@/components/PlaceholderPanel";
 import type { VystedModule } from "@/lib/module-registry";
 
+import { PortfolioPanel } from "./PortfolioPanel";
+
 /**
- * Portfolio module — placeholder. Owned by Teammate B (Phase 1.B).
- *
- * Teammate B replaces `panelComponents["portfolio-panel"]` with the real
- * portfolio panel (positions from SQLite, P&L, weight, basic risk metrics).
- * Keep the module id, the `portfolio-panel` component id, and the `portfolio`
- * panel id stable.
+ * Portfolio module — manual positions from the sidecar SQLite store, with P&L,
+ * weight, and basic risk metrics computed client-side. Owned by Teammate B
+ * (Phase 1.B).
  */
 export const portfolioModule: VystedModule = {
   id: "portfolio",
@@ -33,6 +31,6 @@ export const portfolioModule: VystedModule = {
     },
   ],
   panelComponents: {
-    "portfolio-panel": createPlaceholderPanel("Portfolio"),
+    "portfolio-panel": PortfolioPanel,
   },
 };
