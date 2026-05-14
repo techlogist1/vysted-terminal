@@ -1,0 +1,47 @@
+/* Vysted Terminal — design tokens.
+ *
+ * The Vysted aesthetic: vintage warmth (warm-tinted charcoals, never flat black)
+ * meeting Stark dynamism (decisive amber accents, sage counterpoint, sharp
+ * serif-meets-monospace type). Dark mode is the default and only mode in Phase 0.
+ *
+ * Defined as a Tailwind 4 @theme block so every token is also a utility class
+ * (bg-charcoal-900, text-amber-400, font-serif, ...). Semantic mapping to
+ * shadcn/ui names lives in src/app/globals.css.
+ */
+
+@theme {
+  /* --- Charcoal base — warm-tinted darks, the vintage-warmth foundation --- */
+  --color-charcoal-950: #14110f;
+  --color-charcoal-900: #1c1916;
+  --color-charcoal-850: #232019;
+  --color-charcoal-800: #2a2620;
+  --color-charcoal-700: #3a352c;
+  --color-charcoal-600: #4d4639;
+  --color-charcoal-400: #8a8170;
+  --color-charcoal-200: #c9c2b2;
+  --color-charcoal-100: #e8e3d6;
+
+  /* --- Warm amber — the primary accent, Stark dynamism --- */
+  --color-amber-300: #f4c87a;
+  --color-amber-400: #e9a94d;
+  --color-amber-500: #d98e2b;
+  --color-amber-600: #b8701a;
+
+  /* --- Sage — cool highlight, the counterpoint to amber --- */
+  --color-sage-300: #b6c4a8;
+  --color-sage-400: #8fa67c;
+  --color-sage-500: #6d8559;
+
+  /* --- Signal colors — gains and losses --- */
+  --color-positive: #7faa6b;
+  --color-negative: #c8654b;
+
+  /* --- Typography — serif headings meet monospace data ---
+   * The --font-* values are supplied by next/font in src/app/layout.tsx. */
+  --font-serif: var(--font-newsreader), ui-serif, Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace;
+
+  /* --- Radius rhythm --- */
+  --radius-panel: 0.5rem;
+  --radius-control: 0.375rem;
+}

@@ -1,7 +1,48 @@
 @import "tailwindcss";
 
-html,
-body {
-  background-color: #14110f;
-  color: #e8e3d6;
+/* Vysted design-token primitives (charcoal/amber/sage palette, serif+mono fonts). */
+@import "../../styles/tokens.css";
+
+/* Map the Vysted primitives onto shadcn/ui's semantic names. Literal fallbacks
+   keep this resilient if a token is ever missing. */
+@theme inline {
+  --color-background: var(--color-charcoal-950, #14110f);
+  --color-foreground: var(--color-charcoal-100, #e8e3d6);
+  --color-card: var(--color-charcoal-900, #1c1916);
+  --color-card-foreground: var(--color-charcoal-100, #e8e3d6);
+  --color-popover: var(--color-charcoal-850, #232019);
+  --color-popover-foreground: var(--color-charcoal-100, #e8e3d6);
+  --color-primary: var(--color-amber-400, #e9a94d);
+  --color-primary-foreground: var(--color-charcoal-950, #14110f);
+  --color-secondary: var(--color-charcoal-800, #2a2620);
+  --color-secondary-foreground: var(--color-charcoal-100, #e8e3d6);
+  --color-muted: var(--color-charcoal-800, #2a2620);
+  --color-muted-foreground: var(--color-charcoal-400, #8a8170);
+  --color-accent: var(--color-sage-400, #8fa67c);
+  --color-accent-foreground: var(--color-charcoal-950, #14110f);
+  --color-border: var(--color-charcoal-700, #3a352c);
+  --color-input: var(--color-charcoal-700, #3a352c);
+  --color-ring: var(--color-amber-400, #e9a94d);
+  --color-destructive: var(--color-negative, #c8654b);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html,
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-mono, ui-monospace, "SF Mono", monospace);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-serif, ui-serif, Georgia, serif);
+  }
 }
