@@ -1,14 +1,16 @@
-import { createPlaceholderPanel } from "@/components/PlaceholderPanel";
 import type { VystedModule } from "@/lib/module-registry";
 
+import ChartPanel from "./ChartPanel";
+
 /**
- * Chart module — placeholder. Owned by Teammate A (Phase 1.B).
+ * Chart module — owned by Teammate A (Phase 1.B).
  *
- * Teammate A replaces `panelComponents["chart-panel"]` with the real
- * lightweight-charts chart panel (multi-pane sync, symbol + timeframe controls,
- * 20-indicator selector) and may extend `panels` / `commands`. Keep the module
- * id, the `chart-panel` component id, and the `chart` panel id stable —
- * `src/modules/index.ts` and the first-launch layout reference them.
+ * Ships the lightweight-charts chart panel: a candlestick chart with a symbol
+ * input, an eight-step timeframe selector, and a 20-indicator multi-select
+ * whose indicators are computed server-side and rendered as price-pane overlays
+ * or synced oscillator panes. The module id, the `chart-panel` component id,
+ * and the `chart` panel id are kept stable — `src/modules/index.ts` and the
+ * first-launch layout reference them.
  */
 export const chartModule: VystedModule = {
   id: "chart",
@@ -34,6 +36,6 @@ export const chartModule: VystedModule = {
     },
   ],
   panelComponents: {
-    "chart-panel": createPlaceholderPanel("Chart"),
+    "chart-panel": ChartPanel,
   },
 };

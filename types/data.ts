@@ -153,3 +153,41 @@ export interface PositionInput {
   opened_at: string | null;
   note: string | null;
 }
+
+// --- indicators -----------------------------------------------------------
+// Mirror of sidecar/models/indicators.py — the chart panel's overlay contract.
+
+/** Which chart pane an indicator renders on. */
+export type IndicatorPanel = "price" | "separate";
+
+/**
+ * A single `(time, value)` sample on an indicator line. `time` is an ISO-8601
+ * timestamp mirrored from the source OHLCV bar; a `null` value marks a gap
+ * where the indicator is undefined (e.g. a moving average's warm-up window).
+ * Volume Profile overloads `time` with a price-level label — see its model.
+ */
+export interface IndicatorPoint {
+  time: string;
+  value: number | null;
+}
+
+/** One named line within an indicator (an indicator may plot several). */
+export interface IndicatorLine {
+  label: string;
+  points: IndicatorPoint[];
+}
+
+/** The full result of computing one indicator over an OHLCV series. */
+export interface IndicatorSeries {
+  name: string;
+  panel: IndicatorPanel;
+  lines: IndicatorLine[];
+}
+
+/** The `/indicators/{symbol}` payload — every requested indicator. */
+export interface IndicatorResponse {
+  symbol: string;
+  timeframe: string;
+  provider: string;
+  indicators: IndicatorSeries[];
+}
