@@ -6,10 +6,6 @@ lives in ``services.workspace_store``. A workspace body is opaque JSON — the
 frontend serialises the dockview layout and the modules ``enabled`` map into it
 and the sidecar stores it as-is. This file is already mounted by
 ``app.create_app`` — only edit this file, not ``app.py``.
-
-The ``/_status`` probe is kept alongside the real endpoints so the shared
-``test_app`` router-mount check stays green (a Tier-2 call — see the commit
-message); it is otherwise unused.
 """
 
 from __future__ import annotations
@@ -35,12 +31,6 @@ class SaveWorkspaceRequest(BaseModel):
 
     name: str
     workspace: dict[str, Any] = Field(default_factory=dict)
-
-
-@router.get("/_status")
-def status() -> dict[str, str]:
-    """Liveness probe kept for the shared ``test_app`` router-mount check."""
-    return {"status": "stub", "router": "workspace", "owner": "teammate-d"}
 
 
 @router.get("")

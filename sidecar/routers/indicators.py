@@ -25,18 +25,8 @@ def _parse_indicators(raw: str) -> list[str]:
     return [token.strip() for token in raw.split(",") if token.strip()]
 
 
-# NOTE: the static routes below are declared before ``/{symbol}`` so FastAPI
-# matches them first — otherwise ``/indicators/_status`` would resolve as a
-# symbol named "_status".
-
-
-@router.get("/_status")
-def status() -> dict[str, str]:
-    """Wiring probe — kept so the shared ``test_app`` mount check stays valid.
-
-    The router is fully implemented; this endpoint only confirms it is mounted.
-    """
-    return {"status": "stub", "router": "indicators", "owner": "teammate-a"}
+# NOTE: the static ``GET /indicators`` route is declared before ``/{symbol}``
+# so FastAPI matches it first rather than treating "indicators" as a symbol.
 
 
 @router.get("")

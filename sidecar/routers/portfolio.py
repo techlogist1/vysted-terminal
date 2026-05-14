@@ -6,10 +6,6 @@ in v1.0 — broker connection is Phase 5. Persistence lives in
 the portfolio panel computes P&L, weight, and risk metrics in the frontend by
 joining these stored positions against live quotes. This file is already
 mounted by ``app.create_app`` — only edit this file, not ``app.py``.
-
-The ``_status`` probe is retained alongside the real CRUD endpoints so the
-shared ``test_app.py`` mount check (owned by the lead) stays green until every
-Phase 1.B teammate's stub is reconciled at merge — a Tier-3 call.
 """
 
 from __future__ import annotations
@@ -20,12 +16,6 @@ from models.portfolio import Position, PositionInput
 from services import portfolio_db
 
 router = APIRouter(prefix="/portfolio", tags=["portfolio"])
-
-
-@router.get("/_status")
-def get_status() -> dict[str, str]:
-    """Liveness probe retained for the shared router-mount test."""
-    return {"status": "stub", "router": "portfolio", "owner": "teammate-b"}
 
 
 @router.get("/positions")

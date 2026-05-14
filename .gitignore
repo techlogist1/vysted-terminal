@@ -31,3 +31,6 @@ Thumbs.db
 
 # Local planning artifacts (not a repo deliverable)
 docs/superpowers/
+
+# Harness-managed agent worktrees and local state
+.claude/
