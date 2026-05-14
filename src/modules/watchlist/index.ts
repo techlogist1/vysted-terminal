@@ -1,13 +1,10 @@
-import { createPlaceholderPanel } from "@/components/PlaceholderPanel";
 import type { VystedModule } from "@/lib/module-registry";
 
+import { WatchlistPanel } from "./WatchlistPanel";
+
 /**
- * Watchlist module — placeholder. Owned by Teammate B (Phase 1.B).
- *
- * Teammate B replaces `panelComponents["watchlist-panel"]` with the real
- * watchlist panel (pre-loaded symbols, add/remove, real-time updates). Keep the
- * module id, the `watchlist-panel` component id, and the `watchlist` panel id
- * stable.
+ * Watchlist module — pre-loaded symbols, add/remove, polled live quotes.
+ * Owned by Teammate B (Phase 1.B).
  */
 export const watchlistModule: VystedModule = {
   id: "watchlist",
@@ -33,6 +30,6 @@ export const watchlistModule: VystedModule = {
     },
   ],
   panelComponents: {
-    "watchlist-panel": createPlaceholderPanel("Watchlist"),
+    "watchlist-panel": WatchlistPanel,
   },
 };
