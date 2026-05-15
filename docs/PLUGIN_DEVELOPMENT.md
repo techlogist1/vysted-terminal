@@ -17,9 +17,9 @@ contract. This guide is for plugin authors building against it.
 - The manager UI — `src/components/PluginManagerPanel.tsx` — what users
   see in the terminal: each loaded plugin's state, health, metadata, and
   an enable/disable toggle.
-- Two reference plugins — `plugins/example/` and `plugins/openbb/` —
-  exercise the contract end-to-end and are the best starting point for
-  reading.
+- Two reference plugins — `plugins/example/` and `plugins/openbb-mcp/`
+  (Phase 3 replacement for the retired `plugins/openbb/`) — exercise
+  the contract end-to-end and are the best starting point for reading.
 - Bundled-import loading — plugins ship under `plugins/<id>/` in the
   repo. Filesystem-installed plugins, signing, and a marketplace are
   out of scope until v1.0+.
@@ -29,7 +29,7 @@ contract. This guide is for plugin authors building against it.
 A plugin lives in `plugins/<plugin-id>/`:
 
 ```
-plugins/openbb/
+plugins/openbb-mcp/
   manifest.json   # PluginManifest (see types/plugin-runtime.ts)
   index.ts        # exports a VystedPlugin instance as default
 ```
@@ -176,16 +176,48 @@ Plugins that need heavy Python dependencies fall into two camps:
    `sidecar/`, and proxy from the plugin's TS entry.
 2. **Incompatible with the main sidecar's pins** (the OpenBB case).
    Ship the dependency as its own Python sidecar in
-   `<plugin>/subprocess/`, packaged as a separate PyInstaller
+   `sidecar/<plugin>_subprocess/`, packaged as a separate PyInstaller
    `--onefile` binary by `scripts/ensure-<plugin>-sidecar.mjs` (mirror
-   `ensure-sidecar.mjs`). The main Vysted sidecar lazy-launches the
-   subprocess on first request and proxies HTTP through it.
+   `ensure-openbb-mcp-sidecar.mjs`). The subprocess MUST be spawned by
+   the Tauri Rust core via `tauri::api::shell` — see
+   `src-tauri/src/openbb_mcp.rs` for the reference. **Never use Python
+   `subprocess.Popen` for a separate-process plugin on Windows**: it
+   deadlocks under PyInstaller `--onefile` for any FastAPI-backed
+   server with anyio in the dep tree (CLAUDE.md Gotcha).
 
-The OpenBB plugin (`plugins/openbb/` + `sidecar/openbb_subprocess/`) is
-the reference for the separate-process pattern. Read its CHANGELOG
-v0.3.0 entry, BLOCKERS.md, and the subprocess `main.py` for the full
-walk-through, including the known Windows `subprocess.Popen` issue and
-its Phase-3 fix candidates.
+The `plugins/openbb-mcp/` plugin, together with
+`sidecar/openbb_mcp_subprocess/` and `src-tauri/src/openbb_mcp.rs`, is
+the reference for the separate-process pattern.
+
+## MCP plugins
+
+Phase 3 added two MCP integration paths:
+
+- **Vysted as MCP server.** The sidecar exposes its data + agent
+  surface as MCP tools via a FastMCP application mounted at `/mcp`
+  over the Streamable-HTTP transport. External MCP clients (Claude
+  Desktop via `mcp-remote`, Claude Code natively) consume Vysted by
+  pointing at `http://127.0.0.1:<sidecar-port>/mcp/`. See
+  `docs/MCP_INTEGRATION.md` for the client config.
+- **Vysted as MCP client.** The sidecar's `services/mcp_client.py`
+  wraps the official `mcp` Python SDK and connects to external MCP
+  servers over stdio or Streamable-HTTP. The `openbb-mcp` plugin is
+  the reference consumer: it routes the OpenBB Platform's tool
+  surface through this wrapper.
+
+When you author a plugin that needs to talk to an external MCP server,
+follow the openbb-mcp pattern:
+
+1. Spawn the external MCP server via Tauri Rust `Command::new` (a
+   `src-tauri/src/<plugin>.rs` mirroring `openbb_mcp.rs`), with the
+   bundled binary built by `scripts/ensure-<plugin>-sidecar.mjs`.
+2. Expose the child port to the Python sidecar via an env var the
+   Rust spawn helper sets — the sidecar reads it lazily on first call.
+3. In the sidecar, wrap the MCP tool surface in a small provider
+   module (mirror `services/openbb_mcp_provider.py`) that translates
+   MCP `call_tool` responses into the Vysted Pydantic shapes.
+4. In the plugin entry, surface a `healthCheck()` that hits a sidecar
+   `/<plugin>/status` endpoint reporting child-process health.
 
 ## Testing
 
@@ -193,8 +225,8 @@ its Phase-3 fix candidates.
   transitions, and any custom logic. `plugins/example/example.test.ts`
   is a starting point.
 - Python-side (if your plugin has a sidecar component): pytest with
-  monkeypatched providers. `sidecar/tests/test_openbb_provider.py` is
-  a starting point.
+  monkeypatched providers. `sidecar/tests/test_openbb_mcp_provider.py`
+  is a starting point.
 
 The sidecar test suite mocks every external network call — no test
 should hit a live API. Plugin authors should follow the same rule.
