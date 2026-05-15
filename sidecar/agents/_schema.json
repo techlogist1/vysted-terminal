@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://vysted.com/schemas/agent-spec.json",
+  "title": "Vysted AgentSpec",
+  "description": "Validation schema for first-party agent JSON configs in `sidecar/agents/`. Mirrors the locked `AgentSpec` interface in `types/plugin.ts` (BLUEPRINT §3.4) field-for-field. The sidecar agent runtime validates every `<id>.json` in this directory against this schema at startup; failures transition that one agent to error state without blocking the rest.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "name", "philosophy", "systemPrompt", "tools", "defaultProvider"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*$",
+      "minLength": 1,
+      "description": "Stable agent identifier (lowercase + dash/underscore). MUST NOT start with `custom:` — that prefix is reserved for Custom Agent Builder user-defined agents (Phase 3 Teammate C, separate sidecar store)."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Display name shown in the chat sidebar agent picker (e.g. `\"Warren Buffett\"`, `\"AI Researcher\"`)."
+    },
+    "philosophy": {
+      "type": "string",
+      "minLength": 1,
+      "description": "One-line description of the agent's lens or role; shown as a subtitle in the picker."
+    },
+    "systemPrompt": {
+      "type": "string",
+      "minLength": 50,
+      "description": "The system prompt that defines the agent's behavior. Should be substantive (200-500 words per the Phase-3 plan, but only a floor of 50 chars is enforced here). Voice per CLAUDE.md / BLUEPRINT: research-lab tone, not retail-app energy."
+    },
+    "tools": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true,
+      "description": "Allow-list of tool ids the agent may call. Tool ids resolve at the host. Common values: `\"price_data\"`, `\"fundamentals\"`, `\"news\"`, `\"backtest_summary\"`."
+    },
+    "defaultProvider": {
+      "type": "string",
+      "enum": ["anthropic", "openai", "gemini", "groq", "ollama", "deepseek", "xai"],
+      "description": "Default `LLMProviderId` (one of the seven BYOK providers). User may override at invocation time."
+    },
+    "defaultModel": {
+      "type": "string",
+      "description": "Optional recommended model id (free-form string). The runtime falls back to the provider's catalog default when omitted."
+    },
+    "icon": {
+      "type": "string",
+      "description": "Lucide icon name or repo-relative asset path; surfaced in the picker UI."
+    }
+  }
+}
