@@ -41,7 +41,7 @@ _ROUTERS = (
 
 def create_app() -> FastAPI:
     """Build and return a fully wired sidecar FastAPI application."""
-    app = FastAPI(title="Vysted Terminal Sidecar", version="0.2.0")
+    app = FastAPI(title="Vysted Terminal Sidecar", version="0.2.1")
 
     # The frontend WebView fetches the sidecar cross-origin (dev: localhost:3000,
     # prod: tauri://localhost). The sidecar binds to 127.0.0.1 only, so a

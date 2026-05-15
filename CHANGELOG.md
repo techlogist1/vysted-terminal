@@ -4,6 +4,93 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## v0.2.1 — Phase 1 polish pass (2026-05-15)
+
+Every `BLOCKERS.md` item from v0.2.0 resolved, plus scrollbar + panel-fit
+visual polish. Built as four parallel Opus teammates from `main` — chart-polish,
+state-lift, equity-fix, visual — merged in risk order C → D → B → A. The
+conflict-free decomposition held with one trivial auto-merge on
+`WatchlistPanel.tsx` (B import-line, D container-className).
+
+### Fixes
+
+- **Chart — Volume Profile horizontal-histogram primitive.** The 24-bucket data
+  is now returned through a dedicated `volume_profile` field on
+  `IndicatorResponse` (real `price: float` per bucket) — retiring the v0.2.0
+  `time`-field overload. The frontend draws it via a new
+  `ISeriesPrimitive` (`src/modules/chart/volume-profile-primitive.ts`) attached
+  to the candle series: right-anchored amber bars positioned by
+  `priceToCoordinate(bucket.price)`, height auto-derived from adjacent-bucket
+  spacing.
+- **Chart — Parabolic SAR dot markers.** Replaced the line-series rendering
+  with `createSeriesMarkers` circle dots — sage below-bar for uptrend
+  (SAR < close), negative-clay above-bar for downtrend (SAR > close). The
+  Wilder math is unchanged.
+- **Chart — VWAP session-anchoring (intraday).** `compute_vwap` now infers
+  intraday from the median bar-to-bar gap and resets the cumulative numerator
+  /denominator at each calendar-date boundary; daily+ keeps the running
+  whole-series cumulative. The line label switches to "VWAP (session)" when
+  anchored.
+- **Chart — Ichimoku forward cloud.** `compute_ichimoku` infers the bar
+  interval and emits Senkou A/B on the extended time axis (`times + 26 future
+timestamps`) so the +26 shift is preserved as a forward projection rather
+  than dropped. A new `ISeriesPrimitive`
+  (`src/modules/chart/ichimoku-cloud-primitive.ts`) fills the band between
+  Senkou A and B — semi-transparent sage where A ≥ B, semi-transparent negative
+  where B > A.
+- **News ↔ watchlist linking.** The watchlist module's store moved to a shared
+  `src/store/symbols.ts` (`useSymbolsStore`, `SymbolEntry`, `DEFAULT_SYMBOLS`,
+  and a `toNewsSymbol` mapper that drops the quote leg from pair symbols —
+  `BTC/USDT` → `BTC`). The news feed subscribes to it and re-fetches when the
+  watchlist changes; the hardcoded `DEFAULT_SYMBOLS` is gone.
+- **Equity Overview — dividend yield units.** yfinance 1.3.0 returns
+  `dividendYield` as a percentage number (verified across AAPL/MSFT/KO/VZ/T);
+  `get_fundamentals` now divides by 100 so `Fundamentals.dividend_yield` is a
+  true fraction and the panel's existing `* 100` display is correct. AAPL now
+  renders 0.36% rather than 36%.
+- **Scrollbars — Vysted-themed.** `globals.css` adds a global webkit +
+  Firefox scrollbar block — 8 px, transparent track, amber-500 @ 40% thumb,
+  brighter on hover.
+- **Panel-fit pass.** Tabular scroll containers switched from `overflow-auto`
+  to `overflow-y-auto overflow-x-hidden` with `scrollbar-gutter: stable`;
+  tables use `table-fixed` with constrained label cells so no accidental
+  horizontal scroll is forced. `default-layout` resizes the chart group to
+  ~63 % of the host width via post-placement `panel.api.setSize`, splitting
+  the right column into three roughly-even thirds — verified visually at
+  1920×1080 and 2560×1440.
+
+### Lead integration
+
+- `chore(lint): ignore .claude/ worktrees and nested build output in eslint
+config` — a teammate's `pnpm build` inside their `.claude/worktrees/agent-*`
+  checkout leaves a `.next/build/` tree there; the root-only `.next/**` glob
+  did not match it. Added `.claude/**` plus `**/.next/**` /
+  `**/node_modules/**` / `**/out/**` so lint stays scoped to first-party source
+  regardless of worktree state.
+
+### Visual proof
+
+`docs/screenshots/phase-1-polish/`:
+
+- `chart-volume-profile-sar-ichimoku.png` — the three new chart renderers
+  rendering against live SPY data, zero console errors.
+- `chart-vwap-intraday.png` — SPY 1h with the session-anchored VWAP labelled
+  "VWAP (session)".
+- `equity-dividend-yield.png` — AAPL now reading 0.36 %.
+- `layout-1920x1080.png`, `layout-2560x1440.png` — chart-dominant proportions
+  at both resolutions, no accidental horizontal scrollbars.
+- `scrollbar-themed.png` — the amber Vysted scrollbar on the news feed.
+
+### Verification
+
+- `pnpm typecheck` / `pnpm lint` / `pnpm format:check` / `pnpm test` (63
+  passed) / `pnpm build`.
+- `sidecar` `pytest` (98 passed) / `ruff check` / `ruff format --check`.
+- `cargo fmt --check` / `cargo clippy -D warnings` / `cargo test`.
+- `pnpm tauri dev` boots end-to-end; sidecar healthy; the five panels'
+  HTTP / WebSocket requests succeed; zero runtime warnings or sidecar errors.
+- CI green on Windows, macOS, Linux.
+
 ## v0.2.0 — Phase 1: Data Layer + Core Panels (2026-05-15)
 
 Real market data flowing through five core panels, a dockview layout engine,
