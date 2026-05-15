@@ -70,13 +70,14 @@ verified clean here.
 - `pnpm sidecar:build` — main sidecar binary produced at 57 MB.
 - `pnpm openbb-sidecar:build` — OpenBB subprocess binary produced at
   44 MB (entirely additive).
-- Smoke test:
+- Standalone subprocess smoke test (PowerShell `Start-Process`):
 
   ```
-  vysted-openbb-sidecar.exe --port 53212
-  → GET /health → 200 {"status":"ok","service":"vysted-openbb"}
-  → GET /quote/AAPL → 200 (25 fields including last_price=298.21,
-    name="Apple Inc.", real upstream yfinance call through OpenBB)
+  vysted-openbb-sidecar.exe --port 55600
+  → GET /health → 503 ("OpenBB router still warming up.") at t+1.2 s
+  → GET /health → 200 {"status":"ok","service":"vysted-openbb"} at t+3.6 s
+  → GET /quote/AAPL → 200 in 1.5 s
+    (NAME="Apple Inc.", PRICE=298.21, real upstream yfinance via OpenBB)
   ```
 
 - `pnpm typecheck` / `pnpm lint` / `pnpm format:check` / `pnpm test` — all
@@ -89,6 +90,59 @@ verified clean here.
 CI on macOS / Linux untested locally — the lead's integration step should
 verify there. The Windows path is the project's primary local target per
 CLAUDE.md.
+
+### Known issue: subprocess.Popen launch hang on Windows (lead audit item)
+
+**Symptom.** When the main Vysted sidecar lazy-launches the OpenBB subprocess
+via `subprocess.Popen(...)`, the subprocess never finishes its prewarm
+(`/health` returns 503 indefinitely). The `_HEALTH_TIMEOUT_S = 90 s` deadline
+fires, the main sidecar `terminate()`s the subprocess, and the registry
+falls back to yfinance. **The fallback path works** — the registry catches
+the `ProviderError` and yfinance responds (verified in the sidecar log:
+`"OpenBB fundamentals failed for AAPL, falling back: ..."`).
+
+**What works.** The same binary, same flags, same environment, launched via
+PowerShell `Start-Process` (or any non-Python parent) reaches HTTP/200 in
+~3-4 s. Direct standalone `/quote/AAPL` returns the populated payload in
+1.5 s. So the **bundle itself is correct** — the issue is specifically
+`subprocess.Popen` → bundled OpenBB on Windows.
+
+**Investigation done.** Tested `stdin=PIPE`, `stdin=DEVNULL`, `stdin=None`
+(inherit), `creationflags=CREATE_NEW_PROCESS_GROUP`, `close_fds=False`,
+`creationflags=DETACHED_PROCESS`. None made the subprocess prewarm complete
+under `subprocess.Popen`. Also rewrote the subprocess's stdin-EOF watchdog
+from `sys.stdin.buffer.read()` to `os.read(fd, ...)` to rule out that
+high-level lock — no change.
+
+**Root cause hypothesis.** OpenBB-core uses
+`anyio.from_thread.BlockingPortal` to bridge sync/async, which spins an event
+loop on a worker thread. PyInstaller `--onefile` extracts to `_MEIPASS`,
+which involves additional thread/lock interactions on Windows. Combined
+with `subprocess.Popen`'s default Windows handle inheritance behaviour
+(different from `Start-Process`'s `CreateProcess` flags), the prewarm
+thread deadlocks. This is a Python+PyInstaller+anyio interaction, not a
+Vysted bug per se.
+
+**Lead audit item (not Tier-4 — does not block ship).** The plugin
+contract surface is unaffected; the registry fallback ensures users still
+get fundamentals data via yfinance. Two paths forward at integration time
+(neither in scope for Phase 2 — both are Phase 3 follow-ups):
+
+1. Tauri can spawn the OpenBB subprocess as a sibling to the main sidecar
+   via the same `tauri-plugin-shell` mechanism, which uses
+   `Command::new(...)` (Rust) instead of Python's `subprocess.Popen`. This
+   may avoid the Python/PyInstaller interaction entirely.
+2. Or wrap the OpenBB subprocess launch in a small Rust helper the
+   `tauri-plugin-shell` invokes — same idea, bypasses Python's launch
+   path.
+
+For now the Tier-2 architecture ships green. The registry yfinance
+fallback is the user-facing contract; the subprocess is a dormant
+performance optimisation that lights up only when the launch path is
+fixed. Plugin runtime + manifest still work end-to-end (the plugin
+returns three `DataSource`s; the runtime catalogs them; the
+`healthCheck()` correctly reports "unavailable" when subprocess can't
+launch).
 
 ### Bundle delta
 
