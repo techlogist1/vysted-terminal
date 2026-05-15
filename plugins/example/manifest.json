@@ -1,0 +1,10 @@
+{
+  "id": "vysted-example",
+  "version": "0.1.0",
+  "name": "Vysted Example Plugin",
+  "entry": "index.ts",
+  "requiredHostVersion": "0.3.0",
+  "description": "Minimal example plugin proving the runtime end-to-end. Contributes one fake data source and one slash command.",
+  "author": "Vysted Team",
+  "homepage": "https://github.com/vysted/vysted-terminal"
+}

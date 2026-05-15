@@ -4,12 +4,13 @@ import { collectCommands, collectPanelComponents, collectPanels } from "@/lib/mo
 import { vystedModules } from "@/modules";
 
 describe("module registry", () => {
-  it("registers the six Phase 1 modules", () => {
+  it("registers the Phase 1 + Phase 2 modules", () => {
     expect([...vystedModules.map((module) => module.id)].sort()).toEqual([
       "chart",
       "equity-overview",
       "news",
       "platform",
+      "plugin-manager",
       "portfolio",
       "watchlist",
     ]);
