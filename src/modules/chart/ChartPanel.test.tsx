@@ -38,7 +38,8 @@ vi.mock("lightweight-charts", () => ({
   createChart: vi.fn(() => chartApi),
   CandlestickSeries: "Candlestick",
   LineSeries: "Line",
-  createSeriesMarkers: (...args: unknown[]) => createSeriesMarkersMock(...args),
+  createSeriesMarkers: (...args: unknown[]) =>
+    (createSeriesMarkersMock as (...inner: unknown[]) => unknown)(...args),
 }));
 
 // --- volume profile primitive mock -----------------------------------------
@@ -58,6 +59,22 @@ vi.mock("./volume-profile-primitive", () => {
     }
   }
   return { VolumeProfilePrimitive: MockVolumeProfilePrimitive };
+});
+
+// --- ichimoku cloud primitive mock -----------------------------------------
+const ichimokuCloudSetBands = vi.fn();
+const ichimokuCloudCtor = vi.fn();
+
+vi.mock("./ichimoku-cloud-primitive", () => {
+  class MockIchimokuCloudPrimitive {
+    constructor() {
+      ichimokuCloudCtor();
+    }
+    setBands(senkouA: unknown, senkouB: unknown) {
+      ichimokuCloudSetBands(senkouA, senkouB);
+    }
+  }
+  return { IchimokuCloudPrimitive: MockIchimokuCloudPrimitive };
 });
 
 // --- sidecar-client / api mocks --------------------------------------------
@@ -355,5 +372,39 @@ describe("ChartPanel", () => {
     await waitFor(() => {
       expect(candleSeries.detachPrimitive).toHaveBeenCalled();
     });
+  });
+
+  it("attaches the Ichimoku cloud primitive when the indicator is toggled on", async () => {
+    fetchIndicatorsMock.mockResolvedValueOnce({
+      symbol: "SPY",
+      timeframe: "1d",
+      provider: "yfinance",
+      indicators: [
+        {
+          name: "ichimoku",
+          panel: "price",
+          lines: [
+            { label: "Tenkan-sen", points: [{ time: "2026-01-02T00:00:00Z", value: 1.5 }] },
+            { label: "Kijun-sen", points: [{ time: "2026-01-02T00:00:00Z", value: 1.6 }] },
+            { label: "Senkou Span A", points: [{ time: "2026-01-02T00:00:00Z", value: 1.7 }] },
+            { label: "Senkou Span B", points: [{ time: "2026-01-02T00:00:00Z", value: 1.4 }] },
+            { label: "Chikou Span", points: [{ time: "2026-01-01T00:00:00Z", value: 1.3 }] },
+          ],
+        },
+      ],
+      volume_profile: null,
+    } satisfies IndicatorResponse);
+
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole("button", { name: "Ichimoku Cloud", pressed: false }));
+
+    await waitFor(() => expect(ichimokuCloudCtor).toHaveBeenCalled());
+    expect(candleSeries.attachPrimitive).toHaveBeenCalled();
+    expect(ichimokuCloudSetBands).toHaveBeenCalledWith(
+      [{ time: "2026-01-02T00:00:00Z", value: 1.7 }],
+      [{ time: "2026-01-02T00:00:00Z", value: 1.4 }],
+    );
   });
 });

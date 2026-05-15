@@ -21,6 +21,7 @@ import { SidecarError, sidecarApi } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import type { IndicatorResponse, OHLCVSeries } from "../../../types/data";
 import { fetchIndicators } from "./api";
+import { IchimokuCloudPrimitive } from "./ichimoku-cloud-primitive";
 import { INDICATOR_CATALOG, INDICATOR_COLORS, type IndicatorDef } from "./indicators";
 import { VolumeProfilePrimitive } from "./volume-profile-primitive";
 
@@ -114,6 +115,7 @@ function ChartPanel() {
   const candleSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const indicatorSeriesRef = useRef<ISeriesApi<"Line">[]>([]);
   const volumeProfileRef = useRef<VolumeProfilePrimitive | null>(null);
+  const ichimokuCloudRef = useRef<IchimokuCloudPrimitive | null>(null);
   // Cached candle data — Parabolic SAR markers need the per-bar close to
   // decide above- vs below-bar placement and the trend colour.
   const candleDataRef = useRef<CandlestickData<Time>[]>([]);
@@ -151,6 +153,7 @@ function ChartPanel() {
       candleSeriesRef.current = null;
       indicatorSeriesRef.current = [];
       volumeProfileRef.current = null;
+      ichimokuCloudRef.current = null;
       sarMarkersRef.current = null;
       candleDataRef.current = [];
     };
@@ -211,6 +214,11 @@ function ChartPanel() {
       candleSeries.detachPrimitive(volumeProfile);
     }
     volumeProfileRef.current = null;
+    const ichimokuCloud = ichimokuCloudRef.current;
+    if (candleSeries && ichimokuCloud) {
+      candleSeries.detachPrimitive(ichimokuCloud);
+    }
+    ichimokuCloudRef.current = null;
     const sarMarkers = sarMarkersRef.current;
     if (sarMarkers) {
       sarMarkers.detach();
@@ -224,48 +232,45 @@ function ChartPanel() {
    * series cannot draw discrete dots. Each SAR sample is compared to the bar's
    * close: SAR < close → uptrend dot below; SAR > close → downtrend dot above.
    */
-  const renderParabolicSar = useCallback(
-    (points: { time: string; value: number | null }[]) => {
-      const candleSeries = candleSeriesRef.current;
-      if (!candleSeries) {
-        return;
+  const renderParabolicSar = useCallback((points: { time: string; value: number | null }[]) => {
+    const candleSeries = candleSeriesRef.current;
+    if (!candleSeries) {
+      return;
+    }
+    const closeByTime = new Map<number, number>();
+    for (const candle of candleDataRef.current) {
+      closeByTime.set(candle.time as number, candle.close);
+    }
+    const markers: SeriesMarker<Time>[] = [];
+    for (const point of points) {
+      if (point.value === null) {
+        continue;
       }
-      const closeByTime = new Map<number, number>();
-      for (const candle of candleDataRef.current) {
-        closeByTime.set(candle.time as number, candle.close);
+      const time = toChartTime(point.time);
+      if (Number.isNaN(time)) {
+        continue;
       }
-      const markers: SeriesMarker<Time>[] = [];
-      for (const point of points) {
-        if (point.value === null) {
-          continue;
-        }
-        const time = toChartTime(point.time);
-        if (Number.isNaN(time)) {
-          continue;
-        }
-        const close = closeByTime.get(time);
-        if (close === undefined) {
-          continue;
-        }
-        const isUptrend = point.value < close;
-        markers.push({
-          time,
-          position: isUptrend ? "belowBar" : "aboveBar",
-          shape: "circle",
-          color: isUptrend ? "#8fa67c" : "#c8654b",
-          size: 1,
-        });
+      const close = closeByTime.get(time);
+      if (close === undefined) {
+        continue;
       }
-      markers.sort((a, b) => (a.time as number) - (b.time as number));
-      const existing = sarMarkersRef.current;
-      if (existing) {
-        existing.setMarkers(markers);
-      } else {
-        sarMarkersRef.current = createSeriesMarkers(candleSeries, markers);
-      }
-    },
-    [],
-  );
+      const isUptrend = point.value < close;
+      markers.push({
+        time,
+        position: isUptrend ? "belowBar" : "aboveBar",
+        shape: "circle",
+        color: isUptrend ? "#8fa67c" : "#c8654b",
+        size: 1,
+      });
+    }
+    markers.sort((a, b) => (a.time as number) - (b.time as number));
+    const existing = sarMarkersRef.current;
+    if (existing) {
+      existing.setMarkers(markers);
+    } else {
+      sarMarkersRef.current = createSeriesMarkers(candleSeries, markers);
+    }
+  }, []);
 
   const renderIndicators = useCallback(
     (response: IndicatorResponse) => {
@@ -303,6 +308,20 @@ function ChartPanel() {
           series.setData(data);
           indicatorSeriesRef.current.push(series);
         });
+        // Ichimoku — the five lines are drawn as LineSeries above; the cloud
+        // is the filled band between Senkou A and Senkou B, painted by a
+        // dedicated primitive attached to the candle series.
+        if (indicator.name === "ichimoku") {
+          const senkouA = indicator.lines.find((line) => line.label === "Senkou Span A");
+          const senkouB = indicator.lines.find((line) => line.label === "Senkou Span B");
+          const candleSeriesForCloud = candleSeriesRef.current;
+          if (senkouA && senkouB && candleSeriesForCloud) {
+            const cloud = new IchimokuCloudPrimitive();
+            cloud.setBands(senkouA.points, senkouB.points);
+            candleSeriesForCloud.attachPrimitive(cloud);
+            ichimokuCloudRef.current = cloud;
+          }
+        }
       }
       // Volume Profile rides on its own contract (a price-axis histogram) and
       // is drawn through a series primitive attached to the candle series so

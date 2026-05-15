@@ -12,6 +12,7 @@ from __future__ import annotations
 import math
 from datetime import datetime, timedelta
 
+import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
 
@@ -69,7 +70,8 @@ def test_compute_all_indicators(series: OHLCVSeries) -> None:
     """Every supported indicator computes and yields time-aligned points.
 
     Volume Profile is delivered on its own contract — see ``response.volume_profile``
-    — so the time-keyed ``indicators`` list holds the other 19 entries.
+    — so the time-keyed ``indicators`` list holds the other 19 entries. Ichimoku's
+    two Senkou spans extend 26 bars into the future to carry the forward cloud.
     """
     response = indicator_service.compute(series, list(indicator_service.SUPPORTED_INDICATORS))
     assert len(response.indicators) == 19
@@ -80,7 +82,12 @@ def test_compute_all_indicators(series: OHLCVSeries) -> None:
     for result in response.indicators:
         assert result.lines, f"{result.name} produced no lines"
         for line in result.lines:
-            assert len(line.points) == n, f"{result.name}/{line.label} misaligned"
+            expected = (
+                n + 26
+                if result.name == "ichimoku" and line.label in ("Senkou Span A", "Senkou Span B")
+                else n
+            )
+            assert len(line.points) == expected, f"{result.name}/{line.label} misaligned"
     assert response.volume_profile is not None
     assert len(response.volume_profile.buckets) > 0
 
@@ -312,6 +319,53 @@ def test_ichimoku_has_five_lines(series: OHLCVSeries) -> None:
         "Senkou Span B",
         "Chikou Span",
     ]
+
+
+def test_ichimoku_senkou_lines_extend_into_future(series: OHLCVSeries) -> None:
+    """Senkou A and B are emitted on an extended timeline so the +26 forward
+    shift is preserved as a future-projected cloud rather than dropped."""
+    df = indicator_service._frame(series)
+    times = list(df.index)
+    result = indicator_service.compute_ichimoku(df, times)
+    by_label = {line.label: line for line in result.lines}
+
+    n = len(times)
+    # Tenkan / Kijun / Chikou stay on the historical bar timeline.
+    assert len(by_label["Tenkan-sen"].points) == n
+    assert len(by_label["Kijun-sen"].points) == n
+    assert len(by_label["Chikou Span"].points) == n
+    # Senkou A/B carry the extra 26 forward bars.
+    assert len(by_label["Senkou Span A"].points) == n + 26
+    assert len(by_label["Senkou Span B"].points) == n + 26
+
+    # Parse both reference and projected timestamps via pandas so naive and
+    # tz-aware values are normalised onto the same axis before comparing.
+    last_bar_time = pd.to_datetime(times[-1], utc=True)
+    future_points_a = by_label["Senkou Span A"].points[n:]
+    future_points_b = by_label["Senkou Span B"].points[n:]
+    assert len(future_points_a) == 26
+    assert len(future_points_b) == 26
+    for point in future_points_a:
+        assert pd.to_datetime(point.time, utc=True) > last_bar_time
+    for point in future_points_b:
+        assert pd.to_datetime(point.time, utc=True) > last_bar_time
+    # Senkou A only needs 26 bars of warm-up — the 40-bar fixture leaves at
+    # least the final 15 forward cells defined.
+    assert any(p.value is not None for p in future_points_a)
+
+
+def test_ichimoku_forward_cloud_populates_with_full_warmup() -> None:
+    """A 60-bar series satisfies the 52-period Senkou B warm-up; Senkou B's
+    forward cloud then carries real, finite values."""
+    closes = [100.0 + i * 0.5 + (1.0 if i % 2 else -1.0) for i in range(60)]
+    full = _make_series(closes)
+    df = indicator_service._frame(full)
+    times = list(df.index)
+    result = indicator_service.compute_ichimoku(df, times)
+    by_label = {line.label: line for line in result.lines}
+    future_points_b = by_label["Senkou Span B"].points[len(times) :]
+    assert len(future_points_b) == 26
+    assert any(p.value is not None for p in future_points_b)
 
 
 def test_compute_dedupes_and_skips_unknown(series: OHLCVSeries) -> None:

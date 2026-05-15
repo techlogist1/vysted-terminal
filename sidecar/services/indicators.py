@@ -149,9 +149,10 @@ def compute_bollinger(
 def compute_ichimoku(df: pd.DataFrame, times: list[str]) -> IndicatorSeries:
     """Ichimoku Cloud — the five standard 9/26/52 lines.
 
-    Senkou spans are shifted forward 26 periods and the chikou span back 26, as
-    in the classic construction; points pushed beyond the series window are
-    dropped (the chart panel does not draw a future projection).
+    Tenkan, Kijun, and Chikou stay on the bar timeline (``times``); the two
+    Senkou spans are shifted forward 26 periods and emitted on the extended
+    timeline ``times + 26 future bars`` so the forward-projected cloud is
+    delivered to the chart rather than dropped at the series edge.
     """
     high, low, close = df["high"], df["low"], df["close"]
 
@@ -163,20 +164,61 @@ def compute_ichimoku(df: pd.DataFrame, times: list[str]) -> IndicatorSeries:
 
     tenkan = _mid(9)
     kijun = _mid(26)
-    senkou_a = ((tenkan + kijun) / 2.0).shift(26)
-    senkou_b = _mid(52).shift(26)
+    # The forward-shifted spans are computed on the historical span first; the
+    # extension to ``times + future`` happens below.
+    senkou_a_now = (tenkan + kijun) / 2.0
+    senkou_b_now = _mid(52)
     chikou = close.shift(-26)
+
+    future_times = _project_future_times(df.index, count=26)
+    extended_times = list(times) + future_times
+    # Place the spans on the extended timeline by aligning each historical
+    # value 26 bars to its right; the trailing 26 cells are the forward cloud.
+    senkou_a_values = pd.Series([None] * len(extended_times), index=extended_times, dtype="object")
+    senkou_b_values = pd.Series([None] * len(extended_times), index=extended_times, dtype="object")
+    for offset, value in enumerate(senkou_a_now):
+        target_index = offset + 26
+        if target_index < len(extended_times):
+            senkou_a_values.iloc[target_index] = value
+    for offset, value in enumerate(senkou_b_now):
+        target_index = offset + 26
+        if target_index < len(extended_times):
+            senkou_b_values.iloc[target_index] = value
+    senkou_a = pd.to_numeric(senkou_a_values, errors="coerce")
+    senkou_b = pd.to_numeric(senkou_b_values, errors="coerce")
+
     return IndicatorSeries(
         name="ichimoku",
         panel="price",
         lines=[
             _line("Tenkan-sen", times, tenkan),
             _line("Kijun-sen", times, kijun),
-            _line("Senkou Span A", times, senkou_a),
-            _line("Senkou Span B", times, senkou_b),
+            _line("Senkou Span A", extended_times, senkou_a),
+            _line("Senkou Span B", extended_times, senkou_b),
             _line("Chikou Span", times, chikou),
         ],
     )
+
+
+def _project_future_times(index: pd.Index, count: int) -> list[str]:
+    """Generate ``count`` future ISO timestamps continuing the bar cadence.
+
+    The bar interval is inferred from the median of the parsed-index deltas;
+    the projected timestamps are emitted in the same ISO format the frame's
+    index already uses so the response stays internally consistent.
+    """
+    if count <= 0 or len(index) == 0:
+        return []
+    parsed = pd.to_datetime(index, errors="coerce", utc=True)
+    valid = parsed.dropna()
+    if len(valid) < 2:
+        return []
+    deltas = valid[1:] - valid[:-1]
+    interval = pd.Series(deltas).median()
+    if pd.isna(interval) or interval <= pd.Timedelta(0):
+        return []
+    last_time = valid[-1]
+    return [(last_time + interval * (step + 1)).isoformat() for step in range(count)]
 
 
 def compute_keltner(
