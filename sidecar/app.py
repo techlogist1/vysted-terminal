@@ -7,6 +7,9 @@ a ``TestClient`` against.
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -19,11 +22,13 @@ from routers import (
     indicators,
     macro,
     news,
+    openbb,
     plugins,
     portfolio,
     quotes,
     workspace,
 )
+from services import openbb_provider
 from services.errors import ProviderError
 
 _ROUTERS = (
@@ -38,12 +43,27 @@ _ROUTERS = (
     news,
     workspace,
     plugins,
+    openbb,
 )
+
+
+@asynccontextmanager
+async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    """FastAPI lifespan — currently only used to clean up the OpenBB subprocess.
+
+    Startup is a no-op; the OpenBB subprocess is launched lazily on first use.
+    Shutdown stops the subprocess (if launched) so a `pnpm tauri dev` restart
+    does not leave an orphaned OpenBB process holding its binary lock.
+    """
+    try:
+        yield
+    finally:
+        openbb_provider.shutdown()
 
 
 def create_app() -> FastAPI:
     """Build and return a fully wired sidecar FastAPI application."""
-    app = FastAPI(title="Vysted Terminal Sidecar", version="0.2.1")
+    app = FastAPI(title="Vysted Terminal Sidecar", version="0.2.1", lifespan=_lifespan)
 
     # The frontend WebView fetches the sidecar cross-origin (dev: localhost:3000,
     # prod: tauri://localhost). The sidecar binds to 127.0.0.1 only, so a

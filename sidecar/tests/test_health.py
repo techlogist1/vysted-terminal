@@ -19,4 +19,7 @@ def test_health_reports_active_providers(client: TestClient) -> None:
     providers = client.get("/health").json()["providers"]
     assert providers["equity"] == "yfinance"
     assert "ccxt" in providers["crypto"]
-    assert providers["openbb"] == "deferred-to-phase-2"
+    # Phase 2: OpenBB ships bundled in the build; the registry reports either
+    # "available" (production) or "unavailable" (no-OpenBB rebuild). Both are
+    # valid, so this assertion only checks the key is present.
+    assert providers["openbb"] in {"available", "unavailable"}

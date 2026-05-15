@@ -8,3 +8,8 @@ httpx==0.28.1
 feedparser==6.0.12
 numpy==2.4.4
 pandas==3.0.3
+# OpenBB ODP runs as a separate sidecar process — see sidecar/openbb_subprocess/
+# and scripts/ensure-openbb-sidecar.mjs (Tier 2 path per plan §A2 + BLOCKERS-C.md).
+# OpenBB pins fastapi <0.129 and uvicorn <0.41 strictly, which is incompatible
+# with this sidecar's pins; isolating OpenBB into its own process+venv keeps
+# Vysted's deps clean.
