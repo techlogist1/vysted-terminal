@@ -150,6 +150,20 @@ the next session does not re-learn them. (Phase 0 build notes live in
   `.dockview-theme-vysted` override so the override wins the cascade. `PanelHost`
   only mounts `DockviewReact` after modules register, which keeps the
   static-export build SSR-safe.
+- **chrome-devtools MCP cannot synthesize trusted user events.** Canvas-
+  interactive features gated by `isTrusted` (drawing tools, drag-to-pan, any
+  lightweight-charts gesture) cannot be visually regression-tested through
+  chrome-devtools — its synthesised events are rejected. Phase-3 visual
+  verification of canvas-interactive features needs real-event tooling
+  (Playwright with native event injection, or equivalent). Phase-2 substitute:
+  unit-test the data model + screenshot the toolbar wiring.
+- **`subprocess.Popen` deadlocks bundled REST servers on Windows.** A
+  PyInstaller `--onefile` REST server that prewarms cleanly via PowerShell
+  `Start-Process` deadlocks indefinitely when launched from Python's
+  `subprocess.Popen` (anyio + `_MEIPASS` + Windows handle-inheritance is the
+  suspected interaction; v0.3.0 OpenBB subprocess hit this). Spawn external
+  subprocess servers via Tauri Rust `Command::new` instead — the standard
+  pattern for any subprocess that owns its own port/lifecycle.
 
 ## Reference docs
 
