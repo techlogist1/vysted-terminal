@@ -16,6 +16,7 @@ from fastapi.responses import JSONResponse
 
 from routers import (
     crypto,
+    custom_agents,
     fundamentals,
     health,
     history,
@@ -44,6 +45,7 @@ _ROUTERS = (
     workspace,
     plugins,
     openbb,
+    custom_agents,
 )
 
 
