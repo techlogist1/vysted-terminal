@@ -8,8 +8,10 @@ httpx==0.28.1
 feedparser==6.0.12
 numpy==2.4.4
 pandas==3.0.3
-# OpenBB ODP runs as a separate sidecar process — see sidecar/openbb_subprocess/
-# and scripts/ensure-openbb-sidecar.mjs (Tier 2 path per plan §A2 + BLOCKERS-C.md).
-# OpenBB pins fastapi <0.129 and uvicorn <0.41 strictly, which is incompatible
-# with this sidecar's pins; isolating OpenBB into its own process+venv keeps
-# Vysted's deps clean.
+# Phase 3 — MCP layer. FastMCP mounts the Vysted MCP server at /mcp over
+# Streamable-HTTP; the `mcp` SDK powers the client wrapper that consumes
+# external MCP servers (first real consumer: openbb-mcp-server, spawned
+# as a separate-process binary via Tauri Rust Command::new — the
+# architectural fix for the Phase-2 Windows subprocess.Popen deadlock
+# (CLAUDE.md Gotcha). See `sidecar/openbb_mcp_subprocess/`.
+fastmcp==3.2.4
