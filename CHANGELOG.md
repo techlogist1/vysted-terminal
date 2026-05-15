@@ -70,16 +70,23 @@ config` — a teammate's `pnpm build` inside their `.claude/worktrees/agent-*`
 
 ### Visual proof
 
-`docs/screenshots/phase-1-polish/`:
+`docs/screenshots/v0.2.1/`:
 
 - `chart-volume-profile-sar-ichimoku.png` — the three new chart renderers
   rendering against live SPY data, zero console errors.
 - `chart-vwap-intraday.png` — SPY 1h with the session-anchored VWAP labelled
   "VWAP (session)".
 - `equity-dividend-yield.png` — AAPL now reading 0.36 %.
-- `layout-1920x1080.png`, `layout-2560x1440.png` — chart-dominant proportions
-  at both resolutions, no accidental horizontal scrollbars.
 - `scrollbar-themed.png` — the amber Vysted scrollbar on the news feed.
+
+`docs/screenshots/v0.2.1-equity-fit/` — the layout pair was recaptured in
+commit `00606e7` (Equity Overview overflow fix) and now lives there rather
+than alongside the v0.2.1-tag shots; the original v0.2.1-tag `layout-*.png`
+was overwritten in-place and is unrecoverable. See the folder's `README.md`
+and `CLAUDE.md` → **Screenshot organization**.
+
+- `layout-1920x1080.png`, `layout-2560x1440.png` — post-fix, AAPL populated,
+  chart-dominant proportions, no accidental horizontal scrollbars.
 
 ### Verification
 
