@@ -1,7 +1,7 @@
 # Dependencies
 node_modules/
 sidecar/.venv/
-sidecar/openbb_subprocess/.venv/
+sidecar/openbb_mcp_subprocess/.venv/
 
 # Build output
 .next/
@@ -12,8 +12,8 @@ src-tauri/target/
 src-tauri/binaries/
 sidecar/build/
 sidecar/dist/
-sidecar/openbb_subprocess/build/
-sidecar/openbb_subprocess/dist/
+sidecar/openbb_mcp_subprocess/build/
+sidecar/openbb_mcp_subprocess/dist/
 sidecar/__pycache__/
 **/__pycache__/
 **/.pytest_cache/
