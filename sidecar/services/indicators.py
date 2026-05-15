@@ -11,6 +11,7 @@ point the router calls with a list of indicator keys.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Callable
 
 import numpy as np
@@ -551,6 +552,634 @@ def compute_volume_profile(df: pd.DataFrame, bins: int = 24) -> VolumeProfile:
 
 
 # --------------------------------------------------------------------------
+# Phase 2 — additional moving averages
+# --------------------------------------------------------------------------
+
+
+def compute_wma(df: pd.DataFrame, times: list[str], period: int = 20) -> IndicatorSeries:
+    """Linearly-weighted moving average — weights ``1, 2, ..., period``."""
+    weights = np.arange(1, period + 1, dtype=float)
+    weight_sum = weights.sum()
+
+    def _weighted(window: np.ndarray) -> float:
+        return float(np.dot(window, weights) / weight_sum)
+
+    wma = df["close"].rolling(period, min_periods=period).apply(_weighted, raw=True)
+    return IndicatorSeries(
+        name="wma",
+        panel="price",
+        lines=[_line(f"WMA({period})", times, wma)],
+    )
+
+
+def compute_hma(df: pd.DataFrame, times: list[str], period: int = 16) -> IndicatorSeries:
+    """Hull MA — ``WMA(2 * WMA(close, n/2) − WMA(close, n), sqrt(n))``.
+
+    Default period is 16 because ``floor(sqrt(16)) = 4`` keeps a clean integer
+    final smoothing window; the conventional default is anywhere from 9–21.
+    """
+    half = max(2, period // 2)
+    sqrt_period = max(2, int(round(math.sqrt(period))))
+
+    def _wma_series(values: pd.Series, win: int) -> pd.Series:
+        weights = np.arange(1, win + 1, dtype=float)
+        weight_sum = weights.sum()
+        return values.rolling(win, min_periods=win).apply(
+            lambda window: float(np.dot(window, weights) / weight_sum), raw=True
+        )
+
+    raw = 2.0 * _wma_series(df["close"], half) - _wma_series(df["close"], period)
+    hma = _wma_series(raw, sqrt_period)
+    return IndicatorSeries(
+        name="hma",
+        panel="price",
+        lines=[_line(f"HMA({period})", times, hma)],
+    )
+
+
+def compute_dema(df: pd.DataFrame, times: list[str], period: int = 20) -> IndicatorSeries:
+    """Double Exponential MA — ``2 * EMA − EMA(EMA)``, reduces lag vs EMA."""
+    ema = df["close"].ewm(span=period, adjust=False, min_periods=period).mean()
+    ema_of_ema = ema.ewm(span=period, adjust=False, min_periods=period).mean()
+    dema = 2.0 * ema - ema_of_ema
+    return IndicatorSeries(
+        name="dema",
+        panel="price",
+        lines=[_line(f"DEMA({period})", times, dema)],
+    )
+
+
+def compute_tema(df: pd.DataFrame, times: list[str], period: int = 20) -> IndicatorSeries:
+    """Triple Exponential MA — ``3 * EMA − 3 * EMA(EMA) + EMA(EMA(EMA))``."""
+    ema1 = df["close"].ewm(span=period, adjust=False, min_periods=period).mean()
+    ema2 = ema1.ewm(span=period, adjust=False, min_periods=period).mean()
+    ema3 = ema2.ewm(span=period, adjust=False, min_periods=period).mean()
+    tema = 3.0 * ema1 - 3.0 * ema2 + ema3
+    return IndicatorSeries(
+        name="tema",
+        panel="price",
+        lines=[_line(f"TEMA({period})", times, tema)],
+    )
+
+
+def compute_kama(
+    df: pd.DataFrame,
+    times: list[str],
+    period: int = 10,
+    fast: int = 2,
+    slow: int = 30,
+) -> IndicatorSeries:
+    """Kaufman Adaptive Moving Average — efficiency-ratio-driven smoothing."""
+    close = df["close"]
+    direction = (close - close.shift(period)).abs()
+    volatility = close.diff().abs().rolling(period, min_periods=period).sum()
+    er = direction / volatility.replace(0.0, np.nan)
+    fast_sc = 2.0 / (fast + 1.0)
+    slow_sc = 2.0 / (slow + 1.0)
+    sc = (er * (fast_sc - slow_sc) + slow_sc) ** 2
+
+    closes = close.to_numpy(dtype=float)
+    sc_values = sc.to_numpy(dtype=float)
+    kama = np.full(len(close), np.nan)
+    seed_index = period
+    if seed_index < len(close):
+        kama[seed_index] = closes[seed_index]
+        for i in range(seed_index + 1, len(close)):
+            sc_i = sc_values[i]
+            if np.isnan(sc_i):
+                kama[i] = kama[i - 1]
+                continue
+            kama[i] = kama[i - 1] + sc_i * (closes[i] - kama[i - 1])
+    return IndicatorSeries(
+        name="kama",
+        panel="price",
+        lines=[_line(f"KAMA({period})", times, pd.Series(kama, index=df.index))],
+    )
+
+
+# --------------------------------------------------------------------------
+# Phase 2 — momentum
+# --------------------------------------------------------------------------
+
+
+def compute_tsi(
+    df: pd.DataFrame,
+    times: list[str],
+    long: int = 25,
+    short: int = 13,
+) -> IndicatorSeries:
+    """True Strength Index — double-smoothed momentum, bounded ±100."""
+    momentum = df["close"].diff()
+    abs_momentum = momentum.abs()
+
+    def _double_ema(values: pd.Series) -> pd.Series:
+        first = values.ewm(span=long, adjust=False, min_periods=long).mean()
+        return first.ewm(span=short, adjust=False, min_periods=short).mean()
+
+    smoothed = _double_ema(momentum)
+    smoothed_abs = _double_ema(abs_momentum)
+    tsi = 100.0 * smoothed / smoothed_abs.replace(0.0, np.nan)
+    return IndicatorSeries(
+        name="tsi",
+        panel="separate",
+        lines=[_line(f"TSI({long},{short})", times, tsi)],
+    )
+
+
+def compute_kst(df: pd.DataFrame, times: list[str]) -> IndicatorSeries:
+    """Know Sure Thing — sum of four smoothed rates of change, plus signal."""
+    close = df["close"]
+
+    def _smoothed_roc(roc_period: int, sma_period: int) -> pd.Series:
+        roc = close.pct_change(roc_period) * 100.0
+        return roc.rolling(sma_period, min_periods=sma_period).mean()
+
+    rcma1 = _smoothed_roc(10, 10)
+    rcma2 = _smoothed_roc(15, 10)
+    rcma3 = _smoothed_roc(20, 10)
+    rcma4 = _smoothed_roc(30, 15)
+    kst = rcma1 + 2.0 * rcma2 + 3.0 * rcma3 + 4.0 * rcma4
+    signal = kst.rolling(9, min_periods=9).mean()
+    return IndicatorSeries(
+        name="kst",
+        panel="separate",
+        lines=[_line("KST", times, kst), _line("Signal", times, signal)],
+    )
+
+
+def compute_awesome_oscillator(df: pd.DataFrame, times: list[str]) -> IndicatorSeries:
+    """Awesome Oscillator — SMA(median, 5) − SMA(median, 34)."""
+    median = (df["high"] + df["low"]) / 2.0
+    fast = median.rolling(5, min_periods=5).mean()
+    slow = median.rolling(34, min_periods=34).mean()
+    ao = fast - slow
+    return IndicatorSeries(
+        name="awesome_oscillator",
+        panel="separate",
+        lines=[_line("AO", times, ao)],
+    )
+
+
+def compute_ppo(
+    df: pd.DataFrame,
+    times: list[str],
+    fast: int = 12,
+    slow: int = 26,
+    signal: int = 9,
+) -> IndicatorSeries:
+    """Percentage Price Oscillator — MACD as a percentage of the slow EMA."""
+    fast_ema = df["close"].ewm(span=fast, adjust=False, min_periods=fast).mean()
+    slow_ema = df["close"].ewm(span=slow, adjust=False, min_periods=slow).mean()
+    ppo_line = 100.0 * (fast_ema - slow_ema) / slow_ema.replace(0.0, np.nan)
+    signal_line = ppo_line.ewm(span=signal, adjust=False, min_periods=signal).mean()
+    histogram = ppo_line - signal_line
+    return IndicatorSeries(
+        name="ppo",
+        panel="separate",
+        lines=[
+            _line("PPO", times, ppo_line),
+            _line("Signal", times, signal_line),
+            _line("Histogram", times, histogram),
+        ],
+    )
+
+
+def compute_ultimate_oscillator(
+    df: pd.DataFrame,
+    times: list[str],
+    short: int = 7,
+    medium: int = 14,
+    long: int = 28,
+) -> IndicatorSeries:
+    """Ultimate Oscillator — multi-timeframe momentum, bounded [0, 100]."""
+    close = df["close"]
+    prev_close = close.shift(1)
+    true_low = pd.concat([df["low"], prev_close], axis=1).min(axis=1)
+    bp = close - true_low
+    tr = _true_range(df)
+
+    def _avg(period: int) -> pd.Series:
+        bp_sum = bp.rolling(period, min_periods=period).sum()
+        tr_sum = tr.rolling(period, min_periods=period).sum()
+        return bp_sum / tr_sum.replace(0.0, np.nan)
+
+    avg_short = _avg(short)
+    avg_medium = _avg(medium)
+    avg_long = _avg(long)
+    uo = 100.0 * (4.0 * avg_short + 2.0 * avg_medium + avg_long) / 7.0
+    return IndicatorSeries(
+        name="ultimate_oscillator",
+        panel="separate",
+        lines=[_line("UO", times, uo)],
+    )
+
+
+# --------------------------------------------------------------------------
+# Phase 2 — volatility
+# --------------------------------------------------------------------------
+
+
+def compute_std_dev(df: pd.DataFrame, times: list[str], period: int = 20) -> IndicatorSeries:
+    """Rolling standard deviation of close — population statistic."""
+    sd = df["close"].rolling(period, min_periods=period).std(ddof=0)
+    return IndicatorSeries(
+        name="std_dev",
+        panel="separate",
+        lines=[_line(f"StdDev({period})", times, sd)],
+    )
+
+
+def compute_bollinger_bandwidth(
+    df: pd.DataFrame, times: list[str], period: int = 20, std: float = 2.0
+) -> IndicatorSeries:
+    """Bollinger Bandwidth — ``(upper − lower) / middle``, % of mid band."""
+    mid = df["close"].rolling(period, min_periods=period).mean()
+    sd = df["close"].rolling(period, min_periods=period).std(ddof=0)
+    upper = mid + std * sd
+    lower = mid - std * sd
+    bandwidth = (upper - lower) / mid.replace(0.0, np.nan)
+    return IndicatorSeries(
+        name="bollinger_bandwidth",
+        panel="separate",
+        lines=[_line(f"BBW({period})", times, bandwidth)],
+    )
+
+
+def compute_donchian(df: pd.DataFrame, times: list[str], period: int = 20) -> IndicatorSeries:
+    """Donchian Channels — rolling-max high, rolling-min low, midline avg."""
+    upper = df["high"].rolling(period, min_periods=period).max()
+    lower = df["low"].rolling(period, min_periods=period).min()
+    middle = (upper + lower) / 2.0
+    return IndicatorSeries(
+        name="donchian",
+        panel="price",
+        lines=[
+            _line(f"Upper ({period})", times, upper),
+            _line(f"Middle ({period})", times, middle),
+            _line(f"Lower ({period})", times, lower),
+        ],
+    )
+
+
+def compute_chaikin_volatility(
+    df: pd.DataFrame, times: list[str], period: int = 10
+) -> IndicatorSeries:
+    """Chaikin Volatility — rate-of-change (in %) of EMA of high-low range."""
+    hl = df["high"] - df["low"]
+    ema_hl = hl.ewm(span=period, adjust=False, min_periods=period).mean()
+    cv = 100.0 * (ema_hl - ema_hl.shift(period)) / ema_hl.shift(period).replace(0.0, np.nan)
+    return IndicatorSeries(
+        name="chaikin_volatility",
+        panel="separate",
+        lines=[_line(f"CV({period})", times, cv)],
+    )
+
+
+# --------------------------------------------------------------------------
+# Phase 2 — volume
+# --------------------------------------------------------------------------
+
+
+def _money_flow_multiplier(df: pd.DataFrame) -> pd.Series:
+    """Chaikin's money-flow multiplier ``((C-L) − (H-C)) / (H-L)``."""
+    span = (df["high"] - df["low"]).replace(0.0, np.nan)
+    return ((df["close"] - df["low"]) - (df["high"] - df["close"])) / span
+
+
+def compute_ad_line(df: pd.DataFrame, times: list[str]) -> IndicatorSeries:
+    """Accumulation/Distribution Line — running sum of money-flow * volume."""
+    mf_volume = _money_flow_multiplier(df).fillna(0.0) * df["volume"]
+    ad = mf_volume.cumsum()
+    return IndicatorSeries(
+        name="ad_line",
+        panel="separate",
+        lines=[_line("A/D", times, ad)],
+    )
+
+
+def compute_chaikin_money_flow(
+    df: pd.DataFrame, times: list[str], period: int = 20
+) -> IndicatorSeries:
+    """Chaikin Money Flow — money-flow-volume / volume over a rolling window."""
+    mf_volume = _money_flow_multiplier(df).fillna(0.0) * df["volume"]
+    numer = mf_volume.rolling(period, min_periods=period).sum()
+    denom = df["volume"].rolling(period, min_periods=period).sum()
+    cmf = numer / denom.replace(0.0, np.nan)
+    return IndicatorSeries(
+        name="chaikin_money_flow",
+        panel="separate",
+        lines=[_line(f"CMF({period})", times, cmf)],
+    )
+
+
+def compute_force_index(df: pd.DataFrame, times: list[str], period: int = 13) -> IndicatorSeries:
+    """Force Index — ``(close − close[1]) * volume`` smoothed by EMA(13)."""
+    raw = df["close"].diff() * df["volume"]
+    ema = raw.ewm(span=period, adjust=False, min_periods=1).mean()
+    return IndicatorSeries(
+        name="force_index",
+        panel="separate",
+        lines=[
+            _line("Force", times, raw),
+            _line(f"FI({period})", times, ema),
+        ],
+    )
+
+
+def compute_ease_of_movement(
+    df: pd.DataFrame, times: list[str], period: int = 14
+) -> IndicatorSeries:
+    """Ease of Movement — midpoint move relative to volume/range box."""
+    midpoint = (df["high"] + df["low"]) / 2.0
+    midpoint_move = midpoint.diff()
+    box_ratio = (df["volume"] / 100_000_000.0) / (df["high"] - df["low"]).replace(0.0, np.nan)
+    raw = midpoint_move / box_ratio
+    smoothed = raw.rolling(period, min_periods=period).mean()
+    return IndicatorSeries(
+        name="ease_of_movement",
+        panel="separate",
+        lines=[_line(f"EOM({period})", times, smoothed)],
+    )
+
+
+def compute_vpt(df: pd.DataFrame, times: list[str]) -> IndicatorSeries:
+    """Volume Price Trend — cumulative ``volume * close-pct-change``."""
+    increment = df["volume"] * df["close"].pct_change().fillna(0.0)
+    vpt = increment.cumsum()
+    return IndicatorSeries(
+        name="vpt",
+        panel="separate",
+        lines=[_line("VPT", times, vpt)],
+    )
+
+
+# --------------------------------------------------------------------------
+# Phase 2 — trend
+# --------------------------------------------------------------------------
+
+
+def compute_aroon(df: pd.DataFrame, times: list[str], period: int = 25) -> IndicatorSeries:
+    """Aroon — bars-since-extreme over a lookback window, scaled to 0–100."""
+
+    def _aroon(window: np.ndarray, kind: str) -> float:
+        idx = int(np.argmax(window) if kind == "high" else np.argmin(window))
+        return 100.0 * idx / period
+
+    high_aroon = (
+        df["high"]
+        .rolling(period + 1, min_periods=period + 1)
+        .apply(lambda w: _aroon(w, "high"), raw=True)
+    )
+    low_aroon = (
+        df["low"]
+        .rolling(period + 1, min_periods=period + 1)
+        .apply(lambda w: _aroon(w, "low"), raw=True)
+    )
+    return IndicatorSeries(
+        name="aroon",
+        panel="separate",
+        lines=[
+            _line(f"Aroon Up ({period})", times, high_aroon),
+            _line(f"Aroon Down ({period})", times, low_aroon),
+        ],
+    )
+
+
+def compute_aroon_oscillator(
+    df: pd.DataFrame, times: list[str], period: int = 25
+) -> IndicatorSeries:
+    """Aroon Oscillator — ``Aroon Up − Aroon Down``."""
+
+    def _aroon(window: np.ndarray, kind: str) -> float:
+        idx = int(np.argmax(window) if kind == "high" else np.argmin(window))
+        return 100.0 * idx / period
+
+    high_aroon = (
+        df["high"]
+        .rolling(period + 1, min_periods=period + 1)
+        .apply(lambda w: _aroon(w, "high"), raw=True)
+    )
+    low_aroon = (
+        df["low"]
+        .rolling(period + 1, min_periods=period + 1)
+        .apply(lambda w: _aroon(w, "low"), raw=True)
+    )
+    return IndicatorSeries(
+        name="aroon_oscillator",
+        panel="separate",
+        lines=[_line(f"Aroon Osc ({period})", times, high_aroon - low_aroon)],
+    )
+
+
+def compute_vortex(df: pd.DataFrame, times: list[str], period: int = 14) -> IndicatorSeries:
+    """Vortex Indicator — VI+ and VI− directional persistence."""
+    high, low, close = df["high"], df["low"], df["close"]
+    vm_plus = (high - low.shift(1)).abs()
+    vm_minus = (low - high.shift(1)).abs()
+    tr = _true_range(df)
+    vi_plus = vm_plus.rolling(period, min_periods=period).sum() / tr.rolling(
+        period, min_periods=period
+    ).sum().replace(0.0, np.nan)
+    vi_minus = vm_minus.rolling(period, min_periods=period).sum() / tr.rolling(
+        period, min_periods=period
+    ).sum().replace(0.0, np.nan)
+    _ = close  # silence "unused" — kept for clarity that the indicator is OHLC-derived
+    return IndicatorSeries(
+        name="vortex",
+        panel="separate",
+        lines=[
+            _line(f"VI+ ({period})", times, vi_plus),
+            _line(f"VI- ({period})", times, vi_minus),
+        ],
+    )
+
+
+def compute_mass_index(
+    df: pd.DataFrame, times: list[str], period: int = 9, sum_period: int = 25
+) -> IndicatorSeries:
+    """Mass Index — sum of EMA9(H-L)/EMA9(EMA9(H-L)) over 25 bars (reversal)."""
+    range_hl = df["high"] - df["low"]
+    ema = range_hl.ewm(span=period, adjust=False, min_periods=period).mean()
+    ema_of_ema = ema.ewm(span=period, adjust=False, min_periods=period).mean()
+    ratio = ema / ema_of_ema.replace(0.0, np.nan)
+    mass = ratio.rolling(sum_period, min_periods=sum_period).sum()
+    return IndicatorSeries(
+        name="mass_index",
+        panel="separate",
+        lines=[_line(f"MI({sum_period})", times, mass)],
+    )
+
+
+def compute_pivot_points(df: pd.DataFrame, times: list[str]) -> IndicatorSeries:
+    """Classic floor-trader Pivot Points — pivot, R1/R2, S1/S2 from prior bar."""
+    prev_high = df["high"].shift(1)
+    prev_low = df["low"].shift(1)
+    prev_close = df["close"].shift(1)
+    pivot = (prev_high + prev_low + prev_close) / 3.0
+    r1 = 2.0 * pivot - prev_low
+    s1 = 2.0 * pivot - prev_high
+    r2 = pivot + (prev_high - prev_low)
+    s2 = pivot - (prev_high - prev_low)
+    return IndicatorSeries(
+        name="pivot_points",
+        panel="price",
+        lines=[
+            _line("R2", times, r2),
+            _line("R1", times, r1),
+            _line("Pivot", times, pivot),
+            _line("S1", times, s1),
+            _line("S2", times, s2),
+        ],
+    )
+
+
+def compute_supertrend(
+    df: pd.DataFrame, times: list[str], period: int = 10, multiplier: float = 3.0
+) -> IndicatorSeries:
+    """SuperTrend — ATR-based trailing-stop trend follower.
+
+    Returns one line: the active trend line (upper band when in downtrend, lower
+    band when in uptrend), suitable for rendering as a price-pane overlay.
+    """
+    atr = _rma(_true_range(df), period)
+    hl2 = (df["high"] + df["low"]) / 2.0
+    upper_basic = hl2 + multiplier * atr
+    lower_basic = hl2 - multiplier * atr
+    upper = upper_basic.copy()
+    lower = lower_basic.copy()
+    closes = df["close"].to_numpy(dtype=float)
+    # Copy so we can mutate in place — pandas may hand back a non-writable view.
+    upper_arr = upper.to_numpy(dtype=float).copy()
+    lower_arr = lower.to_numpy(dtype=float).copy()
+    trend = np.full(len(df), np.nan)
+    direction = 1  # 1 = uptrend, -1 = downtrend
+    for i in range(1, len(df)):
+        if not (np.isfinite(upper_arr[i]) and np.isfinite(lower_arr[i])):
+            continue
+        if i > 1 and np.isfinite(upper_arr[i - 1]):
+            if upper_arr[i] > upper_arr[i - 1] and closes[i - 1] <= upper_arr[i - 1]:
+                upper_arr[i] = upper_arr[i - 1]
+            if lower_arr[i] < lower_arr[i - 1] and closes[i - 1] >= lower_arr[i - 1]:
+                lower_arr[i] = lower_arr[i - 1]
+        if direction == 1 and closes[i] < lower_arr[i]:
+            direction = -1
+        elif direction == -1 and closes[i] > upper_arr[i]:
+            direction = 1
+        trend[i] = lower_arr[i] if direction == 1 else upper_arr[i]
+    return IndicatorSeries(
+        name="supertrend",
+        panel="price",
+        lines=[
+            _line(f"SuperTrend({period}, {multiplier})", times, pd.Series(trend, index=df.index))
+        ],
+    )
+
+
+# --------------------------------------------------------------------------
+# Phase 2 — statistical
+# --------------------------------------------------------------------------
+
+
+def _rolling_linreg(values: pd.Series, period: int) -> tuple[pd.Series, pd.Series, pd.Series]:
+    """Rolling linear-regression of ``values`` on bar index.
+
+    Returns ``(fitted_endpoint, slope, residual_std)`` per bar — each column
+    aligned on the same index as ``values``. The fitted endpoint is the
+    regression line evaluated at the latest x in the window (the conventional
+    "Linear Regression" indicator value).
+    """
+    n = period
+    x = np.arange(n, dtype=float)
+    x_mean = x.mean()
+    x_diff = x - x_mean
+    sum_xx = float(np.dot(x_diff, x_diff))
+
+    fitted = np.full(len(values), np.nan)
+    slopes = np.full(len(values), np.nan)
+    residual_std = np.full(len(values), np.nan)
+    arr = values.to_numpy(dtype=float)
+    for i in range(n - 1, len(values)):
+        window = arr[i - n + 1 : i + 1]
+        if not np.all(np.isfinite(window)):
+            continue
+        y_mean = window.mean()
+        y_diff = window - y_mean
+        slope = float(np.dot(x_diff, y_diff)) / sum_xx
+        intercept = y_mean - slope * x_mean
+        # Endpoint: fitted value at the most recent x (= n - 1).
+        fitted[i] = intercept + slope * (n - 1)
+        slopes[i] = slope
+        residuals = window - (intercept + slope * x)
+        residual_std[i] = float(np.sqrt(np.mean(residuals * residuals)))
+    return (
+        pd.Series(fitted, index=values.index),
+        pd.Series(slopes, index=values.index),
+        pd.Series(residual_std, index=values.index),
+    )
+
+
+def compute_linreg(df: pd.DataFrame, times: list[str], period: int = 20) -> IndicatorSeries:
+    """Linear-Regression line — least-squares fit of close over a window."""
+    fitted, _, _ = _rolling_linreg(df["close"], period)
+    return IndicatorSeries(
+        name="linreg",
+        panel="price",
+        lines=[_line(f"LinReg({period})", times, fitted)],
+    )
+
+
+def compute_std_error_bands(
+    df: pd.DataFrame, times: list[str], period: int = 20, multiplier: float = 2.0
+) -> IndicatorSeries:
+    """Standard-Error Bands — linreg endpoint ± k * residual standard error."""
+    fitted, _, residual_std = _rolling_linreg(df["close"], period)
+    upper = fitted + multiplier * residual_std
+    lower = fitted - multiplier * residual_std
+    return IndicatorSeries(
+        name="std_error_bands",
+        panel="price",
+        lines=[
+            _line(f"Upper ({period})", times, upper),
+            _line(f"Middle ({period})", times, fitted),
+            _line(f"Lower ({period})", times, lower),
+        ],
+    )
+
+
+def compute_hlc3(df: pd.DataFrame, times: list[str]) -> IndicatorSeries:
+    """Typical Price — ``(high + low + close) / 3`` per bar."""
+    return IndicatorSeries(
+        name="hlc3",
+        panel="price",
+        lines=[_line("HLC/3", times, (df["high"] + df["low"] + df["close"]) / 3.0)],
+    )
+
+
+def compute_ohlc4(df: pd.DataFrame, times: list[str]) -> IndicatorSeries:
+    """Average Price — ``(open + high + low + close) / 4`` per bar."""
+    return IndicatorSeries(
+        name="ohlc4",
+        panel="price",
+        lines=[
+            _line(
+                "OHLC/4",
+                times,
+                (df["open"] + df["high"] + df["low"] + df["close"]) / 4.0,
+            )
+        ],
+    )
+
+
+def compute_median_price(df: pd.DataFrame, times: list[str]) -> IndicatorSeries:
+    """Median Price — ``(high + low) / 2`` per bar."""
+    return IndicatorSeries(
+        name="median_price",
+        panel="price",
+        lines=[_line("Median", times, (df["high"] + df["low"]) / 2.0)],
+    )
+
+
+# --------------------------------------------------------------------------
 # Dispatch
 # --------------------------------------------------------------------------
 
@@ -559,6 +1188,7 @@ def compute_volume_profile(df: pd.DataFrame, bins: int = 24) -> VolumeProfile:
 # price-axis histogram on a different contract (:class:`VolumeProfile`) and
 # does not fit the time-keyed ``IndicatorSeries`` builder signature.
 _BUILDERS: dict[str, Callable[[pd.DataFrame, list[str]], IndicatorSeries]] = {
+    # --- Phase 1 (20) ---
     "rsi": compute_rsi,
     "macd": compute_macd,
     "ma": compute_ma,
@@ -578,6 +1208,42 @@ _BUILDERS: dict[str, Callable[[pd.DataFrame, list[str]], IndicatorSeries]] = {
     "cci": compute_cci,
     "williams_r": compute_williams_r,
     "roc": compute_roc,
+    # --- Phase 2 — moving averages ---
+    "wma": compute_wma,
+    "hma": compute_hma,
+    "dema": compute_dema,
+    "tema": compute_tema,
+    "kama": compute_kama,
+    # --- Phase 2 — momentum ---
+    "tsi": compute_tsi,
+    "kst": compute_kst,
+    "awesome_oscillator": compute_awesome_oscillator,
+    "ppo": compute_ppo,
+    "ultimate_oscillator": compute_ultimate_oscillator,
+    # --- Phase 2 — volatility ---
+    "std_dev": compute_std_dev,
+    "bollinger_bandwidth": compute_bollinger_bandwidth,
+    "donchian": compute_donchian,
+    "chaikin_volatility": compute_chaikin_volatility,
+    # --- Phase 2 — volume ---
+    "ad_line": compute_ad_line,
+    "chaikin_money_flow": compute_chaikin_money_flow,
+    "force_index": compute_force_index,
+    "ease_of_movement": compute_ease_of_movement,
+    "vpt": compute_vpt,
+    # --- Phase 2 — trend ---
+    "aroon": compute_aroon,
+    "aroon_oscillator": compute_aroon_oscillator,
+    "vortex": compute_vortex,
+    "mass_index": compute_mass_index,
+    "pivot_points": compute_pivot_points,
+    "supertrend": compute_supertrend,
+    # --- Phase 2 — statistical ---
+    "linreg": compute_linreg,
+    "std_error_bands": compute_std_error_bands,
+    "hlc3": compute_hlc3,
+    "ohlc4": compute_ohlc4,
+    "median_price": compute_median_price,
 }
 
 # The volume_profile key is supported and resolvable through ``normalize_key``,
@@ -590,6 +1256,7 @@ SUPPORTED_INDICATORS: tuple[str, ...] = (*tuple(_BUILDERS), _VOLUME_PROFILE_KEY)
 
 # Accepted aliases for the keys above — keeps the query string forgiving.
 _ALIASES: dict[str, str] = {
+    # --- Phase 1 ---
     "bollinger_bands": "bollinger",
     "bbands": "bollinger",
     "bb": "bollinger",
@@ -606,6 +1273,43 @@ _ALIASES: dict[str, str] = {
     "volprofile": "volume_profile",
     "vp": "volume_profile",
     "moneyflow": "mfi",
+    # --- Phase 2 ---
+    "hull_ma": "hma",
+    "hullma": "hma",
+    "double_ema": "dema",
+    "triple_ema": "tema",
+    "true_strength_index": "tsi",
+    "know_sure_thing": "kst",
+    "ao": "awesome_oscillator",
+    "awesome": "awesome_oscillator",
+    "uo": "ultimate_oscillator",
+    "ultosc": "ultimate_oscillator",
+    "stdev": "std_dev",
+    "stddev": "std_dev",
+    "bbw": "bollinger_bandwidth",
+    "bollinger_width": "bollinger_bandwidth",
+    "donchian_channels": "donchian",
+    "dc": "donchian",
+    "cv": "chaikin_volatility",
+    "ad": "ad_line",
+    "accumulation_distribution": "ad_line",
+    "cmf": "chaikin_money_flow",
+    "fi": "force_index",
+    "eom": "ease_of_movement",
+    "emv": "ease_of_movement",
+    "volume_price_trend": "vpt",
+    "aroon_osc": "aroon_oscillator",
+    "vi": "vortex",
+    "mass": "mass_index",
+    "pivots": "pivot_points",
+    "pp": "pivot_points",
+    "st": "supertrend",
+    "linear_regression": "linreg",
+    "lreg": "linreg",
+    "std_err_bands": "std_error_bands",
+    "seb": "std_error_bands",
+    "typical_price": "hlc3",
+    "average_price": "ohlc4",
 }
 
 

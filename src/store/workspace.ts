@@ -32,16 +32,26 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     if (!api) {
       return;
     }
-    const existing = api.getPanel(panelId);
-    if (existing) {
-      existing.api.setActive();
-      return;
-    }
     const spec = useModulesStore.getState().findPanel(panelId);
     if (!spec) {
       return;
     }
-    api.addPanel({ id: spec.id, component: spec.component, title: spec.title });
+    if (spec.singleton !== false) {
+      // Singleton panel: focus the open instance, otherwise add a fresh one.
+      const existing = api.getPanel(panelId);
+      if (existing) {
+        existing.api.setActive();
+        return;
+      }
+      api.addPanel({ id: spec.id, component: spec.component, title: spec.title });
+      return;
+    }
+    // Non-singleton (Phase 2 chart): mint a unique panel id so multiple
+    // instances can coexist and dockview's id-uniqueness invariant holds.
+    const uniqueId = `${spec.id}-${Date.now().toString(36)}-${Math.random()
+      .toString(36)
+      .slice(2, 6)}`;
+    api.addPanel({ id: uniqueId, component: spec.component, title: spec.title });
   },
   closePanel: (panelId) => {
     get().dockviewApi?.getPanel(panelId)?.api.close();

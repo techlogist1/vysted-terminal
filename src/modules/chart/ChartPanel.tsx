@@ -11,6 +11,8 @@ import {
   type ISeriesApi,
   type ISeriesMarkersPluginApi,
   type LineData,
+  type LogicalRange,
+  type MouseEventParams,
   type SeriesMarker,
   type Time,
   type UTCTimestamp,
@@ -19,10 +21,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { SidecarError, sidecarApi } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
+import { newDrawingId, useChartDrawingsStore } from "@/store/chart-drawings";
+import {
+  selectSubscriptions,
+  useChartSyncBus,
+  type CrosshairBroadcast,
+  type SymbolBroadcast,
+  type VisibleRangeBroadcast,
+} from "@/store/chart-sync";
 import type { IndicatorResponse, OHLCVSeries } from "../../../types/data";
+import type { DrawingKind, DrawingPoint, DrawingSpec } from "../../../types/drawings";
 import { fetchIndicators } from "./api";
+import { DrawingPrimitive } from "./drawings/base";
+import { createDrawingPrimitive, DEFAULT_DRAWING_STYLE, pointsRequired } from "./drawings/factory";
 import { IchimokuCloudPrimitive } from "./ichimoku-cloud-primitive";
-import { INDICATOR_CATALOG, INDICATOR_COLORS, type IndicatorDef } from "./indicators";
+import { INDICATOR_COLORS, indicatorsByCategory, type IndicatorDef } from "./indicators";
 import { VolumeProfilePrimitive } from "./volume-profile-primitive";
 
 /** Bar intervals the chart panel exposes — mirrors the sidecar's `timeframe`. */
@@ -31,6 +44,20 @@ type Timeframe = (typeof TIMEFRAMES)[number];
 
 const DEFAULT_SYMBOL = "SPY";
 const DEFAULT_TIMEFRAME: Timeframe = "1d";
+
+/** The ten drawing kinds shown in the toolbar, in display order. */
+const DRAWING_TOOLS: ReadonlyArray<{ kind: DrawingKind; label: string }> = [
+  { kind: "trendline", label: "Trend" },
+  { kind: "horizontal-line", label: "H-Line" },
+  { kind: "vertical-line", label: "V-Line" },
+  { kind: "ray", label: "Ray" },
+  { kind: "rectangle", label: "Rect" },
+  { kind: "ellipse", label: "Ellipse" },
+  { kind: "fib-retracement", label: "Fib Retr" },
+  { kind: "fib-extension", label: "Fib Ext" },
+  { kind: "parallel-channel", label: "Channel" },
+  { kind: "text", label: "Text" },
+];
 
 /** Vysted dark palette, applied to the lightweight-charts canvas. */
 const CHART_THEME = {
@@ -56,6 +83,11 @@ const CANDLE_THEME = {
   wickUpColor: "#7faa6b",
   wickDownColor: "#c8654b",
 } as const;
+
+const COMPARISON_LINE_COLOR = "#8fa67c"; // sage-400
+
+/** Stable empty drawings reference so the store selector stays referentially equal. */
+const EMPTY_DRAWINGS: readonly DrawingSpec[] = Object.freeze([]);
 
 /** Convert an ISO-8601 timestamp to the lightweight-charts UTCTimestamp (seconds). */
 function toChartTime(iso: string): UTCTimestamp {
@@ -101,15 +133,58 @@ function toLineData(points: { time: string; value: number | null }[]): LineData<
   return [...byTime.values()].sort((a, b) => (a.time as number) - (b.time as number));
 }
 
+/**
+ * Build a comparison-overlay line from an OHLCV series. When `normalize` is on,
+ * each value is `(close[i] / close[0] - 1) * 100` so the overlay shares the
+ * percentage scale with any future second-symbol overlay; when off, raw closes
+ * are emitted on the second symbol's natural scale.
+ */
+function toComparisonLineData(series: OHLCVSeries, normalize: boolean): LineData<Time>[] {
+  if (series.bars.length === 0) {
+    return [];
+  }
+  const sorted = [...series.bars].sort(
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+  );
+  const base = sorted[0]?.close ?? 1;
+  const safeBase = base === 0 ? 1 : base;
+  const out: LineData<Time>[] = [];
+  for (const bar of sorted) {
+    const time = toChartTime(bar.timestamp);
+    if (Number.isNaN(time)) {
+      continue;
+    }
+    const value = normalize ? (bar.close / safeBase - 1) * 100 : bar.close;
+    out.push({ time, value });
+  }
+  return out;
+}
+
 type LoadState = "idle" | "loading" | "ready" | "error";
+
+/** Minimal shape of the dockview panel props the chart panel needs. */
+interface ChartPanelProps {
+  api?: { id?: string };
+}
+
+/** Falls back to a random instance id if dockview's panel api is unavailable. */
+function usePanelId(api?: { id?: string }): string {
+  // useState lazy initializer guarantees one stable id per mount.
+  const [fallback] = useState(() => `chart-${Math.random().toString(36).slice(2, 10)}`);
+  return api?.id ?? fallback;
+}
 
 /**
  * Chart panel — a lightweight-charts candlestick chart with a symbol input, a
- * timeframe selector, and a 20-indicator multi-select. Selected indicators are
- * computed server-side; price-pane overlays draw on the candle pane and
- * oscillators each get their own synced pane below it.
+ * timeframe selector, the 50-indicator catalog selector grouped into six
+ * categories, ten drawing tools persisted via the workspace, optional
+ * comparison overlay, and three opt-in sync flavors (crosshair / visible-range
+ * / symbol) so multiple chart instances can stay in lock-step.
  */
-function ChartPanel() {
+function ChartPanel(props: ChartPanelProps = {}) {
+  const panelId = usePanelId(props.api);
+
+  // --- chart refs ---------------------------------------------------------
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -120,7 +195,14 @@ function ChartPanel() {
   // decide above- vs below-bar placement and the trend colour.
   const candleDataRef = useRef<CandlestickData<Time>[]>([]);
   const sarMarkersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
+  // Drawings — primitive registry keyed by spec id, so we can reconcile the
+  // store's drawings array with attached primitives without rebuilding all of
+  // them on every state change.
+  const drawingPrimitivesRef = useRef<Map<string, DrawingPrimitive>>(new Map());
+  // Comparison overlay — second-symbol line series, replaced on toggle.
+  const comparisonSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
 
+  // --- form / data state --------------------------------------------------
   const [symbolInput, setSymbolInput] = useState(DEFAULT_SYMBOL);
   const [symbol, setSymbol] = useState(DEFAULT_SYMBOL);
   const [timeframe, setTimeframe] = useState<Timeframe>(DEFAULT_TIMEFRAME);
@@ -131,6 +213,36 @@ function ChartPanel() {
   const [indicatorState, setIndicatorState] = useState<LoadState>("idle");
   const [indicatorError, setIndicatorError] = useState<string | null>(null);
   const [provider, setProvider] = useState<string | null>(null);
+
+  // --- drawings state -----------------------------------------------------
+  const [activeTool, setActiveTool] = useState<DrawingKind | null>(null);
+  const [draftPoints, setDraftPoints] = useState<DrawingPoint[]>([]);
+  const [selectedDrawingId, setSelectedDrawingId] = useState<string | null>(null);
+
+  const drawings = useChartDrawingsStore((state) => state.byPanel[panelId] ?? EMPTY_DRAWINGS);
+  const addDrawing = useChartDrawingsStore((state) => state.addDrawing);
+  const removeDrawing = useChartDrawingsStore((state) => state.removeDrawing);
+  const updateDrawing = useChartDrawingsStore((state) => state.updateDrawing);
+  const clearPanelDrawings = useChartDrawingsStore((state) => state.clearPanel);
+
+  // --- comparison overlay state ------------------------------------------
+  const [compareInput, setCompareInput] = useState("");
+  const [compareSymbol, setCompareSymbol] = useState<string | null>(null);
+  const [compareNormalize, setCompareNormalize] = useState(true);
+
+  // --- sync bus -----------------------------------------------------------
+  const syncSubscriptions = useChartSyncBus((state) => selectSubscriptions(state, panelId));
+  const setSubscription = useChartSyncBus((state) => state.setSubscription);
+  const unregisterPanel = useChartSyncBus((state) => state.unregisterPanel);
+  const broadcastCrosshair = useChartSyncBus((state) => state.setCrosshair);
+  const broadcastVisibleRange = useChartSyncBus((state) => state.setVisibleRange);
+  const broadcastSymbol = useChartSyncBus((state) => state.setSymbol);
+
+  // The latest broadcasts — keep the function-ref stable so subscriber effects
+  // don't churn when only the source/seq changes.
+  const crosshairBroadcast = useChartSyncBus((state) => state.crosshair);
+  const visibleRangeBroadcast = useChartSyncBus((state) => state.visibleRange);
+  const symbolBroadcast = useChartSyncBus((state) => state.symbol);
 
   const selectedKeys = useMemo(() => [...selected].sort(), [selected]);
 
@@ -147,6 +259,9 @@ function ChartPanel() {
     const candleSeries = chart.addSeries(CandlestickSeries, CANDLE_THEME);
     chartRef.current = chart;
     candleSeriesRef.current = candleSeries;
+    // Capture the ref-current drawings registry so cleanup uses the same
+    // instance the effect saw at mount, not whatever it points to later.
+    const drawings = drawingPrimitivesRef.current;
     return () => {
       chart.remove();
       chartRef.current = null;
@@ -156,8 +271,14 @@ function ChartPanel() {
       ichimokuCloudRef.current = null;
       sarMarkersRef.current = null;
       candleDataRef.current = [];
+      drawings.clear();
+      comparisonSeriesRef.current = null;
+      // Drawings persist across mount/unmount via the store; only the local
+      // primitive registry resets. Sync subscriptions clear on unmount so a
+      // closed panel does not keep echoing through the bus.
+      unregisterPanel(panelId);
     };
-  }, []);
+  }, [panelId, unregisterPanel]);
 
   // --- price data ---------------------------------------------------------
   useEffect(() => {
@@ -375,14 +496,234 @@ function ChartPanel() {
     };
   }, [symbol, timeframe, selectedKeys, renderIndicators, clearIndicatorSeries]);
 
+  // --- drawings: reconcile store → primitives -----------------------------
+  useEffect(() => {
+    const candleSeries = candleSeriesRef.current;
+    if (!candleSeries) {
+      return;
+    }
+    const registry = drawingPrimitivesRef.current;
+    const seen = new Set<string>();
+    for (const spec of drawings) {
+      seen.add(spec.id);
+      const existing = registry.get(spec.id);
+      if (existing) {
+        existing.setSpec(spec);
+      } else {
+        const primitive = createDrawingPrimitive(spec);
+        candleSeries.attachPrimitive(primitive);
+        registry.set(spec.id, primitive);
+      }
+    }
+    for (const [id, primitive] of registry) {
+      if (!seen.has(id)) {
+        candleSeries.detachPrimitive(primitive);
+        registry.delete(id);
+      }
+    }
+  }, [drawings]);
+
+  // --- drawings: click-to-create + delete-key handlers --------------------
+  const handleChartClick = useCallback(
+    (param: MouseEventParams<Time>) => {
+      if (!activeTool) {
+        return;
+      }
+      const candleSeries = candleSeriesRef.current;
+      if (!candleSeries) {
+        return;
+      }
+      // Resolve the click into a drawing point — `time` is whatever bar the
+      // crosshair is over (or null for V/H lines anchored only on price/time).
+      const time = typeof param.time === "number" ? (param.time as number) : null;
+      const seriesData = param.seriesData?.get(candleSeries);
+      let price: number | null = null;
+      if (seriesData && "close" in seriesData && typeof seriesData.close === "number") {
+        price = seriesData.close;
+      } else if (param.point && param.logical !== undefined) {
+        const coord = candleSeries.coordinateToPrice(param.point.y);
+        if (coord !== null) {
+          price = coord;
+        }
+      }
+      const point: DrawingPoint = { time, price };
+      const required = pointsRequired(activeTool);
+      const next = [...draftPoints, point];
+      if (next.length < required) {
+        setDraftPoints(next);
+        return;
+      }
+      // Commit the drawing.
+      const spec: DrawingSpec = {
+        id: newDrawingId(),
+        panelId,
+        kind: activeTool,
+        points: next,
+        style: { ...DEFAULT_DRAWING_STYLE },
+        createdAt: Date.now(),
+        kindOptions: activeTool === "text" ? { text: "label", fontSize: 12 } : undefined,
+      };
+      addDrawing(panelId, spec);
+      setDraftPoints([]);
+      setActiveTool(null);
+    },
+    [activeTool, addDrawing, draftPoints, panelId],
+  );
+
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) {
+      return;
+    }
+    chart.subscribeClick(handleChartClick);
+    return () => {
+      chart.unsubscribeClick(handleChartClick);
+    };
+  }, [handleChartClick]);
+
+  useEffect(() => {
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setActiveTool(null);
+        setDraftPoints([]);
+        setSelectedDrawingId(null);
+      }
+      if ((event.key === "Delete" || event.key === "Backspace") && selectedDrawingId) {
+        removeDrawing(panelId, selectedDrawingId);
+        setSelectedDrawingId(null);
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [panelId, removeDrawing, selectedDrawingId]);
+
+  // --- sync bus: subscribe to crosshair / range / symbol broadcasts ------
+  useEffect(() => {
+    if (!syncSubscriptions.crosshair) {
+      return;
+    }
+    const handleBroadcast = (broadcast: CrosshairBroadcast | null) => {
+      if (!broadcast || broadcast.source === panelId || broadcast.time === null) {
+        return;
+      }
+      chartRef.current?.setCrosshairPosition(NaN, broadcast.time as Time, candleSeriesRef.current!);
+    };
+    handleBroadcast(crosshairBroadcast);
+  }, [syncSubscriptions.crosshair, crosshairBroadcast, panelId]);
+
+  useEffect(() => {
+    if (!syncSubscriptions.visibleRange) {
+      return;
+    }
+    const handleBroadcast = (broadcast: VisibleRangeBroadcast | null) => {
+      if (!broadcast || broadcast.source === panelId) {
+        return;
+      }
+      chartRef.current
+        ?.timeScale()
+        .setVisibleRange({ from: broadcast.from as Time, to: broadcast.to as Time });
+    };
+    handleBroadcast(visibleRangeBroadcast);
+  }, [syncSubscriptions.visibleRange, visibleRangeBroadcast, panelId]);
+
+  useEffect(() => {
+    if (!syncSubscriptions.symbol) {
+      return;
+    }
+    const handleBroadcast = (broadcast: SymbolBroadcast | null) => {
+      if (!broadcast || broadcast.source === panelId) {
+        return;
+      }
+      setSymbol(broadcast.symbol);
+      setSymbolInput(broadcast.symbol);
+    };
+    handleBroadcast(symbolBroadcast);
+  }, [syncSubscriptions.symbol, symbolBroadcast, panelId]);
+
+  // --- sync bus: broadcast our crosshair / visible-range / symbol --------
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) {
+      return;
+    }
+    const onCrosshair = (param: MouseEventParams<Time>) => {
+      const time = typeof param.time === "number" ? (param.time as number) : null;
+      broadcastCrosshair(panelId, time);
+    };
+    chart.subscribeCrosshairMove(onCrosshair);
+    const onRange = (range: LogicalRange | null) => {
+      if (!range) {
+        return;
+      }
+      const visible = chart.timeScale().getVisibleRange();
+      if (!visible) {
+        return;
+      }
+      broadcastVisibleRange(panelId, Number(visible.from), Number(visible.to));
+    };
+    chart.timeScale().subscribeVisibleLogicalRangeChange(onRange);
+    return () => {
+      chart.unsubscribeCrosshairMove(onCrosshair);
+      chart.timeScale().unsubscribeVisibleLogicalRangeChange(onRange);
+    };
+  }, [broadcastCrosshair, broadcastVisibleRange, panelId]);
+
+  // --- comparison overlay -------------------------------------------------
+  useEffect(() => {
+    let cancelled = false;
+    const chart = chartRef.current;
+    if (!chart) {
+      return;
+    }
+    if (comparisonSeriesRef.current) {
+      chart.removeSeries(comparisonSeriesRef.current);
+      comparisonSeriesRef.current = null;
+    }
+    if (!compareSymbol) {
+      return;
+    }
+    const load = async () => {
+      try {
+        const series = await sidecarApi.history(compareSymbol, timeframe);
+        if (cancelled || !chartRef.current) {
+          return;
+        }
+        const data = toComparisonLineData(series, compareNormalize);
+        if (data.length === 0) {
+          return;
+        }
+        const overlay = chartRef.current.addSeries(LineSeries, {
+          color: COMPARISON_LINE_COLOR,
+          lineWidth: 2,
+          priceLineVisible: false,
+          lastValueVisible: true,
+          title: `${compareSymbol}${compareNormalize ? " %" : ""}`,
+          // Normalised overlay rides its own price scale on the left so it
+          // does not warp the candle series' right scale.
+          priceScaleId: compareNormalize ? "left" : "right",
+        });
+        overlay.setData(data);
+        comparisonSeriesRef.current = overlay;
+      } catch {
+        // Comparison-overlay failures are non-fatal — silently drop. The
+        // primary chart's error path already surfaces upstream issues.
+      }
+    };
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [compareSymbol, compareNormalize, timeframe]);
+
   // --- handlers -----------------------------------------------------------
   const submitSymbol = useCallback(() => {
     const next = symbolInput.trim().toUpperCase();
     if (next.length > 0) {
       setSymbol(next);
       setSymbolInput(next);
+      broadcastSymbol(panelId, next);
     }
-  }, [symbolInput]);
+  }, [broadcastSymbol, panelId, symbolInput]);
 
   const toggleIndicator = useCallback((key: string) => {
     setSelected((current) => {
@@ -395,6 +736,48 @@ function ChartPanel() {
       return next;
     });
   }, []);
+
+  const submitComparison = useCallback(() => {
+    const next = compareInput.trim().toUpperCase();
+    setCompareSymbol(next.length > 0 ? next : null);
+  }, [compareInput]);
+
+  const clearComparison = useCallback(() => {
+    setCompareInput("");
+    setCompareSymbol(null);
+  }, []);
+
+  const onToolToggle = useCallback((kind: DrawingKind) => {
+    setActiveTool((current) => (current === kind ? null : kind));
+    setDraftPoints([]);
+    setSelectedDrawingId(null);
+  }, []);
+
+  const onSelectDrawing = useCallback((id: string) => {
+    setSelectedDrawingId((current) => (current === id ? null : id));
+  }, []);
+
+  const onToggleLock = useCallback(
+    (id: string, locked: boolean) => {
+      updateDrawing(panelId, id, (drawing) => ({ ...drawing, locked }));
+    },
+    [panelId, updateDrawing],
+  );
+
+  const onDeleteDrawing = useCallback(
+    (id: string) => {
+      removeDrawing(panelId, id);
+      if (selectedDrawingId === id) {
+        setSelectedDrawingId(null);
+      }
+    },
+    [panelId, removeDrawing, selectedDrawingId],
+  );
+
+  const onClearAllDrawings = useCallback(() => {
+    clearPanelDrawings(panelId);
+    setSelectedDrawingId(null);
+  }, [clearPanelDrawings, panelId]);
 
   const renderIndicatorButton = (indicator: IndicatorDef) => {
     const active = selected.has(indicator.key);
@@ -417,7 +800,7 @@ function ChartPanel() {
   };
 
   return (
-    <div className="bg-charcoal-900 flex h-full w-full flex-col">
+    <div className="bg-charcoal-900 flex h-full w-full flex-col" data-panel-id={panelId}>
       {/* Controls */}
       <div className="border-charcoal-700 flex flex-wrap items-center gap-2 border-b px-3 py-2">
         <form
@@ -459,10 +842,131 @@ function ChartPanel() {
           ))}
         </div>
 
+        {/* Sync toggles — three independent flavors */}
+        <div className="flex items-center gap-1" role="group" aria-label="Sync">
+          <span className="text-charcoal-500 mr-1 font-mono text-[10px] tracking-widest uppercase">
+            Sync
+          </span>
+          {(
+            [
+              ["crosshair", "Cx"],
+              ["visibleRange", "Zm"],
+              ["symbol", "Sy"],
+            ] as const
+          ).map(([flavor, label]) => (
+            <button
+              key={flavor}
+              type="button"
+              onClick={() => setSubscription(panelId, flavor, !syncSubscriptions[flavor])}
+              aria-pressed={syncSubscriptions[flavor]}
+              aria-label={`Sync ${flavor}`}
+              className={cn(
+                "rounded-control px-2 py-1 font-mono text-[10px] transition-colors",
+                syncSubscriptions[flavor]
+                  ? "bg-amber-500/20 text-amber-300"
+                  : "text-charcoal-400 hover:text-charcoal-100",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         <div className="text-charcoal-400 ml-auto font-mono text-xs">
           <span className="text-charcoal-200">{symbol}</span>
           {provider ? <span className="ml-2">via {provider}</span> : null}
         </div>
+      </div>
+
+      {/* Drawing toolbar + comparison overlay row */}
+      <div className="border-charcoal-700 flex flex-wrap items-center gap-2 border-b px-3 py-1.5">
+        <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Drawings">
+          <span className="text-charcoal-500 mr-1 font-mono text-[10px] tracking-widest uppercase">
+            Draw
+          </span>
+          {DRAWING_TOOLS.map((tool) => {
+            const active = activeTool === tool.kind;
+            return (
+              <button
+                key={tool.kind}
+                type="button"
+                onClick={() => onToolToggle(tool.kind)}
+                aria-pressed={active}
+                className={cn(
+                  "rounded-control px-2 py-1 font-mono text-[10px] transition-colors",
+                  active
+                    ? "bg-amber-500/20 text-amber-300"
+                    : "text-charcoal-400 hover:text-charcoal-100",
+                )}
+              >
+                {tool.label}
+              </button>
+            );
+          })}
+          {drawings.length > 0 ? (
+            <button
+              type="button"
+              onClick={onClearAllDrawings}
+              className="text-charcoal-400 hover:text-charcoal-100 ml-1 font-mono text-[10px] underline-offset-2 hover:underline"
+            >
+              clear ({drawings.length})
+            </button>
+          ) : null}
+          {activeTool ? (
+            <span className="text-charcoal-400 ml-1 font-mono text-[10px]">
+              click chart {pointsRequired(activeTool) - draftPoints.length} more time(s)
+            </span>
+          ) : null}
+        </div>
+
+        <form
+          className="ml-auto flex items-center gap-1"
+          onSubmit={(event) => {
+            event.preventDefault();
+            submitComparison();
+          }}
+        >
+          <span className="text-charcoal-500 mr-1 font-mono text-[10px] tracking-widest uppercase">
+            Compare
+          </span>
+          <input
+            value={compareInput}
+            onChange={(event) => setCompareInput(event.target.value)}
+            aria-label="Compare symbol"
+            placeholder="Symbol"
+            spellCheck={false}
+            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control w-20 border px-2 py-1 font-mono text-xs uppercase outline-none focus-visible:border-amber-500"
+          />
+          <Button type="submit" size="sm" variant="outline">
+            Add
+          </Button>
+          {compareSymbol ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setCompareNormalize((current) => !current)}
+                aria-pressed={compareNormalize}
+                aria-label="Normalize comparison"
+                className={cn(
+                  "rounded-control px-2 py-1 font-mono text-[10px] transition-colors",
+                  compareNormalize
+                    ? "bg-amber-500/20 text-amber-300"
+                    : "text-charcoal-400 hover:text-charcoal-100",
+                )}
+              >
+                %
+              </button>
+              <button
+                type="button"
+                onClick={clearComparison}
+                className="text-charcoal-400 hover:text-charcoal-100 font-mono text-[10px]"
+                aria-label="Remove comparison overlay"
+              >
+                ×
+              </button>
+            </>
+          ) : null}
+        </form>
       </div>
 
       {/* Chart */}
@@ -487,8 +991,62 @@ function ChartPanel() {
         ) : null}
       </div>
 
-      {/* Indicator selector */}
-      <div className="border-charcoal-700 max-h-44 overflow-y-auto border-t px-3 py-2">
+      {/* Drawings inspector — list of drawings on this panel */}
+      {drawings.length > 0 ? (
+        <div className="border-charcoal-700 max-h-24 overflow-y-auto border-t px-3 py-1.5">
+          <div className="mb-1 flex items-center gap-2">
+            <span className="text-charcoal-500 font-mono text-[10px] tracking-widest uppercase">
+              Drawings
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {drawings.map((drawing) => {
+              const active = selectedDrawingId === drawing.id;
+              return (
+                <span
+                  key={drawing.id}
+                  className={cn(
+                    "rounded-control flex items-center gap-1 border px-1.5 py-0.5 font-mono text-[10px]",
+                    active
+                      ? "border-amber-500 bg-amber-500/15 text-amber-300"
+                      : "border-charcoal-700 text-charcoal-400",
+                  )}
+                >
+                  <button
+                    type="button"
+                    onClick={() => onSelectDrawing(drawing.id)}
+                    className="font-mono"
+                    aria-label={`Select ${drawing.kind}`}
+                    aria-pressed={active}
+                  >
+                    {drawing.kind}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onToggleLock(drawing.id, !drawing.locked)}
+                    aria-pressed={!!drawing.locked}
+                    aria-label={drawing.locked ? "Unlock drawing" : "Lock drawing"}
+                    className={cn("px-1 hover:text-amber-300", drawing.locked && "text-amber-300")}
+                  >
+                    {drawing.locked ? "🔒" : "🔓"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onDeleteDrawing(drawing.id)}
+                    className="px-1 hover:text-red-400"
+                    aria-label="Delete drawing"
+                  >
+                    ×
+                  </button>
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
+      {/* Indicator selector — grouped by category so 50 entries stay scannable */}
+      <div className="border-charcoal-700 max-h-56 overflow-y-auto border-t px-3 py-2">
         <div className="mb-1.5 flex items-center gap-2">
           <span className="text-charcoal-200 font-mono text-xs tracking-wide uppercase">
             Indicators
@@ -509,8 +1067,17 @@ function ChartPanel() {
             </button>
           ) : null}
         </div>
-        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
-          {INDICATOR_CATALOG.map(renderIndicatorButton)}
+        <div className="space-y-2">
+          {indicatorsByCategory().map((group) => (
+            <div key={group.category}>
+              <div className="text-charcoal-500 mb-1 font-mono text-[10px] tracking-widest uppercase">
+                {group.label}
+              </div>
+              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
+                {group.indicators.map(renderIndicatorButton)}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

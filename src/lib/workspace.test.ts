@@ -1,8 +1,10 @@
 import type { SerializedDockview } from "dockview";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useModulesStore } from "@/store/modules";
 import { useWorkspaceStore } from "@/store/workspace";
+import type { DrawingSpec } from "../../types/drawings";
 
 // The sidecar client reaches into Tauri's `invoke`; stub it so `getSidecarBaseUrl`
 // resolves without a desktop runtime.
@@ -39,13 +41,14 @@ describe("workspace serialization", () => {
   beforeEach(() => {
     useModulesStore.setState({ modules: [], enabled: {} });
     useWorkspaceStore.setState({ name: "default", dockviewApi: null });
+    useChartDrawingsStore.setState({ byPanel: {} });
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("serializeWorkspace captures the dockview layout and the enabled map", () => {
+  it("serializeWorkspace captures the dockview layout, the enabled map, and chart drawings", () => {
     const fakeApi = createFakeDockviewApi(LAYOUT_A);
     useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
     useModulesStore.setState({ enabled: { chart: true, news: false, platform: true } });
@@ -56,6 +59,7 @@ describe("workspace serialization", () => {
       name: "research",
       layout: LAYOUT_A,
       enabledModules: { chart: true, news: false, platform: true },
+      chartDrawings: { byPanel: {} },
     });
   });
 
@@ -129,5 +133,72 @@ describe("workspace serialization", () => {
 
   it("saveWorkspace rejects an empty name", async () => {
     await expect(saveWorkspace("   ")).rejects.toThrow(/name is required/);
+  });
+
+  it("round-trips chart drawings through workspace JSON (Phase 2)", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    useModulesStore.setState({ enabled: { chart: true } });
+
+    const trendline: DrawingSpec = {
+      id: "draw-trend",
+      panelId: "chart-1",
+      kind: "trendline",
+      points: [
+        { time: 1700000000, price: 100 },
+        { time: 1700100000, price: 110 },
+      ],
+      style: { color: "#e9a94d", lineWidth: 1, lineStyle: "solid" },
+      createdAt: 1700000000_000,
+    };
+    const fib: DrawingSpec = {
+      id: "draw-fib",
+      panelId: "chart-2",
+      kind: "fib-retracement",
+      points: [
+        { time: 1700000000, price: 100 },
+        { time: 1700100000, price: 200 },
+      ],
+      style: { color: "#8fa67c", lineWidth: 1, lineStyle: "dashed" },
+      createdAt: 1700000000_001,
+    };
+    useChartDrawingsStore.getState().addDrawing("chart-1", trendline);
+    useChartDrawingsStore.getState().addDrawing("chart-2", fib);
+
+    const saved = serializeWorkspace("with-drawings");
+
+    // Mutate the live state away…
+    useChartDrawingsStore.setState({ byPanel: {} });
+    expect(useChartDrawingsStore.getState().getDrawings("chart-1")).toHaveLength(0);
+
+    // …then reload — drawings come back exactly as saved.
+    deserializeWorkspace(saved);
+    expect(useChartDrawingsStore.getState().getDrawings("chart-1")).toEqual([trendline]);
+    expect(useChartDrawingsStore.getState().getDrawings("chart-2")).toEqual([fib]);
+  });
+
+  it("loadWorkspace without chartDrawings clears any pre-existing drawings", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    useModulesStore.setState({ enabled: { chart: true } });
+    useChartDrawingsStore.getState().addDrawing("chart-x", {
+      id: "leftover",
+      panelId: "chart-x",
+      kind: "rectangle",
+      points: [
+        { time: 1, price: 1 },
+        { time: 2, price: 2 },
+      ],
+      style: { color: "#fff", lineWidth: 1 },
+      createdAt: 0,
+    });
+
+    deserializeWorkspace({
+      name: "old",
+      layout: LAYOUT_A,
+      enabledModules: { chart: true },
+    });
+
+    expect(useChartDrawingsStore.getState().getDrawings("chart-x")).toHaveLength(0);
   });
 });

@@ -13,17 +13,32 @@ const candleSeries = {
   setData: vi.fn(),
   attachPrimitive: vi.fn(),
   detachPrimitive: vi.fn(),
+  coordinateToPrice: vi.fn(() => 100),
+  priceToCoordinate: vi.fn(() => 100),
+};
+const timeScale = {
+  fitContent: vi.fn(),
+  setVisibleRange: vi.fn(),
+  getVisibleRange: vi.fn(() => null),
+  subscribeVisibleLogicalRangeChange: vi.fn(),
+  unsubscribeVisibleLogicalRangeChange: vi.fn(),
+  timeToCoordinate: vi.fn(() => 0),
 };
 const chartApi = {
   // First addSeries call is the candlestick series; subsequent calls are
   // indicator line series. The candle ref needs `attachPrimitive` so the
   // panel can wire the Volume Profile histogram into it.
   addSeries: vi.fn((type: unknown) =>
-    type === "Candlestick" ? candleSeries : { setData: vi.fn() },
+    type === "Candlestick" ? candleSeries : { setData: vi.fn(), priceScaleId: vi.fn() },
   ),
   removeSeries: vi.fn(),
-  timeScale: vi.fn(() => ({ fitContent: vi.fn() })),
+  timeScale: vi.fn(() => timeScale),
   remove: vi.fn(),
+  subscribeClick: vi.fn(),
+  unsubscribeClick: vi.fn(),
+  subscribeCrosshairMove: vi.fn(),
+  unsubscribeCrosshairMove: vi.fn(),
+  setCrosshairPosition: vi.fn(),
 };
 
 // Markers plugin handle returned by `createSeriesMarkers`. Module-scoped so
@@ -94,6 +109,9 @@ vi.mock("./api", () => ({
   fetchIndicators: (...args: unknown[]) => fetchIndicatorsMock(...args),
 }));
 
+import { useChartDrawingsStore } from "@/store/chart-drawings";
+import { useChartSyncBus } from "@/store/chart-sync";
+
 import ChartPanel from "./ChartPanel";
 
 // --- fixtures ---------------------------------------------------------------
@@ -150,6 +168,13 @@ beforeEach(() => {
   vi.clearAllMocks();
   historyMock.mockResolvedValue(makeSeries("SPY"));
   fetchIndicatorsMock.mockResolvedValue(makeIndicatorResponse());
+  useChartDrawingsStore.setState({ byPanel: {} });
+  useChartSyncBus.setState({
+    crosshair: null,
+    visibleRange: null,
+    symbol: null,
+    subscriptions: {},
+  });
 });
 
 afterEach(() => {
@@ -240,14 +265,33 @@ describe("ChartPanel", () => {
     expect(screen.getByRole("button", { name: "RSI", pressed: false })).toBeInTheDocument();
   });
 
-  it("renders all 20 indicators in the selector", async () => {
+  it("renders the full 50-indicator catalog grouped by category", async () => {
     render(<ChartPanel />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
-    // 20 indicator toggles + 8 timeframe toggles + Load button = the selector
-    // grid itself should expose exactly 20 indicator buttons.
-    for (const label of ["RSI", "MACD", "VWAP", "Volume Profile", "Parabolic SAR", "ROC"]) {
+    // Spot-check at least one indicator from every category — the grouped
+    // selector renders six section headers and 50 toggles.
+    const labels = [
+      "Hull MA", // moving-average — Phase 2
+      "Awesome Osc", // momentum — Phase 2
+      "Bollinger Bandwidth", // volatility — Phase 2
+      "CMF", // volume — Phase 2
+      "Aroon", // trend — Phase 2
+      "Linear Regression", // statistical — Phase 2
+      // Phase 1 carry-overs:
+      "RSI",
+      "MACD",
+      "VWAP",
+      "Volume Profile",
+      "Parabolic SAR",
+      "ROC",
+    ];
+    for (const label of labels) {
       expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
     }
+    // Section labels render uppercase, with letter-spacing — distinguishable
+    // from the button labels by class. Six categories are present.
+    const sectionHeaders = screen.getAllByText(/Moving Averages|Volatility|Statistical/);
+    expect(sectionHeaders.length).toBeGreaterThanOrEqual(3);
   });
 
   it("attaches a Volume Profile primitive when the indicator is toggled on", async () => {
@@ -406,5 +450,95 @@ describe("ChartPanel", () => {
       [{ time: "2026-01-02T00:00:00Z", value: 1.7 }],
       [{ time: "2026-01-02T00:00:00Z", value: 1.4 }],
     );
+  });
+
+  // ------------------------------------------------------------------------
+  // Phase 2 — drawing toolbar, sync bus, comparison overlay
+  // ------------------------------------------------------------------------
+
+  it("renders the ten drawing tool buttons in the toolbar", async () => {
+    render(<ChartPanel api={{ id: "chart-A" }} />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    for (const label of [
+      "Trend",
+      "H-Line",
+      "V-Line",
+      "Ray",
+      "Rect",
+      "Ellipse",
+      "Fib Retr",
+      "Fib Ext",
+      "Channel",
+      "Text",
+    ]) {
+      expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
+    }
+  });
+
+  it("activates a drawing tool on toolbar click and shows a points-remaining hint", async () => {
+    render(<ChartPanel api={{ id: "chart-A" }} />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole("button", { name: "Trend" }));
+    expect(screen.getByRole("button", { name: "Trend", pressed: true })).toBeInTheDocument();
+    expect(screen.getByText(/click chart 2 more time\(s\)/)).toBeInTheDocument();
+  });
+
+  it("renders existing drawings from the store on mount and exposes a delete control", async () => {
+    useChartDrawingsStore.getState().addDrawing("chart-A", {
+      id: "draw-1",
+      panelId: "chart-A",
+      kind: "rectangle",
+      points: [
+        { time: 1, price: 100 },
+        { time: 2, price: 110 },
+      ],
+      style: { color: "#e9a94d", lineWidth: 1 },
+      createdAt: 0,
+    });
+    render(<ChartPanel api={{ id: "chart-A" }} />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+
+    expect(screen.getByRole("button", { name: "Select rectangle" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Delete drawing" }));
+
+    expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(0);
+  });
+
+  it("toggles sync subscriptions through the toolbar group", async () => {
+    render(<ChartPanel api={{ id: "chart-A" }} />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole("button", { name: "Sync crosshair" }));
+
+    const subs = useChartSyncBus.getState().subscriptions["chart-A"];
+    expect(subs?.crosshair).toBe(true);
+    expect(subs?.symbol).toBe(false);
+  });
+
+  it("submits a comparison-overlay symbol and toggles its normalization", async () => {
+    render(<ChartPanel api={{ id: "chart-A" }} />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalledTimes(1));
+
+    fireEvent.change(screen.getByLabelText("Compare symbol"), { target: { value: "qqq" } });
+    fireEvent.click(screen.getByRole("button", { name: "Add" }));
+
+    await waitFor(() => {
+      expect(historyMock).toHaveBeenCalledWith("QQQ", "1d");
+    });
+    expect(
+      screen.getByRole("button", { name: "Normalize comparison", pressed: true }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Normalize comparison" }));
+    expect(
+      screen.getByRole("button", { name: "Normalize comparison", pressed: false }),
+    ).toBeInTheDocument();
+  });
+
+  it("uses a stable per-instance panelId from dockview's panel api when present", async () => {
+    render(<ChartPanel api={{ id: "chart-special-id" }} />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    expect(document.querySelector('[data-panel-id="chart-special-id"]')).not.toBeNull();
   });
 });
