@@ -96,6 +96,43 @@ function createSidecarPersistence(): PluginPersistenceAdapter {
 }
 
 /**
+ * Browser-dev fallback: in-memory persistence used when the host runs outside
+ * Tauri (e.g. `pnpm dev` for visual verification). Plugins still load and
+ * surface their capabilities; settings just don't survive a refresh. This
+ * keeps the dev workflow honest — the runtime behaves the same shape, only
+ * the persistence layer is swapped.
+ */
+function createInMemoryPersistence(): PluginPersistenceAdapter {
+  const store = new Map<string, PluginPersistedConfig>();
+  return {
+    async load(pluginId: string): Promise<PluginPersistedConfig | null> {
+      return store.get(pluginId) ?? null;
+    },
+    async save(config: PluginPersistedConfig): Promise<void> {
+      store.set(config.pluginId, { ...config });
+    },
+  };
+}
+
+/**
+ * Resolve the persistence adapter for the current environment. Tauri runs
+ * the sidecar so we use the sidecar-backed adapter; a browser-only
+ * `pnpm dev` falls back to in-memory persistence so the runtime still works
+ * for visual verification and module-level smoke tests.
+ */
+async function resolvePersistence(): Promise<PluginPersistenceAdapter> {
+  try {
+    await getSidecarBaseUrl();
+    return createSidecarPersistence();
+  } catch {
+    console.warn(
+      "[plugin-bootstrap] no Tauri sidecar detected — falling back to in-memory plugin config persistence",
+    );
+    return createInMemoryPersistence();
+  }
+}
+
+/**
  * Builds a `VystedModule` that surfaces a plugin's contributed panels and
  * commands through the existing dockview host + cmd+K palette. This is how
  * plugin contributions reach the rest of the app — there is no second
@@ -150,10 +187,12 @@ function moduleForPlugin(plugin: DiscoveredPlugin): VystedModule | null {
  * a hot-reload or unmount tears the runtime + interval down cleanly.
  */
 export async function bootstrapPlugins(): Promise<() => void> {
+  const persistence = await resolvePersistence();
+  const sidecarBaseUrl = await getSidecarBaseUrl().catch(() => "http://127.0.0.1:0");
   const runtime = new PluginRuntime({
-    sidecarBaseUrl: (await getSidecarBaseUrl().catch(() => "http://127.0.0.1:0")) ?? "",
+    sidecarBaseUrl,
     hostVersion: HOST_VERSION,
-    persistence: createSidecarPersistence(),
+    persistence,
   });
 
   const detachStore = usePluginsStore.getState().attachRuntime(runtime);
