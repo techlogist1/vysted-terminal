@@ -7,6 +7,9 @@ src-tauri/gen/
 sidecar/.venv/
 sidecar/build/
 sidecar/dist/
+sidecar/openbb_mcp_subprocess/.venv/
+sidecar/openbb_mcp_subprocess/build/
+sidecar/openbb_mcp_subprocess/dist/
 **/.pytest_cache/
 pnpm-lock.yaml
 docs/BLUEPRINT.md

@@ -1,4 +1,5 @@
 mod keychain;
+mod openbb_mcp;
 
 use std::net::TcpStream;
 use std::sync::Mutex;
@@ -17,7 +18,7 @@ struct SidecarProcess(Mutex<Option<CommandChild>>);
 struct SidecarPort(u16);
 
 /// Bind to port 0 so the OS picks a free port, read it back, then release it.
-fn pick_free_port() -> u16 {
+pub(crate) fn pick_free_port() -> u16 {
     std::net::TcpListener::bind("127.0.0.1:0")
         .expect("failed to bind a free port for the sidecar")
         .local_addr()
@@ -54,19 +55,19 @@ pub fn run() {
             keychain::keychain_set,
             keychain::keychain_get,
             keychain::keychain_delete,
+            openbb_mcp::get_openbb_mcp_port,
         ])
         .setup(|app| {
             let port = pick_free_port();
             app.manage(SidecarPort(port));
 
-            // Phase 3 reservation: Teammate B (MCP layer) replaces this line
-            // with `openbb_mcp::spawn(&app.handle())?;` to launch the
-            // openbb-mcp-server subprocess via Tauri Rust `Command::new`
-            // (Phase-2 Gotcha — never via Python `subprocess.Popen` on
-            // Windows). The spawn helper picks a free port, supervises the
-            // child, and exposes the port via `get_openbb_mcp_port`.
-            // Placeholder kept here so B's worktree applies as a one-line
-            // replacement instead of a multi-hunk edit.
+            // Spawn the openbb-mcp subprocess BEFORE the main sidecar so the
+            // ``VYSTED_OPENBB_MCP_PORT`` env var is in place when the
+            // Python sidecar imports ``services.openbb_mcp_provider``. The
+            // helper picks its own free port, supervises the child, and
+            // tolerates a missing binary by registering port=0 (sidecar
+            // then falls back to yfinance — see CLAUDE.md Phase-3 fix).
+            openbb_mcp::spawn(app.handle())?;
 
             // Resolve the per-OS application data directory and hand it to the
             // sidecar; the sidecar owns the portfolio SQLite database and the
@@ -123,6 +124,8 @@ pub fn run() {
                     let _ = child.kill();
                 }
             }
+            // Reap the openbb-mcp subprocess alongside the main sidecar.
+            openbb_mcp::kill(app_handle);
         }
     });
 }

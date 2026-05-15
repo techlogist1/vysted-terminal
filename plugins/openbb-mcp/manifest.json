@@ -1,0 +1,10 @@
+{
+  "id": "openbb-mcp",
+  "version": "0.1.0",
+  "name": "OpenBB (MCP)",
+  "entry": "./index.ts",
+  "requiredHostVersion": ">=0.4.0",
+  "description": "OpenBB Open Data Platform via the Model Context Protocol — replaces the Phase-2 in-process plugin with a Tauri-Rust-spawned openbb-mcp-server subprocess (architectural fix for the Windows subprocess.Popen deadlock).",
+  "author": "Vysted Team",
+  "homepage": "https://docs.openbb.co/platform/usage/mcp"
+}

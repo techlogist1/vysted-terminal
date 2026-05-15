@@ -14,7 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "sidecar:build": "node scripts/ensure-sidecar.mjs --force",
-    "openbb-sidecar:build": "node scripts/ensure-openbb-sidecar.mjs --force",
+    "openbb-mcp-sidecar:build": "node scripts/ensure-openbb-mcp-sidecar.mjs --force",
     "tauri": "tauri"
   },
   "dependencies": {

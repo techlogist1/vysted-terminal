@@ -17,8 +17,12 @@ ollama==0.6.2
 # Used by services/agent_runtime.py to validate sidecar/agents/*.json against
 # sidecar/agents/_schema.json at startup.
 jsonschema>=4.0
-# OpenBB ODP runs as a separate sidecar process — see sidecar/openbb_subprocess/
-# and scripts/ensure-openbb-sidecar.mjs (Tier 2 path per plan §A2 + BLOCKERS-C.md).
-# OpenBB pins fastapi <0.129 and uvicorn <0.41 strictly, which is incompatible
-# with this sidecar's pins; isolating OpenBB into its own process+venv keeps
-# Vysted's deps clean.
+# Phase 3 — MCP layer (Teammate B). FastMCP mounts the Vysted MCP server at
+# /mcp over Streamable-HTTP; FastMCP bundles the `mcp` SDK that powers the
+# client wrapper consuming external MCP servers. The first real consumer is
+# openbb-mcp-server, packaged as a separate-process binary in
+# `sidecar/openbb_mcp_subprocess/` and spawned via Tauri Rust `Command::new`
+# — the architectural fix for the Phase-2 Windows `subprocess.Popen`
+# deadlock (CLAUDE.md Gotcha). The retired Phase-2 OpenBB Tier-2 plugin
+# is gone in v0.4.0; its data surface is preserved through openbb-mcp.
+fastmcp==3.2.4
