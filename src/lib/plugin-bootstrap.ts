@@ -14,6 +14,8 @@
 
 import { examplePlugin } from "../../plugins/example";
 import exampleManifest from "../../plugins/example/manifest.json";
+import { openbbMcpPlugin } from "../../plugins/openbb-mcp";
+import openbbMcpManifest from "../../plugins/openbb-mcp/manifest.json";
 
 import type { VystedModule } from "@/lib/module-registry";
 import {
@@ -29,7 +31,7 @@ import type { CommandResult } from "../../types/plugin";
 import type { PluginManifest, PluginPersistedConfig } from "../../types/plugin-runtime";
 
 /** Host (Vysted Terminal) semver — handed to plugins via `PluginConfig.hostVersion`. */
-const HOST_VERSION = "0.3.0";
+const HOST_VERSION = "0.4.0";
 
 /** How often the runtime polls every active plugin's `healthCheck()`. */
 const HEALTH_POLL_INTERVAL_MS = 30_000;
@@ -37,6 +39,7 @@ const HEALTH_POLL_INTERVAL_MS = 30_000;
 /** Bundled-import discovery list. New first-party plugins append here. */
 const BUNDLED_PLUGINS: DiscoveredPlugin[] = [
   { manifest: exampleManifest as PluginManifest, instance: examplePlugin },
+  { manifest: openbbMcpManifest as PluginManifest, instance: openbbMcpPlugin },
 ];
 
 interface PluginConfigUpdateBody {
