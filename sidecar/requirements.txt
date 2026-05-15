@@ -8,6 +8,15 @@ httpx==0.28.1
 feedparser==6.0.12
 numpy==2.4.4
 pandas==3.0.3
+# Phase 3 — BYOK LLM provider SDKs (Teammate A).
+anthropic==0.100.0
+openai==2.36.0
+google-genai>=1.0
+groq==1.1.1
+ollama==0.6.2
+# Used by services/agent_runtime.py to validate sidecar/agents/*.json against
+# sidecar/agents/_schema.json at startup.
+jsonschema>=4.0
 # OpenBB ODP runs as a separate sidecar process — see sidecar/openbb_subprocess/
 # and scripts/ensure-openbb-sidecar.mjs (Tier 2 path per plan §A2 + BLOCKERS-C.md).
 # OpenBB pins fastapi <0.129 and uvicorn <0.41 strictly, which is incompatible
