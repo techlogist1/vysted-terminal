@@ -172,7 +172,7 @@ the next session does not re-learn them. (Phase 0 build notes live in
   `set_password` silently no-ops on a default-features build. The
   v0.4.0 keychain commands enable the cross-platform set
   `["apple-native", "windows-native", "sync-secret-service",
-  "crypto-rust"]` explicitly — these are load-bearing, not optional.
+"crypto-rust"]` explicitly — these are load-bearing, not optional.
 - **FastMCP tools must return a dict (or declare an output_schema).**
   Returning a bare list throws `structured_content must be a dict or
   None` at tool-call time. When proxying a REST endpoint that emits a

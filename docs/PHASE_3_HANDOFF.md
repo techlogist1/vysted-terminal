@@ -25,14 +25,14 @@ present in `docs/`) stays predictable across the build.
   `KEYCHAIN_NAMESPACES.{llmProvider,mcpServer,pluginSecret}` builders
   every teammate consumes.
 - `2053150` — `feat(types): AI provider/agent, MCP, panel-context
-  contracts`. Three new type files (`types/ai.ts`, `types/mcp.ts`,
+contracts`. Three new type files (`types/ai.ts`, `types/mcp.ts`,
   `types/panel-context.ts`) — foundation contracts the three teammates
   consume.
 - `06f6163` — `feat(store): panel-context bus mirroring chart-sync
-  pattern`. `usePanelContextBus` + `selectSnapshot` with the same
+pattern`. `usePanelContextBus` + `selectSnapshot` with the same
   frozen-empty-ref discipline the Phase-2 chart-sync gotcha required.
 - `7a55ec9` — `feat(agents): JSON schema + discovery contract for
-  first-party agents`. `sidecar/agents/_schema.json` mirrors `AgentSpec`
+first-party agents`. `sidecar/agents/_schema.json` mirrors `AgentSpec`
   field-for-field; the runtime validates each `<id>.json` at startup.
 
 ### Teammate A — AI Core (`4bc9ea7` merge)
@@ -243,11 +243,12 @@ consumes that store; no runtime change required.
 ### Workflow execution engine
 
 Will sit in the sidecar. A new router (`sidecar/routers/workflow.py`)
-+ service (`sidecar/services/workflow_engine.py`) following the
-established router-service-test convention. The agent runtime from
-Phase 3 (`sidecar/services/agent_runtime.py`) is the call surface
-for any agent invocation a workflow needs — workflow nodes that
-fire agents call `agent_runtime.invoke_agent(...)` directly.
+
+- service (`sidecar/services/workflow_engine.py`) following the
+  established router-service-test convention. The agent runtime from
+  Phase 3 (`sidecar/services/agent_runtime.py`) is the call surface
+  for any agent invocation a workflow needs — workflow nodes that
+  fire agents call `agent_runtime.invoke_agent(...)` directly.
 
 ### Backtest engine
 
