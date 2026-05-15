@@ -3,8 +3,8 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 
 import { SidecarError } from "@/lib/sidecar-client";
 import type { Quote } from "../../../types/data";
+import { DEFAULT_SYMBOLS, useSymbolsStore } from "@/store/symbols";
 import { WatchlistPanel } from "./WatchlistPanel";
-import { DEFAULT_WATCHLIST, useWatchlistStore } from "./store";
 import type { WatchlistRow } from "./api";
 
 vi.mock("./api", () => ({
@@ -29,7 +29,7 @@ function quote(symbol: string, price: number, changePercent: number): Quote {
   };
 }
 
-function rowsFor(entries = DEFAULT_WATCHLIST): WatchlistRow[] {
+function rowsFor(entries = DEFAULT_SYMBOLS): WatchlistRow[] {
   return entries.map((entry) => ({
     entry,
     quote: quote(entry.symbol, 100, entry.symbol === "AAPL" ? -1.5 : 2.5),
@@ -37,7 +37,7 @@ function rowsFor(entries = DEFAULT_WATCHLIST): WatchlistRow[] {
 }
 
 beforeEach(() => {
-  useWatchlistStore.setState({ entries: [...DEFAULT_WATCHLIST] });
+  useSymbolsStore.setState({ entries: [...DEFAULT_SYMBOLS] });
   mockFetch.mockReset();
   mockFetch.mockResolvedValue(rowsFor());
 });
@@ -82,9 +82,7 @@ describe("WatchlistPanel", () => {
     act(() => {
       fireEvent.click(screen.getByLabelText("Add to watchlist"));
     });
-    expect(useWatchlistStore.getState().entries.some((entry) => entry.symbol === "TSLA")).toBe(
-      true,
-    );
+    expect(useSymbolsStore.getState().entries.some((entry) => entry.symbol === "TSLA")).toBe(true);
   });
 
   it("removes a symbol through the row control", async () => {
@@ -93,9 +91,7 @@ describe("WatchlistPanel", () => {
     act(() => {
       fireEvent.click(screen.getByLabelText("Remove NVDA"));
     });
-    expect(useWatchlistStore.getState().entries.some((entry) => entry.symbol === "NVDA")).toBe(
-      false,
-    );
+    expect(useSymbolsStore.getState().entries.some((entry) => entry.symbol === "NVDA")).toBe(false);
   });
 
   it("polls for quote refreshes on an interval", async () => {
