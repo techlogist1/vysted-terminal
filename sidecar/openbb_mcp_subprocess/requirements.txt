@@ -1,0 +1,27 @@
+# openbb-mcp subprocess — its own venv with OpenBB's strict pins.
+#
+# openbb-mcp-server 1.4.0 pulls in openbb-core 1.6.x, which strictly pins
+# fastapi (<0.129) and uvicorn (<0.41). Those pins are incompatible with
+# the main Vysted sidecar's pins (fastapi 0.136, uvicorn 0.46), so this
+# subprocess gets its own venv and its own PyInstaller --onefile binary
+# built by ``scripts/ensure-openbb-mcp-sidecar.mjs``.
+#
+# This is the architectural fix for the v0.3.0 Phase-2 OpenBB deadlock:
+# the bespoke FastAPI subprocess is replaced by the stock openbb-mcp-server
+# package, spawned via Tauri Rust Command::new (different Windows handle
+# semantics than Python subprocess.Popen — see CLAUDE.md Gotcha). The main
+# Vysted sidecar talks to this child as an MCP client (Streamable-HTTP).
+openbb-mcp-server==1.4.0
+# OpenBB Platform extensions register REST routes via importlib entry-points
+# at runtime; openbb-mcp-server reads those routes and exposes them as MCP
+# tools. Without the extensions, the server only exposes its meta-tools
+# (skill management, prompt discovery). Each extension pulled here adds a
+# category of OpenBB data tools (equity_price_quote, equity_fundamental_*,
+# economy_fred_series, etc.).
+openbb-equity==1.6.1
+openbb-economy==1.6.1
+openbb-yfinance==1.6.2
+openbb-fred==1.6.0
+openbb-fmp==1.6.0
+openbb-news==1.6.0
+
