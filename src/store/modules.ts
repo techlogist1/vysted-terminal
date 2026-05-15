@@ -15,6 +15,13 @@ interface ModulesState {
   enabled: Record<string, boolean>;
   /** Register the module registry. Called once at startup; all modules start enabled. */
   registerModules: (modules: VystedModule[]) => void;
+  /**
+   * Append more modules to the registry without replacing the existing list.
+   * Used by the plugin runtime (Phase 2) to surface plugin-contributed panels
+   * and commands as runtime-added modules. New modules default to enabled;
+   * pre-existing `enabled[id]` entries are preserved.
+   */
+  appendModules: (modules: VystedModule[]) => void;
   /** Toggle a single module on or off. */
   setModuleEnabled: (id: string, enabled: boolean) => void;
   /** Replace the whole enabled map (used when loading a workspace). */
@@ -43,6 +50,26 @@ export const useModulesStore = create<ModulesState>((set, get) => ({
     set({
       modules,
       enabled: Object.fromEntries(modules.map((module) => [module.id, true])),
+    }),
+  appendModules: (modules) =>
+    set((state) => {
+      // Append-only: filter out ids already in the registry so a re-register
+      // of the same plugin (dev-server reload, runtime re-discovery) is a
+      // no-op rather than duplicating the entry.
+      const existingIds = new Set(state.modules.map((module) => module.id));
+      const fresh = modules.filter((module) => !existingIds.has(module.id));
+      if (fresh.length === 0) {
+        return state;
+      }
+      return {
+        modules: [...state.modules, ...fresh],
+        // Preserve any pre-set `enabled[id]` (e.g. a workspace that flipped a
+        // plugin off); default new entries to enabled.
+        enabled: {
+          ...Object.fromEntries(fresh.map((module) => [module.id, true])),
+          ...state.enabled,
+        },
+      };
     }),
   setModuleEnabled: (id, enabled) =>
     set((state) => ({ enabled: { ...state.enabled, [id]: enabled } })),
