@@ -165,9 +165,19 @@ the next session does not re-learn them. (Phase 0 build notes live in
   subprocess servers via Tauri Rust `Command::new` instead — the standard
   pattern for any subprocess that owns its own port/lifecycle.
 
+## Per-phase handoff
+
+Every phase ships `docs/PHASE_N_HANDOFF.md` as a release deliverable; the
+phase lead writes it from warm context before closing the build window. The
+next phase's lead reads it first to learn what shipped, what was decided
+autonomously, what broke, and where their work plugs into existing surfaces.
+v0.3.0's `docs/PHASE_2_HANDOFF.md` is the reference shape.
+
 ## Reference docs
 
 - `docs/BLUEPRINT.md` — full architectural blueprint. Read when architectural
   questions arise; do not load by default.
 - `CHANGELOG.md` — build-time decisions, failed approaches, and per-phase
   outcomes. Read when you need the _why_ behind a choice.
+- `docs/PHASE_N_HANDOFF.md` — the previous phase's handoff. Read first when
+  starting Phase N+1.
