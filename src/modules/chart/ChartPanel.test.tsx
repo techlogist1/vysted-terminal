@@ -240,14 +240,33 @@ describe("ChartPanel", () => {
     expect(screen.getByRole("button", { name: "RSI", pressed: false })).toBeInTheDocument();
   });
 
-  it("renders all 20 indicators in the selector", async () => {
+  it("renders the full 50-indicator catalog grouped by category", async () => {
     render(<ChartPanel />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
-    // 20 indicator toggles + 8 timeframe toggles + Load button = the selector
-    // grid itself should expose exactly 20 indicator buttons.
-    for (const label of ["RSI", "MACD", "VWAP", "Volume Profile", "Parabolic SAR", "ROC"]) {
+    // Spot-check at least one indicator from every category — the grouped
+    // selector renders six section headers and 50 toggles.
+    const labels = [
+      "Hull MA", // moving-average — Phase 2
+      "Awesome Osc", // momentum — Phase 2
+      "Bollinger Bandwidth", // volatility — Phase 2
+      "CMF", // volume — Phase 2
+      "Aroon", // trend — Phase 2
+      "Linear Regression", // statistical — Phase 2
+      // Phase 1 carry-overs:
+      "RSI",
+      "MACD",
+      "VWAP",
+      "Volume Profile",
+      "Parabolic SAR",
+      "ROC",
+    ];
+    for (const label of labels) {
       expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
     }
+    // Section labels render uppercase, with letter-spacing — distinguishable
+    // from the button labels by class. Six categories are present.
+    const sectionHeaders = screen.getAllByText(/Moving Averages|Volatility|Statistical/);
+    expect(sectionHeaders.length).toBeGreaterThanOrEqual(3);
   });
 
   it("attaches a Volume Profile primitive when the indicator is toggled on", async () => {

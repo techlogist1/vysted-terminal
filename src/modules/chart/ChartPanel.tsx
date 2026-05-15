@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import type { IndicatorResponse, OHLCVSeries } from "../../../types/data";
 import { fetchIndicators } from "./api";
 import { IchimokuCloudPrimitive } from "./ichimoku-cloud-primitive";
-import { INDICATOR_CATALOG, INDICATOR_COLORS, type IndicatorDef } from "./indicators";
+import { INDICATOR_COLORS, indicatorsByCategory, type IndicatorDef } from "./indicators";
 import { VolumeProfilePrimitive } from "./volume-profile-primitive";
 
 /** Bar intervals the chart panel exposes — mirrors the sidecar's `timeframe`. */
@@ -105,9 +105,10 @@ type LoadState = "idle" | "loading" | "ready" | "error";
 
 /**
  * Chart panel — a lightweight-charts candlestick chart with a symbol input, a
- * timeframe selector, and a 20-indicator multi-select. Selected indicators are
- * computed server-side; price-pane overlays draw on the candle pane and
- * oscillators each get their own synced pane below it.
+ * timeframe selector, and the 50-indicator catalog selector grouped into six
+ * categories. Selected indicators are computed server-side; price-pane overlays
+ * draw on the candle pane and oscillators each get their own synced pane below
+ * it.
  */
 function ChartPanel() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -487,8 +488,8 @@ function ChartPanel() {
         ) : null}
       </div>
 
-      {/* Indicator selector */}
-      <div className="border-charcoal-700 max-h-44 overflow-y-auto border-t px-3 py-2">
+      {/* Indicator selector — grouped by category so 50 entries stay scannable */}
+      <div className="border-charcoal-700 max-h-56 overflow-y-auto border-t px-3 py-2">
         <div className="mb-1.5 flex items-center gap-2">
           <span className="text-charcoal-200 font-mono text-xs tracking-wide uppercase">
             Indicators
@@ -509,8 +510,17 @@ function ChartPanel() {
             </button>
           ) : null}
         </div>
-        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
-          {INDICATOR_CATALOG.map(renderIndicatorButton)}
+        <div className="space-y-2">
+          {indicatorsByCategory().map((group) => (
+            <div key={group.category}>
+              <div className="text-charcoal-500 mb-1 font-mono text-[10px] tracking-widest uppercase">
+                {group.label}
+              </div>
+              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
+                {group.indicators.map(renderIndicatorButton)}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
