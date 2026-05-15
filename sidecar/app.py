@@ -63,7 +63,7 @@ async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
 def create_app() -> FastAPI:
     """Build and return a fully wired sidecar FastAPI application."""
-    app = FastAPI(title="Vysted Terminal Sidecar", version="0.2.1", lifespan=_lifespan)
+    app = FastAPI(title="Vysted Terminal Sidecar", version="0.3.0", lifespan=_lifespan)
 
     # The frontend WebView fetches the sidecar cross-origin (dev: localhost:3000,
     # prod: tauri://localhost). The sidecar binds to 127.0.0.1 only, so a

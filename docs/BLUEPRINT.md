@@ -470,12 +470,18 @@ All phases ship as part of v1.0 — no MVP, no Phase 2 deferrals. Phases are **C
 - Workspace save/load (local only at this phase)
 
 ### Phase 2 — Charting + Plugin Architecture
-- 30 more technical indicators (50 total)
-- 10 drawing tools
-- Multi-chart sync
-- Comparison overlays
-- Plugin registry + manifest loader (live in app)
-- OpenBB ODP wrap plugin (data-only plugin, proves data-plugin pattern)
+
+**Shipped in v0.3.0 (2026-05-15).**
+
+- 30 more technical indicators (50 total) ✓
+- 10 drawing tools ✓ (workspace-persisted)
+- Multi-chart sync ✓ (opt-in crosshair / visible-range / symbol toggles)
+- Comparison overlays ✓ (with normalize toggle)
+- Plugin registry + manifest loader (live in app) ✓ (bundled-import loader,
+  Phase 2 scope; filesystem-installed/marketplace deferred to v1.0+)
+- OpenBB ODP wrap plugin (data-only plugin, proves data-plugin pattern) ✓
+  (Tier 2 separate-process pattern after `openbb-core` strict pins ruled out
+  in-process bundling; +43 MB binary delta on Windows)
 
 ### Phase 3 — AI Layer
 - Multi-LLM provider integration (OpenAI, Anthropic, DeepSeek, Groq, Gemini, xAI, Ollama)
@@ -483,6 +489,11 @@ All phases ship as part of v1.0 — no MVP, no Phase 2 deferrals. Phases are **C
 - Custom Agent Builder UI
 - Per-panel AI context wiring
 - MCP server (FastAPI in sidecar exposing Vysted's data + capabilities to external AI tools)
+  - Note for Phase 3 implementation: `openbb-mcp-server` ships as its own
+    PyPI package and can be wrapped through the v0.3.0 OpenBB-subprocess
+    pattern, exposing OpenBB's data layer to external AI tools without
+    re-implementing it. Decide between embedding (one MCP) vs federating
+    (Vysted MCP + OpenBB MCP exposed side-by-side) at Phase-3 planning time.
 
 ### Phase 4 — Sandbox: Node Editor + Backtest
 - Node editor (react-flow based)

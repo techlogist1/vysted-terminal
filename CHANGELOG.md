@@ -4,6 +4,234 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## v0.3.0 — Phase 2: Charting depth + Plugin runtime + OpenBB plugin (2026-05-15)
+
+The chart panel goes from "credible" to TradingView-comparable, and the locked
+`types/plugin.ts` contract gets its first real runtime consumer plus its first
+real third-party-shaped data plugin (OpenBB ODP).
+
+Built as three parallel Opus teammates from `main` after three foundation
+commits — chart-features (A), plugin-runtime (B), openbb-plugin (C) — merged in
+risk order B → A → C with one trivial hand-resolved merge on `sidecar/app.py`
+(B added the `plugins` router; C added the `openbb` router + lifespan; the
+union of both shipped). The 3-teammate decomposition was right-sized for the
+surface: chart-features is highly cohesive and best owned by one agent, and the
+lead absorbed the docs / screenshot composition / release work directly.
+
+### Foundation (lead, pre-teammate dispatch)
+
+- **`fix(yfinance): normalize dot-tickers (BRK.B → BRK-B)`** — yfinance returns
+  502 for symbols with dots; its API expects the dash form. Added
+  `_normalize_symbol()` and threaded it through every public `get_*` entry
+  point. The returned model carries the normalized symbol so downstream
+  re-fetches use the canonical form. 14 dedicated tests; resolves a
+  v0.2.1-verification backlog item.
+- **`feat(types): plugin-runtime support types`** — `types/plugin-runtime.ts`
+  introduces `PluginManifest`, `LoadedPluginState`, `LoadedPlugin`,
+  `HealthSample`, `PluginRuntimeEvent`, `PluginPersistedConfig`. Wraps the
+  locked `VystedPlugin` contract; does NOT modify it.
+- **`feat(types): chart drawing-tool spec`** — `types/drawings.ts` defines
+  `DrawingKind`, `DrawingPoint`, `DrawingStyle`, `DrawingSpec`, and the
+  `WorkspaceDrawings` JSON shape. Each drawing kind renders via an
+  `ISeriesPrimitive` (the same pattern the existing
+  `IchimokuCloudPrimitive` and `VolumeProfilePrimitive` use); workspace
+  persistence rides the existing `.vysted-workspace` JSON path.
+
+### Chart features (Teammate A)
+
+- **30 new indicators** (catalog total now 50): Moving Averages (WMA / HMA /
+  DEMA / TEMA / KAMA), Momentum (TSI / KST / Awesome Oscillator / PPO /
+  Ultimate Oscillator), Volatility (Std Dev / Bollinger Bandwidth / Donchian
+  Channels / Chaikin Volatility), Volume (A·D Line / Chaikin Money Flow /
+  Force Index / Ease of Movement / VPT), Trend (Aroon / Aroon Oscillator /
+  Vortex / Mass Index / Pivot Points / SuperTrend), Statistical (Linear
+  Regression / Std Error Bands / HLC3 / OHLC4 / Median Price). Each follows
+  the existing `compute_*` / `_BUILDERS` dispatch pattern with conventional
+  aliases.
+- **Indicator catalog UI** grouped into six section headers so the 50-entry
+  selector stays scannable. New `category` field on `IndicatorDef` (TypeScript
+  only — kept off the wire payload to avoid cross-language sync).
+- **Ten drawing tools** as `ISeriesPrimitive` instances under
+  `src/modules/chart/drawings/`: trendline, horizontal-line, vertical-line,
+  ray, rectangle, ellipse, fib-retracement (0/0.236/0.382/0.5/0.618/0.786/1),
+  fib-extension (same levels), parallel-channel, text. Toolbar UI with
+  click-to-create + Esc/Delete keys + lock toggle + drawing inspector.
+- **Drawing persistence** through `.vysted-workspace` JSON. `chartDrawings` is
+  optional in `SerializedWorkspace` so older workspaces apply cleanly with an
+  explicit `replaceAll({byPanel:{}})` reset on load.
+- **Multi-chart sync** — chart panel converted to `singleton: false`;
+  `useChartSyncBus` Zustand store with three independent flavors (crosshair /
+  visibleRange / symbol). Subscribers self-identify by `source` so they skip
+  self-echoes.
+- **Comparison overlay** — second-symbol fetch at the active timeframe;
+  optional normalize via `(close[i]/close[0]-1)*100` ridden on its own
+  `priceScaleId: 'left'` so the candle scale is unaffected.
+- **Pre-emptive fix:** stable empty references in `chart-sync.ts` /
+  `ChartPanel` for fallback `useSyncExternalStore` reads, blocking a "Maximum
+  update depth exceeded" infinite loop A diagnosed during integration.
+
+### Plugin runtime (Teammate B)
+
+- **`PluginRuntime` class** (`src/lib/plugin-runtime.ts`) — pure TypeScript,
+  no Tauri invoke (decision A1). Discover / load / unload / health-check;
+  capability negotiation gated on the `capabilities.contributesX` flags (a
+  flag set without its getter `error`s the plugin without throwing); rolling
+  health history bounded at 20 samples; typed `PluginRuntimeEvent`s with
+  listener-error isolation.
+- **`useModulesStore.appendModules()`** extends the registry without
+  replacing — preserves `enabled[id]` from workspace replay, deduplicates on
+  plugin id.
+- **`usePluginsStore`** — React projection of the runtime: loaded plugins,
+  dataSources, agents, nodes (the latter three not yet consumed by Phase-2
+  UI but wired so Phase-3 can plug in without a runtime change).
+- **Plugin Manager Panel** — lifecycle state badge, metadata, error banner,
+  health-history strip, enable/disable toggle. Reachable via cmd+K
+  (`/plugins`).
+- **Sidecar-owned per-plugin config** — SQLite-backed `plugins_store` +
+  `/plugins` router. Mirrors the workspace_store / portfolio_db pattern. **No
+  new browser storage.**
+- **`plugins/example/`** — minimal plugin proving the contract end-to-end:
+  declares `contributesData=true` + `contributesCommands=true` +
+  `supportsControlPlane=true`, exports one `DataSource` (`example-prices`)
+  and one slash command (`/example`).
+- **`bootstrapPlugins()`** wires the runtime into `src/app/page.tsx` on mount.
+  Falls back to in-memory persistence when Tauri is absent so `pnpm dev`
+  loads plugins as `active` instead of `error` for visual verification.
+
+### OpenBB ODP plugin (Teammate C — Tier 2 separate-process)
+
+- **Bundling decision: Tier 2 (separate-process).** Pivoted from Tier 1 after
+  `pnpm sidecar:build` hit `ResolutionImpossible`: `openbb-core 1.6.9`
+  strictly pins `fastapi <0.129` and `uvicorn <0.41`, both incompatible with
+  Vysted's main-sidecar pins (0.136 / 0.46). Downgrading would have leaked
+  strict pinning into every Vysted release; the brief's §A2 escape hatch
+  applies exactly.
+- **OpenBB lives in its own venv** under `sidecar/openbb_subprocess/`,
+  packaged as its own PyInstaller `--onefile` binary by
+  `scripts/ensure-openbb-sidecar.mjs`. Subprocess uses
+  `RouterLoader.from_extensions()` + `CommandRunner.sync_run` (NOT `import
+openbb` — the meta-package triggers static-package codegen that writes into
+  `site-packages`, fatal under `--onefile` read-only fs).
+- **Subprocess pins:** `fastapi==0.128.8`, `uvicorn==0.40.0`,
+  `openbb-core==1.6.9`, `openbb-equity==1.6.1`, `openbb-economy==1.6.1`,
+  `openbb-yfinance==1.6.2`, `openbb-fred==1.6.0`, `openbb-fmp==1.6.0`.
+- **Bundle delta: +43 MB** for the new OpenBB subprocess binary on Windows.
+  Main sidecar binary unchanged at 56.9 MB; total Phase-2 binary footprint
+  ≈ 100 MB.
+- **`plugins/openbb/`** — exports a `VystedPlugin` declaring `pluginType:
+"data-source"` + `contributesData=true`. `getDataSources()` enumerates
+  equity / fundamentals / macro classes. `healthCheck()` reports the real
+  state of the subprocess.
+- **`provider_registry`** gains OpenBB-prefer wrappers for fundamentals /
+  income statement / balance sheet / cash flow / analyst rating, each
+  falling back to yfinance on `ProviderError` (logged at WARNING). Macro is
+  OpenBB-only — clean ProviderError when unavailable.
+- **FastAPI lifespan** calls `openbb_provider.shutdown()` on app shutdown so
+  a `pnpm tauri dev` restart does not orphan the OpenBB binary. Subprocess
+  inherits the stdin-EOF watchdog Phase-1 already validated.
+
+### Decisions
+
+- **3-teammate decomposition** (Tier-3): the brief floated four; the operator
+  approved three because the chart-features scope is highly cohesive and
+  splitting it would have manufactured conflict surface on `ChartPanel.tsx`.
+  Lead absorbed docs + screenshot composition + release work directly.
+- **OpenBB Tier 2 over Tier 1** (Tier-3): per the documented escape hatch
+  in plan §A2, after `ResolutionImpossible` was reproduced twice (once
+  direct-resolve, once after manually downgrading `fastapi` to 0.128.8 to
+  surface the uvicorn conflict).
+- **`category` field on `IndicatorDef` (TS only, not Pydantic)** (Tier-3):
+  the sidecar already returns enough (`name` + `panel`); category is a pure
+  UI grouping concern, no need to thread it through the wire payload and
+  cross-language sync.
+- **All ten drawing renderers in one `renderers.ts`** (Tier-3): each
+  renderer class is small (~30 lines); a single file makes the
+  kind→renderer mapping in `factory.ts` and the FIB_LEVELS constant
+  trivially shared.
+- **Subprocess lifecycle owned by main sidecar, not by plugin** (Tier-3):
+  the plan's "launched on plugin enable, killed on plugin disable" needs
+  cross-process control plane that Phase 2 doesn't ship. Lazy-launch on
+  first request + main-sidecar shutdown is semantically equivalent for the
+  v0.3.0 bundled-only-plugins regime and reuses the existing
+  Tauri-supervised stdin-EOF watchdog pattern.
+- **In-memory persistence fallback at plugin bootstrap** (Tier-3): the
+  runtime should work in dev mode for visual verification, not just
+  production with the sidecar. Added inside `bootstrapPlugins()`; production
+  unchanged.
+
+### Failed approaches & fixes
+
+- **Tier-1 OpenBB bundling fails on `pnpm sidecar:build`.** `openbb-core
+1.6.9` strictly pins `fastapi (>=0.128.0,<0.129.0)` and `uvicorn
+(>=0.40.0,<0.41.0)`, both incompatible with Vysted's main-sidecar pins.
+  Fixed by pivoting to Tier 2 (separate-process). Recorded as the canonical
+  example of when the §A2 escape hatch applies.
+- **`subprocess.Popen` → bundled-OpenBB on Windows hangs in prewarm.**
+  The same binary launched via PowerShell `Start-Process` reaches HTTP/200
+  in ~3-4 s; under `subprocess.Popen` the prewarm thread deadlocks
+  indefinitely (anyio + PyInstaller `_MEIPASS` + Windows handle inheritance
+  interaction). Tested every plausible `stdin` / `creationflags` /
+  `close_fds` combination + rewrote the subprocess's stdin-EOF watchdog from
+  `sys.stdin.buffer.read` to `os.read(fd,...)` — none changed the deadlock.
+  **Cached-failure logic ensures the registry's yfinance fallback is fast on
+  subsequent calls** so users still get fundamentals/macro data; the
+  subprocess is a dormant performance optimization that lights up only when
+  the launch path is fixed. Phase-3 fix candidates: spawn via Tauri Rust
+  `Command::new` (different Windows handle semantics), or wrap the launch
+  in a small Rust helper. See `BLOCKERS.md` for the full investigation log.
+- **"Maximum update depth exceeded" infinite loop in chart-sync.** Diagnosed
+  by Teammate A during integration: `useSyncExternalStore` was seeing a
+  fresh empty-object reference on every render of the fallback path. Fixed
+  with module-level frozen empty references in `chart-sync.ts` and
+  `ChartPanel`.
+- **Lead missed `rustc` on PATH for `pnpm sidecar:build`.** The Rust
+  toolchain at `~/.cargo/bin` is not on the default shell PATH; the build
+  script's `rustc -vV` target-triple probe failed. Fixed by prepending the
+  cargo bin dir before invoking `pnpm sidecar:build`. Documented in
+  CLAUDE.md gotchas (and in `~/.claude/projects/.../memory/`).
+
+### Known issues (carried into v0.3.0 ship)
+
+Recorded in `BLOCKERS.md` — none blocks the v0.3.0 tag:
+
+- **OpenBB subprocess hangs under `subprocess.Popen` on Windows.** The
+  bundle and the standalone path both work; the Python-spawned path
+  deadlocks. Registry falls back to yfinance; user-facing fundamentals /
+  macro still work. Phase-3 fix candidate documented above.
+- **On-canvas drawing screenshots not captured via chrome-devtools.**
+  lightweight-charts rejects synthesised mouse events (`isTrusted` check),
+  so chrome-devtools cannot exercise the click-to-create gesture.
+  Drawings have full unit-test canvas-call coverage, and the toolbar UI
+  - drawing-inspector populated screenshots prove the wiring; an end-user
+    `pnpm tauri dev` session demonstrates them live.
+
+### Verification
+
+- `pnpm typecheck` / `pnpm lint` / `pnpm format:check` / `pnpm test` (139
+  passed) / `pnpm build`.
+- `sidecar` `pytest` (190 passed) / `ruff check` / `ruff format --check`.
+- `cargo fmt --check` / `cargo clippy -D warnings` / `cargo test` (1 passed).
+- `pnpm sidecar:build` — main sidecar `--onefile` binary 56.9 MB (unchanged
+  from v0.2.1).
+- `pnpm openbb-sidecar:build` — OpenBB subprocess `--onefile` binary 43 MB
+  (additive). Total binary footprint ≈ 100 MB on Windows.
+- CI green on Windows, macOS, Linux (verified locally on Windows; CI
+  matrices verifies all three).
+
+### Visual proof
+
+`docs/screenshots/v0.3.0/`:
+
+- **`teammate-a/`** — chart with multiple new indicators across all six
+  categories; drawing toolbar in active state; populated chart at both
+  resolutions.
+- **`teammate-b/`** — plugin manager panel showing the example plugin loaded
+  and active, with metadata + health-history strip; cmd+K filtered on the
+  example plugin's `/example` slash command.
+- **`teammate-c/`** — Equity Overview populated with AAPL data sourced via
+  OpenBB (provider field reads `openbb`); per-folder README documents
+  provenance.
+
 ## v0.2.1 — Phase 1 polish pass (2026-05-15)
 
 Every `BLOCKERS.md` item from v0.2.0 resolved, plus scrollbar + panel-fit
