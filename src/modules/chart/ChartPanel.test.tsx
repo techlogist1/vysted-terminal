@@ -26,10 +26,19 @@ const chartApi = {
   remove: vi.fn(),
 };
 
+// Markers plugin handle returned by `createSeriesMarkers`. Module-scoped so
+// the Parabolic SAR test can assert on `setMarkers` / `detach` calls.
+const sarMarkersHandle = {
+  setMarkers: vi.fn(),
+  detach: vi.fn(),
+};
+const createSeriesMarkersMock = vi.fn(() => sarMarkersHandle);
+
 vi.mock("lightweight-charts", () => ({
   createChart: vi.fn(() => chartApi),
   CandlestickSeries: "Candlestick",
   LineSeries: "Line",
+  createSeriesMarkers: (...args: unknown[]) => createSeriesMarkersMock(...args),
 }));
 
 // --- volume profile primitive mock -----------------------------------------
@@ -250,6 +259,81 @@ describe("ChartPanel", () => {
       { price: 100.0, volume: 1_000 },
       { price: 101.0, volume: 2_000 },
     ]);
+  });
+
+  it("draws Parabolic SAR as series markers with trend-aware placement", async () => {
+    // SPY default fixture: bar 1 closes at 1.5, bar 2 closes at 2.5.
+    // SAR < close → uptrend → belowBar; SAR > close → downtrend → aboveBar.
+    fetchIndicatorsMock.mockResolvedValueOnce({
+      symbol: "SPY",
+      timeframe: "1d",
+      provider: "yfinance",
+      indicators: [
+        {
+          name: "parabolic_sar",
+          panel: "price",
+          lines: [
+            {
+              label: "Parabolic SAR",
+              points: [
+                { time: "2026-01-01T00:00:00Z", value: 0.8 }, // < 1.5 → uptrend
+                { time: "2026-01-02T00:00:00Z", value: 3.0 }, // > 2.5 → downtrend
+              ],
+            },
+          ],
+        },
+      ],
+      volume_profile: null,
+    } satisfies IndicatorResponse);
+
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole("button", { name: "Parabolic SAR", pressed: false }));
+
+    await waitFor(() => expect(createSeriesMarkersMock).toHaveBeenCalled());
+    // The candle series — not a new LineSeries — is the markers' host.
+    expect(createSeriesMarkersMock).toHaveBeenCalledWith(
+      candleSeries,
+      expect.arrayContaining([
+        expect.objectContaining({ position: "belowBar", shape: "circle" }),
+        expect.objectContaining({ position: "aboveBar", shape: "circle" }),
+      ]),
+    );
+    // No line series should be added for the SAR indicator.
+    const lineCalls = chartApi.addSeries.mock.calls.filter(([type]) => type === "Line");
+    expect(lineCalls).toHaveLength(0);
+  });
+
+  it("detaches Parabolic SAR markers when the indicator is cleared", async () => {
+    fetchIndicatorsMock.mockResolvedValueOnce({
+      symbol: "SPY",
+      timeframe: "1d",
+      provider: "yfinance",
+      indicators: [
+        {
+          name: "parabolic_sar",
+          panel: "price",
+          lines: [
+            {
+              label: "Parabolic SAR",
+              points: [{ time: "2026-01-02T00:00:00Z", value: 1.0 }],
+            },
+          ],
+        },
+      ],
+      volume_profile: null,
+    } satisfies IndicatorResponse);
+
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole("button", { name: "Parabolic SAR", pressed: false }));
+    await waitFor(() => expect(createSeriesMarkersMock).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole("button", { name: /Clear \(1\)/ }));
+
+    await waitFor(() => expect(sarMarkersHandle.detach).toHaveBeenCalled());
   });
 
   it("detaches the Volume Profile primitive when the indicator is cleared", async () => {

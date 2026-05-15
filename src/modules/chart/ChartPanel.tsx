@@ -4,11 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CandlestickSeries,
   createChart,
+  createSeriesMarkers,
   LineSeries,
   type CandlestickData,
   type IChartApi,
   type ISeriesApi,
+  type ISeriesMarkersPluginApi,
   type LineData,
+  type SeriesMarker,
   type Time,
   type UTCTimestamp,
 } from "lightweight-charts";
@@ -111,6 +114,10 @@ function ChartPanel() {
   const candleSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const indicatorSeriesRef = useRef<ISeriesApi<"Line">[]>([]);
   const volumeProfileRef = useRef<VolumeProfilePrimitive | null>(null);
+  // Cached candle data — Parabolic SAR markers need the per-bar close to
+  // decide above- vs below-bar placement and the trend colour.
+  const candleDataRef = useRef<CandlestickData<Time>[]>([]);
+  const sarMarkersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
 
   const [symbolInput, setSymbolInput] = useState(DEFAULT_SYMBOL);
   const [symbol, setSymbol] = useState(DEFAULT_SYMBOL);
@@ -144,6 +151,8 @@ function ChartPanel() {
       candleSeriesRef.current = null;
       indicatorSeriesRef.current = [];
       volumeProfileRef.current = null;
+      sarMarkersRef.current = null;
+      candleDataRef.current = [];
     };
   }, []);
 
@@ -162,7 +171,9 @@ function ChartPanel() {
         }
         const candleSeries = candleSeriesRef.current;
         if (candleSeries) {
-          candleSeries.setData(toCandlestickData(series));
+          const candleData = toCandlestickData(series);
+          candleSeries.setData(candleData);
+          candleDataRef.current = candleData;
           chartRef.current?.timeScale().fitContent();
         }
         setProvider(series.provider);
@@ -200,7 +211,61 @@ function ChartPanel() {
       candleSeries.detachPrimitive(volumeProfile);
     }
     volumeProfileRef.current = null;
+    const sarMarkers = sarMarkersRef.current;
+    if (sarMarkers) {
+      sarMarkers.detach();
+    }
+    sarMarkersRef.current = null;
   }, []);
+
+  /**
+   * Parabolic SAR is drawn as above- / below-bar dot markers rather than a
+   * line — that is the conventional rendering, and lightweight-charts' line
+   * series cannot draw discrete dots. Each SAR sample is compared to the bar's
+   * close: SAR < close → uptrend dot below; SAR > close → downtrend dot above.
+   */
+  const renderParabolicSar = useCallback(
+    (points: { time: string; value: number | null }[]) => {
+      const candleSeries = candleSeriesRef.current;
+      if (!candleSeries) {
+        return;
+      }
+      const closeByTime = new Map<number, number>();
+      for (const candle of candleDataRef.current) {
+        closeByTime.set(candle.time as number, candle.close);
+      }
+      const markers: SeriesMarker<Time>[] = [];
+      for (const point of points) {
+        if (point.value === null) {
+          continue;
+        }
+        const time = toChartTime(point.time);
+        if (Number.isNaN(time)) {
+          continue;
+        }
+        const close = closeByTime.get(time);
+        if (close === undefined) {
+          continue;
+        }
+        const isUptrend = point.value < close;
+        markers.push({
+          time,
+          position: isUptrend ? "belowBar" : "aboveBar",
+          shape: "circle",
+          color: isUptrend ? "#8fa67c" : "#c8654b",
+          size: 1,
+        });
+      }
+      markers.sort((a, b) => (a.time as number) - (b.time as number));
+      const existing = sarMarkersRef.current;
+      if (existing) {
+        existing.setMarkers(markers);
+      } else {
+        sarMarkersRef.current = createSeriesMarkers(candleSeries, markers);
+      }
+    },
+    [],
+  );
 
   const renderIndicators = useCallback(
     (response: IndicatorResponse) => {
@@ -213,6 +278,10 @@ function ChartPanel() {
       // next pane index, so all panes stay time-synced within the one chart.
       let nextPane = 1;
       for (const indicator of response.indicators) {
+        if (indicator.name === "parabolic_sar") {
+          renderParabolicSar(indicator.lines[0]?.points ?? []);
+          continue;
+        }
         const isOverlay = indicator.panel === "price";
         const paneIndex = isOverlay ? 0 : nextPane++;
         indicator.lines.forEach((line, lineIndex) => {
@@ -246,7 +315,7 @@ function ChartPanel() {
         volumeProfileRef.current = primitive;
       }
     },
-    [clearIndicatorSeries],
+    [clearIndicatorSeries, renderParabolicSar],
   );
 
   useEffect(() => {
