@@ -16,8 +16,10 @@
 import type { SerializedDockview } from "dockview";
 
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useModulesStore } from "@/store/modules";
 import { useWorkspaceStore } from "@/store/workspace";
+import type { WorkspaceDrawings } from "../../types/drawings";
 
 /** The serialised form of a workspace, persisted as a `.vysted-workspace` file. */
 export interface SerializedWorkspace {
@@ -27,6 +29,11 @@ export interface SerializedWorkspace {
   layout: SerializedDockview;
   /** The modules `enabled` map at save time. */
   enabledModules: Record<string, boolean>;
+  /**
+   * Per-chart-panel drawings collection (Phase 2). Optional for backward
+   * compatibility with workspaces saved before drawings shipped.
+   */
+  chartDrawings?: WorkspaceDrawings;
   /** Open to future-phase additions; the sidecar stores the body opaquely. */
   [key: string]: unknown;
 }
@@ -41,7 +48,8 @@ export class WorkspaceError extends Error {
 
 /**
  * Capture the current workspace from the live stores: the dockview layout plus
- * the modules `enabled` map. Throws if the dockview layout has not mounted yet.
+ * the modules `enabled` map plus per-chart-panel drawings. Throws if the
+ * dockview layout has not mounted yet.
  */
 export function serializeWorkspace(name: string): SerializedWorkspace {
   const api = useWorkspaceStore.getState().dockviewApi;
@@ -52,13 +60,16 @@ export function serializeWorkspace(name: string): SerializedWorkspace {
     name,
     layout: api.toJSON(),
     enabledModules: useModulesStore.getState().enabled,
+    chartDrawings: useChartDrawingsStore.getState().snapshot(),
   };
 }
 
 /**
  * Apply a loaded workspace back onto the live stores: restore the modules
  * `enabled` map, then the dockview layout, then the active workspace name.
- * Throws if the dockview layout has not mounted yet.
+ * Throws if the dockview layout has not mounted yet. Drawings (Phase 2) are
+ * restored last and only when the loaded workspace carries them so older
+ * workspaces still apply cleanly.
  */
 export function deserializeWorkspace(workspace: SerializedWorkspace): void {
   const api = useWorkspaceStore.getState().dockviewApi;
@@ -70,6 +81,11 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
   useModulesStore.getState().setEnabledMap(workspace.enabledModules);
   api.fromJSON(workspace.layout);
   useWorkspaceStore.getState().setName(workspace.name);
+  if (workspace.chartDrawings) {
+    useChartDrawingsStore.getState().replaceAll(workspace.chartDrawings);
+  } else {
+    useChartDrawingsStore.getState().replaceAll({ byPanel: {} });
+  }
 }
 
 /** Build the sidecar `/workspace` URL, optionally for a single named workspace. */

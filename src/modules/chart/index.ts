@@ -21,7 +21,9 @@ export const chartModule: VystedModule = {
       title: "Chart",
       icon: "line-chart",
       component: "chart-panel",
-      singleton: true,
+      // Phase 2 makes the chart non-singleton so the user can open multiple
+      // chart panels and opt them into crosshair / zoom / symbol sync.
+      singleton: false,
       defaultSize: { w: 8, h: 6 },
     },
   ],

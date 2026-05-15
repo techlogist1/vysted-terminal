@@ -102,10 +102,18 @@ export const useChartSyncBus = create<ChartSyncBusState>((set, get) => ({
     }),
 }));
 
-/** Convenience selector: subscriptions for a specific panel, with defaults. */
+/** Stable empty subscriptions reference — re-used so selectors stay referentially equal. */
+const EMPTY_SUBS = Object.freeze({ ...DEFAULT_SUBS });
+
+/**
+ * Convenience selector: subscriptions for a specific panel, with defaults.
+ * Returns a stable, frozen empty object when the panel is unknown so callers
+ * subscribed via `useChartSyncBus(state => selectSubscriptions(...))` do not
+ * see a fresh object on every render and trigger an infinite loop.
+ */
 export function selectSubscriptions(
   state: ChartSyncBusState,
   panelId: string,
 ): { crosshair: boolean; visibleRange: boolean; symbol: boolean } {
-  return state.subscriptions[panelId] ?? { ...DEFAULT_SUBS };
+  return state.subscriptions[panelId] ?? EMPTY_SUBS;
 }
