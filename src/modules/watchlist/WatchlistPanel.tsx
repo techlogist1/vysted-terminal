@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { SidecarError } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
+import { usePanelContextBus } from "@/store/panel-context";
 import { fetchWatchlistQuotes, type WatchlistRow } from "./api";
 import { useSymbolsStore as useWatchlistStore } from "@/store/symbols";
 
@@ -43,6 +44,43 @@ export function WatchlistPanel() {
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [draftAssetClass, setDraftAssetClass] = useState<"equity" | "crypto">("equity");
+  // Tracks the symbol the user last interacted with via the row hover; null
+  // when the user has not selected anything yet. Used as the publisher's
+  // `selectedSymbol` payload field.
+  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
+
+  // --- panel-context bus: publish selection on change ---------------------
+  const publishPanelContext = usePanelContextBus((state) => state.publish);
+  const unregisterPanelContext = usePanelContextBus((state) => state.unregisterSource);
+
+  // Project the entry list into a primitive-friendly tuple of symbol strings
+  // so the effect's deps array stays referentially stable across re-renders
+  // that don't actually change the symbol list. The snapshot is re-memoised
+  // off `symbolsKey` (a primitive string) so a re-rendered identical list
+  // does not mint a fresh array.
+  const symbolsKey = useMemo(() => entries.map((e) => e.symbol).join(","), [entries]);
+  const symbolsSnapshot = useMemo(
+    () => (symbolsKey === "" ? [] : symbolsKey.split(",")),
+    [symbolsKey],
+  );
+
+  useEffect(() => {
+    publishPanelContext({
+      source: "watchlist",
+      kind: "selection",
+      payload: {
+        symbols: symbolsSnapshot,
+        selectedSymbol,
+      },
+      emittedAt: Date.now(),
+    });
+  }, [publishPanelContext, symbolsSnapshot, selectedSymbol]);
+
+  useEffect(() => {
+    return () => {
+      unregisterPanelContext("watchlist");
+    };
+  }, [unregisterPanelContext]);
 
   const refresh = useCallback(async () => {
     try {
@@ -131,10 +169,15 @@ export function WatchlistPanel() {
               {rows.map(({ entry, quote }) => {
                 const change = quote?.change_percent ?? 0;
                 const positive = change >= 0;
+                const isSelected = selectedSymbol === entry.symbol;
                 return (
                   <tr
                     key={entry.symbol}
-                    className="border-charcoal-800 hover:bg-charcoal-800/50 border-b"
+                    onClick={() => setSelectedSymbol(entry.symbol)}
+                    className={cn(
+                      "border-charcoal-800 hover:bg-charcoal-800/50 cursor-pointer border-b",
+                      isSelected && "bg-charcoal-800/40",
+                    )}
                   >
                     <td className="text-charcoal-100 truncate px-3 py-2 font-mono text-sm">
                       {entry.symbol}
