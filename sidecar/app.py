@@ -15,11 +15,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from routers import (
+    agents,
     crypto,
     fundamentals,
     health,
     history,
     indicators,
+    llm,
     macro,
     news,
     openbb,
@@ -44,6 +46,8 @@ _ROUTERS = (
     workspace,
     plugins,
     openbb,
+    llm,
+    agents,
 )
 
 
