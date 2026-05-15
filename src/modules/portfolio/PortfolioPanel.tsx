@@ -255,7 +255,7 @@ export function PortfolioPanel() {
         </div>
       )}
 
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto">
         {summary === null ? (
           <p className="text-charcoal-400 p-4 font-mono text-xs">Loading portfolio…</p>
         ) : summary.rows.length === 0 ? (
@@ -284,7 +284,9 @@ export function PortfolioPanel() {
                     key={position.id ?? position.symbol}
                     className="border-charcoal-800 hover:bg-charcoal-800/50 border-b font-mono text-sm"
                   >
-                    <td className="text-charcoal-100 px-3 py-2">{position.symbol}</td>
+                    <td className="text-charcoal-100 max-w-24 truncate px-3 py-2">
+                      {position.symbol}
+                    </td>
                     <td className="text-charcoal-200 px-3 py-2 text-right">{position.quantity}</td>
                     <td className="text-charcoal-200 px-3 py-2 text-right">
                       {formatMoney(position.cost_basis)}

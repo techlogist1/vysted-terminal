@@ -1,4 +1,4 @@
-import type { DockviewApi } from "dockview";
+import type { DockviewApi, IDockviewPanel } from "dockview";
 
 /**
  * The first-launch panel arrangement (BLUEPRINT §5.1): the Chart dominates the
@@ -9,6 +9,15 @@ import type { DockviewApi } from "dockview";
  * Each panel is placed only if its module is enabled, and a panel's reference
  * position is honoured only when that reference actually got placed — so a user
  * who disabled a module still gets a coherent layout rather than a crash.
+ *
+ * After placement we resize the chart group and each right-column panel via
+ * `panel.api.setSize`, which is the reliable pixel-precise resize path —
+ * dockview's `addPanel({initialWidth,…})` redistributes proportionally as
+ * later panels are added, so the final ratios don't match the per-panel
+ * initial requests. We size the chart group to ~63% of the host width and
+ * split the right column into three roughly-even thirds; this scales from
+ * 1080p up to 1440p without going either too cramped or too sparse. Users
+ * can drag the splitters freely afterwards.
  */
 
 type Direction = "right" | "below" | "within";
@@ -48,21 +57,47 @@ const DEFAULT_PANELS: PlacedPanel[] = [
   },
 ];
 
+/** Chart-group share of the total host width (BLUEPRINT §5.1: chart-dominant). */
+const CHART_WIDTH_FRACTION = 0.625;
+/** Right-column panel share of the total host height (one-third per panel). */
+const RIGHT_COLUMN_PANEL_HEIGHT_FRACTION = 1 / 3;
+
 /** Build the first-launch layout, skipping panels whose module is disabled. */
 export function applyDefaultLayout(api: DockviewApi, enabledPanelIds: Set<string>): void {
   const placed = new Set<string>();
+  const panels = new Map<string, IDockviewPanel>();
+
   for (const panel of DEFAULT_PANELS) {
     if (!enabledPanelIds.has(panel.id)) {
       continue;
     }
+    // dockview only honours a position when its `referencePanel` is already
+    // placed — drop the position entirely otherwise so the panel still lands.
     const position =
       panel.position && placed.has(panel.position.referencePanel) ? panel.position : undefined;
-    api.addPanel({
+    const created = api.addPanel({
       id: panel.id,
       component: panel.component,
       title: panel.title,
       position,
     });
+    panels.set(panel.id, created);
     placed.add(panel.id);
+  }
+
+  // Resize after all panels are placed so the final ratios are stable. Setting
+  // the chart group's width pushes the right column to fill the remainder;
+  // setting heights on watchlist + news lets portfolio claim the rest of the
+  // right-column height. `api.width` / `api.height` are 0 in non-browser
+  // (test) environments — guard so the call still no-ops cleanly there.
+  const hostWidth = typeof api.width === "number" ? api.width : 0;
+  const hostHeight = typeof api.height === "number" ? api.height : 0;
+  if (hostWidth > 0) {
+    panels.get("chart")?.api.setSize({ width: Math.round(hostWidth * CHART_WIDTH_FRACTION) });
+  }
+  if (hostHeight > 0) {
+    const panelHeight = Math.round(hostHeight * RIGHT_COLUMN_PANEL_HEIGHT_FRACTION);
+    panels.get("watchlist")?.api.setSize({ height: panelHeight });
+    panels.get("news")?.api.setSize({ height: panelHeight });
   }
 }
