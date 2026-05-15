@@ -122,7 +122,7 @@ Each release tag and significant patch gets its **own** subfolder under
 `v0.2.1-equity-fit` for commit 00606e7) or the commit short SHA when no
 obvious descriptor fits.
 
-**Never overwrite** existing screenshots. The v0.2.1-tag layout-*.png pair was
+**Never overwrite** existing screenshots. The v0.2.1-tag layout-\*.png pair was
 silently overwritten by the 00606e7 verification run and is unrecoverable from
 the working tree — only the v0.2.1 release commit's blob store still has them.
 A per-patch folder costs nothing and preserves the per-release visual record.
