@@ -1,6 +1,7 @@
 import type { VystedModule } from "@/lib/module-registry";
 
 import { chartModule } from "./chart";
+import { chatModule } from "./chat";
 import { equityOverviewModule } from "./equity-overview";
 import { newsModule } from "./news";
 import { platformModule } from "./platform";
@@ -23,6 +24,7 @@ export const vystedModules: VystedModule[] = [
   newsModule,
   portfolioModule,
   equityOverviewModule,
+  chatModule,
   platformModule,
   pluginManagerModule,
 ];
