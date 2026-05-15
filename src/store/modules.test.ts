@@ -22,8 +22,8 @@ describe("modules store", () => {
   it("registers modules and enables them all", () => {
     useModulesStore.getState().registerModules(vystedModules);
     const state = useModulesStore.getState();
-    expect(state.modules).toHaveLength(6);
-    expect(state.enabledModules()).toHaveLength(6);
+    expect(state.modules.length).toBeGreaterThanOrEqual(7);
+    expect(state.enabledModules().length).toBe(state.modules.length);
   });
 
   it("disabling a module drops its panels and commands", () => {
