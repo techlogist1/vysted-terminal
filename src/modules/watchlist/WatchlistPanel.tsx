@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SidecarError } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { fetchWatchlistQuotes, type WatchlistRow } from "./api";
-import { useWatchlistStore } from "./store";
+import { useSymbolsStore as useWatchlistStore } from "@/store/symbols";
 
 /** Poll interval for quote refreshes — a few seconds keeps it near-real-time. */
 const POLL_INTERVAL_MS = 5_000;

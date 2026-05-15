@@ -8,15 +8,15 @@
  */
 
 import { sidecarApi } from "@/lib/sidecar-client";
+import type { SymbolEntry } from "@/store/symbols";
 import type { Quote } from "../../../types/data";
-import type { WatchlistEntry } from "./store";
 
 /** The crypto exchange the watchlist resolves crypto symbols against. */
 export const WATCHLIST_CRYPTO_EXCHANGE = "binance";
 
 /** A watchlist row: the tracked entry joined with its latest quote (if resolved). */
 export interface WatchlistRow {
-  entry: WatchlistEntry;
+  entry: SymbolEntry;
   quote: Quote | null;
 }
 
@@ -27,7 +27,7 @@ export interface WatchlistRow {
  * fetched individually. A symbol that fails to resolve comes back with a
  * `null` quote rather than failing the whole refresh.
  */
-export async function fetchWatchlistQuotes(entries: WatchlistEntry[]): Promise<WatchlistRow[]> {
+export async function fetchWatchlistQuotes(entries: SymbolEntry[]): Promise<WatchlistRow[]> {
   const equitySymbols = entries
     .filter((entry) => entry.assetClass === "equity")
     .map((entry) => entry.symbol);

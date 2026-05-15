@@ -1,7 +1,8 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SidecarError } from "@/lib/sidecar-client";
+import { DEFAULT_SYMBOLS, useSymbolsStore } from "@/store/symbols";
 
 import type { NewsItem } from "../../../types/data";
 
@@ -34,6 +35,9 @@ function newsItem(overrides: Partial<NewsItem> = {}): NewsItem {
 
 describe("NewsFeedPanel", () => {
   beforeEach(() => {
+    // Reset the shared symbols store between tests so per-test mutations do
+    // not leak into other cases.
+    useSymbolsStore.setState({ entries: [...DEFAULT_SYMBOLS] });
     mockFetchNews.mockReset();
   });
 
@@ -74,12 +78,27 @@ describe("NewsFeedPanel", () => {
     expect(badges[1].className).toContain("text-negative");
   });
 
-  it("requests news for the Phase 1 default watchlist", async () => {
+  it("requests news for the default watchlist projected through toNewsSymbol", async () => {
     mockFetchNews.mockResolvedValue([]);
     render(<NewsFeedPanel />);
     await waitFor(() => expect(mockFetchNews).toHaveBeenCalledTimes(1));
     const [symbols] = mockFetchNews.mock.calls[0];
+    // `BTC/USDT` / `ETH/USDT` collapse to their base assets for news tagging.
     expect(symbols).toEqual(["SPY", "QQQ", "BTC", "ETH", "NVDA", "AAPL"]);
+  });
+
+  it("re-fetches when the shared symbols store changes", async () => {
+    mockFetchNews.mockResolvedValue([]);
+    render(<NewsFeedPanel />);
+    await waitFor(() => expect(mockFetchNews).toHaveBeenCalledTimes(1));
+
+    act(() => {
+      useSymbolsStore.setState({ entries: [{ symbol: "TSLA", assetClass: "equity" }] });
+    });
+
+    await waitFor(() => expect(mockFetchNews).toHaveBeenCalledTimes(2));
+    const [symbols] = mockFetchNews.mock.calls[1];
+    expect(symbols).toEqual(["TSLA"]);
   });
 
   it("renders an empty state when there is no news", async () => {

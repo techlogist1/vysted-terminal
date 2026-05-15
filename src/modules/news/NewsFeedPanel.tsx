@@ -1,22 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { SidecarError } from "@/lib/sidecar-client";
+import { toNewsSymbol, useSymbolsStore } from "@/store/symbols";
 
 import type { NewsItem } from "../../../types/data";
 import { fetchNews } from "./api";
-
-/**
- * Phase 1 default watchlist for the news feed.
- *
- * The real watchlist lives in a module-local store owned by another teammate
- * (`src/modules/watchlist/store.ts`). Importing it would cross a module
- * boundary and break this worktree if that file does not exist yet, so the
- * news feed ships with a sensible built-in symbol set for now —
- * watchlist-linking is a deliberate Phase 1 follow-up.
- */
-const DEFAULT_SYMBOLS = ["SPY", "QQQ", "BTC", "ETH", "NVDA", "AAPL"] as const;
 
 type LoadState =
   | { status: "loading" }
@@ -125,22 +115,39 @@ function errorMessage(error: unknown): string {
 /**
  * News Feed panel — a scrollable feed of news items, each scored with a
  * lexicon sentiment indicator and tagged with the watchlist symbols it
- * mentions. Filtered to the Phase 1 default watchlist.
+ * mentions. Filtered to the current shared watchlist (`useSymbolsStore`):
+ * adding or removing a symbol re-fetches the feed.
  */
 export function NewsFeedPanel() {
+  const entries = useSymbolsStore((state) => state.entries);
+  // Project stored entries into the news feed's symbol form (crypto pairs
+  // collapse to their base asset, e.g. `BTC/USDT` → `BTC`). Memoised so the
+  // fetch effect's dependency is stable as long as the symbol list does not
+  // change.
+  const newsSymbols = useMemo(() => entries.map(toNewsSymbol), [entries]);
+  // Stable string key for the symbol list — used as the effect dependency so
+  // the fetch re-runs only when the projected list actually changes.
+  const symbolsKey = newsSymbols.join(",");
+
   const [state, setState] = useState<LoadState>({ status: "loading" });
 
   // Fetch the feed and route the result into state. `applyResult` is gated by
   // the caller's cancellation flag so an in-flight request from an unmounted
   // panel (or a superseded refresh) is dropped silently.
-  const runFetch = useCallback((applyResult: (next: LoadState) => void) => {
-    fetchNews([...DEFAULT_SYMBOLS])
-      .then((items) => applyResult({ status: "ready", items }))
-      .catch((error: unknown) => applyResult({ status: "error", message: errorMessage(error) }));
-  }, []);
+  const runFetch = useCallback(
+    (applyResult: (next: LoadState) => void) => {
+      fetchNews(newsSymbols)
+        .then((items) => applyResult({ status: "ready", items }))
+        .catch((error: unknown) => applyResult({ status: "error", message: errorMessage(error) }));
+    },
+    [newsSymbols],
+  );
 
-  // Initial load on mount — the effect only updates state asynchronously, never
-  // synchronously, so the panel renders its initial "loading" state directly.
+  // Re-fetch whenever the projected symbol list changes (initial mount, plus
+  // any add/remove from the shared store). The effect only updates state
+  // asynchronously, never synchronously, so the panel renders its initial
+  // "loading" state directly and previous results stay on screen until the
+  // next fetch resolves (no jarring loading flash when the watchlist mutates).
   useEffect(() => {
     let cancelled = false;
     runFetch((next) => {
@@ -151,7 +158,10 @@ export function NewsFeedPanel() {
     return () => {
       cancelled = true;
     };
-  }, [runFetch]);
+    // `runFetch` already closes over `newsSymbols`; depending on `symbolsKey`
+    // keeps the effect stable across renders that produce an equal symbol list.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [symbolsKey]);
 
   // Manual refresh / retry — an event handler, so a synchronous reset to the
   // loading state is fine here.
