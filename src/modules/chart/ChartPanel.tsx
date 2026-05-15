@@ -29,6 +29,7 @@ import {
   type SymbolBroadcast,
   type VisibleRangeBroadcast,
 } from "@/store/chart-sync";
+import { usePanelContextBus } from "@/store/panel-context";
 import type { IndicatorResponse, OHLCVSeries } from "../../../types/data";
 import type { DrawingKind, DrawingPoint, DrawingSpec } from "../../../types/drawings";
 import { fetchIndicators } from "./api";
@@ -667,6 +668,50 @@ function ChartPanel(props: ChartPanelProps = {}) {
       chart.timeScale().unsubscribeVisibleLogicalRangeChange(onRange);
     };
   }, [broadcastCrosshair, broadcastVisibleRange, panelId]);
+
+  // --- panel-context bus: publish snapshot on state change ----------------
+  // Reads `state.publish` / `state.unregisterSource` as bare function refs so
+  // the effect's deps are stable across renders (Zustand returns the same
+  // function pointer between sets). The frozen empty refs pattern is not
+  // strictly required here because we depend on primitives (symbol, timeframe,
+  // selectedKeys joined as a string, drawings.length) — but the discipline
+  // from the Phase-2 chart-sync gotcha is preserved.
+  const publishPanelContext = usePanelContextBus((state) => state.publish);
+  const unregisterPanelContext = usePanelContextBus((state) => state.unregisterSource);
+
+  useEffect(() => {
+    const source = `chart-${panelId}`;
+    publishPanelContext({
+      source,
+      kind: "snapshot",
+      payload: {
+        symbol,
+        timeframe,
+        activeIndicators: selectedKeys,
+        drawingCount: drawings.length,
+      },
+      emittedAt: Date.now(),
+    });
+  }, [
+    panelId,
+    publishPanelContext,
+    symbol,
+    timeframe,
+    // `selectedKeys` is memoised in this component (sorted, stable per
+    // selection set) so depending on the array itself is safe.
+    selectedKeys,
+    drawings.length,
+  ]);
+
+  useEffect(() => {
+    // Drop the panel's most-recent context event on unmount so a closed chart
+    // does not leak into the chat sidebar's snapshot. The source identifier
+    // mirrors the publish payload's `source` field.
+    const source = `chart-${panelId}`;
+    return () => {
+      unregisterPanelContext(source);
+    };
+  }, [panelId, unregisterPanelContext]);
 
   // --- comparison overlay -------------------------------------------------
   useEffect(() => {

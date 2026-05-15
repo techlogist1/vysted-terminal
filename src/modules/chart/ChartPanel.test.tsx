@@ -541,4 +541,75 @@ describe("ChartPanel", () => {
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
     expect(document.querySelector('[data-panel-id="chart-special-id"]')).not.toBeNull();
   });
+
+  // Phase-3 Teammate C: per-panel context publisher tests.
+  it("publishes a chart snapshot to the panel-context bus on mount", async () => {
+    const { usePanelContextBus } = await import("@/store/panel-context");
+    usePanelContextBus.setState({
+      lastEventBySource: {},
+      focusedSource: null,
+      updatedAt: 0,
+    });
+    render(<ChartPanel api={{ id: "chart-pub-1" }} />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    const event = usePanelContextBus.getState().lastEventBySource["chart-chart-pub-1"];
+    expect(event).toBeDefined();
+    expect(event!.kind).toBe("snapshot");
+    expect((event!.payload as { symbol: string }).symbol).toBe("SPY");
+    expect((event!.payload as { timeframe: string }).timeframe).toBe("1d");
+    expect((event!.payload as { drawingCount: number }).drawingCount).toBe(0);
+  });
+
+  it("re-publishes when the timeframe changes", async () => {
+    const { usePanelContextBus } = await import("@/store/panel-context");
+    usePanelContextBus.setState({
+      lastEventBySource: {},
+      focusedSource: null,
+      updatedAt: 0,
+    });
+    render(<ChartPanel api={{ id: "chart-pub-2" }} />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: "1h", pressed: false }));
+    await waitFor(() => {
+      const e = usePanelContextBus.getState().lastEventBySource["chart-chart-pub-2"];
+      expect((e!.payload as { timeframe: string }).timeframe).toBe("1h");
+    });
+  });
+
+  it("unregisters its panel-context source on unmount", async () => {
+    const { usePanelContextBus } = await import("@/store/panel-context");
+    usePanelContextBus.setState({
+      lastEventBySource: {},
+      focusedSource: null,
+      updatedAt: 0,
+    });
+    const { unmount } = render(<ChartPanel api={{ id: "chart-pub-3" }} />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    expect(usePanelContextBus.getState().lastEventBySource["chart-chart-pub-3"]).toBeDefined();
+    unmount();
+    expect(usePanelContextBus.getState().lastEventBySource["chart-chart-pub-3"]).toBeUndefined();
+  });
+
+  it("publish does not trigger an infinite re-render loop", async () => {
+    const { usePanelContextBus } = await import("@/store/panel-context");
+    usePanelContextBus.setState({
+      lastEventBySource: {},
+      focusedSource: null,
+      updatedAt: 0,
+    });
+    const realPublish = usePanelContextBus.getState().publish;
+    const publishSpy = vi.fn(realPublish);
+    usePanelContextBus.setState({ publish: publishSpy });
+    try {
+      render(<ChartPanel api={{ id: "chart-pub-4" }} />);
+      await waitFor(() => expect(historyMock).toHaveBeenCalled());
+      const calls = publishSpy.mock.calls.filter(
+        (c) => (c[0] as { source: string }).source === "chart-chart-pub-4",
+      );
+      expect(calls.length).toBeGreaterThan(0);
+      expect(calls.length).toBeLessThan(10);
+    } finally {
+      usePanelContextBus.setState({ publish: realPublish });
+    }
+  });
 });
