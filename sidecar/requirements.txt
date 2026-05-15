@@ -8,14 +8,8 @@ httpx==0.28.1
 feedparser==6.0.12
 numpy==2.4.4
 pandas==3.0.3
-# OpenBB ODP — Phase 2 (Tier 1 bundled-in path; see BLOCKERS-C.md). The
-# meta-package `openbb` is intentionally NOT listed: it triggers static-package
-# code generation on first import that writes into `site-packages`, which
-# crashes inside the PyInstaller --onefile read-only filesystem. We use the
-# router-loader path in services/openbb_provider.py instead.
-openbb-core==1.6.9
-openbb-equity==1.6.1
-openbb-economy==1.6.1
-openbb-yfinance==1.6.2
-openbb-fred==1.6.0
-openbb-fmp==1.6.0
+# OpenBB ODP runs as a separate sidecar process — see sidecar/openbb_subprocess/
+# and scripts/ensure-openbb-sidecar.mjs (Tier 2 path per plan §A2 + BLOCKERS-C.md).
+# OpenBB pins fastapi <0.129 and uvicorn <0.41 strictly, which is incompatible
+# with this sidecar's pins; isolating OpenBB into its own process+venv keeps
+# Vysted's deps clean.
