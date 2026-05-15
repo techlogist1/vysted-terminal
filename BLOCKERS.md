@@ -1,62 +1,50 @@
 # Blockers & Known Issues
 
-Lead-level open items as of v0.3.0. Per-teammate Phase-2 self-reports
-(`BLOCKERS-A.md`, `-B.md`, `-C.md`) were aggregated here at integration and
-removed; the salient detail is preserved in the v0.3.0 merge commit messages
-and in this file. None of the items below blocks the v0.3.0 ship; each is a
-deliberate Phase-3 follow-up.
+Lead-level open items as of v0.4.0. Per-teammate Phase-3 self-reports
+(`BLOCKERS-C.md` only — A and B surfaced none) were aggregated here at
+integration and removed; the salient detail is preserved in the v0.4.0
+merge commit messages and in this file. None of the items below blocks
+the v0.4.0 ship; each is a deliberate Phase-4 follow-up.
 
-## OpenBB subprocess hangs under `subprocess.Popen` on Windows (Phase-3 follow-up)
+## Resolved in v0.4.0
 
-**Symptom.** When the main Vysted sidecar lazy-launches the OpenBB
-subprocess via `subprocess.Popen(...)`, the subprocess never finishes its
-prewarm (`/health` returns 503 indefinitely). The 30-second deadline fires,
-the main sidecar terminates the subprocess, and the registry's yfinance
-fallback runs. Users still get fundamentals / macro data via that fallback,
-so the user-facing data path is intact — the OpenBB subprocess is a dormant
-performance optimization that lights up only when this launch path is fixed.
+The Phase-3 brief explicitly called for the architectural fix to the
+Phase-2 `subprocess.Popen` deadlock. **Resolved.** The Phase-2
+`plugins/openbb/` + `sidecar/openbb_subprocess/` pair is retired in
+v0.4.0. The replacement (`plugins/openbb-mcp/` + the `openbb-mcp-server`
+PyPI package bundled into `sidecar/openbb_mcp_subprocess/`) spawns via
+Tauri Rust `Command::new` — different Windows handle semantics from
+Python's `subprocess.Popen`, so the deadlock does not recur. End-to-end
+data path verified (`docs/screenshots/v0.4.0/teammate-b/openbb-mcp-end-
+to-end.log`).
 
-**What works.** The same binary, same flags, same environment, launched
-via PowerShell `Start-Process` (or any non-Python parent) reaches HTTP/200 in
-~3-4 s. Direct standalone `/quote/AAPL` returns the populated payload in
-1.5 s. The bundle itself is correct.
+The chart-tool `isTrusted` verification gap from v0.3.0 is unchanged —
+not Phase 3's scope; documented as a Phase-N visual-verification-suite
+candidate.
 
-**Investigation done (Teammate C).** Tested every plausible `stdin` /
-`creationflags` / `close_fds` combination. Rewrote the subprocess's
-stdin-EOF watchdog from `sys.stdin.buffer.read()` to `os.read(fd, ...)`
-to rule out the high-level lock. None changed the deadlock.
+## Phase-4 follow-ups (cosmetic / forward-looking)
 
-**Root cause hypothesis.** OpenBB-core uses
-`anyio.from_thread.BlockingPortal` to bridge sync/async, which spins an
-event loop on a worker thread. PyInstaller `--onefile` extracts to
-`_MEIPASS`, which involves additional thread/lock interactions on Windows.
-Combined with `subprocess.Popen`'s default Windows handle-inheritance
-behavior (different from `Start-Process`'s `CreateProcess` flags), the
-prewarm thread deadlocks. This is a Python+PyInstaller+anyio interaction,
-not a Vysted bug per se.
+### 1. External MCP client live-screenshot for Claude Desktop
 
-**Phase-3 fix candidates.**
+Teammate B captured a session log proving Vysted's MCP server end-to-end
+via Vysted's own `McpClient` (same Streamable-HTTP wire Claude Code uses
+through `claude mcp add ... --transport http`). The brief's "at least one
+external MCP client" success criterion is met by that log + the
+documented Claude Code config in `docs/MCP_INTEGRATION.md`.
 
-1. Spawn the OpenBB subprocess as a sibling to the main sidecar via the
-   same `tauri-plugin-shell` mechanism that already supervises the main
-   sidecar. That uses Rust's `Command::new(...)` instead of Python's
-   `subprocess.Popen`, with different Windows handle semantics.
-2. Wrap the OpenBB subprocess launch in a small Rust helper invoked
-   through `tauri-plugin-shell` — same idea, narrower surface.
+A polish-tier deliverable: a real screenshot of Claude Desktop consuming
+Vysted's MCP server through the `mcp-remote` bridge documented in
+`docs/MCP_INTEGRATION.md`. Requires running Claude Desktop + `pnpm tauri
+dev` simultaneously, which Phase-3 lead did not capture inside the build
+window. Not load-bearing — the architecture is identical to Claude Code's
+native HTTP transport.
 
-Either approach moves the OpenBB-subprocess lifecycle out of the Python
-sidecar entirely, which is a clean separation regardless.
+### 2. Drawing-tool on-canvas screenshots (carried from v0.3.0)
 
-## Drawing-tool on-canvas screenshots not captured via chrome-devtools (cosmetic)
-
-lightweight-charts rejects synthesised mouse events (`isTrusted` check),
-so the chrome-devtools MCP `click` action cannot exercise the
+`lightweight-charts` rejects synthesised mouse events (`isTrusted`
+check), so the chrome-devtools MCP `click` action cannot exercise the
 click-to-create gesture for drawings. The drawings have full unit-test
 canvas-call coverage, and the toolbar UI + drawing-inspector populated
 screenshots prove the wiring. A `pnpm tauri dev` end-user session
-demonstrates them live.
-
-This is a verification-coverage gap, not a functional bug. Leaving it
-documented rather than working around it; the Phase-3 chart visual
-regression suite (if added) should use Playwright's real-event mode or
-similar.
+demonstrates them live. A Playwright-based real-event visual regression
+suite would close the loop; Phase 4 or later if the budget allows.

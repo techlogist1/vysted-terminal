@@ -4,6 +4,244 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## v0.4.0 — Phase 3: AI Layer + 12 Agents + MCP (2026-05-16)
+
+Vysted goes from "data + charts + plugin runtime" to "AI-native finance
+terminal." Seven BYOK LLM providers behind a unified streaming protocol,
+twelve first-party AI agents wired through the locked `AgentSpec`
+contract, a context-aware chat sidebar that knows what panel is focused,
+a Custom Agent Builder for user-defined agents, a Vysted MCP server that
+exposes the data + agents to external MCP clients (Claude Desktop via the
+`mcp-remote` bridge, Claude Code natively), and an MCP client integration
+that replaces Phase 2's `subprocess.Popen`-deadlocked OpenBB plugin with
+a Tauri-Rust-spawned `openbb-mcp-server` subprocess — the architectural
+fix the v0.3.0 handoff called for.
+
+Built as three parallel Opus teammates from `main` after six foundation
+commits — AI core (A), MCP layer (B), Custom Agent Builder + per-panel
+context publishers (C) — merged in plan order A → B → C with two
+substantive integration fixes (a wrap-the-list adjustment on the MCP
+`list_agents` tool and a hand-merged `src/store/agents.ts` that unifies
+A's and C's parallel store designs into a single API both consumers
+read). One Tier-3 documented blocker (Teammate C's screenshot ordering
+dependency on A's chat sidebar) — addressed at integration by the lead's
+post-merge screenshot pass.
+
+### Foundation (lead, pre-teammate dispatch)
+
+- **`feat(tauri): OS keychain commands via keyring crate`** — `keyring` 3.x
+  with the cross-platform feature set (`apple-native`, `windows-native`,
+  `sync-secret-service`, `crypto-rust`) exposes `keychain_set` /
+  `keychain_get` / `keychain_delete` Tauri commands. Round-trip test
+  against the real OS store; the v3 crate has no default features so the
+  explicit feature list is load-bearing.
+- **`feat(keychain): frontend wrapper + namespace conventions`** —
+  `src/lib/keychain.ts` exposes typed `invoke` bindings plus the
+  canonical `KEYCHAIN_NAMESPACES` helpers (`llmProvider`, `mcpServer`,
+  `pluginSecret`). 8 unit tests; the namespace strings are the
+  contract teammates share.
+- **`feat(types): AI provider/agent, MCP, panel-context contracts`** —
+  three new type files: `types/ai.ts` (the 7 BYOK provider ids, the
+  `LLMStreamEvent` discriminated union, the agent-invocation envelope),
+  `types/mcp.ts` (server + client types, `VystedMcpStatus`),
+  `types/panel-context.ts` (event + snapshot for the per-panel bus).
+- **`feat(store): panel-context bus mirroring chart-sync pattern`** —
+  `usePanelContextBus` Zustand store with `publish` / `setFocusedSource`
+  / `unregisterSource`; module-level frozen empty refs in `selectSnapshot`
+  defeat the Phase-2 `useSyncExternalStore` infinite-loop precedent.
+  10 unit tests.
+- **`feat(agents): JSON schema + discovery contract for first-party agents`** —
+  `sidecar/agents/_schema.json` validates each agent config against the
+  `AgentSpec` shape from `types/plugin.ts`; README documents the
+  12-agent Phase-3 roster and the contract with Custom Agent Builder.
+
+### AI core (Teammate A)
+
+- **5 native + 2 OpenAI-compatible BYOK provider adapters**:
+  `anthropic==0.100.0`, `openai==2.36.0` (also serves DeepSeek and xAI
+  via `base_url` override), `google-genai>=1.0`, `groq==1.1.1`,
+  `ollama==0.6.2`. Shared `LLMProvider` ABC + dispatch.
+- **12 first-party agent configs** with substantive 200-500-word system
+  prompts capturing each investor's documented framework distinctly:
+  Buffett, Graham, Lynch, Munger, Marks, Klarman, Dalio, Druckenmiller,
+  Soros, AI Researcher, AI Portfolio Advisor, AI Strategy Critic. The
+  twelfth slot — AI Strategy Critic — is the Tier-3 BLUEPRINT §3.4-vs-§4
+  roster resolution (§3.4 names 11 specific agents; §4 module catalog
+  expects 12 + a separate Custom Agent Builder UI; Strategy Critic is
+  named in §4 module 38 and Use Cases 2/3, forward-compatible with the
+  Phase-4 backtest engine).
+- **Agent runtime** discovers + JSON-Schema-validates configs at startup,
+  registers them in a module-level dict, composes the system + context
+  preamble + user prompt at invocation, streams via the resolved provider
+  adapter.
+- **Sidecar routers**: `GET /llm/providers`, `POST /llm/keys/validate`,
+  `POST /llm/chat` (SSE), `GET /agents`, `POST /agents/{id}/invoke` (SSE).
+  System prompts deliberately omitted from `GET /agents` wire shape.
+- **Chat sidebar** (`src/modules/chat/`) with agent picker, context
+  badge, streaming composer, slash-command dispatch (`/ask`, `/agent`,
+  `/provider`, `/key set`, `/clear`, `/help`). Slotted into the
+  first-launch layout at ~25% right-column width per BLUEPRINT §5.1.
+- **Key entry dialog** validates against the sidecar before writing to
+  the OS keychain via `setSecret` — no frontend caching after the request.
+- **Streaming client**: `fetch` + custom SSE parser. Native `EventSource`
+  is GET-only and chat is POST (body carries the BYOK key per request).
+
+### MCP layer (Teammate B)
+
+- **Vysted MCP server** (Vysted-as-server): FastMCP 3.2.4 mounted
+  in-sidecar at `/mcp` over Streamable-HTTP transport. 9 tools (5 data:
+  `get_quote`, `get_history`, `get_fundamentals`, `get_news`,
+  `get_macro_series`; 2 agent: `list_agents`, `invoke_agent`; 2
+  workspace: `list_workspaces`, `get_workspace`). Each tool is a thin
+  shim that calls the corresponding sidecar HTTP endpoint via an
+  in-process `httpx.AsyncClient` bound through `httpx.ASGITransport`.
+  No logic duplication — the MCP layer is purely a protocol adapter.
+- **MCP client wrapper** (`sidecar/services/mcp_client.py`): wraps the
+  official `mcp` SDK to connect to external MCP servers over stdio or
+  Streamable-HTTP; caches per server id; reconnects on transport error.
+- **openbb-mcp-server integration** + **Phase-2 OpenBB Tier-2 plugin
+  retirement**: `plugins/openbb-mcp/` replaces `plugins/openbb/`. The
+  openbb-mcp-server 1.4.0 PyPI package is built into a separate
+  PyInstaller `--onefile` binary (`sidecar/openbb_mcp_subprocess/`,
+  55 MB), spawned by Tauri Rust `Command::new` from `src-tauri/src/
+openbb_mcp.rs` — the architectural fix for the Phase-2 Windows
+  `subprocess.Popen` deadlock (CLAUDE.md Gotcha). Vysted's sidecar
+  connects to it as MCP client and proxies tool calls.
+- **MCP integration guide** (`docs/MCP_INTEGRATION.md`) documents the
+  Claude Desktop config (via `mcp-remote` bridge) and Claude Code config
+  (native `claude mcp add`).
+- **Provider registry** routes every OpenBB call through
+  `openbb_mcp_provider`; fallback to yfinance preserved on MCP error.
+
+### Custom Agent Builder + per-panel context publishers (Teammate C)
+
+- **Module 36 (Custom Agent Builder)** as a new module: form-based UI
+  (`src/modules/agent-builder/`) for defining user-named agents.
+  Custom-agent ids are `custom:`-prefixed at validation time so they
+  cannot collide with first-party ids and the picker can group them
+  separately.
+- **Sidecar CRUD** for custom agents: `agents_store.py` SQLite store
+  mirroring `plugins_store.py`; `routers/custom_agents.py` exposes
+  GET / GET-one / POST / PUT / DELETE; Pydantic validation rejects
+  non-`custom:`-prefixed ids and tool ids outside the known allow-list.
+- **Per-panel context publishers** wired into all five Phase-1 panels
+  (chart, watchlist, news, equity, portfolio). Each publishes a payload
+  the chat sidebar's context badge displays. Implemented with primitive
+  deps or memoised stable refs; per-panel "publish doesn't trigger
+  infinite re-render" assertions guard against the Phase-2 chart-sync
+  precedent.
+
+### Decisions
+
+- **§3.4-vs-§4 agent roster resolution** (Tier-3): BLUEPRINT §3.4's
+  table has 12 rows but the 12th is the Custom Agent Builder UI. §4
+  module catalog separates them as module 35 (12 pre-built agents) +
+  module 36 (Custom Agent Builder UI). §4 is authoritative for module
+  counting; Custom Agent Builder is not counted toward the 12. AI
+  Strategy Critic added as the 12th first-party agent (named in §4
+  module 38, Use Cases 2/3, forward-compatible with Phase 4 backtest).
+- **OpenBB integration via MCP, not in-process** (Tier-2): the brief
+  asked for the architectural fix to the Phase-2 deadlock; replacing
+  `subprocess.Popen` with Tauri Rust `Command::new` AND retiring the
+  bespoke REST subprocess in favour of the stock `openbb-mcp-server`
+  PyPI package is the cleanest path. Phase-2 `plugins/openbb/` and
+  `sidecar/openbb_subprocess/` are deleted in the same release; the
+  data surface is preserved through `plugins/openbb-mcp/`.
+- **MCP server in-sidecar via Streamable-HTTP at `/mcp`** (Tier-3): avoids
+  a second binary, reuses the sidecar's existing port + lifecycle. Tools
+  call the host FastAPI app in-process via `httpx.ASGITransport` so the
+  MCP layer adds zero network hops to data tool calls.
+- **`list_agents` MCP tool wraps the bare-list response** (Tier-3,
+  integration-time): A's `GET /agents` returns a bare JSON list per REST
+  convention; FastMCP rejects bare-list tool outputs. The wrap moves to
+  the MCP-tool boundary — the natural enforcement point — rather than
+  changing A's REST contract.
+- **Unified `src/store/agents.ts`** (Tier-3, integration-time): both A
+  and C wrote a working store from scratch (lead's brief told both they
+  could). At merge the lead hand-merged into a single store exposing
+  both API surfaces: A's `selectFirstPartyAgents` / `selectCustomAgents`
+  / `refresh` AND C's `customAgents` / `refreshCustom` / `setCustomAgents`
+  / `customStatus` / `isCustomAgent` / `CUSTOM_AGENT_ID_PREFIX`.
+- **Streaming chat is POST + SSE, not `EventSource`** (Tier-3): native
+  `EventSource` is GET-only, and the BYOK key must travel in the request
+  body. A custom SSE parser over `fetch` works fine for the chat usage
+  pattern.
+
+### Failed approaches & fixes
+
+- **Two parallel `src/store/agents.ts` versions**. The Phase-3 plan told
+  Teammate A their store was bare; A wrote a working version. The plan
+  also told Teammate C their version was authoritative; C wrote a
+  divergent one. Both shipped, both worked in isolation, neither was
+  compatible with the other's consumers. Fix: lead hand-merged at
+  integration into a unified store that surfaces both consumers' APIs.
+  Recorded as a brief-side coordination lesson in `docs/PHASE_3_HANDOFF.md`.
+- **`pnpm openbb-mcp-sidecar:build` failed at first run**. The build
+  script calls `rustc -vV` to find the target triple; `~/.cargo/bin` is
+  not on the default shell PATH on the dev box. Fixed by prepending the
+  cargo bin dir before invoking the build (CLAUDE.md memory exists for
+  this — the foundation Cargo build also needs the prefix).
+- **Orphaned `sidecar/openbb_subprocess/.venv/` directory after B's
+  retirement**. `git rm` only removed the tracked files; the untracked
+  `.venv/` (left by Phase 2's `ensure-openbb-sidecar.mjs`) stayed on
+  disk and started leaking dozens of Python distribution files into
+  Prettier's scan. Fixed by `rm -rf sidecar/openbb_subprocess/` at
+  integration time. Mirror retirements should remember to drop the
+  untracked build artefacts too.
+- **FastMCP `structured_content must be a dict or None`**. B's
+  `list_agents` MCP tool returned A's bare-list `/agents` response
+  directly. FastMCP 3.x rejects non-dict tool outputs unless an
+  `output_schema` is declared. Fixed by wrapping the list as
+  `{"agents": [...]}` at the MCP-tool boundary.
+
+### Known issues carried forward (Phase-4 follow-ups, none blocks v0.4.0)
+
+- **No external-client live screenshot for Claude Desktop**. Teammate B
+  captured a session log showing the Vysted MCP server end-to-end via
+  Vysted's own `McpClient` over Streamable-HTTP (the same wire Claude
+  Code uses via `claude mcp add ... --transport http`). The brief's
+  "at least one external MCP client" success criterion is met by that
+  log + the Claude Code config documented in `docs/MCP_INTEGRATION.md`.
+  Claude Desktop integration via `mcp-remote` is best-effort with
+  documented config; an end-user screenshot is a Phase-4 polish item.
+
+### Verification
+
+- `pnpm typecheck` / `pnpm lint` / `pnpm format:check` / `pnpm test` —
+  24 files, **212 tests pass** (+55 over v0.3.0's 157).
+- `pytest sidecar` — **273 tests pass** (+83 over v0.3.0's 190).
+- `ruff check sidecar` / `ruff format --check sidecar` clean.
+- `cargo fmt --check` / `cargo clippy -D warnings` / `cargo test` clean
+  (**2 tests pass**, +1 over v0.3.0's 1 — the new keychain round-trip).
+- `pnpm sidecar:build` — main sidecar `--onefile` binary **67 MB**
+  (+10.1 MB over v0.3.0's 56.9 MB from the 5 provider SDKs).
+- `pnpm openbb-mcp-sidecar:build` — openbb-mcp subprocess `--onefile`
+  binary **55 MB** (replaces v0.3.0's 43 MB OpenBB-core subprocess;
+  net +12 MB for fuller openbb-mcp-server surface). Total Phase-3
+  binary footprint **≈ 122 MB** on Windows (+22 MB over v0.3.0's 100 MB).
+- CI green on Windows, macOS, Linux (Windows verified locally; CI
+  matrix verifies all three).
+
+### Visual proof
+
+`docs/screenshots/v0.4.0/`:
+
+- **`teammate-a/`** — chat sidebar streaming an agent response, agent
+  picker dropdown open with all 12 agents, context badge populated; both
+  resolutions.
+- **`teammate-b/`** — `external-mcp-client-session.log` showing
+  Streamable-HTTP MCP wire end-to-end (9 tools listed, `get_quote` and
+  `invoke_agent` exercised); `openbb-mcp-end-to-end.log` showing the
+  full chain Vysted FastAPI → provider_registry → openbb_mcp_provider →
+  McpClient → openbb-mcp subprocess → openbb-core → yfinance upstream.
+  Plugin Manager UI screenshots deferred (BLOCKERS-B note: requires a
+  running Tauri shell).
+- **`teammate-c/`** — Agent Builder mid-edit, picker with custom agent,
+  context badge from a Chart panel. Screenshots are post-merge captures
+  per the BLOCKERS-C ordering note (the panels existed in C's worktree
+  but the chat sidebar that displays them did not, so capture had to
+  happen after A's merge).
+
 ## v0.3.0 — Phase 2: Charting depth + Plugin runtime + OpenBB plugin (2026-05-15)
 
 The chart panel goes from "credible" to TradingView-comparable, and the locked

@@ -484,16 +484,29 @@ All phases ship as part of v1.0 — no MVP, no Phase 2 deferrals. Phases are **C
   in-process bundling; +43 MB binary delta on Windows)
 
 ### Phase 3 — AI Layer
-- Multi-LLM provider integration (OpenAI, Anthropic, DeepSeek, Groq, Gemini, xAI, Ollama)
-- 12 pre-built agents shipped as configs
-- Custom Agent Builder UI
-- Per-panel AI context wiring
-- MCP server (FastAPI in sidecar exposing Vysted's data + capabilities to external AI tools)
-  - Note for Phase 3 implementation: `openbb-mcp-server` ships as its own
-    PyPI package and can be wrapped through the v0.3.0 OpenBB-subprocess
-    pattern, exposing OpenBB's data layer to external AI tools without
-    re-implementing it. Decide between embedding (one MCP) vs federating
-    (Vysted MCP + OpenBB MCP exposed side-by-side) at Phase-3 planning time.
+
+**Shipped in v0.4.0 (2026-05-16).**
+
+- Multi-LLM provider integration ✓ (OpenAI, Anthropic, DeepSeek, Groq,
+  Gemini, xAI, Ollama — 5 native adapters + 2 OpenAI-compatible via
+  `base_url` override; SDK pins verified current on ship date)
+- 12 pre-built agents shipped as configs ✓ (11 §3.4-named + AI Strategy
+  Critic per the §3.4-vs-§4 Tier-3 roster resolution; the 12th slot is
+  forward-compatible with the Phase-4 backtest engine)
+- Custom Agent Builder UI ✓ (Module 36, separate from the 12-agent
+  count; sidecar SQLite-backed; `custom:`-prefix on user-defined ids)
+- Per-panel AI context wiring ✓ (`usePanelContextBus` Zustand bus +
+  publishers in all five Phase-1 panels; chat sidebar subscribes via
+  `selectSnapshot`)
+- Vysted MCP server ✓ (FastMCP 3.2.4 mounted at `/mcp` over
+  Streamable-HTTP transport; 9 tools — 5 data + 2 agent + 2 workspace;
+  external MCP clients via `mcp-remote` bridge for Claude Desktop or
+  `claude mcp add` for Claude Code)
+- MCP client + openbb-mcp-server ✓ (Phase-2 OpenBB Tier-2 plugin
+  retired; replaced by `plugins/openbb-mcp/` consuming
+  `openbb-mcp-server` 1.4.0 spawned via Tauri Rust `Command::new` —
+  the architectural fix for the Phase-2 Windows `subprocess.Popen`
+  deadlock; data surface preserved end-to-end)
 
 ### Phase 4 — Sandbox: Node Editor + Backtest
 - Node editor (react-flow based)
