@@ -120,6 +120,11 @@ def get_fundamentals(symbol: str) -> Fundamentals:
     except Exception as exc:  # noqa: BLE001
         raise ProviderError(f"yfinance fundamentals failed for {symbol!r}: {exc}") from exc
 
+    # yfinance 1.3.0 returns ``dividendYield`` as a percentage number
+    # (e.g. ``0.36`` for AAPL, ``6.01`` for VZ) — not a fraction. The
+    # ``Fundamentals.dividend_yield`` contract is a fraction (the panel
+    # multiplies by 100 to display a percentage), so normalise here.
+    raw_yield = _num(info.get("dividendYield"))
     return Fundamentals(
         symbol=symbol.upper(),
         name=info.get("longName") or info.get("shortName"),
@@ -130,7 +135,7 @@ def get_fundamentals(symbol: str) -> Fundamentals:
         forward_pe=_num(info.get("forwardPE")),
         peg_ratio=_num(info.get("trailingPegRatio") or info.get("pegRatio")),
         price_to_book=_num(info.get("priceToBook")),
-        dividend_yield=_num(info.get("dividendYield")),
+        dividend_yield=(raw_yield / 100.0) if raw_yield is not None else None,
         eps=_num(info.get("trailingEps")),
         beta=_num(info.get("beta")),
         fifty_two_week_high=_num(info.get("fiftyTwoWeekHigh")),
