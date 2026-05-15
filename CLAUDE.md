@@ -163,7 +163,41 @@ the next session does not re-learn them. (Phase 0 build notes live in
   `subprocess.Popen` (anyio + `_MEIPASS` + Windows handle-inheritance is the
   suspected interaction; v0.3.0 OpenBB subprocess hit this). Spawn external
   subprocess servers via Tauri Rust `Command::new` instead — the standard
-  pattern for any subprocess that owns its own port/lifecycle.
+  pattern for any subprocess that owns its own port/lifecycle. **v0.4.0
+  validated this fix** by retiring the Phase-2 OpenBB subprocess and
+  replacing it with `openbb-mcp-server` spawned via Tauri Rust —
+  no recurrence.
+- **`keyring` Rust crate v3 has no default features.** The crate compiles
+  and the API works without any platform-backend feature, but
+  `set_password` silently no-ops on a default-features build. The
+  v0.4.0 keychain commands enable the cross-platform set
+  `["apple-native", "windows-native", "sync-secret-service",
+  "crypto-rust"]` explicitly — these are load-bearing, not optional.
+- **FastMCP tools must return a dict (or declare an output_schema).**
+  Returning a bare list throws `structured_content must be a dict or
+  None` at tool-call time. When proxying a REST endpoint that emits a
+  bare-list response (e.g. v0.4.0's `GET /agents` returns a `list[
+AgentSummary]`), wrap at the MCP-tool boundary as
+  `{"agents": [...]}` — don't change the REST contract.
+- **Ruff version drift across teammate worktrees.** Phase 3 caught two
+  UP041 cases (`asyncio.TimeoutError` → builtin `TimeoutError`) and a
+  handful of formatting tweaks that B's worktree ruff didn't flag but
+  the lead's did. Run `ruff check sidecar --fix && ruff format sidecar`
+  at lead-integration time before tagging; the auto-fixes are safe.
+- **Two teammates writing the same file from scratch.** If two
+  worktrees both ship a full version of a shared file, the lead
+  hand-merges at integration. Don't expect either "bare" version to
+  drop in cleanly. Phase-3 plan-side fix: when two teammates need
+  the same file, specify which owns it as primary and what the
+  secondary adds, OR sequence the secondary's worktree to branch from
+  the primary's pushed branch. v0.4.0's `src/store/agents.ts` is the
+  precedent.
+- **Retirement scope cleanup includes untracked build artefacts.**
+  When `git rm` removes a directory like `sidecar/openbb_subprocess/`,
+  the untracked `.venv/` left by the old build script stays on disk
+  and starts leaking files into Prettier / lint scans. Lead
+  integration must `rm -rf` the orphaned directory explicitly. v0.4.0
+  hit this with the Phase-2 OpenBB retirement.
 
 ## Per-phase handoff
 
@@ -171,7 +205,23 @@ Every phase ships `docs/PHASE_N_HANDOFF.md` as a release deliverable; the
 phase lead writes it from warm context before closing the build window. The
 next phase's lead reads it first to learn what shipped, what was decided
 autonomously, what broke, and where their work plugs into existing surfaces.
-v0.3.0's `docs/PHASE_2_HANDOFF.md` is the reference shape.
+
+**This is a standing convention as of v0.4.0.** v0.3.0's
+`docs/PHASE_2_HANDOFF.md` is the reference shape; v0.4.0's
+`docs/PHASE_3_HANDOFF.md` follows the same skeleton — Phase N+1's lead
+reads `PHASE_N_HANDOFF.md` first, before opening `BLUEPRINT.md` or
+`CHANGELOG.md`.
+
+Each handoff covers, in order:
+
+1. What N shipped (foundation + per-teammate)
+2. Autonomous decisions (Tier-2/3)
+3. Known issues carried forward (Phase-N+1 candidates)
+4. Plugin contract status (Tier-1 lock verification)
+5. Phase-N+1 entry context — where the next phase's work plugs in
+6. File / commit pointers for deeper context
+7. Verification snapshot at handoff
+8. Any coordination lesson learnt the hard way
 
 ## Reference docs
 
