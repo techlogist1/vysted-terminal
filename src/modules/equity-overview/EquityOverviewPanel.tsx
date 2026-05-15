@@ -69,11 +69,22 @@ function StatementTable({
         <p className="text-charcoal-400 px-3 py-2 font-mono text-xs">Unavailable.</p>
       ) : (
         <table className="w-full table-fixed border-collapse">
+          {/* Explicit column widths via <colgroup> — LINE gets 45 %, the period
+              columns share the remaining 55 % evenly so the table always fits
+              the panel width regardless of how long a line label is.
+              `table-fixed` plus these widths means the line text wraps inside
+              its cell rather than pushing the whole table past the container. */}
+          <colgroup>
+            <col style={{ width: "45%" }} />
+            {statement.periods.map((period) => (
+              <col key={period} style={{ width: `${55 / statement.periods.length}%` }} />
+            ))}
+          </colgroup>
           <thead>
             <tr className="text-charcoal-400 border-charcoal-800 border-b text-left font-mono text-[0.6rem] uppercase">
               <th className="px-3 py-1.5 font-medium">Line</th>
               {statement.periods.map((period) => (
-                <th key={period} className="w-24 px-3 py-1.5 text-right font-medium">
+                <th key={period} className="px-3 py-1.5 text-right font-medium">
                   {period}
                 </th>
               ))}
@@ -83,7 +94,7 @@ function StatementTable({
             {statement.lines.map((line) => (
               <tr key={line.label} className="border-charcoal-800 border-b font-mono text-xs">
                 <td
-                  className="text-charcoal-200 overflow-hidden px-3 py-1.5 text-ellipsis whitespace-nowrap"
+                  className="text-charcoal-200 px-3 py-1.5 leading-tight break-words"
                   title={line.label}
                 >
                   {line.label}
