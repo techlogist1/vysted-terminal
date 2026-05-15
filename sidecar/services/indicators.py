@@ -197,19 +197,46 @@ def compute_keltner(
 
 
 def compute_vwap(df: pd.DataFrame, times: list[str]) -> IndicatorSeries:
-    """Volume-weighted average price, cumulative over the supplied window.
+    """Volume-weighted average price.
 
-    Without intraday session boundaries the sidecar treats the whole series as
-    one session — a running VWAP. The chart panel labels it accordingly.
+    Intraday timeframes (median bar-to-bar gap below ~20 hours) reset the
+    cumulative numerator and denominator at each calendar-date boundary so the
+    line traces the canonical *session* VWAP. Daily-or-coarser series keep the
+    whole-series running cumulative — the correct behaviour at those scales,
+    where each bar already represents a full session.
     """
     typical = _typical_price(df)
-    cumulative_pv = (typical * df["volume"]).cumsum()
-    cumulative_volume = df["volume"].cumsum().replace(0.0, np.nan)
-    vwap = cumulative_pv / cumulative_volume
+    volume = df["volume"]
+    # ``df.index`` carries the ISO-8601 timestamp strings the frame was built
+    # from; reparse to datetimes to measure cadence and group by date.
+    parsed_times = pd.to_datetime(df.index, errors="coerce", utc=True)
+    is_intraday = False
+    if len(parsed_times) >= 2:
+        gaps = parsed_times[1:] - parsed_times[:-1]
+        median_gap = pd.Series(gaps).median()
+        if pd.notna(median_gap) and median_gap < pd.Timedelta(hours=20):
+            is_intraday = True
+
+    pv = typical * volume
+    if is_intraday:
+        # Group by calendar date — each group restarts the running sums, which
+        # is the standard session-VWAP construction. ``transform('cumsum')``
+        # preserves the original index order across groups.
+        session = parsed_times.normalize()
+        session_series = pd.Series(session, index=df.index)
+        cumulative_pv = pv.groupby(session_series, sort=False).cumsum()
+        cumulative_volume = volume.groupby(session_series, sort=False).cumsum()
+        label = "VWAP (session)"
+    else:
+        cumulative_pv = pv.cumsum()
+        cumulative_volume = volume.cumsum()
+        label = "VWAP"
+    safe_volume = cumulative_volume.replace(0.0, np.nan)
+    vwap = cumulative_pv / safe_volume
     return IndicatorSeries(
         name="vwap",
         panel="price",
-        lines=[_line("VWAP", times, vwap)],
+        lines=[_line(label, times, vwap)],
     )
 
 
