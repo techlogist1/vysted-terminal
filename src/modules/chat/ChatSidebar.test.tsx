@@ -133,8 +133,9 @@ const FIRST_PARTY_AGENTS: AgentSummary[] = [
 
 function seedStores() {
   useAgentsStore.setState({
-    firstParty: FIRST_PARTY_AGENTS,
-    custom: [],
+    firstPartyAgents: FIRST_PARTY_AGENTS,
+    customAgents: [],
+    customSummaries: [],
     loading: false,
     error: null,
     refresh: async () => undefined,

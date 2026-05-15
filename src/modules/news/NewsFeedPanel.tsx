@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { SidecarError } from "@/lib/sidecar-client";
+import { usePanelContextBus } from "@/store/panel-context";
 import { toNewsSymbol, useSymbolsStore } from "@/store/symbols";
 
 import type { NewsItem } from "../../../types/data";
@@ -70,13 +71,15 @@ function SentimentBadge({ item }: { item: NewsItem }) {
 }
 
 /** One row in the feed: headline, source · time, sentiment, symbol tags. */
-function NewsRow({ item }: { item: NewsItem }) {
+function NewsRow({ item, onFocus }: { item: NewsItem; onFocus: (id: string) => void }) {
   return (
     <li className="border-charcoal-800 border-b last:border-b-0">
       <a
         href={item.url}
         target="_blank"
         rel="noreferrer"
+        onMouseEnter={() => onFocus(item.id)}
+        onFocus={() => onFocus(item.id)}
         className="hover:bg-charcoal-850 flex flex-col gap-1.5 px-4 py-3 transition-colors"
       >
         <p className="text-charcoal-100 font-serif text-sm leading-snug">{item.title}</p>
@@ -130,6 +133,36 @@ export function NewsFeedPanel() {
   const symbolsKey = newsSymbols.join(",");
 
   const [state, setState] = useState<LoadState>({ status: "loading" });
+  // Tracks the article the user last hovered/focused on; `null` when nothing
+  // is focused. Surfaced through the panel-context bus so the chat sidebar
+  // can mention the focused headline in the agent's preamble.
+  const [focusedArticleId, setFocusedArticleId] = useState<string | null>(null);
+
+  // --- panel-context bus: publish snapshot on change ----------------------
+  const publishPanelContext = usePanelContextBus((s) => s.publish);
+  const unregisterPanelContext = usePanelContextBus((s) => s.unregisterSource);
+
+  useEffect(() => {
+    publishPanelContext({
+      source: "news",
+      kind: "snapshot",
+      payload: {
+        watchedSymbols: newsSymbols,
+        focusedArticleId,
+      },
+      emittedAt: Date.now(),
+    });
+    // Effect deps:
+    //   - `newsSymbols` is memoised from `entries` so it's stable per list
+    //   - `focusedArticleId` is a primitive
+    //   - `publishPanelContext` is a stable Zustand action ref
+  }, [publishPanelContext, newsSymbols, focusedArticleId]);
+
+  useEffect(() => {
+    return () => {
+      unregisterPanelContext("news");
+    };
+  }, [unregisterPanelContext]);
 
   // Fetch the feed and route the result into state. `applyResult` is gated by
   // the caller's cancellation flag so an in-flight request from an unmounted
@@ -210,7 +243,7 @@ export function NewsFeedPanel() {
         ) : (
           <ul className="flex-1 overflow-y-auto">
             {state.items.map((item) => (
-              <NewsRow key={item.id} item={item} />
+              <NewsRow key={item.id} item={item} onFocus={setFocusedArticleId} />
             ))}
           </ul>
         )

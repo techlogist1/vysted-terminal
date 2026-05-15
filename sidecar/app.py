@@ -19,6 +19,7 @@ from fastapi.responses import JSONResponse
 from routers import (
     agents,
     crypto,
+    custom_agents,
     fundamentals,
     health,
     history,
@@ -49,6 +50,7 @@ _ROUTERS = (
     plugins,
     llm,
     agents,
+    custom_agents,
     mcp,
 )
 

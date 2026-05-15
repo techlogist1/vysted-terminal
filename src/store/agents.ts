@@ -1,23 +1,58 @@
 /**
- * Agents store — union of first-party agents (sidecar JSON) and custom agents
- * (Custom Agent Builder).
+ * Agents store — first-party agents (sidecar JSON configs) + Custom Agent
+ * Builder records, unified for the chat sidebar's picker.
  *
- * First-party agents come from ``GET /agents`` (Teammate A's sidecar router).
- * Custom user-defined agents come from ``GET /custom-agents`` (Teammate C
- * lands the endpoint; this store is forward-compatible — when C's endpoint
- * is unreachable, the custom slice stays empty rather than throwing).
+ * Two slices, two wire shapes:
  *
- * The chat sidebar's agent picker reads :func:`selectAgentGroups` so the
- * dropdown can render "First-party" vs "Custom" headers without duplicating
- * the grouping logic.
+ * - **First-party** — from ``GET /agents`` (Teammate A). The sidecar
+ *   deliberately omits ``systemPrompt`` from this wire shape (agents are
+ *   discovered from ``sidecar/agents/*.json`` at startup; their prompts
+ *   live server-side). Records here are :type:`AgentSummary`.
+ * - **Custom** — from ``GET /custom-agents`` (Teammate C / BLUEPRINT
+ *   module 36). User-defined agents authored through the Custom Agent
+ *   Builder UI. Records here are :type:`AgentSpec` (with ``systemPrompt``)
+ *   so the builder's edit form can rehydrate from the store without a
+ *   second fetch. Custom ids are always ``custom:``-prefixed —
+ *   :func:`isCustomAgent` is the predicate.
+ *
+ * The chat sidebar's agent picker reads :func:`selectFirstPartyAgents` and
+ * :func:`selectCustomAgents`, which both return ``readonly AgentSummary[]``
+ * — the picker only needs ``{id, name, philosophy}``. For custom agents
+ * the summary view is precomputed on every ``setCustomAgents`` so the
+ * selector stays referentially stable (CLAUDE.md ``useSyncExternalStore``
+ * gotcha — fresh arrays cause infinite render loops).
+ *
+ * The Custom Agent Builder panel reads ``state.customAgents`` directly to
+ * get the full :type:`AgentSpec` records it edits.
+ *
+ * No localStorage / sessionStorage — both sources are sidecar-backed per
+ * the CLAUDE.md sidecar-owned-persistence convention.
  */
 
 import { create } from "zustand";
 
-import { sidecarGet } from "@/lib/sidecar-client";
-import type { LLMProviderId } from "../../types/ai";
+import { getSidecarBaseUrl, sidecarGet } from "@/lib/sidecar-client";
 
-/** Summary surfaced in the agent picker; mirrors ``AgentSummary`` Pydantic model. */
+import type { LLMProviderId } from "../../types/ai";
+import type { AgentSpec } from "../../types/plugin";
+
+// ---------------------------------------------------------------------------
+// Custom-agent identity
+// ---------------------------------------------------------------------------
+
+/** Required prefix on every custom-agent id; mirrors the sidecar's enforcement. */
+export const CUSTOM_AGENT_ID_PREFIX = "custom:";
+
+/** Predicate: ``true`` if this agent was authored in the Custom Agent Builder. */
+export function isCustomAgent(agent: { id: string }): boolean {
+  return agent.id.startsWith(CUSTOM_AGENT_ID_PREFIX);
+}
+
+// ---------------------------------------------------------------------------
+// Wire-shape mappers
+// ---------------------------------------------------------------------------
+
+/** Picker-facing summary; chat sidebar iterates this for both groups. */
 export interface AgentSummary {
   id: string;
   name: string;
@@ -30,7 +65,8 @@ export interface AgentSummary {
   origin: "first-party" | "custom";
 }
 
-interface SidecarAgentRow {
+/** Wire shape of ``GET /agents`` (Teammate A) — Pydantic snake_case. */
+interface FirstPartyAgentWire {
   id: string;
   name: string;
   philosophy: string;
@@ -40,23 +76,22 @@ interface SidecarAgentRow {
   icon?: string | null;
 }
 
-interface AgentsState {
-  firstParty: AgentSummary[];
-  custom: AgentSummary[];
-  loading: boolean;
-  error: string | null;
-  /** Refresh both slices in parallel; custom failures are non-fatal. */
-  refresh: () => Promise<void>;
+/** Wire shape of ``GET /custom-agents`` (Teammate C) — Pydantic snake_case. */
+interface CustomAgentWire {
+  id: string;
+  name: string;
+  philosophy: string;
+  system_prompt: string;
+  tools: string[];
+  default_provider: string;
+  default_model?: string | null;
+  icon?: string | null;
+  created_at: number;
+  updated_at: number;
 }
 
-/**
- * Map a sidecar agent row to the store's :class:`AgentSummary` shape.
- *
- * Exported for testability — both the first-party and custom routes share
- * the wire schema, so unit tests can build a row and verify the mapping
- * without spinning the store.
- */
-export function rowToSummary(row: SidecarAgentRow, origin: AgentSummary["origin"]): AgentSummary {
+/** Map a first-party row to the picker's :type:`AgentSummary` shape. */
+export function rowToSummary(row: FirstPartyAgentWire): AgentSummary {
   return {
     id: row.id,
     name: row.name,
@@ -65,59 +100,179 @@ export function rowToSummary(row: SidecarAgentRow, origin: AgentSummary["origin"
     defaultProvider: row.default_provider,
     defaultModel: row.default_model ?? null,
     icon: row.icon ?? null,
-    origin,
+    origin: "first-party",
   };
 }
 
-export const useAgentsStore = create<AgentsState>((set) => ({
-  firstParty: [],
-  custom: [],
+/** Map a custom-agent wire record to the locked :type:`AgentSpec` shape. */
+export function fromCustomAgentWire(record: CustomAgentWire): AgentSpec {
+  return {
+    id: record.id,
+    name: record.name,
+    philosophy: record.philosophy,
+    systemPrompt: record.system_prompt,
+    tools: [...record.tools],
+    defaultProvider: record.default_provider,
+    icon: record.icon ?? undefined,
+  };
+}
+
+/** Map a custom-agent :type:`AgentSpec` to the picker's :type:`AgentSummary`. */
+function customSpecToSummary(spec: AgentSpec): AgentSummary {
+  return {
+    id: spec.id,
+    name: spec.name,
+    philosophy: spec.philosophy,
+    tools: spec.tools,
+    defaultProvider: spec.defaultProvider as LLMProviderId,
+    defaultModel: null,
+    icon: spec.icon ?? null,
+    origin: "custom",
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Store
+// ---------------------------------------------------------------------------
+
+/** Status of an async fetch slice. */
+export type AgentsLoadStatus = "idle" | "loading" | "ready" | "error";
+
+interface AgentsState {
+  /** First-party summaries from ``GET /agents``. */
+  firstPartyAgents: AgentSummary[];
+  /** Custom-builder records from ``GET /custom-agents`` (full :type:`AgentSpec`). */
+  customAgents: AgentSpec[];
+  /** Pre-computed picker view of customAgents — referentially stable per set. */
+  customSummaries: AgentSummary[];
+
+  firstPartyStatus: AgentsLoadStatus;
+  firstPartyError: string | null;
+  customStatus: AgentsLoadStatus;
+  customError: string | null;
+
+  /** Convenience for callers (e.g. A's chat sidebar) that just want a boolean. */
+  loading: boolean;
+  /** Mirrors firstPartyError so existing A consumers keep working unchanged. */
+  error: string | null;
+
+  /** Replace first-party agents (Teammate A's seed path / direct manipulation). */
+  setFirstPartyAgents: (next: AgentSummary[]) => void;
+  /** Replace custom agents (Teammate C's builder save path). */
+  setCustomAgents: (next: AgentSpec[]) => void;
+
+  /** Fetch the first-party list from the sidecar. */
+  refreshFirstParty: () => Promise<void>;
+  /** Fetch the custom list from the sidecar. */
+  refreshCustom: () => Promise<void>;
+  /** Convenience: refresh both in parallel. Chat sidebar (A) calls this on mount. */
+  refresh: () => Promise<void>;
+  /** Alias for :func:`refresh` — present so Teammate C's existing call sites compile. */
+  refreshAll: () => Promise<void>;
+}
+
+export const useAgentsStore = create<AgentsState>((set, get) => ({
+  firstPartyAgents: [],
+  customAgents: [],
+  customSummaries: [],
+  firstPartyStatus: "idle",
+  firstPartyError: null,
+  customStatus: "idle",
+  customError: null,
   loading: false,
   error: null,
+
+  setFirstPartyAgents: (next) =>
+    set({
+      firstPartyAgents: next,
+      firstPartyStatus: "ready",
+      firstPartyError: null,
+      error: null,
+    }),
+
+  setCustomAgents: (next) =>
+    set({
+      customAgents: next,
+      customSummaries: next.map(customSpecToSummary),
+      customStatus: "ready",
+      customError: null,
+    }),
+
+  refreshFirstParty: async () => {
+    set({ firstPartyStatus: "loading", firstPartyError: null });
+    try {
+      const rows = await sidecarGet<FirstPartyAgentWire[]>("/agents");
+      const summaries = rows.map(rowToSummary);
+      set({
+        firstPartyAgents: summaries,
+        firstPartyStatus: "ready",
+        firstPartyError: null,
+        error: null,
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to load first-party agents";
+      set({ firstPartyStatus: "error", firstPartyError: message, error: message });
+    }
+  },
+
+  refreshCustom: async () => {
+    set({ customStatus: "loading", customError: null });
+    try {
+      const base = await getSidecarBaseUrl();
+      const response = await fetch(new URL("/custom-agents", base).toString());
+      if (!response.ok) {
+        // Soft-fail: keep the slice empty so the picker still renders.
+        set({ customAgents: [], customSummaries: [], customStatus: "ready", customError: null });
+        return;
+      }
+      const wire = (await response.json()) as CustomAgentWire[];
+      const specs = wire.map(fromCustomAgentWire);
+      set({
+        customAgents: specs,
+        customSummaries: specs.map(customSpecToSummary),
+        customStatus: "ready",
+        customError: null,
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to load custom agents";
+      set({ customStatus: "error", customError: message });
+    }
+  },
+
   refresh: async () => {
-    set({ loading: true, error: null });
-    // First-party: hard failure surfaces as an error string; custom: soft fail.
-    let firstParty: AgentSummary[] = [];
-    let error: string | null = null;
-    try {
-      const rows = await sidecarGet<SidecarAgentRow[]>("/agents");
-      firstParty = rows.map((row) => rowToSummary(row, "first-party"));
-    } catch (err) {
-      error = err instanceof Error ? err.message : "Failed to load first-party agents";
-    }
-    let custom: AgentSummary[] = [];
-    try {
-      const rows = await sidecarGet<SidecarAgentRow[]>("/custom-agents");
-      custom = rows.map((row) => rowToSummary(row, "custom"));
-    } catch {
-      // Teammate C's endpoint may not be wired yet; leave custom empty.
-    }
-    set({ firstParty, custom, loading: false, error });
+    set({ loading: true });
+    const { refreshFirstParty, refreshCustom } = get();
+    await Promise.all([refreshFirstParty(), refreshCustom()]);
+    set({ loading: false });
+  },
+
+  refreshAll: async () => {
+    await get().refresh();
   },
 }));
 
-const EMPTY_AGENT_LIST: readonly AgentSummary[] = Object.freeze([]);
+// ---------------------------------------------------------------------------
+// Selectors — referentially-stable views the chat picker subscribes to
+// ---------------------------------------------------------------------------
 
-/**
- * Per-slice selectors for the agent picker — Zustand v5 enforces
- * referentially stable selector returns, so two separate selectors are
- * cheaper than computing a fresh `{firstParty, custom}` object on each
- * render (which causes the `useSyncExternalStore` infinite loop in CLAUDE.md
- * gotchas).
- */
+/** Stable empty list — reused so an idle store does not mint fresh arrays. */
+const EMPTY_AGENTS: readonly AgentSummary[] = Object.freeze([]);
+
+/** Picker selector for first-party agents. */
 export function selectFirstPartyAgents(state: AgentsState): readonly AgentSummary[] {
-  return state.firstParty.length > 0 ? state.firstParty : EMPTY_AGENT_LIST;
+  return state.firstPartyAgents.length > 0 ? state.firstPartyAgents : EMPTY_AGENTS;
 }
 
+/** Picker selector for custom agents (summary view of the full :type:`AgentSpec` slice). */
 export function selectCustomAgents(state: AgentsState): readonly AgentSummary[] {
-  return state.custom.length > 0 ? state.custom : EMPTY_AGENT_LIST;
+  return state.customSummaries.length > 0 ? state.customSummaries : EMPTY_AGENTS;
 }
 
 /** Look one agent up by id, regardless of origin. */
 export function selectAgentById(state: AgentsState, agentId: string): AgentSummary | null {
   return (
-    state.firstParty.find((a) => a.id === agentId) ??
-    state.custom.find((a) => a.id === agentId) ??
+    state.firstPartyAgents.find((a) => a.id === agentId) ??
+    state.customSummaries.find((a) => a.id === agentId) ??
     null
   );
 }

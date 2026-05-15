@@ -6,6 +6,7 @@ import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidecarError } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
+import { usePanelContextBus } from "@/store/panel-context";
 import type { Position, PositionInput } from "../../../types/data";
 import {
   createPosition,
@@ -84,6 +85,34 @@ export function PortfolioPanel() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
+
+  // --- panel-context bus: publish snapshot on positions change ------------
+  const publishPanelContext = usePanelContextBus((s) => s.publish);
+  const unregisterPanelContext = usePanelContextBus((s) => s.unregisterSource);
+
+  // Depend on primitive snapshot fields, not the `summary` object itself —
+  // a re-build of summary that yields the same count/value should NOT trigger
+  // a publish (Phase-2 chart-sync infinite-loop avoidance).
+  const positionCount = summary?.rows.length ?? 0;
+  const totalValue = summary?.totalMarketValue ?? 0;
+
+  useEffect(() => {
+    publishPanelContext({
+      source: "portfolio",
+      kind: "snapshot",
+      payload: {
+        positionCount,
+        totalValue,
+      },
+      emittedAt: Date.now(),
+    });
+  }, [publishPanelContext, positionCount, totalValue]);
+
+  useEffect(() => {
+    return () => {
+      unregisterPanelContext("portfolio");
+    };
+  }, [unregisterPanelContext]);
 
   const resetForm = () => {
     setForm(toFormState());
