@@ -21,6 +21,8 @@ from models.indicators import (
     IndicatorPoint,
     IndicatorResponse,
     IndicatorSeries,
+    VolumeProfile,
+    VolumeProfileBucket,
 )
 from models.market import OHLCVSeries
 
@@ -449,25 +451,19 @@ def compute_volume(df: pd.DataFrame, times: list[str]) -> IndicatorSeries:
     )
 
 
-def compute_volume_profile(df: pd.DataFrame, times: list[str], bins: int = 24) -> IndicatorSeries:
+def compute_volume_profile(df: pd.DataFrame, bins: int = 24) -> VolumeProfile:
     """Volume Profile — volume distributed across ``bins`` price buckets.
 
     Unlike every other indicator this is a *price-axis* histogram, not a
-    time-series. To stay inside the ``IndicatorSeries`` contract without a
-    contract change, each bucket is emitted as one point whose ``time`` is the
-    bucket's price-level label and whose ``value`` is the volume traded there;
-    the chart panel renders it as a horizontal histogram rather than a line.
-    The non-time ``time`` field is a deliberate, documented overload — see
-    ``BLOCKERS-chart.md``.
+    time-series. The chart panel renders it as a horizontal histogram on the
+    price pane via a custom series primitive, so the result is delivered on its
+    own contract — :class:`VolumeProfile` — rather than on the time-keyed
+    ``IndicatorSeries``.
     """
     closes = df["close"].to_numpy(dtype=float)
     volumes = df["volume"].to_numpy(dtype=float)
     if len(closes) == 0 or not np.isfinite(closes).any():
-        return IndicatorSeries(
-            name="volume_profile",
-            panel="separate",
-            lines=[IndicatorLine(label="Volume Profile", points=[])],
-        )
+        return VolumeProfile(buckets=[])
     low, high = float(np.min(closes)), float(np.max(closes))
     if high <= low:
         high = low + 1.0
@@ -478,15 +474,11 @@ def compute_volume_profile(df: pd.DataFrame, times: list[str], bins: int = 24) -
         if np.isfinite(volume):
             totals[index] += volume
     centers = (edges[:-1] + edges[1:]) / 2.0
-    points = [
-        IndicatorPoint(time=f"{center:.4f}", value=float(total))
+    buckets = [
+        VolumeProfileBucket(price=float(center), volume=float(total))
         for center, total in zip(centers, totals, strict=True)
     ]
-    return IndicatorSeries(
-        name="volume_profile",
-        panel="separate",
-        lines=[IndicatorLine(label="Volume Profile", points=points)],
-    )
+    return VolumeProfile(buckets=buckets)
 
 
 # --------------------------------------------------------------------------
@@ -494,6 +486,9 @@ def compute_volume_profile(df: pd.DataFrame, times: list[str], bins: int = 24) -
 # --------------------------------------------------------------------------
 
 # Each entry maps an indicator key to a builder that takes ``(df, times)``.
+# ``volume_profile`` is special-cased in :func:`compute` — its result is a
+# price-axis histogram on a different contract (:class:`VolumeProfile`) and
+# does not fit the time-keyed ``IndicatorSeries`` builder signature.
 _BUILDERS: dict[str, Callable[[pd.DataFrame, list[str]], IndicatorSeries]] = {
     "rsi": compute_rsi,
     "macd": compute_macd,
@@ -510,15 +505,19 @@ _BUILDERS: dict[str, Callable[[pd.DataFrame, list[str]], IndicatorSeries]] = {
     "ichimoku": compute_ichimoku,
     "keltner": compute_keltner,
     "vwap": compute_vwap,
-    "volume_profile": compute_volume_profile,
     "parabolic_sar": compute_parabolic_sar,
     "cci": compute_cci,
     "williams_r": compute_williams_r,
     "roc": compute_roc,
 }
 
-# Public, ordered list of every supported indicator key.
-SUPPORTED_INDICATORS: tuple[str, ...] = tuple(_BUILDERS)
+# The volume_profile key is supported and resolvable through ``normalize_key``,
+# but it returns a separate :class:`VolumeProfile` payload (see ``compute``).
+_VOLUME_PROFILE_KEY = "volume_profile"
+
+# Public, ordered list of every supported indicator key — keeps volume_profile
+# visible to the catalog and the ``GET /indicators`` discovery endpoint.
+SUPPORTED_INDICATORS: tuple[str, ...] = (*tuple(_BUILDERS), _VOLUME_PROFILE_KEY)
 
 # Accepted aliases for the keys above — keeps the query string forgiving.
 _ALIASES: dict[str, str] = {
@@ -544,7 +543,7 @@ _ALIASES: dict[str, str] = {
 def normalize_key(raw: str) -> str | None:
     """Map a user-supplied indicator token to a canonical key, or ``None``."""
     key = raw.strip().lower().replace(" ", "_")
-    if key in _BUILDERS:
+    if key in _BUILDERS or key == _VOLUME_PROFILE_KEY:
         return key
     return _ALIASES.get(key)
 
@@ -554,20 +553,27 @@ def compute(series: OHLCVSeries, keys: list[str]) -> IndicatorResponse:
 
     Unknown keys are skipped silently — the router validates and surfaces them
     before calling here. Duplicate keys are computed once, in request order.
+    ``volume_profile`` is routed into the response's dedicated
+    ``volume_profile`` field rather than the ``indicators`` list.
     """
     df = _frame(series)
     times = list(df.index)
     seen: set[str] = set()
     results: list[IndicatorSeries] = []
+    volume_profile: VolumeProfile | None = None
     for raw in keys:
         key = normalize_key(raw)
         if key is None or key in seen:
             continue
         seen.add(key)
+        if key == _VOLUME_PROFILE_KEY:
+            volume_profile = compute_volume_profile(df)
+            continue
         results.append(_BUILDERS[key](df, times))
     return IndicatorResponse(
         symbol=series.symbol,
         timeframe=series.timeframe,
         provider=series.provider,
         indicators=results,
+        volume_profile=volume_profile,
     )

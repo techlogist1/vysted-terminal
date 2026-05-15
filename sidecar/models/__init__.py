@@ -20,6 +20,8 @@ from models.indicators import (
     IndicatorPoint,
     IndicatorResponse,
     IndicatorSeries,
+    VolumeProfile,
+    VolumeProfileBucket,
 )
 from models.market import (
     MacroObservation,
@@ -51,4 +53,6 @@ __all__ = [
     "PositionInput",
     "Quote",
     "StatementLine",
+    "VolumeProfile",
+    "VolumeProfileBucket",
 ]

@@ -66,18 +66,23 @@ def test_supported_indicators_count() -> None:
 
 
 def test_compute_all_indicators(series: OHLCVSeries) -> None:
-    """Every supported indicator computes and yields time-aligned points."""
+    """Every supported indicator computes and yields time-aligned points.
+
+    Volume Profile is delivered on its own contract — see ``response.volume_profile``
+    — so the time-keyed ``indicators`` list holds the other 19 entries.
+    """
     response = indicator_service.compute(series, list(indicator_service.SUPPORTED_INDICATORS))
-    assert len(response.indicators) == 20
+    assert len(response.indicators) == 19
+    assert {result.name for result in response.indicators} == {
+        key for key in indicator_service.SUPPORTED_INDICATORS if key != "volume_profile"
+    }
     n = len(series.bars)
     for result in response.indicators:
         assert result.lines, f"{result.name} produced no lines"
         for line in result.lines:
-            # Volume Profile is a price-axis histogram, not a time series.
-            if result.name == "volume_profile":
-                assert len(line.points) > 0
-            else:
-                assert len(line.points) == n, f"{result.name}/{line.label} misaligned"
+            assert len(line.points) == n, f"{result.name}/{line.label} misaligned"
+    assert response.volume_profile is not None
+    assert len(response.volume_profile.buckets) > 0
 
 
 def test_sma_known_values() -> None:
@@ -213,10 +218,25 @@ def test_parabolic_sar_defined_from_second_bar(series: OHLCVSeries) -> None:
 
 def test_volume_profile_buckets_sum_to_total_volume(series: OHLCVSeries) -> None:
     """Volume Profile redistributes total traded volume across price buckets."""
-    result = indicator_service.compute_volume_profile(
-        indicator_service._frame(series), list(indicator_service._frame(series).index)
-    )
-    bucket_total = sum(p.value or 0.0 for p in result.lines[0].points)
+    profile = indicator_service.compute_volume_profile(indicator_service._frame(series))
+    bucket_total = sum(bucket.volume for bucket in profile.buckets)
+    series_total = sum(bar.volume for bar in series.bars)
+    assert bucket_total == pytest.approx(series_total)
+    # Every bucket carries a real price (the bucket centre), not a string label.
+    assert all(isinstance(bucket.price, float) for bucket in profile.buckets)
+    # Bucket centres are monotonically increasing along the price axis.
+    prices = [bucket.price for bucket in profile.buckets]
+    assert prices == sorted(prices)
+
+
+def test_volume_profile_routes_into_response_field(series: OHLCVSeries) -> None:
+    """Requesting volume_profile alongside other indicators populates the field."""
+    response = indicator_service.compute(series, ["rsi", "volume_profile", "macd"])
+    # The time-keyed indicators list keeps RSI and MACD in request order, no VP.
+    assert [r.name for r in response.indicators] == ["rsi", "macd"]
+    assert response.volume_profile is not None
+    assert response.volume_profile.buckets
+    bucket_total = sum(bucket.volume for bucket in response.volume_profile.buckets)
     series_total = sum(bar.volume for bar in series.bars)
     assert bucket_total == pytest.approx(series_total)
 

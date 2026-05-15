@@ -86,6 +86,7 @@ function makeIndicatorResponse(): IndicatorResponse {
         ],
       },
     ],
+    volume_profile: null,
   };
 }
 
