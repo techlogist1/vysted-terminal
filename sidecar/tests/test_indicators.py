@@ -62,19 +62,19 @@ def series() -> OHLCVSeries:
 
 
 def test_supported_indicators_count() -> None:
-    """All 20 indicators are registered for dispatch."""
-    assert len(indicator_service.SUPPORTED_INDICATORS) == 20
+    """50 indicators registered for dispatch — Phase-1's 20 + Phase-2's 30."""
+    assert len(indicator_service.SUPPORTED_INDICATORS) == 50
 
 
 def test_compute_all_indicators(series: OHLCVSeries) -> None:
     """Every supported indicator computes and yields time-aligned points.
 
     Volume Profile is delivered on its own contract — see ``response.volume_profile``
-    — so the time-keyed ``indicators`` list holds the other 19 entries. Ichimoku's
+    — so the time-keyed ``indicators`` list holds the other 49 entries. Ichimoku's
     two Senkou spans extend 26 bars into the future to carry the forward cloud.
     """
     response = indicator_service.compute(series, list(indicator_service.SUPPORTED_INDICATORS))
-    assert len(response.indicators) == 19
+    assert len(response.indicators) == 49
     assert {result.name for result in response.indicators} == {
         key for key in indicator_service.SUPPORTED_INDICATORS if key != "volume_profile"
     }
@@ -457,7 +457,380 @@ def test_indicators_endpoint_requires_indicators(
 
 
 def test_indicators_list_endpoint(client: TestClient) -> None:
-    """GET /indicators lists all 20 supported keys."""
+    """GET /indicators lists all 50 supported keys (Phase 1's 20 + Phase 2's 30)."""
     response = client.get("/indicators")
     assert response.status_code == 200
-    assert len(response.json()["indicators"]) == 20
+    assert len(response.json()["indicators"]) == 50
+
+
+# --------------------------------------------------------------------------
+# Phase 2 — 30 new indicators (≥25 polished). Six categories.
+# --------------------------------------------------------------------------
+
+
+@pytest.fixture
+def long_series() -> OHLCVSeries:
+    """A 100-bar series — long enough for every Phase-2 indicator's warm-up."""
+    closes = [100.0]
+    for index in range(1, 100):
+        step = 2.0 if index % 2 == 0 else -1.5
+        closes.append(closes[-1] + step + index * 0.05)
+    return _make_series(closes)
+
+
+# --- Moving averages -------------------------------------------------------
+
+
+def test_wma_known_values() -> None:
+    """WMA(3) over [10,20,30,40,50] equals weighted average (1*v_oldest + ...)."""
+    s = _make_series([10.0, 20.0, 30.0, 40.0, 50.0])
+    df = indicator_service._frame(s)
+    times = list(df.index)
+    result = indicator_service.compute_wma(df, times, period=3)
+    values = [p.value for p in result.lines[0].points]
+    # Weights are (1, 2, 3) so position 2 = (1*10 + 2*20 + 3*30) / 6 = 23.333…
+    assert values[0] is None and values[1] is None
+    assert values[2] == pytest.approx((1 * 10 + 2 * 20 + 3 * 30) / 6)
+    assert values[4] == pytest.approx((1 * 30 + 2 * 40 + 3 * 50) / 6)
+
+
+def test_hma_defined_and_finite(long_series: OHLCVSeries) -> None:
+    """Hull MA finishes warm-up and stays finite — pulls from WMA, not raw close."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_hma(df, list(df.index))
+    values = [p.value for p in result.lines[0].points]
+    defined = [v for v in values if v is not None]
+    assert defined, "HMA never became defined"
+    assert all(math.isfinite(v) for v in defined)
+
+
+def test_dema_reduces_lag_vs_ema(long_series: OHLCVSeries) -> None:
+    """DEMA reduces lag — mean |fitted − close| is smaller than EMA's."""
+    df = indicator_service._frame(long_series)
+    times = list(df.index)
+    dema = indicator_service.compute_dema(df, times, period=10)
+    ema = indicator_service.compute_ema(df, times, period=10)
+    closes = df["close"].tolist()
+
+    def _mean_abs_lag(line_points: list, start: int = 50) -> float:
+        diffs = [
+            abs(point.value - closes[i])
+            for i, point in enumerate(line_points)
+            if i >= start and point.value is not None
+        ]
+        return sum(diffs) / max(len(diffs), 1)
+
+    dema_lag = _mean_abs_lag(dema.lines[0].points)
+    ema_lag = _mean_abs_lag(ema.lines[0].points)
+    assert dema_lag < ema_lag
+
+
+def test_tema_reduces_lag_vs_ema(long_series: OHLCVSeries) -> None:
+    """TEMA's average distance from close (over the defined tail) is less than EMA's.
+
+    A point-by-point comparison vs DEMA is path-sensitive — at any individual
+    bar TEMA may overshoot. The lag-reduction property is a *mean* one, easiest
+    to assert against a single-EMA baseline over a settled window.
+    """
+    df = indicator_service._frame(long_series)
+    times = list(df.index)
+    tema = indicator_service.compute_tema(df, times, period=10)
+    ema = indicator_service.compute_ema(df, times, period=10)
+    closes = df["close"].tolist()
+
+    def _mean_abs_lag(line_points: list, start: int = 50) -> float:
+        diffs = [
+            abs(point.value - closes[i])
+            for i, point in enumerate(line_points)
+            if i >= start and point.value is not None
+        ]
+        return sum(diffs) / max(len(diffs), 1)
+
+    tema_lag = _mean_abs_lag(tema.lines[0].points)
+    ema_lag = _mean_abs_lag(ema.lines[0].points)
+    assert tema_lag < ema_lag
+
+
+def test_kama_bounded_by_series_range(long_series: OHLCVSeries) -> None:
+    """KAMA stays inside the close range — it is a smoothing of close."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_kama(df, list(df.index))
+    values = [p.value for p in result.lines[0].points if p.value is not None]
+    assert values, "KAMA never became defined"
+    closes = df["close"].tolist()
+    cmin, cmax = min(closes), max(closes)
+    margin = (cmax - cmin) * 0.05
+    assert all(cmin - margin <= v <= cmax + margin for v in values)
+
+
+# --- Momentum --------------------------------------------------------------
+
+
+def test_tsi_bounded_to_plus_minus_100(long_series: OHLCVSeries) -> None:
+    """True Strength Index is bounded in [-100, 100]."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_tsi(df, list(df.index))
+    defined = [p.value for line in result.lines for p in line.points if p.value is not None]
+    assert defined
+    assert all(-100.001 <= v <= 100.001 for v in defined)
+
+
+def test_kst_three_lines(long_series: OHLCVSeries) -> None:
+    """KST emits the KST line and a signal."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_kst(df, list(df.index))
+    labels = [line.label for line in result.lines]
+    assert "KST" in labels
+    assert "Signal" in labels
+
+
+def test_awesome_oscillator_zero_around_flat() -> None:
+    """AO of a strictly rising series is non-negative once warm-up completes."""
+    s = _make_series([float(x) for x in range(1, 50)])
+    df = indicator_service._frame(s)
+    result = indicator_service.compute_awesome_oscillator(df, list(df.index))
+    values = [p.value for p in result.lines[0].points]
+    defined = [v for v in values if v is not None]
+    assert defined
+    assert defined[-1] is not None and defined[-1] > 0.0
+
+
+def test_ppo_relative_to_macd(long_series: OHLCVSeries) -> None:
+    """PPO emits MACD-shape three lines (PPO / Signal / Histogram)."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_ppo(df, list(df.index))
+    labels = [line.label for line in result.lines]
+    assert "PPO" in labels
+    assert "Signal" in labels
+    assert "Histogram" in labels
+
+
+def test_ultimate_oscillator_bounded(long_series: OHLCVSeries) -> None:
+    """Ultimate Oscillator is bounded in [0, 100]."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_ultimate_oscillator(df, list(df.index))
+    defined = [p.value for p in result.lines[0].points if p.value is not None]
+    assert defined
+    assert all(0.0 <= v <= 100.0 for v in defined)
+
+
+# --- Volatility ------------------------------------------------------------
+
+
+def test_std_dev_non_negative(long_series: OHLCVSeries) -> None:
+    """Standard deviation is never negative."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_std_dev(df, list(df.index))
+    defined = [p.value for p in result.lines[0].points if p.value is not None]
+    assert defined
+    assert all(v >= 0.0 for v in defined)
+
+
+def test_bollinger_bandwidth_non_negative(long_series: OHLCVSeries) -> None:
+    """Bollinger Bandwidth ((upper-lower)/middle) is non-negative."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_bollinger_bandwidth(df, list(df.index))
+    defined = [p.value for p in result.lines[0].points if p.value is not None]
+    assert defined
+    assert all(v >= 0.0 for v in defined)
+
+
+def test_donchian_channels_envelope_close(long_series: OHLCVSeries) -> None:
+    """Donchian Channels' upper >= middle >= lower wherever defined."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_donchian(df, list(df.index))
+    upper, middle, lower = result.lines
+    for u, m, low in zip(upper.points, middle.points, lower.points, strict=True):
+        if u.value is None:
+            continue
+        assert u.value >= m.value >= low.value
+
+
+def test_chaikin_volatility_finite(long_series: OHLCVSeries) -> None:
+    """Chaikin Volatility (rate-of-change of EMA(H-L)) is finite once warm-up."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_chaikin_volatility(df, list(df.index))
+    defined = [p.value for p in result.lines[0].points if p.value is not None]
+    assert defined
+    assert all(math.isfinite(v) for v in defined)
+
+
+# --- Volume ----------------------------------------------------------------
+
+
+def test_ad_line_is_running_sum(long_series: OHLCVSeries) -> None:
+    """Accumulation/Distribution Line is a running sum — every cell defined."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_ad_line(df, list(df.index))
+    values = [p.value for p in result.lines[0].points]
+    assert all(v is not None for v in values)
+    assert all(math.isfinite(v) for v in values)
+
+
+def test_chaikin_money_flow_bounded(long_series: OHLCVSeries) -> None:
+    """CMF is bounded in [-1, 1]."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_chaikin_money_flow(df, list(df.index))
+    defined = [p.value for p in result.lines[0].points if p.value is not None]
+    assert defined
+    assert all(-1.001 <= v <= 1.001 for v in defined)
+
+
+def test_force_index_finite(long_series: OHLCVSeries) -> None:
+    """Force Index = (close − close[1]) * volume — every cell from index 1."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_force_index(df, list(df.index))
+    values = [p.value for p in result.lines[0].points]
+    assert values[0] is None
+    assert all(v is not None and math.isfinite(v) for v in values[1:])
+
+
+def test_ease_of_movement_finite(long_series: OHLCVSeries) -> None:
+    """Ease of Movement smooths a midpoint-move / box-ratio path."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_ease_of_movement(df, list(df.index))
+    defined = [p.value for p in result.lines[0].points if p.value is not None]
+    assert defined
+    assert all(math.isfinite(v) for v in defined)
+
+
+def test_vpt_running_sum(long_series: OHLCVSeries) -> None:
+    """Volume Price Trend = cumulative sum of volume * close-pct-change."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_vpt(df, list(df.index))
+    values = [p.value for p in result.lines[0].points]
+    assert all(v is not None and math.isfinite(v) for v in values)
+
+
+# --- Trend -----------------------------------------------------------------
+
+
+def test_aroon_bounded(long_series: OHLCVSeries) -> None:
+    """Aroon Up and Aroon Down are bounded in [0, 100]."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_aroon(df, list(df.index))
+    for line in result.lines:
+        defined = [p.value for p in line.points if p.value is not None]
+        assert defined
+        assert all(0.0 <= v <= 100.0 for v in defined)
+
+
+def test_aroon_oscillator_bounded(long_series: OHLCVSeries) -> None:
+    """Aroon Oscillator (Up - Down) is bounded in [-100, 100]."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_aroon_oscillator(df, list(df.index))
+    defined = [p.value for p in result.lines[0].points if p.value is not None]
+    assert defined
+    assert all(-100.0 <= v <= 100.0 for v in defined)
+
+
+def test_vortex_two_lines(long_series: OHLCVSeries) -> None:
+    """Vortex emits VI+ and VI− as separate lines."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_vortex(df, list(df.index))
+    labels = [line.label for line in result.lines]
+    assert any("+" in label for label in labels)
+    assert any("-" in label or "−" in label for label in labels)
+
+
+def test_mass_index_positive(long_series: OHLCVSeries) -> None:
+    """Mass Index is a sum of EMA-ratios — strictly positive once warm."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_mass_index(df, list(df.index))
+    defined = [p.value for p in result.lines[0].points if p.value is not None]
+    assert defined
+    assert all(v > 0.0 for v in defined)
+
+
+def test_pivot_points_three_lines(long_series: OHLCVSeries) -> None:
+    """Pivot Points emits a P, R1/R2, and S1/S2 set (≥5 lines)."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_pivot_points(df, list(df.index))
+    assert len(result.lines) >= 5
+
+
+def test_supertrend_finite_and_close_relative(long_series: OHLCVSeries) -> None:
+    """SuperTrend is a price-pane envelope — finite and within reasonable range."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_supertrend(df, list(df.index))
+    defined = [p.value for p in result.lines[0].points if p.value is not None]
+    assert defined
+    closes = df["close"].tolist()
+    cmin, cmax = min(closes), max(closes)
+    span = cmax - cmin
+    assert all(cmin - 5 * span <= v <= cmax + 5 * span for v in defined)
+
+
+# --- Statistical -----------------------------------------------------------
+
+
+def test_linreg_known_slope() -> None:
+    """Linear Regression of a strictly linear close path equals the close itself."""
+    closes = [10.0 + i for i in range(20)]
+    s = _make_series(closes)
+    df = indicator_service._frame(s)
+    result = indicator_service.compute_linreg(df, list(df.index), period=5)
+    values = [p.value for p in result.lines[0].points]
+    # Last few values should match the actual close (perfect fit).
+    assert values[-1] == pytest.approx(closes[-1], rel=1e-6)
+    assert values[-2] == pytest.approx(closes[-2], rel=1e-6)
+
+
+def test_standard_error_bands_envelope(long_series: OHLCVSeries) -> None:
+    """Std Error Bands' upper >= middle >= lower wherever defined."""
+    df = indicator_service._frame(long_series)
+    result = indicator_service.compute_std_error_bands(df, list(df.index))
+    upper, middle, lower = result.lines
+    for u, m, low in zip(upper.points, middle.points, lower.points, strict=True):
+        if u.value is None:
+            continue
+        assert u.value >= m.value >= low.value
+
+
+def test_hlc3_average() -> None:
+    """HLC3 is (high + low + close) / 3 per bar."""
+    s = _make_series([10.0, 12.0, 14.0])
+    df = indicator_service._frame(s)
+    result = indicator_service.compute_hlc3(df, list(df.index))
+    values = [p.value for p in result.lines[0].points]
+    bars = s.bars
+    for index, value in enumerate(values):
+        assert value == pytest.approx(
+            (bars[index].high + bars[index].low + bars[index].close) / 3.0
+        )
+
+
+def test_ohlc4_average() -> None:
+    """OHLC4 is (open + high + low + close) / 4 per bar."""
+    s = _make_series([10.0, 12.0, 14.0])
+    df = indicator_service._frame(s)
+    result = indicator_service.compute_ohlc4(df, list(df.index))
+    values = [p.value for p in result.lines[0].points]
+    bars = s.bars
+    for index, value in enumerate(values):
+        assert value == pytest.approx(
+            (bars[index].open + bars[index].high + bars[index].low + bars[index].close) / 4.0
+        )
+
+
+def test_median_price_average() -> None:
+    """Median Price is (high + low) / 2 per bar."""
+    s = _make_series([10.0, 12.0, 14.0])
+    df = indicator_service._frame(s)
+    result = indicator_service.compute_median_price(df, list(df.index))
+    values = [p.value for p in result.lines[0].points]
+    bars = s.bars
+    for index, value in enumerate(values):
+        assert value == pytest.approx((bars[index].high + bars[index].low) / 2.0)
+
+
+# --- Catalog / aliases -----------------------------------------------------
+
+
+def test_phase2_aliases_resolve() -> None:
+    """Phase-2 indicators ship reasonable aliases for their conventional names."""
+    assert indicator_service.normalize_key("Hull MA") == "hma"
+    assert indicator_service.normalize_key("AO") == "awesome_oscillator"
+    assert indicator_service.normalize_key("CMF") == "chaikin_money_flow"
+    assert indicator_service.normalize_key("AD") == "ad_line"
+    assert indicator_service.normalize_key("Std Dev") == "std_dev"
