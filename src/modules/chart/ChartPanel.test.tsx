@@ -7,9 +7,20 @@ import type { IndicatorResponse, OHLCVSeries } from "../../../types/data";
 // --- lightweight-charts mock ------------------------------------------------
 // The real library renders to a <canvas>, which jsdom does not implement. The
 // mock records calls so the test can assert on the panel's data wiring without
-// a real chart. `chartApi` is module-scoped so assertions can reach it.
+// a real chart. `chartApi` and `candleSeries` are module-scoped so assertions
+// can reach them.
+const candleSeries = {
+  setData: vi.fn(),
+  attachPrimitive: vi.fn(),
+  detachPrimitive: vi.fn(),
+};
 const chartApi = {
-  addSeries: vi.fn(() => ({ setData: vi.fn() })),
+  // First addSeries call is the candlestick series; subsequent calls are
+  // indicator line series. The candle ref needs `attachPrimitive` so the
+  // panel can wire the Volume Profile histogram into it.
+  addSeries: vi.fn((type: unknown) =>
+    type === "Candlestick" ? candleSeries : { setData: vi.fn() },
+  ),
   removeSeries: vi.fn(),
   timeScale: vi.fn(() => ({ fitContent: vi.fn() })),
   remove: vi.fn(),
@@ -20,6 +31,25 @@ vi.mock("lightweight-charts", () => ({
   CandlestickSeries: "Candlestick",
   LineSeries: "Line",
 }));
+
+// --- volume profile primitive mock -----------------------------------------
+// vitest's `vi.fn()` does not satisfy `new` correctly when bound to a class
+// name; use a real ES class whose ctor and method delegate to module-scoped
+// spies the assertions can reach.
+const volumeProfileSetBuckets = vi.fn();
+const volumeProfileCtor = vi.fn();
+
+vi.mock("./volume-profile-primitive", () => {
+  class MockVolumeProfilePrimitive {
+    constructor() {
+      volumeProfileCtor();
+    }
+    setBuckets(buckets: unknown) {
+      volumeProfileSetBuckets(buckets);
+    }
+  }
+  return { VolumeProfilePrimitive: MockVolumeProfilePrimitive };
+});
 
 // --- sidecar-client / api mocks --------------------------------------------
 const historyMock = vi.fn();
@@ -192,5 +222,54 @@ describe("ChartPanel", () => {
     for (const label of ["RSI", "MACD", "VWAP", "Volume Profile", "Parabolic SAR", "ROC"]) {
       expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
     }
+  });
+
+  it("attaches a Volume Profile primitive when the indicator is toggled on", async () => {
+    fetchIndicatorsMock.mockResolvedValueOnce({
+      symbol: "SPY",
+      timeframe: "1d",
+      provider: "yfinance",
+      indicators: [],
+      volume_profile: {
+        buckets: [
+          { price: 100.0, volume: 1_000 },
+          { price: 101.0, volume: 2_000 },
+        ],
+      },
+    } satisfies IndicatorResponse);
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole("button", { name: "Volume Profile", pressed: false }));
+
+    await waitFor(() => {
+      expect(volumeProfileCtor).toHaveBeenCalled();
+    });
+    expect(candleSeries.attachPrimitive).toHaveBeenCalled();
+    expect(volumeProfileSetBuckets).toHaveBeenCalledWith([
+      { price: 100.0, volume: 1_000 },
+      { price: 101.0, volume: 2_000 },
+    ]);
+  });
+
+  it("detaches the Volume Profile primitive when the indicator is cleared", async () => {
+    fetchIndicatorsMock.mockResolvedValueOnce({
+      symbol: "SPY",
+      timeframe: "1d",
+      provider: "yfinance",
+      indicators: [],
+      volume_profile: { buckets: [{ price: 100.0, volume: 500 }] },
+    } satisfies IndicatorResponse);
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole("button", { name: "Volume Profile", pressed: false }));
+    await waitFor(() => expect(candleSeries.attachPrimitive).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole("button", { name: /Clear \(1\)/ }));
+
+    await waitFor(() => {
+      expect(candleSeries.detachPrimitive).toHaveBeenCalled();
+    });
   });
 });

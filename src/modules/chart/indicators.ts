@@ -43,7 +43,7 @@ export const INDICATOR_CATALOG: readonly IndicatorDef[] = [
   { key: "williams_r", label: "Williams %R", panel: "separate" },
   { key: "roc", label: "ROC", panel: "separate" },
   { key: "volume", label: "Volume", panel: "separate" },
-  { key: "volume_profile", label: "Volume Profile", panel: "separate" },
+  { key: "volume_profile", label: "Volume Profile", panel: "price" },
 ] as const;
 
 /** Indicators that draw on the price pane (overlays). */

@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import type { IndicatorResponse, OHLCVSeries } from "../../../types/data";
 import { fetchIndicators } from "./api";
 import { INDICATOR_CATALOG, INDICATOR_COLORS, type IndicatorDef } from "./indicators";
+import { VolumeProfilePrimitive } from "./volume-profile-primitive";
 
 /** Bar intervals the chart panel exposes — mirrors the sidecar's `timeframe`. */
 const TIMEFRAMES = ["1m", "5m", "15m", "30m", "1h", "1d", "1wk", "1mo"] as const;
@@ -109,6 +110,7 @@ function ChartPanel() {
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const indicatorSeriesRef = useRef<ISeriesApi<"Line">[]>([]);
+  const volumeProfileRef = useRef<VolumeProfilePrimitive | null>(null);
 
   const [symbolInput, setSymbolInput] = useState(DEFAULT_SYMBOL);
   const [symbol, setSymbol] = useState(DEFAULT_SYMBOL);
@@ -141,6 +143,7 @@ function ChartPanel() {
       chartRef.current = null;
       candleSeriesRef.current = null;
       indicatorSeriesRef.current = [];
+      volumeProfileRef.current = null;
     };
   }, []);
 
@@ -191,6 +194,12 @@ function ChartPanel() {
       }
     }
     indicatorSeriesRef.current = [];
+    const candleSeries = candleSeriesRef.current;
+    const volumeProfile = volumeProfileRef.current;
+    if (candleSeries && volumeProfile) {
+      candleSeries.detachPrimitive(volumeProfile);
+    }
+    volumeProfileRef.current = null;
   }, []);
 
   const renderIndicators = useCallback(
@@ -225,6 +234,16 @@ function ChartPanel() {
           series.setData(data);
           indicatorSeriesRef.current.push(series);
         });
+      }
+      // Volume Profile rides on its own contract (a price-axis histogram) and
+      // is drawn through a series primitive attached to the candle series so
+      // it shares the price scale.
+      const candleSeries = candleSeriesRef.current;
+      if (response.volume_profile && candleSeries) {
+        const primitive = new VolumeProfilePrimitive();
+        primitive.setBuckets(response.volume_profile.buckets);
+        candleSeries.attachPrimitive(primitive);
+        volumeProfileRef.current = primitive;
       }
     },
     [clearIndicatorSeries],
