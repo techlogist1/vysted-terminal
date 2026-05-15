@@ -21,6 +21,8 @@ from models.indicators import (
     IndicatorPoint,
     IndicatorResponse,
     IndicatorSeries,
+    VolumeProfile,
+    VolumeProfileBucket,
 )
 from models.market import OHLCVSeries
 
@@ -147,9 +149,10 @@ def compute_bollinger(
 def compute_ichimoku(df: pd.DataFrame, times: list[str]) -> IndicatorSeries:
     """Ichimoku Cloud — the five standard 9/26/52 lines.
 
-    Senkou spans are shifted forward 26 periods and the chikou span back 26, as
-    in the classic construction; points pushed beyond the series window are
-    dropped (the chart panel does not draw a future projection).
+    Tenkan, Kijun, and Chikou stay on the bar timeline (``times``); the two
+    Senkou spans are shifted forward 26 periods and emitted on the extended
+    timeline ``times + 26 future bars`` so the forward-projected cloud is
+    delivered to the chart rather than dropped at the series edge.
     """
     high, low, close = df["high"], df["low"], df["close"]
 
@@ -161,20 +164,61 @@ def compute_ichimoku(df: pd.DataFrame, times: list[str]) -> IndicatorSeries:
 
     tenkan = _mid(9)
     kijun = _mid(26)
-    senkou_a = ((tenkan + kijun) / 2.0).shift(26)
-    senkou_b = _mid(52).shift(26)
+    # The forward-shifted spans are computed on the historical span first; the
+    # extension to ``times + future`` happens below.
+    senkou_a_now = (tenkan + kijun) / 2.0
+    senkou_b_now = _mid(52)
     chikou = close.shift(-26)
+
+    future_times = _project_future_times(df.index, count=26)
+    extended_times = list(times) + future_times
+    # Place the spans on the extended timeline by aligning each historical
+    # value 26 bars to its right; the trailing 26 cells are the forward cloud.
+    senkou_a_values = pd.Series([None] * len(extended_times), index=extended_times, dtype="object")
+    senkou_b_values = pd.Series([None] * len(extended_times), index=extended_times, dtype="object")
+    for offset, value in enumerate(senkou_a_now):
+        target_index = offset + 26
+        if target_index < len(extended_times):
+            senkou_a_values.iloc[target_index] = value
+    for offset, value in enumerate(senkou_b_now):
+        target_index = offset + 26
+        if target_index < len(extended_times):
+            senkou_b_values.iloc[target_index] = value
+    senkou_a = pd.to_numeric(senkou_a_values, errors="coerce")
+    senkou_b = pd.to_numeric(senkou_b_values, errors="coerce")
+
     return IndicatorSeries(
         name="ichimoku",
         panel="price",
         lines=[
             _line("Tenkan-sen", times, tenkan),
             _line("Kijun-sen", times, kijun),
-            _line("Senkou Span A", times, senkou_a),
-            _line("Senkou Span B", times, senkou_b),
+            _line("Senkou Span A", extended_times, senkou_a),
+            _line("Senkou Span B", extended_times, senkou_b),
             _line("Chikou Span", times, chikou),
         ],
     )
+
+
+def _project_future_times(index: pd.Index, count: int) -> list[str]:
+    """Generate ``count`` future ISO timestamps continuing the bar cadence.
+
+    The bar interval is inferred from the median of the parsed-index deltas;
+    the projected timestamps are emitted in the same ISO format the frame's
+    index already uses so the response stays internally consistent.
+    """
+    if count <= 0 or len(index) == 0:
+        return []
+    parsed = pd.to_datetime(index, errors="coerce", utc=True)
+    valid = parsed.dropna()
+    if len(valid) < 2:
+        return []
+    deltas = valid[1:] - valid[:-1]
+    interval = pd.Series(deltas).median()
+    if pd.isna(interval) or interval <= pd.Timedelta(0):
+        return []
+    last_time = valid[-1]
+    return [(last_time + interval * (step + 1)).isoformat() for step in range(count)]
 
 
 def compute_keltner(
@@ -195,19 +239,46 @@ def compute_keltner(
 
 
 def compute_vwap(df: pd.DataFrame, times: list[str]) -> IndicatorSeries:
-    """Volume-weighted average price, cumulative over the supplied window.
+    """Volume-weighted average price.
 
-    Without intraday session boundaries the sidecar treats the whole series as
-    one session — a running VWAP. The chart panel labels it accordingly.
+    Intraday timeframes (median bar-to-bar gap below ~20 hours) reset the
+    cumulative numerator and denominator at each calendar-date boundary so the
+    line traces the canonical *session* VWAP. Daily-or-coarser series keep the
+    whole-series running cumulative — the correct behaviour at those scales,
+    where each bar already represents a full session.
     """
     typical = _typical_price(df)
-    cumulative_pv = (typical * df["volume"]).cumsum()
-    cumulative_volume = df["volume"].cumsum().replace(0.0, np.nan)
-    vwap = cumulative_pv / cumulative_volume
+    volume = df["volume"]
+    # ``df.index`` carries the ISO-8601 timestamp strings the frame was built
+    # from; reparse to datetimes to measure cadence and group by date.
+    parsed_times = pd.to_datetime(df.index, errors="coerce", utc=True)
+    is_intraday = False
+    if len(parsed_times) >= 2:
+        gaps = parsed_times[1:] - parsed_times[:-1]
+        median_gap = pd.Series(gaps).median()
+        if pd.notna(median_gap) and median_gap < pd.Timedelta(hours=20):
+            is_intraday = True
+
+    pv = typical * volume
+    if is_intraday:
+        # Group by calendar date — each group restarts the running sums, which
+        # is the standard session-VWAP construction. ``transform('cumsum')``
+        # preserves the original index order across groups.
+        session = parsed_times.normalize()
+        session_series = pd.Series(session, index=df.index)
+        cumulative_pv = pv.groupby(session_series, sort=False).cumsum()
+        cumulative_volume = volume.groupby(session_series, sort=False).cumsum()
+        label = "VWAP (session)"
+    else:
+        cumulative_pv = pv.cumsum()
+        cumulative_volume = volume.cumsum()
+        label = "VWAP"
+    safe_volume = cumulative_volume.replace(0.0, np.nan)
+    vwap = cumulative_pv / safe_volume
     return IndicatorSeries(
         name="vwap",
         panel="price",
-        lines=[_line("VWAP", times, vwap)],
+        lines=[_line(label, times, vwap)],
     )
 
 
@@ -449,25 +520,19 @@ def compute_volume(df: pd.DataFrame, times: list[str]) -> IndicatorSeries:
     )
 
 
-def compute_volume_profile(df: pd.DataFrame, times: list[str], bins: int = 24) -> IndicatorSeries:
+def compute_volume_profile(df: pd.DataFrame, bins: int = 24) -> VolumeProfile:
     """Volume Profile — volume distributed across ``bins`` price buckets.
 
     Unlike every other indicator this is a *price-axis* histogram, not a
-    time-series. To stay inside the ``IndicatorSeries`` contract without a
-    contract change, each bucket is emitted as one point whose ``time`` is the
-    bucket's price-level label and whose ``value`` is the volume traded there;
-    the chart panel renders it as a horizontal histogram rather than a line.
-    The non-time ``time`` field is a deliberate, documented overload — see
-    ``BLOCKERS-chart.md``.
+    time-series. The chart panel renders it as a horizontal histogram on the
+    price pane via a custom series primitive, so the result is delivered on its
+    own contract — :class:`VolumeProfile` — rather than on the time-keyed
+    ``IndicatorSeries``.
     """
     closes = df["close"].to_numpy(dtype=float)
     volumes = df["volume"].to_numpy(dtype=float)
     if len(closes) == 0 or not np.isfinite(closes).any():
-        return IndicatorSeries(
-            name="volume_profile",
-            panel="separate",
-            lines=[IndicatorLine(label="Volume Profile", points=[])],
-        )
+        return VolumeProfile(buckets=[])
     low, high = float(np.min(closes)), float(np.max(closes))
     if high <= low:
         high = low + 1.0
@@ -478,15 +543,11 @@ def compute_volume_profile(df: pd.DataFrame, times: list[str], bins: int = 24) -
         if np.isfinite(volume):
             totals[index] += volume
     centers = (edges[:-1] + edges[1:]) / 2.0
-    points = [
-        IndicatorPoint(time=f"{center:.4f}", value=float(total))
+    buckets = [
+        VolumeProfileBucket(price=float(center), volume=float(total))
         for center, total in zip(centers, totals, strict=True)
     ]
-    return IndicatorSeries(
-        name="volume_profile",
-        panel="separate",
-        lines=[IndicatorLine(label="Volume Profile", points=points)],
-    )
+    return VolumeProfile(buckets=buckets)
 
 
 # --------------------------------------------------------------------------
@@ -494,6 +555,9 @@ def compute_volume_profile(df: pd.DataFrame, times: list[str], bins: int = 24) -
 # --------------------------------------------------------------------------
 
 # Each entry maps an indicator key to a builder that takes ``(df, times)``.
+# ``volume_profile`` is special-cased in :func:`compute` — its result is a
+# price-axis histogram on a different contract (:class:`VolumeProfile`) and
+# does not fit the time-keyed ``IndicatorSeries`` builder signature.
 _BUILDERS: dict[str, Callable[[pd.DataFrame, list[str]], IndicatorSeries]] = {
     "rsi": compute_rsi,
     "macd": compute_macd,
@@ -510,15 +574,19 @@ _BUILDERS: dict[str, Callable[[pd.DataFrame, list[str]], IndicatorSeries]] = {
     "ichimoku": compute_ichimoku,
     "keltner": compute_keltner,
     "vwap": compute_vwap,
-    "volume_profile": compute_volume_profile,
     "parabolic_sar": compute_parabolic_sar,
     "cci": compute_cci,
     "williams_r": compute_williams_r,
     "roc": compute_roc,
 }
 
-# Public, ordered list of every supported indicator key.
-SUPPORTED_INDICATORS: tuple[str, ...] = tuple(_BUILDERS)
+# The volume_profile key is supported and resolvable through ``normalize_key``,
+# but it returns a separate :class:`VolumeProfile` payload (see ``compute``).
+_VOLUME_PROFILE_KEY = "volume_profile"
+
+# Public, ordered list of every supported indicator key — keeps volume_profile
+# visible to the catalog and the ``GET /indicators`` discovery endpoint.
+SUPPORTED_INDICATORS: tuple[str, ...] = (*tuple(_BUILDERS), _VOLUME_PROFILE_KEY)
 
 # Accepted aliases for the keys above — keeps the query string forgiving.
 _ALIASES: dict[str, str] = {
@@ -544,7 +612,7 @@ _ALIASES: dict[str, str] = {
 def normalize_key(raw: str) -> str | None:
     """Map a user-supplied indicator token to a canonical key, or ``None``."""
     key = raw.strip().lower().replace(" ", "_")
-    if key in _BUILDERS:
+    if key in _BUILDERS or key == _VOLUME_PROFILE_KEY:
         return key
     return _ALIASES.get(key)
 
@@ -554,20 +622,27 @@ def compute(series: OHLCVSeries, keys: list[str]) -> IndicatorResponse:
 
     Unknown keys are skipped silently — the router validates and surfaces them
     before calling here. Duplicate keys are computed once, in request order.
+    ``volume_profile`` is routed into the response's dedicated
+    ``volume_profile`` field rather than the ``indicators`` list.
     """
     df = _frame(series)
     times = list(df.index)
     seen: set[str] = set()
     results: list[IndicatorSeries] = []
+    volume_profile: VolumeProfile | None = None
     for raw in keys:
         key = normalize_key(raw)
         if key is None or key in seen:
             continue
         seen.add(key)
+        if key == _VOLUME_PROFILE_KEY:
+            volume_profile = compute_volume_profile(df)
+            continue
         results.append(_BUILDERS[key](df, times))
     return IndicatorResponse(
         symbol=series.symbol,
         timeframe=series.timeframe,
         provider=series.provider,
         indicators=results,
+        volume_profile=volume_profile,
     )

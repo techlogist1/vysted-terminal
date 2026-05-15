@@ -164,7 +164,6 @@ export type IndicatorPanel = "price" | "separate";
  * A single `(time, value)` sample on an indicator line. `time` is an ISO-8601
  * timestamp mirrored from the source OHLCV bar; a `null` value marks a gap
  * where the indicator is undefined (e.g. a moving average's warm-up window).
- * Volume Profile overloads `time` with a price-level label — see its model.
  */
 export interface IndicatorPoint {
   time: string;
@@ -184,10 +183,29 @@ export interface IndicatorSeries {
   lines: IndicatorLine[];
 }
 
+/**
+ * One price-bucket of a Volume Profile histogram — `price` is the bucket
+ * centre and `volume` is the total traded volume that closed inside it.
+ */
+export interface VolumeProfileBucket {
+  price: number;
+  volume: number;
+}
+
+/**
+ * A horizontal-histogram Volume Profile. Lives on its own contract because
+ * its axes are price-keyed rather than time-keyed; the chart panel renders
+ * it on the price pane via a custom series primitive.
+ */
+export interface VolumeProfile {
+  buckets: VolumeProfileBucket[];
+}
+
 /** The `/indicators/{symbol}` payload — every requested indicator. */
 export interface IndicatorResponse {
   symbol: string;
   timeframe: string;
   provider: string;
   indicators: IndicatorSeries[];
+  volume_profile: VolumeProfile | null;
 }

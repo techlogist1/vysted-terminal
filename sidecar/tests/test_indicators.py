@@ -12,6 +12,7 @@ from __future__ import annotations
 import math
 from datetime import datetime, timedelta
 
+import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
 
@@ -66,18 +67,29 @@ def test_supported_indicators_count() -> None:
 
 
 def test_compute_all_indicators(series: OHLCVSeries) -> None:
-    """Every supported indicator computes and yields time-aligned points."""
+    """Every supported indicator computes and yields time-aligned points.
+
+    Volume Profile is delivered on its own contract — see ``response.volume_profile``
+    — so the time-keyed ``indicators`` list holds the other 19 entries. Ichimoku's
+    two Senkou spans extend 26 bars into the future to carry the forward cloud.
+    """
     response = indicator_service.compute(series, list(indicator_service.SUPPORTED_INDICATORS))
-    assert len(response.indicators) == 20
+    assert len(response.indicators) == 19
+    assert {result.name for result in response.indicators} == {
+        key for key in indicator_service.SUPPORTED_INDICATORS if key != "volume_profile"
+    }
     n = len(series.bars)
     for result in response.indicators:
         assert result.lines, f"{result.name} produced no lines"
         for line in result.lines:
-            # Volume Profile is a price-axis histogram, not a time series.
-            if result.name == "volume_profile":
-                assert len(line.points) > 0
-            else:
-                assert len(line.points) == n, f"{result.name}/{line.label} misaligned"
+            expected = (
+                n + 26
+                if result.name == "ichimoku" and line.label in ("Senkou Span A", "Senkou Span B")
+                else n
+            )
+            assert len(line.points) == expected, f"{result.name}/{line.label} misaligned"
+    assert response.volume_profile is not None
+    assert len(response.volume_profile.buckets) > 0
 
 
 def test_sma_known_values() -> None:
@@ -201,6 +213,65 @@ def test_vwap_within_price_range(series: OHLCVSeries) -> None:
             assert min(lows) - 1.0 <= point.value <= max(highs) + 1.0
 
 
+def _hourly_two_day_series() -> OHLCVSeries:
+    """A deterministic 2-day hourly series with bars from 09:00 to 15:00."""
+    base = datetime(2026, 3, 9, 9, 0, 0)
+    bars: list[OHLCVBar] = []
+    for day in range(2):
+        for hour in range(7):
+            ts = base + timedelta(days=day, hours=hour)
+            close = 100.0 + day * 10.0 + hour
+            bars.append(
+                OHLCVBar(
+                    timestamp=ts,
+                    open=close - 0.5,
+                    high=close + 0.5,
+                    low=close - 1.0,
+                    close=close,
+                    volume=1_000.0 + hour,
+                )
+            )
+    return OHLCVSeries(symbol="INTRA", timeframe="1h", bars=bars, provider="test")
+
+
+def test_vwap_resets_per_session_intraday() -> None:
+    """Intraday VWAP restarts at each calendar-date boundary."""
+    intraday = _hourly_two_day_series()
+    df = indicator_service._frame(intraday)
+    times = list(df.index)
+    result = indicator_service.compute_vwap(df, times)
+    assert result.lines[0].label == "VWAP (session)"
+    values = [p.value for p in result.lines[0].points]
+
+    # First bar of day 2 — its typical price is the only sample in the new
+    # session, so its VWAP equals its own typical price.
+    day2_first_idx = 7  # 7 bars per day in the fixture
+    day2_first_bar = intraday.bars[day2_first_idx]
+    typical = (day2_first_bar.high + day2_first_bar.low + day2_first_bar.close) / 3.0
+    assert values[day2_first_idx] == pytest.approx(typical)
+
+    # Day 1's last bar's VWAP is the weighted average over only day 1 — i.e.
+    # below day 2's first VWAP because day 2 closes are higher by construction.
+    day1_last_idx = 6
+    assert values[day1_last_idx] is not None
+    assert values[day1_last_idx] < typical
+
+
+def test_vwap_cumulative_for_daily(series: OHLCVSeries) -> None:
+    """Daily-and-coarser VWAP keeps the whole-series running cumulative."""
+    df = indicator_service._frame(series)
+    times = list(df.index)
+    result = indicator_service.compute_vwap(df, times)
+    assert result.lines[0].label == "VWAP"
+
+    typicals = [(bar.high + bar.low + bar.close) / 3.0 for bar in series.bars]
+    volumes = [bar.volume for bar in series.bars]
+    expected_last = sum(t * v for t, v in zip(typicals, volumes, strict=True)) / sum(volumes)
+    last = result.lines[0].points[-1].value
+    assert last is not None
+    assert last == pytest.approx(expected_last)
+
+
 def test_parabolic_sar_defined_from_second_bar(series: OHLCVSeries) -> None:
     """Parabolic SAR seeds on bar two and stays finite thereafter."""
     result = indicator_service.compute_parabolic_sar(
@@ -213,10 +284,25 @@ def test_parabolic_sar_defined_from_second_bar(series: OHLCVSeries) -> None:
 
 def test_volume_profile_buckets_sum_to_total_volume(series: OHLCVSeries) -> None:
     """Volume Profile redistributes total traded volume across price buckets."""
-    result = indicator_service.compute_volume_profile(
-        indicator_service._frame(series), list(indicator_service._frame(series).index)
-    )
-    bucket_total = sum(p.value or 0.0 for p in result.lines[0].points)
+    profile = indicator_service.compute_volume_profile(indicator_service._frame(series))
+    bucket_total = sum(bucket.volume for bucket in profile.buckets)
+    series_total = sum(bar.volume for bar in series.bars)
+    assert bucket_total == pytest.approx(series_total)
+    # Every bucket carries a real price (the bucket centre), not a string label.
+    assert all(isinstance(bucket.price, float) for bucket in profile.buckets)
+    # Bucket centres are monotonically increasing along the price axis.
+    prices = [bucket.price for bucket in profile.buckets]
+    assert prices == sorted(prices)
+
+
+def test_volume_profile_routes_into_response_field(series: OHLCVSeries) -> None:
+    """Requesting volume_profile alongside other indicators populates the field."""
+    response = indicator_service.compute(series, ["rsi", "volume_profile", "macd"])
+    # The time-keyed indicators list keeps RSI and MACD in request order, no VP.
+    assert [r.name for r in response.indicators] == ["rsi", "macd"]
+    assert response.volume_profile is not None
+    assert response.volume_profile.buckets
+    bucket_total = sum(bucket.volume for bucket in response.volume_profile.buckets)
     series_total = sum(bar.volume for bar in series.bars)
     assert bucket_total == pytest.approx(series_total)
 
@@ -233,6 +319,53 @@ def test_ichimoku_has_five_lines(series: OHLCVSeries) -> None:
         "Senkou Span B",
         "Chikou Span",
     ]
+
+
+def test_ichimoku_senkou_lines_extend_into_future(series: OHLCVSeries) -> None:
+    """Senkou A and B are emitted on an extended timeline so the +26 forward
+    shift is preserved as a future-projected cloud rather than dropped."""
+    df = indicator_service._frame(series)
+    times = list(df.index)
+    result = indicator_service.compute_ichimoku(df, times)
+    by_label = {line.label: line for line in result.lines}
+
+    n = len(times)
+    # Tenkan / Kijun / Chikou stay on the historical bar timeline.
+    assert len(by_label["Tenkan-sen"].points) == n
+    assert len(by_label["Kijun-sen"].points) == n
+    assert len(by_label["Chikou Span"].points) == n
+    # Senkou A/B carry the extra 26 forward bars.
+    assert len(by_label["Senkou Span A"].points) == n + 26
+    assert len(by_label["Senkou Span B"].points) == n + 26
+
+    # Parse both reference and projected timestamps via pandas so naive and
+    # tz-aware values are normalised onto the same axis before comparing.
+    last_bar_time = pd.to_datetime(times[-1], utc=True)
+    future_points_a = by_label["Senkou Span A"].points[n:]
+    future_points_b = by_label["Senkou Span B"].points[n:]
+    assert len(future_points_a) == 26
+    assert len(future_points_b) == 26
+    for point in future_points_a:
+        assert pd.to_datetime(point.time, utc=True) > last_bar_time
+    for point in future_points_b:
+        assert pd.to_datetime(point.time, utc=True) > last_bar_time
+    # Senkou A only needs 26 bars of warm-up — the 40-bar fixture leaves at
+    # least the final 15 forward cells defined.
+    assert any(p.value is not None for p in future_points_a)
+
+
+def test_ichimoku_forward_cloud_populates_with_full_warmup() -> None:
+    """A 60-bar series satisfies the 52-period Senkou B warm-up; Senkou B's
+    forward cloud then carries real, finite values."""
+    closes = [100.0 + i * 0.5 + (1.0 if i % 2 else -1.0) for i in range(60)]
+    full = _make_series(closes)
+    df = indicator_service._frame(full)
+    times = list(df.index)
+    result = indicator_service.compute_ichimoku(df, times)
+    by_label = {line.label: line for line in result.lines}
+    future_points_b = by_label["Senkou Span B"].points[len(times) :]
+    assert len(future_points_b) == 26
+    assert any(p.value is not None for p in future_points_b)
 
 
 def test_compute_dedupes_and_skips_unknown(series: OHLCVSeries) -> None:

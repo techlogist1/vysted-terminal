@@ -42,6 +42,28 @@ class IndicatorSeries(BaseModel):
     lines: list[IndicatorLine]
 
 
+class VolumeProfileBucket(BaseModel):
+    """One price-bucket of a Volume Profile histogram.
+
+    ``price`` is the bucket centre (a true float, not a label string), and
+    ``volume`` is the total traded volume that closed inside that bucket.
+    """
+
+    price: float
+    volume: float
+
+
+class VolumeProfile(BaseModel):
+    """A horizontal-histogram Volume Profile — a price-axis distribution.
+
+    Returned as a top-level field on :class:`IndicatorResponse` rather than
+    inside the per-indicator ``IndicatorSeries`` list because its axes are
+    fundamentally different (price-keyed, not time-keyed).
+    """
+
+    buckets: list[VolumeProfileBucket]
+
+
 class IndicatorResponse(BaseModel):
     """The ``/indicators/{symbol}`` payload — every requested indicator."""
 
@@ -49,3 +71,4 @@ class IndicatorResponse(BaseModel):
     timeframe: str
     provider: str
     indicators: list[IndicatorSeries]
+    volume_profile: VolumeProfile | None = None
