@@ -42,8 +42,8 @@ All ten kinds shipped under `src/modules/chart/drawings/`:
   horizontal-line, vertical-line, ray, rectangle, ellipse, fib-retracement,
   fib-extension, parallel-channel, text. Standard fib levels
   (0/0.236/0.382/0.5/0.618/0.786/1) shared between the two fib kinds.
-- `factory.ts` — `createDrawingPrimitive(spec)` switch + `pointsRequired(kind)`
-  + `DEFAULT_DRAWING_STYLE`.
+- `factory.ts` — `createDrawingPrimitive(spec)` switch +
+  `pointsRequired(kind)` + `DEFAULT_DRAWING_STYLE`.
 
 ### 4. Drawing toolbar UI
 
@@ -89,7 +89,7 @@ the candle scale is unaffected. % toggle and × remove visible after add.
 - **A6 indicator selection:** kept the suggested set verbatim — every
   textbook-standard indicator was tractable as a pure pandas/numpy
   function, no substitutions needed.
-- **DEMA/TEMA tests:** asserted *mean* absolute lag vs EMA across the
+- **DEMA/TEMA tests:** asserted _mean_ absolute lag vs EMA across the
   settled tail rather than per-point comparison. The lag-reduction
   property is provably true on average but path-dependent at any
   individual bar; pinning a single tail value made the test brittle.
