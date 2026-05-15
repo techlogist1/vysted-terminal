@@ -7,7 +7,21 @@ const config = [
   ...nextCoreWebVitals,
   ...nextTypescript,
   {
-    ignores: [".next/**", "out/**", "node_modules/**", "src-tauri/**", "sidecar/**", "scripts/**"],
+    // `.claude/**` and the `**/` variants keep agent worktrees and any nested
+    // build output (e.g. a teammate's `pnpm build` inside `.claude/worktrees/`)
+    // from polluting lint with library type-definitions and generated chunks.
+    ignores: [
+      ".next/**",
+      "out/**",
+      "node_modules/**",
+      "src-tauri/**",
+      "sidecar/**",
+      "scripts/**",
+      ".claude/**",
+      "**/.next/**",
+      "**/node_modules/**",
+      "**/out/**",
+    ],
   },
 ];
 
