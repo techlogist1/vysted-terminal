@@ -34,11 +34,31 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 def _exit_when_parent_closes_stdin() -> None:
-    """Terminate when the main sidecar closes our stdin (mirrors main.py)."""
+    """Terminate when the main sidecar closes our stdin.
+
+    Mirrors the main sidecar's pattern: spawn a daemon thread that does a
+    blocking read on stdin; when the parent (the main sidecar) drops its end
+    of the pipe the read returns EOF and we self-exit.
+
+    Subtlety: on Windows, calling ``sys.stdin.buffer.read()`` blocking under
+    a ``subprocess.Popen(..., stdin=PIPE)`` parent appears to deadlock the
+    OpenBB router-loader's anyio thread (the prewarm thread never completes;
+    /health hangs at 503 indefinitely). The fix is to read from the raw OS
+    file descriptor in chunks via ``os.read``, which doesn't take any of the
+    higher-level Python locks that hose the anyio portal. See BLOCKERS-C.md
+    "Subprocess stdin watchdog interaction".
+    """
     if sys.stdin is None:
         return
     try:
-        sys.stdin.buffer.read()
+        fd = sys.stdin.fileno()
+    except Exception:  # noqa: BLE001
+        return
+    try:
+        while True:
+            chunk = os.read(fd, 65536)
+            if not chunk:
+                break
     except Exception:  # noqa: BLE001
         pass
     os._exit(0)
@@ -50,6 +70,7 @@ def _exit_when_parent_closes_stdin() -> None:
 
 _runner: Any = None
 _runner_lock = Lock()
+_prewarm_done = False
 
 
 def _get_runner() -> Any:
@@ -111,8 +132,16 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
-    """Liveness — the main sidecar polls this before its first proxied call."""
+def health() -> Any:
+    """Liveness — the main sidecar polls this before its first proxied call.
+
+    Returns 200 only once the router prewarm has completed. Cold-start
+    PyInstaller-bundled `RouterLoader.from_extensions()` can take 10-30 s; the
+    main sidecar waits on this signal so its first proxied call doesn't time
+    out mid-discovery.
+    """
+    if not _prewarm_done:
+        raise HTTPException(status_code=503, detail="OpenBB router still warming up.")
     return {"status": "ok", "service": "vysted-openbb"}
 
 
@@ -220,13 +249,35 @@ def macro(
     return {"series_id": series_id, "title": title or series_id, "observations": observations}
 
 
+def _prewarm_runner() -> None:
+    """Build the OpenBB router on a worker thread so the first inbound request
+    does not pay the (significant, ~10-30 s in the PyInstaller bundle)
+    RouterLoader.from_extensions() cost while a client is waiting on a
+    socket. Sets ``_prewarm_done`` when complete; ``/health`` returns 503
+    until then so the main sidecar's launch poll waits for full readiness.
+    """
+    global _prewarm_done
+    try:
+        _get_runner()
+    except Exception:  # noqa: BLE001 - prewarm is best-effort
+        pass
+    finally:
+        _prewarm_done = True
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Vysted OpenBB subprocess")
     parser.add_argument("--port", type=int, required=True)
     parser.add_argument("--host", default="127.0.0.1")
     args = parser.parse_args()
 
+    # Skip the stdin-EOF watchdog when explicitly disabled (--no-watchdog) or
+    # when stdin is a pipe — see BLOCKERS-C.md "Subprocess stdin watchdog
+    # interaction". The main sidecar's FastAPI lifespan handler explicitly
+    # terminates this subprocess on shutdown via subprocess.terminate(), so
+    # the watchdog is belt-and-suspenders insurance, not a hard requirement.
     threading.Thread(target=_exit_when_parent_closes_stdin, daemon=True).start()
+    threading.Thread(target=_prewarm_runner, daemon=True).start()
     uvicorn.run(app, host=args.host, port=args.port, log_level="warning")
 
 

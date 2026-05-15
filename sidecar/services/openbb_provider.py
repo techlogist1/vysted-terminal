@@ -73,10 +73,15 @@ _TIMEFRAME_MAP: dict[str, str] = {
     "1mo": "1M",
 }
 
-# How long we wait for the subprocess /health endpoint to respond before
-# treating the launch as failed.
+# How long we wait for the subprocess /health endpoint to respond 200 before
+# treating the launch as failed. The subprocess only flips /health to 200
+# after its router prewarm completes — standalone (e.g. PowerShell
+# Start-Process) this takes ~3-4 s. Under subprocess.Popen on Windows the
+# prewarm currently deadlocks (see BLOCKERS-C.md). 30 s gives the standalone
+# path generous headroom; under the deadlock case, _get_runner caches the
+# failure so the registry's yfinance fallback is fast on subsequent calls.
 _HEALTH_TIMEOUT_S = 30.0
-_HEALTH_POLL_INTERVAL_S = 0.25
+_HEALTH_POLL_INTERVAL_S = 0.5
 _HTTP_TIMEOUT_S = 30.0
 
 # Environment override for the subprocess binary path (CI / advanced users).
@@ -302,15 +307,32 @@ def _launch_subprocess() -> tuple[subprocess.Popen[bytes], str]:
 
 
 def _get_runner() -> Any:
-    """Return a cached :class:`_SubprocessRunner`, lazy-launching on first use."""
-    global _runner, _subprocess
+    """Return a cached :class:`_SubprocessRunner`, lazy-launching on first use.
+
+    If the subprocess fails to come up healthy within the deadline, the
+    failure is cached by setting ``_OPENBB_AVAILABLE = False`` so the
+    registry's fallback path becomes a hot dict lookup on every subsequent
+    call rather than another 90 s timeout. The cache is reset only on
+    sidecar restart — appropriate for Phase 2 since the failure mode is
+    the deterministic Windows subprocess.Popen → bundled-OpenBB hang
+    documented in BLOCKERS-C.md.
+    """
+    global _runner, _subprocess, _OPENBB_AVAILABLE
     if not is_available():
         raise ProviderError(
             "OpenBB subprocess is not bundled in this build — falling back to yfinance."
         )
     with _runner_lock:
         if _runner is None:
-            _subprocess, base_url = _launch_subprocess()
+            try:
+                _subprocess, base_url = _launch_subprocess()
+            except ProviderError:
+                # Mark OpenBB unavailable for the rest of this sidecar's
+                # lifetime so the registry fallback is fast on subsequent
+                # calls. Set BEFORE re-raising so the caller (and every
+                # subsequent caller) sees `is_available() == False`.
+                _OPENBB_AVAILABLE = False
+                raise
             _runner = _SubprocessRunner(base_url)
         return _runner
 
