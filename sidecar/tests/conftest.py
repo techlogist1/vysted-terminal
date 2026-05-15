@@ -77,7 +77,10 @@ class _FakeTicker:
             "forwardPE": 28.4,
             "trailingPegRatio": 2.1,
             "priceToBook": 47.0,
-            "dividendYield": 0.0044,
+            # yfinance 1.3.0 returns ``dividendYield`` as a percentage number
+            # (e.g. ``0.36`` for AAPL). The provider divides by 100 so the
+            # ``Fundamentals.dividend_yield`` field carries a true fraction.
+            "dividendYield": 0.44,
             "trailingEps": 6.17,
             "beta": 1.25,
             "fiftyTwoWeekHigh": 220.0,
