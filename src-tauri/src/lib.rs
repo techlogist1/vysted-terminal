@@ -1,3 +1,5 @@
+mod keychain;
+
 use std::net::TcpStream;
 use std::sync::Mutex;
 use std::thread;
@@ -47,10 +49,24 @@ pub fn run() {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![get_sidecar_port])
+        .invoke_handler(tauri::generate_handler![
+            get_sidecar_port,
+            keychain::keychain_set,
+            keychain::keychain_get,
+            keychain::keychain_delete,
+        ])
         .setup(|app| {
             let port = pick_free_port();
             app.manage(SidecarPort(port));
+
+            // Phase 3 reservation: Teammate B (MCP layer) replaces this line
+            // with `openbb_mcp::spawn(&app.handle())?;` to launch the
+            // openbb-mcp-server subprocess via Tauri Rust `Command::new`
+            // (Phase-2 Gotcha — never via Python `subprocess.Popen` on
+            // Windows). The spawn helper picks a free port, supervises the
+            // child, and exposes the port via `get_openbb_mcp_port`.
+            // Placeholder kept here so B's worktree applies as a one-line
+            // replacement instead of a multi-hunk edit.
 
             // Resolve the per-OS application data directory and hand it to the
             // sidecar; the sidecar owns the portfolio SQLite database and the
