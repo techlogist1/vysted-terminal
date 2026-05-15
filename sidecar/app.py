@@ -19,6 +19,7 @@ from routers import (
     indicators,
     macro,
     news,
+    plugins,
     portfolio,
     quotes,
     workspace,
@@ -36,6 +37,7 @@ _ROUTERS = (
     portfolio,
     news,
     workspace,
+    plugins,
 )
 
 
