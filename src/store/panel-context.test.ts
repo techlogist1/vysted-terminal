@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import {
-  selectEventBySource,
-  selectSnapshot,
-  usePanelContextBus,
-} from "@/store/panel-context";
+import { selectEventBySource, selectSnapshot, usePanelContextBus } from "@/store/panel-context";
 import type { PanelContextEvent } from "../../types/panel-context";
 
-function event(source: string, payload: unknown, kind: "symbol" | "snapshot" = "snapshot"): PanelContextEvent {
+function event(
+  source: string,
+  payload: unknown,
+  kind: "symbol" | "snapshot" = "snapshot",
+): PanelContextEvent {
   return { source, kind, payload, emittedAt: Date.now() };
 }
 

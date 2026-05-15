@@ -13,16 +13,16 @@ field-for-field. **Changing the schema is a Tier-2 decision** — the
 contract itself stays on `types/plugin.ts` (Tier-1 locked), but the
 discovery format here is a sidecar-internal convention and may evolve.
 
-| Field | Required | Notes |
-|---|---|---|
-| `id` | yes | Stable identifier; lowercase + dash/underscore. **NOT** prefixed `custom:` (reserved for user-defined agents). |
-| `name` | yes | Display name. |
-| `philosophy` | yes | One-line lens / role summary. |
-| `systemPrompt` | yes | The actual prompt. Substantive — 200-500 words capturing the agent's framework, not a generic persona blurb. |
-| `tools` | yes | Allow-list of tool ids. |
-| `defaultProvider` | yes | One of the seven BYOK provider ids. |
-| `defaultModel` | no | Optional recommended model. |
-| `icon` | no | Lucide icon name or asset path. |
+| Field             | Required | Notes                                                                                                          |
+| ----------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
+| `id`              | yes      | Stable identifier; lowercase + dash/underscore. **NOT** prefixed `custom:` (reserved for user-defined agents). |
+| `name`            | yes      | Display name.                                                                                                  |
+| `philosophy`      | yes      | One-line lens / role summary.                                                                                  |
+| `systemPrompt`    | yes      | The actual prompt. Substantive — 200-500 words capturing the agent's framework, not a generic persona blurb.   |
+| `tools`           | yes      | Allow-list of tool ids.                                                                                        |
+| `defaultProvider` | yes      | One of the seven BYOK provider ids.                                                                            |
+| `defaultModel`    | no       | Optional recommended model.                                                                                    |
+| `icon`            | no       | Lucide icon name or asset path.                                                                                |
 
 ## Phase-3 roster
 
@@ -58,4 +58,4 @@ here, and their ids carry the `custom:` prefix. Teammate C owns that flow.
 4. Add the agent's icon if `icon` references a repo-relative asset.
 
 Plugins contributing agents do so through `capabilities.contributesAgents`
-+ `getAgents()` per `types/plugin.ts` — not through this directory.
+and `getAgents()` per `types/plugin.ts` — not through this directory.
