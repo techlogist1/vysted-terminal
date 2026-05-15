@@ -94,6 +94,39 @@ a documentation trail. Do not ask permission for spec ambiguities that DNA can
 settle; that is what Tier 3 is for. `BLOCKERS.md` (repo root) is for genuine
 Tier-4 blocks and hard blockers hit while the operator is unavailable.
 
+## Visual verification protocol
+
+Screenshots used as visual proof MUST capture **populated** panel state, not
+empty defaults. Empty-state shots hide bugs that only manifest with real data —
+the 00606e7 hot-patch fixed an Equity Overview horizontal overflow that the
+v0.2.1 verification screenshots missed because Equity Overview was empty in the
+shot.
+
+For any release or hot-patch verification shot:
+
+- **Watchlist** — default symbols loaded, prices ticking.
+- **Chart** — SPY with 2–3 indicators active.
+- **Equity Overview** — AAPL (or comparable) with all sections populated.
+- **News** — 3–5 articles rendered.
+- **Portfolio** — ≥1 position.
+
+Capture at **both** 1920×1080 and 2560×1440 via the `chrome-devtools` MCP
+`resize_page`. Table widths shift with available space; a panel that looks
+fine at one resolution can overflow at the other.
+
+## Screenshot organization
+
+Each release tag and significant patch gets its **own** subfolder under
+`docs/screenshots/`. Folder names track release tags exactly (`v0.2.0`,
+`v0.2.1`). Inter-tag residual fixes get `<tag>-<descriptor>` (e.g.
+`v0.2.1-equity-fit` for commit 00606e7) or the commit short SHA when no
+obvious descriptor fits.
+
+**Never overwrite** existing screenshots. The v0.2.1-tag layout-*.png pair was
+silently overwritten by the 00606e7 verification run and is unrecoverable from
+the working tree — only the v0.2.1 release commit's blob store still has them.
+A per-patch folder costs nothing and preserves the per-release visual record.
+
 ## Gotchas
 
 Non-obvious traps and their fixes — append a line or two as they are found, so
