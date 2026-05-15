@@ -48,6 +48,18 @@ def _utcnow() -> datetime:
     return datetime.now(tz=UTC)
 
 
+def _normalize_symbol(symbol: str) -> str:
+    """Translate yfinance dot-ticker quirks (``BRK.B`` → ``BRK-B``).
+
+    yfinance returns 502 / "no data" for symbols containing dots — its API
+    expects the dash form (``BRK.B`` → ``BRK-B``, ``BF.B`` → ``BF-B``,
+    ``RDS.A`` → ``RDS-A``). The mapping is yfinance-specific (other providers
+    have their own conventions), so it lives in this provider rather than in
+    the dispatch layer.
+    """
+    return symbol.replace(".", "-")
+
+
 def _num(value: Any) -> float | None:
     """Coerce a possibly-missing/NaN value to ``float | None``."""
     if value is None:
@@ -65,8 +77,9 @@ def _num(value: Any) -> float | None:
 
 def get_quote(symbol: str) -> Quote:
     """Return the latest quote for ``symbol``."""
+    normalized = _normalize_symbol(symbol)
     try:
-        fast = yf.Ticker(symbol).fast_info
+        fast = yf.Ticker(normalized).fast_info
         price = float(fast.last_price)
         prev = float(fast.previous_close)
         volume = getattr(fast, "last_volume", None)
@@ -77,7 +90,7 @@ def get_quote(symbol: str) -> Quote:
     change = price - prev
     change_percent = (change / prev * 100.0) if prev else 0.0
     return Quote(
-        symbol=symbol.upper(),
+        symbol=normalized.upper(),
         price=price,
         change=change,
         change_percent=change_percent,
@@ -90,10 +103,11 @@ def get_quote(symbol: str) -> Quote:
 
 def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCVSeries:
     """Return an OHLCV series for ``symbol`` at ``timeframe``."""
+    normalized = _normalize_symbol(symbol)
     interval, default_period = _TIMEFRAME_MAP.get(timeframe, ("1d", "1y"))
     period = range_ or default_period
     try:
-        frame = yf.Ticker(symbol).history(period=period, interval=interval)
+        frame = yf.Ticker(normalized).history(period=period, interval=interval)
     except Exception as exc:  # noqa: BLE001
         raise ProviderError(f"yfinance history failed for {symbol!r}: {exc}") from exc
 
@@ -110,13 +124,14 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
                 volume=float(row["Volume"]),
             )
         )
-    return OHLCVSeries(symbol=symbol.upper(), timeframe=timeframe, bars=bars, provider=PROVIDER)
+    return OHLCVSeries(symbol=normalized.upper(), timeframe=timeframe, bars=bars, provider=PROVIDER)
 
 
 def get_fundamentals(symbol: str) -> Fundamentals:
     """Return valuation ratios and a company profile for ``symbol``."""
+    normalized = _normalize_symbol(symbol)
     try:
-        info = yf.Ticker(symbol).info
+        info = yf.Ticker(normalized).info
     except Exception as exc:  # noqa: BLE001
         raise ProviderError(f"yfinance fundamentals failed for {symbol!r}: {exc}") from exc
 
@@ -126,7 +141,7 @@ def get_fundamentals(symbol: str) -> Fundamentals:
     # multiplies by 100 to display a percentage), so normalise here.
     raw_yield = _num(info.get("dividendYield"))
     return Fundamentals(
-        symbol=symbol.upper(),
+        symbol=normalized.upper(),
         name=info.get("longName") or info.get("shortName"),
         sector=info.get("sector"),
         industry=info.get("industry"),
@@ -156,38 +171,46 @@ def _statement_lines(frame: pd.DataFrame) -> tuple[list[str], list[StatementLine
 
 def get_income_statement(symbol: str) -> IncomeStatement:
     """Return the income statement excerpt for ``symbol``."""
+    normalized = _normalize_symbol(symbol)
     try:
-        frame = yf.Ticker(symbol).income_stmt
+        frame = yf.Ticker(normalized).income_stmt
     except Exception as exc:  # noqa: BLE001
         raise ProviderError(f"yfinance income statement failed for {symbol!r}: {exc}") from exc
     periods, lines = _statement_lines(frame)
-    return IncomeStatement(symbol=symbol.upper(), periods=periods, lines=lines, provider=PROVIDER)
+    return IncomeStatement(
+        symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER
+    )
 
 
 def get_balance_sheet(symbol: str) -> BalanceSheet:
     """Return the balance sheet excerpt for ``symbol``."""
+    normalized = _normalize_symbol(symbol)
     try:
-        frame = yf.Ticker(symbol).balance_sheet
+        frame = yf.Ticker(normalized).balance_sheet
     except Exception as exc:  # noqa: BLE001
         raise ProviderError(f"yfinance balance sheet failed for {symbol!r}: {exc}") from exc
     periods, lines = _statement_lines(frame)
-    return BalanceSheet(symbol=symbol.upper(), periods=periods, lines=lines, provider=PROVIDER)
+    return BalanceSheet(symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER)
 
 
 def get_cash_flow(symbol: str) -> CashFlowStatement:
     """Return the cash-flow statement excerpt for ``symbol``."""
+    normalized = _normalize_symbol(symbol)
     try:
-        frame = yf.Ticker(symbol).cashflow
+        frame = yf.Ticker(normalized).cashflow
     except Exception as exc:  # noqa: BLE001
         raise ProviderError(f"yfinance cash flow failed for {symbol!r}: {exc}") from exc
     periods, lines = _statement_lines(frame)
-    return CashFlowStatement(symbol=symbol.upper(), periods=periods, lines=lines, provider=PROVIDER)
+    return CashFlowStatement(
+        symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER
+    )
 
 
 def get_analyst_rating(symbol: str) -> AnalystRating:
     """Return aggregated analyst ratings and price targets for ``symbol``."""
+    normalized = _normalize_symbol(symbol)
     try:
-        ticker = yf.Ticker(symbol)
+        ticker = yf.Ticker(normalized)
         recommendations = ticker.recommendations
         targets = ticker.analyst_price_targets
     except Exception as exc:  # noqa: BLE001
@@ -202,7 +225,7 @@ def get_analyst_rating(symbol: str) -> AnalystRating:
 
     targets = targets or {}
     return AnalystRating(
-        symbol=symbol.upper(),
+        symbol=normalized.upper(),
         consensus=_consensus(counts),
         target_mean=_num(targets.get("mean")),
         target_high=_num(targets.get("high")),
