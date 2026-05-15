@@ -68,12 +68,12 @@ function StatementTable({
       {statement === null ? (
         <p className="text-charcoal-400 px-3 py-2 font-mono text-xs">Unavailable.</p>
       ) : (
-        <table className="w-full border-collapse">
+        <table className="w-full table-fixed border-collapse">
           <thead>
             <tr className="text-charcoal-400 border-charcoal-800 border-b text-left font-mono text-[0.6rem] uppercase">
               <th className="px-3 py-1.5 font-medium">Line</th>
               {statement.periods.map((period) => (
-                <th key={period} className="px-3 py-1.5 text-right font-medium">
+                <th key={period} className="w-24 px-3 py-1.5 text-right font-medium">
                   {period}
                 </th>
               ))}
@@ -82,7 +82,12 @@ function StatementTable({
           <tbody>
             {statement.lines.map((line) => (
               <tr key={line.label} className="border-charcoal-800 border-b font-mono text-xs">
-                <td className="text-charcoal-200 px-3 py-1.5">{line.label}</td>
+                <td
+                  className="text-charcoal-200 overflow-hidden px-3 py-1.5 text-ellipsis whitespace-nowrap"
+                  title={line.label}
+                >
+                  {line.label}
+                </td>
                 {statement.periods.map((period) => (
                   <td key={period} className="text-charcoal-100 px-3 py-1.5 text-right">
                     {formatLargeNumber(line.values[period] ?? null)}
@@ -162,7 +167,7 @@ export function EquityOverviewPanel() {
         </p>
       )}
 
-      <div className="flex-1 overflow-auto p-3">
+      <div className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto p-3">
         {loading ? (
           <p className="text-charcoal-400 font-mono text-xs">Loading equity overview…</p>
         ) : data === null ? (

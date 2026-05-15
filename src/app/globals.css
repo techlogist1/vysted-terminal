@@ -76,3 +76,32 @@
   --dv-drag-over-background-color: rgb(233 169 77 / 0.12);
   --dv-tab-font-size: 12px;
 }
+
+/* Vysted-themed scrollbars — applied globally so every overflow surface in the
+   app (including dockview panel internals) inherits the amber-on-transparent
+   look in place of the OS-native chrome. WebKit covers Chromium / Tauri's
+   webview; the `scrollbar-*` block gives Firefox the same visual parity. The
+   amber tone matches the `--color-amber-500` token (#d98e2b) used elsewhere as
+   the brand accent. */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgb(217 142 43 / 0.4);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgb(217 142 43 / 0.7);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(217 142 43 / 0.4) transparent;
+}

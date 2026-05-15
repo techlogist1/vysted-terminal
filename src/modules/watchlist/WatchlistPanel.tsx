@@ -112,13 +112,13 @@ export function WatchlistPanel() {
         </p>
       )}
 
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto">
         {rows === null ? (
           <p className="text-charcoal-400 p-4 font-mono text-xs">Loading quotes…</p>
         ) : rows.length === 0 ? (
           <p className="text-charcoal-400 p-4 font-mono text-xs">No symbols tracked.</p>
         ) : (
-          <table className="w-full border-collapse">
+          <table className="w-full table-fixed border-collapse">
             <thead>
               <tr className="text-charcoal-400 border-charcoal-700 border-b text-left font-mono text-[0.65rem] uppercase">
                 <th className="px-3 py-2 font-medium">Symbol</th>
@@ -136,7 +136,7 @@ export function WatchlistPanel() {
                     key={entry.symbol}
                     className="border-charcoal-800 hover:bg-charcoal-800/50 border-b"
                   >
-                    <td className="text-charcoal-100 px-3 py-2 font-mono text-sm">
+                    <td className="text-charcoal-100 truncate px-3 py-2 font-mono text-sm">
                       {entry.symbol}
                     </td>
                     <td className="text-charcoal-200 px-3 py-2 text-right font-mono text-sm">
