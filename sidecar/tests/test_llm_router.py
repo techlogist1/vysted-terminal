@@ -134,9 +134,7 @@ def test_chat_streams_sse_frames(
     import json
 
     frames = [
-        json.loads(line.removeprefix("data: "))
-        for line in text.split("\n\n")
-        if line.strip()
+        json.loads(line.removeprefix("data: ")) for line in text.split("\n\n") if line.strip()
     ]
     assert [f["kind"] for f in frames] == ["delta", "delta", "done"]
     assert fake.last_api_key == "sk-routed"

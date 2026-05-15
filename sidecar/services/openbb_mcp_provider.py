@@ -185,7 +185,9 @@ def _decode_tool_result(result: dict[str, Any], tool_name: str) -> Any:
     and return the decoded structure.
     """
     if result.get("isError"):
-        raise ProviderError(f"openbb-mcp tool {tool_name!r} reported error: {result.get('content')!r}")
+        raise ProviderError(
+            f"openbb-mcp tool {tool_name!r} reported error: {result.get('content')!r}"
+        )
     blocks = result.get("content") or []
     for block in blocks:
         if isinstance(block, dict) and block.get("type") == "text":

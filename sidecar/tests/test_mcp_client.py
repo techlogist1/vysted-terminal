@@ -115,9 +115,7 @@ def test_call_tool_failure_drops_cached_session(monkeypatch: pytest.MonkeyPatch)
     """A transport error during ``call_tool`` clears the session so the next call reconnects."""
 
     async def _go() -> None:
-        client = mcp_client.McpClient(
-            "boom", transport="http", endpoint="http://127.0.0.1:0/mcp/"
-        )
+        client = mcp_client.McpClient("boom", transport="http", endpoint="http://127.0.0.1:0/mcp/")
         # Plant a fake session so ``_ensure_session`` returns it.
         client._session = _FakeSession()
         client._exit_stack = None
@@ -137,9 +135,8 @@ def test_call_tool_maps_text_blocks_to_dicts(monkeypatch: pytest.MonkeyPatch) ->
     """``call_tool`` translates the MCP ``CallToolResult`` into a plain dict."""
 
     async def _go() -> None:
-        client = mcp_client.McpClient(
-            "ok", transport="http", endpoint="http://127.0.0.1:0/mcp/"
-        )
+        client = mcp_client.McpClient("ok", transport="http", endpoint="http://127.0.0.1:0/mcp/")
+
         # Build a minimal ``CallToolResult`` lookalike with one text block.
         class _Block:
             type = "text"
@@ -167,9 +164,7 @@ def test_list_tools_returns_dicts(monkeypatch: pytest.MonkeyPatch) -> None:
     """``list_tools`` returns dicts whose ``name`` field matches the MCP server's."""
 
     async def _go() -> None:
-        client = mcp_client.McpClient(
-            "ok", transport="http", endpoint="http://127.0.0.1:0/mcp/"
-        )
+        client = mcp_client.McpClient("ok", transport="http", endpoint="http://127.0.0.1:0/mcp/")
 
         class _Tool:
             name = "foo"
@@ -186,6 +181,8 @@ def test_list_tools_returns_dicts(monkeypatch: pytest.MonkeyPatch) -> None:
         client._session = _FakeSession()
         client._exit_stack = None
         tools = await client.list_tools()
-        assert tools == [{"name": "foo", "description": "a foo tool", "inputSchema": {"type": "object"}}]
+        assert tools == [
+            {"name": "foo", "description": "a foo tool", "inputSchema": {"type": "object"}}
+        ]
 
     asyncio.run(_go())

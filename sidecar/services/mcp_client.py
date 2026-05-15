@@ -141,7 +141,7 @@ class McpClient:
         session = await self._ensure_session()
         try:
             result = await session.list_tools()
-        except (mcp.McpError, OSError, asyncio.TimeoutError) as exc:
+        except (TimeoutError, mcp.McpError, OSError) as exc:
             _log.debug("MCP %r list_tools failed, dropping session: %s", self.server_id, exc)
             await self.close()
             raise
@@ -165,8 +165,10 @@ class McpClient:
         session = await self._ensure_session()
         try:
             result = await session.call_tool(name, arguments or {})
-        except (mcp.McpError, OSError, asyncio.TimeoutError) as exc:
-            _log.debug("MCP %r call_tool(%s) failed, dropping session: %s", self.server_id, name, exc)
+        except (TimeoutError, mcp.McpError, OSError) as exc:
+            _log.debug(
+                "MCP %r call_tool(%s) failed, dropping session: %s", self.server_id, name, exc
+            )
             await self.close()
             raise
 

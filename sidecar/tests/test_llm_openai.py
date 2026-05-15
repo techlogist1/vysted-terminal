@@ -166,9 +166,7 @@ async def test_stream_chat_emits_tool_use_for_function_calls(
                 _Choice(
                     _Delta(
                         content=None,
-                        tool_calls=[
-                            _ToolCall("call-1", _ToolFunction("get_quote", '{"symbol":'))
-                        ],
+                        tool_calls=[_ToolCall("call-1", _ToolFunction("get_quote", '{"symbol":'))],
                     )
                 )
             ]

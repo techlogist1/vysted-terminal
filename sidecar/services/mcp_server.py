@@ -121,7 +121,9 @@ def _build_server() -> FastMCP:
             return response.json()
 
     @mcp.tool
-    async def get_history(symbol: str, timeframe: str = "1d", range_: str | None = None) -> dict[str, Any]:
+    async def get_history(
+        symbol: str, timeframe: str = "1d", range_: str | None = None
+    ) -> dict[str, Any]:
         """Return OHLCV history bars for the given symbol and timeframe.
 
         Timeframe is one of: 1m, 5m, 15m, 30m, 1h, 1d, 1wk, 1mo.
@@ -203,7 +205,9 @@ def _build_server() -> FastMCP:
                 return {"agents": []}
 
     @mcp.tool
-    async def invoke_agent(agent_id: str, prompt: str, api_key: str | None = None) -> dict[str, Any]:
+    async def invoke_agent(
+        agent_id: str, prompt: str, api_key: str | None = None
+    ) -> dict[str, Any]:
         """Invoke an agent and aggregate its streaming reply into a single string.
 
         Maps to POST /agents/{agent_id}/invoke. The sidecar's agent runtime

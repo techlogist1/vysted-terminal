@@ -58,9 +58,7 @@ def test_mcp_server_registers_expected_tools() -> None:
     }.issubset(names)
 
 
-def test_get_quote_tool_proxies_quotes_endpoint(
-    client: TestClient, mock_yfinance: object
-) -> None:
+def test_get_quote_tool_proxies_quotes_endpoint(client: TestClient, mock_yfinance: object) -> None:
     """The ``get_quote`` tool returns the same payload the /quotes/{symbol} route returns.
 
     The fixture pins the FastAPI app reference for in-process httpx, so the
@@ -70,9 +68,7 @@ def test_get_quote_tool_proxies_quotes_endpoint(
     server = mcp_server.get_mcp_server()
     # The MCP server's bound app is the TestClient's app (set in create_app).
     result = asyncio.run(server.call_tool("get_quote", {"symbol": "AAPL"}))
-    text_blocks = [
-        block.text for block in result.content if getattr(block, "type", None) == "text"
-    ]
+    text_blocks = [block.text for block in result.content if getattr(block, "type", None) == "text"]
     assert any("AAPL" in block for block in text_blocks)
 
 
