@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { SidecarError } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
+import { usePanelContextBus } from "@/store/panel-context";
 import type { FinancialStatement, Fundamentals } from "../../../types/data";
 import { loadEquityOverview, type EquityOverview } from "./api";
 
@@ -124,6 +125,52 @@ export function EquityOverviewPanel() {
   const [data, setData] = useState<EquityOverview | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // --- panel-context bus: publish symbol + which sections loaded ----------
+  const publishPanelContext = usePanelContextBus((s) => s.publish);
+  const unregisterPanelContext = usePanelContextBus((s) => s.unregisterSource);
+
+  // The publisher's payload describes which sections of the overview
+  // currently have data — the chat sidebar can use this to phrase questions
+  // like "fundamentals + income statement loaded for AAPL". Computed
+  // synchronously from `data` so the effect deps stay primitive-ish.
+  const loadedSections = useMemo<string[]>(() => {
+    if (data === null) {
+      return [];
+    }
+    const sections: string[] = [];
+    if (data.quote !== null) sections.push("quote");
+    if (data.fundamentals !== null) sections.push("fundamentals");
+    if (data.income !== null) sections.push("income");
+    if (data.balance !== null) sections.push("balance");
+    if (data.cashFlow !== null) sections.push("cashFlow");
+    if (data.ratings !== null) sections.push("ratings");
+    return sections;
+  }, [data]);
+
+  const loadedKey = loadedSections.join(",");
+  const currentTicker = data?.symbol ?? null;
+
+  useEffect(() => {
+    publishPanelContext({
+      source: "equity",
+      kind: "symbol",
+      payload: {
+        ticker: currentTicker,
+        loadedSections,
+      },
+      emittedAt: Date.now(),
+    });
+    // Depend on the primitive key (loadedKey) rather than the array so a
+    // re-render that produces the same loaded section set is a no-op.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [publishPanelContext, currentTicker, loadedKey]);
+
+  useEffect(() => {
+    return () => {
+      unregisterPanelContext("equity");
+    };
+  }, [unregisterPanelContext]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
