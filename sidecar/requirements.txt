@@ -87,3 +87,12 @@ sdmx1==2.26.0
 # See BLOCKERS-M.md T3-M-1 for why FRED uses an in-process SDK instead of
 # the originally-planned subprocess MCP server.
 fredapi==0.5.2
+
+# v0.6.5 — Tradesa V2 wrapper plugin. The official supabase-py client pulls
+# the realtime / postgrest / gotrue / storage3 / supafunc sub-packages as
+# transitive deps at a coordinated version set; pinning the umbrella package
+# is the canonical move. The sidecar's tradesa_v2_provider reads Tradesa V2's
+# Supabase tables read-only via the service_role key resolved from the OS
+# keychain at first call. Verified 2026-05-16 against
+# https://pypi.org/pypi/supabase/json — latest 2.30.0.
+supabase==2.30.0
