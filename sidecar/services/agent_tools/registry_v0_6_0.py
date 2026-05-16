@@ -57,9 +57,10 @@ def register_v0_6_0_tools() -> None:
     registered.append("earnings+analyst")
 
     # Teammate Sc — Screener / Scanner.
-    # from services.agent_tools import screener_tools
-    # screener_tools.register()
-    # registered.append("screener")
+    from services.agent_tools import screener_tools
+
+    screener_tools.register()
+    registered.append("screener")
 
     if registered:
         logger.info("agent_tools: registered v0.6.0 domains: %s", ", ".join(registered))

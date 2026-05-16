@@ -36,6 +36,7 @@ from routers import (
     quant,
     quotes,
     safety,
+    screener,
     sec_filings,
     workflow,
     workspace,
@@ -67,6 +68,7 @@ _ROUTERS = (
     brokers,
     quant,
     earnings,
+    screener,
 )
 
 

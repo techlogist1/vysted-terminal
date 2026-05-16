@@ -1,0 +1,19 @@
+{
+  "id": "sp500",
+  "label": "S&P 500",
+  "asset_class": "equity",
+  "snapshot_date": "2026-05-16",
+  "source": "S&P Dow Jones index constituents — manually curated snapshot for v0.6.0 demo. Full 500-name list ships in v0.7.0; this 100-name subset weighted toward large-cap diversity is sufficient for the populated-state demo target (P/E < 20 AND market cap > 100B AND sector = 'Technology' returning ~6-8 names).",
+  "symbols": [
+    "AAPL", "MSFT", "NVDA", "GOOGL", "GOOG", "AMZN", "META", "TSLA", "BRK-B", "AVGO",
+    "JPM", "LLY", "V", "XOM", "UNH", "MA", "JNJ", "PG", "HD", "COST",
+    "ORCL", "MRK", "BAC", "ABBV", "CVX", "WMT", "KO", "ADBE", "PEP", "CSCO",
+    "ACN", "CRM", "MCD", "TMO", "LIN", "ABT", "NFLX", "AMD", "WFC", "DHR",
+    "CMCSA", "TXN", "DIS", "NKE", "PM", "VZ", "INTU", "QCOM", "IBM", "AMGN",
+    "RTX", "NEE", "HON", "UPS", "T", "GE", "LOW", "SPGI", "BA", "INTC",
+    "GS", "CAT", "PFE", "BLK", "AMAT", "DE", "BKNG", "AXP", "PLD", "MDT",
+    "GILD", "TJX", "ISRG", "SBUX", "C", "ELV", "ADP", "VRTX", "MDLZ", "MMC",
+    "MU", "REGN", "CI", "ZTS", "BMY", "LRCX", "SO", "BX", "PANW", "SCHW",
+    "DUK", "CB", "PYPL", "BSX", "EQIX", "ETN", "ICE", "FI", "AON", "USB"
+  ]
+}
