@@ -5,6 +5,7 @@ import { chartModule } from "./chart";
 import { chatModule } from "./chat";
 import { equityOverviewModule } from "./equity-overview";
 import { newsModule } from "./news";
+import { nodeEditorModule } from "./node-editor";
 import { platformModule } from "./platform";
 import { pluginManagerModule } from "./plugin-manager";
 import { portfolioModule } from "./portfolio";
@@ -22,6 +23,11 @@ import { watchlistModule } from "./watchlist";
  * Phase 3 adds `agentBuilderModule` (Teammate C) — BLUEPRINT Module 36, the
  * Custom Agent Builder. It is separate from the 12 first-party AI agents and
  * lives here because it is a host-side authoring surface, not an agent itself.
+ *
+ * Phase 4 adds `nodeEditorModule` (Teammate N) — the visual workflow
+ * composition surface (react-flow canvas + palette + run overlay) that
+ * persists workflows to the sidecar via `/workflow/save` and runs them
+ * via the `/workflow/run` SSE stream.
  */
 export const vystedModules: VystedModule[] = [
   chartModule,
@@ -33,4 +39,5 @@ export const vystedModules: VystedModule[] = [
   platformModule,
   pluginManagerModule,
   agentBuilderModule,
+  nodeEditorModule,
 ];
