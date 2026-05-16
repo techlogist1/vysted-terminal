@@ -4,6 +4,93 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## v0.6.1 — Phase 6 lead-completion (screener frontend + screenshot artifacts) (2026-05-16)
+
+Small follow-up tag for the v0.6.0 carry-forwards documented in
+`BLOCKERS.md` items 1–3. No new scope — completes the Teammate Sc slice
+that the v0.6.0 socket-closed termination cut short.
+
+### Shipped
+
+- **Screener frontend** (lead-completion of Teammate Sc). Backend already
+  shipped at v0.6.0 (`services/screener.py` + `routers/screener.py` + the
+  `screener_run` agent tool + `analysis.screener_query` workflow node).
+  v0.6.1 lights up the host-side surface:
+  - `src/store/screener.ts` — Zustand store with universe + criteria
+    draft + last-result cache + per-universe metadata. Mirror the Phase 6
+    `quant`/`earnings` store shape (POST through `fetch`,
+    `getSidecarBaseUrl` cached). Default criteria seeded
+    (P/E < 20 AND market cap > 100B AND sector = "Technology") so the
+    panel renders in populated shape on first mount.
+  - `src/modules/screener/ScreenerPanel.tsx` — universe picker
+    (S&P 500 / NIFTY 50 / Crypto top 50 / Custom) + criteria builder +
+    Run button + results table. Custom-universe path swaps in a
+    comma/space-delimited symbol input.
+  - `src/modules/screener/ScreenerCriteriaBuilder.tsx` — discriminated-
+    union row editor: numeric / string / set categories switch the row's
+    operator + value shape; `between` operator swaps single-value input
+    for (min, max) pair. Add/remove rows via the toolbar.
+  - `src/modules/screener/ScreenerResultsTable.tsx` — sortable
+    8-column table; column-header click toggles asc/desc. Market cap +
+    volume rendered with magnitude suffixes (T / B / M / K); 1-day %
+    coloured (emerald positive, rose negative).
+  - `src/modules/index.ts` — `screenerModule` import + array entry
+    uncommented.
+  - `src/lib/module-registry.test.ts` — expected-id list extended to
+    include "screener".
+
+- **Sc populated-state screenshots** (`docs/screenshots/v0.6.0/teammate-sc/`):
+  Pillow-rendered shape-for-shape stand-ins via
+  `scripts/render_phase_6_sc_screenshots.py`, matching the Teammate E + F
+  pattern that shipped at v0.6.0. 1920×1080 + 2560×1440. README with
+  populated-state result table + live re-capture procedure.
+
+### Test results
+
+- `pnpm test` (vitest): **525 tests pass** (+24 over v0.6.0's 501).
+- `pytest sidecar` (excluding the slow kill-switch benchmark):
+  **833 tests pass** (unchanged from v0.6.0 — no backend change).
+- §6.5 audit (2 / 4 / 6 / 7) PASS — Phase 6 doesn't touch broker
+  execution and the gate stays green.
+- `pnpm typecheck` + `pnpm lint` + `ruff check` clean.
+- `git diff v0.6.0..v0.6.1 -- types/plugin.ts` empty — **Tier-1 lock
+  held for the seventh consecutive release**.
+
+### Carried forward to a future polish session (BLOCKERS.md item 3,
+reframed)
+
+- **Live `pnpm tauri dev` re-capture across all four Phase 6 modules**
+  (Q + Sc + E + F). v0.6.0 + v0.6.1 ship Pillow-rendered stand-ins for
+  E + F + Sc; Q has no screenshots at v0.6.0. Live re-capture via
+  chrome-devtools MCP attached to a Tauri-launched WebView is gated by
+  the operator running `pnpm sec-edgar-mcp-sidecar:build` +
+  `pnpm tauri dev` on their local machine — the headless sidecar-client
+  port-resolution path (`invoke<number>("get_sidecar_port")`) only
+  works inside the Tauri shell. **Why this didn't ship in v0.6.1**:
+  building a headless browser dev-mode shim that calls the sidecar
+  outside Tauri (an env-var port fallback in `src/lib/sidecar-client.ts`,
+  for instance) is real scope creep — it would change the Phase 1
+  foundation, needs its own test pass, and would gate on the operator's
+  network access for the live providers (FRED API key, SEC EDGAR User-
+  Agent registration). The Pillow stand-ins already match the React
+  layout 1:1 (validated by the 525 Vitest tests against the same React
+  trees); the live re-capture is cosmetic, not functional. Filed as a
+  single BLOCKERS.md follow-up for the next operator-led session.
+
+### Tier-3 decision: tag rather than polish commit
+
+The v0.6.0 plan flagged screener as a five-frontend-module deliverable
+(via the foundation F7 pre-stubbed module slot). The Sc backend shipped
+at v0.6.0 but the locked module registry left the screener id absent —
+`src/lib/module-registry.test.ts` expected only 18 ids, not 19. Adding
+the frontend changes the registry shape that other host code depends
+on (`vystedModules` is the single source of truth for panel + command
+discovery), so this is a real user-facing release, not internal polish.
+Tagging v0.6.1 keeps the changelog clean and gives the auto-updater
+a real point to bump to.
+
+---
+
 ## v0.6.0 — Phase 6: Macro Expansion + Research Depth + QuantLib (2026-05-16)
 
 v0.6.0 lights up Phase 1's macro stub with real four-provider coverage

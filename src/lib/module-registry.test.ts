@@ -5,9 +5,9 @@ import { vystedModules } from "@/modules";
 
 describe("module registry", () => {
   it("registers the Phase 1 + Phase 2 + Phase 3 + Phase 4 + Phase 5 + Phase 6 modules", () => {
-    // Phase 6 (v0.6.0) adds five new frontend modules: macro, sec-filings,
-    // quant, earnings, analyst-ratings. Teammate Sc's screener module is
-    // backend-only at merge time and is lead-completed post-merge.
+    // Phase 6 (v0.6.0) added five frontend modules: macro, sec-filings,
+    // quant, earnings, analyst-ratings. v0.6.1 lead-completion adds the
+    // sixth — Teammate Sc's screener.
     expect([...vystedModules.map((module) => module.id)].sort()).toEqual([
       "agent-builder",
       "analyst-ratings",
@@ -25,6 +25,7 @@ describe("module registry", () => {
       "portfolio",
       "quant",
       "safety",
+      "screener",
       "sec-filings",
       "watchlist",
     ]);

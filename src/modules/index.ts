@@ -21,7 +21,7 @@ import { secFilingsModule } from "./sec"; // Teammate F
 import { earningsModule } from "./earnings"; // Teammate E
 import { analystRatingsModule } from "./analyst-ratings"; // Teammate E
 import { quantModule } from "./quant"; // Teammate Q
-// import { screenerModule } from "./screener";                 // Teammate Sc
+import { screenerModule } from "./screener"; // Teammate Sc (lead-completed v0.6.1)
 
 /**
  * The complete first-party module registry. This file is intentionally complete
@@ -74,5 +74,5 @@ export const vystedModules: VystedModule[] = [
   quantModule, // Teammate Q
   earningsModule, // Teammate E
   analystRatingsModule, // Teammate E
-  // screenerModule,         // Teammate Sc
+  screenerModule, // Teammate Sc (lead-completed v0.6.1)
 ];

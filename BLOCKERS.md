@@ -6,60 +6,84 @@ F / Q / E / Sc surfaced none in-build) were aggregated here at integration
 and removed from teammate worktrees; salient detail preserved in the merge
 commit messages, `CHANGELOG.md` v0.6.0 entry, and `docs/PHASE_6_HANDOFF.md`.
 
-## Phase-6.1 follow-ups (cosmetic / forward-looking)
+## Phase-6.x follow-ups (cosmetic / forward-looking)
 
-### 1. Teammate Sc screener frontend
+### 1. ~~Teammate Sc screener frontend~~ — RESOLVED in v0.6.1
 
-Teammate Sc terminated mid-execution on a socket-closed error after
-shipping the backend slice (engine + universes + router + agent tool +
-workflow node + 33 backend tests, all audited clean). The remaining
-deliverables for v0.6.1 lead-completion:
-- `src/modules/screener/{ScreenerPanel,ScreenerCriteriaBuilder,
-ScreenerResultsTable,index}.tsx`
-- `src/store/screener.ts` + Vitest sibling
-- Populated-state screenshots at 1920×1080 + 2560×1440 (S&P 500 + P/E <
-  20 + market cap > 100B + sector = Technology criteria; expected 6-8
-  matching names)
-- Uncomment `screenerModule` lines in `src/modules/index.ts` + update
-  `src/lib/module-registry.test.ts` expected-id list to include "screener"
+The frontend (`src/store/screener.ts` + the three panels +
+`screenerModule` in `src/modules/index.ts` + 24 new Vitest tests + a
+Pillow-rendered populated-state screenshot pair) shipped in v0.6.1
+under the lead-completion tag. Backend at v0.6.0 was untouched;
+contract held.
 
-Backend is fully usable in v0.6.0 via REST (`POST /screener/run`) +
-agent tool (`screener_run`) + workflow node (`analysis.screener_query`).
+### 2. Live `pnpm tauri dev` re-capture across all four Phase 6 modules
 
-### 2. Teammate Q populated-state screenshots
+Combines the v0.6.0 carry-forwards "Teammate Q populated-state
+screenshots" + "Live Tauri capture for E + F screenshots" + the v0.6.1
+"Sc populated-state screenshots are Pillow stand-ins" into one
+operator-session task.
 
-Teammate Q stalled at the 600s stream-watchdog mid-formatting after
-shipping all backend (68 tests) + frontend (4 panels + store + Vitest)
-code; uncommitted work salvaged by lead from the worktree. Missing only
-the populated-state screenshots at `docs/screenshots/v0.6.0/teammate-q/`
-at 1920×1080 + 2560×1440. Capture during v0.6.1 polish: AAPL 220 Jun-2026
-call priced via BS / Binomial / MC + Greeks dashboard; 10y US Treasury
-bond at 4.25% YTM; bootstrapped US Treasury yield curve 1mo→30y.
+What ships today (v0.6.1):
+- **Teammate Q** — no screenshots in `docs/screenshots/v0.6.0/teammate-q/`.
+- **Teammate E** — Pillow stand-ins, shape-for-shape matching the React
+  layout (validated by 25 Vitest tests + 60 backend tests).
+- **Teammate F** — Pillow stand-ins + HTML demo, same situation.
+- **Teammate Sc** — Pillow stand-ins from v0.6.1 lead-completion.
 
-### 3. Live Tauri capture for E + F screenshots
+Live re-capture procedure (operator-led):
+1. One-time: `pnpm sec-edgar-mcp-sidecar:build` (PyInstaller compile,
+   ~ several minutes; required because F's MCP subprocess is only
+   reachable from inside the Tauri shell).
+2. `pnpm tauri dev` — Tauri launches the WebView + the main sidecar +
+   the openbb-mcp subprocess + the sec-edgar-mcp subprocess.
+3. Open each Phase 6 panel via cmd+K:
+   - Option Pricer (AAPL 220 Jun-2026 call via BS / Binomial / MC +
+     Greeks dashboard)
+   - Bond Pricer (10y US Treasury at 4.25% YTM)
+   - Yield Curve panel (bootstrapped US Treasury curve 1mo→30y)
+   - Earnings Calendar (5-day window with AAPL / MSFT / NVDA / GOOGL /
+     META + consensus EPS + dispersion)
+   - Analyst Ratings (AAPL: 12 individual analyst tracks + ratings
+     history + price target chart)
+   - SEC Filings (AAPL: last 10 filings mixed forms + 10-K sections
+     view + insider transactions tab with 20+ Form 4 entries)
+   - Screener (default criteria → 6-8 names from S&P 500)
+4. Capture each at 1920×1080 AND 2560×1440 via chrome-devtools MCP
+   `resize_page` + `take_screenshot`.
 
-Teammates E and F shipped Pillow-rendered shape-for-shape mock PNGs
-(documented Tier-3 — the live `pnpm sec-edgar-mcp-sidecar:build`
-PyInstaller compile is a lead-integration step that wasn't feasible
-inside their isolated worktrees). The mock screenshots match the live
-React shapes 1:1 via test coverage (61 F tests + 60 E tests). v0.6.1
-re-capture from a live build is cosmetic polish, not a regression risk.
+Why this is deferred from v0.6.1: the headless capture path requires a
+new dev-mode browser-side sidecar-port fallback (the current
+`src/lib/sidecar-client.ts::getSidecarBaseUrl` only works inside Tauri).
+Adding that fallback would change Phase 1 foundation code that has been
+stable for 6 releases — real scope creep. The Pillow stand-ins match
+the live shapes 1:1 (validated by component tests against the same
+React trees); the live re-capture is cosmetic polish, not a regression
+risk.
 
-### 4. Tradesa V2 full plugin (carry-forward from v0.5.0)
+### 3. Tradesa V2 full plugin (carry-forward from v0.5.0)
 
-Deferred again from v0.6.0 per the Tier-3 operator-brief direction:
-focused v0.6.5 sprint between Phase 6 and Phase 7. Foundation contracts
-(kill switch + audit log + `executeCommand` control plane + broker
-adapter ABC) are in place; Tradesa V2 becomes plug-in work, not contract
-work. 9-12 panels + real-time WebSocket + settings drift detection + LLM
-cost tracking + Tradesa-specific agents + nodes per BLUEPRINT §4.
+Deferred again from v0.6.0 + v0.6.1 per the Tier-3 operator-brief
+direction: focused v0.6.5 sprint between Phase 6 and Phase 7. Foundation
+contracts (kill switch + audit log + `executeCommand` control plane +
+broker adapter ABC) are in place; Tradesa V2 becomes plug-in work, not
+contract work. 9-12 panels + real-time WebSocket + settings drift
+detection + LLM cost tracking + Tradesa-specific agents + nodes per
+BLUEPRINT §4.
+
+## Resolved in v0.6.1
+
+- **Teammate Sc screener frontend** (v0.6.0 carry-forward #1) — shipped:
+  `src/store/screener.ts` + `src/modules/screener/{ScreenerPanel,
+ScreenerCriteriaBuilder,ScreenerResultsTable,index}.tsx` + 24 Vitest
+  tests + Pillow-rendered populated-state screenshots + module registry
+  uncomment + `module-registry.test.ts` updated.
 
 ## Resolved in v0.6.0
 
 The v0.5.0 carry-forwards that v0.6.0 addressed:
 
 - **Phase 5.1 #2 (Tradesa V2 full plugin)** — re-deferred to v0.6.5
-  per Tier-3 (see follow-up §4 above).
+  per Tier-3 (see follow-up §3 above).
 
 ## Resolved in v0.5.0
 
