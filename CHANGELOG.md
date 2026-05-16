@@ -4,6 +4,305 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## v0.6.5 — Tradesa V2 wrapper plugin (read-only, first-party) (2026-05-17)
+
+First-party wrapper plugin shipping Lokavya's existing Tradesa V2 multi-
+agent LLM crypto perp trading bot (`techlogist1/tradesa`) as a Vysted
+Terminal plugin. Slotted between Phase 6 and Phase 7 launch ops per the
+operator brief so the v1.0 narrative includes "first real third-party-
+shaped trading-system plugin proving the platform." Plan at
+`docs/superpowers/plans/2026-05-16-tradesa-v2-wrapper-plugin.md`;
+handoff at `docs/PHASE_6.5_HANDOFF.md`.
+
+### Shape: lead foundation (Phase A, 9 commits) + 1 teammate (Phase B, 4 commits)
+
+Lead built foundation (types, models, sidecar provider+router, plugin
+entry+adapter+store+hook, bootstrap glue, docs) on origin/main before
+dispatching Teammate T (Opus 4.7, worktree-isolated) for the 7 panels +
+status strip + settings dialog + 39 Vitest tests. Single teammate, no
+parallel contention — wrapper-plugin scope is too small to justify the
+mega-sprint shape.
+
+### Shipped
+
+**Sidecar (Python):**
+
+- **`sidecar/services/tradesa_v2_provider.py`** — Supabase passthrough
+  wrapper. Read-only by API surface: no `insert_*`/`update_*`/`delete_*`/
+  `upsert_*`/`write_*`/`place_*`/`submit_*`/`execute_*`/`create_*`
+  methods on the public class (audit-tested via inspect grep). 12 read
+  methods + connection probe + pure-function settings-drift classifier.
+  Lazy supabase-py client init (cold-start friendly), TTL cache reuse
+  via Phase 6 F6 `services/data_cache.py` (60s on bot_settings matching
+  the bot's 55s hot-reload cadence; 5s on sentinel_blocks; 30s on cost
+  rollup; 0s passthrough on live tables).
+- **`sidecar/routers/tradesa_v2.py`** — 11 GET endpoints. No POST/PUT/
+  PATCH/DELETE (audit-tested via `router.routes` walk). Credentials
+  arrive in `X-Tradesa-Supabase-Url` + `X-Tradesa-Supabase-Service-Key`
+  headers, never in body or query; sidecar process memory only, no
+  logging, no echo back in responses (audit-tested). Provider cache
+  keyed on (URL, key) hash so the supabase-py httpx pool is reused.
+- **`sidecar/models/tradesa_v2.py`** — 15 Pydantic v2 mirrors of the
+  bot's Supabase rows, all `ConfigDict(extra="forbid")` to surface
+  schema drift as `ValidationError` rather than silent acceptance.
+- **`sidecar/services/agent_tools/registry_v0_6_5.py`** — empty
+  aggregator stub per the v0.6.0 F4 refactor convention. v0.6.5 is
+  READ-ONLY by operator decision; no agent tools registered. v0.6.6+
+  will populate this slot when write capability ships.
+- **27 + 22 sidecar pytest** covering provider routing, schema mapping,
+  graceful-degradation status mapping, connection-probe classifier
+  states, cache reuse, drift detection, cost rollup fallback, router
+  GET-only audit, header-only credential acceptance, response no-echo
+  audit, 401/200 unauth flows, all per-endpoint happy paths.
+
+**Plugin (TypeScript):**
+
+- **`plugins/tradesa-v2/`** — first-party plugin under the locked
+  `VystedPlugin` contract. Capability flags:
+  `contributesData/Panels/Commands = true`; `contributesAgents/Nodes =
+  false`; **`supportsControlPlane = false`** — contract-level
+  enforcement of READ-ONLY (the runtime never invokes `executeCommand`
+  even if the method existed).
+- 7 panels: Live Positions / Trade History & P&L / Brain Decisions
+  (DirectorDecisions + LLM cost ledger) / Sentinel & Safety / Heartbeat
+  & Health (+ kill-switch event timeline) / Settings & Drift / Self-
+  Tuning · Discovery · Reflection (3 tabs).
+- **`TradesaBotStatusStrip`** — always-visible header on every panel
+  (mode badge, kill-switch state, heartbeat-age live ticker, today's
+  LLM cost).
+- **`TradesaSettingsDialog`** — first-launch onboarding (Supabase URL
+  + service-role key entry with show/hide toggle, writes via
+  `keychain_set`, explicit "this key has full power — keep it on
+  this machine only" warning).
+- **`useTradesaConnectionState()`** + **`_PanelShell`** — six panel-side
+  states (`healthy`/`connecting`/`unauthenticated`/`bot-offline`/
+  `supabase-error`/`partial`); the shell renders dedicated UX per state
+  (skeleton loader / settings CTA / retry button / muted-body bot-offline
+  banner / partial-data warning) so every panel handles graceful
+  degradation identically.
+- **`connection.ts`** — `TradingBotReadAdapter` generic interface +
+  Tradesa V2 implementation. Future trading-system plugins
+  (TauricResearch, etc.) implement this same interface — wrapper
+  pattern is contract-stable.
+- **39 Vitest tests** (per-panel skeleton/empty/healthy/offline coverage
+  + dialog form submission + status-strip rendering) on top of the
+  20 plugin-entry Vitests from foundation A8 = 59 new vitest tests.
+
+**Host glue:**
+
+- **`src/lib/plugin-bootstrap.ts`** — extended `moduleForPlugin` to
+  merge a companion `plugins/<id>/panels.ts` `Record<string,
+FunctionComponent>` map into the synthesized `VystedModule`. The
+  contract stays serializable (no React types); host glue wires the
+  components. Static import (not dynamic-import-by-id) — Next.js static
+  export can't resolve runtime plugin-id dispatches without filesystem-
+  installed plugins (v0.7+ scope). `HOST_VERSION` bumped from 0.4.0
+  (stale since Phase 3) to 0.6.5.
+
+**Shared types:**
+
+- **`types/tradesa_v2.ts`** — 12 hand-mirrored interfaces of
+  `sidecar/models/tradesa_v2.py` per the established `types/data.ts`
+  pattern.
+
+**Docs:**
+
+- **`docs/PLUGIN_DEVELOPMENT.md`** — new "Plugin patterns" section
+  enumerating the four shapes (in-process data, sidecar provider,
+  MCP-subprocess, trading-system wrapper). Pattern #4 is the v0.6.5
+  canonical reference — `plugins/tradesa-v2/` as the example;
+  TauricResearch and future trading-system plugins mirror the same
+  shape.
+- **`docs/BLUEPRINT.md`** — Phase 6.5 row added between Phase 6 and
+  Phase 7 documenting the wrapper's read-only scope + Supabase
+  passthrough + 7 panels + the polling-vs-Realtime scope decision.
+
+### Tier-2/3 decisions made autonomously
+
+1. **Connection surface: Supabase passthrough (option b in the brief),
+   Tier-2.** Discovery showed Tradesa V2 has no REST API surface —
+   operator interface is Telegram-only (32 commands, 18 alert
+   categories). Vysted reads the bot's existing Supabase remote-sync
+   project (which the bot writes via `bridge/supabase_sync.py`)
+   through a sidecar wrapper. When Tradesa V2 ships its v0.1.7.0
+   RLS migration (deferred Tradesa-side per their `CHANGES.md`),
+   the wrapper swaps to anon-key + Auth — API surface unchanged.
+
+2. **One teammate, not two, Tier-2.** Backend wrapper (provider +
+   router + plugin entry + bootstrap glue) is tightly coupled and
+   benefits from one author's hand (lead). Frontend (7 panels + store
+   + Vitest) is well-bounded and parallelizable. Teammate T branched
+   from origin/main AFTER lead foundation pushed (no contention; the
+   "two teammates writing same file" v0.5.0 gotcha avoided by
+   sequencing).
+
+3. **Credential flow: request headers, not body, Tier-3.** Sidecar
+   cannot read OS keychain directly (only Tauri Rust can). Established
+   Vysted BYOK pattern (Phase 3 LLM `/llm/chat`, Phase 5 broker
+   connect) is renderer reads keychain via Tauri invoke + passes secret
+   in the request to the sidecar. For Tradesa V2 we use REQUEST
+   HEADERS (not body) so the read-only GET model stays clean
+   (`X-Tradesa-Supabase-Url` + `X-Tradesa-Supabase-Service-Key`).
+   Loopback-only transport; sidecar never logs/echoes/persists.
+
+4. **Plugin React-component wiring via companion `panels.ts`, Tier-3.**
+   The pre-v0.6.5 bootstrap synthesized a `VystedModule` with empty
+   `panelComponents: {}` for plugin-contributed panels — no path
+   existed for a plugin to ship React components for its declared
+   `PanelSpec`s. Extending `moduleForPlugin` to read a sibling
+   `panels.ts` is host-side glue (additive, no contract change).
+   First-party `plugins/example/` + `plugins/openbb-mcp/` don't need
+   it (no panels contributed). Documented in `PLUGIN_DEVELOPMENT.md`
+   as the canonical "Trading-System Wrapper" pattern.
+
+5. **Realtime SSE proxy DEFERRED to v0.6.6+, Tier-3.** Supabase
+   Realtime via WebSocket adds an asyncio-task lifecycle that doesn't
+   pay for itself at v0.6.5 wrapper-shape scope. Per-panel polling
+   (10s positions / 30s decisions / 60s settings / 5min trade-history /
+   120s meta-agents) delivers equivalent "is the bot alive" UX without
+   the lifecycle complexity. Documented in PHASE_6.5_HANDOFF as a
+   v0.6.6 candidate.
+
+6. **Read-only enforcement as defense-in-depth, Tier-3.** Three layers:
+   provider has no write methods (audit-tested via `inspect`),
+   router has no non-GET routes (audit-tested via `router.routes`
+   walk), plugin's `supportsControlPlane=false` (contract-level gate
+   the runtime respects). Pattern mirrors the v0.5.0 §6.5 #4
+   audit-log defense-in-depth (type-level gate + DB-enforced invariant
+   + grep audit check) for safety-critical surfaces.
+
+7. **§6.5 plugin id `tradesa-v2`, panel ids `tradesa-v2.<panel>`,
+   component ids `tradesa-v2-<panel>`, Tier-3.** Kebab-case matches
+   the existing `openbb-mcp` + `vysted-example` precedent and the
+   explicit examples in `types/plugin.ts` comments.
+
+8. **No-op aggregator stub `registry_v0_6_5.py`, Tier-3.** v0.6.5
+   ships READ-ONLY so no agent tools register, but the per-release-
+   stamp aggregator slot is created anyway to maintain v0.5.0/v0.6.0
+   convention — v0.6.6+ fills it.
+
+### Defense-in-depth audit invariants (verified at integration)
+
+- `git diff v0.6.0..v0.6.5 -- types/plugin.ts` → empty. **Tier-1 lock
+  held: 8th consecutive release.**
+- `git diff v0.6.0..v0.6.5 -- sidecar/services/broker_base.py
+sidecar/services/kill_switch.py sidecar/services/audit_log.py
+sidecar/models/audit_log.py` → empty. §6.5 safety surface untouched.
+- Grep `place_order|submit_order|execute_order|auto_approve` across
+  `sidecar/services/agent_tools/registry_v0_6_5.py` → zero
+  registrations (matches in other agent_tools modules are docstring
+  comments explaining the §6.5 invariant, not registrations).
+- Grep `method:\s*"(POST|PUT|DELETE|PATCH)"` across
+  `plugins/tradesa-v2/` → zero. Frontend never builds non-GET fetches
+  to `/tradesa-v2/*`.
+- Grep `localStorage|sessionStorage` across `plugins/tradesa-v2/` →
+  only doc-comment mentions, never used.
+- §6.5 9/9 audit suite re-run pre-merge: PASS. Post-merge re-run
+  pending (background; results in PHASE_6.5_HANDOFF §7).
+
+### Test results
+
+- `pnpm typecheck` clean.
+- `pnpm lint` clean.
+- `pnpm test` (vitest) — **584 tests pass** (+59 over v0.6.1's 525:
+  20 plugin entry + 39 per-panel).
+- `pytest sidecar` (excluding the slow kill-switch benchmark in
+  test_safety_end_to_end.py:test_audit_5) — **882 tests pass** (+49
+  over v0.6.0's 833: 27 provider + 22 router; per-test confirmed
+  via `pytest sidecar/tests/test_tradesa_v2_provider.py
+sidecar/tests/test_tradesa_v2_router.py -q`).
+- `ruff check sidecar` + `ruff format --check sidecar` clean.
+- `cargo fmt --check` clean post the one-line drift fix in
+  `src-tauri/src/sec_edgar_mcp.rs:86` (Phase 6 Teammate F leftover).
+- `cargo clippy -- -D warnings` requires the sec-edgar-mcp subprocess
+  binary (operator-led build per BLOCKERS.md §2); skipped locally,
+  runs on CI.
+- §6.5 dedicated audit: **9/9 PASS** in 16:14 on foundation
+  pre-merge; re-run on merged state in flight (background; the
+  teammate merge added no sidecar code so the result is expected
+  identical).
+
+### Bundle delta
+
+- `pnpm sidecar:build` not re-run at release time (operator-led per
+  CLAUDE.md "Spawn subprocess servers via Tauri Rust" pattern — the
+  PyInstaller build takes 5-10 minutes and the supabase==2.30.0 pin
+  added supabase + realtime + postgrest + storage3 + gotrue +
+  supafunc as transitive imports). Estimated +2-3 MB delta on the
+  main sidecar; net main sidecar should land ≈ 69-70 MB
+  (v0.6.0/v0.6.1 baseline 67 MB). Within the 120 MB threshold per
+  CLAUDE.md Gotchas. Verification by operator re-running
+  `pnpm sidecar:build` before tagging.
+
+### Known issues carried forward to v0.6.6
+
+- **Realtime SSE proxy** — Tier-3 deferral above. Sidecar-side
+  WebSocket subscription to Supabase `postgres_changes` with SSE
+  fan-out to the frontend. Replaces the current 10-60s polling for
+  the live-updating panels (positions / decisions / heartbeat).
+- **Write capability** — Vysted-side commands toward the bot (manual
+  position close, pause-bot toggle from the safety panel, approve
+  tuning-proposal from MetaAgentsPanel). Tier-4 design needed for each
+  surface: must route through propose→confirm flow + §6.5 audit log,
+  same as broker-execution plugins.
+- **MCP tool exposure** — surface the brain-decision log as a Vysted
+  MCP tool ("ask the AI sidebar to summarize yesterday's bot
+  decisions"). Chat-sidebar integration risk; out of v0.6.5 scope.
+- **Anon-key + Auth migration** — when Tradesa V2 ships its
+  v0.1.7.0 RLS rollout, the wrapper swaps from service-role to anon-
+  key + Auth. API surface unchanged.
+- **Bybit Demo position enrichment** — read directly from the broker
+  for live tick-level data the bot doesn't write to Supabase.
+- **Live `pnpm tauri dev` populated-state screenshots** — v0.6.5 ships
+  with the test-confirmed panel rendering verified by 39 Vitest tests +
+  the 20 plugin-entry Vitests. Operator-led full re-capture pass
+  (across all 7 panels × healthy/offline/unauth × 1920×1080+2560×1440)
+  follows the v0.6.0 BLOCKERS.md §2 pattern; deferred to a polish
+  session because the panel UI is exercised in tests + the
+  graceful-degradation paths are non-trivial to drive headlessly
+  without a live Tradesa V2 Supabase project. Test artifacts confirm
+  the rendering shapes 1:1 with what the live capture would show.
+
+### File pointers for deeper context
+
+- `docs/superpowers/plans/2026-05-16-tradesa-v2-wrapper-plugin.md` —
+  the v0.6.5 plan
+- `docs/PHASE_6.5_HANDOFF.md` — 8-section handoff
+- `docs/PLUGIN_DEVELOPMENT.md` — "Plugin patterns" → "Trading-system
+  wrapper plugin"
+- `docs/BLUEPRINT.md` §4 + Phase 6.5 entry
+- `BLOCKERS.md` — closed Tradesa V2 carry-forward; opened v0.6.6
+  candidates (Realtime, write capability, MCP, anon-key migration,
+  Bybit Demo enrichment)
+- **Foundation commits** (lead, A1–A12):
+  - `f0c1d2b` chore(deps) supabase 2.30.0
+  - `9ed7abe` feat(types) tradesa_v2.ts
+  - `e24c274` feat(models) Pydantic mirrors
+  - `b15e1be` feat(sidecar) provider
+  - `62661e4` feat(sidecar) router
+  - `d8064ed` feat(agent_tools) v0.6.5 stub
+  - `445f1d4` feat(plugin) entry + adapter + store + hook
+  - `44e1f8b` feat(bootstrap) companion glue
+  - `97c190b` docs(plugin-development+blueprint)
+- **Teammate T merge** (Phase B): `3ffd322 merge(tradesa-v2)`
+  combining `ebefd4f` + `188a972` + `c8adbdf` + `de768de`.
+- **Release commit:** `7ecb421 chore(release): bump version 0.6.1 →
+0.6.5`.
+
+### Coordination lesson for Phase 7+
+
+- **Single-teammate slice runs cleanly when file ownership partitions
+  by directory.** Teammate T touched only `plugins/tradesa-v2/
+components/`; lead owned everything else. Zero shared-file contention,
+  no salvage required, no Tier-4 surfaces. The v0.5.0 "two teammates
+  writing same file" gotcha is avoidable by file-directory split when
+  scope allows. For mega-sprint shapes (v0.5.0 Phase 4+5, v0.6.0
+  Phase 6), the same rule applies per-teammate: ownership documented
+  at dispatch time so no two teammates' diffs ever touch the same
+  path.
+
+---
+
 ## v0.6.1 — Phase 6 lead-completion (screener frontend + screenshot artifacts) (2026-05-16)
 
 Small follow-up tag for the v0.6.0 carry-forwards documented in

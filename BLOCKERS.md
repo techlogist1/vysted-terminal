@@ -60,15 +60,89 @@ the live shapes 1:1 (validated by component tests against the same
 React trees); the live re-capture is cosmetic polish, not a regression
 risk.
 
-### 3. Tradesa V2 full plugin (carry-forward from v0.5.0)
+### 3. ~~Tradesa V2 full plugin~~ — RESOLVED (READ-ONLY) in v0.6.5
 
-Deferred again from v0.6.0 + v0.6.1 per the Tier-3 operator-brief
-direction: focused v0.6.5 sprint between Phase 6 and Phase 7. Foundation
-contracts (kill switch + audit log + `executeCommand` control plane +
-broker adapter ABC) are in place; Tradesa V2 becomes plug-in work, not
-contract work. 9-12 panels + real-time WebSocket + settings drift
-detection + LLM cost tracking + Tradesa-specific agents + nodes per
-BLUEPRINT §4.
+v0.6.5 ships the wrapper plugin (`plugins/tradesa-v2/`) READ-ONLY
+against Tradesa V2's Supabase remote-sync project — 7 panels (Live
+Positions / Trade History & P&L / Brain Decisions / Sentinel & Safety /
+Heartbeat & Health / Settings & Drift / Self-Tuning · Discovery ·
+Reflection) + `TradesaBotStatusStrip` + `TradesaSettingsDialog`. Three
+defense-in-depth layers enforce read-only: provider has no write methods
+(audit-tested), router has no non-GET routes (audit-tested), plugin's
+`supportsControlPlane=false` (contract-level gate). The wrapper is the
+canonical reference for the "Trading-System Wrapper" plugin pattern
+documented in `docs/PLUGIN_DEVELOPMENT.md` — TauricResearch and future
+trading-system plugins mirror the same shape.
+
+Carry-forward to v0.6.6+ (see §"Phase 6.5 → v0.6.6 carry-forwards" below):
+real-time SSE proxy, write capability, MCP tool exposure, anon-key + Auth
+migration when Tradesa V2 ships v0.1.7.0 RLS, Bybit Demo position
+enrichment, operator-led live `pnpm tauri dev` screenshot pass.
+
+## Phase 6.5 → v0.6.6 carry-forwards
+
+### 1. Realtime SSE proxy (Tier-3 deferral from v0.6.5)
+
+v0.6.5 ships polling-only (per-panel cadences: 10s positions / 30s
+decisions / 60s settings / 5min trade-history / 120s meta-agents).
+v0.6.6 candidate: sidecar-side WebSocket subscription to Supabase
+`postgres_changes` on the live tables, SSE fan-out to the frontend
+store. Polling fallback when Realtime is unavailable. Replaces the
+current polling cadences for `trades` / `decisions` / `bot_health` /
+`kill_switch_events`. Adds an asyncio-task lifecycle the v0.6.5 wrapper
+explicitly avoided per scope.
+
+### 2. Write capability — Tier-4 design required per surface
+
+Manual position close, pause-bot toggle from the Health panel, approve
+tuning-proposal from MetaAgentsPanel. Each is a Tier-4 design — must
+route through propose→confirm flow + §6.5 audit log + AI-order gate.
+The `sidecar/services/agent_tools/registry_v0_6_5.py` aggregator slot
+exists for write tools when this lands. The frontend `plugins/tradesa-v2/
+connection.ts` would gain a `WriteOps` interface (separate from the
+current `TradingBotReadAdapter`).
+
+### 3. MCP tool exposure for the brain-decision log
+
+Surface Tradesa V2's `decisions` stream as a Vysted MCP tool so the
+chat sidebar can summarize / query the bot's recent decisions
+("ask the AI sidebar to explain why the bot held overnight"). Chat-
+sidebar integration risk; out of v0.6.5 scope. Implementation path:
+new MCP tool in `sidecar/services/mcp_server.py` calling the existing
+`tradesa_v2_provider.list_decisions()` via the same in-process ASGI
+transport pattern the Phase 3 MCP tools use.
+
+### 4. Anon-key + Auth migration (Tradesa V2 v0.1.7.0 dependency)
+
+When Tradesa V2 ships its v0.1.7.0 RLS rollout, the wrapper swaps from
+the current service-role-key header path to an anon-key + Supabase
+JWT path. Vysted-side API surface unchanged; the `TradesaSettingsDialog`
+gains a Supabase sign-in flow instead of the service-role-key field.
+Watch `techlogist1/tradesa` `infra/migrations/v017*.sql` + their
+`CHANGES.md` for the rollout signal.
+
+### 5. Bybit Demo position enrichment (optional)
+
+Read directly from Bybit V5 for live tick-level position data the bot
+doesn't write to Supabase (entry tick, current mark, unrealized P&L
+without the polling lag of the Vysted-side cache). Optional Bybit Demo
+credentials in keychain — pre-planned via
+`pluginSecret("tradesa-v2", "bybit-demo-api-key")` /
+`pluginSecret("tradesa-v2", "bybit-demo-api-secret")` (NOT consumed
+in v0.6.5).
+
+### 6. Live `pnpm tauri dev` populated-state screenshot pass
+
+v0.6.5 ships with test-confirmed rendering verified by 39 + 20 Vitest
+tests. Operator-led full re-capture (7 panels × healthy/offline/
+unauth × 1920×1080 + 2560×1440 = 42 screenshots) follows the v0.6.0
+BLOCKERS.md §2 pattern. Procedure: `pnpm tauri dev`; cmd+K each
+Tradesa V2 panel; chrome-devtools MCP `resize_page` + `take_screenshot`
+× 2 resolutions; save to `docs/screenshots/v0.6.5/`. Deferred because
+(a) live capture needs a real Tradesa V2 Supabase project for the
+healthy state, (b) graceful-degradation paths are non-trivial to drive
+headlessly without ad-hoc network blockers, (c) test artifacts confirm
+the shapes 1:1 with what live capture would show.
 
 ## Resolved in v0.6.1
 

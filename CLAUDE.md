@@ -328,6 +328,61 @@ AgentSummary]`), wrap at the MCP-tool boundary as
   data source with arbitrary-precision values (legal docs, large
   population counts, scientific measurements) should follow the same
   rule.
+- **Trading-system wrapper plugins ship with three defense-in-depth
+  read-only enforcement layers.** v0.6.5 Tradesa V2 wrapper precedent:
+  (a) provider class has no `insert_/update_/delete_/upsert_/write_/
+  place_/submit_/execute_/create_` methods on its public surface
+  (audit-tested via `inspect.getmembers` grep in
+  `tests/test_<bot>_provider.py`); (b) router has no non-GET routes
+  (audit-tested via `router.routes` walk for `{POST, PUT, PATCH, DELETE,
+  HEAD, OPTIONS}` intersection in `tests/test_<bot>_router.py`); (c)
+  plugin's `capabilities.supportsControlPlane = false` — the runtime
+  refuses to call `executeCommand` even if the method existed.
+  Template for any future plugin needing a guaranteed safety
+  invariant. Same pattern as the v0.5.0 §6.5 #4 audit-log
+  defense-in-depth (type-gate + DB-invariant + grep-check).
+- **Plugin-companion panel-components map.** Plugins contributing
+  React panels can't ship the components through the locked
+  `VystedPlugin` contract (the contract stays serializable — no React
+  types). The v0.6.5 host-side glue is the
+  `src/lib/plugin-bootstrap.ts::PLUGIN_COMPANIONS` static-import map:
+  each plugin id that contributes panels maps to a companion
+  `plugins/<id>/panels.ts` exporting `Record<string, FunctionComponent>`.
+  The map is static, not dynamic-import-by-id — Next.js static export
+  can't resolve runtime plugin-id dispatches without filesystem-installed
+  plugins (v0.7+ scope). When adding a new plugin with panels: add to
+  `BUNDLED_PLUGINS` AND to `PLUGIN_COMPANIONS`; the bootstrap warns at
+  app boot if you forget the latter.
+- **Sidecar credential flow for plugins is "renderer reads keychain →
+  passes secret in request, never in body for read-only plugins".**
+  Established Phase 3 BYOK LLM pattern carried forward through Phase
+  5 broker connect and v0.6.5 Tradesa V2 wrapper. The sidecar
+  CANNOT read OS keychain directly (only Tauri Rust can via
+  `keychain_set`/`get`/`delete` commands). v0.6.5 specifically uses
+  REQUEST HEADERS not body so the read-only GET model stays clean
+  (`X-Tradesa-Supabase-Url` + `X-Tradesa-Supabase-Service-Key`).
+  Loopback-only transport (sidecar binds `127.0.0.1`), but still
+  treat as sensitive: never log, never echo in responses, never
+  persist beyond process memory. `tests/test_<plugin>_router.py`
+  includes a `test_response_never_echoes_credentials` audit.
+- **`Cargo.lock` root package version drifts silently across
+  releases.** v0.6.5 release commit found `vysted-terminal v0.5.0` in
+  Cargo.lock — three releases stale. `cargo update -p vysted-terminal
+  --offline --manifest-path src-tauri/Cargo.toml` after every
+  Cargo.toml version bump re-locks the root package; otherwise
+  Cargo.lock and Cargo.toml drift unchecked. Now part of the
+  version-bump checklist (release commit pattern: bump in
+  `package.json` + `Cargo.toml` + `tauri.conf.json` + sidecar
+  `app.py` FastAPI(version=…) + run cargo update).
+- **`_Builder.order = (col, desc)` in a fake supabase-py shadows the
+  `order()` method.** Test-fake gotcha hit in v0.6.5
+  `test_tradesa_v2_provider.py`: naming the instance attribute the
+  same as the method (`order` / `limit`) makes the second call resolve
+  the attribute to the tuple, not the method, and explodes with
+  `TypeError: 'NoneType' object is not callable`. Test-fake convention:
+  prefix mutating-method storage with `_` (`_order_spec`, `_limit_val`)
+  and expose a property for assertion-side reads. Generalises to any
+  fluent-builder fake.
 
 ## Per-phase handoff
 
@@ -365,7 +420,10 @@ Each handoff covers, in order:
 - `docs/PHASE_N_HANDOFF.md` — the previous phase's handoff. Read first when
   starting Phase N+1. v0.5.0 mega-sprint shipped both
   `docs/PHASE_4_HANDOFF.md` + `docs/PHASE_5_HANDOFF.md`. v0.6.0 ships
-  `docs/PHASE_6_HANDOFF.md` (Phase 7 entry point: launch operations).
+  `docs/PHASE_6_HANDOFF.md`; v0.6.5 ships
+  `docs/PHASE_6.5_HANDOFF.md` (Phase 7 entry point: launch operations
+  + v1.0 narrative that includes the Tradesa V2 wrapper as canonical
+  trading-system plugin reference).
 - `docs/SAFETY_ARCHITECTURE.md` — BLUEPRINT §6.5 enforcement reference.
   Per-guarantee implementation file:line pointers + capture-artifact
   paths + conditional revert procedure. Read before touching anything
