@@ -1,6 +1,7 @@
 import type { VystedModule } from "@/lib/module-registry";
 
 import { agentBuilderModule } from "./agent-builder";
+import { backtestModule } from "./backtest";
 import { chartModule } from "./chart";
 import { chatModule } from "./chat";
 import { equityOverviewModule } from "./equity-overview";
@@ -22,6 +23,9 @@ import { watchlistModule } from "./watchlist";
  * Phase 3 adds `agentBuilderModule` (Teammate C) — BLUEPRINT Module 36, the
  * Custom Agent Builder. It is separate from the 12 first-party AI agents and
  * lives here because it is a host-side authoring surface, not an agent itself.
+ *
+ * Phase 4 / v0.5.0 adds `backtestModule` (Teammate K) — the strategy backtest
+ * + Strategy Critic surface (BLUEPRINT Use Case 2).
  */
 export const vystedModules: VystedModule[] = [
   chartModule,
@@ -33,4 +37,5 @@ export const vystedModules: VystedModule[] = [
   platformModule,
   pluginManagerModule,
   agentBuilderModule,
+  backtestModule,
 ];
