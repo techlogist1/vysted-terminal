@@ -26,3 +26,23 @@ jsonschema>=4.0
 # deadlock (CLAUDE.md Gotcha). The retired Phase-2 OpenBB Tier-2 plugin
 # is gone in v0.4.0; its data surface is preserved through openbb-mcp.
 fastmcp==3.2.4
+
+# Phase 4 + 5 — broker execution SDKs (v0.5.0). Each broker adapter inherits
+# the safety-layer-enforced BrokerAdapter ABC in sidecar/services/broker_base.py.
+# Versions verified 2026-05-16 against the respective project PyPI/GitHub
+# release pages; bumps require a Tier-3 CHANGELOG entry.
+#
+# India:
+dhanhq==2.1.0
+smartapi-python==1.5.5
+kiteconnect==5.2.0
+#
+# US / Global:
+alpaca-py==0.42.0
+ib_async==2.1.0
+#
+# Forex:
+oandapyV20==0.7.2
+#
+# ccxt already pinned above for crypto data (Phase 1); v0.5.0 Teammate X
+# extends the same dependency to crypto execution.
