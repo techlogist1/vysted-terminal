@@ -231,6 +231,132 @@ follow the openbb-mcp pattern:
 The sidecar test suite mocks every external network call — no test
 should hit a live API. Plugin authors should follow the same rule.
 
+## Plugin patterns
+
+By v0.6.5 four distinct plugin shapes have shipped in the repo, each
+solving a different "how does Vysted talk to this thing" problem. New
+plugin authors pick the closest pattern and adapt.
+
+### 1. In-process data-source plugin (`plugins/example/`)
+
+The simplest shape. The plugin's TypeScript entry imports a few utilities
+and exposes a `DataSource`. No Python sidecar component, no subprocess.
+Use this when your data source ships as a pure-JavaScript / NPM-installable
+package, or when the data is computed locally.
+
+### 2. Sidecar provider plugin (`plugins/openbb-mcp/`, retired Phase-2 `plugins/openbb/`)
+
+The plugin's TypeScript entry is thin; the heavy lifting lives in a
+sidecar service + router (`sidecar/services/<plugin>_provider.py` +
+`sidecar/routers/<plugin>.py`) that exposes a typed REST surface. Use
+this when the data source is a Python library or REST API the sidecar
+can reach in-process.
+
+### 3. MCP-subprocess plugin (`plugins/openbb-mcp/`, `plugins/sec-edgar-mcp/`)
+
+When the upstream dependency conflicts with the main sidecar's pins
+(the OpenBB case, the SEC EDGAR case), ship it as its own PyInstaller
+`--onefile` binary under `sidecar/<plugin>_subprocess/`. Spawn via the
+Tauri Rust core (`Command::new`) — **never via Python `subprocess.Popen`**
+on Windows (CLAUDE.md Gotcha). The sidecar talks to it as an MCP client
+via `sidecar/services/mcp_client.py`.
+
+### 4. Trading-system wrapper plugin (`plugins/tradesa-v2/`, new in v0.6.5)
+
+A first-class pattern for surfacing an external trading bot — your own
+or a third party's — as a Vysted plugin. The wrapper is observation-only
+by default (READ-ONLY); write capability is added later under §6.5
+safety-layer review.
+
+**Layout:**
+
+```
+plugins/<bot-id>/
+  manifest.json                    # standard PluginManifest
+  index.ts                         # VystedPlugin entry; declares panels +
+                                   #   data + commands capabilities
+  connection.ts                    # implements TradingBotReadAdapter
+                                   #   interface against the bot's data
+                                   #   surface (REST / Supabase / MCP / ...)
+  store.ts                         # Zustand store: connection state +
+                                   #   per-panel FetchState<T> + polling
+                                   #   cadences
+  useTradesaConnectionState.ts     # shared connection-state hook
+  panels.ts                        # companion panel-components map
+  components/
+    BotStatusStrip.tsx             # always-visible header (mode, kill-switch,
+                                   #   heartbeat age) every panel mounts
+    <Panel1>.tsx ... <PanelN>.tsx  # one component per PanelSpec
+  <bot>-v2.test.ts                 # Vitest: identity, capability negotiation,
+                                   #   lifecycle, graceful-degradation mapping
+```
+
+**Sidecar side** (mirrors pattern 2):
+
+```
+sidecar/services/<bot>_provider.py # read-only wrapper over the bot's
+                                   #   data surface; NO insert_/update_/
+                                   #   delete_/upsert_ methods on the
+                                   #   public API surface (audit-tested)
+sidecar/routers/<bot>.py           # FastAPI router under /<bot>/*;
+                                   #   every endpoint is GET only
+                                   #   (audit-tested)
+sidecar/models/<bot>.py            # Pydantic mirrors with
+                                   #   ConfigDict(extra="forbid")
+sidecar/tests/test_<bot>_provider.py
+sidecar/tests/test_<bot>_router.py
+```
+
+**Defense-in-depth for read-only** (v0.6.5 enforces three layers):
+
+1. **Provider** has no write methods on its public surface
+   (`tests/test_<bot>_provider.py::test_no_write_methods_on_provider_surface`
+   greps the class via `inspect.getmembers`).
+2. **Router** has no non-GET routes (`tests/test_<bot>_router.py
+::test_no_non_get_routes_under_<bot>_prefix` walks `router.routes`).
+3. **Plugin contract** sets `supportsControlPlane=false` — the runtime
+   refuses to call `executeCommand` even if the method existed.
+
+**Credential flow** (mirror Phase 3 BYOK LLM pattern):
+
+- Renderer reads the OS keychain via `src/lib/keychain.ts::getSecret`
+  using `KEYCHAIN_NAMESPACES.pluginSecret(<plugin-id>, <secret-key>)`
+  at plugin initialize.
+- Frontend passes credentials in request headers on every fetch
+  (`X-<Bot>-*`). Sidecar never reads keychain directly (only Tauri Rust
+  can). Headers travel over 127.0.0.1 loopback only.
+- Sidecar never logs, echoes, or persists the credentials beyond
+  process memory.
+
+**Graceful degradation** (every wrapper plugin must handle):
+
+The wrapper exposes a `TradesaConnectionStatus`-shaped enum with at
+least these six states:
+
+- `healthy` — upstream reachable, bot heartbeat fresh
+- `connecting` — initial probe in flight
+- `unauthenticated` — no credentials in keychain
+- `bot-offline` — upstream reachable but bot heartbeat is stale
+- `<upstream>-error` — credentials or transport failure
+- `partial` — some endpoints reachable, others not
+
+Every panel renders dedicated UX for each state. The plugin never
+crashes Vysted Terminal on an outage, never retries-loop, always
+surfaces a clear reason the user can act on.
+
+**Companion `panels.ts` glue:** plugins that contribute panels via
+`getPanels()` ship a sibling `panels.ts` exporting
+`Record<string, FunctionComponent>` (panel-id → component map). The
+host's `src/lib/plugin-bootstrap.ts` reads it via `PLUGIN_COMPANIONS`
+and merges into the synthesized `VystedModule`. The locked contract
+(`types/plugin.ts`) stays serializable — no React types leak in.
+
+**TauricResearch and future trading-system plugins** follow this exact
+shape — write `connection.ts` against the bot's data surface, supply a
+`panels.ts` and per-panel components, declare the same capability flags,
+register in `BUNDLED_PLUGINS` + `PLUGIN_COMPANIONS`. The whole pattern
+is contract-stable; new wrappers add zero pressure to `types/plugin.ts`.
+
 ## Roadmap
 
 These are out of scope for v0.3.0 but on the BLUEPRINT:

@@ -587,6 +587,46 @@ handoff at `docs/PHASE_6_HANDOFF.md`.
 16 new agent tools registered + 9 new workflow node types — Use Cases 4
 (academic research) and 5 (macro thesis watcher) materially more capable.
 
+### Phase 6.5 — Tradesa V2 Wrapper Plugin
+
+**In progress (v0.6.5, 2026-05-17).** Plan at
+`docs/superpowers/plans/2026-05-16-tradesa-v2-wrapper-plugin.md`;
+handoff lands at `docs/PHASE_6.5_HANDOFF.md` with the release commit.
+
+First-party wrapper plugin for Lokavya's existing Tradesa V2 multi-
+agent LLM crypto perp trading bot (techlogist1/tradesa). Operator
+brief slotted v0.6.5 between Phase 6 and Phase 7 launch ops so the
+v1.0 narrative includes "first real third-party-shaped trading-system
+plugin proving the platform."
+
+- **READ-ONLY by operator decision.** No commands flow from Vysted to
+  the bot in v0.6.5 (the bot itself is in an unstable state right now);
+  write capability is v0.6.6+ scope. Three defense-in-depth layers
+  enforce this: provider has no write methods (audit-tested), router
+  has no non-GET routes (audit-tested), plugin's
+  `supportsControlPlane=false` (contract-level gate).
+- **Supabase passthrough.** Tradesa V2's operator interface is Telegram-
+  only — no REST API. The wrapper reads the bot's existing Supabase
+  remote-sync project via `sidecar/services/tradesa_v2_provider.py`
+  using a service-role key in the OS keychain. RLS is deferred Tradesa-
+  side to its v0.1.7.0 milestone; the wrapper API surface is unchanged
+  when RLS lands.
+- **7 panels** surfacing the bot's key state: Live Positions, Trade
+  History & P&L, Brain Decisions, Sentinel, Health, Settings & Drift,
+  Self-Tuning / Discovery / Reflection — all with shared
+  `<TradesaBotStatusStrip />` showing mode + kill-switch + heartbeat
+  age.
+- **Generic wrapper pattern.** `docs/PLUGIN_DEVELOPMENT.md` documents
+  the layout (`connection.ts` implements `TradingBotReadAdapter`;
+  companion `panels.ts` exports the component map; bootstrap glue in
+  `src/lib/plugin-bootstrap.ts::PLUGIN_COMPANIONS` wires it up).
+  TauricResearch and future trading-system plugins mirror the same
+  shape — zero contract change required.
+- **Polling, not Realtime** (Tier-3 scope decision). Supabase Realtime
+  proxy deferred to v0.6.6 to avoid the asyncio-task lifecycle
+  complexity. Per-panel polling cadences (10s positions / 30s decisions
+  / 60s settings) deliver equivalent "is the bot alive" UX.
+
 ### Phase 7 — Polish + Distribution + Launch
 - SignPath.io setup for Windows code signing (free OSS application)
 - Tauri auto-updater wired to GitHub Releases
