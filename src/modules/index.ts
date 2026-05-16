@@ -18,8 +18,8 @@ import { watchlistModule } from "./watchlist";
 // foundation so the per-teammate merge sees an additive-only diff.
 // import { macroModule } from "./macro";                       // Teammate M
 // import { secFilingsModule } from "./sec";                    // Teammate F
-// import { earningsModule } from "./earnings";                 // Teammate E
-// import { analystRatingsModule } from "./analyst-ratings";    // Teammate E
+import { earningsModule } from "./earnings"; // Teammate E
+import { analystRatingsModule } from "./analyst-ratings"; // Teammate E
 // import { quantModule } from "./quant";                       // Teammate Q
 // import { screenerModule } from "./screener";                 // Teammate Sc
 
@@ -72,7 +72,7 @@ export const vystedModules: VystedModule[] = [
   // macroModule,            // Teammate M
   // secFilingsModule,       // Teammate F
   // quantModule,            // Teammate Q
-  // earningsModule,         // Teammate E
-  // analystRatingsModule,   // Teammate E
+  earningsModule, // Teammate E
+  analystRatingsModule, // Teammate E
   // screenerModule,         // Teammate Sc
 ];
