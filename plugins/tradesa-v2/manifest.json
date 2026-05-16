@@ -1,0 +1,10 @@
+{
+  "id": "tradesa-v2",
+  "version": "0.1.0",
+  "name": "Tradesa V2",
+  "entry": "./index.ts",
+  "requiredHostVersion": ">=0.6.5",
+  "description": "Read-only wrapper plugin for Tradesa V2 — multi-agent LLM crypto perp trading bot. Surfaces positions, brain decisions, sentinel gates, heartbeat, settings drift, self-tuning + discovery + reflection output from the bot's Supabase project. Vysted Terminal observes; control stays on the bot side (Telegram / VPS).",
+  "author": "Vysted Team",
+  "homepage": "https://github.com/techlogist1/tradesa"
+}
