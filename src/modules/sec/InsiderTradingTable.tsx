@@ -33,7 +33,13 @@ export function InsiderTradingTable({ identifier }: InsiderTradingTableProps) {
   const byIdentifier = useSecStore((s) => s.insiderByIdentifier);
   const response = useMemo(() => {
     void byIdentifier; // hooked above for subscription
-    return selectInsider(identifier, form === "all" ? undefined : form);
+    const raw = selectInsider(identifier, form === "all" ? undefined : form);
+    // Defend against an upstream that returns a shape without `transactions`
+    // (e.g. a mocked sidecarGet that returned a generic FilingsListResponse).
+    if (!raw || !Array.isArray(raw.transactions)) {
+      return { cik: "", issuer_name: "", transactions: [] };
+    }
+    return raw;
   }, [byIdentifier, identifier, form]);
 
   useEffect(() => {
