@@ -32,9 +32,10 @@ def register_v0_6_0_tools() -> None:
     registered: list[str] = []
 
     # Teammate M — Macro Expansion (FRED + ECB + IMF + World Bank).
-    # from services.agent_tools import macro_tools
-    # macro_tools.register()
-    # registered.append("macro")
+    from services.agent_tools import macro_tools
+
+    macro_tools.register()
+    registered.append("macro")
 
     # Teammate F — SEC Filings Reader.
     # from services.agent_tools import sec_tools

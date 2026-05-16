@@ -48,9 +48,13 @@ oandapyV20==0.7.2
 # extends the same dependency to crypto execution.
 
 # Phase 6 — macro + research + QuantLib (v0.6.0). In-process deps live here;
-# subprocess MCP servers (sec-edgar-mcp, fred-mcp-server) have their own
-# requirements.txt under their respective ``sidecar/<name>_mcp_subprocess/``
-# directories, matching the openbb_mcp_subprocess pattern from v0.4.0.
+# the SEC EDGAR subprocess MCP server (sec-edgar-mcp) has its own
+# requirements.txt under ``sidecar/sec_edgar_mcp_subprocess/`` matching the
+# openbb_mcp_subprocess pattern from v0.4.0. FRED was originally planned
+# as a subprocess MCP server but ``fred-mcp-server`` turned out to be a
+# Node.js package — see BLOCKERS-M.md T3-M-1 for the Tier-3 pivot. FRED
+# is consumed in-process via ``fredapi`` instead, matching ECB / IMF /
+# World Bank pattern.
 #
 # QuantLib: C++ library exposed via SWIG wrappers. 1.42.1 ships ABI3 wheels
 # (``quantlib-1.42.1-cp38-abi3-win_amd64.whl`` etc.) so the single wheel
@@ -76,3 +80,10 @@ ecbdata==0.1.1
 # endpoints (and is the long-term path for any SDMX agency we add later
 # — Eurostat, OECD, ABS, etc.) without needing per-agency bespoke code.
 sdmx1==2.26.0
+#
+# FRED — Federal Reserve Economic Data — via the mature ``fredapi`` Python
+# client (Mortada). Pure-Python; depends on pandas (already pinned) + requests
+# (a yfinance transitive). Requires a user-supplied FRED_API_KEY env var.
+# See BLOCKERS-M.md T3-M-1 for why FRED uses an in-process SDK instead of
+# the originally-planned subprocess MCP server.
+fredapi==0.5.2
