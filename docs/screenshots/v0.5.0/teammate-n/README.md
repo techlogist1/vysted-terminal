@@ -19,8 +19,8 @@ Teammate W's `models/workflow.py`. The render path through
   TRANSFORMS / CONDITIONS / ACTIONS.
 - `canvas-5node-1920.png` / `canvas-5node-2560.png` — the five-node
   research workflow loaded via `Load`: `fetch_quote AAPL →
-  fetch_history AAPL → compute.indicator RSI → ai.agent_invoke
-  researcher → action.log`, with bezier edges connecting all four
+fetch_history AAPL → compute.indicator RSI → ai.agent_invoke
+researcher → action.log`, with bezier edges connecting all four
   hops. Confirms the layout, custom-node renderer, and edge wiring.
 - `canvas-properties-1920.png` / `canvas-properties-2560.png` — the
   Compute Indicator node selected; the right rail shows the typed

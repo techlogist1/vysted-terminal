@@ -24,7 +24,7 @@ Coverage I shipped to compensate:
 - `graph-state.test.ts` — 16 tests on add/remove/update + spec
   round-trip.
 - `workflow-run-overlay.test.tsx` — 9 tests on the SSE-event reducer
-  + render paths.
+  - render paths.
 - `node-palette.test.tsx` — 4 tests including drag-MIME stamping.
 - `node-registry.test.ts` — 9 tests on the 10 built-ins + plugin
   union + id collision policy.
@@ -40,10 +40,11 @@ The plan section says "frontend store from Teammate W consumes the
 response" for save. Teammate W's `src/store/workflow.ts` is part of
 their scope, not mine — I therefore inlined `fetch` calls in
 `NodeEditorPanel.tsx` against the sidecar routes (`getSidecarBaseUrl`
-+ `fetch(new URL(...))`, the same pattern Teammate C used for the
-custom-agent CRUD in v0.4.0). If Teammate W's store ships, the panel
-should be migrated to consume it at lead-integration; until then the
-inline fetches are the load-bearing path.
+
+- `fetch(new URL(...))`, the same pattern Teammate C used for the
+  custom-agent CRUD in v0.4.0). If Teammate W's store ships, the panel
+  should be migrated to consume it at lead-integration; until then the
+  inline fetches are the load-bearing path.
 
 ### 3. dockview panel CSS overlap with react-flow base CSS
 
