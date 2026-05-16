@@ -1,4 +1,5 @@
 mod keychain;
+mod kill_switch;
 mod openbb_mcp;
 
 use std::net::TcpStream;
@@ -50,16 +51,23 @@ pub fn run() {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(kill_switch::build_plugin())
         .invoke_handler(tauri::generate_handler![
             get_sidecar_port,
             keychain::keychain_set,
             keychain::keychain_get,
             keychain::keychain_delete,
+            kill_switch::kill_switch_emit,
             openbb_mcp::get_openbb_mcp_port,
         ])
         .setup(|app| {
             let port = pick_free_port();
             app.manage(SidecarPort(port));
+
+            // Register the OS-wide kill-switch keyboard shortcut. Failure
+            // here is non-fatal — the toolbar button + HTTP path still
+            // fire the kill switch directly via the sidecar route.
+            kill_switch::register_shortcut(app.handle());
 
             // Spawn the openbb-mcp subprocess BEFORE the main sidecar so the
             // ``VYSTED_OPENBB_MCP_PORT`` env var is in place when the
