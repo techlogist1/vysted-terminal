@@ -1,0 +1,19 @@
+{
+  "id": "nifty50",
+  "label": "NIFTY 50",
+  "asset_class": "equity",
+  "snapshot_date": "2026-05-16",
+  "source": "NSE NIFTY 50 index constituents — manually curated snapshot for v0.6.0. Refreshed quarterly per NSE rebalancing schedule. Tickers carry the ``.NS`` suffix so yfinance / openbb-mcp resolve to the NSE listing rather than the BSE one.",
+  "symbols": [
+    "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "BHARTIARTL.NS", "ICICIBANK.NS",
+    "INFY.NS", "SBIN.NS", "LT.NS", "ITC.NS", "HINDUNILVR.NS",
+    "BAJFINANCE.NS", "KOTAKBANK.NS", "AXISBANK.NS", "M&M.NS", "MARUTI.NS",
+    "SUNPHARMA.NS", "HCLTECH.NS", "ULTRACEMCO.NS", "TITAN.NS", "ONGC.NS",
+    "NTPC.NS", "ADANIENT.NS", "ADANIPORTS.NS", "BAJAJFINSV.NS", "ASIANPAINT.NS",
+    "TATAMOTORS.NS", "JSWSTEEL.NS", "POWERGRID.NS", "WIPRO.NS", "COALINDIA.NS",
+    "NESTLEIND.NS", "BAJAJ-AUTO.NS", "TATASTEEL.NS", "BEL.NS", "TRENT.NS",
+    "GRASIM.NS", "INDUSINDBK.NS", "HINDALCO.NS", "SHRIRAMFIN.NS", "CIPLA.NS",
+    "TECHM.NS", "DRREDDY.NS", "EICHERMOT.NS", "BRITANNIA.NS", "APOLLOHOSP.NS",
+    "TATACONSUM.NS", "SBILIFE.NS", "HEROMOTOCO.NS", "HDFCLIFE.NS", "DIVISLAB.NS"
+  ]
+}

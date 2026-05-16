@@ -54,9 +54,10 @@ def register_v0_6_0_nodes() -> None:
     # registered.append("research (earnings+analyst)")
 
     # Teammate Sc — Screener / Scanner.
-    # from services.workflow_nodes import screener_nodes
-    # screener_nodes.register()
-    # registered.append("screener")
+    from services.workflow_nodes import screener_nodes
+
+    screener_nodes.register()
+    registered.append("screener")
 
     if registered:
         logger.info("workflow_nodes: registered v0.6.0 domains: %s", ", ".join(registered))

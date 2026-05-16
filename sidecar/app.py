@@ -34,6 +34,7 @@ from routers import (
     portfolio,
     quotes,
     safety,
+    screener,
     workflow,
     workspace,
 )
@@ -61,6 +62,7 @@ _ROUTERS = (
     workflow,
     backtest,
     brokers,
+    screener,
 )
 
 
