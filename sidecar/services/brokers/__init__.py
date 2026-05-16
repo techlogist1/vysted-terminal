@@ -15,5 +15,6 @@ from __future__ import annotations
 
 from services.brokers.angelone import AngelOneAdapter
 from services.brokers.dhan import DhanAdapter
+from services.brokers.kite import KiteAdapter
 
-__all__ = ["AngelOneAdapter", "DhanAdapter"]
+__all__ = ["AngelOneAdapter", "DhanAdapter", "KiteAdapter"]
