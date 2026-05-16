@@ -245,6 +245,45 @@ AgentSummary]`), wrap at the MCP-tool boundary as
   behind VPN/VPS with the registered IP may legitimately succeed. The
   Kite API rejection at order time surfaces a graceful UX dialog
   through the audit-log path.
+- **Long-running shells run in background with job-ID tracking.** Heavy
+  pytest suites (the §6.5 audit's 25-min kill-switch benchmark, full
+  sidecar suites, sidecar `--onefile` builds) auto-background when run
+  via the Bash tool; the disciplined pattern is "kick off →
+  `Awaiting notification on <jobId>` → resume on completion". Explicit
+  contrast with the Phase-2/3 foreground-pipe deadlock (`pnpm dev | head
+-20` blocks indefinitely): foreground pipes on long commands hang the
+  session. **Rule:** anything > ~30s runtime → background + job-ID;
+  never pipe a long-running command through `head`/`tee`/etc. in the
+  foreground.
+- **Defense-in-depth for safety-critical surfaces — type-level gate +
+  DB-enforced invariant + grep-able audit check.** The v0.5.0 §6.5
+  9/9-pass precedent: BLUEPRINT §6.5 #4 (append-only audit log) gets a
+  private-method type gate (`_place_confirmed` only callable from
+  `confirm_and_place`), a DB-level invariant (SQLite triggers
+  `RAISE(ABORT)` on UPDATE/DELETE), AND a grep-time check (
+  `test_safety_end_to_end.py::test_audit_2` greps the whole sidecar for
+  call-sites). Each layer catches a different failure mode; together
+  they survive a teammate's mistake at any layer. **Template** for any
+  future-phase high-blast-radius surface (Phase 6 QuantLib pricing
+  modules, Phase 7 distribution/signing, Phase-5.x Tradesa V2 plugin):
+  enforce at the type system where the language allows, at the data
+  layer where state lives, and capture a verifiable assertion in the
+  dedicated audit suite. Documented in `docs/SAFETY_ARCHITECTURE.md`.
+- **Mega-sprint pattern (2 BLUEPRINT phases under one tag) is viable —
+  ceiling reference.** v0.5.0 shipped Phase 4 (workflow + backtest +
+  node editor + Strategy Critic e2e) AND Phase 5 (7 broker integrations
+  - §6.5 safety) under one tag because the product story is one story:
+    research with agents → compose workflow → backtest → critic approves →
+    paper-execute through real broker. 7 parallel Opus 4.7 teammates +
+    10 sequential foundation commits + dedicated §6.5 audit checkpoint
+    shipped clean with Tier-1 plugin contract held. **Not "always
+    mega-sprint going forward"** — viable when (a) foundation contracts
+    can lock cleanly before teammate dispatch, (b) audit fidelity stays
+    high (per-phase audit checkpoints, not just per-release), (c) the
+    teammate decomposition has clear non-overlapping file ownership.
+    Phase-6 (Macro + Research + QuantLib) is closer to a single-phase
+    shape; Phase 5.x Tradesa V2 + Phase 6 QuantLib could potentially
+    compress if (a)–(c) hold.
 
 ## Per-phase handoff
 
