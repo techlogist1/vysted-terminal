@@ -38,7 +38,9 @@ from models.llm import (
     LLMErrorEvent,
     LLMMessage,
     LLMProviderId,
+    LLMToolUseEvent,
 )
+from services import agent_tools
 from services.llm import get_provider
 from services.llm.base import LLMStreamEvent
 
@@ -186,6 +188,43 @@ def _resolve_model(spec: AgentSpec, override: str | None) -> str:
     return defaults.get(spec.default_provider, "gpt-4.1-mini")
 
 
+#: Hard cap on tool-call rounds in a single invocation. Strategy Critic
+#: typically calls one to three tools (backtest_summary + optionally
+#: price_data + fundamentals); a runaway agent that loops on the same
+#: tool is bounded by this constant.
+_MAX_TOOL_ROUNDS = 6
+
+
+async def _dispatch_tool(event: LLMToolUseEvent) -> str:
+    """Invoke the registered tool and serialise the result to a string.
+
+    Tool handlers return JSON-serialisable dicts; we encode them as a
+    string so they can ride the existing :class:`LLMMessage` ``content``
+    field (a single string by contract). The provider adapter for
+    Anthropic translates a ``role="tool"`` message into a
+    ``tool_result`` content block keyed on ``tool_call_id``; other
+    adapters use the same role surface.
+
+    A handler that raises (or the tool is unregistered) surfaces a
+    structured error so the model can recover gracefully on the next
+    turn rather than crashing the stream.
+    """
+    try:
+        if not agent_tools.is_registered(event.name):
+            payload: dict[str, Any] = {
+                "ok": False,
+                "error": f"tool {event.name!r} is not available in this build",
+            }
+        else:
+            payload = await agent_tools.invoke_tool(event.name, event.input)
+    except Exception as exc:  # noqa: BLE001 — surface failures to the model
+        payload = {"ok": False, "error": f"tool {event.name!r} raised: {exc}"}
+    try:
+        return json.dumps(payload, default=str)
+    except (TypeError, ValueError):
+        return str(payload)
+
+
 async def invoke_agent(
     agent_id: str,
     prompt: str,
@@ -197,9 +236,18 @@ async def invoke_agent(
 ) -> AsyncIterator[LLMStreamEvent]:
     """Invoke a registered agent and stream its response.
 
-    Unknown agent ids surface as a single :class:`LLMErrorEvent` followed by
-    a terminal :class:`LLMDoneEvent` so the SSE response always closes
-    cleanly — clients only need one terminator.
+    The runtime dispatches :class:`LLMToolUseEvent`s mid-stream: when a
+    provider emits a tool_use block, the event is yielded to the caller
+    (so the UI can show "using tool X…"), the corresponding handler in
+    :mod:`services.agent_tools` is invoked, the result is pushed back
+    into the conversation as a ``role="tool"`` message keyed on the
+    ``tool_call_id``, and the provider is re-called for a continuation.
+    The loop is capped at :data:`_MAX_TOOL_ROUNDS` to bound a runaway
+    tool-spam agent.
+
+    Unknown agent ids surface as a single :class:`LLMErrorEvent` followed
+    by a terminal :class:`LLMDoneEvent` so the SSE response always
+    closes cleanly — clients only need one terminator.
     """
     spec = get_agent(agent_id)
     if spec is None:
@@ -210,10 +258,54 @@ async def invoke_agent(
     resolved_model = _resolve_model(spec, model)
     messages = _compose_messages(spec, prompt, context_snapshot)
     adapter = get_provider(provider_id)
-    async for event in adapter.stream_chat(
-        messages=messages,
-        model=resolved_model,
-        api_key=api_key,
-        **(options or {}),
-    ):
-        yield event
+
+    rounds = 0
+    while True:
+        pending_tools: list[LLMToolUseEvent] = []
+        seen_done = False
+        async for event in adapter.stream_chat(
+            messages=messages,
+            model=resolved_model,
+            api_key=api_key,
+            **(options or {}),
+        ):
+            if isinstance(event, LLMToolUseEvent):
+                pending_tools.append(event)
+                yield event
+                continue
+            if isinstance(event, LLMDoneEvent):
+                seen_done = True
+                # If tools fired this round and we have budget left,
+                # swallow the per-round terminator and loop. Otherwise
+                # this is the final terminator and the SSE consumer
+                # needs it.
+                if pending_tools and rounds < _MAX_TOOL_ROUNDS:
+                    break
+                yield event
+                return
+            yield event
+        if not seen_done:
+            # Provider closed without a terminator — emit one so the SSE
+            # framing stays well-formed for the consumer.
+            yield LLMDoneEvent()
+            return
+        if not pending_tools:
+            return
+
+        # Dispatch every pending tool, append tool-result messages keyed
+        # on the call ids, and re-enter the loop.
+        for tool_call in pending_tools:
+            result_str = await _dispatch_tool(tool_call)
+            messages.append(
+                LLMMessage(
+                    role="tool",
+                    content=result_str,
+                    tool_call_id=tool_call.tool_call_id,
+                )
+            )
+        rounds += 1
+        if rounds >= _MAX_TOOL_ROUNDS:
+            # Hit the cap — let the next provider stream finalise. The
+            # subsequent loop iteration sees no pending tools and exits
+            # via the ``not pending_tools`` branch above.
+            continue
