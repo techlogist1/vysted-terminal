@@ -31,6 +31,7 @@ from routers import (
     plugins,
     portfolio,
     quotes,
+    safety,
     workspace,
 )
 from services import mcp_client, mcp_server
@@ -52,6 +53,7 @@ _ROUTERS = (
     agents,
     custom_agents,
     mcp,
+    safety,
 )
 
 
