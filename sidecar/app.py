@@ -34,6 +34,7 @@ from routers import (
     portfolio,
     quotes,
     safety,
+    sec_filings,
     workflow,
     workspace,
 )
@@ -58,6 +59,7 @@ _ROUTERS = (
     custom_agents,
     mcp,
     safety,
+    sec_filings,
     workflow,
     backtest,
     brokers,
