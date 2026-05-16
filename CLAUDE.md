@@ -157,16 +157,16 @@ the next session does not re-learn them. (Phase 0 build notes live in
   verification of canvas-interactive features needs real-event tooling
   (Playwright with native event injection, or equivalent). Phase-2 substitute:
   unit-test the data model + screenshot the toolbar wiring.
-- **`subprocess.Popen` deadlocks bundled REST servers on Windows.** A
-  PyInstaller `--onefile` REST server that prewarms cleanly via PowerShell
-  `Start-Process` deadlocks indefinitely when launched from Python's
-  `subprocess.Popen` (anyio + `_MEIPASS` + Windows handle-inheritance is the
-  suspected interaction; v0.3.0 OpenBB subprocess hit this). Spawn external
-  subprocess servers via Tauri Rust `Command::new` instead — the standard
-  pattern for any subprocess that owns its own port/lifecycle. **v0.4.0
-  validated this fix** by retiring the Phase-2 OpenBB subprocess and
-  replacing it with `openbb-mcp-server` spawned via Tauri Rust —
-  no recurrence.
+- **Spawn subprocess servers via Tauri Rust `Command::new`, not Python
+  `subprocess.Popen`.** Verified pattern as of v0.4.0 (`a3b78c5`,
+  openbb-mcp-server). A PyInstaller `--onefile` REST/MCP server that
+  prewarms cleanly via PowerShell `Start-Process` deadlocks indefinitely
+  when launched from `subprocess.Popen` on Windows — anyio + `_MEIPASS`
+  - Windows handle-inheritance interact pathologically. v0.3.0's OpenBB
+    subprocess hit this; v0.4.0 fixed it by retiring that path and
+    spawning `openbb-mcp-server` via `app.shell().sidecar(...)` from
+    `src-tauri/src/openbb_mcp.rs`. Use this pattern for any subprocess
+    that owns its own port/lifecycle.
 - **`keyring` Rust crate v3 has no default features.** The crate compiles
   and the API works without any platform-backend feature, but
   `set_password` silently no-ops on a default-features build. The
@@ -198,6 +198,15 @@ AgentSummary]`), wrap at the MCP-tool boundary as
   and starts leaking files into Prettier / lint scans. Lead
   integration must `rm -rf` the orphaned directory explicitly. v0.4.0
   hit this with the Phase-2 OpenBB retirement.
+- **Sidecar `--onefile` binary footprint targets ≤120 MB main.**
+  v0.4.0 distribution: 122 MB total (main sidecar 67 MB + openbb-mcp
+  55 MB); main grew +10 MB from 5 AI provider SDKs. Future phases
+  adding heavy Python deps (Phase 5 broker SDKs, Phase 6 QuantLib)
+  should check projected main-sidecar size against the 120 MB
+  threshold the Phase-3 plan established; if approaching, apply the
+  separate-process pattern proactively (the openbb-mcp Tauri-spawn
+  precedent above) rather than reactively after a `sidecar:build`
+  failure.
 
 ## Per-phase handoff
 
