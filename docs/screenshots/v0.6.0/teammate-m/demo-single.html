@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Vysted Macro Panel — single provider</title>
+    <script src="https://unpkg.com/lightweight-charts@5.2.0/dist/lightweight-charts.standalone.production.js"></script>
+    <link rel="stylesheet" href="data:text/css,*{box-sizing:border-box}" />
+    <style>
+      :root {
+        --charcoal-100: #e9e1cf;
+        --charcoal-200: #c9c2b2;
+        --charcoal-400: #888070;
+        --charcoal-500: #5a5347;
+        --charcoal-700: #3a352c;
+        --charcoal-800: #2a2620;
+        --charcoal-900: #1c1916;
+        --charcoal-950: #14110f;
+        --amber-600: #c39a3e;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        background: var(--charcoal-950);
+        color: var(--charcoal-100);
+        font-family: ui-monospace, "Cascadia Mono", "JetBrains Mono", monospace;
+        padding: 24px;
+        min-height: 100vh;
+      }
+      .panel {
+        background: var(--charcoal-900);
+        border: 1px solid var(--charcoal-800);
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 48px);
+      }
+      .picker { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-bottom: 1px solid var(--charcoal-800); }
+      .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+      .tab {
+        padding: 6px 14px;
+        font-family: inherit;
+        font-size: 12px;
+        background: transparent;
+        color: var(--charcoal-200);
+        border: 1px solid var(--charcoal-700);
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .tab.active { background: var(--amber-600); color: var(--charcoal-950); border-color: var(--amber-600); }
+      .search { background: var(--charcoal-900); border: 1px solid var(--charcoal-700); border-radius: 4px; padding: 8px 12px; font-family: inherit; font-size: 13px; color: var(--charcoal-100); }
+      .results { max-height: 180px; overflow-y: auto; background: var(--charcoal-950); border: 1px solid var(--charcoal-800); border-radius: 4px; }
+      .row { padding: 8px 14px; border-bottom: 1px solid var(--charcoal-900); }
+      .row.selected { background: var(--charcoal-800); }
+      .row .t { color: var(--charcoal-100); font-size: 13px; }
+      .row .s { color: var(--charcoal-500); font-size: 11px; margin-top: 2px; }
+      .header { padding: 10px 16px; border-bottom: 1px solid var(--charcoal-800); display: flex; justify-content: space-between; align-items: center; }
+      .header .t { font-size: 14px; }
+      .header .s { color: var(--charcoal-500); font-size: 11px; margin-top: 2px; }
+      .chart { flex: 1; min-height: 0; }
+      .footer { padding: 6px 16px; border-top: 1px solid var(--charcoal-800); font-size: 11px; color: var(--charcoal-500); }
+      .footer a { color: var(--amber-600); text-decoration: none; }
+      h1 { position: fixed; top: 0; left: 0; right: 0; text-align: center; font-size: 12px; color: var(--charcoal-400); padding: 4px; background: var(--charcoal-950); z-index: 10; font-weight: 400; }
+      body { padding-top: 36px; }
+    </style>
+  </head>
+  <body>
+    <h1 id="title-bar">Vysted Terminal v0.6.0 — Macro Panel</h1>
+    <div class="panel" id="root"></div>
+
+    <script>
+      const SERIES = {
+        fred: {
+          series_id: "DGS10",
+          title: "10-Year Treasury Constant Maturity Rate",
+          units: "Percent",
+          provider: "fred",
+          frequency: "daily",
+          source_url: "https://fred.stlouisfed.org/series/DGS10",
+          last_updated: "2026-05-14T09:00:00Z",
+          observations: makeDaily(new Date("2024-05-14"), 730, 4.5, 0.4),
+        },
+        ecb: {
+          series_id: "FM.D.U2.EUR.4F.KR.MRR_FR.LEV",
+          title: "Main Refinancing Operations Rate",
+          units: "Percent per annum",
+          provider: "ecb",
+          frequency: "daily",
+          source_url: "https://data.ecb.europa.eu/data/datasets/FM.D.U2.EUR.4F.KR.MRR_FR.LEV",
+          last_updated: "2026-05-12T00:00:00Z",
+          observations: makeStep(new Date("2024-05-14"), 730, [4.5, 4.25, 4.0, 3.75, 3.5]),
+        },
+        imf: {
+          series_id: "IFS/A.US.NGDP_USD",
+          title: "Nominal GDP in USD, annual, United States",
+          units: "USD (billions)",
+          provider: "imf",
+          frequency: "annual",
+          source_url: "https://data.imf.org/",
+          last_updated: "2026-04-01T00:00:00Z",
+          observations: makeAnnual(2000, 26, 10300, 0.045),
+        },
+        "world-bank": {
+          series_id: "NY.GDP.PCAP.CD:USA",
+          title: "GDP per capita (current USD) — USA",
+          units: "USD",
+          provider: "world-bank",
+          frequency: "annual",
+          source_url: "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=USA",
+          last_updated: "2026-04-15T00:00:00Z",
+          observations: makeAnnual(2000, 24, 36000, 0.035),
+        },
+      };
+      const CATALOG = {
+        fred: [
+          ["DGS10", "10-Year Treasury Constant Maturity Rate", "Interest Rates • daily"],
+          ["FEDFUNDS", "Federal Funds Effective Rate", "Interest Rates • monthly"],
+          ["CPIAUCSL", "CPI for All Urban Consumers", "Prices • monthly"],
+          ["UNRATE", "Unemployment Rate", "Labor • monthly"],
+          ["GDP", "Gross Domestic Product", "National Accounts • quarterly"],
+          ["VIXCLS", "CBOE Volatility Index (VIX)", "Markets • daily"],
+        ],
+        ecb: [
+          ["FM.D.U2.EUR.4F.KR.MRR_FR.LEV", "Main Refinancing Operations Rate", "Monetary Policy • daily"],
+          ["FM.D.U2.EUR.4F.KR.DFR.LEV", "Deposit Facility Rate", "Monetary Policy • daily"],
+          ["ICP.M.U2.N.000000.4.ANR", "HICP — Overall index", "Prices • monthly"],
+          ["EXR.D.USD.EUR.SP00.A", "EUR/USD spot exchange rate", "Exchange Rates • daily"],
+          ["BSI.M.U2.Y.V.M30.X.1.U2.2300.Z01.E", "M3 Money Stock — Euro area", "Money Supply • monthly"],
+        ],
+        imf: [
+          ["IFS/A.US.NGDP_USD", "Nominal GDP in USD, US", "National Accounts • annual"],
+          ["IFS/A.US.NGDP_R_K_IX", "Real GDP index, US", "National Accounts • annual"],
+          ["IFS/M.US.PCPI_IX", "CPI, monthly, US", "Prices • monthly"],
+          ["IFS/A.EU.NGDP_R_K_IX", "Real GDP index, Euro area", "National Accounts • annual"],
+          ["IFS/A.JP.NGDP_R_K_IX", "Real GDP index, Japan", "National Accounts • annual"],
+          ["IFS/A.CN.NGDP_R_K_IX", "Real GDP index, China", "National Accounts • annual"],
+        ],
+        "world-bank": [
+          ["NY.GDP.PCAP.CD", "GDP per capita (current USD)", "National Accounts • annual"],
+          ["NY.GDP.MKTP.CD", "GDP (current USD)", "National Accounts • annual"],
+          ["NY.GDP.MKTP.KD.ZG", "GDP growth (annual %)", "National Accounts • annual"],
+          ["FP.CPI.TOTL.ZG", "Inflation, consumer prices (annual %)", "Prices • annual"],
+          ["SL.UEM.TOTL.ZS", "Unemployment, total (% labour force)", "Labour • annual"],
+          ["SP.POP.TOTL", "Population, total", "Demographics • annual"],
+        ],
+      };
+      const LABELS = { fred: "FRED", ecb: "ECB", imf: "IMF", "world-bank": "World Bank" };
+
+      function makeDaily(start, days, base, amp) {
+        const out = [];
+        for (let i = 0; i < days; i++) {
+          const d = new Date(start.getTime() + i * 86400000);
+          const v = base + amp * Math.sin(i / 30) + amp * 0.3 * Math.sin(i / 7) + (Math.random() - 0.5) * amp * 0.2;
+          out.push({ date: d.toISOString(), value: Number(v.toFixed(3)) });
+        }
+        return out;
+      }
+      function makeStep(start, days, steps) {
+        const out = [];
+        const segLen = Math.floor(days / steps.length);
+        for (let i = 0; i < days; i++) {
+          const d = new Date(start.getTime() + i * 86400000);
+          const segIdx = Math.min(steps.length - 1, Math.floor(i / segLen));
+          out.push({ date: d.toISOString(), value: steps[segIdx] });
+        }
+        return out;
+      }
+      function makeAnnual(startYear, years, base, growth) {
+        const out = [];
+        for (let i = 0; i < years; i++) {
+          const d = new Date(`${startYear + i}-01-01T00:00:00Z`);
+          const v = base * Math.pow(1 + growth, i) * (1 + (Math.random() - 0.5) * 0.04);
+          out.push({ date: d.toISOString(), value: Number(v.toFixed(2)) });
+        }
+        return out;
+      }
+
+      function render(activeProvider) {
+        const series = SERIES[activeProvider];
+        const cat = CATALOG[activeProvider];
+        const titleBar = document.getElementById("title-bar");
+        titleBar.textContent =
+          `Vysted Terminal v0.6.0 — Macro Panel — ${LABELS[activeProvider]} — ${series.series_id}`;
+        const root = document.getElementById("root");
+        const PROVIDERS = ["fred", "ecb", "imf", "world-bank"];
+        root.innerHTML = `
+          <div class="picker">
+            <div class="tabs">
+              ${PROVIDERS.map(p => `<button class="tab ${p === activeProvider ? "active" : ""}">${LABELS[p]}</button>`).join("")}
+            </div>
+            <input class="search" placeholder="Search ${activeProvider} series… (or browse Featured)"/>
+            <div class="results">
+              ${cat.map(([sid, t, sub]) => `
+                <div class="row${sid === series.series_id ? " selected" : ""}">
+                  <div class="t">${t}</div>
+                  <div class="s">${sid} — ${sub}</div>
+                </div>`).join("")}
+            </div>
+          </div>
+          <div class="header">
+            <div>
+              <div class="t">${series.title}</div>
+              <div class="s">${series.series_id} • ${series.provider}${series.units ? ` • ${series.units}` : ""}${series.frequency ? ` • ${series.frequency}` : ""}</div>
+            </div>
+            <label class="s"><input type="checkbox"/> log</label>
+          </div>
+          <div class="chart"></div>
+          <div class="footer">
+            ${series.observations.length} observations
+            ${series.last_updated ? " • updated " + series.last_updated.slice(0, 10) : ""}
+            ${series.source_url ? ' • <a href="' + series.source_url + '">source</a>' : ""}
+          </div>`;
+        const chartHost = root.querySelector(".chart");
+        const chart = LightweightCharts.createChart(chartHost, {
+          autoSize: true,
+          layout: { background: { color: "#1c1916" }, textColor: "#c9c2b2" },
+          grid: { vertLines: { color: "#2a2620" }, horzLines: { color: "#2a2620" } },
+          rightPriceScale: { borderColor: "#3a352c" },
+          timeScale: { borderColor: "#3a352c", timeVisible: false, secondsVisible: false },
+        });
+        const line = chart.addSeries(LightweightCharts.LineSeries, { color: "#c39a3e", lineWidth: 2 });
+        line.setData(series.observations.map(o => ({ time: Math.floor(new Date(o.date).getTime() / 1000), value: o.value })));
+        chart.timeScale().fitContent();
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        const params = new URLSearchParams(window.location.search);
+        const p = params.get("provider") || "fred";
+        render(p);
+      });
+      window.renderProvider = render;
+    </script>
+  </body>
+</html>

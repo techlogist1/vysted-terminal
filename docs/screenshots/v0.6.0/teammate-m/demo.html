@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vysted Macro Panel — v0.6.0 demo</title>
+    <script src="https://unpkg.com/lightweight-charts@5.2.0/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+      :root {
+        --charcoal-50: #f5f0e6;
+        --charcoal-100: #e9e1cf;
+        --charcoal-200: #c9c2b2;
+        --charcoal-400: #888070;
+        --charcoal-500: #5a5347;
+        --charcoal-700: #3a352c;
+        --charcoal-800: #2a2620;
+        --charcoal-900: #1c1916;
+        --charcoal-950: #14110f;
+        --amber-600: #c39a3e;
+        --positive: #7faa6b;
+        --negative: #b5503b;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--charcoal-950);
+        color: var(--charcoal-100);
+        font-family: ui-monospace, "Cascadia Mono", "JetBrains Mono", monospace;
+        padding: 16px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 16px;
+        min-height: 100vh;
+      }
+      .panel {
+        background: var(--charcoal-900);
+        border: 1px solid var(--charcoal-800);
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+      .picker {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px;
+        border-bottom: 1px solid var(--charcoal-800);
+      }
+      .tabs {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .tab {
+        padding: 4px 10px;
+        font-size: 11px;
+        background: transparent;
+        color: var(--charcoal-200);
+        border: 1px solid var(--charcoal-700);
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .tab.active {
+        background: var(--amber-600);
+        color: var(--charcoal-950);
+        border-color: var(--amber-600);
+      }
+      .search {
+        background: var(--charcoal-900);
+        border: 1px solid var(--charcoal-700);
+        border-radius: 4px;
+        padding: 6px 10px;
+        font-family: inherit;
+        font-size: 12px;
+        color: var(--charcoal-100);
+      }
+      .results {
+        max-height: 130px;
+        overflow-y: auto;
+        background: var(--charcoal-950);
+        border: 1px solid var(--charcoal-800);
+        border-radius: 4px;
+      }
+      .row {
+        padding: 6px 10px;
+        border-bottom: 1px solid var(--charcoal-900);
+      }
+      .row .t {
+        color: var(--charcoal-100);
+        font-size: 12px;
+      }
+      .row .s {
+        color: var(--charcoal-500);
+        font-size: 10px;
+      }
+      .header {
+        padding: 6px 12px;
+        border-bottom: 1px solid var(--charcoal-800);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .header .t {
+        font-size: 12px;
+      }
+      .header .s {
+        color: var(--charcoal-500);
+        font-size: 10px;
+      }
+      .chart {
+        flex: 1;
+        min-height: 0;
+      }
+      .footer {
+        padding: 4px 12px;
+        border-top: 1px solid var(--charcoal-800);
+        font-size: 10px;
+        color: var(--charcoal-500);
+      }
+      .footer a {
+        color: var(--amber-600);
+        text-decoration: none;
+      }
+      .footer a:hover {
+        text-decoration: underline;
+      }
+      h1 {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 11px;
+        color: var(--charcoal-400);
+        padding: 4px;
+        background: var(--charcoal-950);
+        z-index: 10;
+        font-weight: 400;
+      }
+      body {
+        padding-top: 32px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Vysted Terminal v0.6.0 — Macro Panel (Teammate M slice) — FRED / ECB / IMF / World Bank</h1>
+    <div class="panel" id="panel-fred"></div>
+    <div class="panel" id="panel-ecb"></div>
+    <div class="panel" id="panel-imf"></div>
+    <div class="panel" id="panel-wb"></div>
+
+    <script>
+      // --- Stub series data (representative of real upstream shapes) ---
+      // FRED DGS10 — 10-Year Treasury, daily, percent
+      const FRED_DGS10 = {
+        series_id: "DGS10",
+        title: "10-Year Treasury Constant Maturity Rate",
+        units: "Percent",
+        provider: "fred",
+        frequency: "daily",
+        source_url: "https://fred.stlouisfed.org/series/DGS10",
+        last_updated: "2026-05-14T09:00:00Z",
+        observations: makeDailyObs(new Date("2024-05-14"), 365 * 2, 4.5, 0.4, 0),
+      };
+      // ECB MRO — Main Refinancing Rate
+      const ECB_MRO = {
+        series_id: "FM.D.U2.EUR.4F.KR.MRR_FR.LEV",
+        title: "Main Refinancing Operations Rate (MRO)",
+        units: "Percent per annum",
+        provider: "ecb",
+        frequency: "daily",
+        source_url: "https://data.ecb.europa.eu/data/datasets/FM.D.U2.EUR.4F.KR.MRR_FR.LEV",
+        last_updated: "2026-05-12T00:00:00Z",
+        observations: makeStepObs(
+          new Date("2024-05-14"),
+          365 * 2,
+          [4.5, 4.25, 4.0, 3.75, 3.5],
+        ),
+      };
+      // IMF GDP USD nominal — US, annual
+      const IMF_GDP = {
+        series_id: "IFS/A.US.NGDP_USD",
+        title: "Nominal GDP in USD, annual, United States",
+        units: "USD (billions)",
+        provider: "imf",
+        frequency: "annual",
+        source_url: "https://data.imf.org/",
+        last_updated: "2026-04-01T00:00:00Z",
+        observations: makeAnnualObs(2000, 26, 10300, 0.045),
+      };
+      // World Bank GDP per capita, USA
+      const WB_GDP_PCAP = {
+        series_id: "NY.GDP.PCAP.CD:USA",
+        title: "GDP per capita (current USD) — USA",
+        units: "USD",
+        provider: "world-bank",
+        frequency: "annual",
+        source_url: "https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=USA",
+        last_updated: "2026-04-15T00:00:00Z",
+        observations: makeAnnualObs(2000, 24, 36000, 0.035),
+      };
+
+      function makeDailyObs(start, days, base, amp, drift) {
+        const out = [];
+        for (let i = 0; i < days; i++) {
+          const d = new Date(start.getTime() + i * 86400000);
+          const v =
+            base +
+            drift * i +
+            amp * Math.sin(i / 30) +
+            amp * 0.3 * Math.sin(i / 7) +
+            (Math.random() - 0.5) * amp * 0.2;
+          out.push({ date: d.toISOString(), value: Number(v.toFixed(3)) });
+        }
+        return out;
+      }
+      function makeStepObs(start, days, steps) {
+        const out = [];
+        const segLen = Math.floor(days / steps.length);
+        for (let i = 0; i < days; i++) {
+          const d = new Date(start.getTime() + i * 86400000);
+          const segIdx = Math.min(steps.length - 1, Math.floor(i / segLen));
+          out.push({ date: d.toISOString(), value: steps[segIdx] });
+        }
+        return out;
+      }
+      function makeAnnualObs(startYear, years, base, growth) {
+        const out = [];
+        for (let i = 0; i < years; i++) {
+          const d = new Date(`${startYear + i}-01-01T00:00:00Z`);
+          const v = base * Math.pow(1 + growth, i) * (1 + (Math.random() - 0.5) * 0.04);
+          out.push({ date: d.toISOString(), value: Number(v.toFixed(2)) });
+        }
+        return out;
+      }
+
+      const PROVIDERS = [
+        { id: "fred", label: "FRED" },
+        { id: "ecb", label: "ECB" },
+        { id: "imf", label: "IMF" },
+        { id: "world-bank", label: "World Bank" },
+      ];
+      // Curated featured per provider — mirrors what the picker shows when no
+      // search query is entered (truncated for the demo).
+      const CATALOG = {
+        fred: [
+          ["DGS10", "10-Year Treasury Constant Maturity Rate", "Interest Rates • daily"],
+          ["FEDFUNDS", "Federal Funds Effective Rate", "Interest Rates • monthly"],
+          ["CPIAUCSL", "CPI for All Urban Consumers", "Prices • monthly"],
+          ["UNRATE", "Unemployment Rate", "Labor • monthly"],
+        ],
+        ecb: [
+          ["FM.D.U2.EUR.4F.KR.MRR_FR.LEV", "Main Refinancing Operations Rate", "Monetary Policy • daily"],
+          ["FM.D.U2.EUR.4F.KR.DFR.LEV", "Deposit Facility Rate", "Monetary Policy • daily"],
+          ["ICP.M.U2.N.000000.4.ANR", "HICP — Overall index, Euro area", "Prices • monthly"],
+          ["EXR.D.USD.EUR.SP00.A", "EUR/USD spot exchange rate", "Exchange Rates • daily"],
+        ],
+        imf: [
+          ["IFS/A.US.NGDP_USD", "Nominal GDP in USD, US", "National Accounts • annual"],
+          ["IFS/A.US.NGDP_R_K_IX", "Real GDP index, US", "National Accounts • annual"],
+          ["IFS/M.US.PCPI_IX", "CPI, monthly, US", "Prices • monthly"],
+          ["IFS/A.EU.NGDP_R_K_IX", "Real GDP index, Euro area", "National Accounts • annual"],
+        ],
+        "world-bank": [
+          ["NY.GDP.PCAP.CD", "GDP per capita (current USD)", "National Accounts • annual"],
+          ["NY.GDP.MKTP.CD", "GDP (current USD)", "National Accounts • annual"],
+          ["FP.CPI.TOTL.ZG", "Inflation, consumer prices (annual %)", "Prices • annual"],
+          ["SL.UEM.TOTL.ZS", "Unemployment, total (% labor force)", "Labour • annual"],
+        ],
+      };
+
+      function buildPicker(activeProvider, selectedSeries) {
+        const cat = CATALOG[activeProvider];
+        return `
+          <div class="picker">
+            <div class="tabs">
+              ${PROVIDERS.map(
+                (p) =>
+                  `<button class="tab ${p.id === activeProvider ? "active" : ""}">${p.label}</button>`,
+              ).join("")}
+            </div>
+            <input class="search" placeholder="Search ${activeProvider} series… (or browse Featured)"/>
+            <div class="results">
+              ${cat
+                .map(
+                  ([sid, title, sub]) =>
+                    `<div class="row${sid === selectedSeries ? " selected" : ""}">
+                       <div class="t">${title}</div>
+                       <div class="s">${sid} — ${sub}</div>
+                     </div>`,
+                )
+                .join("")}
+            </div>
+          </div>`;
+      }
+
+      function buildPanel(host, series, activeProvider) {
+        host.innerHTML =
+          buildPicker(activeProvider, series.series_id) +
+          `<div class="header">
+            <div>
+              <div class="t">${series.title}</div>
+              <div class="s">${series.series_id} • ${series.provider}${series.units ? ` • ${series.units}` : ""}${series.frequency ? ` • ${series.frequency}` : ""}</div>
+            </div>
+            <label class="s"><input type="checkbox"/> log</label>
+          </div>
+          <div class="chart"></div>
+          <div class="footer">
+            ${series.observations.length} observations
+            ${series.last_updated ? " • updated " + series.last_updated.slice(0, 10) : ""}
+            ${series.source_url ? ' • <a href="' + series.source_url + '">source</a>' : ""}
+          </div>`;
+        const chartHost = host.querySelector(".chart");
+        const chart = LightweightCharts.createChart(chartHost, {
+          autoSize: true,
+          layout: { background: { color: "#1c1916" }, textColor: "#c9c2b2" },
+          grid: { vertLines: { color: "#2a2620" }, horzLines: { color: "#2a2620" } },
+          rightPriceScale: { borderColor: "#3a352c" },
+          timeScale: { borderColor: "#3a352c", timeVisible: false, secondsVisible: false },
+        });
+        const line = chart.addSeries(LightweightCharts.LineSeries, {
+          color: "#c39a3e",
+          lineWidth: 2,
+        });
+        line.setData(
+          series.observations.map((o) => ({
+            time: Math.floor(new Date(o.date).getTime() / 1000),
+            value: o.value,
+          })),
+        );
+        chart.timeScale().fitContent();
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        buildPanel(document.getElementById("panel-fred"), FRED_DGS10, "fred");
+        buildPanel(document.getElementById("panel-ecb"), ECB_MRO, "ecb");
+        buildPanel(document.getElementById("panel-imf"), IMF_GDP, "imf");
+        buildPanel(document.getElementById("panel-wb"), WB_GDP_PCAP, "world-bank");
+      });
+    </script>
+  </body>
+</html>
