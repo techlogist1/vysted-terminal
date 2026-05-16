@@ -18,6 +18,7 @@ import uvicorn
 
 from app import app
 from config import DATA_DIR_ENV
+from services import agent_tools, backtest_strategies
 
 
 def _exit_when_parent_closes_stdin() -> None:
@@ -57,6 +58,14 @@ def main() -> None:
 
     if args.data_dir:
         os.environ[DATA_DIR_ENV] = args.data_dir
+
+    # v0.5.0 runtime extensions — backtest strategy archetypes + the
+    # price_data + fundamentals agent tools. ``create_app`` already
+    # invokes these via ``_register_v0_5_0_runtime_extensions`` at app
+    # build time; the explicit re-call here is the documented
+    # production boot path and is idempotent (overwrites by id).
+    backtest_strategies.register_all()
+    agent_tools.register_v0_5_0_tools()
 
     threading.Thread(target=_exit_when_parent_closes_stdin, daemon=True).start()
 

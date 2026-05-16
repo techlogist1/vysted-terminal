@@ -36,7 +36,7 @@ from routers import (
     workflow,
     workspace,
 )
-from services import mcp_client, mcp_server
+from services import agent_tools, backtest_strategies, mcp_client, mcp_server
 from services.errors import ProviderError
 
 _ROUTERS = (
@@ -80,6 +80,20 @@ async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
             await mcp_client.reset_clients()
 
 
+def _register_v0_5_0_runtime_extensions() -> None:
+    """Wire backtest strategies + v0.5.0 agent tools into their registries.
+
+    Idempotent — both ``backtest_strategies.register_all`` and
+    ``agent_tools.register_v0_5_0_tools`` overwrite by stable id, so a
+    second call from ``main.py`` after the lifespan kicks in is a
+    no-op. Called from :func:`create_app` so TestClient builds pick the
+    registrations up without a separate fixture, and re-called from
+    ``main.py`` for parity with the documented v0.5.0 boot path.
+    """
+    backtest_strategies.register_all()
+    agent_tools.register_v0_5_0_tools()
+
+
 def create_app() -> FastAPI:
     """Build and return a fully wired sidecar FastAPI application."""
     app = FastAPI(title="Vysted Terminal Sidecar", version="0.4.0", lifespan=_lifespan)
@@ -101,6 +115,10 @@ def create_app() -> FastAPI:
 
     for module in _ROUTERS:
         app.include_router(module.router)
+
+    # v0.5.0 runtime extensions — backtest strategies + agent tools.
+    # Registered at app-build time so TestClient + uvicorn paths converge.
+    _register_v0_5_0_runtime_extensions()
 
     # Mount the FastMCP Streamable-HTTP transport at /mcp. External MCP
     # clients reach it via http://127.0.0.1:<port>/mcp/. The plain-JSON
