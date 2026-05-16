@@ -32,6 +32,7 @@ from routers import (
     news,
     plugins,
     portfolio,
+    quant,
     quotes,
     safety,
     workflow,
@@ -61,6 +62,7 @@ _ROUTERS = (
     workflow,
     backtest,
     brokers,
+    quant,
 )
 
 

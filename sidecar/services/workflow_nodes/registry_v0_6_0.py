@@ -44,9 +44,10 @@ def register_v0_6_0_nodes() -> None:
     # registered.append("sec")
 
     # Teammate Q — QuantLib pricing modules.
-    # from services.workflow_nodes import quant_nodes
-    # quant_nodes.register()
-    # registered.append("quant")
+    from services.workflow_nodes import quant_nodes
+
+    quant_nodes.register()
+    registered.append("quant")
 
     # Teammate E — Earnings + Analyst Ratings expansion.
     # from services.workflow_nodes import research_nodes

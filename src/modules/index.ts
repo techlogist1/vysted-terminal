@@ -20,7 +20,7 @@ import { watchlistModule } from "./watchlist";
 // import { secFilingsModule } from "./sec";                    // Teammate F
 // import { earningsModule } from "./earnings";                 // Teammate E
 // import { analystRatingsModule } from "./analyst-ratings";    // Teammate E
-// import { quantModule } from "./quant";                       // Teammate Q
+import { quantModule } from "./quant";                          // Teammate Q
 // import { screenerModule } from "./screener";                 // Teammate Sc
 
 /**
@@ -71,7 +71,7 @@ export const vystedModules: VystedModule[] = [
   // so audit drift is easy to spot.
   // macroModule,            // Teammate M
   // secFilingsModule,       // Teammate F
-  // quantModule,            // Teammate Q
+  quantModule,            // Teammate Q
   // earningsModule,         // Teammate E
   // analystRatingsModule,   // Teammate E
   // screenerModule,         // Teammate Sc

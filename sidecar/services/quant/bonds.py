@@ -18,7 +18,6 @@ from models.quant import BondPricingRequest, BondPricingResult
 
 from ._common import to_ql_date
 
-
 _FREQUENCY_MAP: dict[int, int] = {
     1: ql.Annual,
     2: ql.Semiannual,
@@ -41,9 +40,7 @@ def price_bond(req: BondPricingRequest) -> BondPricingResult:
     started = time.perf_counter()
 
     if req.coupons_per_year not in _FREQUENCY_MAP:
-        raise ValueError(
-            f"coupons_per_year must be one of 1, 2, 4 — got {req.coupons_per_year}"
-        )
+        raise ValueError(f"coupons_per_year must be one of 1, 2, 4 — got {req.coupons_per_year}")
     if req.maturity_date <= req.issue_date:
         raise ValueError("maturity_date must be strictly after issue_date")
     if req.settlement_date < req.issue_date or req.settlement_date >= req.maturity_date:

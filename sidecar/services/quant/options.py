@@ -112,9 +112,7 @@ def _price_binomial_npv(req: OptionPricingRequest, steps: int) -> float:
     if req.exercise == "european":
         exercise = ql.EuropeanExercise(to_ql_date(req.expiry_date))
     else:
-        exercise = ql.AmericanExercise(
-            to_ql_date(req.valuation_date), to_ql_date(req.expiry_date)
-        )
+        exercise = ql.AmericanExercise(to_ql_date(req.valuation_date), to_ql_date(req.expiry_date))
     option = ql.VanillaOption(payoff, exercise)
     option.setPricingEngine(ql.BinomialVanillaEngine(process, "crr", steps))
     return option.NPV()
@@ -150,16 +148,12 @@ def _greeks_fd(req: OptionPricingRequest, steps: int) -> Greeks:
     vol_bump = 0.005
     up_v = base.model_copy(update={"volatility": base.volatility + vol_bump})
     dn_v = base.model_copy(update={"volatility": base.volatility - vol_bump})
-    vega = (_price_binomial_npv(up_v, steps) - _price_binomial_npv(dn_v, steps)) / (
-        2.0 * vol_bump
-    )
+    vega = (_price_binomial_npv(up_v, steps) - _price_binomial_npv(dn_v, steps)) / (2.0 * vol_bump)
 
     rate_bump = 0.005
     up_r = base.model_copy(update={"risk_free_rate": base.risk_free_rate + rate_bump})
     dn_r = base.model_copy(update={"risk_free_rate": base.risk_free_rate - rate_bump})
-    rho = (_price_binomial_npv(up_r, steps) - _price_binomial_npv(dn_r, steps)) / (
-        2.0 * rate_bump
-    )
+    rho = (_price_binomial_npv(up_r, steps) - _price_binomial_npv(dn_r, steps)) / (2.0 * rate_bump)
 
     # Theta — forward difference in valuation date by 1 calendar day.
     from datetime import timedelta
