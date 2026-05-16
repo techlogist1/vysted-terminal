@@ -26,6 +26,7 @@ from __future__ import annotations
 
 from services.brokers.alpaca import AlpacaAdapter
 from services.brokers.angelone import AngelOneAdapter
+from services.brokers.ccxt_exec import CcxtExecutionAdapter
 from services.brokers.dhan import DhanAdapter
 from services.brokers.ib import IBAdapter
 from services.brokers.kite import KiteAdapter
@@ -34,6 +35,7 @@ from services.brokers.oanda import OandaAdapter
 __all__ = [
     "AlpacaAdapter",
     "AngelOneAdapter",
+    "CcxtExecutionAdapter",
     "DhanAdapter",
     "IBAdapter",
     "KiteAdapter",

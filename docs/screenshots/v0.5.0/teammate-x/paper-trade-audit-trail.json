@@ -1,0 +1,106 @@
+{
+  "generated_by": "sidecar/tests/gen_audit_trail.py",
+  "scope": "Bybit testnet paper trade \u2014 propose -> confirm -> place -> cancel",
+  "broker_id": "ccxt-bybit",
+  "proposal_id": "dcf25a26-b244-4ce7-8725-2cb62c3bbed2",
+  "broker_order_id": "paper-bybit-7735ec95e1ff",
+  "row_count": 5,
+  "rows": [
+    {
+      "id": 1,
+      "timestampMs": 1778914426966,
+      "broker": "ccxt-bybit",
+      "accountId": "bybit:test",
+      "action": "connection",
+      "payload": {
+        "connected": true
+      },
+      "source": "manual",
+      "outcome": "ok"
+    },
+    {
+      "id": 2,
+      "timestampMs": 1778914426977,
+      "broker": "ccxt-bybit",
+      "accountId": "bybit:test",
+      "action": "order-proposed",
+      "payload": {
+        "proposalId": "dcf25a26-b244-4ce7-8725-2cb62c3bbed2",
+        "broker": "ccxt-bybit",
+        "accountId": "bybit:test",
+        "symbol": "BTC/USDT",
+        "side": "buy",
+        "type": "limit",
+        "quantity": 0.01,
+        "limitPrice": 50000.0,
+        "stopPrice": null,
+        "currency": "USDT",
+        "estimatedValue": 500.0,
+        "source": "manual",
+        "sourceDetails": {},
+        "proposedAt": 1778914426977
+      },
+      "source": "manual",
+      "outcome": "ok"
+    },
+    {
+      "id": 3,
+      "timestampMs": 1778914426983,
+      "broker": "ccxt-bybit",
+      "accountId": "bybit:test",
+      "action": "order-confirmed",
+      "payload": {
+        "proposalId": "dcf25a26-b244-4ce7-8725-2cb62c3bbed2",
+        "note": null
+      },
+      "source": "manual",
+      "outcome": "ok"
+    },
+    {
+      "id": 4,
+      "timestampMs": 1778914426989,
+      "broker": "ccxt-bybit",
+      "accountId": "bybit:test",
+      "action": "order-placed",
+      "payload": {
+        "proposalId": "dcf25a26-b244-4ce7-8725-2cb62c3bbed2",
+        "broker": "ccxt-bybit",
+        "brokerOrderId": "paper-bybit-7735ec95e1ff",
+        "status": "filled",
+        "requestPayload": {
+          "exchange": "bybit",
+          "symbol": "BTC/USDT",
+          "type": "limit",
+          "side": "buy",
+          "amount": 0.01,
+          "price": 50000.0,
+          "stopPrice": null
+        },
+        "responsePayload": {
+          "synthetic": true,
+          "mode": "paper",
+          "exchange": "bybit",
+          "filledQty": 0.01,
+          "fillPrice": 50000.0,
+          "note": "paper-mode synthetic fill (no network call)"
+        },
+        "error": null,
+        "placedAt": 1778914426989
+      },
+      "source": "manual",
+      "outcome": "filled"
+    },
+    {
+      "id": 5,
+      "timestampMs": 1778914426994,
+      "broker": "ccxt-bybit",
+      "accountId": "bybit:test",
+      "action": "order-cancelled",
+      "payload": {
+        "brokerOrderId": "paper-bybit-7735ec95e1ff"
+      },
+      "source": "manual",
+      "outcome": "ok"
+    }
+  ]
+}
