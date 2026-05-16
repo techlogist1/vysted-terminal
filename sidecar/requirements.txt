@@ -46,3 +46,33 @@ oandapyV20==0.7.2
 #
 # ccxt already pinned above for crypto data (Phase 1); v0.5.0 Teammate X
 # extends the same dependency to crypto execution.
+
+# Phase 6 — macro + research + QuantLib (v0.6.0). In-process deps live here;
+# subprocess MCP servers (sec-edgar-mcp, fred-mcp-server) have their own
+# requirements.txt under their respective ``sidecar/<name>_mcp_subprocess/``
+# directories, matching the openbb_mcp_subprocess pattern from v0.4.0.
+#
+# QuantLib: C++ library exposed via SWIG wrappers. 1.42.1 ships ABI3 wheels
+# (``quantlib-1.42.1-cp38-abi3-win_amd64.whl`` etc.) so the single wheel
+# works across CPython 3.8+ — no Python-version-specific rebuild needed.
+# Quality posture for v0.6.0 explicitly removes the bundle-size constraint,
+# so QuantLib is bundled into the main sidecar rather than spawned as a
+# subprocess; this keeps the hot-path pricing call free of MCP roundtrip
+# overhead and simplifies lifecycle.
+QuantLib==1.42.1
+#
+# World Bank Open Data via the official python client (tgherzog/wbgapi).
+# Pure-Python; pandas-aware; covers all 800+ WB indicator series.
+wbgapi==1.0.14
+#
+# ECB Statistical Data Warehouse via the lightweight ``ecbdata`` wrapper
+# over the ECB's SDMX 2.1 REST endpoint. Pulled in as the path of least
+# resistance for the ICP / monetary aggregates / yield curve series Use
+# Case 5 needs; the heavier ``sdmx1`` library is also pinned below for
+# IMF + arbitrary SDMX agencies.
+ecbdata==0.1.1
+#
+# IMF + generic SDMX 2.1 / 3.0 client. Drives the IMF_DATA / IMF_DATA3
+# endpoints (and is the long-term path for any SDMX agency we add later
+# — Eurostat, OECD, ABS, etc.) without needing per-agency bespoke code.
+sdmx1==2.26.0
