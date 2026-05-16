@@ -26,7 +26,6 @@ import json
 import re
 import sqlite3
 import subprocess
-import time
 from pathlib import Path
 
 import pytest
@@ -36,7 +35,6 @@ from models.safety import AuditLogAppendRequest
 from services import (
     agent_tools,
     audit_log,
-    broker_base,
     disclaimer_session,
     kill_switch,
     static_ip_detector,
@@ -149,11 +147,9 @@ def test_audit_1_paper_mode_default(temp_audit_dir):
         text=True,
     )
     lines.append("")
-    lines.append("## grep _mode=\"live\" (must be empty)")
+    lines.append('## grep _mode="live" (must be empty)')
     lines.append(grep_proof.stdout or "(none)")
-    assert grep_proof.stdout == "", (
-        f"unexpected _mode='live' literals found:\n{grep_proof.stdout}"
-    )
+    assert grep_proof.stdout == "", f"unexpected _mode='live' literals found:\n{grep_proof.stdout}"
 
     _save_capture("paper-default-proof.log", "\n".join(lines) + "\n")
 
@@ -195,8 +191,8 @@ def test_audit_2_no_bypass_path_to_place_confirmed(temp_audit_dir):
         and "await self._place_confirmed(" not in line
         and not re.search(r"#.*_place_confirmed", line)  # comments
     ]
-    assert suspicious == [], (
-        "non-tests/non-base call site for _place_confirmed:\n" + "\n".join(suspicious)
+    assert suspicious == [], "non-tests/non-base call site for _place_confirmed:\n" + "\n".join(
+        suspicious
     )
 
     body = (
@@ -237,9 +233,7 @@ def test_audit_3_position_limit_enforcement(temp_audit_dir):
                 quantity=1.0,
                 limit_price=cap * 2.0,
             )
-        lines.append(
-            f"- {cls.__name__:.<32} raises on order_value=2×{cap:.0f}  OK"
-        )
+        lines.append(f"- {cls.__name__:.<32} raises on order_value=2×{cap:.0f}  OK")
 
     _save_capture("position-limit-proof.log", "\n".join(lines) + "\n")
 
@@ -364,9 +358,11 @@ def test_audit_6_ai_order_gate(temp_audit_dir):
     # (1) Registry inspection — no place_order / submit_order tool.
     registered = agent_tools.registered_tools()
     captures.append(f"registered tools: {registered}")
-    forbidden = [t for t in registered if any(
-        s in t.lower() for s in ("place_order", "submit_order", "execute_order")
-    )]
+    forbidden = [
+        t
+        for t in registered
+        if any(s in t.lower() for s in ("place_order", "submit_order", "execute_order"))
+    ]
     assert forbidden == [], f"forbidden order-placing tool registered: {forbidden}"
 
     # (2) End-to-end: AI proposal → confirm flow.
@@ -380,9 +376,7 @@ def test_audit_6_ai_order_gate(temp_audit_dir):
         source="ai-agent",
         source_details={"originatorId": "buffett", "originatorName": "Warren Buffett"},
     )
-    captures.append(
-        f"AI proposal accepted: id={proposal.proposal_id[:8]} source={proposal.source}"
-    )
+    captures.append(f"AI proposal accepted: id={proposal.proposal_id[:8]} source={proposal.source}")
     assert proposal.source == "ai-agent"
 
     # (2a) confirm with human_confirmed=False MUST raise + audit-log decline.
@@ -416,7 +410,8 @@ def test_audit_6_ai_order_gate(temp_audit_dir):
         line for line in grep.stdout.splitlines() if "tests/" not in line and ".pyc" not in line
     ]
     captures.append(
-        "auto-approve assignment grep: " + ("(none)" if not matches else f"{len(matches)} suspect lines")
+        "auto-approve assignment grep: "
+        + ("(none)" if not matches else f"{len(matches)} suspect lines")
     )
     assert matches == [], (
         "auto-approve assignment found — v0.5.0 forbids per operator brief tightening"
@@ -501,9 +496,7 @@ def test_audit_8b_static_ip_detection(temp_audit_dir):
 
     # No detected IP at all.
     captures = ["# §6.5 #8 — static-IP detection (Kite UX path)"]
-    status = asyncio.run(
-        static_ip_detector.static_ip_status(configured_ip="203.0.113.42")
-    )
+    status = asyncio.run(static_ip_detector.static_ip_status(configured_ip="203.0.113.42"))
     captures.append(f"unconfigured-detector status.matches={status.matches}")
 
     _save_capture("static-ip-proof.log", "\n".join(captures) + "\n")
