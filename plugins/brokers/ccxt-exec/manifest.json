@@ -1,0 +1,10 @@
+{
+  "id": "ccxt-exec",
+  "version": "0.1.0",
+  "name": "ccxt Crypto Execution",
+  "entry": "./index.ts",
+  "requiredHostVersion": ">=0.5.0",
+  "description": "Unified crypto execution adapter for Bybit, Binance, Kraken, and Coinbase, built on the Phase-1 ccxt data foundation. Each exchange surfaces as its own broker id (ccxt-bybit, ccxt-binance, ccxt-kraken, ccxt-coinbase) so the broker-connect UI can list them independently.",
+  "author": "Vysted Team",
+  "homepage": "https://docs.ccxt.com/"
+}
