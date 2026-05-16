@@ -1,0 +1,22 @@
+{
+  "subscriber_count": 12,
+  "p50_ack_ms": 10.974350000000001,
+  "p95_ack_ms": 20.065415,
+  "max_ack_ms": 20.0834,
+  "budget_ms": 2000.0,
+  "result": "PASS",
+  "per_subscriber_ack_ms": {
+    "dhan": 12.9075,
+    "angelone": 7.3618,
+    "kite": 5.7653,
+    "alpaca": 6.3856,
+    "ib": 7.4834,
+    "oanda": 9.0412,
+    "ccxt-bybit": 6.9311,
+    "proposal:0": 20.0216,
+    "proposal:1": 20.0259,
+    "workflow:0": 20.0834,
+    "workflow:1": 20.0507,
+    "workflow:2": 20.0448
+  }
+}
