@@ -38,9 +38,10 @@ def register_v0_6_0_tools() -> None:
     registered.append("macro")
 
     # Teammate F — SEC Filings Reader.
-    # from services.agent_tools import sec_tools
-    # sec_tools.register()
-    # registered.append("sec")
+    from services.agent_tools import sec_tools
+
+    sec_tools.register()
+    registered.append("sec")
 
     # Teammate Q — QuantLib pricing modules.
     # from services.agent_tools import quant_tools
