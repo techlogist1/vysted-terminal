@@ -97,6 +97,20 @@ def _register_v0_5_0_runtime_extensions() -> None:
     agent_tools.register_v0_5_0_tools()
 
 
+def _register_v0_6_0_runtime_extensions() -> None:
+    """Wire Phase 6 agent tools + workflow nodes into their registries.
+
+    Aggregator stubs that no-op until a Phase 6 teammate's submodule
+    uncomments its registration line. Lives next to the v0.5.0 helper
+    above and is called from :func:`create_app` so TestClient builds
+    pick the registrations up.
+    """
+    from services.workflow_nodes import registry_v0_6_0 as _wf_v0_6_0
+
+    agent_tools.register_v0_6_0_tools()
+    _wf_v0_6_0.register_v0_6_0_nodes()
+
+
 def create_app() -> FastAPI:
     """Build and return a fully wired sidecar FastAPI application."""
     app = FastAPI(title="Vysted Terminal Sidecar", version="0.5.0", lifespan=_lifespan)
@@ -127,6 +141,12 @@ def create_app() -> FastAPI:
     # v0.5.0 runtime extensions — backtest strategies + agent tools.
     # Registered at app-build time so TestClient + uvicorn paths converge.
     _register_v0_5_0_runtime_extensions()
+
+    # v0.6.0 (Phase 6) runtime extensions — macro + SEC + earnings +
+    # analyst + quant + screener agent tools and workflow nodes. The
+    # aggregators currently no-op until each Phase 6 teammate's
+    # submodule uncomments its registration entry.
+    _register_v0_6_0_runtime_extensions()
 
     # Mount the FastMCP Streamable-HTTP transport at /mcp. External MCP
     # clients reach it via http://127.0.0.1:<port>/mcp/. The plain-JSON

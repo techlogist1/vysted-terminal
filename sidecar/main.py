@@ -20,6 +20,7 @@ from app import app
 from config import DATA_DIR_ENV
 from services import agent_tools, backtest_strategies, workflow_nodes
 from services.brokers import registry as brokers_registry
+from services.workflow_nodes import registry_v0_6_0 as workflow_nodes_v0_6_0
 
 
 def _exit_when_parent_closes_stdin() -> None:
@@ -80,6 +81,16 @@ def main() -> None:
     # production boot path and is idempotent (overwrites by id).
     backtest_strategies.register_all()
     agent_tools.register_v0_5_0_tools()
+
+    # v0.6.0 (Phase 6) extensions — macro + SEC + earnings + analyst +
+    # quant + screener agent tools and workflow nodes. The aggregators
+    # below currently no-op when no Phase 6 teammate has registered
+    # their domain; they become live as each teammate's submodule
+    # uncomments its entry in
+    # ``services/agent_tools/registry_v0_6_0.py`` and
+    # ``services/workflow_nodes/registry_v0_6_0.py``. Idempotent.
+    agent_tools.register_v0_6_0_tools()
+    workflow_nodes_v0_6_0.register_v0_6_0_nodes()
 
     threading.Thread(target=_exit_when_parent_closes_stdin, daemon=True).start()
 

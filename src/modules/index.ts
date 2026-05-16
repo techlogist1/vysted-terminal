@@ -13,6 +13,15 @@ import { pluginManagerModule } from "./plugin-manager";
 import { portfolioModule } from "./portfolio";
 import { safetyModule } from "./safety";
 import { watchlistModule } from "./watchlist";
+// Phase 6 — uncomment per teammate at integration time. Each teammate owns
+// exactly one (or two) of the six entries below; the commented stubs land in
+// foundation so the per-teammate merge sees an additive-only diff.
+// import { macroModule } from "./macro";                       // Teammate M
+// import { secFilingsModule } from "./sec";                    // Teammate F
+// import { earningsModule } from "./earnings";                 // Teammate E
+// import { analystRatingsModule } from "./analyst-ratings";    // Teammate E
+// import { quantModule } from "./quant";                       // Teammate Q
+// import { screenerModule } from "./screener";                 // Teammate Sc
 
 /**
  * The complete first-party module registry. This file is intentionally complete
@@ -57,4 +66,13 @@ export const vystedModules: VystedModule[] = [
   backtestModule,
   brokerConnectModule,
   safetyModule,
+  // Phase 6 (v0.6.0) — each teammate uncomments their entry at integration.
+  // The line order matches the v0.6.0 plan's merge order (M → F → Q → E → Sc)
+  // so audit drift is easy to spot.
+  // macroModule,            // Teammate M
+  // secFilingsModule,       // Teammate F
+  // quantModule,            // Teammate Q
+  // earningsModule,         // Teammate E
+  // analystRatingsModule,   // Teammate E
+  // screenerModule,         // Teammate Sc
 ];
