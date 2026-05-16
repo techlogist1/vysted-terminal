@@ -5,12 +5,17 @@ import { vystedModules } from "@/modules";
 
 describe("module registry", () => {
   it("registers the Phase 1 + Phase 2 + Phase 3 + Phase 4 + Phase 5 + Phase 6 modules", () => {
+    // Phase 6 (v0.6.0) adds five new frontend modules: macro, sec-filings,
+    // quant, earnings, analyst-ratings. Teammate Sc's screener module is
+    // backend-only at merge time and is lead-completed post-merge.
     expect([...vystedModules.map((module) => module.id)].sort()).toEqual([
       "agent-builder",
+      "analyst-ratings",
       "backtest",
       "broker-connect",
       "chart",
       "chat",
+      "earnings",
       "equity-overview",
       "macro",
       "news",
@@ -18,7 +23,9 @@ describe("module registry", () => {
       "platform",
       "plugin-manager",
       "portfolio",
+      "quant",
       "safety",
+      "sec-filings",
       "watchlist",
     ]);
   });
