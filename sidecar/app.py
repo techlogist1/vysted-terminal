@@ -18,6 +18,7 @@ from fastapi.responses import JSONResponse
 
 from routers import (
     agents,
+    backtest,
     crypto,
     custom_agents,
     fundamentals,
@@ -56,6 +57,7 @@ _ROUTERS = (
     mcp,
     safety,
     workflow,
+    backtest,
 )
 
 
