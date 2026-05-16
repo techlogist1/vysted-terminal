@@ -56,10 +56,7 @@ def _provider(provider: str | MacroProvider) -> Any:
     key = str(provider).lower()
     mod = _PROVIDERS.get(key)
     if mod is None:
-        raise ProviderError(
-            f"Unknown macro provider {provider!r}; "
-            f"supported: {sorted(_PROVIDERS)}"
-        )
+        raise ProviderError(f"Unknown macro provider {provider!r}; supported: {sorted(_PROVIDERS)}")
     return mod
 
 

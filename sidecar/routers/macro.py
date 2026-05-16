@@ -14,6 +14,7 @@ v0.6.0 provider literal.
 from __future__ import annotations
 
 import logging
+from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query
 
@@ -43,9 +44,9 @@ _V0_6_0_PROVIDERS: frozenset[str] = frozenset({"fred", "ecb", "imf", "world-bank
 
 @router.get("/search", response_model=list[MacroSearchResult])
 async def search_macro_series(
-    q: str = Query(..., min_length=1, description="Free-text query."),
-    provider: MacroProvider = Query(..., description="Upstream provider to search."),
-    limit: int = Query(default=25, ge=1, le=100),
+    q: Annotated[str, Query(min_length=1, description="Free-text query.")],
+    provider: Annotated[MacroProvider, Query(description="Upstream provider to search.")],
+    limit: Annotated[int, Query(ge=1, le=100)] = 25,
 ) -> list[MacroSearchResult]:
     """Search the dispatched provider's catalog. Phase 6."""
     try:
@@ -56,8 +57,8 @@ async def search_macro_series(
 
 @router.get("/catalog", response_model=MacroCatalog)
 async def get_macro_catalog(
-    provider: MacroProvider = Query(..., description="Upstream provider to list."),
-    limit: int = Query(default=25, ge=1, le=100),
+    provider: Annotated[MacroProvider, Query(description="Upstream provider to list.")],
+    limit: Annotated[int, Query(ge=1, le=100)] = 25,
 ) -> MacroCatalog:
     """Return the curated featured catalog for the dispatched provider. Phase 6."""
     try:

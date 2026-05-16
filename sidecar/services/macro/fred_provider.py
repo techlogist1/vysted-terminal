@@ -33,7 +33,7 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from models.macro_extended import (
@@ -179,12 +179,18 @@ def _api_key() -> str:
 
 
 def _make_client() -> Any:
-    """Construct a ``fredapi.Fred`` client. Isolated for test mockability."""
+    """Construct a ``fredapi.Fred`` client. Isolated for test mockability.
+
+    Checks the env var BEFORE importing fredapi so a missing key surfaces
+    the canonical "set FRED_API_KEY" error even on a build without the
+    library installed (e.g. CI / unit tests).
+    """
+    key = _api_key()
     try:
         from fredapi import Fred  # type: ignore[import-not-found]
     except ImportError as exc:  # pragma: no cover — exercised via test
         raise ProviderError(f"fredapi is not installed: {exc}") from exc
-    return Fred(api_key=_api_key())
+    return Fred(api_key=key)
 
 
 def _coerce_freq(raw: Any) -> str | None:
@@ -224,7 +230,7 @@ def _parse_observations(series: Any) -> list[MacroObservation]:
             except ValueError:
                 continue
         if date.tzinfo is None:
-            date = date.replace(tzinfo=timezone.utc)
+            date = date.replace(tzinfo=UTC)
         value: float | None
         try:
             float_v = float(raw_value)
@@ -264,7 +270,7 @@ def get_series(series_id: str) -> MacroSeriesExtended:
         try:
             last_updated = datetime.fromisoformat(str(last_updated_raw).replace(" ", "T"))
             if last_updated.tzinfo is None:
-                last_updated = last_updated.replace(tzinfo=timezone.utc)
+                last_updated = last_updated.replace(tzinfo=UTC)
         except ValueError:
             last_updated = None
 

@@ -15,7 +15,7 @@ Public surface (matches every other macro provider in this package):
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from models.macro_extended import (
@@ -144,15 +144,13 @@ def _parse_observations(df: Any) -> list[MacroObservation]:
             else:
                 continue
         if date.tzinfo is None:
-            date = date.replace(tzinfo=timezone.utc)
+            date = date.replace(tzinfo=UTC)
         raw_value = row.get("OBS_VALUE") or row.get("value")
         value: float | None
         try:
             float_v = float(raw_value) if raw_value is not None else None
             value = (
-                None
-                if float_v is None or float_v != float_v
-                else float_v  # NaN check
+                None if float_v is None or float_v != float_v else float_v  # NaN check
             )
         except (TypeError, ValueError):
             value = None

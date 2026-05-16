@@ -16,7 +16,7 @@ Public surface (matches every other macro provider in this package):
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from models.macro_extended import (
@@ -152,7 +152,10 @@ def _parse_observations_from_sdmx(message: Any) -> list[MacroObservation]:
     for ds in datasets:
         # sdmx1 exposes .series as a dict or list depending on shape.
         try:
-            ds_series = list(ds.series.values()) if hasattr(ds.series, "values") else list(ds.series)
+            if hasattr(ds.series, "values"):
+                ds_series = list(ds.series.values())
+            else:
+                ds_series = list(ds.series)
         except (AttributeError, TypeError):
             ds_series = []
         series_list.extend(ds_series)
@@ -189,7 +192,7 @@ def _parse_observations_from_sdmx(message: Any) -> list[MacroObservation]:
         except ValueError:
             continue
         if date.tzinfo is None:
-            date = date.replace(tzinfo=timezone.utc)
+            date = date.replace(tzinfo=UTC)
         value: float | None
         try:
             float_v = float(raw_value) if raw_value is not None else None

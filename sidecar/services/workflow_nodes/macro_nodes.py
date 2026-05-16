@@ -22,9 +22,7 @@ from services.macro import macro_router as macro_dispatcher
 _VALID_PROVIDERS = {"fred", "ecb", "imf", "world-bank"}
 
 
-async def fetch_macro_series(
-    inputs: dict[str, Any], config: dict[str, Any]
-) -> dict[str, Any]:
+async def fetch_macro_series(inputs: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
     """Fetch one macro time series for the workflow run."""
     series_id = inputs.get("series_id") or config.get("series_id")
     provider = inputs.get("provider") or config.get("provider")

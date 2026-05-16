@@ -22,7 +22,7 @@ Public surface (matches every other macro provider in this package):
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from models.macro_extended import (
@@ -159,9 +159,13 @@ def get_series(series_id: str) -> MacroSeriesExtended:
 
     observations: list[MacroObservation] = []
     for row in rows:
-        # row shape: {'economy': 'USA', 'series': 'NY.GDP.PCAP.CD', 'time': 'YR2023', 'value': 76329.6}
-        time_raw = row.get("time") if isinstance(row, dict) else getattr(row, "time", None)
-        value_raw = row.get("value") if isinstance(row, dict) else getattr(row, "value", None)
+        # row shape: ``{'economy': ..., 'series': ..., 'time': 'YR2023', 'value': ...}``
+        if isinstance(row, dict):
+            time_raw = row.get("time")
+            value_raw = row.get("value")
+        else:
+            time_raw = getattr(row, "time", None)
+            value_raw = getattr(row, "value", None)
         if time_raw is None:
             continue
         time_str = str(time_raw)
@@ -172,7 +176,7 @@ def get_series(series_id: str) -> MacroSeriesExtended:
         except ValueError:
             continue
         if date.tzinfo is None:
-            date = date.replace(tzinfo=timezone.utc)
+            date = date.replace(tzinfo=UTC)
         value: float | None
         try:
             float_v = float(value_raw) if value_raw is not None else None
