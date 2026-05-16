@@ -40,9 +40,7 @@ def test_register_adds_two_node_types() -> None:
 async def test_fetch_sec_filing_returns_detail(
     available_provider: None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    sections = [
-        FilingSection(id="item-1", title="Item 1", text="Body " * 30, word_count=30)
-    ]
+    sections = [FilingSection(id="item-1", title="Item 1", text="Body " * 30, word_count=30)]
     fixture = FilingDetail(
         filing=Filing(
             accession="0000320193-24-000123",

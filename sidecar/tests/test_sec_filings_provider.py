@@ -56,9 +56,7 @@ class _RecordingClient:
 
 
 @pytest.fixture
-def recorder(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> _RecordingClient:
+def recorder(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> _RecordingClient:
     """Install a recording fake client + pin port env var + fresh cache db."""
     rec = _RecordingClient()
 
@@ -147,9 +145,7 @@ async def test_list_filings_invokes_correct_tool(recorder: _RecordingClient) -> 
     """list_filings calls get_recent_filings with the right identifier + form filter."""
     recorder.respond("get_recent_filings", _AAPL_FILINGS_PAYLOAD)
 
-    response = await sec_filings_provider.list_filings(
-        "AAPL", form_type="10-K", limit=20
-    )
+    response = await sec_filings_provider.list_filings("AAPL", form_type="10-K", limit=20)
 
     assert recorder.calls[0]["name"] == "get_recent_filings"
     assert recorder.calls[0]["arguments"]["identifier"] == "AAPL"
@@ -218,9 +214,7 @@ async def test_get_filing_assembles_detail(recorder: _RecordingClient) -> None:
     recorder.respond("get_filing_sections", _AAPL_SECTIONS_PAYLOAD)
     recorder.respond("get_recent_filings", _AAPL_FILINGS_PAYLOAD)
 
-    detail = await sec_filings_provider.get_filing(
-        "0000320193-24-000123", cik_or_symbol="AAPL"
-    )
+    detail = await sec_filings_provider.get_filing("0000320193-24-000123", cik_or_symbol="AAPL")
 
     assert detail.filing.accession == "0000320193-24-000123"
     assert detail.filing.form_type == "10-K"
@@ -289,9 +283,7 @@ _INSIDER_PAYLOAD = {
 async def test_list_insider_transactions(recorder: _RecordingClient) -> None:
     recorder.respond("get_insider_transactions", _INSIDER_PAYLOAD)
 
-    response = await sec_filings_provider.list_insider_transactions(
-        "AAPL", form_type="4", limit=20
-    )
+    response = await sec_filings_provider.list_insider_transactions("AAPL", form_type="4", limit=20)
 
     assert recorder.calls[0]["name"] == "get_insider_transactions"
     assert recorder.calls[0]["arguments"]["form_types"] == ["4"]

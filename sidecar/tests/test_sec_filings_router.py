@@ -47,9 +47,7 @@ def _sample_section(idx: int) -> FilingSection:
 
 
 @pytest.fixture
-def available_provider(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> AsyncIterator[None]:
+def available_provider(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> AsyncIterator[None]:
     """Pin the provider to 'available' + fresh data_cache for each test."""
     monkeypatch.setenv("VYSTED_SEC_EDGAR_MCP_PORT", "9876")
     sec_filings_provider._reset_for_tests()
@@ -96,9 +94,7 @@ def test_status_when_available(client: TestClient, available_provider: None) -> 
 # ---------------------------------------------------------------------------
 
 
-def test_filings_requires_cik_or_symbol(
-    client: TestClient, available_provider: None
-) -> None:
+def test_filings_requires_cik_or_symbol(client: TestClient, available_provider: None) -> None:
     response = client.get("/sec/filings")
     assert response.status_code == 400
 
@@ -151,9 +147,7 @@ def test_filings_passes_form_type_and_limit(
         )
 
     monkeypatch.setattr(sec_filings_provider, "list_filings", _fake)
-    response = client.get(
-        "/sec/filings", params={"cik": "320193", "form_type": "10-K", "limit": 5}
-    )
+    response = client.get("/sec/filings", params={"cik": "320193", "form_type": "10-K", "limit": 5})
     assert response.status_code == 200
     assert captured["form_type"] == "10-K"
     assert captured["limit"] == 5
@@ -182,18 +176,14 @@ def test_filing_detail(
         return fixture
 
     monkeypatch.setattr(sec_filings_provider, "get_filing", _fake)
-    response = client.get(
-        "/sec/filings/0000320193-24-000123", params={"identifier": "AAPL"}
-    )
+    response = client.get("/sec/filings/0000320193-24-000123", params={"identifier": "AAPL"})
     assert response.status_code == 200
     body = response.json()
     assert body["filing"]["form_type"] == "10-K"
     assert len(body["sections"]) == 6
 
 
-def test_filing_detail_requires_identifier(
-    client: TestClient, available_provider: None
-) -> None:
+def test_filing_detail_requires_identifier(client: TestClient, available_provider: None) -> None:
     response = client.get("/sec/filings/0000320193-24-000123")
     assert response.status_code == 422  # FastAPI's missing-query error
 
@@ -205,9 +195,7 @@ def test_filing_sections_route(
 ) -> None:
     sections = [_sample_section(i) for i in range(1, 4)]
 
-    async def _fake(
-        accession: str, *, cik_or_symbol: str | None = None
-    ) -> list[FilingSection]:
+    async def _fake(accession: str, *, cik_or_symbol: str | None = None) -> list[FilingSection]:
         return sections
 
     monkeypatch.setattr(sec_filings_provider, "get_filing_sections", _fake)

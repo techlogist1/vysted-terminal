@@ -45,11 +45,11 @@ from models.sec import (
     FilingDetail,
     FilingFormType,
     FilingSection,
+    FilingsListResponse,
     InsiderFormType,
     InsiderTransaction,
     InsiderTransactionDirection,
     InsiderTransactionsResponse,
-    FilingsListResponse,
 )
 from services import data_cache, mcp_client
 from services.errors import ProviderError
@@ -292,7 +292,9 @@ def _filings_from_payload(
         accession = str(raw.get("accession") or raw.get("accession_number") or "")
         if not accession:
             continue
-        filed_date = _coerce_date(raw.get("filed_date") or raw.get("filing_date") or raw.get("filed"))
+        filed_date = _coerce_date(
+            raw.get("filed_date") or raw.get("filing_date") or raw.get("filed")
+        )
         if filed_date is None:
             continue
         row_cik = str(raw.get("cik") or raw.get("CIK") or cik_padded)
@@ -620,9 +622,7 @@ async def search_companies(query: str, limit: int = 10) -> list[dict[str, Any]]:
     cached = await data_cache.get(cache_key, _FILINGS_INDEX_TTL)
     if isinstance(cached, list):
         return cached  # type: ignore[return-value]
-    payload = await _call_tool(
-        "search_companies", {"query": query.strip(), "limit": int(limit)}
-    )
+    payload = await _call_tool("search_companies", {"query": query.strip(), "limit": int(limit)})
     rows: list[dict[str, Any]] = []
     raw_list: list[Any] = []
     if isinstance(payload, dict):

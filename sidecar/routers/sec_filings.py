@@ -27,7 +27,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException
 
 from models.sec import (
     FilingDetail,
@@ -62,8 +62,8 @@ async def get_status() -> dict[str, object]:
 
 @router.get("/filings/search")
 async def search_companies(
-    q: str = Query(..., min_length=1, description="Company name search query"),
-    limit: int = Query(10, ge=1, le=50),
+    q: str,
+    limit: int = 10,
 ) -> dict[str, list[dict[str, object]]]:
     """Search the EDGAR company index by name."""
     _require_available()
@@ -79,26 +79,18 @@ async def search_companies(
 
 @router.get("/filings")
 async def list_filings(
-    cik: str | None = Query(None, description="Company CIK (preferred)"),
-    symbol: str | None = Query(None, description="Ticker symbol (fallback)"),
-    form_type: FilingFormType | None = Query(
-        None,
-        alias="form_type",
-        description="Restrict to one form type",
-    ),
-    limit: int = Query(40, ge=1, le=200),
+    cik: str | None = None,
+    symbol: str | None = None,
+    form_type: FilingFormType | None = None,
+    limit: int = 40,
 ) -> FilingsListResponse:
     """List recent filings for a company."""
     _require_available()
     identifier = cik or symbol
     if not identifier:
-        raise HTTPException(
-            status_code=400, detail="either 'cik' or 'symbol' is required"
-        )
+        raise HTTPException(status_code=400, detail="either 'cik' or 'symbol' is required")
     try:
-        return await sec_filings_provider.list_filings(
-            identifier, form_type=form_type, limit=limit
-        )
+        return await sec_filings_provider.list_filings(identifier, form_type=form_type, limit=limit)
     except ProviderError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
@@ -106,7 +98,7 @@ async def list_filings(
 @router.get("/filings/{accession}")
 async def get_filing(
     accession: str,
-    identifier: str = Query(..., description="CIK or symbol used to find the filing"),
+    identifier: str,
 ) -> FilingDetail:
     """Return the parsed filing detail (metadata + sections)."""
     _require_available()
@@ -119,7 +111,7 @@ async def get_filing(
 @router.get("/filings/{accession}/sections")
 async def get_filing_sections(
     accession: str,
-    identifier: str = Query(..., description="CIK or symbol used to find the filing"),
+    identifier: str,
 ) -> dict[str, list[FilingSection]]:
     """Return the sections list for an accession."""
     _require_available()
@@ -141,8 +133,8 @@ _InsiderForm = Literal["3", "4", "5"]
 @router.get("/insider/{identifier}")
 async def list_insider_transactions(
     identifier: str,
-    form: _InsiderForm | None = Query(None, description="Restrict to Form 3, 4, or 5"),
-    limit: int = Query(50, ge=1, le=200),
+    form: _InsiderForm | None = None,
+    limit: int = 50,
 ) -> InsiderTransactionsResponse:
     """Recent insider transactions for an issuer."""
     _require_available()

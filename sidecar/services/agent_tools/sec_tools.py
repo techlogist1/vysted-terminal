@@ -29,7 +29,8 @@ async def _sec_filings_list(args: dict[str, Any]) -> dict[str, Any]:
     Args:
         cik: CIK (zero-padded or numeric). Either cik or symbol required.
         symbol: Ticker symbol — alternative to cik.
-        form_type: Optional filter, one of ``"10-K" | "10-Q" | "8-K" | "DEF 14A" | "3" | "4" | "5"``.
+        form_type: Optional filter — one of
+            ``"10-K" | "10-Q" | "8-K" | "DEF 14A" | "3" | "4" | "5"``.
         limit: Max filings to return (default 20).
     """
     identifier = args.get("cik") or args.get("symbol") or args.get("identifier")
@@ -89,9 +90,7 @@ async def _sec_filing_content(args: dict[str, Any]) -> dict[str, Any]:
             "error": "sec-edgar-mcp subprocess not bundled in this build",
         }
     try:
-        detail = await sec_filings_provider.get_filing(
-            accession, cik_or_symbol=identifier
-        )
+        detail = await sec_filings_provider.get_filing(accession, cik_or_symbol=identifier)
     except ProviderError as exc:
         return {"ok": False, "error": f"provider error: {exc}"}
     except Exception as exc:  # noqa: BLE001
