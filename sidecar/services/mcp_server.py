@@ -278,6 +278,65 @@ def _build_server() -> FastMCP:
             response.raise_for_status()
             return response.json()
 
+    # ---------- Workflow tools (Teammate W's v0.5.0 surface) ----------
+
+    @mcp.tool
+    async def run_workflow(spec_json: str) -> dict[str, Any]:
+        """Run a workflow spec to completion and return the unary result.
+
+        ``spec_json`` is a JSON-encoded :class:`WorkflowSpec` (the same shape
+        ``POST /workflow/run`` accepts inside its ``WorkflowRunRequest`` body).
+        MCP tools are unary so this proxy calls :func:`workflow_engine.run_workflow`
+        directly rather than consuming the SSE stream the HTTP route emits —
+        the per-event observability is intentionally only on the SSE path.
+
+        Returns ``{ok: bool, result: WorkflowRunResult-dict}`` to satisfy the
+        FastMCP dict-output requirement (the v0.4.0 Gotcha — bare scalars and
+        bare lists are rejected at the tool boundary).
+        """
+        # Local imports to avoid pulling workflow models into module-load when
+        # the MCP server is built; the workflow router already loaded them.
+        from models.workflow import WorkflowSpec
+        from services import workflow_engine
+
+        try:
+            spec = WorkflowSpec.model_validate_json(spec_json)
+        except Exception as exc:  # noqa: BLE001 — surface parse errors cleanly
+            return {"ok": False, "error": f"invalid workflow spec: {exc}"}
+
+        try:
+            result = await workflow_engine.run_workflow(spec)
+        except workflow_engine.WorkflowEngineError as exc:
+            return {"ok": False, "error": str(exc)}
+        return {"ok": True, "result": result.model_dump(mode="json", by_alias=True)}
+
+    @mcp.tool
+    async def list_workflows() -> dict[str, Any]:
+        """List every saved workflow.
+
+        Maps to ``GET /workflow/saved``. The router returns a dict
+        ``{workflows: [...]}`` already, but this tool keeps that wrap rule
+        explicit at the MCP boundary per the v0.4.0 Gotcha (FastMCP rejects
+        bare-list outputs; always return a dict).
+        """
+        async with _internal_client() as client:
+            try:
+                response = await client.get("/workflow/saved")
+                if response.status_code == 404:
+                    return {"workflows": []}
+                response.raise_for_status()
+                body = response.json()
+                # Router already returns {workflows: [...]}; normalise to that
+                # shape if a future revision flattens to a bare list.
+                if isinstance(body, list):
+                    return {"workflows": body}
+                if isinstance(body, dict) and "workflows" in body:
+                    return body
+                return {"workflows": []}
+            except httpx.HTTPError as exc:
+                _log.debug("list_workflows: workflow router not reachable: %s", exc)
+                return {"workflows": []}
+
     return mcp
 
 

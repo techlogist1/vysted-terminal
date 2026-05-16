@@ -41,7 +41,7 @@ def test_status_endpoint_reports_ready(client: TestClient) -> None:
 
 
 def test_mcp_server_registers_expected_tools() -> None:
-    """Every Phase-3 brief tool is registered on the FastMCP server."""
+    """Every Phase-3 + v0.5.0 workflow tool is registered on the FastMCP server."""
     server = mcp_server.get_mcp_server()
     tools = asyncio.run(server.list_tools())
     names = {tool.name for tool in tools}
@@ -55,6 +55,9 @@ def test_mcp_server_registers_expected_tools() -> None:
         "invoke_agent",
         "list_workspaces",
         "get_workspace",
+        # v0.5.0 workflow tools — Teammate W
+        "run_workflow",
+        "list_workflows",
     }.issubset(names)
 
 
@@ -133,3 +136,72 @@ def test_protocol_version_returns_a_string() -> None:
     version = mcp_server.protocol_version()
     assert isinstance(version, str)
     assert len(version) > 0
+
+
+# ---------------------------------------------------------------------------
+# v0.5.0 workflow tools
+# ---------------------------------------------------------------------------
+
+
+def test_run_workflow_tool_runs_a_simple_spec(client: TestClient) -> None:
+    """``run_workflow`` calls the engine directly and returns ``{ok, result}``."""
+    import json as _json
+
+    from services import workflow_engine
+
+    async def _h(_inputs: dict, _config: dict) -> dict:
+        return {"out": "value"}
+
+    workflow_engine.register_node_type("test.passthrough", _h)
+    try:
+        spec = {
+            "id": "wf-test-mcp",
+            "name": "MCP test",
+            "version": 1,
+            "nodes": [
+                {
+                    "id": "a",
+                    "type": "test.passthrough",
+                    "position": {"x": 0, "y": 0},
+                    "config": {},
+                }
+            ],
+            "edges": [],
+            "updatedAt": 0,
+        }
+        server = mcp_server.get_mcp_server()
+        result = asyncio.run(server.call_tool("run_workflow", {"spec_json": _json.dumps(spec)}))
+        # The tool returns ``{ok, result}``; FastMCP delivers it as the
+        # ``structured_content`` dict verbatim.
+        payload = result.structured_content or {}
+        assert isinstance(payload, dict)
+        assert payload.get("ok") is True
+        run_result = payload.get("result")
+        assert isinstance(run_result, dict)
+        assert run_result["status"] == "ok"
+    finally:
+        workflow_engine.unregister_node_type("test.passthrough")
+
+
+def test_run_workflow_tool_reports_invalid_spec_cleanly() -> None:
+    """An unparseable spec returns ``{ok: False, error: ...}`` rather than raising."""
+    server = mcp_server.get_mcp_server()
+    result = asyncio.run(server.call_tool("run_workflow", {"spec_json": "{not json"}))
+    payload = result.structured_content or {}
+    assert payload.get("ok") is False
+    assert "invalid workflow spec" in (payload.get("error") or "")
+
+
+def test_list_workflows_tool_returns_dict_wrap(client: TestClient) -> None:
+    """``list_workflows`` wraps the saved-workflows list per the FastMCP rule.
+
+    The wrap-at-boundary Gotcha (v0.4.0) — bare lists are rejected by FastMCP;
+    the tool ensures the response is ``{"workflows": [...]}`` even if the
+    upstream router changes shape.
+    """
+    server = mcp_server.get_mcp_server()
+    result = asyncio.run(server.call_tool("list_workflows", {}))
+    payload = result.structured_content or {}
+    assert isinstance(payload, dict)
+    workflows = payload.get("workflows")
+    assert isinstance(workflows, list)
