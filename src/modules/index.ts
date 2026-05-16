@@ -17,7 +17,7 @@ import { watchlistModule } from "./watchlist";
 // exactly one (or two) of the six entries below; the commented stubs land in
 // foundation so the per-teammate merge sees an additive-only diff.
 // import { macroModule } from "./macro";                       // Teammate M
-// import { secFilingsModule } from "./sec";                    // Teammate F
+import { secFilingsModule } from "./sec"; // Teammate F
 // import { earningsModule } from "./earnings";                 // Teammate E
 // import { analystRatingsModule } from "./analyst-ratings";    // Teammate E
 // import { quantModule } from "./quant";                       // Teammate Q
@@ -70,7 +70,7 @@ export const vystedModules: VystedModule[] = [
   // The line order matches the v0.6.0 plan's merge order (M → F → Q → E → Sc)
   // so audit drift is easy to spot.
   // macroModule,            // Teammate M
-  // secFilingsModule,       // Teammate F
+  secFilingsModule, // Teammate F
   // quantModule,            // Teammate Q
   // earningsModule,         // Teammate E
   // analystRatingsModule,   // Teammate E
