@@ -19,13 +19,7 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 import { POLL_CADENCE_MS, arrayOrEmpty, useTradesaStore } from "../store";
 
 import { PanelShell } from "./_PanelShell";
-import {
-  formatDuration,
-  formatNumber,
-  formatRelativeIso,
-  formatUsd,
-  useInterval,
-} from "./_utils";
+import { formatDuration, formatNumber, formatRelativeIso, formatUsd, useInterval } from "./_utils";
 
 import type { TradesaTrade } from "../../../types/tradesa_v2";
 
@@ -38,7 +32,9 @@ function SideBadge({ side }: { side: TradesaTrade["side"] }) {
       ? "bg-emerald-950/60 text-emerald-300 border-emerald-800"
       : "bg-red-950/60 text-red-300 border-red-800";
   return (
-    <span className={`inline-flex rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${cls}`}>
+    <span
+      className={`inline-flex rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${cls}`}
+    >
       {side}
     </span>
   );
@@ -101,25 +97,29 @@ function SummaryCard({ stats }: { stats: SummaryStats }) {
       className="grid shrink-0 grid-cols-2 gap-2 border-b border-zinc-800 bg-zinc-950/60 p-3 text-xs sm:grid-cols-4"
     >
       <div className={tile}>
-        <div className="text-[10px] uppercase tracking-wide text-zinc-500">Today P&amp;L</div>
-        <div className={`mt-0.5 font-mono text-sm ${stats.todayPnl >= 0 ? "text-emerald-300" : "text-red-300"}`}>
+        <div className="text-[10px] tracking-wide text-zinc-500 uppercase">Today P&amp;L</div>
+        <div
+          className={`mt-0.5 font-mono text-sm ${stats.todayPnl >= 0 ? "text-emerald-300" : "text-red-300"}`}
+        >
           {stats.todayPnl >= 0 ? "+" : ""}
           {formatUsd(stats.todayPnl)}
         </div>
       </div>
       <div className={tile}>
-        <div className="text-[10px] uppercase tracking-wide text-zinc-500">7d P&amp;L</div>
-        <div className={`mt-0.5 font-mono text-sm ${stats.weekPnl >= 0 ? "text-emerald-300" : "text-red-300"}`}>
+        <div className="text-[10px] tracking-wide text-zinc-500 uppercase">7d P&amp;L</div>
+        <div
+          className={`mt-0.5 font-mono text-sm ${stats.weekPnl >= 0 ? "text-emerald-300" : "text-red-300"}`}
+        >
           {stats.weekPnl >= 0 ? "+" : ""}
           {formatUsd(stats.weekPnl)}
         </div>
       </div>
       <div className={tile}>
-        <div className="text-[10px] uppercase tracking-wide text-zinc-500">Closed</div>
+        <div className="text-[10px] tracking-wide text-zinc-500 uppercase">Closed</div>
         <div className="mt-0.5 font-mono text-sm text-zinc-200">{stats.totalCount}</div>
       </div>
       <div className={tile}>
-        <div className="text-[10px] uppercase tracking-wide text-zinc-500">Win-rate</div>
+        <div className="text-[10px] tracking-wide text-zinc-500 uppercase">Win-rate</div>
         <div className="mt-0.5 font-mono text-sm text-zinc-200">
           {(stats.winRate * 100).toFixed(0)}%
           <span className="ml-1 text-[10px] text-zinc-500">
@@ -186,7 +186,7 @@ function TradesTable({ rows }: { rows: readonly TradesaTrade[] }) {
       <div className="overflow-auto">
         <table className="w-full text-sm">
           <thead className="sticky top-0 z-10 bg-zinc-950">
-            <tr className="border-b border-zinc-800 text-left text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+            <tr className="border-b border-zinc-800 text-left text-[11px] font-medium tracking-wide text-zinc-500 uppercase">
               <th className="px-3 py-2">Instrument</th>
               <th className="px-3 py-2">Side</th>
               <th className="px-3 py-2 text-right">Qty</th>
@@ -195,7 +195,7 @@ function TradesTable({ rows }: { rows: readonly TradesaTrade[] }) {
               <th className="px-3 py-2 text-right">
                 <button
                   type="button"
-                  className="inline-flex items-center text-[11px] font-medium uppercase tracking-wide text-zinc-400 hover:text-zinc-200"
+                  className="inline-flex items-center text-[11px] font-medium tracking-wide text-zinc-400 uppercase hover:text-zinc-200"
                   onClick={() => onSort("realized_pnl")}
                 >
                   P&amp;L
@@ -206,7 +206,7 @@ function TradesTable({ rows }: { rows: readonly TradesaTrade[] }) {
               <th className="px-3 py-2 text-right">
                 <button
                   type="button"
-                  className="inline-flex items-center text-[11px] font-medium uppercase tracking-wide text-zinc-400 hover:text-zinc-200"
+                  className="inline-flex items-center text-[11px] font-medium tracking-wide text-zinc-400 uppercase hover:text-zinc-200"
                   onClick={() => onSort("closed_at")}
                 >
                   Closed

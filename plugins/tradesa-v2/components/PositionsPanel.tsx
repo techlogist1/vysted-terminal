@@ -17,11 +17,7 @@
 import { POLL_CADENCE_MS, arrayOrEmpty, useTradesaStore } from "../store";
 
 import { PanelShell } from "./_PanelShell";
-import {
-  formatNumber,
-  formatRelativeIso,
-  useInterval,
-} from "./_utils";
+import { formatNumber, formatRelativeIso, useInterval } from "./_utils";
 
 import type { TradesaTrade } from "../../../types/tradesa_v2";
 
@@ -33,7 +29,7 @@ function SideBadge({ side }: { side: TradesaTrade["side"] }) {
   return (
     <span
       data-testid={`tradesa-side-${side}`}
-      className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${cls}`}
+      className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${cls}`}
     >
       {side}
     </span>
@@ -60,7 +56,7 @@ function PositionsTable({ rows }: { rows: readonly TradesaTrade[] }) {
       <div className="overflow-auto">
         <table className="w-full text-sm">
           <thead className="sticky top-0 z-10 bg-zinc-950">
-            <tr className="border-b border-zinc-800 text-left text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+            <tr className="border-b border-zinc-800 text-left text-[11px] font-medium tracking-wide text-zinc-500 uppercase">
               <th className="px-3 py-2">Instrument</th>
               <th className="px-3 py-2">Side</th>
               <th className="px-3 py-2 text-right">Qty</th>

@@ -17,18 +17,9 @@ import { useMemo, useState } from "react";
 import { POLL_CADENCE_MS, arrayOrEmpty, useTradesaStore } from "../store";
 
 import { PanelShell } from "./_PanelShell";
-import {
-  formatPercent,
-  formatRelativeIso,
-  formatUsd,
-  useInterval,
-} from "./_utils";
+import { formatPercent, formatRelativeIso, formatUsd, useInterval } from "./_utils";
 
-import type {
-  DecisionAction,
-  TradesaCostRollup,
-  TradesaDecision,
-} from "../../../types/tradesa_v2";
+import type { DecisionAction, TradesaCostRollup, TradesaDecision } from "../../../types/tradesa_v2";
 
 // ---------------------------------------------------------------------------
 // Decision card
@@ -47,7 +38,7 @@ function ActionBadge({ action }: { action: DecisionAction }) {
   return (
     <span
       data-testid={`tradesa-action-${action}`}
-      className={`inline-flex rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${cls}`}
+      className={`inline-flex rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${cls}`}
     >
       {action.replace("_", " ")}
     </span>
@@ -108,12 +99,16 @@ function DecisionCard({ decision }: { decision: TradesaDecision }) {
         <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-zinc-400">
           {decision.size_pct !== null && (
             <span>
-              size <span className="font-mono text-zinc-200">{formatPercent(decision.size_pct)}</span>
+              size{" "}
+              <span className="font-mono text-zinc-200">{formatPercent(decision.size_pct)}</span>
             </span>
           )}
           {decision.stop_loss_pct !== null && (
             <span>
-              SL <span className="font-mono text-zinc-200">{formatPercent(decision.stop_loss_pct)}</span>
+              SL{" "}
+              <span className="font-mono text-zinc-200">
+                {formatPercent(decision.stop_loss_pct)}
+              </span>
             </span>
           )}
           <span>
@@ -180,27 +175,25 @@ function CostColumn({ rollup }: { rollup: TradesaCostRollup | undefined }) {
       className="flex w-full flex-col gap-3 border-l border-zinc-800 bg-zinc-950/60 p-3 md:w-72"
     >
       <header>
-        <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+        <h3 className="text-xs font-medium tracking-wide text-zinc-500 uppercase">
           Today&apos;s LLM cost
         </h3>
-        <p className="mt-1 font-mono text-2xl text-zinc-100">
-          {formatUsd(rollup?.total_usd ?? 0)}
-        </p>
-        {rollup?.date && (
-          <p className="text-[10px] text-zinc-600">{rollup.date} UTC</p>
-        )}
+        <p className="mt-1 font-mono text-2xl text-zinc-100">{formatUsd(rollup?.total_usd ?? 0)}</p>
+        {rollup?.date && <p className="text-[10px] text-zinc-600">{rollup.date} UTC</p>}
       </header>
 
       <div className="flex flex-col gap-2">
-        <h4 className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">
-          By model
-        </h4>
+        <h4 className="text-[10px] font-medium tracking-wide text-zinc-500 uppercase">By model</h4>
         {entries.length === 0 ? (
           <p className="text-xs text-zinc-500">No LLM calls today.</p>
         ) : (
           <ul className="flex flex-col gap-1.5">
             {entries.map((entry) => (
-              <li key={entry.model} data-testid="tradesa-cost-row" className="flex flex-col gap-0.5">
+              <li
+                key={entry.model}
+                data-testid="tradesa-cost-row"
+                className="flex flex-col gap-0.5"
+              >
                 <div className="flex justify-between text-[11px] text-zinc-300">
                   <span className="truncate font-mono">{entry.model}</span>
                   <span className="font-mono text-zinc-400">{formatUsd(entry.cost)}</span>

@@ -48,7 +48,9 @@ const HYPOTHESIS_TONE: Record<TradesaDiscoveryHypothesis["status"], string> = {
 
 function StatusBadge({ status, tone }: { status: string; tone: string }) {
   return (
-    <span className={`inline-flex rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${tone}`}>
+    <span
+      className={`inline-flex rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${tone}`}
+    >
       {status}
     </span>
   );
@@ -57,8 +59,7 @@ function StatusBadge({ status, tone }: { status: string; tone: string }) {
 function ConfidenceBar({ value }: { value: number }) {
   const clamped = Math.max(0, Math.min(1, value));
   const pct = Math.round(clamped * 100);
-  const tone =
-    clamped >= 0.75 ? "bg-emerald-500" : clamped >= 0.5 ? "bg-blue-500" : "bg-amber-500";
+  const tone = clamped >= 0.75 ? "bg-emerald-500" : clamped >= 0.5 ? "bg-blue-500" : "bg-amber-500";
   return (
     <div className="flex items-center gap-2" aria-label="Confidence">
       <div className="h-1.5 w-24 overflow-hidden rounded-full bg-zinc-800">
@@ -95,7 +96,7 @@ function TabButton({
       }`}
     >
       {children}
-      <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-mono text-zinc-300">
+      <span className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">
         {count}
       </span>
     </button>
@@ -135,7 +136,7 @@ function TuningTab({ rows }: { rows: readonly TradesaTuningProposal[] }) {
             <span className="rounded bg-zinc-950 px-2 py-1 font-mono text-emerald-300">
               {p.proposed_value}
             </span>
-            <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-zinc-300">
+            <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] tracking-wide text-zinc-300 uppercase">
               {p.queue_reason}
             </span>
           </div>
@@ -177,9 +178,7 @@ function DiscoveryTab({ rows }: { rows: readonly TradesaDiscoveryHypothesis[] })
           <div className="mt-2">
             <ConfidenceBar value={h.confidence} />
           </div>
-          {h.body && (
-            <p className="mt-2 text-xs leading-relaxed text-zinc-300">{h.body}</p>
-          )}
+          {h.body && <p className="mt-2 text-xs leading-relaxed text-zinc-300">{h.body}</p>}
         </article>
       ))}
     </div>
@@ -219,16 +218,14 @@ function ReflectionTab({ rows }: { rows: readonly TradesaReflectionNote[] }) {
               {note.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="rounded bg-blue-950/40 px-1.5 py-0.5 text-[10px] font-mono text-blue-300"
+                  className="rounded bg-blue-950/40 px-1.5 py-0.5 font-mono text-[10px] text-blue-300"
                 >
                   {tag}
                 </span>
               ))}
             </div>
           )}
-          {note.body && (
-            <p className="mt-2 text-xs leading-relaxed text-zinc-300">{note.body}</p>
-          )}
+          {note.body && <p className="mt-2 text-xs leading-relaxed text-zinc-300">{note.body}</p>}
         </article>
       ))}
     </div>

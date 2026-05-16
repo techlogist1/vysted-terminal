@@ -44,18 +44,15 @@ export function TradesaBotStatusStrip() {
       data-testid="tradesa-status-strip"
       className="flex shrink-0 items-center gap-2 border-b border-zinc-800 bg-zinc-950/80 px-3 py-2 text-xs text-zinc-300"
     >
-      <span
-        aria-hidden
-        className={`inline-block size-2 rounded-full ${dotClass}`}
-      />
-      <span className={`rounded px-1.5 py-0.5 font-medium border ${toneClasses(tone)}`}>
+      <span aria-hidden className={`inline-block size-2 rounded-full ${dotClass}`} />
+      <span className={`rounded border px-1.5 py-0.5 font-medium ${toneClasses(tone)}`}>
         {label}
       </span>
 
       {state?.bot_mode && (
         <span
           aria-label={`Mode: ${state.bot_mode}`}
-          className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${modeClass}`}
+          className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${modeClass}`}
         >
           {state.bot_mode}
         </span>
@@ -68,7 +65,7 @@ export function TradesaBotStatusStrip() {
       )}
 
       {state?.kill_switch_engaged === true && (
-        <span className="rounded border border-red-700 bg-red-900/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-100">
+        <span className="rounded border border-red-700 bg-red-900/60 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-red-100 uppercase">
           Kill Switch
         </span>
       )}

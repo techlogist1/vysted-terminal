@@ -29,7 +29,7 @@ function FailModeBadge({ failClosed }: { failClosed: boolean }) {
   return (
     <span
       data-testid={`tradesa-fail-${failClosed ? "closed" : "open"}`}
-      className={`inline-flex rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${cls}`}
+      className={`inline-flex rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${cls}`}
     >
       {failClosed ? "Fail-closed" : "Fail-open"}
     </span>
@@ -57,7 +57,7 @@ function SentinelTable({ rows }: { rows: readonly TradesaSentinelBlock[] }) {
       <div className="overflow-auto">
         <table className="w-full text-sm">
           <thead className="sticky top-0 z-10 bg-zinc-950">
-            <tr className="border-b border-zinc-800 text-left text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+            <tr className="border-b border-zinc-800 text-left text-[11px] font-medium tracking-wide text-zinc-500 uppercase">
               <th className="px-3 py-2">Gate</th>
               <th className="px-3 py-2">Label</th>
               <th className="px-3 py-2 text-right">Today</th>

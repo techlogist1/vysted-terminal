@@ -111,14 +111,13 @@ export function TradesaSettingsDialog({ open, onClose }: TradesaSettingsDialogPr
           Tradesa V2 — Connect your bot
         </h2>
         <p className="mt-1 text-sm text-zinc-400">
-          Vysted Terminal reads your Tradesa V2 bot&apos;s state from its Supabase
-          project. Credentials live in the OS keychain — never in browser
-          storage.
+          Vysted Terminal reads your Tradesa V2 bot&apos;s state from its Supabase project.
+          Credentials live in the OS keychain — never in browser storage.
         </p>
 
         <form className="mt-4 flex flex-col gap-4" onSubmit={handleSubmit}>
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+            <span className="text-xs font-medium tracking-wide text-zinc-400 uppercase">
               Tradesa V2 Supabase URL
             </span>
             <input
@@ -135,7 +134,7 @@ export function TradesaSettingsDialog({ open, onClose }: TradesaSettingsDialogPr
           </label>
 
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+            <span className="text-xs font-medium tracking-wide text-zinc-400 uppercase">
               Service-Role Key
             </span>
             <div className="flex">
@@ -163,9 +162,9 @@ export function TradesaSettingsDialog({ open, onClose }: TradesaSettingsDialogPr
           </label>
 
           <div className="rounded-md border border-amber-900/50 bg-amber-950/30 px-3 py-2 text-xs text-amber-200">
-            Your service-role key has full read+write power on your Tradesa V2
-            Supabase project. Vysted Terminal uses it read-only. Keep it on
-            this machine only — don&apos;t share via screen-share or chat.
+            Your service-role key has full read+write power on your Tradesa V2 Supabase project.
+            Vysted Terminal uses it read-only. Keep it on this machine only — don&apos;t share via
+            screen-share or chat.
           </div>
 
           {error && (

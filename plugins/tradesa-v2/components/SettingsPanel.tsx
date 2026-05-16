@@ -22,10 +22,7 @@ import { POLL_CADENCE_MS, arrayOrEmpty, useTradesaStore } from "../store";
 import { PanelShell } from "./_PanelShell";
 import { formatRelativeIso, useInterval } from "./_utils";
 
-import type {
-  TradesaBotSetting,
-  TradesaSettingsDrift,
-} from "../../../types/tradesa_v2";
+import type { TradesaBotSetting, TradesaSettingsDrift } from "../../../types/tradesa_v2";
 
 type TabKey = "current" | "drift";
 
@@ -55,7 +52,7 @@ function TabButton({
       }`}
     >
       {children}
-      <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-mono text-zinc-300">
+      <span className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">
         {count}
       </span>
     </button>
@@ -100,7 +97,7 @@ function CurrentSettingsTable({ rows }: { rows: readonly TradesaBotSetting[] }) 
         <div className="overflow-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-zinc-950">
-              <tr className="border-b border-zinc-800 text-left text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+              <tr className="border-b border-zinc-800 text-left text-[11px] font-medium tracking-wide text-zinc-500 uppercase">
                 <th className="px-3 py-2">Key</th>
                 <th className="px-3 py-2">Value</th>
                 <th className="px-3 py-2">Description</th>

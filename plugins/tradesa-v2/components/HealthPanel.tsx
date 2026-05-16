@@ -19,10 +19,7 @@ import { POLL_CADENCE_MS, useTradesaStore } from "../store";
 import { PanelShell } from "./_PanelShell";
 import { formatRelativeIso, formatUptime, useInterval } from "./_utils";
 
-import type {
-  TradesaKillSwitchEvent,
-  KillSwitchSource,
-} from "../../../types/tradesa_v2";
+import type { TradesaKillSwitchEvent, KillSwitchSource } from "../../../types/tradesa_v2";
 import type { TradesaBotHealthLike } from "../connection";
 
 const STATUS_TONE: Record<string, string> = {
@@ -45,7 +42,7 @@ function SourceBadge({ source }: { source: KillSwitchSource }) {
   return (
     <span
       data-testid={`tradesa-source-${source}`}
-      className={`inline-flex rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${cls}`}
+      className={`inline-flex rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${cls}`}
     >
       {source.replace(/_/g, " ")}
     </span>
@@ -72,9 +69,9 @@ function HealthCard({ latest }: { latest: TradesaBotHealthLike | null }) {
       className="grid shrink-0 grid-cols-2 gap-3 border-b border-zinc-800 bg-zinc-950/60 p-4 md:grid-cols-4"
     >
       <div className={tile}>
-        <div className="text-[10px] uppercase tracking-wide text-zinc-500">Status</div>
+        <div className="text-[10px] tracking-wide text-zinc-500 uppercase">Status</div>
         <span
-          className={`mt-0.5 inline-flex w-fit rounded border px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${statusTone}`}
+          className={`mt-0.5 inline-flex w-fit rounded border px-1.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase ${statusTone}`}
         >
           {latest.status}
         </span>
@@ -83,23 +80,25 @@ function HealthCard({ latest }: { latest: TradesaBotHealthLike | null }) {
         )}
       </div>
       <div className={tile}>
-        <div className="text-[10px] uppercase tracking-wide text-zinc-500">Uptime</div>
-        <div className="mt-0.5 font-mono text-sm text-zinc-100">{formatUptime(latest.uptime_s)}</div>
+        <div className="text-[10px] tracking-wide text-zinc-500 uppercase">Uptime</div>
+        <div className="mt-0.5 font-mono text-sm text-zinc-100">
+          {formatUptime(latest.uptime_s)}
+        </div>
       </div>
       <div className={tile}>
-        <div className="text-[10px] uppercase tracking-wide text-zinc-500">FD count</div>
+        <div className="text-[10px] tracking-wide text-zinc-500 uppercase">FD count</div>
         <div className="mt-0.5 font-mono text-sm text-zinc-100">
           {latest.fd_count !== null ? latest.fd_count.toLocaleString() : "—"}
         </div>
       </div>
       <div className={tile}>
-        <div className="text-[10px] uppercase tracking-wide text-zinc-500">Threads</div>
+        <div className="text-[10px] tracking-wide text-zinc-500 uppercase">Threads</div>
         <div className="mt-0.5 font-mono text-sm text-zinc-100">
           {latest.thread_count !== null ? latest.thread_count.toLocaleString() : "—"}
         </div>
       </div>
       <div className={`${tile} col-span-2 md:col-span-4`}>
-        <div className="text-[10px] uppercase tracking-wide text-zinc-500">Last heartbeat</div>
+        <div className="text-[10px] tracking-wide text-zinc-500 uppercase">Last heartbeat</div>
         <div className="mt-0.5 text-sm text-zinc-100">{formatRelativeIso(latest.recorded_at)}</div>
         <div className="text-[10px] text-zinc-600">
           {latest.recorded_at} ({latest.service})
@@ -122,7 +121,7 @@ function KillSwitchTimeline({ events }: { events: TradesaKillSwitchEvent[] }) {
   }
   return (
     <div className="flex flex-1 flex-col overflow-auto p-3">
-      <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+      <h3 className="mb-2 text-[11px] font-medium tracking-wide text-zinc-500 uppercase">
         Kill-switch events
       </h3>
       <ul className="flex flex-col gap-2">
@@ -141,9 +140,7 @@ function KillSwitchTimeline({ events }: { events: TradesaKillSwitchEvent[] }) {
                 {formatRelativeIso(event.fired_at)}
               </span>
             </div>
-            {event.reason && (
-              <p className="mt-1.5 text-xs text-zinc-300">{event.reason}</p>
-            )}
+            {event.reason && <p className="mt-1.5 text-xs text-zinc-300">{event.reason}</p>}
             <div className="mt-1.5 text-[10px] text-zinc-500">
               {event.cleared_at ? (
                 <>cleared {formatRelativeIso(event.cleared_at)}</>

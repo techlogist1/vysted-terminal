@@ -63,7 +63,13 @@ function SkeletonBody() {
   );
 }
 
-function UnauthenticatedBody({ title, onOpenSettings }: { title: string; onOpenSettings: () => void }) {
+function UnauthenticatedBody({
+  title,
+  onOpenSettings,
+}: {
+  title: string;
+  onOpenSettings: () => void;
+}) {
   return (
     <div
       data-testid="tradesa-unauthenticated"
@@ -71,8 +77,8 @@ function UnauthenticatedBody({ title, onOpenSettings }: { title: string; onOpenS
     >
       <h3 className="text-base font-semibold text-zinc-200">Tradesa V2 — {title}</h3>
       <p className="max-w-md text-sm text-zinc-400">
-        Connect Vysted Terminal to your Tradesa V2 Supabase project to read live
-        bot state. Vysted is observation-only — it never writes to your bot.
+        Connect Vysted Terminal to your Tradesa V2 Supabase project to read live bot state. Vysted
+        is observation-only — it never writes to your bot.
       </p>
       <button
         type="button"
@@ -115,15 +121,18 @@ function SupabaseErrorBody({
 }
 
 function BotOfflineBanner({ ageSeconds }: { ageSeconds: number | null | undefined }) {
-  const minutes = ageSeconds !== null && ageSeconds !== undefined ? Math.floor(ageSeconds / 60) : null;
-  const ageLabel = minutes !== null ? `${minutes} minute${minutes === 1 ? "" : "s"}` : "an unknown duration";
+  const minutes =
+    ageSeconds !== null && ageSeconds !== undefined ? Math.floor(ageSeconds / 60) : null;
+  const ageLabel =
+    minutes !== null ? `${minutes} minute${minutes === 1 ? "" : "s"}` : "an unknown duration";
   return (
     <div
       role="alert"
       data-testid="tradesa-bot-offline-banner"
       className="border-b border-red-900/60 bg-red-950/40 px-3 py-2 text-xs text-red-200"
     >
-      Tradesa V2 bot is offline (no heartbeat in {ageLabel}). Showing last-known data — values may be stale.
+      Tradesa V2 bot is offline (no heartbeat in {ageLabel}). Showing last-known data — values may
+      be stale.
     </div>
   );
 }
@@ -163,9 +172,7 @@ export function PanelShell({ title, children, muteOnBotOffline = true }: PanelSh
 
       {status === "partial" && <PartialBanner message={state?.message} />}
 
-      {status === "bot-offline" && (
-        <BotOfflineBanner ageSeconds={state?.heartbeat_age_s} />
-      )}
+      {status === "bot-offline" && <BotOfflineBanner ageSeconds={state?.heartbeat_age_s} />}
 
       {(status === "healthy" || status === "partial" || status === "bot-offline") && (
         <div
