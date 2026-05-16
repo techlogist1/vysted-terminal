@@ -1,0 +1,14 @@
+# sec-edgar-mcp subprocess — its own venv so we can pin the upstream
+# SEC EDGAR MCP server independently of the main Vysted sidecar.
+#
+# The package is pure-Python (httpx + a thin XBRL parser); it has no
+# transitive pin conflicts with the main sidecar's fastapi / uvicorn /
+# pydantic stack today, but isolating it preserves the v0.4.0 pattern
+# (precedent: openbb-mcp-server). When sec-edgar-mcp 1.x bumps a shared
+# dependency we want it confined to this venv, not the main sidecar.
+#
+# This subprocess is packaged via ``scripts/ensure-sec-edgar-mcp-sidecar.mjs``
+# into a PyInstaller --onefile binary and spawned by Tauri Rust
+# ``Command::new`` from ``src-tauri/src/sec_edgar_mcp.rs`` — the v0.4.0
+# Phase-2 deadlock fix pattern.
+sec-edgar-mcp==1.0.8
