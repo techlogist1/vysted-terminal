@@ -121,6 +121,20 @@ def _register_v0_6_0_runtime_extensions() -> None:
     _wf_v0_6_0.register_v0_6_0_nodes()
 
 
+def _register_v0_6_5_runtime_extensions() -> None:
+    """Wire v0.6.5 (Tradesa V2 wrapper) extensions.
+
+    v0.6.5 ships READ-ONLY by operator decision — no agent tools are
+    registered for the wrapper. The aggregator helper is invoked anyway
+    to maintain per-release-stamp parity with v0.5.0 / v0.6.0; when
+    write capability lands in v0.6.6+ the registration list inside
+    ``services/agent_tools/registry_v0_6_5.py`` becomes non-empty.
+    """
+    from services.agent_tools import registry_v0_6_5 as _at_v0_6_5
+
+    _at_v0_6_5.register_v0_6_5_tools()
+
+
 def create_app() -> FastAPI:
     """Build and return a fully wired sidecar FastAPI application."""
     app = FastAPI(title="Vysted Terminal Sidecar", version="0.6.1", lifespan=_lifespan)
@@ -157,6 +171,11 @@ def create_app() -> FastAPI:
     # aggregators currently no-op until each Phase 6 teammate's
     # submodule uncomments its registration entry.
     _register_v0_6_0_runtime_extensions()
+
+    # v0.6.5 (Tradesa V2 wrapper) runtime extensions — read-only release,
+    # no agent tools registered. Aggregator slot reserved for v0.6.6+
+    # when write capability is added per the operator-brief progression.
+    _register_v0_6_5_runtime_extensions()
 
     # Mount the FastMCP Streamable-HTTP transport at /mcp. External MCP
     # clients reach it via http://127.0.0.1:<port>/mcp/. The plain-JSON
