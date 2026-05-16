@@ -557,6 +557,9 @@ backtest under one tag. The architectural rationale is in `CHANGELOG.md`
 v0.5.0 and `docs/superpowers/plans/2026-05-16-phase-4-5-mega-sprint.md`.
 
 ### Phase 6 — Macro + Research + QuantLib
+
+**In progress as v0.6.0 (build window opened 2026-05-16).** Plan at
+`docs/superpowers/plans/2026-05-16-phase-6-macro-research-quantlib.md`.
 - Macro/economic data panels (FRED, ECB, IMF, World Bank)
 - SEC filings reader
 - Earnings calendar
