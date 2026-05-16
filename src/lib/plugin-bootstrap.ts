@@ -16,6 +16,9 @@ import { examplePlugin } from "../../plugins/example";
 import exampleManifest from "../../plugins/example/manifest.json";
 import { openbbMcpPlugin } from "../../plugins/openbb-mcp";
 import openbbMcpManifest from "../../plugins/openbb-mcp/manifest.json";
+import { tradesaPlugin } from "../../plugins/tradesa-v2";
+import tradesaManifest from "../../plugins/tradesa-v2/manifest.json";
+import tradesaPanelComponents from "../../plugins/tradesa-v2/panels";
 
 import type { VystedModule } from "@/lib/module-registry";
 import {
@@ -27,11 +30,13 @@ import { getSidecarBaseUrl, sidecarGet, SidecarError } from "@/lib/sidecar-clien
 import { useModulesStore } from "@/store/modules";
 import { usePluginsStore } from "@/store/plugins";
 
+import type { FunctionComponent } from "react";
+
 import type { CommandResult } from "../../types/plugin";
 import type { PluginManifest, PluginPersistedConfig } from "../../types/plugin-runtime";
 
 /** Host (Vysted Terminal) semver — handed to plugins via `PluginConfig.hostVersion`. */
-const HOST_VERSION = "0.4.0";
+const HOST_VERSION = "0.6.5";
 
 /** How often the runtime polls every active plugin's `healthCheck()`. */
 const HEALTH_POLL_INTERVAL_MS = 30_000;
@@ -40,7 +45,42 @@ const HEALTH_POLL_INTERVAL_MS = 30_000;
 const BUNDLED_PLUGINS: DiscoveredPlugin[] = [
   { manifest: exampleManifest as PluginManifest, instance: examplePlugin },
   { manifest: openbbMcpManifest as PluginManifest, instance: openbbMcpPlugin },
+  { manifest: tradesaManifest as PluginManifest, instance: tradesaPlugin },
 ];
+
+/**
+ * Per-plugin companion panel-components map.
+ *
+ * Plugins that contribute panels ship a ``plugins/<id>/panels.ts`` file
+ * exporting a ``Record<string, FunctionComponent>`` mapping each
+ * ``PanelSpec.component`` id to the React component dockview renders.
+ * This is the **"Trading-System Wrapper" plugin pattern** documented in
+ * ``docs/PLUGIN_DEVELOPMENT.md``: the locked ``VystedPlugin`` contract
+ * stays serializable (no React types leak in), and host-side glue
+ * (this map) wires the companion components.
+ *
+ * The map is static at the host-build level (not dynamic-imported at
+ * runtime) because Next.js static export can't resolve plugin-id-based
+ * dynamic imports without filesystem-installed plugins (a v0.7+ scope
+ * decision). First-party plugins are bundled into the host build; this
+ * mirrors how ``BUNDLED_PLUGINS`` above already statically imports
+ * each plugin's ``index.ts``.
+ *
+ * To add a new plugin with panels:
+ *   1. Write ``plugins/<id>/index.ts`` exporting a ``VystedPlugin``.
+ *   2. Write ``plugins/<id>/panels.ts`` exporting a
+ *      ``Record<string, FunctionComponent>``.
+ *   3. Add the plugin to ``BUNDLED_PLUGINS`` above.
+ *   4. Add the entry below mapping ``manifest.id`` →
+ *      ``{ panelComponents: <plugin>PanelComponents }``.
+ *
+ * Plugins that don't contribute panels (the ``example`` data-source
+ * plugin, the ``openbb-mcp`` plugin) are omitted here; ``moduleForPlugin``
+ * tolerates absence gracefully.
+ */
+const PLUGIN_COMPANIONS: Record<string, { panelComponents: Record<string, FunctionComponent> }> = {
+  "tradesa-v2": { panelComponents: tradesaPanelComponents },
+};
 
 interface PluginConfigUpdateBody {
   enabled: boolean;
@@ -171,12 +211,31 @@ function moduleForPlugin(plugin: DiscoveredPlugin): VystedModule | null {
       };
     }
   }
+  // Look up the per-plugin companion panel-components map. Plugins that
+  // contribute panels but don't ship a companion render with no React
+  // component bound — dockview will report "no component registered for
+  // <id>" in the panel header, which makes the wiring gap visible during
+  // development. Plugins that don't contribute panels at all simply have
+  // no entry in PLUGIN_COMPANIONS and skip this step.
+  const companion = PLUGIN_COMPANIONS[plugin.manifest.id];
+  const panelComponents: Record<string, FunctionComponent> = companion
+    ? { ...companion.panelComponents }
+    : {};
+  if (panels.length > 0 && Object.keys(panelComponents).length === 0) {
+    // Surface the wiring gap loud and clear so future plugin authors
+    // notice they forgot the companion file.
+    console.warn(
+      `[plugin-bootstrap] plugin ${instance.pluginId} contributes panels but has no entry in ` +
+        `PLUGIN_COMPANIONS — panels will render without a component. Add a panels.ts file + an ` +
+        `entry in src/lib/plugin-bootstrap.ts PLUGIN_COMPANIONS.`,
+    );
+  }
   return {
     id: `plugin:${instance.pluginId}`,
     title: instance.pluginName,
     panels,
     commands,
-    panelComponents: {},
+    panelComponents,
     commandHandlers: Object.keys(commandHandlers).length > 0 ? commandHandlers : undefined,
   };
 }
