@@ -34,9 +34,10 @@ def register_v0_6_0_nodes() -> None:
     registered: list[str] = []
 
     # Teammate M — Macro Expansion.
-    # from services.workflow_nodes import macro_nodes
-    # macro_nodes.register()
-    # registered.append("macro")
+    from services.workflow_nodes import macro_nodes
+
+    macro_nodes.register()
+    registered.append("macro")
 
     # Teammate F — SEC Filings Reader.
     # from services.workflow_nodes import sec_nodes
