@@ -44,9 +44,10 @@ def register_v0_6_0_tools() -> None:
     registered.append("sec")
 
     # Teammate Q — QuantLib pricing modules.
-    # from services.agent_tools import quant_tools
-    # quant_tools.register()
-    # registered.append("quant")
+    from services.agent_tools import quant_tools
+
+    quant_tools.register()
+    registered.append("quant")
 
     # Teammate E — Earnings + Analyst Ratings expansion.
     # from services.agent_tools import earnings_tools
