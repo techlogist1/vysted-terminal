@@ -36,7 +36,11 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": ["binaries/vysted-sidecar", "binaries/vysted-openbb-mcp-sidecar"],
+    "externalBin": [
+      "binaries/vysted-sidecar",
+      "binaries/vysted-openbb-mcp-sidecar",
+      "binaries/vysted-sec-edgar-mcp-sidecar"
+    ],
     "createUpdaterArtifacts": false
   },
   "plugins": {

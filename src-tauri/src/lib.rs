@@ -1,6 +1,7 @@
 mod keychain;
 mod kill_switch;
 mod openbb_mcp;
+mod sec_edgar_mcp;
 
 use std::net::TcpStream;
 use std::sync::Mutex;
@@ -59,6 +60,7 @@ pub fn run() {
             keychain::keychain_delete,
             kill_switch::kill_switch_emit,
             openbb_mcp::get_openbb_mcp_port,
+            sec_edgar_mcp::get_sec_edgar_mcp_port,
         ])
         .setup(|app| {
             let port = pick_free_port();
@@ -76,6 +78,12 @@ pub fn run() {
             // tolerates a missing binary by registering port=0 (sidecar
             // then falls back to yfinance — see CLAUDE.md Phase-3 fix).
             openbb_mcp::spawn(app.handle())?;
+
+            // Spawn the sec-edgar-mcp subprocess alongside openbb-mcp. Same
+            // non-fatal pattern: a missing binary registers port=0 and the
+            // ``/sec`` routes return 501 until ``pnpm sec-edgar-mcp-sidecar:build``
+            // is run.
+            sec_edgar_mcp::spawn(app.handle())?;
 
             // Resolve the per-OS application data directory and hand it to the
             // sidecar; the sidecar owns the portfolio SQLite database and the
@@ -134,6 +142,8 @@ pub fn run() {
             }
             // Reap the openbb-mcp subprocess alongside the main sidecar.
             openbb_mcp::kill(app_handle);
+            // Reap the sec-edgar-mcp subprocess alongside the main sidecar.
+            sec_edgar_mcp::kill(app_handle);
         }
     });
 }
