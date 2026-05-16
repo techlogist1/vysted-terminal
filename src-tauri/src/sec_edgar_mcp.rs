@@ -86,9 +86,7 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
     let (mut rx, child) = match sidecar.spawn() {
         Ok(parts) => parts,
         Err(err) => {
-            eprintln!(
-                "[sec-edgar-mcp] failed to spawn subprocess: {err}; /sec routes will 501."
-            );
+            eprintln!("[sec-edgar-mcp] failed to spawn subprocess: {err}; /sec routes will 501.");
             std::env::remove_var("VYSTED_SEC_EDGAR_MCP_PORT");
             app.manage(SecEdgarMcpPort(0));
             app.manage(SecEdgarMcpProcess(Mutex::new(None)));
