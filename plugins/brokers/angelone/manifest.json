@@ -1,0 +1,10 @@
+{
+  "id": "vysted-angelone",
+  "version": "0.1.0",
+  "name": "Angel One",
+  "entry": "./index.ts",
+  "requiredHostVersion": ">=0.5.0",
+  "description": "Angel One (SmartAPI) execution adapter for India equities + F&O. Paper mode default; all orders gated by the safety-layer BrokerAdapter.",
+  "author": "Vysted Team",
+  "homepage": "https://smartapi.angelone.in/"
+}

@@ -13,6 +13,7 @@ foundation (``services/broker_base.py``) and is NOT touched here.
 
 from __future__ import annotations
 
+from services.brokers.angelone import AngelOneAdapter
 from services.brokers.dhan import DhanAdapter
 
-__all__ = ["DhanAdapter"]
+__all__ = ["AngelOneAdapter", "DhanAdapter"]
