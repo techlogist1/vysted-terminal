@@ -47,7 +47,9 @@ async def screener_query(inputs: dict[str, Any], config: dict[str, Any]) -> dict
 
     universe = inputs.get("universe") or config.get("universe")
     if not universe:
-        raise ValueError("analysis.screener_query: missing 'universe' (provide via input or config)")
+        raise ValueError(
+            "analysis.screener_query: missing 'universe' (provide via input or config)"
+        )
 
     criteria = inputs.get("criteria")
     if criteria is None:

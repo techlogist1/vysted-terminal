@@ -49,7 +49,7 @@ async def run_screener(request: ScreenerRequest) -> ScreenerResult:
 
 @router.get("/universe", response_model=ScreenerUniverse)
 async def get_universe(
-    id: ScreenerUniverseId = Query(..., description="Universe id to resolve"),  # noqa: A002
+    id: ScreenerUniverseId = Query(..., description="Universe id to resolve"),  # noqa: A002, B008
 ) -> ScreenerUniverse:
     """Return the resolved :class:`ScreenerUniverse` for ``id``.
 

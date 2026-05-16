@@ -151,7 +151,7 @@ async def resolve_universe(
         # the JSON on every screener run; a future v0.7+ refresh worker
         # populates the cache from ccxt.
         cached = await data_cache.get(
-            f"screener:universe:crypto-top50",
+            "screener:universe:crypto-top50",
             ttl_seconds=_CRYPTO_TOP50_TTL_SECONDS,
         )
         if cached and isinstance(cached, dict) and cached.get("symbols"):
@@ -162,7 +162,7 @@ async def resolve_universe(
             symbols = list(snapshot["symbols"])
             label = snapshot.get("label", "Crypto Top 50")
             await data_cache.set(
-                f"screener:universe:crypto-top50",
+                "screener:universe:crypto-top50",
                 {"symbols": symbols, "label": label, "seeded_from_snapshot": True},
             )
         return ScreenerUniverse(
@@ -311,7 +311,7 @@ async def _fetch_pair(symbol: str, asset_class: str) -> tuple[Fundamentals, Quot
             provider_registry.get_fundamentals(symbol),
             timeout=_SYMBOL_TIMEOUT_SECONDS,
         )
-    except (ProviderError, asyncio.TimeoutError, TimeoutError) as exc:
+    except (ProviderError, TimeoutError) as exc:
         logger.debug("screener: fundamentals failed for %s: %s", symbol, exc)
         return None
     except Exception as exc:  # noqa: BLE001
@@ -326,7 +326,7 @@ async def _fetch_pair(symbol: str, asset_class: str) -> tuple[Fundamentals, Quot
             asyncio.to_thread(provider_registry.get_quote, symbol, asset_class),
             timeout=_SYMBOL_TIMEOUT_SECONDS,
         )
-    except (ProviderError, asyncio.TimeoutError, TimeoutError) as exc:
+    except (ProviderError, TimeoutError) as exc:
         logger.debug("screener: quote failed for %s: %s", symbol, exc)
         # A missing quote drops the price-derived criteria but is not
         # itself a hard failure — return the fundamentals-only pair.

@@ -79,9 +79,7 @@ def test_screener_universe_unknown_id_validation_error(client: TestClient) -> No
     assert response.status_code == 422
 
 
-def test_screener_run_end_to_end(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_screener_run_end_to_end(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     """End-to-end: POST /screener/run drives the engine + returns rows."""
 
     fake_fundamentals = {
@@ -96,12 +94,8 @@ def test_screener_run_end_to_end(
     def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
         return _make_quote(symbol)
 
-    monkeypatch.setattr(
-        "services.provider_registry.get_fundamentals", fake_get_fundamentals
-    )
-    monkeypatch.setattr(
-        "services.provider_registry.get_quote", fake_get_quote
-    )
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
 
     response = client.post(
         "/screener/run",

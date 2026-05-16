@@ -45,17 +45,25 @@ class _FakeEarningsTicker:
     @property
     def earnings_estimate(self) -> pd.DataFrame:
         return pd.DataFrame(
-            [
-                {"period": "0q", "avg": 1.50, "low": 1.40, "high": 1.60, "numberOfAnalysts": 21}
-            ]
+            [{"period": "0q", "avg": 1.50, "low": 1.40, "high": 1.60, "numberOfAnalysts": 21}]
         )
 
     @property
     def earnings_history(self) -> pd.DataFrame:
         return pd.DataFrame(
             [
-                {"epsActual": 1.32, "epsEstimate": 1.30, "revenueActual": 99_000_000.0, "revenueEstimate": 98_000_000.0},
-                {"epsActual": 1.27, "epsEstimate": 1.20, "revenueActual": 96_000_000.0, "revenueEstimate": 95_000_000.0},
+                {
+                    "epsActual": 1.32,
+                    "epsEstimate": 1.30,
+                    "revenueActual": 99_000_000.0,
+                    "revenueEstimate": 98_000_000.0,
+                },
+                {
+                    "epsActual": 1.27,
+                    "epsEstimate": 1.20,
+                    "revenueActual": 96_000_000.0,
+                    "revenueEstimate": 95_000_000.0,
+                },
             ],
             index=pd.to_datetime(["2026-02-20", "2025-11-20"]),
         )
@@ -95,9 +103,7 @@ def mock_yf_earnings(monkeypatch: pytest.MonkeyPatch) -> type[_FakeEarningsTicke
 
 @pytest.mark.asyncio
 async def test_get_upcoming_default_window(mock_yf_earnings: type[_FakeEarningsTicker]) -> None:
-    response = await earnings_provider.get_upcoming(
-        date(2026, 5, 19), date(2026, 5, 21), ["AAPL"]
-    )
+    response = await earnings_provider.get_upcoming(date(2026, 5, 19), date(2026, 5, 21), ["AAPL"])
     assert response.start_date == date(2026, 5, 19)
     assert response.end_date == date(2026, 5, 21)
     assert len(response.events) == 1

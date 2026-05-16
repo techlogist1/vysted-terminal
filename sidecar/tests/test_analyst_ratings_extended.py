@@ -7,13 +7,10 @@ exercised directly.
 
 from __future__ import annotations
 
-from typing import Any
-
 import pandas as pd
 import pytest
 
 from services import analyst_ratings_extended
-
 
 # ---------------------------------------------------------------------------
 # Normaliser unit tests — exercises the five-bucket mapping
@@ -66,10 +63,34 @@ class _FakeRatingsTicker:
     def upgrades_downgrades(self) -> pd.DataFrame:
         return pd.DataFrame(
             [
-                {"Firm": "Morgan Stanley", "ToGrade": "Overweight", "FromGrade": "Equal-Weight", "Action": "up", "PriceTarget": 230.0},
-                {"Firm": "Goldman Sachs", "ToGrade": "Buy", "FromGrade": "Neutral", "Action": "up", "PriceTarget": 225.0},
-                {"Firm": "JP Morgan", "ToGrade": "Underweight", "FromGrade": "Neutral", "Action": "down", "PriceTarget": 180.0},
-                {"Firm": "Morgan Stanley", "ToGrade": "Equal-Weight", "FromGrade": "Underperform", "Action": "up", "PriceTarget": 200.0},
+                {
+                    "Firm": "Morgan Stanley",
+                    "ToGrade": "Overweight",
+                    "FromGrade": "Equal-Weight",
+                    "Action": "up",
+                    "PriceTarget": 230.0,
+                },
+                {
+                    "Firm": "Goldman Sachs",
+                    "ToGrade": "Buy",
+                    "FromGrade": "Neutral",
+                    "Action": "up",
+                    "PriceTarget": 225.0,
+                },
+                {
+                    "Firm": "JP Morgan",
+                    "ToGrade": "Underweight",
+                    "FromGrade": "Neutral",
+                    "Action": "down",
+                    "PriceTarget": 180.0,
+                },
+                {
+                    "Firm": "Morgan Stanley",
+                    "ToGrade": "Equal-Weight",
+                    "FromGrade": "Underperform",
+                    "Action": "up",
+                    "PriceTarget": 200.0,
+                },
             ],
             index=pd.to_datetime(["2026-05-01", "2026-04-15", "2026-04-01", "2026-03-01"]),
         )
@@ -112,7 +133,9 @@ async def test_get_price_target_history(mock_yf_ratings: type[_FakeRatingsTicker
     assert len(response.history) == 4
     # The MS entry from 2026-05-01 should reference its previous target (200.0)
     # because the provider pairs adjacent rows from the same firm.
-    ms_latest = next(e for e in response.history if e.firm == "Morgan Stanley" and e.target_to == 230.0)
+    ms_latest = next(
+        e for e in response.history if e.firm == "Morgan Stanley" and e.target_to == 230.0
+    )
     assert ms_latest.target_from == 200.0
 
 

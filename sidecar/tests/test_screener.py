@@ -302,12 +302,8 @@ async def test_run_screener_custom_universe_end_to_end(monkeypatch: pytest.Monke
     def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
         return _make_quote(symbol)
 
-    monkeypatch.setattr(
-        "services.provider_registry.get_fundamentals", fake_get_fundamentals
-    )
-    monkeypatch.setattr(
-        "services.provider_registry.get_quote", fake_get_quote
-    )
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
 
     request = ScreenerRequest(
         universe="custom",
@@ -342,12 +338,8 @@ async def test_run_screener_per_symbol_failure_does_not_poison_run(
     def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
         return _make_quote(symbol)
 
-    monkeypatch.setattr(
-        "services.provider_registry.get_fundamentals", fake_get_fundamentals
-    )
-    monkeypatch.setattr(
-        "services.provider_registry.get_quote", fake_get_quote
-    )
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
 
     request = ScreenerRequest(
         universe="custom",
@@ -369,19 +361,13 @@ async def test_run_screener_limit_clamps_result_set(monkeypatch: pytest.MonkeyPa
     async def fake_get_fundamentals(symbol: str) -> Fundamentals:
         # Market cap embedded in symbol order so sort is deterministic.
         index = int(symbol[1:])
-        return _make_fundamentals(
-            symbol, sector="Technology", market_cap=(100 - index) * 1e9
-        )
+        return _make_fundamentals(symbol, sector="Technology", market_cap=(100 - index) * 1e9)
 
     def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
         return _make_quote(symbol)
 
-    monkeypatch.setattr(
-        "services.provider_registry.get_fundamentals", fake_get_fundamentals
-    )
-    monkeypatch.setattr(
-        "services.provider_registry.get_quote", fake_get_quote
-    )
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
 
     symbols = [f"S{i:02d}" for i in range(20)]
     request = ScreenerRequest(

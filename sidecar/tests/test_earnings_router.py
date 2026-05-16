@@ -35,7 +35,9 @@ def isolated_cache(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> object:
     data_cache.reset_for_tests()
 
 
-def _stub_upcoming(start: date, end: date, _watchlist: list[str] | None = None) -> EarningsUpcomingResponse:
+def _stub_upcoming(
+    start: date, end: date, _watchlist: list[str] | None = None
+) -> EarningsUpcomingResponse:
     return EarningsUpcomingResponse(
         start_date=start,
         end_date=end,

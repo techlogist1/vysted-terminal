@@ -66,12 +66,8 @@ async def test_screener_run_invokes_engine_and_returns_rows(
     def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
         return _make_quote(symbol)
 
-    monkeypatch.setattr(
-        "services.provider_registry.get_fundamentals", fake_get_fundamentals
-    )
-    monkeypatch.setattr(
-        "services.provider_registry.get_quote", fake_get_quote
-    )
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
 
     response = await screener_tools._screener_run(
         {
@@ -89,9 +85,7 @@ async def test_screener_run_invokes_engine_and_returns_rows(
 
 @pytest.mark.asyncio
 async def test_screener_run_invalid_payload_returns_error() -> None:
-    response = await screener_tools._screener_run(
-        {"universe": "nope", "criteria": []}
-    )
+    response = await screener_tools._screener_run({"universe": "nope", "criteria": []})
     assert response["ok"] is False
     assert "invalid screener request" in response["error"]
 

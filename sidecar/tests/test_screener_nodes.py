@@ -66,12 +66,8 @@ async def test_screener_query_runs_from_config(monkeypatch: pytest.MonkeyPatch) 
     def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
         return _make_quote(symbol)
 
-    monkeypatch.setattr(
-        "services.provider_registry.get_fundamentals", fake_get_fundamentals
-    )
-    monkeypatch.setattr(
-        "services.provider_registry.get_quote", fake_get_quote
-    )
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
 
     outputs = await screener_nodes.screener_query(
         inputs={},
@@ -98,12 +94,8 @@ async def test_screener_query_inputs_override_config(monkeypatch: pytest.MonkeyP
     def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
         return _make_quote(symbol)
 
-    monkeypatch.setattr(
-        "services.provider_registry.get_fundamentals", fake_get_fundamentals
-    )
-    monkeypatch.setattr(
-        "services.provider_registry.get_quote", fake_get_quote
-    )
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
 
     outputs = await screener_nodes.screener_query(
         inputs={

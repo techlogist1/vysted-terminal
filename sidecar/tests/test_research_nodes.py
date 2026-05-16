@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Any
 
 import pytest
 
@@ -72,9 +71,7 @@ async def test_fetch_earnings_calendar(monkeypatch: pytest.MonkeyPatch) -> None:
         )
 
     monkeypatch.setattr(earnings_provider, "get_upcoming", _upcoming)
-    out = await research_nodes.fetch_earnings_calendar(
-        {"days": 7, "watchlist": "AAPL,MSFT"}, {}
-    )
+    out = await research_nodes.fetch_earnings_calendar({"days": 7, "watchlist": "AAPL,MSFT"}, {})
     assert len(out["events"]) == 1
     assert out["events"][0]["symbol"] == "AAPL"
 

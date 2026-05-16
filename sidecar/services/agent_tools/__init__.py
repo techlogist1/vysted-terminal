@@ -68,8 +68,23 @@ async def invoke_tool(tool_id: str, args: dict[str, Any]) -> dict[str, Any]:
 
 
 def reset_for_tests() -> None:
-    """Clear the registry — used only from the test suite."""
+    """Clear the registry — used only from the test suite.
+
+    Re-registers the import-time foundation tool (``backtest_summary``)
+    so the v0.5.0 invariant — ``agent_tools.is_registered("backtest_summary")``
+    is True immediately after import — survives a reset. The v0.5.0
+    flat-file ``agent_tools.py`` had the same shape implicitly via the
+    bottom-of-file ``register_tool(...)`` call; the F4 package refactor
+    moved that to ``backtest_summary.py``'s import-time side effect, so
+    a naive ``_TOOLS.clear()`` would leave the registry empty until a
+    test re-imported the submodule. Re-registering here keeps the test
+    contract identical to v0.5.0.
+    """
     _TOOLS.clear()
+    # Re-register import-time foundation tools.
+    from services.agent_tools.backtest_summary import _backtest_summary
+
+    register_tool("backtest_summary", _backtest_summary)
 
 
 # ---------------------------------------------------------------------------

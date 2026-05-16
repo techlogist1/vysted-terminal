@@ -49,9 +49,13 @@ async def test_set_upsert_overwrites_value_and_bumps_timestamp() -> None:
     got = await data_cache.get("k", ttl_seconds=60)
     assert got == "new"
     # ``updated_at`` was bumped past ``before``.
-    raw_row = data_cache._get_conn().execute(  # type: ignore[attr-defined]
-        "SELECT updated_at FROM cache WHERE key = ?", ("k",)
-    ).fetchone()
+    raw_row = (
+        data_cache._get_conn()
+        .execute(  # type: ignore[attr-defined]
+            "SELECT updated_at FROM cache WHERE key = ?", ("k",)
+        )
+        .fetchone()
+    )
     assert raw_row is not None
     assert raw_row[0] >= before
 

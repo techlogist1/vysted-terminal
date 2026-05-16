@@ -7,7 +7,6 @@ error-shaping paths without the yfinance backend.
 from __future__ import annotations
 
 from datetime import UTC, date, datetime
-from typing import Any
 
 import pytest
 

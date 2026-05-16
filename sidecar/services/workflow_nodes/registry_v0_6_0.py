@@ -66,9 +66,7 @@ def register_v0_6_0_nodes() -> None:
     if registered:
         logger.info("workflow_nodes: registered v0.6.0 domains: %s", ", ".join(registered))
     else:
-        logger.debug(
-            "workflow_nodes: register_v0_6_0_nodes() called with no domains uncommented"
-        )
+        logger.debug("workflow_nodes: register_v0_6_0_nodes() called with no domains uncommented")
 
 
 __all__ = ["register_v0_6_0_nodes"]
