@@ -284,6 +284,50 @@ AgentSummary]`), wrap at the MCP-tool boundary as
     Phase-6 (Macro + Research + QuantLib) is closer to a single-phase
     shape; Phase 5.x Tradesa V2 + Phase 6 QuantLib could potentially
     compress if (a)–(c) hold.
+- **Teammate agent terminations come in two flavours: socket-closed +
+  stream-watchdog. Both are recoverable.** Phase 6 caught one of each:
+  Sc died on an API socket close mid-execution after pushing the
+  backend slice (Sc's frontend salvaged as a v0.6.1 lead-completion
+  task); Q stalled at the 600s stream-watchdog mid-formatting with all
+  work locally complete but uncommitted (lead salvaged directly from
+  the worktree, committed + pushed to the worktree branch). **Rule for
+  teammate dispatch going forward**: brief teammates to push commits
+  FREQUENTLY (every concrete deliverable, not at end-of-task) — every
+  push is a recovery checkpoint. **Rule for lead audits**: when a
+  teammate's notification reports failure, FIRST inspect their worktree
+  dir + branch via `git log --oneline -20` + `git status --short` — the
+  work may be 95% complete and locally committed even when the API
+  level sees an error. The v0.5.0 Teammate S precedent (usage-limit
+  termination → lead-completed audit + handoff doc from the integrated
+  codebase) generalises.
+- **`agent_tools` package refactor side effect — `reset_for_tests` must
+  re-register import-time tools.** v0.5.0's flat
+  `sidecar/services/agent_tools.py` registered `backtest_summary` at
+  module bottom. v0.6.0's F4 refactor split that into a package; the
+  `backtest_summary` registration moved into a submodule's import side
+  effect. Tests that called `agent_tools.reset_for_tests()` cleared the
+  registry without re-importing the submodule, leaving the registry
+  empty. The fix lives in `sidecar/services/agent_tools/__init__.py`:
+  `reset_for_tests()` now re-registers `backtest_summary` after
+  clearing. Future foundation tools that auto-register at import time
+  need to be added to the same re-registration list.
+- **PyPI naming traps — a package id may not be in the language you
+  expect.** v0.6.0 Phase 6 Teammate M caught `fred-mcp-server` on PyPI
+  is actually a Node.js MCP server, NOT a Python MCP server. Pivot to
+  the in-process Python SDK (`fredapi`) matched ECB/IMF/WB pattern and
+  avoided pulling a Node runtime into the Tauri build chain (BLOCKERS-M.md
+  T3-M-1). **Rule**: when the plan names a subprocess MCP server,
+  verify the language at dispatch time before wiring PyInstaller — a
+  3-minute PyPI/GitHub check beats a half-hour debug of a "Python
+  package that won't import".
+- **XBRL precision must cross the wire as strings.** SEC EDGAR filings
+  carry numbers that overflow JavaScript's `Number.MAX_SAFE_INTEGER`
+  (AAPL's total-assets cent value is one example). v0.6.0 SEC contracts
+  in `types/sec.ts` + `models/sec.py` type these fields as `string`;
+  the UI parses to `BigInt` only when computing on them. Any future
+  data source with arbitrary-precision values (legal docs, large
+  population counts, scientific measurements) should follow the same
+  rule.
 
 ## Per-phase handoff
 
@@ -320,7 +364,8 @@ Each handoff covers, in order:
   outcomes. Read when you need the _why_ behind a choice.
 - `docs/PHASE_N_HANDOFF.md` — the previous phase's handoff. Read first when
   starting Phase N+1. v0.5.0 mega-sprint shipped both
-  `docs/PHASE_4_HANDOFF.md` + `docs/PHASE_5_HANDOFF.md`.
+  `docs/PHASE_4_HANDOFF.md` + `docs/PHASE_5_HANDOFF.md`. v0.6.0 ships
+  `docs/PHASE_6_HANDOFF.md` (Phase 7 entry point: launch operations).
 - `docs/SAFETY_ARCHITECTURE.md` — BLUEPRINT §6.5 enforcement reference.
   Per-guarantee implementation file:line pointers + capture-artifact
   paths + conditional revert procedure. Read before touching anything

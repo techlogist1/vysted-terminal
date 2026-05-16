@@ -558,14 +558,34 @@ v0.5.0 and `docs/superpowers/plans/2026-05-16-phase-4-5-mega-sprint.md`.
 
 ### Phase 6 — Macro + Research + QuantLib
 
-**In progress as v0.6.0 (build window opened 2026-05-16).** Plan at
-`docs/superpowers/plans/2026-05-16-phase-6-macro-research-quantlib.md`.
-- Macro/economic data panels (FRED, ECB, IMF, World Bank)
-- SEC filings reader
-- Earnings calendar
-- Analyst ratings aggregator
-- QuantLib pricing modules (Black-Scholes, Binomial, Monte Carlo, VaR, Greeks, yield curves)
-- Screener / scanner panel
+**Shipped in v0.6.0 (2026-05-16).** Plan at
+`docs/superpowers/plans/2026-05-16-phase-6-macro-research-quantlib.md`;
+handoff at `docs/PHASE_6_HANDOFF.md`.
+
+- Macro/economic data panels ✓ — FRED (via `fredapi`), ECB (via
+  `ecbdata`), IMF (via `sdmx1`), World Bank (via `wbgapi`); all
+  in-process after the M Tier-3 pivot from the originally-planned
+  `fred-mcp-server` subprocess (Node.js package).
+- SEC filings reader ✓ — `sec-edgar-mcp` subprocess (Tauri Rust spawn
+  pattern, precedent v0.4.0 openbb_mcp.rs) covers 10-K / 10-Q / 8-K /
+  DEF 14A + insider Forms 3/4/5 + XBRL-precise financials with string
+  precision preservation.
+- Earnings calendar ✓ — upcoming + history + surprises + estimates with
+  consensus mean / high / low / dispersion stddev approximation.
+- Analyst ratings aggregator ✓ — ratings history + price-target
+  timeline + per-firm individual analyst tracks with five-bucket
+  AnalystAction normalisation.
+- QuantLib pricing modules ✓ — Black-Scholes / Cox-Ross-Rubinstein
+  binomial / Monte Carlo options + Greeks + fixed-rate bonds (duration,
+  modified duration, convexity) + PiecewiseLinearZero yield-curve
+  bootstrapping. In-process via `QuantLib==1.42.1` (Tier-3: quality
+  posture removed bundle-size constraint).
+- Screener / scanner — backend shipped (Teammate Sc); frontend deferred
+  to v0.6.1 lead-completion after Sc's agent terminated mid-execution
+  on a socket-closed error.
+
+16 new agent tools registered + 9 new workflow node types — Use Cases 4
+(academic research) and 5 (macro thesis watcher) materially more capable.
 
 ### Phase 7 — Polish + Distribution + Launch
 - SignPath.io setup for Windows code signing (free OSS application)

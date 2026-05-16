@@ -1,12 +1,65 @@
 # Blockers & Known Issues
 
-Lead-level open items as of v0.5.0. Per-teammate Phase-5 self-reports
-(BLOCKERS-I.md only — covered the deferred BrokerConnectPanel screenshot;
-W, K, N, G, X surfaced none in-build; S terminated on a usage-limit
-before pushing BLOCKERS-S.md) were aggregated here at integration and
-removed from teammate worktrees; salient detail preserved in the merge
-commit messages, `CHANGELOG.md` v0.5.0 entry, and the two per-phase
-handoff docs.
+Lead-level open items as of v0.6.0. Per-teammate Phase-6 self-reports
+(BLOCKERS-M.md surfaced T3-M-1 — the `fred-mcp-server` Node.js pivot;
+F / Q / E / Sc surfaced none in-build) were aggregated here at integration
+and removed from teammate worktrees; salient detail preserved in the merge
+commit messages, `CHANGELOG.md` v0.6.0 entry, and `docs/PHASE_6_HANDOFF.md`.
+
+## Phase-6.1 follow-ups (cosmetic / forward-looking)
+
+### 1. Teammate Sc screener frontend
+
+Teammate Sc terminated mid-execution on a socket-closed error after
+shipping the backend slice (engine + universes + router + agent tool +
+workflow node + 33 backend tests, all audited clean). The remaining
+deliverables for v0.6.1 lead-completion:
+- `src/modules/screener/{ScreenerPanel,ScreenerCriteriaBuilder,
+ScreenerResultsTable,index}.tsx`
+- `src/store/screener.ts` + Vitest sibling
+- Populated-state screenshots at 1920×1080 + 2560×1440 (S&P 500 + P/E <
+  20 + market cap > 100B + sector = Technology criteria; expected 6-8
+  matching names)
+- Uncomment `screenerModule` lines in `src/modules/index.ts` + update
+  `src/lib/module-registry.test.ts` expected-id list to include "screener"
+
+Backend is fully usable in v0.6.0 via REST (`POST /screener/run`) +
+agent tool (`screener_run`) + workflow node (`analysis.screener_query`).
+
+### 2. Teammate Q populated-state screenshots
+
+Teammate Q stalled at the 600s stream-watchdog mid-formatting after
+shipping all backend (68 tests) + frontend (4 panels + store + Vitest)
+code; uncommitted work salvaged by lead from the worktree. Missing only
+the populated-state screenshots at `docs/screenshots/v0.6.0/teammate-q/`
+at 1920×1080 + 2560×1440. Capture during v0.6.1 polish: AAPL 220 Jun-2026
+call priced via BS / Binomial / MC + Greeks dashboard; 10y US Treasury
+bond at 4.25% YTM; bootstrapped US Treasury yield curve 1mo→30y.
+
+### 3. Live Tauri capture for E + F screenshots
+
+Teammates E and F shipped Pillow-rendered shape-for-shape mock PNGs
+(documented Tier-3 — the live `pnpm sec-edgar-mcp-sidecar:build`
+PyInstaller compile is a lead-integration step that wasn't feasible
+inside their isolated worktrees). The mock screenshots match the live
+React shapes 1:1 via test coverage (61 F tests + 60 E tests). v0.6.1
+re-capture from a live build is cosmetic polish, not a regression risk.
+
+### 4. Tradesa V2 full plugin (carry-forward from v0.5.0)
+
+Deferred again from v0.6.0 per the Tier-3 operator-brief direction:
+focused v0.6.5 sprint between Phase 6 and Phase 7. Foundation contracts
+(kill switch + audit log + `executeCommand` control plane + broker
+adapter ABC) are in place; Tradesa V2 becomes plug-in work, not contract
+work. 9-12 panels + real-time WebSocket + settings drift detection + LLM
+cost tracking + Tradesa-specific agents + nodes per BLUEPRINT §4.
+
+## Resolved in v0.6.0
+
+The v0.5.0 carry-forwards that v0.6.0 addressed:
+
+- **Phase 5.1 #2 (Tradesa V2 full plugin)** — re-deferred to v0.6.5
+  per Tier-3 (see follow-up §4 above).
 
 ## Resolved in v0.5.0
 

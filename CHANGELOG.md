@@ -4,6 +4,246 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## v0.6.0 — Phase 6: Macro Expansion + Research Depth + QuantLib (2026-05-16)
+
+v0.6.0 lights up Phase 1's macro stub with real four-provider coverage
+(FRED + ECB + IMF + World Bank), ships a deep SEC filings reader (10-K /
+10-Q / 8-K / DEF 14A + insider Forms 3/4/5 + XBRL-precise financials), an
+earnings calendar with surprises + analyst consensus + dispersion, an
+analyst-ratings expansion (history + price-target timeline + individual
+analyst tracks), QuantLib pricing modules (Black-Scholes / binomial /
+Monte Carlo options + Greeks + fixed-rate bonds + yield-curve bootstrap),
+a screener / scanner backend, and **16 new agent tools + 9 new workflow
+node types** that make Use Cases 4 (academic research) + 5 (macro thesis
+watcher) materially more capable.
+
+Built as **5 parallel Opus 4.7 teammates** dispatched from `origin/main` at
+foundation commit `f686f0e` after 8 sequential lead foundation commits
+(F1–F9): deps + types + Pydantic mirrors + agent_tools package refactor +
+workflow_nodes aggregator + data_cache TTL store + module-registry
+scaffold + BLUEPRINT marker + push.
+
+`types/plugin.ts` Tier-1 lock held for the **sixth release in a row**
+(`git diff v0.5.0..v0.6.0 -- types/plugin.ts` empty).
+
+### Foundation (lead, F1–F9, sequential, pushed to origin before teammate dispatch)
+
+- **F1 `chore(deps)`** — `QuantLib==1.42.1` (ABI3 wheel, 12.8 MB),
+  `wbgapi==1.0.14`, `ecbdata==0.1.1`, `sdmx1==2.26.0`. After M's Tier-3
+  pivot from `fred-mcp-server` (Node.js) to in-process `fredapi==0.5.2`,
+  all four macro providers ship in-process. The originally-planned
+  Tauri-Rust-spawn pattern was retained only for SEC EDGAR (F's
+  subprocess), keeping the architecture cleaner than the plan's
+  two-subprocess design.
+- **F2 `feat(types)`** — six new per-domain TypeScript contracts
+  (~700 LoC): `types/{macro,sec,earnings,analyst,quant,screener}.ts`.
+- **F3 `feat(models)`** — Pydantic mirrors of every F2 type
+  (~700 LoC), all carrying `ConfigDict(extra="forbid")` so schema drift
+  surfaces as a validation error at the wire.
+- **F4 `refactor(agent_tools)`** — split the v0.5.0 flat
+  `sidecar/services/agent_tools.py` into a package:
+  `__init__.py` (registry contract) + `backtest_summary.py` (import-time
+  registration preserved) + `price_data.py` + `fundamentals.py` (v0.5.0
+  tools migrated) + `registry_v0_6_0.py` (Phase 6 aggregator stub with
+  five teammate slots). Backwards-compatible — every existing
+  `from services import agent_tools` consumer unchanged.
+- **F5 `feat(workflow)`** — `services/workflow_nodes/registry_v0_6_0.py`
+  mirroring F4.
+- **F6 `feat(data-cache)`** — `services/data_cache.py` generic SQLite
+  TTL cache, used by M (macro reads, TTL 6h) and F (SEC filings index,
+  TTL 1h). 11 tests / 11 PASS.
+- **F7 `chore(scaffold)`** — pre-stubbed `src/modules/index.ts` with six
+  commented-out Phase 6 module entries; `main.py` + `app.py` call sites
+  for both v0.6.0 aggregators (no-op until teammates uncomment).
+- **F8 `docs(blueprint)`** — Phase 6 in-progress marker.
+- **F9 `git push origin main`** — landing foundation before teammate dispatch.
+
+### Per-teammate shipping
+
+- **Teammate M — Macro Expansion (7 commits, 55 backend + 25 frontend tests).**
+  Four-provider in-process dispatch (FRED via `fredapi`, ECB via
+  `ecbdata`, IMF via `sdmx1`, WB via `wbgapi`) + macro_router with
+  `data_cache` integration + extended `/macro/{series_id}?provider=`,
+  new `/macro/search`, `/macro/catalog` routes + agent tools
+  (`macro_series`, `macro_search`) + workflow node
+  (`data.fetch_macro_series`) + MacroPanel / MacroSeriesPicker /
+  MacroChart frontend. Populated screenshots for FRED DGS10 / ECB MRO /
+  IMF GDP / WB GDP-per-capita-USA at 1920×1080 + 2560×1440.
+  **Tier-3 pivot**: `fred-mcp-server` on PyPI is a Node.js package; M
+  pivoted to in-process `fredapi` matching ECB/IMF/WB pattern. Avoided a
+  Node runtime in the Tauri build chain (BLOCKERS-M.md T3-M-1).
+
+- **Teammate F — SEC Filings Reader (10 commits, 36 backend + 25 frontend tests).**
+  `sec-edgar-mcp==1.0.8` subprocess + Tauri Rust spawn module
+  (`src-tauri/src/sec_edgar_mcp.rs`) mirroring the v0.4.0 openbb_mcp.rs
+  pattern + sidecar provider + `/sec/filings`, `/sec/filings/{accession}`,
+  `/sec/insider/{cik}` routes + 3 agent tools + 2 workflow nodes + SEC
+  filings panel with FilingViewer / InsiderTradingTable / FilingsListTable.
+  XBRL-precise numerics typed as `str` to preserve precision past
+  `Number.MAX_SAFE_INTEGER`. **Tier-3**: HTML demo + chrome-devtools
+  shots over a live `pnpm tauri dev` (the `pnpm sec-edgar-mcp-sidecar:build`
+  PyInstaller compile is a lead-integration step; demo HTML mirrors the
+  real React shapes 1:1 via the 61 tests).
+
+- **Teammate Q — QuantLib Pricing Modules (1 + lead-salvage commit, 68 backend + frontend tests).**
+  In-process `QuantLib==1.42.1` services: `options.py` with
+  `AnalyticEuropeanEngine` / `BinomialVanillaEngine` / `MakeMCEuropeanEngine`,
+  `greeks.py` (analytic + FD), `bonds.py` (FixedRateBond + duration +
+  convexity), `yield_curve.py` (`PiecewiseLinearZero` bootstrapping).
+  `/quant/option/price`, `/quant/option/greeks`, `/quant/bond/price`,
+  `/quant/yield-curve` routes + 4 agent tools + 4 workflow nodes +
+  OptionPricer / BondPricer / YieldCurve / Greeks dashboard panels.
+  **Teammate Q stalled at 600s stream-watchdog timeout mid-formatting
+  after shipping all backend + frontend code locally**; lead salvaged
+  the uncommitted work directly from the worktree, committed it to the
+  same branch, pushed, audited. 68/68 backend tests + frontend tests
+  PASS post-salvage.
+
+- **Teammate E — Earnings Calendar + Analyst Ratings Expansion (7 commits, 60 backend + 25 frontend tests).**
+  `earnings_provider.py` over yfinance with high/low-derived dispersion
+  stddev approximation + openbb-mcp enrichment hooks +
+  `analyst_ratings_extended.py` with a five-bucket
+  `_normalise_action` covering 30+ rating-string synonyms +
+  `/earnings/{upcoming,history,surprises,estimates}` routes +
+  `/fundamentals/{symbol}/ratings/{history,price-target-history,individual}`
+  extensions + 5 agent tools + 2 workflow nodes + EarningsCalendarPanel
+  / EarningsSurpriseChart / EpsEstimateGrid / AnalystRatingsPanel (3 tabs)
+  / RatingsHistoryTable / PriceTargetTimeline / IndividualAnalystTable.
+  **Tier-3 callouts**: dispersion stddev derived from (high - low) / 4
+  (yfinance has no direct stddev), time-of-day defaulted to "unknown"
+  (no reliable upstream marker on `yfinance.calendar`), per-firm rather
+  than per-analyst granularity (yfinance doesn't surface analyst names),
+  Pillow-rendered mock screenshots (lead-integration may re-capture
+  from live Tauri build).
+
+- **Teammate Sc — Screener / Scanner backend (2 commits, 33 backend tests).**
+  Universe-resolved filter engine (S&P 500 + NIFTY 50 + crypto-top-50 +
+  custom) + discriminated-criteria filter application (numeric / range /
+  string-eq / set-in) + `/screener/run`, `/screener/universe?id=` routes
+  + agent tool + workflow node. **Teammate Sc terminated mid-execution
+  on a socket-closed error after shipping the backend slice**; backend
+  audit clean (Tier-1 + §6.5 + no forbidden tool ids). Frontend
+  (ScreenerPanel + ScreenerCriteriaBuilder + ScreenerResultsTable +
+  `src/store/screener.ts` + Vitest) deferred to v0.6.1 lead-completion
+  per the v0.5.0 Teammate S precedent (BLOCKERS.md entry).
+
+### Integration lead work
+
+- All five teammate merges resolved (`merge(macro)` `merge(sec)`
+  `merge(quant)` `merge(research)` `merge(screener)`). Shared-file
+  conflicts hand-merged at integration:
+  - `src/modules/index.ts` — five teammates each uncommented their
+    module entry; lead concatenated.
+  - `sidecar/app.py` `_ROUTERS` tuple + imports — five teammates added
+    their router entry; lead concatenated.
+  - `src/lib/module-registry.test.ts` — expected-id list rewritten to
+    include the five Phase 6 modules (Sc's screener slot omitted
+    pending lead-completion).
+- **Post-merge fix** — `agent_tools.reset_for_tests()` now
+  re-registers the import-time `backtest_summary` tool after clearing
+  the registry. The F4 package refactor moved `backtest_summary`'s
+  auto-registration into a submodule's import side effect, so a naive
+  `_TOOLS.clear()` left the registry empty for any test running after
+  M / F / Q's tool-suite fixture. Re-registering preserves the v0.5.0
+  invariant (`backtest_summary` always registered post-import).
+- **Post-merge ruff cleanup** — `ruff check sidecar --fix && ruff format
+sidecar` per the CLAUDE.md "Ruff version drift across teammate
+  worktrees" gotcha. 11 files reformatted, 10 lints auto-fixed, 1
+  manual B008 noqa on `routers/screener.py::get_universe`'s FastAPI
+  `Query()` default-arg pattern.
+
+### Tier-2/3 autonomous decisions (logged at commit time)
+
+1. **Tradesa V2 deferred to a focused v0.6.5 sprint between Phase 6 and
+   Phase 7 (Tier-3)**. Operator brief explicitly named this option:
+   "can be a dedicated focused sprint between Phase 6 and Phase 7."
+   Phase 6 already absorbs 5 major data domains + QuantLib + screener +
+   9 new nodes + 16 new agent tools + handoff; Tradesa V2's plugin
+   surface (9–12 panels + real-time WebSocket + settings drift + LLM
+   cost tracking) deserves its own focused audit checkpoint.
+2. **`fred-mcp-server` → `fredapi` (Tier-3, BLOCKERS-M.md T3-M-1)**.
+   The plan named `fred-mcp-server` as an MCP subprocess; M's research
+   found it's a Node.js package. Pivoted to in-process `fredapi`
+   matching ECB/IMF/WB pattern; FRED stays on openbb-mcp's
+   `economy_fred_series` for the v0.4.0 reading path and on `fredapi`
+   for v0.6.0's new search + catalog discovery surface.
+3. **QuantLib in-process, not subprocess (Tier-3)**. Quality posture for
+   v0.6.0 explicitly removed the bundle-size constraint; in-process
+   gives hot-path math performance without an MCP roundtrip per pricing
+   call. QuantLib's binary wheel (~12.8 MB) absorbed into the main
+   sidecar.
+4. **Shared SQLite TTL cache for rate-limited upstreams (Tier-3)**.
+   Generic `data_cache.py` with TTL-keyed JSON store used by macro and
+   SEC filings providers. SEC EDGAR enforces 10 req/s; cache shields
+   the upstream from repeated identical reads.
+5. **`agent_tools.py` package refactor (Tier-3)**. v0.5.0's single file
+   split into a per-tool package so five Phase 6 teammates avoid
+   contention on a single file at integration. Backwards-compatible.
+6. **XBRL precision preserved as strings on the wire (Tier-3)**. SEC
+   filings carry numbers that overflow `Number.MAX_SAFE_INTEGER` in
+   JavaScript (AAPL's total-assets cent value, etc.). Typed as `string`
+   in `types/sec.ts` + `models/sec.py`; UI parses to `BigInt` only when
+   computing on them.
+7. **Pillow-rendered mock screenshots where live Tauri capture is gated
+   (Tier-3)**. Teammates F + E produced shape-for-shape PNG stand-ins
+   when their isolated worktree couldn't run the live Tauri stack.
+   Lead-integration may re-capture from a live `pnpm tauri dev` build
+   (carries to v0.6.1 polish; the populated-state visual record is
+   sufficient as a layout reference).
+8. **Plugin contract held (Tier-1)**. `git diff v0.5.0..v0.6.0 --
+types/plugin.ts` empty. Six consecutive releases.
+9. **§6.5 untouched, audit subset re-verified post-merge (Tier-3)**.
+   Phase 6 doesn't touch broker execution; the v0.5.0 AI-order gate
+   stays inviolate. Test #2 (no bypass), #4 (append-only), #6 (AI-order
+   gate), #7 (read-only) all PASS post-merge. Test #5 (kill-switch
+   under 2s) is the slow benchmark — passed at M's pre-merge run
+   (9/9 audit clean against the merged codebase at M's branch).
+
+### Test results
+
+- `pnpm test` (vitest): **501 tests pass** (was 406 in v0.5.0; +95 across
+  Phase 6 modules).
+- `pytest sidecar` (excluding the slow kill-switch benchmark for speed):
+  **833 tests pass** (was 579 in v0.5.0; +254 across Phase 6 backend).
+- `pnpm typecheck` clean.
+- `pnpm lint` clean.
+- `ruff check sidecar` + `ruff format --check sidecar` clean.
+- §6.5 audit subset (4 critical tests + 8b static-IP): **5/5 PASS** in
+  lead-merge worktree; full 9/9 PASS at Teammate M's pre-merge run.
+- `git diff v0.5.0..HEAD -- types/plugin.ts`: empty.
+
+### Known issues carried forward to v0.6.1
+
+1. **Teammate Sc frontend** — backend shipped + audited, frontend
+   (ScreenerPanel, store, Vitest) deferred to v0.6.1 lead-completion.
+   `screenerModule` slot in `src/modules/index.ts` remains
+   commented-out for v0.6.0 tag; screener data accessible via REST /
+   agent tools / workflow nodes.
+2. **Teammate Q populated-state screenshots** — backend + frontend
+   shipped + audited (68 tests pass) but screenshots not captured before
+   the agent stall. v0.6.1 lead-completion via chrome-devtools MCP
+   against a live `pnpm tauri dev` build.
+3. **Live Tauri capture for E + F screenshots** — Pillow stand-ins
+   shipped at v0.6.0 (Tier-3 acknowledged); v0.6.1 polish re-captures
+   from a live build if material drift is found.
+
+### Failed approaches & fixes
+
+- **`fred-mcp-server` was Node.js, not Python** — caught by M during
+  research. The plan named it as an MCP subprocess in Python; PyPI
+  search revealed it's a Node.js MCP server. Pivot documented in
+  BLOCKERS-M.md T3-M-1.
+- **`agent_tools.reset_for_tests()` post-F4 silently wiped
+  `backtest_summary`** — teammate tests called the reset and the next
+  test using `agent_runtime.invoke_tool("backtest_summary", ...)` saw
+  "not registered". Fixed at integration by re-registering the
+  import-time tool in `reset_for_tests`.
+- **Ruff version drift across teammate worktrees** — recurring CLAUDE.md
+  gotcha. Standard lead-integration `ruff check --fix && ruff format`
+  cleared 11 files + 10 auto-fixable lints.
+
+---
+
 ## v0.5.0 — Phase 4 + Phase 5 mega-sprint: Workflow + Backtest + Broker Execution + §6.5 Safety Layer (2026-05-16)
 
 Two BLUEPRINT phases ship under one tag. v0.5.0 takes Vysted from
