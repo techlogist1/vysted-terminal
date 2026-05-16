@@ -22,6 +22,7 @@ from routers import (
     brokers,
     crypto,
     custom_agents,
+    earnings,
     fundamentals,
     health,
     history,
@@ -61,6 +62,7 @@ _ROUTERS = (
     workflow,
     backtest,
     brokers,
+    earnings,
 )
 
 
