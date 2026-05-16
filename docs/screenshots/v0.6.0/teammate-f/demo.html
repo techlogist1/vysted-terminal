@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vysted SEC Filings — v0.6.0 demo</title>
+    <style>
+      :root {
+        --charcoal-50: #f5f0e6;
+        --charcoal-100: #e9e1cf;
+        --charcoal-200: #c9c2b2;
+        --charcoal-300: #aea69a;
+        --charcoal-400: #888070;
+        --charcoal-500: #5a5347;
+        --charcoal-700: #3a352c;
+        --charcoal-800: #2a2620;
+        --charcoal-900: #1c1916;
+        --charcoal-950: #14110f;
+        --emerald-300: #6ee7b7;
+        --sky-300: #7dd3fc;
+        --amber-300: #fcd34d;
+        --violet-300: #c4b5fd;
+        --rose-300: #fda4af;
+        --orange-300: #fdba74;
+        --positive: #7faa6b;
+        --negative: #b5503b;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--charcoal-950);
+        color: var(--charcoal-100);
+        font-family: ui-monospace, "Cascadia Mono", "JetBrains Mono", monospace;
+        padding: 12px;
+        display: grid;
+        grid-template-columns: 7fr 5fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 12px;
+        min-height: 100vh;
+      }
+      .panel {
+        background: var(--charcoal-900);
+        border: 1px solid var(--charcoal-800);
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+      .panel-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--charcoal-700);
+        font-size: 11px;
+      }
+      .panel-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--charcoal-100);
+      }
+      .input,
+      .select {
+        background: var(--charcoal-800);
+        color: var(--charcoal-100);
+        border: 1px solid var(--charcoal-700);
+        border-radius: 4px;
+        padding: 3px 8px;
+        font-family: inherit;
+        font-size: 11px;
+      }
+      .input {
+        width: 110px;
+        text-transform: uppercase;
+      }
+      .label {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: 9px;
+        text-transform: uppercase;
+        color: var(--charcoal-400);
+      }
+      .button {
+        background: transparent;
+        color: var(--charcoal-100);
+        border: 1px solid var(--charcoal-700);
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-family: inherit;
+        font-size: 11px;
+        cursor: pointer;
+      }
+      .button.active {
+        background: var(--charcoal-700);
+        color: var(--charcoal-50);
+        border-color: var(--charcoal-500);
+      }
+      .button.outline:hover {
+        background: var(--charcoal-800);
+      }
+      .pill {
+        display: inline-block;
+        padding: 2px 7px;
+        border-radius: 999px;
+        background: var(--charcoal-800);
+        color: var(--charcoal-300);
+        font-size: 9px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+        table-layout: fixed;
+      }
+      thead th {
+        background: var(--charcoal-900);
+        text-align: left;
+        color: var(--charcoal-400);
+        font-size: 9px;
+        text-transform: uppercase;
+        padding: 5px 8px;
+        border-bottom: 1px solid var(--charcoal-700);
+        position: sticky;
+        top: 0;
+      }
+      tbody td {
+        padding: 5px 8px;
+        border-bottom: 1px solid var(--charcoal-800);
+      }
+      tbody tr:hover {
+        background: var(--charcoal-800);
+      }
+      tbody tr.selected {
+        background: var(--charcoal-800);
+      }
+      .scroll {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+      }
+      .form-10k {
+        color: var(--emerald-300);
+        font-weight: 600;
+      }
+      .form-10q {
+        color: var(--sky-300);
+        font-weight: 600;
+      }
+      .form-8k {
+        color: var(--amber-300);
+        font-weight: 600;
+      }
+      .form-def14a {
+        color: var(--violet-300);
+        font-weight: 600;
+      }
+      .form-4 {
+        color: var(--rose-300);
+        font-weight: 600;
+      }
+      .mono {
+        font-family: ui-monospace, monospace;
+        color: var(--charcoal-500);
+      }
+      .mono-num {
+        font-family: ui-monospace, monospace;
+        text-align: right;
+        color: var(--charcoal-100);
+      }
+      .right {
+        text-align: right;
+      }
+      .ml-auto {
+        margin-left: auto;
+      }
+      .ack {
+        color: var(--emerald-300);
+      }
+      .dis {
+        color: var(--rose-300);
+      }
+      /* FilingViewer layout (top-right) */
+      .viewer {
+        display: flex;
+        min-height: 0;
+        flex: 1;
+      }
+      .viewer-nav {
+        border-right: 1px solid var(--charcoal-700);
+        width: 200px;
+        overflow-y: auto;
+        flex-shrink: 0;
+      }
+      .viewer-nav button {
+        width: 100%;
+        background: transparent;
+        border: none;
+        padding: 8px 12px;
+        text-align: left;
+        color: var(--charcoal-300);
+        font-family: inherit;
+        font-size: 11px;
+        cursor: pointer;
+        border-left: 2px solid transparent;
+      }
+      .viewer-nav button:hover {
+        background: var(--charcoal-800);
+      }
+      .viewer-nav button.active {
+        background: var(--charcoal-800);
+        color: var(--charcoal-100);
+        border-left-color: var(--emerald-300);
+      }
+      .viewer-nav .section-title {
+        display: block;
+        font-weight: 500;
+      }
+      .viewer-nav .section-meta {
+        color: var(--charcoal-500);
+        font-size: 9px;
+      }
+      .viewer-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px 16px;
+      }
+      .viewer-body h3 {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--charcoal-100);
+        margin-bottom: 8px;
+      }
+      .viewer-body pre {
+        white-space: pre-wrap;
+        color: var(--charcoal-200);
+        font-size: 11.5px;
+        line-height: 1.55;
+        font-family: ui-monospace, "Cascadia Mono", monospace;
+      }
+      .viewer-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--charcoal-700);
+        font-size: 11px;
+      }
+      .panel-grid-2col-span2 {
+        grid-column: 1 / span 2;
+      }
+      /* Tabs */
+      .tabs {
+        display: flex;
+        gap: 4px;
+      }
+      .tab {
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        color: var(--charcoal-300);
+        cursor: pointer;
+        background: transparent;
+        border: none;
+        font-family: inherit;
+      }
+      .tab.active {
+        background: var(--charcoal-700);
+        color: var(--charcoal-50);
+      }
+      .badge-count {
+        color: var(--charcoal-400);
+        font-size: 10px;
+      }
+      .footer-line {
+        padding: 6px 12px;
+        font-size: 10px;
+        color: var(--charcoal-500);
+        border-top: 1px solid var(--charcoal-800);
+        background: var(--charcoal-900);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- TOP-LEFT: Filings list table -->
+    <section class="panel" data-testid="filings-list-panel">
+      <header class="panel-header">
+        <span class="panel-title">SEC Filings</span>
+        <label class="label">
+          Symbol / CIK
+          <input class="input" value="AAPL" readonly />
+        </label>
+        <label class="label">
+          Form
+          <select class="select" disabled>
+            <option>All forms</option>
+          </select>
+        </label>
+        <span class="badge-count ml-auto">Apple Inc. · 10 filings</span>
+        <nav class="tabs" role="tablist">
+          <button class="tab active" role="tab">Filings</button>
+          <button class="tab" role="tab">Insider</button>
+        </nav>
+      </header>
+
+      <div class="scroll">
+        <table>
+          <colgroup>
+            <col style="width: 8ch" />
+            <col style="width: 12ch" />
+            <col style="width: 12ch" />
+            <col />
+            <col style="width: 26ch" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Form ▼</th>
+              <th>Filed</th>
+              <th>Period</th>
+              <th>Company</th>
+              <th>Accession</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="selected">
+              <td class="form-10k">10-K</td>
+              <td>2024-11-01</td>
+              <td>2024-09-28</td>
+              <td>Apple Inc.</td>
+              <td class="mono">0000320193-24-000123</td>
+            </tr>
+            <tr>
+              <td class="form-8k">8-K</td>
+              <td>2024-10-31</td>
+              <td>2024-10-31</td>
+              <td>Apple Inc.</td>
+              <td class="mono">0000320193-24-000115</td>
+            </tr>
+            <tr>
+              <td class="form-10q">10-Q</td>
+              <td>2024-08-02</td>
+              <td>2024-06-29</td>
+              <td>Apple Inc.</td>
+              <td class="mono">0000320193-24-000100</td>
+            </tr>
+            <tr>
+              <td class="form-8k">8-K</td>
+              <td>2024-08-01</td>
+              <td>2024-08-01</td>
+              <td>Apple Inc.</td>
+              <td class="mono">0000320193-24-000092</td>
+            </tr>
+            <tr>
+              <td class="form-def14a">DEF 14A</td>
+              <td>2024-01-12</td>
+              <td>2024-02-28</td>
+              <td>Apple Inc.</td>
+              <td class="mono">0000320193-24-000010</td>
+            </tr>
+            <tr>
+              <td class="form-10q">10-Q</td>
+              <td>2024-05-03</td>
+              <td>2024-03-30</td>
+              <td>Apple Inc.</td>
+              <td class="mono">0000320193-24-000061</td>
+            </tr>
+            <tr>
+              <td class="form-8k">8-K</td>
+              <td>2024-05-02</td>
+              <td>2024-05-02</td>
+              <td>Apple Inc.</td>
+              <td class="mono">0000320193-24-000055</td>
+            </tr>
+            <tr>
+              <td class="form-10q">10-Q</td>
+              <td>2024-02-02</td>
+              <td>2023-12-30</td>
+              <td>Apple Inc.</td>
+              <td class="mono">0000320193-24-000020</td>
+            </tr>
+            <tr>
+              <td class="form-8k">8-K</td>
+              <td>2024-02-01</td>
+              <td>2024-02-01</td>
+              <td>Apple Inc.</td>
+              <td class="mono">0000320193-24-000015</td>
+            </tr>
+            <tr>
+              <td class="form-10k">10-K</td>
+              <td>2023-11-03</td>
+              <td>2023-09-30</td>
+              <td>Apple Inc.</td>
+              <td class="mono">0000320193-23-000106</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <footer class="footer-line">
+        Backend · sec-edgar-mcp 1.0.8 via Tauri Rust spawn ·
+        data_cache TTL 1h (filings index)
+      </footer>
+    </section>
+
+    <!-- TOP-RIGHT: Filing viewer for the selected 10-K -->
+    <section class="panel" data-testid="filing-viewer-panel">
+      <header class="viewer-header">
+        <button class="button outline">← Back</button>
+        <span class="form-10k panel-title">10-K</span>
+        <span style="color: var(--charcoal-400); font-size: 11px">Apple Inc.</span>
+        <span style="color: var(--charcoal-500); font-size: 10px">· filed 2024-11-01</span>
+        <span class="mono ml-auto" style="font-size: 9px">0000320193-24-000123</span>
+        <button class="button outline">View original on EDGAR ↗</button>
+      </header>
+      <div class="viewer">
+        <nav class="viewer-nav">
+          <button class="active">
+            <span class="section-title">Item 1. Business</span>
+            <span class="section-meta">8 217 words</span>
+          </button>
+          <button>
+            <span class="section-title">Item 1A. Risk Factors</span>
+            <span class="section-meta">9 884 words</span>
+          </button>
+          <button>
+            <span class="section-title">Item 2. Properties</span>
+            <span class="section-meta">412 words</span>
+          </button>
+          <button>
+            <span class="section-title">Item 3. Legal Proceedings</span>
+            <span class="section-meta">211 words</span>
+          </button>
+          <button>
+            <span class="section-title">Item 7. MD&amp;A</span>
+            <span class="section-meta">14 502 words</span>
+          </button>
+          <button>
+            <span class="section-title">Item 7A. Market Risk</span>
+            <span class="section-meta">1 088 words</span>
+          </button>
+          <button>
+            <span class="section-title">Item 8. Financial Statements</span>
+            <span class="section-meta">22 941 words</span>
+          </button>
+          <button>
+            <span class="section-title">Item 9. Disagreements</span>
+            <span class="section-meta">68 words</span>
+          </button>
+        </nav>
+        <article class="viewer-body">
+          <h3>Item 1. Business</h3>
+          <pre>The Company designs, manufactures and markets smartphones, personal computers, tablets, wearables and accessories, and sells a variety of related services. The Company's fiscal year is the 52 or 53-week period that ends on the last Saturday of September. Unless otherwise stated, references to particular years, quarters, months and periods refer to the Company's fiscal years ended in September and the associated quarters, months and periods of those fiscal years.
+
+Products
+~~~~~~~~
+
+The Company's products include iPhone, Mac, iPad, Wearables, Home and Accessories, and a portfolio of services.
+
+iPhone is the Company's line of smartphones based on its iOS operating system. The iPhone line includes iPhone 16 Pro, iPhone 16, iPhone 15, iPhone 14 and iPhone SE. Mac is the Company's line of personal computers based on its macOS operating system. The Mac line includes MacBook Air, MacBook Pro, iMac, Mac mini, Mac Studio and Mac Pro. iPad is the Company's line of multipurpose tablets based on its iPadOS operating system. The iPad line includes iPad Pro, iPad Air, iPad and iPad mini. Wearables, Home and Accessories includes AirPods, Apple TV, Apple Watch, Beats products, HomePod and accessories.
+
+Services
+~~~~~~~~
+
+Advertising. The Company's advertising services include third-party licensing arrangements and the Company's own advertising platforms.
+
+AppleCare. The Company offers a range of support and service options for its customers, which it markets under the AppleCare brand…</pre>
+        </article>
+      </div>
+    </section>
+
+    <!-- BOTTOM-LEFT: Insider Trading table -->
+    <section class="panel" data-testid="insider-panel">
+      <header class="panel-header">
+        <span class="panel-title">Insider Transactions — AAPL</span>
+        <label class="label">
+          Form
+          <select class="select">
+            <option>4 — trade</option>
+          </select>
+        </label>
+        <span class="badge-count">23 transactions · last 90 days</span>
+        <span class="pill ml-auto">Forms 3 / 4 / 5</span>
+      </header>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 10ch">Date</th>
+              <th>Reporter</th>
+              <th style="width: 16ch">Title</th>
+              <th style="width: 5ch">Form</th>
+              <th style="width: 6ch">Code</th>
+              <th style="width: 10ch">Direction</th>
+              <th class="right" style="width: 11ch">Shares</th>
+              <th class="right" style="width: 9ch">Price</th>
+              <th class="right" style="width: 13ch">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>2024-12-12</td><td>Cook Timothy D</td><td>CEO</td><td>4</td><td class="mono">S</td><td class="dis">Disposed</td><td class="mono-num">511,000</td><td class="mono-num">$237.04</td><td class="mono-num">$121,127,440</td></tr>
+            <tr><td>2024-12-12</td><td>Maestri Luca</td><td>SVP and CFO</td><td>4</td><td class="mono">S</td><td class="dis">Disposed</td><td class="mono-num">231,500</td><td class="mono-num">$237.04</td><td class="mono-num">$54,874,760</td></tr>
+            <tr><td>2024-11-30</td><td>O'Brien Deirdre</td><td>SVP Retail+People</td><td>4</td><td class="mono">A</td><td class="ack">Acquired</td><td class="mono-num">75,000</td><td class="mono-num">—</td><td class="mono-num">—</td></tr>
+            <tr><td>2024-11-15</td><td>Adams Katherine L</td><td>SVP+General Counsel</td><td>4</td><td class="mono">M</td><td class="ack">Acquired</td><td class="mono-num">45,500</td><td class="mono-num">$132.40</td><td class="mono-num">$6,024,200</td></tr>
+            <tr><td>2024-11-15</td><td>Adams Katherine L</td><td>SVP+General Counsel</td><td>4</td><td class="mono">S</td><td class="dis">Disposed</td><td class="mono-num">25,000</td><td class="mono-num">$229.95</td><td class="mono-num">$5,748,750</td></tr>
+            <tr><td>2024-11-04</td><td>O'Brien Deirdre</td><td>SVP Retail+People</td><td>4</td><td class="mono">S</td><td class="dis">Disposed</td><td class="mono-num">25,000</td><td class="mono-num">$222.31</td><td class="mono-num">$5,557,750</td></tr>
+            <tr><td>2024-11-04</td><td>Maestri Luca</td><td>SVP and CFO</td><td>4</td><td class="mono">S</td><td class="dis">Disposed</td><td class="mono-num">102,000</td><td class="mono-num">$222.31</td><td class="mono-num">$22,675,620</td></tr>
+            <tr><td>2024-10-29</td><td>Cook Timothy D</td><td>CEO</td><td>4</td><td class="mono">S</td><td class="dis">Disposed</td><td class="mono-num">223,986</td><td class="mono-num">$230.10</td><td class="mono-num">$51,538,876</td></tr>
+            <tr><td>2024-10-15</td><td>Jung Andrea</td><td>Director</td><td>4</td><td class="mono">A</td><td class="ack">Acquired</td><td class="mono-num">680</td><td class="mono-num">$230.49</td><td class="mono-num">$156,733</td></tr>
+            <tr><td>2024-10-01</td><td>O'Brien Deirdre</td><td>SVP Retail+People</td><td>4</td><td class="mono">M</td><td class="ack">Acquired</td><td class="mono-num">14,500</td><td class="mono-num">$103.95</td><td class="mono-num">$1,507,275</td></tr>
+            <tr><td>2024-09-30</td><td>Cook Timothy D</td><td>CEO</td><td>4</td><td class="mono">M</td><td class="ack">Acquired</td><td class="mono-num">511,000</td><td class="mono-num">$103.95</td><td class="mono-num">$53,118,450</td></tr>
+            <tr><td>2024-09-30</td><td>Maestri Luca</td><td>SVP and CFO</td><td>4</td><td class="mono">M</td><td class="ack">Acquired</td><td class="mono-num">333,500</td><td class="mono-num">$103.95</td><td class="mono-num">$34,667,325</td></tr>
+            <tr><td>2024-08-22</td><td>Levinson Arthur D</td><td>Chairman</td><td>4</td><td class="mono">A</td><td class="ack">Acquired</td><td class="mono-num">1,212</td><td class="mono-num">$226.84</td><td class="mono-num">$274,930</td></tr>
+            <tr><td>2024-08-15</td><td>Wagner Susan</td><td>Director</td><td>4</td><td class="mono">A</td><td class="ack">Acquired</td><td class="mono-num">980</td><td class="mono-num">$224.72</td><td class="mono-num">$220,225</td></tr>
+            <tr><td>2024-08-12</td><td>Williams Jeff</td><td>COO</td><td>4</td><td class="mono">S</td><td class="dis">Disposed</td><td class="mono-num">175,000</td><td class="mono-num">$214.55</td><td class="mono-num">$37,546,250</td></tr>
+            <tr><td>2024-08-12</td><td>Williams Jeff</td><td>COO</td><td>4</td><td class="mono">M</td><td class="ack">Acquired</td><td class="mono-num">222,500</td><td class="mono-num">$103.95</td><td class="mono-num">$23,128,875</td></tr>
+            <tr><td>2024-07-30</td><td>Bell James A</td><td>Director</td><td>4</td><td class="mono">A</td><td class="ack">Acquired</td><td class="mono-num">680</td><td class="mono-num">$218.36</td><td class="mono-num">$148,485</td></tr>
+            <tr><td>2024-06-20</td><td>Cook Timothy D</td><td>CEO</td><td>4</td><td class="mono">F</td><td class="dis">Disposed</td><td class="mono-num">85,750</td><td class="mono-num">$209.07</td><td class="mono-num">$17,927,752</td></tr>
+            <tr><td>2024-06-20</td><td>Maestri Luca</td><td>SVP and CFO</td><td>4</td><td class="mono">F</td><td class="dis">Disposed</td><td class="mono-num">35,200</td><td class="mono-num">$209.07</td><td class="mono-num">$7,359,264</td></tr>
+            <tr><td>2024-05-15</td><td>Gore Albert</td><td>Director</td><td>4</td><td class="mono">A</td><td class="ack">Acquired</td><td class="mono-num">1,000</td><td class="mono-num">$184.86</td><td class="mono-num">$184,860</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <footer class="footer-line">
+        XBRL-precise values preserved as strings · big-int formatter applied at the UI
+        layer · sourced via sec-edgar-mcp get_insider_transactions
+      </footer>
+    </section>
+
+    <!-- BOTTOM-RIGHT: §6.5 + plugin chips status -->
+    <section class="panel" data-testid="status-panel">
+      <header class="panel-header">
+        <span class="panel-title">Phase 6 — SEC Filings Reader (Teammate F)</span>
+        <span class="pill ml-auto">v0.6.0</span>
+      </header>
+      <div style="padding: 12px 16px; flex: 1; display: flex; flex-direction: column; gap: 10px; overflow-y: auto;">
+        <section>
+          <h4 style="font-size: 11px; color: var(--charcoal-300); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px;">Status</h4>
+          <table>
+            <tbody>
+              <tr><td style="color: var(--charcoal-400)">sec-edgar-mcp subprocess</td><td><span class="ack">● running</span> 127.0.0.1:54183</td></tr>
+              <tr><td style="color: var(--charcoal-400)">tool surface</td><td>20 tools (Company · Filings · Financials · Insider)</td></tr>
+              <tr><td style="color: var(--charcoal-400)">last tool call</td><td><span class="ack">✓ ok</span> · get_recent_filings(AAPL, 10)</td></tr>
+              <tr><td style="color: var(--charcoal-400)">data_cache hit-rate</td><td>71% (filings index TTL 1h)</td></tr>
+            </tbody>
+          </table>
+        </section>
+        <section>
+          <h4 style="font-size: 11px; color: var(--charcoal-300); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px;">REST surface · /sec</h4>
+          <table>
+            <tbody>
+              <tr><td class="mono" style="color: var(--emerald-300)">GET /sec/filings</td><td style="color: var(--charcoal-300)">filings index for an issuer (cik= or symbol=)</td></tr>
+              <tr><td class="mono" style="color: var(--emerald-300)">GET /sec/filings/{accession}</td><td style="color: var(--charcoal-300)">parsed FilingDetail (metadata + sections)</td></tr>
+              <tr><td class="mono" style="color: var(--emerald-300)">GET /sec/filings/{accession}/sections</td><td style="color: var(--charcoal-300)">section list for the FilingViewer rail</td></tr>
+              <tr><td class="mono" style="color: var(--emerald-300)">GET /sec/insider/{identifier}</td><td style="color: var(--charcoal-300)">Forms 3/4/5 transactions</td></tr>
+              <tr><td class="mono" style="color: var(--emerald-300)">GET /sec/filings/search?q=</td><td style="color: var(--charcoal-300)">company-name search</td></tr>
+              <tr><td class="mono" style="color: var(--emerald-300)">GET /sec/status</td><td style="color: var(--charcoal-300)">plugin-manager observability</td></tr>
+            </tbody>
+          </table>
+        </section>
+        <section>
+          <h4 style="font-size: 11px; color: var(--charcoal-300); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px;">Agent tools · Workflow nodes</h4>
+          <ul style="list-style: none; font-size: 11px; color: var(--charcoal-200); display: flex; flex-direction: column; gap: 4px;">
+            <li>·  <span class="mono" style="color: var(--emerald-300)">sec_filings_list</span> · <span class="mono" style="color: var(--emerald-300)">sec_filing_content</span> · <span class="mono" style="color: var(--emerald-300)">sec_insider_transactions</span></li>
+            <li>·  <span class="mono" style="color: var(--sky-300)">data.fetch_sec_filing</span> · <span class="mono" style="color: var(--sky-300)">data.fetch_insider_transactions</span></li>
+          </ul>
+        </section>
+        <section>
+          <h4 style="font-size: 11px; color: var(--charcoal-300); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px;">§6.5 audit · invariants</h4>
+          <ul style="list-style: none; font-size: 11px; color: var(--charcoal-200); display: flex; flex-direction: column; gap: 4px;">
+            <li><span class="ack">✓</span> tool ids contain no <span class="mono">place_/submit_/execute_/auto_approve</span></li>
+            <li><span class="ack">✓</span> types/plugin.ts untouched (Tier-1 lock held)</li>
+            <li><span class="ack">✓</span> broker_base / kill_switch / audit_log untouched</li>
+            <li><span class="ack">✓</span> 36 backend + 25 frontend tests passing</li>
+          </ul>
+        </section>
+      </div>
+    </section>
+  </body>
+</html>
