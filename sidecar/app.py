@@ -19,6 +19,7 @@ from fastapi.responses import JSONResponse
 from routers import (
     agents,
     backtest,
+    brokers,
     crypto,
     custom_agents,
     fundamentals,
@@ -37,6 +38,7 @@ from routers import (
     workspace,
 )
 from services import mcp_client, mcp_server
+from services.brokers import registry as brokers_registry
 from services.errors import ProviderError
 
 _ROUTERS = (
@@ -58,6 +60,7 @@ _ROUTERS = (
     safety,
     workflow,
     backtest,
+    brokers,
 )
 
 
@@ -101,6 +104,14 @@ def create_app() -> FastAPI:
 
     for module in _ROUTERS:
         app.include_router(module.router)
+
+    # India broker adapters (Teammate I — Dhan + Angel One + Kite).
+    # Bootstrapping at app-build time ensures the TestClient + uvicorn
+    # paths converge on the same registry state. ``bootstrap_default_adapters``
+    # is idempotent (re-registering replaces the prior instance + cleans up
+    # the kill-switch subscription); tests reset between cases via
+    # ``services.brokers.registry.reset_for_tests``.
+    brokers_registry.bootstrap_default_adapters()
 
     # Mount the FastMCP Streamable-HTTP transport at /mcp. External MCP
     # clients reach it via http://127.0.0.1:<port>/mcp/. The plain-JSON

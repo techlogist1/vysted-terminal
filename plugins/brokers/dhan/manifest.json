@@ -1,0 +1,10 @@
+{
+  "id": "vysted-dhan",
+  "version": "0.1.0",
+  "name": "Dhan",
+  "entry": "./index.ts",
+  "requiredHostVersion": ">=0.5.0",
+  "description": "Dhan execution adapter (India equities + F&O). Routes every order through the safety-layer-enforced BrokerAdapter on the sidecar; paper mode is the default.",
+  "author": "Vysted Team",
+  "homepage": "https://dhanhq.co/"
+}

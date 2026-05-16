@@ -1,0 +1,11 @@
+{
+  "id": "vysted-kite",
+  "version": "0.1.0",
+  "name": "Kite Connect",
+  "entry": "./index.ts",
+  "requiredHostVersion": ">=0.5.0",
+  "description": "Kite Connect (Zerodha) execution adapter. SEBI/NSE retail-algo compliance requires a registered static IP for order placement; this plugin surfaces a banner when the detected public IP does not match the configured static IP.",
+  "author": "Vysted Team",
+  "homepage": "https://kite.trade/",
+  "requiresStaticIp": true
+}

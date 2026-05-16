@@ -19,6 +19,7 @@ import uvicorn
 from app import app
 from config import DATA_DIR_ENV
 from services import workflow_nodes
+from services.brokers import registry as brokers_registry
 
 
 def _exit_when_parent_closes_stdin() -> None:
@@ -65,6 +66,12 @@ def main() -> None:
     # not see them — workflow engine tests reset the registry between
     # cases and register their own handlers.
     workflow_nodes.register_all()
+
+    # India broker adapters (Teammate I — Dhan + Angel One + Kite).
+    # ``create_app`` already bootstrapped these when ``app`` was imported
+    # above; the explicit re-call here documents the production boot path
+    # and is idempotent (re-registering replaces the prior instance).
+    brokers_registry.bootstrap_default_adapters()
 
     threading.Thread(target=_exit_when_parent_closes_stdin, daemon=True).start()
 
