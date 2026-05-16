@@ -18,9 +18,10 @@
 import { invoke } from "@tauri-apps/api/core";
 
 /**
- * Canonical namespace builders for the three Phase-3 secret categories.
- * Frontend, sidecar, and plugin authors all read these strings — keep them
- * stable across releases unless coordinating a migration.
+ * Canonical namespace builders for the four secret categories Vysted
+ * persists in the OS keychain. Frontend, sidecar, and plugin authors all
+ * read these strings — keep them stable across releases unless coordinating
+ * a migration.
  */
 export const KEYCHAIN_NAMESPACES = {
   /** API key for an LLM provider (id is the `LLMProviderId` from `types/ai.ts`). */
@@ -31,6 +32,18 @@ export const KEYCHAIN_NAMESPACES = {
 
   /** Plugin-private secret granted to a specific plugin under a user-chosen key. */
   pluginSecret: (pluginId: string, key: string): string => `plugin-secret:${pluginId}:${key}`,
+
+  /**
+   * Broker credential (Phase 5). One entry per broker × field — e.g.
+   * `broker:alpaca:api_key`, `broker:kite:access_token`,
+   * `broker:dhan:client_id`. Brokers with multiple OAuth-style fields
+   * store each under its own `field` so revoking one does not require
+   * re-entering the others. The disclaimer-ack persisted state
+   * (`first-launch-tos`, per-broker `first-connect-ack`) lives under
+   * `broker:_meta:first-launch-tos` and
+   * `broker:<broker-id>:_meta:first-connect-ack` respectively.
+   */
+  broker: (brokerId: string, field: string): string => `broker:${brokerId}:${field}`,
 } as const;
 
 /** Persist a secret to the OS keychain under `account`. Overwrites any prior value. */
