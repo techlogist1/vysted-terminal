@@ -25,6 +25,8 @@ from fastapi.responses import StreamingResponse
 
 from models.backtest import BacktestRequest, BacktestResult, BacktestRunEvent
 from services import backtest_engine, backtest_store
+from services.backtest_strategies import list_strategy_specs
+from services.bar_loader import load_bars
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +52,11 @@ async def run_backtest(request: BacktestRequest) -> StreamingResponse:
 
         async def _run() -> None:
             try:
-                result = await backtest_engine.run_backtest(request, on_event=_on_event)
+                result = await backtest_engine.run_backtest(
+                    request,
+                    bar_loader=load_bars,
+                    on_event=_on_event,
+                )
                 backtest_store.put(result)
             except NotImplementedError as exc:
                 # Foundation has no default bar_loader; v0.5.0 production
@@ -95,9 +101,19 @@ async def run_backtest(request: BacktestRequest) -> StreamingResponse:
 
 
 @router.get("/strategies")
-def list_strategies() -> dict[str, list[str]]:
-    """List ids of strategies currently registered with the engine."""
-    return {"strategies": backtest_engine.registered_strategies()}
+def list_strategies() -> dict[str, list[dict]]:
+    """List registered strategies with their metadata + paramsSchema.
+
+    The frontend's strategy picker renders a form from each spec's
+    ``paramsSchema`` — returning the full Teammate K shape (id + name +
+    description + paramsSchema) is strictly more useful than ids alone.
+    Filtered to the intersection of (registered with engine) and
+    (Teammate K spec catalogued) so plugin-contributed strategies in
+    future phases that skip the catalogue surface as ids elsewhere.
+    """
+    engine_ids = set(backtest_engine.registered_strategies())
+    specs = [spec for spec in list_strategy_specs() if spec["id"] in engine_ids]
+    return {"strategies": specs}
 
 
 @router.get("/runs")

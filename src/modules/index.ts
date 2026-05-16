@@ -1,6 +1,8 @@
 import type { VystedModule } from "@/lib/module-registry";
 
 import { agentBuilderModule } from "./agent-builder";
+import { backtestModule } from "./backtest";
+import { brokerConnectModule } from "./broker-connect";
 import { chartModule } from "./chart";
 import { chatModule } from "./chat";
 import { equityOverviewModule } from "./equity-overview";
@@ -9,6 +11,7 @@ import { nodeEditorModule } from "./node-editor";
 import { platformModule } from "./platform";
 import { pluginManagerModule } from "./plugin-manager";
 import { portfolioModule } from "./portfolio";
+import { safetyModule } from "./safety";
 import { watchlistModule } from "./watchlist";
 
 /**
@@ -28,6 +31,17 @@ import { watchlistModule } from "./watchlist";
  * composition surface (react-flow canvas + palette + run overlay) that
  * persists workflows to the sidecar via `/workflow/save` and runs them
  * via the `/workflow/run` SSE stream.
+ *
+ * Phase 4 / v0.5.0 adds `backtestModule` (Teammate K) — the strategy backtest
+ * + Strategy Critic surface (BLUEPRINT Use Case 2).
+ *
+ * v0.5.0 adds `safetyModule` (Teammate S) — the audit-log viewer panel +
+ * the always-mounted KillSwitchToolbar / OrderConfirmationDialog / DisclaimerFlow
+ * surfaces (exported from `src/modules/safety/index.ts`).
+ *
+ * v0.5.0 adds `brokerConnectModule` (Teammate S, depends on Teammates I/G/X
+ * for the underlying broker adapters) — the connection-manager panel +
+ * manual order-entry surface.
  */
 export const vystedModules: VystedModule[] = [
   chartModule,
@@ -40,4 +54,7 @@ export const vystedModules: VystedModule[] = [
   pluginManagerModule,
   agentBuilderModule,
   nodeEditorModule,
+  backtestModule,
+  brokerConnectModule,
+  safetyModule,
 ];

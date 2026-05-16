@@ -18,7 +18,7 @@ import uvicorn
 
 from app import app
 from config import DATA_DIR_ENV
-from services import workflow_nodes
+from services import agent_tools, backtest_strategies, workflow_nodes
 from services.brokers import registry as brokers_registry
 
 
@@ -72,6 +72,14 @@ def main() -> None:
     # above; the explicit re-call here documents the production boot path
     # and is idempotent (re-registering replaces the prior instance).
     brokers_registry.bootstrap_default_adapters()
+
+    # v0.5.0 runtime extensions — backtest strategy archetypes + the
+    # price_data + fundamentals agent tools. ``create_app`` already
+    # invokes these via ``_register_v0_5_0_runtime_extensions`` at app
+    # build time; the explicit re-call here is the documented
+    # production boot path and is idempotent (overwrites by id).
+    backtest_strategies.register_all()
+    agent_tools.register_v0_5_0_tools()
 
     threading.Thread(target=_exit_when_parent_closes_stdin, daemon=True).start()
 
