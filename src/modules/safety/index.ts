@@ -39,9 +39,5 @@ export const safetyModule: VystedModule = {
 
 export { KillSwitchToolbar } from "./KillSwitchToolbar";
 export { OrderConfirmationDialog } from "./OrderConfirmationDialog";
-export {
-  BrokerFirstConnectDialog,
-  DisclaimerFlow,
-  FirstLaunchTosDialog,
-} from "./DisclaimerFlow";
+export { BrokerFirstConnectDialog, DisclaimerFlow, FirstLaunchTosDialog } from "./DisclaimerFlow";
 export { AuditLogViewer } from "./AuditLogViewer";

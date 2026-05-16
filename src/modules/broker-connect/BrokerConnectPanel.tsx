@@ -123,9 +123,7 @@ export function BrokerConnectPanel() {
   }, [refresh, refreshBrokers]);
 
   const { primary, crypto } = useMemo(() => {
-    const all = Object.values(byId).filter(
-      (s): s is NonNullable<typeof s> => s !== undefined,
-    );
+    const all = Object.values(byId).filter((s): s is NonNullable<typeof s> => s !== undefined);
     return {
       primary: all.filter((s) => !s.broker.startsWith("ccxt-")),
       crypto: all.filter((s) => s.broker.startsWith("ccxt-")),
@@ -135,7 +133,7 @@ export function BrokerConnectPanel() {
   return (
     <div
       data-testid="broker-connect-panel"
-      className="flex h-full w-full flex-col bg-charcoal-900 font-mono text-xs text-charcoal-100"
+      className="bg-charcoal-900 text-charcoal-100 flex h-full w-full flex-col font-mono text-xs"
     >
       <header className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
         <h2 className="text-charcoal-100 text-sm tracking-wide uppercase">Broker Connections</h2>
@@ -249,9 +247,7 @@ function BrokerRow({ state, disabled }: BrokerRowProps) {
           <StatusBadge status={state.status} />
           <ModeBadge mode={state.mode} />
           {state.readOnly && <ReadOnlyBadge />}
-          {state.error !== undefined && (
-            <span className="text-red-400">err: {state.error}</span>
-          )}
+          {state.error !== undefined && <span className="text-red-400">err: {state.error}</span>}
         </div>
         {state.broker === "kite" && state.mode === "live" && sidecarBaseUrl !== null && (
           <div className="mt-1">
@@ -327,9 +323,7 @@ function ModeBadge({ mode }: { mode: BrokerMode }) {
       data-testid="broker-mode-badge"
       className={cn(
         "rounded px-1.5 py-[1px] text-[10px] uppercase",
-        mode === "paper"
-          ? "bg-sky-800/40 text-sky-200"
-          : "bg-red-800/40 text-red-200",
+        mode === "paper" ? "bg-sky-800/40 text-sky-200" : "bg-red-800/40 text-red-200",
       )}
     >
       {mode}
@@ -341,7 +335,7 @@ function ReadOnlyBadge() {
   return (
     <span
       data-testid="broker-readonly-badge"
-      className="rounded bg-amber-800/40 px-1.5 py-[1px] text-[10px] uppercase text-amber-200"
+      className="rounded bg-amber-800/40 px-1.5 py-[1px] text-[10px] text-amber-200 uppercase"
     >
       read-only
     </span>
@@ -404,16 +398,12 @@ function CredentialsDialog({ broker, open, onClose, onSubmit }: CredentialsDialo
               <span className="text-muted-foreground text-[10px] uppercase">{field.label}</span>
               <input
                 type={
-                  field.key.includes("token") ||
-                  field.key.includes("secret") ||
-                  field.key === "pin"
+                  field.key.includes("token") || field.key.includes("secret") || field.key === "pin"
                     ? "password"
                     : "text"
                 }
                 value={values[field.key] ?? ""}
-                onChange={(e) =>
-                  setValues((prev) => ({ ...prev, [field.key]: e.target.value }))
-                }
+                onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
                 className="bg-charcoal-800 text-charcoal-100 h-8 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
                 data-testid={`cred-${broker}-${field.key}`}
               />

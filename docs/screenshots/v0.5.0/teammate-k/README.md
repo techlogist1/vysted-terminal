@@ -6,12 +6,12 @@ stub returning the sidecar port from `invoke("get_sidecar_port")`.
 
 ## Files
 
-| File                                  | Resolution  | Subject                                                  |
-|---------------------------------------|-------------|----------------------------------------------------------|
-| `backtest-panel-1920x1080.png`        | 1920 × 1080 | BacktestPanel with a completed Mean Reversion run on SPY |
-| `backtest-panel-2560x1440.png`        | 2560 × 1440 | Same, re-captured at the higher resolution               |
-| `strategy-critic-stream-1920x1080.png`| 1920 × 1080 | Chat sidebar with the pre-filled Strategy Critic prompt  |
-| `strategy-critic-stream-2560x1440.png`| 2560 × 1440 | Same, re-captured at the higher resolution               |
+| File                                   | Resolution  | Subject                                                  |
+| -------------------------------------- | ----------- | -------------------------------------------------------- |
+| `backtest-panel-1920x1080.png`         | 1920 × 1080 | BacktestPanel with a completed Mean Reversion run on SPY |
+| `backtest-panel-2560x1440.png`         | 2560 × 1440 | Same, re-captured at the higher resolution               |
+| `strategy-critic-stream-1920x1080.png` | 1920 × 1080 | Chat sidebar with the pre-filled Strategy Critic prompt  |
+| `strategy-critic-stream-2560x1440.png` | 2560 × 1440 | Same, re-captured at the higher resolution               |
 
 ## Run conditions
 

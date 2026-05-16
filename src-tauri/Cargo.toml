@@ -1,6 +1,6 @@
 [package]
 name = "vysted-terminal"
-version = "0.4.0"
+version = "0.5.0"
 description = "Vysted Terminal — open-source AI-native finance terminal."
 authors = ["Lokavya <commercial@vysted.com>"]
 edition = "2021"

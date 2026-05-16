@@ -4,6 +4,281 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## v0.5.0 — Phase 4 + Phase 5 mega-sprint: Workflow + Backtest + Broker Execution + §6.5 Safety Layer (2026-05-16)
+
+Two BLUEPRINT phases ship under one tag. v0.5.0 takes Vysted from
+"AI-native finance terminal" to "AI-native finance terminal with visual
+workflow automation, custom event-driven backtest engine, Strategy Critic
+end-to-end critique, and seven broker execution plugins (Dhan, Angel One,
+Kite Connect with SEBI/NSE static-IP UX, Alpaca, Interactive Brokers via
+TWS/IB Gateway, OANDA v20, plus a ccxt unified crypto execution wrap with
+Bybit/Binance/Kraken/Coinbase) — all routed through a shared §6.5 safety
+architecture whose 8 non-negotiables are enforced at the architectural
+level (not by convention) and verified by a dedicated 9-test audit suite
+with capture artifacts.
+
+The mega-sprint shape itself is an architectural decision: Phase 4
+(workflow + backtest + node editor + Strategy Critic) and Phase 5 (broker
+execution + safety architecture) are tightly coupled — the workflow
+engine orchestrates broker calls, the Strategy Critic sits between
+backtest results and broker execution, the narrative is one product
+story. Splitting into separate releases adds release overhead without
+buying safety; the 60-day paper-soak post-tag is the live-execution gate
+regardless.
+
+Built as **seven parallel Opus 4.7 teammates** from `main` after ten
+sequential foundation commits (F1–F10): contracts, safety-layer
+enforcement, workflow engine abstract, backtest engine + Strategy Critic
+tool wiring, Tauri kill-switch IPC + OS-wide `CmdOrCtrl+Shift+K`, keychain
+broker namespace, bundle-size measurement gate (main sidecar 67.4 MB,
+well under the 120 MB threshold — no broker subprocess split needed),
+push to origin/main, then teammate dispatch in a single Agent-tool batch
+with `isolation: "worktree"`.
+
+### Foundation (lead, sequential, pushed to origin/main before teammate dispatch)
+
+- **`chore(deps)`** — `@xyflow/react@12.10.2`, `dhanhq==2.1.0`,
+  `smartapi-python==1.5.5`, `kiteconnect==5.2.0`, `alpaca-py==0.42.0`,
+  `ib_async==2.1.0`, `oandapyV20==0.7.2`. ccxt unchanged at 4.5.53;
+  fastmcp unchanged at 3.2.4.
+- **`feat(types)`** — `types/{workflow,backtest,broker,safety}.ts`
+  (774 LoC). `types/plugin.ts` Tier-1 lock held through every commit.
+- **`feat(models)`** — Pydantic mirrors (`sidecar/models/{workflow,
+backtest,broker,safety,audit_log}.py`, 772 LoC) including AUDIT_LOG_DDL
+  with the literal SQLite triggers raising on UPDATE/DELETE.
+- **`feat(safety)`** — `sidecar/services/{audit_log,kill_switch,
+broker_base,static_ip_detector,disclaimer_session}.py` + `routers/safety.py`
+  - 52 tests proving append-only triggers raise + kill-switch < 2s + the
+    AI-order gate routing. Most load-bearing foundation step.
+- **`feat(workflow)`** — `sidecar/services/workflow_engine.py` + store +
+  router + 9 tests. Custom asyncio engine; concurrent waves via
+  `asyncio.gather`; SSE event stream.
+- **`feat(backtest)`** — `sidecar/services/backtest_engine.py` + store +
+  `services/agent_tools.py` (`backtest_summary` tool live) + router +
+  7 tests. Custom event-driven engine; walk-forward; fee/slippage BPS.
+- **`feat(tauri)`** — `src-tauri/src/kill_switch.rs` with
+  `tauri-plugin-global-shortcut` + `CmdOrCtrl+Shift+K` registration.
+- **`feat(keychain)`** — `KEYCHAIN_NAMESPACES.broker(id, field)`.
+- **F9** — `pnpm sidecar:build` measurement after broker SDKs installed:
+  main sidecar `--onefile` **67.4 MB** (+0.4 MB over v0.4.0's 67 MB).
+  All 7 broker SDKs ship in main; no subprocess split required.
+- **F10** — push to origin/main + spawn 7 teammates in parallel.
+
+### Per-teammate shipping (W, K, N, I, G, X merged via fetch+merge; S partially landed via worktree sharing + lead-completed audit suite)
+
+- **Teammate W — Workflow engine concrete + 10 built-in nodes (5 commits)**
+  `data.fetch_quote`, `data.fetch_history`, `compute.indicator`,
+  `ai.agent_invoke`, `logic.branch`, `logic.compare`, `action.log`,
+  `action.notify_desktop`, `transform.json_path`, `flow.sleep`.
+  `run_workflow` + `list_workflows` MCP tools (wrap-list-at-boundary).
+  Frontend `useWorkflowStore` with SSE consumer. 43 sidecar tests +
+  16 frontend tests.
+
+- **Teammate K — Backtest strategies + Strategy Critic Use Case 2 e2e (8 commits)**
+  3 archetypes (mean_reversion, trend_following, regime_aware) +
+  production `bar_loader` via `provider_registry`. `price_data` +
+  `fundamentals` agent tools registered. Agent runtime extended with
+  multi-round `tool_use` dispatch loop (`_MAX_TOOL_ROUNDS=6`).
+  `BacktestPanel` + `BacktestResultView` (lightweight-charts equity +
+  drawdown + sortable trade log + walk-forward strip). Use Case 2
+  end-to-end demo: mean_reversion SPY 2024-01-01 → 2025-12-31, 18 trades,
+  Sharpe -0.16, win-rate 61.1% — captured at 1920×1080 + 2560×1440.
+  31 sidecar tests + 16 frontend tests.
+
+- **Teammate N — Node editor frontend (9 commits)**
+  `src/modules/node-editor/` — react-flow canvas via `@xyflow/react@12.10.2`
+  (rebranded from `reactflow`). Palette (10 built-in + plugin-contributed
+  via `usePluginsStore.nodes`). Graph-state manipulation + save round-trip.
+  Run overlay consuming SSE. 8 populated screenshots. 42 tests.
+  Tier-3: `BUILT_IN_NODE_CONFIG_FIELDS` lives host-side, NOT in NodeSpec
+  (preserves Tier-1 lock).
+
+- **Teammate I — India brokers + brokers router + static-IP UX (7 commits)**
+  Dhan, Angel One, Kite Connect adapters + plugins. Kite carries
+  `requiresStaticIp=True`; live-mode toggle fetches static-IP status +
+  writes mode-changed audit row. `kite-static-ip-banner.tsx` polls and
+  renders 4 variants (loading/ok/mismatch/error). Canonical
+  `services/brokers/__init__.py` + `registry.py` + 8-route
+  `routers/brokers.py`. 55 sidecar tests + 26 frontend tests.
+
+- **Teammate G — Global brokers (7 commits)**
+  Alpaca (alpaca-py 0.42.0, NOT the deprecated alpaca-trade-api),
+  Interactive Brokers (ib_async 2.1.0, requires TWS/IB Gateway running
+  locally on ports 7497/4002 — documented), OANDA v20 (oandapyV20 0.7.2,
+  low-maintenance SDK callout). Sync SDKs wrapped in `asyncio.to_thread`;
+  `ib_async` natively async. 71 sidecar tests + 22 frontend tests.
+
+- **Teammate X — ccxt crypto execution (4 commits)**
+  `CcxtExecutionAdapter` parametrised by exchange id (ccxt-bybit,
+  ccxt-binance, ccxt-kraken, ccxt-coinbase). Consumes Phase 1's
+  `ccxt_provider.py` by COMPOSITION only — Phase-1 contract untouched.
+  Bybit testnet end-to-end paper trade produces full audit trail.
+  29 sidecar tests + 11 frontend plugin tests.
+
+- **Teammate S — Safety UI surfaces (partial: UI components + stores
+  landed via worktree sharing; test_safety_end_to_end.py + SAFETY_ARCHITECTURE.md
+  lead-completed after S's worktree terminated on a usage limit)**
+  Stores: `useSafetyStore`, `useOrdersStore`, `useBrokersStore` (23 tests).
+  UI: `KillSwitchToolbar`, `OrderConfirmationDialog` (manual + AI
+  variants, NO auto-approve), `DisclaimerFlow` (3 surfaces),
+  `AuditLogViewer`. `BrokerConnectPanel` + `BrokerOrderEntry`. Lead
+  authored `test_safety_end_to_end.py` (9-test dedicated audit suite)
+  and `docs/SAFETY_ARCHITECTURE.md` from the integrated codebase.
+
+### Tier-2/3 autonomous decisions (logged in advance + at commit time)
+
+1. **AI-order gate strictness (Tier-3, tighter than BLUEPRINT §6.5 #6)**:
+   v0.5.0 ships NO auto-approve mode. AI agents propose; humans confirm
+   per-order; no per-session or per-agent auto-flag exists.
+2. **Tradesa V2 plugin deferred (Tier-3)**: BLUEPRINT §7 Phase 5 lists
+   Tradesa V2 alongside the 6 brokers + ccxt; operator brief de-scoped
+   for v0.5.0. Foundation contracts (kill switch, audit log,
+   `executeCommand` control plane) are in place; v0.5.1 or v0.6.0
+   Tradesa V2 becomes plug-in work, not contract work.
+3. **Custom backtest engine (Tier-3)**: NOT vectorbt or backtrader at
+   runtime. Reasons: backtrader stopped active dev ~2018; vectorbt's
+   numba dep risks the 120 MB main-sidecar threshold. BLUEPRINT §7
+   "vectorbt+backtrader patterns" wording supports drawing on their
+   design ideas only.
+4. **Custom asyncio workflow engine (Tier-3)**: NOT Prefect/Dagster
+   (server orchestrators; wrong shape for desktop sidecar).
+5. **Audit log append-only via SQLite triggers + connection roles
+   (Tier-3)**: enforced at DB layer, not by convention.
+6. **All 7 broker SDKs in main sidecar (Tier-3)**: F9 measured
+   67.4 MB main bundle, no subprocess split needed. Tauri-Rust-spawn
+   helper (refactored from openbb_mcp.rs precedent) stays available for
+   future broker SDKs that exceed the threshold.
+7. **Static-IP detection one-shot helper (Tier-3)**: Kite plugin
+   surfaces a banner on mismatch, does NOT pre-block placement (a user
+   behind VPN/VPS with the registered IP may still succeed).
+8. **Plugin contract held (Tier-1)**: `executeCommand("place-order" |
+"halt-trading" | "set-read-only" | "set-mode")` covers broker control
+   plane. `git diff v0.4.0..v0.5.0 -- types/plugin.ts` empty.
+
+### §6.5 dedicated audit results
+
+`sidecar/tests/test_safety_end_to_end.py` — 9/9 PASS:
+
+```
+  1 paper-mode default ........... PASS (all 7 broker classes start in paper)
+  2 every order confirmed ........ PASS (_place_confirmed has 1 production call site)
+  3 position-limit enforcement ... PASS (all 7 raise BrokerError before broker SDK call)
+  4 audit-log append-only ........ PASS (SQLite triggers raise on UPDATE/DELETE)
+  5 kill switch < 2s ............. PASS (max_ack_ms 20.08 / budget 2000;
+                                          12 subscribers: 7 brokers +
+                                          3 workflows + 2 proposals)
+  6 AI-order gate ................ PASS (no order-placing tool registered;
+                                          no auto_approve assignment grep hit)
+  7 read-only mode ............... PASS (all 7 raise in propose_order)
+  8 disclaimer session ack ....... PASS (records + audit-logs)
+  8b static-IP detection ......... PASS (matches=False on unconfigured)
+```
+
+Capture artifacts in `docs/screenshots/v0.5.0/safety-audit/`:
+
+- `paper-default-proof.log`
+- `no-bypass-proof.log`
+- `position-limit-proof.log`
+- `append-only-proof.log` (literal trigger messages captured)
+- `kill-switch-benchmark.json` (p50 ≈ 11 ms, p95 ≈ 20 ms, max ≈ 20 ms)
+- `ai-order-gate-proof.log`
+- `read-only-proof.log`
+- `disclaimer-flow-proof.log`
+- `static-ip-proof.log`
+
+**Live execution capability is ENABLED in v0.5.0**. The conditional-revert
+clause (per `docs/SAFETY_ARCHITECTURE.md` "Conditional revert procedure")
+stays available for v0.5.1 if any subsequent audit fails — that broker's
+live capability reverts to read-only-forced, rest still ships.
+
+### Failed approaches & fixes
+
+- **Agent-tool `isolation: "worktree"` didn't fully isolate writes for
+  some teammates**. K and S edited my main worktree's tracked files
+  directly (modifying `routers/backtest.py`, `services/agent_tools.py`,
+  `services/agent_runtime.py`, `src/modules/index.ts`,
+  `src/lib/module-registry.test.ts`) while running. The lead detected
+  the contamination at first merge attempt (test failures on imports for
+  modules that hadn't been merged yet), restored HEAD via `git restore`,
+  and proceeded with proper fetch + merge from origin/<branch>. Per the
+  v0.4.0 coordination lesson + this episode, the going-forward rule is:
+  "lead audits via origin/<branch> only; main-worktree contamination is
+  always discarded and re-merged from origin." Recorded in CLAUDE.md.
+
+- **Two integration-time conflicts at merge**:
+  - `sidecar/services/brokers/__init__.py` — I shipped a "canonical"
+    version exporting 3 adapters; G shipped a "minimal" version exporting
+    3 different adapters. Lead hand-merged into one file exporting all
+    6 + ccxt-exec (with ccxt added on X's merge).
+  - `docs/BROKER_INTEGRATIONS.md` — I + G both wrote the file from
+    scratch. Lead concatenated I's safety architecture overview + India
+    broker section with G's global broker section + common-patterns +
+    troubleshooting table. v0.4.0 `src/store/agents.ts` precedent.
+
+- **Teammate S's worktree terminated on a "monthly usage limit" error
+  before pushing its branch**. The UI components and stores had already
+  landed in the lead's main worktree via the worktree-sharing issue
+  above, so the load-bearing UI surfaces (KillSwitchToolbar,
+  OrderConfirmationDialog, DisclaimerFlow, AuditLogViewer,
+  BrokerConnectPanel, BrokerOrderEntry, three stores) integrated through
+  K's merge commit. The lead post-merged S's missing deliverables —
+  `test_safety_end_to_end.py` (9-test dedicated audit suite) and
+  `docs/SAFETY_ARCHITECTURE.md` — directly from the integrated codebase.
+  Populated screenshots of the safety UI surfaces (1920×1080 + 2560×1440)
+  carried forward to v0.5.1 polish (the load-bearing visual verification
+  is covered by K, N, I per-teammate screenshots + audit-suite captures +
+  composed shots).
+
+- **The first `pnpm sidecar:build` attempt failed because `rustc` was not
+  on the foreground shell PATH** (CLAUDE.md memory exists for this). Lead
+  prepended `~/.cargo/bin` and retried; build then passed.
+
+### Known issues carried forward to v0.5.1
+
+- **Tradesa V2 full plugin** — Tier-3 deferred per scope.
+- **Populated screenshots of S's UI surfaces (`docs/screenshots/v0.5.0/teammate-s/`)** —
+  Lead did not capture these inside the v0.5.0 build window; non-blocking
+  per CLAUDE.md visual-verification protocol (the composed and per-teammate
+  shots cover the load-bearing surfaces).
+- **Playwright real-event suite for node-editor canvas drag-drop** —
+  Teammate N fell back to populated-state mocked-fetch screenshots; the
+  chrome-devtools MCP `isTrusted` gap (v0.3.0 CLAUDE.md gotcha) still
+  applies to canvas-interactive features.
+- **Live trade verifications** — by design, v0.5.0 ships paper-mode
+  end-to-end only; the 60-day paper-soak window is the live-trade gate.
+- **Claude Desktop external-MCP-client live screenshot** — v0.4.0 carry-forward.
+- **Drawing-tool on-canvas screenshots** — v0.3.0 carry-forward.
+
+### Verification
+
+- `pnpm typecheck` / `pnpm lint` / `pnpm format:check` clean.
+- `pnpm test` — 49 files, **406 tests pass** (+194 over v0.4.0's 212).
+- `pytest sidecar` — **579 tests pass** (+306 over v0.4.0's 273), including
+  the 9-test `test_safety_end_to_end.py` audit suite.
+- `ruff check sidecar` + `ruff format --check sidecar` clean.
+- `cargo fmt --check` + `cargo clippy -- -D warnings` + `cargo test` clean.
+- `pnpm sidecar:build` — main sidecar `--onefile` **67.4 MB** (+0.4 MB
+  over v0.4.0's 67 MB). All 7 broker SDKs ship in main; no subprocess split.
+- `pnpm openbb-mcp-sidecar:build` — unchanged from v0.4.0's 55 MB.
+- Total Phase-4+5 binary footprint ≈ **122 MB** (essentially unchanged).
+- `git diff v0.4.0..v0.5.0 -- types/plugin.ts` **empty** (Tier-1 lock held).
+
+### Visual proof
+
+`docs/screenshots/v0.5.0/`:
+
+- `teammate-k/` — backtest panel 1920+2560, Strategy Critic stream 1920+2560.
+- `teammate-n/` — 8 populated PNGs at 1920+2560 (canvas, palette, run-overlay).
+- `teammate-i/` — Kite static-IP banner variants + India broker connect
+  (placeholder; capture protocol README; depends on S's panel for the
+  full composed shot).
+- `teammate-g/` — Global brokers paper-mode badges (placeholder; same).
+- `teammate-x/` — Bybit testnet paper-trade audit-trail JSON.
+- `safety-audit/` — 9 capture files from the dedicated §6.5 audit suite
+  (paper-default-proof, no-bypass-proof, position-limit-proof,
+  append-only-proof, kill-switch-benchmark, ai-order-gate-proof,
+  read-only-proof, disclaimer-flow-proof, static-ip-proof).
+
 ## v0.4.0 — Phase 3: AI Layer + 12 Agents + MCP (2026-05-16)
 
 Vysted goes from "data + charts + plugin runtime" to "AI-native finance

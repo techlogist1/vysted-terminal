@@ -78,14 +78,20 @@ describe("useBrokersStore", () => {
       ],
     });
     await useBrokersStore.getState().refresh();
-    expect(useBrokersStore.getState().primaryBrokers().map((b) => b.broker).sort()).toEqual([
-      "alpaca",
-      "ib",
-    ]);
-    expect(useBrokersStore.getState().cryptoBrokers().map((b) => b.broker).sort()).toEqual([
-      "ccxt-binance",
-      "ccxt-bybit",
-    ]);
+    expect(
+      useBrokersStore
+        .getState()
+        .primaryBrokers()
+        .map((b) => b.broker)
+        .sort(),
+    ).toEqual(["alpaca", "ib"]);
+    expect(
+      useBrokersStore
+        .getState()
+        .cryptoBrokers()
+        .map((b) => b.broker)
+        .sort(),
+    ).toEqual(["ccxt-binance", "ccxt-bybit"]);
   });
 
   it("refreshOne overwrites a single broker entry", async () => {
@@ -104,9 +110,7 @@ describe("useBrokersStore", () => {
     vi.spyOn(sidecarClient, "sidecarGet").mockResolvedValueOnce(
       makeState({ broker: "alpaca", status: "connected" }),
     );
-    await useBrokersStore
-      .getState()
-      .connect("alpaca", { api_key: "k", api_secret: "s" });
+    await useBrokersStore.getState().connect("alpaca", { api_key: "k", api_secret: "s" });
     expect(useBrokersStore.getState().byId.alpaca?.status).toBe("connected");
   });
 

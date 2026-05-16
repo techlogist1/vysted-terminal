@@ -124,7 +124,11 @@ export const angelOnePlugin: VystedPlugin = {
       };
     } catch (err) {
       const detail = err instanceof Error ? err.message : String(err);
-      return { status: "unavailable", message: `Sidecar unreachable: ${detail}`, checkedAt: Date.now() };
+      return {
+        status: "unavailable",
+        message: `Sidecar unreachable: ${detail}`,
+        checkedAt: Date.now(),
+      };
     }
   },
 
@@ -149,7 +153,10 @@ export const angelOnePlugin: VystedPlugin = {
         return { ok: true, data };
       }
       if (commandId === "account") {
-        return { ok: true, data: await getJson(new URL("/brokers/angelone/account", base).toString()) };
+        return {
+          ok: true,
+          data: await getJson(new URL("/brokers/angelone/account", base).toString()),
+        };
       }
       if (commandId === "place-order") {
         const data = await postJson(
@@ -159,7 +166,11 @@ export const angelOnePlugin: VystedPlugin = {
         return { ok: true, data };
       }
       if (commandId === "place-order-confirm") {
-        const payload = args as { proposalId: string; humanConfirmed: boolean; confirmNote?: string };
+        const payload = args as {
+          proposalId: string;
+          humanConfirmed: boolean;
+          confirmNote?: string;
+        };
         const data = await postJson(
           new URL(`/brokers/angelone/orders/${payload.proposalId}/confirm`, base).toString(),
           { humanConfirmed: payload.humanConfirmed, confirmNote: payload.confirmNote },
@@ -167,9 +178,8 @@ export const angelOnePlugin: VystedPlugin = {
         return { ok: true, data };
       }
       if (commandId === "halt-trading" || commandId === "set-read-only") {
-        const readOnly = commandId === "halt-trading"
-          ? true
-          : Boolean((args as { readOnly?: boolean })?.readOnly);
+        const readOnly =
+          commandId === "halt-trading" ? true : Boolean((args as { readOnly?: boolean })?.readOnly);
         const data = await postJson(new URL("/brokers/angelone/read-only", base).toString(), {
           readOnly,
         });

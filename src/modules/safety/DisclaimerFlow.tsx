@@ -84,7 +84,7 @@ export function FirstLaunchTosDialog() {
             Please review the operating terms before connecting a broker.
           </DialogDescription>
         </DialogHeader>
-        <pre className="text-muted-foreground max-h-64 overflow-y-auto whitespace-pre-wrap text-xs leading-snug">
+        <pre className="text-muted-foreground max-h-64 overflow-y-auto text-xs leading-snug whitespace-pre-wrap">
           {TOS_BODY}
         </pre>
         <DialogFooter>
@@ -156,9 +156,9 @@ export function BrokerFirstConnectDialog({
           </DialogDescription>
         </DialogHeader>
         <p className="text-muted-foreground text-xs leading-relaxed">
-          You are about to connect Vysted Terminal to your <strong>{broker}</strong> account.
-          Vysted will store your credentials in the OS keychain (never in plain files); your
-          credentials never leave the local machine. By accepting you confirm you have read{" "}
+          You are about to connect Vysted Terminal to your <strong>{broker}</strong> account. Vysted
+          will store your credentials in the OS keychain (never in plain files); your credentials
+          never leave the local machine. By accepting you confirm you have read{" "}
           {brokerHandle(broker)} terms of service.
         </p>
         <DialogFooter>

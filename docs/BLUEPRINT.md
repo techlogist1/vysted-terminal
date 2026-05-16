@@ -509,18 +509,52 @@ All phases ship as part of v1.0 — no MVP, no Phase 2 deferrals. Phases are **C
   deadlock; data surface preserved end-to-end)
 
 ### Phase 4 — Sandbox: Node Editor + Backtest
-- Node editor (react-flow based)
-- Workflow execution engine (Python sidecar coordinates node graph)
-- Backtest engine (event-driven, walk-forward support, vectorbt+backtrader patterns)
-- AI Strategy Critic agent (analyzes backtest results)
-- Workspace export/import as `.vysted-workspace` files
+
+**Shipped in v0.5.0 (2026-05-16) as part of the Phase 4 + Phase 5 mega-sprint.**
+
+- Node editor ✓ (`@xyflow/react@12.10.2` — npm rebrand of `reactflow`;
+  canvas + drag-drop palette + edge connect + run overlay)
+- Workflow execution engine ✓ (custom asyncio engine in
+  `sidecar/services/workflow_engine.py`; Kahn's-algorithm cycle detection;
+  parallel waves via `asyncio.gather`; SSE event stream)
+- Backtest engine ✓ (custom event-driven engine in
+  `sidecar/services/backtest_engine.py`; walk-forward; Sharpe / Sortino /
+  Calmar / win-rate; NOT vectorbt/backtrader at runtime per Tier-3
+  bundle-size + maintenance reasoning)
+- AI Strategy Critic agent ✓ (Phase-3-reserved tools list `["backtest_summary",
+  "price_data", "fundamentals"]` lit up end-to-end; agent runtime extended
+  with multi-round `tool_use` dispatch loop; Use Case 2 round-trip
+  captured: mean_reversion SPY 2024-2025, 18 trades, Sharpe -0.16,
+  win-rate 61.1%)
+- Workspace export/import (Phase-1 already shipped; no v0.5.0 change)
 
 ### Phase 5 — Broker & Trading Plugins
-- **Shared execution safety layer** (§6.5) — paper-mode default, per-order confirmation dialog, configurable position-size limits, SQLite audit log, global kill switch, AI-order gate, per-plugin read-only mode, layered disclaimer dialogs. Built once, used by every broker plugin.
-- **Tradesa V2 full plugin** — all six plugin capabilities; 9-12 observability panels; real-time WebSocket to the Tradesa bot; crypto execution via Bybit testnet; optional control plane (kill switch, manual position close); settings drift detection; LLM cost tracking; Tradesa-specific agents + nodes.
-- **Global broker execution plugins** — Dhan, Angel One SmartAPI, Zerodha Kite Connect, Alpaca, Interactive Brokers, OANDA v20, and a ccxt crypto execution wrap. Each is a separate plugin on the existing `VystedPlugin` contract, routed through the shared safety layer. Kite's static-IP-for-orders constraint is surfaced in-app.
 
-Original Phase 5 was the Tradesa V2 plugin alone (~3-5 days); the scope grows to absorb broker integration and the safety layer (~6-8 days). The phase is not split — the numbering is unchanged.
+**Shipped in v0.5.0 (2026-05-16) as part of the Phase 4 + Phase 5 mega-sprint.**
+
+- **Shared execution safety layer** ✓ (BLUEPRINT §6.5 8-point dedicated
+  audit suite passes 9/9; max kill-switch ack 20.08 ms vs 2000 ms budget;
+  SQLite triggers raise on UPDATE/DELETE of `audit_orders`; AI-order
+  gate strictly enforced — Tier-3 tightening removes BLUEPRINT's
+  "auto-approve mode" mention; live execution capability ENABLED).
+- **Tradesa V2 full plugin** — DEFERRED to v0.5.1 or v0.6.0 per Tier-3
+  operator-brief de-scoping. Foundation contracts (kill switch + audit
+  log + `executeCommand` control plane) are in place; Tradesa V2 becomes
+  plug-in work, not contract work.
+- **Global broker execution plugins** ✓ — Dhan (`dhanhq 2.1.0`), Angel One
+  SmartAPI (`smartapi-python 1.5.5`), Zerodha Kite Connect (`kiteconnect
+  5.2.0` with SEBI/NSE static-IP UX path live), Alpaca (`alpaca-py
+  0.42.0`), Interactive Brokers (`ib_async 2.1.0`, requires TWS/IB
+  Gateway on `127.0.0.1:7497`), OANDA v20 (`oandapyV20 0.7.2`), ccxt
+  unified crypto execution (Bybit, Binance, Kraken, Coinbase) — each a
+  separate plugin on the locked `VystedPlugin` contract, routed through
+  the shared safety layer. All 7 broker SDKs ship in main sidecar
+  (F9-measured 67.4 MB main bundle; no subprocess split needed).
+
+Original Phase 5 was the Tradesa V2 plugin alone (~3-5 days); v0.5.0
+absorbed broker integration + safety layer + node editor + workflow +
+backtest under one tag. The architectural rationale is in `CHANGELOG.md`
+v0.5.0 and `docs/superpowers/plans/2026-05-16-phase-4-5-mega-sprint.md`.
 
 ### Phase 6 — Macro + Research + QuantLib
 - Macro/economic data panels (FRED, ECB, IMF, World Bank)

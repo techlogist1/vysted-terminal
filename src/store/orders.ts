@@ -147,8 +147,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
   manualPendingProposals: () =>
     get().proposals.filter((p) => p.status === "pending" && p.proposal.source === "manual"),
 
-  findProposal: (proposalId) =>
-    get().proposals.find((p) => p.proposal.proposalId === proposalId),
+  findProposal: (proposalId) => get().proposals.find((p) => p.proposal.proposalId === proposalId),
 }));
 
 // ---------------------------------------------------------------------------

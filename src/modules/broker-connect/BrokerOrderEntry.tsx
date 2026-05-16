@@ -73,8 +73,7 @@ export function BrokerOrderEntry() {
         setError("Quantity must be positive");
         return;
       }
-      const limitPrice =
-        form.limitPrice.length > 0 ? Number(form.limitPrice) : undefined;
+      const limitPrice = form.limitPrice.length > 0 ? Number(form.limitPrice) : undefined;
       const stopPrice = form.stopPrice.length > 0 ? Number(form.stopPrice) : undefined;
       setBusy(true);
       setError(null);
@@ -125,7 +124,7 @@ export function BrokerOrderEntry() {
     <form
       onSubmit={handleSubmit}
       data-testid="broker-order-entry"
-      className="flex flex-col gap-2 p-3 font-mono text-xs text-charcoal-100"
+      className="text-charcoal-100 flex flex-col gap-2 p-3 font-mono text-xs"
     >
       <label className="flex flex-col gap-1">
         <span className="text-charcoal-400 text-[10px] uppercase">Broker</span>

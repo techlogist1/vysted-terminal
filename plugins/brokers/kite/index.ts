@@ -149,7 +149,11 @@ export const kitePlugin: VystedPlugin = {
       };
     } catch (err) {
       const detail = err instanceof Error ? err.message : String(err);
-      return { status: "unavailable", message: `Sidecar unreachable: ${detail}`, checkedAt: Date.now() };
+      return {
+        status: "unavailable",
+        message: `Sidecar unreachable: ${detail}`,
+        checkedAt: Date.now(),
+      };
     }
   },
 
@@ -184,7 +188,11 @@ export const kitePlugin: VystedPlugin = {
         return { ok: true, data };
       }
       if (commandId === "place-order-confirm") {
-        const payload = args as { proposalId: string; humanConfirmed: boolean; confirmNote?: string };
+        const payload = args as {
+          proposalId: string;
+          humanConfirmed: boolean;
+          confirmNote?: string;
+        };
         const data = await postJson(
           new URL(`/brokers/kite/orders/${payload.proposalId}/confirm`, base).toString(),
           { humanConfirmed: payload.humanConfirmed, confirmNote: payload.confirmNote },
@@ -192,9 +200,8 @@ export const kitePlugin: VystedPlugin = {
         return { ok: true, data };
       }
       if (commandId === "halt-trading" || commandId === "set-read-only") {
-        const readOnly = commandId === "halt-trading"
-          ? true
-          : Boolean((args as { readOnly?: boolean })?.readOnly);
+        const readOnly =
+          commandId === "halt-trading" ? true : Boolean((args as { readOnly?: boolean })?.readOnly);
         const data = await postJson(new URL("/brokers/kite/read-only", base).toString(), {
           readOnly,
         });
@@ -216,9 +223,9 @@ export const kitePlugin: VystedPlugin = {
         // Pulls the current configured IP from the adapter, then the
         // detected-vs-configured comparison from the safety router. The
         // panel renders the result via <KiteStaticIpBanner />.
-        const configured = (await getJson(
-          new URL("/brokers/kite/static-ip", base).toString(),
-        )) as { configuredIp: string | null };
+        const configured = (await getJson(new URL("/brokers/kite/static-ip", base).toString())) as {
+          configuredIp: string | null;
+        };
         const url = new URL("/safety/static-ip-status", base);
         if (configured.configuredIp) url.searchParams.set("configured", configured.configuredIp);
         const status = await getJson(url.toString());

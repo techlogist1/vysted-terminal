@@ -89,10 +89,7 @@ describe("KillSwitchToolbar", () => {
     const listenSpy = vi.mocked(eventMod.listen);
     render(<KillSwitchToolbar />);
     await waitFor(() => {
-      expect(listenSpy).toHaveBeenCalledWith(
-        "kill-switch:requested",
-        expect.any(Function),
-      );
+      expect(listenSpy).toHaveBeenCalledWith("kill-switch:requested", expect.any(Function));
     });
   });
 });

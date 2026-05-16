@@ -17,16 +17,16 @@ guarantee fails a future audit.
 
 ## The 8 non-negotiables
 
-| #   | Guarantee                  | Enforcement                                                  | Audit artifact                                  |
-| --- | -------------------------- | ------------------------------------------------------------ | ----------------------------------------------- |
-| 1   | Paper mode default         | `BrokerAdapter.__init__` hard-codes `_mode = "paper"`        | `safety-audit/paper-default-proof.log`          |
-| 2   | Every order confirmed      | `_place_confirmed` is private; only `confirm_and_place` calls it | `safety-audit/no-bypass-proof.log`              |
-| 3   | Position-size limits       | `propose_order` raises `BrokerError` before any broker call  | `safety-audit/position-limit-proof.log`         |
-| 4   | Append-only audit log      | SQLite triggers `RAISE(ABORT)` on UPDATE/DELETE              | `safety-audit/append-only-proof.log`            |
-| 5   | Global kill switch < 2s    | `KillSwitchBus.fire` instruments p50/p95/max; benchmark gate | `safety-audit/kill-switch-benchmark.json`       |
-| 6   | AI-order gate              | Agent tool registry refuses placement; propose→confirm only  | `safety-audit/ai-order-gate-proof.log`          |
-| 7   | Read-only mode             | `_read_only` flag checked in `propose_order` + at confirm    | `safety-audit/read-only-proof.log`              |
-| 8   | Layered disclaimers        | First-launch + per-broker (keychain) + per-session (sidecar) | `safety-audit/disclaimer-flow-proof.log` + `static-ip-proof.log` |
+| #   | Guarantee               | Enforcement                                                      | Audit artifact                                                   |
+| --- | ----------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------- |
+| 1   | Paper mode default      | `BrokerAdapter.__init__` hard-codes `_mode = "paper"`            | `safety-audit/paper-default-proof.log`                           |
+| 2   | Every order confirmed   | `_place_confirmed` is private; only `confirm_and_place` calls it | `safety-audit/no-bypass-proof.log`                               |
+| 3   | Position-size limits    | `propose_order` raises `BrokerError` before any broker call      | `safety-audit/position-limit-proof.log`                          |
+| 4   | Append-only audit log   | SQLite triggers `RAISE(ABORT)` on UPDATE/DELETE                  | `safety-audit/append-only-proof.log`                             |
+| 5   | Global kill switch < 2s | `KillSwitchBus.fire` instruments p50/p95/max; benchmark gate     | `safety-audit/kill-switch-benchmark.json`                        |
+| 6   | AI-order gate           | Agent tool registry refuses placement; propose→confirm only      | `safety-audit/ai-order-gate-proof.log`                           |
+| 7   | Read-only mode          | `_read_only` flag checked in `propose_order` + at confirm        | `safety-audit/read-only-proof.log`                               |
+| 8   | Layered disclaimers     | First-launch + per-broker (keychain) + per-session (sidecar)     | `safety-audit/disclaimer-flow-proof.log` + `static-ip-proof.log` |
 
 ## #1 — Paper mode is the hard-coded default
 
@@ -64,6 +64,7 @@ without `human_confirmed=True` being passed in.
 ## #3 — Position-size limits configurable per plugin
 
 **File**: `sidecar/services/broker_base.py:78` — `BrokerAdapter.DEFAULT_LIMITS`:
+
 - `maxOrderValueAccountCurrency = 10_000`
 - `maxPercentOfAccount = 10.0`
 - `maxPositionSizePerSymbol = 1_000`
@@ -81,6 +82,7 @@ realised + unrealised losses cross the threshold for the day.
 ## #4 — Audit log append-only at the DB level
 
 **Files**:
+
 - `sidecar/models/audit_log.py:23` — `AUDIT_LOG_DDL` with two triggers:
   - `audit_orders_no_update` BEFORE UPDATE → `RAISE(ABORT, "audit log is append-only: UPDATE not permitted")`
   - `audit_orders_no_delete` BEFORE DELETE → `RAISE(ABORT, "audit log is append-only: DELETE not permitted")`
@@ -128,6 +130,7 @@ RECOMMEND orders but CANNOT place them — every order placement is
 operator-initiated through the same human-confirmation gate.
 
 **Files**:
+
 - `sidecar/services/agent_tools.py:41` — tool registry. No
   `place_order` / `submit_order` / `execute_order` tool exists. The
   registry only ships `backtest_summary`, `price_data`, `fundamentals`.
@@ -144,8 +147,9 @@ operator-initiated through the same human-confirmation gate.
 **Verification**: `test_audit_6_ai_order_gate` confirms (a) no
 order-placing tool is registered, (b) AI-proposed order goes through the
 propose → confirm flow, (c) confirm with `human_confirmed=False` raises
-+ writes `order-declined`, (d) grep for `auto_approve` / `autoApprove`
-assignment patterns finds zero hits.
+
+- writes `order-declined`, (d) grep for `auto_approve` / `autoApprove`
+  assignment patterns finds zero hits.
 
 ## #7 — Read-only mode at adapter boundary
 
@@ -157,6 +161,7 @@ audit-log write, BEFORE broker SDK call.
 re-checks `read_only` after the human confirms; race-condition safe.
 
 **Use cases**:
+
 - User toggles read-only via `/brokers/{id}/read-only`.
 - Kill switch fire sets `_read_only = True` on every adapter (the bus
   handler in `_on_kill_switch`).
@@ -167,13 +172,14 @@ re-checks `read_only` after the human confirms; race-condition safe.
 
 Three surfaces, three storage backends:
 
-| Surface                              | Stored where                                    | Reset condition         |
-| ------------------------------------ | ----------------------------------------------- | ----------------------- |
-| First-launch TOS                     | OS keychain `broker:_meta:first-launch-tos`     | User deletes app data   |
-| Per-broker first-connect             | OS keychain `broker:<id>:_meta:first-connect-ack` | User deletes app data   |
-| First-live-order-per-session          | Sidecar in-memory `disclaimer_session`          | Sidecar restart         |
+| Surface                      | Stored where                                      | Reset condition       |
+| ---------------------------- | ------------------------------------------------- | --------------------- |
+| First-launch TOS             | OS keychain `broker:_meta:first-launch-tos`       | User deletes app data |
+| Per-broker first-connect     | OS keychain `broker:<id>:_meta:first-connect-ack` | User deletes app data |
+| First-live-order-per-session | Sidecar in-memory `disclaimer_session`            | Sidecar restart       |
 
 **Files**:
+
 - `src/lib/keychain.ts:30` — `KEYCHAIN_NAMESPACES.broker(id, field)`
   builds the canonical secret-id string.
 - `sidecar/services/disclaimer_session.py` — in-memory session store.
@@ -218,25 +224,25 @@ ship broken.**
 
 ## Foundation file map
 
-| File                                     | Role                                                    |
-| ---------------------------------------- | ------------------------------------------------------- |
-| `types/safety.ts`                        | Wire-level contracts (TS, foundation-frozen)            |
-| `types/broker.ts`                        | Broker wire contracts (foundation-frozen)               |
-| `sidecar/models/safety.py`               | Pydantic mirrors of `types/safety.ts`                   |
-| `sidecar/models/broker.py`               | Pydantic mirrors of `types/broker.ts`                   |
-| `sidecar/models/audit_log.py`            | `AUDIT_LOG_DDL` with append-only triggers               |
-| `sidecar/services/audit_log.py`          | Writer + reader connection roles; append/tail/export    |
-| `sidecar/services/kill_switch.py`        | `KillSwitchBus` with instrumented `fire`                |
-| `sidecar/services/broker_base.py`        | `BrokerAdapter` ABC with all 8 enforcements             |
-| `sidecar/services/static_ip_detector.py` | Public IP detection helper                              |
-| `sidecar/services/disclaimer_session.py` | Session-scoped ack store                                |
-| `sidecar/routers/safety.py`              | `/safety/*` HTTP surfaces                               |
-| `src-tauri/src/kill_switch.rs`           | OS-wide `CmdOrCtrl+Shift+K` shortcut + IPC              |
-| `src/store/safety.ts`                    | Frontend safety state                                   |
-| `src/store/orders.ts`                    | Pending-order proposals inbox                           |
-| `src/modules/safety/*.tsx`               | KillSwitchToolbar / OrderConfirmationDialog / DisclaimerFlow / AuditLogViewer |
-| `src/modules/broker-connect/*.tsx`       | BrokerConnectPanel / BrokerOrderEntry / kite-static-ip-banner |
-| `sidecar/tests/test_safety_end_to_end.py` | The dedicated audit suite this doc describes            |
+| File                                      | Role                                                                          |
+| ----------------------------------------- | ----------------------------------------------------------------------------- |
+| `types/safety.ts`                         | Wire-level contracts (TS, foundation-frozen)                                  |
+| `types/broker.ts`                         | Broker wire contracts (foundation-frozen)                                     |
+| `sidecar/models/safety.py`                | Pydantic mirrors of `types/safety.ts`                                         |
+| `sidecar/models/broker.py`                | Pydantic mirrors of `types/broker.ts`                                         |
+| `sidecar/models/audit_log.py`             | `AUDIT_LOG_DDL` with append-only triggers                                     |
+| `sidecar/services/audit_log.py`           | Writer + reader connection roles; append/tail/export                          |
+| `sidecar/services/kill_switch.py`         | `KillSwitchBus` with instrumented `fire`                                      |
+| `sidecar/services/broker_base.py`         | `BrokerAdapter` ABC with all 8 enforcements                                   |
+| `sidecar/services/static_ip_detector.py`  | Public IP detection helper                                                    |
+| `sidecar/services/disclaimer_session.py`  | Session-scoped ack store                                                      |
+| `sidecar/routers/safety.py`               | `/safety/*` HTTP surfaces                                                     |
+| `src-tauri/src/kill_switch.rs`            | OS-wide `CmdOrCtrl+Shift+K` shortcut + IPC                                    |
+| `src/store/safety.ts`                     | Frontend safety state                                                         |
+| `src/store/orders.ts`                     | Pending-order proposals inbox                                                 |
+| `src/modules/safety/*.tsx`                | KillSwitchToolbar / OrderConfirmationDialog / DisclaimerFlow / AuditLogViewer |
+| `src/modules/broker-connect/*.tsx`        | BrokerConnectPanel / BrokerOrderEntry / kite-static-ip-banner                 |
+| `sidecar/tests/test_safety_end_to_end.py` | The dedicated audit suite this doc describes                                  |
 
 ## Sources
 

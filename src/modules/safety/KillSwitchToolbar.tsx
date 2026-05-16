@@ -33,10 +33,7 @@ interface KillSwitchEventPayload {
 }
 
 interface TauriEventApi {
-  listen: <T>(
-    event: string,
-    handler: (event: { payload: T }) => void,
-  ) => Promise<() => void>;
+  listen: <T>(event: string, handler: (event: { payload: T }) => void) => Promise<() => void>;
 }
 
 async function getTauriEventApi(): Promise<TauriEventApi | null> {
@@ -148,9 +145,7 @@ export function KillSwitchToolbar() {
         </Button>
       )}
 
-      {banner !== null && (
-        <KillSwitchBanner result={banner} onDismiss={() => setBanner(null)} />
-      )}
+      {banner !== null && <KillSwitchBanner result={banner} onDismiss={() => setBanner(null)} />}
       {!banner && lastResult !== null && killSwitchFired && (
         <KillSwitchBanner result={lastResult} onDismiss={() => undefined} muted />
       )}

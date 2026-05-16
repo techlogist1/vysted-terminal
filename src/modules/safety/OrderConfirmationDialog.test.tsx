@@ -110,9 +110,7 @@ describe("OrderConfirmationDialog", () => {
     await waitFor(() => {
       expect(screen.getByTestId("order-confirmation-dialog")).toBeInTheDocument();
     });
-    expect(screen.getByTestId("order-confirmation-dialog").getAttribute("data-variant")).toBe(
-      "ai",
-    );
+    expect(screen.getByTestId("order-confirmation-dialog").getAttribute("data-variant")).toBe("ai");
     expect(screen.getByTestId("ai-agent-banner").textContent).toContain("Strategy Critic");
     expect(screen.getByTestId("confirm-button")).toBeDisabled();
 
@@ -200,9 +198,7 @@ describe("OrderConfirmationDialog", () => {
   it("skips the live-order ack prompt when session ack is present", async () => {
     setBrokerMode("alpaca", "live");
     useSafetyStore.setState({
-      sessionAcks: [
-        { kind: "first-live-order-this-session", broker: "alpaca", ackedAt: 1 },
-      ],
+      sessionAcks: [{ kind: "first-live-order-this-session", broker: "alpaca", ackedAt: 1 }],
     });
     useOrdersStore.getState().addProposal(makeProposal({ source: "manual" }));
     useOrdersStore.getState().openProposal("p-1");

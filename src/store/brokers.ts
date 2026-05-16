@@ -67,9 +67,7 @@ export const useBrokersStore = create<BrokersStoreState>((set, get) => ({
 
   refreshOne: async (broker) => {
     try {
-      const state = await sidecarGet<BrokerState>(
-        `/brokers/${encodeURIComponent(broker)}/state`,
-      );
+      const state = await sidecarGet<BrokerState>(`/brokers/${encodeURIComponent(broker)}/state`);
       set((s) => ({ byId: { ...s.byId, [broker]: state } }));
       return state;
     } catch {
@@ -142,9 +140,15 @@ export const useBrokersStore = create<BrokersStoreState>((set, get) => ({
     return Object.values(map).filter((s): s is BrokerState => s !== undefined);
   },
 
-  primaryBrokers: () => get().brokers().filter((s) => !isCryptoBrokerId(s.broker)),
+  primaryBrokers: () =>
+    get()
+      .brokers()
+      .filter((s) => !isCryptoBrokerId(s.broker)),
 
-  cryptoBrokers: () => get().brokers().filter((s) => isCryptoBrokerId(s.broker)),
+  cryptoBrokers: () =>
+    get()
+      .brokers()
+      .filter((s) => isCryptoBrokerId(s.broker)),
 }));
 
 /** Test helper: reset the brokers store. */

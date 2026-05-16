@@ -1,10 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type {
-  AuditLogEntry,
-  KillSwitchFireResult,
-  StaticIpStatus,
-} from "../../types/safety";
+import type { AuditLogEntry, KillSwitchFireResult, StaticIpStatus } from "../../types/safety";
 
 import * as keychain from "@/lib/keychain";
 import * as sidecarClient from "@/lib/sidecar-client";
@@ -23,7 +19,9 @@ function stubSidecar(): void {
   vi.spyOn(sidecarClient, "getSidecarBaseUrl").mockResolvedValue(baseUrl);
 }
 
-function mockFetchSequence(responses: Array<{ ok: boolean; body: unknown; status?: number }>): void {
+function mockFetchSequence(
+  responses: Array<{ ok: boolean; body: unknown; status?: number }>,
+): void {
   let i = 0;
   vi.stubGlobal(
     "fetch",

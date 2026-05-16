@@ -4,11 +4,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import * as keychain from "@/lib/keychain";
 import { resetSafetyStoreForTests, useSafetyStore } from "@/store/safety";
 
-import {
-  BrokerFirstConnectDialog,
-  DisclaimerFlow,
-  FirstLaunchTosDialog,
-} from "./DisclaimerFlow";
+import { BrokerFirstConnectDialog, DisclaimerFlow, FirstLaunchTosDialog } from "./DisclaimerFlow";
 
 const keychainStore: Record<string, string> = {};
 

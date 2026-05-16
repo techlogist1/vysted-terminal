@@ -200,13 +200,51 @@ AgentSummary]`), wrap at the MCP-tool boundary as
   hit this with the Phase-2 OpenBB retirement.
 - **Sidecar `--onefile` binary footprint targets ≤120 MB main.**
   v0.4.0 distribution: 122 MB total (main sidecar 67 MB + openbb-mcp
-  55 MB); main grew +10 MB from 5 AI provider SDKs. Future phases
-  adding heavy Python deps (Phase 5 broker SDKs, Phase 6 QuantLib)
-  should check projected main-sidecar size against the 120 MB
-  threshold the Phase-3 plan established; if approaching, apply the
-  separate-process pattern proactively (the openbb-mcp Tauri-spawn
-  precedent above) rather than reactively after a `sidecar:build`
-  failure.
+  55 MB); main grew +10 MB from 5 AI provider SDKs. v0.5.0 confirmation:
+  6 broker SDKs (`dhanhq`, `smartapi-python`, `kiteconnect`, `alpaca-py`,
+  `ib_async`, `oandapyV20`) + workflow engine + backtest engine added
+  only **+0.4 MB to main** (67.4 MB total). Pure-Python wrappers share
+  most upstream deps (httpx, requests, websockets) so the PyInstaller
+  graph stays lean. Future phases adding heavy Python deps (Phase 6
+  QuantLib) should check projected main-sidecar size against the 120 MB
+  threshold and apply the Tauri-Rust-spawn pattern (precedent
+  `src-tauri/src/openbb_mcp.rs`) proactively if approaching.
+- **Agent-tool `isolation: "worktree"` doesn't fully isolate writes for
+  every agent.** v0.5.0 mega-sprint: several teammates (notably K and S)
+  wrote tracked files in the lead's main worktree while running,
+  bypassing the supposedly-isolated worktree under `.claude/worktrees/`.
+  The contamination surfaces at first merge attempt — typically as
+  pytest import errors or stale local modifications shown by `git status`.
+  **Rule:** the lead audits only via `origin/<branch>`; main-worktree
+  contamination is always discarded via
+  `git restore --source HEAD -- <file>` + `git clean` of untracked
+  contamination, then proper fetch + merge from origin. Documented in
+  PHASE_4_HANDOFF.md "Coordination lesson" + PHASE_5_HANDOFF.md.
+- **Append-only audit log is enforced at the DB level via SQLite triggers.**
+  `sidecar/models/audit_log.py` exports `AUDIT_LOG_DDL` with two
+  `RAISE(ABORT, ...)` triggers (BEFORE UPDATE + BEFORE DELETE) on
+  `audit_orders`. The trigger raises `sqlite3.IntegrityError` (NOT
+  `OperationalError` — the audit-suite tests catch this) with the
+  literal message `audit log is append-only: UPDATE not permitted` /
+  `... DELETE not permitted`. The reader connection additionally uses
+  `PRAGMA query_only=ON` so a misconfigured reader role cannot
+  accidentally write either. v0.5.0 BLUEPRINT §6.5 #4 enforcement —
+  not convention.
+- **`@xyflow/react` is the npm rebrand of `reactflow`** (12.x). Phase 0
+  stack docs referred to the old name; v0.5.0 pins `@xyflow/react@12.10.2`
+  as the canonical import (`import { ReactFlow } from "@xyflow/react"`).
+  Migration paths from `reactflow` are documented at xyflow.com; future
+  phases should use the rebranded import.
+- **Kite Connect static-IP UX is required for order placement, not
+  pre-blocked.** SEBI/NSE retail-algo compliance (in effect 2026-04-01)
+  requires a registered static IP for order-placement API calls. Data
+  endpoints are unaffected. `services/static_ip_detector.py` performs a
+  one-shot HTTPx GET to `api.ipify.org`; the Kite plugin's
+  `kite-static-ip-banner.tsx` polls and renders a banner on mismatch.
+  Critically, the order placement path does NOT pre-block — a user
+  behind VPN/VPS with the registered IP may legitimately succeed. The
+  Kite API rejection at order time surfaces a graceful UX dialog
+  through the audit-log path.
 
 ## Per-phase handoff
 
@@ -215,11 +253,14 @@ phase lead writes it from warm context before closing the build window. The
 next phase's lead reads it first to learn what shipped, what was decided
 autonomously, what broke, and where their work plugs into existing surfaces.
 
-**This is a standing convention as of v0.4.0.** v0.3.0's
-`docs/PHASE_2_HANDOFF.md` is the reference shape; v0.4.0's
-`docs/PHASE_3_HANDOFF.md` follows the same skeleton — Phase N+1's lead
-reads `PHASE_N_HANDOFF.md` first, before opening `BLUEPRINT.md` or
-`CHANGELOG.md`.
+**This is a standing convention as of v0.4.0.** v0.5.0's mega-sprint shipped
+TWO handoff docs — `docs/PHASE_4_HANDOFF.md` and `docs/PHASE_5_HANDOFF.md` —
+because two BLUEPRINT phases compressed under one release tag. Each
+follows the same 8-section skeleton (Phase-2 + Phase-3 reference shape).
+Phase N+1's lead reads `PHASE_N_HANDOFF.md` first, before opening
+`BLUEPRINT.md` or `CHANGELOG.md`. The mega-sprint precedent is captured
+in CHANGELOG v0.5.0 as the rationale: tightly-coupled phases ship
+together when the product story is one story.
 
 Each handoff covers, in order:
 
@@ -239,4 +280,12 @@ Each handoff covers, in order:
 - `CHANGELOG.md` — build-time decisions, failed approaches, and per-phase
   outcomes. Read when you need the _why_ behind a choice.
 - `docs/PHASE_N_HANDOFF.md` — the previous phase's handoff. Read first when
-  starting Phase N+1.
+  starting Phase N+1. v0.5.0 mega-sprint shipped both
+  `docs/PHASE_4_HANDOFF.md` + `docs/PHASE_5_HANDOFF.md`.
+- `docs/SAFETY_ARCHITECTURE.md` — BLUEPRINT §6.5 enforcement reference.
+  Per-guarantee implementation file:line pointers + capture-artifact
+  paths + conditional revert procedure. Read before touching anything
+  in the broker-execution code path.
+- `docs/BROKER_INTEGRATIONS.md` — per-broker setup, credentials,
+  paper-vs-live toggling, Kite static-IP UX path, IB Gateway requirement,
+  OANDA SDK maintenance callout.

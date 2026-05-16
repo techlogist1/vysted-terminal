@@ -136,7 +136,7 @@ export function KiteStaticIpBanner({
         data-testid="kite-static-ip-banner"
         data-variant="loading"
         className={cn(
-          "flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground",
+          "border-border bg-muted/40 text-muted-foreground flex items-center gap-2 rounded-md border px-3 py-2 text-xs",
           className,
         )}
       >

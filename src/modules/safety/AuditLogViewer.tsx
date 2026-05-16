@@ -96,7 +96,7 @@ export function AuditLogViewer() {
   return (
     <div
       data-testid="audit-log-viewer"
-      className="flex h-full w-full flex-col bg-charcoal-900 font-mono text-xs text-charcoal-100"
+      className="bg-charcoal-900 text-charcoal-100 flex h-full w-full flex-col font-mono text-xs"
     >
       <header className="border-charcoal-700 flex flex-wrap items-end gap-2 border-b px-3 py-2">
         <FilterSelect
@@ -106,9 +106,7 @@ export function AuditLogViewer() {
             { value: "all", label: "All" },
             ...KNOWN_BROKERS.map((b) => ({ value: b, label: b })),
           ]}
-          onChange={(value) =>
-            setAuditFilter({ broker: value as BrokerId | "_meta" | "all" })
-          }
+          onChange={(value) => setAuditFilter({ broker: value as BrokerId | "_meta" | "all" })}
           dataTestId="audit-filter-broker"
         />
         <FilterSelect
@@ -154,7 +152,7 @@ export function AuditLogViewer() {
             <col className="w-[10ch]" />
             <col className="w-[16ch]" />
           </colgroup>
-          <thead className="text-charcoal-400 sticky top-0 bg-charcoal-900 text-left text-[10px] uppercase">
+          <thead className="text-charcoal-400 bg-charcoal-900 sticky top-0 text-left text-[10px] uppercase">
             <tr>
               <th className="px-2 py-1">ID</th>
               <th className="px-2 py-1">Time</th>

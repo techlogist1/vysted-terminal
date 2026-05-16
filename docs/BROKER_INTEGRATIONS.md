@@ -8,11 +8,11 @@ mode requires explicit user opt-in through the broker-connect UI.
 
 ## India brokers (Teammate I)
 
-| Broker     | SDK              | Asset coverage                | Static IP required |
-| ---------- | ---------------- | ----------------------------- | ------------------ |
-| Dhan       | `dhanhq` 2.x     | Equity + options + futures    | No                 |
-| Angel One  | `smartapi-python`| Equity + options + futures    | No                 |
-| Kite Connect | `kiteconnect`  | Equity + options + forex + futures | **Yes**       |
+| Broker       | SDK               | Asset coverage                     | Static IP required |
+| ------------ | ----------------- | ---------------------------------- | ------------------ |
+| Dhan         | `dhanhq` 2.x      | Equity + options + futures         | No                 |
+| Angel One    | `smartapi-python` | Equity + options + futures         | No                 |
+| Kite Connect | `kiteconnect`     | Equity + options + forex + futures | **Yes**            |
 
 ### Kite Connect — static-IP UX path
 
@@ -98,6 +98,7 @@ guarantees through `BrokerAdapter`:
 
 The dedicated safety-audit suite asserts each guarantee against the
 integrated codebase before any v0.5.0 release.
+
 # Broker integrations — v0.5.0
 
 Vysted Terminal ships seven broker execution plugins in v0.5.0. Each

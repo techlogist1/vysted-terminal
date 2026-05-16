@@ -187,11 +187,18 @@ export const dhanPlugin: VystedPlugin = {
         // The order-entry UI calls this with the proposal-shaped payload.
         // We hit the propose endpoint; the UI then opens the confirmation
         // dialog and calls `place-order-confirm` on user click.
-        const data = await postJson(new URL("/brokers/dhan/orders", base).toString(), args as Record<string, unknown>);
+        const data = await postJson(
+          new URL("/brokers/dhan/orders", base).toString(),
+          args as Record<string, unknown>,
+        );
         return { ok: true, data };
       }
       if (commandId === "place-order-confirm") {
-        const payload = args as { proposalId: string; humanConfirmed: boolean; confirmNote?: string };
+        const payload = args as {
+          proposalId: string;
+          humanConfirmed: boolean;
+          confirmNote?: string;
+        };
         const data = await postJson(
           new URL(`/brokers/dhan/orders/${payload.proposalId}/confirm`, base).toString(),
           { humanConfirmed: payload.humanConfirmed, confirmNote: payload.confirmNote },
@@ -199,9 +206,8 @@ export const dhanPlugin: VystedPlugin = {
         return { ok: true, data };
       }
       if (commandId === "halt-trading" || commandId === "set-read-only") {
-        const readOnly = commandId === "halt-trading"
-          ? true
-          : Boolean((args as { readOnly?: boolean })?.readOnly);
+        const readOnly =
+          commandId === "halt-trading" ? true : Boolean((args as { readOnly?: boolean })?.readOnly);
         const data = await postJson(new URL("/brokers/dhan/read-only", base).toString(), {
           readOnly,
         });
