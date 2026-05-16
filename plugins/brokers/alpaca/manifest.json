@@ -1,0 +1,10 @@
+{
+  "id": "broker-alpaca",
+  "version": "0.1.0",
+  "name": "Alpaca (US equities + options + crypto)",
+  "entry": "./index.ts",
+  "requiredHostVersion": ">=0.5.0",
+  "description": "Broker execution plugin for Alpaca commission-free US equities, options, and crypto. Paper-mode default; BYOK via the OS keychain (broker:alpaca:api_key + broker:alpaca:api_secret). Order placement gated by the v0.5.0 safety layer (BLUEPRINT §6.5).",
+  "author": "Vysted Team",
+  "homepage": "https://alpaca.markets"
+}

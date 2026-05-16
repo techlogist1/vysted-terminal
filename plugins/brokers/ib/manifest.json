@@ -1,0 +1,10 @@
+{
+  "id": "broker-ib",
+  "version": "0.1.0",
+  "name": "Interactive Brokers (TWS / IB Gateway)",
+  "entry": "./index.ts",
+  "requiredHostVersion": ">=0.5.0",
+  "description": "Broker execution plugin for Interactive Brokers via the ib_async SDK. Requires Trader Workstation (TWS) or IB Gateway running locally — paper port 7497 (TWS) or 4002 (Gateway). Paper-mode default; BYOK via the OS keychain. Order placement gated by the v0.5.0 safety layer (BLUEPRINT §6.5).",
+  "author": "Vysted Team",
+  "homepage": "https://www.interactivebrokers.com"
+}

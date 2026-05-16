@@ -1,0 +1,10 @@
+{
+  "id": "broker-oanda",
+  "version": "0.1.0",
+  "name": "OANDA v20 (forex)",
+  "entry": "./index.ts",
+  "requiredHostVersion": ">=0.5.0",
+  "description": "Broker execution plugin for OANDA fxTrade (forex + CFD) via the oandapyV20 SDK. Demo (practice) account default for paper mode. BYOK via the OS keychain (broker:oanda:access_token + broker:oanda:account_id). NOTE: the oandapyV20 SDK was last released 2021-08; users should monitor security advisories independently.",
+  "author": "Vysted Team",
+  "homepage": "https://developer.oanda.com/rest-live-v20/"
+}
