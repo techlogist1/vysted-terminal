@@ -47,11 +47,11 @@ def register_v0_6_0_tools() -> None:
     # registered.append("quant")
 
     # Teammate E — Earnings + Analyst Ratings expansion.
-    # from services.agent_tools import earnings_tools
-    # from services.agent_tools import analyst_tools
-    # earnings_tools.register()
-    # analyst_tools.register()
-    # registered.append("earnings+analyst")
+    from services.agent_tools import analyst_tools, earnings_tools
+
+    earnings_tools.register()
+    analyst_tools.register()
+    registered.append("earnings+analyst")
 
     # Teammate Sc — Screener / Scanner.
     # from services.agent_tools import screener_tools

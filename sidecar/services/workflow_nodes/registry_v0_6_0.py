@@ -49,9 +49,10 @@ def register_v0_6_0_nodes() -> None:
     # registered.append("quant")
 
     # Teammate E — Earnings + Analyst Ratings expansion.
-    # from services.workflow_nodes import research_nodes
-    # research_nodes.register()
-    # registered.append("research (earnings+analyst)")
+    from services.workflow_nodes import research_nodes
+
+    research_nodes.register()
+    registered.append("research (earnings+analyst)")
 
     # Teammate Sc — Screener / Scanner.
     # from services.workflow_nodes import screener_nodes
