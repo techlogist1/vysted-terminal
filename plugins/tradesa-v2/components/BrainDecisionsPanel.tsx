@@ -147,7 +147,7 @@ function DecisionsColumn({ decisions }: { decisions: readonly TradesaDecision[] 
         data-testid="tradesa-decisions-empty"
         className="flex h-full items-center justify-center p-6 text-sm text-zinc-500"
       >
-        No brain decisions yet — Router LLM hasn't fired the Director.
+        No brain decisions yet — Router LLM hasn&apos;t fired the Director.
       </div>
     );
   }
@@ -181,7 +181,7 @@ function CostColumn({ rollup }: { rollup: TradesaCostRollup | undefined }) {
     >
       <header>
         <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-          Today's LLM cost
+          Today&apos;s LLM cost
         </h3>
         <p className="mt-1 font-mono text-2xl text-zinc-100">
           {formatUsd(rollup?.total_usd ?? 0)}

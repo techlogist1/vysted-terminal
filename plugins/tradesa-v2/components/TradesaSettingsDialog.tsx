@@ -111,7 +111,7 @@ export function TradesaSettingsDialog({ open, onClose }: TradesaSettingsDialogPr
           Tradesa V2 — Connect your bot
         </h2>
         <p className="mt-1 text-sm text-zinc-400">
-          Vysted Terminal reads your Tradesa V2 bot's state from its Supabase
+          Vysted Terminal reads your Tradesa V2 bot&apos;s state from its Supabase
           project. Credentials live in the OS keychain — never in browser
           storage.
         </p>
