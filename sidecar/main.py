@@ -18,6 +18,7 @@ import uvicorn
 
 from app import app
 from config import DATA_DIR_ENV
+from services import workflow_nodes
 
 
 def _exit_when_parent_closes_stdin() -> None:
@@ -57,6 +58,13 @@ def main() -> None:
 
     if args.data_dir:
         os.environ[DATA_DIR_ENV] = args.data_dir
+
+    # Register the ten built-in workflow node handlers against the
+    # workflow engine's registry. This is done in ``main`` (not in
+    # ``app.create_app``) so the pytest suite's TestClient builds do
+    # not see them — workflow engine tests reset the registry between
+    # cases and register their own handlers.
+    workflow_nodes.register_all()
 
     threading.Thread(target=_exit_when_parent_closes_stdin, daemon=True).start()
 
