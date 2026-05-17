@@ -17,7 +17,11 @@
         --charcoal-950: #14110f;
         --amber-600: #c39a3e;
       }
-      * { box-sizing: border-box; margin: 0; padding: 0; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
       body {
         background: var(--charcoal-950);
         color: var(--charcoal-100);
@@ -34,8 +38,18 @@
         flex-direction: column;
         height: calc(100vh - 48px);
       }
-      .picker { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-bottom: 1px solid var(--charcoal-800); }
-      .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+      .picker {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 14px;
+        border-bottom: 1px solid var(--charcoal-800);
+      }
+      .tabs {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
       .tab {
         padding: 6px 14px;
         font-family: inherit;
@@ -46,21 +60,88 @@
         border-radius: 4px;
         cursor: pointer;
       }
-      .tab.active { background: var(--amber-600); color: var(--charcoal-950); border-color: var(--amber-600); }
-      .search { background: var(--charcoal-900); border: 1px solid var(--charcoal-700); border-radius: 4px; padding: 8px 12px; font-family: inherit; font-size: 13px; color: var(--charcoal-100); }
-      .results { max-height: 180px; overflow-y: auto; background: var(--charcoal-950); border: 1px solid var(--charcoal-800); border-radius: 4px; }
-      .row { padding: 8px 14px; border-bottom: 1px solid var(--charcoal-900); }
-      .row.selected { background: var(--charcoal-800); }
-      .row .t { color: var(--charcoal-100); font-size: 13px; }
-      .row .s { color: var(--charcoal-500); font-size: 11px; margin-top: 2px; }
-      .header { padding: 10px 16px; border-bottom: 1px solid var(--charcoal-800); display: flex; justify-content: space-between; align-items: center; }
-      .header .t { font-size: 14px; }
-      .header .s { color: var(--charcoal-500); font-size: 11px; margin-top: 2px; }
-      .chart { flex: 1; min-height: 0; }
-      .footer { padding: 6px 16px; border-top: 1px solid var(--charcoal-800); font-size: 11px; color: var(--charcoal-500); }
-      .footer a { color: var(--amber-600); text-decoration: none; }
-      h1 { position: fixed; top: 0; left: 0; right: 0; text-align: center; font-size: 12px; color: var(--charcoal-400); padding: 4px; background: var(--charcoal-950); z-index: 10; font-weight: 400; }
-      body { padding-top: 36px; }
+      .tab.active {
+        background: var(--amber-600);
+        color: var(--charcoal-950);
+        border-color: var(--amber-600);
+      }
+      .search {
+        background: var(--charcoal-900);
+        border: 1px solid var(--charcoal-700);
+        border-radius: 4px;
+        padding: 8px 12px;
+        font-family: inherit;
+        font-size: 13px;
+        color: var(--charcoal-100);
+      }
+      .results {
+        max-height: 180px;
+        overflow-y: auto;
+        background: var(--charcoal-950);
+        border: 1px solid var(--charcoal-800);
+        border-radius: 4px;
+      }
+      .row {
+        padding: 8px 14px;
+        border-bottom: 1px solid var(--charcoal-900);
+      }
+      .row.selected {
+        background: var(--charcoal-800);
+      }
+      .row .t {
+        color: var(--charcoal-100);
+        font-size: 13px;
+      }
+      .row .s {
+        color: var(--charcoal-500);
+        font-size: 11px;
+        margin-top: 2px;
+      }
+      .header {
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--charcoal-800);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .header .t {
+        font-size: 14px;
+      }
+      .header .s {
+        color: var(--charcoal-500);
+        font-size: 11px;
+        margin-top: 2px;
+      }
+      .chart {
+        flex: 1;
+        min-height: 0;
+      }
+      .footer {
+        padding: 6px 16px;
+        border-top: 1px solid var(--charcoal-800);
+        font-size: 11px;
+        color: var(--charcoal-500);
+      }
+      .footer a {
+        color: var(--amber-600);
+        text-decoration: none;
+      }
+      h1 {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 12px;
+        color: var(--charcoal-400);
+        padding: 4px;
+        background: var(--charcoal-950);
+        z-index: 10;
+        font-weight: 400;
+      }
+      body {
+        padding-top: 36px;
+      }
     </style>
   </head>
   <body>
@@ -120,11 +201,19 @@
           ["VIXCLS", "CBOE Volatility Index (VIX)", "Markets • daily"],
         ],
         ecb: [
-          ["FM.D.U2.EUR.4F.KR.MRR_FR.LEV", "Main Refinancing Operations Rate", "Monetary Policy • daily"],
+          [
+            "FM.D.U2.EUR.4F.KR.MRR_FR.LEV",
+            "Main Refinancing Operations Rate",
+            "Monetary Policy • daily",
+          ],
           ["FM.D.U2.EUR.4F.KR.DFR.LEV", "Deposit Facility Rate", "Monetary Policy • daily"],
           ["ICP.M.U2.N.000000.4.ANR", "HICP — Overall index", "Prices • monthly"],
           ["EXR.D.USD.EUR.SP00.A", "EUR/USD spot exchange rate", "Exchange Rates • daily"],
-          ["BSI.M.U2.Y.V.M30.X.1.U2.2300.Z01.E", "M3 Money Stock — Euro area", "Money Supply • monthly"],
+          [
+            "BSI.M.U2.Y.V.M30.X.1.U2.2300.Z01.E",
+            "M3 Money Stock — Euro area",
+            "Money Supply • monthly",
+          ],
         ],
         imf: [
           ["IFS/A.US.NGDP_USD", "Nominal GDP in USD, US", "National Accounts • annual"],
@@ -149,7 +238,11 @@
         const out = [];
         for (let i = 0; i < days; i++) {
           const d = new Date(start.getTime() + i * 86400000);
-          const v = base + amp * Math.sin(i / 30) + amp * 0.3 * Math.sin(i / 7) + (Math.random() - 0.5) * amp * 0.2;
+          const v =
+            base +
+            amp * Math.sin(i / 30) +
+            amp * 0.3 * Math.sin(i / 7) +
+            (Math.random() - 0.5) * amp * 0.2;
           out.push({ date: d.toISOString(), value: Number(v.toFixed(3)) });
         }
         return out;
@@ -178,22 +271,25 @@
         const series = SERIES[activeProvider];
         const cat = CATALOG[activeProvider];
         const titleBar = document.getElementById("title-bar");
-        titleBar.textContent =
-          `Vysted Terminal v0.6.0 — Macro Panel — ${LABELS[activeProvider]} — ${series.series_id}`;
+        titleBar.textContent = `Vysted Terminal v0.6.0 — Macro Panel — ${LABELS[activeProvider]} — ${series.series_id}`;
         const root = document.getElementById("root");
         const PROVIDERS = ["fred", "ecb", "imf", "world-bank"];
         root.innerHTML = `
           <div class="picker">
             <div class="tabs">
-              ${PROVIDERS.map(p => `<button class="tab ${p === activeProvider ? "active" : ""}">${LABELS[p]}</button>`).join("")}
+              ${PROVIDERS.map((p) => `<button class="tab ${p === activeProvider ? "active" : ""}">${LABELS[p]}</button>`).join("")}
             </div>
             <input class="search" placeholder="Search ${activeProvider} series… (or browse Featured)"/>
             <div class="results">
-              ${cat.map(([sid, t, sub]) => `
+              ${cat
+                .map(
+                  ([sid, t, sub]) => `
                 <div class="row${sid === series.series_id ? " selected" : ""}">
                   <div class="t">${t}</div>
                   <div class="s">${sid} — ${sub}</div>
-                </div>`).join("")}
+                </div>`,
+                )
+                .join("")}
             </div>
           </div>
           <div class="header">
@@ -217,8 +313,16 @@
           rightPriceScale: { borderColor: "#3a352c" },
           timeScale: { borderColor: "#3a352c", timeVisible: false, secondsVisible: false },
         });
-        const line = chart.addSeries(LightweightCharts.LineSeries, { color: "#c39a3e", lineWidth: 2 });
-        line.setData(series.observations.map(o => ({ time: Math.floor(new Date(o.date).getTime() / 1000), value: o.value })));
+        const line = chart.addSeries(LightweightCharts.LineSeries, {
+          color: "#c39a3e",
+          lineWidth: 2,
+        });
+        line.setData(
+          series.observations.map((o) => ({
+            time: Math.floor(new Date(o.date).getTime() / 1000),
+            value: o.value,
+          })),
+        );
         chart.timeScale().fitContent();
       }
 

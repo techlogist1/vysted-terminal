@@ -41,31 +41,27 @@ export function MacroPanel() {
 
   return (
     <div
-      className="flex h-full flex-col bg-charcoal-900 text-charcoal-100"
+      className="bg-charcoal-900 text-charcoal-100 flex h-full flex-col"
       data-testid="macro-panel"
     >
-      <MacroSeriesPicker
-        provider={provider}
-        onProviderChange={setProvider}
-        onSelect={onSelect}
-      />
+      <MacroSeriesPicker provider={provider} onProviderChange={setProvider} onSelect={onSelect} />
       <div className="flex-1 overflow-hidden">
         {status?.status === "loading" ? (
-          <div className="flex h-full items-center justify-center font-mono text-[12px] text-charcoal-400">
+          <div className="text-charcoal-400 flex h-full items-center justify-center font-mono text-[12px]">
             Loading {seriesId}…
           </div>
         ) : status?.status === "error" ? (
           <div
-            className="flex h-full flex-col items-center justify-center px-4 text-center font-mono text-[12px] text-negative"
+            className="text-negative flex h-full flex-col items-center justify-center px-4 text-center font-mono text-[12px]"
             data-testid="macro-error"
           >
             <div>Failed to load {seriesId}</div>
-            <div className="mt-1 text-[10px] text-charcoal-400">{status.error}</div>
+            <div className="text-charcoal-400 mt-1 text-[10px]">{status.error}</div>
           </div>
         ) : status?.status === "ready" && status.series ? (
           <MacroChart series={status.series} />
         ) : (
-          <div className="flex h-full items-center justify-center font-mono text-[12px] text-charcoal-500">
+          <div className="text-charcoal-500 flex h-full items-center justify-center font-mono text-[12px]">
             Select a series.
           </div>
         )}

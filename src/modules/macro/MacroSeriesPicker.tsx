@@ -3,11 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  selectCatalog,
-  selectSearchResults,
-  useMacroStore,
-} from "@/store/macro";
+import { selectCatalog, selectSearchResults, useMacroStore } from "@/store/macro";
 
 import type { MacroProvider } from "../../../types/macro";
 
@@ -79,7 +75,7 @@ export function MacroSeriesPicker({ provider, onProviderChange, onSelect }: Prop
 
   return (
     <div
-      className="flex flex-col gap-2 border-b border-charcoal-800 p-3"
+      className="border-charcoal-800 flex flex-col gap-2 border-b p-3"
       data-testid="macro-picker"
     >
       <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Macro provider">
@@ -106,17 +102,17 @@ export function MacroSeriesPicker({ provider, onProviderChange, onSelect }: Prop
         placeholder={`Search ${provider} series… (or browse Featured)`}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="rounded-md border border-charcoal-700 bg-charcoal-900 px-2.5 py-1.5 font-mono text-[12px] text-charcoal-100 placeholder:text-charcoal-500 focus:border-amber-600 focus:outline-none"
+        className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-500 rounded-md border px-2.5 py-1.5 font-mono text-[12px] focus:border-amber-600 focus:outline-none"
         data-testid="macro-search-input"
       />
 
       <div
-        className="flex max-h-48 flex-col overflow-y-auto rounded-md border border-charcoal-800 bg-charcoal-950"
+        className="border-charcoal-800 bg-charcoal-950 flex max-h-48 flex-col overflow-y-auto rounded-md border"
         role="listbox"
         aria-label="Macro series results"
       >
         {visibleRows.length === 0 ? (
-          <div className="px-3 py-2 text-[11px] text-charcoal-500">
+          <div className="text-charcoal-500 px-3 py-2 text-[11px]">
             {query.trim()
               ? `No results for "${query.trim()}" on ${provider}.`
               : "Loading featured series…"}
@@ -127,11 +123,11 @@ export function MacroSeriesPicker({ provider, onProviderChange, onSelect }: Prop
               key={`${row.provider}:${row.series_id}`}
               type="button"
               onClick={() => onSelect(row.provider, row.series_id)}
-              className="border-b border-charcoal-900 px-3 py-1.5 text-left hover:bg-charcoal-800"
+              className="border-charcoal-900 hover:bg-charcoal-800 border-b px-3 py-1.5 text-left"
               data-testid={`macro-result-${row.series_id}`}
             >
-              <div className="font-mono text-[12px] text-charcoal-100">{row.title}</div>
-              <div className="font-mono text-[10px] text-charcoal-500">
+              <div className="text-charcoal-100 font-mono text-[12px]">{row.title}</div>
+              <div className="text-charcoal-500 font-mono text-[10px]">
                 {row.series_id}
                 {row.sub ? ` — ${row.sub}` : ""}
               </div>

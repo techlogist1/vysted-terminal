@@ -35,7 +35,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
     }
   }, [accession, identifier, detailMap, loadFilingDetail]);
 
-  const detail: FilingDetail | null = accession ? detailMap[accession] ?? null : null;
+  const detail: FilingDetail | null = accession ? (detailMap[accession] ?? null) : null;
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
 
   const activeSection = useMemo(() => {
@@ -64,17 +64,11 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
         <span className="text-charcoal-100 text-sm font-semibold">
           {detail?.filing.form_type ?? ""}
         </span>
-        <span className="text-charcoal-400 text-xs">
-          {detail?.filing.company_name ?? ""}
-        </span>
+        <span className="text-charcoal-400 text-xs">{detail?.filing.company_name ?? ""}</span>
         {detail?.filing.filed_date && (
-          <span className="text-charcoal-500 text-xs">
-            · filed {detail.filing.filed_date}
-          </span>
+          <span className="text-charcoal-500 text-xs">· filed {detail.filing.filed_date}</span>
         )}
-        <span className="text-charcoal-500 ml-auto text-[10px] font-mono">
-          {accession}
-        </span>
+        <span className="text-charcoal-500 ml-auto font-mono text-[10px]">{accession}</span>
         {detail?.filing.edgar_url && (
           <Button
             size="xs"
@@ -126,16 +120,13 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
             </ul>
           </nav>
 
-          <article
-            className="flex-1 overflow-y-auto px-4 py-3"
-            data-testid="filing-viewer-body"
-          >
+          <article className="flex-1 overflow-y-auto px-4 py-3" data-testid="filing-viewer-body">
             {activeSection ? (
               <>
                 <h3 className="text-charcoal-100 mb-2 text-sm font-semibold">
                   {activeSection.title}
                 </h3>
-                <pre className="text-charcoal-200 max-w-full whitespace-pre-wrap text-[12px] leading-relaxed">
+                <pre className="text-charcoal-200 max-w-full text-[12px] leading-relaxed whitespace-pre-wrap">
                   {activeSection.text}
                 </pre>
               </>

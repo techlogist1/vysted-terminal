@@ -70,12 +70,7 @@ export interface TradesaConnectionState {
 // ---------------------------------------------------------------------------
 
 /** Brain-emitted action types. CLOSE / ADJUST_SL / HOLD never place orders. */
-export type DecisionAction =
-  | "OPEN_LONG"
-  | "OPEN_SHORT"
-  | "CLOSE"
-  | "ADJUST_SL"
-  | "HOLD";
+export type DecisionAction = "OPEN_LONG" | "OPEN_SHORT" | "CLOSE" | "ADJUST_SL" | "HOLD";
 
 /** Trailing stop mode the brain emits with OPEN actions. */
 export type TrailingMode = "step_up" | "atr_based";
@@ -288,7 +283,12 @@ export interface TradesaCostRollup {
 // ---------------------------------------------------------------------------
 
 /** Who fired the bot's kill switch in this event. */
-export type KillSwitchSource = "operator_telegram" | "self_tuning" | "sentinel" | "daily_loss" | "manual_cli";
+export type KillSwitchSource =
+  | "operator_telegram"
+  | "self_tuning"
+  | "sentinel"
+  | "daily_loss"
+  | "manual_cli";
 
 /**
  * One row from Tradesa V2's ``kill_switch_events`` table. Vysted reads this
@@ -337,12 +337,7 @@ export interface TradesaSentinelBlock {
 // ---------------------------------------------------------------------------
 
 /** Status of a self-tuning proposal in the queue. */
-export type TuningProposalStatus =
-  | "pending"
-  | "approved"
-  | "rejected"
-  | "applied"
-  | "expired";
+export type TuningProposalStatus = "pending" | "approved" | "rejected" | "applied" | "expired";
 
 /**
  * One row from ``tuning_proposals``. The bot's self-tuning agent proposes

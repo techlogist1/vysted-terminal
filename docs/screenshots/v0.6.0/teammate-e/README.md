@@ -6,12 +6,12 @@ E shipped, at both 1920×1080 and 2560×1440.
 
 ## Files
 
-| File | Resolution | Panel | Shown state |
-| --- | --- | --- | --- |
-| `earnings-calendar-1920x1080.png` | 1920×1080 | Earnings Calendar | 5-symbol watchlist (AAPL / MSFT / NVDA / GOOGL / META) over a 7-day window, AAPL row expanded with surprise histogram + estimate detail grid |
-| `earnings-calendar-2560x1440.png` | 2560×1440 | Earnings Calendar | Same content at the higher resolution; table widths shift to fill the wider window |
-| `analyst-ratings-1920x1080.png` | 1920×1080 | Analyst Ratings | AAPL loaded; History tab active showing 14 most recent rating-change rows from 13 firms (Morgan Stanley / Goldman / JP Morgan / Wells Fargo / Barclays / BofA / Citi / UBS / Deutsche / Jefferies / RBC / Mizuho / Bernstein / Cowen); Price Targets (28) + Individual (14) tabs visible |
-| `analyst-ratings-2560x1440.png` | 2560×1440 | Analyst Ratings | Same content at the higher resolution |
+| File                              | Resolution | Panel             | Shown state                                                                                                                                                                                                                                                                              |
+| --------------------------------- | ---------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `earnings-calendar-1920x1080.png` | 1920×1080  | Earnings Calendar | 5-symbol watchlist (AAPL / MSFT / NVDA / GOOGL / META) over a 7-day window, AAPL row expanded with surprise histogram + estimate detail grid                                                                                                                                             |
+| `earnings-calendar-2560x1440.png` | 2560×1440  | Earnings Calendar | Same content at the higher resolution; table widths shift to fill the wider window                                                                                                                                                                                                       |
+| `analyst-ratings-1920x1080.png`   | 1920×1080  | Analyst Ratings   | AAPL loaded; History tab active showing 14 most recent rating-change rows from 13 firms (Morgan Stanley / Goldman / JP Morgan / Wells Fargo / Barclays / BofA / Citi / UBS / Deutsche / Jefferies / RBC / Mizuho / Bernstein / Cowen); Price Targets (28) + Individual (14) tabs visible |
+| `analyst-ratings-2560x1440.png`   | 2560×1440  | Analyst Ratings   | Same content at the higher resolution                                                                                                                                                                                                                                                    |
 
 ## Generator script
 

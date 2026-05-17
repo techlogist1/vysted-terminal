@@ -8,10 +8,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type {
-  ScreenerResult,
-  ScreenerUniverse,
-} from "../../types/screener";
+import type { ScreenerResult, ScreenerUniverse } from "../../types/screener";
 
 vi.mock("@/lib/sidecar-client", () => ({
   getSidecarBaseUrl: vi.fn().mockResolvedValue("http://127.0.0.1:9000"),

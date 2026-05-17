@@ -7,11 +7,11 @@ protocol.
 
 ## Files
 
-| File                                       | Resolution  | Subject                                                                       |
-| ------------------------------------------ | ----------- | ----------------------------------------------------------------------------- |
-| `sec-filings-panel-1920x1080.png`          | 1920 × 1080 | Composed view: filings list + FilingViewer (10-K) + InsiderTradingTable       |
-| `sec-filings-panel-2560x1440.png`          | 2560 × 1440 | Same composed view, re-captured at the higher resolution                      |
-| `demo.html`                                | —           | The HTML source that the screenshots were taken from (committed for repro)    |
+| File                              | Resolution  | Subject                                                                    |
+| --------------------------------- | ----------- | -------------------------------------------------------------------------- |
+| `sec-filings-panel-1920x1080.png` | 1920 × 1080 | Composed view: filings list + FilingViewer (10-K) + InsiderTradingTable    |
+| `sec-filings-panel-2560x1440.png` | 2560 × 1440 | Same composed view, re-captured at the higher resolution                   |
+| `demo.html`                       | —           | The HTML source that the screenshots were taken from (committed for repro) |
 
 ## What the composed view shows
 

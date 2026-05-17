@@ -13,9 +13,10 @@ referenced is a **Node.js / TypeScript** MCP server — installable via
 not via `pip install`.
 
 **Decision (Tier-3, spec-ambiguous → DNA-derivable):** drop the FRED subprocess
-+ Tauri-Rust-spawn portion of the slice and consume FRED in-process via the
-mature `fredapi==0.5.2` Python SDK, matching the in-process pattern the
-plan already uses for ECB / IMF / World Bank.
+
+- Tauri-Rust-spawn portion of the slice and consume FRED in-process via the
+  mature `fredapi==0.5.2` Python SDK, matching the in-process pattern the
+  plan already uses for ECB / IMF / World Bank.
 
 **Reasoning (decision authority Tier-3 derivation from project DNA):**
 
@@ -44,8 +45,8 @@ plan already uses for ECB / IMF / World Bank.
 - Drop: `sidecar/fred_mcp_subprocess/` (would have been an empty PyInstaller
   wrapper around a Node package — wrong).
 - Drop: `src-tauri/src/fred_mcp.rs` + `src-tauri/src/lib.rs` `fred_mcp::spawn`
-  + `tauri.conf.json` `binaries/vysted-fred-mcp-sidecar` entry +
-  `package.json` `fred-mcp-sidecar:build` script.
+  - `tauri.conf.json` `binaries/vysted-fred-mcp-sidecar` entry +
+    `package.json` `fred-mcp-sidecar:build` script.
 - Keep: `sidecar/services/macro/fred_provider.py`, now using
   `fredapi.Fred(api_key=...)` directly instead of an `mcp_client` wrapper.
 - Add: `fredapi==0.5.2` to `sidecar/requirements.txt` (replaces the

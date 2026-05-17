@@ -33,11 +33,7 @@ interface FilingsListTableProps {
   onSelect: (filing: Filing) => void;
 }
 
-export function FilingsListTable({
-  filings,
-  selectedAccession,
-  onSelect,
-}: FilingsListTableProps) {
+export function FilingsListTable({ filings, selectedAccession, onSelect }: FilingsListTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>("filed_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
@@ -113,7 +109,12 @@ export function FilingsListTable({
               )}
               onClick={() => onSelect(filing)}
             >
-              <td className={cn("px-2 py-1 font-semibold", FORM_COLOR[filing.form_type] ?? "text-charcoal-100")}>
+              <td
+                className={cn(
+                  "px-2 py-1 font-semibold",
+                  FORM_COLOR[filing.form_type] ?? "text-charcoal-100",
+                )}
+              >
                 {filing.form_type}
               </td>
               <td className="text-charcoal-200 px-2 py-1">{filing.filed_date}</td>
@@ -121,7 +122,10 @@ export function FilingsListTable({
               <td className="text-charcoal-100 truncate px-2 py-1" title={filing.company_name}>
                 {filing.company_name}
               </td>
-              <td className="text-charcoal-500 truncate px-2 py-1 font-mono" title={filing.accession}>
+              <td
+                className="text-charcoal-500 truncate px-2 py-1 font-mono"
+                title={filing.accession}
+              >
                 {filing.accession}
               </td>
             </tr>

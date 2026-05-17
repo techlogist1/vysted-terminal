@@ -18,8 +18,7 @@ const CHART_THEME = {
   layout: {
     background: { color: "#1c1916" }, // charcoal-900
     textColor: "#c9c2b2", // charcoal-200
-    fontFamily:
-      "var(--font-jetbrains-mono), ui-monospace, 'SF Mono', 'Cascadia Mono', monospace",
+    fontFamily: "var(--font-jetbrains-mono), ui-monospace, 'SF Mono', 'Cascadia Mono', monospace",
   },
   grid: {
     vertLines: { color: "#2a2620" },
@@ -114,18 +113,16 @@ export function MacroChart({ series, defaultLogScale = false }: Props) {
 
   return (
     <div className="flex h-full flex-col" data-testid="macro-chart">
-      <div className="flex items-center justify-between gap-2 border-b border-charcoal-800 px-3 py-1.5">
+      <div className="border-charcoal-800 flex items-center justify-between gap-2 border-b px-3 py-1.5">
         <div className="flex min-w-0 flex-col">
-          <span className="truncate font-mono text-[12px] text-charcoal-100">
-            {series.title}
-          </span>
-          <span className="truncate font-mono text-[10px] text-charcoal-500">
+          <span className="text-charcoal-100 truncate font-mono text-[12px]">{series.title}</span>
+          <span className="text-charcoal-500 truncate font-mono text-[10px]">
             {series.series_id} • {series.provider}
             {series.units ? ` • ${series.units}` : ""}
             {series.frequency ? ` • ${series.frequency}` : ""}
           </span>
         </div>
-        <label className="flex items-center gap-1.5 font-mono text-[11px] text-charcoal-400">
+        <label className="text-charcoal-400 flex items-center gap-1.5 font-mono text-[11px]">
           <input
             type="checkbox"
             checked={logScale}
@@ -136,7 +133,7 @@ export function MacroChart({ series, defaultLogScale = false }: Props) {
         </label>
       </div>
       <div ref={containerRef} className="flex-1" data-testid="macro-chart-canvas" />
-      <div className="border-t border-charcoal-800 px-3 py-1 font-mono text-[10px] text-charcoal-500">
+      <div className="border-charcoal-800 text-charcoal-500 border-t px-3 py-1 font-mono text-[10px]">
         {lineData.length} observations
         {series.last_updated ? ` • updated ${formatDate(series.last_updated)}` : ""}
         {series.source_url ? (

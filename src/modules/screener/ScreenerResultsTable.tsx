@@ -86,7 +86,7 @@ export function ScreenerResultsTable() {
 
   if (status === "loading") {
     return (
-      <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+      <div className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-center text-sm">
         Running screener…
       </div>
     );
@@ -94,7 +94,7 @@ export function ScreenerResultsTable() {
 
   if (!result) {
     return (
-      <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+      <div className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-center text-sm">
         Run the screener to populate results.
       </div>
     );
@@ -102,16 +102,15 @@ export function ScreenerResultsTable() {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
+      <div className="text-muted-foreground flex items-center justify-between text-xs">
         <span>
-          <span className="font-semibold text-foreground">{result.result_count}</span> rows
-          (
+          <span className="text-foreground font-semibold">{result.result_count}</span> rows (
           <span className="font-mono">{result.evaluated_count}</span> evaluated,
           <span className="font-mono"> {result.duration_ms.toFixed(0)} ms</span>)
         </span>
-        <span className="font-mono uppercase tracking-wide">{result.universe}</span>
+        <span className="font-mono tracking-wide uppercase">{result.universe}</span>
       </div>
-      <div className="overflow-auto rounded-md border border-border">
+      <div className="border-border overflow-auto rounded-md border">
         <table className="w-full text-sm">
           <thead className="bg-muted/40">
             <tr>
@@ -119,7 +118,7 @@ export function ScreenerResultsTable() {
                 <th
                   key={col.key}
                   scope="col"
-                  className={`cursor-pointer select-none border-b border-border px-3 py-2 text-xs uppercase tracking-wide ${
+                  className={`border-border cursor-pointer border-b px-3 py-2 text-xs tracking-wide uppercase select-none ${
                     col.numeric ? "text-right" : "text-left"
                   }`}
                   onClick={() => onHeaderClick(col.key)}
@@ -140,25 +139,23 @@ export function ScreenerResultsTable() {
               <tr>
                 <td
                   colSpan={COLUMNS.length}
-                  className="px-3 py-6 text-center text-sm text-muted-foreground"
+                  className="text-muted-foreground px-3 py-6 text-center text-sm"
                 >
                   No rows matched the criteria.
                 </td>
               </tr>
             ) : (
               rows.map((row) => (
-                <tr key={row.symbol} className="border-b border-border/60 hover:bg-muted/30">
+                <tr key={row.symbol} className="border-border/60 hover:bg-muted/30 border-b">
                   <td className="px-3 py-2 font-mono font-semibold">{row.symbol}</td>
                   <td className="px-3 py-2">{row.name ?? "—"}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{row.sector ?? "—"}</td>
+                  <td className="text-muted-foreground px-3 py-2">{row.sector ?? "—"}</td>
                   <td className="px-3 py-2 text-right font-mono">{fmtMarketCap(row.market_cap)}</td>
                   <td className="px-3 py-2 text-right font-mono">{fmtNumber(row.pe_ratio)}</td>
                   <td className="px-3 py-2 text-right font-mono">{fmtNumber(row.price)}</td>
                   <td
                     className={`px-3 py-2 text-right font-mono ${
-                      (row.change_percent_1d ?? 0) >= 0
-                        ? "text-emerald-400"
-                        : "text-rose-400"
+                      (row.change_percent_1d ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"
                     }`}
                   >
                     {row.change_percent_1d === null

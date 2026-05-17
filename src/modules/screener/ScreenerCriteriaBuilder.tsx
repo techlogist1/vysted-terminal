@@ -66,9 +66,7 @@ function isStringEqCriterion(
   return c.operator === "eq";
 }
 
-function isInCriterion(
-  c: ScreenerCriterion,
-): c is Extract<ScreenerCriterion, { operator: "in" }> {
+function isInCriterion(c: ScreenerCriterion): c is Extract<ScreenerCriterion, { operator: "in" }> {
   return c.operator === "in";
 }
 
@@ -100,15 +98,13 @@ function CriterionRow({ index, criterion }: CriterionRowProps) {
   return (
     <div
       data-testid={`criterion-row-${index}`}
-      className="grid grid-cols-[8rem,9rem,7rem,1fr,auto] items-center gap-2 rounded-md border border-border bg-background/60 p-2"
+      className="border-border bg-background/60 grid grid-cols-[8rem,9rem,7rem,1fr,auto] items-center gap-2 rounded-md border p-2"
     >
       <select
         aria-label="criterion category"
-        className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+        className="border-border bg-background rounded-md border px-2 py-1 text-sm"
         value={category}
-        onChange={(e) =>
-          onCategoryChange(e.target.value as "numeric" | "string" | "in")
-        }
+        onChange={(e) => onCategoryChange(e.target.value as "numeric" | "string" | "in")}
       >
         <option value="numeric">Numeric</option>
         <option value="string">String</option>
@@ -119,7 +115,7 @@ function CriterionRow({ index, criterion }: CriterionRowProps) {
         <>
           <select
             aria-label="numeric field"
-            className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+            className="border-border bg-background rounded-md border px-2 py-1 text-sm"
             value={criterion.field}
             onChange={(e) =>
               update(index, { ...criterion, field: e.target.value as ScreenerNumericField })
@@ -133,12 +129,16 @@ function CriterionRow({ index, criterion }: CriterionRowProps) {
           </select>
           <select
             aria-label="numeric operator"
-            className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+            className="border-border bg-background rounded-md border px-2 py-1 text-sm"
             value={criterion.operator}
             onChange={(e) => {
               const op = e.target.value as "gt" | "lt" | "gte" | "lte" | "between";
               if (op === "between") {
-                update(index, { field: criterion.field, operator: "between", value: { min: 0, max: 100 } });
+                update(index, {
+                  field: criterion.field,
+                  operator: "between",
+                  value: { min: 0, max: 100 },
+                });
               } else {
                 update(index, { field: criterion.field, operator: op, value: 20 });
               }
@@ -155,7 +155,7 @@ function CriterionRow({ index, criterion }: CriterionRowProps) {
               <input
                 aria-label="numeric min"
                 type="number"
-                className="w-full rounded-md border border-border bg-background px-2 py-1 text-sm"
+                className="border-border bg-background w-full rounded-md border px-2 py-1 text-sm"
                 value={criterion.value.min}
                 onChange={(e) =>
                   update(index, {
@@ -164,11 +164,11 @@ function CriterionRow({ index, criterion }: CriterionRowProps) {
                   })
                 }
               />
-              <span className="text-xs text-muted-foreground">to</span>
+              <span className="text-muted-foreground text-xs">to</span>
               <input
                 aria-label="numeric max"
                 type="number"
-                className="w-full rounded-md border border-border bg-background px-2 py-1 text-sm"
+                className="border-border bg-background w-full rounded-md border px-2 py-1 text-sm"
                 value={criterion.value.max}
                 onChange={(e) =>
                   update(index, {
@@ -182,11 +182,9 @@ function CriterionRow({ index, criterion }: CriterionRowProps) {
             <input
               aria-label="numeric value"
               type="number"
-              className="w-full rounded-md border border-border bg-background px-2 py-1 text-sm"
+              className="border-border bg-background w-full rounded-md border px-2 py-1 text-sm"
               value={criterion.value}
-              onChange={(e) =>
-                update(index, { ...criterion, value: Number(e.target.value) })
-              }
+              onChange={(e) => update(index, { ...criterion, value: Number(e.target.value) })}
             />
           )}
         </>
@@ -194,7 +192,7 @@ function CriterionRow({ index, criterion }: CriterionRowProps) {
         <>
           <select
             aria-label="string field"
-            className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+            className="border-border bg-background rounded-md border px-2 py-1 text-sm"
             value={criterion.field}
             onChange={(e) =>
               update(index, {
@@ -210,11 +208,11 @@ function CriterionRow({ index, criterion }: CriterionRowProps) {
               </option>
             ))}
           </select>
-          <span className="text-xs uppercase tracking-wide text-muted-foreground">equals</span>
+          <span className="text-muted-foreground text-xs tracking-wide uppercase">equals</span>
           <input
             aria-label="string value"
             type="text"
-            className="w-full rounded-md border border-border bg-background px-2 py-1 text-sm"
+            className="border-border bg-background w-full rounded-md border px-2 py-1 text-sm"
             value={criterion.value}
             onChange={(e) => update(index, { ...criterion, value: e.target.value })}
           />
@@ -223,7 +221,7 @@ function CriterionRow({ index, criterion }: CriterionRowProps) {
         <>
           <select
             aria-label="set field"
-            className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+            className="border-border bg-background rounded-md border px-2 py-1 text-sm"
             value={criterion.field}
             onChange={(e) =>
               update(index, {
@@ -237,12 +235,12 @@ function CriterionRow({ index, criterion }: CriterionRowProps) {
             <option value="sector">Sector</option>
             <option value="industry">Industry</option>
           </select>
-          <span className="text-xs uppercase tracking-wide text-muted-foreground">in</span>
+          <span className="text-muted-foreground text-xs tracking-wide uppercase">in</span>
           <input
             aria-label="set values"
             type="text"
             placeholder="comma or space separated"
-            className="w-full rounded-md border border-border bg-background px-2 py-1 text-sm"
+            className="border-border bg-background w-full rounded-md border px-2 py-1 text-sm"
             value={criterion.value.join(", ")}
             onChange={(e) =>
               update(index, {
@@ -276,7 +274,7 @@ export function ScreenerCriteriaBuilder() {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <h3 className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
           Criteria (AND)
         </h3>
         <Button
@@ -290,7 +288,7 @@ export function ScreenerCriteriaBuilder() {
       </div>
       <div className="space-y-1.5">
         {criteria.length === 0 ? (
-          <p className="rounded-md border border-dashed border-border p-3 text-center text-sm text-muted-foreground">
+          <p className="border-border text-muted-foreground rounded-md border border-dashed p-3 text-center text-sm">
             No criteria — every universe member will match.
           </p>
         ) : (

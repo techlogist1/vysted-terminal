@@ -34,7 +34,7 @@ follows the 8-section convention established by
   `test_no_non_get_routes_under_tradesa_v2_prefix` walks
   `router.routes` and fails on any POST/PUT/PATCH/DELETE.
   Credentials in `X-Tradesa-Supabase-Url` / `X-Tradesa-Supabase-
-  Service-Key` headers. **22 pytest** covering route methods, prefix
+Service-Key` headers. **22 pytest** covering route methods, prefix
   sanity, unauth flows, happy paths, provider-error → 502 mapping,
   header-only credential acceptance, response no-echo audit.
 - **A6 (DEFERRED to v0.6.6+, Tier-3)** — Supabase Realtime SSE
@@ -44,20 +44,20 @@ follows the 8-section convention established by
 - **A7 `feat(agent_tools): registry_v0_6_5.py stub`** — per-release
   aggregator slot maintained for v0.6.6+ write tools. v0.6.5
   registers zero tools (READ-ONLY).
-- **A8 `feat(plugin): tradesa-v2 entry + connection adapter + store
-  + hook + placeholders`** — `plugins/tradesa-v2/` with `manifest.json`,
-  `index.ts`, `connection.ts`, `store.ts`,
-  `useTradesaConnectionState.ts`, `panels.ts`, plus 7 placeholder
-  panel components. Generic `TradingBotReadAdapter` interface that
-  future trading-system plugins implement. **20 vitest** covering
-  manifest identity, capability negotiation
-  (`supportsControlPlane=false` enforces READ-ONLY at contract
-  level), panel/command symmetry, full lifecycle, and probe-status
-  → HealthStatus mapping for every degraded state.
+- \*\*A8 `feat(plugin): tradesa-v2 entry + connection adapter + store
+  - hook + placeholders`** — `plugins/tradesa-v2/`with`manifest.json`,
+`index.ts`, `connection.ts`, `store.ts`,
+`useTradesaConnectionState.ts`, `panels.ts`, plus 7 placeholder
+panel components. Generic `TradingBotReadAdapter` interface that
+future trading-system plugins implement. **20 vitest** covering
+manifest identity, capability negotiation
+(`supportsControlPlane=false` enforces READ-ONLY at contract
+    level), panel/command symmetry, full lifecycle, and probe-status
+    → HealthStatus mapping for every degraded state.
 - **A9 `feat(bootstrap): companion-module glue + tradesa-v2 register`**
   — extended `src/lib/plugin-bootstrap.ts::moduleForPlugin` to merge
   a companion `plugins/<id>/panels.ts` `Record<string,
-  FunctionComponent>` map into the synthesized `VystedModule`.
+FunctionComponent>` map into the synthesized `VystedModule`.
   `HOST_VERSION` bumped 0.4.0 → 0.6.5. Diagnostic warning surfaces
   the wiring gap if a plugin contributes panels without a companion.
 - **A10 folded into A8** — placeholder shells shipped alongside the
@@ -89,6 +89,7 @@ follows the 8-section convention established by
   rendering. Prettier-formatted everything.
 
 **Verification (post-merge):**
+
 - `pnpm typecheck` clean.
 - `pnpm lint` (eslint) — 0 errors.
 - `pnpm test` (vitest) — **584 passed** across 80 files (+59 over
@@ -125,7 +126,7 @@ types/, src/lib/) untouched per dispatch brief.
 3. **Credential flow: request headers, not body, Tier-3.** Sidecar
    cannot read OS keychain directly (only Tauri Rust can — established
    constraint since Phase 3 BYOK). For Tradesa V2 we use `X-Tradesa-
-   Supabase-Url` + `X-Tradesa-Supabase-Service-Key` request headers
+Supabase-Url` + `X-Tradesa-Supabase-Service-Key` request headers
    instead of body params so the read-only GET model stays clean.
    Sidecar process memory only; no logging, no echo back (audit-tested
    via `test_response_never_echoes_credentials`).
@@ -160,8 +161,8 @@ types/, src/lib/) untouched per dispatch brief.
    - **Plugin contract** — `capabilities.supportsControlPlane = false`
      means the runtime refuses to call `executeCommand` on this
      plugin even if the method existed.
-   Pattern mirrors the v0.5.0 §6.5 #4 audit-log defense-in-depth
-   (type-level gate + DB-enforced invariant + grep audit check).
+     Pattern mirrors the v0.5.0 §6.5 #4 audit-log defense-in-depth
+     (type-level gate + DB-enforced invariant + grep audit check).
 
 7. **Plugin id `tradesa-v2`, panel ids `tradesa-v2.<panel>`,
    component ids `tradesa-v2-<panel>`, Tier-3.** Kebab-case matches

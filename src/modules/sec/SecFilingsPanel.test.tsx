@@ -113,9 +113,7 @@ describe("SecFilingsPanel", () => {
     // Stub the detail fetch — the panel will dispatch it on click.
     (sidecarClient.sidecarGet as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       filing: AAPL_FILINGS.filings[0],
-      sections: [
-        { id: "item-1", title: "Item 1", text: "Body", word_count: 1 },
-      ],
+      sections: [{ id: "item-1", title: "Item 1", text: "Body", word_count: 1 }],
       total_chars: 4,
     });
 

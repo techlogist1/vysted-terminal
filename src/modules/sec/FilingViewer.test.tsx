@@ -49,13 +49,7 @@ describe("FilingViewer", () => {
   });
 
   it("loads detail and renders the first section by default", async () => {
-    render(
-      <FilingViewer
-        accession="0000320193-24-000123"
-        identifier="AAPL"
-        onClose={() => {}}
-      />,
-    );
+    render(<FilingViewer accession="0000320193-24-000123" identifier="AAPL" onClose={() => {}} />);
     await waitFor(() => {
       expect(screen.getByTestId("filing-viewer")).toBeInTheDocument();
     });
@@ -66,13 +60,7 @@ describe("FilingViewer", () => {
   });
 
   it("switches the body when a different section is clicked", async () => {
-    render(
-      <FilingViewer
-        accession="0000320193-24-000123"
-        identifier="AAPL"
-        onClose={() => {}}
-      />,
-    );
+    render(<FilingViewer accession="0000320193-24-000123" identifier="AAPL" onClose={() => {}} />);
     await waitFor(() => screen.getByTestId("filing-section-item-1a"));
     fireEvent.click(screen.getByTestId("filing-section-item-1a"));
     await waitFor(() => {
@@ -82,26 +70,14 @@ describe("FilingViewer", () => {
   });
 
   it("the EDGAR link button is rendered with the canonical URL", async () => {
-    render(
-      <FilingViewer
-        accession="0000320193-24-000123"
-        identifier="AAPL"
-        onClose={() => {}}
-      />,
-    );
+    render(<FilingViewer accession="0000320193-24-000123" identifier="AAPL" onClose={() => {}} />);
     const btn = await waitFor(() => screen.getByTestId("filing-viewer-edgar-link"));
     expect(btn).toBeInTheDocument();
   });
 
   it("clicking back fires onClose", async () => {
     const onClose = vi.fn();
-    render(
-      <FilingViewer
-        accession="0000320193-24-000123"
-        identifier="AAPL"
-        onClose={onClose}
-      />,
-    );
+    render(<FilingViewer accession="0000320193-24-000123" identifier="AAPL" onClose={onClose} />);
     const btn = await waitFor(() => screen.getByTestId("filing-viewer-close"));
     fireEvent.click(btn);
     expect(onClose).toHaveBeenCalled();

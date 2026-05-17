@@ -102,8 +102,7 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
   setUniverse: (id) => set({ universe: id }),
   setCustomSymbols: (raw) => set({ customSymbols: raw }),
   setCriteria: (criteria) => set({ criteria }),
-  addCriterion: (criterion) =>
-    set((state) => ({ criteria: [...state.criteria, criterion] })),
+  addCriterion: (criterion) => set((state) => ({ criteria: [...state.criteria, criterion] })),
   removeCriterion: (index) =>
     set((state) => ({
       criteria: state.criteria.filter((_, i) => i !== index),
@@ -122,15 +121,10 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       universe,
       criteria,
       limit,
-      ...(universe === "custom"
-        ? { custom_symbols: parseCustomSymbols(customSymbols) }
-        : {}),
+      ...(universe === "custom" ? { custom_symbols: parseCustomSymbols(customSymbols) } : {}),
     };
     try {
-      const result = await postJson<ScreenerRequest, ScreenerResult>(
-        "/screener/run",
-        req,
-      );
+      const result = await postJson<ScreenerRequest, ScreenerResult>("/screener/run", req);
       set({ lastResult: result, status: "ready", error: null });
       return result;
     } catch (err: unknown) {

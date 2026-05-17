@@ -331,11 +331,11 @@ AgentSummary]`), wrap at the MCP-tool boundary as
 - **Trading-system wrapper plugins ship with three defense-in-depth
   read-only enforcement layers.** v0.6.5 Tradesa V2 wrapper precedent:
   (a) provider class has no `insert_/update_/delete_/upsert_/write_/
-  place_/submit_/execute_/create_` methods on its public surface
+place_/submit_/execute_/create_` methods on its public surface
   (audit-tested via `inspect.getmembers` grep in
   `tests/test_<bot>_provider.py`); (b) router has no non-GET routes
   (audit-tested via `router.routes` walk for `{POST, PUT, PATCH, DELETE,
-  HEAD, OPTIONS}` intersection in `tests/test_<bot>_router.py`); (c)
+HEAD, OPTIONS}` intersection in `tests/test_<bot>_router.py`); (c)
   plugin's `capabilities.supportsControlPlane = false` — the runtime
   refuses to call `executeCommand` even if the method existed.
   Template for any future plugin needing a guaranteed safety
@@ -368,7 +368,7 @@ AgentSummary]`), wrap at the MCP-tool boundary as
 - **`Cargo.lock` root package version drifts silently across
   releases.** v0.6.5 release commit found `vysted-terminal v0.5.0` in
   Cargo.lock — three releases stale. `cargo update -p vysted-terminal
-  --offline --manifest-path src-tauri/Cargo.toml` after every
+--offline --manifest-path src-tauri/Cargo.toml` after every
   Cargo.toml version bump re-locks the root package; otherwise
   Cargo.lock and Cargo.toml drift unchecked. Now part of the
   version-bump checklist (release commit pattern: bump in
@@ -422,8 +422,8 @@ Each handoff covers, in order:
   `docs/PHASE_4_HANDOFF.md` + `docs/PHASE_5_HANDOFF.md`. v0.6.0 ships
   `docs/PHASE_6_HANDOFF.md`; v0.6.5 ships
   `docs/PHASE_6.5_HANDOFF.md` (Phase 7 entry point: launch operations
-  + v1.0 narrative that includes the Tradesa V2 wrapper as canonical
-  trading-system plugin reference).
+  - v1.0 narrative that includes the Tradesa V2 wrapper as canonical
+    trading-system plugin reference).
 - `docs/SAFETY_ARCHITECTURE.md` — BLUEPRINT §6.5 enforcement reference.
   Per-guarantee implementation file:line pointers + capture-artifact
   paths + conditional revert procedure. Read before touching anything

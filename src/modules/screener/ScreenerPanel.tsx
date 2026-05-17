@@ -46,11 +46,11 @@ export function ScreenerPanel() {
 
   return (
     <div className="flex h-full flex-col gap-3 overflow-auto p-3">
-      <div className="flex flex-wrap items-end gap-3 border-b border-border pb-3">
+      <div className="border-border flex flex-wrap items-end gap-3 border-b pb-3">
         <div className="flex flex-col gap-1">
           <label
             htmlFor="screener-universe"
-            className="text-xs uppercase tracking-wide text-muted-foreground"
+            className="text-muted-foreground text-xs tracking-wide uppercase"
           >
             Universe
           </label>
@@ -59,7 +59,7 @@ export function ScreenerPanel() {
             aria-label="universe"
             value={universe}
             onChange={(e) => setUniverse(e.target.value as ScreenerUniverseId)}
-            className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+            className="border-border bg-background rounded-md border px-2 py-1.5 text-sm"
           >
             {(Object.keys(UNIVERSE_LABELS) as ScreenerUniverseId[]).map((id) => (
               <option key={id} value={id}>
@@ -68,7 +68,7 @@ export function ScreenerPanel() {
             ))}
           </select>
           {universeInfo && universe !== "custom" && (
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-muted-foreground text-[10px]">
               {universeInfo.symbols.length} tickers · {universeInfo.asset_class}
             </span>
           )}
@@ -77,7 +77,7 @@ export function ScreenerPanel() {
           <div className="flex min-w-[16rem] flex-1 flex-col gap-1">
             <label
               htmlFor="screener-custom-symbols"
-              className="text-xs uppercase tracking-wide text-muted-foreground"
+              className="text-muted-foreground text-xs tracking-wide uppercase"
             >
               Symbols (comma or space)
             </label>
@@ -87,7 +87,7 @@ export function ScreenerPanel() {
               value={customSymbols}
               onChange={(e) => setCustomSymbols(e.target.value)}
               placeholder="AAPL MSFT NVDA"
-              className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+              className="border-border bg-background rounded-md border px-2 py-1.5 text-sm"
             />
           </div>
         )}
@@ -104,7 +104,7 @@ export function ScreenerPanel() {
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <div className="border-destructive/40 bg-destructive/10 text-destructive flex items-center gap-2 rounded-md border px-3 py-2 text-sm">
           <AlertCircle className="size-4 shrink-0" />
           <span>{error}</span>
         </div>

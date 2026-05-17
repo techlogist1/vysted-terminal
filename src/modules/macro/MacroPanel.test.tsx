@@ -95,9 +95,7 @@ describe("MacroPanel", () => {
       return null;
     });
     render(<MacroPanel />);
-    await waitFor(() =>
-      expect(screen.getAllByText("10-Year Treasury").length).toBeGreaterThan(0),
-    );
+    await waitFor(() => expect(screen.getAllByText("10-Year Treasury").length).toBeGreaterThan(0));
     expect(screen.getByTestId("macro-chart-canvas")).toBeInTheDocument();
   });
 

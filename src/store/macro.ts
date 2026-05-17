@@ -136,8 +136,7 @@ export const useMacroStore = create<MacroState>((set, get) => ({
     }
   },
 
-  reset: () =>
-    set({ seriesStatus: {}, searchResults: {}, catalogByProvider: {}, selected: null }),
+  reset: () => set({ seriesStatus: {}, searchResults: {}, catalogByProvider: {}, selected: null }),
 }));
 
 // ---------------------------------------------------------------------------

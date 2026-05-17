@@ -68,9 +68,7 @@ export function InsiderTradingTable({ identifier }: InsiderTradingTableProps) {
         <span className="text-charcoal-400 text-[10px]">
           {response.transactions.length} transactions
         </span>
-        {status === "loading" && (
-          <span className="text-charcoal-400 text-[10px]">Loading…</span>
-        )}
+        {status === "loading" && <span className="text-charcoal-400 text-[10px]">Loading…</span>}
       </header>
 
       <div className="flex-1 overflow-y-auto">
@@ -95,7 +93,10 @@ export function InsiderTradingTable({ identifier }: InsiderTradingTableProps) {
           </thead>
           <tbody>
             {response.transactions.map((txn) => (
-              <InsiderRow key={`${txn.accession}-${txn.reporter_cik}-${txn.transaction_date}`} txn={txn} />
+              <InsiderRow
+                key={`${txn.accession}-${txn.reporter_cik}-${txn.transaction_date}`}
+                txn={txn}
+              />
             ))}
           </tbody>
         </table>
@@ -109,8 +110,7 @@ interface InsiderRowProps {
 }
 
 function InsiderRow({ txn }: InsiderRowProps) {
-  const directionColor =
-    txn.direction === "disposed" ? "text-rose-300" : "text-emerald-300";
+  const directionColor = txn.direction === "disposed" ? "text-rose-300" : "text-emerald-300";
   return (
     <tr
       data-testid={`insider-row-${txn.accession}-${txn.reporter_cik}`}

@@ -140,27 +140,17 @@ export function SecFilingsPanel() {
         </label>
 
         <nav className="ml-auto flex items-center gap-1" role="tablist">
-          <TabButton
-            value="filings"
-            active={tab === "filings"}
-            onClick={() => setTab("filings")}
-          >
+          <TabButton value="filings" active={tab === "filings"} onClick={() => setTab("filings")}>
             Filings
           </TabButton>
-          <TabButton
-            value="insider"
-            active={tab === "insider"}
-            onClick={() => setTab("insider")}
-          >
+          <TabButton value="insider" active={tab === "insider"} onClick={() => setTab("insider")}>
             Insider
           </TabButton>
         </nav>
 
         <span className="text-charcoal-400 ml-2 text-[10px]">
           {filings.company_name || activeIdentifier || ""}
-          {filings.filings.length > 0 && (
-            <> · {filings.filings.length} filings</>
-          )}
+          {filings.filings.length > 0 && <> · {filings.filings.length} filings</>}
         </span>
       </header>
 
@@ -188,9 +178,7 @@ export function SecFilingsPanel() {
             onClose={onCloseViewer}
           />
         )}
-        {tab === "insider" && (
-          <InsiderTradingTable identifier={activeIdentifier} />
-        )}
+        {tab === "insider" && <InsiderTradingTable identifier={activeIdentifier} />}
       </div>
     </div>
   );
@@ -213,9 +201,7 @@ function TabButton({ value, active, onClick, children }: TabButtonProps) {
       onClick={onClick}
       className={cn(
         "rounded-md px-2 py-1 text-xs",
-        active
-          ? "bg-charcoal-700 text-charcoal-50"
-          : "text-charcoal-300 hover:bg-charcoal-800",
+        active ? "bg-charcoal-700 text-charcoal-50" : "text-charcoal-300 hover:bg-charcoal-800",
       )}
     >
       {children}

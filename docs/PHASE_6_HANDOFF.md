@@ -44,7 +44,7 @@ import agent_tools` consumer unchanged.
 - Four-provider in-process dispatch: FRED (`fredapi`), ECB (`ecbdata`),
   IMF (`sdmx1`), World Bank (`wbgapi`).
 - `services/macro/{fred,ecb,imf,world_bank}_provider.py` + `macro_router.py`
-  + `routers/macro.py` extended.
+  - `routers/macro.py` extended.
 - `routers/macro.py` extended: `/macro/{series_id}?provider=`,
   `/macro/search?q=&provider=`, `/macro/catalog?provider=`.
 - 2 agent tools (`macro_series`, `macro_search`) + 1 workflow node
@@ -52,7 +52,7 @@ import agent_tools` consumer unchanged.
 - Frontend: `MacroPanel` + `MacroSeriesPicker` + `MacroChart` +
   `src/store/macro.ts`.
 - Populated screenshots: FRED DGS10 + ECB MRO + IMF GDP + WB GDP-PCAP-USA
-  + 2×2 composed at 1920×1080 + 2560×1440.
+  - 2×2 composed at 1920×1080 + 2560×1440.
 
 ### Teammate F — SEC Filings Reader (10 commits, 36 backend + 25 frontend tests)
 
@@ -211,7 +211,7 @@ auto_approve` — defense-in-depth for the §6.5 #6 audit invariant.
   slot reserved for v0.6.1).
 - `capabilities.contributesAgents.tools` (via `AgentSpec.tools`) and
   `capabilities.contributesNodes` accommodate the 16 new agent tool ids
-  + 9 new workflow node types without contract pressure.
+  - 9 new workflow node types without contract pressure.
 
 ---
 
@@ -227,7 +227,7 @@ Per BLUEPRINT §7 Phase 7, the next phase is **launch operations**:
 3. **Distribution channels** — Homebrew cask, AppImage, GitHub Release
    assets.
 4. **`terminal.vysted.com` landing page** — download buttons + screenshots
-   + getting-started docs.
+   - getting-started docs.
 5. **AGPL+Commercial dual license activation** — CLA bot on PRs;
    `COMMERCIAL_LICENSE.md` polish; pricing tiers finalised.
 6. **v1.0.0 tag + launch announcement**.

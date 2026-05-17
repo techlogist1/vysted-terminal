@@ -12,9 +12,7 @@ import type { TradesaConnectionState } from "../../types/tradesa_v2";
 // Stub adapter
 // ---------------------------------------------------------------------------
 
-function makeStubAdapter(
-  overrides: Partial<TradingBotReadAdapter> = {},
-): TradingBotReadAdapter {
+function makeStubAdapter(overrides: Partial<TradingBotReadAdapter> = {}): TradingBotReadAdapter {
   const defaultState: TradesaConnectionState = {
     status: "healthy",
     message: "ok",

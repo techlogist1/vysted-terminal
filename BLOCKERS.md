@@ -24,6 +24,7 @@ screenshots" + "Live Tauri capture for E + F screenshots" + the v0.6.1
 operator-session task.
 
 What ships today (v0.6.1):
+
 - **Teammate Q** — no screenshots in `docs/screenshots/v0.6.0/teammate-q/`.
 - **Teammate E** — Pillow stand-ins, shape-for-shape matching the React
   layout (validated by 25 Vitest tests + 60 backend tests).
@@ -31,6 +32,7 @@ What ships today (v0.6.1):
 - **Teammate Sc** — Pillow stand-ins from v0.6.1 lead-completion.
 
 Live re-capture procedure (operator-led):
+
 1. One-time: `pnpm sec-edgar-mcp-sidecar:build` (PyInstaller compile,
    ~ several minutes; required because F's MCP subprocess is only
    reachable from inside the Tauri shell).

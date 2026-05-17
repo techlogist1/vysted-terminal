@@ -88,7 +88,9 @@ describe("MacroSeriesPicker", () => {
         onSelect={() => undefined}
       />,
     );
-    await waitFor(() => expect(sidecarGet).toHaveBeenCalledWith("/macro/catalog", { provider: "fred" }));
+    await waitFor(() =>
+      expect(sidecarGet).toHaveBeenCalledWith("/macro/catalog", { provider: "fred" }),
+    );
     await waitFor(() => expect(screen.getByText("10-Year Treasury")).toBeInTheDocument());
   });
 
@@ -110,11 +112,7 @@ describe("MacroSeriesPicker", () => {
     vi.mocked(sidecarGet).mockResolvedValueOnce(SAMPLE_CATALOG);
     const onSelect = vi.fn();
     render(
-      <MacroSeriesPicker
-        provider="fred"
-        onProviderChange={() => undefined}
-        onSelect={onSelect}
-      />,
+      <MacroSeriesPicker provider="fred" onProviderChange={() => undefined} onSelect={onSelect} />,
     );
     await waitFor(() => expect(screen.getByText("10-Year Treasury")).toBeInTheDocument());
     fireEvent.click(screen.getByTestId("macro-result-DGS10"));

@@ -25,13 +25,7 @@ export type MacroProvider = "fred" | "ecb" | "imf" | "world-bank";
 
 /** Frequency labels common across the four providers. ``"other"`` covers
  * irregular schedules (e.g. ECB monetary policy decisions). */
-export type MacroFrequency =
-  | "daily"
-  | "weekly"
-  | "monthly"
-  | "quarterly"
-  | "annual"
-  | "other";
+export type MacroFrequency = "daily" | "weekly" | "monthly" | "quarterly" | "annual" | "other";
 
 /** Whether the series is seasonally adjusted, not adjusted, or not applicable
  * (e.g. a rate observation). FRED + ECB + IMF expose this; World Bank does

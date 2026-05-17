@@ -32,18 +32,18 @@ desktop.
 
 ## Files
 
-| File                                          | Resolution  | Subject                                                |
-| --------------------------------------------- | ----------- | ------------------------------------------------------ |
+| File                                          | Resolution  | Subject                                                 |
+| --------------------------------------------- | ----------- | ------------------------------------------------------- |
 | `macro-fred-dgs10-1920x1080.png`              | 1920 × 1080 | FRED — 10-Year Treasury (DGS10), 730 daily observations |
-| `macro-fred-dgs10-2560x1440.png`              | 2560 × 1440 | Same at higher resolution                              |
-| `macro-ecb-mro-1920x1080.png`                 | 1920 × 1080 | ECB — Main Refinancing Operations Rate, 730 days       |
-| `macro-ecb-mro-2560x1440.png`                 | 2560 × 1440 | Same at higher resolution                              |
-| `macro-imf-us-gdp-1920x1080.png`              | 1920 × 1080 | IMF — Nominal GDP in USD, US, 26 annual observations   |
-| `macro-imf-us-gdp-2560x1440.png`              | 2560 × 1440 | Same at higher resolution                              |
-| `macro-world-bank-gdp-pcap-usa-1920x1080.png` | 1920 × 1080 | World Bank — GDP per capita, USA, 24 annual obs        |
-| `macro-world-bank-gdp-pcap-usa-2560x1440.png` | 2560 × 1440 | Same at higher resolution                              |
-| `macro-panel-all-providers-1920x1080.png`     | 1920 × 1080 | All four providers tiled (2×2 dockview-style layout)   |
-| `macro-panel-all-providers-2560x1440.png`     | 2560 × 1440 | Same at higher resolution                              |
+| `macro-fred-dgs10-2560x1440.png`              | 2560 × 1440 | Same at higher resolution                               |
+| `macro-ecb-mro-1920x1080.png`                 | 1920 × 1080 | ECB — Main Refinancing Operations Rate, 730 days        |
+| `macro-ecb-mro-2560x1440.png`                 | 2560 × 1440 | Same at higher resolution                               |
+| `macro-imf-us-gdp-1920x1080.png`              | 1920 × 1080 | IMF — Nominal GDP in USD, US, 26 annual observations    |
+| `macro-imf-us-gdp-2560x1440.png`              | 2560 × 1440 | Same at higher resolution                               |
+| `macro-world-bank-gdp-pcap-usa-1920x1080.png` | 1920 × 1080 | World Bank — GDP per capita, USA, 24 annual obs         |
+| `macro-world-bank-gdp-pcap-usa-2560x1440.png` | 2560 × 1440 | Same at higher resolution                               |
+| `macro-panel-all-providers-1920x1080.png`     | 1920 × 1080 | All four providers tiled (2×2 dockview-style layout)    |
+| `macro-panel-all-providers-2560x1440.png`     | 2560 × 1440 | Same at higher resolution                               |
 
 ## What each shot proves
 

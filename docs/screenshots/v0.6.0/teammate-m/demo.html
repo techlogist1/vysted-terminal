@@ -177,11 +177,7 @@
         frequency: "daily",
         source_url: "https://data.ecb.europa.eu/data/datasets/FM.D.U2.EUR.4F.KR.MRR_FR.LEV",
         last_updated: "2026-05-12T00:00:00Z",
-        observations: makeStepObs(
-          new Date("2024-05-14"),
-          365 * 2,
-          [4.5, 4.25, 4.0, 3.75, 3.5],
-        ),
+        observations: makeStepObs(new Date("2024-05-14"), 365 * 2, [4.5, 4.25, 4.0, 3.75, 3.5]),
       };
       // IMF GDP USD nominal — US, annual
       const IMF_GDP = {
@@ -256,7 +252,11 @@
           ["UNRATE", "Unemployment Rate", "Labor • monthly"],
         ],
         ecb: [
-          ["FM.D.U2.EUR.4F.KR.MRR_FR.LEV", "Main Refinancing Operations Rate", "Monetary Policy • daily"],
+          [
+            "FM.D.U2.EUR.4F.KR.MRR_FR.LEV",
+            "Main Refinancing Operations Rate",
+            "Monetary Policy • daily",
+          ],
           ["FM.D.U2.EUR.4F.KR.DFR.LEV", "Deposit Facility Rate", "Monetary Policy • daily"],
           ["ICP.M.U2.N.000000.4.ANR", "HICP — Overall index, Euro area", "Prices • monthly"],
           ["EXR.D.USD.EUR.SP00.A", "EUR/USD spot exchange rate", "Exchange Rates • daily"],

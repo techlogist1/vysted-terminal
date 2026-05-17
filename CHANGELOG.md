@@ -60,7 +60,7 @@ mega-sprint shape.
 - **`plugins/tradesa-v2/`** — first-party plugin under the locked
   `VystedPlugin` contract. Capability flags:
   `contributesData/Panels/Commands = true`; `contributesAgents/Nodes =
-  false`; **`supportsControlPlane = false`** — contract-level
+false`; **`supportsControlPlane = false`** — contract-level
   enforcement of READ-ONLY (the runtime never invokes `executeCommand`
   even if the method existed).
 - 7 panels: Live Positions / Trade History & P&L / Brain Decisions
@@ -71,9 +71,9 @@ mega-sprint shape.
   (mode badge, kill-switch state, heartbeat-age live ticker, today's
   LLM cost).
 - **`TradesaSettingsDialog`** — first-launch onboarding (Supabase URL
-  + service-role key entry with show/hide toggle, writes via
-  `keychain_set`, explicit "this key has full power — keep it on
-  this machine only" warning).
+  - service-role key entry with show/hide toggle, writes via
+    `keychain_set`, explicit "this key has full power — keep it on
+    this machine only" warning).
 - **`useTradesaConnectionState()`** + **`_PanelShell`** — six panel-side
   states (`healthy`/`connecting`/`unauthenticated`/`bot-offline`/
   `supabase-error`/`partial`); the shell renders dedicated UX per state
@@ -85,8 +85,8 @@ mega-sprint shape.
   (TauricResearch, etc.) implement this same interface — wrapper
   pattern is contract-stable.
 - **39 Vitest tests** (per-panel skeleton/empty/healthy/offline coverage
-  + dialog form submission + status-strip rendering) on top of the
-  20 plugin-entry Vitests from foundation A8 = 59 new vitest tests.
+  - dialog form submission + status-strip rendering) on top of the
+    20 plugin-entry Vitests from foundation A8 = 59 new vitest tests.
 
 **Host glue:**
 
@@ -131,10 +131,10 @@ FunctionComponent>` map into the synthesized `VystedModule`. The
 2. **One teammate, not two, Tier-2.** Backend wrapper (provider +
    router + plugin entry + bootstrap glue) is tightly coupled and
    benefits from one author's hand (lead). Frontend (7 panels + store
-   + Vitest) is well-bounded and parallelizable. Teammate T branched
-   from origin/main AFTER lead foundation pushed (no contention; the
-   "two teammates writing same file" v0.5.0 gotcha avoided by
-   sequencing).
+   - Vitest) is well-bounded and parallelizable. Teammate T branched
+     from origin/main AFTER lead foundation pushed (no contention; the
+     "two teammates writing same file" v0.5.0 gotcha avoided by
+     sequencing).
 
 3. **Credential flow: request headers, not body, Tier-3.** Sidecar
    cannot read OS keychain directly (only Tauri Rust can). Established
@@ -169,7 +169,7 @@ FunctionComponent>` map into the synthesized `VystedModule`. The
    walk), plugin's `supportsControlPlane=false` (contract-level gate
    the runtime respects). Pattern mirrors the v0.5.0 §6.5 #4
    audit-log defense-in-depth (type-level gate + DB-enforced invariant
-   + grep audit check) for safety-critical surfaces.
+   - grep audit check) for safety-critical surfaces.
 
 7. **§6.5 plugin id `tradesa-v2`, panel ids `tradesa-v2.<panel>`,
    component ids `tradesa-v2-<panel>`, Tier-3.** Kebab-case matches
@@ -356,6 +356,7 @@ that the v0.6.0 socket-closed termination cut short.
   held for the seventh consecutive release**.
 
 ### Carried forward to a future polish session (BLOCKERS.md item 3,
+
 reframed)
 
 - **Live `pnpm tauri dev` re-capture across all four Phase 6 modules**
@@ -506,12 +507,12 @@ scaffold + BLUEPRINT marker + push.
   Universe-resolved filter engine (S&P 500 + NIFTY 50 + crypto-top-50 +
   custom) + discriminated-criteria filter application (numeric / range /
   string-eq / set-in) + `/screener/run`, `/screener/universe?id=` routes
-  + agent tool + workflow node. **Teammate Sc terminated mid-execution
-  on a socket-closed error after shipping the backend slice**; backend
-  audit clean (Tier-1 + §6.5 + no forbidden tool ids). Frontend
-  (ScreenerPanel + ScreenerCriteriaBuilder + ScreenerResultsTable +
-  `src/store/screener.ts` + Vitest) deferred to v0.6.1 lead-completion
-  per the v0.5.0 Teammate S precedent (BLOCKERS.md entry).
+  - agent tool + workflow node. **Teammate Sc terminated mid-execution
+    on a socket-closed error after shipping the backend slice**; backend
+    audit clean (Tier-1 + §6.5 + no forbidden tool ids). Frontend
+    (ScreenerPanel + ScreenerCriteriaBuilder + ScreenerResultsTable +
+    `src/store/screener.ts` + Vitest) deferred to v0.6.1 lead-completion
+    per the v0.5.0 Teammate S precedent (BLOCKERS.md entry).
 
 ### Integration lead work
 

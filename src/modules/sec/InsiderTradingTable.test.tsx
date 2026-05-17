@@ -71,9 +71,7 @@ describe("InsiderTradingTable", () => {
   it("loads insider transactions for an identifier and renders rows", async () => {
     render(<InsiderTradingTable identifier="AAPL" />);
     await waitFor(() => {
-      expect(
-        screen.getByTestId("insider-row-0000320193-24-001000-0001214156"),
-      ).toBeInTheDocument();
+      expect(screen.getByTestId("insider-row-0000320193-24-001000-0001214156")).toBeInTheDocument();
     });
     expect(screen.getByText("Cook Timothy D")).toBeInTheDocument();
     // Comma-formatted shares
@@ -82,9 +80,7 @@ describe("InsiderTradingTable", () => {
 
   it("colours acquired and disposed differently (via class assertion)", async () => {
     const { container } = render(<InsiderTradingTable identifier="AAPL" />);
-    await waitFor(() =>
-      screen.getByTestId("insider-row-0000320193-24-001000-0001214156"),
-    );
+    await waitFor(() => screen.getByTestId("insider-row-0000320193-24-001000-0001214156"));
     const disposed = container.querySelector(".text-rose-300");
     const acquired = container.querySelector(".text-emerald-300");
     expect(disposed).not.toBeNull();

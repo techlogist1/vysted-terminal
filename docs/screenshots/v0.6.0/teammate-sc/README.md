@@ -20,14 +20,14 @@ AND sector = "Technology"
 
 Result rows (6 matching names):
 
-| Symbol | Name | Market cap | P/E | Price | 1d % | Volume |
-|--------|------|------------|-----|-------|------|--------|
-| MSFT  | Microsoft Corporation | 3.18T | 19.4 | $425.18 | +0.45% | 22.1M |
-| AAPL  | Apple Inc.            | 2.96T | 18.7 | $192.55 | +1.52% | 50.9M |
-| GOOGL | Alphabet Inc.         | 2.11T | 19.8 | $175.02 | -0.31% | 18.3M |
-| META  | Meta Platforms, Inc.  | 1.42T | 18.2 | $553.21 | +2.10% | 12.9M |
-| AVGO  | Broadcom Inc.         | 710B  | 19.5 | $1502.40 | +0.84% | 3.5M |
-| ORCL  | Oracle Corporation    | 420B  | 18.9 | $152.33 | -0.18% | 9.1M |
+| Symbol | Name                  | Market cap | P/E  | Price    | 1d %   | Volume |
+| ------ | --------------------- | ---------- | ---- | -------- | ------ | ------ |
+| MSFT   | Microsoft Corporation | 3.18T      | 19.4 | $425.18  | +0.45% | 22.1M  |
+| AAPL   | Apple Inc.            | 2.96T      | 18.7 | $192.55  | +1.52% | 50.9M  |
+| GOOGL  | Alphabet Inc.         | 2.11T      | 19.8 | $175.02  | -0.31% | 18.3M  |
+| META   | Meta Platforms, Inc.  | 1.42T      | 18.2 | $553.21  | +2.10% | 12.9M  |
+| AVGO   | Broadcom Inc.         | 710B       | 19.5 | $1502.40 | +0.84% | 3.5M   |
+| ORCL   | Oracle Corporation    | 420B       | 18.9 | $152.33  | -0.18% | 9.1M   |
 
 ## Capture method
 
