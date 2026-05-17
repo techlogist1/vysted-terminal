@@ -1,19 +1,10 @@
 """Phase 6 agent-tool aggregator — register_v0_6_0_tools().
 
-Each domain teammate adds their submodule under
-``services/agent_tools/<domain>_tools.py`` and a registration call to the
-list below. Foundation lands the stub with all five teammates' entries
-commented out; teammates uncomment their entry when wiring their domain.
-
-Convention each teammate follows:
-
-  1. Add a file ``services/agent_tools/<domain>_tools.py`` exporting a
-     ``register()`` function that calls ``register_tool(<id>, <handler>)``
-     for each tool the domain ships.
-  2. Uncomment the matching line in ``register_v0_6_0_tools()`` below.
-
-The line ordering below matches the merge order from the v0.6.0 plan
-(M → F → Q → E → Sc) so the integration audit can spot drift.
+As of v0.6.0 all five Phase 6 domain registrations are live (M / F / Q /
+E / Sc). Each ``services/agent_tools/<domain>_tools.py`` exports a
+``register()`` function that calls ``register_tool(<id>, <handler>)`` for
+its domain. The line ordering below matches the merge order from the
+v0.6.0 plan so the integration audit can spot drift.
 """
 
 from __future__ import annotations

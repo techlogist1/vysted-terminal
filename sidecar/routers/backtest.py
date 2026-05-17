@@ -7,11 +7,10 @@ Routes:
   - ``GET  /backtest/runs``        — list cached run ids
   - ``GET  /backtest/runs/{run_id}`` — load cached BacktestResult
 
-The default ``run`` route requires a ``bar_loader`` injection point that
-the foundation does not bundle (Teammate K wires production OHLCV
-loading). For v0.5.0 foundation the route is a 503 stub when invoked
-without a registered loader so a frontend probe surfaces a clean error
-rather than a 500.
+The ``run`` route consumes ``services.bar_loader.load_bars`` (Teammate K,
+v0.5.0) for production OHLCV loading via the Phase 1 ``provider_registry``
+(yfinance / ccxt / openbb-mcp). The v0.5.0-era 503-stub fallback is no
+longer reachable — the loader is unconditionally wired.
 """
 
 from __future__ import annotations

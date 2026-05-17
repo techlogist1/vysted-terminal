@@ -1,11 +1,10 @@
 """Phase 6 workflow-node aggregator — register_v0_6_0_nodes().
 
 Mirrors :mod:`services.agent_tools.registry_v0_6_0`. Each Phase 6 domain
-teammate ships their own ``services/workflow_nodes/<domain>_nodes.py``
-file with a ``register()`` helper, and uncomments the matching line in
-:func:`register_v0_6_0_nodes` below at integration time. Foundation
-lands the stub with every entry commented out so additive teammate diffs
-merge cleanly.
+ships its own ``services/workflow_nodes/<domain>_nodes.py`` file with a
+``register()`` helper that wires every node id for the domain via
+:func:`workflow_engine.register_node_type`. As of v0.6.0 all five domain
+registrations are live.
 
 Naming convention:
 

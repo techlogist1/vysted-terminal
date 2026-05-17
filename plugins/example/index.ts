@@ -71,22 +71,26 @@ export const examplePlugin: VystedPlugin = {
   async initialize(config: PluginConfig): Promise<void> {
     initialized = true;
     initializedAt = Date.now();
-    // Every plugin gets a private dataDir, the sidecar URL, the host version,
-    // its persisted settings, and any granted secrets — log them so the user
-    // can verify the wiring in the dev console.
-    console.info("[vysted-example] initialize", {
-      dataDir: config.dataDir,
-      sidecarBaseUrl: config.sidecarBaseUrl,
-      hostVersion: config.hostVersion,
-      hasSettings: Object.keys(config.settings).length > 0,
-      secretIds: Object.keys(config.secrets),
-    });
+    // Pedagogical diagnostics — gated to development so the example plugin's
+    // demonstration of the lifecycle wiring is visible while developing
+    // against it, but silent in production builds.
+    if (process.env.NODE_ENV === "development") {
+      console.info("[vysted-example] initialize", {
+        dataDir: config.dataDir,
+        sidecarBaseUrl: config.sidecarBaseUrl,
+        hostVersion: config.hostVersion,
+        hasSettings: Object.keys(config.settings).length > 0,
+        secretIds: Object.keys(config.secrets),
+      });
+    }
   },
 
   async shutdown(): Promise<void> {
-    console.info("[vysted-example] shutdown", {
-      uptimeMs: Date.now() - initializedAt,
-    });
+    if (process.env.NODE_ENV === "development") {
+      console.info("[vysted-example] shutdown", {
+        uptimeMs: Date.now() - initializedAt,
+      });
+    }
     initialized = false;
   },
 
@@ -108,7 +112,9 @@ export const examplePlugin: VystedPlugin = {
 
   async executeCommand(commandId: string): Promise<CommandResult> {
     if (commandId === "example.hello") {
-      console.info("[vysted-example] hello — invoked from cmd+K");
+      if (process.env.NODE_ENV === "development") {
+        console.info("[vysted-example] hello — invoked from cmd+K");
+      }
       return { ok: true, data: { greeting: "Hello from the example plugin." } };
     }
     return { ok: false, error: `unknown command: ${commandId}` };

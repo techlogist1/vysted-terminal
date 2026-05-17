@@ -16,14 +16,14 @@
  *                      components.
  *   - ``connection.ts`` — implementation of the bot-specific data adapter.
  *
- * v0.6.5 ships placeholder shells for every panel so the dockview
- * registration round-trips before teammate dispatch — the real
- * UX-grade components land in the teammate-T worktree (Phase B
- * deliverables B1-B11 in the v0.6.5 plan). The placeholders are
- * intentionally simple: each renders the connection state + a
- * "Coming soon" message; they exist purely so the plugin loads cleanly
- * and the cmd+K palette shows all seven entries before the integration
- * point.
+ * As of v0.6.5 every panel ships a full implementation (Positions /
+ * TradeHistory / BrainDecisions / Sentinel / Health / Settings /
+ * MetaAgents) — all backed by the read-only Supabase wrapper, all
+ * graceful-degradation aware via _PanelShell.tsx, all covered by
+ * per-panel Vitest. The v0.6.5 plan's Phase-B placeholder-shells step
+ * was collapsed into the same A8 commit as the entry, because
+ * panels.ts must compile against real components for the dockview
+ * registration to round-trip.
  */
 
 import type { FunctionComponent } from "react";
