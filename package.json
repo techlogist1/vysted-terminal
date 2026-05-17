@@ -17,6 +17,7 @@
     "openbb-mcp-sidecar:build": "node scripts/ensure-openbb-mcp-sidecar.mjs --force",
     "sec-edgar-mcp-sidecar:build": "node scripts/ensure-sec-edgar-mcp-sidecar.mjs --force",
     "sidecars:build": "node scripts/ensure-all-sidecars.mjs --force",
+    "ci-local": "pnpm install --frozen-lockfile && node scripts/ensure-all-sidecars.mjs && pnpm lint && pnpm format:check && pnpm typecheck && cargo fmt --manifest-path src-tauri/Cargo.toml --check && cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings && python -m pip install ruff==0.15.12 && ruff check sidecar && ruff format --check sidecar && pnpm test && cargo test --manifest-path src-tauri/Cargo.toml && cd sidecar && python -m pip install -r requirements-dev.txt && pytest",
     "tauri": "tauri"
   },
   "dependencies": {
