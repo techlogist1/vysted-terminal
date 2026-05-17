@@ -4,6 +4,7 @@ import { useEffect } from "react";
 
 import { CommandPalette } from "@/components/CommandPalette";
 import { PanelHost } from "@/components/PanelHost";
+import { useDesktopNotificationBridge } from "@/lib/desktop-notification";
 import { bootstrapPlugins } from "@/lib/plugin-bootstrap";
 import { vystedModules } from "@/modules";
 import { WorkspaceDialog } from "@/modules/platform/WorkspaceDialog";
@@ -12,6 +13,10 @@ import { useCommandPalette } from "@/store/command-palette";
 import { useModulesStore } from "@/store/modules";
 
 export default function Page() {
+  // Bridge workflow ``action.notify_desktop`` intents to the OS
+  // notification API. Safe no-op outside the Tauri webview.
+  useDesktopNotificationBridge();
+
   useEffect(() => {
     // Register the module registry, seed the command palette from the enabled
     // modules, and connect to the Python sidecar. Runs once on mount — which is
