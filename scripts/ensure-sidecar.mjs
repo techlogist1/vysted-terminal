@@ -97,9 +97,19 @@ const hidden = [
 ]
   .map((m) => `--hidden-import=${m}`)
   .join(" ");
+// fastmcp + mcp inspect their own importlib.metadata at import time
+// (FastMCP's __init__.py calls version("fastmcp") to expose the
+// __version__ attribute). Without --copy-metadata the --onefile binary
+// raises PackageNotFoundError at startup — bug surfaced in v0.7.0 F6
+// graph-diagnosis. anyio + httpx + starlette + uvicorn included
+// defensively since the openbb-mcp subprocess already needs them
+// metadata-bundled and the cost is negligible.
+const copyMeta = ["fastmcp", "mcp", "anyio", "httpx", "starlette", "uvicorn"]
+  .map((m) => `--copy-metadata=${m}`)
+  .join(" ");
 run(
   `"${pyinstaller}" --onefile --clean --noconfirm --name vysted-sidecar ` +
-    `${hidden} --distpath "${distDir}" --workpath "${buildDir}" ` +
+    `${hidden} ${copyMeta} --distpath "${distDir}" --workpath "${buildDir}" ` +
     `--specpath "${buildDir}" main.py`,
   { cwd: SIDECAR_DIR },
 );
