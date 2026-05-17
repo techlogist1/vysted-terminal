@@ -439,10 +439,63 @@ HEAD, OPTIONS}` intersection in `tests/test_<bot>_router.py`); (c)
     emits `resource path 'binaries/...' doesn't exist`. Local was masked
     by `src-tauri/binaries/` cache. **Rule**: any new sidecar binary
     must be (a) added to `externalBin`, (b) added to the SCRIPTS list in
-    `scripts/ensure-all-sidecars.mjs`, (c) verified via
-    `pnpm sidecars:build` locally before pushing. The orchestrator is
-    the single entry point; do NOT bypass it by chaining individual
-    ensure-\*.mjs scripts inline.
+    `scripts/ensure-all-sidecars.mjs`, (c) added to `.gitignore` and
+    `.prettierignore` (its `.venv/` + `build/` + `dist/` paths), (d)
+    verified via `pnpm sidecars:build` locally before pushing. The
+    orchestrator is the single entry point; do NOT bypass it by chaining
+    individual ensure-\*.mjs scripts inline.
+- **PyInstaller `--onefile` silently drops package metadata + data
+  files.** v0.6.5 shipped a `vysted-sidecar` binary that crashed at
+  startup with `PackageNotFoundError: fastmcp` because FastMCP's
+  `__init__.py` calls `version("fastmcp")` via importlib.metadata and
+  the dist-info was missing. v0.7.0 also caught a separate sec-edgar
+  variant: `edgartools` ships CSV reference data
+  (`edgar/reference/data/secforms.csv`) loaded via pkgutil; without
+  `--collect-data=edgar` the binary boots and immediately crashes with
+  `FileNotFoundError`. CI never caught either because `cargo test`
+  doesn't run the binary. **Rule for every new sidecar dependency
+  audit**: list (a) packages whose `__init__.py` runs
+  `importlib.metadata.version(...)` — add to `--copy-metadata` (current
+  FastMCP/MCP-ecosystem list: `fastmcp`, `mcp`, `anyio`, `httpx`,
+  `starlette`, `uvicorn`); (b) packages with non-Python data files
+  loaded via pkgutil — add to `--collect-data`. The smoke-test step
+  fails the workflow if either gap surfaces.
+- **`pnpm ci-local` is the standing pre-tag gate; sidecar smoke-test
+  is the second.** `pnpm ci-local` (added v0.7.0 F3) mirrors CI
+  byte-for-byte at the source level. `scripts/smoke-test-sidecars.mjs`
+  (added post-v0.7.0 housekeeping) catches the binary-runtime gap
+  `pnpm ci-local` cannot see — spawns each built sidecar, polls
+  `/health` for main, verifies MCP subprocesses survive 10s without
+  crashing. **Rule**: run `pnpm ci-local` AND `node
+scripts/smoke-test-sidecars.mjs` before every release tag. CI runs
+  smoke-test automatically after `ensure-all-sidecars` in `build.yml`
+  - `test.yml`; the operator-side run is the pre-push gate.
+- **`asyncio.get_event_loop()` raises on Python 3.13 outside a running
+  loop.** Calling it from a synchronous fixture or test in Python 3.13
+  hits `RuntimeError("There is no current event loop in thread
+'MainThread'")`. v0.7.0 F5 iter #2 caught this in
+  `test_tradesa_v2_provider.py` + `test_tradesa_v2_router.py` (24+
+  tests at setup failure). **Rule**: use `asyncio.run(...)` to run
+  async code from synchronous test scaffolding. Avoid
+  `asyncio.get_event_loop()` everywhere except inside an already-async
+  function (where it returns the running loop). `pytest-asyncio` fixtures
+  with `@pytest_asyncio.fixture(...)` are an alternative for fixtures
+  that yield from async setup.
+- **Cross-OS process spawning of PyInstaller `--onefile` binaries needs
+  tree-kill on teardown.** The post-v0.7.0 smoke-test orchestrator
+  caught this: `child.kill()` from Node only signals the bootloader;
+  the PyInstaller-spawned worker survives as an orphan, holds the
+  binary's `_MEI*` extraction dir, and races the next run on the same
+  file lock. Two racing smoke-test runs left 4 orphans in v0.7.0
+  housekeeping. **Rule**: any Node script that spawns a sidecar binary
+  (`scripts/smoke-test-sidecars.mjs` is the precedent) must (a) spawn
+  POSIX children with `detached: true` so they form a process group
+  and `process.kill(-pid, 'SIGKILL')` tree-kills, (b) call `taskkill
+/F /T /PID <pid>` on Windows to walk the tree, (c) register
+  `process.on('exit'|'SIGINT'|'SIGTERM')` handlers that drain every
+  tracked PID, (d) refuse to start if `Get-Process vysted-*` (Win) or
+  `pgrep -f vysted-.*sidecar` (POSIX) returns any PID (pre-flight
+  orphan check). The smoke-test script implements all four.
 
 ## Per-phase handoff
 

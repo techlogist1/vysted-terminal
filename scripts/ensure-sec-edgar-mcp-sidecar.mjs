@@ -115,13 +115,27 @@ const hidden = [
 // =fastmcp`` raises PackageNotFoundError because fastmcp isn't in this
 // venv). Keep ``mcp`` in copy-metadata so importlib.metadata lookups for
 // the MCP SDK succeed inside the --onefile binary.
+//
+// ``edgar`` (the import name) is shipped by the ``edgartools`` PyPI
+// distribution that sec-edgar-mcp wraps. The package loads CSV
+// reference data at import time (e.g. ``edgar/reference/data/secforms.csv``
+// via ``pkgutil``); PyInstaller's static analysis doesn't see those
+// files. ``--collect-data=edgar`` walks the import path and bundles
+// every non-Python file. Metadata for the dist goes under its
+// install name (``edgartools``), not the import name. Caught by the
+// v0.7.0 sidecar smoke-test step
+// (``scripts/smoke-test-sidecars.mjs``) — without that step this
+// would have shipped silently like the v0.6.5 fastmcp crash.
 const collectAll = ["sec_edgar_mcp"].map((m) => `--collect-all=${m}`).join(" ");
-const copyMeta = ["mcp", "sec-edgar-mcp", "anyio", "httpx", "starlette", "uvicorn"]
+const collectData = ["edgar"].map((m) => `--collect-data=${m}`).join(" ");
+const collectSub = ["edgar"].map((m) => `--collect-submodules=${m}`).join(" ");
+const copyMeta = ["mcp", "sec-edgar-mcp", "edgartools", "anyio", "httpx", "starlette", "uvicorn"]
   .map((m) => `--copy-metadata=${m}`)
   .join(" ");
 run(
   `"${pyinstaller}" --onefile --clean --noconfirm --name vysted-sec-edgar-mcp-sidecar ` +
-    `${hidden} ${collectAll} ${copyMeta} --distpath "${distDir}" --workpath "${buildDir}" ` +
+    `${hidden} ${collectAll} ${collectData} ${collectSub} ${copyMeta} ` +
+    `--distpath "${distDir}" --workpath "${buildDir}" ` +
     `--specpath "${buildDir}" main.py`,
   { cwd: SUBPROCESS_DIR },
 );
