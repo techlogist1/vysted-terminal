@@ -102,13 +102,16 @@ the 00606e7 hot-patch fixed an Equity Overview horizontal overflow that the
 v0.2.1 verification screenshots missed because Equity Overview was empty in the
 shot.
 
-For any release or hot-patch verification shot:
+For any release or hot-patch verification shot, follow the canonical visual
+convention codified in the v0.7.0 Gotcha (`AAPL anchor + 5-panel cockpit +
+dark + populated semantics + both resolutions + per-release subfolder + header
+always present`). Per-surface "populated" definitions:
 
-- **Watchlist** — default symbols loaded, prices ticking.
-- **Chart** — SPY with 2–3 indicators active.
-- **Equity Overview** — AAPL (or comparable) with all sections populated.
-- **News** — 3–5 articles rendered.
-- **Portfolio** — ≥1 position.
+- **Watchlist** — `AAPL, MSFT, NVDA, SPY, QQQ, BTC/USDT, ETH/USDT`, prices ticking.
+- **Chart** — SPY with 2–3 indicators active + VWAP.
+- **Equity Overview** — AAPL with all sections populated.
+- **News** — 3–5 articles rendered with sentiment.
+- **Portfolio** — ≥1 AAPL position with P&L.
 
 Capture at **both** 1920×1080 and 2560×1440 via the `chrome-devtools` MCP
 `resize_page`. Table widths shift with available space; a panel that looks
@@ -383,6 +386,63 @@ HEAD, OPTIONS}` intersection in `tests/test_<bot>_router.py`); (c)
   prefix mutating-method storage with `_` (`_order_spec`, `_limit_val`)
   and expose a property for assertion-side reads. Generalises to any
   fluent-builder fake.
+- **Local verification is CI-parity, not best-effort approximation.**
+  v0.7.0 F5 caught CI red on every push since v0.6.0 era because the
+  operator's local `pnpm test` + `pnpm tauri dev` flow did not exercise
+  the lint+format+clippy+ruff battery that CI runs. The structural fix
+  is `pnpm ci-local` (package.json script chaining the exact CI
+  sequence byte-for-byte: install --frozen-lockfile → ensure-all-
+  sidecars → lint → format:check → typecheck → cargo fmt --check →
+  clippy -D warnings → ruff==0.15.12 + check + format --check → vitest
+  → cargo test → pytest). **Rule**: run `pnpm ci-local` before every
+  tag commit. Push-then-watch-CI-fail is a leak; the fix is upstream
+  of every phase. Cheapest viable structural fix — no Docker, no `act`
+  (Windows-runner gaps), no pre-push hook (intrusive).
+- **Visual consistency convention (v0.7.0+).** Populated-state
+  screenshots follow ONE canonical shape so the visual record reads
+  as one product, not seven sprints stitched together. Codified
+  axes:
+  - **Ticker**: AAPL is the primary equity anchor (appears in every
+    equity-bearing surface); watchlist set is
+    `AAPL, MSFT, NVDA, SPY, QQQ, BTC/USDT, ETH/USDT` (preserves
+    multi-row earnings demo + chart benchmark + crypto coverage).
+  - **Theme**: dark (only). Light-theme captures are a Tier-4 BLOCKER
+    until light theme actually ships in v1.1.
+  - **Workspace**: 5-panel + AI Assistant cockpit (v0.4.0 shape).
+    Left column: Chart over Equity Overview (tabs). Right column
+    top→bottom: Watchlist / News / Portfolio / AI Assistant.
+    Phase 6/6.5 panels (Macro, SEC, Earnings, Analyst Ratings,
+    Screener, Quant, Tradesa V2) open as **additional tabs in existing
+    slots**, NOT full-window. Solo-panel shots are permitted only as
+    _secondary_ zoomed shots, never as the primary cockpit shot.
+  - **Populated semantics**: no empty defaults — every populated-state
+    shot has real data per the Visual verification protocol section.
+  - **Resolutions**: 1920×1080 AND 2560×1440 (both required).
+  - **Header**: always include `Vysted Terminal — vX.Y.Z — <Surface>`
+    titlebar (v0.6.0 panels showed it; v0.4.0 chat shots didn't —
+    inconsistency closed in v0.7.0).
+  - **Per-release subfolder layout**: `docs/screenshots/v<tag>/
+{cockpit,<plugin-or-domain>,composed}/` — old folders are never
+    overwritten (precedent: v0.2.1 layout-\*.png pair lost when 00606e7
+    re-shot overwrote them).
+    **Rule**: every new release's populated-state shots land in a fresh
+    `v<tag>/` subfolder following this convention. Phase 8 audit + Phase
+    10 landing-page copy + future BLUEPRINT screenshots all reference
+    this layout.
+- **`bundle.externalBin` declares 3 sidecars; all must be built before
+  `tauri build`.** v0.7.0 F2 caught CI red on every push since the
+  v0.4.0 (openbb-mcp) era because `tauri.conf.json` `beforeBuildCommand`
+  - CI workflows only invoked `scripts/ensure-sidecar.mjs` for the
+    main sidecar. The openbb-mcp + sec-edgar-mcp sidecars are declared
+    in `externalBin` but were one-off scripts the operator ran manually;
+    clean CI checkouts have no cached binaries → Tauri build script
+    emits `resource path 'binaries/...' doesn't exist`. Local was masked
+    by `src-tauri/binaries/` cache. **Rule**: any new sidecar binary
+    must be (a) added to `externalBin`, (b) added to the SCRIPTS list in
+    `scripts/ensure-all-sidecars.mjs`, (c) verified via
+    `pnpm sidecars:build` locally before pushing. The orchestrator is
+    the single entry point; do NOT bypass it by chaining individual
+    ensure-\*.mjs scripts inline.
 
 ## Per-phase handoff
 
