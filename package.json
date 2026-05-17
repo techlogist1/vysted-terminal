@@ -16,6 +16,7 @@
     "sidecar:build": "node scripts/ensure-sidecar.mjs --force",
     "openbb-mcp-sidecar:build": "node scripts/ensure-openbb-mcp-sidecar.mjs --force",
     "sec-edgar-mcp-sidecar:build": "node scripts/ensure-sec-edgar-mcp-sidecar.mjs --force",
+    "sidecars:build": "node scripts/ensure-all-sidecars.mjs --force",
     "tauri": "tauri"
   },
   "dependencies": {

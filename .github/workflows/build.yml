@@ -67,6 +67,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build all Python sidecar binaries
+        run: node scripts/ensure-all-sidecars.mjs
+
       - name: Build Tauri bundle (unsigned)
         run: pnpm tauri build
 

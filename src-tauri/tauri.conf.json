@@ -6,8 +6,8 @@
   "build": {
     "frontendDist": "../out",
     "devUrl": "http://localhost:3000",
-    "beforeDevCommand": "node scripts/ensure-sidecar.mjs && pnpm dev",
-    "beforeBuildCommand": "node scripts/ensure-sidecar.mjs && pnpm build"
+    "beforeDevCommand": "node scripts/ensure-all-sidecars.mjs && pnpm dev",
+    "beforeBuildCommand": "node scripts/ensure-all-sidecars.mjs && pnpm build"
   },
   "app": {
     "windows": [

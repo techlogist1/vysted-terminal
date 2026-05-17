@@ -64,8 +64,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build Python sidecar binary
-        run: node scripts/ensure-sidecar.mjs
+      - name: Build all Python sidecar binaries
+        run: node scripts/ensure-all-sidecars.mjs
 
       - name: ESLint
         run: pnpm lint
