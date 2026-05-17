@@ -644,7 +644,7 @@ plugin proving the platform."
 - [ ] All 38 modules functional and accessible
 - [ ] 12 AI agents work with at least 3 LLM providers tested end-to-end
 - [ ] Backtest engine runs a 60-day strategy in <30 seconds on standard hardware
-- [ ] Tradesa V2 plugin connects to user's Supabase + bot WebSocket, shows real-time decisions
+- [ ] Tradesa V2 plugin connects to user's Supabase via the read-only wrapper, shows decisions via per-panel polling (v0.6.5 shipped scope; Realtime SSE proxy + write capability deferred to v0.6.6+)
 - [ ] Workspace export/import round-trips correctly across platforms
 - [ ] MCP server responds to external Claude/GPT queries
 - [ ] CI green for all OS builds
@@ -682,7 +682,7 @@ plugin proving the platform."
 ## 10. Reference: Goated Use Cases
 
 ### Use Case 1: Solo Founder's Quant Day (Lokavya)
-Morning open → Tradesa V2 overnight check → AI Risk Analyst review → backtest new strategy → push config to bot via Tradesa plugin control plane.
+Morning open → Tradesa V2 overnight check (READ-ONLY observation surface as of v0.6.5 — 7 panels surfacing positions, trade history, decisions, sentinel, health, settings drift, meta-agents) → AI Risk Analyst review → backtest new strategy → _(v0.6.6+ target)_ push config to bot via Tradesa plugin control plane.
 
 ### Use Case 2: Research Workflow (the equity researcher's story)
 Cmd+K → "Research XYZ" → AI Researcher pulls everything → chart + news in adjacent panels → backtest dividend strategy → save workspace.
