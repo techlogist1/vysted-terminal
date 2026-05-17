@@ -109,8 +109,14 @@ const hidden = [
 ]
   .map((m) => `--hidden-import=${m}`)
   .join(" ");
-const collectAll = ["sec_edgar_mcp", "fastmcp"].map((m) => `--collect-all=${m}`).join(" ");
-const copyMeta = ["fastmcp", "mcp", "sec-edgar-mcp", "anyio", "httpx", "starlette", "uvicorn"]
+// sec-edgar-mcp 1.0.8 imports the official ``mcp`` SDK (not ``fastmcp``).
+// The fastmcp references were copy-pasted from the openbb-mcp script
+// template and silently failed CI on clean checkouts (``--copy-metadata
+// =fastmcp`` raises PackageNotFoundError because fastmcp isn't in this
+// venv). Keep ``mcp`` in copy-metadata so importlib.metadata lookups for
+// the MCP SDK succeed inside the --onefile binary.
+const collectAll = ["sec_edgar_mcp"].map((m) => `--collect-all=${m}`).join(" ");
+const copyMeta = ["mcp", "sec-edgar-mcp", "anyio", "httpx", "starlette", "uvicorn"]
   .map((m) => `--copy-metadata=${m}`)
   .join(" ");
 run(

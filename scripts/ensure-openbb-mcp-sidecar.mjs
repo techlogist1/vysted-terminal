@@ -116,7 +116,11 @@ const hidden = [
   "uvicorn.protocols.websockets.auto",
   "uvicorn.lifespan.on",
   "uvicorn.lifespan.off",
-  "openbb_mcp_server.main",
+  // openbb-mcp-server 1.4.0 exports ``main`` from ``openbb_mcp_server.app.app``
+  // (the older ``openbb_mcp_server.main`` path was renamed). PyInstaller
+  // previously emitted a misleading ERROR for the stale path and bundled
+  // the symbol anyway via ``--collect-all=openbb_mcp_server``.
+  "openbb_mcp_server.app.app",
 ]
   .map((m) => `--hidden-import=${m}`)
   .join(" ");
