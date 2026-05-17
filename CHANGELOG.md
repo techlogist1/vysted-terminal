@@ -4,6 +4,254 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## v0.7.0 — Completion + Polish + Parity (2026-05-17)
+
+Phase 7 closes the gap between "feature-rich but inconsistent" (v0.6.5) and
+"feature-complete, visually consistent, CI-real, polish-clean" — the state
+where Phase 8 (Claude-Code deep audit) and Phase 9 (operator manual visual
+pass) can run against a finished app. Launch ops (signing, distribution,
+landing page, license activation, auto-updater wiring, v1.0.0 narrative)
+explicitly deferred to **Phase 10**; this phase is purely quality work.
+Plan at `docs/superpowers/plans/2026-05-17-phase-7-completion-polish-parity.md`
+(written in the conversation, archived as `binary-popping-penguin.md` plan
+file); handoff at `docs/PHASE_7_HANDOFF.md`.
+
+### Shape: zero teammates (lead-only, Tier-2)
+
+Most work was sequentially dependent (CI fix → diagnose graphs → fix bugs
+→ re-capture → release); screenshot capture needs an interactive
+`pnpm tauri dev` + chrome-devtools MCP session that worktree-isolated
+teammates cannot reliably reproduce. Operator brief explicitly authorised
+0–5 teammates depending on actual scope shape. Precedent: v0.6.5 ran with
+1 teammate; Phase 7's smaller, more reactive scope tightened further to 0.
+
+### Shipped
+
+**Foundation (lead, sequential):**
+
+- **F1 `chore(format)`** — `pnpm format` across 37 files of Phase 6 + 6.5
+  drift (CHANGELOG, CLAUDE.md, BLOCKERS, both handoff docs, every
+  Phase 6 module dir + tests + types + screener-universe JSON, the
+  v0.6.5 tradesa-v2 test). Cause B of the v0.6.5 CI red.
+- **F2 `fix(ci)`** — `scripts/ensure-all-sidecars.mjs` orchestrator that
+  invokes the three per-sidecar scripts in sequence; wired into
+  `tauri.conf.json` `beforeBuildCommand` + all 3 CI workflows
+  (`build.yml` / `test.yml` / `lint.yml`) + new `pnpm sidecars:build`
+  shortcut. Cause A of v0.6.5 CI red — `bundle.externalBin` declared 3
+  sidecars but only `vysted-sidecar` was built.
+- **F3 `chore(ci)`** — `pnpm ci-local` script chains the full CI sequence
+  byte-for-byte (`pnpm install --frozen-lockfile && ensure-all-sidecars
+&& lint && format:check && typecheck && cargo fmt --check && clippy -D
+warnings && ruff==0.15.12 + check + format --check && pnpm test &&
+cargo test && pytest`). Standing release gate.
+- **F4 `docs(claude)`** — three new CLAUDE.md Gotchas: (a) Local
+  verification is CI-parity, not best-effort approximation
+  (mandates `pnpm ci-local` pre-tag); (b) Visual consistency convention
+  v0.7.0+ (AAPL anchor + 5-panel + AI Assistant cockpit + dark +
+  populated semantics + 1920×1080 + 2560×1440 + per-release subfolder
+  - header always present); (c) `bundle.externalBin` declares 3
+    sidecars — all must be built before `tauri build`.
+- **F5 push + CI iteration** — three pushes were required before all
+  three CI workflows went green simultaneously:
+  - Iteration #1 surfaced two new latent bugs once the orchestrator
+    actually ran: (i) `ensure-sec-edgar-mcp-sidecar.mjs` had
+    `--copy-metadata=fastmcp` + `--collect-all=fastmcp` copy-pasted
+    from the openbb-mcp template, but sec-edgar-mcp uses the official
+    `mcp` SDK only; PyInstaller raised `PackageNotFoundError: No
+package metadata was found for fastmcp` on clean CI venvs; (ii)
+    `ensure-openbb-mcp-sidecar.mjs` declared
+    `--hidden-import=openbb_mcp_server.main` but openbb-mcp-server
+    1.4.0 renamed that path to `openbb_mcp_server.app.app` (mostly
+    masked by `--collect-all=openbb_mcp_server` but PyInstaller still
+    emitted a misleading ERROR-level line). Both fixed in commit
+    `23da4f3`.
+  - Iteration #2 surfaced two more once the build succeeded: (iii)
+    `sidecar/sec_edgar_mcp_subprocess/.venv/` not in `.gitignore` /
+    `.prettierignore`, so Prettier choked on dist-info HTML/YAML
+    inside the freshly-created CI venv; (iv) tradesa-v2 tests
+    (`test_tradesa_v2_provider.py` + `test_tradesa_v2_router.py`)
+    used `asyncio.get_event_loop().run_until_complete(...)` — Python
+    3.13 raises `RuntimeError("There is no current event loop in
+thread 'MainThread'")` from `get_event_loop()` outside a running
+    loop, killing 24+ tests at setup. Replaced with `asyncio.run(...)`
+    in commit `810d98b`.
+  - Iteration #3 surfaced a ruff-format reflow Pat `test_tradesa_v2_
+router.py` wanted after the `asyncio.run` replace_all (commit
+    `6f5ec07`). All 3 workflows green from commit `6f5ec07` onward.
+- **F6/F7 runtime sidecar fix** — the operator-flagged "graphs not
+  loading" turned out to be more severe than visible-from-static-
+  analysis: the v0.6.5 release ships a `vysted-sidecar` binary that
+  crashes at startup with `PackageNotFoundError: No package metadata
+was found for fastmcp` because `services/mcp_server.py` imports
+  `fastmcp` at module load and FastMCP's `__init__.py` calls
+  `version("fastmcp")`. PyInstaller --onefile drops dist-info by
+  default; the script had no `--copy-metadata=fastmcp`. CI never caught
+  it because cargo test doesn't run the binary; `pnpm tauri dev`
+  exposes it instantly. Fixed in commit `cf96031` (added
+  `--copy-metadata=fastmcp,mcp,anyio,httpx,starlette,uvicorn` to
+  `scripts/ensure-sidecar.mjs`). Sidecar verified healthy via curl on
+  `/health` after force-rebuild. End-to-end verified via Tauri dev +
+  chrome-devtools MCP: watchlist shows live yfinance quotes, news feed
+  shows RSS-driven articles with sentiment scoring. **Without this fix
+  every data-bearing panel in v0.6.5 would show "Failed to load" — the
+  bug was every panel, not just graphs.**
+- **F7 dev-fallback** — `src/lib/sidecar-client.ts::getSidecarBaseUrl`
+  honours `?sidecar-port=NN` query param when running outside Tauri
+  (`__TAURI_INTERNALS__` guard), unlocking chrome-devtools MCP captures
+  of the populated UI without the Tauri shell. Production-safe (Tauri
+  webview always carries `__TAURI_INTERNALS__`). Param value
+  regex-gated to digits only.
+- **F8 desktop-notification bridge** —
+  `src/lib/desktop-notification.ts::useDesktopNotificationBridge` React
+  hook subscribes to `useWorkflowStore.pendingNotifications`, lazy-
+  imports `@tauri-apps/plugin-notification`, lazy-requests permission
+  on first send, calls `sendNotification({title,body})`, drains the
+  queue. Safe no-op outside Tauri. Rust side: `tauri-plugin-notification
+= "2"` in `src-tauri/Cargo.toml`, registered in `lib.rs`,
+  `notification:default` permission in `capabilities/default.json`. 4
+  Vitest cases (granted / lazy-request → granted / denied no-send +
+  drain / outside-Tauri no-op). **Unblocks BLUEPRINT §10 UC3 (Earnings
+  Playbook) and UC5 (Macro Thesis Watcher).**
+- **F9 polish** — refreshed stale doc comments in
+  `plugins/tradesa-v2/panels.ts` (no longer placeholder shells),
+  `sidecar/routers/backtest.py` (loader is wired, no 503 stub),
+  `sidecar/services/{agent_tools,workflow_nodes}/registry_v0_6_0.py`
+  (all five Phase-6 domains live since v0.6.0). Gated 3 `console.info`
+  calls in `plugins/example/index.ts` behind
+  `process.env.NODE_ENV === 'development'` — preserves the pedagogical
+  intent of the demo plugin while silencing production.
+- **F10 BLUEPRINT alignment** — §8 success-criteria + §10 UC1 rewritten
+  to match v0.6.5 polling READ-ONLY Tradesa V2 reality; v0.6.6+ target
+  preserved as a footnote.
+
+**Visual re-capture (R1-R4):**
+
+- `docs/screenshots/v0.7.0/composed/cockpit-{1920x1080,2560x1440}.png`
+  - `cockpit-aapl-{1920x1080,2560x1440}.png` — 5-panel + AI Assistant
+    cockpit at both required resolutions, populated (live yfinance quotes
+  - RSS news with sentiment). The AAPL variants load AAPL into the
+    Equity Overview header. Captured via chrome-devtools MCP at
+    `http://localhost:3000/?sidecar-port=NNNNN` with the F7 dev fallback.
+- `docs/screenshots/v0.7.0/cockpit/chart-tab-1920x1080.png` — Chart panel
+  default state inside the cockpit slot.
+- `docs/screenshots/v0.7.0/README.md` documents the convention applied,
+  the deferred surfaces (Tradesa V2 needs real Supabase; Phase 6
+  modules need operator-led capture for full cockpit re-shoot), and
+  what the captures prove about the F6/F7 runtime fix.
+
+### Autonomous decisions made (Tier-2/3)
+
+1. **Zero teammates (Tier-2).** Scope is sequentially dependent + the
+   screenshot capture needs an interactive Tauri shell + chrome-devtools
+   MCP that worktree isolation cannot reliably reproduce on Windows.
+   Phase 7 brief explicitly authorised 0 teammates as the lower bound.
+2. **`pnpm ci-local` as the parity protocol (Tier-3).** Cheapest viable
+   structural fix; mirrors CI sequence in a single script. No Docker
+   (heavyweight on Windows), no `act` (Windows-runner gaps), no
+   pre-push hook (intrusive and operator hadn't asked).
+3. **`scripts/ensure-all-sidecars.mjs` orchestrator over inlined chain
+   (Tier-3).** Single entry point; easier to extend when a fourth
+   sidecar arrives.
+4. **AAPL canonical ticker + 5-panel cockpit canonical workspace
+   (Tier-3).** AAPL is the only equity ticker appearing in every
+   sampled surface in `docs/screenshots/v0.4.0/`–`v0.6.0/`. 5-panel +
+   AI Assistant cockpit is the v0.4.0 shape carried forward in the
+   most "branded" shots. Solo-panel shots permitted as secondary
+   zoomed shots only.
+5. **License-gate first-launch dialog deferred to Phase 10 (Tier-3).**
+   Operator confirmed in plan-mode question — natural sibling of the
+   LICENSE flip + COMMERCIAL_LICENSE.md promotion work.
+6. **fastmcp metadata fix uses a defensive copy-metadata list
+   (Tier-3).** Adds fastmcp + mcp + anyio + httpx + starlette + uvicorn
+   to PyInstaller's `--copy-metadata`. Bundle size cost is negligible
+   relative to the risk of another silently-broken release.
+7. **`?sidecar-port=` dev fallback is production-safe (Tier-3).** Gated
+   on absence of `__TAURI_INTERNALS__`; param regex-gated to digits.
+   Production Tauri webview always has the internals object so the
+   fallback branch is unreachable in shipped builds.
+8. **Visual re-capture scoped to cockpit hero shots; per-panel surfaces
+   deferred (Tier-3).** Tradesa V2 panels need a real Supabase project;
+   Phase 6 modules' canonical cockpit-shape re-capture needs operator
+   intervention. Documented in `docs/screenshots/v0.7.0/README.md` as
+   Phase 9 operator-led work.
+9. **`pnpm ci-local` discovered drift each iteration — not theatrical
+   (Tier-3).** Iteration #1 → openbb-mcp + sec-edgar PyInstaller
+   issues; #2 → sec-edgar venv ignore + tradesa-v2 asyncio; #3 → ruff
+   format reflow. Each cycle taught the protocol where the gap was;
+   none would have been caught without the structural fix.
+
+### Known issues carried forward to v0.8 / Phase 10
+
+- **Phase 10 (launch ops):** code signing (SignPath / Apple Developer
+  ID / ad-hoc Mac), Tauri auto-updater wiring (pubkey already in
+  `tauri.conf.json` from v0.5.0, `createUpdaterArtifacts: false`),
+  Homebrew cask + AppImage + GitHub Release polish, terminal.vysted.com
+  landing page, LICENSE flip + COMMERCIAL_LICENSE.md promotion + CLA
+  bot + first-launch TOS dialog, v1.0.0 narrative + launch
+  announcement.
+- **v0.6.6+ Tradesa work:** Realtime SSE proxy, write capability,
+  Bybit Demo enrichment, anon-key + Auth migration, MCP tool exposure
+  for the brain-decision log. All gated on upstream Tradesa v0.1.7.0
+  RLS rollout.
+- **v0.8 polish:** re-order default watchlist to put AAPL first (visual
+  convention says AAPL primary anchor; current default has AAPL at
+  position 6); full cockpit-shape re-capture for Phase 6 modules
+  (Macro / SEC / Earnings / Analyst / Screener / Quant); CI sidecar-
+  smoke-test step so a `cf96031`-class runtime bug fails CI instead of
+  shipping silently.
+- **v1.1+ scope (BLUEPRINT §9):** standalone risk analytics panel,
+  light theme + custom themes, alpha_vantage fallback, market profile,
+  multi-window pop-out, standalone central bank tracker + commodity
+  dashboard, filesystem-installed plugin loader.
+
+### Plugin contract status
+
+- **`types/plugin.ts` is unchanged in v0.7.0.** Verified
+  `git diff v0.6.5..v0.7.0 -- types/plugin.ts` empty. **Tier-1 lock
+  held — 9th consecutive release.**
+
+### §6.5 safety surface status
+
+- `git diff v0.6.5..v0.7.0 -- sidecar/services/broker_base.py
+sidecar/services/kill_switch.py sidecar/services/audit_log.py
+sidecar/models/audit_log.py` empty (untouched).
+- §6.5 audit suite expected to remain 9/9 PASS (re-confirmed at the
+  v0.7.0 release commit per the standing protocol).
+
+### Verification snapshot at release
+
+- `pnpm typecheck` clean.
+- `pnpm lint` (eslint) clean.
+- `pnpm format:check` clean.
+- `pnpm test` (vitest) — **588 tests pass** across 81 files (+4 over
+  v0.6.5's 584; the 4 new are the desktop-notification bridge cases).
+- `ruff check sidecar` + `ruff format --check sidecar` clean.
+- `cargo fmt --check` + `cargo clippy -D warnings` expected clean
+  (verified on CI after release commit).
+- Sidecar binary verified booting end-to-end via curl on `/health` +
+  Tauri dev + chrome-devtools MCP populated capture.
+- CI green on all 3 OSes from commit `6f5ec07` onward (F5 iteration
+  #3); the v0.7.0 release commit re-runs to re-confirm.
+
+### Coordination lesson
+
+The `pnpm ci-local` protocol surfaced **3 iterations of latent bugs**
+before CI went green. Each iteration revealed a different class of
+gap that the operator's local `pnpm test` + `pnpm tauri dev` flow had
+missed for ≥1 release. This is exactly what the protocol exists to
+catch — pre-tag verification is now "run `pnpm ci-local`" instead of
+"push and hope". Codified in the new CLAUDE.md Gotcha; every future
+phase lead inherits it.
+
+A complementary structural improvement deferred to v0.8: a CI step
+that briefly executes the built `vysted-sidecar` binary and curls
+`/health`, so a `cf96031`-class PackageNotFoundError-at-runtime fails
+CI instead of shipping silently. Currently CI exercises source-level
+pytest + `tauri build` (which only packages the binary, never runs
+it).
+
+---
+
 ## v0.6.5 — Tradesa V2 wrapper plugin (read-only, first-party) (2026-05-17)
 
 First-party wrapper plugin shipping Lokavya's existing Tradesa V2 multi-

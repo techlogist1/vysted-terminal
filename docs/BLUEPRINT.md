@@ -627,11 +627,60 @@ plugin proving the platform."
   complexity. Per-panel polling cadences (10s positions / 30s decisions
   / 60s settings) deliver equivalent "is the bot alive" UX.
 
-### Phase 7 — Polish + Distribution + Launch
+### Phase 7 — Completion + Polish + Parity
+
+**Shipped in v0.7.0 (2026-05-17).** Plan in
+`docs/superpowers/plans/2026-05-17-phase-7-completion-polish-parity.md`
+(written in-conversation, archived as `binary-popping-penguin.md`);
+handoff at `docs/PHASE_7_HANDOFF.md`. **NOT launch ops** — launch ops
+re-scoped to Phase 10 (signing, distribution, landing page, license
+activation, auto-updater wiring, v1.0.0 narrative).
+
+- CI parity fix ✓ — `scripts/ensure-all-sidecars.mjs` orchestrator +
+  `pnpm ci-local` script + CLAUDE.md Gotcha; CI green on all 3 OSes
+  after 3 iterations that each surfaced previously-hidden bugs.
+- "Graphs not loading" runtime bug fixed ✓ — v0.6.5 sidecar shipped
+  with a `PackageNotFoundError: fastmcp` crash at startup; added
+  `--copy-metadata=fastmcp,mcp,anyio,httpx,starlette,uvicorn` to
+  `scripts/ensure-sidecar.mjs`. Every data-bearing panel works now;
+  the bug was every panel, not just graphs.
+- Desktop-notification bridge ✓ — unblocks BLUEPRINT §10 UC3 + UC5;
+  `src/lib/desktop-notification.ts` + `tauri-plugin-notification` 2.x.
+- Visual consistency convention codified ✓ — AAPL anchor + 5-panel +
+  AI Assistant cockpit + dark + populated semantics + both
+  resolutions + per-release subfolder + header always present.
+- BLUEPRINT §8 + §10 UC1 truth-aligned ✓ — Tradesa V2 promise rewritten
+  to match v0.6.5 polling READ-ONLY reality.
+- v0.7.0 canonical-convention captures shipped in
+  `docs/screenshots/v0.7.0/{composed,cockpit}/`.
+- Plugin contract held — 9th consecutive release with empty
+  `git diff -- types/plugin.ts`.
+
+### Phase 8 — Claude-Code-driven deep audit
+
+Claude-Code MCP-driven audit pass against the now-CI-green, polish-
+clean, visually-consistent codebase. Scope: cross-cutting code review,
+security pass, dead-code scan, BLUEPRINT cross-check, dependency
+freshness. Plan + handoff TBD.
+
+### Phase 9 — Operator manual visual / UX bug pass (Mac)
+
+Operator-led capture session on their primary Mac dev box covering the
+Phase 7-deferred surfaces (Tradesa V2 panels with real Supabase, full
+cockpit-shape re-capture for Phase 6 modules, Node Editor + Backtest
+populated re-captures). Plan + handoff TBD.
+
+### Phase 10 — Launch operations → v1.0.0
+
 - SignPath.io setup for Windows code signing (free OSS application)
-- Tauri auto-updater wired to GitHub Releases
-- Homebrew cask submission
-- terminal.vysted.com full landing page (download button, screenshots, docs)
+- Apple Developer ID / ad-hoc Mac signing path + bypass docs
+- Tauri auto-updater wired to GitHub Releases (pubkey already in
+  `tauri.conf.json`; flip `createUpdaterArtifacts` to true)
+- Homebrew cask submission + AppImage + .deb distribution
+- `terminal.vysted.com` full landing page (download button,
+  screenshots, docs) — separate private repo
+- LICENSE flip + COMMERCIAL_LICENSE.md promotion + CLA bot setup
+- First-launch TOS dialog (§6.5 #8 + BLUEPRINT customization #1)
 - README polish + getting-started docs
 - Tag v1.0.0
 - Launch announcement

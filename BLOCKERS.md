@@ -1,5 +1,71 @@
 # Blockers & Known Issues
 
+Lead-level open items as of v0.7.0. Each release rolls its carry-forwards
+into this file; resolved items become `~~struck through~~`. See
+`CHANGELOG.md` and `docs/PHASE_N_HANDOFF.md` for per-phase context.
+
+## v0.7.0 → Phase 10 carry-forwards (launch ops — explicit non-scope in Phase 7)
+
+1. **Code signing.** SignPath.io free-tier Windows OSS application;
+   Apple Developer ID or ad-hoc Mac signing + `terminal.vysted.com/install/mac`
+   bypass docs; Linux unsigned (AppImage + `.deb`).
+2. **Tauri auto-updater wiring.** Pubkey present in `tauri.conf.json`
+   from v0.5.0; `createUpdaterArtifacts: false` — flip to true and wire
+   the GitHub Releases publish path.
+3. **Distribution channels.** Homebrew cask submission, AppImage build
+   - `.deb` build, GitHub Releases workflow + signed-bundle upload.
+4. **`terminal.vysted.com` landing page.** Separate private repo
+   (operator-owned). Download buttons, screenshots, getting-started
+   docs.
+5. **LICENSE flip + COMMERCIAL_LICENSE.md promotion + CLA bot.** Dual-
+   license activation; `cla-assistant` GitHub App on PRs.
+6. **First-launch TOS dialog.** BLUEPRINT customization #1 + §6.5 #8
+   touchpoint. Grouped with LICENSE flip per the Phase 7 operator
+   decision.
+7. **v1.0.0 narrative + launch announcement.** Tag v1.0.0; post.
+
+## v0.7.0 → v0.6.6+ Tradesa V2 carry-forwards
+
+Same shape as the v0.6.5 carry-forwards section below; documented in
+`docs/PHASE_6.5_HANDOFF.md` §3 and unchanged by v0.7.0.
+
+1. Realtime SSE proxy (replaces per-panel polling).
+2. Write capability (manual position close, pause-bot, approve
+   tuning-proposal) — Tier-4 design per surface.
+3. MCP tool exposure for the brain-decision log.
+4. Anon-key + Auth migration when Tradesa V2 ships v0.1.7.0 RLS.
+5. Optional Bybit Demo position enrichment.
+6. Live `pnpm tauri dev` Tradesa V2 populated-state screenshot pass
+   (Phase 9 operator-led session).
+
+## v0.7.0 → v0.8 polish carry-forwards
+
+1. **CI sidecar-smoke-test step.** Run the built `vysted-sidecar`
+   binary + curl `/health` in CI so a `cf96031`-class
+   `PackageNotFoundError-at-runtime` fails CI instead of shipping
+   silently. The lesson from v0.7.0 F6/F7 — every data-bearing panel
+   in v0.6.5 was broken in production and CI couldn't catch it.
+2. **Default watchlist re-order.** Put AAPL first so the bundled
+   default matches the visual convention's "AAPL primary anchor"
+   (currently AAPL is at position 6 in `src/modules/watchlist/`).
+3. **Full cockpit-shape re-capture for Phase 6 modules.** Macro / SEC
+   / Earnings / Analyst Ratings / Screener / Quant in the canonical
+   5-panel + AI Assistant cockpit at both required resolutions.
+   Deferred to Phase 9 operator-led session per
+   `docs/screenshots/v0.7.0/README.md`.
+4. **Tradesa V2 first-ever populated capture.** Needs real Supabase
+   project; operator-led (item #6 above also).
+5. **CI runtime budget review.** PyInstaller --onefile builds of all
+   three sidecars cold-cache make each CI workflow take ~20-25 min.
+   Cache the binaries (keyed on requirements.txt hash) so CI is fast
+   again.
+
+---
+
+(Pre-v0.7.0 historical content follows; preserved for context. The
+v0.6.x sections below were the canonical carry-forward list at their
+respective release time. New phase leads append above, not within.)
+
 Lead-level open items as of v0.6.0. Per-teammate Phase-6 self-reports
 (BLOCKERS-M.md surfaced T3-M-1 — the `fred-mcp-server` Node.js pivot;
 F / Q / E / Sc surfaced none in-build) were aggregated here at integration
