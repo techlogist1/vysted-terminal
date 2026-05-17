@@ -172,7 +172,7 @@ def stub_provider(monkeypatch: pytest.MonkeyPatch) -> _StubProvider:
     )
     # Also clear the data_cache so settings-drift baseline doesn't bleed
     # across tests.
-    asyncio.get_event_loop().run_until_complete(
+    asyncio.run(
         data_cache.invalidate("tradesa-v2:settings:baseline")
     )
     return stub

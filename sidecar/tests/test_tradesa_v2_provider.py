@@ -172,9 +172,9 @@ def fake_client(monkeypatch: pytest.MonkeyPatch) -> _FakeClient:
 @pytest.fixture(autouse=True)
 def _reset_cache() -> None:
     """Each test runs against an empty data cache (avoids cross-test bleed)."""
-    asyncio.get_event_loop().run_until_complete(data_cache.clear())
+    asyncio.run(data_cache.clear())
     yield
-    asyncio.get_event_loop().run_until_complete(data_cache.clear())
+    asyncio.run(data_cache.clear())
 
 
 def _provider() -> TradesaV2Provider:
@@ -236,7 +236,7 @@ def test_constructor_rejects_empty_key() -> None:
 
 def test_list_open_trades_hits_trades_table_with_open_filter(fake_client: _FakeClient) -> None:
     fake_client.respond("trades", [])
-    asyncio.get_event_loop().run_until_complete(_provider().list_open_trades(limit=25))
+    asyncio.run(_provider().list_open_trades(limit=25))
     chain = fake_client.chains[0]
     assert chain.table == "trades"
     assert ("status", "eq", "open") in chain.filters
@@ -246,25 +246,25 @@ def test_list_open_trades_hits_trades_table_with_open_filter(fake_client: _FakeC
 
 def test_list_closed_trades_filters_status_closed(fake_client: _FakeClient) -> None:
     fake_client.respond("trades", [])
-    asyncio.get_event_loop().run_until_complete(_provider().list_closed_trades())
+    asyncio.run(_provider().list_closed_trades())
     assert ("status", "eq", "closed") in fake_client.chains[0].filters
 
 
 def test_list_decisions_targets_decisions_table(fake_client: _FakeClient) -> None:
     fake_client.respond("decisions", [])
-    asyncio.get_event_loop().run_until_complete(_provider().list_decisions())
+    asyncio.run(_provider().list_decisions())
     assert fake_client.chains[0].table == "decisions"
 
 
 def test_list_meta_agent_runs_optionally_filters_kind(fake_client: _FakeClient) -> None:
     fake_client.respond("meta_agent_runs", [])
-    asyncio.get_event_loop().run_until_complete(_provider().list_meta_agent_runs(kind="director"))
+    asyncio.run(_provider().list_meta_agent_runs(kind="director"))
     assert ("kind", "eq", "director") in fake_client.chains[0].filters
 
 
 def test_get_bot_health_latest_orders_descending_limit_1(fake_client: _FakeClient) -> None:
     fake_client.respond("bot_health", [])
-    asyncio.get_event_loop().run_until_complete(_provider().get_bot_health_latest())
+    asyncio.run(_provider().get_bot_health_latest())
     chain = fake_client.chains[0]
     assert chain.table == "bot_health"
     assert chain.order_spec == ("recorded_at", True)
@@ -273,13 +273,13 @@ def test_get_bot_health_latest_orders_descending_limit_1(fake_client: _FakeClien
 
 def test_list_kill_switch_events_orders_descending(fake_client: _FakeClient) -> None:
     fake_client.respond("kill_switch_events", [])
-    asyncio.get_event_loop().run_until_complete(_provider().list_kill_switch_events())
+    asyncio.run(_provider().list_kill_switch_events())
     assert fake_client.chains[0].order_spec == ("fired_at", True)
 
 
 def test_list_sentinel_blocks_targets_correct_table(fake_client: _FakeClient) -> None:
     fake_client.respond("sentinel_block_counts", [])
-    asyncio.get_event_loop().run_until_complete(_provider().list_sentinel_blocks())
+    asyncio.run(_provider().list_sentinel_blocks())
     assert fake_client.chains[0].table == "sentinel_block_counts"
 
 
@@ -306,7 +306,7 @@ def test_decision_row_with_extra_field_raises(fake_client: _FakeClient) -> None:
         ],
     )
     with pytest.raises(ValidationError, match="rogue_field|extra_forbidden|forbid"):
-        asyncio.get_event_loop().run_until_complete(_provider().list_decisions())
+        asyncio.run(_provider().list_decisions())
 
 
 def test_decision_row_happy_path_maps_to_model(fake_client: _FakeClient) -> None:
@@ -328,7 +328,7 @@ def test_decision_row_happy_path_maps_to_model(fake_client: _FakeClient) -> None
             }
         ],
     )
-    decisions = asyncio.get_event_loop().run_until_complete(_provider().list_decisions())
+    decisions = asyncio.run(_provider().list_decisions())
     assert len(decisions) == 1
     assert decisions[0].action == "OPEN_LONG"
     assert decisions[0].size_pct == 0.07
@@ -342,7 +342,7 @@ def test_decision_row_happy_path_maps_to_model(fake_client: _FakeClient) -> None
 def test_supabase_query_error_raises_typed_provider_error(fake_client: _FakeClient) -> None:
     fake_client.raise_on("trades")
     with pytest.raises(TradesaProviderError) as exc_info:
-        asyncio.get_event_loop().run_until_complete(_provider().list_open_trades())
+        asyncio.run(_provider().list_open_trades())
     assert exc_info.value.status == "supabase-error"
     assert "trades" in str(exc_info.value)
 
@@ -362,7 +362,7 @@ def test_client_init_failure_surfaces_supabase_error(monkeypatch: pytest.MonkeyP
 
     provider = _provider()
     with pytest.raises(TradesaProviderError) as exc_info:
-        asyncio.get_event_loop().run_until_complete(provider.list_open_trades())
+        asyncio.run(provider.list_open_trades())
     assert exc_info.value.status == "supabase-error"
 
 
@@ -393,7 +393,7 @@ def test_probe_connection_healthy_with_fresh_heartbeat(fake_client: _FakeClient)
             {"key": "kill_switch_engaged", "value": "false"},
         ],
     )
-    state = asyncio.get_event_loop().run_until_complete(_provider().probe_connection())
+    state = asyncio.run(_provider().probe_connection())
     assert state.status == "healthy"
     assert state.heartbeat_age_s is not None and state.heartbeat_age_s < 60
     assert state.bot_mode == "paper"
@@ -403,21 +403,21 @@ def test_probe_connection_healthy_with_fresh_heartbeat(fake_client: _FakeClient)
 def test_probe_connection_bot_offline_when_heartbeat_stale(fake_client: _FakeClient) -> None:
     fake_client.respond("bot_health", [_heartbeat_row(900)])  # 15 min ago
     fake_client.respond("bot_settings", [])
-    state = asyncio.get_event_loop().run_until_complete(_provider().probe_connection())
+    state = asyncio.run(_provider().probe_connection())
     assert state.status == "bot-offline"
     assert state.heartbeat_age_s is not None and state.heartbeat_age_s > 300
 
 
 def test_probe_connection_bot_offline_when_no_heartbeat_rows(fake_client: _FakeClient) -> None:
     fake_client.respond("bot_health", [])
-    state = asyncio.get_event_loop().run_until_complete(_provider().probe_connection())
+    state = asyncio.run(_provider().probe_connection())
     assert state.status == "bot-offline"
     assert "never reported" in state.message.lower()
 
 
 def test_probe_connection_supabase_error_when_query_fails(fake_client: _FakeClient) -> None:
     fake_client.raise_on("bot_health")
-    state = asyncio.get_event_loop().run_until_complete(_provider().probe_connection())
+    state = asyncio.run(_provider().probe_connection())
     assert state.status == "supabase-error"
 
 
@@ -436,7 +436,7 @@ def test_probe_connection_partial_when_recorded_at_missing(fake_client: _FakeCli
             }
         ],
     )
-    state = asyncio.get_event_loop().run_until_complete(_provider().probe_connection())
+    state = asyncio.run(_provider().probe_connection())
     assert state.status == "partial"
 
 
@@ -459,8 +459,8 @@ def test_bot_settings_cached_on_second_call(fake_client: _FakeClient) -> None:
         ],
     )
     p = _provider()
-    asyncio.get_event_loop().run_until_complete(p.list_bot_settings())
-    asyncio.get_event_loop().run_until_complete(p.list_bot_settings())
+    asyncio.run(p.list_bot_settings())
+    asyncio.run(p.list_bot_settings())
     # Exactly one supabase chain — second call served from data_cache.
     chains_on_bot_settings = [c for c in fake_client.chains if c.table == "bot_settings"]
     assert len(chains_on_bot_settings) == 1
@@ -469,8 +469,8 @@ def test_bot_settings_cached_on_second_call(fake_client: _FakeClient) -> None:
 def test_sentinel_blocks_cached(fake_client: _FakeClient) -> None:
     fake_client.respond("sentinel_block_counts", [])
     p = _provider()
-    asyncio.get_event_loop().run_until_complete(p.list_sentinel_blocks())
-    asyncio.get_event_loop().run_until_complete(p.list_sentinel_blocks())
+    asyncio.run(p.list_sentinel_blocks())
+    asyncio.run(p.list_sentinel_blocks())
     chains = [c for c in fake_client.chains if c.table == "sentinel_block_counts"]
     assert len(chains) == 1
 
@@ -555,7 +555,7 @@ def test_cost_today_uses_precomputed_rollup_when_available(fake_client: _FakeCli
             }
         ],
     )
-    rollup = asyncio.get_event_loop().run_until_complete(_provider().get_cost_today())
+    rollup = asyncio.run(_provider().get_cost_today())
     assert rollup.total_usd == pytest.approx(0.15)
     assert rollup.by_model["deepseek-v3-pro"] == pytest.approx(0.12)
 
@@ -570,6 +570,6 @@ def test_cost_today_falls_back_to_runs_when_rollup_missing(fake_client: _FakeCli
             {"model": "gemini-2-flash", "cost_usd": 0.03},
         ],
     )
-    rollup = asyncio.get_event_loop().run_until_complete(_provider().get_cost_today())
+    rollup = asyncio.run(_provider().get_cost_today())
     assert rollup.total_usd == pytest.approx(0.15)
     assert rollup.by_model["deepseek-v3-pro"] == pytest.approx(0.12)
