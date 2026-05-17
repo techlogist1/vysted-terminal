@@ -32,10 +32,33 @@ export class SidecarError extends Error {
 
 let cachedBaseUrl: string | null = null;
 
-/** Resolve (and cache) the sidecar's HTTP base URL via the Tauri core. */
+/**
+ * Resolve (and cache) the sidecar's HTTP base URL.
+ *
+ * Inside the Tauri shell the port is read from the Rust core via
+ * `invoke("get_sidecar_port")` — the canonical production path.
+ *
+ * **Dev-mode fallback** (added v0.7.0 F7): when running standalone in a
+ * regular browser (e.g. chrome-devtools MCP pointed at
+ * `http://localhost:3000` while `pnpm tauri dev` is running in
+ * parallel), Tauri's `invoke` is unavailable. The fallback honours a
+ * `?sidecar-port=NN` query param and points the frontend at
+ * `http://127.0.0.1:NN` — the operator finds the live port in Tauri
+ * dev's stdout log (`[vysted] Python sidecar healthy on
+ * 127.0.0.1:NNNNN`) and pastes it into the URL. Gated on the absence
+ * of `__TAURI_INTERNALS__`, so it never short-circuits inside the
+ * production Tauri webview.
+ */
 export async function getSidecarBaseUrl(): Promise<string> {
   if (cachedBaseUrl !== null) {
     return cachedBaseUrl;
+  }
+  if (typeof window !== "undefined" && !("__TAURI_INTERNALS__" in window)) {
+    const urlParam = new URLSearchParams(window.location.search).get("sidecar-port");
+    if (urlParam && /^\d+$/.test(urlParam)) {
+      cachedBaseUrl = `http://127.0.0.1:${urlParam}`;
+      return cachedBaseUrl;
+    }
   }
   const port = await invoke<number>("get_sidecar_port");
   cachedBaseUrl = `http://127.0.0.1:${port}`;
