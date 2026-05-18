@@ -206,7 +206,7 @@ through the main sidecar — `/sec-edgar-mcp/status` returns 404. That's
 itself a minor S3 (asymmetry with `/openbb-mcp/status`) but the L9 broker
 section / a separate cross-cutting entry is the right place.
 
-### Finding UC1-health-version-stale [S2] [status: open]
+### Finding UC1-health-version-stale [S2] [status: fixed pending-rebuild]
 
 **Repro:** `curl http://127.0.0.1:54108/health` returns
 `{"status":"ok","service":"vysted-sidecar","version":"0.2.1",...}`. Project
