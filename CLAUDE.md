@@ -555,6 +555,31 @@ bootstrap.ts:39 HOST_VERSION` had been at `"0.6.5"` for 4 releases —
   port-bind probe + missing endpoint-data probe). Real bugs are
   stronger evidence than synthetic breaks AND save ~100 min CI wall.
   Apply this pattern in future meta-verification sprints.
+- **Tag commits ship green CI, not "pending verification."** v0.8.0
+  tag (`5bed299`) shipped with `CI green on all 3 OSes at tag commit
+(post-tag verification)` marked **pending** in the Phase-8 handoff.
+  The verification was never closed out, and 16 consecutive `lint.yml`
+  failures × 3 OSes = 48 failed-job notifications accrued across the
+  ~30-min Phase-8 sprint window before the v0.8.1 hygiene sprint
+  cleaned them up. Root cause was trivial: 9 audit-teammate docs were
+  committed without `pnpm format` ever being run on them — `format:check`
+  rejected them on every push. The existing gotcha **`pnpm ci-local`
+  before every tag commit** had been treated as best-effort.
+  **Reinterpret as a hard gate**: if `ci-local` is skipped or fails at
+  tag time, the tag is invalid — fix CI first, re-tag if necessary.
+  **Cheaper minimum** for in-sprint commits: `pnpm format:check`
+  (≤5 s) before every push to `main` — the lightest step in
+  `ci-local`, and the one that would have caught the whole Phase-8
+  streak in zero time. Two related sub-lessons surfaced during the
+  hygiene sprint: (a) `prettier --write` on a markdown file with
+  unescaped underscores adjacent to closing parens (`ccxt-_)`) may
+  need a **second pass** to converge — a known prettier markdown
+  idempotency quirk; running `pnpm format` twice is the safe fix. (b)
+  Piping a long-running command through `tee` or `Out-File` masks the
+  upstream exit code; check `$LASTEXITCODE` against the underlying
+  process or use `Tee-Object`'s `-PassThru` semantics, never trust the
+  background-task wrapper's exit code if you piped. v0.8.1 sprint
+  summary: `docs/PHASE_8.1_CI_REPAIR.md`.
 
 ## Per-phase handoff
 
