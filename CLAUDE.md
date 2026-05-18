@@ -496,6 +496,65 @@ scripts/smoke-test-sidecars.mjs` before every release tag. CI runs
   tracked PID, (d) refuse to start if `Get-Process vysted-*` (Win) or
   `pgrep -f vysted-.*sidecar` (POSIX) returns any PID (pre-flight
   orphan check). The smoke-test script implements all four.
+- **PyInstaller `--add-data` is the THIRD bundle-inclusion pattern**
+  beyond `--copy-metadata` (importlib.metadata version probes) and
+  `--collect-data` (pkgutil resource data inside a package). When source
+  loads a JSON/text file via `Path(__file__).resolve().parent / "dir-
+name"` and `dir-name` is NOT a Python package (no `__init__.py`),
+  PyInstaller's auto-discovery skips it. Use `--add-data
+"abs/src:dest"` (POSIX) or `--add-data "abs\\src;dest"` (Windows).
+  Windows traps: (a) cmd.exe interprets unquoted `;` as a command
+  separator — wrap the value in double quotes; (b) PyInstaller
+  resolves SOURCE relative to `--specpath`, not cwd — use an absolute
+  path. v0.8.0 finding `L3-agents-dir-not-bundled` was a 3-release-
+  silent runtime bug for the `agents/` dir; every named first-party
+  agent (Buffett, Dalio, Druckenmiller, Graham, Klarman, Lynch, Marks,
+  Munger, Portfolio Advisor, Researcher, Soros, Strategy Critic) was
+  unavailable at runtime — `/agents` returned `[]`. Fixed in v0.8.0.
+- **Smoke-test gate "alive after 10 s" is shallow for MCP subprocesses.**
+  `scripts/smoke-test-sidecars.mjs` only checks `(child.exitCode == null)
+after 10 s` for the openbb-mcp + sec-edgar-mcp binaries. A subprocess
+  can be alive but never bind to its port — v0.8.0 finding
+  `UC1-openbb-mcp-not-listening` was a silent regression where the
+  spawn-success log line lied. The v0.8.0 Rust fix
+  (`src-tauri/src/{openbb_mcp,sec_edgar_mcp}.rs` calls the shared
+  `crate::wait_for_port` helper after `Command::spawn` returns) converts
+  silent failure into graceful degradation (port=0 → routes fall back
+  to yfinance / 501). **The smoke-test itself is also gapped:** it
+  should TCP-probe the claimed port + verify load-bearing endpoints
+  (`/agents` count > 0). v0.8.x polish carry-forward in BLOCKERS.md.
+- **Version drift across multiple sources of truth.** The v0.8.0
+  release lead found two stale hardcoded version strings: `routers/
+health.py:18` had been at `"0.2.1"` for 5 releases; `src/lib/plugin-
+bootstrap.ts:39 HOST_VERSION` had been at `"0.6.5"` for 4 releases —
+  both behind the canonical `package.json` + `Cargo.toml` +
+  `tauri.conf.json` + `sidecar/app.py FastAPI(version=...)`. v0.8.0
+  derives `/health` from `request.app.version` and bumps `HOST_VERSION`
+  to match. **Rule**: at version-bump time, `grep -rn '"0\.[0-9]\+\.[
+0-9]\+"' --include='*.{ts,py,rs,toml,json}'` to find new source-of-
+  truth strings; prefer deriving from canonical over duplicating.
+- **Cross-project paste filter on rejection feedback.** When the
+  operator rejects a plan and the "fix this" payload references
+  concepts absent from the actual plan (e.g. systemd `NRestarts` /
+  `MainPID`, `bot_llm_spend` wipe, VPS HEAD SHAs, graphify deep mode
+  for a Tauri desktop app), the most likely explanation is a cross-
+  project paste-error. Flag the mismatch + AskUserQuestion before
+  applying; don't apply Tradesa-flavoured fixes to a Vysted plan
+  verbatim. v0.8.0 memory entry `feedback-cross-project-paste`.
+- **CORS-error-masks-500 diagnostic trap.** FastAPI's `CORSMiddleware`
+  doesn't add CORS headers to exception responses by default. A
+  500-with-no-CORS-header surfaces in the browser console as "Access
+  blocked by CORS policy" — the ACTUAL cause is the 500, but the
+  diagnostic surface points at CORS. v0.8.0 L2/UC1 hit this — direct-
+  curl the endpoint to distinguish a CORS misconfiguration from a
+  500-without-CORS-headers before chasing CORS config changes.
+- **Empirical-evidence audit > synthetic-break audit (L4 lesson).**
+  The Phase 8 L4 gate meta-verification pivoted from "4 throwaway-branch
+  CI cycles" to "classify each gate by real bugs that did or didn't
+  bypass it". L2/L3 surfaced two real gate gaps (smoke-test missing
+  port-bind probe + missing endpoint-data probe). Real bugs are
+  stronger evidence than synthetic breaks AND save ~100 min CI wall.
+  Apply this pattern in future meta-verification sprints.
 
 ## Per-phase handoff
 
