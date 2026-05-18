@@ -744,6 +744,19 @@ with a comment: `// unknown not any — type-hardened per v0.5.0 Tier-3 decision
    toward the "38 modules functional" criterion in §8.
 3. **D-5** (S2) — §4 Module 18 alpha_vantage fallback is not implemented; never has been.
 
+### Additional finding — monte_carlo.py: 0% coverage [S2]
+
+`services/quant/monte_carlo.py` (48 lines, lines 20–179 missed) has zero test coverage.
+The module implements Monte Carlo simulation for options pricing. No corresponding
+`test_quant_monte_carlo.py` exists. `test_quant_options.py` tests `options.py` (99%
+coverage) but does not call into `monte_carlo.py`. Since the QuantLib Phase 6 roadmap
+item was deferred, this module is at risk of silently rotting.
+
+**Suggested fix (Phase 9 candidate):** Add `sidecar/tests/test_quant_monte_carlo.py` with
+at least a basic `run_simulation()` call and bounds-check on the returned paths array.
+
+---
+
 ### Items not audited
 
 - **Rust/Tauri surface coverage** — out of scope for T5 (T3 teammate handles).
