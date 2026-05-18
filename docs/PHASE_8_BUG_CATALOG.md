@@ -79,7 +79,194 @@ v0.7.0..HEAD | grep -c '^[a-f0-9]\+ fix(phase-8/'`) determines the tag prefix:
 Exercise: Tradesa V2 wrapper panels (READ-ONLY) → AI Risk Analyst review →
 backtest a strategy.
 
-_(empty — L2 fills as the exercise runs)_
+**Exercise environment:** `pnpm tauri dev` (PID 69468) + Chrome via
+chrome-devtools MCP at `http://localhost:3000/?sidecar-port=54108`
+(F7 fallback path). Main sidecar `127.0.0.1:54108`; openbb-mcp claimed at
+`:54109`; sec-edgar-mcp claimed at `:54111`; ports per `[openbb-mcp]
+subprocess spawned on 127.0.0.1:54109` log line at boot.
+
+### Finding UC1-fundamentals-500 [S1] [status: open]
+
+**Repro:**
+1. `pnpm tauri dev`, wait for `[vysted] Python sidecar healthy on
+   127.0.0.1:NNNNN` log line.
+2. In any webview (Tauri or Chrome at `?sidecar-port=NNNNN`), open Equity
+   Overview tab, enter `AAPL`, click Load.
+3. Equity Overview header populates (price+change from `/quotes/AAPL`).
+4. **All 5 fundamentals sections (Valuation Ratios, Analyst Ratings, Income
+   Statement, Balance Sheet, Cash Flow) show "Unavailable".**
+5. `curl http://127.0.0.1:NNNNN/fundamentals/AAPL` returns **HTTP 500
+   Internal Server Error** with body `Internal Server Error`.
+6. Sidecar log shows full traceback: `routers/fundamentals.py:45 → services/
+provider_registry.py:62 → services/openbb_mcp_provider.py:364 →
+openbb_mcp_provider.py:244 _call_tool → services/mcp_client.py:165
+call_tool → 124 _ensure_session → 111 _open → asyncio/tasks.py:507
+wait_for → mcp/client/session.py:171 initialize → mcp/shared/session.py:
+292 send_request → anyio/streams/memory.py:125 receive → asyncio/locks.py:
+213 wait → **`asyncio.exceptions.CancelledError: Cancelled via cancel
+scope`**.`
+7. Secondary error: `RuntimeError('Attempted to exit cancel scope in a
+   different task than it was entered in')`.
+
+**Impact:** Every fundamentals-using surface broken — Equity Overview empty,
+AI Risk Analyst (UC1) can't use fundamentals tool, Research Workflow (UC2)
+fails, Academic Researcher (UC4) partial, Screener (Phase 6) likely fails.
+This is a Tier-S1 blocker for UC2 + downstream of UC1's AI Risk Analyst
+flow.
+
+**Suggested fix:** The `mcp_client._open()` call to openbb-mcp's `:54109/mcp`
+hangs because **the openbb-mcp subprocess is not actually listening on its
+assigned port** (see UC1-openbb-mcp-not-listening below — the two findings
+are linked). Fix the subprocess-port-binding root cause; verify the
+`mcp_client._open()` survives the post-binding retry; consider tightening
+the `_open` timeout so a stuck MCP subprocess surfaces as a 503/504 instead
+of a 500 CancelledError after the request-handler-timeout fires.
+
+**Files:**
+- `sidecar/routers/fundamentals.py:45,51,57,69` — 4 endpoints, all 500
+- `sidecar/services/openbb_mcp_provider.py:244,364`
+- `sidecar/services/mcp_client.py:111,124,165`
+
+**Notes:** Same anyio cancel-scope pattern documented in CLAUDE.md gotcha
+"Spawn subprocess servers via Tauri Rust `Command::new`, not Python
+`subprocess.Popen`" — but spawn-via-Rust is already in place here; the
+deadlock is downstream of spawn (the binding step). The subprocess itself
+is alive (PIDs 47292+64484 per `Get-Process vysted-openbb-mcp-sidecar`),
+just not bound to its port.
+
+### Finding UC1-openbb-mcp-not-listening [S1] [status: open]
+
+**Repro:**
+1. After `pnpm tauri dev` boots, sidecar log claims `[openbb-mcp] subprocess
+   spawned on 127.0.0.1:54109`.
+2. `Get-Process vysted-openbb-mcp-sidecar` shows 2 processes alive
+   (bootloader + worker child — normal PyInstaller `--onefile` shape).
+3. `Get-NetTCPConnection -State Listen -LocalPort 54109` returns **empty**
+   — nothing listening on the claimed port.
+4. `curl http://127.0.0.1:54109/health` returns
+   `Failed to connect to 127.0.0.1 port 54109 after 2039 ms: Could not
+connect to server`.
+5. `curl http://127.0.0.1:54108/openbb-mcp/status` returns
+   `{"available":true,"endpoint":"http://127.0.0.1:54109/mcp",
+"lastToolCallOk":null,"lastError":null}` — the **main sidecar lies** about
+   subprocess health; "available" returns true even though the subprocess
+   is not actually serving.
+
+**Impact:** Direct cause of UC1-fundamentals-500. Every MCP-routed feature
+(fundamentals, ratings, macro, earnings, options, screener, bonds, yield
+curve, analyst ratings) likely broken. Same likely applies to sec-edgar-mcp
+(see UC1-sec-edgar-mcp-not-listening below). Phase 6 modules (Macro / SEC /
+Earnings / Analyst Ratings / Screener / Quant) all affected. **UC2, UC4,
+UC5 cannot complete; UC1 AI Risk Analyst tool-use partial; UC3 earnings
+calendar fails.**
+
+**Suggested fix:** Two paths to investigate:
+1. **MCP subprocess deadlocks during port-bind.** Add a `--port` arg-echo
+   on startup so the subprocess prints `[openbb-mcp] bound on port NNNN`
+   only AFTER successful bind, and Tauri Rust polls for that line before
+   declaring spawn success.
+2. **Health-probe the subprocess from Tauri Rust** before returning from
+   spawn. Rust currently spawns and trusts; should poll the subprocess's
+   `/mcp` endpoint up to ~10 s.
+
+The `/openbb-mcp/status` "available" check should ALSO probe the
+subprocess's port, not just `subprocess.poll() is None` (or whatever the
+shallow check is).
+
+**Files:**
+- `src-tauri/src/openbb_mcp.rs` (Rust spawn lifecycle)
+- `sidecar/services/openbb_mcp_provider.py` (status probe)
+
+**Notes:** Smoke-test in `scripts/smoke-test-sidecars.mjs` only checks "is
+alive after 10 s" — doesn't probe binding. This finding is also a gap in
+the smoke-test gate; **L4 meta-verification should add a `verify-port-
+binding` step** (per Phase 8 plan). Also flagged: F2 candidate for smoke-
+test enhancement.
+
+### Finding UC1-sec-edgar-mcp-not-listening [S1] [status: open]
+
+**Repro:**
+1. After `pnpm tauri dev` boot, sidecar log shows `[sec-edgar-mcp]
+   subprocess spawned on 127.0.0.1:54111`.
+2. `Get-Process vysted-sec-edgar-mcp-sidecar` shows 2 processes alive
+   (bootloader + worker child).
+3. `Get-NetTCPConnection -State Listen -LocalPort 54111` returns empty.
+4. `curl http://127.0.0.1:54111/mcp` connection refused.
+
+**Impact:** SEC filing fetches (Phase 6 SEC module) fail. UC4 Academic
+Researcher (custom agent + SEC + sentiment) **cannot complete** because the
+SEC tool can't be invoked through the agent.
+
+**Suggested fix:** Same root cause + fix as UC1-openbb-mcp-not-listening.
+Same `src-tauri/src/sec_edgar_mcp.rs` (analogous to `openbb_mcp.rs`) needs
+the post-bind health probe.
+
+**Notes:** sec-edgar-mcp doesn't have an HTTP `/status` endpoint exposed
+through the main sidecar — `/sec-edgar-mcp/status` returns 404. That's
+itself a minor S3 (asymmetry with `/openbb-mcp/status`) but the L9 broker
+section / a separate cross-cutting entry is the right place.
+
+### Finding UC1-health-version-stale [S2] [status: open]
+
+**Repro:** `curl http://127.0.0.1:54108/health` returns
+`{"status":"ok","service":"vysted-sidecar","version":"0.2.1",...}`. Project
+is at v0.7.0+. **Version drift = 5 releases.**
+
+Root cause: `sidecar/routers/health.py:18` hardcodes `"version": "0.2.1"`.
+The CLAUDE.md release-bump checklist names `sidecar/app.py FastAPI(version=
+...)` — that string IS at 0.7.0 (correct) — but the actual `/health`
+endpoint returns from `routers/health.py:18` which is independent and was
+never bumped.
+
+**Impact:** Any consumer reading `/health.version` (CI smoke-test, an
+operator's diagnostic curl, the auto-updater, a third-party plugin) sees a
+stale version. The auto-updater isn't wired yet (Phase 10) so the immediate
+blast radius is small but the misreport is misleading.
+
+**Suggested fix:** One-line change in `routers/health.py` — replace
+hardcoded string with dynamic lookup from `app.version` (inject via
+`Depends` or `request.app.version`). One-commit hot-patch candidate (F2).
+
+**Files:**
+- `sidecar/routers/health.py:18` (the stale hardcode)
+- `sidecar/app.py:140` (the correct, current source of truth)
+
+**Notes:** CLAUDE.md release-bump checklist should be **extended** to
+"…sidecar/app.py FastAPI(version=…) AND sidecar/routers/health.py:18
+hardcode…" so the next release lead bumps both. H2 carry-forward.
+
+### Finding UC1-cors-error-masks-500 [S3] [status: open]
+
+**Repro:** Browser console reports `Access to fetch at 'http://127.0.0.1:
+54108/fundamentals/AAPL' from origin 'http://localhost:3000' has been
+blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present
+on the requested resource.`
+
+Root cause: the underlying response IS a 500. FastAPI's `CORSMiddleware`
+(configured at `sidecar/app.py:145-149` with `allow_origins=["*"]`)
+**does not add CORS headers to exception/error responses** by default. The
+500 response has no `Access-Control-Allow-Origin`, so the browser
+classifies it as a CORS rejection. The actual cause (500 from
+`fundamentals` openbb-mcp deadlock) is hidden behind this misleading CORS
+message.
+
+**Impact:** Diagnostic delay — operator sees "CORS error" + assumes
+fallback-path CORS bug; actually backend 500. Adds ~10 min to root-cause
+analysis. **Found this myself in the L2 walk** — could affect Phase 9
+operator manual test.
+
+**Suggested fix:** FastAPI's CORS middleware can be configured to also
+handle errors via custom exception handler that returns CORS headers. Or
+swap the order of middleware so CORS wraps every response including 500s.
+Or document the gotcha in CLAUDE.md so the next operator doesn't get
+fooled. The first is a real fix; the third is an acceptable S3 mitigation.
+
+**Files:**
+- `sidecar/app.py:145-149` (CORSMiddleware config)
+
+**Notes:** This is purely a developer-experience issue — once Tauri webview
+runs in production it doesn't see the CORS error because the Tauri shell's
+fetch behavior differs from raw Chrome. S3 because operator-only.
 
 ## §10 UC2 — Research Workflow
 
