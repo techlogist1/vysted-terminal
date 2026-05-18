@@ -329,6 +329,8 @@ One observation: the global-shortcut plugin is initialized inside `kill_switch::
 
 **Cargo.lock root package check:** `vysted-terminal` version in `Cargo.lock` = `0.7.0` ✓ (matches `Cargo.toml`). The CLAUDE.md gotcha about version drift is satisfied for this release.
 
+**Special attention verdict:** openbb_mcp.rs and sec_edgar_mcp.rs both confirmed to have the bind-probe gap (S1). keychain.rs features are intact. lib.rs registrations complete.
+
 ---
 
 ## Summary
