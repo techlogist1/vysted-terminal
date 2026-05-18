@@ -85,7 +85,7 @@ chrome-devtools MCP at `http://localhost:3000/?sidecar-port=54108`
 `:54109`; sec-edgar-mcp claimed at `:54111`; ports per `[openbb-mcp]
 subprocess spawned on 127.0.0.1:54109` log line at boot.
 
-### Finding UC1-fundamentals-500 [S1] [status: open]
+### Finding UC1-fundamentals-500 [S1] [status: fixed-downstream-degraded]
 
 **Repro:**
 1. `pnpm tauri dev`, wait for `[vysted] Python sidecar healthy on
@@ -134,7 +134,7 @@ deadlock is downstream of spawn (the binding step). The subprocess itself
 is alive (PIDs 47292+64484 per `Get-Process vysted-openbb-mcp-sidecar`),
 just not bound to its port.
 
-### Finding UC1-openbb-mcp-not-listening [S1] [status: open]
+### Finding UC1-openbb-mcp-not-listening [S1] [status: fixed-by-bb1c300 (port-bind probe; underlying deadlock = v0.8.x carry-forward)]
 
 **Repro:**
 1. After `pnpm tauri dev` boots, sidecar log claims `[openbb-mcp] subprocess
@@ -183,7 +183,7 @@ the smoke-test gate; **L4 meta-verification should add a `verify-port-
 binding` step** (per Phase 8 plan). Also flagged: F2 candidate for smoke-
 test enhancement.
 
-### Finding UC1-sec-edgar-mcp-not-listening [S1] [status: open]
+### Finding UC1-sec-edgar-mcp-not-listening [S1] [status: fixed-by-bb1c300 (port-bind probe; underlying deadlock = v0.8.x carry-forward)]
 
 **Repro:**
 1. After `pnpm tauri dev` boot, sidecar log shows `[sec-edgar-mcp]
@@ -390,7 +390,7 @@ resolves at runtime). Scans for `importlib.resources`, `pkgutil.get_data`,
 `__file__`-relative path joins, `pkg_resources.resource_*` in the main
 sidecar + openbb-mcp + sec-edgar-mcp + their transitive deps.
 
-### Finding L3-agents-dir-not-bundled [S1] [status: open]
+### Finding L3-agents-dir-not-bundled [S1] [status: fixed-by-9c14955 (--add-data + ensure-sidecar.mjs); verified runtime — 12 agents served instead of 0]
 
 **Repro:**
 1. `curl http://127.0.0.1:54108/agents` returns **`[]`** (empty list).

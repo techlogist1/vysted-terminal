@@ -36,7 +36,7 @@ import type { CommandResult } from "../../types/plugin";
 import type { PluginManifest, PluginPersistedConfig } from "../../types/plugin-runtime";
 
 /** Host (Vysted Terminal) semver — handed to plugins via `PluginConfig.hostVersion`. */
-const HOST_VERSION = "0.6.5";
+const HOST_VERSION = "0.8.0";
 
 /** How often the runtime polls every active plugin's `healthCheck()`. */
 const HEALTH_POLL_INTERVAL_MS = 30_000;
