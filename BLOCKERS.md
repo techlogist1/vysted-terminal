@@ -1,8 +1,116 @@
 # Blockers & Known Issues
 
-Lead-level open items as of v0.7.0. Each release rolls its carry-forwards
+Lead-level open items as of v0.8.0. Each release rolls its carry-forwards
 into this file; resolved items become `~~struck through~~`. See
 `CHANGELOG.md` and `docs/PHASE_N_HANDOFF.md` for per-phase context.
+
+## v0.8.0 → Phase 9 carry-forwards (operator manual Mac test)
+
+Phase 8 deep-audit findings that are best exercised by a human operator
+running the Tauri shell with real credentials + macOS:
+
+1. **BYOK provider keys (L8 deferred).** Each provider (Anthropic /
+   OpenAI / Google / Groq / Mistral / Cohere / Ollama) needs first-token-
+   latency measurement (deferred from L6 perf baseline). Procedure in
+   `docs/PHASE_8_PERF_BASELINE.md` "Agent first-token latency" section.
+2. **Broker paper-mode connect (L9 deferred).** Alpaca paper most
+   accessible; remaining 6 brokers need failure-state UX verification
+   where credentials missing. **Note:** even after F1 fix, the 4 non-
+   India broker adapters (Alpaca, IB, OANDA, ccxt-exec) are not in
+   `BUNDLED_PLUGINS` or `bootstrap_default_adapters` (T4-brokers-not-
+   registered + X-broker-bootstrap-india-only). Phase 9 to confirm + fix.
+3. **Workflow + backtest cross-cutting (L10 deferred).** Verify F1 fix
+   for openbb-mcp deadlock actually unblocks the chain in production
+   (test_rebuilt sidecar showed openbb-mcp "unavailable" gracefully — the
+   underlying deadlock still needs a real fix).
+4. **Tradesa V2 6-state capture** with real Supabase project. T1 wrote
+   the procedure (`docs/PHASE_8_VISUAL_REGRESSION_REPORT.md` Part B).
+5. **Light theme audit** + **axe-core a11y audit** + **Lighthouse perf**
+   against the live Tauri shell.
+6. **macOS code-signing shake-out** (Apple Developer ID or ad-hoc).
+7. **The openbb-mcp + sec-edgar-mcp startup deadlock root cause.** F1
+   port-bind probe converts silent failure to clean degradation, but the
+   underlying deadlock (likely PyInstaller `_MEIPASS` + Windows handle
+   inheritance per CLAUDE.md Gotcha) still needs a real fix. Investigate
+   the openbb-mcp-server / sec-edgar-mcp packages' streamable-http
+   transport for the deadlock site. Phase 9/10 investigation target.
+
+## v0.8.0 → v0.8.x polish carry-forwards (S2 + S3 findings)
+
+From Phase 8 audit. Per-finding detail in
+`docs/PHASE_8_BUG_CATALOG.md` and the 5 teammate audit docs.
+
+### S1 deferred (test-only — feature works, test gap is the bug)
+
+1. **T5-safety-store-reset-ks** — `resetKillSwitch()` (`src/store/safety.ts:
+230`) entirely untested. The POST body field `reAck: true` has never been
+   asserted; camelCase/snake_case drift would permanently lock the kill
+   switch with no test catching it. §6.5-adjacent.
+2. **T5-broker-base-invalid-order-type** — `propose_order()` raises
+   `BrokerError` on invalid `order_type` but test only covers invalid
+   `side` and zero quantity. §6.5-adjacent.
+
+   Both are test-additions; feature itself works. Add tests in v0.8.x to
+   tighten the §6.5 invariant boundary.
+
+### S2 — fix in v0.8.x
+
+1. **T2-mypy-llm-override** — 4 LLM adapter `stream_chat` signatures
+   incompatible with ABC. Remove `async` from ABC declaration.
+2. **T2-mypy-macro-provider-literal** + **T2-mypy-fred-frequency-literal** —
+   annotate `PROVIDER` and frequency/seasonal-adjustment params as
+   `Literal[...]` instead of `str`.
+3. **T2-autobahn-cve** — `autobahn==19.11.2` has CVE-2020-35678 in an
+   unused code path (`KiteTicker` WebSocket; we use REST). Pin
+   `autobahn>=20.12.3` as cheap insurance.
+4. **T3-significant-drop-scrutinee** — 3 `kill()` closures hold MutexGuard
+   through `if let Some(...)`. Extract `.take()` to local binding.
+5. **T4-brokers-not-registered** — register the 7 broker plugins in
+   `BUNDLED_PLUGINS` (or document the deferred dynamic-load path).
+   Pairs with `bootstrap_default_adapters` extension to non-India brokers.
+6. **T4-connection-keychain + T4-settings-dialog-keychain** — Tradesa V2
+   plugin reaches into `@/lib/keychain` + `@/lib/sidecar-client`. Should
+   use `PluginConfig.sidecarBaseUrl` + `PluginConfig.secrets`. Part of
+   v0.6.6+ Tradesa V2 work.
+7. **T5-openbb-mcp-provider-fallback-paths** — yfinance fallback path
+   untested at registry level. Add coverage. Pairs with the deadlock fix
+   (#7 above).
+8. **L3-smoke-test-empty-data-gap + L4 smoke-test enhancements** —
+   extend `scripts/smoke-test-sidecars.mjs` to TCP-probe MCP subprocess
+   ports + verify load-bearing endpoints (`/agents` count > 0).
+9. **D-7 BLUEPRINT drift** — update §10 UC2/UC4 to acknowledge the v0.7.0/
+   v0.8.0 MCP subprocess gap + the F1 port-bind probe degradation. Or
+   wait until the underlying deadlock is actually fixed (carry-forward #7).
+10. **D-4 BLUEPRINT drift** — §4 Module 7 light-theme overclaim. Either
+    update BLUEPRINT or implement light theme (v1.1).
+
+### S3 — polish (no functional break)
+
+- **L11-form-fields-missing-id-name** (10 form fields)
+- **L11-aria-label-coverage-low** (4 of ~30 components)
+- **L11-keyboard-handlers-minimal** (custom keyboard shortcuts not
+  implemented)
+- **L3-fastmcp-fastmcp-slim-double-pin** — redundant copy-metadata entry
+  in `scripts/ensure-openbb-mcp-sidecar.mjs`.
+- **T4-ccxt-executecommand-dead** + **T4-bare-commandids** +
+  **T4-kite-manifest-unknown-field** — plugin polish
+- **T5-monte-carlo-zero-coverage** + **T5-vitest-config-no-coverage-block**
+- **D-3 BLUEPRINT drift** — `HOST_VERSION = "0.6.5"` updated in v0.8.0
+  release commit; ensure version-bump checklist covers `src/lib/plugin-
+bootstrap.ts:39` going forward.
+- **T1 visual polish** — header titlebar absent across all captures;
+  watchlist order (AAPL last not first); cockpit/ subfolder coverage gaps.
+- **L11-color-contrast-not-audited** — Phase 9 axe-core/Lighthouse.
+
+### S4 — Phase 9/10/v1.x carry-forwards (no fix this sprint)
+
+- **T3-glib-unsound + T3-rand-unsound** — Linux-only transitive
+  advisories (wry→gtk, keyring→zbus). Awaiting upstream fixes.
+- **D-4 light theme** — v1.1 BLUEPRINT carry-forward.
+- **UC1-canvas-chart-renders observation** — Playwright real-event suite
+  for canvas-interactive features is v0.5.1+ carry-forward (unchanged).
+- **UC6 / UC7 stretch goals** — plugin-ecosystem year-2 / multi-broker
+  aggregation. v1.x territory.
 
 ## v0.7.0 → Phase 10 carry-forwards (launch ops — explicit non-scope in Phase 7)
 

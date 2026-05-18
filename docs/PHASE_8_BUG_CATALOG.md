@@ -721,23 +721,107 @@ teammate's doc.
 
 ### T1 — Visual regression (`docs/PHASE_8_VISUAL_REGRESSION_REPORT.md`)
 
-_(empty — populated at I1 merge time)_
+**Result: 0×S1, 1×S2, 5×S3.** All polish. Tier-1 contract: n/a (visual).
+
+- **T1-header-absent [S2]:** OS titlebar `Vysted Terminal — vX.Y.Z —
+  <Surface>` missing across all v0.7.0 captures. Already in v0.7.0 README
+  acknowledged; Phase 9 closes.
+- 5×S3: Equity Overview "Unavailable" hero (yfinance intermittency at
+  capture); AAPL last in watchlist not first (BLOCKERS.md v0.8 #2);
+  cockpit/ solo-Chart shot lacks 5-panel context + 2560 partner; non-hero
+  pair shows empty Equity Overview.
+- **Tradesa V2 6-state capture procedure** documented in Part B —
+  Phase 9 reference.
 
 ### T2 — Python sidecar audit (`docs/PHASE_8_SIDECAR_AUDIT.md`)
 
-_(empty — populated at I1 merge time)_
+**Result: 0×S1, 4×S2, 1×S3, 2×S4.** No yanked packages. One transitive
+CVE (autobahn==19.11.2, S3, unused code path).
+
+- **T2-dead-earnings-ternary [S2]:** `earnings_provider.py:253` has
+  `eps_stddev = _num(row.get("growth")) if False else None` — literal
+  dead code; `eps_stddev` always `None`, silently falling back to high/low
+  approximation. Affects Strategy Critic input quality.
+- **T2-mypy-llm-override [S2]:** 4 LLM adapters declare `async def
+stream_chat(...) -> AsyncIterator`; ABC returns `Coroutine[..., AsyncIterator]`.
+  Incompatible override. Fix: remove `async` from ABC.
+- **T2-mypy-macro-provider-literal [S2]:** 4 macro providers declare
+  `PROVIDER = "<string>"` as untyped `str`, but `MacroCatalogEntry.provider`
+  expects `Literal["fred"|"ecb"|"imf"|"world-bank"]`. Annotate.
+- **T2-mypy-fred-frequency-literal [S2]:** `fred_provider.py` passes raw
+  `str | None` where `Literal[frequency]` is expected.
 
 ### T3 — Rust audit (`docs/PHASE_8_RUST_AUDIT.md`)
 
-_(empty — populated at I1 merge time)_
+**Result: 2×S1 (addressed by F1), 3×S2, 7×S3, 3×S4.** cargo audit
+**CLEAN** (0 CVEs). cargo clippy strict CLEAN. cargo udeps CLEAN. cargo
+fmt CLEAN. nightly rustc -W dead_code CLEAN.
+
+- **T3-openbb-spawn-incomplete + T3-sec-edgar-spawn-incomplete [S1]:**
+  **ADDRESSED in F1 commit `bb1c300`** — port-bind probe before declaring
+  subprocess healthy. Same as catalog finding
+  UC1-openbb-mcp-not-listening + UC1-sec-edgar-mcp-not-listening.
+- **T3-significant-drop-scrutinee [S2]:** 3 `kill()` closures hold
+  `MutexGuard` through `if let Some(...) = state.0.lock().unwrap().take()`
+  body. Not a live deadlock; clippy::nursery footgun. One-line fix each.
+- **T3-glib-unsound + T3-rand-unsound [S2]:** Linux-only transitive
+  advisories (wry→gtk via glib; keyring→secret-service→zbus via rand
+  0.8.5). Awaiting upstream fixes; no Vysted source triggers either.
 
 ### T4 — Plugin contract + plugin runtime (`docs/PHASE_8_PLUGIN_AUDIT.md`)
 
-_(empty — populated at I1 merge time)_
+**Result: 0×S1, 3×S2, 3×S3, 1×S4.** **Tier-1 contract `types/plugin.ts`
+lock CONFIRMED — 10th consecutive release.** tradesa-v2 3-layer
+read-only invariants **ALL THREE PASS** (provider no-write methods,
+router no-non-GET routes, `supportsControlPlane: false`).
+
+- **T4-brokers-not-registered [S2]:** all 7 broker plugins (alpaca,
+  angelone, ccxt-exec, dhan, ib, kite, oanda) absent from
+  `BUNDLED_PLUGINS` in `src/lib/plugin-bootstrap.ts`. Their cmd+K
+  commands + data sources silently unavailable. **Same root cause as
+  catalog X-broker-bootstrap-india-only** — the broker plugins exist but
+  aren't bootstrapped at runtime. Cross-reference: also affects
+  `bootstrap_default_adapters` (only India brokers).
+- **T4-connection-keychain + T4-settings-dialog-keychain [S2]:**
+  `plugins/tradesa-v2/connection.ts` + `TradesaSettingsDialog.tsx`
+  import from host-private `@/lib/keychain` + `@/lib/sidecar-client`.
+  Should use `PluginConfig.sidecarBaseUrl` + `PluginConfig.secrets`
+  from contract. v0.6.6+ Tradesa V2 carry-forward.
+- T4-ccxt-executecommand-dead, T4-bare-commandids,
+  T4-kite-manifest-unknown-field [S3], T4-host-version-stale [S4].
 
 ### T5 — Coverage + docs truth-alignment (`docs/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md`)
 
-_(empty — populated at I1 merge time)_
+**Part A coverage:** 20 findings (3×S1, 10×S2, 7×S3). Frontend coverage
+report enabled (`@vitest/coverage-v8` added as devDep). Sidecar pytest
+coverage 92% overall.
+
+- **T5-safety-store-reset-ks [S1]:** `src/store/safety.ts:230`
+  `resetKillSwitch()` entirely untested. POST body field `reAck: true`
+  never asserted; camelCase/snake_case drift would permanently lock the
+  kill switch with no test catching it. **§6.5-adjacent finding —
+  automatic-S1.**
+- **T5-broker-base-invalid-order-type [S1]:** `propose_order()`
+  raises `BrokerError` on invalid `order_type` but test only covers
+  invalid `side` + zero quantity. Refactor changing
+  `"stop-limit"`→`"stop_limit"` would reach live broker undetected.
+  **§6.5-adjacent finding.**
+- **T5-openbb-mcp-provider-fallback-paths [S2]:** yfinance fallback
+  when openbb-mcp raises `ProviderError` untested at registry level.
+  Fundamentals 500 confirms this is the production path.
+- Plus `services/quant/monte_carlo.py` 0% covered (48 lines, no test
+  file). vitest.config.ts has no `coverage` block — recommended
+  follow-up.
+
+**Part B BLUEPRINT drifts:** 10 drifts (1×S1, 4×S2, 5×S3).
+
+- **D-7 [S1]:** §10 UC2/UC4 imply end-to-end fundamentals + SEC
+  functionality, but the MCP subprocess gap is not disclosed in BLUEPRINT.
+  UC2 fundamentals 500s in v0.7.0 dev.
+- **D-4 [S2]:** §4 Module 7 "dark default + light option" — light theme
+  not implemented (v1.1 carry per CLAUDE.md).
+- **D-3 [S3]:** `src/lib/plugin-bootstrap.ts:39` `HOST_VERSION = "0.6.5"`
+  stale vs `package.json` 0.7.0. Same finding as T4-host-version-stale.
 
 ---
 

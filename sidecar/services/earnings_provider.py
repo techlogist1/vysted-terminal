@@ -249,10 +249,12 @@ def _event_from_calendar(
     analyst_count = 0
     if isinstance(est_frame, pd.DataFrame) and not est_frame.empty:
         # The first row is typically "0q" — current quarter estimate.
+        # Some yfinance versions surface a ``growth`` column but it's
+        # consensus-growth not analyst dispersion, so it is not a valid
+        # stddev source. Fall through to the high/low spread approximation
+        # below, which is what the Strategy Critic consumes.
+        # (Phase 8 T2 S2 hot-patch: was `if False`-guarded dead branch.)
         row = est_frame.iloc[0]
-        eps_stddev = _num(row.get("growth")) if False else None
-        # Some yfinance versions provide a stddev-like column called
-        # ``epsTrend``; the high/low diff is a safer dispersion fallback.
         analyst_count = int(_num(row.get("numberOfAnalysts")) or 0)
     if eps_stddev is None and eps_high is not None and eps_low is not None:
         # Approximation: assume high/low span ~= 4 stddev (95% CI rule).
