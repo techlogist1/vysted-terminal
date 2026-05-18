@@ -138,7 +138,46 @@ depth for safety-critical surfaces": type-level gate + DB-enforced invariant +
 grep-able audit check. This dimension is the grep-able audit; any finding is
 automatic-S1.
 
-_(empty — L5 fills)_
+**Audit complete — zero findings, architectural surface clean.**
+
+Patterns checked (each grep + manual analysis):
+
+1. **New public methods on `broker_base.py`?** No. Public surface = 11 documented members:
+   - Properties: `mode`, `read_only`, `connected`, `state()`
+   - State mutators (all audit-logged): `set_mode`, `set_read_only`, `connect`
+   - Read-only: `account_info`
+   - Order entry: `propose_order` (sync), `confirm_and_place` (async — sole `_place_confirmed` caller)
+   - Order management: `cancel_order`
+
+   _Note: my plan-doc listed `set_position_limits` as expected — that method does not exist; per-broker position limits are enforced at `propose_order` time via the per-adapter `CAPABILITIES` / position-limit class var. Spec misremember on my part, not a finding._
+
+2. **New `_place_confirmed` call sites outside `confirm_and_place`?** No. Single production call site at `sidecar/services/broker_base.py:365` (inside `confirm_and_place`). All other matches are either definitions in the 7 per-broker overrides, docstrings, the test audit suite (`test_safety_end_to_end.py::test_audit_2_no_bypass_path_to_place_confirmed`), or comments. The grep-time audit at `test_safety_end_to_end.py:178` runs a recursive grep + filters out signatures + comments and asserts the suspicious-call-sites list is empty.
+
+3. **New `audit_orders` UPDATE/DELETE write paths?** No. Only matches are intentional test paths at `tests/test_audit_log.py:141,156` and `tests/test_safety_end_to_end.py:268,274` that explicitly verify the SQLite triggers fire and raise `IntegrityError`. The append-only DDL (`sidecar/models/audit_log.py::AUDIT_LOG_DDL`) plus `PRAGMA query_only=ON` on the reader connection enforce the invariant; tests prove it.
+
+4. **New backend-internal `confirm_and_place(human_confirmed=True)` paths with no UI surface?** No. All non-test matches resolve to `sidecar/routers/brokers.py:225` (the UI route handler) which passes `human_confirmed=request.human_confirmed` — the value comes from the UI POST body, not a backend hardcode. All other matches are inside the `sidecar/tests/` tree.
+
+5. **New imports of broker internals from outside the broker package?** No. All matches are allowed callers:
+   - `sidecar/routers/brokers.py:46,47,48` — the broker router
+   - `sidecar/services/brokers/{registry,oanda,kite,ib,dhan,ccxt_exec,angelone,alpaca}.py` — inside-package adapters
+   - `sidecar/tests/*` — test suite
+   - `sidecar/services/audit_log.py:156` — false-positive match on a docstring quoting `from services.audit_log import` as text, not an actual import.
+
+**§6.5 architectural invariants are intact 10 releases after the v0.5.0 audit.**
+
+### Adjacent observation (NOT a §6.5 finding — separate dimension)
+
+`brokers_registry.bootstrap_default_adapters()` only registers the 3 India
+brokers (Dhan, AngelOne, Kite). The 4 non-India adapters (Alpaca, IB, OANDA,
+ccxt-exec) exist as classes and are imported in
+`sidecar/services/brokers/__init__.py` but no production code path
+instantiates + registers them. The `registry.py` docstring claims "Other
+teammates' adapters (Alpaca, IB, OANDA, ccxt-*) are wired through their own
+`bootstrap_*` entrypoints" — those entrypoints do not exist. This is not a
+§6.5 violation (safety enforcement is upstream of registry membership) but
+**may surface as a UC1/L9 broker-connect finding**: any `/brokers/<non-India-
+id>/...` request would raise `KeyError`. Recorded below in the cross-cutting
+section for L9 to confirm at exercise time.
 
 ## L6 — Performance baseline anomalies
 
@@ -214,7 +253,36 @@ Findings that don't slot cleanly into any single audit dimension — usually
 discovered while pursuing another dimension and recorded here so they don't
 get lost.
 
-_(empty — populated opportunistically)_
+### Finding X-broker-bootstrap-india-only [S? — confirm at L9] [status: open]
+
+**Repro:** `sidecar/services/brokers/registry.py::bootstrap_default_adapters`
+only registers `DhanAdapter`, `AngelOneAdapter`, `KiteAdapter`. The 4
+non-India adapters (`AlpacaAdapter`, `IBAdapter`, `OandaAdapter`,
+`CcxtExecutionAdapter`) are imported in `services/brokers/__init__.py:27-33`
+but never instantiated + registered by any production code path. The
+`registry.py` docstring (lines 13-14, 97-103) implies these adapters have
+their own `bootstrap_*` entrypoints; `grep -rn 'def bootstrap_' sidecar/
+services/brokers/` returns only `bootstrap_default_adapters`.
+
+**Impact:** At sidecar startup, a `POST /brokers/alpaca/connect` (or `/ib/`,
+`/oanda/`, `/ccxt-*/`) would raise `KeyError: no broker adapter registered
+for id='alpaca'` via `brokers_registry.get`. UC1 paper-mode broker connect
+through Alpaca is the most likely operator path; L9 will exercise.
+
+**Suggested fix:** Either (a) extend `bootstrap_default_adapters` to register
+all 7 broker classes guarded by a feature flag per broker, OR (b) make the
+broker-connect router lazy-register on first request when the broker's
+plugin is enabled. (b) is closer to the plugin-architecture spirit but is
+more invasive; (a) is one-commit cheap.
+
+**Files:**
+- `sidecar/services/brokers/registry.py:97-112` — `bootstrap_default_adapters`
+- `sidecar/services/brokers/__init__.py:27-33` — adapter class imports
+
+**Notes:** Severity deferred to L9. If L9 confirms the broker-connect UX
+gracefully degrades ("broker not bootstrapped — connect through the broker
+plugin first" or similar), S3. If L9 sees a raw `KeyError` 500 response or a
+React crash, S2 (or S1 if it blocks UC1 entirely).
 
 ---
 
