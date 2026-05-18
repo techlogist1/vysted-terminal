@@ -232,9 +232,23 @@ on network error does not throw; `setCustomAgents` produces correct summaries fr
 
 ### A.2 Sidecar (pytest) — overview
 
-pytest suite: 588+ tests across 48 test files. All tests pass (CI-green from v0.7.0).
-Coverage measurement: `pytest --cov=services --cov-report=term-missing` run on-demand.
-The following gaps are identified from static analysis of test files vs service modules.
+pytest suite: 891 tests across 73 test files (confirmed by background run: 891 passed, 1 warning).
+Full coverage report: `pytest --cov=. --cov-report=term-missing` produced 92% overall (16457
+statements, 1348 missed). Service-level gaps below are from both the coverage report and static
+analysis of test files vs service modules.
+
+**Key coverage numbers from the run:**
+
+| Service | Coverage |
+|---------|----------|
+| `services/quant/monte_carlo.py` | 0% (48/48 lines missed) |
+| `services/screener.py` | 84% |
+| `services/sec_filings_provider.py` | 84% |
+| `services/yfinance_provider.py` | 81% |
+| `services/tradesa_v2_provider.py` | 90% |
+| `services/workflow_engine.py` | 96% |
+| `services/workflow_nodes/quant_nodes.py` | 88% |
+| `services/workflow_nodes/research_nodes.py` | 85% |
 
 ---
 
