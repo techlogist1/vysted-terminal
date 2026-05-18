@@ -47,12 +47,12 @@ easy audit during the morning operator review.
 
 ## Severity scheme
 
-| Level  | Definition                                                                              | Action this sprint                |
-| ------ | --------------------------------------------------------------------------------------- | --------------------------------- |
+| Level  | Definition                                                                                   | Action this sprint                |
+| ------ | -------------------------------------------------------------------------------------------- | --------------------------------- |
 | **S1** | Blocks ship — broken UC flow, runtime crash, §6.5 violation, contract violation, gate-bypass | **Fix this sprint** (mandatory)   |
-| **S2** | Visible-to-user bug, broken non-load-bearing feature, hot-patch-worthy audit finding    | Fix if cheap (<30 min, no Tier-1) |
-| **S3** | Polish, technical debt, low-impact UX defect, strict-lint-mode noise                    | BLOCKERS.md → v0.8.x backlog      |
-| **S4** | Carry-forward to Phase 9 manual Mac test / Phase 10 launch ops / v1.x                   | BLOCKERS.md → matching section    |
+| **S2** | Visible-to-user bug, broken non-load-bearing feature, hot-patch-worthy audit finding         | Fix if cheap (<30 min, no Tier-1) |
+| **S3** | Polish, technical debt, low-impact UX defect, strict-lint-mode noise                         | BLOCKERS.md → v0.8.x backlog      |
+| **S4** | Carry-forward to Phase 9 manual Mac test / Phase 10 launch ops / v1.x                        | BLOCKERS.md → matching section    |
 
 **Automatic-S1 categories** (any finding here is S1 regardless of triviality):
 
@@ -88,8 +88,9 @@ subprocess spawned on 127.0.0.1:54109` log line at boot.
 ### Finding UC1-fundamentals-500 [S1] [status: fixed-downstream-degraded]
 
 **Repro:**
+
 1. `pnpm tauri dev`, wait for `[vysted] Python sidecar healthy on
-   127.0.0.1:NNNNN` log line.
+127.0.0.1:NNNNN` log line.
 2. In any webview (Tauri or Chrome at `?sidecar-port=NNNNN`), open Equity
    Overview tab, enter `AAPL`, click Load.
 3. Equity Overview header populates (price+change from `/quotes/AAPL`).
@@ -104,9 +105,9 @@ call_tool → 124 _ensure_session → 111 _open → asyncio/tasks.py:507
 wait_for → mcp/client/session.py:171 initialize → mcp/shared/session.py:
 292 send_request → anyio/streams/memory.py:125 receive → asyncio/locks.py:
 213 wait → **`asyncio.exceptions.CancelledError: Cancelled via cancel
-scope`**.`
+   scope`**.`
 7. Secondary error: `RuntimeError('Attempted to exit cancel scope in a
-   different task than it was entered in')`.
+different task than it was entered in')`.
 
 **Impact:** Every fundamentals-using surface broken — Equity Overview empty,
 AI Risk Analyst (UC1) can't use fundamentals tool, Research Workflow (UC2)
@@ -123,6 +124,7 @@ the `_open` timeout so a stuck MCP subprocess surfaces as a 503/504 instead
 of a 500 CancelledError after the request-handler-timeout fires.
 
 **Files:**
+
 - `sidecar/routers/fundamentals.py:45,51,57,69` — 4 endpoints, all 500
 - `sidecar/services/openbb_mcp_provider.py:244,364`
 - `sidecar/services/mcp_client.py:111,124,165`
@@ -137,8 +139,9 @@ just not bound to its port.
 ### Finding UC1-openbb-mcp-not-listening [S1] [status: fixed-by-bb1c300 (port-bind probe; underlying deadlock = v0.8.x carry-forward)]
 
 **Repro:**
+
 1. After `pnpm tauri dev` boots, sidecar log claims `[openbb-mcp] subprocess
-   spawned on 127.0.0.1:54109`.
+spawned on 127.0.0.1:54109`.
 2. `Get-Process vysted-openbb-mcp-sidecar` shows 2 processes alive
    (bootloader + worker child — normal PyInstaller `--onefile` shape).
 3. `Get-NetTCPConnection -State Listen -LocalPort 54109` returns **empty**
@@ -161,6 +164,7 @@ UC5 cannot complete; UC1 AI Risk Analyst tool-use partial; UC3 earnings
 calendar fails.**
 
 **Suggested fix:** Two paths to investigate:
+
 1. **MCP subprocess deadlocks during port-bind.** Add a `--port` arg-echo
    on startup so the subprocess prints `[openbb-mcp] bound on port NNNN`
    only AFTER successful bind, and Tauri Rust polls for that line before
@@ -174,6 +178,7 @@ subprocess's port, not just `subprocess.poll() is None` (or whatever the
 shallow check is).
 
 **Files:**
+
 - `src-tauri/src/openbb_mcp.rs` (Rust spawn lifecycle)
 - `sidecar/services/openbb_mcp_provider.py` (status probe)
 
@@ -186,8 +191,9 @@ test enhancement.
 ### Finding UC1-sec-edgar-mcp-not-listening [S1] [status: fixed-by-bb1c300 (port-bind probe; underlying deadlock = v0.8.x carry-forward)]
 
 **Repro:**
+
 1. After `pnpm tauri dev` boot, sidecar log shows `[sec-edgar-mcp]
-   subprocess spawned on 127.0.0.1:54111`.
+subprocess spawned on 127.0.0.1:54111`.
 2. `Get-Process vysted-sec-edgar-mcp-sidecar` shows 2 processes alive
    (bootloader + worker child).
 3. `Get-NetTCPConnection -State Listen -LocalPort 54111` returns empty.
@@ -228,6 +234,7 @@ hardcoded string with dynamic lookup from `app.version` (inject via
 `Depends` or `request.app.version`). One-commit hot-patch candidate (F2).
 
 **Files:**
+
 - `sidecar/routers/health.py:18` (the stale hardcode)
 - `sidecar/app.py:140` (the correct, current source of truth)
 
@@ -262,6 +269,7 @@ Or document the gotcha in CLAUDE.md so the next operator doesn't get
 fooled. The first is a real fix; the third is an acceptable S3 mitigation.
 
 **Files:**
+
 - `sidecar/app.py:145-149` (CORSMiddleware config)
 
 **Notes:** This is purely a developer-experience issue — once Tauri webview
@@ -273,6 +281,7 @@ fetch behavior differs from raw Chrome. S3 because operator-only.
 **Repro:** In the F7 dev fallback (Chrome at `?sidecar-port=NNNNN`), open
 Command Palette (Ctrl+K) → "Tradesa V2: Open Positions". Panel mounts but
 the status strip shows:
+
 - Status: "Supabase error"
 - Message: "Cannot read properties of undefined (reading 'invoke')"
 - Alert: "Supabase unreachable — Cannot read properties of undefined
@@ -296,6 +305,7 @@ in `sidecar-client.ts` — same pattern needed here) and produces a
 user-friendly status: "Keychain unavailable (running outside Tauri)".
 
 **Files:**
+
 - `plugins/tradesa-v2/connection.ts` (where it calls `invoke`)
 - Reference for the pattern: `src/lib/sidecar-client.ts:52-62` (F7 fallback
   gate)
@@ -393,6 +403,7 @@ sidecar + openbb-mcp + sec-edgar-mcp + their transitive deps.
 ### Finding L3-agents-dir-not-bundled [S1] [status: fixed-by-9c14955 (--add-data + ensure-sidecar.mjs); verified runtime — 12 agents served instead of 0]
 
 **Repro:**
+
 1. `curl http://127.0.0.1:54108/agents` returns **`[]`** (empty list).
 2. `ls sidecar/agents/` shows **10 agent JSON files**: `buffett.json,
 dalio.json, druckenmiller.json, graham.json, klarman.json, lynch.json,
@@ -427,8 +438,10 @@ syntax for the PyInstaller invocation) to copy the agents JSON files:
 ```javascript
 // scripts/ensure-sidecar.mjs, near the hidden/copyMeta blocks:
 const addData = [
-  ["agents", "agents"],   // src:dest pair; src is sidecar/agents, dest is bundled root
-].map((p) => `--add-data=${p[0]}${isWin ? ";" : ":"}${p[1]}`).join(" ");
+  ["agents", "agents"], // src:dest pair; src is sidecar/agents, dest is bundled root
+]
+  .map((p) => `--add-data=${p[0]}${isWin ? ";" : ":"}${p[1]}`)
+  .join(" ");
 // then add ${addData} to the run() command above.
 ```
 
@@ -437,6 +450,7 @@ Note: PyInstaller's `--add-data` syntax differs between Windows
 separator.
 
 **Files:**
+
 - `sidecar/services/agent_runtime.py:49` (the `__file__`-relative lookup)
 - `sidecar/services/agent_runtime.py:62-99` (`_discover_specs` silently
   empty path)
@@ -456,6 +470,7 @@ data` cases. H2 carry-forward.
 
 The agent_runtime audit-test `test_agent_runtime.py:54` uses a
 `_REAL_AGENTS_DIR` that's computed differently than the production path
+
 - so the test passes but doesn't catch the bundle gap. **L4 meta-
   verification should add a deliberate-break case for this gap**: temporarily
   remove `sidecar/agents/buffett.json`, push, verify the test catches it,
@@ -465,6 +480,7 @@ The agent_runtime audit-test `test_agent_runtime.py:54` uses a
 
 **Repro:** the smoke-test in `scripts/smoke-test-sidecars.mjs` checks for
 two states:
+
 1. **Main sidecar:** binds + `/health` returns 200 within 60 s ✅ (the
    v0.6.5 fastmcp regression class)
 2. **MCP subprocesses:** alive after 10 s ✅ (very shallow — doesn't even
@@ -478,6 +494,7 @@ binary outright crashes during boot. Soft failures — endpoint returns
 empty list / 500 / wrong data — pass the gate.
 
 **Suggested fix:** Extend `scripts/smoke-test-sidecars.mjs` to also probe:
+
 - `/agents` returns at least 1 agent (count > 0)
 - `/openapi.json` includes specific route prefixes (`/fundamentals/`,
   `/sec/`, `/macro/`, etc.)
@@ -492,6 +509,7 @@ the next class of silent-runtime regression ships, this smoke-test
 strengthening is what catches it.
 
 **Files:**
+
 - `scripts/smoke-test-sidecars.mjs:248-300` (the main-sidecar probe)
 - `scripts/smoke-test-sidecars.mjs:302-339` (the MCP-subprocess probe —
   has the shallowest check)
@@ -527,6 +545,7 @@ breaks.
 **Suggested fix:** Remove `fastmcp-slim` from the `--copy-metadata` list.
 
 **Files:**
+
 - `scripts/ensure-openbb-mcp-sidecar.mjs:143-144`
 
 ### Hypothesis carry-forward to L4
@@ -586,11 +605,11 @@ brokers (Dhan, AngelOne, Kite). The 4 non-India adapters (Alpaca, IB, OANDA,
 ccxt-exec) exist as classes and are imported in
 `sidecar/services/brokers/__init__.py` but no production code path
 instantiates + registers them. The `registry.py` docstring claims "Other
-teammates' adapters (Alpaca, IB, OANDA, ccxt-*) are wired through their own
-`bootstrap_*` entrypoints" — those entrypoints do not exist. This is not a
+teammates' adapters (Alpaca, IB, OANDA, ccxt-\_) are wired through their own
+`bootstrap\__`entrypoints" — those entrypoints do not exist. This is not a
 §6.5 violation (safety enforcement is upstream of registry membership) but
-**may surface as a UC1/L9 broker-connect finding**: any `/brokers/<non-India-
-id>/...` request would raise `KeyError`. Recorded below in the cross-cutting
+**may surface as a UC1/L9 broker-connect finding**: any`/brokers/<non-India-
+id>/...`request would raise`KeyError`. Recorded below in the cross-cutting
 section for L9 to confirm at exercise time.
 
 ## L6 — Performance baseline anomalies
@@ -644,8 +663,9 @@ labeling.
 
 **Impact:** Screen reader users hear "Edit" or "Combobox" without the
 context of what field it is. WCAG 2.1 SC 1.3.1 (Info and Relationships)
-+ SC 4.1.2 (Name, Role, Value). S3 because no functional break + dark
-theme + the visible field is usually adjacent labeled.
+
+- SC 4.1.2 (Name, Role, Value). S3 because no functional break + dark
+  theme + the visible field is usually adjacent labeled.
 
 **Suggested fix:** Audit each `<input>`, `<textarea>`, `<select>` in
 `src/components/*.tsx` + `src/modules/*/`. Add either `id` (matching a
@@ -654,6 +674,7 @@ Shadcn/UI `Input` should auto-thread the `id` from the parent `Label`
 context — check that's wired correctly.
 
 **Files:** likely candidates per grep:
+
 - Watchlist "Add symbol" textbox (`src/modules/watchlist/`)
 - Portfolio entry form (5 textboxes — Symbol/Quantity/Cost basis/Class/Note)
 - Equity Overview Symbol textbox
@@ -724,7 +745,7 @@ teammate's doc.
 **Result: 0×S1, 1×S2, 5×S3.** All polish. Tier-1 contract: n/a (visual).
 
 - **T1-header-absent [S2]:** OS titlebar `Vysted Terminal — vX.Y.Z —
-  <Surface>` missing across all v0.7.0 captures. Already in v0.7.0 README
+<Surface>` missing across all v0.7.0 captures. Already in v0.7.0 README
   acknowledged; Phase 9 closes.
 - 5×S3: Equity Overview "Unavailable" hero (yfinance intermittency at
   capture); AAPL last in watchlist not first (BLOCKERS.md v0.8 #2);
@@ -854,6 +875,7 @@ plugin is enabled. (b) is closer to the plugin-architecture spirit but is
 more invasive; (a) is one-commit cheap.
 
 **Files:**
+
 - `sidecar/services/brokers/registry.py:97-112` — `bootstrap_default_adapters`
 - `sidecar/services/brokers/__init__.py:27-33` — adapter class imports
 
@@ -890,4 +912,4 @@ the order they shipped.
 
 ---
 
-*Living document — update progressively, never batch.*
+_Living document — update progressively, never batch._

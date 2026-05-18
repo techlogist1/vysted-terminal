@@ -7,16 +7,17 @@
 
 ## Severity scheme
 
-| Level | Meaning |
-|-------|---------|
-| S1 | Tier-1 contract violation; runtime crash on plugin load; malformed manifest accepted silently |
-| S2 | Plugin imports from host-private surface (`src/lib/`, `src/store/`, `src/components/`); React warnings on mount; hot-reload state loss |
-| S3 | Companion-module wiring gap; manifest validation accepts malformed-but-non-load-bearing field; CommandSpec `commandId` collision risk |
-| S4 | Cosmetic |
+| Level | Meaning                                                                                                                                |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| S1    | Tier-1 contract violation; runtime crash on plugin load; malformed manifest accepted silently                                          |
+| S2    | Plugin imports from host-private surface (`src/lib/`, `src/store/`, `src/components/`); React warnings on mount; hot-reload state loss |
+| S3    | Companion-module wiring gap; manifest validation accepts malformed-but-non-load-bearing field; CommandSpec `commandId` collision risk  |
+| S4    | Cosmetic                                                                                                                               |
 
 ## Scope
 
 Plugins audited:
+
 - `plugins/example/`
 - `plugins/openbb-mcp/`
 - `plugins/tradesa-v2/`
@@ -29,6 +30,7 @@ Plugins audited:
 - `plugins/brokers/oanda/`
 
 Key files read:
+
 - `types/plugin.ts` (Tier-1 locked contract — READ-ONLY for this audit)
 - `src/lib/plugin-bootstrap.ts` (BUNDLED_PLUGINS + PLUGIN_COMPANIONS)
 - `src/lib/plugin-runtime.ts` (PluginRuntime supervisor)
@@ -67,9 +69,11 @@ Both live inside the `tradesa-v2` plugin. No other plugin imports from host-priv
 **Plugin:** tradesa-v2
 **Part:** A grep
 **Repro:**
+
 ```
 grep -r "@/lib/keychain\|@/lib/sidecar-client" plugins/
 ```
+
 **Impact:** `plugins/tradesa-v2/connection.ts` imports `KEYCHAIN_NAMESPACES` and `getSecret`
 from `@/lib/keychain` and `getSidecarBaseUrl` + `SidecarError` from `@/lib/sidecar-client`.
 Both are host-private modules under `src/lib/`. The plugin contract (`types/plugin.ts`) requires
@@ -93,6 +97,7 @@ adapter would then read `config.secrets["supabase-url"]` and `config.secrets["su
 rather than calling `getSecret` directly. This change requires no contract edit.
 
 **Files:**
+
 - `plugins/tradesa-v2/connection.ts:20-21`
 
 ---
@@ -102,9 +107,11 @@ rather than calling `getSecret` directly. This change requires no contract edit.
 **Plugin:** tradesa-v2
 **Part:** A grep
 **Repro:**
+
 ```
 grep -r "@/lib/keychain" plugins/tradesa-v2/components/
 ```
+
 **Impact:** `TradesaSettingsDialog.tsx` imports `setSecret` from `@/lib/keychain` to persist
 Supabase credentials to the OS keychain. This is the same S2 category: direct dependency on a
 host-private module. The dialog is part of the plugin's panel layer (a `FunctionComponent`
@@ -122,6 +129,7 @@ in one file (`connection.ts`) rather than two. That is a partial improvement onl
 is the granted-secret mechanism described in T4-connection-keychain.
 
 **Files:**
+
 - `plugins/tradesa-v2/components/TradesaSettingsDialog.tsx:25`
 
 ---
@@ -150,6 +158,7 @@ until `supportsControlPlane` flips to `true`, or (b) flip `supportsControlPlane`
 since `executeCommand` is already implemented and routes only the narrow halt-all path.
 
 **Files:**
+
 - `plugins/brokers/ccxt-exec/index.ts:65-74` (capabilities)
 - `plugins/brokers/ccxt-exec/index.ts:96-113` (halt-all command)
 - `plugins/brokers/ccxt-exec/index.ts:209-240` (executeCommand)
@@ -177,6 +186,7 @@ id space), but the bootstrap's `commandHandlers` map is host-wide.
 `"dhan.connect"`, etc. — matching the pattern established by alpaca, ib, and oanda.
 
 **Files:**
+
 - `plugins/brokers/angelone/index.ts:57,65,73`
 - `plugins/brokers/kite/index.ts:74,82,90,98`
 - `plugins/brokers/dhan/index.ts:72,80,88`
@@ -185,18 +195,18 @@ id space), but the bootstrap's `commandHandlers` map is host-wide.
 
 ### Per-plugin Part A summary
 
-| Plugin | Imports from src/lib or src/store or src/components | Contract shape | Notes |
-|--------|-----------------------------------------------------|---------------|-------|
-| example | None | Correct | Clean |
-| openbb-mcp | None | Correct | Clean |
-| tradesa-v2 | **YES** — connection.ts + TradesaSettingsDialog.tsx | Correct | T4-connection-keychain + T4-settings-dialog-keychain |
-| brokers/alpaca | None | Correct | Clean |
-| brokers/angelone | None | Correct | Bare commandIds (T4-bare-commandids) |
-| brokers/ccxt-exec | None | Correct | supportsControlPlane/executeCommand mismatch (T4-ccxt-executecommand-dead) |
-| brokers/dhan | None | Correct | Bare commandIds (T4-bare-commandids) |
-| brokers/ib | None | Correct | Clean |
-| brokers/kite | None | Correct | Bare commandIds (T4-bare-commandids) |
-| brokers/oanda | None | Correct | Clean |
+| Plugin            | Imports from src/lib or src/store or src/components | Contract shape | Notes                                                                      |
+| ----------------- | --------------------------------------------------- | -------------- | -------------------------------------------------------------------------- |
+| example           | None                                                | Correct        | Clean                                                                      |
+| openbb-mcp        | None                                                | Correct        | Clean                                                                      |
+| tradesa-v2        | **YES** — connection.ts + TradesaSettingsDialog.tsx | Correct        | T4-connection-keychain + T4-settings-dialog-keychain                       |
+| brokers/alpaca    | None                                                | Correct        | Clean                                                                      |
+| brokers/angelone  | None                                                | Correct        | Bare commandIds (T4-bare-commandids)                                       |
+| brokers/ccxt-exec | None                                                | Correct        | supportsControlPlane/executeCommand mismatch (T4-ccxt-executecommand-dead) |
+| brokers/dhan      | None                                                | Correct        | Bare commandIds (T4-bare-commandids)                                       |
+| brokers/ib        | None                                                | Correct        | Clean                                                                      |
+| brokers/kite      | None                                                | Correct        | Bare commandIds (T4-bare-commandids)                                       |
+| brokers/oanda     | None                                                | Correct        | Clean                                                                      |
 
 **Part A counts:** S2: 2 findings (tradesa-v2). S3: 2 findings (ccxt-exec, angelone/kite/dhan grouped). S1: 0.
 
@@ -266,6 +276,7 @@ path and should not be expected in the modules store. If the plugins are intende
 they should also be verified they have no companion panels to add to `PLUGIN_COMPANIONS`.
 
 **Files:**
+
 - `src/lib/plugin-bootstrap.ts:44-49` (BUNDLED_PLUGINS)
 - `plugins/brokers/*/index.ts` (all 7, none imported)
 
@@ -277,27 +288,27 @@ they should also be verified they have no companion panels to add to `PLUGIN_COM
 
 `plugins/tradesa-v2/index.ts` declares 7 panels with these `component` ids:
 
-| PanelSpec.id | PanelSpec.component |
-|---|---|
-| tradesa-v2.positions | tradesa-v2-positions |
+| PanelSpec.id             | PanelSpec.component      |
+| ------------------------ | ------------------------ |
+| tradesa-v2.positions     | tradesa-v2-positions     |
 | tradesa-v2.trade-history | tradesa-v2-trade-history |
-| tradesa-v2.brain | tradesa-v2-brain |
-| tradesa-v2.sentinel | tradesa-v2-sentinel |
-| tradesa-v2.health | tradesa-v2-health |
-| tradesa-v2.settings | tradesa-v2-settings |
-| tradesa-v2.meta-agents | tradesa-v2-meta-agents |
+| tradesa-v2.brain         | tradesa-v2-brain         |
+| tradesa-v2.sentinel      | tradesa-v2-sentinel      |
+| tradesa-v2.health        | tradesa-v2-health        |
+| tradesa-v2.settings      | tradesa-v2-settings      |
+| tradesa-v2.meta-agents   | tradesa-v2-meta-agents   |
 
 `plugins/tradesa-v2/panels.ts` exports `panelComponents` with keys:
 
-| Key in panelComponents | Component |
-|---|---|
-| tradesa-v2-positions | PositionsPanel |
-| tradesa-v2-trade-history | TradeHistoryPanel |
-| tradesa-v2-brain | BrainDecisionsPanel |
-| tradesa-v2-sentinel | SentinelPanel |
-| tradesa-v2-health | HealthPanel |
-| tradesa-v2-settings | SettingsPanel |
-| tradesa-v2-meta-agents | MetaAgentsPanel |
+| Key in panelComponents   | Component           |
+| ------------------------ | ------------------- |
+| tradesa-v2-positions     | PositionsPanel      |
+| tradesa-v2-trade-history | TradeHistoryPanel   |
+| tradesa-v2-brain         | BrainDecisionsPanel |
+| tradesa-v2-sentinel      | SentinelPanel       |
+| tradesa-v2-health        | HealthPanel         |
+| tradesa-v2-settings      | SettingsPanel       |
+| tradesa-v2-meta-agents   | MetaAgentsPanel     |
 
 **Result: 7/7 component ids match.** Every `PanelSpec.component` id has a corresponding
 `FunctionComponent` entry in `panels.ts`. No missing entries; no stale entries.
@@ -321,6 +332,7 @@ The `PluginManifest` interface (`types/plugin-runtime.ts`) defines these require
 #### example
 
 `manifest.json`:
+
 - `id: "vysted-example"` — matches `pluginId` in `index.ts`. **PASS.**
 - `version: "0.1.0"` — matches `version` in `index.ts`. **PASS.**
 - `name: "Vysted Example Plugin"` — matches `pluginName`. **PASS.**
@@ -329,6 +341,7 @@ The `PluginManifest` interface (`types/plugin-runtime.ts`) defines these require
 #### openbb-mcp
 
 `manifest.json`:
+
 - `id: "openbb-mcp"` — matches `pluginId: "openbb-mcp"` in `index.ts`. **PASS.**
 - `version: "0.1.0"` — matches. **PASS.**
 - All required fields present. **PASS.**
@@ -336,6 +349,7 @@ The `PluginManifest` interface (`types/plugin-runtime.ts`) defines these require
 #### tradesa-v2
 
 `manifest.json`:
+
 - `id: "tradesa-v2"` — matches `pluginId: "tradesa-v2"` (via `PLUGIN_ID` constant). **PASS.**
 - `version: "0.1.0"` — matches. **PASS.**
 - All required fields present. **PASS.**
@@ -344,32 +358,38 @@ The `PluginManifest` interface (`types/plugin-runtime.ts`) defines these require
 #### brokers/alpaca
 
 `manifest.json`:
+
 - `id: "broker-alpaca"` — matches `pluginId: "broker-alpaca"`. **PASS.**
 - Version matches. **PASS.**
 
 #### brokers/angelone
 
 `manifest.json`:
+
 - `id: "vysted-angelone"` — matches `pluginId: "vysted-angelone"`. **PASS.**
 
 #### brokers/ccxt-exec
 
 `manifest.json`:
+
 - `id: "ccxt-exec"` — matches `pluginId: "ccxt-exec"`. **PASS.**
 
 #### brokers/dhan
 
 `manifest.json`:
+
 - `id: "vysted-dhan"` — matches `pluginId: "vysted-dhan"`. **PASS.**
 
 #### brokers/ib
 
 `manifest.json`:
+
 - `id: "broker-ib"` — matches `pluginId: "broker-ib"`. **PASS.**
 
 #### brokers/kite
 
 `manifest.json`:
+
 - `id: "vysted-kite"` — matches `pluginId: "vysted-kite"`. **PASS.**
 - Contains an extra field `"requiresStaticIp": true` not in `PluginManifest` interface.
   See finding below.
@@ -377,6 +397,7 @@ The `PluginManifest` interface (`types/plugin-runtime.ts`) defines these require
 #### brokers/oanda
 
 `manifest.json`:
+
 - `id: "broker-oanda"` — matches `pluginId: "broker-oanda"`. **PASS.**
 
 ---
@@ -400,6 +421,7 @@ from `manifest.json` since the enforcement lives in the component layer. Given t
 not Tier-1 locked (only `types/plugin.ts` is), the extension is safe.
 
 **Files:**
+
 - `plugins/brokers/kite/manifest.json:11`
 - `types/plugin-runtime.ts:26-43`
 
@@ -417,18 +439,18 @@ const PLUGIN_COMPANIONS: Record<string, { panelComponents: Record<string, Functi
 
 Plugin audit against this map:
 
-| Plugin | contributesPanels | In PLUGIN_COMPANIONS | Status |
-|--------|------------------|---------------------|--------|
-| example | false | N/A | PASS |
-| openbb-mcp | false | N/A | PASS |
-| tradesa-v2 | **true** | **YES** | PASS |
-| brokers/alpaca | false | N/A | PASS |
-| brokers/angelone | false | N/A | PASS |
-| brokers/ccxt-exec | false | N/A | PASS |
-| brokers/dhan | false | N/A | PASS |
-| brokers/ib | false | N/A | PASS |
-| brokers/kite | false | N/A | PASS |
-| brokers/oanda | false | N/A | PASS |
+| Plugin            | contributesPanels | In PLUGIN_COMPANIONS | Status |
+| ----------------- | ----------------- | -------------------- | ------ |
+| example           | false             | N/A                  | PASS   |
+| openbb-mcp        | false             | N/A                  | PASS   |
+| tradesa-v2        | **true**          | **YES**              | PASS   |
+| brokers/alpaca    | false             | N/A                  | PASS   |
+| brokers/angelone  | false             | N/A                  | PASS   |
+| brokers/ccxt-exec | false             | N/A                  | PASS   |
+| brokers/dhan      | false             | N/A                  | PASS   |
+| brokers/ib        | false             | N/A                  | PASS   |
+| brokers/kite      | false             | N/A                  | PASS   |
+| brokers/oanda     | false             | N/A                  | PASS   |
 
 **Result:** Only tradesa-v2 contributes panels. It is correctly registered in `PLUGIN_COMPANIONS`.
 No companion-module wiring gaps. The diagnostic warning path in `moduleForPlugin` (line 224-232
@@ -459,6 +481,7 @@ updating this constant.
 to the version-bump checklist in CLAUDE.md.
 
 **Files:**
+
 - `src/lib/plugin-bootstrap.ts:39`
 
 ---
@@ -521,6 +544,7 @@ method). **PASS.**
 ### 3-layer verdict
 
 **All three layers INTACT.** The tradesa-v2 read-only invariants pass the audit:
+
 - Provider: no write methods
 - Router: no non-GET routes
 - Plugin capabilities: `supportsControlPlane: false`, `executeCommand` not implemented
@@ -531,13 +555,13 @@ method). **PASS.**
 
 ### Finding counts
 
-| Severity | Count | Findings |
-|----------|-------|----------|
-| S1 | 0 | — |
-| S2 | 3 | T4-connection-keychain, T4-settings-dialog-keychain, T4-brokers-not-registered |
-| S3 | 3 | T4-ccxt-executecommand-dead, T4-bare-commandids, T4-kite-manifest-unknown-field |
-| S4 | 1 | T4-host-version-stale |
-| **Total** | **7** | |
+| Severity  | Count | Findings                                                                        |
+| --------- | ----- | ------------------------------------------------------------------------------- |
+| S1        | 0     | —                                                                               |
+| S2        | 3     | T4-connection-keychain, T4-settings-dialog-keychain, T4-brokers-not-registered  |
+| S3        | 3     | T4-ccxt-executecommand-dead, T4-bare-commandids, T4-kite-manifest-unknown-field |
+| S4        | 1     | T4-host-version-stale                                                           |
+| **Total** | **7** |                                                                                 |
 
 ### Top 3 by severity
 

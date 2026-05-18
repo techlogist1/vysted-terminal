@@ -19,15 +19,16 @@
 
 Files audited (5 total):
 
-| File | Description |
-|------|-------------|
-| `composed/cockpit-1920x1080.png` | First page-load cockpit, no AAPL loaded |
-| `composed/cockpit-2560x1440.png` | First page-load cockpit 2560px |
-| `composed/cockpit-aapl-1920x1080.png` | Hero shot — AAPL loaded in Equity Overview |
-| `composed/cockpit-aapl-2560x1440.png` | Hero shot — AAPL 2560px |
-| `cockpit/chart-tab-1920x1080.png` | Zoomed Chart tab with Equity Overview tab visible |
+| File                                  | Description                                       |
+| ------------------------------------- | ------------------------------------------------- |
+| `composed/cockpit-1920x1080.png`      | First page-load cockpit, no AAPL loaded           |
+| `composed/cockpit-2560x1440.png`      | First page-load cockpit 2560px                    |
+| `composed/cockpit-aapl-1920x1080.png` | Hero shot — AAPL loaded in Equity Overview        |
+| `composed/cockpit-aapl-2560x1440.png` | Hero shot — AAPL 2560px                           |
+| `cockpit/chart-tab-1920x1080.png`     | Zoomed Chart tab with Equity Overview tab visible |
 
 Convention axes checked:
+
 1. Ticker: AAPL primary anchor; watchlist `AAPL, MSFT, NVDA, SPY, QQQ, BTC/USDT, ETH/USDT`
 2. Theme: dark only
 3. Workspace: 5-panel + AI Assistant cockpit; Phase 6/6.5 panels as tabs in slots
@@ -126,14 +127,14 @@ Convention axes checked:
 
 5 files audited. 5 findings:
 
-| ID | Title | Severity | Status |
-|----|-------|----------|--------|
-| T1-workspace-solo-chart | Chart tab is solo-surface only, no full-cockpit partner | S3 | open |
-| T1-chart-tab-missing-2560 | No 2560×1440 partner for chart-tab shot | S3 | open |
-| T1-header-absent | No OS titlebar visible in any capture | S2 | open |
-| T1-cockpit-non-hero-incomplete | Pre-AAPL cockpit pair shows empty Equity Overview | S3 | open |
-| T1-equity-overview-unavailable | Hero shots have "Unavailable" in all Equity Overview sections | S3 | open |
-| T1-watchlist-order | Watchlist order is SPY-first, not AAPL-first | S3 | open |
+| ID                             | Title                                                         | Severity | Status |
+| ------------------------------ | ------------------------------------------------------------- | -------- | ------ |
+| T1-workspace-solo-chart        | Chart tab is solo-surface only, no full-cockpit partner       | S3       | open   |
+| T1-chart-tab-missing-2560      | No 2560×1440 partner for chart-tab shot                       | S3       | open   |
+| T1-header-absent               | No OS titlebar visible in any capture                         | S2       | open   |
+| T1-cockpit-non-hero-incomplete | Pre-AAPL cockpit pair shows empty Equity Overview             | S3       | open   |
+| T1-equity-overview-unavailable | Hero shots have "Unavailable" in all Equity Overview sections | S3       | open   |
+| T1-watchlist-order             | Watchlist order is SPY-first, not AAPL-first                  | S3       | open   |
 
 Theme: AAPL (SPY, QQQ, BTC/USDT, ETH/USDT, NVDA, AAPL watchlist order) and Workspace axes are clean. Dark theme is correct across all shots. Both resolutions exist for the `composed/` pair. No S1 blockers — no re-capture is required before the current release cycle. The S2 header finding is acknowledged in the v0.7.0 README and is already planned for Phase 9.
 
@@ -145,14 +146,14 @@ Theme: AAPL (SPY, QQQ, BTC/USDT, ETH/USDT, NVDA, AAPL watchlist order) and Works
 
 The Tradesa V2 wrapper has 6 documented `TradesaConnectionStatus` values (from `types/tradesa_v2.ts`):
 
-| Status | Meaning |
-|--------|---------|
-| `healthy` | Supabase reachable, fresh heartbeat (<5 min old) |
-| `connecting` | Initial probe or post-restart catch-up in flight |
-| `unauthenticated` | No credentials in keychain |
-| `bot-offline` | Supabase reachable but heartbeat stale (>5 min) |
-| `supabase-error` | Supabase REST/Realtime calls failing |
-| `partial` | Some endpoints reachable, others not |
+| Status            | Meaning                                          |
+| ----------------- | ------------------------------------------------ |
+| `healthy`         | Supabase reachable, fresh heartbeat (<5 min old) |
+| `connecting`      | Initial probe or post-restart catch-up in flight |
+| `unauthenticated` | No credentials in keychain                       |
+| `bot-offline`     | Supabase reachable but heartbeat stale (>5 min)  |
+| `supabase-error`  | Supabase REST/Realtime calls failing             |
+| `partial`         | Some endpoints reachable, others not             |
 
 The lead captured `supabase-error` from the F7 Chrome fallback (the `invoke` undefined crash in the Tauri-less web mode) at `docs/screenshots/v0.8-pending/phase-8/uc1/tradesa-v2-positions-supabase-error-1920x1080.png`. That capture shows the `_PanelShell` `SupabaseErrorBody` ("Supabase unreachable" heading + "Cannot read properties of undefined (reading 'invoke')" detail + Retry button) correctly rendered with a red dot in `TradesaBotStatusStrip`.
 
@@ -217,6 +218,7 @@ Alternative: Use `evaluate_script` to `_setAdapterForTests` equivalent — call 
 #### State 2: `unauthenticated`
 
 **Mock response for `/tradesa-v2/status`:**
+
 ```json
 {
   "status": "unauthenticated",
@@ -244,6 +246,7 @@ Alternatively: ensure no `tradesa-v2-supabase-url` or `tradesa-v2-supabase-servi
 #### State 3: `bot-offline`
 
 **Mock response for `/tradesa-v2/status`:**
+
 ```json
 {
   "status": "bot-offline",
@@ -273,6 +276,7 @@ Alternatively: ensure no `tradesa-v2-supabase-url` or `tradesa-v2-supabase-servi
 The capture shows the `invoke` undefined error surfaced by the F7 Chrome fallback (Tauri-less web mode where `invoke` from `@tauri-apps/api/core` is undefined). The error message "Cannot read properties of undefined (reading 'invoke')" appears as the `SupabaseErrorBody` detail paragraph.
 
 **Mock response for a "clean" supabase-error (without the invoke crash):**
+
 ```json
 {
   "status": "supabase-error",
@@ -300,6 +304,7 @@ The capture shows the `invoke` undefined error surfaced by the F7 Chrome fallbac
 #### State 5: `healthy`
 
 **Mock response for `/tradesa-v2/status`:**
+
 ```json
 {
   "status": "healthy",
@@ -329,6 +334,7 @@ Additionally mock all data endpoints (`/tradesa-v2/positions`, etc.) to return p
 #### State 6: `partial`
 
 **Mock response for `/tradesa-v2/status`:**
+
 ```json
 {
   "status": "partial",
@@ -355,16 +361,17 @@ Additionally: mock some data endpoints to return 502/timeout and others to retur
 
 ### Tradesa V2 capture checklist summary
 
-| State | Mock needed | Primary panel to capture | Vitest test name |
-|-------|-------------|--------------------------|------------------|
-| `connecting` | None (initial store state) | Any panel | `PositionsPanel.test.tsx` "renders the skeleton-loader UX while status === 'connecting'" |
-| `unauthenticated` | `/status` → `unauthenticated` payload | Any panel (shows CTA) | `PositionsPanel.test.tsx` "renders 'Open Settings' CTA" |
-| `bot-offline` | `/status` → `bot-offline` + `heartbeat_age_s: 600` | PositionsPanel | `PositionsPanel.test.tsx` "renders the bot-offline banner" |
-| `supabase-error` | `/status` → `supabase-error` payload (or leave invoke undefined) | PositionsPanel | `_PanelShell` + strip tests |
-| `healthy` | `/status` → `healthy` + all data endpoints populated | PositionsPanel (2 trades visible) | `PositionsPanel.test.tsx` "renders populated table rows when healthy with positions" |
-| `partial` | `/status` → `partial` payload | Any panel | No dedicated panel test — covered at store level |
+| State             | Mock needed                                                      | Primary panel to capture          | Vitest test name                                                                         |
+| ----------------- | ---------------------------------------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------- |
+| `connecting`      | None (initial store state)                                       | Any panel                         | `PositionsPanel.test.tsx` "renders the skeleton-loader UX while status === 'connecting'" |
+| `unauthenticated` | `/status` → `unauthenticated` payload                            | Any panel (shows CTA)             | `PositionsPanel.test.tsx` "renders 'Open Settings' CTA"                                  |
+| `bot-offline`     | `/status` → `bot-offline` + `heartbeat_age_s: 600`               | PositionsPanel                    | `PositionsPanel.test.tsx` "renders the bot-offline banner"                               |
+| `supabase-error`  | `/status` → `supabase-error` payload (or leave invoke undefined) | PositionsPanel                    | `_PanelShell` + strip tests                                                              |
+| `healthy`         | `/status` → `healthy` + all data endpoints populated             | PositionsPanel (2 trades visible) | `PositionsPanel.test.tsx` "renders populated table rows when healthy with positions"     |
+| `partial`         | `/status` → `partial` payload                                    | Any panel                         | No dedicated panel test — covered at store level                                         |
 
 For a full Phase 9 session, the 6-state pass should capture:
+
 - One primary panel (PositionsPanel recommended — most visually distinct per state)
 - At both 1920×1080 and 2560×1440
 - Save to `docs/screenshots/v0.7.0/tradesa-v2/<state>-<resolution>.png` (or a new per-operator-session subfolder)
@@ -431,12 +438,12 @@ No blocking drift found in v0.6.0 or v0.3.0. All findings are S3/S4 and represen
 
 ## Summary
 
-| Severity | Count | IDs |
-|----------|-------|-----|
-| S1       | 0     | — |
-| S2       | 1     | T1-header-absent |
+| Severity | Count | IDs                                                                                                                                                                                                 |
+| -------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S1       | 0     | —                                                                                                                                                                                                   |
+| S2       | 1     | T1-header-absent                                                                                                                                                                                    |
 | S3       | 7     | T1-workspace-solo-chart, T1-chart-tab-missing-2560, T1-cockpit-non-hero-incomplete, T1-equity-overview-unavailable, T1-watchlist-order, T1-v060-solo-workspace, T1-v060-header-absent-preconvention |
-| S4       | 2     | T1-v060-dark-clean, T1-v030-composed-clean |
+| S4       | 2     | T1-v060-dark-clean, T1-v030-composed-clean                                                                                                                                                          |
 
 **No S1 blockers.** All v0.7.0 convention gaps are known, acknowledged in the v0.7.0 README, and already tracked in BLOCKERS.md for Phase 9. The single S2 finding (missing titlebar) is the most impactful convention gap — it is the _only_ axis completely unaddressed by the existing v0.7.0 captures.
 

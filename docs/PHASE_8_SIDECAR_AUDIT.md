@@ -7,12 +7,12 @@
 
 ## Severity scheme
 
-| Level | Meaning |
-|-------|---------|
-| S1 | Broken at runtime, security-critical, CRITICAL/HIGH CVE in a reachable code path |
-| S2 | Real bug surface (incorrect error handling, edge case), MEDIUM CVE, dead module that the registry references, wrong type signature with observable semantic consequence |
-| S3 | Strict-lint noise, LOW CVE, dead helper inside a live module |
-| S4 | Cosmetic / style-only |
+| Level | Meaning                                                                                                                                                                 |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S1    | Broken at runtime, security-critical, CRITICAL/HIGH CVE in a reachable code path                                                                                        |
+| S2    | Real bug surface (incorrect error handling, edge case), MEDIUM CVE, dead module that the registry references, wrong type signature with observable semantic consequence |
+| S3    | Strict-lint noise, LOW CVE, dead helper inside a live module                                                                                                            |
+| S4    | Cosmetic / style-only                                                                                                                                                   |
 
 ---
 
@@ -34,6 +34,7 @@ pip index versions <pkg>   # yanked-package check for all direct + key transitiv
 
 **Tool:** pip-audit 2.10.0
 **Detection:**
+
 ```
 pip-audit -r sidecar/requirements.txt
 Found 1 known vulnerability in 1 package
@@ -42,7 +43,9 @@ autobahn 19.11.2  →  PYSEC-2020-25 / CVE-2020-35678 / GHSA-gwp7-vqr5-h33h
   "Autobahn|Python before 20.12.3 allows redirect header injection."
   Fix: upgrade to >= 20.12.3
 ```
+
 **Impact:** `autobahn` is a **transitive** dependency pulled in by `kiteconnect==5.2.0`. The CVE is a WebSocket handshake redirect header injection — an attacker who controls the WebSocket server URL could inject arbitrary HTTP headers via a crafted redirect. Severity downgraded to **S3** because:
+
 1. The Kite adapter (`sidecar/services/brokers/kite.py`) does **not** use `KiteTicker` (Zerodha's WebSocket streaming class that uses autobahn). The adapter uses only the REST session (`kiteconnect.KiteConnect`) for order placement, positions and account queries. Grep for `KiteTicker` across the whole sidecar returns no results.
 2. The sidecar connects only to `api.kite.trade` (Zerodha's TLS-verified endpoint) — no attacker-controlled WebSocket endpoint.
 3. The attack requires MITM on a WebSocket connection; loopback-only sidecar transport adds another layer.
@@ -57,6 +60,7 @@ autobahn 19.11.2  →  PYSEC-2020-25 / CVE-2020-35678 / GHSA-gwp7-vqr5-h33h
 No yanked packages detected among direct dependencies. All versions queried via `pip index versions` show INSTALLED versions still present in the available-versions list.
 
 Notable observations:
+
 - `oandapyV20==0.7.2`: Last release 2021. No CVEs in the PyPI advisory database. Per CLAUDE.md BLOCKERS.md note this is a known maintenance concern. Advisory DB clean; OANDA SDK maintenance risk is pre-documented.
 - `dhanhq==2.1.0`: INSTALLED version confirmed present in PyPI release list. No advisories.
 - `google-genai>=2.4.0` (floor pin, not exact): Currently resolves to 2.4.0 in audit environment. No advisories.
@@ -80,13 +84,17 @@ ruff check sidecar/ --select F401,F811
 
 **Tool:** vulture 2.16 (100% confidence: "unsatisfiable 'ternary' condition")
 **Detection:**
+
 ```
 sidecar\services\earnings_provider.py:253: unsatisfiable 'ternary' condition (100% confidence)
 ```
+
 The flagged line is:
+
 ```python
 eps_stddev = _num(row.get("growth")) if False else None
 ```
+
 **Impact:** The condition `if False` is a hard-coded dead branch. `eps_stddev` is **always assigned `None`** at line 253, regardless of the DataFrame contents. The comment at line 255 ("Some yfinance versions provide a stddev-like column called `epsTrend`...") suggests the original intention was to compute `eps_stddev` from the `"growth"` column of the estimate frame. The computation is silently skipped. This means `EarningsEvent.eps_estimate_stddev` is always computed from the high/low approximation fallback (line 258–259) rather than from actual analyst estimate dispersion data when available. This is a **silent data quality regression** — data consumers (the Strategy Critic agent, any model that uses stddev for volatility estimation) receive a cruder estimate than the underlying data permits.
 
 **Suggested fix path:** Replace `if False else None` with the actual condition (presumably `if "growth" in row.index and pd.notna(row["growth"])` or similar). The original developer left a `# TODO` shape here — the fix is restoring the intended expression.
@@ -128,11 +136,13 @@ mypy version: 2.1.0
 
 **Tool:** mypy 2.1.0 `--ignore-missing-imports --exclude tests/`
 **Detection:**
+
 ```
 sidecar\services\llm\openai.py:49: error: Return type "AsyncIterator[...]" of "stream_chat"
   incompatible with return type "Coroutine[Any, Any, AsyncIterator[...]]"
   in supertype "services.llm.base.LLMProvider"  [override]
 ```
+
 Same error in `anthropic.py:82`, `groq.py:38`, `ollama.py:51`.
 
 **Impact:** The ABC `LLMProvider.stream_chat` is declared `async def ... -> AsyncIterator[LLMStreamEvent]`. An `async def` that returns `AsyncIterator` has the runtime type of a `Coroutine[Any, Any, AsyncIterator[...]]` — mypy's complaint is correct. The concrete implementations use `async def` with `yield` inside (making them `AsyncGenerator`, a subtype of `AsyncIterator`). At runtime this works because Python resolves `async def` + `yield` to an `AsyncGenerator` object, but the ABC's declared return type creates a mypy-level mismatch that could mislead future maintainers or type-checking consumers. The risk is that a future caller awaits `stream_chat(...)` expecting an `AsyncIterator` object directly, rather than iterating with `async for`. If any of the four providers is ever called directly (rather than through the router's `async for` loop), it would behave unexpectedly.
@@ -146,6 +156,7 @@ Same error in `anthropic.py:82`, `groq.py:38`, `ollama.py:51`.
 
 **Tool:** mypy 2.1.0
 **Detection (representative sample):**
+
 ```
 sidecar\services\macro\world_bank_provider.py:48: error: Argument "provider" to "MacroCatalogEntry"
   has incompatible type "str"; expected "Literal['fred', 'ecb', 'imf', 'world-bank']"  [arg-type]
@@ -154,6 +165,7 @@ sidecar\services\macro\fred_provider.py:283: error: Argument "frequency" to "Mac
 sidecar\services\macro\fred_provider.py:285: error: Argument "seasonal_adjustment" to "MacroSeriesExtended"
   has incompatible type "str | None"; expected "Literal['seasonally-adjusted', 'not-adjusted', 'not-applicable'] | None"  [arg-type]
 ```
+
 Affects `world_bank_provider.py` (~13 sites), `imf_provider.py` (~11 sites), `fred_provider.py` (~14 sites), `ecb_provider.py` (~11 sites).
 
 **Impact:** All four macro provider modules define a module-level `PROVIDER = "<literal string>"` as a bare `str` constant. Pydantic model fields (`MacroCatalogEntry.provider`, `MacroSeriesExtended.provider`, etc.) expect `MacroProvider = Literal["fred", "ecb", "imf", "world-bank"]`. At runtime, Pydantic 2.x validates field values even for `Literal` types — so if a provider module accidentally misspells its `PROVIDER` constant (e.g. `"world_bank"` vs `"world-bank"`), Pydantic would raise `ValidationError` at object construction time. The `frequency` and `seasonal_adjustment` mismatch in `fred_provider.py` is the same pattern: API responses return raw strings from FRED's enum domain but are not validated against the Literal before constructing Pydantic models. In practice, FRED always returns valid enum strings — but the type error means any change to FRED's response schema would silently construct an invalid model rather than raising at the boundary.
@@ -167,12 +179,14 @@ Affects `world_bank_provider.py` (~13 sites), `imf_provider.py` (~11 sites), `fr
 
 **Tool:** mypy 2.1.0
 **Detection:**
+
 ```
 sidecar\services\brokers\oanda.py:61: error: Incompatible types in assignment
   (expression has type "str", base class "BrokerAdapter" defined the type as
   "Literal['dhan', 'angelone', 'kite', 'alpaca', 'ib', 'oanda', 'ccxt-bybit',
   'ccxt-binance', 'ccxt-kraken', 'ccxt-coinbase']")  [assignment]
 ```
+
 **Impact:** `OandaAdapter.BROKER_ID: ClassVar[str] = "oanda"` is annotated as `ClassVar[str]` but the base class expects a `Literal` union. The broker registry (`services/brokers/registry.py`) maps broker IDs to adapter classes — a runtime typo in `BROKER_ID` would route to the wrong adapter. The type annotation weakening (using `str` instead of `BrokerId`) means mypy cannot catch such a regression. The other broker adapters (dhan, kite, etc.) appear to use `ClassVar` without an explicit type, letting mypy infer the narrower literal — OANDA explicitly widens to `str`, losing that narrowing.
 
 **Suggested fix path:** Change `BROKER_ID: ClassVar[str] = "oanda"` to `BROKER_ID: ClassVar = "oanda"` (let mypy narrow to `Literal["oanda"]`) or `BROKER_ID: ClassVar[BrokerId] = "oanda"`.
@@ -184,6 +198,7 @@ sidecar\services\brokers\oanda.py:61: error: Incompatible types in assignment
 
 **Tool:** ruff check `RUF100`
 **Detection:**
+
 ```
 sidecar\routers\agents.py:72: RUF100 Unused `noqa` directive (unused: `BLE001`)
 sidecar\routers\backtest.py:71: RUF100 Unused `noqa` directive (unused: `BLE001`)
@@ -192,6 +207,7 @@ sidecar\routers\brokers.py:166: RUF100 Unused `noqa` directive (unused: `BLE001`
 sidecar\routers\earnings.py:72: RUF100 Unused `noqa` directive (unused: `BLE001`)
 sidecar\openbb_mcp_subprocess\main.py:42,49: RUF100 Unused `noqa: BLE001`
 ```
+
 `BLE001` is not in the CI ruff config's `select` list (`E`, `F`, `I`, `UP`, `B`), so the suppression directives are non-operational noise.
 **Impact:** Cosmetic — stale suppression directives accumulate and mislead future maintainers.
 **Suggested fix path:** Remove the `# noqa: BLE001` comments that are not in the enabled rule set, or add `BLE001` to the `select` list if blind-exception catching should be enforced.
@@ -203,11 +219,13 @@ sidecar\openbb_mcp_subprocess\main.py:42,49: RUF100 Unused `noqa: BLE001`
 
 **Tool:** ruff FAST002
 **Detection (representative):**
+
 ```
 sidecar\routers\history.py:17:5: FAST002 FastAPI dependency without `Annotated`
 sidecar\routers\indicators.py:41:5: FAST002 FastAPI dependency without `Annotated`
 sidecar\routers\tradesa_v2.py:178:5: FAST002 FastAPI dependency without `Annotated`
 ```
+
 7 additional sites across `macro.py`, `news.py`, `quotes.py`, `screener.py`.
 **Impact:** FAST002 is a forward-compatibility style warning. FastAPI still supports the old `param = Query(...)` style; the `Annotated[type, Query(...)]` style is preferred from FastAPI ≥ 0.95.0. No runtime impact.
 **Suggested fix path:** Migrate to `Annotated` pattern as a batch cleanup task.
@@ -225,13 +243,13 @@ sidecar\routers\tradesa_v2.py:178:5: FAST002 FastAPI dependency without `Annotat
 
 ## Summary
 
-| Severity | Count |
-|----------|-------|
-| S1 | 0 |
-| S2 | 4 |
-| S3 | 1 (CVE, transitive, unreachable code path) |
-| S4 | 2 (stale noqa + FAST002 batch) |
-| **Total** | **7** |
+| Severity  | Count                                      |
+| --------- | ------------------------------------------ |
+| S1        | 0                                          |
+| S2        | 4                                          |
+| S3        | 1 (CVE, transitive, unreachable code path) |
+| S4        | 2 (stale noqa + FAST002 batch)             |
+| **Total** | **7**                                      |
 
 ### Top-priority recommendations
 

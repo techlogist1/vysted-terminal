@@ -28,16 +28,16 @@ static analysis of what test files exist and what branches they import + exercis
 
 **Files with zero test coverage (no test file, never imported by a test):**
 
-| File | Category |
-|------|----------|
-| `src/store/agents.ts` | Zustand store (agents + custom agents) |
-| `src/store/app.ts` | Zustand store (sidecar connect lifecycle) |
-| `src/store/chat-history.ts` | Zustand store |
-| `src/store/command-palette.ts` | Zustand store |
-| `src/store/llm-providers.ts` | Zustand store |
-| `src/store/symbols.ts` | Zustand store |
-| `src/lib/plugin-bootstrap.ts` | Plugin bootstrap (PLUGIN_COMPANIONS, in-memory fallback) |
-| `src/components/PanelHost.tsx` | dockview integration (no-modules loading branch) |
+| File                           | Category                                                 |
+| ------------------------------ | -------------------------------------------------------- |
+| `src/store/agents.ts`          | Zustand store (agents + custom agents)                   |
+| `src/store/app.ts`             | Zustand store (sidecar connect lifecycle)                |
+| `src/store/chat-history.ts`    | Zustand store                                            |
+| `src/store/command-palette.ts` | Zustand store                                            |
+| `src/store/llm-providers.ts`   | Zustand store                                            |
+| `src/store/symbols.ts`         | Zustand store                                            |
+| `src/lib/plugin-bootstrap.ts`  | Plugin bootstrap (PLUGIN_COMPANIONS, in-memory fallback) |
+| `src/components/PanelHost.tsx` | dockview integration (no-modules loading branch)         |
 
 **`src/store/workspace.ts`** has a test file (`workspace.test.ts`) but the actual
 store file is `workspace.ts` whereas `src/lib/workspace.ts` is the one under test —
@@ -239,16 +239,16 @@ analysis of test files vs service modules.
 
 **Key coverage numbers from the run:**
 
-| Service | Coverage |
-|---------|----------|
-| `services/quant/monte_carlo.py` | 0% (48/48 lines missed) |
-| `services/screener.py` | 84% |
-| `services/sec_filings_provider.py` | 84% |
-| `services/yfinance_provider.py` | 81% |
-| `services/tradesa_v2_provider.py` | 90% |
-| `services/workflow_engine.py` | 96% |
-| `services/workflow_nodes/quant_nodes.py` | 88% |
-| `services/workflow_nodes/research_nodes.py` | 85% |
+| Service                                     | Coverage                |
+| ------------------------------------------- | ----------------------- |
+| `services/quant/monte_carlo.py`             | 0% (48/48 lines missed) |
+| `services/screener.py`                      | 84%                     |
+| `services/sec_filings_provider.py`          | 84%                     |
+| `services/yfinance_provider.py`             | 81%                     |
+| `services/tradesa_v2_provider.py`           | 90%                     |
+| `services/workflow_engine.py`               | 96%                     |
+| `services/workflow_nodes/quant_nodes.py`    | 88%                     |
+| `services/workflow_nodes/research_nodes.py` | 85%                     |
 
 ---
 
@@ -289,6 +289,7 @@ a future refactor that accidentally changes `"stop-limit"` to `"stop_limit"` wou
 caught until a live order fails.
 
 **Suggested fix:** Add to `test_broker_base.py`:
+
 ```python
 def test_invalid_order_type_raises(temp_data_dir):
     adapter = _MockAdapter()
@@ -317,6 +318,7 @@ is called with an empty dict and the guard is accidentally removed, it would rai
 `max([], ...)` → `ValueError`.
 
 **Suggested fix:** Add to a kill_switch test file:
+
 ```python
 @pytest.mark.asyncio
 async def test_fire_with_no_subscribers_returns_zero_ack_times():
@@ -335,6 +337,7 @@ async def test_fire_with_no_subscribers_returns_zero_ack_times():
 **Part:** A coverage
 
 **Detection:** `sidecar/services/audit_log.py::append()` line ~95:
+
 ```python
 if row_id is None:  # pragma: no cover - INSERT always assigns an id
     raise RuntimeError("audit-log INSERT did not yield an id")
@@ -371,6 +374,7 @@ abort the workflow run), but if `_emit` is accidentally changed to re-raise, the
 workflow run would abort on the first node. No test catches this regression.
 
 **Suggested fix:** Add to `test_workflow_engine.py`:
+
 ```python
 @pytest.mark.asyncio
 async def test_on_event_exception_does_not_abort_run():
@@ -424,6 +428,7 @@ to raise `ProviderError`, assert registry falls back to `yfinance_provider.get_f
 `loader(request.symbols, start_date, end_date)` and then processes the resulting bars.
 The case where `loader` returns an empty list (`bars_sorted = []`) is never tested. In
 this case:
+
 - `_run_single_slice()` is called with zero bars
 - `_compute_metrics()` receives an empty equity curve (`equity_curve = []`)
 - `equity_curve = []` hits the `if not equity_curve: return` guard at line ~232
@@ -435,6 +440,7 @@ trading days) would return empty metrics. The strategy critic agent tool `backte
 would receive a result with all metrics at zero, which could be misleading.
 
 **Suggested fix:** Add to `test_backtest_engine.py`:
+
 ```python
 @pytest.mark.asyncio
 async def test_empty_bar_set_returns_zero_metrics():
@@ -495,9 +501,11 @@ companion panels map. The tag exists in the repo (`git tag | grep v0.6.5` → `v
 but is a visible inconsistency when a reader cross-references §7 to learn the current state.
 
 **Suggested fix:** Change the Phase 6.5 heading to:
+
 ```
 **Shipped in v0.6.5 (2026-05-17).** Plan at ...
 ```
+
 Same convention as Phase 6, Phase 7, etc.
 
 ---
@@ -603,6 +611,7 @@ tab groups) ✓ — multi-window pop-out deferred to v1.1" and move that to §9 
 ### Drift D-7: §10 UC2/UC4/UC5 — implicit dependency on openbb-mcp subprocess not disclosed [S1]
 
 **BLUEPRINT location:** §10 Use Cases 2, 4, 5:
+
 - UC2: "AI Researcher pulls everything → chart + news in adjacent panels → backtest"
 - UC4: "workflow pulls SEC + sentiment → outputs to chart"
 - UC5: "yield curves + central bank tracker + commodity dashboard → AI Macro Researcher"
@@ -684,6 +693,7 @@ Phase 8 concludes. Include the coverage audit and BLUEPRINT truth-alignment as n
 ### Drift D-10: §3.3 Plugin Contract — `subscribe` and `executeCommand` use `any` in BLUEPRINT text [S3]
 
 **BLUEPRINT location:** §3.3 Plugin Contract code block, lines 177–180:
+
 ```typescript
 subscribe?(channel: string, callback: (event: any) => void): Unsubscribe;
 executeCommand?(commandId: string, args: any): Promise<CommandResult>;
@@ -707,12 +717,12 @@ with a comment: `// unknown not any — type-hardened per v0.5.0 Tier-3 decision
 
 ### Findings by severity
 
-| Count | Severity | Category |
-|-------|----------|----------|
-| 3 | S1 | Safety-surface coverage gaps + UC drift |
-| 9 | S2 | Plugin/broker/workflow/backtest coverage + BLUEPRINT module claims |
-| 7 | S3 | General coverage gaps + minor BLUEPRINT tracking drift |
-| 0 | S4 | Stretch goals (UC6/UC7) — intentional non-implementation |
+| Count | Severity | Category                                                           |
+| ----- | -------- | ------------------------------------------------------------------ |
+| 3     | S1       | Safety-surface coverage gaps + UC drift                            |
+| 9     | S2       | Plugin/broker/workflow/backtest coverage + BLUEPRINT module claims |
+| 7     | S3       | General coverage gaps + minor BLUEPRINT tracking drift             |
+| 0     | S4       | Stretch goals (UC6/UC7) — intentional non-implementation           |
 
 **Total:** 19 findings (12 Part A coverage, 10 Part B BLUEPRINT drift; 3 overlap S1/S2)
 
@@ -768,6 +778,6 @@ at least a basic `run_simulation()` call and bounds-check on the returned paths 
 - **`test_safety_end_to_end.py::test_audit_5_kill_switch_under_2s` benchmark** — this
   test requires building and running 7 real broker adapters with a live asyncio event loop.
   It was not re-run during this audit (the benchmark JSON file `docs/screenshots/v0.5.0/
-  safety-audit/kill-switch-benchmark.json` was restored from the v0.7.0 commit in the
+safety-audit/kill-switch-benchmark.json` was restored from the v0.7.0 commit in the
   most-recent housekeeping commit `005a8d0`). Any coverage measurement of `kill_switch.py`
   in isolation will miss the multi-subscriber concurrent dispatch path.

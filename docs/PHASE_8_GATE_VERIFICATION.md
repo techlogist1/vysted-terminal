@@ -19,13 +19,14 @@ the empirical evidence is already in `PHASE_8_BUG_CATALOG.md`.
 ## Gate inventory
 
 The `.github/workflows/` set:
+
 1. **`lint.yml`** — `pnpm install --frozen-lockfile` → `pnpm lint` → `pnpm
 format:check` → `pnpm typecheck` → `cargo fmt --check` → `cargo clippy --
 all-targets -- -D warnings` → `ruff check sidecar` → `ruff format --check
 sidecar`
 2. **`test.yml`** — install + `node scripts/ensure-all-sidecars.mjs` +
    **`node scripts/smoke-test-sidecars.mjs`** + `pnpm test` (vitest) + `cargo
-   test` + `pytest` (cd sidecar)
+test` + `pytest` (cd sidecar)
 3. **`build.yml`** — install + `node scripts/ensure-all-sidecars.mjs` +
    `node scripts/smoke-test-sidecars.mjs` + `pnpm tauri build`
 
@@ -134,6 +135,7 @@ Evidence (Phase 8 L2/L3 discovered):
 
 **Fix recommendation (F1 candidate):** extend `scripts/smoke-test-sidecars.mjs`
 to add three additional verification steps for the main sidecar:
+
 - `/agents` returns at least 1 agent (count > 0)
 - `/openbb-mcp/status` returns `available: true` **AND** opens a TCP
   connection to `<endpoint>/mcp`
@@ -141,6 +143,7 @@ to add three additional verification steps for the main sidecar:
   `/macro/`)
 
 And for the MCP subprocesses:
+
 - After the 10 s alive check, **TCP-probe** the claimed port — fail loud if
   not listening.
 
@@ -164,6 +167,7 @@ verified.
 Phase 8 must extend to 10 consecutive releases. Verification before tag (G1).
 
 ### Gate 13: `sidecar/app.py FastAPI(version="X.Y.Z")` (release-bump
+
 checklist)
 
 **Status:** ⚠️ **Gap.** The release-bump checklist names this file but the
@@ -181,11 +185,11 @@ forward.
 
 ## Summary of gate gaps surfaced
 
-| Gate                  | Gap                                              | Severity | Fix in    |
-| --------------------- | ------------------------------------------------ | -------- | --------- |
-| smoke-test (Gate 10)  | doesn't probe MCP subprocess port binding         | S1       | F1        |
-| smoke-test (Gate 10)  | doesn't verify endpoints return non-empty data   | S1       | F1        |
-| release-bump (Gate 13)| `routers/health.py:18` hardcode not in checklist | S2       | F2 + H2   |
+| Gate                   | Gap                                              | Severity | Fix in  |
+| ---------------------- | ------------------------------------------------ | -------- | ------- |
+| smoke-test (Gate 10)   | doesn't probe MCP subprocess port binding        | S1       | F1      |
+| smoke-test (Gate 10)   | doesn't verify endpoints return non-empty data   | S1       | F1      |
+| release-bump (Gate 13) | `routers/health.py:18` hardcode not in checklist | S2       | F2 + H2 |
 
 ---
 
@@ -204,6 +208,7 @@ is stronger:
   `pytest test_safety_end_to_end.py` fails the type-level audit.
 
 Each is documented as "would fire" because:
+
 1. v0.7.0 F5 iteration 1+2+3 demonstrated each gate firing on real drift
 2. CLAUDE.md "Defense-in-depth for safety-critical surfaces" §6.5 gate is
    independently verified by L5 grep audit
@@ -219,17 +224,17 @@ throwaway-branch protocol in the Phase 8 plan is canonical.
 
 ## Final-gates log (filled at G1 / tag time)
 
-| Gate                                         | Result at tag commit | Notes |
-| -------------------------------------------- | -------------------- | ----- |
-| `pnpm ci-local`                              | _(pending)_          |       |
-| `node scripts/smoke-test-sidecars.mjs`       | _(pending)_          |       |
-| `git diff v0.7.0..HEAD -- types/plugin.ts`   | _(pending)_          | 10th lock |
-| `pytest sidecar/tests/test_safety_end_to_end.py` | _(pending)_      | 9/9 PASS expected |
-| GitHub Actions on tag commit (3 OSes)        | _(pending)_          |       |
-| Zero open S1 in BUG_CATALOG                  | _(pending)_          |       |
-| All 9 audit docs present                     | _(pending)_          |       |
+| Gate                                             | Result at tag commit | Notes             |
+| ------------------------------------------------ | -------------------- | ----------------- |
+| `pnpm ci-local`                                  | _(pending)_          |                   |
+| `node scripts/smoke-test-sidecars.mjs`           | _(pending)_          |                   |
+| `git diff v0.7.0..HEAD -- types/plugin.ts`       | _(pending)_          | 10th lock         |
+| `pytest sidecar/tests/test_safety_end_to_end.py` | _(pending)_          | 9/9 PASS expected |
+| GitHub Actions on tag commit (3 OSes)            | _(pending)_          |                   |
+| Zero open S1 in BUG_CATALOG                      | _(pending)_          |                   |
+| All 9 audit docs present                         | _(pending)_          |                   |
 
 ---
 
-*Re-run at G1 / tag time. Phase 9 / 10 / v1.x can re-verify gates identically
-using this inventory + the throwaway-branch protocol if desired.*
+_Re-run at G1 / tag time. Phase 9 / 10 / v1.x can re-verify gates identically
+using this inventory + the throwaway-branch protocol if desired._

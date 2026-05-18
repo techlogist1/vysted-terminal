@@ -45,8 +45,8 @@ Phase 8 ship structure follows the 8-section convention established by
   (620.19 s including kill-switch benchmark). Cargo fmt + clippy strict
   clean. CI status on tag commit verified post-tag (next §7).
 - **Total wall-time of overnight run:** ~3.5 hours operator-asleep
-  + lead-foundation phase (started ~04:30 UTC 2026-05-18), wrapped at
-  ~07:30 UTC. Within the budget envelope per the operator brief.
+  - lead-foundation phase (started ~04:30 UTC 2026-05-18), wrapped at
+    ~07:30 UTC. Within the budget envelope per the operator brief.
 - **Phase 9 entry context:** see §5 below.
 - **Pointer to other 8 audit docs:**
   - `docs/PHASE_8_BUG_CATALOG.md` — living catalog, all findings cross-
@@ -61,7 +61,7 @@ Phase 8 ship structure follows the 8-section convention established by
 
 ---
 
-## 1. What Phase 8 shipped (in v_._._ )
+## 1. What Phase 8 shipped (in v*.*.\_ )
 
 ### Foundation (lead, L1–L11, mostly source-level + commit-progressive)
 
@@ -76,7 +76,7 @@ Phase 8 ship structure follows the 8-section convention established by
   documented as single root-cause hypothesis to avoid catalog duplication.
   Commits `18bc8d3`, `71cdf9c`.
 - **L3** Latent sidecar runtime-gap audit. Surfaced `L3-agents-dir-not-
-  bundled` (S1): every named first-party agent — Buffett, Dalio,
+bundled` (S1): every named first-party agent — Buffett, Dalio,
   Druckenmiller, Graham, Klarman, Lynch, Marks, Munger, Portfolio Advisor
   — was unavailable in production because the `agents/` dir wasn't
   bundled (PyInstaller `--onefile` skips plain-dir adjacent assets without
@@ -110,7 +110,7 @@ Phase 8 ship structure follows the 8-section convention established by
   capture procedure documented for Phase 9 mocked-fetch session.
 - **T2 (`worktree-agent-a17b77ac0c03d6a04`)** — Python sidecar audit. **0×
   S1, 4×S2, 1×S3, 2×S4.** Top findings: `earnings_provider.py:253` `if
-  False` dead code silently making `eps_stddev = None`; LLM adapter async
+False` dead code silently making `eps_stddev = None`; LLM adapter async
   signatures incompatible with ABC; macro provider Literal types not
   annotated. One transitive CVE (autobahn==19.11.2 — unused code path, S3).
 - **T3 (`worktree-agent-t3-rust`)** — Rust audit. _(filled at I1 merge
@@ -197,6 +197,7 @@ canonical locations + `cargo update -p vysted-terminal` re-lock +
 ### Phase 10 (launch ops — explicit non-scope as of Phase 7)
 
 Same set as `BLOCKERS.md` "v0.7.0 → Phase 10 carry-forwards":
+
 1. Code signing (SignPath / Apple Developer ID / Linux unsigned)
 2. Tauri auto-updater wiring
 3. Distribution channels (Homebrew cask, AppImage, GitHub Releases)
@@ -223,7 +224,7 @@ Same set as `BLOCKERS.md` v0.6.6+. Unchanged by Phase 8.
 
 ## 4. Plugin contract status
 
-- **`types/plugin.ts` is UNCHANGED in v_._._ ** — verified via `git diff
+- **`types/plugin.ts` is UNCHANGED in v*.*.\_ ** — verified via `git diff
 v0.7.0..v_._._ -- types/plugin.ts` empty. **Tier-1 lock held — 10th
   consecutive release.** _(verified at G1 time)_
 - **tradesa-v2 wrapper's 3-layer read-only invariants** (provider has no
@@ -295,19 +296,19 @@ What Phase 9 manual test should focus on (operator-led, not autonomous):
 
 ## 7. Verification snapshot at handoff (G1 results)
 
-| Gate                                              | Result   | Notes |
-| ------------------------------------------------- | -------- | ----- |
-| `node scripts/smoke-test-sidecars.mjs`            | ✅ green | All 3 binaries boot; ~32 s wall; 0 orphans after teardown |
-| `docs/PHASE_8_GATE_VERIFICATION.md` complete      | ✅       | 4 sections of gate inventory + 3 gate gaps documented |
-| `git diff v0.7.0..HEAD -- types/plugin.ts`        | ✅ empty | 10th consecutive release lock |
-| `git diff v0.7.0..HEAD -- sidecar/services/broker_base.py sidecar/services/kill_switch.py sidecar/services/audit_log.py sidecar/models/audit_log.py sidecar/tests/test_safety_end_to_end.py` | ✅ empty | §6.5 Tier-1 untouched |
-| `pytest sidecar/tests/test_safety_end_to_end.py`  | ✅ 9/9 PASS | 620.19 s; kill-switch sub-2 s benchmark included |
-| Local cargo fmt + clippy --all-targets -D warnings | ✅ clean | 1 m 3 s warm; Rust F1 fix compiles cleanly |
-| Local pytest test_health.py (post F2 hot-patch)   | ✅ 3/3 PASS | F2 health.py change preserves structural contract |
-| Smoke + standalone exec of rebuilt main sidecar   | ✅       | /agents returns 12 agents (was []); /health returns "0.8.0" (was "0.2.1") |
-| CI green on all 3 OSes at tag commit              | _(post-tag verification)_ | See `gh run list --branch main --limit 6` |
-| Zero open S1 in BUG_CATALOG                       | ✅       | 4 S1 entries marked `status: fixed-*`; 2 test-only S1s deferred to v0.8.x per F3 |
-| All 9 audit docs present                          | ✅       | BUG_CATALOG 893 / VISUAL_REGRESSION 443 / SIDECAR 246 / RUST 381 / PLUGIN 579 / COVERAGE_AND_DOCS 773 / PERF_BASELINE 204 / GATE_VERIFICATION 235 / HANDOFF (this doc) |
+| Gate                                                                                                                                                                                         | Result                    | Notes                                                                                                                                                                  |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `node scripts/smoke-test-sidecars.mjs`                                                                                                                                                       | ✅ green                  | All 3 binaries boot; ~32 s wall; 0 orphans after teardown                                                                                                              |
+| `docs/PHASE_8_GATE_VERIFICATION.md` complete                                                                                                                                                 | ✅                        | 4 sections of gate inventory + 3 gate gaps documented                                                                                                                  |
+| `git diff v0.7.0..HEAD -- types/plugin.ts`                                                                                                                                                   | ✅ empty                  | 10th consecutive release lock                                                                                                                                          |
+| `git diff v0.7.0..HEAD -- sidecar/services/broker_base.py sidecar/services/kill_switch.py sidecar/services/audit_log.py sidecar/models/audit_log.py sidecar/tests/test_safety_end_to_end.py` | ✅ empty                  | §6.5 Tier-1 untouched                                                                                                                                                  |
+| `pytest sidecar/tests/test_safety_end_to_end.py`                                                                                                                                             | ✅ 9/9 PASS               | 620.19 s; kill-switch sub-2 s benchmark included                                                                                                                       |
+| Local cargo fmt + clippy --all-targets -D warnings                                                                                                                                           | ✅ clean                  | 1 m 3 s warm; Rust F1 fix compiles cleanly                                                                                                                             |
+| Local pytest test_health.py (post F2 hot-patch)                                                                                                                                              | ✅ 3/3 PASS               | F2 health.py change preserves structural contract                                                                                                                      |
+| Smoke + standalone exec of rebuilt main sidecar                                                                                                                                              | ✅                        | /agents returns 12 agents (was []); /health returns "0.8.0" (was "0.2.1")                                                                                              |
+| CI green on all 3 OSes at tag commit                                                                                                                                                         | _(post-tag verification)_ | See `gh run list --branch main --limit 6`                                                                                                                              |
+| Zero open S1 in BUG_CATALOG                                                                                                                                                                  | ✅                        | 4 S1 entries marked `status: fixed-*`; 2 test-only S1s deferred to v0.8.x per F3                                                                                       |
+| All 9 audit docs present                                                                                                                                                                     | ✅                        | BUG_CATALOG 893 / VISUAL_REGRESSION 443 / SIDECAR 246 / RUST 381 / PLUGIN 579 / COVERAGE_AND_DOCS 773 / PERF_BASELINE 204 / GATE_VERIFICATION 235 / HANDOFF (this doc) |
 
 ---
 
@@ -344,7 +345,7 @@ What Phase 9 manual test should focus on (operator-led, not autonomous):
 6. **Tradesa-v2 host-private imports** (T4 finding) — plugins SHOULD use
    `PluginConfig.sidecarBaseUrl` + `PluginConfig.secrets` from the
    contract, NOT direct imports from `@/lib/keychain` + `@/lib/sidecar-
-   client`. This is the canonical plugin pattern; tradesa-v2 is a
+client`. This is the canonical plugin pattern; tradesa-v2 is a
    precedent that should be cleaned up in v0.6.6+ work (the plugin is
    already deferred + scoped).
 

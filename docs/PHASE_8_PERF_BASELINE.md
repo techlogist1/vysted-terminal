@@ -31,16 +31,16 @@ captured so any future operator can reproduce.
 
 **Source:** `tauri-dev.log` lines 1-220.
 
-| Phase                                       | Wall-time         |
-| ------------------------------------------- | ----------------- |
-| `node scripts/ensure-all-sidecars.mjs`      | ~3 s              |
-| `pnpm dev` → Next.js Ready                  | **0.4 s** (Turbopack) |
-| Cargo download crates                       | ~6 s (8 crates, 610 KiB) |
-| Cargo compile (Rust core, dev profile)      | **~1 min 25 s**   |
-| Tauri shell launch + sidecar spawn          | ~2 s              |
-| Sidecar boot + Uvicorn ready                | ~3 s              |
-| First `/health` 200 from frontend           | ~1 s              |
-| **Total cold-start**                        | **~95 s**         |
+| Phase                                  | Wall-time                |
+| -------------------------------------- | ------------------------ |
+| `node scripts/ensure-all-sidecars.mjs` | ~3 s                     |
+| `pnpm dev` → Next.js Ready             | **0.4 s** (Turbopack)    |
+| Cargo download crates                  | ~6 s (8 crates, 610 KiB) |
+| Cargo compile (Rust core, dev profile) | **~1 min 25 s**          |
+| Tauri shell launch + sidecar spawn     | ~2 s                     |
+| Sidecar boot + Uvicorn ready           | ~3 s                     |
+| First `/health` 200 from frontend      | ~1 s                     |
+| **Total cold-start**                   | **~95 s**                |
 
 **Warm-start (cargo cache hot):** roughly 8–10 s (Rust deps cached, only
 the local `vysted-terminal` crate recompiles if source-changed). Specific
@@ -48,6 +48,7 @@ warm-start sampling deferred (this run was cold; subsequent same-session
 restarts would warm).
 
 **Subprocess spawn:**
+
 - `[openbb-mcp] subprocess spawned on 127.0.0.1:54109` — reported but
   subprocess does NOT actually listen on that port (see BUG_CATALOG
   finding UC1-openbb-mcp-not-listening).
@@ -59,6 +60,7 @@ restarts would warm).
 ## Sidecar `/health` round-trip latency (100 samples)
 
 **Command:**
+
 ```bash
 for i in $(seq 1 100); do
   curl -sS -o /dev/null -w "%{time_total}\n" http://127.0.0.1:54108/health
@@ -91,6 +93,7 @@ endpoints; the cumulative GIL pressure may need profiling for v1.1.
 ## Quote single-symbol round-trip (cold)
 
 **Command:**
+
 ```bash
 time (curl -sS http://127.0.0.1:54108/quotes/AAPL?asset_class=equity > /dev/null)
 ```
@@ -107,6 +110,7 @@ warms should be sub-millisecond.
 ## 1-year daily history round-trip (cold)
 
 **Command:**
+
 ```bash
 time (curl -sS "http://127.0.0.1:54108/history/AAPL?timeframe=1d&range=1y" > /tmp/aapl-1y.json)
 ```
@@ -127,6 +131,7 @@ F7 fallback path. **Deferred to Phase 9 operator manual test** where the
 Tauri shell with real keychain access can exercise each provider.
 
 Future-Phase-9 procedure:
+
 1. In Tauri shell, open AI Assistant.
 2. `/key set anthropic <key>` for each provider that has a key.
 3. Send `Summarise AAPL fundamentals` via `/ask`.
@@ -145,6 +150,7 @@ makes any backtest workflow that needs fundamentals fail upstream. **Deferred
 to Phase 9 / re-measure after F1 fix loop** unblocks openbb-mcp.
 
 Methodology for Phase 9 / F1 verification:
+
 1. Open Backtest panel via Ctrl+K → "Open Backtest".
 2. Select the bundled "SPY mean-reversion 30d" template.
 3. Submit. Measure submit → run-complete event time.
@@ -165,12 +171,12 @@ it lands (BLOCKERS.md v0.5.1+ carry-forward).
 
 **Not measured this session.** Lightweight observation from `Get-Process`:
 
-| Process                          | Approx. mem  | Comment                       |
-| -------------------------------- | ------------ | ----------------------------- |
-| vysted-sidecar (PID 64784)       | _(not captured)_ | Main FastAPI sidecar      |
-| vysted-openbb-mcp-sidecar (2 PIDs) | _(not captured)_ | Bootloader + worker child |
-| vysted-sec-edgar-mcp-sidecar (2 PIDs) | _(not captured)_ | Same shape             |
-| vysted-terminal (PID 69468)      | _(not captured)_ | Tauri Rust shell + WebView2 |
+| Process                               | Approx. mem      | Comment                     |
+| ------------------------------------- | ---------------- | --------------------------- |
+| vysted-sidecar (PID 64784)            | _(not captured)_ | Main FastAPI sidecar        |
+| vysted-openbb-mcp-sidecar (2 PIDs)    | _(not captured)_ | Bootloader + worker child   |
+| vysted-sec-edgar-mcp-sidecar (2 PIDs) | _(not captured)_ | Same shape                  |
+| vysted-terminal (PID 69468)           | _(not captured)_ | Tauri Rust shell + WebView2 |
 
 Phase 9 should capture `Get-Process | Where ProcessName -like 'vysted-*'`
 output 30 s after boot and again 5 min after sustained polling, comparing
@@ -180,19 +186,19 @@ WorkingSet to baseline.
 
 ## Summary
 
-| Metric                          | Result        | Notes                       |
-| ------------------------------- | ------------- | --------------------------- |
-| Cold-start (Rust uncached)      | ~95 s         | One-time cargo download + compile |
-| Warm-start (Rust cached)        | ~8–10 s (est) | Sample needed in Phase 9    |
-| /health p50                     | 5.3 ms        | Acceptable                  |
-| /health p95                     | 228 ms        | **Anomalous** — GIL? S3 polish |
-| /health p99                     | 486 ms        | **Anomalous** — same        |
-| /quotes/AAPL cold               | 219 ms        | yfinance fetch dominates    |
-| /history/AAPL 1y daily cold     | 903 ms        | yfinance fetch dominates    |
-| Agent first-token latency       | deferred      | Phase 9 with keychain       |
-| Backtest workflow               | deferred      | After F1 fix loop           |
-| 5-node workflow                 | deferred      | Playwright real-event needed |
-| Memory under polling load       | deferred      | Phase 9                     |
+| Metric                      | Result        | Notes                             |
+| --------------------------- | ------------- | --------------------------------- |
+| Cold-start (Rust uncached)  | ~95 s         | One-time cargo download + compile |
+| Warm-start (Rust cached)    | ~8–10 s (est) | Sample needed in Phase 9          |
+| /health p50                 | 5.3 ms        | Acceptable                        |
+| /health p95                 | 228 ms        | **Anomalous** — GIL? S3 polish    |
+| /health p99                 | 486 ms        | **Anomalous** — same              |
+| /quotes/AAPL cold           | 219 ms        | yfinance fetch dominates          |
+| /history/AAPL 1y daily cold | 903 ms        | yfinance fetch dominates          |
+| Agent first-token latency   | deferred      | Phase 9 with keychain             |
+| Backtest workflow           | deferred      | After F1 fix loop                 |
+| 5-node workflow             | deferred      | Playwright real-event needed      |
+| Memory under polling load   | deferred      | Phase 9                           |
 
 **Headline:** main sidecar is fast at its happy path (p50 5.3 ms) but has
 a heavy tail (p95 228 ms) under realistic polling load. The cold-start
@@ -201,4 +207,4 @@ shrink that to a single binary launch.
 
 ---
 
-*Re-run identically in Phase 9 / 10 / v1.x to detect regression.*
+_Re-run identically in Phase 9 / 10 / v1.x to detect regression._

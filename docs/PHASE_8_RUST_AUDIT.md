@@ -6,7 +6,7 @@
 **Branch:** worktree-agent-t3-rust  
 **Host triple:** x86_64-pc-windows-msvc  
 **Rust toolchain:** rustc 1.94.1 (e408947bf 2026-03-25) / cargo 1.94.1  
-**cargo-audit:** 0.22.1  
+**cargo-audit:** 0.22.1
 
 ## Severity scheme
 
@@ -86,18 +86,22 @@
 
 **Tool:** cargo clippy — `clippy::significant_drop_in_scrutinee` (nursery)  
 **Detection:**
+
 ```
 src/openbb_mcp.rs:128   if let Some(child) = state.0.lock().unwrap().take()
 src/sec_edgar_mcp.rs:126 if let Some(child) = state.0.lock().unwrap().take()
 src/lib.rs:140          if let Some(child) = state.0.lock().unwrap().take()
 ```
+
 "this might lead to deadlocks or other unexpected behavior — temporary lives until end of `if let` expression"  
 **Impact:** The `MutexGuard` returned by `.lock().unwrap()` has a `Drop` impl that releases the lock. Clippy's nursery lint flags that the guard's drop is deferred to the end of the `if let` expression rather than immediately after `.take()`. In practice — since `child.kill()` does not attempt to re-acquire the same lock — this is not a live deadlock. However if a future code change inside the block calls any path that tries to re-lock the same mutex (e.g. a Tauri event handler that queries state), it will deadlock silently. It is also a correctness smell clippy::nursery flags as "unexpected behavior". Affects all three shutdown kill paths.  
 **Suggested fix path:** Extract to a local binding before the `if let`:
+
 ```rust
 let value = state.0.lock().unwrap().take();
 if let Some(child) = value { let _ = child.kill(); }
-```  
+```
+
 **Files:** `src-tauri/src/openbb_mcp.rs:128`, `src-tauri/src/sec_edgar_mcp.rs:126`, `src-tauri/src/lib.rs:140`
 
 ---
@@ -106,11 +110,13 @@ if let Some(child) = value { let _ = child.kill(); }
 
 **Tool:** cargo clippy — `clippy::needless_pass_by_value` (pedantic)  
 **Detection:**
+
 ```
 src/lib.rs:46         fn get_sidecar_port(port: tauri::State<'_, SidecarPort>) -> u16
 src/openbb_mcp.rs:49  pub fn get_openbb_mcp_port(port: tauri::State<'_, OpenbbMcpPort>) -> u16
 src/sec_edgar_mcp.rs:48 pub fn get_sec_edgar_mcp_port(port: tauri::State<'_, SecEdgarMcpPort>) -> u16
 ```
+
 Clippy recommends `&tauri::State<'_, ...>` for all three. `kill_switch.rs:90` — `app: AppHandle` and `fired_by: String` both recommended as refs/str slices.  
 **Impact:** Minor: `tauri::State` is a reference-counted wrapper; passing by value is slightly less efficient but works correctly. The `AppHandle` by-value case in `kill_switch_emit` is harmless since Tauri clones it cheaply. S3 pedantic noise.  
 **Suggested fix path:** Change the three port-getter handlers to `&tauri::State<'_, ...>` and `kill_switch_emit` to `&AppHandle` + `fired_by: &str`. Requires verifying Tauri macro compatibility with reference-type State args (Tauri 2.x docs confirm `&State<'_, T>` is supported).  
@@ -142,10 +148,12 @@ Clippy recommends `&tauri::State<'_, ...>` for all three. `kill_switch.rs:90` �
 
 **Tool:** cargo clippy — `clippy::match_same_arms` (pedantic)  
 **Detection:** `keychain.rs:38-39`:
+
 ```rust
 Ok(()) => Ok(()),
 Err(keyring::Error::NoEntry) => Ok(()),
 ```
+
 Both arms return `Ok(())`. Clippy suggests merging to `Ok(()) | Err(keyring::Error::NoEntry) => Ok(())`.  
 **Impact:** Zero runtime impact. The separation is arguably more readable (documents the intent: "missing key is not an error"). S3 style.  
 **Suggested fix path:** Merge the arms or suppress with `#[allow(clippy::match_same_arms)]`.  
@@ -196,18 +204,18 @@ Both arms return `Ok(())`. Clippy suggests merging to `Ok(()) | Err(keyring::Err
 
 For reference, the dependency-to-usage map:
 
-| Dependency | Used in source | Notes |
-|---|---|---|
-| `tauri` | `lib.rs` — `tauri::Builder`, `Manager`, `RunEvent`, `State` | Active |
-| `tauri-plugin-shell` | `lib.rs`, `openbb_mcp.rs`, `sec_edgar_mcp.rs` — `ShellExt`, `CommandChild`, `CommandEvent` | Active |
-| `tauri-plugin-updater` | `lib.rs` — `tauri_plugin_updater::Builder::new().build()` | Active (plugin init only) |
-| `tauri-plugin-global-shortcut` | `kill_switch.rs` — `GlobalShortcutExt`, `Modifiers`, `Code`, `Shortcut`, `ShortcutState` | Active |
-| `tauri-plugin-notification` | `lib.rs` — `tauri_plugin_notification::init()` | Active (plugin init only) |
-| `serde` | Tauri command derive macros + `serde_json::json!` path | Active |
-| `serde_json` | `kill_switch.rs:95` — `serde_json::json!({ "firedBy": fired_by })` | Active |
-| `keyring` | `keychain.rs` — `Entry::new`, `set_password`, `get_password`, `delete_credential` | Active |
-| `tauri-build` (build-dep) | `build.rs:2` — `tauri_build::build()` | Active |
-| `tokio` (dev-dep) | `keychain.rs::tests` — `#[tokio::test]` | Active (tests only) |
+| Dependency                     | Used in source                                                                             | Notes                     |
+| ------------------------------ | ------------------------------------------------------------------------------------------ | ------------------------- |
+| `tauri`                        | `lib.rs` — `tauri::Builder`, `Manager`, `RunEvent`, `State`                                | Active                    |
+| `tauri-plugin-shell`           | `lib.rs`, `openbb_mcp.rs`, `sec_edgar_mcp.rs` — `ShellExt`, `CommandChild`, `CommandEvent` | Active                    |
+| `tauri-plugin-updater`         | `lib.rs` — `tauri_plugin_updater::Builder::new().build()`                                  | Active (plugin init only) |
+| `tauri-plugin-global-shortcut` | `kill_switch.rs` — `GlobalShortcutExt`, `Modifiers`, `Code`, `Shortcut`, `ShortcutState`   | Active                    |
+| `tauri-plugin-notification`    | `lib.rs` — `tauri_plugin_notification::init()`                                             | Active (plugin init only) |
+| `serde`                        | Tauri command derive macros + `serde_json::json!` path                                     | Active                    |
+| `serde_json`                   | `kill_switch.rs:95` — `serde_json::json!({ "firedBy": fired_by })`                         | Active                    |
+| `keyring`                      | `keychain.rs` — `Entry::new`, `set_password`, `get_password`, `delete_credential`          | Active                    |
+| `tauri-build` (build-dep)      | `build.rs:2` — `tauri_build::build()`                                                      | Active                    |
+| `tokio` (dev-dep)              | `keychain.rs::tests` — `#[tokio::test]`                                                    | Active (tests only)       |
 
 ---
 
@@ -247,6 +255,7 @@ For reference, the dependency-to-usage map:
 **Verdict: CONFIRMED BIND-PROBE GAP — T3-openbb-spawn-incomplete [S1]**
 
 Code path in `spawn()` (`src-tauri/src/openbb_mcp.rs:88-119`):
+
 ```rust
 let (mut rx, child) = match sidecar.spawn() {
     Ok(parts) => parts,
@@ -295,6 +304,7 @@ This is the root-cause of the lead's BUG_CATALOG finding UC1-openbb-mcp-not-list
 **Verdict: CLEAN**
 
 `Cargo.toml:24`:
+
 ```toml
 keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service", "crypto-rust"] }
 ```
@@ -308,6 +318,7 @@ No findings.
 ### `lib.rs` — command registration completeness
 
 All Tauri commands registered in `invoke_handler!` (lines 57-65):
+
 - `get_sidecar_port` — defined in `lib.rs:45`
 - `keychain_set`, `keychain_get`, `keychain_delete` — defined in `keychain.rs`
 - `kill_switch_emit` — defined in `kill_switch.rs`
@@ -315,6 +326,7 @@ All Tauri commands registered in `invoke_handler!` (lines 57-65):
 - `get_sec_edgar_mcp_port` — defined in `sec_edgar_mcp.rs`
 
 All six modules' exposed commands are registered. Plugin registrations:
+
 - `tauri_plugin_shell::init()` ✓
 - `tauri_plugin_updater::Builder::new().build()` ✓
 - `tauri_plugin_notification::init()` ✓
@@ -333,12 +345,12 @@ One observation: the global-shortcut plugin is initialized inside `kill_switch::
 
 ### Finding counts
 
-| Severity | Count | Findings |
-|---|---|---|
-| S1 | 2 | T3-openbb-spawn-incomplete, T3-sec-edgar-spawn-incomplete |
-| S2 | 3 | T3-glib-unsound, T3-rand-unsound, T3-significant-drop-scrutinee |
-| S3 | 7 | T3-gtk3-unmaintained (group), T3-unic-unmaintained (group), T3-proc-macro-error-unmaintained, T3-needless-pass-by-value, T3-unnecessary-wraps, T3-match-same-arms, T3-missing-panics-doc |
-| S4 | 3 | T3-semicolon-pedantic, T3-doc-markdown, T3-equatable-if-let |
+| Severity | Count | Findings                                                                                                                                                                                 |
+| -------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S1       | 2     | T3-openbb-spawn-incomplete, T3-sec-edgar-spawn-incomplete                                                                                                                                |
+| S2       | 3     | T3-glib-unsound, T3-rand-unsound, T3-significant-drop-scrutinee                                                                                                                          |
+| S3       | 7     | T3-gtk3-unmaintained (group), T3-unic-unmaintained (group), T3-proc-macro-error-unmaintained, T3-needless-pass-by-value, T3-unnecessary-wraps, T3-match-same-arms, T3-missing-panics-doc |
+| S4       | 3     | T3-semicolon-pedantic, T3-doc-markdown, T3-equatable-if-let                                                                                                                              |
 
 ### Top-priority recommendations
 
@@ -358,24 +370,24 @@ Three `kill()` functions hold a `MutexGuard` through the body of an `if let Some
 
 ### Angles summary
 
-| Angle | Tool | Result |
-|---|---|---|
-| 1 — RustSec | cargo-audit 0.22.1 | 0 CVEs, 18 warnings (all transitive/Linux-only) |
-| 2 — Clippy standard | cargo clippy -D warnings | CLEAN |
-| 2 — Clippy extended | cargo clippy pedantic+nursery | 19 lib warnings (1 S2, remainder S3/S4) |
-| 3 — Unused deps | cargo-udeps 0.1.61 | CLEAN ("All deps seem to have been used.") |
-| 4 — Formatter | cargo fmt --check | CLEAN |
-| 5 — Dead code | nightly rustc -W dead_code | CLEAN (0 warnings) |
+| Angle               | Tool                          | Result                                          |
+| ------------------- | ----------------------------- | ----------------------------------------------- |
+| 1 — RustSec         | cargo-audit 0.22.1            | 0 CVEs, 18 warnings (all transitive/Linux-only) |
+| 2 — Clippy standard | cargo clippy -D warnings      | CLEAN                                           |
+| 2 — Clippy extended | cargo clippy pedantic+nursery | 19 lib warnings (1 S2, remainder S3/S4)         |
+| 3 — Unused deps     | cargo-udeps 0.1.61            | CLEAN ("All deps seem to have been used.")      |
+| 4 — Formatter       | cargo fmt --check             | CLEAN                                           |
+| 5 — Dead code       | nightly rustc -W dead_code    | CLEAN (0 warnings)                              |
 
 ### Special attention verdict
 
-| Module | Finding | Severity |
-|---|---|---|
-| `openbb_mcp.rs` | Spawn returns without port-bind probe — direct cause of UC1 | **S1** |
-| `sec_edgar_mcp.rs` | Same spawn gap | **S1** |
-| `keychain.rs` | All 4 required `keyring` features present | CLEAN |
-| `lib.rs` | All commands registered, plugin order correct, Cargo.lock root version synchronized | CLEAN |
+| Module             | Finding                                                                             | Severity |
+| ------------------ | ----------------------------------------------------------------------------------- | -------- |
+| `openbb_mcp.rs`    | Spawn returns without port-bind probe — direct cause of UC1                         | **S1**   |
+| `sec_edgar_mcp.rs` | Same spawn gap                                                                      | **S1**   |
+| `keychain.rs`      | All 4 required `keyring` features present                                           | CLEAN    |
+| `lib.rs`           | All commands registered, plugin order correct, Cargo.lock root version synchronized | CLEAN    |
 
 ---
 
-*Audit complete. Branch: worktree-agent-t3-rust. Auditor: t3-rust (Sonnet 4.6). Date: 2026-05-18.*
+_Audit complete. Branch: worktree-agent-t3-rust. Auditor: t3-rust (Sonnet 4.6). Date: 2026-05-18._
