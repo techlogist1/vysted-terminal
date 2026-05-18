@@ -204,13 +204,108 @@ Both arms return `Ok(())`. Clippy suggests merging to `Ok(()) | Err(keyring::Err
 
 ## Angle 5 — Dead-code (nightly rustc)
 
-*(Results populated below — requires nightly)*
+> Command: `cargo +nightly rustc --lib -- -W dead_code -W unused` (nightly 1.97.0-nightly, 2026-05-17)  
+> Result: **No dead-code warnings. Compilation succeeded (exit 0) in ~3m (cold nightly build).**
+
+**No findings.** All public and private symbols in the five source files are reachable. Specific verification:
+
+- `pick_free_port()` — used by `openbb_mcp::spawn()`, `sec_edgar_mcp::spawn()`, and `lib.rs::setup()`.
+- `wait_for_sidecar()` — used in `lib.rs` thread spawned at line 124.
+- `SidecarProcess`, `SidecarPort` — both managed via `app.manage()` and accessed via `app.try_state()` / `tauri::State`.
+- `OpenbbMcpProcess`, `OpenbbMcpPort`, `SecEdgarMcpProcess`, `SecEdgarMcpPort` — all managed and accessed.
+- `kill_switch_shortcut()` — called from both `build_plugin()` and `register_shortcut()`.
+- `emit_kill_switch_requested()` — called from the shortcut handler closure and from `kill_switch_emit`.
+
+**No orphaned functions, no dead modules, no unused imports surfaced.** The codebase is lean (5 source files, ~500 LOC total) — dead code risk is low.
 
 ---
 
 ## Special attention modules
 
-*(Populated below after code review)*
+### `openbb_mcp.rs` — bind-probe gap audit
+
+**Question:** Does `spawn()` verify that the subprocess has actually bound to its port before returning, or does it return success on the basis of `Command::spawn` alone?
+
+**Verdict: CONFIRMED BIND-PROBE GAP — T3-openbb-spawn-incomplete [S1]**
+
+Code path in `spawn()` (`src-tauri/src/openbb_mcp.rs:88-119`):
+```rust
+let (mut rx, child) = match sidecar.spawn() {
+    Ok(parts) => parts,
+    Err(err) => { /* fallback to port=0 */ }
+};
+app.manage(OpenbbMcpPort(port));
+app.manage(OpenbbMcpProcess(Mutex::new(Some(child))));
+// drain stdout/stderr asynchronously
+tauri::async_runtime::spawn(async move { ... });
+println!("[openbb-mcp] subprocess spawned on 127.0.0.1:{port}");
+Ok(())
+```
+
+The function returns `Ok(())` immediately after `sidecar.spawn()` succeeds — `spawn()` success means the OS has created the process, **not** that the subprocess has bound to the TCP port. The env var `VYSTED_OPENBB_MCP_PORT` is set to `port` and returned to the Python sidecar before the openbb-mcp process has had any time to bind. The Python sidecar imports `services.openbb_mcp_provider` and reads `VYSTED_OPENBB_MCP_PORT` during its own startup — if the sidecar's startup is faster than openbb-mcp's bind (likely on cold start), the provider connects to a port that is not yet listening and falls back to yfinance silently.
+
+Compare to the **main sidecar startup** in `lib.rs`: it spawns the main sidecar but then calls `wait_for_sidecar(port)` which polls `TcpStream::connect(("127.0.0.1", port))` for up to 15s. **The same TCP-poll pattern is completely absent for openbb-mcp.**
+
+This is the root-cause of the lead's BUG_CATALOG finding UC1-openbb-mcp-not-listening: the spawn is reported complete but the port has not yet been bound.
+
+**Finding T3-openbb-spawn-incomplete: openbb-mcp spawn returns without port-bind health probe [S1] [status: open]**
+
+**Tool:** Source code review of `src-tauri/src/openbb_mcp.rs`  
+**Detection:** `spawn()` returns `Ok(())` after OS-level `Command::spawn` success. No `wait_for_port(port)` call equivalent to `lib.rs:wait_for_sidecar()`. `VYSTED_OPENBB_MCP_PORT` is written to env before the subprocess binds.  
+**Impact:** Race condition: the Python sidecar reads `VYSTED_OPENBB_MCP_PORT` during its own FastAPI startup, which runs concurrently with openbb-mcp's PyInstaller boot (~2-5 seconds on cold start). If the sidecar startup is faster, `openbb_mcp_provider.py` attempts to connect to a port that is not yet listening. The openbb-mcp provider logs a connection error and falls back to yfinance — the OpenBB MCP data path is silently dead on every cold start. This is the direct cause of the lead's UC1-openbb-mcp-not-listening finding.  
+**Suggested fix path:** Add a `wait_for_port(port, timeout=15s)` call after `sidecar.spawn()` returns — identical to `wait_for_sidecar()` in `lib.rs`. Since `openbb_mcp::spawn()` already returns `tauri::Result<()>`, log a warning and set port=0 if the bind times out (graceful degradation preserved). The existing `println!("[openbb-mcp] subprocess spawned on...")` should become "healthy on..." after the probe succeeds.  
+**Files:** `src-tauri/src/openbb_mcp.rs:59-119` (specifically the gap between line 99 and 118)
+
+---
+
+### `sec_edgar_mcp.rs` — bind-probe gap audit
+
+**Verdict: SAME BIND-PROBE GAP — T3-sec-edgar-spawn-incomplete [S1] [status: open]**
+
+`sec_edgar_mcp.rs::spawn()` is structurally identical to `openbb_mcp.rs::spawn()`. The same race applies: `VYSTED_SEC_EDGAR_MCP_PORT` is set before the subprocess binds. The Python sidecar's `sec_filings_provider.py` reads this env var during startup and would attempt connection to a port not yet bound. The `/sec/*` routes would fail until the race resolves (or the provider's retry logic kicks in, if any).
+
+**Tool:** Source code review of `src-tauri/src/sec_edgar_mcp.rs`  
+**Detection:** `spawn()` at lines 59-117. Pattern identical to `openbb_mcp.rs` — no port-bind poll after `sidecar.spawn()`. `VYSTED_SEC_EDGAR_MCP_PORT` written to env at line 65 before the subprocess has any time to bind.  
+**Impact:** Same race condition as openbb-mcp. SEC EDGAR routes return failure/504 on cold start until the subprocess binds (typically 2-5 seconds after Python sidecar is up and has already failed its provider connection).  
+**Suggested fix path:** Same as `openbb_mcp.rs` — add `wait_for_port(port, timeout=15s)` after `sidecar.spawn()`. Suggest extracting `wait_for_port` as a shared helper in `lib.rs` (the existing `wait_for_sidecar` is private; a `pub(crate) fn wait_for_port(port: u16) -> bool` would serve all three sidecars).  
+**Files:** `src-tauri/src/sec_edgar_mcp.rs:59-117`
+
+---
+
+### `keychain.rs` — features verification
+
+**Verdict: CLEAN**
+
+`Cargo.toml:24`:
+```toml
+keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service", "crypto-rust"] }
+```
+
+All four features from the CLAUDE.md gotcha are present. `Cargo.lock` resolves to `keyring 3.6.3`. The four features map to the platform backends: `apple-native` (macOS Keychain), `windows-native` (Windows Credential Manager), `sync-secret-service` (Linux freedesktop), `crypto-rust` (in-process crypto for the sync-secret-service path). The gotcha is satisfied.
+
+No findings.
+
+---
+
+### `lib.rs` — command registration completeness
+
+All Tauri commands registered in `invoke_handler!` (lines 57-65):
+- `get_sidecar_port` — defined in `lib.rs:45`
+- `keychain_set`, `keychain_get`, `keychain_delete` — defined in `keychain.rs`
+- `kill_switch_emit` — defined in `kill_switch.rs`
+- `get_openbb_mcp_port` — defined in `openbb_mcp.rs`
+- `get_sec_edgar_mcp_port` — defined in `sec_edgar_mcp.rs`
+
+All six modules' exposed commands are registered. Plugin registrations:
+- `tauri_plugin_shell::init()` ✓
+- `tauri_plugin_updater::Builder::new().build()` ✓
+- `tauri_plugin_notification::init()` ✓
+- `kill_switch::build_plugin()` ✓ (global-shortcut plugin with handler)
+- `tauri_plugin_global_shortcut` not registered separately (it is embedded in `kill_switch::build_plugin()`)
+
+One observation: the global-shortcut plugin is initialized inside `kill_switch::build_plugin()` but `register_shortcut()` is called after `.plugin()` registration is complete. This is the correct order per Tauri 2.x docs — the plugin must be registered before the app handle can use `global_shortcut()` extension methods.
+
+**Cargo.lock root package check:** `vysted-terminal` version in `Cargo.lock` = `0.7.0` ✓ (matches `Cargo.toml`). The CLAUDE.md gotcha about version drift is satisfied for this release.
 
 ---
 
