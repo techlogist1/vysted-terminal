@@ -474,6 +474,14 @@ Phase 6 tool test follows a reset in the same test session.
 
 ## Part B — BLUEPRINT Truth-Alignment
 
+**Methodology:** Cross-referenced `docs/BLUEPRINT.md` against `src/modules/index.ts`,
+`sidecar/services/`, `plugins/`, `CHANGELOG.md`, `git tag`, and Phase handoff docs. Each
+drift is a claim in BLUEPRINT that is contradicted by, or not supported by, the v0.7.0
+shipped codebase. Intentional stretch goals (UC6, UC7) are S4 and are noted in the Summary
+but not expanded as findings.
+
+---
+
 ### Drift D-1: Phase 6.5 still marked "In progress" when it is shipped [S3]
 
 **BLUEPRINT location:** §7 Phase 6.5 "**In progress (v0.6.5, 2026-05-17).**" (line 592)
