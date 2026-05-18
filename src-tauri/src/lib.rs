@@ -28,8 +28,17 @@ pub(crate) fn pick_free_port() -> u16 {
         .port()
 }
 
-/// Poll the port until the sidecar accepts TCP connections, or time out after 15s.
-fn wait_for_sidecar(port: u16) -> bool {
+/// Poll the port until something accepts TCP connections, or time out after 15s.
+///
+/// Used by the main-sidecar startup wait AND by the openbb-mcp /
+/// sec-edgar-mcp subprocess supervisors to verify that the spawned
+/// subprocess has bound to its claimed port before declaring spawn
+/// success. Without this probe, ``Command::spawn`` returns immediately
+/// after the OS creates the process — the process may deadlock during
+/// startup (Phase 8 found this for the MCP subprocesses) and the parent
+/// has no way to detect it (per CLAUDE.md PyInstaller --onefile +
+/// anyio + Windows handle interactions).
+pub(crate) fn wait_for_port(port: u16) -> bool {
     let deadline = Instant::now() + Duration::from_secs(15);
     while Instant::now() < deadline {
         if TcpStream::connect(("127.0.0.1", port)).is_ok() {
@@ -122,7 +131,7 @@ pub fn run() {
             });
 
             thread::spawn(move || {
-                if wait_for_sidecar(port) {
+                if wait_for_port(port) {
                     println!("[vysted] Python sidecar healthy on 127.0.0.1:{port}");
                 } else {
                     eprintln!("[vysted] Python sidecar did not come up on port {port}");

@@ -31,7 +31,7 @@ use tauri::{AppHandle, Manager};
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 
-use crate::pick_free_port;
+use crate::{pick_free_port, wait_for_port};
 
 /// Holds the running sec-edgar-mcp subprocess so it can be killed on app exit.
 pub struct SecEdgarMcpProcess(pub Mutex<Option<CommandChild>>);
@@ -94,10 +94,8 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
         }
     };
 
-    app.manage(SecEdgarMcpPort(port));
-    app.manage(SecEdgarMcpProcess(Mutex::new(Some(child))));
-
-    // Drain the child's stdout/stderr so its pipes never block. Mirrors the
+    // Drain the child's stdout/stderr BEFORE the port-bind probe so any
+    // startup error messages from the child are surfaced. Mirrors the
     // openbb-mcp drain pattern.
     tauri::async_runtime::spawn(async move {
         while let Some(event) = rx.recv().await {
@@ -113,7 +111,31 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
         }
     });
 
-    println!("[sec-edgar-mcp] subprocess spawned on 127.0.0.1:{port}");
+    // Probe the claimed port — `Command::spawn` returns success when the OS
+    // creates the process, NOT when the child binds. sec-edgar-mcp's
+    // streamable-http bootstrap can take a few seconds; if it deadlocks
+    // (Phase 8 finding UC1-sec-edgar-mcp-not-listening), this probe
+    // converts a silent failure into a loud one and falls back to /sec
+    // routes returning 501.
+    if !wait_for_port(port) {
+        eprintln!(
+            "[sec-edgar-mcp] subprocess did not bind to 127.0.0.1:{port} within 15s; \
+             treating as unavailable. /sec routes will 501. \
+             Check the bundled binary for a startup deadlock (Phase 8 \
+             finding UC1-sec-edgar-mcp-not-listening)."
+        );
+        let _ = child.kill();
+        std::env::remove_var("VYSTED_SEC_EDGAR_MCP_PORT");
+        std::env::remove_var("VYSTED_SEC_EDGAR_MCP_HOST");
+        app.manage(SecEdgarMcpPort(0));
+        app.manage(SecEdgarMcpProcess(Mutex::new(None)));
+        return Ok(());
+    }
+
+    app.manage(SecEdgarMcpPort(port));
+    app.manage(SecEdgarMcpProcess(Mutex::new(Some(child))));
+
+    println!("[sec-edgar-mcp] subprocess healthy on 127.0.0.1:{port}");
     Ok(())
 }
 

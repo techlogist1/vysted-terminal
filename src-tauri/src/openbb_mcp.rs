@@ -31,7 +31,7 @@ use tauri::{AppHandle, Manager};
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 
-use crate::pick_free_port;
+use crate::{pick_free_port, wait_for_port};
 
 /// Holds the running openbb-mcp subprocess so it can be killed on app exit.
 pub struct OpenbbMcpProcess(pub Mutex<Option<CommandChild>>);
@@ -96,11 +96,9 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
         }
     };
 
-    app.manage(OpenbbMcpPort(port));
-    app.manage(OpenbbMcpProcess(Mutex::new(Some(child))));
-
     // Drain the child's stdout/stderr so its pipes never block. Mirrors the
-    // main sidecar's drain.
+    // main sidecar's drain. Spawn the drain BEFORE the port-bind probe so
+    // any startup error messages from the child are surfaced.
     tauri::async_runtime::spawn(async move {
         while let Some(event) = rx.recv().await {
             match event {
@@ -115,7 +113,34 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
         }
     });
 
-    println!("[openbb-mcp] subprocess spawned on 127.0.0.1:{port}");
+    // Probe the claimed port — `Command::spawn` returns success the moment
+    // the OS creates the process, NOT when the child actually binds. The
+    // openbb-mcp-server bootstrap can take several seconds (loading
+    // openbb-platform extensions), and historically (Phase 8 finding
+    // UC1-openbb-mcp-not-listening) was observed to deadlock silently —
+    // the child stayed alive but never bound, and the main sidecar's MCP
+    // client hit `asyncio.CancelledError` on every /fundamentals call.
+    // Without this probe, the supervisor lies about availability.
+    if !wait_for_port(port) {
+        eprintln!(
+            "[openbb-mcp] subprocess did not bind to 127.0.0.1:{port} within 15s; \
+             treating as unavailable. /fundamentals + /macro + /screener + /earnings + \
+             analyst-rating routes will fall back to yfinance or 501. \
+             Check the bundled binary for a startup deadlock (Phase 8 \
+             finding UC1-openbb-mcp-not-listening)."
+        );
+        let _ = child.kill();
+        std::env::remove_var("VYSTED_OPENBB_MCP_PORT");
+        std::env::remove_var("VYSTED_OPENBB_MCP_HOST");
+        app.manage(OpenbbMcpPort(0));
+        app.manage(OpenbbMcpProcess(Mutex::new(None)));
+        return Ok(());
+    }
+
+    app.manage(OpenbbMcpPort(port));
+    app.manage(OpenbbMcpProcess(Mutex::new(Some(child))));
+
+    println!("[openbb-mcp] subprocess healthy on 127.0.0.1:{port}");
     Ok(())
 }
 
