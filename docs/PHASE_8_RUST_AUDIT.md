@@ -379,3 +379,7 @@ Three `kill()` functions hold a `MutexGuard` through the body of an `if let Some
 | `sec_edgar_mcp.rs` | Same spawn gap | **S1** |
 | `keychain.rs` | All 4 required `keyring` features present | CLEAN |
 | `lib.rs` | All commands registered, plugin order correct, Cargo.lock root version synchronized | CLEAN |
+
+---
+
+*Audit complete. Branch: worktree-agent-t3-rust. Auditor: t3-rust (Sonnet 4.6). Date: 2026-05-18.*
