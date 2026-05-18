@@ -268,6 +268,88 @@ fooled. The first is a real fix; the third is an acceptable S3 mitigation.
 runs in production it doesn't see the CORS error because the Tauri shell's
 fetch behavior differs from raw Chrome. S3 because operator-only.
 
+### Finding UC1-tradesa-v2-fallback-invoke-error [S3] [status: open]
+
+**Repro:** In the F7 dev fallback (Chrome at `?sidecar-port=NNNNN`), open
+Command Palette (Ctrl+K) → "Tradesa V2: Open Positions". Panel mounts but
+the status strip shows:
+- Status: "Supabase error"
+- Message: "Cannot read properties of undefined (reading 'invoke')"
+- Alert: "Supabase unreachable — Cannot read properties of undefined
+  (reading 'invoke')"
+
+Root cause: the Tradesa V2 connection adapter tries to read the Supabase
+URL + service-role key from the OS keychain via the Tauri command
+`invoke('keychain_get', ...)`. In standalone Chrome, `__TAURI_INTERNALS__`
+is undefined and the `invoke` accessor throws.
+
+**Impact:** Audit-environment only. The Tauri shell itself shows different
+state (the canonical "unauthenticated" or "healthy" state depending on
+whether the operator has set the Supabase creds). For the Chrome F7
+fallback path, the UX surface is a JavaScript runtime error rather than a
+clear "Keychain unavailable — open in Tauri shell" message.
+
+**Suggested fix:** In `plugins/tradesa-v2/connection.ts` (or the
+keychain-reading helper), wrap the `invoke()` call in a try/catch that
+detects "running outside Tauri" (already gated via `__TAURI_INTERNALS__`
+in `sidecar-client.ts` — same pattern needed here) and produces a
+user-friendly status: "Keychain unavailable (running outside Tauri)".
+
+**Files:**
+- `plugins/tradesa-v2/connection.ts` (where it calls `invoke`)
+- Reference for the pattern: `src/lib/sidecar-client.ts:52-62` (F7 fallback
+  gate)
+
+**Notes:** Same `__TAURI_INTERNALS__` guard pattern as the F7 sidecar
+fallback could be extended to plugin-level keychain access; would also
+benefit any future BYOK plugin reaching for OS keychain. S3 because the
+Tauri shell shipped product doesn't have this issue.
+
+### Finding UC1-ai-help-renders-correctly [no finding, observation]
+
+`/help` slash command in AI Assistant renders the full cheat-sheet:
+
+```
+/ask <prompt> — raw chat with the default provider
+/agent <id> <prompt> — invoke a specific agent with focused-panel context
+/provider <id> — switch the default provider (anthropic, openai, …)
+/key set <provider> — store a BYOK API key in the OS keychain
+/clear — clear the current conversation
+/help — show this cheat-sheet
+```
+
+Slash-command system works in the F7 fallback (rendering layer; the BYOK
+provider routes require Tauri keychain so `/ask` itself would fail without
+keys — covered in L8).
+
+### Finding UC1-canvas-chart-renders [no finding, observation]
+
+Chart panel renders SPY 1d data via lightweight-charts canvas. 3 indicators
+(MA / VWAP / Bollinger Bands) activate via toolbox buttons without error.
+Canvas drawing tools rendered in toolbox but per CLAUDE.md gotcha
+"chrome-devtools MCP cannot synthesize trusted user events" cannot be
+exercised headless — covered by Playwright real-event suite (v0.5.1+
+carry-forward per BLOCKERS.md).
+
+### Hypothesis: UC2 / UC4 / UC5 cannot complete due to MCP-subprocess gap
+
+UC2 Research Workflow depends on `/fundamentals/*` (broken per
+UC1-fundamentals-500). UC4 Academic Researcher needs `/sec/*` (depends on
+sec-edgar-mcp subprocess which isn't listening per
+UC1-sec-edgar-mcp-not-listening). UC5 Macro Thesis Watcher needs
+`/macro/*` and other openbb-mcp-routed endpoints (depends on openbb-mcp
+which isn't listening per UC1-openbb-mcp-not-listening).
+
+**These 3 UCs cannot pass until the MCP-subprocess port-binding root cause
+is fixed.** F1 fix loop will attempt the fix; if it requires multi-file
+Rust changes (likely `src-tauri/src/openbb_mcp.rs` + `sec_edgar_mcp.rs`),
+this becomes a tag-defining S1.
+
+Recording as a single hypothesis here so the catalog doesn't accumulate
+3× redundant findings for the same root cause. Per-UC verification will
+add cross-references in their respective sections only if a NEW finding
+surfaces beyond the MCP gap.
+
 ## §10 UC2 — Research Workflow
 
 Exercise: cmd+K → "Research XYZ" → AI Researcher pulls data → chart + news in
