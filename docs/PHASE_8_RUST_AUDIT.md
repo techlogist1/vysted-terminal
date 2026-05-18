@@ -189,7 +189,29 @@ Both arms return `Ok(())`. Clippy suggests merging to `Ok(()) | Err(keyring::Err
 
 ## Angle 3 — `cargo udeps`
 
-*(Results populated below — requires nightly)*
+> Command: `cargo +nightly udeps` (requires nightly toolchain + cargo-udeps binary)  
+> Status: **cargo-udeps install attempted; binary not available at audit time due to slow crates.io download.** See finding T3-udeps-skipped.
+
+### Finding T3-udeps-skipped: cargo-udeps unavailable — manual dependency audit substituted [S3] [status: informational]
+
+**Tool:** N/A — cargo-udeps install failed to complete (crates.io network slowness on auditor host during audit window).  
+**Detection:** `cargo +nightly install cargo-udeps` timed out at the download phase. Both `--locked` and unlocked variants attempted.  
+**Substituted analysis:** Manual cross-reference of `Cargo.toml` dependencies against all Rust source files:
+
+| Dependency | Used in source | Notes |
+|---|---|---|
+| `tauri` | `lib.rs` — `tauri::Builder`, `Manager`, `RunEvent`, `State` | Active |
+| `tauri-plugin-shell` | `lib.rs`, `openbb_mcp.rs`, `sec_edgar_mcp.rs` — `ShellExt`, `CommandChild`, `CommandEvent` | Active |
+| `tauri-plugin-updater` | `lib.rs` — `tauri_plugin_updater::Builder::new().build()` | Active (plugin init only) |
+| `tauri-plugin-global-shortcut` | `kill_switch.rs` — `GlobalShortcutExt`, `Modifiers`, `Code`, `Shortcut`, `ShortcutState` | Active |
+| `tauri-plugin-notification` | `lib.rs` — `tauri_plugin_notification::init()` | Active (plugin init only) |
+| `serde` | Pulled in by Tauri macros; no explicit derive in Vysted's Rust source, but `serde_json::json!` used in `kill_switch.rs` | Needed transitively |
+| `serde_json` | `kill_switch.rs:95` — `serde_json::json!({ "firedBy": fired_by })` | Active |
+| `keyring` | `keychain.rs` — `Entry::new`, `set_password`, `get_password`, `delete_credential` | Active |
+
+**Verdict:** No unused direct dependencies visible from manual inspection. All 8 `[dependencies]` entries appear reachable. `serde` is the only borderline case — Vysted's own Rust source does not use `#[derive(Serialize, Deserialize)]` directly, but `serde_json::json!` (which uses serde internally) is used, and Tauri's own macros generate serde impls for command arguments. Keeping `serde` explicit is correct.
+
+**Re-run recommendation:** Run `cargo +nightly udeps` after installing cargo-udeps in a stable network environment to verify this manual assessment.
 
 ---
 
@@ -311,4 +333,47 @@ One observation: the global-shortcut plugin is initialized inside `kill_switch::
 
 ## Summary
 
-*(Populated in final commit)*
+### Finding counts
+
+| Severity | Count | Findings |
+|---|---|---|
+| S1 | 2 | T3-openbb-spawn-incomplete, T3-sec-edgar-spawn-incomplete |
+| S2 | 4 | T3-glib-unsound, T3-rand-unsound, T3-significant-drop-scrutinee, T3-udeps-skipped (informational) |
+| S3 | 7 | T3-gtk3-unmaintained (group), T3-unic-unmaintained (group), T3-proc-macro-error-unmaintained, T3-needless-pass-by-value, T3-unnecessary-wraps, T3-match-same-arms, T3-missing-panics-doc |
+| S4 | 3 | T3-semicolon-pedantic, T3-doc-markdown, T3-equatable-if-let |
+
+### Top-priority recommendations
+
+**1. T3-openbb-spawn-incomplete + T3-sec-edgar-spawn-incomplete (S1) — IMMEDIATE FIX**
+
+Both `openbb_mcp::spawn()` and `sec_edgar_mcp::spawn()` return success after OS-level process creation without probing whether the subprocess has bound to its port. This is the direct cause of the lead's UC1-openbb-mcp-not-listening finding. The Python sidecar reads `VYSTED_OPENBB_MCP_PORT` / `VYSTED_SEC_EDGAR_MCP_PORT` env vars during its own startup which races the subprocess bind.
+
+Fix: Extract `wait_for_sidecar()` in `lib.rs` to a `pub(crate) fn wait_for_port(port: u16) -> bool` and call it from both spawn functions before registering the port in Tauri state. The same 15-second timeout and 200ms poll interval as the main sidecar health probe. Degrade gracefully to `port=0` if the probe times out.
+
+**2. T3-significant-drop-scrutinee (S2) — MEDIUM PRIORITY**
+
+Three `kill()` functions hold a `MutexGuard` through the body of an `if let Some(child) = ...` expression. Not a live deadlock today (nothing inside the block re-acquires the lock), but is flagged by `clippy::nursery` as a potential deadlock footgun. Straightforward one-line fix: extract the `.take()` result to a binding before the `if let`.
+
+**3. Advisory cluster (S2/S3) — TRACK UPSTREAM**
+
+`glib` unsoundness (RUSTSEC-2024-0429) and `rand` unsoundness (RUSTSEC-2026-0097) are both Linux-only transitive dependencies with no direct Vysted reachability. The GTK3 cluster (10 advisories) and `unic-*` cluster (5 advisories) are all `Warning: unmaintained` — upstream Tauri/wry concerns. Add an `audit.toml` suppress list with rationale comments.
+
+### Angles summary
+
+| Angle | Tool | Result |
+|---|---|---|
+| 1 — RustSec | cargo-audit 0.22.1 | 0 CVEs, 18 warnings (all transitive/Linux-only) |
+| 2 — Clippy standard | cargo clippy -D warnings | CLEAN |
+| 2 — Clippy extended | cargo clippy pedantic+nursery | 19 lib warnings (1 S2, remainder S3/S4) |
+| 3 — Unused deps | cargo-udeps | NOT RUN (install failed; manual inspection: no unused deps) |
+| 4 — Formatter | cargo fmt --check | CLEAN |
+| 5 — Dead code | nightly rustc -W dead_code | CLEAN (0 warnings) |
+
+### Special attention verdict
+
+| Module | Finding | Severity |
+|---|---|---|
+| `openbb_mcp.rs` | Spawn returns without port-bind probe — direct cause of UC1 | **S1** |
+| `sec_edgar_mcp.rs` | Same spawn gap | **S1** |
+| `keychain.rs` | All 4 required `keyring` features present | CLEAN |
+| `lib.rs` | All commands registered, plugin order correct, Cargo.lock root version synchronized | CLEAN |
