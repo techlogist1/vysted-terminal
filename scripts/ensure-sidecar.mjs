@@ -107,9 +107,29 @@ const hidden = [
 const copyMeta = ["fastmcp", "mcp", "anyio", "httpx", "starlette", "uvicorn"]
   .map((m) => `--copy-metadata=${m}`)
   .join(" ");
+// `agents/` is a plain directory (no __init__.py) loaded at runtime via
+// `Path(__file__).resolve().parent.parent / "agents"` in
+// services/agent_runtime.py. PyInstaller --onefile only auto-discovers
+// Python packages; plain data dirs need explicit --add-data. Without
+// this, every named first-party agent (Buffett, Dalio, Druckenmiller,
+// Graham, Klarman, Lynch, Marks, Munger, Portfolio Advisor) is silently
+// absent at runtime — /agents returns []. Phase 8 L3 finding
+// L3-agents-dir-not-bundled. PyInstaller's --add-data syntax is OS-
+// specific: ';' separator on Windows, ':' on POSIX. The value MUST be
+// quoted because cmd.exe interprets ';' as a command separator if
+// unquoted, silently splitting the pyinstaller invocation into two
+// half-commands that both fail to run (stdout/stderr blank, exit 1).
+// PyInstaller resolves SOURCE in --add-data relative to --specpath, not cwd.
+// Since --specpath is the build/ subdirectory, use an absolute SOURCE so
+// 'agents' resolves regardless of where PyInstaller's spec-file lives.
+const addDataSep = isWin ? ";" : ":";
+const agentsAbsPath = join(SIDECAR_DIR, "agents");
+const addData = [[agentsAbsPath, "agents"]]
+  .map(([src, dest]) => `--add-data "${src}${addDataSep}${dest}"`)
+  .join(" ");
 run(
   `"${pyinstaller}" --onefile --clean --noconfirm --name vysted-sidecar ` +
-    `${hidden} ${copyMeta} --distpath "${distDir}" --workpath "${buildDir}" ` +
+    `${hidden} ${copyMeta} ${addData} --distpath "${distDir}" --workpath "${buildDir}" ` +
     `--specpath "${buildDir}" main.py`,
   { cwd: SIDECAR_DIR },
 );

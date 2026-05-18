@@ -629,7 +629,87 @@ _(empty — L10 fills)_
 Tab nav, screen-reader sanity, color-contrast WCAG AA spot-check on dark
 theme.
 
-_(empty — L11 fills)_
+**Approach:** spot-check via grep + chrome-devtools console messages. Full
+a11y audit (axe-core, lighthouse, screen-reader walk-through) is deferred
+to Phase 9 operator manual test where the Tauri shell can run with
+real-event tooling.
+
+### Finding L11-form-fields-missing-id-name [S3] [status: open]
+
+**Repro:** chrome-devtools console at app boot reports
+`[issue] A form field element should have an id or name attribute
+(count: 10)`. 10 form fields (textboxes, comboboxes) across the cockpit
+lack the basic `id` or `name` attribute that screen readers depend on for
+labeling.
+
+**Impact:** Screen reader users hear "Edit" or "Combobox" without the
+context of what field it is. WCAG 2.1 SC 1.3.1 (Info and Relationships)
++ SC 4.1.2 (Name, Role, Value). S3 because no functional break + dark
+theme + the visible field is usually adjacent labeled.
+
+**Suggested fix:** Audit each `<input>`, `<textarea>`, `<select>` in
+`src/components/*.tsx` + `src/modules/*/`. Add either `id` (matching a
+sibling `<label htmlFor>`) or `name` (matching the semantic field name).
+Shadcn/UI `Input` should auto-thread the `id` from the parent `Label`
+context — check that's wired correctly.
+
+**Files:** likely candidates per grep:
+- Watchlist "Add symbol" textbox (`src/modules/watchlist/`)
+- Portfolio entry form (5 textboxes — Symbol/Quantity/Cost basis/Class/Note)
+- Equity Overview Symbol textbox
+- Chart Compare textbox
+- AI Assistant Chat input
+- Command Palette search
+
+### Finding L11-aria-label-coverage-low [S3] [status: open]
+
+**Repro:** `grep -r 'aria-label=' src/components/` returns 4 matches across
+~30 components (PluginManagerPanel, CommandPalette, KeyEntryDialog,
+SettingsPanel). Many interactive elements rely on default semantics or
+visible text. While `<button>X</button>` IS keyboard-accessible by
+default, complex composite widgets (combobox + listbox, dialog with no
+title, tab panels) need explicit ARIA labels.
+
+**Impact:** Composite widgets without aria-label or aria-labelledby may
+not announce themselves correctly. WCAG 2.1 SC 4.1.2. S3 because
+shadcn/Radix UI components mostly provide good default ARIA semantics.
+
+**Suggested fix:** Audit composite widgets (dialogs without explicit
+titles, dropdowns, tab panels). Add `aria-label` or `aria-labelledby`
+where shadcn/Radix's defaults don't suffice. Run an axe-core scan in
+Phase 9 to find the specific gaps.
+
+### Finding L11-keyboard-handlers-minimal [S3] [status: open]
+
+**Repro:** `grep -r 'onKey(Down|Up|Press)=' src/components/` returns 1
+match (CommandPalette). `grep -r 'tabIndex=' src/` returns 1 match
+(`dialog.tsx`).
+
+**Impact:** Custom keyboard behaviors (e.g. arrow-key nav in tab strips,
+type-to-search in long lists) likely missing. Browser-default keyboard
+nav (Tab to next focusable, Enter to activate) IS available, so users
+can interact, but enhanced shortcuts (vim-style, J/K, arrow-key tab
+strips) are not implemented.
+
+**Impact:** S3 — default behaviors work; enhanced behaviors absent.
+
+**Suggested fix:** Phase 9 / 10 polish — implement arrow-key nav in
+tab strips (chart/equity-overview/tradesa-v2 tab group), arrow-key
+navigation in watchlist/news lists. Not a v1.0 blocker.
+
+### Finding L11-color-contrast-not-audited [no finding, observation]
+
+WCAG AA color-contrast spot-check on dark theme: visible Tradesa V2 P&L
+green/red on dark needs a contrast-ratio audit (tooling: WebAIM
+contrast checker, axe-core, or Lighthouse). **Not run this session** —
+deferred to Phase 9 with axe-core / Lighthouse against the live Tauri
+shell.
+
+### Summary
+
+3 a11y findings, all S3 polish. No S1/S2 a11y blockers found. v1.0
+ships with default-keyboard-and-aria-accessibility; v1.1+ polish should
+address the form-field labeling + composite-widget ARIA + arrow-key nav.
 
 ---
 
