@@ -390,7 +390,152 @@ resolves at runtime). Scans for `importlib.resources`, `pkgutil.get_data`,
 `__file__`-relative path joins, `pkg_resources.resource_*` in the main
 sidecar + openbb-mcp + sec-edgar-mcp + their transitive deps.
 
-_(empty — L3 fills)_
+### Finding L3-agents-dir-not-bundled [S1] [status: open]
+
+**Repro:**
+1. `curl http://127.0.0.1:54108/agents` returns **`[]`** (empty list).
+2. `ls sidecar/agents/` shows **10 agent JSON files**: `buffett.json,
+dalio.json, druckenmiller.json, graham.json, klarman.json, lynch.json,
+marks.json, munger.json, portfolio_advisor.json, _schema.json`.
+3. `agent_runtime.py:49` constructs `AGENTS_DIR = Path(__file__).resolve().
+parent.parent / "agents"`. In PyInstaller `--onefile`, `__file__` lives
+   inside `_MEI*/services/`, so `.parent.parent + "agents"` resolves to
+   `<_MEI>/agents/`.
+4. The PyInstaller invocation in `scripts/ensure-sidecar.mjs` has **NO
+   `--add-data=agents:agents`** or equivalent. The `agents/` directory is
+   not a Python package (no `__init__.py`), so PyInstaller's auto-discovery
+   skips it.
+5. At runtime, `agents_dir.exists()` returns False (line 68 of
+   `agent_runtime.py`) → `_discover_specs` returns `{}` → `/agents`
+   endpoint returns `[]`.
+
+**Impact:** **Every named first-party agent is unavailable in production.**
+This is the AI Risk Analyst from UC1, the AI Researcher from UC2, the
+Strategy Critic from the backtest flow, every named agent the operator
+or user expects to invoke. The agent picker in the chat sidebar shows
+"No agent (raw chat)" as the only option. Slash commands `/agent <id>`
+fail with "agent not found".
+
+This is the **third silent-runtime-broken-release** pattern after v0.6.5
+fastmcp + v0.7.0 sec-edgar data files. The smoke-test gate boots the
+binary + curls /health → 200 OK; an empty /agents response does not
+look like a "crash", so the gate misses it.
+
+**Suggested fix:** Add `--add-data` (or `--add-data` equivalent path
+syntax for the PyInstaller invocation) to copy the agents JSON files:
+
+```javascript
+// scripts/ensure-sidecar.mjs, near the hidden/copyMeta blocks:
+const addData = [
+  ["agents", "agents"],   // src:dest pair; src is sidecar/agents, dest is bundled root
+].map((p) => `--add-data=${p[0]}${isWin ? ";" : ":"}${p[1]}`).join(" ");
+// then add ${addData} to the run() command above.
+```
+
+Note: PyInstaller's `--add-data` syntax differs between Windows
+(`SOURCE;DEST`) and POSIX (`SOURCE:DEST`). Use `isWin` to pick the right
+separator.
+
+**Files:**
+- `sidecar/services/agent_runtime.py:49` (the `__file__`-relative lookup)
+- `sidecar/services/agent_runtime.py:62-99` (`_discover_specs` silently
+  empty path)
+- `sidecar/agents/*.json` (the 10 files that need bundling)
+- `scripts/ensure-sidecar.mjs` (the fix target — add `--add-data`)
+- `sidecar/tests/test_agent_runtime.py:54` (test computes
+  `_REAL_AGENTS_DIR` from source layout — passes in source mode, but
+  doesn't exercise the bundled binary's `_MEI` resolution)
+
+**Notes:** Pattern in CLAUDE.md gotcha "PyInstaller `--onefile` silently
+drops package metadata + data files" is the precedent. The bullet lists
+"importlib.metadata.version(...)" (→ `--copy-metadata`) and "non-Python
+data files loaded via pkgutil" (→ `--collect-data`) — but plain-dir-
+adjacent JSON files via `__file__`-relative lookup is a THIRD pattern not
+covered by the existing gotcha. CLAUDE.md needs an extension for `--add-
+data` cases. H2 carry-forward.
+
+The agent_runtime audit-test `test_agent_runtime.py:54` uses a
+`_REAL_AGENTS_DIR` that's computed differently than the production path
+- so the test passes but doesn't catch the bundle gap. **L4 meta-
+  verification should add a deliberate-break case for this gap**: temporarily
+  remove `sidecar/agents/buffett.json`, push, verify the test catches it,
+  revert. If the test doesn't catch it, the test gap is itself S2.
+
+### Finding L3-smoke-test-empty-data-gap [S2] [status: open]
+
+**Repro:** the smoke-test in `scripts/smoke-test-sidecars.mjs` checks for
+two states:
+1. **Main sidecar:** binds + `/health` returns 200 within 60 s ✅ (the
+   v0.6.5 fastmcp regression class)
+2. **MCP subprocesses:** alive after 10 s ✅ (very shallow — doesn't even
+   check port binding per UC1-openbb-mcp-not-listening)
+
+Neither check verifies that load-bearing endpoints return non-empty,
+correct data. `/agents` returning `[]` is "OK" by the current gate.
+
+**Impact:** The smoke-test only catches the narrow class of bugs where the
+binary outright crashes during boot. Soft failures — endpoint returns
+empty list / 500 / wrong data — pass the gate.
+
+**Suggested fix:** Extend `scripts/smoke-test-sidecars.mjs` to also probe:
+- `/agents` returns at least 1 agent (count > 0)
+- `/openapi.json` includes specific route prefixes (`/fundamentals/`,
+  `/sec/`, `/macro/`, etc.)
+- `/openbb-mcp/status` returns `available: true` **AND** the claimed
+  endpoint actually listens (TCP probe to `<endpoint>/mcp`)
+- `/sec-edgar-mcp/status` (currently 404 — needs to be added per
+  UC1-sec-edgar-mcp-not-listening notes) returns analogous status with
+  TCP probe
+
+This is the **L4 meta-verification recommendation made concrete**: when
+the next class of silent-runtime regression ships, this smoke-test
+strengthening is what catches it.
+
+**Files:**
+- `scripts/smoke-test-sidecars.mjs:248-300` (the main-sidecar probe)
+- `scripts/smoke-test-sidecars.mjs:302-339` (the MCP-subprocess probe —
+  has the shallowest check)
+
+### Finding L3-screener-universes-status [no finding, observation]
+
+`sidecar/services/screener_universes/__init__.py` is a Python package with
+3 JSON files (`crypto_top50.json`, `nifty50.json`, `sp500.json`) and uses
+`importlib.resources` to load. PyInstaller's `--onefile` auto-discovers
+imported packages and includes their data files via its `pkgresources`
+hook by default. **No finding here** — package-data-bundled-with-package
+works correctly out of the box (different from the `agents/` plain-dir
+case above).
+
+Verified: `curl /screener/universe` doesn't 404 on the wrong path (just
+returns the same "Not Found" pattern); the actual screener route prefix
+is `/screener/run` and `/screener/universe`. Not exercised this session.
+
+### Finding L3-fastmcp-fastmcp-slim-double-pin [S3] [status: open]
+
+**Repro:** `scripts/ensure-openbb-mcp-sidecar.mjs:142-154` includes both
+`fastmcp` and `fastmcp-slim` in `--copy-metadata`. The two are aliases —
+`fastmcp-slim` was an older split that's now the same package. Either
+both will succeed redundantly (low cost) or one will raise
+`PackageNotFoundError` and the build will fail.
+
+The build succeeded May 16 so currently fine. But the redundant pin adds
+fragility — if `fastmcp-slim` is removed from PyPI or marked stale, this
+breaks.
+
+**Impact:** Cosmetic / cleanup. S3.
+
+**Suggested fix:** Remove `fastmcp-slim` from the `--copy-metadata` list.
+
+**Files:**
+- `scripts/ensure-openbb-mcp-sidecar.mjs:143-144`
+
+### Hypothesis carry-forward to L4
+
+L3 found one new class of runtime gap (`--add-data` for plain dirs not
+covered by CLAUDE.md gotcha). L4 meta-verification should deliberately
+break the `agents/` bundle inclusion + verify smoke-test catches it. If
+smoke-test doesn't catch (which it currently won't), this becomes a
+forcing-function S1 for extending the gate.
 
 ## L4 — Meta-verification gate findings
 
