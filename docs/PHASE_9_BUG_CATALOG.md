@@ -227,5 +227,56 @@ The real damage is in **error-surfacing and bundling**: a safety surface (Audit 
 - **DEFERRED (setup/time):** #36,39,41,43,45,46,48,49,50,51,52,54,55,57,58,59,60,67,70,73,74,75,76,78,83,85,86,87,92
 - **Headline S2:** Audit-Log 500 (#79, safety surface), Screener universe 502 (#91), News first-fetch (#38), Portfolio false-error (new), Chart silent-blank (#15), MCP nondeterministic binding (UC1).
 
+---
+
+## Phase 2b — Deferred Adversarial Vectors
+
+_Run in a later session (app PID 19831, `/Applications/Vysted.app`, `com.vysted.desk`, sidecar dynamic port 61283), full-tier computer use. Same code as `e9775b5`. Tester, not fixer — no source edits._
+
+### Vector 1 — Open 30–50 panels via rapid cmd+K, then close all → **HELD (no defect)**
+- **Tried:** ~37 rapid `cmd+K → "chart"/"macro" → Enter` opens (non-singleton, so each creates a distinct panel), then attempted to close them all.
+- **Open phase:** the new panels piled into one dockview group whose tab strip overflowed to a **graceful "⌄ N" overflow dropdown** (observed counts climbing 16 → 27). No crash, UI stayed responsive, new charts kept loading SPY data, watchlist kept ticking, no visible jank or request storm.
+- **Close phase:** closing the active tab's ✕ decrements cleanly (27→26→…→22 verified). Two caveats, both **harness artifacts, not app bugs**: (a) the ✕ hitbox under heavy overflow is a precise target (~x1309; clicks ~10px left just re-activate the tab), and (b) an external app (System Settings, then Ghostty) repeatedly stole focus after ~3–5 rapid closes, so a literal close-to-empty wasn't reached through the harness. **No instability at any panel count.**
+- **Re-open / leaked-state check:** Load Workspace ("phase9test") **cleanly replaced** the bloated layout with the saved cockpit — no crash, all panels re-rendered, data live, no leaked state. Re-open works after the stress.
+- **Verdict:** dockview is resilient to ~35 panels and rapid open/close. **No defect.** (Literal empty-dockview state not reached via the harness — recommend a unit/e2e test for the all-panels-closed edge.)
+
+### Vector 2 — Kill the sidecar MID-STREAM (backtest SSE) → **HELD (graceful, no defect)**
+- **Tried:** Started a heavy 15-symbol Mean-Reversion backtest (SSE `/backtest/run`), then `pkill -9 vysted-sidecar` (both bootloader+worker PIDs; port 61283 → connection-refused confirmed). The first run actually **completed before the kill landed** (in-process engine is fast: Return +7.69%, Sharpe 0.15, MaxDD −13.25%, **174 trades**, equity+drawdown charts, sortable trade table) → **bonus #50 PASS**. Then started a **second** backtest with the sidecar already dead to exercise the failed/dropped-stream path.
+- **What broke / held:** Everything degraded **gracefully, no crash/hang**:
+  - Backtest (sidecar dead) → **"error: Load failed"** + "TRADES (0) — No trades yet." (clean error frame, not a spinner-hang).
+  - Watchlist 5s poll → **"Failed to load watchlist quotes"** banner; last-known prices retained.
+  - News/Portfolio → retained last-loaded data; app stayed fully responsive (panels switch, cmd+K works).
+- **Severity:** no defect. **Minor (S3) polish note:** the backtest error is the generic **"Load failed"** rather than a specific "sidecar unavailable / connection refused" — same generic-surface family as the CORS-masks-500 trap; a clearer message would help users distinguish a dead sidecar from a bad strategy.
+- **Recovery:** the Tauri core did **not** auto-respawn the sidecar after an external kill; a full app relaunch was required to get a fresh sidecar (new dynamic port 55177). Worth noting as a resilience gap (S3): an external sidecar crash leaves the app permanently degraded until manual restart — no in-app "reconnect/restart sidecar" affordance observed.
+- _Side observations on this fresh boot:_ News cold-fetch error (#38) and Portfolio "Failed to load portfolio" both **reproduced** on the clean relaunch (consistent). The AAPL portfolio position added in Phase 1 did **not** reappear after restart — possible non-persistence of portfolio positions across app restart (or the cold-load failed); flagged for follow-up, not deep-dived.
+
+### Vector 3 — 200-symbol watchlist / 5s poll → **FINDING: S2 performance (request pile-up / stale quotes)**
+- **Tried:** mass-added ~55 symbols to the watchlist (rapid type+Enter; Enter submits each), let the 5s poll run.
+- **What broke / held:** App **held** — no crash, no freeze, no client-side CPU thrash (main process 0.4% CPU); visible rows kept ticking; News auto-refiltered to the new symbols (MSFT POSITIVE +0.20). **But** the batched `GET /quotes?symbols=<55>` takes **~26.3 s** (200, 55 rows) — the sidecar's yfinance fan-out is sequential/unbatched. With a **5 s poll interval vs a 26 s response**, polls **overlap/pile up** (~5 concurrent in-flight) and quotes are perpetually stale.
+- **Severity: S2 (performance/scalability).** A 26 s quote refresh makes the watchlist effectively non-functional at realistic sizes (many users keep 30–100 symbols). Root cause is server-side fan-out latency, not the UI. **Fix direction:** concurrent/batched provider fetch (asyncio gather / bulk yfinance `download`), and a client-side guard so a poll is skipped while the previous is still in flight (prevent pile-up). _Unconfirmed whether the client already de-dupes overlapping polls — if not, the pile-up is real; if so, the impact is severe staleness/sluggishness._
+
+### Vector 4 — Huge/malformed inputs (Portfolio + Quant) → **HELD vs crashes; 2 findings**
+- **Portfolio (S3 — no input validation):** direct `POST /portfolio/positions` with **qty 1e15 → 201 created**; **negative qty −50 + negative cost_basis −10 → 201 created**. No upper bound, no rejection of negative quantity/cost, no clamping. Fuzz note (`'; DROP TABLE positions;--`, emoji, HTML, 260-char) accepted as plain text — no injection, no crash. **Missing validation** → nonsensical positions/P&L possible.
+- **Portfolio panel load (S2 — strengthened, see consolidated #4):** `GET /portfolio/positions` shows the Phase-1 AAPL position **persisted** (`id:1, qty 10, cost 150`), yet the panel renders **"Failed to load portfolio" + "No positions yet" simultaneously** — real DB data is not displayed on cold load. Confirms the cold-load is genuinely broken, not just a cosmetic banner.
+- **Quant (HELD — robust validation):** every malformed/extreme `POST /quant/option/price` (negative volatility, expiry-before-valuation, spot 1e12 + vol 5000%, wrong field names) returned **422 schema-validation**, and the **sidecar stayed alive** through all of it. GUI negative-vol click missed (Option Pricer docked dynamically), but server-side validation + Phase-1 valid-pricing cover it. **No crash.**
+- **Verdict:** no crashes from huge/malformed input anywhere. New defects: portfolio missing input validation (S3) + portfolio cold-load failure (S2, already in consolidated list).
+
+### Vector 5 — Workspace swap mid-stream → **HELD (graceful, slow)**
+- **Tried:** triggered an Equity Overview AAPL fundamentals load, then immediately opened Load Workspace and selected "phase9test" — both fetches in flight at once (confirmed: panel "Loading equity overview…" + dialog "Loading…" simultaneously).
+- **What broke / held:** **no crash, no corruption.** The equity load **completed successfully** (full AAPL fundamentals rendered) despite the concurrent workspace load. The workspace dialog sat in "Loading…" ~10s then returned to the list view — **slow due to sidecar contention from the 55-symbol watchlist poll** (Vector 3); watchlist SPY/QQQ briefly showed "—" (partial quote loads while the sidecar was saturated).
+- **Severity:** no new crash. Reinforces the **Vector-3 S2 latency finding** — a heavy watchlist poll **starves other sidecar requests** (workspace load, equity fundamentals), degrading whole-app responsiveness to new actions while the poll is in flight.
+
+### Vector skipped
+- 20+ screener criteria: **not run** — Screener is already dead via the #91 missing-universe-snapshot bug; criteria count is moot until the universe loads.
+
+### Phase 2b — new findings folded into the consolidated list
+- **S2:** large-watchlist quote latency / poll pile-up + request starvation (Vector 3 & 5). Portfolio cold-load fails to display persisted positions (Vector 4, strengthens the earlier Portfolio false-error to a confirmed data-not-shown bug).
+- **S3:** no portfolio input validation (negative/huge qty & cost accepted, Vector 4); generic "Load failed" backtest error vs a specific sidecar-unavailable message (Vector 2); no in-app sidecar reconnect/restart after an external sidecar crash (Vector 2).
+- **HELD (no defect):** 35-panel open + rapid close (Vector 1); sidecar-kill mid-stream graceful degradation (Vector 2); malformed/extreme input never crashes the sidecar (Vector 4); workspace swap mid-stream (Vector 5).
+
+### Final state (Phase 2b)
+App relaunched to a clean, usable state: default 5-panel cockpit, watchlist reset to the 4 seed symbols (the 55 test symbols did **not** persist), fresh sidecar healthy (`0.8.0`, dynamic port — 58321 at write time, agents=12, openbb-mcp down per UC1). News shows the cold-fetch error (recovers on Retry). **Residual test artifacts** (non-blocking): the Portfolio SQLite DB retains 3 test positions (`id:1` AAPL 10@150 from Phase 1; `id:2` qty 1e15; `id:3` qty −50) which **do not display** due to the confirmed portfolio cold-load bug; a `phase9test` workspace remains saved. No live orders were ever placed; kill-switch left `fired:false`.
+
+
 
 
