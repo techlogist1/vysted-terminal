@@ -76,7 +76,8 @@ def _reader_connection() -> Iterator[sqlite3.Connection]:
     write at the connection level, regardless of which role issued it.
 
     Used by ``GET /safety/audit-log`` and the CSV export route. The reader
-    never applies the schema — assumes a writer has run at least once.
+    cannot apply the schema (``query_only`` refuses ``CREATE TABLE``), so
+    callers must :func:`_ensure_initialized` first on a fresh data directory.
     """
     conn = sqlite3.connect(_db_path())
     conn.row_factory = sqlite3.Row
@@ -85,6 +86,21 @@ def _reader_connection() -> Iterator[sqlite3.Connection]:
         yield conn
     finally:
         conn.close()
+
+
+def _ensure_initialized() -> None:
+    """Guarantee the schema + triggers exist before a read.
+
+    Reads open a ``query_only`` reader connection that physically cannot
+    ``CREATE TABLE``; on a fresh data directory where no writer has run yet,
+    a read would otherwise raise ``sqlite3.OperationalError: no such table:
+    audit_orders``. Opening (and closing) a writer connection applies the
+    idempotent ``AUDIT_LOG_DDL`` exactly as :func:`count` already does — the
+    append-only triggers and the reader ``query_only`` guarantee are
+    unchanged; this only ensures the table+triggers exist before a cold read.
+    """
+    with _writer_connection():
+        pass
 
 
 def _row_to_entry(row: sqlite3.Row) -> AuditLogEntry:
@@ -135,6 +151,7 @@ def append(req: AuditLogAppendRequest) -> int:
 
 def tail(limit: int = 200) -> list[AuditLogEntry]:
     """Return the most-recent ``limit`` entries, newest first."""
+    _ensure_initialized()
     with _reader_connection() as conn:
         rows = conn.execute(
             """
@@ -156,6 +173,7 @@ def range_(start_ms: int, end_ms: int) -> list[AuditLogEntry]:
     shadow the Python builtin in callers that ``from services.audit_log
     import *``.
     """
+    _ensure_initialized()
     with _reader_connection() as conn:
         rows = conn.execute(
             """
@@ -184,6 +202,7 @@ def export_csv(start_ms: int | None = None, end_ms: int | None = None) -> str:
         where_clause = "WHERE timestamp_ms BETWEEN ? AND ?"
         params = (start_ms, end_ms)
 
+    _ensure_initialized()
     with _reader_connection() as conn:
         rows = conn.execute(
             f"""

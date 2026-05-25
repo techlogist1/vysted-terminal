@@ -120,6 +120,49 @@ def test_count_returns_total(temp_audit_dir: object) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Cold-read regression — Phase 9 #79
+#
+# Reads use a ``query_only`` reader connection that cannot CREATE TABLE. On a
+# fresh data directory where no writer has run yet, a read MUST NOT raise
+# ``no such table: audit_orders`` (the v0.8.0 ``/safety/audit-log`` 500).
+# These exercise tail/range_/export_csv BEFORE any append.
+# ---------------------------------------------------------------------------
+
+
+def test_tail_on_fresh_db_returns_empty(temp_audit_dir: object) -> None:
+    """A cold read on an un-written audit DB returns [] instead of raising."""
+    assert audit_log.tail(limit=200) == []
+
+
+def test_range_on_fresh_db_returns_empty(temp_audit_dir: object) -> None:
+    assert audit_log.range_(0, 9_999_999_999_999) == []
+
+
+def test_export_csv_on_fresh_db_returns_header_only(temp_audit_dir: object) -> None:
+    csv_text = audit_log.export_csv()
+    lines = csv_text.strip().splitlines()
+    assert lines == ["id,timestamp_ms,broker,account_id,action,payload_json,source,outcome"]
+
+
+def test_cold_read_preserves_append_only_triggers(temp_audit_dir: object) -> None:
+    """``_ensure_initialized`` must apply the triggers, not just the table —
+    a cold read followed by a tamper attempt still hits the append-only gate.
+    """
+    audit_log.tail(limit=1)  # cold read initializes the schema
+    audit_log.append(_sample())
+
+    db_path = audit_log._db_path()  # pylint: disable=protected-access
+    conn = sqlite3.connect(db_path)
+    try:
+        with pytest.raises(sqlite3.IntegrityError) as exc_info:
+            conn.execute("DELETE FROM audit_orders WHERE id = 1")
+            conn.commit()
+        assert "audit log is append-only: DELETE not permitted" in str(exc_info.value)
+    finally:
+        conn.close()
+
+
+# ---------------------------------------------------------------------------
 # Append-only enforcement — the DB-level triggers MUST raise
 # ---------------------------------------------------------------------------
 
