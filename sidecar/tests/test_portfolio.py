@@ -215,3 +215,117 @@ def test_delete_position_endpoint(client: TestClient, temp_data_dir: object) -> 
 
 def test_delete_unknown_position_returns_404(client: TestClient, temp_data_dir: object) -> None:
     assert client.delete("/portfolio/positions/999").status_code == 404
+
+
+# --------------------------------------------------------------------------
+# PositionInput field validation — bounds on quantity and cost_basis
+# --------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "qty",
+    [
+        0.0,  # zero — not positive
+        -1.0,  # negative
+        -0.001,  # small negative
+        1e15,  # absurdly large — above le=1e12 cap
+        1e13,  # above cap
+    ],
+)
+def test_create_position_rejects_invalid_quantity(
+    client: TestClient, temp_data_dir: object, qty: float
+) -> None:
+    """quantity must be > 0 and <= 1e12; anything else returns 422."""
+    response = client.post(
+        "/portfolio/positions",
+        json={
+            "symbol": "AAPL",
+            "quantity": qty,
+            "cost_basis": 150.0,
+            "asset_class": "equity",
+            "opened_at": None,
+            "note": None,
+        },
+    )
+    assert response.status_code == 422, f"expected 422 for qty={qty}, got {response.status_code}"
+
+
+def test_create_position_rejects_negative_cost_basis(
+    client: TestClient, temp_data_dir: object
+) -> None:
+    """cost_basis must be >= 0; negative values return 422."""
+    response = client.post(
+        "/portfolio/positions",
+        json={
+            "symbol": "AAPL",
+            "quantity": 10.0,
+            "cost_basis": -5.0,
+            "asset_class": "equity",
+            "opened_at": None,
+            "note": None,
+        },
+    )
+    assert response.status_code == 422
+
+
+def test_create_position_accepts_zero_cost_basis(client: TestClient, temp_data_dir: object) -> None:
+    """cost_basis=0 is valid (e.g. vested shares with zero strike)."""
+    response = client.post(
+        "/portfolio/positions",
+        json={
+            "symbol": "AAPL",
+            "quantity": 10.0,
+            "cost_basis": 0.0,
+            "asset_class": "equity",
+            "opened_at": None,
+            "note": None,
+        },
+    )
+    assert response.status_code == 201
+
+
+def test_create_position_accepts_max_valid_quantity(
+    client: TestClient, temp_data_dir: object
+) -> None:
+    """quantity at exactly the upper cap (1e12) is accepted."""
+    response = client.post(
+        "/portfolio/positions",
+        json={
+            "symbol": "AAPL",
+            "quantity": 1e12,
+            "cost_basis": 0.0001,
+            "asset_class": "equity",
+            "opened_at": None,
+            "note": None,
+        },
+    )
+    assert response.status_code == 201
+
+
+def test_update_position_rejects_invalid_quantity(
+    client: TestClient, temp_data_dir: object
+) -> None:
+    """PUT uses PositionInput too — validation applies to updates as well."""
+    created = client.post(
+        "/portfolio/positions",
+        json={
+            "symbol": "AAPL",
+            "quantity": 10.0,
+            "cost_basis": 150.0,
+            "asset_class": "equity",
+            "opened_at": None,
+            "note": None,
+        },
+    ).json()
+    response = client.put(
+        f"/portfolio/positions/{created['id']}",
+        json={
+            "symbol": "AAPL",
+            "quantity": -5.0,
+            "cost_basis": 150.0,
+            "asset_class": "equity",
+            "opened_at": None,
+            "note": None,
+        },
+    )
+    assert response.status_code == 422
