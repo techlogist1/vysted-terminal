@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from datetime import UTC, datetime
 
 import pytest
@@ -46,6 +47,44 @@ def test_get_quotes_batch_skips_failures(
     monkeypatch.setattr(provider_registry, "get_quote", fake_get_quote)
     body = client.get("/quotes", params={"symbols": "AAPL,BAD,MSFT"}).json()
     assert [q["symbol"] for q in body] == ["AAPL", "MSFT"]
+
+
+def test_get_quotes_batch_fans_out_concurrently(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Each blocking provider call sleeps; concurrent fan-out keeps wall time ≈ one call.
+
+    Sequential execution of N sleepy calls would take ~N * delay; the
+    ``asyncio.to_thread`` + ``asyncio.gather`` fan-out runs them in parallel on
+    worker threads so the batch finishes in roughly one call's time.
+    """
+    from services import provider_registry
+
+    delay = 0.2
+    n_symbols = 10
+
+    def slow_get_quote(symbol: str, asset_class: str = "equity") -> Quote:  # noqa: ARG001
+        time.sleep(delay)
+        return Quote(
+            symbol=symbol,
+            price=100.0,
+            change=1.0,
+            change_percent=1.0,
+            timestamp=datetime.now(tz=UTC),
+            provider="yfinance",
+        )
+
+    monkeypatch.setattr(provider_registry, "get_quote", slow_get_quote)
+    symbols = ",".join(f"SYM{i}" for i in range(n_symbols))
+
+    start = time.perf_counter()
+    body = client.get("/quotes", params={"symbols": symbols}).json()
+    elapsed = time.perf_counter() - start
+
+    assert len(body) == n_symbols
+    # Sequential would be ~n_symbols * delay (= 2.0s). Concurrent must be well
+    # under half that even allowing for thread-pool + scheduling overhead.
+    assert elapsed < (n_symbols * delay) / 2, f"batch was not concurrent: {elapsed:.3f}s"
 
 
 def test_get_quote_provider_error(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
