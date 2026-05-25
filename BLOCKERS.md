@@ -34,6 +34,89 @@ running the Tauri shell with real credentials + macOS:
    inheritance per CLAUDE.md Gotcha) still needs a real fix. Investigate
    the openbb-mcp-server / sec-edgar-mcp packages' streamable-http
    transport for the deadlock site. Phase 9/10 investigation target.
+   **Phase-9 UC1 update:** partially addressed at the Rust supervisor
+   level — see "Phase 9 UC1 residual" below.
+
+## Phase 9 UC1 residual — MCP cold-boot bind latency (Rust supervisor)
+
+**Status:** improved, NOT fully closed. Owner: Phase-9 `worktree-agent-rs`.
+
+### What the Phase-9 fix did (robustly fixable at the supervisor)
+
+`src-tauri/src/{lib,openbb_mcp,sec_edgar_mcp}.rs`:
+
+1. **Raised the per-attempt bind budget** from a flat 15s to
+   `MCP_PORT_WAIT_SECS = 30s` (`lib.rs`), with a **bounded retry**
+   (`MCP_PORT_WAIT_ATTEMPTS = 2`) via the new `wait_for_port_with_retries`
+   helper. The wait short-circuits on first TCP connect, so a fast/warm
+   boot still returns in well under a second; only a genuinely slow cold
+   boot consumes the extra budget. The retry gives the SAME cold child a
+   second window — it does NOT respawn (the failure mode is slow `_MEI*`
+   extraction + heavy imports, not a dead process). Worst case before
+   declaring unavailable: ~60s per MCP.
+2. **Parallelized the two MCP spawns** (`lib.rs` `setup`): previously
+   `openbb_mcp::spawn` then `sec_edgar_mcp::spawn` ran sequentially, each
+   blocking the setup thread for its full bind budget back to back
+   (~30s+ serial under the old 15s × 2; would have been ~120s serial under
+   the new budget). They now run on two threads and `join` before the main
+   sidecar spawn (the `VYSTED_*_MCP_PORT` env vars must be settled first),
+   so the two cold PyInstaller extractions OVERLAP. Net cold worst case is
+   roughly halved vs. serial. The two threads `app.manage(...)` disjoint
+   state types, and the disjoint env-var writes are serialized by Rust's
+   internal `std::env` lock — no shared-state contention.
+3. **Minimized the bind-vs-spawn TOCTTOU**: each spawn still calls
+   `pick_free_port()` as its first line, immediately before its own
+   `Command::spawn` (we did NOT pre-pick both ports up front, which would
+   widen the window between port selection and reclaim).
+4. **Graceful degradation preserved**: a final bind failure still kills
+   the child, removes the env var, registers `port=0`, and returns `Ok` —
+   openbb falls back to yfinance, sec routes return 501. Startup is never
+   made fatal by an MCP failure. Diagnostics retain the Phase-8 UC1
+   references and now name the budget + this BLOCKERS entry.
+
+### The residual (NOT closable from the Rust supervisor)
+
+The TRUE root cause is upstream subprocess cold-boot behaviour: a
+PyInstaller `--onefile` binary must extract its `_MEI*` temp dir and
+import heavy packages (openbb-platform extensions / sec-edgar
+streamable-http) before it can `bind()`. Under cold disk cache, high I/O,
+or Windows AV / Search-Indexer file-lock contention on the freshly
+extracted files, that prologue can be slow and variable. The supervisor
+can only _wait longer_ and _fail gracefully_; it cannot make the child
+bind faster. So the nondeterminism is reduced (a 30s × 2 budget covers the
+observed worst case far better than 15s × 1) but a pathologically slow
+machine can still exceed it and degrade.
+
+### Concrete repro recipe
+
+1. Cold machine state: reboot, or evict the binary from OS file cache
+   (e.g. on Windows after a fresh `pnpm sidecars:build`, before any prior
+   launch warmed the `_MEI*` extraction).
+2. Add I/O pressure: launch the app while a full AV scan / Windows Search
+   indexer pass / large file copy is hammering the disk that holds
+   `%TEMP%` / `src-tauri/binaries/`.
+3. Observe `[openbb-mcp]` / `[sec-edgar-mcp]` logs: on a slow boot you may
+   see the `not bound … after attempt 1/2 … retrying` line, then either a
+   late `subprocess healthy on 127.0.0.1:<port>` (recovered within budget)
+   or the `did not bind … treating as unavailable` degrade line.
+4. On degrade: `/fundamentals|/macro|/screener|/earnings`/analyst routes
+   fall back to yfinance; `/sec` routes return 501 — no crash.
+5. **Relaunch** the app: with the `_MEI*` extraction now warm in cache it
+   binds promptly. This warm-vs-cold delta is the signature of the
+   residual.
+
+### Recommended real fix (future phase, upstream of the supervisor)
+
+Attack the cold-boot prologue, not the wait budget: (a) PyInstaller
+`--onedir` instead of `--onefile` for the MCP sidecars eliminates the
+per-launch `_MEI*` extraction (the dominant cold cost) at the price of a
+folder bundle — check against the §`bundle.externalBin` packaging model;
+(b) investigate whether the openbb-mcp-server / sec-edgar-mcp
+streamable-http transport can defer heavy extension imports until first
+tool call so `bind()` happens early; (c) a one-time post-install "warm"
+launch that pre-extracts `_MEI*`. Each is out of scope for the Rust-only
+UC1 sprint and out of the `worktree-agent-rs` file ownership. Carry to the
+same investigation target as carry-forward #7 above.
 
 ## v0.8.0 → v0.8.x polish carry-forwards (S2 + S3 findings)
 

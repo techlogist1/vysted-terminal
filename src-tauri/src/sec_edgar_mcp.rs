@@ -31,7 +31,9 @@ use tauri::{AppHandle, Manager};
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 
-use crate::{pick_free_port, wait_for_port};
+use crate::{
+    pick_free_port, wait_for_port_with_retries, MCP_PORT_WAIT_ATTEMPTS, MCP_PORT_WAIT_SECS,
+};
 
 /// Holds the running sec-edgar-mcp subprocess so it can be killed on app exit.
 pub struct SecEdgarMcpProcess(pub Mutex<Option<CommandChild>>);
@@ -49,19 +51,37 @@ pub fn get_sec_edgar_mcp_port(port: tauri::State<'_, SecEdgarMcpPort>) -> u16 {
     port.0
 }
 
+/// Register this build as "sec-edgar-mcp unavailable": port=0 + no child.
+/// The Python sidecar's ``sec_filings_provider`` reads the missing/zero
+/// ``VYSTED_SEC_EDGAR_MCP_PORT`` and the ``/sec`` routes 501 cleanly.
+fn register_unavailable(app: &AppHandle) {
+    std::env::remove_var("VYSTED_SEC_EDGAR_MCP_PORT");
+    std::env::remove_var("VYSTED_SEC_EDGAR_MCP_HOST");
+    app.manage(SecEdgarMcpPort(0));
+    app.manage(SecEdgarMcpProcess(Mutex::new(None)));
+}
+
 /// Spawn the sec-edgar-mcp subprocess and register its handle + port in Tauri state.
 ///
-/// Called from ``lib.rs`` ``setup`` exactly once. The function never panics —
-/// when the bundled binary is missing (a dev build that skipped
+/// Called from ``lib.rs`` ``setup`` exactly once (on its own thread so its
+/// cold-boot port-wait overlaps the openbb-mcp one). The function never
+/// panics — when the bundled binary is missing (a dev build that skipped
 /// ``pnpm sec-edgar-mcp-sidecar:build``) it logs and registers a zero port so
 /// the main sidecar's SEC filings provider treats this build as not having
 /// sec-edgar-mcp bundled (the routes 501 cleanly rather than crashing).
+///
+/// Phase-9 UC1 fix: the port is picked IMMEDIATELY before ``Command::spawn``
+/// (first line, no late pick) to keep the bind-vs-spawn TOCTTOU window
+/// minimal, and the post-spawn bind wait uses the longer
+/// ``MCP_PORT_WAIT_SECS`` budget with a bounded retry to tolerate a slow
+/// cold PyInstaller ``--onefile`` extraction under Windows file-lock
+/// contention.
 pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
     let port = pick_free_port();
 
     // Hand the port to the Python sidecar via env var. The sidecar spawn in
-    // ``lib.rs`` runs AFTER this function, so the env var is in place by the
-    // time the sidecar imports ``services.sec_filings_provider``.
+    // ``lib.rs`` runs AFTER both MCP supervisors join, so the env var is in
+    // place by the time the sidecar imports ``services.sec_filings_provider``.
     std::env::set_var("VYSTED_SEC_EDGAR_MCP_PORT", port.to_string());
     std::env::set_var("VYSTED_SEC_EDGAR_MCP_HOST", "127.0.0.1");
 
@@ -76,9 +96,7 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
                 "[sec-edgar-mcp] subprocess binary unavailable ({err}); \
                  /sec routes will 501 until the bundle is rebuilt."
             );
-            std::env::remove_var("VYSTED_SEC_EDGAR_MCP_PORT");
-            app.manage(SecEdgarMcpPort(0));
-            app.manage(SecEdgarMcpProcess(Mutex::new(None)));
+            register_unavailable(app);
             return Ok(());
         }
     };
@@ -87,9 +105,7 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
         Ok(parts) => parts,
         Err(err) => {
             eprintln!("[sec-edgar-mcp] failed to spawn subprocess: {err}; /sec routes will 501.");
-            std::env::remove_var("VYSTED_SEC_EDGAR_MCP_PORT");
-            app.manage(SecEdgarMcpPort(0));
-            app.manage(SecEdgarMcpProcess(Mutex::new(None)));
+            register_unavailable(app);
             return Ok(());
         }
     };
@@ -113,22 +129,33 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
 
     // Probe the claimed port — `Command::spawn` returns success when the OS
     // creates the process, NOT when the child binds. sec-edgar-mcp's
-    // streamable-http bootstrap can take a few seconds; if it deadlocks
-    // (Phase 8 finding UC1-sec-edgar-mcp-not-listening), this probe
-    // converts a silent failure into a loud one and falls back to /sec
-    // routes returning 501.
-    if !wait_for_port(port) {
+    // streamable-http bootstrap (plus a cold PyInstaller `_MEI*` extraction)
+    // can take several seconds; the flat 15s budget bound on some boots and
+    // not others under Windows file-lock contention (Phase 8 finding
+    // UC1-sec-edgar-mcp-not-listening). The longer per-attempt budget + one
+    // retry below cover the observed worst case; a fast boot still returns
+    // near-instant (the wait short-circuits on first connect).
+    let bound = wait_for_port_with_retries(
+        port,
+        MCP_PORT_WAIT_SECS,
+        MCP_PORT_WAIT_ATTEMPTS,
+        |attempt, total| {
+            eprintln!(
+                "[sec-edgar-mcp] not bound on 127.0.0.1:{port} after attempt {attempt}/{total} \
+                 ({MCP_PORT_WAIT_SECS}s); cold PyInstaller extraction may be slow — retrying."
+            );
+        },
+    );
+    if !bound {
         eprintln!(
-            "[sec-edgar-mcp] subprocess did not bind to 127.0.0.1:{port} within 15s; \
-             treating as unavailable. /sec routes will 501. \
-             Check the bundled binary for a startup deadlock (Phase 8 \
-             finding UC1-sec-edgar-mcp-not-listening)."
+            "[sec-edgar-mcp] subprocess did not bind to 127.0.0.1:{port} within \
+             {MCP_PORT_WAIT_SECS}s x {MCP_PORT_WAIT_ATTEMPTS} attempts; treating as \
+             unavailable. /sec routes will 501. Check the bundled binary for a \
+             startup deadlock (Phase 8 finding UC1-sec-edgar-mcp-not-listening; \
+             Phase 9 residual: cold-boot bind latency — see BLOCKERS.md)."
         );
         let _ = child.kill();
-        std::env::remove_var("VYSTED_SEC_EDGAR_MCP_PORT");
-        std::env::remove_var("VYSTED_SEC_EDGAR_MCP_HOST");
-        app.manage(SecEdgarMcpPort(0));
-        app.manage(SecEdgarMcpProcess(Mutex::new(None)));
+        register_unavailable(app);
         return Ok(());
     }
 
