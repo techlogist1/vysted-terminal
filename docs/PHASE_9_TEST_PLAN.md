@@ -94,7 +94,7 @@ Aggregated in `useCommandPalette.commands` from two sources:
 
 `src/modules/chat/slash-commands.ts`: `/ask <prompt>`, `/agent <id> <prompt>`, `/provider <id>`, `/key set <provider>`, `/clear`, `/help`. Bare text = raw chat continuation. These do **not** open panels.
 
-### 1.7 All AI agents (sidecar/agents/*.json)
+### 1.7 All AI agents (sidecar/agents/\*.json)
 
 buffett, dalio, druckenmiller, graham, klarman, lynch, marks, munger, portfolio_advisor, researcher (default provider openai), soros, strategy_critic (used by Backtest "Open in Strategy Critic"). Plus **custom agents** built in Agent Builder (id-prefixed `custom:`, stored sidecar-side, surfaced in the chat AgentPicker). `GET /agents` returns the first-party set; **an empty list signals the `agents/`-dir PyInstaller bundling regression** (v0.8.0 `L3` — see §4.9).
 
