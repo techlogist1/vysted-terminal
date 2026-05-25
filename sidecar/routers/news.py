@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import re
 
-from fastapi import APIRouter, Query
+import httpx
+from fastapi import APIRouter, Query, Request
 
 from models.news import NewsItem
 from services import news_provider, sentiment
@@ -62,8 +63,14 @@ def _tag_symbols(item: NewsItem, symbols: list[str]) -> list[str]:
     return matched
 
 
+def _httpx_client(request: Request) -> httpx.AsyncClient:
+    """Return the shared pooled ``httpx.AsyncClient`` created in the lifespan."""
+    return request.app.state.httpx_client
+
+
 @router.get("")
-def get_news(
+async def get_news(
+    request: Request,
     symbols: str | None = Query(
         default=None,
         description="Comma-separated watchlist symbols to tag/filter by",
@@ -81,11 +88,15 @@ def get_news(
     general market news is returned. With ``symbols`` given, every item is still
     fetched but the response is filtered to items that mention a requested
     symbol (general market context is dropped in favour of relevance).
+
+    The shared pooled ``httpx.AsyncClient`` (created in the app lifespan) is
+    handed to the provider so sources are fetched concurrently over reused
+    connections — fixing the cold-first-fetch 502 cascade (#38).
     """
     requested = _parse_symbols(symbols)
     tag_symbols = requested or list(_DEFAULT_SYMBOLS)
 
-    raw_items = news_provider.fetch_news(requested, limit)
+    raw_items = await news_provider.fetch_news(_httpx_client(request), requested, limit)
 
     scored: list[NewsItem] = []
     for item in raw_items:

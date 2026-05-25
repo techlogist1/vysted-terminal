@@ -3,18 +3,30 @@
 The RSS and NewsAPI fetch functions are monkeypatched at the function level —
 ``news_provider.fetch_rss`` / ``fetch_newsapi`` — so no test makes a live HTTP
 call, mirroring the provider-mocking pattern in ``conftest.py``.
+
+``fetch_news`` (and the source fetchers) are now ``async`` and take a shared
+``httpx.AsyncClient``. The provider-level tests drive the coroutine via
+``asyncio.run(...)`` — NOT ``asyncio.get_event_loop()``, which raises on Python
+3.13 outside a running loop — and pass a throwaway client the mocked fetchers
+ignore.
 """
 
 from __future__ import annotations
 
+import asyncio
 from datetime import UTC, datetime
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
 from models.news import NewsItem
 from services import news_provider, sentiment
 from services.errors import ProviderError
+
+# A real (never-used-for-IO) client object; the mocked fetchers ignore it. Kept
+# module-level so provider-level tests share one instance.
+_CLIENT = httpx.AsyncClient()
 
 # --------------------------------------------------------------------------
 # sentiment scorer — tested directly
@@ -88,7 +100,11 @@ def mock_news(monkeypatch: pytest.MonkeyPatch) -> list[NewsItem]:
         _news_item("c3", "Federal Reserve to hold meeting next week", "Routine policy review."),
     ]
 
-    def fake_fetch_news(symbols: list[str], limit: int) -> list[NewsItem]:  # noqa: ARG001
+    async def fake_fetch_news(
+        client: httpx.AsyncClient,  # noqa: ARG001
+        symbols: list[str],  # noqa: ARG001
+        limit: int,  # noqa: ARG001
+    ) -> list[NewsItem]:
         return list(canned)
 
     monkeypatch.setattr(news_provider, "fetch_news", fake_fetch_news)
@@ -140,7 +156,7 @@ def test_get_news_limit_out_of_range_is_422(client: TestClient, mock_news: list[
 def test_get_news_provider_error_is_502(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    def boom(*_args: object, **_kwargs: object) -> list[NewsItem]:
+    async def boom(*_args: object, **_kwargs: object) -> list[NewsItem]:
         raise ProviderError("all news sources failed")
 
     monkeypatch.setattr(news_provider, "fetch_news", boom)
@@ -160,14 +176,19 @@ def test_fetch_news_dedupes_and_sorts(monkeypatch: pytest.MonkeyPatch) -> None:
     newer = _news_item("fresh", "Newer story")
     newer = newer.model_copy(update={"published_at": datetime(2026, 5, 14, tzinfo=UTC)})
 
-    def fake_fetch_rss(feed_url: str, *, fallback_source: str) -> list[NewsItem]:  # noqa: ARG001
+    async def fake_fetch_rss(
+        client: httpx.AsyncClient,  # noqa: ARG001
+        feed_url: str,  # noqa: ARG001
+        *,
+        fallback_source: str,  # noqa: ARG001
+    ) -> list[NewsItem]:
         # Same "dup" item returned by every feed — must be de-duplicated.
         return [older, newer]
 
     monkeypatch.setattr(news_provider, "fetch_rss", fake_fetch_rss)
     monkeypatch.delenv("NEWSAPI_KEY", raising=False)
 
-    items = news_provider.fetch_news([], limit=50)
+    items = asyncio.run(news_provider.fetch_news(_CLIENT, [], limit=50))
     ids = [item.id for item in items]
     assert ids.count("dup") == 1
     # Newest first.
@@ -175,31 +196,91 @@ def test_fetch_news_dedupes_and_sorts(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_fetch_news_survives_partial_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    """One source fails its retries; the other succeeds → partial success (no raise)."""
     good = _news_item("ok", "Working feed item")
-    calls = {"n": 0}
 
-    def flaky_fetch_rss(feed_url: str, *, fallback_source: str) -> list[NewsItem]:  # noqa: ARG001
-        calls["n"] += 1
-        if calls["n"] == 1:
+    async def flaky_fetch_rss(
+        client: httpx.AsyncClient,  # noqa: ARG001
+        feed_url: str,
+        *,
+        fallback_source: str,  # noqa: ARG001
+    ) -> list[NewsItem]:
+        # The first market feed always fails (even on retry); the second works.
+        if "marketwatch" in feed_url:
             raise RuntimeError("feed timed out")
         return [good]
 
+    # Zero retries/backoff so the failing source doesn't slow the test.
+    monkeypatch.setattr(news_provider, "_MAX_RETRIES", 0)
     monkeypatch.setattr(news_provider, "fetch_rss", flaky_fetch_rss)
     monkeypatch.delenv("NEWSAPI_KEY", raising=False)
 
-    items = news_provider.fetch_news([], limit=50)
+    items = asyncio.run(news_provider.fetch_news(_CLIENT, [], limit=50))
     assert [item.id for item in items] == ["ok"]
 
 
+def test_fetch_news_retries_then_succeeds(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A transient first-fetch failure is retried and recovers — models #38."""
+    good = _news_item("recovered", "Recovered after retry")
+    calls = {"n": 0}
+
+    async def transient_fetch_rss(
+        client: httpx.AsyncClient,  # noqa: ARG001
+        feed_url: str,  # noqa: ARG001
+        *,
+        fallback_source: str,  # noqa: ARG001
+    ) -> list[NewsItem]:
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise RuntimeError("cold-start TLS timeout")
+        return [good]
+
+    monkeypatch.setattr(news_provider, "_RETRY_BACKOFF_SECONDS", 0.0)
+    monkeypatch.setattr(news_provider, "fetch_rss", transient_fetch_rss)
+    monkeypatch.delenv("NEWSAPI_KEY", raising=False)
+
+    items = asyncio.run(news_provider.fetch_news(_CLIENT, [], limit=50))
+    assert any(item.id == "recovered" for item in items)
+    assert calls["n"] >= 2  # at least one retry happened
+
+
 def test_fetch_news_all_sources_fail_raises(monkeypatch: pytest.MonkeyPatch) -> None:
-    def dead_fetch_rss(feed_url: str, *, fallback_source: str) -> list[NewsItem]:  # noqa: ARG001
+    """Only raise when NOTHING was collected from any source."""
+
+    async def dead_fetch_rss(
+        client: httpx.AsyncClient,  # noqa: ARG001
+        feed_url: str,  # noqa: ARG001
+        *,
+        fallback_source: str,  # noqa: ARG001
+    ) -> list[NewsItem]:
         raise RuntimeError("feed down")
 
+    monkeypatch.setattr(news_provider, "_MAX_RETRIES", 0)
     monkeypatch.setattr(news_provider, "fetch_rss", dead_fetch_rss)
     monkeypatch.delenv("NEWSAPI_KEY", raising=False)
 
     with pytest.raises(ProviderError):
-        news_provider.fetch_news([], limit=50)
+        asyncio.run(news_provider.fetch_news(_CLIENT, [], limit=50))
+
+
+def test_fetch_news_empty_collected_raises_even_when_no_source_errored(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Every source returns an empty list (no exception) → still a 502-worthy raise."""
+
+    async def empty_fetch_rss(
+        client: httpx.AsyncClient,  # noqa: ARG001
+        feed_url: str,  # noqa: ARG001
+        *,
+        fallback_source: str,  # noqa: ARG001
+    ) -> list[NewsItem]:
+        return []
+
+    monkeypatch.setattr(news_provider, "fetch_rss", empty_fetch_rss)
+    monkeypatch.delenv("NEWSAPI_KEY", raising=False)
+
+    with pytest.raises(ProviderError):
+        asyncio.run(news_provider.fetch_news(_CLIENT, [], limit=50))
 
 
 def test_fetch_news_uses_newsapi_when_key_set(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -208,10 +289,21 @@ def test_fetch_news_uses_newsapi_when_key_set(monkeypatch: pytest.MonkeyPatch) -
     api_item = api_item.model_copy(update={"provider": news_provider.PROVIDER_NEWSAPI})
     seen: dict[str, object] = {}
 
-    def fake_fetch_rss(feed_url: str, *, fallback_source: str) -> list[NewsItem]:  # noqa: ARG001
+    async def fake_fetch_rss(
+        client: httpx.AsyncClient,  # noqa: ARG001
+        feed_url: str,  # noqa: ARG001
+        *,
+        fallback_source: str,  # noqa: ARG001
+    ) -> list[NewsItem]:
         return [rss_item]
 
-    def fake_fetch_newsapi(query: str, *, limit: int, api_key: str) -> list[NewsItem]:
+    async def fake_fetch_newsapi(
+        client: httpx.AsyncClient,  # noqa: ARG001
+        query: str,
+        *,
+        limit: int,  # noqa: ARG001
+        api_key: str,
+    ) -> list[NewsItem]:
         seen["query"] = query
         seen["api_key"] = api_key
         return [api_item]
@@ -220,8 +312,34 @@ def test_fetch_news_uses_newsapi_when_key_set(monkeypatch: pytest.MonkeyPatch) -
     monkeypatch.setattr(news_provider, "fetch_newsapi", fake_fetch_newsapi)
     monkeypatch.setenv("NEWSAPI_KEY", "test-key-123")
 
-    items = news_provider.fetch_news(["NVDA"], limit=10)
+    items = asyncio.run(news_provider.fetch_news(_CLIENT, ["NVDA"], limit=10))
     ids = {item.id for item in items}
     assert ids == {"rss1", "api1"}
     assert seen["api_key"] == "test-key-123"
     assert "NVDA" in str(seen["query"])
+
+
+# --------------------------------------------------------------------------
+# Shared httpx.AsyncClient lifespan wiring
+# --------------------------------------------------------------------------
+
+
+def test_shared_httpx_client_created_at_build() -> None:
+    """``create_app`` puts a shared AsyncClient on app.state for the news route."""
+    from app import create_app
+
+    app = create_app()
+    assert isinstance(app.state.httpx_client, httpx.AsyncClient)
+
+
+def test_shared_httpx_client_closed_in_lifespan() -> None:
+    """The lifespan closes the shared client on shutdown (no leaked connections)."""
+    from app import create_app
+
+    app = create_app()
+    client = app.state.httpx_client
+    assert not client.is_closed
+    # Entering+exiting the TestClient context runs the lifespan startup+shutdown.
+    with TestClient(app):
+        pass
+    assert client.is_closed
