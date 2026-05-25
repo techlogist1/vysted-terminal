@@ -85,10 +85,15 @@ async def list_filings(
     limit: int = 40,
 ) -> FilingsListResponse:
     """List recent filings for a company."""
-    _require_available()
+    # Param validation (400) BEFORE availability check (501) — a malformed
+    # request must be rejected regardless of whether the sec-edgar-mcp
+    # subprocess is running. Phase 9 S3 fix (#65): prior order called
+    # _require_available() first so a no-cik-no-symbol request returned
+    # 501 instead of 400 when the provider was down.
     identifier = cik or symbol
     if not identifier:
         raise HTTPException(status_code=400, detail="either 'cik' or 'symbol' is required")
+    _require_available()
     try:
         return await sec_filings_provider.list_filings(identifier, form_type=form_type, limit=limit)
     except ProviderError as exc:

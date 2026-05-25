@@ -99,6 +99,21 @@ def test_filings_requires_cik_or_symbol(client: TestClient, available_provider: 
     assert response.status_code == 400
 
 
+def test_filings_requires_cik_or_symbol_even_when_provider_unavailable(
+    client: TestClient, unavailable_provider: None
+) -> None:
+    """Param validation (400) must fire BEFORE the availability check (501).
+    Phase 9 S3 fix (#65): prior order returned 501 for no-params requests
+    when the provider was down — a malformed request must always get 400.
+    """
+    response = client.get("/sec/filings")
+    assert response.status_code == 400, (
+        f"expected 400 (missing params), got {response.status_code}; "
+        "check that identifier validation runs before _require_available() "
+        "in routers/sec_filings.py list_filings()"
+    )
+
+
 def test_filings_501_when_provider_unavailable(
     client: TestClient, unavailable_provider: None
 ) -> None:
