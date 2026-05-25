@@ -287,16 +287,42 @@ async function _smokeTestMainSidecar(triple) {
     await sleep(MAIN_POLL_INTERVAL_MS);
   }
 
-  await _teardown(child);
-  await rm(dataDir, { recursive: true, force: true });
   if (!healthy) {
     const tail = output().split("\n").slice(-30).join("\n");
+    await _teardown(child);
+    await rm(dataDir, { recursive: true, force: true });
     throw new Error(
       `[smoke] vysted-sidecar HUNG — bound the port but /health did not respond within ` +
         `${MAIN_BOOT_TIMEOUT_MS}ms. Tail:\n${tail}`,
     );
   }
-  console.log(`[smoke] vysted-sidecar OK (port=${port}).`);
+  console.log(`[smoke] vysted-sidecar /health OK (port=${port}).`);
+
+  // Screener universe probe — verifies the services/screener_universes/
+  // JSON data files were bundled via --add-data. Without the --add-data
+  // entry, importlib.resources cannot find sp500.json inside the frozen
+  // binary and the endpoint returns 502. This gate ensures the L3-agents-
+  // dir-not-bundled class of regression can never silently re-enter for
+  // screener universes. Precedent: Phase 9 S2 finding; fix in
+  // scripts/ensure-sidecar.mjs addData array.
+  const universeUrl = `http://127.0.0.1:${port}/screener/universe?id=sp500`;
+  console.log(`[smoke] vysted-sidecar: probing screener universe endpoint ...`);
+  const universeOk = await _httpGetOk(universeUrl, 5000);
+  await _teardown(child);
+  await rm(dataDir, { recursive: true, force: true });
+  if (!universeOk) {
+    throw new Error(
+      `[smoke] vysted-sidecar FAILED screener universe probe: ` +
+        `GET ${universeUrl} did not return HTTP 200. ` +
+        `Root cause: services/screener_universes/ JSON data files are not bundled ` +
+        `in the PyInstaller --onefile binary. Fix: add the universe dir to the ` +
+        `addData array in scripts/ensure-sidecar.mjs — mirror the agents/ --add-data ` +
+        `precedent (Phase 8 L3-agents-dir-not-bundled) with dest ` +
+        `"services/screener_universes" so importlib.resources resolves the package ` +
+        `correctly inside the frozen binary. Then rebuild with \`pnpm sidecars:build\`.`,
+    );
+  }
+  console.log(`[smoke] vysted-sidecar screener universe OK.`);
 }
 
 /** Test an MCP subprocess sidecar — boots and stays alive for MCP_BOOT_WAIT_MS. */
