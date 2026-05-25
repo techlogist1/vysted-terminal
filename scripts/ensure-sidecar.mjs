@@ -114,17 +114,32 @@ const copyMeta = ["fastmcp", "mcp", "anyio", "httpx", "starlette", "uvicorn"]
 // this, every named first-party agent (Buffett, Dalio, Druckenmiller,
 // Graham, Klarman, Lynch, Marks, Munger, Portfolio Advisor) is silently
 // absent at runtime — /agents returns []. Phase 8 L3 finding
-// L3-agents-dir-not-bundled. PyInstaller's --add-data syntax is OS-
-// specific: ';' separator on Windows, ':' on POSIX. The value MUST be
-// quoted because cmd.exe interprets ';' as a command separator if
-// unquoted, silently splitting the pyinstaller invocation into two
-// half-commands that both fail to run (stdout/stderr blank, exit 1).
-// PyInstaller resolves SOURCE in --add-data relative to --specpath, not cwd.
-// Since --specpath is the build/ subdirectory, use an absolute SOURCE so
-// 'agents' resolves regardless of where PyInstaller's spec-file lives.
+// L3-agents-dir-not-bundled.
+//
+// `services/screener_universes/` holds JSON universe snapshots (sp500.json,
+// nifty50.json, crypto_top50.json) loaded at runtime via importlib.resources
+// from the `services.screener_universes` package. Although the directory has
+// an __init__.py (making it a Python package), PyInstaller --onefile does NOT
+// auto-include non-Python data files within packages — only .py modules are
+// collected. Without this --add-data entry, GET /screener/universe?id=sp500
+// returns 502 "missing universe snapshot 'sp500.json'" at runtime (Phase 9
+// S2 finding). The dest mirrors the package hierarchy so importlib.resources
+// resolves `services.screener_universes` correctly inside the frozen binary.
+//
+// PyInstaller's --add-data syntax is OS-specific: ';' separator on Windows,
+// ':' on POSIX. The value MUST be quoted because cmd.exe interprets ';' as
+// a command separator if unquoted, silently splitting the pyinstaller
+// invocation into two half-commands that both fail to run (stdout/stderr
+// blank, exit 1). PyInstaller resolves SOURCE in --add-data relative to
+// --specpath, not cwd. Since --specpath is the build/ subdirectory, use an
+// absolute SOURCE so paths resolve regardless of where the spec-file lives.
 const addDataSep = isWin ? ";" : ":";
 const agentsAbsPath = join(SIDECAR_DIR, "agents");
-const addData = [[agentsAbsPath, "agents"]]
+const universesAbsPath = join(SIDECAR_DIR, "services", "screener_universes");
+const addData = [
+  [agentsAbsPath, "agents"],
+  [universesAbsPath, "services/screener_universes"],
+]
   .map(([src, dest]) => `--add-data "${src}${addDataSep}${dest}"`)
   .join(" ");
 run(
