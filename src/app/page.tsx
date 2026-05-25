@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { LayoutGrid } from "lucide-react";
 
 import { CommandPalette } from "@/components/CommandPalette";
 import { PanelHost } from "@/components/PanelHost";
@@ -60,11 +61,30 @@ export default function Page() {
     };
   }, []);
 
+  const openPalette = useCommandPalette((state) => state.setOpen);
+
   return (
-    <main className="bg-charcoal-950 h-screen w-screen overflow-hidden">
+    <main className="bg-charcoal-950 flex h-screen w-screen flex-col overflow-hidden">
       <CommandPalette />
       <WorkspaceDialog />
-      <PanelHost />
+      {/* Thin toolbar — single affordance so keyboard-only isn't the only way */}
+      <div className="border-charcoal-800 bg-charcoal-950 flex h-8 shrink-0 items-center border-b px-3">
+        <button
+          type="button"
+          onClick={() => openPalette(true)}
+          className="text-charcoal-400 hover:text-charcoal-100 flex items-center gap-1.5 font-mono text-xs transition-colors"
+          aria-label="Open command palette"
+        >
+          <LayoutGrid className="h-3.5 w-3.5" />
+          Open panel
+          <kbd className="border-charcoal-700 text-charcoal-500 rounded border px-1 py-0.5 font-mono text-[10px]">
+            ⌘K
+          </kbd>
+        </button>
+      </div>
+      <div className="min-h-0 flex-1">
+        <PanelHost />
+      </div>
     </main>
   );
 }
