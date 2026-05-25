@@ -83,6 +83,24 @@ describe("PortfolioPanel", () => {
     expect(await screen.findByText("sidecar offline")).toBeInTheDocument();
   });
 
+  it("shows Retry button on load failure and no empty-state message alongside it", async () => {
+    mockFetchPositions.mockRejectedValueOnce(new SidecarError(503, "sidecar down"));
+    render(<PortfolioPanel />);
+    expect(await screen.findByText("sidecar down")).toBeInTheDocument();
+    // A Retry affordance must appear.
+    expect(screen.getByRole("button", { name: /retry/i })).toBeInTheDocument();
+    // The clean empty-state message must NOT be shown alongside the error.
+    expect(screen.queryByText("No positions yet — add one above.")).not.toBeInTheDocument();
+  });
+
+  it("shows clean empty-state (no error) for a successful zero-position load", async () => {
+    // default beforeEach: fetchPositions returns [], fetchQuotes returns empty Map
+    render(<PortfolioPanel />);
+    expect(await screen.findByText("No positions yet — add one above.")).toBeInTheDocument();
+    // No error message and no Retry button.
+    expect(screen.queryByRole("button", { name: /retry/i })).not.toBeInTheDocument();
+  });
+
   it("creates a position through the form", async () => {
     mockCreatePosition.mockResolvedValue(position());
     render(<PortfolioPanel />);

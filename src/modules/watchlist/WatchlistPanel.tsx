@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,7 @@ export function WatchlistPanel() {
   const [rows, setRows] = useState<WatchlistRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
+  const inFlightRef = useRef(false);
   const [draftAssetClass, setDraftAssetClass] = useState<"equity" | "crypto">("equity");
   // Tracks the symbol the user last interacted with via the row hover; null
   // when the user has not selected anything yet. Used as the publisher's
@@ -83,6 +84,10 @@ export function WatchlistPanel() {
   }, [unregisterPanelContext]);
 
   const refresh = useCallback(async () => {
+    if (inFlightRef.current) {
+      return;
+    }
+    inFlightRef.current = true;
     try {
       const next = await fetchWatchlistQuotes(entries);
       setRows(next);
@@ -90,6 +95,8 @@ export function WatchlistPanel() {
     } catch (err) {
       const message = err instanceof SidecarError ? err.message : "Failed to load watchlist quotes";
       setError(message);
+    } finally {
+      inFlightRef.current = false;
     }
   }, [entries]);
 

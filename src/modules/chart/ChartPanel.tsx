@@ -294,9 +294,14 @@ function ChartPanel(props: ChartPanelProps = {}) {
         if (cancelled) {
           return;
         }
+        const candleData = toCandlestickData(series);
+        if (candleData.length === 0) {
+          setPriceError("No price data for this symbol");
+          setPriceState("error");
+          return;
+        }
         const candleSeries = candleSeriesRef.current;
         if (candleSeries) {
-          const candleData = toCandlestickData(series);
           candleSeries.setData(candleData);
           candleDataRef.current = candleData;
           chartRef.current?.timeScale().fitContent();
@@ -758,7 +763,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
     return () => {
       cancelled = true;
     };
-  }, [compareSymbol, compareNormalize, timeframe]);
+  }, [compareSymbol, compareNormalize, timeframe, symbol]);
 
   // --- handlers -----------------------------------------------------------
   const submitSymbol = useCallback(() => {
@@ -919,7 +924,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
 
         <div className="text-charcoal-400 ml-auto font-mono text-xs">
           <span className="text-charcoal-200">{symbol}</span>
-          {provider ? <span className="ml-2">via {provider}</span> : null}
+          {provider && priceState === "ready" ? <span className="ml-2">via {provider}</span> : null}
         </div>
       </div>
 
