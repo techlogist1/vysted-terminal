@@ -1,11 +1,19 @@
 """Crypto router — ccxt-backed REST quotes/history plus a live WebSocket stream.
 
+The REST ``/crypto/ticker`` + ``/crypto/history`` endpoints wrap their single
+blocking ccxt call (``fetch_ticker`` / ``fetch_ohlcv``) in ``asyncio.to_thread``
+so a slow exchange round-trip never blocks the uvicorn event loop and starves
+other routes. Mirrors the quotes-fan-out pattern in ``routers/quotes.py`` and
+the ``services/bar_loader.py`` thread-offload precedent.
+
 The ``/crypto/stream`` WebSocket pushes a JSON-serialised :class:`Quote` on every
 ticker update from the chosen exchange. ccxt.pro's exchange instance is always
 closed on disconnect via the streaming generator's ``finally`` block.
 """
 
 from __future__ import annotations
+
+import asyncio
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
@@ -23,15 +31,20 @@ def list_exchanges() -> dict[str, list[str]]:
 
 
 @router.get("/ticker")
-def crypto_ticker(exchange: str, symbol: str) -> Quote:
-    """Return the latest REST ticker for ``symbol`` on ``exchange``."""
-    return ccxt_provider.get_ticker(exchange, symbol)
+async def crypto_ticker(exchange: str, symbol: str) -> Quote:
+    """Return the latest REST ticker for ``symbol`` on ``exchange``.
+
+    The blocking ccxt ``fetch_ticker`` runs on a worker thread. A
+    ``ProviderError`` (e.g. unsupported exchange) propagates to the app-level
+    handler and surfaces as a clean 502 — unchanged behaviour.
+    """
+    return await asyncio.to_thread(ccxt_provider.get_ticker, exchange, symbol)
 
 
 @router.get("/history")
-def crypto_history(exchange: str, symbol: str, timeframe: str = "1d") -> OHLCVSeries:
+async def crypto_history(exchange: str, symbol: str, timeframe: str = "1d") -> OHLCVSeries:
     """Return an OHLCV series for ``symbol`` on ``exchange``."""
-    return ccxt_provider.get_ohlcv(exchange, symbol, timeframe)
+    return await asyncio.to_thread(ccxt_provider.get_ohlcv, exchange, symbol, timeframe)
 
 
 @router.websocket("/stream")

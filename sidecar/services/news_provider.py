@@ -8,11 +8,19 @@ Two sources, both mapped to the shared :class:`NewsItem` model:
   is set. BYOK, per the project's local-first / bring-your-own-keys positioning;
   absent the key the provider is RSS-only and never errors on that account.
 
-Network I/O uses ``httpx`` (sync client — FastAPI runs the sync router on a
-worker thread, matching the yfinance/ccxt providers). Any upstream failure for a
-*single* source is swallowed and logged-as-skipped so one dead feed never fails
-the whole request; only a total wipeout (every source failed) raises
-:class:`ProviderError`.
+Network I/O uses a *shared* ``httpx.AsyncClient`` (owned by ``app.state`` and
+created/closed in the FastAPI lifespan). Connection pooling matters: on a cold
+first fetch each source previously opened a brand-new sync connection, and a
+cascade of slow TLS handshakes/timeouts could make *every* source fail before
+the first response landed — yielding a 502 that a warm retry (reusing pooled
+connections) then recovered from (#38). Sharing one pooled client + fetching all
+sources concurrently fixes the cold-start cascade.
+
+Failure handling is partial-success: every source is fetched concurrently and a
+*single* source's failure is swallowed (with a bounded retry/backoff first) so
+one dead feed never fails the whole request. A :class:`ProviderError` is raised
+*only* when nothing at all was collected (every source returned empty/failed) —
+not merely when "all attempted == all failed". Any collected item → HTTP 200.
 
 Tests monkeypatch :func:`fetch_rss` and :func:`fetch_newsapi` directly — see
 ``sidecar/tests/test_news.py`` — so no test makes a live HTTP call.
@@ -20,7 +28,9 @@ Tests monkeypatch :func:`fetch_rss` and :func:`fetch_newsapi` directly — see
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
+import logging
 import os
 import re
 from datetime import UTC, datetime
@@ -32,6 +42,8 @@ import httpx
 
 from models.news import NewsItem
 from services.errors import ProviderError
+
+logger = logging.getLogger(__name__)
 
 PROVIDER_RSS = "rss"
 PROVIDER_NEWSAPI = "newsapi"
@@ -55,6 +67,11 @@ _NEWSAPI_URL = "https://newsapi.org/v2/everything"
 _NEWSAPI_KEY_ENV = "NEWSAPI_KEY"
 
 _HTTP_TIMEOUT = 10.0
+# Per-source bounded retry: total attempts = 1 + _MAX_RETRIES. A short backoff
+# rides out a transient first-fetch failure (DNS/TLS warm-up, flaky feed) without
+# letting one dead source delay the concurrent batch for long.
+_MAX_RETRIES = 2
+_RETRY_BACKOFF_SECONDS = 0.25
 # Strip HTML tags out of RSS summaries — feeds vary wildly in how much markup
 # they embed and the sentiment scorer wants plain text.
 _TAG_RE = re.compile(r"<[^>]+>")
@@ -102,14 +119,18 @@ def _parse_iso(value: str | None) -> datetime:
     return parsed
 
 
-def fetch_rss(feed_url: str, *, fallback_source: str) -> list[NewsItem]:
+async def fetch_rss(
+    client: httpx.AsyncClient, feed_url: str, *, fallback_source: str
+) -> list[NewsItem]:
     """Fetch and map a single RSS feed to :class:`NewsItem` models.
 
-    ``feedparser`` itself never raises on a bad feed — it sets ``bozo`` — but the
-    underlying HTTP fetch can, so the request goes through ``httpx`` first and a
-    failure here propagates to the caller, which decides whether to skip it.
+    Uses the shared, pooled ``client`` so connections are reused across sources
+    and requests. ``feedparser`` itself never raises on a bad feed — it sets
+    ``bozo`` — but the underlying HTTP fetch can, so the request goes through
+    ``httpx`` first and a failure here propagates to the caller, which decides
+    whether to skip it.
     """
-    response = httpx.get(
+    response = await client.get(
         feed_url,
         timeout=_HTTP_TIMEOUT,
         follow_redirects=True,
@@ -144,9 +165,11 @@ def fetch_rss(feed_url: str, *, fallback_source: str) -> list[NewsItem]:
     return items
 
 
-def fetch_newsapi(query: str, *, limit: int, api_key: str) -> list[NewsItem]:
+async def fetch_newsapi(
+    client: httpx.AsyncClient, query: str, *, limit: int, api_key: str
+) -> list[NewsItem]:
     """Fetch and map NewsAPI ``/v2/everything`` results to :class:`NewsItem`."""
-    response = httpx.get(
+    response = await client.get(
         _NEWSAPI_URL,
         timeout=_HTTP_TIMEOUT,
         params={
@@ -207,34 +230,80 @@ def _feed_urls_for(symbols: list[str]) -> list[tuple[str, str]]:
     return feeds
 
 
-def fetch_news(symbols: list[str], limit: int) -> list[NewsItem]:
+async def _fetch_rss_resilient(
+    client: httpx.AsyncClient, feed_url: str, *, fallback_source: str
+) -> list[NewsItem]:
+    """Fetch one RSS feed with bounded retry/backoff; return ``[]`` on final failure.
+
+    A transient cold-start failure (slow first TLS handshake, a momentarily
+    unreachable feed) is retried a couple of times with a short backoff so it
+    does not count against the request. A persistently-dead feed degrades to an
+    empty list — never an exception — so one bad source never fails the batch.
+    """
+    last_exc: Exception | None = None
+    for attempt in range(_MAX_RETRIES + 1):
+        try:
+            return await fetch_rss(client, feed_url, fallback_source=fallback_source)
+        except Exception as exc:  # noqa: BLE001 - one dead feed must not fail the request
+            last_exc = exc
+            if attempt < _MAX_RETRIES:
+                await asyncio.sleep(_RETRY_BACKOFF_SECONDS * (attempt + 1))
+    logger.warning("news: RSS source %s failed after retries: %s", fallback_source, last_exc)
+    return []
+
+
+async def _fetch_newsapi_resilient(
+    client: httpx.AsyncClient, query: str, *, limit: int, api_key: str
+) -> list[NewsItem]:
+    """Fetch NewsAPI with bounded retry/backoff; return ``[]`` on final failure."""
+    last_exc: Exception | None = None
+    for attempt in range(_MAX_RETRIES + 1):
+        try:
+            return await fetch_newsapi(client, query, limit=limit, api_key=api_key)
+        except Exception as exc:  # noqa: BLE001 - NewsAPI down must not fail the request
+            last_exc = exc
+            if attempt < _MAX_RETRIES:
+                await asyncio.sleep(_RETRY_BACKOFF_SECONDS * (attempt + 1))
+    logger.warning("news: NewsAPI source failed after retries: %s", last_exc)
+    return []
+
+
+async def fetch_news(client: httpx.AsyncClient, symbols: list[str], limit: int) -> list[NewsItem]:
     """Fetch news from every configured source, de-duplicated and newest-first.
 
     ``symbols`` may be empty — in that case only the general market feeds are
-    used. Per-source failures are swallowed; if *every* source fails a
-    :class:`ProviderError` is raised so the router can surface a clean 502.
+    used. All sources are fetched **concurrently** over the shared pooled
+    ``client``. Per-source failures are swallowed (partial success). A
+    :class:`ProviderError` is raised *only* when nothing at all was collected
+    (every source returned empty or failed) so the router can surface a clean
+    502; any collected item yields a normal 200.
     """
-    collected: list[NewsItem] = []
-    attempted = 0
-    failed = 0
-
-    for source_label, feed_url in _feed_urls_for(symbols):
-        attempted += 1
-        try:
-            collected.extend(fetch_rss(feed_url, fallback_source=source_label))
-        except Exception:  # noqa: BLE001 - one dead feed must not fail the request
-            failed += 1
+    tasks: list[asyncio.Future[list[NewsItem]]] = [
+        asyncio.ensure_future(_fetch_rss_resilient(client, feed_url, fallback_source=source_label))
+        for source_label, feed_url in _feed_urls_for(symbols)
+    ]
 
     api_key = _newsapi_key()
     if api_key is not None:
-        attempted += 1
         query = " OR ".join(symbols) if symbols else "stock market OR finance"
-        try:
-            collected.extend(fetch_newsapi(query, limit=limit, api_key=api_key))
-        except Exception:  # noqa: BLE001 - NewsAPI down must not fail the request
-            failed += 1
+        tasks.append(
+            asyncio.ensure_future(
+                _fetch_newsapi_resilient(client, query, limit=limit, api_key=api_key)
+            )
+        )
 
-    if attempted > 0 and failed == attempted:
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    collected: list[NewsItem] = []
+    for result in results:
+        # The resilient helpers swallow their own errors, but guard against any
+        # unexpected exception escaping so one source still cannot fail the batch.
+        if isinstance(result, BaseException):
+            logger.warning("news: source raised unexpectedly: %s", result)
+            continue
+        collected.extend(result)
+
+    if not collected:
         raise ProviderError("all news sources failed")
 
     # De-duplicate on the stable id (the same story shows up across feeds).

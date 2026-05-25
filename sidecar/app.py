@@ -12,6 +12,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+import httpx
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -75,7 +76,7 @@ _ROUTERS = (
 
 
 @asynccontextmanager
-async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
+async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
     """FastAPI lifespan — runs the FastMCP transport lifespan + cleanup.
 
     FastMCP's Starlette app has its own ``lifespan`` context that wires the
@@ -84,12 +85,22 @@ async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
     request lands. On shutdown the MCP-client cache is closed too, so any
     transport to an external server (the openbb-mcp subprocess) is torn down
     cleanly.
+
+    A single shared ``httpx.AsyncClient`` lives on ``app.state.httpx_client``.
+    It is created in :func:`create_app` (so ``TestClient`` builds that never run
+    the lifespan still have a usable client) and closed here on shutdown. The
+    news provider (and any future outbound-HTTP route) reuses it so connection
+    pooling eliminates the cold-first-fetch 502 cascade documented in #38;
+    per-request clients re-paid the TLS handshake on every fetch.
     """
     mcp_app = mcp_server.get_streamable_http_app()
     async with mcp_app.lifespan(mcp_app):
         try:
             yield
         finally:
+            client: httpx.AsyncClient | None = getattr(app.state, "httpx_client", None)
+            if client is not None:
+                await client.aclose()
             await mcp_client.reset_clients()
 
 
@@ -138,6 +149,13 @@ def _register_v0_6_5_runtime_extensions() -> None:
 def create_app() -> FastAPI:
     """Build and return a fully wired sidecar FastAPI application."""
     app = FastAPI(title="Vysted Terminal Sidecar", version="0.8.0", lifespan=_lifespan)
+
+    # Shared pooled outbound-HTTP client for routes that fetch external sources
+    # (currently the news provider). Created at build time so TestClient builds
+    # that skip the lifespan still resolve ``request.app.state.httpx_client``;
+    # the lifespan closes it on shutdown. Connection reuse eliminates the
+    # cold-first-fetch 502 cascade (#38).
+    app.state.httpx_client = httpx.AsyncClient(follow_redirects=True)
 
     # The frontend WebView fetches the sidecar cross-origin (dev: localhost:3000,
     # prod: tauri://localhost). The sidecar binds to 127.0.0.1 only, so a
