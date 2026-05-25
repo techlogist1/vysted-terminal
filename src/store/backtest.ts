@@ -268,7 +268,13 @@ export const useBacktestStore = create<BacktestStoreState>((set) => ({
     try {
       await consumeBacktestStream(request, handleEvent, options?.signal);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Backtest stream failed";
+      const isSidecarDown =
+        err instanceof TypeError && /fetch|Failed to fetch|NetworkError/i.test(err.message);
+      const message = isSidecarDown
+        ? "Sidecar unavailable — is the Python service running?"
+        : err instanceof Error
+          ? err.message
+          : "Backtest stream failed";
       set((state) => {
         const slot = state.runs[resolvedRunId];
         if (!slot) {
