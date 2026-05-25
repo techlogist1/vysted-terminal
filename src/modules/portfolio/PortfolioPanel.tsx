@@ -74,7 +74,7 @@ export function PortfolioPanel() {
       setError(null);
     } catch (err) {
       const message = err instanceof SidecarError ? err.message : "Failed to load portfolio";
-      setSummary(buildPortfolioSummary([], new Map()));
+      setSummary(null);
       setError(message);
     }
   }, []);
@@ -254,7 +254,15 @@ export function PortfolioPanel() {
         )}
       </form>
 
-      {error !== null && (
+      {error !== null && summary === null && (
+        <div className="border-charcoal-700 flex items-center gap-3 border-b px-3 py-2">
+          <p className="text-negative font-mono text-xs">{error}</p>
+          <Button type="button" size="sm" variant="outline" onClick={() => void load()}>
+            Retry
+          </Button>
+        </div>
+      )}
+      {error !== null && summary !== null && (
         <p className="text-negative border-charcoal-700 border-b px-3 py-2 font-mono text-xs">
           {error}
         </p>
