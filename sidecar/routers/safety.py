@@ -94,11 +94,17 @@ class KillSwitchFireRequest(BaseModel):
 
 
 class KillSwitchResetRequest(BaseModel):
-    """``POST /safety/kill-switch/reset`` request body — requires re-ack."""
+    """``POST /safety/kill-switch/reset`` request body — requires re-ack.
+
+    ``acknowledged`` defaults to ``False`` so a body that omits it resolves to
+    the handler's explicit ``400`` ("reset requires acknowledged=true") rather
+    than a Pydantic ``422`` — matching the documented contract. The gate is
+    unchanged: only ``acknowledged=true`` actually un-halts trading.
+    """
 
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
-    acknowledged: bool
+    acknowledged: bool = False
 
 
 class KillSwitchStatus(BaseModel):
