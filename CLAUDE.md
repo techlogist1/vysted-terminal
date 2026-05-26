@@ -223,6 +223,23 @@ AgentSummary]`), wrap at the MCP-tool boundary as
   `git restore --source HEAD -- <file>` + `git clean` of untracked
   contamination, then proper fetch + merge from origin. Documented in
   PHASE_4_HANDOFF.md "Coordination lesson" + PHASE_5_HANDOFF.md.
+- **Teammate worktree isolation can fail by switching the MAIN worktree's
+  branch — verify before integrating.** Phase 9 fix sprint: two **Sonnet**
+  teammates (fe, sc) dispatched with `isolation: "worktree"` ignored it —
+  both committed into the lead's **main worktree** on a single shared branch
+  (`worktree-agent-fe`), switching the main worktree's HEAD onto it; the
+  **Opus** teammates (async, rs) isolated correctly under
+  `.claude/worktrees/`. This is worse than the v0.5.0 stray-write variant:
+  the lead's HEAD moves and uncommitted lead edits can be swept into a
+  teammate commit. **Enforcement:** one isolated worktree per teammate, never
+  the main worktree, never a shared agent branch (each teammate pushes to its
+  own `worktree-agent-<name>`). **Before any lead work after dispatch AND
+  before integrating**, run `git worktree list` + `git branch` — if the main
+  worktree's HEAD moved onto a teammate branch, recover by stashing the lead's
+  files, `git checkout main`, `git stash pop` (teammate commits stay on their
+  branch ref), and confirm no lead file was captured via
+  `git log main..<branch> -- <lead-files>` (empty = safe). Audit only via
+  `origin/<branch>`.
 - **Append-only audit log is enforced at the DB level via SQLite triggers.**
   `sidecar/models/audit_log.py` exports `AUDIT_LOG_DDL` with two
   `RAISE(ABORT, ...)` triggers (BEFORE UPDATE + BEFORE DELETE) on
