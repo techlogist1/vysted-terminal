@@ -92,8 +92,13 @@ async def get_macro_series(
             # use the same status code.
             raise HTTPException(status_code=502, detail=str(exc)) from exc
 
-    # Legacy path — Phase 1.A / Phase 3 openbb-mcp.
+    # Legacy path — Phase 1.A / Phase 3 openbb-mcp. A ProviderError here is an
+    # upstream-gateway failure (openbb-mcp / FRED rejected the call — e.g. a
+    # missing FRED credential), so it is a 502 Bad Gateway, NOT a 501 Not
+    # Implemented (the endpoint IS implemented). This unifies the status code
+    # with the v0.6.0 dispatch path above and the search/catalog endpoints
+    # (Phase 9.5 nit: FRED-no-key returned 501 instead of 502).
     try:
         return await provider_registry.get_macro_series(series_id, provider=provider)
     except ProviderError as exc:
-        raise HTTPException(status_code=501, detail=str(exc)) from exc
+        raise HTTPException(status_code=502, detail=str(exc)) from exc

@@ -118,6 +118,56 @@ launch that pre-extracts `_MEI*`. Each is out of scope for the Rust-only
 UC1 sprint and out of the `worktree-agent-rs` file ownership. Carry to the
 same investigation target as carry-forward #7 above.
 
+## Phase 9.5 UC1 update — empirical bind times + budget bump + bind gate
+
+**Status:** materially improved + now gate-detected; the `--onedir` true fix is
+the remaining carry-forward.
+
+### What Phase 9.5 measured (macOS M1, `scripts`-style isolated probe)
+
+| sidecar       | binary size | cold bind  | warm bind |
+| ------------- | ----------- | ---------- | --------- |
+| openbb-mcp    | 49 MB       | **34.2 s** | 13.6 s    |
+| sec-edgar-mcp | 81 MB       | **33.6 s** | 24.6 s    |
+
+Both bind at ~34 s cold _in isolation_ — right at the old 30 s per-attempt edge
+(only the retry, 60 s total, saved them). The audit's asymmetry (openbb UP,
+sec-edgar DOWN on both boots) is **disk-I/O contention**: at app boot the two
+`_MEI*` extractions run CONCURRENTLY (parallelized in `lib.rs` setup), so the
+larger sec-edgar (81 MB) loses the extraction race and overruns 60 s, while the
+smaller openbb (49 MB) fits. Not an openbb-vs-sec code difference — a size /
+contention difference.
+
+### What Phase 9.5 changed (low-risk, verifiable)
+
+1. `MCP_PORT_WAIT_SECS` 30 → **45** (`src-tauri/src/lib.rs`); total 45 × 2 = 90 s.
+   Near-free: `wait_for_port_with_retries` short-circuits the instant the port
+   binds, so warm/fast boots are unaffected — only a genuinely dead sidecar
+   waits the larger ceiling. Gives the contended cold sec-edgar bind real
+   headroom over its ~34 s isolated cost.
+2. `scripts/smoke-test-sidecars.mjs` now **TCP-probes the MCP port bind**
+   (90 s budget) instead of only checking "process alive after 10 s" — this
+   closes the documented L3/L4 gap and makes the gate catch the exact UC1
+   silent-non-bind failure (process up, never listening).
+
+### The residual (deferred, NOT done this unattended run) — the TRUE fix
+
+`--onedir` PyInstaller packaging for the two MCP sidecars eliminates the
+per-launch `_MEI*` extraction (the dominant cold cost), which would make the
+bind near-instant and remove the contention race entirely. It was **deliberately
+not attempted in the unattended Phase-9.5 run** because it requires changing
+Tauri's `bundle.externalBin` (single-file) to a bundled resource **folder** plus
+the Rust spawn path (`sec_edgar_mcp.rs` / `openbb_mcp.rs`) to resolve the inner
+executable — and a bundle-config mistake would be **uncaught by `pnpm ci-local`**
+(which never runs `tauri build`), surfacing only at the operator's build. Given
+sec-edgar already degrades gracefully (501) when unbound, the risk/reward of an
+unverifiable bundling rearchitecture overnight was poor. Deferring imports was
+also ruled out: the heavy `edgartools` import happens inside the upstream
+`sec_edgar_mcp.server` module load, before it binds — can't bind-before-import
+without forking upstream. **Recommended next step (attended):** convert both MCP
+sidecars to `--onedir`, bundle as resources, point the Rust `Command::new` at the
+inner exe, then verify a full `tauri build` + GUI cold-boot binds promptly.
+
 ## v0.8.0 → v0.8.x polish carry-forwards (S2 + S3 findings)
 
 From Phase 8 audit. Per-finding detail in

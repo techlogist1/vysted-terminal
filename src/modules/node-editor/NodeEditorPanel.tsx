@@ -205,8 +205,13 @@ function NodeEditorPanelInner() {
           prev,
         ),
       );
+      // Connecting nodes mutates the workflow — flag dirty so the unsaved
+      // badge shows and the user isn't silently losing the edge on close
+      // (Phase 9.5). onNodesChange/onEdgesChange already do this; connect,
+      // config-patch, and delete did not.
+      markDirty();
     },
-    [setEdges],
+    [setEdges, markDirty],
   );
 
   // --- Selection ------------------------------------------------------------
@@ -471,15 +476,17 @@ function NodeEditorPanelInner() {
 
         <PropertiesPanel
           node={selectedNode}
-          onPatch={(patch) =>
-            selectedNode !== null &&
-            setNodes((prev) => updateNodeConfig(prev, selectedNode.id, patch))
-          }
+          onPatch={(patch) => {
+            if (selectedNode === null) return;
+            setNodes((prev) => updateNodeConfig(prev, selectedNode.id, patch));
+            markDirty(); // config edits are unsaved mutations too (Phase 9.5)
+          }}
           onDelete={() => {
             if (selectedNode === null) return;
             setNodes((prev) => removeNodeAndEdges(prev, edges, selectedNode.id).nodes);
             setEdges((prev) => removeNodeAndEdges(nodes, prev, selectedNode.id).edges);
             setSelectedNodeId(null);
+            markDirty(); // node deletion is an unsaved mutation (Phase 9.5)
           }}
         />
 
@@ -786,28 +793,36 @@ async function consumeSse(
   const reader = stream.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    let separator = buffer.indexOf("\n\n");
-    while (separator !== -1) {
-      const frame = buffer.slice(0, separator);
-      buffer = buffer.slice(separator + 2);
-      const dataLine = frame
-        .split("\n")
-        .map((line) => (line.startsWith("data:") ? line.slice(5).trim() : ""))
-        .filter((line) => line.length > 0)
-        .join("");
-      if (dataLine !== "") {
-        try {
-          const event = JSON.parse(dataLine) as WorkflowRunEvent;
-          onEvent(event);
-        } catch {
-          // Drop malformed frames; the engine should never emit them.
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let separator = buffer.indexOf("\n\n");
+      while (separator !== -1) {
+        const frame = buffer.slice(0, separator);
+        buffer = buffer.slice(separator + 2);
+        const dataLine = frame
+          .split("\n")
+          .map((line) => (line.startsWith("data:") ? line.slice(5).trim() : ""))
+          .filter((line) => line.length > 0)
+          .join("");
+        if (dataLine !== "") {
+          try {
+            const event = JSON.parse(dataLine) as WorkflowRunEvent;
+            onEvent(event);
+          } catch (err) {
+            // The engine should never emit malformed frames; surface it so a
+            // dropped run event isn't completely silent (Phase 9.5).
+            console.warn("workflow SSE: dropping malformed frame", err);
+          }
         }
+        separator = buffer.indexOf("\n\n");
       }
-      separator = buffer.indexOf("\n\n");
     }
+  } finally {
+    // Always release the lock — on a throw/abort mid-stream the previous code
+    // leaked the locked reader, wedging the ReadableStream (Phase 9.5).
+    reader.releaseLock();
   }
 }

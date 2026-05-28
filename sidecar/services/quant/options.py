@@ -256,6 +256,7 @@ def price_european_mc(req: OptionPricingRequest) -> OptionPricingResult:
 
 def price(req: OptionPricingRequest) -> OptionPricingResult:
     """Dispatch an option-pricing request to the engine named by ``req.method``."""
+    req.validate_domain()
     if req.method == "black-scholes":
         return price_european_bs(req)
     if req.method == "binomial":

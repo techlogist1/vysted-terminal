@@ -19,6 +19,8 @@ import { existsSync, mkdirSync, copyFileSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { platform } from "node:os";
 
+import { isStale } from "./sidecar-staleness.mjs";
+
 const ROOT = resolve(import.meta.dirname, "..");
 const SUBPROCESS_DIR = join(ROOT, "sidecar", "sec_edgar_mcp_subprocess");
 const BINARIES_DIR = join(ROOT, "src-tauri", "binaries");
@@ -69,9 +71,22 @@ const ext = isWin ? ".exe" : "";
 const outName = `vysted-sec-edgar-mcp-sidecar-${triple}${ext}`;
 const outPath = join(BINARIES_DIR, outName);
 
-if (existsSync(outPath) && !FORCE) {
-  console.log(`[ensure-sec-edgar-mcp-sidecar] ${outName} already present — skipping build.`);
+// Staleness-aware no-op (Phase 9.5 build-trap fix S0-2): rebuild when any
+// source file under the subprocess dir (or this build recipe) is newer than
+// the binary, even without --force.
+const STALE_OPTS = {
+  extraFiles: [import.meta.filename, join(import.meta.dirname, "sidecar-staleness.mjs")],
+};
+const stale = existsSync(outPath) && isStale(outPath, SUBPROCESS_DIR, STALE_OPTS);
+
+if (existsSync(outPath) && !FORCE && !stale) {
+  console.log(`[ensure-sec-edgar-mcp-sidecar] ${outName} present and fresh — skipping build.`);
   process.exit(0);
+}
+if (stale && !FORCE) {
+  console.log(
+    `[ensure-sec-edgar-mcp-sidecar] ${outName} is STALE (source newer than binary) — rebuilding without --force.`,
+  );
 }
 
 console.log(`[ensure-sec-edgar-mcp-sidecar] building ${outName} ...`);

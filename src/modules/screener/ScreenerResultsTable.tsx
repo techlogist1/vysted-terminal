@@ -105,8 +105,13 @@ export function ScreenerResultsTable() {
       <div className="text-muted-foreground flex items-center justify-between text-xs">
         <span>
           <span className="text-foreground font-semibold">{result.result_count}</span> rows (
-          <span className="font-mono">{result.evaluated_count}</span> evaluated,
-          <span className="font-mono"> {result.duration_ms.toFixed(0)} ms</span>)
+          <span className="font-mono">{result.evaluated_count}</span> evaluated
+          {result.skipped_count > 0 && (
+            <>
+              , <span className="font-mono text-amber-500">{result.skipped_count} skipped</span>
+            </>
+          )}
+          ,<span className="font-mono"> {result.duration_ms.toFixed(0)} ms</span>)
         </span>
         <span className="font-mono tracking-wide uppercase">{result.universe}</span>
       </div>

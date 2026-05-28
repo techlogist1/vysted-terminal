@@ -348,6 +348,15 @@ async def get_settings_drift(
     raw_baseline = await data_cache.get(_SETTINGS_BASELINE_CACHE_KEY, ttl_seconds=86400 * 365)
     if raw_baseline is None:
         return []
+    if not isinstance(raw_baseline, list):
+        # A corrupted / wrong-shape cache value would explode the comprehension
+        # below with an unhandled TypeError -> 500. Treat it as "no baseline"
+        # (same as missing) and warn (Phase 9.5).
+        logger.warning(
+            "tradesa-v2: settings baseline cache is not a list (type=%s); treating as empty",
+            type(raw_baseline).__name__,
+        )
+        return []
     try:
         previous = [TradesaBotSetting.model_validate(r) for r in raw_baseline]
         current = await provider.list_bot_settings()

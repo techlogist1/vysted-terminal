@@ -250,7 +250,22 @@ function moduleForPlugin(plugin: DiscoveredPlugin): VystedModule | null {
  */
 export async function bootstrapPlugins(): Promise<() => void> {
   const persistence = await resolvePersistence();
-  const sidecarBaseUrl = await getSidecarBaseUrl().catch(() => "http://127.0.0.1:0");
+  // Degrade gracefully if the sidecar base URL can't be resolved (non-Tauri
+  // dev without a ?sidecar-port=, or a failed Tauri port command). The port-0
+  // fallback keeps plugins loading in an unreachable state (their health checks
+  // then surface the failure) instead of aborting boot — but log it explicitly
+  // so the degraded state isn't silent (Phase 9.5). Deliberately not rethrown:
+  // the caller (page.tsx) has no rejection handler, so throwing would be an
+  // unhandled rejection that loads no plugins at all. In the Tauri shell this
+  // branch is unreachable (the port is picked at setup, before the sidecar binds).
+  const sidecarBaseUrl = await getSidecarBaseUrl().catch((err: unknown) => {
+    console.warn(
+      "[plugin-bootstrap] sidecar base URL unavailable — plugins start in a degraded, " +
+        "unreachable state (port 0); expected outside the Tauri shell.",
+      err,
+    );
+    return "http://127.0.0.1:0";
+  });
   const runtime = new PluginRuntime({
     sidecarBaseUrl,
     hostVersion: HOST_VERSION,

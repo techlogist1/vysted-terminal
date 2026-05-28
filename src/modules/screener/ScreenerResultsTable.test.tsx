@@ -20,6 +20,7 @@ vi.mock("@/lib/sidecar-client", () => ({
 const RESULT: ScreenerResult = {
   universe: "sp500",
   evaluated_count: 100,
+  skipped_count: 0,
   result_count: 3,
   rows: [
     {

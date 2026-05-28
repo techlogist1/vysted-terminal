@@ -72,25 +72,45 @@ async function _sendOne(intent: DesktopNotificationIntent): Promise<void> {
 export function useDesktopNotificationBridge(): void {
   useEffect(() => {
     let active = true;
-    const flushIntents = async (intents: readonly DesktopNotificationIntent[]): Promise<void> => {
-      for (const intent of intents) {
-        if (!active) return;
-        await _sendOne(intent);
+    // Serialize flushes: the bridge is re-entrant (mount flush + every store
+    // subscription fire), and two overlapping async flushes previously both
+    // iterated the same snapshot and double-fired notifications, then both
+    // drained (Phase 9.5). `isFlushing` guards re-entry; `rerun` makes a flush
+    // requested mid-run re-check the store once the in-flight pass finishes.
+    let isFlushing = false;
+    let rerun = false;
+    const flush = async (): Promise<void> => {
+      if (!active) return;
+      if (isFlushing) {
+        rerun = true;
+        return;
       }
-      if (active) {
-        useWorkflowStore.getState().drainNotifications();
+      isFlushing = true;
+      try {
+        do {
+          rerun = false;
+          const intents = selectPendingNotifications(useWorkflowStore.getState());
+          if (intents.length === 0) break;
+          for (const intent of intents) {
+            if (!active) return;
+            await _sendOne(intent);
+          }
+          if (active) {
+            useWorkflowStore.getState().drainNotifications();
+          }
+        } while (rerun && active);
+      } finally {
+        isFlushing = false;
       }
     };
     // Flush whatever the store already has at mount.
-    const initial = selectPendingNotifications(useWorkflowStore.getState());
-    if (initial.length > 0) {
-      void flushIntents(initial);
+    if (selectPendingNotifications(useWorkflowStore.getState()).length > 0) {
+      void flush();
     }
     const unsubscribe = useWorkflowStore.subscribe((state, previous) => {
       if (state.pendingNotifications === previous.pendingNotifications) return;
-      const fresh = state.pendingNotifications;
-      if (fresh.length > 0) {
-        void flushIntents(fresh);
+      if (state.pendingNotifications.length > 0) {
+        void flush();
       }
     });
     return () => {

@@ -5,7 +5,7 @@ Mirrored by hand in ``types/data.ts`` — keep in sync (see CLAUDE.md Gotchas).
 
 from __future__ import annotations
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Fundamentals(BaseModel):
@@ -64,9 +64,9 @@ class AnalystRating(BaseModel):
     target_mean: float | None = None
     target_high: float | None = None
     target_low: float | None = None
-    strong_buy: int = 0
-    buy: int = 0
-    hold: int = 0
-    sell: int = 0
-    strong_sell: int = 0
+    strong_buy: int = Field(default=0, ge=0)  # counts, never negative — Phase 9.5
+    buy: int = Field(default=0, ge=0)
+    hold: int = Field(default=0, ge=0)
+    sell: int = Field(default=0, ge=0)
+    strong_sell: int = Field(default=0, ge=0)
     provider: str

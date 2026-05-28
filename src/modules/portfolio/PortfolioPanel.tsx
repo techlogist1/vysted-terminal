@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { formatCompactMoney, formatMoney, formatPercent, formatSignedMoney } from "@/lib/format";
 import { SidecarError } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { usePanelContextBus } from "@/store/panel-context";
@@ -16,22 +17,6 @@ import {
   updatePosition,
 } from "./api";
 import { buildPortfolioSummary, type PortfolioSummary } from "./metrics";
-
-function formatMoney(value: number): string {
-  return value.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 2,
-  });
-}
-
-function formatSignedMoney(value: number): string {
-  return `${value > 0 ? "+" : ""}${formatMoney(value)}`;
-}
-
-function formatPercent(value: number): string {
-  return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
-}
 
 interface FormState {
   symbol: string;
@@ -272,12 +257,14 @@ export function PortfolioPanel() {
         <div className="border-charcoal-700 text-charcoal-200 flex flex-wrap gap-x-6 gap-y-1 border-b px-3 py-2 font-mono text-xs">
           <span>
             Market value:{" "}
-            <span className="text-charcoal-100">{formatMoney(summary.totalMarketValue)}</span>
+            <span className="text-charcoal-100">
+              {formatCompactMoney(summary.totalMarketValue)}
+            </span>
           </span>
           <span>
             Total P&amp;L:{" "}
             <span className={summary.totalPnl >= 0 ? "text-positive" : "text-negative"}>
-              {formatSignedMoney(summary.totalPnl)} ({formatPercent(summary.totalPnlPercent)})
+              {formatSignedMoney(summary.totalPnl, true)} ({formatPercent(summary.totalPnlPercent)})
             </span>
           </span>
           <span>
@@ -332,7 +319,7 @@ export function PortfolioPanel() {
                       {quote !== null ? formatMoney(quote.price) : "—"}
                     </td>
                     <td className="text-charcoal-200 px-3 py-2 text-right">
-                      {marketValue !== null ? formatMoney(marketValue) : "—"}
+                      {marketValue !== null ? formatCompactMoney(marketValue) : "—"}
                     </td>
                     <td
                       className={cn(
@@ -345,7 +332,7 @@ export function PortfolioPanel() {
                       )}
                     >
                       {pnl !== null && pnlPercent !== null
-                        ? `${formatSignedMoney(pnl)} (${formatPercent(pnlPercent)})`
+                        ? `${formatSignedMoney(pnl, true)} (${formatPercent(pnlPercent)})`
                         : "—"}
                     </td>
                     <td className="text-charcoal-200 px-3 py-2 text-right">

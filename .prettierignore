@@ -18,3 +18,10 @@ pnpm-lock.yaml
 docs/BLUEPRINT.md
 docs/superpowers/
 LICENSE
+# Generated §6.5 benchmark capture — test_safety_end_to_end.py rewrites it on
+# every run with raw-float JSON that prettier would reflag, so a pytest-then-
+# format:check ordering (or a second ci-local run) spuriously failed the gate.
+# It is generated capture data, not source — exclude it from formatting (the
+# test that writes it is Tier-1 locked, so we cannot make it emit prettier-
+# clean JSON). Phase 9.5.
+docs/screenshots/v0.5.0/safety-audit/kill-switch-benchmark.json

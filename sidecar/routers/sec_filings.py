@@ -43,13 +43,24 @@ router = APIRouter(prefix="/sec", tags=["sec"])
 
 
 def _require_available() -> None:
-    """Raise 501 when the sec-edgar-mcp subprocess is not bundled."""
+    """Raise 501 when the sec-edgar-mcp subprocess is not reachable.
+
+    The honest failure mode (Phase 9.5 message-accuracy nit): in a normal build
+    the binary IS bundled — when it is unreachable it is almost always
+    "bundled but did not bind a port this launch" (the UC1 cold-start race),
+    NOT "not bundled". The sidecar only sees ``VYSTED_SEC_EDGAR_MCP_PORT``
+    unset, so it cannot tell a missing binary from a failed bind; the message
+    therefore says "not bound / not available" and recommends a relaunch first
+    (a warm ``_MEI`` cache binds promptly), and a rebuild only as a fallback.
+    """
     if not sec_filings_provider.is_available():
         raise HTTPException(
             status_code=501,
             detail=(
-                "sec-edgar-mcp subprocess is not bundled in this build. "
-                "Run `pnpm sec-edgar-mcp-sidecar:build` and restart the app."
+                "sec-edgar-mcp is not available — the subprocess did not bind a port "
+                "this launch (the bundled binary's cold start can exceed the bind window). "
+                "Relaunch the app to retry the bind; if it persists, run "
+                "`pnpm sec-edgar-mcp-sidecar:build` and restart."
             ),
         )
 

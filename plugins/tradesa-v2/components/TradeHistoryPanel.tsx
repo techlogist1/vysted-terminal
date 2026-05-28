@@ -19,6 +19,7 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 import { POLL_CADENCE_MS, arrayOrEmpty, useTradesaStore } from "../store";
 
 import { PanelShell } from "./_PanelShell";
+import { PanelFetchError } from "./PanelFetchError";
 import { formatDuration, formatNumber, formatRelativeIso, formatUsd, useInterval } from "./_utils";
 
 import type { TradesaTrade } from "../../../types/tradesa_v2";
@@ -270,6 +271,7 @@ export function TradeHistoryPanel() {
 
   return (
     <PanelShell title="Trade History">
+      <PanelFetchError error={tradeHistoryState.error} onRetry={() => void refreshTradeHistory()} />
       <SummaryCard stats={stats} />
       <TradesTable rows={rows} />
     </PanelShell>

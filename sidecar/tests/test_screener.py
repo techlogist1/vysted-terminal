@@ -94,12 +94,24 @@ async def test_resolve_universe_sp500_loads_snapshot() -> None:
     universe = await screener.resolve_universe("sp500")
     assert universe.id == "sp500"
     assert universe.asset_class == "equity"
-    assert universe.label == "S&P 500"
+    # Honest label — the snapshot is the top-100 subset, not the full 500.
+    assert universe.label == "S&P 500 (Top 100)"
     # Snapshot ships 100 names for v0.6.0; assert ≥ 50 to guard against a
     # corrupted JSON without coupling to the exact list.
     assert len(universe.symbols) >= 50
     assert "AAPL" in universe.symbols
     assert "MSFT" in universe.symbols
+
+
+@pytest.mark.asyncio
+async def test_resolve_universe_custom_symbols_override_named_universe() -> None:
+    """Non-empty custom_symbols take precedence even over a named universe
+    (Phase 9.5 nit: custom_symbols was ignored unless universe=='custom')."""
+    universe = await screener.resolve_universe("sp500", ["tsla", " amd ", "NFLX"])
+    assert universe.id == "custom"
+    assert universe.symbols == ["TSLA", "AMD", "NFLX"]
+    # The named sp500 snapshot must NOT leak in.
+    assert "AAPL" not in universe.symbols
 
 
 @pytest.mark.asyncio

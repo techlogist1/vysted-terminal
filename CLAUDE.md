@@ -598,6 +598,35 @@ bootstrap.ts:39 HOST_VERSION` had been at `"0.6.5"` for 4 releases —
   background-task wrapper's exit code if you piped. v0.8.1 sprint
   summary: `docs/PHASE_8.1_CI_REPAIR.md`.
 
+- **Sidecar ensure scripts are staleness-aware (Phase 9.5 S0-2 fix).** The
+  build trap: `ensure-*-sidecar.mjs` guards were `existsSync(outPath) && !FORCE`
+  — binary EXISTENCE only — so `tauri.conf.json`'s `beforeBuildCommand`
+  (non-`--force`) silently re-bundled a sidecar binary older than HEAD's source
+  and faked a green pass. Now `scripts/sidecar-staleness.mjs` drives the guard:
+  a binary older than any source file under its dir (or older than the ensure
+  script / staleness module itself) is rebuilt even without `--force`; a
+  no-change run stays a fast no-op. `smoke-test-sidecars.mjs` also `assertFresh`-
+  gates it. **Editing an ensure script's build recipe forces a rebuild of that
+  sidecar** (the script counts as source) — expected, not a bug.
+- **Tauri `dragDropEnabled: false` is required for in-webview HTML5 drag-drop
+  (Phase 9.5).** The window config field defaults to `true`, installing an
+  OS-level drag-drop handler that swallows in-webview HTML5 drag events before
+  the DOM sees them — on macOS WKWebView too, not only Windows (Tauri's own doc
+  is Windows-centric but the flag is cross-platform). This broke BOTH dockview
+  tab-reorder AND the node-editor palette→canvas drop (both HTML5 DnD); ReactFlow
+  node-moving + dockview splitter resize are pointer-based and unaffected. The
+  app has NO OS file-drop listener, so disabling is pure win. Set in
+  `src-tauri/tauri.conf.json` `app.windows[0].dragDropEnabled: false`.
+- **MCP cold-bind is ~34s isolated; contention is the real killer (Phase 9.5).**
+  Measured macOS M1: openbb 34.2s / sec-edgar 33.6s cold (warm 13.6 / 24.6s). At
+  app boot the two `_MEI*` extractions run concurrently and contend for disk I/O,
+  so the larger sec-edgar (81MB) overran the old 60s budget while openbb (49MB)
+  fit — that asymmetry, not a code bug, is why audits saw sec-edgar DOWN /
+  openbb UP. `MCP_PORT_WAIT_SECS` is now 45 (90s total w/ retry). The TRUE fix
+  (`--onedir` to kill the per-launch extraction) is a deferred carry-forward —
+  it needs a Tauri externalBin→resource-folder + Rust spawn change that
+  `pnpm ci-local` can't verify (never runs `tauri build`). See BLOCKERS.md.
+
 ## Per-phase handoff
 
 Every phase ships `docs/PHASE_N_HANDOFF.md` as a release deliverable; the

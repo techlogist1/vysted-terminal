@@ -17,6 +17,7 @@
 import { POLL_CADENCE_MS, useTradesaStore } from "../store";
 
 import { PanelShell } from "./_PanelShell";
+import { PanelFetchError } from "./PanelFetchError";
 import { formatRelativeIso, formatUptime, useInterval } from "./_utils";
 
 import type { TradesaKillSwitchEvent, KillSwitchSource } from "../../../types/tradesa_v2";
@@ -170,6 +171,7 @@ export function HealthPanel() {
 
   return (
     <PanelShell title="Health">
+      <PanelFetchError error={healthState.error} onRetry={() => void refreshHealth()} />
       <HealthCard latest={latest} />
       <KillSwitchTimeline events={events} />
     </PanelShell>

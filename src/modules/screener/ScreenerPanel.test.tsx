@@ -28,6 +28,7 @@ const UNIVERSE_SAMPLE: ScreenerUniverse = {
 const RESULT_SAMPLE: ScreenerResult = {
   universe: "sp500",
   evaluated_count: 100,
+  skipped_count: 0,
   result_count: 2,
   rows: [
     {

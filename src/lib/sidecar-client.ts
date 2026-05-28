@@ -91,7 +91,16 @@ export async function sidecarGet<T>(path: string, params?: QueryParams): Promise
     }
     throw new SidecarError(response.status, detail);
   }
-  return (await response.json()) as T;
+  try {
+    return (await response.json()) as T;
+  } catch (err) {
+    // A 200 with a truncated / non-JSON body (sidecar crash mid-response,
+    // proxy hiccup) would otherwise reject with a raw SyntaxError the callers
+    // don't expect — normalize to a SidecarError so error handling is uniform
+    // (Phase 9.5).
+    const message = err instanceof Error ? err.message : "malformed response body";
+    throw new SidecarError(502, `Malformed sidecar response: ${message}`);
+  }
 }
 
 /** Open a WebSocket to the crypto ticker stream. The caller owns the socket. */

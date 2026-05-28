@@ -59,6 +59,7 @@ def bootstrap_curve(req: YieldCurveRequest) -> YieldCurveResult:
     3. Sample at ``req.sample_count`` evenly-spaced dates spanning the
        valuation date to the longest tenor.
     """
+    req.validate_domain()
     started = time.perf_counter()
 
     if not req.instruments:

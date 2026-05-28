@@ -9,6 +9,7 @@ runs under uvicorn and what tests build a ``TestClient`` against.
 
 from __future__ import annotations
 
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -74,6 +75,8 @@ _ROUTERS = (
     tradesa_v2,
 )
 
+_log = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -98,9 +101,16 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
         try:
             yield
         finally:
+            # Guard the client close so an aclose() error (timeout / SSL /
+            # cleanup failure on shutdown) cannot prevent the MCP-client cache
+            # reset that follows — otherwise external MCP transports leak open
+            # on shutdown (Phase 9.5). Both steps run unconditionally.
             client: httpx.AsyncClient | None = getattr(app.state, "httpx_client", None)
             if client is not None:
-                await client.aclose()
+                try:
+                    await client.aclose()
+                except Exception as exc:  # noqa: BLE001 — shutdown best-effort
+                    _log.debug("httpx_client.aclose raised on shutdown: %s", exc)
             await mcp_client.reset_clients()
 
 

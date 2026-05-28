@@ -11,7 +11,9 @@ import { ScreenerCriteriaBuilder } from "./ScreenerCriteriaBuilder";
 import { ScreenerResultsTable } from "./ScreenerResultsTable";
 
 const UNIVERSE_LABELS: Record<ScreenerUniverseId, string> = {
-  sp500: "S&P 500",
+  // Honest label — the bundled snapshot is the 100 largest-weight S&P 500
+  // names, not the full 500 (Phase 9.5 nit: "sp500" universe is 100 symbols).
+  sp500: "S&P 500 (Top 100)",
   nifty50: "NIFTY 50",
   "crypto-top50": "Crypto top 50",
   custom: "Custom tickers",

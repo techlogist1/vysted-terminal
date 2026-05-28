@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import { POLL_CADENCE_MS, arrayOrEmpty, useTradesaStore } from "../store";
 
 import { PanelShell } from "./_PanelShell";
+import { PanelFetchError } from "./PanelFetchError";
 import { formatRelativeIso, useInterval } from "./_utils";
 
 import type {
@@ -255,8 +256,17 @@ export function MetaAgentsPanel() {
   const discovery = arrayOrEmpty(discoveryState.data);
   const reflection = arrayOrEmpty(reflectionState.data);
 
+  // Surface the active tab's fetch error (Phase 9.5) — each surface fetches
+  // independently, so show the one the user is currently viewing.
+  const activeState =
+    tab === "tuning" ? tuningState : tab === "discovery" ? discoveryState : reflectionState;
+
   return (
     <PanelShell title="Meta-Agents">
+      <PanelFetchError
+        error={activeState.error}
+        onRetry={() => void refreshMetaAgentSurface(tab)}
+      />
       <nav
         role="tablist"
         aria-label="Meta-agent tabs"
