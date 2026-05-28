@@ -1,17 +1,20 @@
 "use client";
 
 import { useEffect } from "react";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, Save, Settings2 } from "lucide-react";
 
 import { CommandPalette } from "@/components/CommandPalette";
+import { OnboardingBanner } from "@/components/OnboardingBanner";
 import { PanelHost } from "@/components/PanelHost";
 import { useDesktopNotificationBridge } from "@/lib/desktop-notification";
 import { bootstrapPlugins } from "@/lib/plugin-bootstrap";
 import { vystedModules } from "@/modules";
 import { WorkspaceDialog } from "@/modules/platform/WorkspaceDialog";
+import { useWorkspaceDialog } from "@/modules/platform/workspace-dialog-store";
 import { useAppStore } from "@/store/app";
 import { useCommandPalette } from "@/store/command-palette";
 import { useModulesStore } from "@/store/modules";
+import { useWorkspaceStore } from "@/store/workspace";
 
 export default function Page() {
   // Bridge workflow ``action.notify_desktop`` intents to the OS
@@ -62,13 +65,15 @@ export default function Page() {
   }, []);
 
   const openPalette = useCommandPalette((state) => state.setOpen);
+  const openPanel = useWorkspaceStore((state) => state.openPanel);
+  const openSaveLayout = useWorkspaceDialog((state) => state.openSave);
 
   return (
     <main className="bg-charcoal-950 flex h-screen w-screen flex-col overflow-hidden">
       <CommandPalette />
       <WorkspaceDialog />
-      {/* Thin toolbar — single affordance so keyboard-only isn't the only way */}
-      <div className="border-charcoal-800 bg-charcoal-950 flex h-8 shrink-0 items-center border-b px-3">
+      {/* Thin toolbar — visible affordances so keyboard-only isn't the only way */}
+      <div className="border-charcoal-800 bg-charcoal-950 flex h-8 shrink-0 items-center gap-1 border-b px-3">
         <button
           type="button"
           onClick={() => openPalette(true)}
@@ -81,7 +86,28 @@ export default function Page() {
             ⌘K
           </kbd>
         </button>
+        <div className="bg-charcoal-800 mx-1 h-4 w-px" aria-hidden="true" />
+        <button
+          type="button"
+          onClick={openSaveLayout}
+          className="text-charcoal-400 hover:text-charcoal-100 flex items-center gap-1.5 font-mono text-xs transition-colors"
+          aria-label="Save layout"
+        >
+          <Save className="h-3.5 w-3.5" />
+          Save layout
+        </button>
+        <div className="flex-1" />
+        <button
+          type="button"
+          onClick={() => openPanel("settings")}
+          className="text-charcoal-400 hover:text-charcoal-100 flex items-center gap-1.5 font-mono text-xs transition-colors"
+          aria-label="Open settings"
+        >
+          <Settings2 className="h-3.5 w-3.5" />
+          Settings
+        </button>
       </div>
+      <OnboardingBanner />
       <div className="min-h-0 flex-1">
         <PanelHost />
       </div>

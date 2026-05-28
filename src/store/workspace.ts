@@ -1,7 +1,21 @@
 import type { DockviewApi } from "dockview";
 import { create } from "zustand";
 
+import { applyDefaultLayout } from "@/config/default-layout";
 import { useModulesStore } from "@/store/modules";
+
+/**
+ * Reserved layout name for the auto-saved "last session" cockpit (Track C).
+ * Persisted to the sidecar like any layout, but hidden from the user-facing
+ * layout list and restored automatically on launch so a customised cockpit
+ * survives a relaunch.
+ */
+export const AUTOSAVE_LAYOUT_NAME = "__autosave__";
+
+/** Reserved layout names are internal slots, hidden from the Layouts UI. */
+export function isReservedLayoutName(name: string): boolean {
+  return name.startsWith("__");
+}
 
 interface WorkspaceState {
   /** Name of the active workspace. */
@@ -14,6 +28,8 @@ interface WorkspaceState {
   openPanel: (panelId: string) => void;
   /** Close a panel by id, if open. */
   closePanel: (panelId: string) => void;
+  /** Clear the cockpit and re-apply the bundled default layout. */
+  resetToDefaultLayout: () => void;
 }
 
 /**
@@ -55,5 +71,20 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   },
   closePanel: (panelId) => {
     get().dockviewApi?.getPanel(panelId)?.api.close();
+  },
+  resetToDefaultLayout: () => {
+    const api = get().dockviewApi;
+    if (!api) {
+      return;
+    }
+    api.clear();
+    const enabledPanelIds = new Set(
+      useModulesStore
+        .getState()
+        .enabledPanels()
+        .map((panel) => panel.id),
+    );
+    applyDefaultLayout(api, enabledPanelIds);
+    set({ name: "default" });
   },
 }));
