@@ -113,6 +113,8 @@ export interface ScreenerResult {
   universe: ScreenerUniverseId;
   /** Total candidates evaluated before criteria filtered them. */
   evaluated_count: number;
+  /** Symbols dropped (timeout / provider error) before evaluation. */
+  skipped_count: number;
   /** Total rows returned (≤ ``limit``). */
   result_count: number;
   rows: ScreenerResultRow[];

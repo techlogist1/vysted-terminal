@@ -101,7 +101,11 @@ export async function listWorkspaces(): Promise<string[]> {
   if (!response.ok) {
     throw new WorkspaceError(`Could not list workspaces (HTTP ${response.status}).`);
   }
-  return (await response.json()) as string[];
+  try {
+    return (await response.json()) as string[];
+  } catch {
+    throw new WorkspaceError("Could not parse the workspace list response (malformed JSON).");
+  }
 }
 
 /**
@@ -134,7 +138,12 @@ export async function loadWorkspace(name: string): Promise<void> {
   if (!response.ok) {
     throw new WorkspaceError(`Could not load workspace "${trimmed}" (HTTP ${response.status}).`);
   }
-  const workspace = (await response.json()) as SerializedWorkspace;
+  let workspace: SerializedWorkspace;
+  try {
+    workspace = (await response.json()) as SerializedWorkspace;
+  } catch {
+    throw new WorkspaceError(`Could not parse workspace "${trimmed}" (malformed JSON).`);
+  }
   deserializeWorkspace(workspace);
 }
 

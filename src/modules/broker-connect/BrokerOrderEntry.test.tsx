@@ -119,6 +119,12 @@ describe("BrokerOrderEntry", () => {
     await act(async () => {
       fireEvent.change(brokerSelect, { target: { value: "alpaca" } });
     });
+    // A symbol is now required client-side (Phase 9.5) — set one so submit
+    // reaches the sidecar and exercises the propose-error path under test.
+    const symbolInput = screen.getByLabelText(/symbol/i).parentElement!.querySelector("input")!;
+    await act(async () => {
+      fireEvent.change(symbolInput, { target: { value: "AAPL" } });
+    });
     const qtyInput = screen.getByLabelText(/quantity/i).parentElement!.querySelector("input")!;
     await act(async () => {
       fireEvent.change(qtyInput, { target: { value: "10000" } });

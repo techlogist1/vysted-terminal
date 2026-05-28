@@ -300,7 +300,10 @@ async def get_upcoming(
     async def _one(symbol: str) -> EarningsEvent | None:
         try:
             payload = await asyncio.to_thread(_fetch_calendar_sync, symbol)
-        except ProviderError:
+        except ProviderError as exc:
+            # Was a silent drop; log it like the _event_from_calendar path so a
+            # symbol vanishing from the calendar is traceable (Phase 9.5).
+            logger.warning("earnings: calendar fetch failed for %r: %s", symbol, exc)
             return None
         try:
             return _event_from_calendar(payload, start_date, end_date)

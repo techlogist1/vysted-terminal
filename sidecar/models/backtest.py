@@ -33,8 +33,10 @@ class BacktestFeeModel(BaseModel):
 
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
-    fee_bps: float = Field(alias="feeBps", default=5.0)
-    slippage_bps: float = Field(alias="slippageBps", default=5.0)
+    # Non-negative (negative bps = anti-fees, distorting returns); capped at
+    # 1000 bps (10%) as a defensive upper bound — Phase 9.5.
+    fee_bps: float = Field(alias="feeBps", default=5.0, ge=0, le=1000)
+    slippage_bps: float = Field(alias="slippageBps", default=5.0, ge=0, le=1000)
 
 
 class BacktestRequest(BaseModel):
@@ -47,7 +49,9 @@ class BacktestRequest(BaseModel):
     symbols: list[str]
     start_date: str = Field(alias="startDate")
     end_date: str = Field(alias="endDate")
-    initial_capital: float = Field(alias="initialCapital", default=100_000.0)
+    # gt=0 prevents the divide-by-zero / inverted-P&L NaN equity curves a 0 or
+    # negative starting capital would produce (backtest_engine.py) — Phase 9.5.
+    initial_capital: float = Field(alias="initialCapital", default=100_000.0, gt=0)
     fee_model: BacktestFeeModel | None = Field(default=None, alias="feeModel")
     walk_forward_slices: int = Field(alias="walkForwardSlices", default=1, ge=1, le=10)
 

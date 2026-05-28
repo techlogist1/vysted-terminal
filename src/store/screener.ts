@@ -26,6 +26,12 @@ import type {
 
 export type ScreenerStatus = "idle" | "loading" | "ready" | "error";
 
+// In-flight universe fetches, deduped by id. Two concurrent loadUniverse(id)
+// calls both missed the cache and fired duplicate requests (Phase 9.5); a
+// module-level map (the store is a singleton) coalesces them without changing
+// the state shape / test mocks.
+const _inFlightUniverses = new Map<string, Promise<ScreenerUniverse | null>>();
+
 interface ScreenerState {
   // --- editable draft -------------------------------------------------
   universe: ScreenerUniverseId;
@@ -142,24 +148,35 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
     if (cached) {
       return cached;
     }
-    set((state) => ({
-      universeStatus: { ...state.universeStatus, [id]: "loading" },
-    }));
-    try {
-      const payload = await sidecarGet<ScreenerUniverse>("/screener/universe", {
-        id,
-      });
-      set((state) => ({
-        universeMeta: { ...state.universeMeta, [id]: payload },
-        universeStatus: { ...state.universeStatus, [id]: "ready" },
-      }));
-      return payload;
-    } catch {
-      set((state) => ({
-        universeStatus: { ...state.universeStatus, [id]: "error" },
-      }));
-      return null;
+    // Coalesce concurrent loads of the same id onto one request (Phase 9.5).
+    const existing = _inFlightUniverses.get(id);
+    if (existing) {
+      return existing;
     }
+    const request = (async (): Promise<ScreenerUniverse | null> => {
+      set((state) => ({
+        universeStatus: { ...state.universeStatus, [id]: "loading" },
+      }));
+      try {
+        const payload = await sidecarGet<ScreenerUniverse>("/screener/universe", {
+          id,
+        });
+        set((state) => ({
+          universeMeta: { ...state.universeMeta, [id]: payload },
+          universeStatus: { ...state.universeStatus, [id]: "ready" },
+        }));
+        return payload;
+      } catch {
+        set((state) => ({
+          universeStatus: { ...state.universeStatus, [id]: "error" },
+        }));
+        return null;
+      } finally {
+        _inFlightUniverses.delete(id);
+      }
+    })();
+    _inFlightUniverses.set(id, request);
+    return request;
   },
 
   __resetForTests: () =>

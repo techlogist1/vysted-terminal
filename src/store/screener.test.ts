@@ -22,6 +22,7 @@ import { useScreenerStore } from "./screener";
 const RESULT_SAMPLE: ScreenerResult = {
   universe: "sp500",
   evaluated_count: 100,
+  skipped_count: 0,
   result_count: 2,
   rows: [
     {

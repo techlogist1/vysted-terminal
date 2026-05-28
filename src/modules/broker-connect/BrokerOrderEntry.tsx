@@ -68,13 +68,29 @@ export function BrokerOrderEntry() {
         setError("Select a broker");
         return;
       }
+      const symbol = form.symbol.trim().toUpperCase();
+      if (symbol.length === 0) {
+        setError("Symbol is required");
+        return;
+      }
       const quantity = Number(form.quantity);
       if (!Number.isFinite(quantity) || quantity <= 0) {
         setError("Quantity must be positive");
         return;
       }
+      // Price inputs must be finite + positive when present — a NaN (e.g. a
+      // typo'd price) or non-positive price would otherwise reach the broker
+      // propose path as garbage (Phase 9.5, §6.5-adjacent order hygiene).
       const limitPrice = form.limitPrice.length > 0 ? Number(form.limitPrice) : undefined;
+      if (limitPrice !== undefined && (!Number.isFinite(limitPrice) || limitPrice <= 0)) {
+        setError("Limit price must be a positive number");
+        return;
+      }
       const stopPrice = form.stopPrice.length > 0 ? Number(form.stopPrice) : undefined;
+      if (stopPrice !== undefined && (!Number.isFinite(stopPrice) || stopPrice <= 0)) {
+        setError("Stop price must be a positive number");
+        return;
+      }
       setBusy(true);
       setError(null);
       try {
@@ -85,7 +101,7 @@ export function BrokerOrderEntry() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              symbol: form.symbol,
+              symbol,
               side: form.side,
               type: form.type,
               quantity,

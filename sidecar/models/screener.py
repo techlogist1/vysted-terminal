@@ -8,9 +8,18 @@ matching the TypeScript discriminated union on the same field.
 
 from __future__ import annotations
 
+import math
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+
+def _reject_non_finite(value: float, name: str) -> float:
+    """Reject NaN / ±Inf — they silently break numeric comparisons (Phase 9.5)."""
+    if math.isnan(value) or math.isinf(value):
+        raise ValueError(f"{name} must be a finite number (got {value})")
+    return value
+
 
 # ---------------------------------------------------------------------------
 # Universe
@@ -64,6 +73,11 @@ class NumericThresholdCriterion(BaseModel):
     operator: Literal["gt", "lt", "gte", "lte"]
     value: float
 
+    @field_validator("value")
+    @classmethod
+    def _value_finite(cls, v: float) -> float:
+        return _reject_non_finite(v, "value")
+
 
 class NumericRange(BaseModel):
     """Inclusive numeric range for the ``between`` operator."""
@@ -72,6 +86,17 @@ class NumericRange(BaseModel):
 
     min: float
     max: float
+
+    @field_validator("min", "max")
+    @classmethod
+    def _bound_finite(cls, v: float) -> float:
+        return _reject_non_finite(v, "range bound")
+
+    @model_validator(mode="after")
+    def _min_le_max(self) -> NumericRange:
+        if self.min > self.max:
+            raise ValueError(f"range min ({self.min}) must be <= max ({self.max})")
+        return self
 
 
 class NumericBetweenCriterion(BaseModel):
@@ -122,7 +147,21 @@ class ScreenerRequest(BaseModel):
     universe: ScreenerUniverseId
     custom_symbols: list[str] | None = None
     criteria: list[ScreenerCriterion]
-    limit: int = 200
+    # Upper-bounded to match types/screener.ts ("max 1000") and the runtime
+    # clamp in services/screener.py (_MAX_LIMIT=1000) — Phase 9.5.
+    limit: int = Field(default=200, ge=1, le=1000)
+
+    @model_validator(mode="after")
+    def _custom_requires_symbols(self) -> ScreenerRequest:
+        """An explicit ``custom`` universe must carry a non-empty symbol list
+        (Phase 9.5). Note: a non-empty ``custom_symbols`` is honoured with ANY
+        universe (it overrides — see services.screener.resolve_universe); this
+        validator only rejects the contradictory ``custom`` + empty case."""
+        if self.universe == "custom":
+            cleaned = [s for s in (self.custom_symbols or []) if s and s.strip()]
+            if not cleaned:
+                raise ValueError("universe 'custom' requires a non-empty custom_symbols list")
+        return self
 
 
 class ScreenerResultRow(BaseModel):
@@ -149,6 +188,10 @@ class ScreenerResult(BaseModel):
 
     universe: ScreenerUniverseId
     evaluated_count: int
+    # Symbols that were dropped (timeout / provider error) before evaluation —
+    # so a low evaluated_count no longer silently misrepresents coverage
+    # (Phase 9.5). Defaulted for backward compatibility.
+    skipped_count: int = 0
     result_count: int
     rows: list[ScreenerResultRow]
     duration_ms: float

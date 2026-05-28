@@ -18,6 +18,7 @@ import { useMemo } from "react";
 import { POLL_CADENCE_MS, arrayOrEmpty, useTradesaStore } from "../store";
 
 import { PanelShell } from "./_PanelShell";
+import { PanelFetchError } from "./PanelFetchError";
 import { formatRelativeIso, useInterval } from "./_utils";
 
 import type { TradesaSentinelBlock } from "../../../types/tradesa_v2";
@@ -116,6 +117,7 @@ export function SentinelPanel() {
 
   return (
     <PanelShell title="Sentinel Gates">
+      <PanelFetchError error={sentinelState.error} onRetry={() => void refreshSentinel()} />
       <SentinelTable rows={rows} />
     </PanelShell>
   );

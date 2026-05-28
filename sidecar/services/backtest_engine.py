@@ -317,7 +317,18 @@ async def _run_single_slice(
             if side == "buy":
                 # New long position OR add to existing.
                 if portfolio.cash < cost:
-                    continue  # silently skip insufficient cash
+                    # Skip the order, but log it — a silent skip looked like a
+                    # filled order in the curve with no trace of why (Phase 9.5).
+                    logger.warning(
+                        "backtest: insufficient cash for %s %s @ %.2f "
+                        "(have %.2f, need %.2f) — order skipped",
+                        abs(intent.quantity),
+                        intent.symbol,
+                        fill_price,
+                        portfolio.cash,
+                        cost,
+                    )
+                    continue
                 portfolio.cash -= cost
                 trade_id = str(uuid.uuid4())
                 portfolio.positions[intent.symbol] = _OpenPosition(
@@ -343,7 +354,12 @@ async def _run_single_slice(
                 if position is None:
                     continue
                 portfolio.cash += abs(intent.quantity) * fill_price
-                pnl = (fill_price - position.entry_price) * position.quantity
+                # P&L on the quantity actually sold (matches the cash credit
+                # above), not the original entry quantity — Phase 9.5. (Full
+                # close is the engine's assumed case where these are equal; the
+                # position is popped below, so partial-close size reduction
+                # remains a separate, documented limitation.)
+                pnl = (fill_price - position.entry_price) * abs(intent.quantity)
                 # Update the entering trade record with exit details.
                 for t in trades:
                     if t.id == position.trade_id:
@@ -396,6 +412,16 @@ async def run_backtest(
     started_ns = time.perf_counter_ns()
 
     bars = await loader(request.symbols, request.start_date, request.end_date)
+    if request.symbols and not bars:
+        # Every requested symbol returned zero bars — the bar loader swallows
+        # per-symbol ProviderErrors into empty lists, so without this gate the
+        # backtest would run on an empty series and report a misleading 0-bar
+        # "success". Surface it as a clear failure instead (Phase 9.5).
+        raise BacktestEngineError(
+            f"failed to load historical data for {request.symbols} — all providers "
+            f"returned no data for {request.start_date}..{request.end_date}; check "
+            f"symbol validity and date range."
+        )
     bars_sorted = sorted(bars, key=lambda b: (b.timestamp, b.symbol))
     await _emit(
         on_event,

@@ -17,6 +17,7 @@ import { useMemo, useState } from "react";
 import { POLL_CADENCE_MS, arrayOrEmpty, useTradesaStore } from "../store";
 
 import { PanelShell } from "./_PanelShell";
+import { PanelFetchError } from "./PanelFetchError";
 import { formatPercent, formatRelativeIso, formatUsd, useInterval } from "./_utils";
 
 import type { DecisionAction, TradesaCostRollup, TradesaDecision } from "../../../types/tradesa_v2";
@@ -231,6 +232,7 @@ export function BrainDecisionsPanel() {
 
   return (
     <PanelShell title="Brain Decisions">
+      <PanelFetchError error={decisionsState.error} onRetry={() => void refreshDecisions()} />
       <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
         <DecisionsColumn decisions={decisions} />
         <CostColumn rollup={costState.data} />

@@ -8,7 +8,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 # ---------------------------------------------------------------------------
 # Event identity
@@ -40,7 +40,7 @@ class EarningsEvent(BaseModel):
     fiscal_period: FiscalPeriod
     eps_estimate_mean: float | None = None
     eps_estimate_stddev: float | None = None
-    estimate_analyst_count: int = 0
+    estimate_analyst_count: int = Field(ge=0)  # a count, never negative — Phase 9.5 = 0
     currency: str = "USD"
     provider: str
 
@@ -86,7 +86,7 @@ class EarningsEstimateDetail(BaseModel):
     eps_estimate_high: float
     eps_estimate_low: float
     eps_estimate_stddev: float | None = None
-    estimate_analyst_count: int
+    estimate_analyst_count: int = Field(ge=0)  # a count, never negative — Phase 9.5
     revenue_estimate_mean: float | None = None
     revenue_estimate_median: float | None = None
     revenue_estimate_high: float | None = None

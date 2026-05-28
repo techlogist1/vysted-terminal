@@ -17,6 +17,7 @@
 import { POLL_CADENCE_MS, arrayOrEmpty, useTradesaStore } from "../store";
 
 import { PanelShell } from "./_PanelShell";
+import { PanelFetchError } from "./PanelFetchError";
 import { formatNumber, formatRelativeIso, useInterval } from "./_utils";
 
 import type { TradesaTrade } from "../../../types/tradesa_v2";
@@ -125,6 +126,7 @@ export function PositionsPanel() {
 
   return (
     <PanelShell title="Live Positions">
+      <PanelFetchError error={positionsState.error} onRetry={() => void refreshPositions()} />
       <PositionsTable rows={rows} />
     </PanelShell>
   );

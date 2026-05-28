@@ -68,7 +68,12 @@ async def detect_public_ip(
         return None
     finally:
         if own_client:
-            await http.aclose()
+            # Honor the "Never raises" contract even if socket cleanup errors
+            # on the way out (Phase 9.5).
+            try:
+                await http.aclose()
+            except Exception as exc:  # noqa: BLE001 — cleanup is best-effort
+                logger.warning("static_ip: client cleanup failed %s", exc)
 
 
 async def static_ip_status(

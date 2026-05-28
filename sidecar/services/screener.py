@@ -374,6 +374,7 @@ async def run_screener(req: ScreenerRequest) -> ScreenerResult:
     return ScreenerResult(
         universe=req.universe,
         evaluated_count=len(pairs),
+        skipped_count=len(universe.symbols) - len(pairs),
         result_count=len(rows),
         rows=rows,
         duration_ms=duration_ms,
