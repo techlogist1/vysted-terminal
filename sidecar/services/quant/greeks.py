@@ -26,6 +26,7 @@ def compute_greeks(req: GreeksRequest) -> GreeksResult:
     Returns Greeks per the QuantLib internal convention (vega per
     unit-vol, theta per year); the panel relabels for display.
     """
+    req.validate_domain()
     started = time.perf_counter()
 
     process = build_bsm_process(

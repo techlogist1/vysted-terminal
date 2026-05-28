@@ -37,6 +37,7 @@ def price_bond(req: BondPricingRequest) -> BondPricingResult:
     (QuantLib quotes per-100 by default; we rescale by ``face / 100`` so
     the panel doesn't have to know the conversion).
     """
+    req.validate_domain()
     started = time.perf_counter()
 
     if req.coupons_per_year not in _FREQUENCY_MAP:
