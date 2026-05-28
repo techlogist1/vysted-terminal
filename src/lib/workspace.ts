@@ -13,12 +13,13 @@
  * without a sidecar change (the sidecar stores the body opaquely).
  */
 
-import type { SerializedDockview } from "dockview";
+import type { DockviewApi, SerializedDockview } from "dockview";
 
+import { applyDefaultLayout } from "@/config/default-layout";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useModulesStore } from "@/store/modules";
-import { useWorkspaceStore } from "@/store/workspace";
+import { AUTOSAVE_LAYOUT_NAME, useWorkspaceStore } from "@/store/workspace";
 import type { WorkspaceDrawings } from "../../types/drawings";
 
 /** The serialised form of a workspace, persisted as a `.vysted-workspace` file. */
@@ -145,6 +146,61 @@ export async function loadWorkspace(name: string): Promise<void> {
     throw new WorkspaceError(`Could not parse workspace "${trimmed}" (malformed JSON).`);
   }
   deserializeWorkspace(workspace);
+}
+
+/**
+ * Restore the auto-saved "last session" cockpit if one exists, else apply the
+ * bundled default layout. Called once on launch from PanelHost; this is what
+ * makes a customised cockpit survive a relaunch (Track C). Never throws — a
+ * failed restore falls back to the default so the app always boots usable.
+ * Returns true when a saved session was restored.
+ */
+export async function restoreLastSessionOrDefault(
+  api: DockviewApi,
+  enabledPanelIds: Set<string>,
+): Promise<boolean> {
+  try {
+    const response = await fetch(await workspaceUrl(AUTOSAVE_LAYOUT_NAME));
+    if (response.ok) {
+      const workspace = (await response.json()) as SerializedWorkspace;
+      deserializeWorkspace(workspace);
+      // The reserved slot's name is internal — present the restored cockpit
+      // under the neutral "default" name, not "__autosave__".
+      useWorkspaceStore.getState().setName("default");
+      return true;
+    }
+  } catch {
+    // Fall through to the default layout below.
+  }
+  applyDefaultLayout(api, enabledPanelIds);
+  return false;
+}
+
+/**
+ * Persist the current cockpit to the reserved autosave slot. Best-effort: a
+ * transient sidecar failure is swallowed (the next layout change retries) and
+ * the active workspace name is left unchanged. No-op before the layout mounts.
+ */
+export async function autosaveLayout(): Promise<void> {
+  const api = useWorkspaceStore.getState().dockviewApi;
+  if (!api) {
+    return;
+  }
+  try {
+    const payload: SerializedWorkspace = {
+      name: AUTOSAVE_LAYOUT_NAME,
+      layout: api.toJSON(),
+      enabledModules: useModulesStore.getState().enabled,
+      chartDrawings: useChartDrawingsStore.getState().snapshot(),
+    };
+    await fetch(await workspaceUrl(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: AUTOSAVE_LAYOUT_NAME, workspace: payload }),
+    });
+  } catch {
+    // Best-effort autosave; ignore transient failures.
+  }
 }
 
 /** Delete a saved workspace from the sidecar. */
