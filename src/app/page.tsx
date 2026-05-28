@@ -72,12 +72,20 @@ export default function Page() {
     <main className="bg-charcoal-950 flex h-screen w-screen flex-col overflow-hidden">
       <CommandPalette />
       <WorkspaceDialog />
-      {/* Thin toolbar — visible affordances so keyboard-only isn't the only way */}
-      <div className="border-charcoal-800 bg-charcoal-950 flex h-8 shrink-0 items-center gap-1 border-b px-3">
+      {/* Instrument header bar — the machined cockpit fascia. Brand wordmark
+          left, instrument controls right, a brass hairline + tick-rule below. */}
+      <header className="bg-charcoal-925 instrument-bezel relative flex h-9 shrink-0 items-center gap-3 px-3">
+        <div className="flex items-baseline gap-2 select-none">
+          <span className="font-serif text-sm leading-none tracking-[0.18em] text-amber-400">
+            VYSTED
+          </span>
+          <span className="hud-label leading-none">Terminal</span>
+        </div>
+        <div className="bg-charcoal-700 mx-1 h-4 w-px" aria-hidden="true" />
         <button
           type="button"
           onClick={() => openPalette(true)}
-          className="text-charcoal-400 hover:text-charcoal-100 flex items-center gap-1.5 font-mono text-xs transition-colors"
+          className="text-charcoal-300 hover:text-lume flex items-center gap-1.5 font-mono text-xs transition-colors"
           aria-label="Open command palette"
         >
           <LayoutGrid className="h-3.5 w-3.5" />
@@ -86,11 +94,10 @@ export default function Page() {
             ⌘K
           </kbd>
         </button>
-        <div className="bg-charcoal-800 mx-1 h-4 w-px" aria-hidden="true" />
         <button
           type="button"
           onClick={openSaveLayout}
-          className="text-charcoal-400 hover:text-charcoal-100 flex items-center gap-1.5 font-mono text-xs transition-colors"
+          className="text-charcoal-300 hover:text-lume flex items-center gap-1.5 font-mono text-xs transition-colors"
           aria-label="Save layout"
         >
           <Save className="h-3.5 w-3.5" />
@@ -100,13 +107,18 @@ export default function Page() {
         <button
           type="button"
           onClick={() => openPanel("settings")}
-          className="text-charcoal-400 hover:text-charcoal-100 flex items-center gap-1.5 font-mono text-xs transition-colors"
+          className="text-charcoal-300 hover:text-lume flex items-center gap-1.5 font-mono text-xs transition-colors"
           aria-label="Open settings"
         >
           <Settings2 className="h-3.5 w-3.5" />
           Settings
         </button>
-      </div>
+        {/* Lit gauge tick-rule along the fascia's bottom edge. */}
+        <div
+          className="tick-rule pointer-events-none absolute inset-x-0 bottom-0"
+          aria-hidden="true"
+        />
+      </header>
       <OnboardingBanner />
       <div className="min-h-0 flex-1">
         <PanelHost />
