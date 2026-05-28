@@ -12,6 +12,8 @@ import { existsSync, mkdirSync, copyFileSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { platform } from "node:os";
 
+import { isStale } from "./sidecar-staleness.mjs";
+
 const ROOT = resolve(import.meta.dirname, "..");
 const SIDECAR_DIR = join(ROOT, "sidecar");
 const BINARIES_DIR = join(ROOT, "src-tauri", "binaries");
@@ -63,9 +65,28 @@ const ext = isWin ? ".exe" : "";
 const outName = `vysted-sidecar-${triple}${ext}`;
 const outPath = join(BINARIES_DIR, outName);
 
-if (existsSync(outPath) && !FORCE) {
-  console.log(`[ensure-sidecar] ${outName} already present — skipping build.`);
+// Staleness-aware no-op (Phase 9.5 build-trap fix S0-2): the main sidecar's
+// source is the whole `sidecar/` tree EXCEPT the two MCP subprocess dirs, which
+// build via their own ensure scripts. Editing this script's build recipe (or
+// the shared staleness module) must also invalidate the binary.
+const SOURCE_EXCLUDES = [
+  join(SIDECAR_DIR, "openbb_mcp_subprocess"),
+  join(SIDECAR_DIR, "sec_edgar_mcp_subprocess"),
+];
+const STALE_OPTS = {
+  excludeDirs: SOURCE_EXCLUDES,
+  extraFiles: [import.meta.filename, join(import.meta.dirname, "sidecar-staleness.mjs")],
+};
+const stale = existsSync(outPath) && isStale(outPath, SIDECAR_DIR, STALE_OPTS);
+
+if (existsSync(outPath) && !FORCE && !stale) {
+  console.log(`[ensure-sidecar] ${outName} present and fresh — skipping build.`);
   process.exit(0);
+}
+if (stale && !FORCE) {
+  console.log(
+    `[ensure-sidecar] ${outName} is STALE (source newer than binary) — rebuilding without --force.`,
+  );
 }
 
 console.log(`[ensure-sidecar] building ${outName} ...`);

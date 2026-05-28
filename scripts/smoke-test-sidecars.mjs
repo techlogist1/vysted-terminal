@@ -47,14 +47,17 @@
 
 import { spawn, execSync, execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { createServer } from "node:net";
+import { createServer, connect as netConnect } from "node:net";
 import { join, resolve } from "node:path";
 import { tmpdir, platform } from "node:os";
 import { mkdtemp, rm } from "node:fs/promises";
 import { setTimeout as sleep } from "node:timers/promises";
 
+import { assertFresh } from "./sidecar-staleness.mjs";
+
 const ROOT = resolve(import.meta.dirname, "..");
 const BINARIES_DIR = join(ROOT, "src-tauri", "binaries");
+const SIDECAR_DIR = join(ROOT, "sidecar");
 
 const isWin = platform() === "win32";
 const ext = isWin ? ".exe" : "";
@@ -364,10 +367,50 @@ async function _smokeTestMcpSidecar(name, triple) {
   console.log(`[smoke] ${name} OK (alive after ${MCP_BOOT_WAIT_MS}ms on :${port}).`);
 }
 
+/**
+ * Freshness gate (Phase 9.5 build-trap fix S0-2): fail loudly if any bundled
+ * sidecar binary predates its source. The staleness-aware ensure scripts now
+ * auto-rebuild, but this gate is the belt-and-suspenders that catches a stale
+ * binary that slipped in via a cached/committed bundle bypassing the ensure
+ * step — exactly the failure that produced false #91/#65 regressions in the
+ * Phase 9.5 re-audit.
+ */
+function _assertAllFresh(triple) {
+  const staleness = join(ROOT, "scripts", "sidecar-staleness.mjs");
+  const checks = [
+    {
+      name: "vysted-sidecar",
+      dirs: SIDECAR_DIR,
+      opts: {
+        excludeDirs: [
+          join(SIDECAR_DIR, "openbb_mcp_subprocess"),
+          join(SIDECAR_DIR, "sec_edgar_mcp_subprocess"),
+        ],
+        extraFiles: [join(ROOT, "scripts", "ensure-sidecar.mjs"), staleness],
+      },
+    },
+    {
+      name: "vysted-openbb-mcp-sidecar",
+      dirs: join(SIDECAR_DIR, "openbb_mcp_subprocess"),
+      opts: { extraFiles: [join(ROOT, "scripts", "ensure-openbb-mcp-sidecar.mjs"), staleness] },
+    },
+    {
+      name: "vysted-sec-edgar-mcp-sidecar",
+      dirs: join(SIDECAR_DIR, "sec_edgar_mcp_subprocess"),
+      opts: { extraFiles: [join(ROOT, "scripts", "ensure-sec-edgar-mcp-sidecar.mjs"), staleness] },
+    },
+  ];
+  for (const c of checks) {
+    assertFresh(_binaryPath(c.name, triple), c.dirs, c.opts);
+  }
+  console.log("[smoke] freshness gate: all bundled sidecar binaries are newer than their source.");
+}
+
 async function main() {
   _checkNoOrphans();
   const triple = _rustcTargetTriple();
   console.log(`[smoke] target triple: ${triple}`);
+  _assertAllFresh(triple);
   const failures = [];
 
   for (const fn of [
