@@ -91,7 +91,7 @@ async def test_sec_filings_list_when_provider_unavailable(
     sec_filings_provider._reset_for_tests()
     result = await agent_tools.invoke_tool("sec_filings_list", {"symbol": "AAPL"})
     assert result["ok"] is False
-    assert "not bundled" in result["error"]
+    assert "not available" in result["error"]
 
 
 @pytest.mark.asyncio

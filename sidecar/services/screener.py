@@ -112,20 +112,25 @@ async def resolve_universe(
 ) -> ScreenerUniverse:
     """Return the :class:`ScreenerUniverse` for ``universe_id``.
 
-    ``"custom"`` consumes the request's ``custom_symbols``. Otherwise
-    the shipped JSON snapshots seed the universe; the crypto path
-    additionally checks the data cache for a refreshed list.
+    A non-empty ``custom_symbols`` list takes precedence over the named
+    universe — the caller explicitly listed the symbols they want to screen.
+    Previously ``custom_symbols`` was honoured ONLY when ``universe_id ==
+    "custom"`` and was silently ignored when sent alongside e.g. ``"sp500"``
+    (Phase 9.5 nit: screener ignored custom_symbols). Otherwise the shipped JSON
+    snapshots seed the universe; the crypto path additionally checks the data
+    cache for a refreshed list.
     """
-    if universe_id == "custom":
-        symbols = [s.strip().upper() for s in (custom_symbols or []) if s and s.strip()]
-        if not symbols:
-            raise ProviderError("custom universe requires a non-empty symbol list")
+    cleaned = [s.strip().upper() for s in (custom_symbols or []) if s and s.strip()]
+    if cleaned:
         return ScreenerUniverse(
             id="custom",
             label="Custom",
-            symbols=symbols,
+            symbols=cleaned,
             asset_class="equity",
         )
+    if universe_id == "custom":
+        # Explicit custom universe but no usable symbols → a 4xx-grade error.
+        raise ProviderError("custom universe requires a non-empty symbol list")
 
     if universe_id == "sp500":
         snapshot = _load_universe_snapshot("sp500.json")

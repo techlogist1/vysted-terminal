@@ -22,6 +22,14 @@ from typing import Any
 
 from services.agent_tools import register_tool
 
+# Honest unavailability message (Phase 9.5 nit): the binary IS bundled; when
+# unreachable it almost always failed to bind a port this launch (UC1 cold
+# start), so "not available / did not bind" is accurate, not "not bundled".
+_UNAVAILABLE_ERROR = (
+    "sec-edgar-mcp is not available — the subprocess did not bind a port "
+    "this launch (relaunch to retry)"
+)
+
 
 async def _sec_filings_list(args: dict[str, Any]) -> dict[str, Any]:
     """Return the filings index for ``cik`` or ``symbol``.
@@ -49,7 +57,7 @@ async def _sec_filings_list(args: dict[str, Any]) -> dict[str, Any]:
     if not sec_filings_provider.is_available():
         return {
             "ok": False,
-            "error": "sec-edgar-mcp subprocess not bundled in this build",
+            "error": _UNAVAILABLE_ERROR,
         }
     try:
         response = await sec_filings_provider.list_filings(
@@ -87,7 +95,7 @@ async def _sec_filing_content(args: dict[str, Any]) -> dict[str, Any]:
     if not sec_filings_provider.is_available():
         return {
             "ok": False,
-            "error": "sec-edgar-mcp subprocess not bundled in this build",
+            "error": _UNAVAILABLE_ERROR,
         }
     try:
         detail = await sec_filings_provider.get_filing(accession, cik_or_symbol=identifier)
@@ -127,7 +135,7 @@ async def _sec_insider_transactions(args: dict[str, Any]) -> dict[str, Any]:
     if not sec_filings_provider.is_available():
         return {
             "ok": False,
-            "error": "sec-edgar-mcp subprocess not bundled in this build",
+            "error": _UNAVAILABLE_ERROR,
         }
     try:
         response = await sec_filings_provider.list_insider_transactions(

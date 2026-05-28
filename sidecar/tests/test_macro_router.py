@@ -136,10 +136,14 @@ def test_get_series_returns_502_on_provider_error(
 def test_get_series_legacy_path_when_provider_not_v0_6_0(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """No provider param → legacy Phase-1/3 path returns 501 in the test build."""
+    """No provider param → legacy Phase-1/3 path returns 502 on upstream error.
+
+    A ProviderError from the openbb-mcp/FRED upstream (e.g. a missing FRED
+    credential in the test build) is an upstream-gateway failure → 502, unified
+    with the v0.6.0 dispatch path (Phase 9.5 nit fix: was 501).
+    """
     res = client.get("/macro/DGS10")
-    # The Phase-1/3 path raises ProviderError → 501.
-    assert res.status_code == 501
+    assert res.status_code == 502
 
 
 # ---------------------------------------------------------------------------
