@@ -62,8 +62,13 @@ const SIDECAR_DIR = join(ROOT, "sidecar");
 const isWin = platform() === "win32";
 const ext = isWin ? ".exe" : "";
 
-/** Boot timeouts — generous because PyInstaller --onefile extraction is slow. */
-const MAIN_BOOT_TIMEOUT_MS = 60_000;
+// Main-sidecar boot budget. The --onefile binary cold-extracts its `_MEI*`
+// (89 MB — the largest of the three) AND runs the FastMCP Streamable-HTTP
+// lifespan before /health serves; that's ~90s cold on an M1 (Phase 9.5 S0-1).
+// The prior 60s only ever passed because the binary was warm/stale (pre the
+// staleness-aware ensure fix, the main sidecar was rarely rebuilt). 120s covers
+// the cold start with headroom; a warm boot returns in a couple seconds.
+const MAIN_BOOT_TIMEOUT_MS = 120_000;
 const MAIN_POLL_INTERVAL_MS = 500;
 // MCP bind budget — aligned with the Rust supervisor's MCP_PORT_WAIT_SECS(45) x
 // MCP_PORT_WAIT_ATTEMPTS(2) = 90s. A cold `_MEI*` extraction binds at ~34s
