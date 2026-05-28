@@ -65,7 +65,13 @@ const ext = isWin ? ".exe" : "";
 /** Boot timeouts — generous because PyInstaller --onefile extraction is slow. */
 const MAIN_BOOT_TIMEOUT_MS = 60_000;
 const MAIN_POLL_INTERVAL_MS = 500;
-const MCP_BOOT_WAIT_MS = 10_000;
+// MCP bind budget — aligned with the Rust supervisor's MCP_PORT_WAIT_SECS(45) x
+// MCP_PORT_WAIT_ATTEMPTS(2) = 90s. A cold `_MEI*` extraction binds at ~34s
+// isolated on an M1 (Phase 9.5 measurement); 90s covers contended cold boots.
+const MCP_BIND_TIMEOUT_MS = 90_000;
+// After binding, confirm the process survives a short settle window (catches a
+// bind-then-immediately-crash).
+const MCP_SETTLE_MS = 3_000;
 
 /**
  * Track every spawned bootloader PID so the global cleanup handlers can
@@ -186,6 +192,38 @@ async function _httpGetOk(url, timeoutMs = 1500) {
   } finally {
     clearTimeout(t);
   }
+}
+
+/** Single TCP-connect probe to 127.0.0.1:port — true if something is listening. */
+function _tcpConnectOk(port, timeoutMs = 1000) {
+  return new Promise((resolveP) => {
+    const socket = netConnect({ host: "127.0.0.1", port, timeout: timeoutMs });
+    socket.on("connect", () => {
+      socket.destroy();
+      resolveP(true);
+    });
+    socket.on("error", () => resolveP(false));
+    socket.on("timeout", () => {
+      socket.destroy();
+      resolveP(false);
+    });
+  });
+}
+
+/**
+ * Poll a port until something binds it or the deadline passes. Returns
+ * `{ bound, exited }`. Short-circuits the moment the port binds (matches the
+ * Rust supervisor's `wait_for_port_with_retries`). `isExited` lets us bail
+ * early if the child dies before binding.
+ */
+async function _waitForBind(port, timeoutMs, isExited) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (isExited()) return { bound: false, exited: true };
+    if (await _tcpConnectOk(port)) return { bound: true, exited: false };
+    await sleep(1000);
+  }
+  return { bound: false, exited: isExited() };
 }
 
 /** Pick a free port on 127.0.0.1 by binding to 0 + reading the assigned port. */
@@ -328,14 +366,20 @@ async function _smokeTestMainSidecar(triple) {
   console.log(`[smoke] vysted-sidecar screener universe OK.`);
 }
 
-/** Test an MCP subprocess sidecar — boots and stays alive for MCP_BOOT_WAIT_MS. */
+/**
+ * Test an MCP subprocess sidecar — must (a) not crash, and (b) actually BIND
+ * its port within MCP_BIND_TIMEOUT_MS. The prior gate only checked "process
+ * alive after 10s", which is shallow: a subprocess can be alive but never bind
+ * (the exact UC1 silent-failure — Phase 8 UC1-*-not-listening, Phase 9.5 UC1).
+ * The TCP-bind probe closes that gap (BLOCKERS.md L3/L4 carry-forward).
+ */
 async function _smokeTestMcpSidecar(name, triple) {
   const bin = _binaryPath(name, triple);
   if (!existsSync(bin)) {
     throw new Error(`[smoke] ${name} binary missing: ${bin}`);
   }
   const port = await _pickFreePort();
-  console.log(`[smoke] ${name}: spawning on :${port} (no-watchdog) ...`);
+  console.log(`[smoke] ${name}: spawning on :${port} (no-watchdog), probing port bind ...`);
   const { child, output } = _spawnChild(bin, ["--port", String(port), "--no-watchdog"], true);
 
   let exited = false;
@@ -347,13 +391,13 @@ async function _smokeTestMcpSidecar(name, triple) {
     exitSignal = signal;
   });
 
-  await sleep(MCP_BOOT_WAIT_MS);
+  const { bound } = await _waitForBind(port, MCP_BIND_TIMEOUT_MS, () => exited);
 
   if (exited) {
     const tail = output().split("\n").slice(-30).join("\n");
     await _teardown(child);
     throw new Error(
-      `[smoke] ${name} CRASHED within ${MCP_BOOT_WAIT_MS}ms ` +
+      `[smoke] ${name} CRASHED before binding ` +
         `(exit code=${exitCode}, signal=${exitSignal}). Most likely a PyInstaller ` +
         `dist-info gap or data-file gap or hidden-import path drift — audit the ` +
         `--copy-metadata + --collect-data + --hidden-import lists in ` +
@@ -363,8 +407,30 @@ async function _smokeTestMcpSidecar(name, triple) {
     );
   }
 
+  if (!bound) {
+    const tail = output().split("\n").slice(-30).join("\n");
+    await _teardown(child);
+    throw new Error(
+      `[smoke] ${name} did NOT bind 127.0.0.1:${port} within ${MCP_BIND_TIMEOUT_MS}ms ` +
+        `(process alive but never listening — the UC1 silent-non-bind failure). ` +
+        `The bundled binary's cold _MEI* extraction + heavy imports overran the bind ` +
+        `budget. Consider the --onedir packaging fix (BLOCKERS.md "Phase 9.5 UC1"). Tail:\n${tail}`,
+    );
+  }
+
+  // Bound — confirm it survives a short settle window (catches bind-then-crash).
+  await sleep(MCP_SETTLE_MS);
+  if (exited) {
+    const tail = output().split("\n").slice(-30).join("\n");
+    await _teardown(child);
+    throw new Error(
+      `[smoke] ${name} bound :${port} then EXITED within ${MCP_SETTLE_MS}ms ` +
+        `(exit code=${exitCode}, signal=${exitSignal}). Tail:\n${tail}`,
+    );
+  }
+
   await _teardown(child);
-  console.log(`[smoke] ${name} OK (alive after ${MCP_BOOT_WAIT_MS}ms on :${port}).`);
+  console.log(`[smoke] ${name} OK (bound :${port}, survived settle window).`);
 }
 
 /**

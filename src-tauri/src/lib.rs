@@ -62,10 +62,21 @@ pub(crate) fn wait_for_port(port: u16) -> bool {
 /// heavy packages (openbb-platform extensions / sec-edgar streamable-http),
 /// and only then bind. Under Windows file-lock / AV-scan contention a cold
 /// boot can exceed 15s, producing the nondeterministic "bound on some boots,
-/// not others" symptom (Phase 8 finding UC1-*-not-listening). Raising the
-/// per-attempt deadline to 30s covers the observed worst case; a bounded
-/// retry below covers the residual.
-pub(crate) const MCP_PORT_WAIT_SECS: u64 = 30;
+/// not others" symptom (Phase 8 finding UC1-*-not-listening).
+///
+/// Phase-9.5 measurement (macOS M1, isolated): openbb binds at 34.2s cold /
+/// 13.6s warm, sec-edgar at 33.6s cold / 24.6s warm — both ~34s cold, right at
+/// the old 30s per-attempt edge (only the retry saved them). The audit saw
+/// sec-edgar DOWN while openbb was UP because at app boot the two `_MEI*`
+/// extractions (49 MB + 81 MB) run CONCURRENTLY and contend for disk I/O, so
+/// the larger sec-edgar loses the race past the 60s total. Raising the
+/// per-attempt budget to 45s (total 90s with the retry) gives the contended
+/// cold bind real headroom. This is near-free: `wait_for_port_with_retries`
+/// short-circuits the instant the port binds, so warm/fast boots are
+/// unaffected — only a genuinely dead sidecar waits the larger ceiling.
+/// (The true upstream fix — `--onedir` to eliminate the per-launch `_MEI*`
+/// extraction — is deferred; see BLOCKERS.md "Phase 9.5 UC1".)
+pub(crate) const MCP_PORT_WAIT_SECS: u64 = 45;
 
 /// Number of bind attempts before declaring an MCP subprocess unavailable.
 /// One retry (2 attempts) gives a cold boot a second window without
