@@ -26,13 +26,20 @@ export interface PositionRow {
 /** Portfolio-level roll-up across every position. */
 export interface PortfolioSummary {
   rows: PositionRow[];
-  /** Sum of cost values. */
+  /** Sum of cost values across ALL positions (resolved or not). */
   totalCost: number;
+  /** Sum of cost values across only positions with a resolved quote. */
+  resolvedCost: number;
   /** Sum of resolved market values. */
   totalMarketValue: number;
   /** Total unrealised P&L across resolved positions. */
   totalPnl: number;
-  /** Total P&L as a percentage of total cost. */
+  /**
+   * Total P&L as a percentage of the cost of the RESOLVED positions only.
+   * Denominator-matched to {@link totalPnl} — counting unresolved positions'
+   * cost into the denominator (while their P&L is necessarily excluded from the
+   * numerator) produced a misleading percentage (Phase 9.5 F-GUI-1).
+   */
   totalPnlPercent: number;
   /** Largest single-position weight (0–1) — a basic concentration metric. */
   concentration: number;
@@ -56,9 +63,15 @@ export function buildPortfolioSummary(
   });
 
   const totalCost = partials.reduce((sum, row) => sum + row.costValue, 0);
+  // Resolved cost = cost of the positions whose quote resolved — the only cost
+  // that can legitimately back the resolved P&L numerator.
+  const resolvedCost = partials.reduce(
+    (sum, row) => sum + (row.marketValue !== null ? row.costValue : 0),
+    0,
+  );
   const totalMarketValue = partials.reduce((sum, row) => sum + (row.marketValue ?? 0), 0);
   const totalPnl = partials.reduce((sum, row) => sum + (row.pnl ?? 0), 0);
-  const totalPnlPercent = totalCost !== 0 ? (totalPnl / totalCost) * 100 : 0;
+  const totalPnlPercent = resolvedCost !== 0 ? (totalPnl / resolvedCost) * 100 : 0;
 
   const rows: PositionRow[] = partials.map((row) => ({
     ...row,
@@ -74,6 +87,7 @@ export function buildPortfolioSummary(
   return {
     rows,
     totalCost,
+    resolvedCost,
     totalMarketValue,
     totalPnl,
     totalPnlPercent,
