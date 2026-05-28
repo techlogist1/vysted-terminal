@@ -125,12 +125,12 @@ the remaining carry-forward.
 
 ### What Phase 9.5 measured (macOS M1, `scripts`-style isolated probe)
 
-| sidecar | binary size | cold bind | warm bind |
-| --- | --- | --- | --- |
-| openbb-mcp     | 49 MB | **34.2 s** | 13.6 s |
-| sec-edgar-mcp  | 81 MB | **33.6 s** | 24.6 s |
+| sidecar       | binary size | cold bind  | warm bind |
+| ------------- | ----------- | ---------- | --------- |
+| openbb-mcp    | 49 MB       | **34.2 s** | 13.6 s    |
+| sec-edgar-mcp | 81 MB       | **33.6 s** | 24.6 s    |
 
-Both bind at ~34 s cold *in isolation* — right at the old 30 s per-attempt edge
+Both bind at ~34 s cold _in isolation_ — right at the old 30 s per-attempt edge
 (only the retry, 60 s total, saved them). The audit's asymmetry (openbb UP,
 sec-edgar DOWN on both boots) is **disk-I/O contention**: at app boot the two
 `_MEI*` extractions run CONCURRENTLY (parallelized in `lib.rs` setup), so the
