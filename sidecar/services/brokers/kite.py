@@ -183,21 +183,28 @@ class KiteAdapter(BrokerAdapter):
         try:
             margins = await asyncio.to_thread(self._client.margins)
             holdings = await asyncio.to_thread(self._client.holdings)
+            positions = await asyncio.to_thread(self._client.positions)
         except Exception as exc:  # noqa: BLE001
-            raise BrokerError(f"kite: account fetch failed: {exc}") from exc
+            _raise_kite_read_error(exc)
 
-        # Kite's margins returns ``{"equity": {"available": {"cash": n}, ...}, ...}``.
+        # Kite's margins returns ``{"equity": {"available": {"cash": n},
+        # "net": n, ...}, ...}``. Use ``net`` for equity + buying power (the old
+        # code used ``available.cash`` for all three, hiding F&O/used margin);
+        # keep ``available.cash`` for the cash line.
         equity_block = (margins or {}).get("equity") or {}
         available = equity_block.get("available") or {}
-        equity = float(available.get("cash") or 0.0)
+        net = float(equity_block.get("net") or 0.0)
+        cash = float(available.get("cash") or 0.0)
         return AccountSummary(
             broker="kite",
             accountId=self._account_id,
             currency="INR",
-            equity=equity,
-            cash=equity,
-            buyingPower=equity,
-            positions=_translate_kite_holdings(holdings or []),
+            equity=net,
+            cash=cash,
+            buyingPower=net,
+            # Long-term holdings + intraday/F&O net positions (the old code
+            # fetched holdings only, so open F&O/intraday P&L was invisible).
+            positions=_translate_kite_positions_and_holdings(positions or {}, holdings or []),
             capturedAt=int(time.time() * 1000),
         )
 
@@ -313,3 +320,70 @@ def _translate_kite_holdings(holdings: list[dict[str, Any]]) -> list[BrokerPosit
             )
         )
     return out
+
+
+def _translate_kite_positions_and_holdings(
+    positions: dict[str, Any], holdings: list[dict[str, Any]]
+) -> list[BrokerPosition]:
+    """Merge long-term holdings with intraday/F&O net positions."""
+    out = _translate_kite_holdings(holdings)
+    for p in (positions or {}).get("net") or []:
+        quantity = float(p.get("quantity") or 0.0)
+        if quantity == 0:
+            continue
+        avg_cost = float(p.get("average_price") or 0.0)
+        last_price = float(p.get("last_price") or avg_cost)
+        out.append(
+            BrokerPosition(
+                symbol=str(p.get("tradingsymbol") or ""),
+                quantity=quantity,
+                averageCost=avg_cost,
+                marketValue=quantity * last_price,
+                unrealizedPnl=float(p.get("pnl") or 0.0),
+            )
+        )
+    return out
+
+
+def _raise_kite_read_error(exc: Exception) -> None:
+    """Map a Kite read failure to a typed BrokerError. The daily token expiry
+    (``TokenException``, HTTP 403) is flagged distinctly so the route can surface
+    a 419 'reconnect' cue rather than a generic red error."""
+    if type(exc).__name__ == "TokenException":
+        raise BrokerError("kite: session expired — reconnect (daily token expiry)") from exc
+    raise BrokerError(f"kite: account fetch failed: {exc}") from exc
+
+
+async def exchange_request_token(
+    api_key: str, api_secret: str, request_token: str
+) -> dict[str, Any]:
+    """Exchange a one-time ``request_token`` for a daily ``access_token`` via the
+    real Kite Connect login flow.
+
+    ``KiteConnect.generate_session`` computes the SHA-256 checksum
+    (``api_key + request_token + api_secret``) and POSTs ``/session/token``
+    internally — this is the genuine OAuth login-token exchange, NOT a static
+    pasted token. The ``api_secret`` is used ONLY here; the resolved
+    ``access_token`` is what :meth:`KiteAdapter._connect` consumes.
+    """
+    if not api_key or not api_secret or not request_token:
+        raise BrokerError("kite: api_key, api_secret, and request_token are all required")
+    try:
+        from kiteconnect import KiteConnect  # type: ignore[import-not-found]
+    except ImportError as exc:  # pragma: no cover
+        raise BrokerError(f"kite: kiteconnect SDK not installed: {exc}") from exc
+    client = await asyncio.to_thread(KiteConnect, api_key=api_key)
+    try:
+        data = await asyncio.to_thread(
+            client.generate_session, request_token, api_secret=api_secret
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise BrokerError(f"kite: login exchange failed: {exc}") from exc
+    access_token = (data or {}).get("access_token")
+    if not access_token:
+        raise BrokerError("kite: login exchange returned no access_token")
+    return {
+        "access_token": access_token,
+        "user_id": (data or {}).get("user_id"),
+        "login_time": str((data or {}).get("login_time") or ""),
+    }

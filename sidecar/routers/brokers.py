@@ -168,6 +168,25 @@ async def connect_broker(broker_id: BrokerId, payload: BrokerConnectRequest) -> 
     return adapter.state()
 
 
+def _read_error_to_http(exc: BrokerError) -> HTTPException:
+    """Map a broker read error to HTTP. A daily-token expiry becomes 419 so the
+    frontend shows a 'reconnect' cue instead of a generic red error."""
+    if str(exc).startswith("kite: session expired"):
+        return HTTPException(status_code=419, detail="kite-session-expired")
+    return HTTPException(status_code=400, detail=str(exc))
+
+
+async def _read_account(broker_id: BrokerId, method_name: str) -> AccountSummary:
+    """Read account state via a granular adapter method if it exists, else fall
+    back to ``account_info()`` (read-only by construction — no order path)."""
+    adapter = _get_adapter(broker_id)
+    fn = getattr(adapter, method_name, None)
+    try:
+        return await (fn() if callable(fn) else adapter.account_info())
+    except BrokerError as exc:
+        raise _read_error_to_http(exc) from exc
+
+
 @router.get("/{broker_id}/account")
 async def get_broker_account(broker_id: BrokerId) -> AccountSummary:
     """Read the account summary + positions from the broker."""
@@ -175,7 +194,37 @@ async def get_broker_account(broker_id: BrokerId) -> AccountSummary:
     try:
         return await adapter.account_info()
     except BrokerError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        raise _read_error_to_http(exc) from exc
+
+
+@router.get("/{broker_id}/positions")
+async def get_broker_positions(broker_id: BrokerId) -> AccountSummary:
+    """Read positions (long-term holdings + intraday/F&O) — read-only."""
+    return await _read_account(broker_id, "positions_info")
+
+
+@router.get("/{broker_id}/holdings")
+async def get_broker_holdings(broker_id: BrokerId) -> AccountSummary:
+    """Read long-term holdings — read-only."""
+    return await _read_account(broker_id, "holdings_info")
+
+
+@router.get("/{broker_id}/margins")
+async def get_broker_margins(broker_id: BrokerId) -> AccountSummary:
+    """Read funds / buying power — read-only."""
+    return await _read_account(broker_id, "margins_info")
+
+
+@router.post("/{broker_id}/disconnect")
+async def disconnect_broker(broker_id: BrokerId) -> BrokerState:
+    """Drop the broker session — a state reset, never an order. Clears the
+    cached client + connected flag so a stale/expired session is cleanly reset
+    (closes the latent 404 the frontend store already POSTs to)."""
+    adapter = _get_adapter(broker_id)
+    if hasattr(adapter, "_client"):
+        adapter._client = None  # noqa: SLF001 — deliberate read-state reset
+    adapter._connected = False  # noqa: SLF001
+    return adapter.state()
 
 
 @router.post("/{broker_id}/orders")
@@ -307,6 +356,57 @@ def set_kite_configured_static_ip(payload: BrokerSetStaticIpRequest) -> KiteStat
         raise HTTPException(status_code=500, detail="kite adapter type mismatch")
     adapter.set_configured_static_ip(payload.static_ip)
     return KiteStaticIpStatus(configuredIp=adapter.configured_static_ip())
+
+
+# ---------------------------------------------------------------------------
+# Kite-specific — the real OAuth login-token exchange (replaces static paste)
+# ---------------------------------------------------------------------------
+
+
+class KiteSessionRequest(BaseModel):
+    """``POST /brokers/kite/session`` — exchange a one-time request_token.
+
+    The ``api_secret`` is used ONLY for this checksum/exchange and is never
+    stored or echoed; the response carries only the resolved access token +
+    identity. Transport is loopback-only (sidecar binds 127.0.0.1)."""
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    api_key: str = Field(alias="apiKey")
+    api_secret: str = Field(alias="apiSecret")
+    request_token: str = Field(alias="requestToken")
+
+
+class KiteSessionResponse(BaseModel):
+    """Resolved Kite session — the access token the adapter then connects with."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    access_token: str = Field(alias="accessToken")
+    user_id: str | None = Field(default=None, alias="userId")
+    login_time: str | None = Field(default=None, alias="loginTime")
+
+
+@router.post("/kite/session")
+async def kite_exchange_session(payload: KiteSessionRequest) -> KiteSessionResponse:
+    """Run the real Kite Connect login exchange: a one-time ``request_token``
+    (from the browser login) + ``api_key`` + ``api_secret`` -> a daily
+    ``access_token``. The SDK computes the SHA-256 checksum and POSTs
+    ``/session/token`` internally. This replaces the old static-token paste —
+    the user does the genuine OAuth dance and the token expires daily."""
+    from services.brokers.kite import exchange_request_token
+
+    try:
+        data = await exchange_request_token(
+            payload.api_key, payload.api_secret, payload.request_token
+        )
+    except BrokerError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return KiteSessionResponse(
+        accessToken=data["access_token"],
+        userId=data.get("user_id"),
+        loginTime=data.get("login_time"),
+    )
 
 
 __all__ = [

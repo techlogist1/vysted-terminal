@@ -1,10 +1,14 @@
 "use client";
 
 import { type FunctionComponent, useEffect, useState } from "react";
-import { Check, KeyRound, Layers, Plug, Settings2, Trash2, X } from "lucide-react";
+import { Check, KeyRound, Layers, Network, Plug, Settings2, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
+import { INTEGRATIONS } from "@/lib/integrations/registry";
+import type { IntegrationSpec } from "@/lib/integrations/types";
+import { ConnectCard } from "@/modules/integrations/ConnectCard";
+import { useBrokersStore } from "@/store/brokers";
 import { deleteSecret, KEYCHAIN_NAMESPACES } from "@/lib/keychain";
 import { HOST_VERSION } from "@/lib/plugin-bootstrap";
 import {
@@ -57,6 +61,7 @@ export const SettingsPanel: FunctionComponent = () => {
             </p>
           </header>
           <ProvidersSection />
+          <IntegrationsSection />
           <LayoutsSection />
           <ModulesSection />
           <AboutSection />
@@ -183,6 +188,69 @@ function ProvidersSection() {
           if (!next) setDialogProvider(null);
         }}
         onSaved={(id) => void refreshOne(id)}
+      />
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Integrations (brokers + data providers)
+// ---------------------------------------------------------------------------
+
+function IntegrationsSection() {
+  const brokerStates = useBrokersStore((s) => s.byId) as Record<
+    string,
+    { status?: string } | undefined
+  >;
+  const refreshBrokers = useBrokersStore((s) => s.refresh);
+  const [connectSpec, setConnectSpec] = useState<IntegrationSpec | null>(null);
+
+  useEffect(() => {
+    void refreshBrokers();
+  }, [refreshBrokers]);
+
+  const brokers = INTEGRATIONS.filter((i) => i.category === "broker");
+
+  return (
+    <section aria-labelledby="settings-integrations">
+      <SectionHeader
+        id="settings-integrations"
+        icon={<Network className="size-4 text-amber-400" aria-hidden="true" />}
+        title="Integrations"
+        hint="Connect a broker for read-only positions, holdings & P&L the copilot can analyse over your real account. Order execution stays in the broker panel."
+      />
+      <ul className="flex flex-col gap-1.5">
+        {brokers.map((spec) => {
+          const connected = brokerStates[spec.id]?.status === "connected";
+          return (
+            <li
+              key={spec.id}
+              className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between gap-3 rounded-md border px-4 py-3"
+            >
+              <div className="flex min-w-0 flex-col">
+                <span className="text-charcoal-100 font-mono text-sm">{spec.label}</span>
+                <span className="text-charcoal-400 font-mono text-xs">{spec.blurb}</span>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <span
+                  className={`font-mono text-[10px] tracking-wide uppercase ${
+                    connected ? "text-positive" : "text-charcoal-500"
+                  }`}
+                >
+                  {connected ? "connected" : "not connected"}
+                </span>
+                <Button size="sm" variant="outline" onClick={() => setConnectSpec(spec)}>
+                  {connected ? "Manage" : "Connect"}
+                </Button>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <ConnectCard
+        spec={connectSpec}
+        open={connectSpec !== null}
+        onOpenChange={(open) => !open && setConnectSpec(null)}
       />
     </section>
   );
