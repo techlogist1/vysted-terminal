@@ -8,6 +8,7 @@ import { KeyEntryDialog } from "@/components/KeyEntryDialog";
 import { deleteSecret, KEYCHAIN_NAMESPACES } from "@/lib/keychain";
 import { HOST_VERSION } from "@/lib/plugin-bootstrap";
 import {
+  autosaveLayout,
   deleteWorkspace,
   listWorkspaces,
   loadWorkspace,
@@ -38,22 +39,28 @@ import type { LLMProviderId } from "../../types/ai";
  */
 export const SettingsPanel: FunctionComponent = () => {
   return (
-    <div className="bg-charcoal-900 h-full w-full overflow-y-auto">
-      <div className="mx-auto flex max-w-2xl flex-col gap-8 p-6">
-        <header>
-          <h1 className="text-charcoal-100 flex items-center gap-2 font-serif text-2xl">
-            <Settings2 className="size-5 text-amber-400" aria-hidden="true" />
-            Settings
-          </h1>
-          <p className="text-charcoal-400 mt-1 font-mono text-xs">
-            Local-first &amp; bring-your-own-keys. Nothing leaves this machine except calls you make
-            to providers you configure.
-          </p>
-        </header>
-        <ProvidersSection />
-        <LayoutsSection />
-        <ModulesSection />
-        <AboutSection />
+    // Single scroll container: the root clips at the painted charcoal box
+    // (`overflow-hidden`) so over-scroll never reveals the WKWebView backdrop
+    // (the "blue void"), and the one inner `overflow-y-auto` is the only
+    // scrollbar — fixes the double-scrollbar-into-void (map-settings 3a).
+    <div className="bg-charcoal-900 flex h-full w-full flex-col overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto flex max-w-2xl flex-col gap-8 p-6">
+          <header>
+            <h1 className="text-charcoal-100 flex items-center gap-2 font-serif text-2xl">
+              <Settings2 className="size-5 text-amber-400" aria-hidden="true" />
+              Settings
+            </h1>
+            <p className="text-charcoal-400 mt-1 font-mono text-xs">
+              Local-first &amp; bring-your-own-keys. Nothing leaves this machine except calls you
+              make to providers you configure.
+            </p>
+          </header>
+          <ProvidersSection />
+          <LayoutsSection />
+          <ModulesSection />
+          <AboutSection />
+        </div>
       </div>
     </div>
   );
@@ -125,10 +132,18 @@ function ProvidersSection() {
                 </span>
               </div>
               <div className="flex shrink-0 items-center gap-1.5">
-                {(configured || !needsKey) && !isDefault && (
+                {/* Picking a default is a free preference (no key precondition),
+                    so it shows on every non-default row — not just the one
+                    provider that happens to need no key (regression-95 BUG-3). */}
+                {!isDefault && (
                   <button
                     type="button"
-                    onClick={() => setDefaultProviderId(provider.id)}
+                    onClick={() => {
+                      setDefaultProviderId(provider.id);
+                      // Persist immediately (into the autosave slot) so the
+                      // choice survives relaunch even without a layout change.
+                      void autosaveLayout();
+                    }}
                     className="text-charcoal-400 hover:text-charcoal-100 font-mono text-[11px] uppercase"
                   >
                     Set default

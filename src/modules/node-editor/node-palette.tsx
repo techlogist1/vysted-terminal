@@ -42,7 +42,6 @@ const CATEGORY_ORDER: readonly NodeSpec["category"][] = [
 
 export function NodePalette({ registry }: NodePaletteProps) {
   const grouped = groupByCategory(registry);
-  const pluginEntries = registry.filter((entry) => entry.source === "plugin");
 
   return (
     <aside
@@ -76,22 +75,6 @@ export function NodePalette({ registry }: NodePaletteProps) {
             </section>
           );
         })}
-        {pluginEntries.length > 0 && (
-          <section data-testid="palette-section-plugin" className="px-2">
-            <h3 className="text-charcoal-400 mb-1 px-1 font-mono text-[10px] uppercase">
-              Plugin Nodes
-            </h3>
-            <ul className="flex flex-col gap-1">
-              {pluginEntries.map((entry) => (
-                <li key={`plugin-flat:${entry.spec.id}`}>
-                  <span className="text-charcoal-500 px-2 font-mono text-[9px]">
-                    {entry.pluginId ?? "plugin"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
       </div>
     </aside>
   );

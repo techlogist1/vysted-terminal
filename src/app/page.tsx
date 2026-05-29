@@ -35,7 +35,15 @@ export default function Page() {
     // the health-check loop. The promise resolves to a teardown function that
     // unloads everything when the page unmounts.
     let teardown: (() => void) | null = null;
+    let alive = true;
     void bootstrapPlugins().then((dispose) => {
+      // If the effect already tore down (StrictMode/HMR/navigation) before this
+      // async bootstrap resolved, dispose immediately — otherwise the runtime's
+      // 30s health-check interval leaks forever (hunt-race-async Finding 1).
+      if (!alive) {
+        dispose();
+        return;
+      }
       teardown = dispose;
       // Refresh the palette once plugins have appended their commands.
       useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
@@ -58,6 +66,7 @@ export default function Page() {
       }
     });
     return () => {
+      alive = false;
       unsubscribeEnabled();
       unsubscribeModules();
       teardown?.();

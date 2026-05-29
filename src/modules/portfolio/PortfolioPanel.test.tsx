@@ -77,20 +77,32 @@ describe("PortfolioPanel", () => {
     expect(weightCell).toBeDefined();
   });
 
-  it("surfaces a SidecarError from the initial load", async () => {
-    mockFetchPositions.mockRejectedValueOnce(new SidecarError(502, "sidecar offline"));
+  it("surfaces a SidecarError from the initial load (after the auto-retry is exhausted)", async () => {
+    // Reject persistently so the terminal error surfaces once the bounded
+    // auto-retry (~50s of backoff) is exhausted.
+    vi.useFakeTimers();
+    mockFetchPositions.mockRejectedValue(new SidecarError(502, "sidecar offline"));
     render(<PortfolioPanel />);
-    expect(await screen.findByText("sidecar offline")).toBeInTheDocument();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60000);
+    });
+    expect(screen.getByText("sidecar offline")).toBeInTheDocument();
+    vi.useRealTimers();
   });
 
   it("shows Retry button on load failure and no empty-state message alongside it", async () => {
-    mockFetchPositions.mockRejectedValueOnce(new SidecarError(503, "sidecar down"));
+    vi.useFakeTimers();
+    mockFetchPositions.mockRejectedValue(new SidecarError(503, "sidecar down"));
     render(<PortfolioPanel />);
-    expect(await screen.findByText("sidecar down")).toBeInTheDocument();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60000);
+    });
+    expect(screen.getByText("sidecar down")).toBeInTheDocument();
     // A Retry affordance must appear.
     expect(screen.getByRole("button", { name: /retry/i })).toBeInTheDocument();
     // The clean empty-state message must NOT be shown alongside the error.
     expect(screen.queryByText("No positions yet — add one above.")).not.toBeInTheDocument();
+    vi.useRealTimers();
   });
 
   it("shows clean empty-state (no error) for a successful zero-position load", async () => {

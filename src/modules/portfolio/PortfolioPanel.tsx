@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -51,24 +51,51 @@ export function PortfolioPanel() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const load = useCallback(async () => {
+  // Pending auto-retry timer for the cold-boot bind race — cleared on unmount.
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Holds the current `load` so the retry timer can re-invoke it without `load`
+  // referencing itself inside its own useCallback (rules-of-hooks immutability).
+  const loadRef = useRef<(attempt?: number) => void>(() => {});
+
+  const load = useCallback(async (attempt = 0) => {
     try {
       const stored = await fetchPositions();
       const quotes = await fetchPositionQuotes(stored);
       setSummary(buildPortfolioSummary(stored, quotes));
       setError(null);
     } catch (err) {
+      // Auto-retry with backoff (1s, 2s, 4s, then capped at 5s for ~12 attempts
+      // ≈ 50s) so a cold-boot sidecar bind (PyInstaller `_MEI` re-exec, ~30s)
+      // self-heals instead of latching a permanent error block.
+      if (attempt < 12) {
+        retryTimer.current = setTimeout(
+          () => loadRef.current(attempt + 1),
+          Math.min(1000 * 2 ** attempt, 5000),
+        );
+        return;
+      }
       const message = err instanceof SidecarError ? err.message : "Failed to load portfolio";
       setSummary(null);
       setError(message);
     }
   }, []);
+  // Keep the retry-callback ref pointed at the latest `load` (assigned in an
+  // effect, never during render).
+  useEffect(() => {
+    loadRef.current = load;
+  }, [load]);
 
   useEffect(() => {
     // `load` only sets state after an awaited fetch resolves (never
     // synchronously), so the cascading-render concern does not apply.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
+    return () => {
+      if (retryTimer.current) {
+        clearTimeout(retryTimer.current);
+        retryTimer.current = null;
+      }
+    };
   }, [load]);
 
   // --- panel-context bus: publish snapshot on positions change ------------
@@ -110,6 +137,14 @@ export function PortfolioPanel() {
     const costBasis = Number(form.costBasis);
     if (form.symbol.trim() === "" || !Number.isFinite(quantity) || !Number.isFinite(costBasis)) {
       setError("Symbol, quantity, and cost basis are required");
+      return;
+    }
+    if (quantity <= 0) {
+      setError("Quantity must be greater than 0");
+      return;
+    }
+    if (costBasis < 0) {
+      setError("Cost basis cannot be negative");
       return;
     }
     const payload: PositionInput = {
@@ -331,8 +366,8 @@ export function PortfolioPanel() {
                             : "text-negative",
                       )}
                     >
-                      {pnl !== null && pnlPercent !== null
-                        ? `${formatSignedMoney(pnl, true)} (${formatPercent(pnlPercent)})`
+                      {pnl !== null
+                        ? `${formatSignedMoney(pnl, true)} (${pnlPercent !== null ? formatPercent(pnlPercent) : "—"})`
                         : "—"}
                     </td>
                     <td className="text-charcoal-200 px-3 py-2 text-right">

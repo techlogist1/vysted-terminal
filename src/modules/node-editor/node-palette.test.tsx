@@ -35,13 +35,13 @@ describe("NodePalette", () => {
     expect(screen.getByTestId("palette-category-action")).toBeInTheDocument();
   });
 
-  it("renders plugin-contributed nodes alongside built-ins and surfaces the plugin badge", () => {
+  it("renders plugin-contributed nodes as draggable cards in their category (no redundant flat section)", () => {
     const registry = buildRegistry([pluginNode]);
     render(<NodePalette registry={registry} />);
+    // Plugin nodes render exactly once — as a draggable card within their
+    // category group — not duplicated in a separate non-draggable label list.
     expect(screen.getByTestId(`palette-card-${pluginNode.id}`)).toBeInTheDocument();
-    // The plugin section also renders separately so the user can spot
-    // plugin-contributed nodes at a glance.
-    expect(screen.getByTestId("palette-section-plugin")).toBeInTheDocument();
+    expect(screen.queryByTestId("palette-section-plugin")).not.toBeInTheDocument();
   });
 
   it("stamps the drag MIME type on dragstart so the canvas can identify the drop", () => {

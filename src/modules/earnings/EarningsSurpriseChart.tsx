@@ -91,7 +91,20 @@ export function EarningsSurpriseChart({ surprises, limit = 12 }: Props) {
       value: entry.eps_surprise,
       color: entry.eps_surprise >= 0 ? POSITIVE : NEGATIVE,
     }));
-    series.setData(data);
+    // Two surprises sharing a reported_date floor to the same second-resolution
+    // timestamp; lightweight-charts throws "data must be asc ordered by time"
+    // on duplicates, so collapse equal-time points (keep the latest) before
+    // setData — mirrors MacroChart's dedupe (hunt-data-edge).
+    const deduped: HistogramData<UTCTimestamp>[] = [];
+    for (const point of data) {
+      const previous = deduped[deduped.length - 1];
+      if (previous && (point.time as number) === (previous.time as number)) {
+        deduped[deduped.length - 1] = point;
+        continue;
+      }
+      deduped.push(point);
+    }
+    series.setData(deduped);
     chartRef.current?.timeScale().fitContent();
   }, [surprises, limit]);
 

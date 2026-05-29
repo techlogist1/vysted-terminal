@@ -53,14 +53,28 @@ function fmtVolume(value: number | null): string {
   return value.toLocaleString("en-US");
 }
 
-function compareValue(a: ScreenerResultRow, b: ScreenerResultRow, key: SortKey): number {
+// Direction-aware comparator that always pins null/unknown values LAST, in both
+// directions. The previous code sorted ascending then `.reverse()`d the whole
+// array, which flipped the null partition to the TOP on the default desc sort —
+// so unknown-market-cap rows (common for crypto) floated above real results
+// (hunt-state-logic). Applying the direction factor only to the value
+// comparison keeps nulls sinking regardless of direction.
+function compareValue(
+  a: ScreenerResultRow,
+  b: ScreenerResultRow,
+  key: SortKey,
+  dir: number,
+): number {
   const av = a[key];
   const bv = b[key];
   if (av === null && bv === null) return 0;
-  if (av === null) return 1;
+  if (av === null) return 1; // nulls always last, regardless of direction
   if (bv === null) return -1;
-  if (typeof av === "number" && typeof bv === "number") return av - bv;
-  return String(av).localeCompare(String(bv));
+  const base =
+    typeof av === "number" && typeof bv === "number"
+      ? av - bv
+      : String(av).localeCompare(String(bv));
+  return base * dir;
 }
 
 export function ScreenerResultsTable() {
@@ -71,8 +85,8 @@ export function ScreenerResultsTable() {
 
   const rows = useMemo(() => {
     if (!result) return [];
-    const sorted = [...result.rows].sort((a, b) => compareValue(a, b, sortKey));
-    return sortDirection === "asc" ? sorted : sorted.reverse();
+    const dir = sortDirection === "asc" ? 1 : -1;
+    return [...result.rows].sort((a, b) => compareValue(a, b, sortKey, dir));
   }, [result, sortKey, sortDirection]);
 
   function onHeaderClick(key: SortKey) {

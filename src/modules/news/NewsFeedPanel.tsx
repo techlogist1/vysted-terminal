@@ -128,9 +128,6 @@ export function NewsFeedPanel() {
   // fetch effect's dependency is stable as long as the symbol list does not
   // change.
   const newsSymbols = useMemo(() => entries.map(toNewsSymbol), [entries]);
-  // Stable string key for the symbol list — used as the effect dependency so
-  // the fetch re-runs only when the projected list actually changes.
-  const symbolsKey = newsSymbols.join(",");
 
   const [state, setState] = useState<LoadState>({ status: "loading" });
   // Tracks the article the user last hovered/focused on; `null` when nothing
@@ -164,44 +161,54 @@ export function NewsFeedPanel() {
     };
   }, [unregisterPanelContext]);
 
-  // Fetch the feed and route the result into state. `applyResult` is gated by
-  // the caller's cancellation flag so an in-flight request from an unmounted
-  // panel (or a superseded refresh) is dropped silently.
-  const runFetch = useCallback(
-    (applyResult: (next: LoadState) => void) => {
-      fetchNews(newsSymbols)
-        .then((items) => applyResult({ status: "ready", items }))
-        .catch((error: unknown) => applyResult({ status: "error", message: errorMessage(error) }));
-    },
-    [newsSymbols],
-  );
+  // Manual-refresh nonce — bumping it re-runs the fetch effect. Kept as state
+  // (not a ref) so the effect that owns the fetch lifecycle reacts to it.
+  const [refreshNonce, setRefreshNonce] = useState(0);
 
-  // Re-fetch whenever the projected symbol list changes (initial mount, plus
-  // any add/remove from the shared store). The effect only updates state
-  // asynchronously, never synchronously, so the panel renders its initial
-  // "loading" state directly and previous results stay on screen until the
-  // next fetch resolves (no jarring loading flash when the watchlist mutates).
+  // Fetch the feed on mount, whenever the projected symbol list changes, and on
+  // a manual refresh. A failed load auto-retries with backoff (1s, 2s, 4s, then
+  // capped at 5s for ~12 attempts ≈ 50s) so a cold-boot sidecar bind — the
+  // PyInstaller `_MEI` re-exec can take ~30s — self-heals before the terminal
+  // error block shows, matching Watchlist's poll-based resilience. The per-run
+  // `cancelled` flag drops a superseded/unmounted run's result, and the local
+  // `timer` is cleared on cleanup — no setState-after-unmount, no leak.
   useEffect(() => {
     let cancelled = false;
-    runFetch((next) => {
-      if (!cancelled) {
-        setState(next);
-      }
-    });
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const attempt = (n: number) => {
+      fetchNews(newsSymbols)
+        .then((items) => {
+          if (!cancelled) {
+            setState({ status: "ready", items });
+          }
+        })
+        .catch((error: unknown) => {
+          if (cancelled) {
+            return;
+          }
+          if (n < 12) {
+            timer = setTimeout(() => attempt(n + 1), Math.min(1000 * 2 ** n, 5000));
+            return;
+          }
+          setState({ status: "error", message: errorMessage(error) });
+        });
+    };
+    attempt(0);
     return () => {
       cancelled = true;
+      if (timer) {
+        clearTimeout(timer);
+      }
     };
-    // `runFetch` already closes over `newsSymbols`; depending on `symbolsKey`
-    // keeps the effect stable across renders that produce an equal symbol list.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [symbolsKey]);
+    // `newsSymbols` is memoised per symbol list; `refreshNonce` re-triggers a
+    // manual refresh. (setState lives in async callbacks, never synchronously.)
+  }, [newsSymbols, refreshNonce]);
 
-  // Manual refresh / retry — an event handler, so a synchronous reset to the
-  // loading state is fine here.
+  // Manual refresh / retry — surface the loading state, then re-run the effect.
   const refresh = useCallback(() => {
     setState({ status: "loading" });
-    runFetch(setState);
-  }, [runFetch]);
+    setRefreshNonce((n) => n + 1);
+  }, []);
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">

@@ -16,10 +16,13 @@
 import type { DockviewApi, SerializedDockview } from "dockview";
 
 import { applyDefaultLayout } from "@/config/default-layout";
+import { collectPanelComponents } from "@/lib/module-registry";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
+import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModulesStore } from "@/store/modules";
 import { AUTOSAVE_LAYOUT_NAME, useWorkspaceStore } from "@/store/workspace";
+import type { LLMProviderId } from "../../types/ai";
 import type { WorkspaceDrawings } from "../../types/drawings";
 
 /** The serialised form of a workspace, persisted as a `.vysted-workspace` file. */
@@ -35,6 +38,13 @@ export interface SerializedWorkspace {
    * compatibility with workspaces saved before drawings shipped.
    */
   chartDrawings?: WorkspaceDrawings;
+  /**
+   * The default AI provider the chat sidebar uses. Persisted here so the
+   * Settings "Set default" choice survives a relaunch (it was in-memory-only
+   * and reset to "anthropic" every launch — regression-95 BUG-7). Optional for
+   * workspaces saved before this shipped.
+   */
+  defaultProviderId?: LLMProviderId;
   /** Open to future-phase additions; the sidecar stores the body opaquely. */
   [key: string]: unknown;
 }
@@ -62,6 +72,7 @@ export function serializeWorkspace(name: string): SerializedWorkspace {
     layout: api.toJSON(),
     enabledModules: useModulesStore.getState().enabled,
     chartDrawings: useChartDrawingsStore.getState().snapshot(),
+    defaultProviderId: useLLMProvidersStore.getState().defaultProviderId,
   };
 }
 
@@ -79,13 +90,25 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
   }
   // Restore the enabled map first so the panel components a layout references
   // resolve against the same module set that was active when it was saved.
+  // Snapshot it so a throwing `fromJSON` (corrupt/truncated blob) rolls the
+  // module set back instead of leaving it half-applied (regression-95 BUG-5).
+  const prevEnabled = useModulesStore.getState().enabled;
   useModulesStore.getState().setEnabledMap(workspace.enabledModules);
-  api.fromJSON(workspace.layout);
+  try {
+    api.fromJSON(workspace.layout);
+  } catch (error) {
+    useModulesStore.getState().setEnabledMap(prevEnabled);
+    throw error;
+  }
   useWorkspaceStore.getState().setName(workspace.name);
   if (workspace.chartDrawings) {
     useChartDrawingsStore.getState().replaceAll(workspace.chartDrawings);
   } else {
     useChartDrawingsStore.getState().replaceAll({ byPanel: {} });
+  }
+  // Restore the persisted default AI provider (older workspaces lack it).
+  if (workspace.defaultProviderId) {
+    useLLMProvidersStore.getState().setDefaultProviderId(workspace.defaultProviderId);
   }
 }
 
@@ -127,6 +150,9 @@ export async function saveWorkspace(name: string): Promise<void> {
   if (!response.ok) {
     throw new WorkspaceError(`Could not save workspace "${trimmed}" (HTTP ${response.status}).`);
   }
+  // Mark the just-saved layout active so it shows the "active" badge, matching
+  // loadWorkspace's behaviour (regression-95 BUG-4).
+  useWorkspaceStore.getState().setName(trimmed);
 }
 
 /** Load a saved workspace from the sidecar and apply it to the live stores. */
@@ -149,29 +175,75 @@ export async function loadWorkspace(name: string): Promise<void> {
 }
 
 /**
+ * True when the serialized layout references a panel component id that is not
+ * currently registered. dockview instantiates panel content eagerly during
+ * `fromJSON`, so an unknown component (e.g. a plugin panel whose module
+ * registers asynchronously after `handleReady`) throws synchronously and
+ * half-mutates the grid. We detect that up-front and skip cleanly to default.
+ * An unreadable layout shape is treated as "unknown" so we conservatively
+ * skip-to-default rather than risk the throw.
+ */
+function layoutReferencesUnknownComponent(layout: SerializedDockview): boolean {
+  const known = new Set(Object.keys(collectPanelComponents(useModulesStore.getState().modules)));
+  const panels = (layout as { panels?: Record<string, { contentComponent?: string }> }).panels;
+  if (!panels || typeof panels !== "object") {
+    return true;
+  }
+  return Object.values(panels).some(
+    (panel) => panel?.contentComponent !== undefined && !known.has(panel.contentComponent),
+  );
+}
+
+/**
  * Restore the auto-saved "last session" cockpit if one exists, else apply the
  * bundled default layout. Called once on launch from PanelHost; this is what
  * makes a customised cockpit survive a relaunch (Track C). Never throws — a
  * failed restore falls back to the default so the app always boots usable.
  * Returns true when a saved session was restored.
+ *
+ * The fetch below awaits a Tauri IPC + localhost round-trip. Under
+ * StrictMode/HMR the dockview api can be disposed and replaced while we wait,
+ * so re-check that THIS api is still the live one before every mutation —
+ * touching a disposed api throws `element.parentElement is null`.
  */
 export async function restoreLastSessionOrDefault(
   api: DockviewApi,
   enabledPanelIds: Set<string>,
 ): Promise<boolean> {
+  const isLive = () => useWorkspaceStore.getState().dockviewApi === api;
   try {
     const response = await fetch(await workspaceUrl(AUTOSAVE_LAYOUT_NAME));
+    if (!isLive()) {
+      return false; // api was disposed/replaced during the fetch
+    }
     if (response.ok) {
       const workspace = (await response.json()) as SerializedWorkspace;
+      if (!isLive()) {
+        return false;
+      }
+      // Skip to default if the saved layout references a component not yet
+      // registered (plugin panels register async) — that would throw mid-
+      // `fromJSON` and corrupt the grid for the fallback below.
+      if (layoutReferencesUnknownComponent(workspace.layout)) {
+        applyDefaultLayout(api, enabledPanelIds);
+        return false;
+      }
       deserializeWorkspace(workspace);
       // The reserved slot's name is internal — present the restored cockpit
       // under the neutral "default" name, not "__autosave__".
       useWorkspaceStore.getState().setName("default");
       return true;
     }
-  } catch {
-    // Fall through to the default layout below.
+  } catch (error) {
+    // Restore failed — log (Track A discipline) then fall through to default.
+    console.warn("[workspace] session restore failed; using default layout.", error);
   }
+  if (!isLive()) {
+    return false;
+  }
+  // Re-base the fallback on a clean grid so a partial `fromJSON` can't leave a
+  // corrupt grid under `addPanel`.
+  api.clear();
   applyDefaultLayout(api, enabledPanelIds);
   return false;
 }
@@ -192,6 +264,7 @@ export async function autosaveLayout(): Promise<void> {
       layout: api.toJSON(),
       enabledModules: useModulesStore.getState().enabled,
       chartDrawings: useChartDrawingsStore.getState().snapshot(),
+      defaultProviderId: useLLMProvidersStore.getState().defaultProviderId,
     };
     await fetch(await workspaceUrl(), {
       method: "POST",
