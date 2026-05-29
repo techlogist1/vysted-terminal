@@ -8,12 +8,14 @@ import { OnboardingBanner } from "@/components/OnboardingBanner";
 import { PanelHost } from "@/components/PanelHost";
 import { useDesktopNotificationBridge } from "@/lib/desktop-notification";
 import { bootstrapPlugins } from "@/lib/plugin-bootstrap";
+import { autosaveLayout } from "@/lib/workspace";
 import { vystedModules } from "@/modules";
 import { WorkspaceDialog } from "@/modules/platform/WorkspaceDialog";
 import { useWorkspaceDialog } from "@/modules/platform/workspace-dialog-store";
 import { useAppStore } from "@/store/app";
 import { useCommandPalette } from "@/store/command-palette";
 import { useModulesStore } from "@/store/modules";
+import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 
 export default function Page() {
@@ -65,10 +67,19 @@ export default function Page() {
         useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
       }
     });
+    // Persist watchlist edits — add/remove a symbol doesn't change the dockview
+    // layout, so the layout-autosave subscription wouldn't catch it; this makes
+    // a customised watchlist survive a relaunch (Phase 10 customizability).
+    const unsubscribeSymbols = useSymbolsStore.subscribe((state, previous) => {
+      if (state.entries !== previous.entries) {
+        void autosaveLayout();
+      }
+    });
     return () => {
       alive = false;
       unsubscribeEnabled();
       unsubscribeModules();
+      unsubscribeSymbols();
       teardown?.();
     };
   }, []);

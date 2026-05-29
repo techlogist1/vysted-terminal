@@ -34,6 +34,8 @@ interface SymbolsState {
   addSymbol: (symbol: string, assetClass: "equity" | "crypto") => void;
   /** Remove a tracked symbol. */
   removeSymbol: (symbol: string) => void;
+  /** Replace the whole list — used to restore a persisted watchlist on launch. */
+  setEntries: (entries: SymbolEntry[]) => void;
 }
 
 /** The shared symbol-list store, seeded with the default watchlist. */
@@ -53,6 +55,16 @@ export const useSymbolsStore = create<SymbolsState>((set) => ({
   removeSymbol: (symbol) =>
     set((state) => ({
       entries: state.entries.filter((entry) => entry.symbol.toUpperCase() !== symbol.toUpperCase()),
+    })),
+  setEntries: (entries) =>
+    set(() => ({
+      // Normalise + de-dup so a corrupt persisted blob can't seed garbage.
+      entries: entries
+        .filter((e) => e && typeof e.symbol === "string" && e.symbol.trim() !== "")
+        .map((e) => ({
+          symbol: e.symbol.trim().toUpperCase(),
+          assetClass: e.assetClass === "crypto" ? "crypto" : "equity",
+        })),
     })),
 }));
 
