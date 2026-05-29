@@ -110,11 +110,14 @@ def register_v0_5_0_tools() -> None:
     ``app.create_app`` so TestClient paths converge. Idempotent — the
     underlying :func:`register_tool` overwrites by tool id.
     """
-    from services.agent_tools import fundamentals, price_data
+    from services.agent_tools import broker_portfolio, fundamentals, price_data
 
     price_data.register()
     fundamentals.register()
-    logger.info("agent_tools: registered v0.5.0 tools (price_data, fundamentals)")
+    broker_portfolio.register()
+    logger.info(
+        "agent_tools: registered v0.5.0 tools (price_data, fundamentals, broker_portfolio)"
+    )
 
 
 def register_v0_6_0_tools() -> None:

@@ -38,8 +38,11 @@ class _FakeKiteClient:
         self.place_calls: list[dict] = []
         self.cancel_calls: list[tuple[str, str]] = []
         self.place_response: str | dict = "KITE-001"
-        self.margins_response: dict = {"equity": {"available": {"cash": 300_000.0}}}
+        # Phase 10: equity now reads `net` (buying power / margin-aware), not
+        # `available.cash`; net == cash here so the assertion is unchanged.
+        self.margins_response: dict = {"equity": {"net": 300_000.0, "available": {"cash": 300_000.0}}}
         self.holdings_response: list = []
+        self.positions_response: dict = {"net": []}
 
     def place_order(self, **kwargs) -> str | dict:
         self.place_calls.append(kwargs)
@@ -54,6 +57,10 @@ class _FakeKiteClient:
 
     def holdings(self) -> list:
         return self.holdings_response
+
+    def positions(self) -> dict:
+        # Phase 10: account_info now also fetches intraday/F&O net positions.
+        return self.positions_response
 
 
 # ---------------------------------------------------------------------------

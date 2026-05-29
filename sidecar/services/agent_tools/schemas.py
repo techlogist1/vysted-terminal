@@ -124,8 +124,18 @@ TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
         "input_schema": _obj({}),
     },
     "get_portfolio": {
-        "description": "Read the user's local portfolio positions with P&L and weights.",
+        "description": "Read the user's local (manually-entered) portfolio positions with P&L.",
         "input_schema": _obj({}),
+    },
+    "broker_portfolio": {
+        "description": (
+            "Read the user's REAL connected-broker account (positions, equity, "
+            "buying power, per-position unrealized P&L) for analysis. Read-only — "
+            "never places an order. `broker` defaults to 'kite' (Zerodha)."
+        ),
+        "input_schema": _obj(
+            {"broker": {"type": "string", "enum": ["kite", "dhan", "angelone"], "default": "kite"}}
+        ),
     },
     # --- host-action tools that DRIVE the terminal (host-executed) ---------
     "open_panel": {
