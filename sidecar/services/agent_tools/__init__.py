@@ -115,9 +115,7 @@ def register_v0_5_0_tools() -> None:
     price_data.register()
     fundamentals.register()
     broker_portfolio.register()
-    logger.info(
-        "agent_tools: registered v0.5.0 tools (price_data, fundamentals, broker_portfolio)"
-    )
+    logger.info("agent_tools: registered v0.5.0 tools (price_data, fundamentals, broker_portfolio)")
 
 
 def register_v0_6_0_tools() -> None:
