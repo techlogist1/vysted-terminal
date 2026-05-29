@@ -12,7 +12,7 @@ exhaustive mechanism dump; this doc re-verifies the load-bearing facts and suppl
 **Claude after dark.** Warm espresso / near-black base (not pure black, not cool slate). A single coral/clay
 accent — Claude's voice made into a terminal. Cream / warm-off-white body text. A humanist serif for
 display, a precise mono for data. Bloomberg/JARVIS information density, expressed in Claude's restrained,
-warm, human language. Not a generic dark dashboard. Not skeuomorphic — we are deliberately *removing* the
+warm, human language. Not a generic dark dashboard. Not skeuomorphic — we are deliberately _removing_ the
 watch-bezel / phosphor-CRT skeuomorphism of INSTRUMENT.
 
 The one-sentence brief: **take the amber-brass chronograph apart, keep its density and warmth, and rebuild
@@ -20,15 +20,15 @@ it in Claude's coral-on-espresso palette with a humanist serif nameplate.**
 
 ### What changes conceptually vs INSTRUMENT
 
-| INSTRUMENT (retired) | Claude after dark |
-|---|---|
-| Amber phosphor HUD accent (`#e9a94d`) | A single coral/clay accent (`#d97757` family) |
-| Brass bezels / gauge ticks / patina metal | No metal. Coral hairlines + flat warm dividers |
-| Warm *brown*-black charcoal (yellow-green undertone) | Warm *espresso* near-black (red-brown undertone) |
-| Lume cream (`#f5efe0`, slightly green) | Warm cream / paper-white (`#f5f1ea`, slightly pink) |
-| Sage cool counterpoint (a second accent) | **Retired** — coral is the *only* accent (sage → coral or muted) |
-| CRT bloom + heavy film grain + bevels | Quiet ambient warmth, near-zero grain, flat panels |
-| Skeuomorphic ("the dial of a chronograph") | Editorial/instrumental, restrained, modern |
+| INSTRUMENT (retired)                                 | Claude after dark                                                |
+| ---------------------------------------------------- | ---------------------------------------------------------------- |
+| Amber phosphor HUD accent (`#e9a94d`)                | A single coral/clay accent (`#d97757` family)                    |
+| Brass bezels / gauge ticks / patina metal            | No metal. Coral hairlines + flat warm dividers                   |
+| Warm _brown_-black charcoal (yellow-green undertone) | Warm _espresso_ near-black (red-brown undertone)                 |
+| Lume cream (`#f5efe0`, slightly green)               | Warm cream / paper-white (`#f5f1ea`, slightly pink)              |
+| Sage cool counterpoint (a second accent)             | **Retired** — coral is the _only_ accent (sage → coral or muted) |
+| CRT bloom + heavy film grain + bevels                | Quiet ambient warmth, near-zero grain, flat panels               |
+| Skeuomorphic ("the dial of a chronograph")           | Editorial/instrumental, restrained, modern                       |
 
 ### The traps we still avoid (carry forward from INSTRUMENT, they were right)
 
@@ -43,18 +43,18 @@ it in Claude's coral-on-espresso palette with a humanist serif nameplate.**
 
 The single most important mechanical decision. Re-verified blast radius against the working tree:
 
-| Token family | Files using the Tailwind class (excl. tests) | Decision |
-|---|---|---|
-| `charcoal-*` | **41** | Keep name `charcoal-*`, re-value to espresso. Renaming → 41-file find/replace. Not worth it. |
-| `amber-*` | **40** | Keep name `amber-*`, re-value to coral. Renaming → 40-file find/replace. **Keep the name.** |
-| `sage-*` | **2** | Keep name (low cost), re-value toward a muted coral/neutral — it is no longer a "second accent." |
-| `brass-*` | **0** in src | Palette ramp is vestigial. Re-value to neutral-warm OR drop the ramp (see §6). |
-| `lume` | **1** in src | Keep name, re-value to warm cream. |
+| Token family | Files using the Tailwind class (excl. tests) | Decision                                                                                         |
+| ------------ | -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `charcoal-*` | **41**                                       | Keep name `charcoal-*`, re-value to espresso. Renaming → 41-file find/replace. Not worth it.     |
+| `amber-*`    | **40**                                       | Keep name `amber-*`, re-value to coral. Renaming → 40-file find/replace. **Keep the name.**      |
+| `sage-*`     | **2**                                        | Keep name (low cost), re-value toward a muted coral/neutral — it is no longer a "second accent." |
+| `brass-*`    | **0** in src                                 | Palette ramp is vestigial. Re-value to neutral-warm OR drop the ramp (see §6).                   |
+| `lume`       | **1** in src                                 | Keep name, re-value to warm cream.                                                               |
 
-So: **we re-value every token in place and rename nothing.** The token *names* (`charcoal`, `amber`, `brass`,
+So: **we re-value every token in place and rename nothing.** The token _names_ (`charcoal`, `amber`, `brass`,
 `sage`, `lume`) become semantically inaccurate (an "amber-400" class will render coral), which is a known,
 accepted cost — the alternative is a 40+-file churn for cosmetic naming. The lead may, as an optional Tier-3
-cleanup, do a project-wide rename in a *separate* commit after the re-value lands and is verified, but it is
+cleanup, do a project-wide rename in a _separate_ commit after the re-value lands and is verified, but it is
 NOT required for the re-skin to be correct. **This blueprint assumes names stay.**
 
 > Adversarial note for the lead: because names lie after this, the one-line comments inside `tokens.css`
@@ -75,24 +75,24 @@ warm hue (~30–40° in oklch, red-brown) with rising lightness; the coral accen
 The dial face is gone; this is now a stack of warm near-blacks with a **red-brown** (espresso) undertone,
 NOT the old yellow-green brown. Graduated for elevation exactly as before (950 deepest → 100 lightest).
 
-| Token | OLD (INSTRUMENT) | **NEW (Claude after dark)** | oklch (approx) | Role |
-|---|---|---|---|---|
-| `--color-charcoal-950` | `#14110f` | `#1a1512` | `oklch(0.18 0.012 40)` | Deepest well — app/root bg |
-| `--color-charcoal-925` | `#181512` | `#1f1916` | `oklch(0.21 0.013 40)` | Header fascia, tab strip bg |
-| `--color-charcoal-900` | `#1c1916` | `#241d19` | `oklch(0.24 0.014 40)` | Card / panel surface |
-| `--color-charcoal-875` | `#201c18` | `#29211d` | `oklch(0.26 0.015 40)` | Popover / active tab |
-| `--color-charcoal-850` | `#232019` | `#2e2521` | `oklch(0.29 0.016 40)` | Raised inset (node bg) |
-| `--color-charcoal-800` | `#2a2620` | `#352a25` | `oklch(0.32 0.017 40)` | Secondary / muted surface |
-| `--color-charcoal-700` | `#3a352c` | `#473a33` | `oklch(0.40 0.018 40)` | Borders / inputs / dividers |
-| `--color-charcoal-600` | `#4d4639` | `#5c4d44` | `oklch(0.48 0.019 38)` | Strong border / disabled fg |
-| `--color-charcoal-500` | `#6b6253` | `#796759` | `oklch(0.57 0.020 38)` | Faint label / kbd chip text |
-| `--color-charcoal-400` | `#8a8170` | `#998778` | `oklch(0.66 0.020 38)` | Muted foreground |
-| `--color-charcoal-300` | `#aaa291` | `#b8a698` | `oklch(0.74 0.019 38)` | Secondary text |
-| `--color-charcoal-200` | `#c9c2b2` | `#d6c8bb` | `oklch(0.83 0.017 38)` | Bright secondary / chart text |
-| `--color-charcoal-100` | `#e8e3d6` | `#ece3d9` | `oklch(0.91 0.013 50)` | Foreground / body text |
+| Token                  | OLD (INSTRUMENT) | **NEW (Claude after dark)** | oklch (approx)         | Role                          |
+| ---------------------- | ---------------- | --------------------------- | ---------------------- | ----------------------------- |
+| `--color-charcoal-950` | `#14110f`        | `#1a1512`                   | `oklch(0.18 0.012 40)` | Deepest well — app/root bg    |
+| `--color-charcoal-925` | `#181512`        | `#1f1916`                   | `oklch(0.21 0.013 40)` | Header fascia, tab strip bg   |
+| `--color-charcoal-900` | `#1c1916`        | `#241d19`                   | `oklch(0.24 0.014 40)` | Card / panel surface          |
+| `--color-charcoal-875` | `#201c18`        | `#29211d`                   | `oklch(0.26 0.015 40)` | Popover / active tab          |
+| `--color-charcoal-850` | `#232019`        | `#2e2521`                   | `oklch(0.29 0.016 40)` | Raised inset (node bg)        |
+| `--color-charcoal-800` | `#2a2620`        | `#352a25`                   | `oklch(0.32 0.017 40)` | Secondary / muted surface     |
+| `--color-charcoal-700` | `#3a352c`        | `#473a33`                   | `oklch(0.40 0.018 40)` | Borders / inputs / dividers   |
+| `--color-charcoal-600` | `#4d4639`        | `#5c4d44`                   | `oklch(0.48 0.019 38)` | Strong border / disabled fg   |
+| `--color-charcoal-500` | `#6b6253`        | `#796759`                   | `oklch(0.57 0.020 38)` | Faint label / kbd chip text   |
+| `--color-charcoal-400` | `#8a8170`        | `#998778`                   | `oklch(0.66 0.020 38)` | Muted foreground              |
+| `--color-charcoal-300` | `#aaa291`        | `#b8a698`                   | `oklch(0.74 0.019 38)` | Secondary text                |
+| `--color-charcoal-200` | `#c9c2b2`        | `#d6c8bb`                   | `oklch(0.83 0.017 38)` | Bright secondary / chart text |
+| `--color-charcoal-100` | `#e8e3d6`        | `#ece3d9`                   | `oklch(0.91 0.013 50)` | Foreground / body text        |
 
 Design rationale: the hue rotated from ~80° (yellow-brown) to ~38–40° (red-brown espresso), and chroma is
-held *low* on the darks (0.012–0.018) so the base reads as warm-neutral, not muddy. The top of the ramp
+held _low_ on the darks (0.012–0.018) so the base reads as warm-neutral, not muddy. The top of the ramp
 (100/200) warms slightly toward cream (hue 50) so body text feels like warm paper, not gray.
 
 ### 2.2 The coral/clay accent — `--color-amber-*` (re-valued to coral; name kept)
@@ -102,15 +102,15 @@ This is the heart of the re-skin. A single Claude coral/clay accent, replacing t
 proper interactive ramp: 200 = faint glow/highlight, 300 = hover-bright, 400 = brand/default, 500 = pressed/
 active, 600 = deep/border.
 
-| Token | OLD (amber) | **NEW (coral/clay)** | oklch (approx) | Role |
-|---|---|---|---|---|
-| `--color-amber-200` | `#f9dba6` | `#f0c4b4` | `oklch(0.84 0.06 35)` | Faint highlight, glow fill, selection tint |
-| `--color-amber-300` | `#f4c87a` | `#e69e84` | `oklch(0.75 0.10 33)` | Hover-bright accent, focus emphasis |
-| `--color-amber-400` | `#e9a94d` | `#d97757` | `oklch(0.66 0.13 33)` | **Brand / primary / default accent** |
-| `--color-amber-500` | `#d98e2b` | `#c2603f` | `oklch(0.58 0.14 32)` | Pressed/active, active-sash, node-selected |
-| `--color-amber-600` | `#b8701a` | `#a44a30` | `oklch(0.50 0.13 32)` | Deep border, deep tick, dense accent on light fg |
+| Token               | OLD (amber) | **NEW (coral/clay)** | oklch (approx)        | Role                                             |
+| ------------------- | ----------- | -------------------- | --------------------- | ------------------------------------------------ |
+| `--color-amber-200` | `#f9dba6`   | `#f0c4b4`            | `oklch(0.84 0.06 35)` | Faint highlight, glow fill, selection tint       |
+| `--color-amber-300` | `#f4c87a`   | `#e69e84`            | `oklch(0.75 0.10 33)` | Hover-bright accent, focus emphasis              |
+| `--color-amber-400` | `#e9a94d`   | `#d97757`            | `oklch(0.66 0.13 33)` | **Brand / primary / default accent**             |
+| `--color-amber-500` | `#d98e2b`   | `#c2603f`            | `oklch(0.58 0.14 32)` | Pressed/active, active-sash, node-selected       |
+| `--color-amber-600` | `#b8701a`   | `#a44a30`            | `oklch(0.50 0.13 32)` | Deep border, deep tick, dense accent on light fg |
 
-Design rationale: a single hue family (~32–35° oklch) so coral is unmistakably *one* color across all states,
+Design rationale: a single hue family (~32–35° oklch) so coral is unmistakably _one_ color across all states,
 not a multi-hue smear. `#d97757` is the recognizable Claude clay. The ramp keeps WCAG legibility: `amber-400`
 on `charcoal-950` is ~5.0:1 (passes AA for UI/large text); coral text on dark is comfortable. `amber-300`
 gives a brighter hover that stays in-family.
@@ -123,13 +123,13 @@ metal. **Recommendation: KEEP the ramp but re-value to a muted warm-neutral** (s
 on-palette), AND repoint `.hud-label` and the hairlines independently (see §3). Do not invest in a rich
 brass identity — it is dead weight.
 
-| Token | OLD (brass) | **NEW (warm-neutral)** | oklch (approx) | Note |
-|---|---|---|---|---|
-| `--color-brass-200` | `#cdb88c` | `#cbb6a6` | `oklch(0.78 0.02 45)` | Warm gray-taupe, no gold |
-| `--color-brass-300` | `#b8965f` | `#a8917f` | `oklch(0.65 0.02 45)` | `.hud-label` color (legend text) |
-| `--color-brass-400` | `#9c7c4d` | `#85705f` | `oklch(0.54 0.02 45)` | hairline source tone |
-| `--color-brass-500` | `#7d6139` | `#615245` | `oklch(0.43 0.018 45)` | — |
-| `--color-brass-600` | `#5d4829` | `#473b31` | `oklch(0.33 0.016 45)` | — |
+| Token               | OLD (brass) | **NEW (warm-neutral)** | oklch (approx)         | Note                             |
+| ------------------- | ----------- | ---------------------- | ---------------------- | -------------------------------- |
+| `--color-brass-200` | `#cdb88c`   | `#cbb6a6`              | `oklch(0.78 0.02 45)`  | Warm gray-taupe, no gold         |
+| `--color-brass-300` | `#b8965f`   | `#a8917f`              | `oklch(0.65 0.02 45)`  | `.hud-label` color (legend text) |
+| `--color-brass-400` | `#9c7c4d`   | `#85705f`              | `oklch(0.54 0.02 45)`  | hairline source tone             |
+| `--color-brass-500` | `#7d6139`   | `#615245`              | `oklch(0.43 0.018 45)` | —                                |
+| `--color-brass-600` | `#5d4829`   | `#473b31`              | `oklch(0.33 0.016 45)` | —                                |
 
 Alternative (cleaner) path: **delete the `brass-*` ramp entirely** and rename `.hud-label`'s color to
 `var(--color-charcoal-400)`. Saves 5 dead tokens. The lead's call — both are listed as decisions. This
@@ -137,8 +137,8 @@ blueprint's default keeps the ramp re-valued (lower risk, no class-removal sweep
 
 ### 2.4 Lume → warm cream — `--color-lume` (re-valued; name kept)
 
-| Token | OLD | **NEW** | oklch | Role |
-|---|---|---|---|---|
+| Token          | OLD       | **NEW**   | oklch                  | Role                                                                                          |
+| -------------- | --------- | --------- | ---------------------- | --------------------------------------------------------------------------------------------- |
 | `--color-lume` | `#f5efe0` | `#f5f1ea` | `oklch(0.95 0.008 60)` | Active-tab text, peak readout, selection text — warm paper-white (faint pink-warm, not green) |
 
 ### 2.5 Sage — `--color-sage-*` (was the second accent; now retired-in-place)
@@ -148,11 +148,11 @@ comparison line + indicator palette). We cannot have a green "second accent" com
 sage to a **muted desaturated clay/taupe** so the 2 consumers stay legible-but-quiet (a comparison line
 should NOT outshout the primary series). It is no longer a brand color — purely a "neutral data series" tone.
 
-| Token | OLD (sage) | **NEW (muted clay)** | oklch | Role |
-|---|---|---|---|---|
-| `--color-sage-300` | `#b6c4a8` | `#c9b9ad` | `oklch(0.78 0.02 45)` | Light data-series neutral |
-| `--color-sage-400` | `#8fa67c` | `#a8917f` | `oklch(0.65 0.02 45)` | Comparison-line / secondary series |
-| `--color-sage-500` | `#6d8559` | `#85705f` | `oklch(0.54 0.02 45)` | Deep neutral |
+| Token              | OLD (sage) | **NEW (muted clay)** | oklch                 | Role                               |
+| ------------------ | ---------- | -------------------- | --------------------- | ---------------------------------- |
+| `--color-sage-300` | `#b6c4a8`  | `#c9b9ad`            | `oklch(0.78 0.02 45)` | Light data-series neutral          |
+| `--color-sage-400` | `#8fa67c`  | `#a8917f`            | `oklch(0.65 0.02 45)` | Comparison-line / secondary series |
+| `--color-sage-500` | `#6d8559`  | `#85705f`            | `oklch(0.54 0.02 45)` | Deep neutral                       |
 
 (Note: sage-400 and brass-300 intentionally land on the same tone `#a8917f` — both are now "warm neutral." If
 the lead drops brass, sage can absorb that role. Kept separate here to avoid touching consumer files.)
@@ -163,16 +163,16 @@ These MUST stay legible and unambiguous on the espresso base, and must NOT clash
 coral (`#d97757`) sits between red and orange, dangerously close to a "loss/down" red. Solution: push
 **negative toward a clear brick-red that is distinct from coral** (lower lightness, redder hue ~25°, higher
 chroma), and keep **positive a warm-but-clearly-green** (not the old sage-adjacent muddy green, and absolutely
-not the forbidden cyan). The accent is a *warm orange-coral*; down is a *cooler brick red*; up is a *warm
-moss-green*. Three distinguishable warm hues.
+not the forbidden cyan). The accent is a _warm orange-coral_; down is a _cooler brick red_; up is a _warm
+moss-green_. Three distinguishable warm hues.
 
-| Token | OLD | **NEW** | oklch | Note |
-|---|---|---|---|---|
-| `--color-positive` | `#7faa6b` | `#7fa96a` | `oklch(0.67 0.10 135)` | Warm moss green — gains. Distinct from coral by hue. |
-| `--color-positive-bright` | `#9ccb84` | `#9fc97f` | `oklch(0.78 0.12 132)` | Bright gain (up-candle wick, +chip) |
-| `--color-negative` | `#c8654b` | `#cf5b48` | `oklch(0.60 0.16 28)` | Brick red — losses. Redder + more chroma than coral so they don't merge. |
-| `--color-negative-bright` | `#e07f63` | `#e3705a` | `oklch(0.68 0.16 28)` | Bright loss (down-candle, −chip) |
-| `--color-warning` (NEW) | — | `#e0a458` | `oklch(0.76 0.11 70)` | **NEW token.** Amber-gold warning/caution (kill-switch armed, stale data, risk banners). Sits at hue ~70° — clearly distinct from both coral (33°) and positive (135°). |
+| Token                     | OLD       | **NEW**   | oklch                  | Note                                                                                                                                                                    |
+| ------------------------- | --------- | --------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--color-positive`        | `#7faa6b` | `#7fa96a` | `oklch(0.67 0.10 135)` | Warm moss green — gains. Distinct from coral by hue.                                                                                                                    |
+| `--color-positive-bright` | `#9ccb84` | `#9fc97f` | `oklch(0.78 0.12 132)` | Bright gain (up-candle wick, +chip)                                                                                                                                     |
+| `--color-negative`        | `#c8654b` | `#cf5b48` | `oklch(0.60 0.16 28)`  | Brick red — losses. Redder + more chroma than coral so they don't merge.                                                                                                |
+| `--color-negative-bright` | `#e07f63` | `#e3705a` | `oklch(0.68 0.16 28)`  | Bright loss (down-candle, −chip)                                                                                                                                        |
+| `--color-warning` (NEW)   | —         | `#e0a458` | `oklch(0.76 0.11 70)`  | **NEW token.** Amber-gold warning/caution (kill-switch armed, stale data, risk banners). Sits at hue ~70° — clearly distinct from both coral (33°) and positive (135°). |
 
 > Adversarial note on negative-vs-coral: the most likely failure of THIS palette is that coral (the brand)
 > and negative (loss-red) look too similar in a dense red/green table, making a down-day and a coral UI accent
@@ -182,19 +182,19 @@ moss-green*. Three distinguishable warm hues.
 > If they still merge, push negative to `#d6493a` (oklch 0.58 0.18 27) — pre-approved fallback.
 >
 > Why a `--warning` token is added: the broker-execution surfaces (kill-switch armed, paper-vs-live, static-IP
-> mismatch banner) need a *third* semantic that is neither "good" (green) nor "bad/loss" (red) nor "brand"
+> mismatch banner) need a _third_ semantic that is neither "good" (green) nor "bad/loss" (red) nor "brand"
 > (coral). INSTRUMENT had no warning token and reused amber for it — but amber IS the accent now repurposed
 > as coral, so caution states would collide with the brand. The new gold `--warning` resolves this. It is the
-> one *additive* token in this spec.
+> one _additive_ token in this spec.
 
 ### 2.7 Typography tokens — `--font-serif` / `--font-mono`
 
 See §4 for the full type decision. Token values:
 
-| Token | OLD | **NEW** | Note |
-|---|---|---|---|
-| `--font-serif` | `var(--font-newsreader), ui-serif, Georgia, …` | `var(--font-fraunces), ui-serif, Georgia, "Times New Roman", serif` | **Swap Newsreader → Fraunces** (see §4 for the why). Fallback chain unchanged in shape. |
-| `--font-mono` | `var(--font-jetbrains-mono), ui-monospace, …` | `var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace` | **Unchanged.** JetBrains Mono stays — it is the correct data face. |
+| Token          | OLD                                            | **NEW**                                                                           | Note                                                                                    |
+| -------------- | ---------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `--font-serif` | `var(--font-newsreader), ui-serif, Georgia, …` | `var(--font-fraunces), ui-serif, Georgia, "Times New Roman", serif`               | **Swap Newsreader → Fraunces** (see §4 for the why). Fallback chain unchanged in shape. |
+| `--font-mono`  | `var(--font-jetbrains-mono), ui-monospace, …`  | `var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace` | **Unchanged.** JetBrains Mono stays — it is the correct data face.                      |
 
 > The inner `--font-fraunces` var must be injected by `next/font` in `layout.tsx` (see §5.3). Changing the
 > token here WITHOUT swapping the `layout.tsx` import is the classic half-edit — both must land together or
@@ -204,23 +204,23 @@ See §4 for the full type decision. Token values:
 
 Crisp, slightly softer than INSTRUMENT's machined edges (Claude is warm, not hard-machined). A 1px bump.
 
-| Token | OLD | **NEW** | Note |
-|---|---|---|---|
-| `--radius-panel` | `0.375rem` (6px) | `0.5rem` (8px) | Slightly softer panel corner — warm, not pillowy |
-| `--radius-control` | `0.25rem` (4px) | `0.375rem` (6px) | Controls a touch softer |
+| Token              | OLD              | **NEW**          | Note                                             |
+| ------------------ | ---------------- | ---------------- | ------------------------------------------------ |
+| `--radius-panel`   | `0.375rem` (6px) | `0.5rem` (8px)   | Slightly softer panel corner — warm, not pillowy |
+| `--radius-control` | `0.25rem` (4px)  | `0.375rem` (6px) | Controls a touch softer                          |
 
 > Bonus: bumping `--radius-panel` to `0.5rem` makes it MATCH the `rounded-lg` literal that `dialog.tsx:56`
 > uses, so the dialog radius drift becomes a non-issue if we set `--radius` to `var(--radius-panel)` (§3.2).
 
 ### 2.9 Motion — `--ease-instrument` / `--ease-detent`
 
-Re-verified used by dockview tab transition (`globals.css:188`). Keep the *names* (renaming → consumer sweep),
+Re-verified used by dockview tab transition (`globals.css:188`). Keep the _names_ (renaming → consumer sweep),
 re-tune slightly: Claude motion is calm and confident, not mechanical-clicky. Soften the detent overshoot.
 
-| Token | OLD | **NEW** | Note |
-|---|---|---|---|
-| `--ease-instrument` | `cubic-bezier(0.2, 0.8, 0.2, 1)` | `cubic-bezier(0.2, 0.8, 0.2, 1)` | **Keep** — a good calm ease-out. Rename in comments only. |
-| `--ease-detent` | `cubic-bezier(0.34, 1.4, 0.64, 1)` | `cubic-bezier(0.34, 1.2, 0.64, 1)` | Reduce overshoot 1.4→1.2 — confident settle, not a mechanical click |
+| Token               | OLD                                | **NEW**                            | Note                                                                |
+| ------------------- | ---------------------------------- | ---------------------------------- | ------------------------------------------------------------------- |
+| `--ease-instrument` | `cubic-bezier(0.2, 0.8, 0.2, 1)`   | `cubic-bezier(0.2, 0.8, 0.2, 1)`   | **Keep** — a good calm ease-out. Rename in comments only.           |
+| `--ease-detent`     | `cubic-bezier(0.34, 1.4, 0.64, 1)` | `cubic-bezier(0.34, 1.2, 0.64, 1)` | Reduce overshoot 1.4→1.2 — confident settle, not a mechanical click |
 
 Optionally rename to `--ease-soft` / `--ease-settle` if the lead does the rename pass; not required.
 
@@ -230,31 +230,31 @@ Optionally rename to `--ease-soft` / `--ease-settle` if the lead does the rename
 
 ### 3.1 `@theme inline` shadcn semantic mapping (`globals.css:12-32`)
 
-The 18 mappings keep their *targets* (the token names are unchanged) — so **most of this block needs NO edit**;
+The 18 mappings keep their _targets_ (the token names are unchanged) — so **most of this block needs NO edit**;
 re-valuing the tokens carries shadcn automatically. The exceptions: update the **literal hex fallbacks** to
 match the new token values (so a missing-token fallback isn't wildly off-palette), and fix `--radius`.
 
-| Semantic | Maps to | Edit needed |
-|---|---|---|
-| `--color-background` | `charcoal-950` fallback `#14110f` | **Fallback → `#1a1512`** |
-| `--color-foreground` | `charcoal-100` fallback `#e8e3d6` | **Fallback → `#ece3d9`** |
-| `--color-card` | `charcoal-900` fallback `#1c1916` | **Fallback → `#241d19`** |
-| `--color-card-foreground` | `charcoal-100` `#e8e3d6` | **→ `#ece3d9`** |
-| `--color-popover` | `charcoal-875` `#201c18` | **→ `#29211d`** |
-| `--color-popover-foreground` | `charcoal-100` `#e8e3d6` | **→ `#ece3d9`** |
-| `--color-primary` | `amber-400` `#e9a94d` | **→ `#d97757`** |
-| `--color-primary-foreground` | `charcoal-950` `#14110f` | **→ `#1a1512`** (coral is light enough that dark text on it reads — verify ≥4.5:1; `#1a1512` on `#d97757` ≈ 5.2:1, passes) |
-| `--color-secondary` | `charcoal-800` `#2a2620` | **→ `#352a25`** |
-| `--color-secondary-foreground` | `charcoal-100` `#e8e3d6` | **→ `#ece3d9`** |
-| `--color-muted` | `charcoal-800` `#2a2620` | **→ `#352a25`** |
-| `--color-muted-foreground` | `charcoal-400` `#8a8170` | **→ `#998778`** |
-| `--color-accent` | `sage-400` `#8fa67c` | **CHANGE TARGET → `amber-400` (coral), fallback `#d97757`.** Accent should be the brand coral, not the (now retired) sage. This is the one mapping whose *target* changes. |
-| `--color-accent-foreground` | `charcoal-950` `#14110f` | **→ `#1a1512`** |
-| `--color-border` | `charcoal-700` `#3a352c` | **→ `#473a33`** |
-| `--color-input` | `charcoal-700` `#3a352c` | **→ `#473a33`** |
-| `--color-ring` | `amber-400` `#e9a94d` | **→ `#d97757`** |
-| `--color-destructive` | `negative` `#c8654b` | **→ `#cf5b48`** |
-| `--radius` | literal `0.375rem` | **→ `var(--radius-panel)`** (kill the token-bypass; now 8px) |
+| Semantic                       | Maps to                           | Edit needed                                                                                                                                                                |
+| ------------------------------ | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--color-background`           | `charcoal-950` fallback `#14110f` | **Fallback → `#1a1512`**                                                                                                                                                   |
+| `--color-foreground`           | `charcoal-100` fallback `#e8e3d6` | **Fallback → `#ece3d9`**                                                                                                                                                   |
+| `--color-card`                 | `charcoal-900` fallback `#1c1916` | **Fallback → `#241d19`**                                                                                                                                                   |
+| `--color-card-foreground`      | `charcoal-100` `#e8e3d6`          | **→ `#ece3d9`**                                                                                                                                                            |
+| `--color-popover`              | `charcoal-875` `#201c18`          | **→ `#29211d`**                                                                                                                                                            |
+| `--color-popover-foreground`   | `charcoal-100` `#e8e3d6`          | **→ `#ece3d9`**                                                                                                                                                            |
+| `--color-primary`              | `amber-400` `#e9a94d`             | **→ `#d97757`**                                                                                                                                                            |
+| `--color-primary-foreground`   | `charcoal-950` `#14110f`          | **→ `#1a1512`** (coral is light enough that dark text on it reads — verify ≥4.5:1; `#1a1512` on `#d97757` ≈ 5.2:1, passes)                                                 |
+| `--color-secondary`            | `charcoal-800` `#2a2620`          | **→ `#352a25`**                                                                                                                                                            |
+| `--color-secondary-foreground` | `charcoal-100` `#e8e3d6`          | **→ `#ece3d9`**                                                                                                                                                            |
+| `--color-muted`                | `charcoal-800` `#2a2620`          | **→ `#352a25`**                                                                                                                                                            |
+| `--color-muted-foreground`     | `charcoal-400` `#8a8170`          | **→ `#998778`**                                                                                                                                                            |
+| `--color-accent`               | `sage-400` `#8fa67c`              | **CHANGE TARGET → `amber-400` (coral), fallback `#d97757`.** Accent should be the brand coral, not the (now retired) sage. This is the one mapping whose _target_ changes. |
+| `--color-accent-foreground`    | `charcoal-950` `#14110f`          | **→ `#1a1512`**                                                                                                                                                            |
+| `--color-border`               | `charcoal-700` `#3a352c`          | **→ `#473a33`**                                                                                                                                                            |
+| `--color-input`                | `charcoal-700` `#3a352c`          | **→ `#473a33`**                                                                                                                                                            |
+| `--color-ring`                 | `amber-400` `#e9a94d`             | **→ `#d97757`**                                                                                                                                                            |
+| `--color-destructive`          | `negative` `#c8654b`              | **→ `#cf5b48`**                                                                                                                                                            |
+| `--radius`                     | literal `0.375rem`                | **→ `var(--radius-panel)`** (kill the token-bypass; now 8px)                                                                                                               |
 
 > Decision: `--color-accent` retargets from `sage-400` to `amber-400` (coral). shadcn `hover:bg-accent` and
 > `bg-accent` (used in button ghost/outline variants, dialog close hover) should land on the brand coral's
@@ -269,14 +269,14 @@ These are raw RGB copies and MUST be rewritten by hand. New values:
 ```css
 :root {
   /* Coral hairline — fine divider rule. Was brass-400 @ 28%. */
-  --hairline: rgb(217 119 87 / 0.18);          /* coral @ 18% — quieter than the old brass */
-  --hairline-strong: rgb(217 119 87 / 0.32);   /* coral @ 32% */
+  --hairline: rgb(217 119 87 / 0.18); /* coral @ 18% — quieter than the old brass */
+  --hairline-strong: rgb(217 119 87 / 0.32); /* coral @ 32% */
   /* Flat panel edge — NO metal bevel. A faint warm top highlight + dark inset + soft drop.
      De-skeuomorphized: drop the lume top-highlight intensity, keep a whisper of depth. */
   --bezel-shadow:
-    inset 0 1px 0 rgb(245 241 234 / 0.03),     /* cream @ 3% top highlight (was lume @ 4%) */
-    inset 0 0 0 1px rgb(26 21 18 / 0.5),        /* charcoal-950 inset */
-    0 1px 2px rgb(0 0 0 / 0.35);                /* soft drop */
+    inset 0 1px 0 rgb(245 241 234 / 0.03),
+    /* cream @ 3% top highlight (was lume @ 4%) */ inset 0 0 0 1px rgb(26 21 18 / 0.5),
+    /* charcoal-950 inset */ 0 1px 2px rgb(0 0 0 / 0.35); /* soft drop */
   /* Coral glow for an active/primary control. Was amber glow. */
   --glow-coral: 0 0 0 1px rgb(217 119 87 / 0.35), 0 0 12px rgb(217 119 87 / 0.14);
 }
@@ -291,13 +291,14 @@ These are raw RGB copies and MUST be rewritten by hand. New values:
 - `* { border-color: var(--color-border); }` (`49-51`) — **no change** (token carries it).
 - `html, body` bg/fg/font/tabular-nums (`53-66`) — **no change** (token carries it; tabular-nums stays — it is
   correct and the "density tell" survives the re-skin).
-- **Body atmosphere (`71-76`)** — rewrite. The amber phosphor bloom dies; replace with a *much subtler* warm
+- **Body atmosphere (`71-76`)** — rewrite. The amber phosphor bloom dies; replace with a _much subtler_ warm
   coral ambient at the top and a deeper warm vignette. Espresso, quiet.
   ```css
   body {
     background-image:
-      radial-gradient(120% 80% at 50% -10%, rgb(217 119 87 / 0.035), transparent 50%), /* faint coral warmth, top */
-      radial-gradient(140% 120% at 50% 50%, transparent 60%, rgb(0 0 0 / 0.30));        /* soft vignette */
+      radial-gradient(120% 80% at 50% -10%, rgb(217 119 87 / 0.035), transparent 50%),
+      /* faint coral warmth, top */
+      radial-gradient(140% 120% at 50% 50%, transparent 60%, rgb(0 0 0 / 0.3)); /* soft vignette */
     background-attachment: fixed;
   }
   ```
@@ -310,11 +311,17 @@ These are raw RGB copies and MUST be rewritten by hand. New values:
   variable font with `opsz`). Keep letter-spacing `-0.01em`.
 - **Selection (`104-107`)** — rewrite from amber to coral:
   ```css
-  ::selection { background: rgb(217 119 87 / 0.28); color: var(--color-lume, #f5f1ea); }
+  ::selection {
+    background: rgb(217 119 87 / 0.28);
+    color: var(--color-lume, #f5f1ea);
+  }
   ```
 - **Focus ring (`109-112`)** — rewrite from amber-400 to coral:
   ```css
-  :focus-visible { outline: 1px solid var(--color-amber-400, #d97757); outline-offset: 1px; }
+  :focus-visible {
+    outline: 1px solid var(--color-amber-400, #d97757);
+    outline-offset: 1px;
+  }
   ```
   (token name unchanged so `var(--color-amber-400)` already resolves to coral — only the literal fallback hex
   changes `#e9a94d` → `#d97757`.)
@@ -367,13 +374,13 @@ The brief asks: confirm or swap; Newsreader is present; evaluate vs Fraunces / S
 
 **Swap to Fraunces.** Reasoning, adversarially:
 
-- **Newsreader** is a fine *reading* serif (Google's news-body face) — it is humanist but *quiet*, low-contrast,
-  designed to disappear into paragraphs. As a *display/nameplate* face for a brand wordmark it under-delivers:
-  it has no real personality at large sizes. The current wordmark is described as "weak" partly *because*
+- **Newsreader** is a fine _reading_ serif (Google's news-body face) — it is humanist but _quiet_, low-contrast,
+  designed to disappear into paragraphs. As a _display/nameplate_ face for a brand wordmark it under-delivers:
+  it has no real personality at large sizes. The current wordmark is described as "weak" partly _because_
   Newsreader is a body face doing a display job.
 - **Fraunces** is purpose-built for exactly this: a "display-leaning, old-style soft-serif" with a variable
   **optical-size (`opsz`)** axis, a **`SOFT`** axis, and a **`WONK`** axis. At display sizes it gets
-  characterful, warm, slightly idiosyncratic ledges and a high-contrast elegance — humanist *and* distinctive.
+  characterful, warm, slightly idiosyncratic ledges and a high-contrast elegance — humanist _and_ distinctive.
   It is the single best match for "humanist serif for display/headers" with Claude's warm-but-editorial voice.
   Anthropic/Claude's own editorial type language leans into a warm high-contrast serif; Fraunces is the
   closest free Google-Fonts analog.
@@ -397,17 +404,17 @@ No reason to churn. The whole-app default `font-family: var(--font-mono)` (`glob
 
 The app already runs dense: chrome/labels at 10–12px mono. Codify the scale in the doc:
 
-| Role | Face | Size | Weight | Tracking | Notes |
-|---|---|---|---|---|---|
-| Wordmark "VYSTED" | Fraunces (display) | 16–18px | 600 (SemiBold) | `0` to `+0.01em` | opsz auto; see §5.4 — NOT the old 0.18em spaced-out caps |
-| Panel/section heading (h1–h3) | Fraunces | 14–20px | 500–600 | `-0.01em` | optical-sizing auto |
-| HUD label / legend (`.hud-label`) | JetBrains Mono | 10px (`0.625rem`) | 400 | `0.12em` upper | tone-down tracking 0.14→0.12em |
-| Body / control text | JetBrains Mono | 12px (`text-xs`) | 400 | `0` | |
-| Data / numerics / tables | JetBrains Mono | 11–12px | 400 | `0` | `tabular-nums` global |
-| Dense table micro-labels | JetBrains Mono | 10px (`text-[10px]`) | 400 | `0` | kbd chips, sub-labels |
+| Role                              | Face               | Size                 | Weight         | Tracking         | Notes                                                    |
+| --------------------------------- | ------------------ | -------------------- | -------------- | ---------------- | -------------------------------------------------------- |
+| Wordmark "VYSTED"                 | Fraunces (display) | 16–18px              | 600 (SemiBold) | `0` to `+0.01em` | opsz auto; see §5.4 — NOT the old 0.18em spaced-out caps |
+| Panel/section heading (h1–h3)     | Fraunces           | 14–20px              | 500–600        | `-0.01em`        | optical-sizing auto                                      |
+| HUD label / legend (`.hud-label`) | JetBrains Mono     | 10px (`0.625rem`)    | 400            | `0.12em` upper   | tone-down tracking 0.14→0.12em                           |
+| Body / control text               | JetBrains Mono     | 12px (`text-xs`)     | 400            | `0`              |                                                          |
+| Data / numerics / tables          | JetBrains Mono     | 11–12px              | 400            | `0`              | `tabular-nums` global                                    |
+| Dense table micro-labels          | JetBrains Mono     | 10px (`text-[10px]`) | 400            | `0`              | kbd chips, sub-labels                                    |
 
 No new size tokens needed — Tailwind's default scale + the existing inline sizes cover it; the scale above is
-*documentation* of current practice, adjusted only where the wordmark/tracking changes.
+_documentation_ of current practice, adjusted only where the wordmark/tracking changes.
 
 ---
 
@@ -418,8 +425,9 @@ No new size tokens needed — Tailwind's default scale + the existing inline siz
 The current header: a `bg-charcoal-925` bar with `instrument-bezel` chrome, "VYSTED" in
 `font-serif text-sm tracking-[0.18em] text-amber-400` followed by a brass-uppercase "Terminal" `.hud-label`,
 a brass `.tick-rule` strip along the bottom. Problems:
+
 1. **Newsreader at 14px (`text-sm`) with 0.18em tracking** is the worst case — a quiet body serif, too small,
-   spaced so wide the letterforms disconnect into "V Y S T E D". It reads as a *caption*, not a wordmark.
+   spaced so wide the letterforms disconnect into "V Y S T E D". It reads as a _caption_, not a wordmark.
 2. **Two type systems fighting**: serif "VYSTED" + mono "Terminal" with no relationship — two voices, no lockup.
 3. **Amber on charcoal** at 14px is low-presence; the brand color is doing nothing.
 4. The brass tick-rule + bezel are skeuomorphic noise around a weak mark.
@@ -429,7 +437,7 @@ a brass `.tick-rule` strip along the bottom. Problems:
 **Concept: a tight Fraunces nameplate with a single coral mark.** The wordmark becomes a real lockup:
 
 - **"VYSTED"** set in **Fraunces, ~17px, weight 600, tracking `+0.01em` (near-normal, NOT 0.18em)**, color
-  `--color-charcoal-100` (warm cream) — so the *name* is calm cream, confident, legible. Fraunces's display
+  `--color-charcoal-100` (warm cream) — so the _name_ is calm cream, confident, legible. Fraunces's display
   character at 17px/600 gives it presence the old mark lacked.
 - **A single coral accent glyph** preceding or punctuating the name: a small **coral square/dot mark**
   (8×8px `--color-amber-400` rounded-[2px]) acting as the "lit" brand pip — the one spot of coral in the
@@ -444,11 +452,11 @@ Concrete JSX (the lead drops this into `page.tsx`, replacing lines `78-83`):
 ```tsx
 <div className="flex items-center gap-2 select-none">
   {/* coral brand pip — the single lit accent in the fascia */}
-  <span aria-hidden="true" className="bg-amber-400 h-2 w-2 rounded-[2px]" />
-  <span className="font-serif text-charcoal-100 text-[17px] leading-none font-semibold tracking-[0.01em]">
+  <span aria-hidden="true" className="h-2 w-2 rounded-[2px] bg-amber-400" />
+  <span className="text-charcoal-100 font-serif text-[17px] leading-none font-semibold tracking-[0.01em]">
     VYSTED
   </span>
-  <span className="hud-label leading-none mt-px">Terminal</span>
+  <span className="hud-label mt-px leading-none">Terminal</span>
 </div>
 ```
 
@@ -468,6 +476,7 @@ Concrete JSX (the lead drops this into `page.tsx`, replacing lines `78-83`):
 ### 5.4 Font wiring (`layout.tsx`)
 
 Swap the import. New `layout.tsx:2,5-9`:
+
 ```tsx
 import { Fraunces, JetBrains_Mono } from "next/font/google";
 
@@ -475,9 +484,10 @@ const fraunces = Fraunces({
   subsets: ["latin"],
   variable: "--font-fraunces",
   display: "swap",
-  axes: ["opsz", "SOFT"],   // optical size + soft-serif axis for warm display character
+  axes: ["opsz", "SOFT"], // optical size + soft-serif axis for warm display character
 });
 ```
+
 And `layout.tsx:24` className: `dark ${fraunces.variable} ${jetbrainsMono.variable}`. JetBrains Mono import
 unchanged. **The `--font-fraunces` var name MUST match `tokens.css` `--font-serif`'s inner reference (§2.7).**
 
@@ -512,49 +522,37 @@ unchanged. **The `--font-fraunces` var name MUST match `tokens.css` `--font-seri
 Canvas (`lightweight-charts` + drawing primitives) can't read CSS vars, so every hex is a hardcoded copy.
 **While editing, fix the 3 drift values — they were never tokens.** New canvas hex map (espresso/coral):
 
-| Old hardcoded hex | Meaning | **New hex** |
-|---|---|---|
-| `#1c1916` (chart bg) | charcoal-900 | `#241d19` |
-| `#c9c2b2` (chart text) | charcoal-200 | `#d6c8bb` |
-| `#2a2620` (grid) | charcoal-800 | `#352a25` |
-| `#3a352c` (scale borders) | charcoal-700 | `#473a33` |
-| `#4d4639` (crosshair) | charcoal-600 | `#5c4d44` |
-| `#7faa6b` (up candle) | positive | `#7fa96a` |
-| `#c8654b` (down candle / negative) | negative | `#cf5b48` |
-| `#8fa67c` (comparison line / sage) | sage-400 | `#a8917f` (muted neutral) |
-| `#e9a94d` (amber accent, drawings) | amber-400 | `#d97757` (coral) |
-| `#f4c87a` (indicator) | amber-300 | `#e69e84` (coral-300) |
-| `#b6c4a8` (indicator) | sage-300 | `#c9b9ad` (muted) |
-| `rgba(233, 169, 77, X)` (amber fills) | amber-400 @ X | `rgba(217, 119, 87, X)` (coral) |
-| `rgba(143, 166, 124, 0.15)` (ichimoku +) | sage | `rgba(127, 169, 106, 0.15)` (positive) |
-| `rgba(200, 101, 75, 0.15)` (ichimoku −) | negative | `rgba(207, 91, 72, 0.15)` (new negative) |
-| **`#e8b441` (DRIFT ×3)** | claimed amber, isn't | `#d97757` (coral) |
-| **`#c39a3e` (DRIFT)** | claimed amber-600, isn't | `#a44a30` (coral-600) |
-| **`#4ec9a3` (DRIFT — cyan!)** | claimed positive, is cold teal | `#7fa96a` (positive) |
+| Old hardcoded hex                        | Meaning                        | **New hex**                              |
+| ---------------------------------------- | ------------------------------ | ---------------------------------------- |
+| `#1c1916` (chart bg)                     | charcoal-900                   | `#241d19`                                |
+| `#c9c2b2` (chart text)                   | charcoal-200                   | `#d6c8bb`                                |
+| `#2a2620` (grid)                         | charcoal-800                   | `#352a25`                                |
+| `#3a352c` (scale borders)                | charcoal-700                   | `#473a33`                                |
+| `#4d4639` (crosshair)                    | charcoal-600                   | `#5c4d44`                                |
+| `#7faa6b` (up candle)                    | positive                       | `#7fa96a`                                |
+| `#c8654b` (down candle / negative)       | negative                       | `#cf5b48`                                |
+| `#8fa67c` (comparison line / sage)       | sage-400                       | `#a8917f` (muted neutral)                |
+| `#e9a94d` (amber accent, drawings)       | amber-400                      | `#d97757` (coral)                        |
+| `#f4c87a` (indicator)                    | amber-300                      | `#e69e84` (coral-300)                    |
+| `#b6c4a8` (indicator)                    | sage-300                       | `#c9b9ad` (muted)                        |
+| `rgba(233, 169, 77, X)` (amber fills)    | amber-400 @ X                  | `rgba(217, 119, 87, X)` (coral)          |
+| `rgba(143, 166, 124, 0.15)` (ichimoku +) | sage                           | `rgba(127, 169, 106, 0.15)` (positive)   |
+| `rgba(200, 101, 75, 0.15)` (ichimoku −)  | negative                       | `rgba(207, 91, 72, 0.15)` (new negative) |
+| **`#e8b441` (DRIFT ×3)**                 | claimed amber, isn't           | `#d97757` (coral)                        |
+| **`#c39a3e` (DRIFT)**                    | claimed amber-600, isn't       | `#a44a30` (coral-600)                    |
+| **`#4ec9a3` (DRIFT — cyan!)**            | claimed positive, is cold teal | `#7fa96a` (positive)                     |
 
-Files (re-verified present):
-5. `src/modules/chart/ChartPanel.tsx` — `CHART_THEME` (`66-77`), `CANDLE_THEME` (`79-86`),
-   `COMPARISON_LINE_COLOR` (`88`), trend overlay `#8fa67c`/`#c8654b` (`389`), comparison line consumer (`746`).
-6. `src/modules/quant/YieldCurvePanel.tsx` — theme block + `const AMBER = "#e8b441"` (`45`, DRIFT → coral).
-7. `src/modules/analyst-ratings/PriceTargetTimeline.tsx` — theme block + `const AMBER = "#e8b441"` (`30`, DRIFT).
-8. `src/modules/backtest/BacktestResultView.tsx` — theme block + `const NEGATIVE = "#c8654b"` (`41`),
-   `const AMBER = "#e8b441"` (`42`, DRIFT), area-series `rgba(200,101,75,…)` fills (`108-109`).
-9. `src/modules/macro/MacroChart.tsx` — theme block + `const LINE_COLOR = "#c39a3e"` (`32`, DRIFT → `#a44a30`).
-10. `src/modules/earnings/EarningsSurpriseChart.tsx` — theme block + `const POSITIVE = "#4ec9a3"` (`30`, DRIFT
-    cyan → `#7fa96a`), `const NEGATIVE = "#c8654b"` (`31` → `#cf5b48`).
-11. `src/modules/chart/indicators.ts` — `INDICATOR_COLORS` (`160-166`): the 5-color palette → coral/neutral set.
-12. `src/modules/chart/drawings/base.ts` — `DEFAULT_DRAWING_COLOR = "#e9a94d"` (`30` → `#d97757`); fill
-    fallback `rgba(233,169,77,0.12)` (`104` → `rgba(217,119,87,0.12)`).
-13. `src/modules/chart/drawings/factory.ts` — `color: "#e9a94d"` (`72`→coral), `fillColor: "rgba(233,169,77,
-    0.12)"` (`75`→coral).
-14. `src/modules/chart/drawings/renderers.ts` — fill fallback `"#e9a94d"` ×3 (`193,227,296`→`#d97757`).
-15. `src/modules/chart/volume-profile-primitive.ts` — `HISTOGRAM_FILL = "rgba(233,169,77,0.2)"` (`34`→coral).
-16. `src/modules/chart/ichimoku-cloud-primitive.ts` — `POSITIVE_FILL` (`22`), `NEGATIVE_FILL` (`24`) per table.
+Files (re-verified present): 5. `src/modules/chart/ChartPanel.tsx` — `CHART_THEME` (`66-77`), `CANDLE_THEME` (`79-86`),
+`COMPARISON_LINE_COLOR` (`88`), trend overlay `#8fa67c`/`#c8654b` (`389`), comparison line consumer (`746`). 6. `src/modules/quant/YieldCurvePanel.tsx` — theme block + `const AMBER = "#e8b441"` (`45`, DRIFT → coral). 7. `src/modules/analyst-ratings/PriceTargetTimeline.tsx` — theme block + `const AMBER = "#e8b441"` (`30`, DRIFT). 8. `src/modules/backtest/BacktestResultView.tsx` — theme block + `const NEGATIVE = "#c8654b"` (`41`),
+`const AMBER = "#e8b441"` (`42`, DRIFT), area-series `rgba(200,101,75,…)` fills (`108-109`). 9. `src/modules/macro/MacroChart.tsx` — theme block + `const LINE_COLOR = "#c39a3e"` (`32`, DRIFT → `#a44a30`). 10. `src/modules/earnings/EarningsSurpriseChart.tsx` — theme block + `const POSITIVE = "#4ec9a3"` (`30`, DRIFT
+cyan → `#7fa96a`), `const NEGATIVE = "#c8654b"` (`31` → `#cf5b48`). 11. `src/modules/chart/indicators.ts` — `INDICATOR_COLORS` (`160-166`): the 5-color palette → coral/neutral set. 12. `src/modules/chart/drawings/base.ts` — `DEFAULT_DRAWING_COLOR = "#e9a94d"` (`30` → `#d97757`); fill
+fallback `rgba(233,169,77,0.12)` (`104` → `rgba(217,119,87,0.12)`). 13. `src/modules/chart/drawings/factory.ts` — `color: "#e9a94d"` (`72`→coral), `fillColor: "rgba(233,169,77,
+    0.12)"` (`75`→coral). 14. `src/modules/chart/drawings/renderers.ts` — fill fallback `"#e9a94d"` ×3 (`193,227,296`→`#d97757`). 15. `src/modules/chart/volume-profile-primitive.ts` — `HISTOGRAM_FILL = "rgba(233,169,77,0.2)"` (`34`→coral). 16. `src/modules/chart/ichimoku-cloud-primitive.ts` — `POSITIVE_FILL` (`22`), `NEGATIVE_FILL` (`24`) per table.
 
 ### Tier 2b — shadcn + ReactFlow literals (re-verified).
 
 17. `src/components/ui/dialog.tsx` — overlay `bg-black/50` (`34`) → **`bg-charcoal-950/70`** (espresso backdrop,
-    not flat black); content `rounded-lg` (`56`) → leave as-is *if* `--radius-panel` is bumped to `0.5rem`
+    not flat black); content `rounded-lg` (`56`) → leave as-is _if_ `--radius-panel` is bumped to `0.5rem`
     (now matches), OR change to `rounded-[var(--radius-panel)]`; close-button `rounded-xs` (`65`) → keep.
 18. `src/components/ui/button.tsx` — destructive `text-white` (`14`) → **`text-charcoal-100`** (warm cream, not
     pure white — on-brand; `#ece3d9` on `#cf5b48` destructive ≈ 3.0:1, large/bold UI text passes; if it fails
@@ -581,7 +579,7 @@ Files (re-verified present):
     `INDICATOR_PALETTE`, fill helpers). Refactor all 12 canvas files (#5–#16) to import from it. This is why the
     3 drift values diverged unnoticed — six independent copies. Doing this DURING the re-skin (not after) means
     the new values are written once. **Strongly recommended** — it converts the canvas surface from "12 files
-    to hand-edit every re-skin" to "1 file". Listed as Tier 3 because it is optional for *correctness* but it
+    to hand-edit every re-skin" to "1 file". Listed as Tier 3 because it is optional for _correctness_ but it
     is the single highest-leverage cleanup and the lead should do it now while every file is already open.
 
 ### Tier 4 — the doc.
@@ -638,7 +636,7 @@ Replace the current 110-line INSTRUMENT doc with the same skeleton, re-voiced fo
    do NOT follow tokens. The chart-theme.ts refactor (Tier 3) is the durable fix.
 4. **`--radius` still a literal** if §3.1 is skipped — shadcn radii won't track `--radius-panel`. Set it to
    `var(--radius-panel)`.
-5. **Token comments still say "amber/brass/phosphor"** after the re-value — the names lie *and* the comments
+5. **Token comments still say "amber/brass/phosphor"** after the re-value — the names lie _and_ the comments
    lie. Rewrite both (§1, §6.1).
 6. **destructive `text-white` → warm cream** may dip below contrast on the brick-red — verify, keep white if
    it fails (§6 #18).

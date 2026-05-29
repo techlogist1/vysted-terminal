@@ -20,7 +20,7 @@ LOCKED files were inspected for context only, not flagged: `types/plugin.ts`,
 **File:** `src/modules/screener/ScreenerResultsTable.tsx:56-76`
 
 `compareValue` always returns `+1` when `av === null` (line 60) so nulls sort to the
-*end* of an ascending sort — correct. But the descending path does **not** use a
+_end_ of an ascending sort — correct. But the descending path does **not** use a
 direction-aware comparator; it sorts ascending and then `.reverse()`s the whole array
 (line 74-75):
 
@@ -39,12 +39,13 @@ crypto pairs" (`sidecar/services/screener.py:30-32`), and the `crypto-top50` uni
 a first-class option — so an unknown-market-cap row landing above the largest real value
 is the common case, not an exotic one.
 
-The sidecar *correctly* sorts nulls last in both interpretations
+The sidecar _correctly_ sorts nulls last in both interpretations
 (`sidecar/services/screener.py:296-298`: `key=lambda row: (row.market_cap is None, -(row.market_cap or 0.0))`),
 but the frontend's client-side re-sort discards that ordering the moment the table renders
 or the user clicks a header.
 
 **Repro (verified):**
+
 ```
 rows = [BIG:1000, MID:500, UNK:null, SMALL:10]
 DESC (highest first) → UNK:null  BIG:1000  MID:500  SMALL:10   ← null on top
@@ -56,11 +57,12 @@ direction. e.g.
 
 ```ts
 const sorted = [...result.rows].sort((a, b) => {
-  const cmp = compareValue(a, b, sortKey);          // nulls already -> +1
+  const cmp = compareValue(a, b, sortKey); // nulls already -> +1
   return sortDirection === "asc" ? cmp : -cmp;
 });
 // then keep nulls pinned to the end in BOTH directions:
 ```
+
 Cleaner: split the comparator so the null/non-null partition is computed first
 (non-null always precedes null), then order the non-null group by `cmp * dir`. Do NOT
 `.reverse()` the array — reverse re-orders the null partition too.
@@ -140,6 +142,7 @@ F-GUI-1 test, but conflating no-basis with no-gain is still a correctness regres
 ## BUG-4 (LOW-MEDIUM) — Watchlist / Equity Overview re-implement formatters WITHOUT the NaN/Infinity guards the shared module was built to provide
 
 **Files:**
+
 - `src/modules/watchlist/WatchlistPanel.tsx:16-26` (`formatPrice`, `formatPercent`)
 - `src/modules/equity-overview/EquityOverviewPanel.tsx:13-42` + `:251-255`
 
@@ -181,8 +184,8 @@ and matches the documented reason format.ts exists, but is data-source dependent
 `deserializeWorkspace` mutates the live stores in sequence:
 
 ```ts
-useModulesStore.getState().setEnabledMap(workspace.enabledModules);  // 1. applied first
-api.fromJSON(workspace.layout);                                       // 2. can throw
+useModulesStore.getState().setEnabledMap(workspace.enabledModules); // 1. applied first
+api.fromJSON(workspace.layout); // 2. can throw
 useWorkspaceStore.getState().setName(workspace.name);
 ```
 
@@ -296,12 +299,12 @@ skew on a single point.
 
 ## Summary table
 
-| # | Severity | File | One-liner |
-|---|----------|------|-----------|
-| 1 | HIGH | ScreenerResultsTable.tsx:74-75 | desc sort `.reverse()` floats null market caps to the top |
-| 2 | MEDIUM | TradeHistoryPanel.tsx:65-90 | "Today/7d P&L" sums a 100-row cap, not the time window |
-| 3 | MEDIUM | portfolio/metrics.ts:60-61 | zero-cost-basis gain renders "+0.00%" |
-| 4 | LOW-MED | WatchlistPanel.tsx:16-26 / EquityOverviewPanel.tsx:13-42,251-255 | local formatters skip NaN/Infinity guards |
-| 5 | LOW | lib/workspace.ts:75-90 | corrupt-layout restore leaves enabled-map mutated |
-| 6 | LOW | analyst_ratings_extended.py:289,315,368-372 | `or`-chained numeric fallbacks drop a legit 0 |
-| 7 | LOW | macro/MacroChart.tsx:60-78 | equal-time de-dup keeps stale original over revision |
+| #   | Severity | File                                                             | One-liner                                                 |
+| --- | -------- | ---------------------------------------------------------------- | --------------------------------------------------------- |
+| 1   | HIGH     | ScreenerResultsTable.tsx:74-75                                   | desc sort `.reverse()` floats null market caps to the top |
+| 2   | MEDIUM   | TradeHistoryPanel.tsx:65-90                                      | "Today/7d P&L" sums a 100-row cap, not the time window    |
+| 3   | MEDIUM   | portfolio/metrics.ts:60-61                                       | zero-cost-basis gain renders "+0.00%"                     |
+| 4   | LOW-MED  | WatchlistPanel.tsx:16-26 / EquityOverviewPanel.tsx:13-42,251-255 | local formatters skip NaN/Infinity guards                 |
+| 5   | LOW      | lib/workspace.ts:75-90                                           | corrupt-layout restore leaves enabled-map mutated         |
+| 6   | LOW      | analyst_ratings_extended.py:289,315,368-372                      | `or`-chained numeric fallbacks drop a legit 0             |
+| 7   | LOW      | macro/MacroChart.tsx:60-78                                       | equal-time de-dup keeps stale original over revision      |

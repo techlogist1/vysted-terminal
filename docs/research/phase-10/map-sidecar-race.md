@@ -5,7 +5,7 @@ the frontend port-discovery + HTTP client, and the News + Portfolio panel fetch 
 Root-cause the cold-boot "failed to load" on News and Portfolio. Design the fix.
 
 **Verdict:** Confirmed late-bind race. The Tauri core hands the frontend the sidecar
-**port number** the instant the frontend asks for it — but that port number is *picked*
+**port number** the instant the frontend asks for it — but that port number is _picked_
 (`bind(0)` → read → release) **before** the Python sidecar process is even spawned, and
 the sidecar process is in turn spawned only **after** the two MCP supervisors finish a
 blocking, up-to-90s-each port wait. The frontend's port resolver does **no readiness
@@ -17,7 +17,7 @@ race only because it polls every 5s and self-heals.
 
 ## 1. The Rust sidecar lifecycle (src-tauri/src/lib.rs)
 
-### 1.1 Port is picked at setup, *before* the sidecar exists
+### 1.1 Port is picked at setup, _before_ the sidecar exists
 
 ```
 lib.rs:23   fn pick_free_port() -> u16        // bind 127.0.0.1:0, read port, RELEASE it
@@ -41,7 +41,7 @@ This command answers immediately with the integer. It does **not** verify the si
 is bound. There is no `is_ready` flag, no event, no gating — the port is "announced"
 (available to the frontend via `invoke`) from lib.rs:138 onward, long before bind.
 
-### 1.3 The main sidecar spawns *after* a blocking MCP join (the latency amplifier)
+### 1.3 The main sidecar spawns _after_ a blocking MCP join (the latency amplifier)
 
 ```
 lib.rs:169  let openbb_thread = thread::spawn(move || { openbb_mcp::spawn(&openbb_handle) });
@@ -104,7 +104,7 @@ sidecar-client.ts:65    return cachedBaseUrl;
 ```
 
 This resolves successfully the instant the Tauri core is up — because all it needs is the
-*number*, which is available from lib.rs:138. It performs **no `/health` probe** and
+_number_, which is available from lib.rs:138. It performs **no `/health` probe** and
 **caches the URL permanently**, so it can never block on or detect the sidecar not being
 ready.
 
@@ -202,7 +202,7 @@ fetchers with no interval, so they are the panels that visibly latch "failed to 
 Two independent gaps combine:
 
 1. **Rust announces a port, not a ready service.** `pick_free_port()` (lib.rs:23) reserves
-   a port and stores it (lib.rs:137-138) *before* the sidecar is spawned, and the spawn
+   a port and stores it (lib.rs:137-138) _before_ the sidecar is spawned, and the spawn
    itself (lib.rs:201) is delayed behind a blocking, up-to-90s MCP-supervisor join
    (lib.rs:181-182; openbb_mcp.rs:140 with `MCP_PORT_WAIT_SECS=45 × 2`). The only bind
    verification (lib.rs:219-225) is a log-only side thread the frontend can't see.
@@ -225,7 +225,7 @@ panels) plus an optional Rust readiness signal. Recommended layering:
 
 ### 5.1 Primary fix — make `getSidecarBaseUrl()` await readiness once (frontend, blast-radius-safe)
 
-Gate the *cached* base URL on a real `/health` probe with bounded retry/backoff, so the
+Gate the _cached_ base URL on a real `/health` probe with bounded retry/backoff, so the
 first successful resolution implies the sidecar is actually listening. Because every panel
 funnels through `getSidecarBaseUrl()` (and `sidecarGet` calls it), one change fixes all
 panels at once and the cache means the cost is paid exactly once per session.
@@ -235,16 +235,16 @@ panels at once and the cache means the cost is paid exactly once per session.
 let readyPromise: Promise<string> | null = null;
 
 export function getSidecarBaseUrl(): Promise<string> {
-  if (readyPromise) return readyPromise;           // single in-flight resolution, shared by all callers
+  if (readyPromise) return readyPromise; // single in-flight resolution, shared by all callers
   readyPromise = resolveAndAwaitReady().catch((e) => {
-    readyPromise = null;                           // allow a later caller / manual Retry to re-arm
+    readyPromise = null; // allow a later caller / manual Retry to re-arm
     throw e;
   });
   return readyPromise;
 }
 
 async function resolveAndAwaitReady(): Promise<string> {
-  const base = await resolvePortToBaseUrl();        // existing port-resolution logic (incl. dev ?sidecar-port=)
+  const base = await resolvePortToBaseUrl(); // existing port-resolution logic (incl. dev ?sidecar-port=)
   // Poll /health until the sidecar actually binds. Cold boot can be tens of
   // seconds (MCP join + uvicorn startup), so budget generously with backoff.
   const deadline = Date.now() + 120_000;
@@ -252,20 +252,21 @@ async function resolveAndAwaitReady(): Promise<string> {
   for (;;) {
     try {
       const r = await fetch(new URL("/health", base).toString());
-      if (r.ok) return base;                        // bound + healthy → cache wins
+      if (r.ok) return base; // bound + healthy → cache wins
     } catch {
       /* connection refused — sidecar not bound yet */
     }
     if (Date.now() > deadline) throw new SidecarError(503, "sidecar did not become ready");
     await new Promise((res) => setTimeout(res, delay));
-    delay = Math.min(delay * 1.6, 2_000);           // exponential backoff, capped at 2s
+    delay = Math.min(delay * 1.6, 2_000); // exponential backoff, capped at 2s
   }
 }
 ```
 
 Key properties:
+
 - Replaces the permanent `cachedBaseUrl` (sidecar-client.ts:33) with a shared `readyPromise`
-  so concurrent panel mounts all await the *same* readiness probe instead of each firing a
+  so concurrent panel mounts all await the _same_ readiness probe instead of each firing a
   doomed fetch.
 - On failure it nulls the promise (re-armable) — a manual Retry or a later panel mount
   triggers a fresh probe rather than being stuck on a poisoned cache.
@@ -293,9 +294,9 @@ If you want the core to be the source of truth (cleaner long-term), have Rust em
 event once `wait_for_port(port)` succeeds (lib.rs:220) and have the frontend await it:
 
 - Replace the log-only side thread (lib.rs:219-225) with: on bind success, `app.emit(
-  "sidecar-ready", port)`; on failure, `app.emit("sidecar-failed", ...)`.
+"sidecar-ready", port)`; on failure, `app.emit("sidecar-failed", ...)`.
 - Add a `get_sidecar_ready` command (or a `Mutex<bool>` in state) so a frontend that mounts
-  *after* the event already fired can still query the latched state (avoids the event-vs-mount
+  _after_ the event already fired can still query the latched state (avoids the event-vs-mount
   race in the other direction).
 - Frontend `getSidecarBaseUrl()` then awaits the event/flag instead of polling `/health`.
 
@@ -313,22 +314,22 @@ piece. Defer §5.3 unless the team wants the readiness signal owned by the Rust 
 
 ## 6. Evidence index (file:line)
 
-| Claim | Location |
-|---|---|
-| Port picked + released before sidecar exists | src-tauri/src/lib.rs:23-29, 137 |
-| Port stored in state, queryable immediately | src-tauri/src/lib.rs:138, 20 |
-| `get_sidecar_port` returns number, no liveness | src-tauri/src/lib.rs:115-118 |
-| MCP join blocks before main sidecar spawn | src-tauri/src/lib.rs:181-182, 201 |
-| MCP spawn blocks on up-to-90s port wait | src-tauri/src/lib.rs:79, 84; openbb_mcp.rs:140 |
-| Bind check is log-only, not surfaced | src-tauri/src/lib.rs:219-225 |
-| uvicorn binds only after sidecar boot | sidecar/main.py:105 |
-| Base URL cached off bare port, no probe | src/lib/sidecar-client.ts:33, 52-65 |
-| `sidecarGet` single fetch, no retry | src/lib/sidecar-client.ts:71-104 |
-| No retry/backoff in client or app store | grep: none in sidecar-client.ts / store/app.ts |
-| `connectSidecar` one-shot, status read by no panel | src/store/app.ts:24-34; only consumer page.tsx:31 |
-| News: single mount fetch, manual Retry only | src/modules/news/NewsFeedPanel.tsx:184-197, 225-236 |
-| News connection-refused → "Could not reach the news service." | src/modules/news/NewsFeedPanel.tsx:112-116 |
-| Portfolio: single `load()` on mount, stable callback | src/modules/portfolio/PortfolioPanel.tsx:54-72 |
-| Portfolio first hard GET that latches error | src/modules/portfolio/api.ts:14-16 |
-| Watchlist self-heals via 5s poll | src/modules/watchlist/WatchlistPanel.tsx:14, 103-114 |
-| Panels mount on modules, not sidecar status | src/components/PanelHost.tsx:67-77 |
+| Claim                                                         | Location                                             |
+| ------------------------------------------------------------- | ---------------------------------------------------- |
+| Port picked + released before sidecar exists                  | src-tauri/src/lib.rs:23-29, 137                      |
+| Port stored in state, queryable immediately                   | src-tauri/src/lib.rs:138, 20                         |
+| `get_sidecar_port` returns number, no liveness                | src-tauri/src/lib.rs:115-118                         |
+| MCP join blocks before main sidecar spawn                     | src-tauri/src/lib.rs:181-182, 201                    |
+| MCP spawn blocks on up-to-90s port wait                       | src-tauri/src/lib.rs:79, 84; openbb_mcp.rs:140       |
+| Bind check is log-only, not surfaced                          | src-tauri/src/lib.rs:219-225                         |
+| uvicorn binds only after sidecar boot                         | sidecar/main.py:105                                  |
+| Base URL cached off bare port, no probe                       | src/lib/sidecar-client.ts:33, 52-65                  |
+| `sidecarGet` single fetch, no retry                           | src/lib/sidecar-client.ts:71-104                     |
+| No retry/backoff in client or app store                       | grep: none in sidecar-client.ts / store/app.ts       |
+| `connectSidecar` one-shot, status read by no panel            | src/store/app.ts:24-34; only consumer page.tsx:31    |
+| News: single mount fetch, manual Retry only                   | src/modules/news/NewsFeedPanel.tsx:184-197, 225-236  |
+| News connection-refused → "Could not reach the news service." | src/modules/news/NewsFeedPanel.tsx:112-116           |
+| Portfolio: single `load()` on mount, stable callback          | src/modules/portfolio/PortfolioPanel.tsx:54-72       |
+| Portfolio first hard GET that latches error                   | src/modules/portfolio/api.ts:14-16                   |
+| Watchlist self-heals via 5s poll                              | src/modules/watchlist/WatchlistPanel.tsx:14, 103-114 |
+| Panels mount on modules, not sidecar status                   | src/components/PanelHost.tsx:67-77                   |

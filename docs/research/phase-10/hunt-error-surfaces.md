@@ -11,20 +11,20 @@ all findings below are in NON-locked files.
 
 ## Summary of findings (by severity)
 
-| # | Severity | Title | File |
-|---|----------|-------|------|
-| 1 | HIGH | Sidecar connection error is set but never rendered — no global banner, no retry, no reconnect | `src/store/app.ts` + `src/app/page.tsx` |
-| 2 | HIGH | Kill-switch fire failure is silently swallowed — panic button shows no error when the halt does NOT propagate | `src/modules/safety/KillSwitchToolbar.tsx` |
-| 3 | HIGH | Chart "Retry" button is a no-op when the symbol is unchanged | `src/modules/chart/ChartPanel.tsx` |
-| 4 | MEDIUM | Chat assistant message stuck `pending` forever + composer locked forever if SSE stream ends without a terminator frame | `src/modules/chat/streaming.ts` + `ChatSidebar.tsx` |
-| 5 | MEDIUM | `getSecret` rejection in chat send is an unhandled rejection — user message left dangling, no error | `src/modules/chat/ChatSidebar.tsx` |
-| 6 | MEDIUM | Broker mode toggle (paper↔live) + read-only toggle silently no-op on failure — unhandled rejection, no UI feedback | `src/modules/broker-connect/BrokerConnectPanel.tsx` |
-| 7 | MEDIUM | Screener universe load failure is fully swallowed — panel shows nothing, "Run" still enabled against empty universe | `src/store/screener.ts` + `ScreenerPanel.tsx` |
-| 8 | MEDIUM | Broker refresh error rendered as "No brokers reported by sidecar." — masks a connection failure as an empty state | `src/modules/broker-connect/BrokerConnectPanel.tsx` |
-| 9 | MEDIUM | Workflow run overlay stuck on "running" forever if the run SSE ends without a terminal event | `src/modules/node-editor/NodeEditorPanel.tsx` |
-| 10 | LOW | First-party agents fail silently with a misleading "static catalog fallback" comment that does not exist | `src/modules/chat/ChatSidebar.tsx` + `src/store/agents.ts` |
-| 11 | LOW | Watchlist first-load failure shows "Loading quotes…" forever beneath an error banner; dropped per-symbol quotes show permanent "—" with no cause | `src/modules/watchlist/WatchlistPanel.tsx` + `sidecar/routers/quotes.py` |
-| 12 | LOW | KeyEntryDialog conflates "sidecar/provider transport error" with "your key is invalid" | `src/components/KeyEntryDialog.tsx` |
+| #   | Severity | Title                                                                                                                                            | File                                                                     |
+| --- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| 1   | HIGH     | Sidecar connection error is set but never rendered — no global banner, no retry, no reconnect                                                    | `src/store/app.ts` + `src/app/page.tsx`                                  |
+| 2   | HIGH     | Kill-switch fire failure is silently swallowed — panic button shows no error when the halt does NOT propagate                                    | `src/modules/safety/KillSwitchToolbar.tsx`                               |
+| 3   | HIGH     | Chart "Retry" button is a no-op when the symbol is unchanged                                                                                     | `src/modules/chart/ChartPanel.tsx`                                       |
+| 4   | MEDIUM   | Chat assistant message stuck `pending` forever + composer locked forever if SSE stream ends without a terminator frame                           | `src/modules/chat/streaming.ts` + `ChatSidebar.tsx`                      |
+| 5   | MEDIUM   | `getSecret` rejection in chat send is an unhandled rejection — user message left dangling, no error                                              | `src/modules/chat/ChatSidebar.tsx`                                       |
+| 6   | MEDIUM   | Broker mode toggle (paper↔live) + read-only toggle silently no-op on failure — unhandled rejection, no UI feedback                               | `src/modules/broker-connect/BrokerConnectPanel.tsx`                      |
+| 7   | MEDIUM   | Screener universe load failure is fully swallowed — panel shows nothing, "Run" still enabled against empty universe                              | `src/store/screener.ts` + `ScreenerPanel.tsx`                            |
+| 8   | MEDIUM   | Broker refresh error rendered as "No brokers reported by sidecar." — masks a connection failure as an empty state                                | `src/modules/broker-connect/BrokerConnectPanel.tsx`                      |
+| 9   | MEDIUM   | Workflow run overlay stuck on "running" forever if the run SSE ends without a terminal event                                                     | `src/modules/node-editor/NodeEditorPanel.tsx`                            |
+| 10  | LOW      | First-party agents fail silently with a misleading "static catalog fallback" comment that does not exist                                         | `src/modules/chat/ChatSidebar.tsx` + `src/store/agents.ts`               |
+| 11  | LOW      | Watchlist first-load failure shows "Loading quotes…" forever beneath an error banner; dropped per-symbol quotes show permanent "—" with no cause | `src/modules/watchlist/WatchlistPanel.tsx` + `sidecar/routers/quotes.py` |
+| 12  | LOW      | KeyEntryDialog conflates "sidecar/provider transport error" with "your key is invalid"                                                           | `src/components/KeyEntryDialog.tsx`                                      |
 
 ---
 
@@ -63,6 +63,7 @@ src/store/app.ts:12,14,22,23,25,29,32   # definitions + writes only
 No component subscribes to `useAppStore` for status. `page.tsx` imports it only to call `connectSidecar`.
 
 **Consequences (cold-boot / degraded):**
+
 - On the documented cold-boot race (the sidecar `--onefile` `_MEI` extraction + MCP contention; see the
   CLAUDE.md "MCP cold-bind is ~34s" gotcha), the one-shot `health()` can fail. The status flips to
   `"error"` and **stays there forever** — there is no reconnect loop, no retry button, and no banner.
@@ -88,7 +89,7 @@ self-heals when the sidecar finishes binding. This is the natural home for the c
 
 **File:** `src/modules/safety/KillSwitchToolbar.tsx:58-74` (toolbar) + `src/store/safety.ts:210-241` (store)
 
-`store/safety.ts` deliberately makes `fireKillSwitch` / `resetKillSwitch` *throw* on failure (they do not
+`store/safety.ts` deliberately makes `fireKillSwitch` / `resetKillSwitch` _throw_ on failure (they do not
 write `killSwitchError`):
 
 ```ts
@@ -106,7 +107,7 @@ try {
   const result = await fireKillSwitch(reason, firedBy);
   setBanner(result);
 } catch {
-  setBanner(null);     // <-- failure path: clears the banner, shows NOTHING
+  setBanner(null); // <-- failure path: clears the banner, shows NOTHING
 } finally {
   setBusy(false);
 }
@@ -160,7 +161,8 @@ toggling the timeframe — both of which actually change a dependency. The butto
 isn't.
 
 **Repro:** Boot with the sidecar history endpoint failing → chart shows "Failed to load price history."
-+ Retry. Bring the endpoint back up, click Retry → nothing happens. Change the timeframe → it loads.
+
+- Retry. Bring the endpoint back up, click Retry → nothing happens. Change the timeframe → it loads.
 
 **Fix:** Make Retry force a refetch independent of `symbol`. Add a `reloadNonce` state
 (`const [reloadNonce, setReloadNonce] = useState(0)`), include it in the price effect deps, and have Retry
@@ -191,13 +193,14 @@ The chat-history reducer only clears `pending` / `streamingMessageId` from `fina
 (on `done`) or `failAssistantMessage` (on `error`) — `chat-history.ts:98-111`. Neither fires.
 
 **Consequences:**
+
 - The assistant message stays `pending: true` forever → the blinking `▋` cursor never stops
   (`ChatSidebar.tsx:265-268`).
 - `streamingMessageId` stays non-null → `streaming` is `true` (`ChatSidebar.tsx:42`) → the composer is
   **disabled forever** (`disabled={streaming}`, line 291). The user cannot send another message and has no
   way to recover except reloading the app.
 
-Note: the *sidecar* LLM route is robust (it wraps the generator and always emits an error+done frame on
+Note: the _sidecar_ LLM route is robust (it wraps the generator and always emits an error+done frame on
 exception — `sidecar/routers/llm.py:79-82`). The hole is the transport/process-death case the route can't
 cover, plus any provider adapter that ends its async generator without yielding a `done`.
 
@@ -234,7 +237,7 @@ promise rejection.
 **Consequences:** The user's message is already appended (line 145), but the assistant message is never
 begun (that's after line 159). The user sees their prompt with **no response, no error, no status line** —
 just silence — and the rejection is logged only to the console. (Contrast: a `null` key is handled
-gracefully at line 160; a *thrown* error is not.)
+gracefully at line 160; a _thrown_ error is not.)
 
 **Repro:** On macOS, lock the login keychain (or simulate an `invoke` rejection) and send a chat message.
 The user bubble appears; nothing else happens.
@@ -251,11 +254,11 @@ assistant message and `fail` it) so the keychain failure is visible.
 ```ts
 const handleModeToggle = useCallback(async () => {
   const next: BrokerMode = state.mode === "paper" ? "live" : "paper";
-  await setMode(state.broker, next);            // no try/catch
+  await setMode(state.broker, next); // no try/catch
 }, [setMode, state.broker, state.mode]);
 
 const handleReadOnlyToggle = useCallback(async () => {
-  await setReadOnly(state.broker, !state.readOnly);   // no try/catch
+  await setReadOnly(state.broker, !state.readOnly); // no try/catch
 }, [setReadOnly, state.broker, state.readOnly]);
 ```
 
@@ -293,19 +296,23 @@ changes; console logs an unhandled rejection.
 ```
 
 And `ScreenerPanel` **never reads `universeStatus`** — it only reads `universeMeta[universe]` and renders
-the ticker count *gated on truthiness*:
+the ticker count _gated on truthiness_:
 
 ```tsx
 // ScreenerPanel.tsx:72-76
-{universeInfo && universe !== "custom" && (
-  <span>{universeInfo.symbols.length} tickers · {universeInfo.asset_class}</span>
-)}
+{
+  universeInfo && universe !== "custom" && (
+    <span>
+      {universeInfo.symbols.length} tickers · {universeInfo.asset_class}
+    </span>
+  );
+}
 ```
 
 **Consequences:** On a universe-fetch failure (e.g. sidecar cold-boot, `/screener/universe` 502), the
 panel shows **no ticker count, no error, nothing** — the universe picker just silently has no metadata.
 Worse, the "Run screener" button stays **enabled** (`disabled={status === "loading"}` only — `status` is
-the *run* status, not the universe status), so the user can run a screen against a universe that failed to
+the _run_ status, not the universe status), so the user can run a screen against a universe that failed to
 load. Whether that produces an empty result or a confusing error depends on the backend, but either way
 the root cause (universe load failed) is invisible.
 
@@ -323,16 +330,18 @@ the selected non-custom universe is in `"error"`/unloaded state.
 **File:** `src/modules/broker-connect/BrokerConnectPanel.tsx:154-158`
 
 ```tsx
-{primary.length === 0 && (
-  <p>{status === "loading" ? "Loading…" : "No brokers reported by sidecar."}</p>
-)}
+{
+  primary.length === 0 && (
+    <p>{status === "loading" ? "Loading…" : "No brokers reported by sidecar."}</p>
+  );
+}
 ```
 
 `refreshBrokers()` is fire-and-forget (line 122). The brokers store sets `status: "error"` with a message
 on failure (`src/store/brokers.ts:62-64`), but the panel only distinguishes `"loading"` from everything
 else. On an `"error"` status with an empty `byId`, the panel prints **"No brokers reported by sidecar."**
 
-**Consequences:** A sidecar connection failure is displayed as a *successful empty result* — a misleading
+**Consequences:** A sidecar connection failure is displayed as a _successful empty result_ — a misleading
 message. The user thinks the app genuinely found no brokers (and there is no retry), when in fact the
 fetch failed. `store.error` is populated but never surfaced.
 
@@ -395,7 +404,7 @@ The comment claims a "static catalog fallback," but `useAgentsStore` initializes
 
 **Consequences:** If `/agents` fails at cold boot, the agent picker silently shows only "No agent (raw
 chat)" — every first-party agent (Buffett, Dalio, Druckenmiller, Graham, …) is absent with no indication
-of *why*. The user assumes the product ships no agents. The misleading comment will also send the next
+of _why_. The user assumes the product ships no agents. The misleading comment will also send the next
 maintainer looking for a fallback that doesn't exist. (There IS a real "bundle didn't include the agents
 dir → `/agents` returns `[]`" failure mode documented in the CLAUDE.md v0.8.0 gotcha — which this silent
 path would also hide.)
@@ -421,7 +430,7 @@ Two compounding issues:
    renders a permanent "—" (`WatchlistPanel.tsx:193,205`) with **no indication the lookup failed** vs.
    "no data exists." A typo'd or delisted ticker looks identical to a transient provider hiccup.
 
-**Fix:** (1) Show the error banner *instead of* the loading text when `rows === null && error !== null`,
+**Fix:** (1) Show the error banner _instead of_ the loading text when `rows === null && error !== null`,
 and add a Retry. (2) Distinguish "quote dropped/failed" from "no data" — either have the batch endpoint
 report which symbols failed, or render a distinct per-row "failed" affordance.
 
@@ -431,7 +440,7 @@ report which symbols failed, or render a distinct per-row "failed" affordance.
 
 `postValidate` maps a non-ok sidecar response to `{ ok: false, detail: "sidecar returned <status>" }`
 (lines 158-160). The dialog renders that under `status === "invalid"` (lines 74-77, 119-121) — i.e. it
-tells the user the **key** was rejected. But a 502 there means the *sidecar/provider* errored during the
+tells the user the **key** was rejected. But a 502 there means the _sidecar/provider_ errored during the
 probe (e.g. provider rate-limited the models-list call), not that the key is bad.
 
 **Consequences:** A user with a perfectly valid key whose provider is momentarily unreachable is told
@@ -449,11 +458,11 @@ vs. "The provider rejected this key."
 
 - `sidecar/routers/news.py:99` calls `news_provider.fetch_news` with no try/except, BUT
   `news_provider.fetch_news` only ever raises `ProviderError` (it catches every per-source exception —
-  `news_provider.py:247,263`, and raises `ProviderError` only when *all* sources fail, line 307). The
+  `news_provider.py:247,263`, and raises `ProviderError` only when _all_ sources fail, line 307). The
   app-level `@app.exception_handler(ProviderError)` (`app.py:180-183`) turns that into a clean 502. Safe.
 - `sidecar/routers/quotes.py` batch swallow is intentional (one bad symbol shouldn't fail the batch) — the
-  problem is purely that the *frontend* doesn't distinguish dropped-from-batch vs no-data (finding #11).
-- `sidecar/routers/sec_filings.py:45-65` has an unusually *honest* 501 message for the cold-start MCP-bind
+  problem is purely that the _frontend_ doesn't distinguish dropped-from-batch vs no-data (finding #11).
+- `sidecar/routers/sec_filings.py:45-65` has an unusually _honest_ 501 message for the cold-start MCP-bind
   race — good model for the rest of the app.
 - `OrderConfirmationDialog.tsx`, `BrokerOrderEntry.tsx`, `GreeksDashboard.tsx` / quant store,
   `MacroPanel`, `SecFilingsPanel`, `NewsFeedPanel` all surface inline errors with a working

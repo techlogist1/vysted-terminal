@@ -18,12 +18,12 @@ problem the operator may not realize:
    functionally dead in production.** No provider adapter ever sends a `tools`
    schema to the LLM API, so no real model ever emits a `tool_use` block, so the
    loop never iterates beyond the first stream. The loop is only ever exercised
-   by tests that *mock* the provider to fake a `tool_use` event
-   (`tests/test_strategy_critic_e2e.py`). Today the system has the *plumbing*
+   by tests that _mock_ the provider to fake a `tool_use` event
+   (`tests/test_strategy_critic_e2e.py`). Today the system has the _plumbing_
    for agentic tool use but **zero real tool use**.
 2. **Panel context is shipped as a raw JSON blob in a system message, and the
    personas are not told to act on it.** Buffett's prompt says "quote the
-   company's reported figures *when the panel context supplies them*" — purely
+   company's reported figures _when the panel context supplies them_" — purely
    passive. Asking "what do you see" hits a model that received a JSON dump of
    panel state it was never instructed to interpret.
 3. **`/ask` (raw chat) sends NO context and NO system prompt at all** — just
@@ -33,7 +33,7 @@ problem the operator may not realize:
 So "is AAPL good" returns a generic non-answer because: (a) raw chat sends zero
 context; (b) agent chat sends a context blob but the persona has no tools to
 fetch fundamentals/price and is only weakly told to use the blob; (c) the model
-*cannot* call `price_data`/`fundamentals` even though those tools exist and are
+_cannot_ call `price_data`/`fundamentals` even though those tools exist and are
 registered, because no `tools` schema reaches the API.
 
 ---
@@ -41,32 +41,34 @@ registered, because no `tools` schema reaches the API.
 ## 1. Surface inventory (the files involved)
 
 ### Frontend (`src/`)
-| File | Role |
-|---|---|
-| `src/modules/chat/ChatSidebar.tsx` | The chat panel component (composer, transcript, agent picker, context badge, send logic) |
-| `src/modules/chat/slash-commands.ts` | Pure parser for `/ask /agent /provider /key /clear /help` |
-| `src/modules/chat/streaming.ts` | SSE client — `fetch`-based stream parser for `/llm/chat` + `/agents/{id}/invoke` |
-| `src/modules/chat/index.ts` | Module registration (`VystedModule`), command trigger `ask` |
-| `src/store/chat-history.ts` | In-memory conversation state + streaming reducer (no persistence) |
-| `src/store/agents.ts` | First-party + custom agent picker store |
-| `src/store/llm-providers.ts` | The seven BYOK providers + default-provider selection |
-| `src/store/panel-context.ts` | The panel-context bus (publish/subscribe per panel) |
-| `src/lib/keychain.ts` | Tauri keychain bindings (the only credential path) |
-| `types/ai.ts` | Wire contract: providers, streaming events, agent invocation envelope |
+
+| File                                 | Role                                                                                     |
+| ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `src/modules/chat/ChatSidebar.tsx`   | The chat panel component (composer, transcript, agent picker, context badge, send logic) |
+| `src/modules/chat/slash-commands.ts` | Pure parser for `/ask /agent /provider /key /clear /help`                                |
+| `src/modules/chat/streaming.ts`      | SSE client — `fetch`-based stream parser for `/llm/chat` + `/agents/{id}/invoke`         |
+| `src/modules/chat/index.ts`          | Module registration (`VystedModule`), command trigger `ask`                              |
+| `src/store/chat-history.ts`          | In-memory conversation state + streaming reducer (no persistence)                        |
+| `src/store/agents.ts`                | First-party + custom agent picker store                                                  |
+| `src/store/llm-providers.ts`         | The seven BYOK providers + default-provider selection                                    |
+| `src/store/panel-context.ts`         | The panel-context bus (publish/subscribe per panel)                                      |
+| `src/lib/keychain.ts`                | Tauri keychain bindings (the only credential path)                                       |
+| `types/ai.ts`                        | Wire contract: providers, streaming events, agent invocation envelope                    |
 
 ### Sidecar (`sidecar/`)
-| File | Role |
-|---|---|
-| `sidecar/routers/llm.py` | `GET /llm/providers`, `POST /llm/keys/validate`, `POST /llm/chat` (SSE) |
-| `sidecar/routers/agents.py` | `GET /agents`, `POST /agents/{id}/invoke` (SSE) |
-| `sidecar/routers/custom_agents.py` | CRUD for Custom Agent Builder agents |
-| `sidecar/services/agent_runtime.py` | Discovers agent JSON, composes messages, runs the (dead) tool loop |
-| `sidecar/services/agents_store.py` | SQLite store for custom agents |
-| `sidecar/services/llm/base.py` | `LLMProvider` ABC — `stream_chat` + `validate_key` |
-| `sidecar/services/llm/{anthropic,openai,gemini,groq,ollama}.py` | Five adapter files, seven providers |
-| `sidecar/services/agent_tools/*` | Tool registry + 9 tool handlers |
-| `sidecar/models/{agent,llm,custom_agent}.py` | Pydantic wire models |
-| `sidecar/agents/*.json` | 12 first-party persona configs + `_schema.json` |
+
+| File                                                            | Role                                                                    |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `sidecar/routers/llm.py`                                        | `GET /llm/providers`, `POST /llm/keys/validate`, `POST /llm/chat` (SSE) |
+| `sidecar/routers/agents.py`                                     | `GET /agents`, `POST /agents/{id}/invoke` (SSE)                         |
+| `sidecar/routers/custom_agents.py`                              | CRUD for Custom Agent Builder agents                                    |
+| `sidecar/services/agent_runtime.py`                             | Discovers agent JSON, composes messages, runs the (dead) tool loop      |
+| `sidecar/services/agents_store.py`                              | SQLite store for custom agents                                          |
+| `sidecar/services/llm/base.py`                                  | `LLMProvider` ABC — `stream_chat` + `validate_key`                      |
+| `sidecar/services/llm/{anthropic,openai,gemini,groq,ollama}.py` | Five adapter files, seven providers                                     |
+| `sidecar/services/agent_tools/*`                                | Tool registry + 9 tool handlers                                         |
+| `sidecar/models/{agent,llm,custom_agent}.py`                    | Pydantic wire models                                                    |
+| `sidecar/agents/*.json`                                         | 12 first-party persona configs + `_schema.json`                         |
 
 ---
 
@@ -97,6 +99,7 @@ arcane commands or pre-select an agent in a `<select>` dropdown
 ## 3. What context actually reaches the model
 
 ### 3a. Raw chat (`/ask`) — ZERO context, ZERO system prompt
+
 `ChatSidebar.tsx:198-206` calls `streamChat` with
 `messages: [{ role: "user", content: prompt }]`. No system prompt, no panel
 context, no history beyond the single turn. `streaming.ts:35-47` posts this
@@ -106,6 +109,7 @@ the raw-chat path does **not** send prior conversation turns — only the curren
 prompt — so `/ask` has no memory either.
 
 ### 3b. Agent chat (`/agent`) — a JSON context blob in a system message
+
 `ChatSidebar.tsx:178-187` builds an `AgentContextSnapshot` from the panel-context
 bus: `focusedSource`, `bySource` (per-panel `event.payload`), `capturedAt`.
 `streaming.ts:50-72` posts it to `/agents/{id}/invoke`.
@@ -113,25 +117,29 @@ bus: `focusedSource`, `bySource` (per-panel `event.payload`), `capturedAt`.
 Server-side, `agent_runtime._compose_messages` (`agent_runtime.py:155-166`)
 builds: `[system=persona prompt, system=context preamble (if any), user=prompt]`.
 The context preamble (`agent_runtime.py:133-152`) renders:
+
 ```
 ## Terminal context (read-only — describe accurately, do not invent fields)
 Focused panel: `<source>`
 Per-panel state:
 - `<source>`: <json.dumps(payload)>
 ```
+
 So the model receives a **raw JSON dump of whatever each panel last published**,
 keyed by source. There is no summarization, no schema explanation, no per-field
 glossary. The model has to infer meaning from arbitrary panel payloads.
 
 ### 3c. Who publishes panel context (verified)
+
 The bus (`src/store/panel-context.ts`) has real publishers (confirmed via grep):
+
 - `src/modules/chart/ChartPanel.tsx:684`
 - `src/modules/news/NewsFeedPanel.tsx:142`
 - `src/modules/portfolio/PortfolioPanel.tsx:75`
 - `src/modules/equity-overview/EquityOverviewPanel.tsx:130`
 - `src/modules/watchlist/WatchlistPanel.tsx:54`
 
-So context *is* populated in a real workspace. The chat sidebar
+So context _is_ populated in a real workspace. The chat sidebar
 (`ChatSidebar.tsx:58-64`) subscribes to three primitive slices and reassembles
 the snapshot. **The context pipe works; the consumption is the weak link** —
 it's dumped, not interpreted, and only on the `/agent` path, never on `/ask`.
@@ -145,6 +153,7 @@ context exists, but it's cosmetic.
 ## 4. The agent persona system
 
 ### 4a. Definition + discovery
+
 12 first-party personas ship as JSON under `sidecar/agents/`:
 `buffett, dalio, druckenmiller, graham, klarman, lynch, marks, munger,
 portfolio_advisor, researcher, soros, strategy_critic` (`ls sidecar/agents/`).
@@ -164,6 +173,7 @@ defaultModel?, icon?` (`agents/_schema.json`). The Pydantic mirror is
 > v0.8.0 fixed the `--add-data` flag. Phase 10 inherits this fragility.
 
 ### 4b. How personas surface to the UI
+
 `GET /agents` (`routers/agents.py:37-51`) returns `AgentSummary` — note the
 **system prompt is deliberately withheld** from the wire (`models/agent.py:41-56`,
 comment lines 43-48; store comment `src/store/agents.ts:8-10`). The UI only sees
@@ -183,15 +193,17 @@ the transcript beyond a tiny uppercase label (`ChatSidebar.tsx:261`,
 suggested prompts, no "what can this agent do" affordance.
 
 ### 4c. The personas are passive by design
+
 Reading the actual prompts:
+
 - **Buffett** (`agents/buffett.json`): rich 400-word framework, but the only
-  context instruction is *"You quote the company's reported figures when the
-  panel context supplies them"* — passive. No instruction to *call tools* to
+  context instruction is _"You quote the company's reported figures when the
+  panel context supplies them"_ — passive. No instruction to _call tools_ to
   fetch figures it doesn't have. No tool-use protocol described.
 - **Strategy Critic** (`agents/strategy_critic.json`): declares
   `tools: [backtest_summary, price_data, fundamentals]` and a 9-section
   framework, but the prompt references "the backtest" as if it's already
-  present; it doesn't instruct the model on *when/how* to call a tool.
+  present; it doesn't instruct the model on _when/how_ to call a tool.
 
 This matters: even if tool-calling were wired (it isn't — §5), the prompts
 aren't written to drive an agentic loop.
@@ -201,9 +213,11 @@ aren't written to drive an agentic loop.
 ## 5. Tools: registered, callable in isolation, but UNREACHABLE by the model
 
 ### 5a. The registry is real and populated
+
 `services/agent_tools/__init__.py` is a clean registry: `register_tool`,
 `is_registered`, `invoke_tool`, `registered_tools` (lines 46-67). Tools register
 at startup in both entrypoints (`main.py:83-101`, `app.py:128-156`):
+
 - import-time: `backtest_summary`
 - `register_v0_5_0_tools()`: `price_data`, `fundamentals`
 - `register_v0_6_0_tools()` (`registry_v0_6_0.py`): macro, sec, quant, earnings,
@@ -216,6 +230,7 @@ The handlers are genuinely functional — e.g. `price_data._price_data`
 and returns real OHLCV + quote dicts.
 
 ### 5b. The tool loop exists in the runtime
+
 `agent_runtime.invoke_agent` (`agent_runtime.py:228-312`) has a full
 agentic loop: on each `LLMToolUseEvent` it appends to `pending_tools`, yields it
 to the UI, and when the stream's per-round `done` arrives it dispatches every
@@ -225,16 +240,18 @@ at `_MAX_TOOL_ROUNDS = 6` (`agent_runtime.py:195`). `_dispatch_tool` even handle
 unregistered tools gracefully (lines 213-217).
 
 ### 5c. THE FATAL GAP — no `tools` schema is ever sent to any provider
+
 This is the headline finding. **No provider adapter passes a `tools` parameter
 to the LLM API**, and **nothing builds a tool schema from `AgentSpec.tools`.**
 
 Verified:
+
 - `anthropic.py:92-99` — `stream_kwargs` is only `{model, max_tokens, messages,
-  [system]}` + raw `kwargs`. No `tools=`. So the Anthropic API returns no
+[system]}` + raw `kwargs`. No `tools=`. So the Anthropic API returns no
   `tool_use` blocks, making `_translate_event`'s tool_use branch
   (`anthropic.py:162-170`) **dead code in production**.
 - `openai.py:65-71` — `request_kwargs` is `{model, messages, stream,
-  stream_options}` + raw `kwargs`. No `tools=`. The `tool_calls` parsing
+stream_options}` + raw `kwargs`. No `tools=`. The `tool_calls` parsing
   (`openai.py:88-101`) never fires because no functions are declared.
 - `gemini.py:65-77`, `groq.py:47-54`, `ollama.py:56-65` — same; no tool config.
 - Grep for any `tools=` / `tool_schema` / `tool_choice` / `"tools"` build across
@@ -248,16 +265,18 @@ provider tool definition — `invoke_agent` doesn't reference `spec.tools` at al
 (it composes messages and streams; lines 252-312).
 
 ### 5d. The loop is only "proven" by mocked tests
+
 `tests/test_strategy_critic_e2e.py:105-141` defines `_MockCriticProvider` that
-*manually yields* `LLMToolUseEvent(name="backtest_summary", ...)`. The e2e test
+_manually yields_ `LLMToolUseEvent(name="backtest_summary", ...)`. The e2e test
 (lines 150-255) monkeypatches `get_provider` to return this mock. It proves the
-*runtime plumbing* works — not that a real LLM will ever trigger it. No test
+_runtime plumbing_ works — not that a real LLM will ever trigger it. No test
 sends a real `tools` schema to a real adapter. `test_agent_runtime.py` only uses
 `tools` as config metadata (lines 33, 139), never the loop.
 
 ### 5e. Second-order bug if tools WERE wired: OpenAI tool-arg reassembly is broken
-Even if a `tools` schema were sent, the OpenAI adapter forwards *each streaming
-argument delta* as a separate `LLMToolUseEvent` with
+
+Even if a `tools` schema were sent, the OpenAI adapter forwards _each streaming
+argument delta_ as a separate `LLMToolUseEvent` with
 `input={"arguments_delta": <partial json str>}` (`openai.py:88-101`). The runtime
 passes `event.input` straight to `invoke_tool` (`agent_runtime.py:219`), so the
 tool would receive `{"arguments_delta": "{\"sym"}` fragments, never a
@@ -270,6 +289,7 @@ This is a latent bug Phase 10 must fix when it actually wires tools.
 ## 6. Provider abstraction + BYOK key flow
 
 ### 6a. The abstraction
+
 `LLMProvider` ABC (`services/llm/base.py:33-74`): `stream_chat(messages, model,
 api_key, **kwargs)` yielding the discriminated `LLMStreamEvent` union
 (`base.py:30`), plus `validate_key`. Five adapter files cover seven providers —
@@ -284,7 +304,9 @@ final → `done` with usage. Errors are caught and emitted as `error` events so 
 SSE always terminates.
 
 ### 6b. BYOK key flow (renderer → keychain → request body)
+
 The flow is structurally clean and matches CLAUDE.md's documented pattern:
+
 1. Key stored via `KeyEntryDialog` → `setSecret` → Tauri `keychain_set`
    (`src/lib/keychain.ts:50-52`). **Only Tauri Rust touches the OS keychain.**
 2. On send, the frontend reads the key on demand:
@@ -302,23 +324,25 @@ Validation: `POST /llm/keys/validate` (`routers/llm.py:47-59`) does a cheap
 models-list probe before the key is saved.
 
 > Note: for the **agent** path the frontend resolves the key using
-> `defaultProviderId` even though the agent may declare a *different*
+> `defaultProviderId` even though the agent may declare a _different_
 > `defaultProvider` (`ChatSidebar.tsx:147-159` sets `providerId = undefined` for
 > agents, then `provider = providerId ?? defaultProviderId`). The runtime then
 > resolves the agent's real provider server-side
 > (`agent_runtime._resolve_provider_id`, `agent_runtime.py:169-170`). **Mismatch
 > risk:** if the agent's default provider ≠ the UI default provider, the key
-> read from the keychain is for the *wrong* provider. This is a real BYOK bug on
+> read from the keychain is for the _wrong_ provider. This is a real BYOK bug on
 > the agent path.
 
 ### 6c. Model defaults are hardcoded and stale-prone
+
 Default model resolution is duplicated in **two** places:
+
 - frontend `defaultModelFor` (`ChatSidebar.tsx:418-435`)
 - sidecar `_resolve_model` (`agent_runtime.py:173-188`)
-Both hardcode e.g. `claude-opus-4-7`, `gpt-4.1-mini`. Drift between them (and
-against real model releases) is a maintenance trap. `types/ai.ts:38-45` notes
-models are meant to be free-form strings discovered via `POST /llm/models` — but
-that endpoint isn't wired into the chat send path.
+  Both hardcode e.g. `claude-opus-4-7`, `gpt-4.1-mini`. Drift between them (and
+  against real model releases) is a maintenance trap. `types/ai.ts:38-45` notes
+  models are meant to be free-form strings discovered via `POST /llm/models` — but
+  that endpoint isn't wired into the chat send path.
 
 ---
 
@@ -353,7 +377,7 @@ arg-reassembly (§5e); (3) write personas/system prompts that drive tool use.
 
 **B. `/ask` raw chat sends no context and no system prompt** (§3a). A
 terminal-aware copilot should inject panel context (and a base system prompt) on
-*every* path, not only `/agent`.
+_every_ path, not only `/agent`.
 
 **C. No conversation memory.** Raw chat sends only the current turn
 (`ChatSidebar.tsx:202`); agent invocation sends only system+context+prompt
@@ -361,7 +385,7 @@ terminal-aware copilot should inject panel context (and a base system prompt) on
 is UI-only (`chat-history.ts`), never fed back. The copilot can't hold a thread.
 
 **D. Context is dumped, not interpreted.** Panel state is `json.dumps`'d into a
-system message (`agent_runtime.py:151`) with no summarization, no tool to *query*
+system message (`agent_runtime.py:151`) with no summarization, no tool to _query_
 live terminal state, no schema. "What do you see" forces the model to parse raw
 payloads it was never taught to read.
 
@@ -386,7 +410,7 @@ UI default provider, not the agent's declared provider.
 only a `disabled` composer while `streaming` (`ChatSidebar.tsx:42, 291`).
 
 **K. No grounding tools for "what's on my screen."** There's no tool that lets
-the model *pull* current chart symbol / watchlist / positions on demand — it
+the model _pull_ current chart symbol / watchlist / positions on demand — it
 only gets a one-shot snapshot blob. A real copilot needs read tools over live
 terminal state, not a frozen dump.
 

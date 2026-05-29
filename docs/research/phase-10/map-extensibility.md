@@ -20,23 +20,24 @@ capabilities in `types/plugin.ts`) and a **solid layout-customization layer**
 "contract capability" → "thing the user can actually see and use" is **only
 fully wired for 3 of the 6 capabilities**:
 
-| Capability | Collected by runtime | Surfaced to user | Status |
-|---|---|---|---|
-| **panels** | yes (`collectPanels`) → `useModulesStore` | yes (dockview, via cmd+K command) | **wired** |
-| **commands** | yes (`collectCommands`) → `useModulesStore` | yes (cmd+K palette) | **wired** |
-| **control plane** | yes (`executeCommand` via command handler) | yes (cmd+K) | **wired** |
-| **nodes** | yes (`collectNodes`) → `usePluginsStore.nodes` | **partial** (node palette; double-render bug) | **wired-but-buggy** |
-| **data** | yes (`collectDataSources`) → `usePluginsStore.dataSources` | **NO** — count only; no picker, no routing | **dead-ends** |
-| **agents** | yes (`collectAgents`) → `usePluginsStore.agents` | **NO** — count only; chat picker reads sidecar instead | **dead-ends** |
+| Capability        | Collected by runtime                                       | Surfaced to user                                       | Status              |
+| ----------------- | ---------------------------------------------------------- | ------------------------------------------------------ | ------------------- |
+| **panels**        | yes (`collectPanels`) → `useModulesStore`                  | yes (dockview, via cmd+K command)                      | **wired**           |
+| **commands**      | yes (`collectCommands`) → `useModulesStore`                | yes (cmd+K palette)                                    | **wired**           |
+| **control plane** | yes (`executeCommand` via command handler)                 | yes (cmd+K)                                            | **wired**           |
+| **nodes**         | yes (`collectNodes`) → `usePluginsStore.nodes`             | **partial** (node palette; double-render bug)          | **wired-but-buggy** |
+| **data**          | yes (`collectDataSources`) → `usePluginsStore.dataSources` | **NO** — count only; no picker, no routing             | **dead-ends**       |
+| **agents**        | yes (`collectAgents`) → `usePluginsStore.agents`           | **NO** — count only; chat picker reads sidecar instead | **dead-ends**       |
 
 The `data` and `agents` registries are collected, stored, and counted but **have
-no consumer that turns them into a usable feature**. This is a *known, documented*
+no consumer that turns them into a usable feature**. This is a _known, documented_
 deferral — `docs/PLUGIN_DEVELOPMENT.md:368-370` literally says "Phase 3 will add
 agent / node-editor consumers for the `usePluginsStore` registries that this
 phase wires but does not yet display." Node consumers shipped; data and agent
 consumers never did.
 
 For a "build-your-own / sandboxable" feel, the **three biggest gaps** are:
+
 1. No data-connector routing — `DataSource` is registry-only; every panel
    hardcodes sidecar REST endpoints, so a plugin's data source can never feed a
    first-party panel.
@@ -97,7 +98,7 @@ omits: React components and command handlers.
 
 - `VystedModule` shape (`src/lib/module-registry.ts:15-36`): `id`, `title`,
   `panels[]`, `commands[]`, `panelComponents` (`Record<string,
-  FunctionComponent>`), optional `commandHandlers`.
+FunctionComponent>`), optional `commandHandlers`.
 - Flatteners: `collectPanels` / `collectCommands` / `collectPanelComponents` /
   `collectCommandHandlers` (`src/lib/module-registry.ts:39-66`).
 - The 19-module registry (`src/modules/index.ts:55-78`): chart, watchlist,
@@ -180,7 +181,7 @@ no dedicated panel gallery (see §6).
 ### 4.2 Runtime (`src/lib/plugin-runtime.ts`)
 
 - Lifecycle supervisor with states `discovered → initializing → active →
-  stopping → stopped` (+ `error`); capability negotiation **by flag, not method
+stopping → stopped` (+ `error`); capability negotiation **by flag, not method
   shape** (`plugin-runtime.ts:10-24, 259-286`). A flag set without its getter
   emits an `errored` event but doesn't crash the plugin.
 - **Capability aggregators** (`plugin-runtime.ts:288-331`): `collectDataSources`,
@@ -228,8 +229,8 @@ counted (`PluginManagerPanel.tsx:37`) — and that is the entire lifecycle.
   equity data from source X."
 - **The sidecar owns the actual data layer**, exposed as ~24 typed REST routers
   (`sidecar/routers/`: quotes, history, indicators, fundamentals, news, macro,
-  sec_filings, earnings, screener, quant, crypto, brokers, ...). These are the
-  *real* data connectors, but they are **first-party, compiled into the sidecar
+  sec*filings, earnings, screener, quant, crypto, brokers, ...). These are the
+  \_real* data connectors, but they are **first-party, compiled into the sidecar
   binary**, not pluggable at runtime.
 - **Plugins that contribute data sources** (example: `example-prices`
   `plugins/example/index.ts:28-36`; openbb-mcp: equity/fundamentals/macro
@@ -253,6 +254,7 @@ ready for it; the host plumbing is not.
 This is the **strongest** customizability layer and it is genuinely user-facing.
 
 ### 6.1 What works
+
 - **dockview layout engine** (`src/components/PanelHost.tsx`): drag-dock, split,
   tab-group, resize. `dragDropEnabled:false` in Tauri config makes HTML5 DnD work
   (CLAUDE.md gotcha). Components resolved from the merged module map
@@ -272,6 +274,7 @@ This is the **strongest** customizability layer and it is genuinely user-facing.
   §5.1 cockpit, skips panels whose module is disabled.
 
 ### 6.2 Gaps vs BLUEPRINT §5.2 (`docs/BLUEPRINT.md:331-338`)
+
 - **"pop-out to second window"** (§5.2 line 332) — not implemented. No
   multi-window code; dockview is single-host.
 - **No "add panel" gallery.** Opening a panel requires a cmd+K command with
@@ -310,7 +313,7 @@ This is the **strongest** customizability layer and it is genuinely user-facing.
 - **Watchlist** (`src/modules/watchlist/`) — user-editable symbol list in
   `useSymbolsStore` (`src/store/symbols.ts`); fetches live quotes via
   hardcoded `/quotes` + `/crypto/ticker` (`watchlist/api.ts`). Per §5, the
-  source is fixed; the user customizes *what* symbols, not *which provider*.
+  source is fixed; the user customizes _what_ symbols, not _which provider_.
 
 These are the closest thing to "sandboxable / build-your-own" today, but each is
 a bespoke per-module UI, not a generic primitive.
@@ -335,11 +338,12 @@ a bespoke per-module UI, not a generic primitive.
   registry that got its consumer.
 
 ### 8.1 BUG — node palette double-renders plugin nodes (medium)
+
 `src/modules/node-editor/node-palette.tsx`: `groupByCategory(registry)` already
 includes plugin entries (since `buildRegistry` returns them), so plugin nodes
 render as proper **draggable** `PaletteCard`s inside their category section
 (`node-palette.tsx:44, 57-78`, card at line 73). Then lines **79-94** render a
-*second* "Plugin Nodes" section mapping `pluginEntries` to bare, **non-draggable**
+_second_ "Plugin Nodes" section mapping `pluginEntries` to bare, **non-draggable**
 `<span>` labels that show only `entry.pluginId` — no label, no drag handler, no
 `PaletteCard`. Result: every plugin node appears twice (once usable, once a
 dead duplicate). The second section looks like an unfinished stub.
@@ -373,9 +377,10 @@ Two distinct agent surfaces, only one of which is wired to plugins:
 ## 10. MCP integration — the orthogonal extensibility axis
 
 `docs/PLUGIN_DEVELOPMENT.md:192-220` + `docs/MCP_INTEGRATION.md`:
+
 - **Vysted as MCP server** — sidecar exposes data + agents as MCP tools at
   `/mcp` (Streamable-HTTP). External clients (Claude Desktop/Code) can drive
-  Vysted. This is real extensibility *outward* but not user-configurable in-app.
+  Vysted. This is real extensibility _outward_ but not user-configurable in-app.
 - **Vysted as MCP client** — `sidecar/services/mcp_client.py`; the `openbb-mcp`
   plugin is the reference consumer. Adding an MCP data source is a
   developer task (new Rust spawn helper + sidecar provider), not a user one.
@@ -394,9 +399,9 @@ Two distinct agent surfaces, only one of which is wired to plugins:
   for a later phase — but as of this tree they are dead code from the host's POV.)
 - **No filesystem-installed / signed / marketplace plugins.** All plugins are
   statically compiled into the host build (`docs/PLUGIN_DEVELOPMENT.md:23-25,
-  360-372`). There is **no runtime sandbox** — a plugin is in-process TypeScript
+360-372`). There is **no runtime sandbox** — a plugin is in-process TypeScript
   with full host access. "Sandboxable" in the product positioning currently means
-  *layout sandbox*, not *code sandbox*. For a true "Cursor for trading" plugin
+  _layout sandbox_, not _code sandbox_. For a true "Cursor for trading" plugin
   ecosystem (untrusted third-party plugins), there is no isolation boundary,
   capability-scoping enforcement at runtime, or signature verification.
 
@@ -404,25 +409,25 @@ Two distinct agent surfaces, only one of which is wired to plugins:
 
 ## 12. What is user-facing vs developer-only (summary table)
 
-| Surface | User-facing? | Where |
-|---|---|---|
-| cmd+K command palette | **User** | `CommandPalette.tsx`, header `page.tsx:84` |
-| dockview drag/split/tab/resize | **User** | `PanelHost.tsx` |
-| Named workspaces (save/load/reset) | **User** | Settings → Layouts |
-| Module enable/disable | **User** | Settings → Modules |
-| BYOK provider keys (keychain) | **User** | Settings → AI Providers |
-| Screener criteria builder | **User** | `ScreenerCriteriaBuilder.tsx` |
-| Custom Agent Builder | **User** | `agent-builder` module |
-| Watchlist symbol editing | **User** | `watchlist` module |
-| Node editor (built-in nodes) | **User** | `node-editor` module |
-| Plugin Manager (enable/disable, health) | **User (read-mostly)** | `PluginManagerPanel.tsx` |
-| Writing a plugin (`VystedPlugin`) | **Developer** | `plugins/<id>/`, static import |
-| Data-source registration | **Developer (and dead-ends)** | `getDataSources()` → count only |
-| Plugin agent registration | **Developer (and dead-ends)** | `getAgents()` → count only |
-| Sidecar data routers / MCP connectors | **Developer** | `sidecar/routers/`, `mcp_client.py` |
-| Pop-out second window | **Not implemented** | — |
-| Add-panel gallery | **Not implemented** | — |
-| Workspace file import/export | **Not implemented (UI)** | shape ready in `workspace.ts` |
+| Surface                                 | User-facing?                  | Where                                      |
+| --------------------------------------- | ----------------------------- | ------------------------------------------ |
+| cmd+K command palette                   | **User**                      | `CommandPalette.tsx`, header `page.tsx:84` |
+| dockview drag/split/tab/resize          | **User**                      | `PanelHost.tsx`                            |
+| Named workspaces (save/load/reset)      | **User**                      | Settings → Layouts                         |
+| Module enable/disable                   | **User**                      | Settings → Modules                         |
+| BYOK provider keys (keychain)           | **User**                      | Settings → AI Providers                    |
+| Screener criteria builder               | **User**                      | `ScreenerCriteriaBuilder.tsx`              |
+| Custom Agent Builder                    | **User**                      | `agent-builder` module                     |
+| Watchlist symbol editing                | **User**                      | `watchlist` module                         |
+| Node editor (built-in nodes)            | **User**                      | `node-editor` module                       |
+| Plugin Manager (enable/disable, health) | **User (read-mostly)**        | `PluginManagerPanel.tsx`                   |
+| Writing a plugin (`VystedPlugin`)       | **Developer**                 | `plugins/<id>/`, static import             |
+| Data-source registration                | **Developer (and dead-ends)** | `getDataSources()` → count only            |
+| Plugin agent registration               | **Developer (and dead-ends)** | `getAgents()` → count only                 |
+| Sidecar data routers / MCP connectors   | **Developer**                 | `sidecar/routers/`, `mcp_client.py`        |
+| Pop-out second window                   | **Not implemented**           | —                                          |
+| Add-panel gallery                       | **Not implemented**           | —                                          |
+| Workspace file import/export            | **Not implemented (UI)**      | shape ready in `workspace.ts`              |
 
 ---
 

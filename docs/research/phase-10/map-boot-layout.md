@@ -49,11 +49,16 @@ is memoised on `[modules]` (`PanelHost.tsx:29`).
 
 ```js
 const api = createDockview(domRef.current, { ...coreOptions, ...frameworkOptions }); // :100
-const { clientWidth, clientHeight } = domRef.current;                                // :101
-api.layout(clientWidth, clientHeight);                                               // :102
-if (props.onReady) { props.onReady({ api }); }                                       // :103-105
-dockviewRef.current = api;                                                           // :106
-return () => { dockviewRef.current = undefined; api.dispose(); };                    // :107-110  (cleanup)
+const { clientWidth, clientHeight } = domRef.current; // :101
+api.layout(clientWidth, clientHeight); // :102
+if (props.onReady) {
+  props.onReady({ api });
+} // :103-105
+dockviewRef.current = api; // :106
+return () => {
+  dockviewRef.current = undefined;
+  api.dispose();
+}; // :107-110  (cleanup)
 ```
 
 Two facts that decide the root cause:
@@ -61,7 +66,7 @@ Two facts that decide the root cause:
 - **`onReady` fires synchronously inside the mount effect, while `domRef.current` is
   attached to the live DOM** (line 100-104 all run in one tick). So at the instant
   `onReady` runs, the element is connected and sized — `applyDefaultLayout` called
-  *synchronously here* (the pre-Track-C behaviour) is safe.
+  _synchronously here_ (the pre-Track-C behaviour) is safe.
 - **The effect's cleanup calls `api.dispose()`** (`:109`), which tears down the
   dockview gridview and detaches its DOM. After dispose, the api's internal grid
   elements are orphaned (`parentElement === null`).
@@ -123,8 +128,8 @@ a microtask — it is an unbounded await** (a Tauri IPC round-trip plus an HTTP
 round-trip to a localhost port that may not be listening yet). **The window between
 "element mounted / onReady fired" and "addPanel/fromJSON actually runs" is wide
 open**, which is exactly what the operator means by "addPanel appears to fire before
-the dockview container is mounted" — more precisely, it fires *after the container's
-mount effect has already been torn down/re-run*.
+the dockview container is mounted" — more precisely, it fires _after the container's
+mount effect has already been torn down/re-run_.
 
 ---
 
@@ -145,7 +150,7 @@ mounts under React StrictMode. StrictMode intentionally runs every effect
    fires (`dockview.js:100-104`). `handleReady` kicks off
    `restoreLastSessionOrDefault(A, …)`, which suspends on `await fetch`.
 2. StrictMode immediately runs effect-#1 **cleanup**: `dockviewRef.current = undefined;
-   A.dispose()` (`dockview.js:107-110`). **Api A's grid DOM is now detached —
+A.dispose()` (`dockview.js:107-110`). **Api A's grid DOM is now detached —
    its elements have `parentElement === null`.**
 3. StrictMode runs mount-effect #2: a fresh `createDockview` → new api `B` attached
    to the (re-used) `domRef.current`, new `onReady({api:B})`. The store's
@@ -158,7 +163,7 @@ mounts under React StrictMode. StrictMode intentionally runs every effect
    `applyDefaultLayout` because that is the frame that re-entered dockview after the
    await (matching the operator's `applyDefaultLayout / element.parentElement is null`).
 
-This is deterministic in dev: the dispose in step 2 *always* happens before the
+This is deterministic in dev: the dispose in step 2 _always_ happens before the
 fetch resolves, because a localhost fetch + Tauri IPC is far slower than a synchronous
 StrictMode cleanup.
 
@@ -246,6 +251,7 @@ the symptom; the identity/abort guard removes the cause.
 All named layouts are sidecar-owned files; the frontend half is `src/lib/workspace.ts`.
 
 ### Serialization shape
+
 `SerializedWorkspace` (`workspace.ts:26-40`) = `{ name, layout: api.toJSON(),
 enabledModules, chartDrawings? , [key]: unknown }`. `serializeWorkspace`
 (`:55-66`) throws `WorkspaceError("The panel layout is not ready yet.")` if
@@ -254,6 +260,7 @@ enabledModules, chartDrawings? , [key]: unknown }`. `serializeWorkspace`
 `api.fromJSON(layout)` (`:83`), then name, then drawings.
 
 ### Save
+
 - **Toolbar "Save layout" button** (`src/app/page.tsx:97-105`) → `openSave`
   (`workspace-dialog-store.ts`) → `WorkspaceDialog` save mode
   (`src/modules/platform/WorkspaceDialog.tsx`) → `saveWorkspace(name)`.
@@ -264,6 +271,7 @@ enabledModules, chartDrawings? , [key]: unknown }`. `serializeWorkspace`
   `{ name, workspace }`; non-2xx → `WorkspaceError`.
 
 ### List / Load / Delete
+
 - `listWorkspaces` (`workspace.ts:100-110`) `GET /workspace` → `string[]`.
 - Settings filters out reserved names via `isReservedLayoutName` (`name.startsWith("__")`,
   `store/workspace.ts:16-18`) so the `__autosave__` slot stays hidden
@@ -275,6 +283,7 @@ enabledModules, chartDrawings? , [key]: unknown }`. `serializeWorkspace`
   (`SettingsPanel.tsx:285-289`).
 
 ### Reset to default
+
 - Settings "Reset to default" button (`SettingsPanel.tsx:250-252`) →
   `useWorkspaceStore.resetToDefaultLayout` (`store/workspace.ts:75-89`):
   `api.clear()` → recompute enabled panel ids → `applyDefaultLayout(api, ids)` →
@@ -282,6 +291,7 @@ enabledModules, chartDrawings? , [key]: unknown }`. `serializeWorkspace`
   is the same `applyDefaultLayout` the buggy boot path defers.
 
 ### Autosave / restore-on-boot
+
 - Reserved slot name `__autosave__` (`store/workspace.ts:13`).
 - `autosaveLayout` (`workspace.ts:184-204`): no-op if api null; `POST /workspace`
   under `__autosave__`; best-effort (swallows failures). Wired in `PanelHost`

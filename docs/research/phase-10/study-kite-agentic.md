@@ -36,10 +36,13 @@ Implication for Vysted: the `api_secret` must never reach the Next.js bundle. It
 ## A.3 Session exchange (exact)
 
 POST (form-encoded) to:
+
 ```
 POST https://api.kite.trade/session/token
 ```
+
 Body parameters:
+
 - `api_key` — the public API key
 - `request_token` — from the login redirect
 - `checksum` — `SHA-256(api_key + request_token + api_secret)` (string concatenation, then SHA-256 hex digest)
@@ -54,6 +57,7 @@ The `data` object returned contains:
 (Source: https://kite.trade/docs/connect/v3/user/)
 
 Key fields for Vysted:
+
 - `access_token` — the bearer for all subsequent calls.
 - `user_id` — Zerodha client id; `kite.py:_connect` already stores this as `_account_id` (sidecar/services/brokers/kite.py, `_connect`).
 - `refresh_token` — **caveat below (A.4).**
@@ -66,7 +70,7 @@ Key fields for Vysted:
 
 ### Daily-token UX implication (this is the single most important product decision in Part A)
 
-Because every Kite-connected user re-authenticates **every morning**, the terminal must treat "Kite session expired" as an *expected daily event*, not an error:
+Because every Kite-connected user re-authenticates **every morning**, the terminal must treat "Kite session expired" as an _expected daily event_, not an error:
 
 1. Detect expiry proactively: any data call returning **HTTP 403 / `TokenException`** means the session is dead (Source: https://kite.trade/docs/connect/v3/exceptions/). On 403 from any Kite endpoint, surface a non-blocking "Reconnect Kite" affordance, do not crash the panel.
 2. On app launch, if a Kite access token exists in keychain but was minted before the most recent 6 AM IST boundary, mark it stale **before** making a call — saves a round-trip and gives an instant "tap to reconnect" prompt.
@@ -78,10 +82,12 @@ Because every Kite-connected user re-authenticates **every morning**, the termin
 ## A.5 Authenticating subsequent requests + the read-only endpoints
 
 Every authenticated request carries two headers:
+
 ```
 Authorization: token api_key:access_token
 X-Kite-Version: 3
 ```
+
 (Source: https://kite.trade/docs/connect/v3/portfolio/, /user/)
 
 ### Read-only endpoints needed for positions / holdings / P&L / funds
@@ -100,9 +106,11 @@ Per-position fields (verified): `tradingsymbol`, `exchange`, `instrument_token`,
 **GET `/portfolio/holdings/auctions`** — holdings under auction, adds `auction_number`. (Source: https://kite.trade/docs/connect/v3/portfolio/) Niche; not needed for the P&L panel.
 
 **Bug in current code (high-confidence):** `kite.py:_account_info` computes equity as `available.cash` only:
+
 ```
 equity = float(available.get("cash") or 0.0)
 ```
+
 and then sets `equity = cash = buyingPower` all to that one number (sidecar/services/brokers/kite.py, `_account_info`). That ignores `net` (the true available balance), `collateral`, and `utilised`. The Kite margins object's authoritative "what can I deploy" number is `equity.net`, not `equity.available.cash`. For accurate buying-power display this should read `equity_block.get("net")` for `buyingPower`/equity and keep `available.cash` only for the cash line. Confidence 8/10 (exact field semantics depend on Kite's current margins payload, but `net` vs `available.cash` divergence is real and documented).
 
 **Second issue:** `_account_info` only translates **holdings** into positions; it never calls `positions()`. Intraday and F&O positions (the `net`/`day` arrays) are invisible to the account summary. For an F&O-capable broker (which Kite is — `supportsFutures=True`, `supportsOptions=True` in `CAPABILITIES`) this is a material omission. The P&L panel will under-report. Confidence 7/10.
@@ -112,22 +120,29 @@ and then sets `equity = cash = buyingPower` all to that one number (sidecar/serv
 Kite assumes a **web app with a public registered redirect URL**. A Tauri desktop app has no public web server. There are three viable patterns (RFC 8252, "OAuth 2.0 for Native Apps", is the governing reference — Source: https://www.rfc-editor.org/rfc/rfc8252):
 
 ### Option 1 — Loopback localhost redirect (RFC 8252 §7.3, recommended for desktop)
+
 Register `http://127.0.0.1:<port>/kite/callback` (or `http://localhost`) as the Kite redirect URL. At login time, Tauri Rust spins up a one-shot loopback HTTP listener, opens the system browser to the Kite login URL, and captures `request_token` from the redirect. RFC 8252 explicitly blesses loopback `http` redirects ("the redirect never leaves the device") and requires servers to treat the **port as variable** for loopback hosts (Source: https://www.rfc-editor.org/rfc/rfc8252, §7.3/§8.3). In Tauri this is exactly what **`tauri-plugin-oauth`** does — it "spawns a temporary localhost server to capture OAuth redirects" (Source: https://github.com/FabianLars/tauri-plugin-oauth, https://lib.rs/crates/tauri-plugin-oauth).
+
 - Pro: zero copy-paste, system browser (real 2FA, password managers work), best UX.
 - Con: Kite's console may require a fixed redirect URL; if it won't accept a variable port you must pin one port (pick a high, unlikely-to-collide port and fall back gracefully). Kite historically requires the redirect to match exactly, so pin one port.
 
 ### Option 2 — Custom URL scheme / deep link (`vysted://kite/callback`)
+
 Register a custom scheme via **`tauri-plugin-deep-link`** (Source: https://v2.tauri.app/plugin/deep-linking/, https://github.com/FabianLars/tauri-plugin-deep-link). Kite redirects to `vysted://…?request_token=…`, the OS hands the URL to the running app.
+
 - Pro: no local server, can cold-start the app.
 - Con: RFC 8252 warns custom schemes are weaker — **multiple apps can claim the same scheme**, enabling code interception; mitigated by PKCE, but **Kite does not implement PKCE** (it's a checksum/secret model, not standard OAuth2 PKCE). Also, many providers reject custom schemes as redirect URLs. Riskier and Kite-console support is uncertain.
 
 ### Option 3 — Manual `request_token` paste
+
 Open the login URL in the system browser; the user copies the `request_token` from the redirected URL bar and pastes it into the plugin.
+
 - Pro: works with literally any redirect URL config; zero platform plumbing.
 - Con: ugly, error-prone, defeats "natural language drives the app."
 - **Note:** the existing `kite.py` docstring assumes exactly this ("the user logs in at kite.zerodha.com and pastes the URL back into the plugin"). That is the current implicit design and it is the weakest of the three.
 
 ### Recommendation for Vysted (Tauri desktop)
+
 **Use Option 1 (loopback localhost) via `tauri-plugin-oauth`, with Option 3 as an explicit fallback.** Concrete flow:
 
 1. Frontend "Connect Kite" → Tauri command `kite_begin_login`.
@@ -144,7 +159,7 @@ This keeps the **`api_secret` Rust-only** (matches the stack's keychain rule), u
 - SEBI circular SEBI/HO/MIRSD/MIRSD-PoD/P/CIR/2025/0000013 (Feb 2025), deadline extended to **2026-04-01** via .../2025/132, requires brokers to "allow access only through a unique vendor client specific API key and static IP whitelisted by the broker." (Source: https://kite.trade/forum/discussion/15912/, https://inthemoneybyzerodha.substack.com/p/sebi-algo-trading-changes-april-2026)
 - **The static-IP requirement applies to ORDER PLACEMENT only.** All other endpoints — **WebSocket data, order book, positions, holdings, margins** — remain accessible **from any IP** (Source: Zerodha support — https://support.zerodha.com/category/trading-and-markets/general-kite/kite-api/articles/static-ip; forum confirmation https://kite.trade/forum/discussion/15359/). Orders from unregistered IPs are rejected; data is unaffected.
 - Up to two static IPs (one primary mandatory, one secondary optional), registered in the Developer Console Profile; shareable only with immediate family. (Source: https://support.zerodha.com/.../static-ip)
-- **Note the data-vendor caveat:** Zerodha staff (forum) state "Kite Connect is purely an execution platform. For your data requirements, you will need to contact an exchange-authorised data vendor" (Source: https://kite.trade/forum/discussion/15359/). Practically, holdings/positions/margins still work, but Zerodha discourages using Connect as a *market-data* feed — Vysted should source live quotes/candles from its own data layer (yfinance/OpenBB/etc., already present in `sidecar/services/`) and use Kite only for **the user's own account state + execution**.
+- **Note the data-vendor caveat:** Zerodha staff (forum) state "Kite Connect is purely an execution platform. For your data requirements, you will need to contact an exchange-authorised data vendor" (Source: https://kite.trade/forum/discussion/15359/). Practically, holdings/positions/margins still work, but Zerodha discourages using Connect as a _market-data_ feed — Vysted should source live quotes/candles from its own data layer (yfinance/OpenBB/etc., already present in `sidecar/services/`) and use Kite only for **the user's own account state + execution**.
 
 **Codebase alignment (good):** This rule is already modeled correctly. `BrokerCapabilities.requiresStaticIp` is documented as "order placement only" and set true for `kite` (types/broker.ts, `BrokerCapabilities.requiresStaticIp`; sidecar/services/brokers/kite.py, `CAPABILITIES`). `static_ip_detector.py` correctly states "Kite rejects orders from unregistered IPs while leaving data/holdings/positions endpoints unaffected" and the detector never pre-blocks placement (sidecar/services/static_ip_detector.py, module docstring). `kite.py:set_mode` audit-logs the detected-vs-configured IP comparison on the live toggle. This is the right design: don't pre-block (user may be on VPN/VPS with the right IP), surface a banner, let Kite's order-time 403 be the source of truth.
 
@@ -153,6 +168,7 @@ This keeps the **`api_secret` Rust-only** (matches the stack's keychain rule), u
 ## A.8 Rate limits + error handling (for the data-poll loop)
 
 Per-endpoint rate limits (verified — Source: https://kite.trade/docs/connect/v3/exceptions/):
+
 - Quote: **1 req/s**
 - Historical candle: **3 req/s**
 - Order placement: **10 req/s** (also: ≤400 orders/min, ≤10/s, ≤5000/day per user/api_key)
@@ -166,7 +182,7 @@ So the portfolio/P&L poll loop (positions + holdings + margins) is comfortably w
 
 # PART B — Agentic, terminal-aware AI copilot (tool-using LLM loop)
 
-Goal: "natural language drives the app." The user types/speaks a request; an LLM with tools reads live terminal state and either answers or *acts* (opens a panel, sets a chart symbol, proposes an order through the safety gate). This must be **BYOK multi-provider** (the seven providers in `types/ai.ts`).
+Goal: "natural language drives the app." The user types/speaks a request; an LLM with tools reads live terminal state and either answers or _acts_ (opens a panel, sets a chart symbol, proposes an order through the safety gate). This must be **BYOK multi-provider** (the seven providers in `types/ai.ts`).
 
 **Reality check first:** Vysted already has most of this built. This section documents the canonical patterns AND maps them to the existing implementation so Phase 10 extends rather than reinvents.
 
@@ -175,26 +191,31 @@ Goal: "natural language drives the app." The user types/speaks a request; an LLM
 Both Anthropic and OpenAI use the same fundamental loop; only the wire shape differs. The model can't run your code, so **every tool call is a round-trip**: model asks → host executes → host reports back → model continues (Source: https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works).
 
 ### Anthropic (Messages API)
+
 - Send `messages` + a `tools` array (each tool: `name`, `description`, `input_schema` JSON Schema).
 - Loop keyed on `stop_reason`:
   - `stop_reason == "tool_use"` → response has one or more `tool_use` content blocks, each with an `id`. Execute each, append a `user` message containing `tool_result` blocks keyed by `tool_use_id`, re-call.
   - `stop_reason == "end_turn"` → done.
   - `stop_reason == "pause_turn"` (server tools) → re-send to continue.
-(Source: https://platform.claude.com/docs/en/agents-and-tools/tool-use/implement-tool-use, https://docs.anthropic.com/en/api/handling-stop-reasons)
+    (Source: https://platform.claude.com/docs/en/agents-and-tools/tool-use/implement-tool-use, https://docs.anthropic.com/en/api/handling-stop-reasons)
 
 ### OpenAI (Chat Completions)
+
 - Send `messages` + `tools` (each: `type:"function"`, `function:{name,description,parameters}`), optional `tool_choice`.
 - Response: `choices[0].message.tool_calls[]` (each has `id`, `function.name`, `function.arguments` as a JSON **string**). Execute, append one `role:"tool"` message per call with `tool_call_id` + stringified result, re-call. Loop until no `tool_calls`.
 - Streaming: `tool_calls` arrive as **incremental argument deltas** in `choices[0].delta.tool_calls` — you must accumulate `function.arguments` fragments per `index` before parsing.
 
 ### Codebase: this loop already exists and is correct
+
 `sidecar/services/agent_runtime.py:invoke_agent` implements exactly this loop:
+
 - `while True:` collecting `pending_tools: list[LLMToolUseEvent]` from `adapter.stream_chat(...)` (agent_runtime.py ~263).
 - Capped at `_MAX_TOOL_ROUNDS` to bound runaway tool-spam (agent_runtime.py ~191, ~282) — this is the right guardrail.
 - On each round it dispatches every pending tool via `_dispatch_tool` and appends `role="tool"` messages keyed on `tool_call_id`, then re-enters (agent_runtime.py ~297-303).
 - `_dispatch_tool` swallows unregistered-tool and handler exceptions into a JSON error payload fed back to the model rather than crashing the stream (agent_runtime.py ~198-221) — correct: let the model recover.
 
 Provider translation is already abstracted:
+
 - Anthropic adapter maps `role="tool"` messages into `tool_result` content blocks keyed on `tool_use_id` and emits `tool_use` blocks as `LLMToolUseEvent` (sidecar/services/llm/anthropic.py ~53-66, ~164-166).
 - OpenAI adapter forwards `delta.tool_calls` function deltas as `LLMToolUseEvent(input={"arguments_delta": ...})` (sidecar/services/llm/openai.py ~88-100).
 
@@ -205,19 +226,23 @@ Provider translation is already abstracted:
 Two complementary mechanisms — Vysted already uses both:
 
 ### (a) Context snapshot in the prompt preamble (cheap, always-on)
-Attach a structured snapshot of *what the user is looking at* to every invocation. Vysted's `PanelContextEvent`/`AgentContextSnapshot` does this: a Zustand bus (`src/store/panel-context.ts`) aggregates per-panel state (focused chart symbol, active indicators, focused news article, portfolio positions) and the chat sidebar attaches the aggregated snapshot to the agent request (types/panel-context.ts, module docstring; types/ai.ts `AgentContextSnapshot`; sidecar/models/agent.py `AgentContextSnapshot` with `focused_source`, `by_source`, `captured_at`).
+
+Attach a structured snapshot of _what the user is looking at_ to every invocation. Vysted's `PanelContextEvent`/`AgentContextSnapshot` does this: a Zustand bus (`src/store/panel-context.ts`) aggregates per-panel state (focused chart symbol, active indicators, focused news article, portfolio positions) and the chat sidebar attaches the aggregated snapshot to the agent request (types/panel-context.ts, module docstring; types/ai.ts `AgentContextSnapshot`; sidecar/models/agent.py `AgentContextSnapshot` with `focused_source`, `by_source`, `captured_at`).
 
 Design notes that are already right:
+
 - `by_source` is intentionally loose (`dict[str, Any]`) — each panel publishes its own shape (sidecar/models/agent.py). Good: don't over-type panel payloads.
 - Snapshot is rendered into the system-prompt preamble via `JSON.stringify` (types/panel-context.ts comment). Good for cheap context; keep it **small** — only the focused panel + a compact summary of others, not full tables.
 - Subscribers skip self-`source` echoes to avoid render loops (types/panel-context.ts). This is a frontend correctness detail, not an AI one, but it's load-bearing.
 
-**Recommendation:** keep the *preamble* snapshot as a terse "current view" summary (focused symbol, timeframe, open panels, top-N positions). Push *detailed* state retrieval into **tools** (B.1) — e.g. a `get_portfolio()` tool the model calls only when it needs full position rows. This keeps token cost down and lets the model pull detail on demand rather than always paying for it.
+**Recommendation:** keep the _preamble_ snapshot as a terse "current view" summary (focused symbol, timeframe, open panels, top-N positions). Push _detailed_ state retrieval into **tools** (B.1) — e.g. a `get_portfolio()` tool the model calls only when it needs full position rows. This keeps token cost down and lets the model pull detail on demand rather than always paying for it.
 
 ### (b) Tools that read live state on demand (precise, pull-based)
+
 The `agent_tools` registry (sidecar/services/agent_tools/) already exposes `price_data`, `fundamentals`, `news`, `backtest_summary`, plus per-domain tools (analyst, earnings, macro, quant, screener, sec). Each agent's `tools` field is an **allow-list** (types/plugin.ts `AgentSpec.tools`; e.g. buffett.json lists `["price_data","fundamentals","news"]`). The runtime only exposes allow-listed tools to that agent (`agent_tools.is_registered` check in `_dispatch_tool`).
 
 For "natural language drives the app," Phase 10 needs to add **action tools** (not just read tools), and they must route through the safety layer:
+
 - `set_chart_symbol`, `open_panel`, `add_to_watchlist` — pure UI actions, safe to execute directly (still echo a confirmation in the response).
 - `propose_order` — must NOT place; it must create a `BrokerOrderProposal` with `source="ai-agent"`, which per the LOCKED contract opens the confirmation dialog **defaulted to declined** with the originating agent named (types/broker.ts `BrokerOrderSource`, `BrokerOrderProposal`; the §6.5 safety files are LOCKED). The AI layer has **no path** to `place_order`. Any Phase-10 action tool that touches a broker must emit a proposal, never a placement.
 
@@ -225,18 +250,20 @@ For "natural language drives the app," Phase 10 needs to add **action tools** (n
 
 Vysted already ships a 12-agent roster (sidecar/agents/README.md): 9 investor personas (buffett, graham, lynch, munger, marks, klarman, dalio, druckenmiller, soros) + 3 functional agents (researcher, portfolio_advisor, strategy_critic). The config contract is the LOCKED `AgentSpec` (types/plugin.ts) discovered from JSON files validated against `_schema.json` at startup.
 
-What makes this roster *discoverable* and worth keeping:
-- Each agent has a one-line `philosophy` shown as a subtitle in the picker (sidecar/agents/_schema.json `philosophy`; README "shown as a subtitle"). This is the discoverability surface — users browse by lens, not by model.
+What makes this roster _discoverable_ and worth keeping:
+
+- Each agent has a one-line `philosophy` shown as a subtitle in the picker (sidecar/agents/\_schema.json `philosophy`; README "shown as a subtitle"). This is the discoverability surface — users browse by lens, not by model.
 - `icon` (Lucide name) gives visual identity (buffett.json `"icon":"landmark"`).
-- `systemPrompt` is substantive (200-500 words) and encodes a *real framework*, with explicit anti-roleplay guardrails ("You are not Warren Buffett; you do not roleplay as him, and you do not invent quotes" — buffett.json). This is the right call: a persona that *applies a framework* is useful; one that *performs a celebrity* is a liability (fabricated quotes, false authority).
+- `systemPrompt` is substantive (200-500 words) and encodes a _real framework_, with explicit anti-roleplay guardrails ("You are not Warren Buffett; you do not roleplay as him, and you do not invent quotes" — buffett.json). This is the right call: a persona that _applies a framework_ is useful; one that _performs a celebrity_ is a liability (fabricated quotes, false authority).
 - `tools` allow-list per agent scopes capability to role (buffett gets fundamentals/news, strategy_critic gets backtest_summary).
 - `systemPrompt` is NOT echoed to the frontend (`AgentSummary` omits it — sidecar/models/agent.py `AgentSummary` docstring). Good: keeps prompts server-side.
 - User-defined agents use a `custom:` id prefix in a separate SQLite store (README; routers/custom_agents.py). Good separation of first-party vs user.
 
 ### Patterns to add in Phase 10 (BYOK multi-provider discoverability)
-1. **A "concierge"/router persona** that the user talks to by default and which can *hand off* to a specialist (or fan out to several and synthesize). This is the natural "natural-language drives the app" entry point — the user shouldn't have to pick "Buffett" to ask "is my portfolio overexposed to tech?"; a default copilot routes it.
-2. **Provider transparency in the picker:** each agent has `defaultProvider`/`defaultModel`, user-overridable at invocation (types/ai.ts; _schema.json). Surface "running on <provider>/<model>" in the chat so BYOK users know which key is being billed. Grey out agents whose `defaultProvider` has no key configured (except `ollama`, `requiresKey:false`).
-3. **Capability badges** on each agent card derived from its `tools` allow-list ("reads fundamentals", "can backtest") so users discover what an agent can *do*, not just its vibe.
+
+1. **A "concierge"/router persona** that the user talks to by default and which can _hand off_ to a specialist (or fan out to several and synthesize). This is the natural "natural-language drives the app" entry point — the user shouldn't have to pick "Buffett" to ask "is my portfolio overexposed to tech?"; a default copilot routes it.
+2. **Provider transparency in the picker:** each agent has `defaultProvider`/`defaultModel`, user-overridable at invocation (types/ai.ts; \_schema.json). Surface "running on <provider>/<model>" in the chat so BYOK users know which key is being billed. Grey out agents whose `defaultProvider` has no key configured (except `ollama`, `requiresKey:false`).
+3. **Capability badges** on each agent card derived from its `tools` allow-list ("reads fundamentals", "can backtest") so users discover what an agent can _do_, not just its vibe.
 
 ## B.4 UX for "natural language drives the app"
 
@@ -244,7 +271,7 @@ Concrete, implementation-ready patterns layered on the existing SSE streaming pr
 
 1. **Stream everything, narrate tool use.** The runtime already yields `LLMToolUseEvent` to the caller "so the UI can show 'using tool X…'" (agent_runtime.py ~240-241). Render these as inline status chips ("Reading your positions…", "Pulling AAPL fundamentals…"). This is the difference between "feels alive" and "spinner of death."
 2. **Show, then act.** For UI actions (set symbol, open panel) the model executes the tool AND the response narrates it; the panel visibly changes. Tie the action tool's effect to the same panel-context bus so the chart actually moves.
-3. **Confirm, never auto-execute, for money.** Any `propose_order` tool result renders the confirmation dialog (declined-by-default, agent named) per the LOCKED §6.5 contract. The chat shows "I've prepared this order — review and confirm" with the dialog, never "I placed it." (types/broker.ts `BrokerOrderSource` comment explicitly notes the auto-approve mode was *removed* in v0.5.0.)
+3. **Confirm, never auto-execute, for money.** Any `propose_order` tool result renders the confirmation dialog (declined-by-default, agent named) per the LOCKED §6.5 contract. The chat shows "I've prepared this order — review and confirm" with the dialog, never "I placed it." (types/broker.ts `BrokerOrderSource` comment explicitly notes the auto-approve mode was _removed_ in v0.5.0.)
 4. **Context preamble = "what you're looking at."** Because the panel snapshot is attached (B.2a), the user can say "what do you think of this?" and the agent knows "this" = the focused chart symbol. Make that resolution visible ("Looking at AAPL on the daily…") so the user trusts the agent saw the right thing.
 5. **Tool-round cap is a feature, surface it.** `_MAX_TOOL_ROUNDS` (agent_runtime.py ~191) bounds runaway loops; if hit, tell the user "I gathered what I could in N steps" rather than silently truncating.
 6. **BYOK error UX.** A 401 from a provider = "your <provider> key is invalid/expired," not a generic failure. The `LLMErrorEvent` path (anthropic.py ~114, openai.py ~113) should carry enough to render per-provider remediation.
@@ -253,6 +280,7 @@ Concrete, implementation-ready patterns layered on the existing SSE streaming pr
 ## B.5 Multi-provider abstraction (what to keep)
 
 The existing design is the right one and should be the Phase-10 baseline:
+
 - One internal message shape (`LLMMessage` with `role ∈ system|user|assistant|tool`, `tool_call_id`) that mirrors both APIs (types/ai.ts `LLMRole`, `LLMMessage`; sidecar/models/llm.py).
 - One internal stream-event union (`LLMDeltaEvent`, `LLMToolUseEvent`, error, done) (sidecar/models/llm.py).
 - Per-provider adapters translate to/from that shape (`anthropic.py`, `openai.py`; the OpenAI adapter is reused for OpenAI-compatible providers — deepseek/xai/groq — via `_provider_id`).
@@ -265,6 +293,7 @@ The existing design is the right one and should be the Phase-10 baseline:
 # Appendix — Concrete checklist for Phase 10
 
 **Kite auth:**
+
 - [ ] Loopback redirect via `tauri-plugin-oauth` (pinned port registered in Kite console); manual-paste fallback.
 - [ ] `api_secret` Rust/keychain-only; checksum computed in Rust; never in webview JS or shipped to sidecar.
 - [ ] Daily-token UX: launch-time staleness check (vs last 6 AM IST), 403/`TokenException` → one-tap reconnect, don't crash panels.
@@ -274,6 +303,7 @@ The existing design is the right one and should be the Phase-10 baseline:
 - [ ] Source live quotes/candles from Vysted's own data layer, not Kite (per Zerodha's "execution platform only" stance).
 
 **Agentic copilot:**
+
 - [ ] Verify/fix OpenAI streaming tool-argument reassembly (per-`tool_call_id` buffer).
 - [ ] Add UI-action tools (`set_chart_symbol`, `open_panel`, `add_to_watchlist`) wired to the panel-context bus.
 - [ ] Add `propose_order` action tool routing through the LOCKED safety gate (proposal, declined-by-default, agent named) — never `place_order`.

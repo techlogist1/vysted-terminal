@@ -16,6 +16,7 @@ Files read in full: `lib.rs`, `main.rs`, `keychain.rs`, `openbb_mcp.rs`,
 `src/lib/keychain.ts`.
 
 Ground truth established:
+
 - `cargo test --no-run` → exit 0 (compiles clean).
 - `cargo clippy --all-targets` → no warnings (so none of the findings below are
   lint-detectable in edition 2021; they are runtime/semantic/config issues).
@@ -62,14 +63,14 @@ mutate the process environment:
 `std::env::set_var` / `remove_var` delegate to the libc `setenv(3)` /
 `unsetenv(3)`, which on glibc, musl, and macOS are **not thread-safe**: they
 mutate (and may `realloc`) the shared global `environ` array. Two threads
-calling them simultaneously — even on *different keys* — race on that array.
+calling them simultaneously — even on _different keys_ — race on that array.
 The documented failure modes are a lost write, a use-after-free of the old
 `environ` block, or a crash. Rust's own std docs explicitly warn that
 `set_var`/`remove_var` are unsound to call while other threads may be reading
 or writing the environment, which is exactly the situation here (and is why
 the operation became `unsafe` in edition 2024).
 
-The keys differ, so the *intended* outcome (both env vars settled before the
+The keys differ, so the _intended_ outcome (both env vars settled before the
 join) is usually achieved — but "usually" is the hallmark of a data race. This
 is the same class of nondeterministic, hard-to-reproduce bug the Phase-8/9 UC1
 work fought ("bound on some boots, not others"); a rare environ corruption here
@@ -85,7 +86,7 @@ it. The clean-compile + clean-clippy confirms no tooling currently catches it.
 **Fix:** Set the env vars from the **single setup thread before spawning the
 worker threads**, or have each worker return its `(port | unavailable)` result
 to the setup thread which then sets the env vars serially after the join. The
-env vars only need to be settled before the *main sidecar* spawns (`lib.rs:195`),
+env vars only need to be settled before the _main sidecar_ spawns (`lib.rs:195`),
 which is already after both joins — so there is no reason to mutate `environ`
 from inside the worker threads at all. Pass the port back via the thread's
 `JoinHandle` return value:
@@ -102,7 +103,7 @@ if openbb_port != 0 { std::env::set_var("VYSTED_OPENBB_MCP_PORT", openbb_port.to
 Alternatively wrap the env mutations in a shared `Mutex` — but the
 return-value approach removes the race entirely and is cleaner. (`app.manage`
 of the distinct state types from each thread is genuinely fine — the comment
-at `lib.rs:164-166` is correct that *that* is not contended. The env block is
+at `lib.rs:164-166` is correct that _that_ is not contended. The env block is
 the part that is shared and unsynchronized.)
 
 ---
@@ -134,6 +135,7 @@ silent no-window failure on `windows_subsystem = "windows"`, `main.rs:1` strips
 the console in release, so the panic message goes nowhere on Windows).
 
 Realistic triggers:
+
 - `create_dir_all` fails on a read-only volume, a sandboxed/MDM-locked
   `%APPDATA%`, a full disk, or a permission-denied home directory.
 - `sidecar(...)` / `spawn()` fails when the bundled binary is missing
@@ -142,7 +144,7 @@ Realistic triggers:
   AV on Windows.
 
 The MCP supervisors (`openbb_mcp.rs:88-111`, `sec_edgar_mcp.rs:88-111`) handle
-the *identical* operations gracefully — `match` on the `Err` and
+the _identical_ operations gracefully — `match` on the `Err` and
 `register_unavailable` — precisely because "the bundled binary may be missing"
 is a known condition. The main sidecar uses the opposite policy: hard panic.
 
@@ -187,7 +189,7 @@ There is no health gate before caching and no invalidation path.
 
 Consequence: if the main sidecar dies during startup (the very case BUG 2's
 `expect` would otherwise have aborted on — but the drain/wait threads can also
-observe a sidecar that spawned and then crashed *after* `spawn()` returned), the
+observe a sidecar that spawned and then crashed _after_ `spawn()` returned), the
 frontend still resolves a base URL pointing at a dead port and every subsequent
 request fails with a connection error, permanently, with no recovery short of
 an app restart. The `/health` probe exists in the client
@@ -231,12 +233,12 @@ work:
    (`.../releases/latest/download/latest.json`) expects.
 
 Per `CHANGELOG.md`, "auto-updater wiring" is explicitly **deferred to Phase 10**
-(this phase), so this is *intentional* incompleteness rather than a regression.
+(this phase), so this is _intentional_ incompleteness rather than a regression.
 But as it stands the updater is dead weight: a configured endpoint + pubkey with
 no artifacts behind them, a registered plugin with no caller, and an ACL that
 would block a caller if one were added. Anyone wiring the frontend updater UI in
 Phase 10 must remember to (a) flip `createUpdaterArtifacts: true`, (b) add the
-`updater:default` (or specific allow-*) permission to capabilities, and (c) keep
+`updater:default` (or specific allow-\*) permission to capabilities, and (c) keep
 the pubkey in sync with the signing key used in CI. Flagging so the wiring is
 not assumed "already done" because the plugin line is present.
 
@@ -262,13 +264,13 @@ child process binds to that port some time later. Between release and child
 bind there is a classic time-of-check-to-time-of-use window where:
 
 - another process on the machine grabs the just-freed ephemeral port; or
-- one of the *other* Vysted subprocesses (the openbb thread and sec thread call
+- one of the _other_ Vysted subprocesses (the openbb thread and sec thread call
   `pick_free_port` concurrently, then the main sidecar calls it again at
   `lib.rs:137`) lands on it.
 
 The `wait_for_port_with_retries` probe (`openbb_mcp.rs:139`,
-`sec_edgar_mcp.rs:138`) will then connect to *whatever* bound the port — which,
-if it is the wrong process, makes the supervisor declare a *false success*
+`sec_edgar_mcp.rs:138`) will then connect to _whatever_ bound the port — which,
+if it is the wrong process, makes the supervisor declare a _false success_
 (the probe is a bare TCP connect at `lib.rs:42-51`, with no protocol/identity
 check). The probe cannot tell "my child bound" from "some other process bound."
 
@@ -333,19 +335,20 @@ kept — only the threading model needs the fix.
 `tauri::State<'_, OpenbbMcpPort>` / `SecEdgarMcpPort`. Tauri's `State` extractor
 **panics if the state type was never `manage`d**. Those states are managed only
 inside the worker-thread bodies (`openbb_mcp.rs:165-166` / the
-`register_unavailable` paths). If a worker thread *panics* before reaching any
+`register_unavailable` paths). If a worker thread _panics_ before reaching any
 `app.manage` — the join in `lib.rs:181-182` swallows it via `let _ = ...join()`
 — the corresponding `OpenbbMcpPort` / `SecEdgarMcpPort` is never registered, and
 a later frontend `invoke("get_openbb_mcp_port")` panics the command thread.
 
 Mitigating facts that keep this low:
+
 - `grep` across `src/` shows the frontend **never invokes** either command
   (confirmed: only `get_sidecar_port` is invoked, in `sidecar-client.ts:63`).
   The doc comments call them speculative ("in case any future UI needs to
   address the child directly"). So today the panic is unreachable.
 - `spawn` is written to never panic on the expected failure paths (it `match`es
   every `Err` and calls `register_unavailable`), so the only way to leave the
-  state unmanaged is an *unexpected* panic (OOM, a panic inside `app.manage`
+  state unmanaged is an _unexpected_ panic (OOM, a panic inside `app.manage`
   itself).
 
 Still worth noting for Phase 10's plugin-manager UI, which the comments say is
@@ -354,7 +357,7 @@ reachable.
 
 **Fix:** Manage the `*Port(0)` / `*Process(None)` sentinel states **before**
 spawning the worker threads (in the setup thread), so the state always exists
-even if a worker thread dies; the worker then *replaces* the sentinel on
+even if a worker thread dies; the worker then _replaces_ the sentinel on
 success. Or change the join to detect a panicked worker and register the
 sentinel itself. Either guarantees the State extractor never panics.
 
@@ -367,7 +370,7 @@ sentinel itself. Either guarantees the State extractor never panics.
 - **Confidence:** 0.75
 
 `app.security.csp` is `null`, meaning **no Content Security Policy** is applied
-to the webview. This is a notable hardening gap for *this specific app* because:
+to the webview. This is a notable hardening gap for _this specific app_ because:
 
 - The webview renders untrusted third-party content: news articles + sentiment,
   AI/LLM responses, SEC filing text, broker/provider payloads. Any stored or
@@ -378,7 +381,7 @@ to the webview. This is a notable hardening gap for *this specific app* because:
   exfiltrate credentials, and with no CSP there is no `connect-src` restriction
   to stop it POSTing them to an attacker endpoint.
 
-Tauri's IPC ACL limits *which* commands the webview may call, but all three
+Tauri's IPC ACL limits _which_ commands the webview may call, but all three
 keychain commands are granted (`core:default` + the handler registration), so
 the ACL is not a backstop here. A restrictive CSP (`default-src 'self'`,
 explicit `connect-src` for the loopback sidecar + nothing else,
@@ -424,13 +427,13 @@ and tighten from there. This is a Phase-10 launch-hardening item.
 
 ## Summary table
 
-| # | Finding | File:line | Severity | Confidence |
-|---|---------|-----------|----------|------------|
-| 1 | Concurrent `set_var`/`remove_var` data race across two threads | lib.rs:169-182; openbb_mcp.rs:85-86,59-60; sec_edgar_mcp.rs:85-86,58-59 | medium-high | 0.8 |
-| 2 | Hard panic at launch on data-dir / sidecar-spawn failure | lib.rs:190,192,198,201 | medium | 0.9 |
-| 3 | `get_sidecar_port` optimistic + frontend caches dead port forever | lib.rs:115-118,219-225; sidecar-client.ts:52-66 | medium | 0.85 |
-| 4 | Auto-updater half-wired (no ACL perm, no caller, artifacts off) | lib.rs:124; tauri.conf.json:45,48-53; capabilities/default.json:6 | medium | 0.85 |
-| 5 | `pick_free_port` TOCTTOU + bare-TCP probe can't verify child identity | lib.rs:23-29,42-51 | low-medium | 0.7 |
-| 6 | Keychain blocking I/O on async runtime | keychain.rs:18-42 | low | 0.6 |
-| 7 | Unused MCP-port IPC commands panic if state left unmanaged | openbb_mcp.rs:50-53; sec_edgar_mcp.rs:49-52 | low | 0.7 |
-| S | `csp: null` — no Content Security Policy (XSS → keychain exfil) | tauri.conf.json:26-28 | medium (sec) | 0.75 |
+| #   | Finding                                                               | File:line                                                               | Severity     | Confidence |
+| --- | --------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------ | ---------- |
+| 1   | Concurrent `set_var`/`remove_var` data race across two threads        | lib.rs:169-182; openbb_mcp.rs:85-86,59-60; sec_edgar_mcp.rs:85-86,58-59 | medium-high  | 0.8        |
+| 2   | Hard panic at launch on data-dir / sidecar-spawn failure              | lib.rs:190,192,198,201                                                  | medium       | 0.9        |
+| 3   | `get_sidecar_port` optimistic + frontend caches dead port forever     | lib.rs:115-118,219-225; sidecar-client.ts:52-66                         | medium       | 0.85       |
+| 4   | Auto-updater half-wired (no ACL perm, no caller, artifacts off)       | lib.rs:124; tauri.conf.json:45,48-53; capabilities/default.json:6       | medium       | 0.85       |
+| 5   | `pick_free_port` TOCTTOU + bare-TCP probe can't verify child identity | lib.rs:23-29,42-51                                                      | low-medium   | 0.7        |
+| 6   | Keychain blocking I/O on async runtime                                | keychain.rs:18-42                                                       | low          | 0.6        |
+| 7   | Unused MCP-port IPC commands panic if state left unmanaged            | openbb_mcp.rs:50-53; sec_edgar_mcp.rs:49-52                             | low          | 0.7        |
+| S   | `csp: null` — no Content Security Policy (XSS → keychain exfil)       | tauri.conf.json:26-28                                                   | medium (sec) | 0.75       |

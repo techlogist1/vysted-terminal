@@ -22,7 +22,7 @@ edit `types/plugin.ts` — the `icon?` and `defaultSize?` fields already exist t
 The boot crash (Fix 1) is sequenced first and **alone** because it blocks GUI
 verification of literally everything else: the app crashes on launch under
 `pnpm tauri dev` (StrictMode), so no other fix can be screenshot-verified until it
-lands. Fix 2 (sidecar readiness) is second because it unblocks *populated* GUI
+lands. Fix 2 (sidecar readiness) is second because it unblocks _populated_ GUI
 verification (per the CLAUDE.md visual protocol — empty panels hide bugs), and
 because three later error-surface fixes are only observable against a live sidecar.
 Fix 3 (settings) and the remaining fixes are independent and ordered by
@@ -30,16 +30,16 @@ severity/blast-radius. The two HIGH leak fixes (Fix 1 epoch work, Fix 5 plugin
 leak) share the same StrictMode-async-teardown root pattern and are sequenced
 adjacently so the lead builds the mental model once.
 
-| # | Title | Severity | Files | Verify by |
-|---|-------|----------|-------|-----------|
-| 1 | Boot crash: use-after-dispose in `restoreLastSessionOrDefault` (+ plugin-component-missing variant) | HIGH | `PanelHost.tsx`, `workspace.ts`, (test) | build + `tauri dev` boot + screenshot |
-| 2 | Cold-boot bind race: News/Portfolio latch permanent error | HIGH | `sidecar-client.ts`, `NewsFeedPanel.tsx`, `PortfolioPanel.tsx`, (test) | curl + `tauri dev` cold-boot + populated screenshot |
-| 3 | Settings double-scrollbar/blue-void + "Set default" Ollama-only | HIGH(UX) | `SettingsPanel.tsx`, `globals.css` | screenshot scroll + screenshot all rows |
-| 4 | Plugin runtime + 30s health-interval leak on early teardown | HIGH | `page.tsx`, `store/plugins.ts` | unit test (interval-count) + dev console |
-| 5 | KillSwitchToolbar OS-listener leak → multi-fire | MEDIUM | `KillSwitchToolbar.tsx`, (test) | unit test + dev shortcut |
-| 6 | Node palette redundant non-draggable "Plugin Nodes" section | MEDIUM | `node-palette.tsx`, `node-palette.test.tsx` | test + screenshot palette |
-| 7 | `command.icon` / `PanelSpec.icon` never rendered | LOW | `CommandPalette.tsx`, new `src/lib/lucide-dynamic.tsx` | screenshot cmd+K |
-| 8 | `PanelSpec.defaultSize` never applied | LOW | `store/workspace.ts` (functional wire) | screenshot panel size |
+| #   | Title                                                                                               | Severity | Files                                                                  | Verify by                                           |
+| --- | --------------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------- | --------------------------------------------------- |
+| 1   | Boot crash: use-after-dispose in `restoreLastSessionOrDefault` (+ plugin-component-missing variant) | HIGH     | `PanelHost.tsx`, `workspace.ts`, (test)                                | build + `tauri dev` boot + screenshot               |
+| 2   | Cold-boot bind race: News/Portfolio latch permanent error                                           | HIGH     | `sidecar-client.ts`, `NewsFeedPanel.tsx`, `PortfolioPanel.tsx`, (test) | curl + `tauri dev` cold-boot + populated screenshot |
+| 3   | Settings double-scrollbar/blue-void + "Set default" Ollama-only                                     | HIGH(UX) | `SettingsPanel.tsx`, `globals.css`                                     | screenshot scroll + screenshot all rows             |
+| 4   | Plugin runtime + 30s health-interval leak on early teardown                                         | HIGH     | `page.tsx`, `store/plugins.ts`                                         | unit test (interval-count) + dev console            |
+| 5   | KillSwitchToolbar OS-listener leak → multi-fire                                                     | MEDIUM   | `KillSwitchToolbar.tsx`, (test)                                        | unit test + dev shortcut                            |
+| 6   | Node palette redundant non-draggable "Plugin Nodes" section                                         | MEDIUM   | `node-palette.tsx`, `node-palette.test.tsx`                            | test + screenshot palette                           |
+| 7   | `command.icon` / `PanelSpec.icon` never rendered                                                    | LOW      | `CommandPalette.tsx`, new `src/lib/lucide-dynamic.tsx`                 | screenshot cmd+K                                    |
+| 8   | `PanelSpec.defaultSize` never applied                                                               | LOW      | `store/workspace.ts` (functional wire)                                 | screenshot panel size                               |
 
 ---
 
@@ -67,7 +67,7 @@ This is deterministic in dev (localhost fetch + IPC is always slower than the
 synchronous StrictMode cleanup). Full mechanism in `map-boot-layout.md` §3.
 
 **Second, compounding variant** (`hunt-regression-95.md` BUG-1): plugin panel
-components register *asynchronously* via `bootstrapPlugins().then(...)`
+components register _asynchronously_ via `bootstrapPlugins().then(...)`
 (`page.tsx:38`, which appends modules only after `getSidecarBaseUrl()` + `loadPlugin`
 resolve — `plugin-bootstrap.ts:277-284`). If `__autosave__` references a plugin panel
 (`tradesa-*`), `api.fromJSON` throws synchronously inside dockview's eager
@@ -146,10 +146,7 @@ import { collectPanelComponents } from "@/lib/module-registry";
  * currently registered. dockview instantiates content eagerly during fromJSON,
  * so an unknown component throws synchronously and half-mutates the grid.
  */
-function layoutReferencesUnknownComponent(
-  _api: DockviewApi,
-  layout: SerializedDockview,
-): boolean {
+function layoutReferencesUnknownComponent(_api: DockviewApi, layout: SerializedDockview): boolean {
   const known = new Set(Object.keys(collectPanelComponents(useModulesStore.getState().modules)));
   const panels = (layout as { panels?: Record<string, { contentComponent?: string }> }).panels;
   if (!panels) {
@@ -194,7 +191,10 @@ function handleReady(event: DockviewReadyEvent) {
   const epoch = mountEpoch.current;
   useWorkspaceStore.getState().setDockviewApi(api);
   const enabledPanelIds = new Set(
-    useModulesStore.getState().enabledPanels().map((panel) => panel.id),
+    useModulesStore
+      .getState()
+      .enabledPanels()
+      .map((panel) => panel.id),
   );
   void restoreLastSessionOrDefault(api, enabledPanelIds).finally(() => {
     // If StrictMode/HMR replaced the api or unmounted us while awaiting, this
@@ -234,7 +234,7 @@ tests that DON'T need a real DOM:
 ```ts
 it("skip-to-default when restore's api is no longer the live api", async () => {
   // Arrange: store.dockviewApi points at a DIFFERENT api than the one passed in.
-  const passedApi = makeApi();           // not set as the store's live api
+  const passedApi = makeApi(); // not set as the store's live api
   useWorkspaceStore.getState().setDockviewApi(makeOtherApi());
   fetchMock.mockResolvedValueOnce(okJson(savedWorkspace));
   const restored = await restoreLastSessionOrDefault(passedApi, new Set());
@@ -250,8 +250,8 @@ it("skip-to-default (clean grid) when saved layout references an unknown compone
   const restored = await restoreLastSessionOrDefault(api, new Set(["chart"]));
   expect(restored).toBe(false);
   expect(api.fromJSON).not.toHaveBeenCalled();
-  expect(api.clear).not.toHaveBeenCalled();          // unknown-component path returns before clear
-  expect(api.addPanel).toHaveBeenCalled();           // applyDefaultLayout ran
+  expect(api.clear).not.toHaveBeenCalled(); // unknown-component path returns before clear
+  expect(api.addPanel).toHaveBeenCalled(); // applyDefaultLayout ran
 });
 ```
 
@@ -360,7 +360,7 @@ async function resolveAndAwaitReady(): Promise<string> {
 
 `sidecarGet` / `openCryptoStream` / `sidecarApi.health` need **no change** — they
 already `await getSidecarBaseUrl()` first. Note `sidecarApi.health` now hits `/health`
-*twice* on the first connect (once inside the gate, once from `connectSidecar`); that
+_twice_ on the first connect (once inside the gate, once from `connectSidecar`); that
 is harmless and the gate's result is cached.
 
 **2b — defense-in-depth: News + Portfolio auto-retry their first load** so a transient

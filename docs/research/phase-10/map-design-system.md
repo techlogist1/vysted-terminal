@@ -29,14 +29,14 @@ entirely.** Anyone who says "just change tokens.css" is wrong about the chart pa
 
 ## 1. Where the design system lives (the file map)
 
-| Layer | File | Role |
-|---|---|---|
-| Raw tokens | `styles/tokens.css` | Tailwind 4 `@theme` block — palette, fonts, radius, motion. Each becomes a utility class. |
-| Semantic + chrome | `src/app/globals.css` | Maps tokens → shadcn semantic names (`@theme inline`); composite chrome vars; base layer (body bg/font/atmosphere/grain/selection/focus/scrollbars); `@layer components` instrument primitives; the `.dockview-theme-vysted` override. |
-| Fonts | `src/app/layout.tsx` | `next/font/google` loads Newsreader + JetBrains Mono, injects `--font-newsreader` / `--font-jetbrains-mono`, sets `class="dark"` on `<html>`. |
-| Header fascia / wordmark | `src/app/page.tsx` | The "VYSTED / Terminal" wordmark + instrument header bar. |
-| Build glue | `postcss.config.mjs` | Only plugin is `@tailwindcss/postcss`. **There is no `tailwind.config.js`** — Tailwind 4 is fully CSS-driven. |
-| Docs | `docs/DESIGN_SYSTEM.md` | Narrative spec of INSTRUMENT. Pure documentation, no runtime effect; update on retire. |
+| Layer                    | File                    | Role                                                                                                                                                                                                                                   |
+| ------------------------ | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Raw tokens               | `styles/tokens.css`     | Tailwind 4 `@theme` block — palette, fonts, radius, motion. Each becomes a utility class.                                                                                                                                              |
+| Semantic + chrome        | `src/app/globals.css`   | Maps tokens → shadcn semantic names (`@theme inline`); composite chrome vars; base layer (body bg/font/atmosphere/grain/selection/focus/scrollbars); `@layer components` instrument primitives; the `.dockview-theme-vysted` override. |
+| Fonts                    | `src/app/layout.tsx`    | `next/font/google` loads Newsreader + JetBrains Mono, injects `--font-newsreader` / `--font-jetbrains-mono`, sets `class="dark"` on `<html>`.                                                                                          |
+| Header fascia / wordmark | `src/app/page.tsx`      | The "VYSTED / Terminal" wordmark + instrument header bar.                                                                                                                                                                              |
+| Build glue               | `postcss.config.mjs`    | Only plugin is `@tailwindcss/postcss`. **There is no `tailwind.config.js`** — Tailwind 4 is fully CSS-driven.                                                                                                                          |
+| Docs                     | `docs/DESIGN_SYSTEM.md` | Narrative spec of INSTRUMENT. Pure documentation, no runtime effect; update on retire.                                                                                                                                                 |
 
 **No `tailwind.config.{js,ts}` exists** (confirmed: only `postcss.config.mjs`, `next.config.ts`, `eslint.config.mjs`,
 `vitest.config.ts` present). Tailwind 4 reads design tokens directly from the `@theme` block in CSS. This is the single
@@ -50,8 +50,9 @@ Header comment `tokens.css:1-14` states the aesthetic and that the `@theme` bloc
 The full `@theme` block is `tokens.css:16-74`. Complete enumeration:
 
 ### Charcoal (warm brown-black base) — `tokens.css:19-31`
-| Token | Value |
-|---|---|
+
+| Token                  | Value     |
+| ---------------------- | --------- |
 | `--color-charcoal-950` | `#14110f` |
 | `--color-charcoal-925` | `#181512` |
 | `--color-charcoal-900` | `#1c1916` |
@@ -67,17 +68,19 @@ The full `@theme` block is `tokens.css:16-74`. Complete enumeration:
 | `--color-charcoal-100` | `#e8e3d6` |
 
 ### Amber (primary HUD accent) — `tokens.css:34-38`
-| Token | Value |
-|---|---|
-| `--color-amber-200` | `#f9dba6` |
-| `--color-amber-300` | `#f4c87a` |
+
+| Token               | Value                     |
+| ------------------- | ------------------------- |
+| `--color-amber-200` | `#f9dba6`                 |
+| `--color-amber-300` | `#f4c87a`                 |
 | `--color-amber-400` | `#e9a94d` (brand/primary) |
-| `--color-amber-500` | `#d98e2b` |
-| `--color-amber-600` | `#b8701a` |
+| `--color-amber-500` | `#d98e2b`                 |
+| `--color-amber-600` | `#b8701a`                 |
 
 ### Brass (patinated metal, bezels/rules/ticks) — `tokens.css:42-46`
-| Token | Value |
-|---|---|
+
+| Token               | Value     |
+| ------------------- | --------- |
 | `--color-brass-200` | `#cdb88c` |
 | `--color-brass-300` | `#b8965f` |
 | `--color-brass-400` | `#9c7c4d` |
@@ -85,44 +88,50 @@ The full `@theme` block is `tokens.css:16-74`. Complete enumeration:
 | `--color-brass-600` | `#5d4829` |
 
 ### Lume — `tokens.css:49`
-| Token | Value |
-|---|---|
+
+| Token          | Value     |
+| -------------- | --------- |
 | `--color-lume` | `#f5efe0` |
 
 ### Sage (cool counterpoint) — `tokens.css:52-54`
-| Token | Value |
-|---|---|
+
+| Token              | Value     |
+| ------------------ | --------- |
 | `--color-sage-300` | `#b6c4a8` |
 | `--color-sage-400` | `#8fa67c` |
 | `--color-sage-500` | `#6d8559` |
 
 ### Signal (gains/losses, warm-tuned) — `tokens.css:57-60`
-| Token | Value |
-|---|---|
-| `--color-positive` | `#7faa6b` |
+
+| Token                     | Value     |
+| ------------------------- | --------- |
+| `--color-positive`        | `#7faa6b` |
 | `--color-positive-bright` | `#9ccb84` |
-| `--color-negative` | `#c8654b` |
+| `--color-negative`        | `#c8654b` |
 | `--color-negative-bright` | `#e07f63` |
 
 ### Typography — `tokens.css:64-65`
-| Token | Value |
-|---|---|
-| `--font-serif` | `var(--font-newsreader), ui-serif, Georgia, "Times New Roman", serif` |
-| `--font-mono` | `var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace` |
+
+| Token          | Value                                                                             |
+| -------------- | --------------------------------------------------------------------------------- |
+| `--font-serif` | `var(--font-newsreader), ui-serif, Georgia, "Times New Roman", serif`             |
+| `--font-mono`  | `var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace` |
 
 (The `--font-newsreader` / `--font-jetbrains-mono` inner vars are injected by `next/font` in `layout.tsx:7,13`.)
 
 ### Radius — `tokens.css:68-69`
-| Token | Value |
-|---|---|
-| `--radius-panel` | `0.375rem` (6px) |
-| `--radius-control` | `0.25rem` (4px) |
+
+| Token              | Value            |
+| ------------------ | ---------------- |
+| `--radius-panel`   | `0.375rem` (6px) |
+| `--radius-control` | `0.25rem` (4px)  |
 
 ### Motion — `tokens.css:72-73`
-| Token | Value |
-|---|---|
-| `--ease-instrument` | `cubic-bezier(0.2, 0.8, 0.2, 1)` |
-| `--ease-detent` | `cubic-bezier(0.34, 1.4, 0.64, 1)` (slight overshoot) |
+
+| Token               | Value                                                 |
+| ------------------- | ----------------------------------------------------- |
+| `--ease-instrument` | `cubic-bezier(0.2, 0.8, 0.2, 1)`                      |
+| `--ease-detent`     | `cubic-bezier(0.34, 1.4, 0.64, 1)` (slight overshoot) |
 
 That is the entire token surface: **34 color tokens, 2 font tokens, 2 radius tokens, 2 easing tokens.**
 
@@ -131,6 +140,7 @@ That is the entire token surface: **34 color tokens, 2 font tokens, 2 radius tok
 ## 3. `src/app/globals.css` — semantic mapping, chrome, cascade order
 
 ### 3.1 Import order (cascade-load-bearing) — `globals.css:1-8`
+
 1. `@import "tailwindcss";` (`globals.css:1`)
 2. `@import "../../styles/tokens.css";` (`globals.css:4`) — primitives
 3. `@import "dockview/dist/styles/dockview.css";` (`globals.css:8`) — dockview base, imported **before** the
@@ -138,38 +148,41 @@ That is the entire token surface: **34 color tokens, 2 font tokens, 2 radius tok
    CLAUDE.md gotcha).
 
 ### 3.2 shadcn semantic mapping — `@theme inline` — `globals.css:12-32`
+
 18 semantic color vars + `--radius`, each pointing at a primitive with a literal hex fallback. This is where shadcn's
 `bg-primary`, `text-foreground`, `border-border`, `ring-ring` etc. resolve. The amber/charcoal identity reaches shadcn
 through here:
 
-| Semantic | Maps to | Line |
-|---|---|---|
-| `--color-background` | `charcoal-950` | `13` |
-| `--color-foreground` | `charcoal-100` | `14` |
-| `--color-card` | `charcoal-900` | `15` |
-| `--color-card-foreground` | `charcoal-100` | `16` |
-| `--color-popover` | `charcoal-875` | `17` |
-| `--color-popover-foreground` | `charcoal-100` | `18` |
-| `--color-primary` | `amber-400` | `19` |
-| `--color-primary-foreground` | `charcoal-950` | `20` |
-| `--color-secondary` | `charcoal-800` | `21` |
-| `--color-secondary-foreground` | `charcoal-100` | `22` |
-| `--color-muted` | `charcoal-800` | `23` |
-| `--color-muted-foreground` | `charcoal-400` | `24` |
-| `--color-accent` | `sage-400` | `25` |
-| `--color-accent-foreground` | `charcoal-950` | `26` |
-| `--color-border` | `charcoal-700` | `27` |
-| `--color-input` | `charcoal-700` | `28` |
-| `--color-ring` | `amber-400` | `29` |
-| `--color-destructive` | `negative` | `30` |
-| `--radius` | `0.375rem` (literal, not the token!) | `31` |
+| Semantic                       | Maps to                              | Line |
+| ------------------------------ | ------------------------------------ | ---- |
+| `--color-background`           | `charcoal-950`                       | `13` |
+| `--color-foreground`           | `charcoal-100`                       | `14` |
+| `--color-card`                 | `charcoal-900`                       | `15` |
+| `--color-card-foreground`      | `charcoal-100`                       | `16` |
+| `--color-popover`              | `charcoal-875`                       | `17` |
+| `--color-popover-foreground`   | `charcoal-100`                       | `18` |
+| `--color-primary`              | `amber-400`                          | `19` |
+| `--color-primary-foreground`   | `charcoal-950`                       | `20` |
+| `--color-secondary`            | `charcoal-800`                       | `21` |
+| `--color-secondary-foreground` | `charcoal-100`                       | `22` |
+| `--color-muted`                | `charcoal-800`                       | `23` |
+| `--color-muted-foreground`     | `charcoal-400`                       | `24` |
+| `--color-accent`               | `sage-400`                           | `25` |
+| `--color-accent-foreground`    | `charcoal-950`                       | `26` |
+| `--color-border`               | `charcoal-700`                       | `27` |
+| `--color-input`                | `charcoal-700`                       | `28` |
+| `--color-ring`                 | `amber-400`                          | `29` |
+| `--color-destructive`          | `negative`                           | `30` |
+| `--radius`                     | `0.375rem` (literal, not the token!) | `31` |
 
 > Adversarial note: `--radius` at `globals.css:31` is the literal `0.375rem`, NOT `var(--radius-panel)`. It duplicates
 > the value rather than referencing the token. A re-skin that changes `--radius-panel` in tokens.css will silently NOT
 > change shadcn radii. Minor, but it's a token-bypass.
 
 ### 3.3 Composite "instrument-chrome" vars (plain `:root`, not `@theme`) — `globals.css:39-46`
+
 These are multi-value shadows/rgb that can't be single-value utilities:
+
 - `--hairline: rgb(156 124 77 / 0.28)` — brass-400 @ 28% (`globals.css:40`). **This is brass-400 expanded to raw RGB,
   not `rgb(var(...))`** — a hardcoded copy.
 - `--hairline-strong: rgb(184 150 95 / 0.45)` (`globals.css:41`) — brass-300-ish, also raw.
@@ -178,6 +191,7 @@ These are multi-value shadows/rgb that can't be single-value utilities:
   expanded to raw RGB.
 
 ### 3.4 `@layer base` — applies to EVERY surface automatically — `globals.css:48-113`
+
 - `* { border-color: var(--color-border); }` (`49-51`) — global default border color.
 - `html, body`: bg `--color-background`, color `--color-foreground`, `font-family: var(--font-mono, …)` (so the whole
   app is monospace by default), `font-variant-numeric: tabular-nums`, `font-feature-settings: "tnum" 1, "calt" 0`,
@@ -193,6 +207,7 @@ These are multi-value shadows/rgb that can't be single-value utilities:
 - `:focus-visible { outline: 1px solid var(--color-amber-400…); }` (`109-112`) — amber HUD focus ring everywhere.
 
 ### 3.5 `@layer components` — opt-in instrument primitives — `globals.css:116-148`
+
 - `.hud-label` — uppercase, tracked, `color: var(--color-brass-300…)` (`118-124`). **This is the ONLY place brass color
   reaches the DOM** (see §6).
 - `.instrument-bezel` — `box-shadow: var(--bezel-shadow)` + top lume highlight (`127-130`).
@@ -200,9 +215,11 @@ These are multi-value shadows/rgb that can't be single-value utilities:
 - `.hud-active` — `box-shadow: var(--glow-amber)` (`145-147`).
 
 ### 3.6 `.dockview-theme-vysted` override — `globals.css:154-189`
+
 Remaps ~22 dockview `--dv-*` vars to the palette (group/tab backgrounds → charcoal shades, active tab color → lume,
 separators/dividers/header borders → `--hairline`, active outline → amber-400, active sash → amber-500, drag-over →
 `rgb(233 169 77 / 0.14)` + amber-400 border). Full block `155-177`. Plus:
+
 - `.dv-active-tab` lit tick: `box-shadow: inset 0 -2px 0 var(--color-amber-400…)` (`182-184`).
 - `.dv-tab` tracking + transition using `--ease-instrument` (`186-189`).
 
@@ -210,6 +227,7 @@ Applied in `src/components/PanelHost.tsx:76`: `className="dockview-theme-dark do
 the dark theme supplies defaults, vysted overrides visible surfaces. This is how ALL panels get framed at once.
 
 ### 3.7 Scrollbars — `globals.css:194-218`
+
 WebKit + Firefox: thumb `rgb(156 124 77 / 0.4)` (brass), hover `rgb(217 142 43 / 0.7)` (amber-500). Raw RGB, hardcoded.
 
 ---
@@ -217,6 +235,7 @@ WebKit + Firefox: thumb `rgb(156 124 77 / 0.4)` (brass), hover `rgb(217 142 43 /
 ## 4. `layout.tsx` + `page.tsx` — fonts and the wordmark
 
 ### Fonts — `layout.tsx`
+
 - `Newsreader({ variable: "--font-newsreader", display: "swap" })` — `layout.tsx:5-9`.
 - `JetBrains_Mono({ variable: "--font-jetbrains-mono", display: "swap" })` — `layout.tsx:11-15`.
 - `<html lang="en" className={`dark ${newsreader.variable} ${jetbrainsMono.variable}`}>` — `layout.tsx:24`. The `dark`
@@ -226,6 +245,7 @@ WebKit + Firefox: thumb `rgb(156 124 77 / 0.4)` (brass), hover `rgb(217 142 43 /
 `tokens.css:64-65`. Both, or the new font won't be the primary.
 
 ### Header fascia / wordmark — `page.tsx:77-121`
+
 - `<header className="bg-charcoal-925 instrument-bezel relative flex h-9 …">` (`77`) — charcoal-925 bg + bezel chrome.
 - Wordmark: `<span className="font-serif text-sm leading-none tracking-[0.18em] text-amber-400">VYSTED</span>` (`79-81`)
   followed by `<span className="hud-label leading-none">Terminal</span>` (`82`). **The "VYSTED" is serif + amber-400 +
@@ -235,7 +255,7 @@ WebKit + Firefox: thumb `rgb(156 124 77 / 0.4)` (brass), hover `rgb(217 142 43 /
 - Bottom `.tick-rule` strip (`117-120`).
 - Root `<main className="bg-charcoal-950 …">` (`72`).
 
-All of this is token-class driven — re-skinning tokens carries it, but the *wordmark text/typography choice* (serif,
+All of this is token-class driven — re-skinning tokens carries it, but the _wordmark text/typography choice_ (serif,
 tracking, the "VYSTED / Terminal" split) is a deliberate design decision encoded in JSX, not a token.
 
 ---
@@ -274,11 +294,12 @@ So for the HTML/CSS surface, the design system genuinely IS centralized: re-tuni
 `brass-*` Tailwind utility classes appear in **zero** non-test source files (`grep -rlE 'brass-[0-9]'` over `src/`
 `*.tsx`/`*.ts` → 0). Every `brass` mention in `src/` is either a code comment or the wordmark comment in `page.tsx:76`.
 Brass color reaches actual pixels through exactly two indirections:
+
 - `.hud-label { color: var(--color-brass-300…) }` (`globals.css:123`) — used in `page.tsx:82` ("Terminal") only.
 - `--hairline`/`--hairline-strong` (`globals.css:40-41`), which are **raw RGB copies** of brass-400/brass-300, NOT
   `var(--color-brass-*)` references. So changing `--color-brass-400` in tokens.css does NOT change the hairlines.
 
-Implication for the retire: the brass *palette ramp* (`--color-brass-200..600`, `tokens.css:42-46`) is almost vestigial.
+Implication for the retire: the brass _palette ramp_ (`--color-brass-200..600`, `tokens.css:42-46`) is almost vestigial.
 The visible "brass" identity is carried by (a) `.hud-label`'s brass-300, and (b) two hardcoded RGB hairline vars. Drop
 the brass ramp and you must independently update `globals.css:40-41,123` or the brass look persists/breaks.
 
@@ -290,6 +311,7 @@ Grepped hex + rgb + literal black/white over `src/` and `types/` (excluding `tok
 intended definition sites). **73 hex occurrences outside the token files** (including tests). The non-test, runtime ones:
 
 ### 7.1 Chart-canvas theme blocks (lightweight-charts can't read CSS vars) — 6 files
+
 Each repeats the same charcoal/sage/signal palette as hex literals with `// charcoal-900` style comments:
 
 - `src/modules/chart/ChartPanel.tsx:66-88` — `CHART_THEME` + `CANDLE_THEME`: bg `#1c1916`, text `#c9c2b2`, grid
@@ -306,6 +328,7 @@ Each repeats the same charcoal/sage/signal palette as hex literals with `// char
   `const NEGATIVE = "#c8654b"` (`:31`).
 
 ### 7.2 Chart indicator / drawing palettes
+
 - `src/modules/chart/indicators.ts:160-165` — `INDICATOR_COLORS`: `#e9a94d` (amber-400), `#8fa67c`, `#c9c2b2`,
   `#f4c87a`, `#b6c4a8` (token mirror, commented).
 - `src/modules/chart/drawings/base.ts:30` — `DEFAULT_DRAWING_COLOR = "#e9a94d"`; fill fallback `rgba(233, 169, 77, 0.12)`
@@ -317,7 +340,9 @@ Each repeats the same charcoal/sage/signal palette as hex literals with `// char
   `NEGATIVE_FILL = "rgba(200, 101, 75, 0.15)"` (negative).
 
 ### 7.3 OFF-PALETTE DRIFT — values that are NOT any token (highest-priority cleanup)
+
 These claim in comments to be theme colors but do not match any value in `tokens.css`:
+
 - `#e8b441` — used as `AMBER` in **3** files (`YieldCurvePanel.tsx:45`, `PriceTargetTimeline.tsx:30`,
   `BacktestResultView.tsx:42`). The real amber-400 is `#e9a94d`, amber-500 `#d98e2b`. `#e8b441` is neither.
 - `#c39a3e` — `MacroChart.tsx:32` `LINE_COLOR`, commented "amber-600 — Vysted accent." amber-600 is actually `#b8701a`.
@@ -326,20 +351,24 @@ These claim in comments to be theme colors but do not match any value in `tokens
   exactly the "cyan cliché" the design system explicitly forbids (`DESIGN_SYSTEM.md:24`). It already broke the theme.
 
 ### 7.4 Literal black/white Tailwind utilities (token-bypass, not hex)
+
 - `src/components/ui/dialog.tsx:34` — overlay `bg-black/50` (should arguably be a charcoal/backdrop token).
 - `src/components/ui/button.tsx:14` — destructive variant `text-white`.
 - Node editor backdrops use `bg-charcoal-950/60` (tokened) — `NodeEditorPanel.tsx:737`, `workflow-save-dialog.tsx:69`.
 
 ### 7.5 Radius drift
+
 - `dialog.tsx:56` uses `rounded-lg` (Tailwind default 0.5rem), not the panel radius token (0.375rem). `dialog.tsx:65`
   uses `rounded-xs`. `--radius` in `globals.css:31` is a literal duplicate of 0.375rem rather than `var(--radius-panel)`.
 
 ### 7.6 Test-file hex (cosmetic, update for consistency, not runtime)
+
 `src/lib/workspace.test.ts:151,162,192`, `src/modules/chart/ChartPanel.test.tsx:496`,
 `src/store/chart-drawings.test.ts:12` reference `#e9a94d`/`#8fa67c`/`#fff` as expected drawing-style defaults — they
 will need updating if the default drawing color changes.
 
 ### 7.7 ReactFlow node editor (Tailwind classes, themeable; canvas dots are library default)
+
 - `src/modules/node-editor/VystedNode.tsx:42-67` — `border-charcoal-700 bg-charcoal-850`, selected
   `border-amber-500 shadow-amber-500/20`, handles `!border-amber-400 !bg-amber-400`.
 - `NodeEditorPanel.tsx:472` — `<Background gap={16} size={1} />` uses ReactFlow's **default dot color** (no color prop),
@@ -353,8 +382,9 @@ will need updating if the default drawing color changes.
 ## 8. Exactly what to change to re-skin app-wide ("Claude after dark")
 
 **Tier 1 — the centralized system (re-skins ~95% of pixels):**
+
 1. `styles/tokens.css:19-73` — replace the palette values (charcoal/amber/brass/lume/sage/signal), fonts, radius, motion.
-   Renaming token *families* (e.g. amber→something) is a bigger blast: 43 files use `amber-*` (123 lines) and 44 use
+   Renaming token _families_ (e.g. amber→something) is a bigger blast: 43 files use `amber-*` (123 lines) and 44 use
    `charcoal-*`. Cheapest path = keep token NAMES, change VALUES. If renaming, it's a project-wide find/replace of class
    names too.
 2. `src/app/globals.css`:
@@ -369,18 +399,12 @@ will need updating if the default drawing color changes.
 4. `src/app/page.tsx:79-82` — the wordmark typography/text decision (serif + amber-400 + 0.18em + brass "Terminal").
 5. `docs/DESIGN_SYSTEM.md` — rewrite (pure docs; flag as the old spec being retired).
 
-**Tier 2 — the canvas leak (must be edited file-by-file, NOT carried by tokens):**
-6. Six lightweight-charts theme blocks: `ChartPanel.tsx:66-88`, `YieldCurvePanel.tsx:32-45`,
-   `PriceTargetTimeline.tsx:17-30`, `BacktestResultView.tsx:28-42,108-109`, `MacroChart.tsx:19-32`,
-   `EarningsSurpriseChart.tsx:17-31`.
-7. Chart accent/indicator/drawing palettes: `indicators.ts:160-165`, `drawings/base.ts:30,104`,
-   `drawings/factory.ts:72,75`, `drawings/renderers.ts:193,227,296`, `volume-profile-primitive.ts:33-34`,
-   `ichimoku-cloud-primitive.ts:22,24`, plus the `#8fa67c`/`#c8654b` at `ChartPanel.tsx:389`.
-8. **Fix the 3 drift values while retiring:** `#e8b441` (×3), `#c39a3e`, `#4ec9a3` — none are tokens; `#4ec9a3` already
-   violates the "no cyan" rule.
-9. shadcn literals: `dialog.tsx:34` (`bg-black/50`), `dialog.tsx:56` (`rounded-lg`), `button.tsx:14` (`text-white`).
-10. ReactFlow `<Background>` at `NodeEditorPanel.tsx:472` — add explicit themed `color`/`bgColor`.
-11. Tests asserting old hex: `workspace.test.ts:151,162,192`, `ChartPanel.test.tsx:496`, `chart-drawings.test.ts:12`.
+**Tier 2 — the canvas leak (must be edited file-by-file, NOT carried by tokens):** 6. Six lightweight-charts theme blocks: `ChartPanel.tsx:66-88`, `YieldCurvePanel.tsx:32-45`,
+`PriceTargetTimeline.tsx:17-30`, `BacktestResultView.tsx:28-42,108-109`, `MacroChart.tsx:19-32`,
+`EarningsSurpriseChart.tsx:17-31`. 7. Chart accent/indicator/drawing palettes: `indicators.ts:160-165`, `drawings/base.ts:30,104`,
+`drawings/factory.ts:72,75`, `drawings/renderers.ts:193,227,296`, `volume-profile-primitive.ts:33-34`,
+`ichimoku-cloud-primitive.ts:22,24`, plus the `#8fa67c`/`#c8654b` at `ChartPanel.tsx:389`. 8. **Fix the 3 drift values while retiring:** `#e8b441` (×3), `#c39a3e`, `#4ec9a3` — none are tokens; `#4ec9a3` already
+violates the "no cyan" rule. 9. shadcn literals: `dialog.tsx:34` (`bg-black/50`), `dialog.tsx:56` (`rounded-lg`), `button.tsx:14` (`text-white`). 10. ReactFlow `<Background>` at `NodeEditorPanel.tsx:472` — add explicit themed `color`/`bgColor`. 11. Tests asserting old hex: `workspace.test.ts:151,162,192`, `ChartPanel.test.tsx:496`, `chart-drawings.test.ts:12`.
 
 **Tier 3 — recommended structural fix (so the next retire is one file):** centralize the canvas palette. Create a single
 TS module (e.g. `src/lib/chart-theme.ts`) exporting the hex constants, and have all 6 chart files + drawings import from

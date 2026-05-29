@@ -205,9 +205,7 @@ def _numeric_field_value(
     return getattr(fundamentals, field, None)
 
 
-def _string_field_value(
-    fundamentals: Fundamentals, quote: Quote | None, field: str
-) -> str | None:
+def _string_field_value(fundamentals: Fundamentals, quote: Quote | None, field: str) -> str | None:
     """Resolve a string field's value. ``currency`` lives on the quote (equity
     quotes default to ``USD``), so special-case it like the numeric price/volume
     trio rather than reading a non-existent ``Fundamentals.currency`` attribute

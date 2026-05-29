@@ -33,7 +33,7 @@ Scope: MAP only. No code changes proposed to any §6.5 LOCKED file
 - **There is no unified user-facing "Connect your broker" hub.** Broker
   connection lives in a dockview panel (`BrokerConnectPanel`), entirely separate
   from the Settings surface (`SettingsPanel.tsx`), which only has an "AI
-  Providers (BYOK)" section. The 7 broker *plugins* under `plugins/brokers/` are
+  Providers (BYOK)" section. The 7 broker _plugins_ under `plugins/brokers/` are
   NOT bundled into the app (`plugin-bootstrap.ts:45-49`), so their slash
   commands / control-plane commands (`kite.connect`, `set-static-ip`, etc.) are
   dead code at runtime.
@@ -56,16 +56,16 @@ order entry point. Subclasses implement only four abstract methods
 
 The non-overridable public surface enforces the eight §6.5 non-negotiables:
 
-| # | Guarantee | Code location |
-|---|-----------|---------------|
-| 1 | Paper mode hard-coded default | `broker_base.py:94` `self._mode = "paper"` in `__init__`; no constructor arg flips it |
-| 2 | Every order confirmed; no bypass | `_place_confirmed` only called from `confirm_and_place` (`broker_base.py:365`); `confirm_and_place` requires `human_confirmed=True` (`broker_base.py:325`) |
-| 3 | Position limits before any broker call | `propose_order` checks `max_order_value_account_currency` (`broker_base.py:269`) + `max_position_size_per_symbol` (`broker_base.py:274`); `DEFAULT_LIMITS` at `broker_base.py:82-87` |
-| 4 | Append-only audit log | every state-changing method calls `audit_log.append(...)`; DB-level triggers live in the LOCKED `models/audit_log.py` |
-| 5 | Kill switch subscription forced | `broker_base.py:103` `self._unsubscribe = kill_switch.get_bus().subscribe(...)` in `__init__` — cannot instantiate an adapter without subscribing |
-| 6 | AI-order gate | `propose_order(source="ai-agent"\|"workflow")` writes audit but never places (`broker_base.py:223-308`); no auto-approve path |
-| 7 | Read-only mode | checked in `propose_order` (`broker_base.py:253`) AND re-checked in `confirm_and_place` (`broker_base.py:347`); kill-switch handler forces `_read_only=True` (`broker_base.py:441`) |
-| 8 | Layered disclaimers | mode/connect changes audited; session ack in `disclaimer_session.py` |
+| #   | Guarantee                              | Code location                                                                                                                                                                        |
+| --- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Paper mode hard-coded default          | `broker_base.py:94` `self._mode = "paper"` in `__init__`; no constructor arg flips it                                                                                                |
+| 2   | Every order confirmed; no bypass       | `_place_confirmed` only called from `confirm_and_place` (`broker_base.py:365`); `confirm_and_place` requires `human_confirmed=True` (`broker_base.py:325`)                           |
+| 3   | Position limits before any broker call | `propose_order` checks `max_order_value_account_currency` (`broker_base.py:269`) + `max_position_size_per_symbol` (`broker_base.py:274`); `DEFAULT_LIMITS` at `broker_base.py:82-87` |
+| 4   | Append-only audit log                  | every state-changing method calls `audit_log.append(...)`; DB-level triggers live in the LOCKED `models/audit_log.py`                                                                |
+| 5   | Kill switch subscription forced        | `broker_base.py:103` `self._unsubscribe = kill_switch.get_bus().subscribe(...)` in `__init__` — cannot instantiate an adapter without subscribing                                    |
+| 6   | AI-order gate                          | `propose_order(source="ai-agent"\|"workflow")` writes audit but never places (`broker_base.py:223-308`); no auto-approve path                                                        |
+| 7   | Read-only mode                         | checked in `propose_order` (`broker_base.py:253`) AND re-checked in `confirm_and_place` (`broker_base.py:347`); kill-switch handler forces `_read_only=True` (`broker_base.py:441`)  |
+| 8   | Layered disclaimers                    | mode/connect changes audited; session ack in `disclaimer_session.py`                                                                                                                 |
 
 The two-step is: `propose_order` (sync, audit-logs `order-proposed`, returns
 `BrokerOrderProposal`) → user confirms → `confirm_and_place(proposal,
@@ -112,19 +112,19 @@ substitute fakes.
 
 Routes (`brokers.py:140-309`):
 
-| Method | Route | Purpose |
-|--------|-------|---------|
-| GET | `/brokers` | list all adapter `BrokerState`s |
-| GET | `/brokers/{id}/state` | one broker's state |
-| POST | `/brokers/{id}/connect` | open session (credentials in **body**) |
-| GET | `/brokers/{id}/account` | **the only read route — account + positions + P&L** |
-| POST | `/brokers/{id}/orders` | propose order |
-| POST | `/brokers/{id}/orders/{proposal_id}/confirm` | confirm + place |
-| POST | `/brokers/{id}/orders/cancel` | cancel |
-| POST | `/brokers/{id}/mode` | paper/live toggle |
-| POST | `/brokers/{id}/read-only` | read-only toggle |
-| GET | `/brokers/kite/static-ip` | get configured static IP |
-| POST | `/brokers/kite/static-ip` | set configured static IP |
+| Method | Route                                        | Purpose                                             |
+| ------ | -------------------------------------------- | --------------------------------------------------- |
+| GET    | `/brokers`                                   | list all adapter `BrokerState`s                     |
+| GET    | `/brokers/{id}/state`                        | one broker's state                                  |
+| POST   | `/brokers/{id}/connect`                      | open session (credentials in **body**)              |
+| GET    | `/brokers/{id}/account`                      | **the only read route — account + positions + P&L** |
+| POST   | `/brokers/{id}/orders`                       | propose order                                       |
+| POST   | `/brokers/{id}/orders/{proposal_id}/confirm` | confirm + place                                     |
+| POST   | `/brokers/{id}/orders/cancel`                | cancel                                              |
+| POST   | `/brokers/{id}/mode`                         | paper/live toggle                                   |
+| POST   | `/brokers/{id}/read-only`                    | read-only toggle                                    |
+| GET    | `/brokers/kite/static-ip`                    | get configured static IP                            |
+| POST   | `/brokers/kite/static-ip`                    | set configured static IP                            |
 
 The router is intentionally thin (`brokers.py:1-23`): it parses the body,
 resolves the adapter, awaits the method, translates `BrokerError → HTTP 400`.
@@ -176,6 +176,7 @@ self._account_id = profile["user_id"]                                # kite.py:1
 ```
 
 **It consumes a pre-resolved `access_token`. It NEVER:**
+
 - calls `kite.login_url()` to start OAuth,
 - accepts a `request_token`,
 - calls `kite.generate_session(request_token, api_secret)` to mint the daily
@@ -207,10 +208,10 @@ static_ip    → "Static IP (SEBI rule)"
 The dialog stores every field to the keychain
 (`BrokerConnectPanel.tsx:292-294` `setSecret(broker(id, key), value)`) and POSTs
 them all to `/brokers/kite/connect` (`brokers.ts:78-92`). The sidecar silently
-ignores `api_secret`. So today's UX is: *the user is asked for an API secret
+ignores `api_secret`. So today's UX is: _the user is asked for an API secret
 that does nothing, and must separately go to Zerodha, generate a request_token,
 exchange it for a daily access_token by hand (or with an external script), and
-paste that token back in — every single trading day.* That is the gap.
+paste that token back in — every single trading day._ That is the gap.
 
 ### 3.3 Order placement at Kite (`kite.py:208-261`)
 
@@ -268,6 +269,7 @@ discoverable from Settings at all.
 
 The actual broker surface is a dockview module (`broker-connect/index.ts:12-55`)
 with two panels:
+
 - `broker-connect-panel` → `BrokerConnectPanel` (connection manager)
 - `broker-order-entry` → `BrokerOrderEntry` (manual order proposal form)
 
@@ -294,6 +296,7 @@ Kite plugin's `set-static-ip`, `connect`, `static-ip-status`, etc. —
 `plugins/brokers/kite/index.ts:67-100,215-233`). **None are bundled.**
 `BUNDLED_PLUGINS` (`plugin-bootstrap.ts:45-49`) imports only `example`,
 `openbb-mcp`, `tradesa-v2`. So:
+
 - The Kite plugin's `set-static-ip` control-plane command is unreachable.
 - `BROKER_INTEGRATIONS.md:30-33` and `kite-static-ip-banner.tsx:14-18` both
   describe the user setting the static IP "through the Kite plugin → Settings"
@@ -310,12 +313,14 @@ entirely.
 ## 5. Bugs / gaps found (verified against source)
 
 ### 5.1 `/brokers/{id}/disconnect` route does not exist (medium)
+
 `store/brokers.ts:94-104` `disconnect()` POSTs to `/brokers/{id}/disconnect`,
 but `routers/brokers.py` has no such route (grep: no `disconnect` in
 `brokers.py`). A disconnect call would 404. Latent only because
 `BrokerConnectPanel` never calls `disconnect` today (no UI button wired to it).
 
 ### 5.2 Kite `api_secret` collected but never used; no OAuth exchange (high — the core Phase 10 gap)
+
 `BrokerConnectPanel.tsx:53` collects `api_secret`; `kite.py:_connect` never reads
 it. No `generate_session`/`request_token`/`login_url` exists. Users must
 hand-resolve the daily access token externally. This is the headline gap to a
@@ -324,21 +329,25 @@ files — it is new OAuth plumbing in `kite.py` + a new sidecar route + UI; the
 `BrokerAdapter` contract is untouched.)
 
 ### 5.3 Static-IP banner hardcodes `configuredIp={null}` (medium)
+
 `BrokerConnectPanel.tsx:254`. Banner never receives the adapter's stored
 configured IP, so it always reports "no static IP configured" even after the
 user sets one. Panel should fetch `GET /brokers/kite/static-ip` and pass
 `configuredIp`.
 
 ### 5.4 Banner mount condition contradicts docs (low)
+
 `BrokerConnectPanel.tsx:252` only mounts the banner in live mode;
 `BROKER_INTEGRATIONS.md:62-65` says it mounts in paper mode too.
 
 ### 5.5 Broker plugins unbundled → plugin commands dead (medium, product gap)
+
 `plugin-bootstrap.ts:45-49`. The `plugins/brokers/*` slash/control-plane commands
 documented in `BROKER_INTEGRATIONS.md` are not reachable; the only working
 broker surface is the `broker-connect` module.
 
 ### 5.6 No broker section in Settings; no unified provider hub (medium, product gap)
+
 `SettingsPanel.tsx:53-56` has AI Providers but no brokers. Broker connection is
 discoverable only by opening the `broker-connect` dockview panel. A real
 "connect your broker" hub would unify these.
@@ -351,7 +360,7 @@ A real Kite OAuth + connect-hub feature is buildable entirely outside §6.5:
 
 - **New sidecar OAuth plumbing in `kite.py` (NOT locked):** add a
   `kite.login_url()` passthrough and a `generate_session(request_token,
-  api_secret)` exchange that mints + returns the daily `access_token`. Surface
+api_secret)` exchange that mints + returns the daily `access_token`. Surface
   via NEW routes in `routers/brokers.py` (e.g. `GET /brokers/kite/login-url`,
   `POST /brokers/kite/session`). The `BrokerAdapter` ABC stays untouched —
   `_connect` still receives the resolved `access_token`; you are only adding the

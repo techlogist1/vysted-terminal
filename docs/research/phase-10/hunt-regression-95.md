@@ -15,7 +15,7 @@ This report nails the root cause of the boot crash (it is NOT generic — it is 
 autosave-restore-vs-plugin-registration race) and surfaces additional NEW
 regressions the operator has not yet reported.
 
-The Phase-9.5 morning report and bug catalog audit the *pre-Track-C/D* commit
+The Phase-9.5 morning report and bug catalog audit the _pre-Track-C/D_ commit
 (`46f0a33`), so none of these Track-C/D regressions were caught by that pass — the
 catalog explicitly defers every drag/typing/GUI item to OPERATOR-MANUAL, and
 Track C/D landed after it.
@@ -25,6 +25,7 @@ Track C/D landed after it.
 ## BUG-1 (HIGH) — Boot crash: autosave restores a plugin panel before the plugin's component is registered → dockview throws during `fromJSON`
 
 **Files:**
+
 - `src/components/PanelHost.tsx:50` (`restoreLastSessionOrDefault(api, …)` in `handleReady`)
 - `src/lib/workspace.ts:158-174` (`restoreLastSessionOrDefault` → `deserializeWorkspace` → `api.fromJSON`)
 - `src/lib/workspace.ts:81` (`deserializeWorkspace` → `api.fromJSON(workspace.layout)`)
@@ -33,12 +34,12 @@ Track C/D landed after it.
 **Root cause (verified against dockview source):**
 `bootstrapPlugins()` in `page.tsx` is fired with `void bootstrapPlugins().then(...)`
 and is fully async — it awaits `resolvePersistence()` (which awaits
-`getSidecarBaseUrl()`) and then `await runtime.loadPlugin(...)` *before* calling
+`getSidecarBaseUrl()`) and then `await runtime.loadPlugin(...)` _before_ calling
 `useModulesStore.getState().appendModules([pluginModule])`. So plugin panel
 components (e.g. tradesa-v2's `panelComponents`, wired via `PLUGIN_COMPANIONS`)
 are NOT in the `components` map until well after the sidecar port resolves.
 
-`DockviewReact` mounts as soon as `modules.length > 0` (after the *synchronous*
+`DockviewReact` mounts as soon as `modules.length > 0` (after the _synchronous_
 `registerModules(vystedModules)`), so `handleReady` fires and calls
 `restoreLastSessionOrDefault(api, …)` while the plugin components are still absent.
 If the autosaved `__autosave__` layout contains a plugin panel (the user opened a
@@ -83,17 +84,17 @@ the fallback always starts from a clean grid).
 
 ---
 
-## BUG-2 (MEDIUM) — Autosave persists the *default* layout on first launch, defeating its own "first autosave reflects a genuine user change" guarantee
+## BUG-2 (MEDIUM) — Autosave persists the _default_ layout on first launch, defeating its own "first autosave reflects a genuine user change" guarantee
 
 **Files:** `src/components/PanelHost.tsx:51-64`, `src/lib/workspace.ts:181-205` (`autosaveLayout`)
 
 **Root cause:** the comment at `PanelHost.tsx:48-49` claims the subscription is
-attached *after* restore "so the first autosave reflects a genuine user change, not
-the restore itself." That only suppresses the *synchronous* layout events fired
+attached _after_ restore "so the first autosave reflects a genuine user change, not
+the restore itself." That only suppresses the _synchronous_ layout events fired
 during `applyDefaultLayout`/`fromJSON`. dockview also emits `onDidLayoutChange`
 asynchronously from its own ResizeObserver-driven relayout/settling **after** mount
 (after the `.finally()` has already subscribed). Those fire the 1500 ms debounce →
-`autosaveLayout()` writes the *untouched default layout* into `__autosave__`. So a
+`autosaveLayout()` writes the _untouched default layout_ into `__autosave__`. So a
 user who never customizes anything still gets an autosave slot, and the "fall back
 to default when none exists" branch becomes effectively dead after first launch.
 
@@ -118,7 +119,7 @@ the no-op write.
 **Root cause:** the button renders only when `configured === true` (key present in
 keychain) OR `!needsKey` (Ollama). `status` starts `{}` and is filled by `refresh()`
 probing the keychain; for the common first-run state (no keys configured yet — which
-is *exactly* when a user is in Settings deciding their default), every key-requiring
+is _exactly_ when a user is in Settings deciding their default), every key-requiring
 provider has `configured === false`, so its "Set default" button is suppressed.
 Ollama is the only provider with `requiresKey: false`
 (`src/store/llm-providers.ts:36-41`), so it is the only row that ever shows "Set
@@ -127,7 +128,7 @@ default" before a key exists. This precisely reproduces the operator's
 
 The deeper issue: `defaultProviderId` defaults to `"anthropic"`
 (`llm-providers.ts:74`), and once a configured provider IS set as default the button
-correctly works — so this is a *discoverability/ordering* defect, not a dead handler.
+correctly works — so this is a _discoverability/ordering_ defect, not a dead handler.
 But the chat path silently falls back: `ChatSidebar` reads `defaultProviderId`,
 which can point at an unconfigured provider, then blocks with "no API key set for
 …" (`ChatSidebar.tsx:155-163`).
@@ -168,7 +169,7 @@ never touches `setName`; `loadWorkspace`/`deserializeWorkspace` does.
 **File:** `src/store/workspace.ts:75-89` (`resetToDefaultLayout`)
 
 **Root cause:** `resetToDefaultLayout` calls `api.clear()` + `applyDefaultLayout` but
-computes `enabledPanelIds` from the *current* `enabledModules()`. If the user
+computes `enabledPanelIds` from the _current_ `enabledModules()`. If the user
 previously loaded a workspace that disabled modules (`setEnabledMap` from
 `deserializeWorkspace`), those modules stay disabled, so "Reset to default" produces
 a default layout with panels silently skipped (`default-layout.ts:80-82`
@@ -192,7 +193,7 @@ recompute against the full registry) and clear chart drawings, to be a true rese
 reason — malformed JSON, missing component (BUG-1), schema drift — the user's saved
 session is discarded with zero diagnostics, and `setEnabledMap(workspace.enabledModules)`
 may have ALREADY run before `api.fromJSON` threw (`deserializeWorkspace.ts:82` runs
-`setEnabledMap` *before* `api.fromJSON` at line 83), leaving the modules store in the
+`setEnabledMap` _before_ `api.fromJSON` at line 83), leaving the modules store in the
 restored state while the layout falls back to default — an inconsistent half-applied
 state. Track A's own theme this phase was "stop swallowing failures silently"
 (plugin-bootstrap port-0 logging, SSE malformed-frame logging); this new restore
@@ -217,7 +218,7 @@ user-facing affordance, but the store it writes to has no persistence — it is 
 in-memory Zustand value seeded to `"anthropic"`. Every relaunch resets the user's
 chosen default. Worse, `useLLMProvidersStore.refresh()` (called at app startup from
 ChatSidebar) replaces `providers` but leaves `defaultProviderId` — so the only reason
-it isn't *also* clobbered is luck. The picker therefore looks functional in-session
+it isn't _also_ clobbered is luck. The picker therefore looks functional in-session
 but silently forgets the choice across launches, which (combined with BUG-3) makes
 the whole "AI Providers default" surface feel broken.
 
@@ -240,7 +241,7 @@ prefs endpoint.
 (shadcn) Dialog/Popover/Tooltip portals render as **direct children of `body`**, so
 they now all receive `position: relative; z-index: 1` and form sibling stacking
 contexts. Within a single shared `z-index: 1` tier, overlays stack purely by DOM
-order. The internal `z-50` etc. on dialog content only matters *within* each portal's
+order. The internal `z-50` etc. on dialog content only matters _within_ each portal's
 own context, not across portals. The CommandPalette, WorkspaceDialog, and
 KeyEntryDialog all portal to body; their relative stacking is now DOM-order-dependent
 rather than honoring their internal z-index intents. This is a latent layering

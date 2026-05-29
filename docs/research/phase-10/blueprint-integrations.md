@@ -5,6 +5,7 @@ Author: Integrations/Brokers hub architect (headless)
 Status: implementation-ready. The lead builds directly from this.
 
 Scope of this track:
+
 1. A user-facing **Integrations hub** (Settings section + dockview panel) with a
    declarative registry — informed by the Fincept `ConnectorRegistry` + OpenBB
    `Provider.instructions`/credentials-hub study.
@@ -16,6 +17,7 @@ Scope of this track:
    (read-only). Reuse Phase-5 broker code where present.
 
 Hard constraints honoured throughout:
+
 - **§6.5 LOCKED files are NOT touched**: `sidecar/services/broker_base.py`,
   `sidecar/models/audit_log.py`, `sidecar/services/kill_switch.py`,
   `types/plugin.ts`, `tests/test_safety_end_to_end.py`. Verified the public ABC
@@ -34,18 +36,18 @@ Hard constraints honoured throughout:
 
 ## 0. Ground truth verified against source (the gaps we are closing)
 
-| # | Claim | Cited source | Implication |
-|---|-------|--------------|-------------|
-| G1 | Kite `_connect` consumes a pre-resolved `access_token`; never does OAuth, never uses `api_secret` | `kite.py:69-102` (no `generate_session`/`login_url`/`request_token`); UI collects `api_secret` at `BrokerConnectPanel.tsx:53` but sidecar ignores it | Build real OAuth that mints the token. |
-| G2 | Only one read route exists: `GET /brokers/{id}/account` → `AccountSummary` | `brokers.py:171-178`; `models/broker.py:109-121` | No `/positions`, `/holdings`, `/margins`. Add granular read routes. |
-| G3 | Kite account_info uses `available.cash` for equity AND buyingPower; never calls `positions()` | `kite.py:190-202` (no `self._client.positions()`); F&O positions invisible | Fix equity = `net`; fetch positions. |
-| G4 | No broker section in Settings; broker connect lives only in a dockview panel | `SettingsPanel.tsx:53-56` (Providers/Layouts/Modules/About only) | Add Integrations section + hub. |
-| G5 | `store/brokers.ts` `disconnect()` POSTs `/brokers/{id}/disconnect` which does not exist | `brokers.ts:94-104` vs `brokers.py` (no disconnect route) | Add the route (latent 404). |
-| G6 | Static-IP banner hardcodes `configuredIp={null}` and only mounts in live mode | `BrokerConnectPanel.tsx:252-254` | Fetch + pass configured IP; mount in paper too. |
-| G7 | Broker plugins (`plugins/brokers/*`) are NOT bundled — their commands are dead | `plugin-bootstrap.ts:45-49` imports only example/openbb-mcp/tradesa-v2 | Hub talks to sidecar routes directly (the live surface), not the dead plugin layer. |
-| G8 | No `tauri-plugin-oauth` / `tauri-plugin-deep-link` in deps | `Cargo.toml` deps list (shell/updater/global-shortcut/notification + keyring only) | Add a self-contained loopback listener in Rust (no new plugin crate needed — see §2.3). |
-| G9 | No agent tool reads broker portfolio | grep of `sidecar/services/agent_tools/*.py` — zero `portfolio`/`positions`/`account` tool | Add a read-only `broker_portfolio` agent tool. |
-| G10 | Sidecar CANNOT read keychain; renderer reads keychain → sends secret in request | `keychain.rs` (Rust-only commands); CLAUDE.md "renderer reads keychain → passes secret in request" | Keep this. `api_secret` is the one exception — it stays Rust-only (§2). |
+| #   | Claim                                                                                             | Cited source                                                                                                                                         | Implication                                                                             |
+| --- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| G1  | Kite `_connect` consumes a pre-resolved `access_token`; never does OAuth, never uses `api_secret` | `kite.py:69-102` (no `generate_session`/`login_url`/`request_token`); UI collects `api_secret` at `BrokerConnectPanel.tsx:53` but sidecar ignores it | Build real OAuth that mints the token.                                                  |
+| G2  | Only one read route exists: `GET /brokers/{id}/account` → `AccountSummary`                        | `brokers.py:171-178`; `models/broker.py:109-121`                                                                                                     | No `/positions`, `/holdings`, `/margins`. Add granular read routes.                     |
+| G3  | Kite account_info uses `available.cash` for equity AND buyingPower; never calls `positions()`     | `kite.py:190-202` (no `self._client.positions()`); F&O positions invisible                                                                           | Fix equity = `net`; fetch positions.                                                    |
+| G4  | No broker section in Settings; broker connect lives only in a dockview panel                      | `SettingsPanel.tsx:53-56` (Providers/Layouts/Modules/About only)                                                                                     | Add Integrations section + hub.                                                         |
+| G5  | `store/brokers.ts` `disconnect()` POSTs `/brokers/{id}/disconnect` which does not exist           | `brokers.ts:94-104` vs `brokers.py` (no disconnect route)                                                                                            | Add the route (latent 404).                                                             |
+| G6  | Static-IP banner hardcodes `configuredIp={null}` and only mounts in live mode                     | `BrokerConnectPanel.tsx:252-254`                                                                                                                     | Fetch + pass configured IP; mount in paper too.                                         |
+| G7  | Broker plugins (`plugins/brokers/*`) are NOT bundled — their commands are dead                    | `plugin-bootstrap.ts:45-49` imports only example/openbb-mcp/tradesa-v2                                                                               | Hub talks to sidecar routes directly (the live surface), not the dead plugin layer.     |
+| G8  | No `tauri-plugin-oauth` / `tauri-plugin-deep-link` in deps                                        | `Cargo.toml` deps list (shell/updater/global-shortcut/notification + keyring only)                                                                   | Add a self-contained loopback listener in Rust (no new plugin crate needed — see §2.3). |
+| G9  | No agent tool reads broker portfolio                                                              | grep of `sidecar/services/agent_tools/*.py` — zero `portfolio`/`positions`/`account` tool                                                            | Add a read-only `broker_portfolio` agent tool.                                          |
+| G10 | Sidecar CANNOT read keychain; renderer reads keychain → sends secret in request                   | `keychain.rs` (Rust-only commands); CLAUDE.md "renderer reads keychain → passes secret in request"                                                   | Keep this. `api_secret` is the one exception — it stays Rust-only (§2).                 |
 
 Everything below is built to close G1-G9 without reopening any locked file.
 
@@ -59,6 +61,7 @@ Adopt Fincept's `ConnectorConfig`/`FieldDef` shape (study-fincept §2,
 `DataSourceTypes.h`) + OpenBB's per-provider `instructions`/`website`
 credential-onboarding blob (study-openbb §1.4) as a **host-side TypeScript
 registry**. It unifies what are today four disjoint surfaces:
+
 - brokers (`BrokerConnectPanel.tsx`)
 - AI providers (`SettingsPanel.tsx` ProvidersSection)
 - MCP servers (no UI)
@@ -70,6 +73,7 @@ We do NOT touch `types/plugin.ts`. The registry is a new host module
 can't carry.
 
 **Two view modes** (Fincept's `Gallery`/`Connections`, study-fincept §2):
+
 - **Gallery** — "what can I connect", browse by category chip. Every registry
   entry renders as a connect card with icon, description, `instructions`
   markdown, and a `website` link.
@@ -85,12 +89,12 @@ export type IntegrationCategory = "broker" | "data" | "ai-provider" | "mcp";
 export type IntegrationFieldType = "text" | "password" | "url" | "number" | "select";
 
 export interface IntegrationFieldDef {
-  key: string;                 // keychain field name, e.g. "api_key"
+  key: string; // keychain field name, e.g. "api_key"
   label: string;
-  type: IntegrationFieldType;  // drives input masking — fixes the heuristic in BrokerConnectPanel.tsx:401
+  type: IntegrationFieldType; // drives input masking — fixes the heuristic in BrokerConnectPanel.tsx:401
   placeholder?: string;
   required: boolean;
-  help?: string;               // inline per-field hint
+  help?: string; // inline per-field hint
   options?: { value: string; label: string }[]; // for "select"
 }
 
@@ -98,21 +102,21 @@ export interface IntegrationFieldDef {
 export type IntegrationAuthFlow = "static-token" | "loopback-oauth" | "interactive-session";
 
 export interface IntegrationSpec {
-  id: string;                  // matches BrokerId for brokers, e.g. "kite"
+  id: string; // matches BrokerId for brokers, e.g. "kite"
   category: IntegrationCategory;
   label: string;
-  icon: string;                // Lucide name
-  blurb: string;               // one-line gallery subtitle
-  description: string;         // full connect-card body
-  website?: string;            // "get your key here" link
-  instructions?: string;       // markdown, OpenBB-style how-to
+  icon: string; // Lucide name
+  blurb: string; // one-line gallery subtitle
+  description: string; // full connect-card body
+  website?: string; // "get your key here" link
+  instructions?: string; // markdown, OpenBB-style how-to
   authFlow: IntegrationAuthFlow;
   fields: IntegrationFieldDef[];
-  readOnly: true;              // Phase-10 hub is read-only-by-design; execution toggles live in the broker panel
+  readOnly: true; // Phase-10 hub is read-only-by-design; execution toggles live in the broker panel
   /** Daily-expiry warning copy for tokens that die at a fixed boundary (Kite). */
   dailyExpiry?: { boundaryLabel: string; note: string };
   /** Which sidecar id namespace this maps to. brokers → BrokerId. */
-  testEndpoint?: string;       // e.g. "/brokers/kite/account" — used by the Test button
+  testEndpoint?: string; // e.g. "/brokers/kite/account" — used by the Test button
 }
 ```
 
@@ -127,7 +131,7 @@ the field shapes already in `BrokerConnectPanel.tsx:40-86` but enriched with
   rule — order placement only; data/positions work from any IP"). NOTE:
   `access_token` is **removed from the form** — it's now minted by the OAuth
   flow, not pasted. `dailyExpiry: { boundaryLabel: "6:00 AM IST", note: "Kite
-  resets your session daily — reconnect each trading morning." }`. `instructions`
+resets your session daily — reconnect each trading morning." }`. `instructions`
   is the markdown from study-kite §A.2 (register an app at the Kite developer
   console, set redirect URL to `http://127.0.0.1:43117/kite/callback`).
 - **dhan** (authFlow `static-token`): `client_id` (text), `access_token`
@@ -183,6 +187,7 @@ or the typed error. This is the difference between "I think my key works" and
 ### 1.6 Files for Part 1
 
 Create:
+
 - `src/lib/integrations/types.ts`
 - `src/lib/integrations/registry.ts`
 - `src/modules/integrations/index.ts` (VystedModule + panelComponents)
@@ -191,6 +196,7 @@ Create:
 - `src/modules/integrations/IntegrationStatusPill.tsx`
 
 Modify:
+
 - `src/components/SettingsPanel.tsx` — add `<IntegrationsSection />`.
 - `src/modules/index.ts` — register `integrationsModule` (alongside
   `brokerConnectModule` at line 67).
@@ -218,6 +224,7 @@ sidecar process, and reuses the existing adapter contract verbatim (no
 `_connect` change).
 
 Rationale vs alternatives:
+
 - Letting the sidecar do the exchange would require shipping `api_secret` to the
   Python process — avoidable, so avoid it (study-kite §A.6 step 4).
 - The checksum is `SHA-256(api_key + request_token + api_secret)` hex digest
@@ -230,6 +237,7 @@ custom URL scheme, and manual paste. **Choose loopback localhost**, with manual
 paste as an explicit fallback.
 
 Justification (adversarial, from the study + verified env):
+
 - **Loopback (chosen):** Rust spins a one-shot HTTP listener on a **pinned** port,
   opens the system browser to Kite's login URL, captures `request_token` from the
   redirect. System browser → real 2FA + password managers work. Kite's console
@@ -253,10 +261,11 @@ and matches the existing in-house `pick_free_port`/`wait_for_port` style in
 
 Self-contained. Three Tauri commands + a one-shot loopback listener. Add to the
 `mod` list (`lib.rs:1-4`) and the `invoke_handler!` (`lib.rs:127-135`). Add `sha2`
-+ `reqwest` (blocking, rustls) + a tiny `urlencoding`/manual query parse to
-`Cargo.toml` deps; or reuse `tauri_plugin_shell`'s opener for the browser open
-(`opener` is already transitively available via Tauri 2 — confirm at build; else
-use the `open` crate). Pinned redirect port constant: `const KITE_REDIRECT_PORT:
+
+- `reqwest` (blocking, rustls) + a tiny `urlencoding`/manual query parse to
+  `Cargo.toml` deps; or reuse `tauri_plugin_shell`'s opener for the browser open
+  (`opener` is already transitively available via Tauri 2 — confirm at build; else
+  use the `open` crate). Pinned redirect port constant: `const KITE_REDIRECT_PORT:
 u16 = 43117;`.
 
 ```rust
@@ -309,6 +318,7 @@ floor_to_06_00_minus_0530(now)`.
 ### 2.4 Frontend Kite OAuth wiring
 
 New `src/lib/integrations/kite-auth.ts` — thin `invoke()` bindings:
+
 ```ts
 export const kiteBeginLogin = () => invoke<KiteLoginResult>("kite_begin_login");
 export const kiteExchangeRequestToken = (requestToken: string) =>
@@ -319,6 +329,7 @@ export const kiteSessionStatus = () => invoke<KiteSessionStatus>("kite_session_s
 New `src/store/kite-session.ts` (Zustand) — holds `{ connected, stale, userId,
 loginTimeMs }`, refreshed on app mount + after any 403/TokenException from a Kite
 read route (§2.6). The ConnectCard for Kite (§1.4-C) renders:
+
 1. api_key + api_secret fields (written to keychain via `setSecret` using
    `KEYCHAIN_NAMESPACES.broker("kite", "api_key"|"api_secret")` —
    `keychain.ts:46`).
@@ -337,9 +348,10 @@ read route (§2.6). The ConnectCard for Kite (§1.4-C) renders:
 Daily re-auth UX (study-kite §A.4): the Kite row in BOTH the hub and
 `BrokerConnectPanel` shows a **"Session expired — reconnect"** chip when
 `kiteSessionStatus().stale`. Reconnect = re-run `kiteBeginLogin()` only (api_key
-+ api_secret already in keychain). One tap, system browser, done. The panel
-greys-but-keeps the last-known account identity (`userId`) so the UI doesn't go
-blank.
+
+- api_secret already in keychain). One tap, system browser, done. The panel
+  greys-but-keeps the last-known account identity (`userId`) so the UI doesn't go
+  blank.
 
 ### 2.5 Sidecar Kite adapter changes (NOT locked)
 
@@ -349,6 +361,7 @@ account-read bugs):
 **A. Fix equity/buying-power (`kite.py:190-202`).** Currently equity = cash =
 buyingPower = `available.cash`. Per study-kite §A.5: use `equity.net` for
 buyingPower, keep `available.cash` for the cash line:
+
 ```python
 equity_block = (margins or {}).get("equity") or {}
 available = equity_block.get("available") or {}
@@ -403,11 +416,13 @@ THREE optional read hooks to the adapter base via **duck-typing in the router**
 (not new abstract methods — that would touch `broker_base.py`). The router checks
 `hasattr(adapter, "positions_info")` and falls back to `account_info()` when the
 adapter doesn't implement the granular split:
+
 ```python
 adapter = _get_adapter(broker_id)
 fn = getattr(adapter, "positions_info", None)
 return await (fn() if callable(fn) else adapter.account_info())
 ```
+
 Then implement `positions_info`/`holdings_info`/`margins_info` as NEW
 (non-abstract, non-overriding) public methods ONLY on `KiteAdapter` (and later
 Dhan/Angel). Because they don't exist on the locked ABC, adding them is a
@@ -448,6 +463,7 @@ the preamble snapshot). New file
 `sidecar/services/agent_tools/broker_portfolio.py`, registered via the existing
 `register_v0_5_0_tools` pattern (`agent_tools/price_data.py` is the template;
 `__init__.py:106-117`). Handler:
+
 ```python
 async def _broker_portfolio(args: dict) -> dict:
     broker = args.get("broker", "kite")
@@ -462,6 +478,7 @@ async def _broker_portfolio(args: dict) -> dict:
         return {"ok": False, "error": str(exc)}
     return {"ok": True, "account": summary.model_dump(by_alias=True)}
 ```
+
 Register it in `__init__.py`'s `register_v0_5_0_tools` (and in
 `reset_for_tests` re-registration list per the CLAUDE.md gotcha about
 import-time tools). Add `"broker_portfolio"` to the relevant agents' `tools`
@@ -487,6 +504,7 @@ so users don't think their whole Kite connection is broken on an IP mismatch.
 ### 2.9 Files for Part 2
 
 Create:
+
 - `src-tauri/src/kite_auth.rs`
 - `src/lib/integrations/kite-auth.ts`
 - `src/store/kite-session.ts`
@@ -499,6 +517,7 @@ Create:
   TokenException → session-expired BrokerError)
 
 Modify:
+
 - `src-tauri/src/lib.rs` — `mod kite_auth;` + 3 commands in `invoke_handler!`.
 - `src-tauri/Cargo.toml` — add `sha2`, `reqwest` (rustls, blocking) or reuse an
   existing HTTP client; add browser-open dep if `opener` isn't transitively
@@ -591,6 +610,7 @@ correct behaviours.
 ### 3.4 Files for Part 3
 
 Modify (no new files — pure reuse + registry entries):
+
 - `src/lib/integrations/registry.ts` — Dhan + Angel entries (done in §1.3).
 - `sidecar/services/brokers/dhan.py` — add `positions_info`/`holdings_info`/
   `margins_info` (split existing `_account_info` SDK calls).
@@ -626,11 +646,11 @@ Modify (no new files — pure reuse + registry entries):
 
 1. **Sidecar reads first** (no UI dependency): kite.py equity/positions/
    TokenException fix; granular `*_info` methods on kite/dhan/angel; 3 GET routes
-   + disconnect + 419 mapping; `broker_portfolio` tool + agent allow-list. Tests:
-   `test_kite_account_readonly.py`, `test_brokers_readonly_routes.py`. Run
-   `pnpm ci-local` (ruff/pytest gate per CLAUDE.md).
+   - disconnect + 419 mapping; `broker_portfolio` tool + agent allow-list. Tests:
+     `test_kite_account_readonly.py`, `test_brokers_readonly_routes.py`. Run
+     `pnpm ci-local` (ruff/pytest gate per CLAUDE.md).
 2. **Rust OAuth**: `kite_auth.rs` + 3 commands + Cargo deps. `cargo clippy -D
-   warnings` + `cargo test`.
+warnings` + `cargo test`.
 3. **Frontend registry + hub**: `integrations/` lib + module + Settings section +
    ConnectCard + BrokerAccountView + kite-session store. Refactor
    `BrokerConnectPanel` to the registry; fix G6 banner.

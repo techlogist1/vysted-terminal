@@ -37,12 +37,12 @@ overflow-y-auto` → inner `div.mx-auto max-w-2xl flex-col gap-8 p-6` → header
 `<ProvidersSection/> <LayoutsSection/> <ModulesSection/> <AboutSection/>`.
 
 1. **AI Providers (BYOK)** — `ProvidersSection` (`:68-174`). Reads provider list
-   + default + setter from `useLLMProvidersStore` (`:69-71`) and per-provider
-   keychain status from `useProviderKeysStore` (`:72-74`). `useEffect`
-   re-probes the keychain on mount (`:78-80`). Each row shows label, a `default`
-   badge when current (`:109-113`), key status (`:115-125`), a "Set default"
-   button (`:128-136`), an Add/Update-key button + Remove (`:137-158`).
-   `KeyEntryDialog` is the add/update modal (`:164-171`).
+   - default + setter from `useLLMProvidersStore` (`:69-71`) and per-provider
+     keychain status from `useProviderKeysStore` (`:72-74`). `useEffect`
+     re-probes the keychain on mount (`:78-80`). Each row shows label, a `default`
+     badge when current (`:109-113`), key status (`:115-125`), a "Set default"
+     button (`:128-136`), an Add/Update-key button + Remove (`:137-158`).
+     `KeyEntryDialog` is the add/update modal (`:164-171`).
 2. **Layouts** — `LayoutsSection` (`:180-305`). Lists saved workspaces (reserved
    names filtered, `:191`), save-current-as form (`:227-253`), reset-to-default
    (`:250-252`), per-layout Load/Delete (`:274-295`), autosave-slot note (`:300-302`).
@@ -153,6 +153,7 @@ overflow-clipping flex column and move the scroll to an inner wrapper with
 ```
 
 Why this is the minimal, correct fix:
+
 - `overflow-hidden` on the root clips at the painted charcoal box → no unpainted
   region of `.dv-view` is ever scrollable into = **no blue void**.
 - The single inner `overflow-y-auto` (with `min-h-0 flex-1`) is the only scroll
@@ -231,11 +232,11 @@ picker should be available on every provider that is not already the default.
 ```
 
 The `(configured || !needsKey)` clause is the bug — drop it. Choosing a default
-provider is a free action (the chat sidebar still won't be able to *use* a
+provider is a free action (the chat sidebar still won't be able to _use_ a
 key-less provider, but that is surfaced by the existing "No key yet" status at
 `:122-124`, and the onboarding banner already nudges the user to add a key).
 
-If the product intent is "only let a *usable* provider be the default," the fix
+If the product intent is "only let a _usable_ provider be the default," the fix
 is the opposite of what shipped — it should gate on `configured || !needsKey`
 **but that is what's there**, so the shipped behavior already matches that
 stricter reading; the user-reported expectation ("Set default shows on every
@@ -249,10 +250,10 @@ control surface" intent of Track C documented in the component header
 
 ## 4. Summary of precise fixes
 
-| Bug | File:line | Change |
-|---|---|---|
+| Bug                          | File:line                                        | Change                                                                                                                                                                       |
+| ---------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Double scrollbar + blue void | `src/components/SettingsPanel.tsx:41` (root div) | Root → `bg-charcoal-900 flex h-full w-full flex-col overflow-hidden`; wrap children in inner `min-h-0 flex-1 overflow-y-auto`. Optionally paint `.dv-view` in `globals.css`. |
-| "Set default" Ollama-only | `src/components/SettingsPanel.tsx:128` | `{(configured \|\| !needsKey) && !isDefault && (` → `{!isDefault && (` |
+| "Set default" Ollama-only    | `src/components/SettingsPanel.tsx:128`           | `{(configured \|\| !needsKey) && !isDefault && (` → `{!isDefault && (`                                                                                                       |
 
 Latent follow-up (out of scope): `src/components/PluginManagerPanel.tsx:31`
 shares the identical single-element `h-full … overflow-y-auto` root and would

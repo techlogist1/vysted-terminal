@@ -4,7 +4,7 @@
 > Every claim is grounded against the actual source (file:line). This is the
 > build spec for turning the chat surface from a raw LLM passthrough into THE
 > headline feature: a real agentic copilot that reads live terminal state and
-> can *drive* the terminal, multi-provider BYOK, with a discoverable persona
+> can _drive_ the terminal, multi-provider BYOK, with a discoverable persona
 > roster and no command arcana. Built directly within the LOCKED contracts —
 > `types/plugin.ts`, `types/ai.ts`, and the §6.5 safety files are untouched.
 
@@ -27,7 +27,7 @@ on top of it.
 is `json.dumps`'d into a system message (`agent_runtime.py:151`) with no schema,
 no summary; `/ask` sends none at all (`ChatSidebar.tsx:198-206`). Fix: a
 host-side **context provider** that renders a terse, labelled "what you're
-looking at" preamble injected on *every* path, **plus** a `get_terminal_state`
+looking at" preamble injected on _every_ path, **plus** a `get_terminal_state`
 read-tool so the model can pull live state on demand instead of paying for a
 frozen blob every turn.
 
@@ -38,7 +38,7 @@ roster UI driven by extended sidecar JSON metadata (Tier-2, NOT the locked
 contract) and a host-resolved view-model.
 
 **Command arcana.** `/ask`, `/agent <id>` with no autocomplete, no NL routing
-(`slash-commands.ts:39`). Fix: kill `/ask`+`/agent` as the *primary* path —
+(`slash-commands.ts:39`). Fix: kill `/ask`+`/agent` as the _primary_ path —
 bare text "just works" through a **router/concierge** that decides answer vs.
 specialist hand-off vs. tool-driven action. Slash commands survive only as power
 -user shortcuts; the LLM passthrough survives as an explicit fallback.
@@ -52,15 +52,16 @@ specialist hand-off vs. tool-driven action. Slash commands survive only as power
 The panel-context bus (`src/store/panel-context.ts`) is live with real
 publishers. Exact payloads on the wire today:
 
-| Source | file:line | `payload` shape (verified) |
-|---|---|---|
-| `chart-<panelId>` | `ChartPanel.tsx:689-699` | `{ symbol, timeframe, activeIndicators: string[], drawingCount }` |
-| `watchlist` | `WatchlistPanel.tsx:68-77` | `{ symbols: string[], selectedSymbol: string \| null }` |
-| `portfolio` | `PortfolioPanel.tsx:88-96` | `{ positionCount, totalValue }` |
-| `news` | `NewsFeedPanel.tsx:142` | focused-article snapshot |
-| `equity` | `EquityOverviewPanel.tsx:130` | equity-overview snapshot |
+| Source            | file:line                     | `payload` shape (verified)                                        |
+| ----------------- | ----------------------------- | ----------------------------------------------------------------- |
+| `chart-<panelId>` | `ChartPanel.tsx:689-699`      | `{ symbol, timeframe, activeIndicators: string[], drawingCount }` |
+| `watchlist`       | `WatchlistPanel.tsx:68-77`    | `{ symbols: string[], selectedSymbol: string \| null }`           |
+| `portfolio`       | `PortfolioPanel.tsx:88-96`    | `{ positionCount, totalValue }`                                   |
+| `news`            | `NewsFeedPanel.tsx:142`       | focused-article snapshot                                          |
+| `equity`          | `EquityOverviewPanel.tsx:130` | equity-overview snapshot                                          |
 
 Plus **live stores** the copilot can read directly (frontend-side, no bus):
+
 - `useSymbolsStore` (`src/store/symbols.ts:40`) — the canonical watchlist
   (`entries: {symbol, assetClass}[]`).
 - `useWorkspaceStore` (`src/store/workspace.ts:41`) — `dockviewApi`; open panels
@@ -97,7 +98,9 @@ export interface TerminalState {
 }
 
 /** Read the live stores once and assemble a structured snapshot. */
-export function captureTerminalState(): TerminalState { /* read bus + stores */ }
+export function captureTerminalState(): TerminalState {
+  /* read bus + stores */
+}
 
 /**
  * Render a SHORT preamble (<= ~200 tokens). Names the focused symbol, lists
@@ -111,9 +114,9 @@ export function renderContextPreamble(s: TerminalState): string {
 }
 ```
 
-The crucial line in the preamble is the **deixis resolution sentence**: *"When
+The crucial line in the preamble is the **deixis resolution sentence**: _"When
 the user says 'this' or 'it', they mean `<focusedSymbol>` unless they name
-another symbol."* This is what makes "is this cheap?" resolve to the chart
+another symbol."_ This is what makes "is this cheap?" resolve to the chart
 ticker — the single highest-leverage prompt-craft addition (the kite study
 calls this out, §B.4.4).
 
@@ -136,7 +139,7 @@ renderer** to consume the new structured shape with field labels instead of
 const terminalState = captureTerminalState();
 const snapshot: AgentContextSnapshot = {
   focusedSource: terminalState.focusedPanel,
-  bySource: { __terminal__: terminalState },   // reserved key; renderer special-cases it
+  bySource: { __terminal__: terminalState }, // reserved key; renderer special-cases it
   capturedAt: terminalState.capturedAt,
 };
 ```
@@ -316,7 +319,7 @@ let Ollama ignore unsupported. The raw `/llm/chat` path passes no `tool_ids`
 
 ### 2.3 Fix the OpenAI streaming arg-reassembly bug (REQUIRED)
 
-`openai.py:88-101` forwards each `function.arguments` *fragment* as its own
+`openai.py:88-101` forwards each `function.arguments` _fragment_ as its own
 `LLMToolUseEvent(input={"arguments_delta": <partial json>})`. If tools fire,
 `_dispatch_tool` (`agent_runtime.py:219`) feeds the model a fragment, not a
 parsed args object. OpenAI streams tool-call args as deltas keyed by
@@ -365,7 +368,7 @@ block, already mapped in `anthropic.py:53-66`.)
 
 `get_terminal_state`, `get_portfolio`, and the three action tools cannot be
 plain globals — they need the inbound request's snapshot and they need to signal
-the *frontend* to act. Register them as **per-invocation closures** inside
+the _frontend_ to act. Register them as **per-invocation closures** inside
 `invoke_agent`, layered over the global registry:
 
 ```python
@@ -389,7 +392,7 @@ Read tools (`price_data`, `fundamentals`, `screener_run`, etc.) stay global
 registrations as today (`agent_tools/__init__.py`) and reuse the existing
 handlers unchanged — `price_data._price_data` (`price_data.py:17`),
 `screener_tools._screener_run` (`screener_tools.py:27`), etc. No new data
-plumbing; the only new thing is the *schema* (§2.1) that finally makes them
+plumbing; the only new thing is the _schema_ (§2.1) that finally makes them
 reachable.
 
 ### 2.5 How tool results stream back to the UI
@@ -397,7 +400,7 @@ reachable.
 The streaming contract is unchanged on the wire (`LLMStreamEvent`,
 `types/ai.ts:88-93`, `models/llm.py:71-106`) — `tool_use`, `delta`, `thinking`,
 `done`, `error`. The runtime already yields `LLMToolUseEvent` to the caller
-*before* dispatching (`agent_runtime.py:274`). Two UI changes make this visible:
+_before_ dispatching (`agent_runtime.py:274`). Two UI changes make this visible:
 
 1. **Render `tool_use` events as inline status chips.** Today `makeHandlers`
    (`ChatSidebar.tsx:443-463`) only handles `delta`/`error`/`done` — `tool_use`
@@ -426,8 +429,8 @@ executes, then reports the outcome back to the model as the tool result.
 Mechanism: the action tool's handler returns
 `{"ok": True, "host_action": {"type": "set_chart_symbol", "args": {...}}}`. The
 runtime yields this as a normal `LLMToolUseEvent` (the model sees it), AND the
-*frontend* streaming handler recognises a `host_action` and executes it
-client-side. But tool *results* must feed back to the model server-side for the
+_frontend_ streaming handler recognises a `host_action` and executes it
+client-side. But tool _results_ must feed back to the model server-side for the
 loop to continue — so the cleaner design is:
 
 - **UI-action tools (`open_panel`, `set_chart_symbol`, `add_to_watchlist`)** are
@@ -445,11 +448,12 @@ loop to continue — so the cleaner design is:
       // (chart panels subscribed to the symbol flavor pick it up; chart-sync.ts:81)
       break;
     case "open_panel":
-      useWorkspaceStore.getState().openPanel(String(event.input.panel));  // workspace.ts:46
+      useWorkspaceStore.getState().openPanel(String(event.input.panel)); // workspace.ts:46
       break;
     case "add_to_watchlist":
-      useSymbolsStore.getState().addSymbol(String(event.input.symbol),
-                                           event.input.asset_class ?? "equity");  // symbols.ts:42
+      useSymbolsStore
+        .getState()
+        .addSymbol(String(event.input.symbol), event.input.asset_class ?? "equity"); // symbols.ts:42
       break;
   }
   ```
@@ -472,9 +476,9 @@ loop to continue — so the cleaner design is:
   the model says "I've prepared this order for your review," never "I placed it."
 
 > This is the one place where the action does NOT auto-apply. Encode the
-> distinction in the system prompt of any tool-using persona: *"`propose_order`
+> distinction in the system prompt of any tool-using persona: _"`propose_order`
 > prepares an order for the user to approve. It never executes. Tell the user to
-> review and confirm."*
+> review and confirm."_
 
 ### 2.7 Tool-round cap, error recovery (already correct)
 
@@ -568,8 +572,8 @@ surface. Two presentations:
 ```tsx
 // AgentRoster.tsx (NEW) — driven by useAgentsStore extended with roster meta.
 // Grey-out logic reuses the keychain probe:
-const hasKey = useProviderKeysStore(s => s.status[entry.defaultProvider] === "present");
-const usable = entry.defaultProvider === "ollama" || hasKey;  // ollama requiresKey:false
+const hasKey = useProviderKeysStore((s) => s.status[entry.defaultProvider] === "present");
+const usable = entry.defaultProvider === "ollama" || hasKey; // ollama requiresKey:false
 ```
 
 Store change: `useAgentsStore` (`src/store/agents.ts`) gains a
@@ -589,21 +593,21 @@ is pure rendering in the transcript `<li>` (`ChatSidebar.tsx:251-274`).
 ### 3.5 How a persona composes with the loop + context
 
 A persona is just an `AgentSpec` whose `systemPrompt` encodes a framework and
-whose `tools` allow-list is now *live*. Composition:
+whose `tools` allow-list is now _live_. Composition:
 
 1. User picks a persona (or the router picks one, §4) → `streamAgentInvocation`.
 2. `invoke_agent` composes `[system=persona prompt, system=context preamble,
-   user=prompt]` (`agent_runtime.py:155-166`) **and** sends the persona's
+user=prompt]` (`agent_runtime.py:155-166`) **and** sends the persona's
    `tools` schema (§2.2).
 3. The persona reasons, calls its allow-listed tools (Buffett:
    `price_data`/`fundamentals`/`news` + `get_terminal_state`), the loop runs,
    the answer is grounded in real fetched data — not a generic non-answer.
 
 **Rewrite the persona prompts to drive tools.** Buffett's prompt currently says
-"quote reported figures *when the panel context supplies them*"
-(`buffett.json:5`) — passive. Change to: *"When you need a figure you don't
+"quote reported figures _when the panel context supplies them_"
+(`buffett.json:5`) — passive. Change to: _"When you need a figure you don't
 have, call `fundamentals` or `price_data`. When the user says 'this', call
-`get_terminal_state` to learn the focused symbol, then proceed."* Steal the
+`get_terminal_state` to learn the focused symbol, then proceed."_ Steal the
 fincept prompt skeleton (study §1.4): **BEFORE you answer / INPUTS (named tools)
 / FRAMEWORK / OUTPUT / DO NOT**. Every shipped persona's `tools` array gains
 `get_terminal_state` so "what do you think of this?" always resolves.
@@ -628,14 +632,14 @@ Add a first-party `sidecar/agents/copilot.json` — `category: "router"`, the
 in `ChatSidebar.tsx:66`). Its tool allow-list is the FULL catalog (read +
 action + `get_terminal_state`). Its system prompt makes it the concierge:
 
-> *You are Vysted's terminal copilot. The user talks to you in plain language.
+> _You are Vysted's terminal copilot. The user talks to you in plain language.
 > You have tools to read what they're looking at and to drive the terminal.
 > Decide: (a) answer directly if it's general; (b) call `get_terminal_state` +
 > data tools to answer grounded questions ("is AAPL cheap", "how's my
 > portfolio"); (c) take an action when asked ("pull up TSLA" → `set_chart_symbol`;
 > "add NVDA to my watchlist" → `add_to_watchlist`); (d) for deep single-lens
 > analysis, recommend a specialist persona by name. Never invent figures —
-> fetch them.*
+> fetch them._
 
 This makes "ask about my portfolio" call `get_portfolio` and answer; "pull up
 Tesla" call `set_chart_symbol`; "is this a good buy" call `get_terminal_state`
@@ -690,6 +694,7 @@ user prompt. Cap at ~10 turns to bound tokens.
 ## 5. EXACT FILE MANIFEST
 
 ### Create
+
 - `sidecar/services/agent_tools/schemas.py` — `TOOL_SCHEMAS` + `anthropic_tools`/`openai_tools`/`gemini_tools`. **The keystone file.**
 - `sidecar/agents/copilot.json` — the default router/concierge persona (full tool allow-list, `category:"router"`).
 - `src/modules/chat/context-provider.ts` — `captureTerminalState` + `renderContextPreamble`.
@@ -698,6 +703,7 @@ user prompt. Cap at ~10 turns to bound tokens.
 - `sidecar/tests/test_action_tools.py` — `propose_order` returns a proposal, never places; UI-action tools return host directives; §6.5 grep still green.
 
 ### Modify (sidecar)
+
 - `sidecar/services/agent_runtime.py` — pass `tool_ids` to `stream_chat` (§2.2); per-invocation local tools (§2.4); special-case `__terminal__` in `_build_context_preamble` (§1.3); thread `history` (§4.5); append OpenAI assistant tool-call message before tool results (§2.3).
 - `sidecar/services/llm/anthropic.py` — build + send `tools=` from `tool_ids` (§2.2).
 - `sidecar/services/llm/openai.py` — build + send `tools`; **fix streaming arg reassembly** (§2.3).
@@ -710,6 +716,7 @@ user prompt. Cap at ~10 turns to bound tokens.
 - `sidecar/agents/*.json` — rewrite persona prompts to drive tools; add `get_terminal_state` to each `tools` array; add roster meta fields.
 
 ### Modify (frontend)
+
 - `src/modules/chat/ChatSidebar.tsx` — default to `copilot` agent; render `tool_use` chips + thinking; persona transcript identity; capture+send `TerminalState`; new empty-state; roster strip.
 - `src/modules/chat/streaming.ts` — handle host-action `tool_use` events (execute against stores); pass `history`.
 - `src/modules/chat/slash-commands.ts` — demote to power-user shortcuts (keep parser, change help/empty-state copy).
@@ -718,6 +725,7 @@ user prompt. Cap at ~10 turns to bound tokens.
 - `src/modules/chat/index.ts` — register `roster.open` command + `AgentRoster` panel component.
 
 ### LOCKED — DO NOT TOUCH
+
 - `types/plugin.ts` (`AgentSpec`, `CommandSpec`, all capabilities). Everything above fits the existing `AgentSpec` and the existing `AgentSpec.tools` allow-list.
 - `types/ai.ts` (`LLMStreamEvent`, `LLMMessage`, `AgentContextSnapshot`, `AgentInvocationRequest`). No new event kinds, no new fields — `options` carries `history`; `by_source.__terminal__` carries the structured state.
 - `sidecar/models/audit_log.py`, `kill_switch.py`, `broker_base.py`, `tests/test_safety_end_to_end.py` (§6.5). `propose_order` is named to pass the `place_order|submit_order|execute_order` grep (`test_safety_end_to_end.py:358-366`); the AI never reaches `confirm_and_place`.

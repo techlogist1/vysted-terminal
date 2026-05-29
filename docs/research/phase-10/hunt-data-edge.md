@@ -18,6 +18,7 @@ based.
 **Severity: medium** · **Confidence: 9/10**
 
 **Files:**
+
 - `src/lib/sidecar-client.ts:84-92` (`sidecarGet`)
 - `src/modules/portfolio/api.ts:27-37` (`sidecarSend`)
 - `sidecar/models/portfolio.py:36-39` (`PositionInput` field constraints)
@@ -27,7 +28,9 @@ based.
 
 ```ts
 const parsed = (await response.json()) as { detail?: string };
-if (parsed.detail) { detail = parsed.detail; }
+if (parsed.detail) {
+  detail = parsed.detail;
+}
 ```
 
 FastAPI request-validation (422) responses do NOT have a string `detail` — they return
@@ -55,7 +58,9 @@ if (typeof parsed.detail === "string") {
   detail = parsed.detail;
 } else if (Array.isArray(parsed.detail)) {
   detail = parsed.detail
-    .map((e) => (e && typeof e === "object" && "msg" in e ? String((e as { msg: unknown }).msg) : String(e)))
+    .map((e) =>
+      e && typeof e === "object" && "msg" in e ? String((e as { msg: unknown }).msg) : String(e),
+    )
     .join("; ");
 }
 ```
@@ -69,6 +74,7 @@ Optionally also tighten the client-side guard in `handleSubmit` to reject `quant
 **Severity: medium** · **Confidence: 9/10**
 
 **Files:**
+
 - `sidecar/models/screener.py:63` (`ScreenerStringField = Literal["sector", "industry", "currency"]`)
 - `sidecar/services/screener.py:208-212` (`_string_field_value`)
 - `sidecar/models/fundamentals.py:11-28` (`Fundamentals` — no `currency` field)
@@ -102,6 +108,7 @@ into `_string_field_value` and special-case `currency` like the numeric `price`/
 **Severity: medium** · **Confidence: 7/10**
 
 **Files:**
+
 - `src/modules/earnings/EarningsSurpriseChart.tsx:33-35` (`toChartTime`)
 - `src/modules/earnings/EarningsSurpriseChart.tsx:84-94` (`setData`)
 - contrast: `src/modules/macro/MacroChart.tsx:69-76` (the correct pattern — dedupes)
@@ -135,6 +142,7 @@ audited in the other panels that share the helper name (`PriceTargetTimeline.tsx
 **Severity: low** · **Confidence: 7/10**
 
 **Files:**
+
 - `sidecar/routers/news.py:51-63` (`_tag_symbols`)
 - `src/store/symbols.ts:24-25` (watchlist stores `BTC/USDT`, `ETH/USDT`)
 - `src/store/symbols.ts:66-69` (`toNewsSymbol` collapses pairs to base before sending)
@@ -143,16 +151,17 @@ audited in the other panels that share the helper name (`PriceTargetTimeline.tsx
 `\b` is a word/non-word boundary; it only works for tokens that begin and end with word
 characters. The frontend's `toNewsSymbol` (`symbols.ts:66`) collapses `BTC/USDT` → `BTC` before
 calling `/news`, so the common path is safe. BUT:
+
 - The endpoint is public and the contract accepts arbitrary `symbols`. Any caller (agent tool,
   MCP client, plugin) that passes a raw pair like `BTC/USDT` or a dotted symbol like `BRK.B`
   gets broken matching: `\bBRK.B\b` — the `.` is regex-escaped to `\.` so it's literal, but the
   trailing `\b` after `B` works; the leading is fine — actually `BRK.B` matches. The genuine
   break is `BTC/USDT`: `\bBTC/USDT\b` — the trailing `\b` requires a word char (`T`) adjacent to
   a non-word char or string end, which holds, but the **leading** `\b` before `B` is fine too.
-  The concrete failure is a symbol that *starts or ends* with a non-word char (e.g. `.NS` suffix
+  The concrete failure is a symbol that _starts or ends_ with a non-word char (e.g. `.NS` suffix
   on Indian tickers `RELIANCE.NS` works, but a leading-dot or pure-symbol token does not).
 - More robustly broken: single-letter or all-symbol tickers and the default-watchlist `BTC`/`ETH`
-  matching inside larger words is *correctly* prevented by `\b`, which is the intent — so the
+  matching inside larger words is _correctly_ prevented by `\b`, which is the intent — so the
   default path is fine. The exposure is the contract accepting pair/suffixed forms it then
   silently fails to tag.
 
@@ -175,6 +184,7 @@ per-symbol `\b` regex.
 **Severity: low** · **Confidence: 8/10**
 
 **Files:**
+
 - `sidecar/routers/macro.py:70-104` (`get_macro_series`, return type `MacroSeriesExtended | MacroSeries`, NO `response_model`)
 - `src/store/macro.ts:82-84` (always casts the response to `MacroSeriesExtended`)
 
@@ -205,6 +215,7 @@ so one URL = one shape. Add an explicit `response_model` so FastAPI documents an
 **Severity: low** · **Confidence: 8/10**
 
 **Files:**
+
 - `sidecar/routers/news.py:78-118` (`get_news` — `limit` validated `ge=1, le=200`)
 - `sidecar/services/news_provider.py:271-319` (`fetch_news` ignores `limit` except for NewsAPI pageSize)
 - `src/modules/news/api.ts:21-26` + `src/modules/news/NewsFeedPanel.tsx:172` (frontend never passes `limit`)
@@ -233,10 +244,12 @@ correctness holds, it's a perf/semantics nit.
 **Severity: low** · **Confidence: 6/10**
 
 **Files:**
+
 - `src/modules/news/NewsFeedPanel.tsx:18-37` (`relativeTime`, `Math.max(0, ...)`)
 - `sidecar/services/news_provider.py:99-119` (`_parse_struct_time` / `_parse_iso` fall back to `_utcnow()`)
 
 **What's wrong.** Two interacting behaviours:
+
 1. When an RSS/NewsAPI item has an unparseable or missing date, the provider falls back to "now"
    (`news_provider.py:106, 119, 152`). Those items then sort to the **top** of the feed
    (`fetch_news` sorts by `published_at` desc, `news_provider.py:318`) and render as "now" — a

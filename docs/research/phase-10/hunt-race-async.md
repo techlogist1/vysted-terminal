@@ -52,7 +52,7 @@ unmounts/re-runs **before** the promise resolves, `teardown` is still `null` and
 
 The App-Router dev server mounts under React StrictMode (confirmed in `map-boot-layout.md`
 §3, `node_modules/next/dist/server/config-shared.js`), which runs every mount effect
-**mount → cleanup → mount**. The synchronous StrictMode cleanup *always* fires before the
+**mount → cleanup → mount**. The synchronous StrictMode cleanup _always_ fires before the
 IPC-bound `bootstrapPlugins()` resolves, so the **first** runtime is never torn down:
 
 - `clearInterval(interval)` in the teardown (`plugin-bootstrap.ts:296`) never runs → the
@@ -84,7 +84,10 @@ in the `.then`, if `!alive` immediately call `dispose()` instead of storing it:
 let teardown: (() => void) | null = null;
 let alive = true;
 void bootstrapPlugins().then((dispose) => {
-  if (!alive) { dispose(); return; }   // unmounted during boot → tear down now
+  if (!alive) {
+    dispose();
+    return;
+  } // unmounted during boot → tear down now
   teardown = dispose;
   useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
 });
@@ -292,7 +295,7 @@ The `onDidLayoutChange` subscription and the pending debounce timer are **never 
 
 This is the cleanup-leak sibling of the known boot-race crash (`map-boot-layout.md`), but it
 is a **distinct defect**: the map's fix (store-identity guard against the disposed api) stops
-the use-after-dispose *throw* on `applyDefaultLayout`/`fromJSON`, but does not by itself
+the use-after-dispose _throw_ on `applyDefaultLayout`/`fromJSON`, but does not by itself
 dispose the leaked `onDidLayoutChange` subscription created in the `.finally()` after a
 too-early unmount. A leaked subscription keeps invoking `autosaveLayout()` (a sidecar POST)
 on layout changes of a detached api.
@@ -324,7 +327,7 @@ cancellation guard** (lines 201-204):
 ```ts
 const refresh = useCallback(() => {
   setState({ status: "loading" });
-  runFetch(setState);            // unguarded — applyResult === setState
+  runFetch(setState); // unguarded — applyResult === setState
 }, [runFetch]);
 ```
 
@@ -356,7 +359,7 @@ effect owns.
   `alias="humanConfirmed"`/`alias="confirmNote"`). No mismatch.
 - **`mcp_server.get_streamable_http_app()`** caches `_streamable_http_app`
   (`mcp_server.py:62,366-371`); `create_app` mounts it (`app.py:213`) and `_lifespan` runs
-  *that same cached instance's* lifespan (`app.py:99-100`), so the session manager is
+  _that same cached instance's_ lifespan (`app.py:99-100`), so the session manager is
   initialised on the mounted app — correct (the comment at `mcp_server.py:361-366` shows this
   was a deliberate fix).
 - **`_lifespan` httpx-client close ordering** (`app.py:101-114`): guarded so an `aclose()`
@@ -370,11 +373,11 @@ effect owns.
 
 ## Severity summary
 
-| # | Finding | Severity | Confidence | File |
-|---|---|---|---|---|
-| 1 | Plugin runtime + 30s health interval leak (teardown before bootstrap resolves) | HIGH | 0.85 | `src/app/page.tsx:37-64` |
-| 2 | KillSwitchToolbar listener leak → duplicate kill-switch fires | MEDIUM | 0.75 | `src/modules/safety/KillSwitchToolbar.tsx:80-99` |
-| 3 | Chat streams uncancellable; `/clear` re-enables composer → concurrent zombie streams | MEDIUM | 0.8 | `src/modules/chat/ChatSidebar.tsx:188-207` |
-| 4 | Shared `McpClient` session mutated without lock during in-flight calls; cross-task `close()` | MEDIUM | 0.6 | `sidecar/services/mcp_client.py:120-173,230-236` |
-| 5 | PanelHost autosave subscription/timer leak (unmount in restore await window) | LOW–MEDIUM | 0.6 | `src/components/PanelHost.tsx:31-65` |
-| 6 | News manual Retry bypasses cancellation guard | LOW | 0.55 | `src/modules/news/NewsFeedPanel.tsx:201-204` |
+| #   | Finding                                                                                      | Severity   | Confidence | File                                             |
+| --- | -------------------------------------------------------------------------------------------- | ---------- | ---------- | ------------------------------------------------ |
+| 1   | Plugin runtime + 30s health interval leak (teardown before bootstrap resolves)               | HIGH       | 0.85       | `src/app/page.tsx:37-64`                         |
+| 2   | KillSwitchToolbar listener leak → duplicate kill-switch fires                                | MEDIUM     | 0.75       | `src/modules/safety/KillSwitchToolbar.tsx:80-99` |
+| 3   | Chat streams uncancellable; `/clear` re-enables composer → concurrent zombie streams         | MEDIUM     | 0.8        | `src/modules/chat/ChatSidebar.tsx:188-207`       |
+| 4   | Shared `McpClient` session mutated without lock during in-flight calls; cross-task `close()` | MEDIUM     | 0.6        | `sidecar/services/mcp_client.py:120-173,230-236` |
+| 5   | PanelHost autosave subscription/timer leak (unmount in restore await window)                 | LOW–MEDIUM | 0.6        | `src/components/PanelHost.tsx:31-65`             |
+| 6   | News manual Retry bypasses cancellation guard                                                | LOW        | 0.55       | `src/modules/news/NewsFeedPanel.tsx:201-204`     |
