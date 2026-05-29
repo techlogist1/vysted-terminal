@@ -40,7 +40,9 @@ class _FakeKiteClient:
         self.place_response: str | dict = "KITE-001"
         # Phase 10: equity now reads `net` (buying power / margin-aware), not
         # `available.cash`; net == cash here so the assertion is unchanged.
-        self.margins_response: dict = {"equity": {"net": 300_000.0, "available": {"cash": 300_000.0}}}
+        self.margins_response: dict = {
+            "equity": {"net": 300_000.0, "available": {"cash": 300_000.0}}
+        }
         self.holdings_response: list = []
         self.positions_response: dict = {"net": []}
 
