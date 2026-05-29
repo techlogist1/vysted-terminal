@@ -66,7 +66,7 @@ export async function streamAgentInvocation(
     provider: payload.provider,
     model: payload.model,
     api_key: payload.apiKey,
-    options: {},
+    options: payload.options ?? {},
   });
   await consumeSseStream(url, body, handlers);
 }

@@ -172,21 +172,18 @@ describe("ChatSidebar", () => {
     cleanup();
   });
 
-  it("renders the agent picker with all 12 first-party agents", () => {
+  it("renders a clickable persona roster of the first-party agents", () => {
     render(<ChatSidebar />);
-    const picker = screen.getByLabelText("Agent picker") as HTMLSelectElement;
-    const optionLabels = Array.from(picker.options).map((option) => option.text);
-    // 1 (no-agent) + 12 first-party = 13 options.
-    expect(picker.options.length).toBe(13);
+    const roster = screen.getByLabelText("Persona roster");
+    expect(roster).toBeInTheDocument();
     for (const agent of FIRST_PARTY_AGENTS) {
-      expect(optionLabels).toContain(agent.name);
+      expect(screen.getByRole("button", { name: agent.name })).toBeInTheDocument();
     }
   });
 
   it("renders an empty-state hint until a message is sent", () => {
     render(<ChatSidebar />);
-    expect(screen.getByText(/Type/)).toBeInTheDocument();
-    expect(screen.getByText("/ask")).toBeInTheDocument();
+    expect(screen.getByText(/Ask me anything about what you/)).toBeInTheDocument();
   });
 
   it("/ask <prompt> appends a user message and invokes streamChat with the keychain key", async () => {
@@ -237,7 +234,14 @@ describe("ChatSidebar", () => {
     expect(agentId).toBe("buffett");
     expect(payload.prompt).toBe("is SPY a moat business?");
     expect(payload.contextSnapshot.focusedSource).toBe("chart-1");
-    expect(payload.contextSnapshot.bySource["chart-1"]).toEqual({ symbol: "SPY", timeframe: "1D" });
+    // Phase 10: context is sent as the structured `__terminal__` snapshot, not
+    // raw per-source payloads — the focused chart symbol is resolvable.
+    const terminal = payload.contextSnapshot.bySource["__terminal__"] as {
+      focusedSymbol: string;
+      charts: { symbol: string }[];
+    };
+    expect(terminal.focusedSymbol).toBe("SPY");
+    expect(terminal.charts[0].symbol).toBe("SPY");
   });
 
   it("/help shows the cheat-sheet without sending a message", () => {
@@ -256,9 +260,7 @@ describe("ChatSidebar", () => {
     const input = screen.getByLabelText("Chat input") as HTMLInputElement;
     fireEvent.change(input, { target: { value: "/ask hi" } });
     fireEvent.submit(input.closest("form")!);
-    await waitFor(() =>
-      expect(screen.getByText(/no API key set for anthropic/)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/No API key for anthropic/)).toBeInTheDocument());
     expect(streamChatMock).not.toHaveBeenCalled();
   });
 

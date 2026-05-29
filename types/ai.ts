@@ -136,6 +136,13 @@ export interface AgentInvocationRequest {
    * never persists it.
    */
   apiKey?: string;
+  /**
+   * Provider-specific overrides + runtime options (mirrors the sidecar
+   * `AgentInvocationRequest.options`). The copilot rides recent conversation
+   * turns here as `options.history` (last ~10 {role, content} turns) so the
+   * agent holds a thread without a contract change.
+   */
+  options?: Record<string, unknown>;
 }
 
 /** Unary result of an agent invocation — for callers that don't stream (e.g. MCP tools). */

@@ -65,6 +65,24 @@ def _split_system_and_messages(
                 }
             )
             continue
+        if message.role == "assistant" and message.metadata and message.metadata.get("tool_calls"):
+            # Reconstruct the assistant tool_use turn so the following
+            # tool_result blocks associate by id (runtime carries the calls in
+            # metadata).
+            blocks: list[dict[str, Any]] = []
+            if message.content:
+                blocks.append({"type": "text", "text": message.content})
+            for tc in message.metadata["tool_calls"]:
+                blocks.append(
+                    {
+                        "type": "tool_use",
+                        "id": tc.get("id", ""),
+                        "name": tc.get("name", ""),
+                        "input": tc.get("input", {}),
+                    }
+                )
+            rest.append({"role": "assistant", "content": blocks})
+            continue
         rest.append({"role": message.role, "content": message.content})
     system = "\n\n".join(system_chunks) if system_chunks else None
     return system, rest
@@ -87,6 +105,7 @@ class AnthropicProvider(LLMProvider):
         **kwargs: Any,
     ) -> AsyncIterator[LLMStreamEvent]:
         max_tokens = int(kwargs.pop("max_tokens", DEFAULT_MAX_TOKENS))
+        tool_ids = kwargs.pop("tool_ids", None)
         system, rest = _split_system_and_messages(messages)
         client = self._client(api_key)
         stream_kwargs: dict[str, Any] = {
@@ -96,6 +115,12 @@ class AnthropicProvider(LLMProvider):
         }
         if system is not None:
             stream_kwargs["system"] = system
+        if tool_ids:
+            from services.agent_tools.schemas import anthropic_tools
+
+            tools = anthropic_tools(tool_ids)
+            if tools:
+                stream_kwargs["tools"] = tools
         stream_kwargs.update(kwargs)
         try:
             async with client.messages.stream(**stream_kwargs) as stream:

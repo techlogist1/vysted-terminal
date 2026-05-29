@@ -34,11 +34,11 @@ def _reload_runtime() -> None:
     agent_runtime.reload()
 
 
-def test_list_agents_returns_twelve(client: TestClient) -> None:
+def test_list_agents_returns_roster(client: TestClient) -> None:
     response = client.get("/agents")
     assert response.status_code == 200
     body = response.json()
-    assert len(body) == 12
+    assert len(body) == 13
     ids = {row["id"] for row in body}
     assert "buffett" in ids
     assert "strategy_critic" in ids

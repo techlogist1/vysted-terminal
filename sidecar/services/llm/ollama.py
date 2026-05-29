@@ -13,6 +13,7 @@ breaking this adapter.
 
 from __future__ import annotations
 
+import json
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -23,6 +24,7 @@ from models.llm import (
     LLMDoneEvent,
     LLMErrorEvent,
     LLMMessage,
+    LLMToolUseEvent,
     LLMUsage,
 )
 
@@ -34,6 +36,63 @@ def _attr(obj: Any, key: str, default: Any = None) -> Any:
     if isinstance(obj, dict):
         return obj.get(key, default)
     return getattr(obj, key, default)
+
+
+def _to_api_messages(messages: list[LLMMessage]) -> list[dict[str, Any]]:
+    """Convert host messages to Ollama's chat shape.
+
+    Ollama speaks the OpenAI-flavoured message array, so ``tool`` results are a
+    top-level ``{"role": "tool", "content": ...}`` turn and the assistant
+    tool-call turn carries an OpenAI-style ``tool_calls`` list. The runtime
+    carries the prior round's calls in ``metadata["tool_calls"]`` (a list of
+    ``{id, name, input}``) so the following tool result turns associate with
+    their call — rebuild that here in Ollama's native shape.
+    """
+    api_messages: list[dict[str, Any]] = []
+    for message in messages:
+        if message.role == "assistant" and message.metadata and message.metadata.get("tool_calls"):
+            tool_calls = [
+                {
+                    "id": tc.get("id", ""),
+                    "type": "function",
+                    "function": {
+                        "name": tc.get("name", ""),
+                        "arguments": tc.get("input", {}),
+                    },
+                }
+                for tc in message.metadata["tool_calls"]
+            ]
+            api_messages.append(
+                {
+                    "role": "assistant",
+                    "content": message.content,
+                    "tool_calls": tool_calls,
+                }
+            )
+            continue
+        if message.role == "tool":
+            api_messages.append({"role": "tool", "content": message.content})
+            continue
+        api_messages.append({"role": message.role, "content": message.content})
+    return api_messages
+
+
+def _parse_tool_input(arguments: Any) -> dict[str, Any]:
+    """Coerce a tool-call ``arguments`` field to a dict.
+
+    Recent Ollama models return ``arguments`` already parsed as a dict, but
+    some emit a JSON string (the OpenAI convention). Tolerate both, and never
+    raise — a malformed payload degrades to ``{}`` so the round still closes.
+    """
+    if isinstance(arguments, dict):
+        return arguments
+    if isinstance(arguments, str) and arguments:
+        try:
+            parsed = json.loads(arguments)
+        except (ValueError, TypeError):
+            return {}
+        return parsed if isinstance(parsed, dict) else {}
+    return {}
 
 
 class OllamaProvider(LLMProvider):
@@ -55,15 +114,53 @@ class OllamaProvider(LLMProvider):
         api_key: str | None = None,  # noqa: ARG002 — Ollama is BYOK-free.
         **kwargs: Any,
     ) -> AsyncIterator[LLMStreamEvent]:
+        tool_ids = kwargs.pop("tool_ids", None)
         client = self._client()
-        api_messages = [{"role": m.role, "content": m.content} for m in messages]
+        api_messages = _to_api_messages(messages)
+
+        tools: list[dict[str, Any]] | None = None
+        if tool_ids:
+            from services.agent_tools.schemas import openai_tools
+
+            built = openai_tools(tool_ids)
+            if built:
+                # Ollama accepts OpenAI-style tool definitions on recent
+                # models. Older/local models don't — keep the list to one side
+                # so we can retry without it if the tools path fails.
+                tools = built
+
+        # Open the stream. Tool support is best-effort: many local models reject
+        # or ignore a ``tools=`` kwarg, so if opening the tools stream raises we
+        # transparently retry without tools rather than surfacing an error —
+        # text must always stream.
+        stream = None
+        if tools is not None:
+            try:
+                stream = await client.chat(
+                    model=model,
+                    messages=api_messages,
+                    stream=True,
+                    tools=tools,
+                    **kwargs,
+                )
+            except Exception:  # noqa: BLE001 — degrade gracefully, retry below.
+                stream = None
+        if stream is None:
+            try:
+                stream = await client.chat(
+                    model=model,
+                    messages=api_messages,
+                    stream=True,
+                    **kwargs,
+                )
+            except ollama.ResponseError as exc:  # pragma: no cover — network path
+                yield LLMErrorEvent(message=f"ollama stream failed: {exc}")
+                return
+            except Exception as exc:  # pragma: no cover — defensive
+                yield LLMErrorEvent(message=f"ollama stream failed: {exc}")
+                return
+
         try:
-            stream = await client.chat(
-                model=model,
-                messages=api_messages,
-                stream=True,
-                **kwargs,
-            )
             usage: LLMUsage | None = None
             finish_reason: str | None = None
             async for chunk in stream:
@@ -72,6 +169,20 @@ class OllamaProvider(LLMProvider):
                     content = _attr(message, "content", "") or ""
                     if content:
                         yield LLMDeltaEvent(text=content)
+                    # Ollama returns tool calls on the (non-streamed) assistant
+                    # message rather than as token deltas: emit one tool_use
+                    # event per call so the runtime can resolve them before the
+                    # round's done event.
+                    tool_calls = _attr(message, "tool_calls") or []
+                    for tool_call in tool_calls:
+                        function = _attr(tool_call, "function")
+                        if function is None:
+                            continue
+                        yield LLMToolUseEvent(
+                            tool_call_id=_attr(tool_call, "id", "") or "",
+                            name=_attr(function, "name", "") or "",
+                            input=_parse_tool_input(_attr(function, "arguments")),
+                        )
                 done = _attr(chunk, "done", False)
                 done_reason = _attr(chunk, "done_reason")
                 if done_reason:

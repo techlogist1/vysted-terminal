@@ -30,6 +30,9 @@ export interface ChatMessage {
   pending?: boolean;
   /** Error string if streaming failed. */
   error?: string | null;
+  /** Human-readable tool-use steps the copilot took (e.g. "Reading your
+   *  portfolio…", "Pulling AAPL fundamentals…", "Opening chart"). UI-only. */
+  toolSteps?: string[];
   createdAt: number;
 }
 
@@ -44,6 +47,7 @@ interface ChatHistoryState {
     modelId?: string;
   }) => string;
   appendAssistantDelta: (id: string, text: string) => void;
+  appendToolStep: (id: string, step: string) => void;
   finalizeAssistantMessage: (id: string, usage?: LLMUsage | null) => void;
   failAssistantMessage: (id: string, error: string) => void;
   clear: () => void;
@@ -93,6 +97,14 @@ export const useChatHistoryStore = create<ChatHistoryState>((set) => ({
     set((state) => ({
       messages: state.messages.map((message) =>
         message.id === id ? { ...message, content: message.content + text } : message,
+      ),
+    })),
+  appendToolStep: (id, step) =>
+    set((state) => ({
+      messages: state.messages.map((message) =>
+        message.id === id
+          ? { ...message, toolSteps: [...(message.toolSteps ?? []), step] }
+          : message,
       ),
     })),
   finalizeAssistantMessage: (id, usage) =>
