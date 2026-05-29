@@ -79,12 +79,12 @@ describe("PortfolioPanel", () => {
 
   it("surfaces a SidecarError from the initial load (after the auto-retry is exhausted)", async () => {
     // Reject persistently so the terminal error surfaces once the bounded
-    // auto-retry (1s + 2s + 4s) is exhausted.
+    // auto-retry (~50s of backoff) is exhausted.
     vi.useFakeTimers();
     mockFetchPositions.mockRejectedValue(new SidecarError(502, "sidecar offline"));
     render(<PortfolioPanel />);
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(8000);
+      await vi.advanceTimersByTimeAsync(60000);
     });
     expect(screen.getByText("sidecar offline")).toBeInTheDocument();
     vi.useRealTimers();
@@ -95,7 +95,7 @@ describe("PortfolioPanel", () => {
     mockFetchPositions.mockRejectedValue(new SidecarError(503, "sidecar down"));
     render(<PortfolioPanel />);
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(8000);
+      await vi.advanceTimersByTimeAsync(60000);
     });
     expect(screen.getByText("sidecar down")).toBeInTheDocument();
     // A Retry affordance must appear.

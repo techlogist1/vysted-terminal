@@ -64,10 +64,14 @@ export function PortfolioPanel() {
       setSummary(buildPortfolioSummary(stored, quotes));
       setError(null);
     } catch (err) {
-      // Bounded auto-retry (1s, 2s, 4s) so a transient cold-boot bind blip
+      // Auto-retry with backoff (1s, 2s, 4s, then capped at 5s for ~12 attempts
+      // ≈ 50s) so a cold-boot sidecar bind (PyInstaller `_MEI` re-exec, ~30s)
       // self-heals instead of latching a permanent error block.
-      if (attempt < 3) {
-        retryTimer.current = setTimeout(() => loadRef.current(attempt + 1), 1000 * 2 ** attempt);
+      if (attempt < 12) {
+        retryTimer.current = setTimeout(
+          () => loadRef.current(attempt + 1),
+          Math.min(1000 * 2 ** attempt, 5000),
+        );
         return;
       }
       const message = err instanceof SidecarError ? err.message : "Failed to load portfolio";

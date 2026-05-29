@@ -166,11 +166,12 @@ export function NewsFeedPanel() {
   const [refreshNonce, setRefreshNonce] = useState(0);
 
   // Fetch the feed on mount, whenever the projected symbol list changes, and on
-  // a manual refresh. A failed load auto-retries with bounded backoff (1s, 2s,
-  // 4s) so a transient cold-boot bind blip self-heals before the terminal error
-  // block shows (matching Watchlist's accidental poll-based resilience). The
-  // per-run `cancelled` flag drops a superseded/unmounted run's result, and the
-  // local `timer` is cleared on cleanup — no setState-after-unmount, no leak.
+  // a manual refresh. A failed load auto-retries with backoff (1s, 2s, 4s, then
+  // capped at 5s for ~12 attempts ≈ 50s) so a cold-boot sidecar bind — the
+  // PyInstaller `_MEI` re-exec can take ~30s — self-heals before the terminal
+  // error block shows, matching Watchlist's poll-based resilience. The per-run
+  // `cancelled` flag drops a superseded/unmounted run's result, and the local
+  // `timer` is cleared on cleanup — no setState-after-unmount, no leak.
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -185,8 +186,8 @@ export function NewsFeedPanel() {
           if (cancelled) {
             return;
           }
-          if (n < 3) {
-            timer = setTimeout(() => attempt(n + 1), 1000 * 2 ** n);
+          if (n < 12) {
+            timer = setTimeout(() => attempt(n + 1), Math.min(1000 * 2 ** n, 5000));
             return;
           }
           setState({ status: "error", message: errorMessage(error) });
