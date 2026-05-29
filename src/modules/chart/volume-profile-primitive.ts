@@ -20,6 +20,8 @@ import type {
   Time,
 } from "lightweight-charts";
 
+import { coralFill } from "@/lib/chart-theme";
+
 import type { VolumeProfileBucket } from "../../../types/data";
 
 /**
@@ -30,8 +32,8 @@ import type { VolumeProfileBucket } from "../../../types/data";
  */
 type DrawTarget = Parameters<IPrimitivePaneRenderer["draw"]>[0];
 
-/** Fill — amber-400 (#e9a94d) at ~20% alpha. */
-const HISTOGRAM_FILL = "rgba(233, 169, 77, 0.2)";
+/** Fill — coral accent at ~20% alpha. */
+const HISTOGRAM_FILL = coralFill(0.2);
 
 /** Fraction of the pane width the longest bar takes. */
 const MAX_BAR_FRACTION = 0.25;

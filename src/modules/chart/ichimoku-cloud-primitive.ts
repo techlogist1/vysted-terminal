@@ -16,12 +16,14 @@ import type {
   Time,
 } from "lightweight-charts";
 
+import { positiveFill, negativeFill } from "@/lib/chart-theme";
+
 import type { IndicatorPoint } from "../../../types/data";
 
-/** Sage @ 15% alpha — bullish cloud (Senkou A above Senkou B). */
-const POSITIVE_FILL = "rgba(143, 166, 124, 0.15)";
-/** Negative-clay @ 15% alpha — bearish cloud (Senkou B above Senkou A). */
-const NEGATIVE_FILL = "rgba(200, 101, 75, 0.15)";
+/** Positive @ 15% alpha — bullish cloud (Senkou A above Senkou B). */
+const POSITIVE_FILL = positiveFill(0.15);
+/** Negative @ 15% alpha — bearish cloud (Senkou B above Senkou A). */
+const NEGATIVE_FILL = negativeFill(0.15);
 
 /** Internal coordinate of a time-aligned Senkou sample after conversion. */
 interface CloudPoint {

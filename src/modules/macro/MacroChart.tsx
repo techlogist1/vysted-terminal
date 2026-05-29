@@ -10,26 +10,34 @@ import {
   type UTCTimestamp,
 } from "lightweight-charts";
 
+import {
+  ACCENT_CORAL_DEEP,
+  CHART_BORDER,
+  CHART_CROSSHAIR,
+  CHART_GRID,
+  CHART_SURFACE,
+  CHART_TEXT,
+} from "@/lib/chart-theme";
 import type { MacroSeriesExtended } from "../../../types/macro";
 
 /** Vysted dark palette, applied to the lightweight-charts canvas. Same shape
  * as the equity chart's :const:`CHART_THEME` so the panels feel consistent. */
 const CHART_THEME = {
   layout: {
-    background: { color: "#1c1916" }, // charcoal-900
-    textColor: "#c9c2b2", // charcoal-200
+    background: { color: CHART_SURFACE }, // charcoal-900
+    textColor: CHART_TEXT, // charcoal-200
     fontFamily: "var(--font-jetbrains-mono), ui-monospace, 'SF Mono', 'Cascadia Mono', monospace",
   },
   grid: {
-    vertLines: { color: "#2a2620" },
-    horzLines: { color: "#2a2620" },
+    vertLines: { color: CHART_GRID },
+    horzLines: { color: CHART_GRID },
   },
-  rightPriceScale: { borderColor: "#3a352c" },
-  timeScale: { borderColor: "#3a352c", timeVisible: false, secondsVisible: false },
-  crosshair: { vertLine: { color: "#4d4639" }, horzLine: { color: "#4d4639" } },
+  rightPriceScale: { borderColor: CHART_BORDER },
+  timeScale: { borderColor: CHART_BORDER, timeVisible: false, secondsVisible: false },
+  crosshair: { vertLine: { color: CHART_CROSSHAIR }, horzLine: { color: CHART_CROSSHAIR } },
 } as const;
 
-const LINE_COLOR = "#c39a3e"; // amber-600 — Vysted accent
+const LINE_COLOR = ACCENT_CORAL_DEEP; // amber-600 — Vysted accent
 
 interface Props {
   series: MacroSeriesExtended;

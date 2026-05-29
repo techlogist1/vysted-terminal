@@ -21,13 +21,15 @@ import type {
   Time,
 } from "lightweight-charts";
 
+import { ACCENT_CORAL, coralFill } from "@/lib/chart-theme";
+
 import type { DrawingPoint, DrawingSpec, DrawingStyle } from "../../../../types/drawings";
 
 /** The renderer target type — pulled structurally from `IPrimitivePaneRenderer.draw`. */
 export type DrawTarget = Parameters<IPrimitivePaneRenderer["draw"]>[0];
 
 /** Default per-kind colour (amber-400) — overridable per drawing in `style.color`. */
-export const DEFAULT_DRAWING_COLOR = "#e9a94d";
+export const DEFAULT_DRAWING_COLOR = ACCENT_CORAL;
 
 /** Convert a `DrawingStyle.lineStyle` to a canvas `setLineDash` pattern. */
 export function dashPattern(lineStyle: DrawingStyle["lineStyle"]): readonly number[] {
@@ -101,7 +103,7 @@ export abstract class DrawingRenderer implements IPrimitivePaneRenderer {
       // override on their context after calling super.
       context.strokeStyle = spec.style.color || DEFAULT_DRAWING_COLOR;
       context.lineWidth = spec.style.lineWidth || 1;
-      context.fillStyle = spec.style.fillColor ?? "rgba(233, 169, 77, 0.12)";
+      context.fillStyle = spec.style.fillColor ?? coralFill(0.12);
       const pattern = dashPattern(spec.style.lineStyle);
       context.setLineDash(pattern.slice());
       this.paint({ context, mediaSize }, spec, converters);

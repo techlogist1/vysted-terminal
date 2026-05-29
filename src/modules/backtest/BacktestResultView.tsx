@@ -14,6 +14,16 @@ import {
 } from "lightweight-charts";
 
 import { Button } from "@/components/ui/button";
+import {
+  ACCENT_CORAL,
+  CHART_BORDER,
+  CHART_CROSSHAIR,
+  CHART_GRID,
+  CHART_SURFACE,
+  CHART_TEXT,
+  NEGATIVE as NEGATIVE_COLOR,
+  negativeFill,
+} from "@/lib/chart-theme";
 import { cn } from "@/lib/utils";
 import { usePanelContextBus } from "@/store/panel-context";
 import type { BacktestRunState } from "@/store/backtest";
@@ -25,21 +35,21 @@ import type { BacktestTrade } from "../../../types/backtest";
 
 const CHART_THEME = {
   layout: {
-    background: { color: "#1c1916" },
-    textColor: "#c9c2b2",
+    background: { color: CHART_SURFACE },
+    textColor: CHART_TEXT,
     fontFamily: "var(--font-jetbrains-mono), ui-monospace, 'SF Mono', monospace",
   },
   grid: {
-    vertLines: { color: "#2a2620" },
-    horzLines: { color: "#2a2620" },
+    vertLines: { color: CHART_GRID },
+    horzLines: { color: CHART_GRID },
   },
-  rightPriceScale: { borderColor: "#3a352c" },
-  timeScale: { borderColor: "#3a352c", timeVisible: false, secondsVisible: false },
-  crosshair: { vertLine: { color: "#4d4639" }, horzLine: { color: "#4d4639" } },
+  rightPriceScale: { borderColor: CHART_BORDER },
+  timeScale: { borderColor: CHART_BORDER, timeVisible: false, secondsVisible: false },
+  crosshair: { vertLine: { color: CHART_CROSSHAIR }, horzLine: { color: CHART_CROSSHAIR } },
 } as const;
 
-const NEGATIVE = "#c8654b";
-const AMBER = "#e8b441";
+const NEGATIVE = NEGATIVE_COLOR;
+const AMBER = ACCENT_CORAL;
 
 function toChartTime(iso: string): UTCTimestamp {
   return Math.floor(new Date(iso).getTime() / 1000) as UTCTimestamp;
@@ -105,8 +115,8 @@ function EquityChart({ equityCurve }: EquityChartProps) {
     const drawdownSeries = chart.addSeries(
       AreaSeries,
       {
-        topColor: "rgba(200, 101, 75, 0.45)",
-        bottomColor: "rgba(200, 101, 75, 0.05)",
+        topColor: negativeFill(0.45),
+        bottomColor: negativeFill(0.05),
         lineColor: NEGATIVE,
         lineWidth: 1,
         priceLineVisible: false,

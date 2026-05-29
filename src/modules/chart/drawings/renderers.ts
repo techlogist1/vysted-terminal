@@ -12,6 +12,8 @@
  * lexicographic order before drawing.
  */
 
+import { ACCENT_CORAL } from "@/lib/chart-theme";
+
 import { DrawingRenderer, resolvePoint, type DrawingConverters } from "./base";
 import type { DrawingPoint, DrawingSpec } from "../../../../types/drawings";
 
@@ -190,7 +192,7 @@ export class FibRetracementRenderer extends DrawingRenderer {
       context.moveTo(xA, y);
       context.lineTo(mediaSize.width, y);
       context.stroke();
-      context.fillStyle = spec.style.color || "#e9a94d";
+      context.fillStyle = spec.style.color || ACCENT_CORAL;
       context.fillText(`${(level * 100).toFixed(1)}%  ${price.toFixed(2)}`, xA + 4, y - 6);
     }
     void yB;
@@ -224,7 +226,7 @@ export class FibExtensionRenderer extends DrawingRenderer {
       context.moveTo(xC, y);
       context.lineTo(mediaSize.width, y);
       context.stroke();
-      context.fillStyle = spec.style.color || "#e9a94d";
+      context.fillStyle = spec.style.color || ACCENT_CORAL;
       context.fillText(`${(level * 100).toFixed(1)}%  ${price.toFixed(2)}`, xC + 4, y - 6);
     }
   }
@@ -293,7 +295,7 @@ export class TextRenderer extends DrawingRenderer {
     const { context } = scope;
     context.font = `${fontSize}px ui-monospace, monospace`;
     context.textBaseline = "top";
-    context.fillStyle = spec.style.color || "#e9a94d";
+    context.fillStyle = spec.style.color || ACCENT_CORAL;
     context.setLineDash([]);
     context.fillText(text, x + 4, y - fontSize - 2);
   }

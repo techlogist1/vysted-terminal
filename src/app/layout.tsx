@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
-import { Newsreader, JetBrains_Mono } from "next/font/google";
+import { Fraunces, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const newsreader = Newsreader({
+// Fraunces — humanist display serif with optical-size + SOFT axes; warm and
+// characterful at heading/wordmark sizes ("Claude after dark" display face).
+const fraunces = Fraunces({
   subsets: ["latin"],
-  variable: "--font-newsreader",
+  variable: "--font-fraunces",
   display: "swap",
+  axes: ["opsz", "SOFT"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -21,7 +24,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`dark ${newsreader.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`dark ${fraunces.variable} ${jetbrainsMono.variable}`}>
       <body>{children}</body>
     </html>
   );

@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-/* Vysted design-token primitives (INSTRUMENT system — charcoal/amber/brass/sage). */
+/* Vysted design-token primitives ("Claude after dark" — espresso base, coral
+   accent; legacy token names charcoal/amber/brass/sage carry new values). */
 @import "../../styles/tokens.css";
 
 /* dockview layout-engine base styles — imported here, before the Vysted theme
@@ -10,39 +11,40 @@
 /* Map the Vysted primitives onto shadcn/ui's semantic names. Literal fallbacks
    keep this resilient if a token is ever missing. */
 @theme inline {
-  --color-background: var(--color-charcoal-950, #14110f);
-  --color-foreground: var(--color-charcoal-100, #e8e3d6);
-  --color-card: var(--color-charcoal-900, #1c1916);
-  --color-card-foreground: var(--color-charcoal-100, #e8e3d6);
-  --color-popover: var(--color-charcoal-875, #201c18);
-  --color-popover-foreground: var(--color-charcoal-100, #e8e3d6);
-  --color-primary: var(--color-amber-400, #e9a94d);
-  --color-primary-foreground: var(--color-charcoal-950, #14110f);
-  --color-secondary: var(--color-charcoal-800, #2a2620);
-  --color-secondary-foreground: var(--color-charcoal-100, #e8e3d6);
-  --color-muted: var(--color-charcoal-800, #2a2620);
-  --color-muted-foreground: var(--color-charcoal-400, #8a8170);
-  --color-accent: var(--color-sage-400, #8fa67c);
-  --color-accent-foreground: var(--color-charcoal-950, #14110f);
-  --color-border: var(--color-charcoal-700, #3a352c);
-  --color-input: var(--color-charcoal-700, #3a352c);
-  --color-ring: var(--color-amber-400, #e9a94d);
-  --color-destructive: var(--color-negative, #c8654b);
-  --radius: 0.375rem;
+  --color-background: var(--color-charcoal-950, #1a1512);
+  --color-foreground: var(--color-charcoal-100, #ece3d9);
+  --color-card: var(--color-charcoal-900, #241d19);
+  --color-card-foreground: var(--color-charcoal-100, #ece3d9);
+  --color-popover: var(--color-charcoal-875, #29211d);
+  --color-popover-foreground: var(--color-charcoal-100, #ece3d9);
+  --color-primary: var(--color-amber-400, #d97757);
+  --color-primary-foreground: var(--color-charcoal-950, #1a1512);
+  --color-secondary: var(--color-charcoal-800, #352a25);
+  --color-secondary-foreground: var(--color-charcoal-100, #ece3d9);
+  --color-muted: var(--color-charcoal-800, #352a25);
+  --color-muted-foreground: var(--color-charcoal-400, #998778);
+  /* Accent = brand coral (single-accent system; was the retired sage green). */
+  --color-accent: var(--color-amber-400, #d97757);
+  --color-accent-foreground: var(--color-charcoal-950, #1a1512);
+  --color-border: var(--color-charcoal-700, #473a33);
+  --color-input: var(--color-charcoal-700, #473a33);
+  --color-ring: var(--color-amber-400, #d97757);
+  --color-destructive: var(--color-negative, #cf5b48);
+  --radius: var(--radius-panel); /* track the token, not a literal */
 }
 
-/* --- Instrument-chrome primitives -----------------------------------------
- * Composite tokens that build the "machined dial" look: a brass hairline rule,
- * a beveled panel edge (light top highlight + dark inset, like a watch bezel),
- * and the warm grain/vignette atmosphere. Plain CSS vars (not @theme) since
- * they are composite shadows / images, not single-value utilities. */
+/* --- Chrome primitives -----------------------------------------------------
+ * Composite vars for the flat, warm "Claude after dark" chrome: a faint coral
+ * hairline rule, a flat panel edge (whisper of depth, NO watch-bezel metal),
+ * and a coral glow for active controls. Plain CSS vars (not @theme) since they
+ * are composite shadows, not single-value utilities. */
 :root {
-  --hairline: rgb(156 124 77 / 0.28); /* brass-400 @ 28% — fine instrument rule */
-  --hairline-strong: rgb(184 150 95 / 0.45);
+  --hairline: rgb(217 119 87 / 0.18); /* coral @ 18% — quiet fine divider */
+  --hairline-strong: rgb(217 119 87 / 0.32); /* coral @ 32% */
   --bezel-shadow:
-    inset 0 1px 0 rgb(245 239 224 / 0.04), inset 0 0 0 1px rgb(20 17 15 / 0.5),
-    0 1px 2px rgb(0 0 0 / 0.4);
-  --glow-amber: 0 0 0 1px rgb(233 169 77 / 0.35), 0 0 12px rgb(233 169 77 / 0.15);
+    inset 0 1px 0 rgb(245 241 234 / 0.03), inset 0 0 0 1px rgb(26 21 18 / 0.5),
+    0 1px 2px rgb(0 0 0 / 0.35);
+  --glow-coral: 0 0 0 1px rgb(217 119 87 / 0.35), 0 0 12px rgb(217 119 87 / 0.14);
 }
 
 @layer base {
@@ -65,25 +67,25 @@
     text-rendering: optimizeLegibility;
   }
 
-  /* Warm atmosphere: a faint amber phosphor bloom at the top edge over a
-     subtle radial vignette — depth without a flat black field. Fixed so it
-     doesn't scroll. */
+  /* Quiet warm atmosphere: a faint coral ambient at the top edge over a soft
+     warm vignette — espresso depth without a flat field. Fixed so it doesn't
+     scroll. De-skeuomorphized: no CRT phosphor bloom. */
   body {
     background-image:
-      radial-gradient(120% 80% at 50% -10%, rgb(233 169 77 / 0.05), transparent 45%),
-      radial-gradient(140% 120% at 50% 50%, transparent 55%, rgb(0 0 0 / 0.35));
+      radial-gradient(120% 80% at 50% -10%, rgb(217 119 87 / 0.035), transparent 50%),
+      radial-gradient(140% 120% at 50% 50%, transparent 60%, rgb(0 0 0 / 0.3));
     background-attachment: fixed;
   }
 
-  /* Fine film/phosphor grain overlay — restrained (texture, not noise). Sits
-     above the background field, below content, never intercepts pointers. */
+  /* Barely-there warm grain — keeps the espresso gradients from banding. Much
+     quieter than the retired CRT film grain. Below content, never intercepts. */
   body::before {
     content: "";
     position: fixed;
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    opacity: 0.035;
+    opacity: 0.02;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
@@ -97,90 +99,87 @@
   h2,
   h3 {
     font-family: var(--font-serif, ui-serif, Georgia, serif);
+    /* Fraunces is variable with an optical-size axis — let it use display
+       optics at heading sizes. */
+    font-optical-sizing: auto;
     letter-spacing: -0.01em;
   }
 
-  /* Amber phosphor selection + crisp HUD focus ring everywhere. */
+  /* Coral selection + crisp coral focus ring everywhere. */
   ::selection {
-    background: rgb(233 169 77 / 0.28);
-    color: var(--color-lume, #f5efe0);
+    background: rgb(217 119 87 / 0.28);
+    color: var(--color-lume, #f5f1ea);
   }
 
   :focus-visible {
-    outline: 1px solid var(--color-amber-400, #e9a94d);
+    outline: 1px solid var(--color-amber-400, #d97757);
     outline-offset: 1px;
   }
 }
 
 /* --- Instrument utility classes (opt-in chrome) --------------------------- */
 @layer components {
-  /* Uppercase, tracked, brass section label — the gauge legend. */
+  /* Uppercase, tracked, warm-neutral section label. */
   .hud-label {
     font-family: var(--font-mono, ui-monospace, monospace);
     text-transform: uppercase;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
     font-size: 0.625rem;
-    color: var(--color-brass-300, #b8965f);
+    color: var(--color-brass-300, #a8917f);
   }
 
-  /* A machined panel edge — hairline bezel + subtle bevel. */
+  /* Flat panel edge — a whisper of warm depth, no metal bevel. */
   .instrument-bezel {
     box-shadow: var(--bezel-shadow);
-    border-top: 1px solid rgb(245 239 224 / 0.05);
+    border-top: 1px solid rgb(245 241 234 / 0.03);
   }
 
-  /* Gauge-tick rule: a row of fine brass ticks, e.g. under a header. */
+  /* A single flat coral hairline (e.g. under the header) — no gauge ticks. */
   .tick-rule {
-    background-image: repeating-linear-gradient(
-      to right,
-      var(--hairline) 0,
-      var(--hairline) 1px,
-      transparent 1px,
-      transparent 6px
-    );
-    height: 3px;
+    background: var(--hairline);
+    height: 1px;
   }
 
-  /* Amber HUD glow for an active/primary control. */
+  /* Coral glow for an active/primary control. */
   .hud-active {
-    box-shadow: var(--glow-amber);
+    box-shadow: var(--glow-coral);
   }
 }
 
 /* dockview layout-engine theme, mapped to the Vysted INSTRUMENT palette. The
    panel host applies `dockview-theme-dark dockview-theme-vysted`; the dark theme
-   supplies defaults and this rule overrides the visible surfaces. Brass hairline
-   separators + an amber active tab read as a machined cockpit frame. */
+   supplies defaults and this rule overrides the visible surfaces. Coral hairline
+   separators + a coral active tab read as a clean warm cockpit frame. */
 .dockview-theme-vysted {
-  --dv-group-view-background-color: var(--color-charcoal-900, #1c1916);
-  --dv-tabs-and-actions-container-background-color: var(--color-charcoal-925, #181512);
-  --dv-activegroup-visiblepanel-tab-background-color: var(--color-charcoal-875, #201c18);
-  --dv-activegroup-visiblepanel-tab-color: var(--color-lume, #f5efe0);
-  --dv-activegroup-hiddenpanel-tab-background-color: var(--color-charcoal-925, #181512);
-  --dv-activegroup-hiddenpanel-tab-color: var(--color-charcoal-400, #8a8170);
-  --dv-inactivegroup-visiblepanel-tab-background-color: var(--color-charcoal-900, #1c1916);
-  --dv-inactivegroup-visiblepanel-tab-color: var(--color-charcoal-300, #aaa291);
-  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--color-charcoal-925, #181512);
-  --dv-inactivegroup-hiddenpanel-tab-color: var(--color-charcoal-600, #4d4639);
+  --dv-group-view-background-color: var(--color-charcoal-900, #241d19);
+  --dv-tabs-and-actions-container-background-color: var(--color-charcoal-925, #1f1916);
+  --dv-activegroup-visiblepanel-tab-background-color: var(--color-charcoal-875, #29211d);
+  --dv-activegroup-visiblepanel-tab-color: var(--color-lume, #f5f1ea);
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--color-charcoal-925, #1f1916);
+  --dv-activegroup-hiddenpanel-tab-color: var(--color-charcoal-400, #998778);
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--color-charcoal-900, #241d19);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--color-charcoal-300, #b8a698);
+  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--color-charcoal-925, #1f1916);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--color-charcoal-600, #5c4d44);
   --dv-separator-border: 1px solid var(--hairline);
   --dv-tab-divider-color: var(--hairline);
   --dv-paneview-header-border-color: var(--hairline);
-  --dv-paneview-active-outline-color: var(--color-amber-400, #e9a94d);
-  --dv-active-sash-color: var(--color-amber-500, #d98e2b);
+  --dv-paneview-active-outline-color: var(--color-amber-400, #d97757);
+  --dv-active-sash-color: var(--color-amber-500, #c2603f);
   --dv-sash-color: transparent;
-  --dv-context-menu-background-color: var(--color-charcoal-875, #201c18);
-  --dv-context-menu-color: var(--color-charcoal-200, #c9c2b2);
-  --dv-icon-hover-background-color: var(--color-charcoal-700, #3a352c);
-  --dv-drag-over-background-color: rgb(233 169 77 / 0.14);
-  --dv-drag-over-border-color: var(--color-amber-400, #e9a94d);
+  --dv-context-menu-background-color: var(--color-charcoal-875, #29211d);
+  --dv-context-menu-color: var(--color-charcoal-200, #d6c8bb);
+  --dv-icon-hover-background-color: var(--color-charcoal-700, #473a33);
+  --dv-drag-over-background-color: rgb(217 119 87 / 0.14);
+  --dv-drag-over-border-color: var(--color-amber-400, #d97757);
   --dv-tab-font-size: 11px;
 }
 
-/* The active tab wears a lume/amber tick along its bottom edge — the lit
-   gauge marker. Non-layout (box-shadow inset) so it never disturbs dockview's
+/* The active tab wears a coral underline tick along its bottom edge — the lit
+   marker. Non-layout (box-shadow inset) so it never disturbs dockview's
    sizing; if the class name drifts in a future dockview it simply no-ops. */
 .dockview-theme-vysted .dv-active-group .dv-tab.dv-active-tab {
-  box-shadow: inset 0 -2px 0 var(--color-amber-400, #e9a94d);
+  box-shadow: inset 0 -2px 0 var(--color-amber-400, #d97757);
 }
 
 .dockview-theme-vysted .dv-tab {
@@ -192,12 +191,13 @@
    through to the WKWebView default backdrop (the "blue void"). Belt-and-braces
    alongside the per-panel single-scroll-container fix (map-settings 3a). */
 .dockview-theme-vysted .dv-view {
-  background-color: var(--color-charcoal-900, #1c1916);
+  background-color: var(--color-charcoal-900, #241d19);
 }
 
-/* Vysted-themed scrollbars — brass-tinted thin rails on every overflow surface,
-   in place of the OS-native chrome. WebKit covers Chromium / Tauri's webview;
-   the `scrollbar-*` block gives Firefox parity. */
+/* Vysted-themed scrollbars — quiet warm-neutral rails that light coral on grab.
+   WebKit covers Chromium / Tauri's webview; the `scrollbar-*` block gives
+   Firefox parity. A coral rail everywhere would be too loud, so the resting
+   rail is warm-neutral and only the hover/grab state goes coral. */
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -208,18 +208,18 @@
 }
 
 *::-webkit-scrollbar-thumb {
-  background: rgb(156 124 77 / 0.4);
+  background: rgb(133 112 95 / 0.4);
   border-radius: 4px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: rgb(217 142 43 / 0.7);
+  background: rgb(217 119 87 / 0.6);
   background-clip: padding-box;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgb(156 124 77 / 0.4) transparent;
+  scrollbar-color: rgb(133 112 95 / 0.4) transparent;
 }

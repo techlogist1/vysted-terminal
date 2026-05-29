@@ -23,26 +23,34 @@ import {
 } from "lightweight-charts";
 
 import { Button } from "@/components/ui/button";
+import {
+  ACCENT_CORAL,
+  CHART_BORDER,
+  CHART_CROSSHAIR,
+  CHART_GRID,
+  CHART_SURFACE,
+  CHART_TEXT,
+} from "@/lib/chart-theme";
 import { useQuantStore } from "@/store/quant";
 
 import type { YieldCurveInstrument, YieldCurveRequest } from "../../../types/quant";
 
 const CHART_THEME = {
   layout: {
-    background: { color: "#1c1916" },
-    textColor: "#c9c2b2",
+    background: { color: CHART_SURFACE },
+    textColor: CHART_TEXT,
     fontFamily: "var(--font-jetbrains-mono), ui-monospace, 'SF Mono', monospace",
   },
   grid: {
-    vertLines: { color: "#2a2620" },
-    horzLines: { color: "#2a2620" },
+    vertLines: { color: CHART_GRID },
+    horzLines: { color: CHART_GRID },
   },
-  rightPriceScale: { borderColor: "#3a352c" },
-  timeScale: { borderColor: "#3a352c", timeVisible: false, secondsVisible: false },
-  crosshair: { vertLine: { color: "#4d4639" }, horzLine: { color: "#4d4639" } },
+  rightPriceScale: { borderColor: CHART_BORDER },
+  timeScale: { borderColor: CHART_BORDER, timeVisible: false, secondsVisible: false },
+  crosshair: { vertLine: { color: CHART_CROSSHAIR }, horzLine: { color: CHART_CROSSHAIR } },
 } as const;
 
-const AMBER = "#e8b441";
+const AMBER = ACCENT_CORAL;
 
 /** Preset matching the smoke-test in the spec. Approximate US Treasury 2026. */
 const DEFAULT_INSTRUMENTS: YieldCurveInstrument[] = [
