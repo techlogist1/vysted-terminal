@@ -1,110 +1,173 @@
-# Vysted Terminal — Design System ("INSTRUMENT")
+# Vysted Terminal — Design System ("Claude after dark")
 
-Phase 9.5 / Track D. The one coherent visual language for the whole app. This
-documents the decisions so they can be reacted to and extended; the source of
-truth is `styles/tokens.css` (palette/type/radius/motion) + `src/app/globals.css`
-(semantic mapping, atmosphere, instrument chrome, dockview theme).
+Phase 10. Replaces the Phase 9.5 "INSTRUMENT" amber-brass / lume-cream /
+warm-brown-black chronograph system.
+
+**Source of truth:** `styles/tokens.css` (the `@theme` token block) +
+`src/app/globals.css` (shadcn semantic mapping + chrome primitives + dockview
+theme). **Canvas mirror:** `src/lib/chart-theme.ts` — lightweight-charts and the
+drawing primitives render to `<canvas>` and cannot read CSS variables, so they
+import their palette from this one module (never re-declare hex per chart file).
 
 ## The concept
 
-**A warm, machined, analog-precision terminal.** The amber phosphor of an
-early-90s Bloomberg CRT meeting the dial of a fine mechanical chronograph:
-patinated-brass bezels, lume-cream highlights, amber HUD accents on a _warm
-brown-black_ — Bloomberg-grade density, restrained and precise, legible.
+A warm **espresso near-black** base (red-brown undertone — never cold slate,
+never flat `#000`) carrying a single **coral / clay accent** (`#d97757`, the
+canonical Claude clay). **Cream / warm-paper** body text. A humanist display
+serif (**Fraunces**, with its optical-size + SOFT axes) over a precise data mono
+(**JetBrains Mono**). Bloomberg / JARVIS information density, expressed in
+Claude's restrained, warm, human language.
 
-It is the operator's anchor made literal: 90s-vintage-classy, warm over
-harsh-modernism, mechanical-instrument texture (fine watches, analog gauges),
-restrained and precise, high-density but legible — Tony Stark / JARVIS technical
-warmth.
+In one line: **take the amber-brass chronograph apart, keep its density and
+warmth, and rebuild it in Claude's coral-on-espresso palette with a humanist
+serif nameplate.**
 
-### Deliberately NOT (the generic-AI-dashboard traps we avoid)
+## Deliberately NOT
 
-- **No cold neutrals.** Every dark is brown-tinted charcoal, never slate/zinc or
-  flat `#000`.
-- **No cyan HUD cliché.** Warmth comes from amber + patinated brass, not the
-  default sci-fi cyan.
-- **No purple/blue gradients, no Inter/Roboto.** Type is an editorial serif
-  (Newsreader) for headings + a precise monospace (JetBrains Mono) for data.
-- **No pillowy cards.** Crisp radii, hairline bezels, machined edges.
+- **No cold neutrals.** Every dark is red-brown-tinted espresso, never slate /
+  zinc, never flat black.
+- **No cyan HUD cliché.** A cold teal (`#4ec9a3`) had drifted into the earnings
+  chart; it is gone.
+- **No purple/blue gradients. No Inter/Roboto.** Humanist serif display + a
+  precise data mono only.
+- **Not skeuomorphic.** Retired from INSTRUMENT: amber phosphor accent, brass
+  bezels / gauge ticks, sage as a second accent, CRT bloom, heavy film grain,
+  beveled "watch-dial" panel edges. Kept: density, warmth, tabular numerics.
+
+## Token naming caveat (read this before touching colors)
+
+To re-skin 80+ files with **zero edits**, the token **names** were kept from the
+retired system and only the **values** changed. The names are therefore
+historical, not literal:
+
+| Token family | Renders as            |
+| ------------ | --------------------- |
+| `charcoal-*` | espresso near-blacks  |
+| `amber-*`    | the coral/clay accent |
+| `brass-*`    | warm neutral (taupe)  |
+| `sage-*`     | muted clay neutral    |
+| `lume`       | warm cream            |
+
+Read the role, not the name. (A project-wide rename to `espresso-*` / `coral-*`
+is an optional future cleanup; not done here to avoid an 80-file churn.)
 
 ## Tokens
 
-### Color (`styles/tokens.css`)
+### Espresso base (`charcoal-*`) — warm near-blacks, 950 deepest → 100 body text
 
-- **Charcoal 950→100** — the warm dial face, graduated for elevation (950 = the
-  deepest well; 925/900/875 = stacked surfaces; 800/700 = raised chrome &
-  borders). Brown-tinted throughout.
-- **Amber 200→600** — the primary HUD accent (phosphor-warm). `amber-400` is the
-  brand/primary; `amber-200` for fine highlights/glow.
-- **Brass 200→600** — patinated metal for bezels, hairline rules, and gauge
-  ticks. Desaturated bronze (instrument patina), never shiny gold.
-- **Lume** (`#f5efe0`) — the watch-lume cream for peak readouts / active state.
-- **Sage 300→500** — the cool counterpoint accent.
-- **Signal** — `positive` / `negative` (+ `-bright` variants) for gains/losses,
-  warm-tuned to the dial rather than pure RGB green/red.
+`950 #1a1512` (root bg) · `925 #1f1916` (header/tabs) · `900 #241d19` (panel) ·
+`875 #29211d` (popover/active tab) · `850 #2e2521` · `800 #352a25` (muted) ·
+`700 #473a33` (borders) · `600 #5c4d44` · `500 #796759` · `400 #998778` (muted
+fg) · `300 #b8a698` · `200 #d6c8bb` (chart text) · `100 #ece3d9` (body text).
+Hue ~38–40° (red-brown), low chroma on the darks so the base reads warm-neutral.
 
-### Type
+### Coral accent (`amber-*`) — one hue family (~33°), states 200→600
 
-- **Serif (Newsreader)** — headings + the `VYSTED` wordmark; high-contrast,
-  editorial, "fine-watch nameplate." Slightly negative tracking.
-- **Mono (JetBrains Mono)** — body, data, every numeric. **Tabular figures are on
-  globally** (`font-variant-numeric: tabular-nums`) so prices, tables, and stats
-  align like a gauge readout — the single biggest "instrument" tell.
+`200 #f0c4b4` (faint glow / selection tint) · `300 #e69e84` (hover) ·
+**`400 #d97757` (brand / default)** · `500 #c2603f` (pressed / active-sash) ·
+`600 #a44a30` (deep border). The only accent in the system.
 
-### Radius / density / motion
+### Warm neutral (`brass-*`) + muted clay (`sage-*`)
 
-- **Radius** — crisp: `--radius-panel` 6px, `--radius-control` 4px. Machined, not
-  soft.
-- **Density** — high. Mono at 11–12px for chrome/labels; compact control heights.
-- **Motion** — `--ease-instrument` `cubic-bezier(0.2,0.8,0.2,1)` (precise) and
-  `--ease-detent` (a slight overshoot "click"). Short durations (~120ms).
+No metal, no second accent. `brass-300 #a8917f` is the `.hud-label` legend tone;
+`brass-400 #85705f` is the scrollbar rail tone. `sage-*` is a desaturated clay
+for secondary/comparison data series so they never compete with coral.
 
-## Instrument chrome primitives (`globals.css`)
+### Cream (`lume`) `#f5f1ea`
 
-- `--hairline` / `--hairline-strong` — brass-tinted 1px rules (the dial's fine
-  divisions). Used as dockview separators and section dividers.
-- `--bezel-shadow` + `.instrument-bezel` — a beveled panel edge (top lume
-  highlight + dark inset), the watch-bezel treatment for chrome surfaces.
-- `.tick-rule` — a row of fine brass gauge ticks (under the header fascia).
-- `.hud-label` — uppercase, tracked, brass section legend.
-- `.hud-active` / `--glow-amber` — amber bloom for an active/primary control.
-- **Atmosphere** — a fixed body layer: a faint amber phosphor bloom at the top
-  edge, a subtle radial vignette, and a restrained film/phosphor **grain**
-  overlay (~3.5% opacity — texture, not noise).
-- **Selection** amber-phosphor; **focus** a crisp 1px amber HUD ring everywhere.
-- **Scrollbars** brass-tinted thin rails (Chromium + Firefox parity).
+Active-tab text, peak readouts, selection text. Warm paper-white (faintly
+pink-warm, never green).
 
-## Application strategy (why it reaches the whole app)
+### Semantic — three distinguishable warm hues
 
-The palette and chrome are centralized, so the system propagates without touching
-every panel:
+- `--color-positive #7fa96a` (warm moss green, hue 135°) + `-bright #9fc97f`.
+- `--color-negative #cf5b48` (brick red, hue 28°) + `-bright #e3705a`.
+- `--color-warning #e0a458` (amber-gold, hue 70°) — **the one new token.**
+  Caution states (kill-switch armed, paper-vs-live, stale data, static-IP
+  banner) need a third semantic that is neither good (green), bad/loss (red),
+  nor brand (coral).
 
-1. **Tokens** are Tailwind utilities (`bg-charcoal-900`, `text-amber-400`,
-   `text-brass-300`, …) — every existing panel already consumes them, so
-   re-tuning the token values + adding brass/lume shifts the whole app.
-2. **`globals.css` base** (tabular numerics, selection, focus, serif headings,
-   atmosphere, scrollbars) applies to every surface automatically.
-3. **The dockview theme** restyles the cockpit frame (brass hairline separators,
-   amber active-tab tick, warm drag-over glow) for all panels at once.
-4. **The header fascia** (`page.tsx`) is the machined brand anchor: serif wordmark
-   - brass tick-rule + bezel.
+> **Coral-vs-loss separation (the #1 palette risk).** Coral (brand, 33°) and
+> negative (loss-red, 28°) sit close in hue. They are separated on **two axes**:
+> negative is darker (L 0.60 vs 0.66) and redder + more saturated (C 0.16 vs
+> 0.13). Verify a populated red/green table (Watchlist/Portfolio P&L) against a
+> coral button in the same frame; pre-approved fallback negative is `#d6493a`.
 
-Opt-in primitives (`.hud-label`, `.tick-rule`, `.instrument-bezel`,
-`.hud-active`) let individual panels deepen the instrument feel over time.
+### Radii / motion
+
+`--radius-panel 0.5rem`, `--radius-control 0.375rem` (crisp but warm).
+`--radius` (shadcn) tracks `--radius-panel`. Motion: calm ease-out
+(`--ease-instrument`), gentle settle (`--ease-detent`, overshoot softened).
+
+## Type
+
+- **Fraunces** (display) — headings (`h1–h3`) + the wordmark,
+  `font-optical-sizing: auto` so it uses display optics at large sizes. Variable
+  `opsz` + `SOFT` axes via `next/font/google` in `layout.tsx` (`--font-fraunces`).
+- **JetBrains Mono** (data) — everything else; the app's default body font with
+  global `tabular-nums` (the density tell). Unchanged.
+
+| Role                  | Face     | Size  | Weight  | Tracking  |
+| --------------------- | -------- | ----- | ------- | --------- |
+| Wordmark "VYSTED"     | Fraunces | 17px  | 600     | `+0.01em` |
+| Panel heading (h1–h3) | Fraunces | 14–20 | 500–600 | `-0.01em` |
+| HUD label / legend    | Mono     | 10px  | 400     | `0.12em`  |
+| Body / control / data | Mono     | 11–12 | 400     | `0`       |
+
+## Wordmark
+
+A confident coral-on-espresso lockup (the old Newsreader-14px-at-0.18em mark read
+as a caption): a single **coral brand pip** (8×8 rounded square) + **"VYSTED"** in
+Fraunces 17px/600 warm cream + a subordinate mono **"Terminal"** descriptor.
+Serif name + mono descriptor, an intentional lockup. See `src/app/page.tsx`.
+
+## Chrome primitives (`globals.css`)
+
+- Coral hairlines (`--hairline` coral @ 18%, `--hairline-strong` @ 32%).
+- Flat panel edge (`--bezel-shadow`) — a whisper of warm depth, no metal bevel.
+- `.tick-rule` is now a single flat 1px coral hairline (was a gauge-tick row).
+- `--glow-coral` for active controls (`.hud-active`).
+- Quiet warm atmosphere: a faint coral ambient top + soft vignette; 2% warm grain
+  (down from 3.5%) to prevent gradient banding on the espresso base.
+- Coral selection + coral focus ring. Warm-neutral scrollbars that light coral on
+  grab (a coral rail everywhere would be too loud).
+- dockview theme (`.dockview-theme-vysted`): espresso surfaces, coral active-tab
+  underline + active outline + drag-over, `.dv-view` painted so over-scroll never
+  reveals the WKWebView backdrop.
+
+## Application strategy
+
+- **Keep-names re-value** carries ~95% of pixels: 40 `amber-*`, 41 `charcoal-*`,
+  2 `sage-*`, 1 `lume` consumer files re-skin with **zero edits**.
+- **Tier 1 (4 files):** `styles/tokens.css`, `src/app/globals.css`,
+  `src/app/layout.tsx` (Fraunces), `src/app/page.tsx` (wordmark + dropped bezel).
+- **Canvas (12 files):** all import `src/lib/chart-theme.ts` — the single source
+  for chart surfaces, coral accent, semantic colors, fill helpers, and the
+  indicator palette. This is also why three values had silently drifted
+  (`#e8b441`, `#c39a3e`, the cyan `#4ec9a3`) — six independent copies; now one.
+- shadcn dialog overlay → espresso (`bg-charcoal-950/70`); ReactFlow node-editor
+  `Background` dots pinned to the espresso palette (it isn't CSS-themed).
+
+## Known deviations (deliberate)
+
+- The **destructive button** keeps `text-white` (not warm cream) — a danger
+  control where max legibility on the brick-red beats palette purity (cream on
+  `#cf5b48` is ~3.1:1; white ~4:1). Low-frequency, high-stakes; legibility wins.
+- The node-editor SAR uptrend dot and the indicator overlay palette shifted tone
+  slightly (sage→clay-neutral, and the indicator order is now the curated
+  `chart-theme` palette) — intentional consequence of single-sourcing.
 
 ## Customizable
 
-Everything is a CSS variable in `styles/tokens.css` + `globals.css`. Re-tuning a
-single token (e.g. the amber hue, the grain opacity, a radius) re-skins the whole
-terminal — true to the "sandbox / make it yours" product intent. A future light
-theme slots in by overriding the same semantic `@theme inline` mapping.
+Re-tuning one token in `tokens.css` (+ its `chart-theme.ts` mirror) re-skins the
+app. A light theme slots in via the same `@theme inline` mapping (light theme is
+a documented future item — dark only ships now).
 
-## Verification note
+## Verification
 
-Live visual capture (populated-state screenshots at both resolutions per the
-CLAUDE.md visual-verification protocol) is **operator-manual** for this pass: the
-agent harness runs the Tauri bundle at click-tier, which cannot drive the GUI
-with real data, and `chrome-devtools` cannot synthesize the trusted events the
-canvas surfaces need. The system is verified to **compile and pass `pnpm
-ci-local`**; the rendered review (and the per-release `docs/screenshots/` set) is
-the operator's morning gate.
+The agent harness cannot drive the GUI; populated-state visual sign-off is the
+operator's, per the CLAUDE.md visual protocol (AAPL anchor + 5-panel cockpit +
+both 1920×1080 and 2560×1440). Named gates: (1) the **coral-vs-loss** eyeball on a
+populated Watchlist/Portfolio against a coral button; (2) the **destructive-button
+contrast** check; (3) confirm **Fraunces** actually loads (not the Georgia
+fallback) in the wordmark + headings.

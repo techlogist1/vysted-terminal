@@ -10,6 +10,8 @@
  * Averages, Momentum, Volatility, Volume, Trend, Statistical.
  */
 
+import { INDICATOR_PALETTE } from "@/lib/chart-theme";
+
 import type { IndicatorPanel } from "../../../types/data";
 
 /** UI-only catalog grouping for the indicator selector. */
@@ -157,10 +159,4 @@ export function indicatorsByCategory(): readonly {
 }
 
 /** A stable palette of distinct line colors for indicator series. */
-export const INDICATOR_COLORS: readonly string[] = [
-  "#e9a94d", // amber-400
-  "#8fa67c", // sage-400
-  "#c9c2b2", // charcoal-200
-  "#f4c87a", // amber-300
-  "#b6c4a8", // sage-300
-];
+export const INDICATOR_COLORS: readonly string[] = INDICATOR_PALETTE;

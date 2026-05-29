@@ -19,6 +19,16 @@ import {
 } from "lightweight-charts";
 
 import { Button } from "@/components/ui/button";
+import {
+  CHART_BORDER,
+  CHART_CROSSHAIR,
+  CHART_GRID,
+  CHART_SURFACE,
+  CHART_TEXT,
+  NEGATIVE,
+  NEUTRAL,
+  POSITIVE,
+} from "@/lib/chart-theme";
 import { SidecarError, sidecarApi } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { newDrawingId, useChartDrawingsStore } from "@/store/chart-drawings";
@@ -63,29 +73,29 @@ const DRAWING_TOOLS: ReadonlyArray<{ kind: DrawingKind; label: string }> = [
 /** Vysted dark palette, applied to the lightweight-charts canvas. */
 const CHART_THEME = {
   layout: {
-    background: { color: "#1c1916" }, // charcoal-900
-    textColor: "#c9c2b2", // charcoal-200
+    background: { color: CHART_SURFACE }, // charcoal-900
+    textColor: CHART_TEXT, // charcoal-200
     fontFamily: "var(--font-jetbrains-mono), ui-monospace, 'SF Mono', 'Cascadia Mono', monospace",
   },
   grid: {
-    vertLines: { color: "#2a2620" }, // charcoal-800
-    horzLines: { color: "#2a2620" },
+    vertLines: { color: CHART_GRID }, // charcoal-800
+    horzLines: { color: CHART_GRID },
   },
-  rightPriceScale: { borderColor: "#3a352c" }, // charcoal-700
-  timeScale: { borderColor: "#3a352c", timeVisible: true, secondsVisible: false },
-  crosshair: { vertLine: { color: "#4d4639" }, horzLine: { color: "#4d4639" } },
+  rightPriceScale: { borderColor: CHART_BORDER }, // charcoal-700
+  timeScale: { borderColor: CHART_BORDER, timeVisible: true, secondsVisible: false },
+  crosshair: { vertLine: { color: CHART_CROSSHAIR }, horzLine: { color: CHART_CROSSHAIR } },
 } as const;
 
 const CANDLE_THEME = {
-  upColor: "#7faa6b", // positive
-  downColor: "#c8654b", // negative
-  borderUpColor: "#7faa6b",
-  borderDownColor: "#c8654b",
-  wickUpColor: "#7faa6b",
-  wickDownColor: "#c8654b",
+  upColor: POSITIVE, // positive
+  downColor: NEGATIVE, // negative
+  borderUpColor: POSITIVE,
+  borderDownColor: NEGATIVE,
+  wickUpColor: POSITIVE,
+  wickDownColor: NEGATIVE,
 } as const;
 
-const COMPARISON_LINE_COLOR = "#8fa67c"; // sage-400
+const COMPARISON_LINE_COLOR = NEUTRAL; // sage-400
 
 /** Stable empty drawings reference so the store selector stays referentially equal. */
 const EMPTY_DRAWINGS: readonly DrawingSpec[] = Object.freeze([]);
@@ -386,7 +396,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
         time,
         position: isUptrend ? "belowBar" : "aboveBar",
         shape: "circle",
-        color: isUptrend ? "#8fa67c" : "#c8654b",
+        color: isUptrend ? NEUTRAL : NEGATIVE,
         size: 1,
       });
     }

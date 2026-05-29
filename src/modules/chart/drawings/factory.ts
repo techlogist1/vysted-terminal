@@ -7,6 +7,8 @@
  * adding a new drawing kind is one switch arm + one new renderer class.
  */
 
+import { ACCENT_CORAL, coralFill } from "@/lib/chart-theme";
+
 import { DrawingPrimitive } from "./base";
 import {
   EllipseRenderer,
@@ -69,8 +71,8 @@ export function pointsRequired(kind: DrawingKind): 1 | 2 | 3 {
 
 /** Default style for a freshly-created drawing — amber-400 solid 1px line. */
 export const DEFAULT_DRAWING_STYLE = {
-  color: "#e9a94d",
+  color: ACCENT_CORAL,
   lineWidth: 1,
   lineStyle: "solid" as const,
-  fillColor: "rgba(233, 169, 77, 0.12)",
+  fillColor: coralFill(0.12),
 } as const;

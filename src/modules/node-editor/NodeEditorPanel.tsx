@@ -469,7 +469,9 @@ function NodeEditorPanelInner() {
             proOptions={{ hideAttribution: true }}
             className="h-full w-full"
           >
-            <Background gap={16} size={1} />
+            {/* ReactFlow's Background dots aren't CSS-themed — pin them to the
+                espresso palette (charcoal-950 canvas, charcoal-700 dots). */}
+            <Background gap={16} size={1} color="#473a33" bgColor="#1a1512" />
             <Controls position="bottom-right" />
           </ReactFlow>
         </div>

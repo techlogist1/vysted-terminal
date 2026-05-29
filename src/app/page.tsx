@@ -81,14 +81,18 @@ export default function Page() {
     <main className="bg-charcoal-950 flex h-screen w-screen flex-col overflow-hidden">
       <CommandPalette />
       <WorkspaceDialog />
-      {/* Instrument header bar — the machined cockpit fascia. Brand wordmark
-          left, instrument controls right, a brass hairline + tick-rule below. */}
-      <header className="bg-charcoal-925 instrument-bezel relative flex h-9 shrink-0 items-center gap-3 px-3">
-        <div className="flex items-baseline gap-2 select-none">
-          <span className="font-serif text-sm leading-none tracking-[0.18em] text-amber-400">
+      {/* Header fascia — clean espresso bar with a coral underline. Brand
+          wordmark left, controls right. The wordmark is a real lockup: a single
+          coral brand pip + a confident Fraunces "VYSTED" in warm cream + a
+          subordinate mono "Terminal" descriptor. */}
+      <header className="bg-charcoal-925 relative flex h-9 shrink-0 items-center gap-3 px-3">
+        <div className="flex items-center gap-2 select-none">
+          {/* coral brand pip — the single lit accent in the fascia */}
+          <span aria-hidden="true" className="size-2 rounded-[2px] bg-amber-400" />
+          <span className="text-charcoal-100 font-serif text-[17px] leading-none font-semibold tracking-[0.01em]">
             VYSTED
           </span>
-          <span className="hud-label leading-none">Terminal</span>
+          <span className="hud-label mt-px leading-none">Terminal</span>
         </div>
         <div className="bg-charcoal-700 mx-1 h-4 w-px" aria-hidden="true" />
         <button
