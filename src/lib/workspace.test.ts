@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModulesStore } from "@/store/modules";
+import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 import type { DrawingSpec } from "../../types/drawings";
 
@@ -50,13 +51,14 @@ describe("workspace serialization", () => {
     useWorkspaceStore.setState({ name: "default", dockviewApi: null });
     useChartDrawingsStore.setState({ byPanel: {} });
     useLLMProvidersStore.setState({ defaultProviderId: "anthropic" });
+    useSymbolsStore.setState({ entries: [{ symbol: "AAPL", assetClass: "equity" }] });
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("serializeWorkspace captures the dockview layout, the enabled map, and chart drawings", () => {
+  it("serializeWorkspace captures the layout, enabled map, drawings, default provider, and watchlist", () => {
     const fakeApi = createFakeDockviewApi(LAYOUT_A);
     useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
     useModulesStore.setState({ enabled: { chart: true, news: false, platform: true } });
@@ -69,7 +71,24 @@ describe("workspace serialization", () => {
       enabledModules: { chart: true, news: false, platform: true },
       chartDrawings: { byPanel: {} },
       defaultProviderId: "anthropic",
+      watchlist: [{ symbol: "AAPL", assetClass: "equity" }],
     });
+  });
+
+  it("deserializeWorkspace restores a persisted watchlist", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    deserializeWorkspace({
+      name: "saved",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      watchlist: [
+        { symbol: "TSLA", assetClass: "equity" },
+        { symbol: "BTC/USDT", assetClass: "crypto" },
+      ],
+    });
+    const entries = useSymbolsStore.getState().entries;
+    expect(entries.map((e) => e.symbol)).toEqual(["TSLA", "BTC/USDT"]);
   });
 
   it("round-trips: serialize then deserialize restores the layout and enabled map", () => {

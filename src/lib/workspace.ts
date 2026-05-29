@@ -21,6 +21,7 @@ import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModulesStore } from "@/store/modules";
+import { type SymbolEntry, useSymbolsStore } from "@/store/symbols";
 import { AUTOSAVE_LAYOUT_NAME, useWorkspaceStore } from "@/store/workspace";
 import type { LLMProviderId } from "../../types/ai";
 import type { WorkspaceDrawings } from "../../types/drawings";
@@ -45,6 +46,12 @@ export interface SerializedWorkspace {
    * workspaces saved before this shipped.
    */
   defaultProviderId?: LLMProviderId;
+  /**
+   * The user's tracked watchlist. Persisted so a customised watchlist survives
+   * a relaunch (it was in-memory-only and reset to the default set every launch
+   * — Phase 10 customizability). Optional for workspaces saved before this.
+   */
+  watchlist?: SymbolEntry[];
   /** Open to future-phase additions; the sidecar stores the body opaquely. */
   [key: string]: unknown;
 }
@@ -73,6 +80,7 @@ export function serializeWorkspace(name: string): SerializedWorkspace {
     enabledModules: useModulesStore.getState().enabled,
     chartDrawings: useChartDrawingsStore.getState().snapshot(),
     defaultProviderId: useLLMProvidersStore.getState().defaultProviderId,
+    watchlist: useSymbolsStore.getState().entries,
   };
 }
 
@@ -109,6 +117,11 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
   // Restore the persisted default AI provider (older workspaces lack it).
   if (workspace.defaultProviderId) {
     useLLMProvidersStore.getState().setDefaultProviderId(workspace.defaultProviderId);
+  }
+  // Restore the persisted watchlist (older workspaces lack it — keep the
+  // default set in that case).
+  if (Array.isArray(workspace.watchlist) && workspace.watchlist.length > 0) {
+    useSymbolsStore.getState().setEntries(workspace.watchlist);
   }
 }
 
@@ -265,6 +278,7 @@ export async function autosaveLayout(): Promise<void> {
       enabledModules: useModulesStore.getState().enabled,
       chartDrawings: useChartDrawingsStore.getState().snapshot(),
       defaultProviderId: useLLMProvidersStore.getState().defaultProviderId,
+      watchlist: useSymbolsStore.getState().entries,
     };
     await fetch(await workspaceUrl(), {
       method: "POST",
