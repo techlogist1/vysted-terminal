@@ -4,6 +4,44 @@ Lead-level open items as of v0.8.0. Each release rolls its carry-forwards
 into this file; resolved items become `~~struck through~~`. See
 `CHANGELOG.md` and `docs/PHASE_N_HANDOFF.md` for per-phase context.
 
+## Phase 10 carry-forwards (operator validation + deferred build)
+
+Phase 10 (copilot + integrations + Claude-after-dark + bug fixes) shipped
+green on `main` (`ci-local` exit 0, §6.5 9/9, smoke exit 0). Items left:
+
+1. **Visual sign-off is the operator's.** The harness can't drive the Tauri
+   webview with real data, and macOS screen capture degraded to an
+   `SCContentFilter` failure mid-session. Eyeball the populated-state shots at
+   both resolutions per the CLAUDE.md visual protocol — specifically the
+   **coral-vs-loss-red** legibility (fallback negative `#d6493a` pre-approved),
+   that **Fraunces** loads (not the Georgia fallback), and the boot/Settings/
+   News/Portfolio fixes. (A clean boot + Settings + populated Portfolio were
+   confirmed early in the session before capture broke.)
+2. **Live copilot demo needs a BYOK key.** The tool loop is proven end-to-end
+   with a mocked provider (`sidecar/tests/test_tool_loop_e2e.py`); a real answer
+   needs a key in Settings → AI Providers. Gemini/Ollama tool paths are
+   confidence-6-7 (built from the SDK shapes, unverifiable without a live key) —
+   verify multi-round tool use on a real Gemini/Ollama key.
+3. **Live Kite OAuth round-trip needs a real Zerodha app** (api_key/secret +
+   the registered redirect `http://127.0.0.1:43117/kite/callback`). The exchange
+   - read paths are unit-tested + curl-verifiable; the browser handshake is
+     operator-manual.
+4. **Kite `request_token` Rust-loopback auto-capture — deferred.** v1 is manual
+   paste of the redirect URL. The Rust loopback listener (auto-capture) needs
+   sha2 + an HTTP client + a browser-opener crate — a cross-OS build/clippy
+   surface `ci-local` can't verify; do it attended if wanted. Dhan/Angel granular
+   `positions_info`/`holdings_info`/`margins_info` splits also deferred (the GET
+   routes fall back to `account_info()` for them today).
+5. **Copilot roster depth — deferred.** Built: live tool loop + context + a
+   clickable persona strip + bare-text routing. Deferred (architected in
+   `docs/research/phase-10/blueprint-copilot.md`): the `GET /agents/roster`
+   metadata endpoint + 3-pane roster panel + hard `delegate_to_persona` hand-off.
+6. **Customizability follow-ups — deferred.** Built: persistent watchlist +
+   integrations hub + terminal-driving copilot + themeable design. Deferred
+   (`docs/research/phase-10/blueprint-customizability.md`): data-source/connector
+   hub (wiring the currently-inert DataSource registry), panel gallery, saved
+   screens, command-palette-as-action-driver.
+
 ## v0.8.0 → Phase 9 carry-forwards (operator manual Mac test)
 
 Phase 8 deep-audit findings that are best exercised by a human operator

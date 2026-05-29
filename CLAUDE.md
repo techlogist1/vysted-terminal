@@ -626,6 +626,46 @@ bootstrap.ts:39 HOST_VERSION` had been at `"0.6.5"` for 4 releases —
   (`--onedir` to kill the per-launch extraction) is a deferred carry-forward —
   it needs a Tauri externalBin→resource-folder + Rust spawn change that
   `pnpm ci-local` can't verify (never runs `tauri build`). See BLOCKERS.md.
+- **The agentic tool loop lives or dies on the tools schema (Phase 10).** The
+  loop in `agent_runtime.invoke_agent` is real, but a model only calls tools if
+  the adapter SENT a `tools=` schema. The catalog is `sidecar/services/agent_tools/
+schemas.py` (`TOOL_SCHEMAS` + `anthropic_tools`/`openai_tools`/`gemini_tools`);
+  `invoke_agent` threads `tool_ids=list(spec.tools)` into `stream_chat`, and EVERY
+  adapter must `kwargs.pop("tool_ids")` (else it forwards an unknown kwarg to the
+  SDK and breaks) + build native tools. To add a tool: register a handler AND add
+  a `TOOL_SCHEMAS` entry AND put its id in an agent's `tools` allow-list — all
+  three, or it's invisible. The assistant tool-call turn is carried in
+  `LLMMessage.metadata["tool_calls"]` (no contract change) and each adapter
+  reconstructs its native shape so multi-round tool results associate. A new
+  first-party agent JSON (e.g. `copilot.json`) bumps the roster count — three
+  tests assert it (`test_agent_runtime`/`test_agents_router`/`test_mcp_server`).
+- **Persisted UI state rides the workspace blob, not localStorage.** `defaultProviderId`
+  and the `watchlist` (Phase 10) join layout/modules/drawings in
+  `SerializedWorkspace` (`src/lib/workspace.ts`). To persist new state: add the
+  field, include it in `serializeWorkspace` + `autosaveLayout`, restore it in
+  `deserializeWorkspace` (guard for older blobs), and — if a change to it doesn't
+  move the dockview layout — add a store subscription in `page.tsx` that calls
+  `autosaveLayout()` (the layout-change autosave won't otherwise fire).
+- **Design token NAMES are historical, not literal (Phase 10 "Claude after dark").**
+  `amber-*` renders CORAL, `charcoal-*` renders ESPRESSO, `brass-*`/`sage-*` are
+  warm NEUTRALS — names were kept so 80+ files re-skin by re-valuing `tokens.css`
+  alone. Read the role, not the name. Canvas (`lightweight-charts`/drawings)
+  can't read CSS vars, so its palette is single-sourced in `src/lib/chart-theme.ts`
+  — change BOTH it and `tokens.css` when re-skinning, or canvas drifts (that's how
+  3 values, incl a forbidden cyan, had silently drifted pre-Phase-10).
+- **Kite Connect login runs in the SIDECAR, not Rust (Phase 10).** The real OAuth
+  exchange is `services.brokers.kite.exchange_request_token` via the bundled
+  `kiteconnect` SDK's `generate_session` (SHA-256 checksum + `/session/token`
+  internal) → `POST /brokers/kite/session`. `api_secret` crosses to the sidecar
+  for the exchange only (never stored/echoed). A Rust loopback that auto-captures
+  `request_token` was deliberately NOT built (3 new crates, unverifiable cross-OS) —
+  manual request_token paste is the v1 flow. New broker read routes are GET-only
+  and duck-type to `account_info()` (no §6.5 ABC change).
+- **Run ruff format + check on the WHOLE tree before committing Python.** Manual
+  Python edits repeatedly slipped a one-line E501 or an unformatted block past
+  per-file checks and only `ci-local` caught it (3× in Phase 10). Run
+  `ruff format <files> && ruff format --check sidecar && ruff check sidecar`
+  before every commit that touches Python — it's the cheapest guard.
 
 ## Per-phase handoff
 
