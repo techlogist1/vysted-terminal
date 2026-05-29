@@ -63,7 +63,8 @@ def _restore_real_registry(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_first_party_roster_loads_all(tmp_path: Path) -> None:
-    """The shipping ``sidecar/agents/`` directory loads all 13 first-party agents (12 personas + the copilot router)."""
+    """The shipping ``sidecar/agents/`` directory loads all 13 first-party
+    agents (12 personas + the Phase-10 copilot router)."""
     agent_runtime.reload()
     specs = agent_runtime.list_agents()
     ids = {spec.id for spec in specs}
