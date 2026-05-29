@@ -24,6 +24,7 @@ from models.llm import (
     LLMDoneEvent,
     LLMErrorEvent,
     LLMMessage,
+    LLMToolUseEvent,
     LLMUsage,
 )
 
@@ -40,9 +41,46 @@ def _split_system_and_contents(
         if message.role == "system":
             system_chunks.append(message.content)
             continue
+        if message.role == "tool":
+            # A tool result is a ``functionResponse`` part on a "user" content.
+            # Gemini keys the response by the tool *name*, not the call id (its
+            # function-calling protocol pairs request/response by name + order).
+            contents.append(
+                {
+                    "role": "user",
+                    "parts": [
+                        {
+                            "function_response": {
+                                "name": message.metadata.get("name", "")
+                                if message.metadata
+                                else "",
+                                "response": {"result": message.content},
+                            }
+                        }
+                    ],
+                }
+            )
+            continue
+        if message.role == "assistant" and message.metadata and message.metadata.get("tool_calls"):
+            # Reconstruct the assistant tool-call turn as a "model" content with
+            # ``functionCall`` parts so the following ``functionResponse`` parts
+            # associate by name (runtime carries the calls in metadata).
+            parts: list[dict[str, Any]] = []
+            if message.content:
+                parts.append({"text": message.content})
+            for tc in message.metadata["tool_calls"]:
+                parts.append(
+                    {
+                        "function_call": {
+                            "name": tc.get("name", ""),
+                            "args": tc.get("input", {}) or {},
+                        }
+                    }
+                )
+            contents.append({"role": "model", "parts": parts})
+            continue
         # Gemini uses "model" for assistant turns and "user" for everything
-        # else (including tool results, which are folded into the user turn
-        # by upstream code that opts into function calling).
+        # else.
         role = "model" if message.role == "assistant" else "user"
         contents.append({"role": role, "parts": [{"text": message.content}]})
     system = "\n\n".join(system_chunks) if system_chunks else None
@@ -62,11 +100,20 @@ class GeminiProvider(LLMProvider):
         api_key: str | None = None,
         **kwargs: Any,
     ) -> AsyncIterator[LLMStreamEvent]:
+        # Pop tool_ids before anything reaches the SDK — generate_content_stream
+        # rejects unknown kwargs, so this must never be forwarded.
+        tool_ids = kwargs.pop("tool_ids", None)
         system, contents = _split_system_and_contents(messages)
         config: dict[str, Any] = {}
         if system is not None:
             config["system_instruction"] = system
         config.update(kwargs.pop("config", {}) or {})
+        if tool_ids:
+            from services.agent_tools.schemas import gemini_tools
+
+            tools = gemini_tools(tool_ids)
+            if tools:
+                config["tools"] = tools
         client = self._client(api_key)
         try:
             stream = await client.aio.models.generate_content_stream(
@@ -77,6 +124,9 @@ class GeminiProvider(LLMProvider):
             )
             usage: LLMUsage | None = None
             finish_reason: str | None = None
+            # Function calls have no stable id in Gemini's protocol; synthesise a
+            # stable one per call from the name + ordinal within the stream.
+            tool_call_index = 0
             async for response in stream:
                 # Text deltas — Gemini packs them into candidates[i].content.parts.
                 candidates = getattr(response, "candidates", None) or []
@@ -89,6 +139,15 @@ class GeminiProvider(LLMProvider):
                         text = getattr(part, "text", None)
                         if text:
                             yield LLMDeltaEvent(text=text)
+                        fc = getattr(part, "function_call", None)
+                        if fc is not None:
+                            name = getattr(fc, "name", "") or ""
+                            yield LLMToolUseEvent(
+                                tool_call_id=getattr(fc, "id", None) or f"{name}_{tool_call_index}",
+                                name=name,
+                                input=dict(getattr(fc, "args", None) or {}),
+                            )
+                            tool_call_index += 1
                     reason = getattr(candidate, "finish_reason", None)
                     if reason:
                         finish_reason = str(reason)

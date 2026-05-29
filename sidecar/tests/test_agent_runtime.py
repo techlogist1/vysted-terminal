@@ -1,6 +1,6 @@
 """Agent runtime tests — discovery, validation, invocation.
 
-The 12 first-party agent configs live in ``sidecar/agents/`` and are
+The first-party agent configs live in ``sidecar/agents/`` and are
 loaded at import time; these tests reach in via :func:`agent_runtime.reload`
 to exercise the discovery path against a controllable directory layout
 (including malformed files and id collisions).
@@ -62,12 +62,13 @@ def _restore_real_registry(monkeypatch: pytest.MonkeyPatch) -> None:
     agent_runtime.reload()
 
 
-def test_first_party_roster_loads_twelve(tmp_path: Path) -> None:
-    """The shipping ``sidecar/agents/`` directory loads all 12 first-party agents."""
+def test_first_party_roster_loads_all(tmp_path: Path) -> None:
+    """The shipping ``sidecar/agents/`` directory loads all 13 first-party agents (12 personas + the copilot router)."""
     agent_runtime.reload()
     specs = agent_runtime.list_agents()
     ids = {spec.id for spec in specs}
     expected = {
+        "copilot",  # Phase 10 — the default terminal-aware router/concierge
         "buffett",
         "graham",
         "lynch",
@@ -82,7 +83,7 @@ def test_first_party_roster_loads_twelve(tmp_path: Path) -> None:
         "strategy_critic",
     }
     assert ids == expected
-    assert len(specs) == 12
+    assert len(specs) == 13
 
 
 def test_first_party_agents_have_substantive_prompts(tmp_path: Path) -> None:

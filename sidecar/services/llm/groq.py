@@ -13,6 +13,7 @@ from ``GET /llm/models?provider=groq`` (out of scope here; not used yet).
 
 from __future__ import annotations
 
+import json
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -23,10 +24,70 @@ from models.llm import (
     LLMDoneEvent,
     LLMErrorEvent,
     LLMMessage,
+    LLMToolUseEvent,
     LLMUsage,
 )
 
 from .base import LLMProvider, LLMStreamEvent
+
+
+def _parse_tool_args(raw: str) -> dict[str, Any]:
+    """Parse accumulated tool-call argument JSON into a dict.
+
+    A no-argument call streams an empty string; a malformed fragment (rare,
+    but possible on a truncated stream) degrades to an empty dict rather than
+    aborting the round — the host surfaces the call with whatever it has.
+    """
+    if not raw:
+        return {}
+    try:
+        parsed = json.loads(raw)
+    except (ValueError, TypeError):
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
+
+
+def _to_api_messages(messages: list[LLMMessage]) -> list[dict[str, Any]]:
+    """Convert host messages to the OpenAI/Groq chat-completions shape.
+
+    Groq is OpenAI-shaped, so tool results carry ``role="tool"`` +
+    ``tool_call_id`` and the assistant turn that triggered them carries a
+    ``tool_calls`` array. The runtime stashes those calls in
+    ``message.metadata["tool_calls"]`` (it has no native place for them on the
+    neutral :class:`LLMMessage`); rebuild them here so each tool result
+    associates with its call by id.
+    """
+    api_messages: list[dict[str, Any]] = []
+    for message in messages:
+        if message.role == "assistant" and message.metadata and message.metadata.get("tool_calls"):
+            tool_calls = [
+                {
+                    "id": tc.get("id", ""),
+                    "type": "function",
+                    "function": {
+                        "name": tc.get("name", ""),
+                        # OpenAI/Groq carry tool-call args as a JSON string.
+                        "arguments": json.dumps(tc.get("input", {})),
+                    },
+                }
+                for tc in message.metadata["tool_calls"]
+            ]
+            api_messages.append(
+                {
+                    "role": "assistant",
+                    "content": message.content or None,
+                    "tool_calls": tool_calls,
+                }
+            )
+            continue
+        api_messages.append(
+            {
+                "role": message.role,
+                "content": message.content,
+                **({"tool_call_id": message.tool_call_id} if message.tool_call_id else {}),
+            }
+        )
+    return api_messages
 
 
 class GroqProvider(LLMProvider):
@@ -42,18 +103,31 @@ class GroqProvider(LLMProvider):
         api_key: str | None = None,
         **kwargs: Any,
     ) -> AsyncIterator[LLMStreamEvent]:
+        tool_ids = kwargs.pop("tool_ids", None)
         client = self._client(api_key)
-        api_messages = [{"role": m.role, "content": m.content} for m in messages]
+        api_messages = _to_api_messages(messages)
         request_kwargs: dict[str, Any] = {
             "model": model,
             "messages": api_messages,
             "stream": True,
         }
+        if tool_ids:
+            from services.agent_tools.schemas import openai_tools
+
+            tools = openai_tools(tool_ids)
+            if tools:
+                request_kwargs["tools"] = tools
         request_kwargs.update(kwargs)
         try:
             stream = await client.chat.completions.create(**request_kwargs)
             usage: LLMUsage | None = None
             finish_reason: str | None = None
+            # Groq streams tool-call arguments the OpenAI way: one tool call
+            # arrives across many chunks, identified by ``tool_call.index``,
+            # with the JSON arguments split into string fragments. Accumulate
+            # per index, then emit one parsed-dict tool_use event per call
+            # before the round's done event.
+            tool_acc: dict[int, dict[str, Any]] = {}
             async for chunk in stream:
                 choices = getattr(chunk, "choices", None) or []
                 for choice in choices:
@@ -63,6 +137,21 @@ class GroqProvider(LLMProvider):
                     content = getattr(delta, "content", None)
                     if content:
                         yield LLMDeltaEvent(text=content)
+                    tool_calls = getattr(delta, "tool_calls", None) or []
+                    for tool_call in tool_calls:
+                        index = getattr(tool_call, "index", 0) or 0
+                        slot = tool_acc.setdefault(index, {"id": "", "name": "", "args": ""})
+                        tc_id = getattr(tool_call, "id", None)
+                        if tc_id:
+                            slot["id"] = tc_id
+                        function = getattr(tool_call, "function", None)
+                        if function is not None:
+                            name = getattr(function, "name", None)
+                            if name:
+                                slot["name"] = name
+                            args_raw = getattr(function, "arguments", None)
+                            if args_raw:
+                                slot["args"] += args_raw
                     reason = getattr(choice, "finish_reason", None)
                     if reason:
                         finish_reason = reason
@@ -75,6 +164,12 @@ class GroqProvider(LLMProvider):
                         input_tokens=getattr(usage_block, "prompt_tokens", 0) or 0,
                         output_tokens=getattr(usage_block, "completion_tokens", 0) or 0,
                     )
+            for slot in tool_acc.values():
+                yield LLMToolUseEvent(
+                    tool_call_id=slot["id"],
+                    name=slot["name"],
+                    input=_parse_tool_args(slot["args"]),
+                )
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
         except groq.GroqError as exc:  # pragma: no cover — network path
             yield LLMErrorEvent(message=f"groq stream failed: {exc}")

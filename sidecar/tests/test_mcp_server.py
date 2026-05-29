@@ -116,8 +116,8 @@ def test_list_agents_tool_wraps_router_response(client: TestClient) -> None:
     assert isinstance(structured, dict)
     agents = structured.get("agents")
     assert isinstance(agents, list)
-    # 12 first-party agents per the Phase-3 §3.4-vs-§4 roster resolution.
-    assert len(agents) == 12
+    # 13 first-party agents (12 personas + the Phase-10 copilot router).
+    assert len(agents) == 13
     assert {agent["id"] for agent in agents} >= {"buffett", "strategy_critic"}
 
 

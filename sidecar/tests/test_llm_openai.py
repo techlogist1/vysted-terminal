@@ -192,11 +192,14 @@ async def test_stream_chat_emits_tool_use_for_function_calls(
         api_key="sk-test",
     ):
         out.append(event)
+    # Phase 10: the adapter now accumulates streamed argument fragments per
+    # tool-call index and emits ONE tool_use with the parsed args (was: one
+    # event per raw fragment), so the runtime feeds the model a real args object.
     tool_use_events = [e for e in out if e.kind == "tool_use"]
-    assert len(tool_use_events) == 2
+    assert len(tool_use_events) == 1
     assert tool_use_events[0].name == "get_quote"
-    assert tool_use_events[0].input == {"arguments_delta": '{"symbol":'}
-    assert tool_use_events[1].input == {"arguments_delta": '"AAPL"}'}
+    assert tool_use_events[0].tool_call_id == "call-1"
+    assert tool_use_events[0].input == {"symbol": "AAPL"}
 
 
 @pytest.mark.asyncio
