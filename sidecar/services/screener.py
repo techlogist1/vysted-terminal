@@ -205,10 +205,17 @@ def _numeric_field_value(
     return getattr(fundamentals, field, None)
 
 
-def _string_field_value(fundamentals: Fundamentals, field: str) -> str | None:
-    """Resolve a string field's value. ``currency`` is on the quote — but
-    the screener doesn't currently fetch quotes for crypto-only flows, so
-    only fundamentals-side string fields are first-class today."""
+def _string_field_value(
+    fundamentals: Fundamentals, quote: Quote | None, field: str
+) -> str | None:
+    """Resolve a string field's value. ``currency`` lives on the quote (equity
+    quotes default to ``USD``), so special-case it like the numeric price/volume
+    trio rather than reading a non-existent ``Fundamentals.currency`` attribute
+    — which made every ``currency`` criterion silently fail and return zero rows
+    for an all-USD universe. A crypto-only flow without a quote resolves
+    ``currency`` to ``None`` (the criterion fails, honestly)."""
+    if field == "currency":
+        return quote.currency if quote is not None else None
     return getattr(fundamentals, field, None)
 
 
@@ -240,7 +247,7 @@ def _evaluate_criterion(
         return criterion.value.min <= value <= criterion.value.max
 
     if isinstance(criterion, StringEqCriterion):
-        value = _string_field_value(fundamentals, criterion.field)
+        value = _string_field_value(fundamentals, quote, criterion.field)
         if value is None:
             return False
         return value.casefold() == criterion.value.casefold()
@@ -249,7 +256,7 @@ def _evaluate_criterion(
         if criterion.field == "symbol":
             haystack = {s.upper() for s in criterion.value}
             return fundamentals.symbol.upper() in haystack
-        value = _string_field_value(fundamentals, criterion.field)
+        value = _string_field_value(fundamentals, quote, criterion.field)
         if value is None:
             return False
         return value.casefold() in {v.casefold() for v in criterion.value}

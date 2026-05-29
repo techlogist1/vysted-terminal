@@ -74,6 +74,11 @@ class McpClient:
         self._session: ClientSession | None = None
         self._exit_stack: AsyncExitStack | None = None
         self._lock = asyncio.Lock()
+        # Bumped every time a new session is opened. A failing call captures the
+        # generation it ran against and passes it to ``close()`` so a stale
+        # error handler can't tear down a session a SIBLING request already
+        # reopened (the concurrent-cold-call poisoning race).
+        self._generation = 0
 
     async def _open(self) -> ClientSession:
         """Open the transport and return an initialised :class:`ClientSession`."""
@@ -115,19 +120,28 @@ class McpClient:
 
         self._exit_stack = exit_stack
         self._session = session
+        self._generation += 1
         return session
 
-    async def _ensure_session(self) -> ClientSession:
+    async def _ensure_session(self) -> tuple[ClientSession, int]:
         if self._session is None:
             async with self._lock:
                 if self._session is None:
                     await self._open()
         assert self._session is not None
-        return self._session
+        return self._session, self._generation
 
-    async def close(self) -> None:
-        """Tear down the transport. Safe to call multiple times."""
+    async def close(self, expected_generation: int | None = None) -> None:
+        """Tear down the transport. Safe to call multiple times.
+
+        ``expected_generation`` lets a failing call request teardown of only the
+        session it actually ran against — if a sibling request already reopened
+        a newer session (generation advanced), this no-ops instead of killing
+        the fresh session out from under that sibling.
+        """
         async with self._lock:
+            if expected_generation is not None and expected_generation != self._generation:
+                return  # a newer session was already opened; don't tear it down
             if self._exit_stack is not None:
                 try:
                     await self._exit_stack.aclose()
@@ -138,12 +152,12 @@ class McpClient:
 
     async def list_tools(self) -> list[dict[str, Any]]:
         """Return the external server's tool definitions as plain dicts."""
-        session = await self._ensure_session()
+        session, generation = await self._ensure_session()
         try:
             result = await session.list_tools()
         except (TimeoutError, mcp.McpError, OSError) as exc:
             _log.debug("MCP %r list_tools failed, dropping session: %s", self.server_id, exc)
-            await self.close()
+            await self.close(expected_generation=generation)
             raise
         return [
             {
@@ -162,14 +176,14 @@ class McpClient:
         ``types/mcp.ts``. Transport-level failures drop the cached session
         so the next call reconnects.
         """
-        session = await self._ensure_session()
+        session, generation = await self._ensure_session()
         try:
             result = await session.call_tool(name, arguments or {})
         except (TimeoutError, mcp.McpError, OSError) as exc:
             _log.debug(
                 "MCP %r call_tool(%s) failed, dropping session: %s", self.server_id, name, exc
             )
-            await self.close()
+            await self.close(expected_generation=generation)
             raise
 
         content: list[dict[str, Any]] = []

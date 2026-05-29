@@ -188,6 +188,13 @@
   transition: color 120ms var(--ease-instrument, ease);
 }
 
+/* Paint dockview's scroll viewport so a panel's over-scroll region never falls
+   through to the WKWebView default backdrop (the "blue void"). Belt-and-braces
+   alongside the per-panel single-scroll-container fix (map-settings 3a). */
+.dockview-theme-vysted .dv-view {
+  background-color: var(--color-charcoal-900, #1c1916);
+}
+
 /* Vysted-themed scrollbars — brass-tinted thin rails on every overflow surface,
    in place of the OS-native chrome. WebKit covers Chromium / Tauri's webview;
    the `scrollbar-*` block gives Firefox parity. */

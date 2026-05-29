@@ -109,20 +109,28 @@ describe("NewsFeedPanel", () => {
     });
   });
 
-  it("surfaces a SidecarError with its status", async () => {
+  it("surfaces a SidecarError with its status (after the auto-retry is exhausted)", async () => {
+    vi.useFakeTimers();
     mockFetchNews.mockRejectedValue(new SidecarError(502, "all news sources failed"));
     render(<NewsFeedPanel />);
-    await waitFor(() => {
-      expect(screen.getByText("Sidecar error 502: all news sources failed")).toBeInTheDocument();
+    // The panel now auto-retries a transient load failure (1s + 2s + 4s) before
+    // surfacing the terminal error — advance past the whole backoff window.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(8000);
     });
+    expect(screen.getByText("Sidecar error 502: all news sources failed")).toBeInTheDocument();
+    vi.useRealTimers();
   });
 
   it("falls back to a generic message for non-SidecarError failures", async () => {
+    vi.useFakeTimers();
     mockFetchNews.mockRejectedValue(new Error("network down"));
     render(<NewsFeedPanel />);
-    await waitFor(() => {
-      expect(screen.getByText("Could not reach the news service.")).toBeInTheDocument();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(8000);
     });
+    expect(screen.getByText("Could not reach the news service.")).toBeInTheDocument();
+    vi.useRealTimers();
   });
 
   it("renders the symbol tags for each item", async () => {

@@ -16,7 +16,8 @@ export function fetchPositions(): Promise<Position[]> {
 }
 
 async function sidecarSend<T>(path: string, method: string, body?: unknown): Promise<T> {
-  const { getSidecarBaseUrl, SidecarError } = await import("@/lib/sidecar-client");
+  const { getSidecarBaseUrl, SidecarError, extractSidecarDetail } =
+    await import("@/lib/sidecar-client");
   const base = await getSidecarBaseUrl();
   const response = await fetch(new URL(path, base).toString(), {
     method,
@@ -24,12 +25,11 @@ async function sidecarSend<T>(path: string, method: string, body?: unknown): Pro
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (!response.ok) {
+    // FastAPI 422 returns `detail` as an array of validation errors — extract a
+    // readable message instead of letting it stringify to "[object Object]".
     let detail = response.statusText;
     try {
-      const parsed = (await response.json()) as { detail?: string };
-      if (parsed.detail) {
-        detail = parsed.detail;
-      }
+      detail = extractSidecarDetail(await response.json(), response.statusText);
     } catch {
       // Response body was not JSON — keep the status text.
     }

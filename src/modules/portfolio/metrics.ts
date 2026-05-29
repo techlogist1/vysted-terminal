@@ -57,8 +57,10 @@ export function buildPortfolioSummary(
     const costValue = position.cost_basis * position.quantity;
     const marketValue = quote !== null ? quote.price * position.quantity : null;
     const pnl = marketValue !== null ? marketValue - costValue : null;
-    const pnlPercent =
-      pnl !== null && costValue !== 0 ? (pnl / costValue) * 100 : pnl !== null ? 0 : null;
+    // P&L% is undefined for a zero cost basis (vested shares / RSUs are a valid
+    // cost_basis=0 case) — return null so the UI shows "—" rather than a
+    // misleading "+0.00%" on a real gain (hunt-state-logic).
+    const pnlPercent = pnl !== null && costValue !== 0 ? (pnl / costValue) * 100 : null;
     return { position, quote, costValue, marketValue, pnl, pnlPercent };
   });
 

@@ -2,6 +2,7 @@ import type { SerializedDockview } from "dockview";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useChartDrawingsStore } from "@/store/chart-drawings";
+import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModulesStore } from "@/store/modules";
 import { useWorkspaceStore } from "@/store/workspace";
 import type { DrawingSpec } from "../../types/drawings";
@@ -15,19 +16,25 @@ vi.mock("@/lib/sidecar-client", () => ({
 import {
   deserializeWorkspace,
   loadWorkspace,
+  restoreLastSessionOrDefault,
   saveWorkspace,
   serializeWorkspace,
   type SerializedWorkspace,
 } from "@/lib/workspace";
 
-/** A minimal fake dockview layout — `toJSON`/`fromJSON` round-trip its state. */
+/** A minimal fake dockview layout — `toJSON`/`fromJSON` round-trip its state;
+ *  `addPanel`/`clear`/`getPanel` are spies so the restore-path guards can be
+ *  asserted without a real dockview engine. */
 function createFakeDockviewApi(initial: SerializedDockview) {
   let layout = initial;
   return {
     toJSON: () => layout,
-    fromJSON: (next: SerializedDockview) => {
+    fromJSON: vi.fn((next: SerializedDockview) => {
       layout = next;
-    },
+    }),
+    addPanel: vi.fn(),
+    clear: vi.fn(),
+    getPanel: vi.fn(),
     get current() {
       return layout;
     },
@@ -42,6 +49,7 @@ describe("workspace serialization", () => {
     useModulesStore.setState({ modules: [], enabled: {} });
     useWorkspaceStore.setState({ name: "default", dockviewApi: null });
     useChartDrawingsStore.setState({ byPanel: {} });
+    useLLMProvidersStore.setState({ defaultProviderId: "anthropic" });
   });
 
   afterEach(() => {
@@ -60,6 +68,7 @@ describe("workspace serialization", () => {
       layout: LAYOUT_A,
       enabledModules: { chart: true, news: false, platform: true },
       chartDrawings: { byPanel: {} },
+      defaultProviderId: "anthropic",
     });
   });
 
@@ -200,5 +209,78 @@ describe("workspace serialization", () => {
     });
 
     expect(useChartDrawingsStore.getState().getDrawings("chart-x")).toHaveLength(0);
+  });
+});
+
+describe("restoreLastSessionOrDefault — boot-crash guards", () => {
+  beforeEach(() => {
+    useModulesStore.setState({ modules: [], enabled: {} });
+    useWorkspaceStore.setState({ name: "default", dockviewApi: null });
+    useChartDrawingsStore.setState({ byPanel: {} });
+    useLLMProvidersStore.setState({ defaultProviderId: "anthropic" });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  function stubFetchResolving(workspace: unknown) {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: true, json: async () => workspace }) as unknown as Response),
+    );
+  }
+
+  it("skips to default (no mutation) when the api was replaced during the fetch", async () => {
+    // The api passed in is NOT the store's live api — simulates StrictMode
+    // disposing/replacing the dockview instance while the restore fetch awaited.
+    const passedApi = createFakeDockviewApi(LAYOUT_A);
+    const liveApi = createFakeDockviewApi(LAYOUT_B);
+    useWorkspaceStore.setState({ dockviewApi: liveApi as never });
+    stubFetchResolving({ name: "x", layout: LAYOUT_A, enabledModules: {} });
+
+    const restored = await restoreLastSessionOrDefault(passedApi as never, new Set(["chart"]));
+
+    expect(restored).toBe(false);
+    expect(passedApi.fromJSON).not.toHaveBeenCalled();
+    expect(passedApi.addPanel).not.toHaveBeenCalled();
+    expect(passedApi.clear).not.toHaveBeenCalled();
+  });
+
+  it("skips to a clean default when the saved layout references an unregistered component", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    // No modules registered → "tradesa-x" is an unknown panel component, the
+    // case where dockview's fromJSON would throw mid-deserialize and corrupt
+    // the grid. We must skip straight to applyDefaultLayout instead.
+    stubFetchResolving({
+      name: "x",
+      layout: { grid: { root: "a" }, panels: { p1: { contentComponent: "tradesa-x" } } },
+      enabledModules: {},
+    });
+
+    const restored = await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+
+    expect(restored).toBe(false);
+    expect(api.fromJSON).not.toHaveBeenCalled(); // never risked the throwing deserialize
+    expect(api.addPanel).toHaveBeenCalled(); // applyDefaultLayout ran instead
+  });
+
+  it("re-bases on a clean grid when the restore fetch fails", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new Error("Load failed"); // sidecar not ready
+      }),
+    );
+
+    const restored = await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+
+    expect(restored).toBe(false);
+    expect(api.clear).toHaveBeenCalled(); // clean grid before the default layout
+    expect(api.addPanel).toHaveBeenCalled();
   });
 });

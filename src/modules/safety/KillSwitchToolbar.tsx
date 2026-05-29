@@ -54,6 +54,7 @@ export function KillSwitchToolbar() {
 
   const [busy, setBusy] = useState(false);
   const [banner, setBanner] = useState<KillSwitchFireResult | null>(null);
+  const [fireError, setFireError] = useState<string | null>(null);
 
   const fire = useCallback(
     async (reason: string, firedBy: KillSwitchFiredBy) => {
@@ -61,11 +62,15 @@ export function KillSwitchToolbar() {
         return;
       }
       setBusy(true);
+      setFireError(null);
       try {
         const result = await fireKillSwitch(reason, firedBy);
         setBanner(result);
-      } catch {
+      } catch (error) {
+        // A kill switch that fails to fire is a safety event the user MUST
+        // see — never swallow it silently (hunt-error-surfaces #2).
         setBanner(null);
+        setFireError(error instanceof Error ? error.message : "Kill switch failed to fire.");
       } finally {
         setBusy(false);
       }
@@ -85,10 +90,18 @@ export function KillSwitchToolbar() {
       if (api === null || cancelled) {
         return;
       }
-      unlisten = await api.listen<KillSwitchEventPayload>("kill-switch:requested", (event) => {
+      const off = await api.listen<KillSwitchEventPayload>("kill-switch:requested", (event) => {
         const firedBy = event.payload?.firedBy ?? "user-keyboard";
         void fire(`global-shortcut: ${firedBy}`, firedBy);
       });
+      // Re-check after the await: if cleanup ran while listen() was pending,
+      // unlisten is still null so cleanup skipped it — tear it down now instead
+      // of leaking a listener that keeps firing the kill switch after unmount.
+      if (cancelled) {
+        off();
+        return;
+      }
+      unlisten = off;
     })();
     return () => {
       cancelled = true;
@@ -104,9 +117,12 @@ export function KillSwitchToolbar() {
 
   const handleReset = useCallback(async () => {
     setBusy(true);
+    setFireError(null);
     try {
       await resetKillSwitch();
       setBanner(null);
+    } catch (error) {
+      setFireError(error instanceof Error ? error.message : "Kill switch reset failed.");
     } finally {
       setBusy(false);
     }
@@ -145,6 +161,26 @@ export function KillSwitchToolbar() {
         </Button>
       )}
 
+      {fireError !== null && (
+        <div
+          role="alert"
+          data-testid="kill-switch-error"
+          className="w-72 rounded-md border border-red-500 bg-red-900/70 px-3 py-2 font-mono text-[10px] text-red-100 shadow-lg"
+        >
+          <div className="flex items-baseline justify-between">
+            <strong className="tracking-wide uppercase">Kill switch failed to fire</strong>
+            <button
+              type="button"
+              aria-label="Dismiss"
+              onClick={() => setFireError(null)}
+              className="text-red-200/80 hover:text-red-100"
+            >
+              ×
+            </button>
+          </div>
+          <p className="mt-1 leading-snug">{fireError} — retry, or halt manually at your broker.</p>
+        </div>
+      )}
       {banner !== null && <KillSwitchBanner result={banner} onDismiss={() => setBanner(null)} />}
       {!banner && lastResult !== null && killSwitchFired && (
         <KillSwitchBanner result={lastResult} onDismiss={() => undefined} muted />

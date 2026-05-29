@@ -40,6 +40,11 @@ interface PluginsState {
   refreshFromRuntime: () => void;
 }
 
+// Holds the unsubscribe for the currently-attached runtime so a re-attach
+// detaches the previous subscription instead of leaking it (defense-in-depth
+// alongside page.tsx's early-teardown dispose — hunt-race-async Finding 1).
+let detachPrevious: (() => void) | null = null;
+
 export const usePluginsStore = create<PluginsState>((set, get) => ({
   plugins: [],
   dataSources: [],
@@ -47,6 +52,7 @@ export const usePluginsStore = create<PluginsState>((set, get) => ({
   nodes: [],
   runtime: null,
   attachRuntime: (runtime) => {
+    detachPrevious?.();
     set({ runtime });
     // Pull the initial state synchronously so any plugins discovered before
     // attachment are visible immediately.
@@ -61,7 +67,14 @@ export const usePluginsStore = create<PluginsState>((set, get) => ({
     refresh();
     // Re-pull on every runtime event — the surface area is small enough that
     // a full re-pull is simpler than computing diffs.
-    return runtime.subscribe(() => refresh());
+    const unsubscribe = runtime.subscribe(() => refresh());
+    detachPrevious = unsubscribe;
+    return () => {
+      if (detachPrevious === unsubscribe) {
+        detachPrevious = null;
+      }
+      unsubscribe();
+    };
   },
   refreshFromRuntime: () => {
     const runtime = get().runtime;
