@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { type DiscoveredPlugin, HEALTH_HISTORY_LIMIT, PluginRuntime } from "@/lib/plugin-runtime";
+import {
+  type DiscoveredPlugin,
+  HEALTH_HISTORY_LIMIT,
+  hostSatisfies,
+  PluginRuntime,
+} from "@/lib/plugin-runtime";
 
 import type {
   AgentSpec,
@@ -458,5 +463,94 @@ describe("PluginRuntime — config wiring", () => {
     expect(capturedConfig?.hostVersion).toBe("0.3.0");
     expect(capturedConfig?.settings).toEqual({ theme: "dark" });
     expect(capturedConfig?.secrets).toEqual({ "api-key": "value-of-api-key" });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Compatibility validation (FR-054 / SC-015) — the marketplace trust guarantees
+// ---------------------------------------------------------------------------
+
+describe("PluginRuntime — compatibility validation (FR-054 / SC-015)", () => {
+  it("rejects a manifest id that does not match the instance pluginId", async () => {
+    const runtime = new PluginRuntime();
+    const snapshot = await runtime.loadPlugin({
+      manifest: manifest({ id: "declared-id", version: "1.0.0" }),
+      instance: fakePlugin("actual-id"),
+    });
+    expect(snapshot.state).toBe("error");
+    expect(snapshot.errorMessage).toContain("compatibility");
+    expect(snapshot.errorMessage).toContain("declared-id");
+  });
+
+  it("rejects a manifest version that does not match the instance version", async () => {
+    const runtime = new PluginRuntime();
+    const snapshot = await runtime.loadPlugin({
+      manifest: manifest({ id: "a", version: "2.0.0" }), // instance is 1.0.0
+      instance: fakePlugin("a"),
+    });
+    expect(snapshot.state).toBe("error");
+    expect(snapshot.errorMessage).toContain("version");
+  });
+
+  it("rejects a plugin whose requiredHostVersion the host does not satisfy", async () => {
+    const runtime = new PluginRuntime({ hostVersion: "0.8.0" });
+    const snapshot = await runtime.loadPlugin({
+      manifest: manifest({ id: "a", version: "1.0.0", requiredHostVersion: "1.0.0" }),
+      instance: fakePlugin("a"),
+    });
+    expect(snapshot.state).toBe("error");
+    expect(snapshot.errorMessage).toContain("requires host version");
+  });
+
+  it("loads a compatible plugin (host satisfies requiredHostVersion)", async () => {
+    const runtime = new PluginRuntime({ hostVersion: "0.8.0" });
+    const snapshot = await runtime.loadPlugin({
+      manifest: manifest({ id: "a", version: "1.0.0", requiredHostVersion: "0.5.0" }),
+      instance: fakePlugin("a"),
+    });
+    expect(snapshot.state).toBe("active");
+  });
+
+  it("an incompatible plugin contributes nothing (no silent load)", async () => {
+    const runtime = new PluginRuntime({ hostVersion: "0.8.0" });
+    await runtime.loadPlugin({
+      manifest: manifest({ id: "a", version: "1.0.0", requiredHostVersion: "9.9.9" }),
+      instance: fakePlugin("a", {
+        capabilities: { contributesPanels: true },
+        getPanels: () => [{ id: "p", title: "P", component: "c" }],
+      }),
+    });
+    expect(runtime.collectPanels()).toEqual([]);
+  });
+
+  it("emits an `errored` event when a plugin is rejected at load", async () => {
+    const runtime = new PluginRuntime();
+    const events: string[] = [];
+    runtime.subscribe((e) => events.push(e.kind));
+    await runtime.loadPlugin({
+      manifest: manifest({ id: "x", version: "1.0.0" }),
+      instance: fakePlugin("y"),
+    });
+    expect(events).toContain("errored");
+  });
+});
+
+describe("hostSatisfies (semver host-compat check)", () => {
+  it("is true when host == required", () => {
+    expect(hostSatisfies("0.8.0", "0.8.0")).toBe(true);
+  });
+  it("is true when host > required", () => {
+    expect(hostSatisfies("0.8.0", "0.5.0")).toBe(true);
+    expect(hostSatisfies("1.0.0", "0.9.9")).toBe(true);
+    expect(hostSatisfies("0.8.1", "0.8.0")).toBe(true);
+  });
+  it("is false when host < required", () => {
+    expect(hostSatisfies("0.8.0", "1.0.0")).toBe(false);
+    expect(hostSatisfies("0.8.0", "0.9.0")).toBe(false);
+    expect(hostSatisfies("0.8.0", "0.8.1")).toBe(false);
+  });
+  it("ignores pre-release / build metadata", () => {
+    expect(hostSatisfies("0.8.0-beta.1", "0.8.0")).toBe(true);
+    expect(hostSatisfies("0.8.0+build5", "0.8.0")).toBe(true);
   });
 });

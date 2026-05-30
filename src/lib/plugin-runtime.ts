@@ -110,6 +110,31 @@ function defaultContext(context?: PluginRuntimeContext): Required<PluginRuntimeC
   };
 }
 
+/** Parse a `major.minor.patch` semver into a numeric triple (pre-release/build ignored). */
+function parseSemver(version: string): [number, number, number] {
+  const core = version.split("+")[0].split("-")[0];
+  const parts = core.split(".").map((p) => Number.parseInt(p, 10));
+  return [
+    Number.isFinite(parts[0]) ? parts[0] : 0,
+    Number.isFinite(parts[1]) ? parts[1] : 0,
+    Number.isFinite(parts[2]) ? parts[2] : 0,
+  ];
+}
+
+/**
+ * True iff `host` >= `required` by major.minor.patch comparison. The host
+ * (Vysted Terminal) satisfies a plugin's `requiredHostVersion` only when it is
+ * at least that version. Deliberately simple — Vysted versions are plain
+ * `x.y.z`; ranges/caret/tilde are not part of the manifest contract.
+ */
+export function hostSatisfies(host: string, required: string): boolean {
+  const [h0, h1, h2] = parseSemver(host);
+  const [r0, r1, r2] = parseSemver(required);
+  if (h0 !== r0) return h0 > r0;
+  if (h1 !== r1) return h1 > r1;
+  return h2 >= r2;
+}
+
 /** Read-only snapshot of one plugin's runtime state — what UI subscribers see. */
 export type LoadedPluginSnapshot = Readonly<LoadedPlugin>;
 
@@ -171,6 +196,18 @@ export class PluginRuntime {
     } else if (record.state === "active" || record.state === "initializing") {
       // Already running — nothing to do; surface the current snapshot.
       return record;
+    }
+
+    // FR-054 / SC-015: reject an incompatible plugin AT LOAD — never silently
+    // load it. Surfaces as `error` with the reason; the plugin never reaches
+    // `active` and contributes nothing.
+    const incompatibility = this.checkCompatibility(plugin);
+    if (incompatibility) {
+      return this.transitionToError(
+        plugin.manifest.id,
+        new Error(incompatibility),
+        "compatibility",
+      );
     }
 
     this.transition(plugin.manifest.id, "initializing");
@@ -245,6 +282,30 @@ export class PluginRuntime {
       return this.transitionToError(pluginId, error, "shutdown");
     }
     return this.transition(pluginId, "stopped", "stopped");
+  }
+
+  /**
+   * Validate that a discovered plugin is compatible with the host BEFORE it is
+   * initialized (FR-054 / SC-015). Returns an error message describing the
+   * incompatibility, or `null` when the plugin is safe to load:
+   *  - the manifest id MUST equal the instance `pluginId`;
+   *  - the manifest version MUST equal the instance `version`;
+   *  - the host version MUST satisfy the manifest `requiredHostVersion`.
+   * The marketplace cannot be trusted without these — a mismatched or
+   * host-incompatible plugin is rejected at load, not silently run.
+   */
+  private checkCompatibility(plugin: DiscoveredPlugin): string | null {
+    const { manifest, instance } = plugin;
+    if (manifest.id !== instance.pluginId) {
+      return `manifest id "${manifest.id}" does not match plugin instance id "${instance.pluginId}"`;
+    }
+    if (manifest.version !== instance.version) {
+      return `manifest version "${manifest.version}" does not match plugin instance version "${instance.version}"`;
+    }
+    if (!hostSatisfies(this.context.hostVersion, manifest.requiredHostVersion)) {
+      return `plugin requires host version >= ${manifest.requiredHostVersion} but host is ${this.context.hostVersion}`;
+    }
+    return null;
   }
 
   // ----- Capability accessors (negotiation by flag) -----

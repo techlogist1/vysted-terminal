@@ -26,6 +26,7 @@ import {
   type PluginPersistenceAdapter,
   PluginRuntime,
 } from "@/lib/plugin-runtime";
+import { getSecret } from "@/lib/keychain";
 import { getSidecarBaseUrl, sidecarGet, SidecarError } from "@/lib/sidecar-client";
 import { useModulesStore } from "@/store/modules";
 import { usePluginsStore } from "@/store/plugins";
@@ -270,6 +271,25 @@ export async function bootstrapPlugins(): Promise<() => void> {
     sidecarBaseUrl,
     hostVersion: HOST_VERSION,
     persistence,
+    // FR-054/SC-015: resolve a plugin's granted secret ids from the OS keychain
+    // at load (the ids are canonical keychain accounts —
+    // KEYCHAIN_NAMESPACES.pluginSecret). Best-effort per id: outside the Tauri
+    // shell the keychain is unreachable, so a failed read is skipped (the plugin
+    // loads with what it can resolve) rather than erroring every plugin. This
+    // replaces the runtime's no-op default so plugin secrets actually flow
+    // through PluginConfig.secrets instead of being fetched out-of-band.
+    resolveSecrets: async (ids) => {
+      const resolved: Record<string, string> = {};
+      for (const id of ids) {
+        try {
+          const value = await getSecret(id);
+          if (value !== null) resolved[id] = value;
+        } catch {
+          // Keychain unreachable (non-Tauri dev) — skip this secret.
+        }
+      }
+      return resolved;
+    },
   });
 
   const detachStore = usePluginsStore.getState().attachRuntime(runtime);
