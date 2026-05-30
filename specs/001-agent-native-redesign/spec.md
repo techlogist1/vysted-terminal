@@ -6,9 +6,12 @@
 
 **Status**: Draft — for operator review (Window 1: understand + spec; no build)
 
-**Last amended**: 2026-05-31 — operator amendment: the plugin marketplace is the **primary
+**Last amended**: 2026-05-31 — (a) operator amendment: the plugin marketplace is the **primary
 extensibility model** (brokers, data providers/connectors, panels, and agents are all marketplace
-plugins; no hardcoded default broker). See Clarifications → Session 2026-05-31, US10, FR-050–FR-055.
+plugins; no hardcoded default broker); (b) operator clarification: first-party panels, data providers,
+and agents ship **pre-installed as built-in plugins** (bundled + enabled by default so first run is
+populated), brokers ship with **none** pre-installed, and the keyless data default (yfinance) is a
+pre-installed data plugin. See Clarifications → Sessions 2026-05-31 / 2026-05-31b, US10, FR-050–FR-055.
 
 **Input**: Reframe Vysted Terminal as an open-source, AI-native finance workspace —
 "Cursor for finance" as the internal design metaphor, **not** the external tagline.
@@ -82,6 +85,35 @@ Kite bullet below.
   diff/accept gate, and append-only audit; plugins plug INTO them and cannot opt out. The Tradesa-V2
   read-only plugin is the working precedent (§5: three enforcement layers). Tier-1 LOCKED files and
   §6.5 invariants stay byte-for-byte untouched. (See FR-055.)
+
+### Session 2026-05-31b (operator clarification — first-party features ship pre-installed as built-in plugins)
+
+This clarification **sharpens** (does not reopen) the unified-extension-model decisions above. It
+reconciles "everything is a marketplace plugin" (FR-050/US10) with "first run is a populated starter
+cockpit" (FR-032): the *one extension model* and *populated first-run* are not in tension because the
+first-party features **are** plugins — pre-installed ones.
+
+- **First-party panels, data providers, and agents ship PRE-INSTALLED as built-in plugins.** They are
+  delivered through the **same** unified extension model as everything else (FR-050/FR-053) — they are
+  not a separate hardcoded path — but they are **bundled and enabled by default** so first run is
+  populated out of the box (FR-032). "Built-in" describes *distribution* (pre-installed, enabled,
+  removable like any plugin), not a *privileged registration path*: a first-party plugin loads through
+  the same runtime, manifest↔instance + `requiredHostVersion` checks, and §6.5 gate as a third-party
+  one (FR-054/FR-055). The dogfooding principle (Constitution V) is satisfied because first-party
+  features exercise the real contract.
+- **The keyless data default ships as a pre-installed data plugin.** The no-key equity default
+  (yfinance) is delivered as a bundled, enabled data-provider plugin so the terminal serves real data
+  on first launch with zero credentials — the "works out of the box" guarantee. It is the reference
+  pre-installed instance of the data slice of the one extension model (FR-053).
+- **Brokers ship with NONE pre-installed.** No broker is bundled-and-enabled at first run; this is the
+  same statement as FR-051's "no broker is hardcoded or registered at boot," now also covering the
+  pre-installed set: the user installs the broker(s) they want from the marketplace and supplies BYOK
+  creds. Kite remains the canonical *reference* broker plugin (FR-052) — available to install, not
+  pre-installed.
+- **Net effect on acceptance:** FR-032's populated first-run is satisfied by the pre-installed
+  first-party plugin set (panels + the keyless data plugin + the default agent); SC-013's "no broker
+  registered at boot / installable-and-removable through the marketplace" is unaffected because brokers
+  are explicitly excluded from the pre-installed set.
 
 ---
 
