@@ -1,716 +1,271 @@
 # Vysted Terminal
 
-Open-source, AI-native finance desktop terminal — Bloomberg-level coverage with a
-plugin architecture, local-first, bring-your-own-keys. Built as a Tauri desktop
-app; Tradesa V2 is the first plugin proving the platform.
+Open-source, AI-native finance desktop terminal — Bloomberg-level data coverage,
+agent-first, local-first, bring-your-own-keys, with a plugin architecture. Built as
+a Tauri desktop app (Rust core + Next.js UI + Python FastAPI sidecar).
+
+> **Redesign in flight.** A "Cursor for finance" reframe (agent-centric hybrid UX,
+> MCP-as-universal-tool-layer, minimal-dark UI) is being specified under `specs/` and
+> `.specify/`. `docs/CURRENT_STATE.md` is the honest baseline of what exists today and
+> what the redesign keeps vs rebuilds. This file tracks **current-state DNA + active
+> rules**; build-time history lives in `CHANGELOG.md`.
 
 ## Living document
 
-This file is project DNA, not a frozen spec — it is expected to evolve. When you
-(a future phase's Claude Code session) learn something the next session would
-need, update this file in the same PR that introduced the change:
+This file is project DNA, not a frozen spec. When a session learns something the next
+session needs, update it in the same PR:
+- A convention emerged/changed → **Coding standards** or the relevant rule.
+- A non-obvious trap was diagnosed → **Gotchas** (one or two lines, the active rule only).
+- Model-assignment rules changed → **Model assignment**.
 
-- A convention emerged or changed → update **Coding standards**.
-- A non-obvious trap was diagnosed and solved → append to **Gotchas**.
-- The model-assignment rules need adjusting → update **Model assignment**.
-
-Rules: surgical edits only — change the line that is wrong, don't rewrite whole
-sections. Keep the file under ~2k tokens and current-state-only. Build-time
-decisions, failed approaches, and per-phase outcomes belong in `CHANGELOG.md`,
-not here. The operator reviews the diff before it is committed.
+Rules: surgical edits — change the wrong line, don't rewrite sections. Keep it lean and
+current-state-only. **History, failed approaches, and per-phase outcomes belong in
+`CHANGELOG.md`, not here.** The operator reviews the diff before commit.
 
 ## Stack
 
-- **Frontend:** Next.js 16 (App Router, static export) + React 19 + TypeScript,
-  Tailwind 4 + shadcn/ui, Zustand, Framer Motion
-- **Desktop core:** Tauri 2.x (Rust) — windowing, keychain, auto-updater, sidecar
-  lifecycle
-- **Sidecar:** Python 3.13 FastAPI service on localhost — data + AI compute; the
-  port is assigned by the Tauri core at launch
-- **Package manager:** pnpm
+- **Frontend:** Next.js 16 (App Router, **static export**) + React 19 + TypeScript,
+  Tailwind 4 + shadcn/ui, Zustand, Framer Motion, lightweight-charts, `@xyflow/react`.
+- **Desktop core:** Tauri 2.x (Rust) — windowing, OS keychain, auto-updater, sidecar +
+  MCP-subprocess lifecycle.
+- **Sidecar:** Python 3.13 FastAPI on `127.0.0.1` — data + AI compute; the port is
+  assigned by the Tauri core at launch. Shipped as a PyInstaller `--onefile` binary.
+- **Package manager:** pnpm.
 
 ## Layout
 
-- `src/` — Next.js frontend
-- `src-tauri/` — Rust Tauri core
-- `sidecar/` — Python FastAPI sidecar
-- `types/` — shared TypeScript types (plugin contract)
-- `styles/` — design tokens
-- `docs/` — architecture docs
+- `src/` — Next.js frontend (`modules/` = feature panels, `store/` = Zustand, `lib/` =
+  workspace/bootstrap/chart-theme, `components/PanelHost.tsx` = dockview host).
+- `src-tauri/` — Rust Tauri core (sidecar spawn, keychain, kill-switch, MCP spawn).
+- `sidecar/` — Python FastAPI sidecar (`routers/`, `services/`, `agents/`, `models/`,
+  `*_mcp_subprocess/`).
+- `types/` — shared TypeScript contracts (`plugin.ts` is Tier-1; `data.ts` mirrors
+  `sidecar/models/`).
+- `plugins/` — bundled plugins (Tradesa V2, openbb-mcp, brokers, example).
+- `styles/` — design tokens. `docs/` — architecture docs. `scripts/` — build/CI scripts.
 
 ## Coding standards
 
-- TypeScript strict mode; no `any` in shared contracts — use `unknown`.
-- Prettier + ESLint (TS), rustfmt + clippy (`-D warnings`), ruff (Python) — all
-  enforced in CI.
-- Conventional commit messages; one commit per concrete deliverable.
-- Builds must stay green on Windows, macOS, and Linux.
+- TypeScript strict; no `any` in shared contracts — use `unknown`.
+- Prettier + ESLint (TS), rustfmt + clippy (`-D warnings`), ruff (Python) — all CI-enforced.
+- Conventional commits; one commit per concrete deliverable. No emojis in code/commits.
+- Builds stay green on Windows, macOS, Linux.
 
-## Plugin contract constraints
+## Decision authority (blast-radius tiers)
 
-`types/plugin.ts` defines the `VystedPlugin` interface — the single highest-risk
-file in the project. Every plugin and every future phase plugs into it. Six
-capabilities: data, panels, commands, agents, nodes, control plane. **Changing
-this contract is a breaking change for every downstream plugin.** Never edit it
-without weighing the blast radius. Tradesa V2 (Phase 5) must implement all six
-capabilities without contract changes. Phase 5 also ships global broker execution
-plugins on the same contract — broker execution is v1.0 scope, gated behind the
-safety layer in `docs/BLUEPRINT.md` §6.5.
+1. **Locked** — `docs/BLUEPRINT.md` §2. Never reopen unilaterally. (Stack; AGPL-3.0 +
+   commercial dual license; MCP server in v1.0.) ⚠️ The redesign vision **changes some
+   locked decisions** (e.g. broker order execution moves to deferred/out-of-scope) — such
+   reversals are Tier-4: surface to the operator, do not bake in silently.
+2. **Spec-derivable** — the brief/blueprint settles it on a careful read. Decide, proceed,
+   document only in the commit.
+3. **Spec-ambiguous, derives from DNA** — spec silent but positioning (agent-first finance
+   sandbox, max extensibility, local-first, BYOK, research-lab voice) points to an answer.
+   Decide, record a one-line append to `CHANGELOG.md`/`BLUEPRINT.md`, continue.
+4. **High blast radius** — plugin contract (`types/plugin.ts`), licensing, the §6.5 safety
+   model, core architecture (layer model, sidecar boundary), or reversing a Locked decision.
+   **Block and ask the operator.**
+
+Only Tier 4 surfaces. Tiers 2–3 are autonomous (Tier 3 with a doc trail). `BLOCKERS.md`
+is for genuine Tier-4 blocks and hard blockers hit while the operator is unavailable.
+
+## Tier-1 locked files & invariants
+
+Touch these only with operator sign-off:
+- **`types/plugin.ts`** — the `VystedPlugin` contract. Six capabilities (data, panels,
+  commands, agents, nodes, control plane). Changing it breaks every downstream plugin and
+  every phase. Stays serializable (no React types — panels ride the companion map below).
+- **§6.5 safety model** (`docs/SAFETY_ARCHITECTURE.md`). Enforced in defense-in-depth, each
+  layer catching a different failure mode:
+  - **Append-only audit log** — `sidecar/models/audit_log.py` `AUDIT_LOG_DDL` has BEFORE
+    UPDATE + BEFORE DELETE `RAISE(ABORT)` triggers on `audit_orders` raising
+    `sqlite3.IntegrityError` ("audit log is append-only: … not permitted"). Reader
+    connection uses `PRAGMA query_only=ON`. DB-enforced, not convention.
+  - **Type gate + grep check** — a confirm-before-place private-method gate plus a
+    grep-time audit (`test_safety_end_to_end.py`) over all call sites.
+  - **Kill-switch** (`services/kill_switch.py` + `src-tauri/src/kill_switch.rs`).
+  - **Read-only trading-wrapper layers** (see Plugins).
+  Never weaken a §6.5 safeguard without operator sign-off.
+- **CI workflows** (`.github/workflows/`), **Tauri config** (`src-tauri/tauri.conf.json`),
+  **licensing** (`LICENSE`, `COMMERCIAL_LICENSE.md`), and **this file**.
+
+## Plugin contract
+
+Plugins implement `VystedPlugin` (`types/plugin.ts`). Because the contract stays
+serializable, React panels ship via the **`src/lib/plugin-bootstrap.ts` `PLUGIN_COMPANIONS`
+static-import map** (each plugin id → `plugins/<id>/panels.ts` exporting
+`Record<string, FunctionComponent>`). Adding a plugin with panels → add to **both**
+`BUNDLED_PLUGINS` and `PLUGIN_COMPANIONS` (bootstrap warns at boot if you forget).
+**Read-only wrapper plugins** enforce safety in three layers: (a) no
+`insert_/update_/delete_/place_/submit_/execute_/create_…` methods on the provider's public
+surface (`inspect.getmembers` audit), (b) no non-GET router routes (`router.routes` audit),
+(c) `capabilities.supportsControlPlane = false`.
+
+## Multi-agent build discipline (worktree)
+
+Teammate agents dispatched with `isolation: "worktree"` **do not always isolate** — some
+(historically Sonnet teammates) write into the lead's **main worktree** or switch its HEAD
+onto a shared agent branch, which can sweep uncommitted lead edits into a teammate commit.
+- **One isolated worktree per teammate; never the main worktree; never a shared agent
+  branch** — each teammate pushes to its own `worktree-agent-<name>`.
+- **Before any lead work after dispatch AND before integrating**, run `git worktree list`
+  + `git branch`. If main's HEAD moved onto a teammate branch: stash lead files →
+  `git checkout main` → `git stash pop`, then confirm no lead file was captured
+  (`git log main..<branch> -- <lead-files>` empty = safe).
+- **Audit only via `origin/<branch>`.** Discard main-worktree contamination with
+  `git restore --source HEAD -- <file>` + `git clean`, then fetch + merge from origin.
+- **Brief teammates to push every concrete deliverable** (each push is a recovery
+  checkpoint). On a teammate failure notification, FIRST inspect its worktree + branch
+  (`git log --oneline -20`, `git status --short`) — work is often 95% done and committed
+  even when the API saw a socket-close or stream-watchdog termination.
 
 ## Model assignment (multi-phase build)
 
-- **Opus** — lead. Owns risk-critical files: the plugin contract, CI workflows,
-  Tauri config, licensing, and this file.
-- **Sonnet** — mechanical work only (component JSX, design tokens, boilerplate
-  docs). The lead reviews every diff before merge.
-- **Haiku** — log parsing and high-volume mechanical scanning.
+- **Opus** — lead; owns risk-critical files (plugin contract, CI, Tauri config, licensing,
+  §6.5, this file) and reviews every diff before merge.
+- **Sonnet** — mechanical work (component JSX, design tokens, boilerplate docs).
+- **Haiku** — log parsing, high-volume mechanical scanning.
 
-## Decision authority
+## Gotchas (active rules)
 
-How a session resolves a choice depends on its blast radius. Four tiers:
+### Sidecar & distribution
+- **Spawn port-owning subprocesses via Tauri Rust `app.shell().sidecar(...)`** (precedent
+  `src-tauri/src/openbb_mcp.rs`), never Python `subprocess.Popen` — anyio + `_MEIPASS` +
+  Windows handle-inheritance deadlock a `--onefile` server. After spawn, call
+  `crate::wait_for_port` (port `0` → routes fall back / 501, graceful degrade).
+- **PyInstaller `--onefile` silently drops three things** — audit each new sidecar dep:
+  (a) `--copy-metadata` for packages whose `__init__` runs `importlib.metadata.version(...)`
+  (`fastmcp, mcp, anyio, httpx, starlette, uvicorn`); (b) `--collect-data` for pkgutil
+  resource data inside a package (e.g. `edgar`); (c) `--add-data` for non-package data dirs
+  loaded via `Path(__file__).parent` (e.g. `agents/` — was silently unavailable for 3
+  releases). `cargo test` never runs the binary; the smoke-test does.
+- **`bundle.externalBin` declares 3 sidecars** (main, openbb-mcp, sec-edgar-mcp); all must
+  build before `tauri build`. Adding one: `externalBin` + the SCRIPTS list in
+  `scripts/ensure-all-sidecars.mjs` + `.gitignore`/`.prettierignore` + `pnpm sidecars:build`.
+  The orchestrator is the single entry point — don't chain `ensure-*` scripts inline.
+- **Ensure scripts are staleness-aware** (`scripts/sidecar-staleness.mjs`): a binary older
+  than its source rebuilds even without `--force`; editing an ensure recipe forces a rebuild.
+- **`keyring` Rust crate v3 needs explicit backend features** —
+  `["apple-native","windows-native","sync-secret-service","crypto-rust"]`; `set_password`
+  silently no-ops on a default-features build.
+- **Node scripts that spawn sidecar binaries must tree-kill on teardown** — POSIX
+  `detached` groups + `process.kill(-pid)`, Windows `taskkill /F /T`, exit handlers, and a
+  pre-flight orphan check. PyInstaller workers orphan and hold the `_MEI` lock otherwise.
+- Main sidecar binary footprint target **≤120 MB**.
 
-1. **Locked** — decisions in `docs/BLUEPRINT.md` §2 "Locked Decisions Summary".
-   Never reopen. _E.g._ the stack (Tauri + Next.js + Python sidecar); AGPL-3.0 +
-   commercial dual license; global broker execution in v1.0 scope.
-2. **Spec-derivable** — the phase brief or blueprint settles it on a careful
-   read. Decide and proceed; no asking, no documentation beyond the commit.
-   _E.g._ which Pydantic models a phase needs (the brief enumerates them); a
-   brief's stated teammate merge order; that the AI chat sidebar is Phase 3.
-3. **Spec-ambiguous, derives from DNA** — the spec is silent, but the product
-   positioning (finance sandbox, max extensibility, local-first, BYOK,
-   research-lab voice) points to an answer. Decide from positioning, record it
-   as a one-line append to `CHANGELOG.md` or `docs/BLUEPRINT.md`, continue.
-   _E.g._ dockview chosen as layout engine; rationale: max sandboxability per
-   product positioning; supports BLUEPRINT §5.2 customization primitives
-   natively. _E.g._ sidecar-owned vs Tauri-owned persistence; lexicon vs
-   model-based sentiment given the PyInstaller `--onefile` constraint.
-4. **High blast radius** — the plugin contract (`types/plugin.ts`), licensing,
-   the §6.5 execution safety model, or core architecture (the layer model, the
-   sidecar boundary). Block and ask the operator. _E.g._ any `types/plugin.ts`
-   change; altering AGPL/commercial terms; weakening a §6.5 safeguard.
+### Copilot & sidecar code
+- **The agentic tool loop (`agent_runtime.invoke_agent`) only calls a tool if the adapter
+  SENT a `tools=` schema.** To add a tool you need ALL THREE: register a handler, add a
+  `TOOL_SCHEMAS` entry in `sidecar/services/agent_tools/schemas.py`, and put its id in an
+  agent's `tools` allow-list. Every `services/llm/` adapter must `kwargs.pop("tool_ids")`
+  (else it forwards an unknown kwarg to the SDK). The assistant tool-call turn rides
+  `LLMMessage.metadata["tool_calls"]` (no contract change). A new first-party agent JSON
+  bumps the roster count asserted by `test_agent_runtime`/`test_agents_router`/`test_mcp_server`.
+- `agent_tools` is a package — `reset_for_tests()` must re-register import-time tools.
+- **FastMCP tools must return a dict** (or declare `output_schema`) — wrap bare-list REST
+  responses at the MCP boundary (e.g. `{"agents": [...]}`); don't change the REST contract.
+- **Python 3.13:** use `asyncio.run(...)`, not `asyncio.get_event_loop()` outside a running
+  loop (raises `RuntimeError`).
+- **`types/data.ts` mirrors `sidecar/models/` by hand** — change both in the same commit.
+- **Arbitrary-precision numbers cross the wire as strings** (XBRL/SEC overflow JS
+  `Number.MAX_SAFE_INTEGER`); parse to `BigInt` only when computing.
 
-Only Tier 4 surfaces to the operator. Tiers 2 and 3 are autonomous — Tier 3 with
-a documentation trail. Do not ask permission for spec ambiguities that DNA can
-settle; that is what Tier 3 is for. `BLOCKERS.md` (repo root) is for genuine
-Tier-4 blocks and hard blockers hit while the operator is unavailable.
+### Frontend
+- **dockview is the panel layout engine** (`src/components/PanelHost.tsx`): a module
+  registers a `PanelSpec` whose `component` id maps to a React component via
+  `VystedModule.panelComponents`. dockview base CSS is imported in `globals.css` before the
+  `.dockview-theme-vysted` override; `PanelHost` mounts `DockviewReact` only after modules
+  register (keeps static export SSR-safe).
+- **`dragDropEnabled: false`** (`tauri.conf.json` `app.windows[0]`) is REQUIRED for
+  in-webview HTML5 drag-drop (dockview tab reorder + node-editor palette→canvas) — the
+  default `true` installs an OS handler that swallows HTML5 drag (macOS WKWebView too).
+- **Persisted UI state rides the workspace blob** (`SerializedWorkspace`,
+  `src/lib/workspace.ts`), not localStorage. Add a field → include in `serializeWorkspace`
+  + `autosaveLayout`, restore in `deserializeWorkspace` (guard older blobs); if the change
+  doesn't move the dockview layout, add a store subscription in `page.tsx` calling
+  `autosaveLayout()`.
+- **Design token NAMES are historical, not literal** (`amber-*`→coral, `charcoal-*`→espresso,
+  `brass-*`/`sage-*`→warm neutrals) so re-skinning re-values `tokens.css` alone. Canvas
+  (`lightweight-charts`/drawings) can't read CSS vars — its palette is single-sourced in
+  `src/lib/chart-theme.ts`; change BOTH or canvas drifts. _(The redesign replaces this warm
+  palette with a Cursor-style minimal-dark one — change both sources together.)_
+- **chrome-devtools MCP can't synthesize trusted (`isTrusted`) events** — canvas-interactive
+  features (drawings, drag-to-pan, lightweight-charts gestures) need Playwright/native event
+  injection for visual regression, not chrome-devtools.
 
-## Visual verification protocol
+### Broker & credentials
+- **BYOK secrets:** the renderer reads the OS keychain (Tauri `keychain_set/get/delete`) and
+  passes the secret in the request (a **header** for read-only plugins, never the body); the
+  **sidecar cannot read the keychain**. Never log, echo, or persist beyond process memory.
+  Loopback transport only. `test_<plugin>_router.py` asserts responses never echo creds.
+- **Kite Connect read-only login runs in the SIDECAR** (`services.brokers.kite.
+  exchange_request_token` via `kiteconnect.generate_session` → `POST /brokers/kite/session`);
+  `api_secret` crosses for the exchange only (never stored/echoed). New broker read routes
+  are GET-only and duck-type to `account_info()` (no §6.5 ABC change). Manual request_token
+  paste is the v1 flow. `static_ip_detector.py` warns on IP mismatch but does NOT pre-block.
 
-Screenshots used as visual proof MUST capture **populated** panel state, not
-empty defaults. Empty-state shots hide bugs that only manifest with real data —
-the 00606e7 hot-patch fixed an Equity Overview horizontal overflow that the
-v0.2.1 verification screenshots missed because Equity Overview was empty in the
-shot.
+### Versioning & process
+- **Version lives in many sources** — `package.json` + `Cargo.toml` + `tauri.conf.json` +
+  sidecar `app.py FastAPI(version=…)` + `HOST_VERSION` (`plugin-bootstrap.ts`); `/health`
+  derives from `request.app.version`. At bump: grep for stale version strings and run
+  `cargo update -p vysted-terminal --offline --manifest-path src-tauri/Cargo.toml`.
+- **Long-running commands** (>~30s: pytest suites, sidecar builds) run in the background with
+  job-ID tracking; **never pipe a long command through `head`/`tee` in the foreground**
+  (deadlocks; also masks the exit code).
+- **CORS-error-masks-500:** FastAPI `CORSMiddleware` doesn't add CORS headers to exception
+  responses, so a 500 surfaces in the browser as a "CORS policy" error — direct-`curl` the
+  endpoint to distinguish a real CORS issue from a 500-without-CORS-headers.
 
-For any release or hot-patch verification shot, follow the canonical visual
-convention codified in the v0.7.0 Gotcha (`AAPL anchor + 5-panel cockpit +
-dark + populated semantics + both resolutions + per-release subfolder + header
-always present`). Per-surface "populated" definitions:
+## Verification gates (hard, before every release tag)
 
-- **Watchlist** — `AAPL, MSFT, NVDA, SPY, QQQ, BTC/USDT, ETH/USDT`, prices ticking.
-- **Chart** — SPY with 2–3 indicators active + VWAP.
-- **Equity Overview** — AAPL with all sections populated.
-- **News** — 3–5 articles rendered with sentiment.
-- **Portfolio** — ≥1 AAPL position with P&L.
+- **`pnpm ci-local`** mirrors CI byte-for-byte (install `--frozen-lockfile` →
+  ensure-all-sidecars → lint → format:check → typecheck → cargo fmt → clippy `-D warnings` →
+  ruff → vitest → cargo test → pytest). If it's skipped or red at tag time, the tag is invalid.
+- **`node scripts/smoke-test-sidecars.mjs`** catches the binary-runtime gap `ci-local` can't
+  see (spawns each built sidecar, polls `/health`, checks MCP subprocesses survive).
+- Cheapest in-sprint guard: `pnpm format:check` before every push to `main`. Before any
+  Python commit: `ruff format <files> && ruff format --check sidecar && ruff check sidecar`.
 
-Capture at **both** 1920×1080 and 2560×1440 via the `chrome-devtools` MCP
-`resize_page`. Table widths shift with available space; a panel that looks
-fine at one resolution can overflow at the other.
+## Deferred / carry-forward
 
-## Screenshot organization
+- **MCP cold-bind ~34 s** isolated; concurrent `_MEI` extraction at boot contends for disk,
+  so `MCP_PORT_WAIT_SECS=45`. True fix is `--onedir` (kills per-launch extraction) — needs an
+  `externalBin`→resource-folder + Rust spawn change that `ci-local` can't verify. See
+  `BLOCKERS.md`.
+- smoke-test should additionally TCP-probe the claimed MCP port + verify load-bearing
+  endpoints (`/agents` count > 0).
 
-Each release tag and significant patch gets its **own** subfolder under
-`docs/screenshots/`. Folder names track release tags exactly (`v0.2.0`,
-`v0.2.1`). Inter-tag residual fixes get `<tag>-<descriptor>` (e.g.
-`v0.2.1-equity-fit` for commit 00606e7) or the commit short SHA when no
-obvious descriptor fits.
+## Visual verification
 
-**Never overwrite** existing screenshots. The v0.2.1-tag layout-\*.png pair was
-silently overwritten by the 00606e7 verification run and is unrecoverable from
-the working tree — only the v0.2.1 release commit's blob store still has them.
-A per-patch folder costs nothing and preserves the per-release visual record.
-
-## Gotchas
-
-Non-obvious traps and their fixes — append a line or two as they are found, so
-the next session does not re-learn them. (Phase 0 build notes live in
-`CHANGELOG.md`.)
-
-- **`types/data.ts` mirrors `sidecar/models/` by hand.** The sidecar's Pydantic
-  models and their TypeScript counterparts in `types/data.ts` are kept in sync
-  manually. Change a Pydantic model → update the matching interface in
-  `types/data.ts` in the same commit.
-- **Smoke-testing the sidecar binary orphans a worker.** The PyInstaller
-  `--onefile` binary re-execs a worker child; `Stop-Process` on the bootloader
-  PID leaves the worker alive, holding the binary locked — which breaks the next
-  `ensure-sidecar.mjs` copy with `EBUSY`. When running the binary directly, kill
-  it by name wildcard (`Get-Process vysted-sidecar*`), not by the spawned PID.
-  The stdin-EOF watchdog only covers the Tauri-managed path.
-- **dockview is the panel layout engine.** Panels render inside `dockview`
-  (`src/components/PanelHost.tsx`); a module registers a `PanelSpec` whose
-  `component` id maps to a React component via `VystedModule.panelComponents`.
-  dockview's base CSS is imported in `globals.css` before the
-  `.dockview-theme-vysted` override so the override wins the cascade. `PanelHost`
-  only mounts `DockviewReact` after modules register, which keeps the
-  static-export build SSR-safe.
-- **chrome-devtools MCP cannot synthesize trusted user events.** Canvas-
-  interactive features gated by `isTrusted` (drawing tools, drag-to-pan, any
-  lightweight-charts gesture) cannot be visually regression-tested through
-  chrome-devtools — its synthesised events are rejected. Phase-3 visual
-  verification of canvas-interactive features needs real-event tooling
-  (Playwright with native event injection, or equivalent). Phase-2 substitute:
-  unit-test the data model + screenshot the toolbar wiring.
-- **Spawn subprocess servers via Tauri Rust `Command::new`, not Python
-  `subprocess.Popen`.** Verified pattern as of v0.4.0 (`a3b78c5`,
-  openbb-mcp-server). A PyInstaller `--onefile` REST/MCP server that
-  prewarms cleanly via PowerShell `Start-Process` deadlocks indefinitely
-  when launched from `subprocess.Popen` on Windows — anyio + `_MEIPASS`
-  - Windows handle-inheritance interact pathologically. v0.3.0's OpenBB
-    subprocess hit this; v0.4.0 fixed it by retiring that path and
-    spawning `openbb-mcp-server` via `app.shell().sidecar(...)` from
-    `src-tauri/src/openbb_mcp.rs`. Use this pattern for any subprocess
-    that owns its own port/lifecycle.
-- **`keyring` Rust crate v3 has no default features.** The crate compiles
-  and the API works without any platform-backend feature, but
-  `set_password` silently no-ops on a default-features build. The
-  v0.4.0 keychain commands enable the cross-platform set
-  `["apple-native", "windows-native", "sync-secret-service",
-"crypto-rust"]` explicitly — these are load-bearing, not optional.
-- **FastMCP tools must return a dict (or declare an output_schema).**
-  Returning a bare list throws `structured_content must be a dict or
-  None` at tool-call time. When proxying a REST endpoint that emits a
-  bare-list response (e.g. v0.4.0's `GET /agents` returns a `list[
-AgentSummary]`), wrap at the MCP-tool boundary as
-  `{"agents": [...]}` — don't change the REST contract.
-- **Ruff version drift across teammate worktrees.** Phase 3 caught two
-  UP041 cases (`asyncio.TimeoutError` → builtin `TimeoutError`) and a
-  handful of formatting tweaks that B's worktree ruff didn't flag but
-  the lead's did. Run `ruff check sidecar --fix && ruff format sidecar`
-  at lead-integration time before tagging; the auto-fixes are safe.
-- **Two teammates writing the same file from scratch.** If two
-  worktrees both ship a full version of a shared file, the lead
-  hand-merges at integration. Don't expect either "bare" version to
-  drop in cleanly. Phase-3 plan-side fix: when two teammates need
-  the same file, specify which owns it as primary and what the
-  secondary adds, OR sequence the secondary's worktree to branch from
-  the primary's pushed branch. v0.4.0's `src/store/agents.ts` is the
-  precedent.
-- **Retirement scope cleanup includes untracked build artefacts.**
-  When `git rm` removes a directory like `sidecar/openbb_subprocess/`,
-  the untracked `.venv/` left by the old build script stays on disk
-  and starts leaking files into Prettier / lint scans. Lead
-  integration must `rm -rf` the orphaned directory explicitly. v0.4.0
-  hit this with the Phase-2 OpenBB retirement.
-- **Sidecar `--onefile` binary footprint targets ≤120 MB main.**
-  v0.4.0 distribution: 122 MB total (main sidecar 67 MB + openbb-mcp
-  55 MB); main grew +10 MB from 5 AI provider SDKs. v0.5.0 confirmation:
-  6 broker SDKs (`dhanhq`, `smartapi-python`, `kiteconnect`, `alpaca-py`,
-  `ib_async`, `oandapyV20`) + workflow engine + backtest engine added
-  only **+0.4 MB to main** (67.4 MB total). Pure-Python wrappers share
-  most upstream deps (httpx, requests, websockets) so the PyInstaller
-  graph stays lean. Future phases adding heavy Python deps (Phase 6
-  QuantLib) should check projected main-sidecar size against the 120 MB
-  threshold and apply the Tauri-Rust-spawn pattern (precedent
-  `src-tauri/src/openbb_mcp.rs`) proactively if approaching.
-- **Agent-tool `isolation: "worktree"` doesn't fully isolate writes for
-  every agent.** v0.5.0 mega-sprint: several teammates (notably K and S)
-  wrote tracked files in the lead's main worktree while running,
-  bypassing the supposedly-isolated worktree under `.claude/worktrees/`.
-  The contamination surfaces at first merge attempt — typically as
-  pytest import errors or stale local modifications shown by `git status`.
-  **Rule:** the lead audits only via `origin/<branch>`; main-worktree
-  contamination is always discarded via
-  `git restore --source HEAD -- <file>` + `git clean` of untracked
-  contamination, then proper fetch + merge from origin. Documented in
-  PHASE_4_HANDOFF.md "Coordination lesson" + PHASE_5_HANDOFF.md.
-- **Teammate worktree isolation can fail by switching the MAIN worktree's
-  branch — verify before integrating.** Phase 9 fix sprint: two **Sonnet**
-  teammates (fe, sc) dispatched with `isolation: "worktree"` ignored it —
-  both committed into the lead's **main worktree** on a single shared branch
-  (`worktree-agent-fe`), switching the main worktree's HEAD onto it; the
-  **Opus** teammates (async, rs) isolated correctly under
-  `.claude/worktrees/`. This is worse than the v0.5.0 stray-write variant:
-  the lead's HEAD moves and uncommitted lead edits can be swept into a
-  teammate commit. **Enforcement:** one isolated worktree per teammate, never
-  the main worktree, never a shared agent branch (each teammate pushes to its
-  own `worktree-agent-<name>`). **Before any lead work after dispatch AND
-  before integrating**, run `git worktree list` + `git branch` — if the main
-  worktree's HEAD moved onto a teammate branch, recover by stashing the lead's
-  files, `git checkout main`, `git stash pop` (teammate commits stay on their
-  branch ref), and confirm no lead file was captured via
-  `git log main..<branch> -- <lead-files>` (empty = safe). Audit only via
-  `origin/<branch>`.
-- **Append-only audit log is enforced at the DB level via SQLite triggers.**
-  `sidecar/models/audit_log.py` exports `AUDIT_LOG_DDL` with two
-  `RAISE(ABORT, ...)` triggers (BEFORE UPDATE + BEFORE DELETE) on
-  `audit_orders`. The trigger raises `sqlite3.IntegrityError` (NOT
-  `OperationalError` — the audit-suite tests catch this) with the
-  literal message `audit log is append-only: UPDATE not permitted` /
-  `... DELETE not permitted`. The reader connection additionally uses
-  `PRAGMA query_only=ON` so a misconfigured reader role cannot
-  accidentally write either. v0.5.0 BLUEPRINT §6.5 #4 enforcement —
-  not convention.
-- **`@xyflow/react` is the npm rebrand of `reactflow`** (12.x). Phase 0
-  stack docs referred to the old name; v0.5.0 pins `@xyflow/react@12.10.2`
-  as the canonical import (`import { ReactFlow } from "@xyflow/react"`).
-  Migration paths from `reactflow` are documented at xyflow.com; future
-  phases should use the rebranded import.
-- **Kite Connect static-IP UX is required for order placement, not
-  pre-blocked.** SEBI/NSE retail-algo compliance (in effect 2026-04-01)
-  requires a registered static IP for order-placement API calls. Data
-  endpoints are unaffected. `services/static_ip_detector.py` performs a
-  one-shot HTTPx GET to `api.ipify.org`; the Kite plugin's
-  `kite-static-ip-banner.tsx` polls and renders a banner on mismatch.
-  Critically, the order placement path does NOT pre-block — a user
-  behind VPN/VPS with the registered IP may legitimately succeed. The
-  Kite API rejection at order time surfaces a graceful UX dialog
-  through the audit-log path.
-- **Long-running shells run in background with job-ID tracking.** Heavy
-  pytest suites (the §6.5 audit's 25-min kill-switch benchmark, full
-  sidecar suites, sidecar `--onefile` builds) auto-background when run
-  via the Bash tool; the disciplined pattern is "kick off →
-  `Awaiting notification on <jobId>` → resume on completion". Explicit
-  contrast with the Phase-2/3 foreground-pipe deadlock (`pnpm dev | head
--20` blocks indefinitely): foreground pipes on long commands hang the
-  session. **Rule:** anything > ~30s runtime → background + job-ID;
-  never pipe a long-running command through `head`/`tee`/etc. in the
-  foreground.
-- **Defense-in-depth for safety-critical surfaces — type-level gate +
-  DB-enforced invariant + grep-able audit check.** The v0.5.0 §6.5
-  9/9-pass precedent: BLUEPRINT §6.5 #4 (append-only audit log) gets a
-  private-method type gate (`_place_confirmed` only callable from
-  `confirm_and_place`), a DB-level invariant (SQLite triggers
-  `RAISE(ABORT)` on UPDATE/DELETE), AND a grep-time check (
-  `test_safety_end_to_end.py::test_audit_2` greps the whole sidecar for
-  call-sites). Each layer catches a different failure mode; together
-  they survive a teammate's mistake at any layer. **Template** for any
-  future-phase high-blast-radius surface (Phase 6 QuantLib pricing
-  modules, Phase 7 distribution/signing, Phase-5.x Tradesa V2 plugin):
-  enforce at the type system where the language allows, at the data
-  layer where state lives, and capture a verifiable assertion in the
-  dedicated audit suite. Documented in `docs/SAFETY_ARCHITECTURE.md`.
-- **Mega-sprint pattern (2 BLUEPRINT phases under one tag) is viable —
-  ceiling reference.** v0.5.0 shipped Phase 4 (workflow + backtest +
-  node editor + Strategy Critic e2e) AND Phase 5 (7 broker integrations
-  - §6.5 safety) under one tag because the product story is one story:
-    research with agents → compose workflow → backtest → critic approves →
-    paper-execute through real broker. 7 parallel Opus 4.7 teammates +
-    10 sequential foundation commits + dedicated §6.5 audit checkpoint
-    shipped clean with Tier-1 plugin contract held. **Not "always
-    mega-sprint going forward"** — viable when (a) foundation contracts
-    can lock cleanly before teammate dispatch, (b) audit fidelity stays
-    high (per-phase audit checkpoints, not just per-release), (c) the
-    teammate decomposition has clear non-overlapping file ownership.
-    Phase-6 (Macro + Research + QuantLib) is closer to a single-phase
-    shape; Phase 5.x Tradesa V2 + Phase 6 QuantLib could potentially
-    compress if (a)–(c) hold.
-- **Teammate agent terminations come in two flavours: socket-closed +
-  stream-watchdog. Both are recoverable.** Phase 6 caught one of each:
-  Sc died on an API socket close mid-execution after pushing the
-  backend slice (Sc's frontend salvaged as a v0.6.1 lead-completion
-  task); Q stalled at the 600s stream-watchdog mid-formatting with all
-  work locally complete but uncommitted (lead salvaged directly from
-  the worktree, committed + pushed to the worktree branch). **Rule for
-  teammate dispatch going forward**: brief teammates to push commits
-  FREQUENTLY (every concrete deliverable, not at end-of-task) — every
-  push is a recovery checkpoint. **Rule for lead audits**: when a
-  teammate's notification reports failure, FIRST inspect their worktree
-  dir + branch via `git log --oneline -20` + `git status --short` — the
-  work may be 95% complete and locally committed even when the API
-  level sees an error. The v0.5.0 Teammate S precedent (usage-limit
-  termination → lead-completed audit + handoff doc from the integrated
-  codebase) generalises.
-- **`agent_tools` package refactor side effect — `reset_for_tests` must
-  re-register import-time tools.** v0.5.0's flat
-  `sidecar/services/agent_tools.py` registered `backtest_summary` at
-  module bottom. v0.6.0's F4 refactor split that into a package; the
-  `backtest_summary` registration moved into a submodule's import side
-  effect. Tests that called `agent_tools.reset_for_tests()` cleared the
-  registry without re-importing the submodule, leaving the registry
-  empty. The fix lives in `sidecar/services/agent_tools/__init__.py`:
-  `reset_for_tests()` now re-registers `backtest_summary` after
-  clearing. Future foundation tools that auto-register at import time
-  need to be added to the same re-registration list.
-- **PyPI naming traps — a package id may not be in the language you
-  expect.** v0.6.0 Phase 6 Teammate M caught `fred-mcp-server` on PyPI
-  is actually a Node.js MCP server, NOT a Python MCP server. Pivot to
-  the in-process Python SDK (`fredapi`) matched ECB/IMF/WB pattern and
-  avoided pulling a Node runtime into the Tauri build chain (BLOCKERS-M.md
-  T3-M-1). **Rule**: when the plan names a subprocess MCP server,
-  verify the language at dispatch time before wiring PyInstaller — a
-  3-minute PyPI/GitHub check beats a half-hour debug of a "Python
-  package that won't import".
-- **XBRL precision must cross the wire as strings.** SEC EDGAR filings
-  carry numbers that overflow JavaScript's `Number.MAX_SAFE_INTEGER`
-  (AAPL's total-assets cent value is one example). v0.6.0 SEC contracts
-  in `types/sec.ts` + `models/sec.py` type these fields as `string`;
-  the UI parses to `BigInt` only when computing on them. Any future
-  data source with arbitrary-precision values (legal docs, large
-  population counts, scientific measurements) should follow the same
-  rule.
-- **Trading-system wrapper plugins ship with three defense-in-depth
-  read-only enforcement layers.** v0.6.5 Tradesa V2 wrapper precedent:
-  (a) provider class has no `insert_/update_/delete_/upsert_/write_/
-place_/submit_/execute_/create_` methods on its public surface
-  (audit-tested via `inspect.getmembers` grep in
-  `tests/test_<bot>_provider.py`); (b) router has no non-GET routes
-  (audit-tested via `router.routes` walk for `{POST, PUT, PATCH, DELETE,
-HEAD, OPTIONS}` intersection in `tests/test_<bot>_router.py`); (c)
-  plugin's `capabilities.supportsControlPlane = false` — the runtime
-  refuses to call `executeCommand` even if the method existed.
-  Template for any future plugin needing a guaranteed safety
-  invariant. Same pattern as the v0.5.0 §6.5 #4 audit-log
-  defense-in-depth (type-gate + DB-invariant + grep-check).
-- **Plugin-companion panel-components map.** Plugins contributing
-  React panels can't ship the components through the locked
-  `VystedPlugin` contract (the contract stays serializable — no React
-  types). The v0.6.5 host-side glue is the
-  `src/lib/plugin-bootstrap.ts::PLUGIN_COMPANIONS` static-import map:
-  each plugin id that contributes panels maps to a companion
-  `plugins/<id>/panels.ts` exporting `Record<string, FunctionComponent>`.
-  The map is static, not dynamic-import-by-id — Next.js static export
-  can't resolve runtime plugin-id dispatches without filesystem-installed
-  plugins (v0.7+ scope). When adding a new plugin with panels: add to
-  `BUNDLED_PLUGINS` AND to `PLUGIN_COMPANIONS`; the bootstrap warns at
-  app boot if you forget the latter.
-- **Sidecar credential flow for plugins is "renderer reads keychain →
-  passes secret in request, never in body for read-only plugins".**
-  Established Phase 3 BYOK LLM pattern carried forward through Phase
-  5 broker connect and v0.6.5 Tradesa V2 wrapper. The sidecar
-  CANNOT read OS keychain directly (only Tauri Rust can via
-  `keychain_set`/`get`/`delete` commands). v0.6.5 specifically uses
-  REQUEST HEADERS not body so the read-only GET model stays clean
-  (`X-Tradesa-Supabase-Url` + `X-Tradesa-Supabase-Service-Key`).
-  Loopback-only transport (sidecar binds `127.0.0.1`), but still
-  treat as sensitive: never log, never echo in responses, never
-  persist beyond process memory. `tests/test_<plugin>_router.py`
-  includes a `test_response_never_echoes_credentials` audit.
-- **`Cargo.lock` root package version drifts silently across
-  releases.** v0.6.5 release commit found `vysted-terminal v0.5.0` in
-  Cargo.lock — three releases stale. `cargo update -p vysted-terminal
---offline --manifest-path src-tauri/Cargo.toml` after every
-  Cargo.toml version bump re-locks the root package; otherwise
-  Cargo.lock and Cargo.toml drift unchecked. Now part of the
-  version-bump checklist (release commit pattern: bump in
-  `package.json` + `Cargo.toml` + `tauri.conf.json` + sidecar
-  `app.py` FastAPI(version=…) + run cargo update).
-- **`_Builder.order = (col, desc)` in a fake supabase-py shadows the
-  `order()` method.** Test-fake gotcha hit in v0.6.5
-  `test_tradesa_v2_provider.py`: naming the instance attribute the
-  same as the method (`order` / `limit`) makes the second call resolve
-  the attribute to the tuple, not the method, and explodes with
-  `TypeError: 'NoneType' object is not callable`. Test-fake convention:
-  prefix mutating-method storage with `_` (`_order_spec`, `_limit_val`)
-  and expose a property for assertion-side reads. Generalises to any
-  fluent-builder fake.
-- **Local verification is CI-parity, not best-effort approximation.**
-  v0.7.0 F5 caught CI red on every push since v0.6.0 era because the
-  operator's local `pnpm test` + `pnpm tauri dev` flow did not exercise
-  the lint+format+clippy+ruff battery that CI runs. The structural fix
-  is `pnpm ci-local` (package.json script chaining the exact CI
-  sequence byte-for-byte: install --frozen-lockfile → ensure-all-
-  sidecars → lint → format:check → typecheck → cargo fmt --check →
-  clippy -D warnings → ruff==0.15.12 + check + format --check → vitest
-  → cargo test → pytest). **Rule**: run `pnpm ci-local` before every
-  tag commit. Push-then-watch-CI-fail is a leak; the fix is upstream
-  of every phase. Cheapest viable structural fix — no Docker, no `act`
-  (Windows-runner gaps), no pre-push hook (intrusive).
-- **Visual consistency convention (v0.7.0+).** Populated-state
-  screenshots follow ONE canonical shape so the visual record reads
-  as one product, not seven sprints stitched together. Codified
-  axes:
-  - **Ticker**: AAPL is the primary equity anchor (appears in every
-    equity-bearing surface); watchlist set is
-    `AAPL, MSFT, NVDA, SPY, QQQ, BTC/USDT, ETH/USDT` (preserves
-    multi-row earnings demo + chart benchmark + crypto coverage).
-  - **Theme**: dark (only). Light-theme captures are a Tier-4 BLOCKER
-    until light theme actually ships in v1.1.
-  - **Workspace**: 5-panel + AI Assistant cockpit (v0.4.0 shape).
-    Left column: Chart over Equity Overview (tabs). Right column
-    top→bottom: Watchlist / News / Portfolio / AI Assistant.
-    Phase 6/6.5 panels (Macro, SEC, Earnings, Analyst Ratings,
-    Screener, Quant, Tradesa V2) open as **additional tabs in existing
-    slots**, NOT full-window. Solo-panel shots are permitted only as
-    _secondary_ zoomed shots, never as the primary cockpit shot.
-  - **Populated semantics**: no empty defaults — every populated-state
-    shot has real data per the Visual verification protocol section.
-  - **Resolutions**: 1920×1080 AND 2560×1440 (both required).
-  - **Header**: always include `Vysted Terminal — vX.Y.Z — <Surface>`
-    titlebar (v0.6.0 panels showed it; v0.4.0 chat shots didn't —
-    inconsistency closed in v0.7.0).
-  - **Per-release subfolder layout**: `docs/screenshots/v<tag>/
-{cockpit,<plugin-or-domain>,composed}/` — old folders are never
-    overwritten (precedent: v0.2.1 layout-\*.png pair lost when 00606e7
-    re-shot overwrote them).
-    **Rule**: every new release's populated-state shots land in a fresh
-    `v<tag>/` subfolder following this convention. Phase 8 audit + Phase
-    10 landing-page copy + future BLUEPRINT screenshots all reference
-    this layout.
-- **`bundle.externalBin` declares 3 sidecars; all must be built before
-  `tauri build`.** v0.7.0 F2 caught CI red on every push since the
-  v0.4.0 (openbb-mcp) era because `tauri.conf.json` `beforeBuildCommand`
-  - CI workflows only invoked `scripts/ensure-sidecar.mjs` for the
-    main sidecar. The openbb-mcp + sec-edgar-mcp sidecars are declared
-    in `externalBin` but were one-off scripts the operator ran manually;
-    clean CI checkouts have no cached binaries → Tauri build script
-    emits `resource path 'binaries/...' doesn't exist`. Local was masked
-    by `src-tauri/binaries/` cache. **Rule**: any new sidecar binary
-    must be (a) added to `externalBin`, (b) added to the SCRIPTS list in
-    `scripts/ensure-all-sidecars.mjs`, (c) added to `.gitignore` and
-    `.prettierignore` (its `.venv/` + `build/` + `dist/` paths), (d)
-    verified via `pnpm sidecars:build` locally before pushing. The
-    orchestrator is the single entry point; do NOT bypass it by chaining
-    individual ensure-\*.mjs scripts inline.
-- **PyInstaller `--onefile` silently drops package metadata + data
-  files.** v0.6.5 shipped a `vysted-sidecar` binary that crashed at
-  startup with `PackageNotFoundError: fastmcp` because FastMCP's
-  `__init__.py` calls `version("fastmcp")` via importlib.metadata and
-  the dist-info was missing. v0.7.0 also caught a separate sec-edgar
-  variant: `edgartools` ships CSV reference data
-  (`edgar/reference/data/secforms.csv`) loaded via pkgutil; without
-  `--collect-data=edgar` the binary boots and immediately crashes with
-  `FileNotFoundError`. CI never caught either because `cargo test`
-  doesn't run the binary. **Rule for every new sidecar dependency
-  audit**: list (a) packages whose `__init__.py` runs
-  `importlib.metadata.version(...)` — add to `--copy-metadata` (current
-  FastMCP/MCP-ecosystem list: `fastmcp`, `mcp`, `anyio`, `httpx`,
-  `starlette`, `uvicorn`); (b) packages with non-Python data files
-  loaded via pkgutil — add to `--collect-data`. The smoke-test step
-  fails the workflow if either gap surfaces.
-- **`pnpm ci-local` is the standing pre-tag gate; sidecar smoke-test
-  is the second.** `pnpm ci-local` (added v0.7.0 F3) mirrors CI
-  byte-for-byte at the source level. `scripts/smoke-test-sidecars.mjs`
-  (added post-v0.7.0 housekeeping) catches the binary-runtime gap
-  `pnpm ci-local` cannot see — spawns each built sidecar, polls
-  `/health` for main, verifies MCP subprocesses survive 10s without
-  crashing. **Rule**: run `pnpm ci-local` AND `node
-scripts/smoke-test-sidecars.mjs` before every release tag. CI runs
-  smoke-test automatically after `ensure-all-sidecars` in `build.yml`
-  - `test.yml`; the operator-side run is the pre-push gate.
-- **`asyncio.get_event_loop()` raises on Python 3.13 outside a running
-  loop.** Calling it from a synchronous fixture or test in Python 3.13
-  hits `RuntimeError("There is no current event loop in thread
-'MainThread'")`. v0.7.0 F5 iter #2 caught this in
-  `test_tradesa_v2_provider.py` + `test_tradesa_v2_router.py` (24+
-  tests at setup failure). **Rule**: use `asyncio.run(...)` to run
-  async code from synchronous test scaffolding. Avoid
-  `asyncio.get_event_loop()` everywhere except inside an already-async
-  function (where it returns the running loop). `pytest-asyncio` fixtures
-  with `@pytest_asyncio.fixture(...)` are an alternative for fixtures
-  that yield from async setup.
-- **Cross-OS process spawning of PyInstaller `--onefile` binaries needs
-  tree-kill on teardown.** The post-v0.7.0 smoke-test orchestrator
-  caught this: `child.kill()` from Node only signals the bootloader;
-  the PyInstaller-spawned worker survives as an orphan, holds the
-  binary's `_MEI*` extraction dir, and races the next run on the same
-  file lock. Two racing smoke-test runs left 4 orphans in v0.7.0
-  housekeeping. **Rule**: any Node script that spawns a sidecar binary
-  (`scripts/smoke-test-sidecars.mjs` is the precedent) must (a) spawn
-  POSIX children with `detached: true` so they form a process group
-  and `process.kill(-pid, 'SIGKILL')` tree-kills, (b) call `taskkill
-/F /T /PID <pid>` on Windows to walk the tree, (c) register
-  `process.on('exit'|'SIGINT'|'SIGTERM')` handlers that drain every
-  tracked PID, (d) refuse to start if `Get-Process vysted-*` (Win) or
-  `pgrep -f vysted-.*sidecar` (POSIX) returns any PID (pre-flight
-  orphan check). The smoke-test script implements all four.
-- **PyInstaller `--add-data` is the THIRD bundle-inclusion pattern**
-  beyond `--copy-metadata` (importlib.metadata version probes) and
-  `--collect-data` (pkgutil resource data inside a package). When source
-  loads a JSON/text file via `Path(__file__).resolve().parent / "dir-
-name"` and `dir-name` is NOT a Python package (no `__init__.py`),
-  PyInstaller's auto-discovery skips it. Use `--add-data
-"abs/src:dest"` (POSIX) or `--add-data "abs\\src;dest"` (Windows).
-  Windows traps: (a) cmd.exe interprets unquoted `;` as a command
-  separator — wrap the value in double quotes; (b) PyInstaller
-  resolves SOURCE relative to `--specpath`, not cwd — use an absolute
-  path. v0.8.0 finding `L3-agents-dir-not-bundled` was a 3-release-
-  silent runtime bug for the `agents/` dir; every named first-party
-  agent (Buffett, Dalio, Druckenmiller, Graham, Klarman, Lynch, Marks,
-  Munger, Portfolio Advisor, Researcher, Soros, Strategy Critic) was
-  unavailable at runtime — `/agents` returned `[]`. Fixed in v0.8.0.
-- **Smoke-test gate "alive after 10 s" is shallow for MCP subprocesses.**
-  `scripts/smoke-test-sidecars.mjs` only checks `(child.exitCode == null)
-after 10 s` for the openbb-mcp + sec-edgar-mcp binaries. A subprocess
-  can be alive but never bind to its port — v0.8.0 finding
-  `UC1-openbb-mcp-not-listening` was a silent regression where the
-  spawn-success log line lied. The v0.8.0 Rust fix
-  (`src-tauri/src/{openbb_mcp,sec_edgar_mcp}.rs` calls the shared
-  `crate::wait_for_port` helper after `Command::spawn` returns) converts
-  silent failure into graceful degradation (port=0 → routes fall back
-  to yfinance / 501). **The smoke-test itself is also gapped:** it
-  should TCP-probe the claimed port + verify load-bearing endpoints
-  (`/agents` count > 0). v0.8.x polish carry-forward in BLOCKERS.md.
-- **Version drift across multiple sources of truth.** The v0.8.0
-  release lead found two stale hardcoded version strings: `routers/
-health.py:18` had been at `"0.2.1"` for 5 releases; `src/lib/plugin-
-bootstrap.ts:39 HOST_VERSION` had been at `"0.6.5"` for 4 releases —
-  both behind the canonical `package.json` + `Cargo.toml` +
-  `tauri.conf.json` + `sidecar/app.py FastAPI(version=...)`. v0.8.0
-  derives `/health` from `request.app.version` and bumps `HOST_VERSION`
-  to match. **Rule**: at version-bump time, `grep -rn '"0\.[0-9]\+\.[
-0-9]\+"' --include='*.{ts,py,rs,toml,json}'` to find new source-of-
-  truth strings; prefer deriving from canonical over duplicating.
-- **Cross-project paste filter on rejection feedback.** When the
-  operator rejects a plan and the "fix this" payload references
-  concepts absent from the actual plan (e.g. systemd `NRestarts` /
-  `MainPID`, `bot_llm_spend` wipe, VPS HEAD SHAs, graphify deep mode
-  for a Tauri desktop app), the most likely explanation is a cross-
-  project paste-error. Flag the mismatch + AskUserQuestion before
-  applying; don't apply Tradesa-flavoured fixes to a Vysted plan
-  verbatim. v0.8.0 memory entry `feedback-cross-project-paste`.
-- **CORS-error-masks-500 diagnostic trap.** FastAPI's `CORSMiddleware`
-  doesn't add CORS headers to exception responses by default. A
-  500-with-no-CORS-header surfaces in the browser console as "Access
-  blocked by CORS policy" — the ACTUAL cause is the 500, but the
-  diagnostic surface points at CORS. v0.8.0 L2/UC1 hit this — direct-
-  curl the endpoint to distinguish a CORS misconfiguration from a
-  500-without-CORS-headers before chasing CORS config changes.
-- **Empirical-evidence audit > synthetic-break audit (L4 lesson).**
-  The Phase 8 L4 gate meta-verification pivoted from "4 throwaway-branch
-  CI cycles" to "classify each gate by real bugs that did or didn't
-  bypass it". L2/L3 surfaced two real gate gaps (smoke-test missing
-  port-bind probe + missing endpoint-data probe). Real bugs are
-  stronger evidence than synthetic breaks AND save ~100 min CI wall.
-  Apply this pattern in future meta-verification sprints.
-- **Tag commits ship green CI, not "pending verification."** v0.8.0
-  tag (`5bed299`) shipped with `CI green on all 3 OSes at tag commit
-(post-tag verification)` marked **pending** in the Phase-8 handoff.
-  The verification was never closed out, and 16 consecutive `lint.yml`
-  failures × 3 OSes = 48 failed-job notifications accrued across the
-  ~30-min Phase-8 sprint window before the v0.8.1 hygiene sprint
-  cleaned them up. Root cause was trivial: 9 audit-teammate docs were
-  committed without `pnpm format` ever being run on them — `format:check`
-  rejected them on every push. The existing gotcha **`pnpm ci-local`
-  before every tag commit** had been treated as best-effort.
-  **Reinterpret as a hard gate**: if `ci-local` is skipped or fails at
-  tag time, the tag is invalid — fix CI first, re-tag if necessary.
-  **Cheaper minimum** for in-sprint commits: `pnpm format:check`
-  (≤5 s) before every push to `main` — the lightest step in
-  `ci-local`, and the one that would have caught the whole Phase-8
-  streak in zero time. Two related sub-lessons surfaced during the
-  hygiene sprint: (a) `prettier --write` on a markdown file with
-  unescaped underscores adjacent to closing parens (`ccxt-_)`) may
-  need a **second pass** to converge — a known prettier markdown
-  idempotency quirk; running `pnpm format` twice is the safe fix. (b)
-  Piping a long-running command through `tee` or `Out-File` masks the
-  upstream exit code; check `$LASTEXITCODE` against the underlying
-  process or use `Tee-Object`'s `-PassThru` semantics, never trust the
-  background-task wrapper's exit code if you piped. v0.8.1 sprint
-  summary: `docs/PHASE_8.1_CI_REPAIR.md`.
-
-- **Sidecar ensure scripts are staleness-aware (Phase 9.5 S0-2 fix).** The
-  build trap: `ensure-*-sidecar.mjs` guards were `existsSync(outPath) && !FORCE`
-  — binary EXISTENCE only — so `tauri.conf.json`'s `beforeBuildCommand`
-  (non-`--force`) silently re-bundled a sidecar binary older than HEAD's source
-  and faked a green pass. Now `scripts/sidecar-staleness.mjs` drives the guard:
-  a binary older than any source file under its dir (or older than the ensure
-  script / staleness module itself) is rebuilt even without `--force`; a
-  no-change run stays a fast no-op. `smoke-test-sidecars.mjs` also `assertFresh`-
-  gates it. **Editing an ensure script's build recipe forces a rebuild of that
-  sidecar** (the script counts as source) — expected, not a bug.
-- **Tauri `dragDropEnabled: false` is required for in-webview HTML5 drag-drop
-  (Phase 9.5).** The window config field defaults to `true`, installing an
-  OS-level drag-drop handler that swallows in-webview HTML5 drag events before
-  the DOM sees them — on macOS WKWebView too, not only Windows (Tauri's own doc
-  is Windows-centric but the flag is cross-platform). This broke BOTH dockview
-  tab-reorder AND the node-editor palette→canvas drop (both HTML5 DnD); ReactFlow
-  node-moving + dockview splitter resize are pointer-based and unaffected. The
-  app has NO OS file-drop listener, so disabling is pure win. Set in
-  `src-tauri/tauri.conf.json` `app.windows[0].dragDropEnabled: false`.
-- **MCP cold-bind is ~34s isolated; contention is the real killer (Phase 9.5).**
-  Measured macOS M1: openbb 34.2s / sec-edgar 33.6s cold (warm 13.6 / 24.6s). At
-  app boot the two `_MEI*` extractions run concurrently and contend for disk I/O,
-  so the larger sec-edgar (81MB) overran the old 60s budget while openbb (49MB)
-  fit — that asymmetry, not a code bug, is why audits saw sec-edgar DOWN /
-  openbb UP. `MCP_PORT_WAIT_SECS` is now 45 (90s total w/ retry). The TRUE fix
-  (`--onedir` to kill the per-launch extraction) is a deferred carry-forward —
-  it needs a Tauri externalBin→resource-folder + Rust spawn change that
-  `pnpm ci-local` can't verify (never runs `tauri build`). See BLOCKERS.md.
-- **The agentic tool loop lives or dies on the tools schema (Phase 10).** The
-  loop in `agent_runtime.invoke_agent` is real, but a model only calls tools if
-  the adapter SENT a `tools=` schema. The catalog is `sidecar/services/agent_tools/
-schemas.py` (`TOOL_SCHEMAS` + `anthropic_tools`/`openai_tools`/`gemini_tools`);
-  `invoke_agent` threads `tool_ids=list(spec.tools)` into `stream_chat`, and EVERY
-  adapter must `kwargs.pop("tool_ids")` (else it forwards an unknown kwarg to the
-  SDK and breaks) + build native tools. To add a tool: register a handler AND add
-  a `TOOL_SCHEMAS` entry AND put its id in an agent's `tools` allow-list — all
-  three, or it's invisible. The assistant tool-call turn is carried in
-  `LLMMessage.metadata["tool_calls"]` (no contract change) and each adapter
-  reconstructs its native shape so multi-round tool results associate. A new
-  first-party agent JSON (e.g. `copilot.json`) bumps the roster count — three
-  tests assert it (`test_agent_runtime`/`test_agents_router`/`test_mcp_server`).
-- **Persisted UI state rides the workspace blob, not localStorage.** `defaultProviderId`
-  and the `watchlist` (Phase 10) join layout/modules/drawings in
-  `SerializedWorkspace` (`src/lib/workspace.ts`). To persist new state: add the
-  field, include it in `serializeWorkspace` + `autosaveLayout`, restore it in
-  `deserializeWorkspace` (guard for older blobs), and — if a change to it doesn't
-  move the dockview layout — add a store subscription in `page.tsx` that calls
-  `autosaveLayout()` (the layout-change autosave won't otherwise fire).
-- **Design token NAMES are historical, not literal (Phase 10 "Claude after dark").**
-  `amber-*` renders CORAL, `charcoal-*` renders ESPRESSO, `brass-*`/`sage-*` are
-  warm NEUTRALS — names were kept so 80+ files re-skin by re-valuing `tokens.css`
-  alone. Read the role, not the name. Canvas (`lightweight-charts`/drawings)
-  can't read CSS vars, so its palette is single-sourced in `src/lib/chart-theme.ts`
-  — change BOTH it and `tokens.css` when re-skinning, or canvas drifts (that's how
-  3 values, incl a forbidden cyan, had silently drifted pre-Phase-10).
-- **Kite Connect login runs in the SIDECAR, not Rust (Phase 10).** The real OAuth
-  exchange is `services.brokers.kite.exchange_request_token` via the bundled
-  `kiteconnect` SDK's `generate_session` (SHA-256 checksum + `/session/token`
-  internal) → `POST /brokers/kite/session`. `api_secret` crosses to the sidecar
-  for the exchange only (never stored/echoed). A Rust loopback that auto-captures
-  `request_token` was deliberately NOT built (3 new crates, unverifiable cross-OS) —
-  manual request_token paste is the v1 flow. New broker read routes are GET-only
-  and duck-type to `account_info()` (no §6.5 ABC change).
-- **Run ruff format + check on the WHOLE tree before committing Python.** Manual
-  Python edits repeatedly slipped a one-line E501 or an unformatted block past
-  per-file checks and only `ci-local` caught it (3× in Phase 10). Run
-  `ruff format <files> && ruff format --check sidecar && ruff check sidecar`
-  before every commit that touches Python — it's the cheapest guard.
-
-## Per-phase handoff
-
-Every phase ships `docs/PHASE_N_HANDOFF.md` as a release deliverable; the
-phase lead writes it from warm context before closing the build window. The
-next phase's lead reads it first to learn what shipped, what was decided
-autonomously, what broke, and where their work plugs into existing surfaces.
-
-**This is a standing convention as of v0.4.0.** v0.5.0's mega-sprint shipped
-TWO handoff docs — `docs/PHASE_4_HANDOFF.md` and `docs/PHASE_5_HANDOFF.md` —
-because two BLUEPRINT phases compressed under one release tag. Each
-follows the same 8-section skeleton (Phase-2 + Phase-3 reference shape).
-Phase N+1's lead reads `PHASE_N_HANDOFF.md` first, before opening
-`BLUEPRINT.md` or `CHANGELOG.md`. The mega-sprint precedent is captured
-in CHANGELOG v0.5.0 as the rationale: tightly-coupled phases ship
-together when the product story is one story.
-
-Each handoff covers, in order:
-
-1. What N shipped (foundation + per-teammate)
-2. Autonomous decisions (Tier-2/3)
-3. Known issues carried forward (Phase-N+1 candidates)
-4. Plugin contract status (Tier-1 lock verification)
-5. Phase-N+1 entry context — where the next phase's work plugs in
-6. File / commit pointers for deeper context
-7. Verification snapshot at handoff
-8. Any coordination lesson learnt the hard way
+Screenshots used as proof MUST show **populated** panel state (real data), never empty
+defaults — empty shots hide layout bugs. Capture dark theme at **both** 1920×1080 and
+2560×1440; per-release subfolder under `docs/screenshots/v<tag>/`, **never overwrite**
+existing shots. Populated anchors: watchlist `AAPL, MSFT, NVDA, SPY, QQQ, BTC/USDT,
+ETH/USDT`; chart SPY + indicators + VWAP; equity overview AAPL; news with sentiment;
+portfolio ≥1 position with P&L. _(The redesign supersedes the warm "Claude after dark"
+cockpit convention — update this section when the new shell lands.)_
 
 ## Reference docs
 
-- `docs/BLUEPRINT.md` — full architectural blueprint. Read when architectural
-  questions arise; do not load by default.
-- `CHANGELOG.md` — build-time decisions, failed approaches, and per-phase
-  outcomes. Read when you need the _why_ behind a choice.
-- `docs/PHASE_N_HANDOFF.md` — the previous phase's handoff. Read first when
-  starting Phase N+1. v0.5.0 mega-sprint shipped both
-  `docs/PHASE_4_HANDOFF.md` + `docs/PHASE_5_HANDOFF.md`. v0.6.0 ships
-  `docs/PHASE_6_HANDOFF.md`; v0.6.5 ships
-  `docs/PHASE_6.5_HANDOFF.md` (Phase 7 entry point: launch operations
-  - v1.0 narrative that includes the Tradesa V2 wrapper as canonical
-    trading-system plugin reference).
-- `docs/SAFETY_ARCHITECTURE.md` — BLUEPRINT §6.5 enforcement reference.
-  Per-guarantee implementation file:line pointers + capture-artifact
-  paths + conditional revert procedure. Read before touching anything
-  in the broker-execution code path.
-- `docs/BROKER_INTEGRATIONS.md` — per-broker setup, credentials,
-  paper-vs-live toggling, Kite static-IP UX path, IB Gateway requirement,
-  OANDA SDK maintenance callout.
+- `docs/CURRENT_STATE.md` — honest current-state inventory (read first to learn what exists).
+- `docs/BLUEPRINT.md` — original architectural blueprint (§2 locked decisions, §6.5 safety).
+- `docs/SAFETY_ARCHITECTURE.md` — §6.5 enforcement, file:line pointers, revert procedure.
+- `docs/MCP_INTEGRATION.md`, `docs/SIDECAR_API.md`, `docs/PLUGIN_DEVELOPMENT.md`,
+  `docs/BROKER_INTEGRATIONS.md`, `docs/DESIGN_SYSTEM.md` — per-subsystem references.
+- `specs/` + `.specify/` — the "Cursor for finance" redesign spec (constitution/spec/clarify).
+- `CHANGELOG.md` — build-time decisions and per-phase history (the _why_).
+- `docs/archive/` — historical phase handoffs, audits, and bug catalogs.
+
+## Per-phase handoff
+
+Every phase ships `docs/PHASE_N_HANDOFF.md` (kept in `docs/archive/` once superseded). The
+lead writes it from warm context before closing the build window; the next lead reads it
+first. Eight sections: (1) what shipped, (2) autonomous Tier-2/3 decisions, (3) issues
+carried forward, (4) plugin-contract lock verification, (5) next-phase entry context,
+(6) file/commit pointers, (7) verification snapshot, (8) coordination lessons.
+
+<!-- SPECKIT START -->
+Active redesign spec lives under `specs/` and `.specify/memory/constitution.md`. For the
+current-state baseline (architecture, endpoints, subsystems, what works vs is deferred),
+read `docs/CURRENT_STATE.md`.
+<!-- SPECKIT END -->
