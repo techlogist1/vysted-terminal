@@ -40,3 +40,6 @@ docs/superpowers/
 
 # Harness-managed agent worktrees and local state
 .claude/
+
+# graphify knowledge graph (rebuilt by post-commit hook; local index)
+graphify-out/
