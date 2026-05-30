@@ -154,16 +154,26 @@ onto a shared agent branch, which can sweep uncommitted lead edits into a teamma
 - Main sidecar binary footprint target **≤120 MB**.
 
 ### Copilot & sidecar code
-- **The agentic tool loop (`agent_runtime.invoke_agent`) only calls a tool if the adapter
-  SENT a `tools=` schema.** To add a tool you need ALL THREE: register a handler, add a
-  `TOOL_SCHEMAS` entry in `sidecar/services/agent_tools/schemas.py`, and put its id in an
-  agent's `tools` allow-list. Every `services/llm/` adapter must `kwargs.pop("tool_ids")`
-  (else it forwards an unknown kwarg to the SDK). The assistant tool-call turn rides
-  `LLMMessage.metadata["tool_calls"]` (no contract change). A new first-party agent JSON
-  bumps the roster count asserted by `test_agent_runtime`/`test_agents_router`/`test_mcp_server`.
+- **The capability catalog (`sidecar/services/agent_tools/catalog.py`) is the ONE source of
+  truth** (Constitution Principle II). `TOOL_SCHEMAS` (`schemas.py`), the custom-agent
+  allow-list (`models/custom_agent.KNOWN_TOOL_IDS`), and the external MCP surface all DERIVE
+  from it — do not hand-edit those. **To add an agent tool:** (1) register a handler in
+  `agent_tools`, (2) add a `Capability` in `catalog.py` (`kind="read_handler"` auto-projects to
+  `TOOL_SCHEMAS`, the allow-list, and — unless internal-only — the MCP surface by the SAME
+  name), (3) add its id to an agent's `tools` allow-list to make it reachable.
+  `test_capability_catalog.py` audits registry⟺catalog parity (SC-006);
+  `test_mcp_catalog_parity.py` audits the internal⟺MCP projection (SC-004). The loop only
+  calls a tool if the adapter SENT a `tools=` schema; every `services/llm/` adapter must
+  `kwargs.pop("tool_ids")`. The assistant tool-call turn rides `metadata["tool_calls"]`, and
+  the **tool-RESULT turn carries `metadata["name"]`** (Gemini pairs `function_response` by
+  name, not id — omit it and Gemini multi-round breaks). A new first-party agent JSON bumps the
+  roster count asserted by `test_agent_runtime`/`test_agents_router`/`test_mcp_server`.
 - `agent_tools` is a package — `reset_for_tests()` must re-register import-time tools.
-- **FastMCP tools must return a dict** (or declare `output_schema`) — wrap bare-list REST
-  responses at the MCP boundary (e.g. `{"agents": [...]}`); don't change the REST contract.
+- **FastMCP tools must return a dict** (or declare `output_schema`). The data/analysis MCP
+  tools are **projected from the catalog** (`mcp_capabilities()`) via
+  `FunctionTool(parameters=<schema>, fn=<handler>)` dispatching to the same `agent_tools`
+  handler; the agent/workspace/workflow tools stay hand-written + MCP-only. Wrap any bare-list
+  REST response at the MCP boundary (e.g. `{"agents": [...]}`); don't change the REST contract.
 - **Python 3.13:** use `asyncio.run(...)`, not `asyncio.get_event_loop()` outside a running
   loop (raises `RuntimeError`).
 - **`types/data.ts` mirrors `sidecar/models/` by hand** — change both in the same commit.

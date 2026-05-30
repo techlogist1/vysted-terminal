@@ -14,6 +14,42 @@
 
 ---
 
+## 0. Foundation update (2026-05-31, branch `001-agent-native-redesign`)
+
+> The body below is the **pre-redesign baseline** (2026-05-30). The redesign's
+> **foundation window** has since landed on `001-agent-native-redesign` (not on
+> `main`). It does **not** build the user-facing P1/P2/P3 phases, but it closes
+> the documented copilot/catalog/runtime gaps the baseline records. Full detail +
+> gate results: **`docs/redesign/FOUNDATION_BUILD_REPORT.md`**. Deltas that
+> supersede statements below:
+>
+> - **Single capability catalog** (`sidecar/services/agent_tools/catalog.py`) is
+>   now the one source of truth; `TOOL_SCHEMAS`, the custom-agent allow-list, and
+>   the external MCP surface all derive from it (Constitution Principle II).
+> - **§4 "~11 registered handlers unreachable" → CLOSED.** Every registered,
+>   agent-intended handler has a schema (SC-006); 27 internal capabilities.
+> - **§4 "Gemini multi-round likely broken" → FIXED** (tool name threaded onto
+>   the tool-result message; SC-005).
+> - **§11/§4 "custom-agent allow-list stale" → RECONCILED** to the catalog
+>   (`KNOWN_TOOL_IDS` is derived; 0 unresolvable tools).
+> - **§3.7 MCP "11 hand-maintained tools" → PROJECTED from the catalog** (26
+>   tools; same names/schemas as the internal copilot; `readOnlyHint` from
+>   `read_only`; standing SC-004 parity audit). A `news` tool now serves both
+>   surfaces.
+> - **§3.4 "manifest↔instance + `requiredHostVersion` checks documented but not
+>   implemented" → IMPLEMENTED** (rejected at load, surfaced); **`PluginConfig`
+>   secret resolution** is now keychain-backed (FR-054/SC-015).
+> - **§1 "`shell:allow-open` probably denied" → GRANTED.**
+> - **§2 boot-path `.expect()` panics → HARDENED** (port-0 sentinel + temp-dir
+>   fallback; the app no longer panics with no window).
+> - **§4 "shipped default routes to absent Ollama" → GATED**: a keyless provider
+>   must be reachable before the first agent call (no silent failure).
+>
+> §6.5 LOCKED files + `types/plugin.ts` are **byte-for-byte untouched**; the §6.5
+> audit stays 9/9.
+
+---
+
 ## 1. Executive summary — what the app IS today
 
 - A **Tauri 2.x desktop terminal** (Rust core + Next.js 16 static-export
