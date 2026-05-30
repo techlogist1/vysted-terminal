@@ -12,6 +12,7 @@
     "screener_run",
     "macro_series",
     "macro_search",
+    "news",
     "earnings_upcoming",
     "earnings_history",
     "earnings_estimates",

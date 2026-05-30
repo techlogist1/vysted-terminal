@@ -53,6 +53,12 @@ def register_v0_6_0_tools() -> None:
     screener_tools.register()
     registered.append("screener")
 
+    # News — headlines + sentiment (also projected to the external MCP surface).
+    from services.agent_tools import news_tool
+
+    news_tool.register()
+    registered.append("news")
+
     if registered:
         logger.info("agent_tools: registered v0.6.0 domains: %s", ", ".join(registered))
     else:

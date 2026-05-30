@@ -26,7 +26,7 @@ This module is pure data: it imports nothing from the ``agent_tools`` package or
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, Literal
 
 # Domains a capability can belong to. Used for grouping in the catalog and for
@@ -144,7 +144,6 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="quotes",
             read_only=True,
             kind="read_handler",
-            mcp=True,
         ),
         # --- fundamentals ----------------------------------------------------
         _cap(
@@ -160,7 +159,27 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="fundamentals",
             read_only=True,
             kind="read_handler",
-            mcp=True,
+        ),
+        # --- news ------------------------------------------------------------
+        _cap(
+            "news",
+            description=(
+                "Recent news headlines with sentiment, optionally filtered to a "
+                "list of symbols. Use to check what's happening with a name."
+            ),
+            input_schema=_obj(
+                {
+                    "symbols": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Optional ticker filter, e.g. ['AAPL','MSFT'].",
+                    },
+                    "limit": {"type": "integer", "default": 20},
+                }
+            ),
+            domain="news",
+            read_only=True,
+            kind="read_handler",
         ),
         # --- screener --------------------------------------------------------
         _cap(
@@ -195,7 +214,6 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="screener",
             read_only=True,
             kind="read_handler",
-            mcp=True,
         ),
         # --- macro -----------------------------------------------------------
         _cap(
@@ -221,7 +239,6 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="macro",
             read_only=True,
             kind="read_handler",
-            mcp=True,
         ),
         _cap(
             "macro_search",
@@ -637,6 +654,20 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
     ]
 )
 
+# MCP projection rule (FR-020/022): every handler-backed READ capability is
+# exposed to the external MCP surface — EXCEPT those that need local-only
+# context (a backtest run_id lives only in this session). Per-invocation reads
+# and host actions are inherently local (terminal/request scope) and are never
+# projected. Driving `mcp` from this ONE rule keeps the internal copilot surface
+# and the external MCP surface a single source of truth (the SC-004 parity audit
+# locks it).
+_MCP_INTERNAL_ONLY: frozenset[str] = frozenset({"backtest_summary"})
+
+CAPABILITY_CATALOG = {
+    cid: replace(cap, mcp=(cap.kind == "read_handler" and cid not in _MCP_INTERNAL_ONLY))
+    for cid, cap in CAPABILITY_CATALOG.items()
+}
+
 
 # ---------------------------------------------------------------------------
 # Projections — the only sanctioned way consumers read the catalog.
@@ -655,6 +686,21 @@ def internal_capabilities() -> list[Capability]:
 def internal_tool_ids() -> list[str]:
     """Ids of every capability the internal copilot can be given (allow-list domain)."""
     return [c.id for c in internal_capabilities()]
+
+
+def mcp_capabilities() -> list[Capability]:
+    """Capabilities projected to the external MCP server (FR-020/022).
+
+    The same capabilities the internal copilot uses, by the SAME name — so an
+    external agent builds on Vysted with no divergence. Read-only is honoured
+    via each capability's ``read_only`` flag (the MCP ``readOnlyHint``).
+    """
+    return [c for c in CAPABILITY_CATALOG.values() if c.mcp]
+
+
+def mcp_tool_ids() -> list[str]:
+    """Ids of every capability exposed on the external MCP surface."""
+    return [c.id for c in mcp_capabilities()]
 
 
 def read_handler_ids() -> list[str]:
@@ -698,5 +744,7 @@ __all__ = [
     "internal_capabilities",
     "internal_tool_ids",
     "is_read_only",
+    "mcp_capabilities",
+    "mcp_tool_ids",
     "read_handler_ids",
 ]

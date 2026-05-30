@@ -43,6 +43,11 @@ from typing import Any
 import httpx
 from fastapi import FastAPI
 from fastmcp import FastMCP
+from fastmcp.tools import FunctionTool
+from mcp.types import ToolAnnotations
+
+from services import agent_tools
+from services.agent_tools.catalog import mcp_capabilities
 
 _log = logging.getLogger(__name__)
 
@@ -98,6 +103,27 @@ def bind_app(app: FastAPI) -> None:
     _app_reference = app
 
 
+def _make_catalog_tool(tool_id: str) -> Any:
+    """Build an MCP tool handler that dispatches to the registered agent_tools
+    handler for ``tool_id`` — the SAME handler the internal copilot loop calls.
+
+    No logic duplication: the external MCP surface and the internal agent loop
+    run the identical handler. Errors (unregistered handler, handler raise)
+    surface as a structured ``{"ok": False, "error": ...}`` dict so an MCP
+    client recovers cleanly rather than seeing a transport error.
+    """
+
+    async def _handler(**kwargs: Any) -> dict[str, Any]:
+        try:
+            return await agent_tools.invoke_tool(tool_id, kwargs)
+        except KeyError:
+            return {"ok": False, "error": f"tool {tool_id!r} is not available in this build"}
+        except Exception as exc:  # noqa: BLE001 — surface to the MCP client
+            return {"ok": False, "error": f"tool {tool_id!r} raised: {exc}"}
+
+    return _handler
+
+
 # ---------------------------------------------------------------------------
 # FastMCP setup — tool registration.
 # ---------------------------------------------------------------------------
@@ -107,77 +133,26 @@ def _build_server() -> FastMCP:
     """Construct the FastMCP server and register every tool."""
     mcp = FastMCP("vysted")
 
-    # ---------- Market data tools ----------
-
-    @mcp.tool
-    async def get_quote(symbol: str) -> dict[str, Any]:
-        """Return the latest quote for the given equity symbol.
-
-        Maps to GET /quotes/{symbol} on the Vysted sidecar.
-        """
-        async with _internal_client() as client:
-            response = await client.get(f"/quotes/{symbol}")
-            response.raise_for_status()
-            return response.json()
-
-    @mcp.tool
-    async def get_history(
-        symbol: str, timeframe: str = "1d", range_: str | None = None
-    ) -> dict[str, Any]:
-        """Return OHLCV history bars for the given symbol and timeframe.
-
-        Timeframe is one of: 1m, 5m, 15m, 30m, 1h, 1d, 1wk, 1mo.
-        Range is an optional ISO date (YYYY-MM-DD) that scopes the start.
-        Maps to GET /history/{symbol}.
-        """
-        params: dict[str, str] = {"timeframe": timeframe}
-        if range_:
-            params["range"] = range_
-        async with _internal_client() as client:
-            response = await client.get(f"/history/{symbol}", params=params)
-            response.raise_for_status()
-            return response.json()
-
-    @mcp.tool
-    async def get_fundamentals(symbol: str) -> dict[str, Any]:
-        """Return valuation ratios and company profile for the given symbol.
-
-        Maps to GET /fundamentals/{symbol}.
-        """
-        async with _internal_client() as client:
-            response = await client.get(f"/fundamentals/{symbol}")
-            response.raise_for_status()
-            return response.json()
-
-    @mcp.tool
-    async def get_news(symbols: list[str] | None = None, limit: int = 20) -> dict[str, Any]:
-        """Return recent news headlines, optionally filtered by symbol list.
-
-        Maps to GET /news. Symbols are joined into the ``symbols`` query
-        parameter the sidecar expects.
-        """
-        params: dict[str, Any] = {"limit": limit}
-        if symbols:
-            params["symbols"] = ",".join(symbols)
-        async with _internal_client() as client:
-            response = await client.get("/news", params=params)
-            response.raise_for_status()
-            return response.json()
-
-    @mcp.tool
-    async def get_macro_series(series_id: str, provider: str | None = None) -> dict[str, Any]:
-        """Return a macro time-series by id (FRED-style).
-
-        Maps to GET /macro/{series_id}. Provider is an optional override
-        for the upstream macro source (defaults to FRED).
-        """
-        params: dict[str, str] = {}
-        if provider:
-            params["provider"] = provider
-        async with _internal_client() as client:
-            response = await client.get(f"/macro/{series_id}", params=params)
-            response.raise_for_status()
-            return response.json()
+    # ---------- Data + analysis tools (projected from the capability catalog) ----------
+    #
+    # FR-020/021/022: the external MCP surface is NOT a hand-maintained
+    # duplicate. Every data/analysis capability is declared ONCE in
+    # ``services.agent_tools.catalog`` and projected here under the SAME name the
+    # internal copilot uses, with the SAME input schema and a ``readOnlyHint``
+    # driven by the catalog's ``read_only`` flag. Each tool dispatches to the
+    # SAME registered handler the internal agent loop calls (no logic
+    # duplication). Adding a capability to the catalog makes it appear on both
+    # surfaces; the SC-004 parity audit (``test_mcp_catalog_parity``) locks it.
+    for capability in mcp_capabilities():
+        mcp.add_tool(
+            FunctionTool(
+                name=capability.id,
+                description=capability.description,
+                parameters=capability.input_schema,
+                fn=_make_catalog_tool(capability.id),
+                annotations=ToolAnnotations(readOnlyHint=capability.read_only),
+            )
+        )
 
     # ---------- Agent tools (Teammate A's surface) ----------
 

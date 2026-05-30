@@ -36,43 +36,54 @@ def test_status_endpoint_reports_ready(client: TestClient) -> None:
     assert body["ready"] is True
     assert body["endpoint"] == "/mcp"
     assert isinstance(body["toolCount"], int)
-    assert body["toolCount"] >= 8  # 5 data + 2 agent + 2 workspace tools
+    # catalog-projected data/analysis tools + 6 runtime (agents/workspaces/workflows)
+    assert body["toolCount"] >= 8
     assert body["protocolVersion"]
 
 
-def test_mcp_server_registers_expected_tools() -> None:
-    """Every Phase-3 + v0.5.0 workflow tool is registered on the FastMCP server."""
+def test_mcp_server_registers_catalog_and_runtime_tools() -> None:
+    """The MCP surface = the catalog's projected capabilities + the runtime tools."""
+    from services.agent_tools.catalog import mcp_tool_ids
+
     server = mcp_server.get_mcp_server()
     tools = asyncio.run(server.list_tools())
     names = {tool.name for tool in tools}
+    # Every catalog-projected capability appears by its canonical (internal) name.
+    assert set(mcp_tool_ids()).issubset(names)
+    # The runtime tools (agents/workspaces/workflows) are MCP-only and stay.
     assert {
-        "get_quote",
-        "get_history",
-        "get_fundamentals",
-        "get_news",
-        "get_macro_series",
         "list_agents",
         "invoke_agent",
         "list_workspaces",
         "get_workspace",
-        # v0.5.0 workflow tools — Teammate W
         "run_workflow",
         "list_workflows",
     }.issubset(names)
+    # Representative catalog names the internal copilot also uses (same names).
+    assert {"price_data", "fundamentals", "macro_series", "news"}.issubset(names)
 
 
-def test_get_quote_tool_proxies_quotes_endpoint(client: TestClient, mock_yfinance: object) -> None:
-    """The ``get_quote`` tool returns the same payload the /quotes/{symbol} route returns.
+def test_projected_tool_dispatches_to_the_registered_handler() -> None:
+    """A projected data tool runs the SAME registered handler the copilot calls.
 
-    The fixture pins the FastAPI app reference for in-process httpx, so the
-    tool call invokes the mocked yfinance backend by going through the
-    real router stack.
+    Register a stub handler and verify the MCP tool dispatches through
+    ``agent_tools.invoke_tool`` to it (no logic duplication; the external surface
+    is the internal handler). Restores the real registry afterwards.
     """
-    server = mcp_server.get_mcp_server()
-    # The MCP server's bound app is the TestClient's app (set in create_app).
-    result = asyncio.run(server.call_tool("get_quote", {"symbol": "AAPL"}))
-    text_blocks = [block.text for block in result.content if getattr(block, "type", None) == "text"]
-    assert any("AAPL" in block for block in text_blocks)
+    from services import agent_tools
+
+    async def _fake(args: dict[str, Any]) -> dict[str, Any]:
+        return {"ok": True, "echo": args}
+
+    agent_tools.register_tool("price_data", _fake)
+    try:
+        server = mcp_server.get_mcp_server()
+        result = asyncio.run(server.call_tool("price_data", {"symbol": "AAPL"}))
+        payload = result.structured_content or {}
+        assert payload.get("ok") is True
+        assert payload.get("echo") == {"symbol": "AAPL"}
+    finally:
+        agent_tools.reset_for_tests()
 
 
 def test_invoke_agent_tool_returns_error_when_agents_router_missing(
