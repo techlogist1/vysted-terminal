@@ -32,7 +32,7 @@ def _valid_create_body(agent_id: str = "custom:macro-quant") -> dict:
         "name": "Macro Quant",
         "philosophy": "Mean reversion across macro asset classes.",
         "system_prompt": "You are a macro quant analyst.",
-        "tools": ["price_data", "macro"],
+        "tools": ["price_data", "macro_series"],
         "default_provider": "anthropic",
         "default_model": "claude-opus-4-7",
         "icon": "brain",
@@ -44,7 +44,7 @@ def _valid_update_body() -> dict:
         "name": "Macro Quant v2",
         "philosophy": "Regime-aware allocator.",
         "system_prompt": "You are a regime-aware allocator.",
-        "tools": ["price_data", "news"],
+        "tools": ["price_data", "earnings_history"],
         "default_provider": "openai",
         "default_model": "gpt-4.1",
         "icon": "line-chart",
@@ -80,7 +80,7 @@ def test_create_custom_agent(client: TestClient, temp_data_dir: object) -> None:
     body = response.json()
     assert body["id"] == "custom:macro-quant"
     assert body["name"] == "Macro Quant"
-    assert body["tools"] == ["price_data", "macro"]
+    assert body["tools"] == ["price_data", "macro_series"]
     assert body["default_provider"] == "anthropic"
     assert body["default_model"] == "claude-opus-4-7"
     assert isinstance(body["created_at"], int)
@@ -117,10 +117,10 @@ def test_create_rejects_unknown_provider(client: TestClient, temp_data_dir: obje
 
 def test_create_dedupes_tools(client: TestClient, temp_data_dir: object) -> None:
     body = _valid_create_body()
-    body["tools"] = ["price_data", "macro", "price_data"]
+    body["tools"] = ["price_data", "macro_series", "price_data"]
     response = client.post("/custom-agents", json=body)
     assert response.status_code == 201
-    assert response.json()["tools"] == ["price_data", "macro"]
+    assert response.json()["tools"] == ["price_data", "macro_series"]
 
 
 def test_create_duplicate_id_returns_409(client: TestClient, temp_data_dir: object) -> None:
@@ -163,7 +163,7 @@ def test_update_custom_agent(client: TestClient, temp_data_dir: object) -> None:
     body = response.json()
     assert body["name"] == "Macro Quant v2"
     assert body["default_provider"] == "openai"
-    assert body["tools"] == ["price_data", "news"]
+    assert body["tools"] == ["price_data", "earnings_history"]
     # updated_at should never be before created_at after an update.
     assert body["updated_at"] >= body["created_at"]
 

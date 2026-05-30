@@ -237,7 +237,7 @@ def _resolve_model(spec: AgentSpec, override: str | None) -> str:
         "openai": "gpt-4.1-mini",
         "gemini": "gemini-2.5-pro",
         "groq": "llama-3.3-70b-versatile",
-        "ollama": "llama3.1:8b",
+        "ollama": "qwen2.5:7b",
         "deepseek": "deepseek-chat",
         "xai": "grok-2-latest",
     }
@@ -436,6 +436,12 @@ async def invoke_agent(
                     role="tool",
                     content=result_str,
                     tool_call_id=tool_call.tool_call_id,
+                    # Carry the tool NAME alongside the id: Gemini pairs a
+                    # function_response to its call by name (not id), so a
+                    # tool-result message with no name serialises name="" and
+                    # breaks Gemini multi-round tool use. Anthropic/OpenAI key by
+                    # tool_call_id and ignore this. (FR-024 / closes the §4 break.)
+                    metadata={"name": tool_call.name},
                 )
             )
         rounds += 1

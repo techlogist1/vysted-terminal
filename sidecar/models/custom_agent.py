@@ -23,19 +23,18 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field, field_validator
 
-#: The closed set of tool ids the host currently resolves. Mirrors the
-#: discovery contract in ``sidecar/agents/`` and the Phase-3 plan brief —
-#: keeping this list in code means the router rejects unknown tool ids at the
-#: API boundary rather than letting an invalid agent slip into the store.
-KNOWN_TOOL_IDS: frozenset[str] = frozenset(
-    {
-        "price_data",
-        "fundamentals",
-        "news",
-        "backtest_summary",
-        "macro",
-    }
-)
+from services.agent_tools.catalog import agent_selectable_tool_ids
+
+#: The closed set of tool ids the host currently resolves — derived from the
+#: single capability catalog (:mod:`services.agent_tools.catalog`) so the
+#: Custom Agent Builder allow-list can never drift from what agents can
+#: actually call (FR-023 / SC-006: 0 unresolvable tools). Previously a stale
+#: hand-maintained set that listed ``news``/``macro`` (which were not real tool
+#: ids and never resolved) while omitting every Phase-6 tool. Every id here
+#: resolves at the host: a registered handler, a per-invocation closure, or a
+#: host action. Safety stays host-enforced regardless of selection
+#: (``propose_order`` only proposes; §6.5 governs placement).
+KNOWN_TOOL_IDS: frozenset[str] = agent_selectable_tool_ids()
 
 #: The seven BYOK provider ids accepted in ``default_provider``. Identical to
 #: the ``LLMProviderId`` discriminated union in ``types/ai.ts``.
