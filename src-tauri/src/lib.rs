@@ -20,12 +20,15 @@ struct SidecarProcess(Mutex<Option<CommandChild>>);
 struct SidecarPort(u16);
 
 /// Bind to port 0 so the OS picks a free port, read it back, then release it.
-pub(crate) fn pick_free_port() -> u16 {
-    std::net::TcpListener::bind("127.0.0.1:0")
-        .expect("failed to bind a free port for the sidecar")
-        .local_addr()
-        .expect("failed to read the sidecar port")
-        .port()
+///
+/// Returns `None` instead of panicking when no port can be bound — the boot
+/// path treats that as "sidecar unavailable" (port 0 sentinel) and lets the UI
+/// start in a disconnected state rather than panicking the whole app with no
+/// window (the spec's boot-resilience requirement; mirrors the MCP children's
+/// graceful degradation).
+pub(crate) fn pick_free_port() -> Option<u16> {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").ok()?;
+    Some(listener.local_addr().ok()?.port())
 }
 
 /// Poll the port for `timeout_secs`, returning `true` as soon as something
@@ -110,8 +113,89 @@ pub(crate) fn wait_for_port_with_retries(
     false
 }
 
+/// Resolve the per-OS application data directory, falling back to a temp dir on
+/// failure so a resolution/creation error degrades gracefully instead of
+/// panicking the app at boot. The sidecar owns the SQLite stores + saved
+/// workspaces beneath this directory.
+fn resolve_data_dir(app: &tauri::App) -> String {
+    let dir = match app.path().app_data_dir() {
+        Ok(dir) => dir,
+        Err(err) => {
+            eprintln!(
+                "[vysted] could not resolve the app data directory ({err}); \
+                 falling back to a temp directory"
+            );
+            std::env::temp_dir().join("vysted-terminal")
+        }
+    };
+    if let Err(err) = std::fs::create_dir_all(&dir) {
+        eprintln!(
+            "[vysted] could not create the data directory {dir:?} ({err}); \
+             sidecar persistence may be degraded"
+        );
+    }
+    dir.to_string_lossy().to_string()
+}
+
+/// Spawn + supervise the main Python sidecar. NEVER panics: on any failure it
+/// logs and returns, leaving the UI to open in a disconnected state and retry —
+/// the boot path previously `.expect()`-panicked here (no window, no error).
+/// This mirrors the openbb/sec-edgar MCP children, which already degrade to a
+/// port-0 "unavailable" sentinel rather than failing app startup.
+fn start_main_sidecar(app: &tauri::App, port: u16) {
+    if port == 0 {
+        eprintln!("[vysted] no free port available for the sidecar; UI will start disconnected");
+        return;
+    }
+    let data_dir = resolve_data_dir(app);
+    let command = match app.shell().sidecar("vysted-sidecar") {
+        Ok(command) => command.args(["--port", &port.to_string(), "--data-dir", &data_dir]),
+        Err(err) => {
+            eprintln!(
+                "[vysted] could not create the sidecar command ({err}); UI will start disconnected"
+            );
+            return;
+        }
+    };
+    let (mut rx, child) = match command.spawn() {
+        Ok(pair) => pair,
+        Err(err) => {
+            eprintln!(
+                "[vysted] failed to spawn the Python sidecar ({err}); UI will start disconnected"
+            );
+            return;
+        }
+    };
+    app.manage(SidecarProcess(Mutex::new(Some(child))));
+
+    // Drain the sidecar's stdout/stderr so its pipes never block, and log it.
+    tauri::async_runtime::spawn(async move {
+        while let Some(event) = rx.recv().await {
+            match event {
+                CommandEvent::Stdout(line) => {
+                    println!("[sidecar] {}", String::from_utf8_lossy(&line));
+                }
+                CommandEvent::Stderr(line) => {
+                    eprintln!("[sidecar] {}", String::from_utf8_lossy(&line));
+                }
+                _ => {}
+            }
+        }
+    });
+
+    thread::spawn(move || {
+        if wait_for_port(port) {
+            println!("[vysted] Python sidecar healthy on 127.0.0.1:{port}");
+        } else {
+            eprintln!("[vysted] Python sidecar did not come up on port {port}");
+        }
+    });
+}
+
 /// Expose the sidecar's localhost port to the frontend so it can issue HTTP and
-/// WebSocket requests to the Python data layer.
+/// WebSocket requests to the Python data layer. `0` means no sidecar bound this
+/// launch (boot-time port-pick or spawn failure) — the frontend treats that as
+/// disconnected and retries.
 #[tauri::command]
 fn get_sidecar_port(port: tauri::State<'_, SidecarPort>) -> u16 {
     port.0
@@ -134,7 +218,9 @@ pub fn run() {
             sec_edgar_mcp::get_sec_edgar_mcp_port,
         ])
         .setup(|app| {
-            let port = pick_free_port();
+            // `0` = no free port (extremely rare); the UI still opens and
+            // shows disconnected rather than panicking at boot.
+            let port = pick_free_port().unwrap_or(0);
             app.manage(SidecarPort(port));
 
             // Register the OS-wide kill-switch keyboard shortcut. Failure
@@ -181,48 +267,13 @@ pub fn run() {
             let _ = openbb_thread.join();
             let _ = sec_thread.join();
 
-            // Resolve the per-OS application data directory and hand it to the
-            // sidecar; the sidecar owns the portfolio SQLite database and the
-            // saved-workspace files beneath it.
-            let data_dir = app
-                .path()
-                .app_data_dir()
-                .expect("failed to resolve the application data directory");
-            std::fs::create_dir_all(&data_dir)
-                .expect("failed to create the application data directory");
-            let data_dir = data_dir.to_string_lossy().to_string();
-
-            let sidecar = app
-                .shell()
-                .sidecar("vysted-sidecar")
-                .expect("failed to create the sidecar command")
-                .args(["--port", &port.to_string(), "--data-dir", &data_dir]);
-
-            let (mut rx, child) = sidecar.spawn().expect("failed to spawn the Python sidecar");
-            app.manage(SidecarProcess(Mutex::new(Some(child))));
-
-            // Drain the sidecar's stdout/stderr so its pipes never block, and log it.
-            tauri::async_runtime::spawn(async move {
-                while let Some(event) = rx.recv().await {
-                    match event {
-                        CommandEvent::Stdout(line) => {
-                            println!("[sidecar] {}", String::from_utf8_lossy(&line));
-                        }
-                        CommandEvent::Stderr(line) => {
-                            eprintln!("[sidecar] {}", String::from_utf8_lossy(&line));
-                        }
-                        _ => {}
-                    }
-                }
-            });
-
-            thread::spawn(move || {
-                if wait_for_port(port) {
-                    println!("[vysted] Python sidecar healthy on 127.0.0.1:{port}");
-                } else {
-                    eprintln!("[vysted] Python sidecar did not come up on port {port}");
-                }
-            });
+            // Spawn + supervise the main Python sidecar. This NEVER panics: a
+            // data-dir or spawn failure logs and leaves the UI to start in a
+            // disconnected state and retry (the boot path previously
+            // `.expect()`-panicked here with no window). The sidecar owns the
+            // portfolio SQLite database + saved-workspace files beneath the
+            // data directory. See `start_main_sidecar` / `resolve_data_dir`.
+            start_main_sidecar(app, port);
 
             Ok(())
         })
@@ -256,7 +307,7 @@ mod tests {
 
     #[test]
     fn pick_free_port_returns_a_usable_port() {
-        let port = pick_free_port();
+        let port = pick_free_port().expect("should bind a free port on a healthy host");
         assert!(port > 0, "expected a non-zero port, got {port}");
     }
 
@@ -295,7 +346,7 @@ mod tests {
         // exhaust all attempts and invoke on_retry exactly (attempts - 1)
         // times (no callback after the final failed attempt). Use a tiny
         // per-attempt budget so the test stays fast.
-        let free_port = pick_free_port();
+        let free_port = pick_free_port().expect("bind a free port");
         let retries = AtomicU32::new(0);
         let ok = wait_for_port_with_retries(free_port, 0, 3, |attempt, total| {
             assert_eq!(total, 3);
@@ -315,7 +366,7 @@ mod tests {
         // would make the bind probe a no-op and reintroduce the UC1
         // silent-lie. (The seconds budget is asserted via a runtime read so
         // clippy doesn't flag a constant-only assertion.)
-        let free_port = pick_free_port();
+        let free_port = pick_free_port().expect("bind a free port");
         let budget_secs = std::hint::black_box(MCP_PORT_WAIT_SECS);
         assert!(budget_secs >= 15, "cold-boot budget must stay >= 15s");
 

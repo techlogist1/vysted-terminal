@@ -77,7 +77,17 @@ fn register_unavailable(app: &AppHandle) {
 /// (``wait_for_port_with_retries``) to tolerate a slow cold PyInstaller
 /// ``--onefile`` extraction under Windows file-lock contention.
 pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
-    let port = pick_free_port();
+    let port = match pick_free_port() {
+        Some(port) => port,
+        None => {
+            eprintln!(
+                "[openbb-mcp] could not bind a free port; \
+                 falling back to yfinance for OpenBB-backed routes."
+            );
+            register_unavailable(app);
+            return Ok(());
+        }
+    };
 
     // Hand the port to the Python sidecar via env var. The sidecar spawn in
     // ``lib.rs`` runs AFTER both MCP supervisors join, so the env var is in

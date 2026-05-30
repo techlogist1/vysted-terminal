@@ -77,7 +77,17 @@ fn register_unavailable(app: &AppHandle) {
 /// cold PyInstaller ``--onefile`` extraction under Windows file-lock
 /// contention.
 pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
-    let port = pick_free_port();
+    let port = match pick_free_port() {
+        Some(port) => port,
+        None => {
+            eprintln!(
+                "[sec-edgar-mcp] could not bind a free port; \
+                 /sec routes will 501 until relaunch."
+            );
+            register_unavailable(app);
+            return Ok(());
+        }
+    };
 
     // Hand the port to the Python sidecar via env var. The sidecar spawn in
     // ``lib.rs`` runs AFTER both MCP supervisors join, so the env var is in
