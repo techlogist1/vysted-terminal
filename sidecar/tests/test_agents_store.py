@@ -27,7 +27,7 @@ def _sample_create(agent_id: str = "custom:macro-quant") -> CustomAgentCreate:
         name="Macro Quant",
         philosophy="Mean reversion across macro asset classes.",
         system_prompt="You are a macro quant analyst. Reason from regime first.",
-        tools=["price_data", "macro"],
+        tools=["price_data", "macro_series"],
         default_provider="anthropic",
         default_model="claude-opus-4-7",
         icon="brain",
@@ -39,7 +39,7 @@ def _sample_update() -> CustomAgentUpdate:
         name="Macro Quant v2",
         philosophy="Regime-aware allocation.",
         system_prompt="You are a regime-aware macro allocator. Quote drawdowns.",
-        tools=["price_data", "macro", "news"],
+        tools=["price_data", "macro_series", "news"],
         default_provider="openai",
         default_model="gpt-4.1",
         icon="line-chart",
@@ -56,7 +56,7 @@ def test_create_and_list_agent(temp_data_dir: object) -> None:
     stored = agents_store.create_agent(_sample_create(), now=1_700_000_000)
     assert stored.id == "custom:macro-quant"
     assert stored.name == "Macro Quant"
-    assert stored.tools == ["price_data", "macro"]
+    assert stored.tools == ["price_data", "macro_series"]
     assert stored.default_provider == "anthropic"
     assert stored.created_at == 1_700_000_000
     assert stored.updated_at == 1_700_000_000
@@ -99,7 +99,7 @@ def test_update_agent_replaces_mutable_fields(temp_data_dir: object) -> None:
     assert updated is not None
     assert updated.name == "Macro Quant v2"
     assert updated.default_provider == "openai"
-    assert updated.tools == ["price_data", "macro", "news"]
+    assert updated.tools == ["price_data", "macro_series", "news"]
     # created_at MUST be immutable; updated_at MUST advance.
     assert updated.created_at == 1_700_000_000
     assert updated.updated_at == 1_700_000_500
