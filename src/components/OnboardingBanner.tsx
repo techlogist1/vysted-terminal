@@ -38,15 +38,15 @@ export function OnboardingBanner() {
     >
       <Sparkles className="size-4 shrink-0 text-amber-400" aria-hidden="true" />
       <p className="text-charcoal-200 min-w-0 flex-1 truncate font-mono text-xs">
-        Add an AI provider key to unlock the assistant, agents, and research tools — it stays in
-        your OS keychain.
+        Add a cloud provider key, or run a local model (Ollama) — either unlocks the assistant,
+        agents, and research tools. Cloud keys stay in your OS keychain.
       </p>
       <button
         type="button"
         onClick={() => openPanel("settings")}
         className="shrink-0 rounded border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 font-mono text-xs text-amber-300 hover:bg-amber-500/20"
       >
-        Add your key →
+        Set up a provider →
       </button>
       <button
         type="button"

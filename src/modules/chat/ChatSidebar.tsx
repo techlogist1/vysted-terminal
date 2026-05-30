@@ -6,6 +6,7 @@ import { Sparkles, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
 import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
+import { validateProvider } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { selectCustomAgents, selectFirstPartyAgents, useAgentsStore } from "@/store/agents";
 import { useChartSyncBus } from "@/store/chart-sync";
@@ -218,16 +219,29 @@ export function ChatSidebar() {
           null)
         : null;
       const provider = (agentSpec?.defaultProvider ?? defaultProviderId) as LLMProviderId;
-      const requiresKey = providers.find((p) => p.id === provider)?.requiresKey ?? true;
+      const providerInfo = providers.find((p) => p.id === provider);
+      const requiresKey = providerInfo?.requiresKey ?? true;
+      const providerLabel = providerInfo?.label ?? provider;
       let apiKey: string | null = null;
       if (requiresKey) {
         apiKey = await getSecret(KEYCHAIN_NAMESPACES.llmProvider(provider));
         if (!apiKey) {
           setStatusLine(
-            `No API key for ${provider}. Add one in Settings → AI Providers (or /key set ${provider}).`,
+            `No API key for ${providerLabel}. Add one in Settings → AI Providers (or /key set ${provider}).`,
           );
           return;
         }
+      } else if (!(await validateProvider(provider))) {
+        // Keyless provider (e.g. Ollama) — gate the call on the local daemon
+        // actually being reachable, so a missing or stopped local model surfaces
+        // a clear onboarding message instead of failing the call silently (the
+        // ratified "offer both, never silently default to an absent local model"
+        // rule from US1 / FR-032).
+        setStatusLine(
+          `${providerLabel} isn't reachable. Start it (run \`ollama serve\` and pull the model) ` +
+            "or switch to a cloud provider in Settings → AI Providers.",
+        );
+        return;
       }
 
       const assistantId = beginAssistant({
@@ -520,7 +534,7 @@ function defaultModelFor(provider: LLMProviderId): string {
     case "groq":
       return "llama-3.3-70b-versatile";
     case "ollama":
-      return "llama3.1:8b";
+      return "qwen2.5:7b";
     case "deepseek":
       return "deepseek-chat";
     case "xai":

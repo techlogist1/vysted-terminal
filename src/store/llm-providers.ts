@@ -71,7 +71,7 @@ interface LLMProvidersState {
 
 export const useLLMProvidersStore = create<LLMProvidersState>((set) => ({
   providers: DEFAULT_PROVIDERS,
-  defaultProviderId: "anthropic",
+  defaultProviderId: "ollama",
   setDefaultProviderId: (id) => set({ defaultProviderId: id }),
   refresh: async () => {
     try {

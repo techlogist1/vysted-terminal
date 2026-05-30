@@ -32,6 +32,20 @@ vi.mock("@/lib/keychain", async () => {
   };
 });
 
+// Deterministic provider-readiness probe (no real network in jsdom). Defaults to
+// "not reachable" so the Ollama-readiness gate is exercised; tests that need a
+// reachable provider use a key-requiring provider (which skips this probe).
+const validateProviderMock = vi.hoisted(() => vi.fn(async () => false));
+
+vi.mock("@/lib/sidecar-client", async () => {
+  const actual =
+    await vi.importActual<typeof import("@/lib/sidecar-client")>("@/lib/sidecar-client");
+  return {
+    ...actual,
+    validateProvider: validateProviderMock,
+  };
+});
+
 const FIRST_PARTY_AGENTS: AgentSummary[] = [
   {
     id: "buffett",
@@ -260,7 +274,20 @@ describe("ChatSidebar", () => {
     const input = screen.getByLabelText("Chat input") as HTMLInputElement;
     fireEvent.change(input, { target: { value: "/ask hi" } });
     fireEvent.submit(input.closest("form")!);
-    await waitFor(() => expect(screen.getByText(/No API key for anthropic/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/No API key for anthropic/i)).toBeInTheDocument());
+    expect(streamChatMock).not.toHaveBeenCalled();
+  });
+
+  it("gates a keyless provider (Ollama) that isn't reachable instead of failing silently", async () => {
+    // The ratified onboarding rule: a keyless local provider must be reachable
+    // before the call fires; an absent local model surfaces a clear message
+    // (validateProvider returns false here — no sidecar/daemon in jsdom).
+    useLLMProvidersStore.setState({ defaultProviderId: "ollama" });
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "/ask hi" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(screen.getByText(/isn't reachable/i)).toBeInTheDocument());
     expect(streamChatMock).not.toHaveBeenCalled();
   });
 

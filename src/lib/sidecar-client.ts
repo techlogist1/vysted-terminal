@@ -176,6 +176,33 @@ export async function sidecarGet<T>(path: string, params?: QueryParams): Promise
   }
 }
 
+/**
+ * Probe whether an LLM provider is actually usable right now — a valid key for
+ * a cloud provider, or a reachable local daemon for a keyless one (Ollama's
+ * `validate_key` returns true only when `client.list()` succeeds). Used to gate
+ * the first agent call so a keyless local provider that isn't running surfaces a
+ * clear onboarding message instead of a doomed call (the ratified "offer both,
+ * never silently fail against an absent local model" rule). Never throws.
+ */
+export async function validateProvider(provider: string, apiKey?: string): Promise<boolean> {
+  try {
+    const base = await getSidecarBaseUrl();
+    const url = new URL("/llm/keys/validate", base);
+    const response = await fetch(url.toString(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider, api_key: apiKey ?? null }),
+    });
+    if (!response.ok) {
+      return false;
+    }
+    const body = (await response.json()) as { ok?: boolean };
+    return body.ok === true;
+  } catch {
+    return false;
+  }
+}
+
 /** Open a WebSocket to the crypto ticker stream. The caller owns the socket. */
 export async function openCryptoStream(exchange: string, symbol: string): Promise<WebSocket> {
   const base = await getSidecarBaseUrl();
