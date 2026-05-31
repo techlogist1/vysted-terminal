@@ -312,6 +312,34 @@ def _build_server() -> FastMCP:
                 _log.debug("list_workflows: workflow router not reachable: %s", exc)
                 return {"workflows": []}
 
+    # ---------- Delegate-run tools (P3 durable-runs surface) ----------
+
+    @mcp.tool
+    async def list_runs() -> dict[str, Any]:
+        """List Delegate runs (status + cost-so-far). Maps to GET /runs.
+
+        Hand-written + MCP-only (it is a runtime/framework surface, not a
+        catalog data capability), mirroring ``list_workspaces``. The router
+        already returns ``{runs: [...]}``; this keeps the dict-wrap rule explicit
+        at the MCP boundary (FastMCP rejects bare-list outputs — the v0.4.0
+        Gotcha).
+        """
+        async with _internal_client() as client:
+            try:
+                response = await client.get("/runs")
+                if response.status_code == 404:
+                    return {"runs": []}
+                response.raise_for_status()
+                body = response.json()
+                if isinstance(body, list):
+                    return {"runs": body}
+                if isinstance(body, dict) and "runs" in body:
+                    return body
+                return {"runs": []}
+            except httpx.HTTPError as exc:
+                _log.debug("list_runs: runs router not reachable: %s", exc)
+                return {"runs": []}
+
     return mcp
 
 

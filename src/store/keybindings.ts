@@ -98,12 +98,6 @@ const SHELL_DEFAULTS: Record<string, KeybindingDef> = {
     description: "Discard every staged proposed change.",
     category: "changes",
   },
-  "workspace.save": {
-    keys: "mod+s",
-    label: "Save workspace",
-    description: "Save the current cockpit layout to a named workspace.",
-    category: "workspace",
-  },
 };
 
 /**

@@ -50,7 +50,7 @@ def test_mcp_server_registers_catalog_and_runtime_tools() -> None:
     names = {tool.name for tool in tools}
     # Every catalog-projected capability appears by its canonical (internal) name.
     assert set(mcp_tool_ids()).issubset(names)
-    # The runtime tools (agents/workspaces/workflows) are MCP-only and stay.
+    # The runtime tools (agents/workspaces/workflows/runs) are MCP-only and stay.
     assert {
         "list_agents",
         "invoke_agent",
@@ -58,6 +58,7 @@ def test_mcp_server_registers_catalog_and_runtime_tools() -> None:
         "get_workspace",
         "run_workflow",
         "list_workflows",
+        "list_runs",
     }.issubset(names)
     # Representative catalog names the internal copilot also uses (same names).
     assert {"price_data", "fundamentals", "macro_series", "news"}.issubset(names)

@@ -143,8 +143,17 @@ async function resolveAndAwaitReady(): Promise<string> {
 
 type QueryParams = Record<string, string | number | undefined>;
 
-/** Low-level typed GET against a sidecar endpoint. */
-export async function sidecarGet<T>(path: string, params?: QueryParams): Promise<T> {
+/**
+ * Low-level typed GET against a sidecar endpoint. `headers` carries BYOK
+ * credentials read from the OS keychain (the read-only-plugin pattern: secret
+ * in a header, never the body/query) — e.g. the `X-Vysted-Newsapi-Key` the news
+ * feed sends. Undefined header values are dropped so an absent key is a no-op.
+ */
+export async function sidecarGet<T>(
+  path: string,
+  params?: QueryParams,
+  headers?: Record<string, string | undefined>,
+): Promise<T> {
   const base = await getSidecarBaseUrl();
   const url = new URL(path, base);
   if (params) {
@@ -154,7 +163,17 @@ export async function sidecarGet<T>(path: string, params?: QueryParams): Promise
       }
     }
   }
-  const response = await fetch(url.toString());
+  const requestHeaders: Record<string, string> = {};
+  if (headers) {
+    for (const [key, value] of Object.entries(headers)) {
+      if (value !== undefined) {
+        requestHeaders[key] = value;
+      }
+    }
+  }
+  const response = await fetch(url.toString(), {
+    headers: Object.keys(requestHeaders).length > 0 ? requestHeaders : undefined,
+  });
   if (!response.ok) {
     let detail = response.statusText;
     try {

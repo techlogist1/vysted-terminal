@@ -1,12 +1,13 @@
 /**
- * Agent-runs store — the agents rail (FR-027, US3 AS3).
+ * Agent-runs store — the agents rail (FR-027, US9).
  *
- * Tracks agent runs the user has launched so the agents rail can show live
- * status and offer cancel / bring-to-foreground. In P1 a run is a foreground
- * invocation (bounded by the sidecar's tool-round cap); Delegate runs surface
- * here too. P3 deepens this into durable, budget-guarded background runs
- * (cost-so-far, checkpoint/resume, HITL) — the shape carries those fields now so
- * the rail UI does not change when durability lands.
+ * Tracks agent runs so the rail shows live status, cost-so-far, and the budget,
+ * and offers cancel / bring-to-foreground. Foreground runs (Ask/Edit/Build) are
+ * local + ephemeral; a Delegate run is a DURABLE, budget-guarded background run
+ * tracked by the sidecar (`/runs`) — it carries a `sidecarRunId`, and a poller
+ * (`lib/delegate-runs`) syncs its cost/status into this store so the rail
+ * reflects it even after the launching connection closes. A run that breaches
+ * its BudgetGuard ends as `error` with the breach reason (SC-008).
  */
 
 import { create } from "zustand";
@@ -14,6 +15,21 @@ import { create } from "zustand";
 import type { AgentMode } from "../../types/agent-modes";
 
 export type AgentRunStatus = "running" | "done" | "error" | "cancelled" | "paused";
+
+/** Hard ceilings for a Delegate run — the first breach aborts it (FR-026). */
+export interface AgentRunBudget {
+  maxTokens?: number;
+  maxSpendUsd?: number;
+  maxWallSeconds?: number;
+  maxSteps?: number;
+}
+
+/** Cost-so-far for a run (tokens + estimated USD + steps). */
+export interface AgentRunCost {
+  tokens: number;
+  spendUsd: number;
+  steps: number;
+}
 
 export interface AgentRun {
   id: string;
@@ -23,11 +39,17 @@ export interface AgentRun {
   status: AgentRunStatus;
   startedAt: number;
   endedAt?: number;
-  /** Short status detail (e.g. an error message, a pause question). */
+  /** Short status detail (e.g. an error/breach message, a pause question). */
   detail?: string;
-  /** Cost-so-far (tokens) — populated as the run reports usage. P3 adds $/budget. */
-  tokens?: number;
-  /** Abort the run (P1: aborts the foreground stream). */
+  /** Cost-so-far (tokens + USD + steps), updated as the run reports usage. */
+  cost?: AgentRunCost;
+  /** The run's hard budget (Delegate runs); undefined for unbounded foreground. */
+  budget?: AgentRunBudget;
+  /** Sidecar run id for a DURABLE (Delegate) run — links to `/runs/{id}`. */
+  sidecarRunId?: string;
+  /** A human-in-the-loop question the run is paused on (FR-028). */
+  question?: string;
+  /** Abort the run (foreground: aborts the stream; durable: cancels via the rail). */
   abort?: () => void;
 }
 
@@ -46,6 +68,8 @@ interface AgentRunsState {
   removeRun: (id: string) => void;
   clearFinished: () => void;
   activeRuns: () => AgentRun[];
+  /** Find a run by its sidecar run id (used by the durable-run poller). */
+  bySidecarId: (sidecarRunId: string) => AgentRun | undefined;
 }
 
 export const useAgentRunsStore = create<AgentRunsState>((set, get) => ({
@@ -80,7 +104,7 @@ export const useAgentRunsStore = create<AgentRunsState>((set, get) => ({
     run?.abort?.();
     set((state) => ({
       runs: state.runs.map((r) =>
-        r.id === id && r.status === "running"
+        r.id === id && (r.status === "running" || r.status === "paused")
           ? { ...r, status: "cancelled", endedAt: Date.now() }
           : r,
       ),
@@ -92,6 +116,8 @@ export const useAgentRunsStore = create<AgentRunsState>((set, get) => ({
   clearFinished: () => set((state) => ({ runs: state.runs.filter((r) => r.status === "running") })),
 
   activeRuns: () => get().runs.filter((r) => r.status === "running" || r.status === "paused"),
+
+  bySidecarId: (sidecarRunId) => get().runs.find((r) => r.sidecarRunId === sidecarRunId),
 }));
 
 /** Test helper: reset the agent-runs store. */

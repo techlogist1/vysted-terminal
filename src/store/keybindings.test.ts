@@ -70,10 +70,12 @@ describe("resetBinding", () => {
 
 describe("setOverrides", () => {
   it("replaces the whole overrides map and normalises entries", () => {
-    useKeybindingsStore.getState().setOverrides({ "palette.open": "Mod+P", "workspace.save": "" });
-    expect(useKeybindingsStore.getState().bindingFor("palette.open")).toBe("mod+p");
-    // Empty string is dropped, so workspace.save falls back to default.
-    expect(useKeybindingsStore.getState().bindingFor("workspace.save")).toBe("mod+s");
+    useKeybindingsStore
+      .getState()
+      .setOverrides({ "agent.mode.ask": "Mod+P", "platform.save-workspace": "" });
+    expect(useKeybindingsStore.getState().bindingFor("agent.mode.ask")).toBe("mod+p");
+    // Empty string is dropped, so platform.save-workspace falls back to default.
+    expect(useKeybindingsStore.getState().bindingFor("platform.save-workspace")).toBe("mod+s");
   });
 });
 

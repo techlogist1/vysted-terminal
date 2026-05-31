@@ -16,9 +16,15 @@ def test_health_payload_shape(client: TestClient) -> None:
 
 
 def test_health_reports_active_providers(client: TestClient) -> None:
+    # FR-053: active_providers() is now DERIVED from the provider-declaration
+    # table and keyed by STANDARD MODEL KEY (quote/ohlcv/fundamentals/…), not by
+    # the old hardcoded asset-class keys.
     providers = client.get("/health").json()["providers"]
-    assert providers["equity"] == "yfinance"
-    assert "ccxt" in providers["crypto"]
+    # The crypto market-data provider (ccxt, rank 10) wins the quote/ohlcv keys.
+    assert "ccxt" in providers["quote"]
+    assert "ccxt" in providers["ohlcv"]
+    # yfinance is always available for fundamentals (openbb-mcp may front it).
+    assert "yfinance" in providers["fundamentals"]
     # Phase 3: OpenBB-via-MCP ships bundled; the registry reports either
     # "available" (production with the openbb-mcp subprocess running) or
     # "unavailable" (no-MCP rebuild, the dev path without the build script).

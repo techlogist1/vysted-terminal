@@ -33,14 +33,29 @@ def client(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> TestClient:
     kill_switch.reset_bus_for_tests()
 
 
-@pytest.mark.parametrize("path", ["account", "positions", "holdings", "margins"])
-def test_kite_read_routes_return_account_summary(client: TestClient, path: str) -> None:
-    # Paper/disconnected kite — the granular routes fall back to account_info().
-    response = client.get(f"/brokers/kite/{path}")
+def test_kite_account_route_returns_account_summary(client: TestClient) -> None:
+    # /account stays the AccountSummary shape.
+    response = client.get("/brokers/kite/account")
     assert response.status_code == 200
     body = response.json()
     assert body["broker"] == "kite"
     assert "positions" in body  # AccountSummary shape
+
+
+@pytest.mark.parametrize("path", ["positions", "holdings", "margins"])
+def test_kite_granular_routes_return_labeled_synthetic_in_paper(
+    client: TestClient, path: str
+) -> None:
+    # Paper/disconnected kite — the granular routes now return genuine granular
+    # models (FR-042), clearly labelled synthetic (FR-041), NOT a relabelled
+    # AccountSummary.
+    response = client.get(f"/brokers/kite/{path}")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["broker"] == "kite"
+    assert body["synthetic"] is True
+    assert body["mode"] == "paper"
+    assert body["provider"] == "kite"
 
 
 def test_read_routes_are_get_only() -> None:

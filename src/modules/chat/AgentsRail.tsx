@@ -1,19 +1,26 @@
 "use client";
 
-import { useMemo } from "react";
-import { X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Maximize2, X } from "lucide-react";
 
-import { useAgentRunsStore } from "@/store/agent-runs";
+import { cn } from "@/lib/utils";
+import { answerDelegateRun } from "@/lib/delegate-runs";
+import { useAgentRunsStore, type AgentRun } from "@/store/agent-runs";
 
 import { agentModeMeta } from "../../../types/agent-modes";
 
 /**
- * The agents rail (FR-027, US3 AS3) — running agent tasks with live status,
- * cost-so-far, and a cancel control. In P1 a run is a foreground invocation
- * (Delegate included); P3 deepens this into durable, budget-guarded background
- * runs with checkpoint/resume + bring-to-foreground. Hidden when nothing runs.
+ * The agents rail (FR-027, US9) — running agent tasks with live status,
+ * cost-so-far vs budget, cancel, bring-to-foreground, and a human-in-the-loop
+ * answer box for a paused run. Delegate runs are durable (sidecar-tracked); the
+ * cost/status here is synced by the `/runs` poller. Hidden when nothing runs.
  */
-export function AgentsRail() {
+export function AgentsRail({
+  onForeground,
+}: {
+  /** Bring a run to the foreground (the parent surfaces its transcript). */
+  onForeground?: (run: AgentRun) => void;
+}) {
   const runs = useAgentRunsStore((state) => state.runs);
   const cancelRun = useAgentRunsStore((state) => state.cancelRun);
 
@@ -28,43 +35,110 @@ export function AgentsRail() {
   return (
     <section
       aria-label="Running agents"
-      className="border-charcoal-700 bg-charcoal-925 border-b px-3 py-1"
+      className="border-charcoal-700 bg-charcoal-925 flex flex-col gap-1.5 border-b px-3 py-1.5"
     >
-      <ul className="flex flex-col gap-1">
-        {active.map((run) => (
-          <li
-            key={run.id}
-            className="flex items-center justify-between gap-2 font-mono text-[0.6rem]"
+      {active.map((run) => (
+        <RunRow
+          key={run.id}
+          run={run}
+          onCancel={() => cancelRun(run.id)}
+          onForeground={onForeground}
+        />
+      ))}
+    </section>
+  );
+}
+
+function RunRow({
+  run,
+  onCancel,
+  onForeground,
+}: {
+  run: AgentRun;
+  onCancel: () => void;
+  onForeground?: (run: AgentRun) => void;
+}) {
+  const [answer, setAnswer] = useState("");
+  const cost = run.cost;
+  const budget = run.budget;
+  // Budget usage fraction (tokens-based, the most common ceiling) for the bar.
+  const frac =
+    budget?.maxTokens && cost
+      ? Math.min(1, cost.tokens / budget.maxTokens)
+      : run.status === "running"
+        ? null
+        : 1;
+
+  return (
+    <div className="flex flex-col gap-1 font-mono text-[0.6rem]">
+      <div className="flex items-center justify-between gap-2">
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span
+            className={run.status === "paused" ? "text-warning" : "animate-pulse text-amber-400"}
+            aria-hidden
           >
-            <span className="flex min-w-0 items-center gap-1.5">
-              <span
-                className={
-                  run.status === "paused" ? "text-warning" : "animate-pulse text-amber-400"
-                }
-                aria-hidden
-              >
-                ●
-              </span>
-              <span className="text-charcoal-200 truncate">{run.agentName}</span>
-              <span className="text-charcoal-500">{agentModeMeta(run.mode).label}</span>
-              {typeof run.tokens === "number" && run.tokens > 0 && (
-                <span className="text-charcoal-500">{run.tokens.toLocaleString()} tok</span>
-              )}
-              {run.status === "paused" && run.detail && (
-                <span className="text-warning truncate">{run.detail}</span>
-              )}
+            ●
+          </span>
+          <span className="text-charcoal-200 truncate">{run.agentName}</span>
+          <span className="text-charcoal-500">{agentModeMeta(run.mode).label}</span>
+          {cost && cost.tokens > 0 && (
+            <span className="text-charcoal-500">
+              {cost.tokens.toLocaleString()} tok
+              {cost.spendUsd > 0 ? ` · $${cost.spendUsd.toFixed(4)}` : ""}
             </span>
+          )}
+        </span>
+        <span className="flex shrink-0 items-center gap-1">
+          {onForeground && run.sidecarRunId && (
             <button
               type="button"
-              aria-label={`Cancel ${run.agentName}`}
-              onClick={() => cancelRun(run.id)}
-              className="text-charcoal-500 hover:text-negative shrink-0"
+              aria-label={`Bring ${run.agentName} to the foreground`}
+              onClick={() => onForeground(run)}
+              className="text-charcoal-500 hover:text-amber-300"
             >
-              <X size={11} aria-hidden />
+              <Maximize2 size={11} aria-hidden />
             </button>
-          </li>
-        ))}
-      </ul>
-    </section>
+          )}
+          <button
+            type="button"
+            aria-label={`Cancel ${run.agentName}`}
+            onClick={onCancel}
+            className="text-charcoal-500 hover:text-negative"
+          >
+            <X size={11} aria-hidden />
+          </button>
+        </span>
+      </div>
+      {frac !== null && (
+        <div className="bg-charcoal-800 h-0.5 w-full overflow-hidden rounded-full" aria-hidden>
+          <div
+            className={cn("h-full rounded-full", frac >= 1 ? "bg-warning" : "bg-amber-500")}
+            style={{ width: `${Math.round(frac * 100)}%` }}
+          />
+        </div>
+      )}
+      {run.status === "paused" && run.question && run.sidecarRunId && (
+        <form
+          className="mt-0.5 flex items-center gap-1"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (answer.trim()) {
+              void answerDelegateRun(run.sidecarRunId!, answer.trim());
+              setAnswer("");
+            }
+          }}
+        >
+          <span className="text-warning truncate" title={run.question}>
+            {run.question}
+          </span>
+          <input
+            aria-label="Answer the agent's question"
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            className="bg-charcoal-800 text-charcoal-100 h-5 flex-1 rounded px-1.5 text-[0.6rem] outline-none focus:ring-1 focus:ring-amber-400"
+          />
+        </form>
+      )}
+    </div>
   );
 }

@@ -21,9 +21,11 @@ import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useAgentDockStore } from "@/store/agent-dock";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
+import { useKeybindingsStore } from "@/store/keybindings";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
+import { type SettingsBundle, useSettingsStore } from "@/store/settings";
 import { type SymbolEntry, useSymbolsStore } from "@/store/symbols";
 import { AUTOSAVE_LAYOUT_NAME, useWorkspaceStore } from "@/store/workspace";
 import type { LLMProviderId } from "../../types/ai";
@@ -72,6 +74,18 @@ export interface SerializedWorkspace {
    * per-provider defaults apply when absent.
    */
   modelOverrides?: Partial<Record<LLMProviderId, string>>;
+  /**
+   * Remappable-keybinding overrides (FR-038/FR-039), keyed by action id. Only
+   * the user's remaps persist — the immutable default keymap is not stored.
+   * Optional for older blobs (no overrides → defaults apply).
+   */
+  keybindingOverrides?: Record<string, string>;
+  /**
+   * The local preferences bundle (FR-037, SC-011): default agent, provider
+   * preference order, palette behaviour, starter-cockpit composition, panel
+   * defaults, theme knobs. NEVER carries secrets. Optional for older blobs.
+   */
+  settings?: SettingsBundle;
   /** Open to future-phase additions; the sidecar stores the body opaquely. */
   [key: string]: unknown;
 }
@@ -107,6 +121,8 @@ export function serializeWorkspace(name: string): SerializedWorkspace {
       width: useAgentDockStore.getState().width,
     },
     modelOverrides: useModelSelectionStore.getState().overrides,
+    keybindingOverrides: useKeybindingsStore.getState().overrides,
+    settings: useSettingsStore.getState().toBundle(),
   };
 }
 
@@ -162,6 +178,15 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
   }
   if (workspace.modelOverrides && typeof workspace.modelOverrides === "object") {
     useModelSelectionStore.getState().setOverrides(workspace.modelOverrides);
+  }
+  // Restore remappable-keybinding overrides + the preferences bundle (older
+  // blobs lack them — keep the defaults). `setOverrides` normalises on the way
+  // in; `setAll` merges over the seed so a partial blob can't strip a field.
+  if (workspace.keybindingOverrides && typeof workspace.keybindingOverrides === "object") {
+    useKeybindingsStore.getState().setOverrides(workspace.keybindingOverrides);
+  }
+  if (workspace.settings && typeof workspace.settings === "object") {
+    useSettingsStore.getState().setAll(workspace.settings);
   }
 }
 
@@ -325,6 +350,8 @@ export async function autosaveLayout(): Promise<void> {
         width: useAgentDockStore.getState().width,
       },
       modelOverrides: useModelSelectionStore.getState().overrides,
+      keybindingOverrides: useKeybindingsStore.getState().overrides,
+      settings: useSettingsStore.getState().toBundle(),
     };
     await fetch(await workspaceUrl(), {
       method: "POST",

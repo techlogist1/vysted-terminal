@@ -5,12 +5,13 @@ import { Sparkles, Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
+import { launchDelegateRun } from "@/lib/delegate-runs";
 import { isHostActionMutation } from "@/lib/host-actions";
 import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
 import { validateProvider } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { useAgentModeStore } from "@/store/agent-mode";
-import { useAgentRunsStore } from "@/store/agent-runs";
+import { type AgentRunBudget, useAgentRunsStore } from "@/store/agent-runs";
 import { selectCustomAgents, selectFirstPartyAgents, useAgentsStore } from "@/store/agents";
 import { useChatHistoryStore } from "@/store/chat-history";
 import { useLLMProvidersStore } from "@/store/llm-providers";
@@ -22,6 +23,7 @@ import type { AgentContextSnapshot, LLMProviderId, LLMStreamEvent } from "../../
 import { type AgentMode, AGENT_MODES, agentModeMeta } from "../../../types/agent-modes";
 import { AgentHud } from "./AgentHud";
 import { AgentsRail } from "./AgentsRail";
+import { BudgetConfig, DEFAULT_DELEGATE_BUDGET } from "./BudgetConfig";
 import { captureTerminalState } from "./context-provider";
 import { ModeBar } from "./ModeBar";
 import { ProposedChangesReview } from "./ProposedChangesReview";
@@ -113,6 +115,7 @@ export function ChatSidebar() {
   const [composer, setComposer] = useState("");
   const [statusLine, setStatusLine] = useState<string | null>(null);
   const [keyDialogProvider, setKeyDialogProvider] = useState<LLMProviderId | null>(null);
+  const [delegateBudget, setDelegateBudget] = useState<AgentRunBudget>(DEFAULT_DELEGATE_BUDGET);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -280,6 +283,37 @@ export function ChatSidebar() {
         return;
       }
 
+      // Delegate launches a DURABLE, budget-guarded background run (US9) instead
+      // of a foreground stream — it survives this turn and appears in the agents
+      // rail with live cost-so-far; its proposed changes still ride the diff gate.
+      if (mode === "delegate" && agentForCall) {
+        const terminalState = captureTerminalState();
+        const snapshot: AgentContextSnapshot = {
+          focusedSource: terminalState.focusedPanel,
+          bySource: { __terminal__: terminalState as unknown as Record<string, unknown> },
+          capturedAt: terminalState.capturedAt,
+        };
+        const noteId = beginAssistant({ agentId: agentForCall, providerId: provider });
+        appendDelta(
+          noteId,
+          "Delegated to a background run — track its cost + status in the agents rail above. " +
+            "It works autonomously under your budget; any changes it proposes still need your review.",
+        );
+        finalize(noteId, null);
+        void launchDelegateRun({
+          agentId: agentForCall,
+          agentName: agentNameById[agentForCall] ?? agentForCall,
+          prompt,
+          contextSnapshot: snapshot,
+          provider,
+          model,
+          apiKey: apiKey ?? undefined,
+          budget: delegateBudget,
+          options: { history },
+        });
+        return;
+      }
+
       const assistantId = beginAssistant({
         agentId: agentForCall ?? undefined,
         providerId: provider,
@@ -311,10 +345,12 @@ export function ChatSidebar() {
         },
         onDone: (usage) => {
           finalize(assistantId, usage);
-          endRun(runId, "done");
           if (usage) {
-            updateRun(runId, { tokens: usage.inputTokens + usage.outputTokens });
+            updateRun(runId, {
+              cost: { tokens: usage.inputTokens + usage.outputTokens, spendUsd: 0, steps: 0 },
+            });
           }
+          endRun(runId, "done");
         },
         onToolUse: (name, input, toolCallId) => {
           if (isHostActionMutation(name)) {
@@ -378,6 +414,7 @@ export function ChatSidebar() {
       clearHistory,
       customAgents,
       defaultProviderId,
+      delegateBudget,
       endRun,
       enqueueChange,
       fail,
@@ -416,7 +453,19 @@ export function ChatSidebar() {
         onProviderChange={(p) => setProviderOverride(p)}
         onModelChange={(m) => setModelOverride(effectiveProvider, m)}
       />
-      <AgentsRail />
+      {mode === "delegate" && <BudgetConfig budget={delegateBudget} onChange={setDelegateBudget} />}
+      <AgentsRail
+        onForeground={(run) => {
+          const id = beginAssistant({ agentId: run.agentId ?? undefined });
+          appendDelta(
+            id,
+            `Delegate run "${run.agentName}" — ${run.status}` +
+              (run.cost ? `, ${run.cost.tokens.toLocaleString()} tokens` : "") +
+              (run.detail ? `. ${run.detail}` : "."),
+          );
+          finalize(id, null);
+        }}
+      />
       <ContextBadge text={contextBadge} />
       <div
         ref={scrollRef}

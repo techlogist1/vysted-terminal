@@ -30,6 +30,7 @@ _RUNTIME_ONLY = {
     "get_workspace",
     "run_workflow",
     "list_workflows",
+    "list_runs",
 }
 
 

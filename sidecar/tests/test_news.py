@@ -104,6 +104,8 @@ def mock_news(monkeypatch: pytest.MonkeyPatch) -> list[NewsItem]:
         client: httpx.AsyncClient,  # noqa: ARG001
         symbols: list[str],  # noqa: ARG001
         limit: int,  # noqa: ARG001
+        *,
+        newsapi_key: str | None = None,  # noqa: ARG001
     ) -> list[NewsItem]:
         return list(canned)
 
@@ -317,6 +319,81 @@ def test_fetch_news_uses_newsapi_when_key_set(monkeypatch: pytest.MonkeyPatch) -
     assert ids == {"rss1", "api1"}
     assert seen["api_key"] == "test-key-123"
     assert "NVDA" in str(seen["query"])
+
+
+def test_fetch_news_request_key_takes_precedence_over_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """FR-036: the request-supplied (keychain) key wins over the env var."""
+    rss_item = _news_item("rss1", "RSS market item")
+    api_item = _news_item("api1", "NewsAPI item").model_copy(
+        update={"provider": news_provider.PROVIDER_NEWSAPI}
+    )
+    seen: dict[str, object] = {}
+
+    async def fake_fetch_rss(client, feed_url, *, fallback_source):  # noqa: ANN001, ANN202, ARG001
+        return [rss_item]
+
+    async def fake_fetch_newsapi(client, query, *, limit, api_key):  # noqa: ANN001, ANN202, ARG001
+        seen["api_key"] = api_key
+        return [api_item]
+
+    monkeypatch.setattr(news_provider, "fetch_rss", fake_fetch_rss)
+    monkeypatch.setattr(news_provider, "fetch_newsapi", fake_fetch_newsapi)
+    # Env var present, but the request-supplied key must win.
+    monkeypatch.setenv("NEWSAPI_KEY", "env-key")
+
+    items = asyncio.run(
+        news_provider.fetch_news(_CLIENT, ["NVDA"], limit=10, newsapi_key="keychain-key")
+    )
+    assert {item.id for item in items} == {"rss1", "api1"}
+    assert seen["api_key"] == "keychain-key"
+
+
+def test_fetch_news_env_key_is_last_resort_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No request key → the NEWSAPI_KEY env var is the dev fallback."""
+    api_item = _news_item("api1", "NewsAPI item").model_copy(
+        update={"provider": news_provider.PROVIDER_NEWSAPI}
+    )
+    seen: dict[str, object] = {}
+
+    async def fake_fetch_rss(client, feed_url, *, fallback_source):  # noqa: ANN001, ANN202, ARG001
+        return [_news_item("rss1", "RSS market item")]
+
+    async def fake_fetch_newsapi(client, query, *, limit, api_key):  # noqa: ANN001, ANN202, ARG001
+        seen["api_key"] = api_key
+        return [api_item]
+
+    monkeypatch.setattr(news_provider, "fetch_rss", fake_fetch_rss)
+    monkeypatch.setattr(news_provider, "fetch_newsapi", fake_fetch_newsapi)
+    monkeypatch.setenv("NEWSAPI_KEY", "env-key")
+
+    items = asyncio.run(news_provider.fetch_news(_CLIENT, ["NVDA"], limit=10))
+    assert {item.id for item in items} == {"rss1", "api1"}
+    assert seen["api_key"] == "env-key"
+
+
+def test_get_news_passes_header_key_to_provider(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """FR-036: the /news route reads the BYOK key from a HEADER and passes it on;
+    the key is never echoed in the response."""
+    seen: dict[str, object] = {}
+
+    async def fake_fetch_news(
+        client_: httpx.AsyncClient,  # noqa: ARG001
+        symbols: list[str],  # noqa: ARG001
+        limit: int,  # noqa: ARG001
+        *,
+        newsapi_key: str | None = None,
+    ) -> list[NewsItem]:
+        seen["newsapi_key"] = newsapi_key
+        return [_news_item("a1", "NVDA shares soar")]
+
+    monkeypatch.setattr(news_provider, "fetch_news", fake_fetch_news)
+    response = client.get("/news", headers={"X-Vysted-Newsapi-Key": "keychain-key"})
+    assert response.status_code == 200
+    assert seen["newsapi_key"] == "keychain-key"
+    # The key must never appear in the response payload.
+    assert "keychain-key" not in response.text
 
 
 # --------------------------------------------------------------------------

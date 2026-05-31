@@ -35,6 +35,7 @@ import { useSafetyStore } from "@/store/safety";
 
 import type { BrokerId, BrokerMode, BrokerState } from "../../../types/broker";
 
+import { BrokerReadsSection } from "./BrokerReadsSection";
 import { KiteStaticIpBanner } from "./kite-static-ip-banner";
 
 const BROKER_CREDENTIAL_FIELDS: Record<BrokerId, Array<{ key: string; label: string }>> = {
@@ -254,6 +255,7 @@ function BrokerRow({ state, disabled }: BrokerRowProps) {
             <KiteStaticIpBanner sidecarBaseUrl={sidecarBaseUrl} configuredIp={null} />
           </div>
         )}
+        {state.status === "connected" && <BrokerReadsSection broker={state.broker} />}
       </div>
       <div className="flex gap-1">
         {state.status === "connected" ? (

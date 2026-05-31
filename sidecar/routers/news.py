@@ -17,14 +17,25 @@ vetted inside the PyInstaller ``--onefile`` bundle, whereas VADER is a pure
 from __future__ import annotations
 
 import re
+from typing import Annotated
 
 import httpx
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Header, Query, Request
 
 from models.news import NewsItem
 from services import news_provider, sentiment
 
 router = APIRouter(prefix="/news", tags=["news"])
+
+# FR-036: the BYOK NewsAPI key rides the request from the OS keychain as a
+# HEADER (never the body/query, mirroring the read-only-plugin credential
+# pattern). It is passed straight to the provider and never logged, echoed, or
+# persisted. Absent the header, the provider falls back to the NEWSAPI_KEY env
+# var (dev only) or RSS-only.
+NewsApiKeyHeader = Annotated[
+    str | None,
+    Header(alias="X-Vysted-Newsapi-Key", description="BYOK NewsAPI key from the OS keychain."),
+]
 
 # Default Phase 1 watchlist used when the caller passes no ``symbols``. The real
 # watchlist store is owned by another module and is not crossed here.
@@ -81,6 +92,7 @@ async def get_news(
         le=_MAX_LIMIT,
         description="Maximum number of news items to return",
     ),
+    newsapi_key: NewsApiKeyHeader = None,
 ) -> list[NewsItem]:
     """Return scored, symbol-tagged news, newest first.
 
@@ -96,7 +108,9 @@ async def get_news(
     requested = _parse_symbols(symbols)
     tag_symbols = requested or list(_DEFAULT_SYMBOLS)
 
-    raw_items = await news_provider.fetch_news(_httpx_client(request), requested, limit)
+    raw_items = await news_provider.fetch_news(
+        _httpx_client(request), requested, limit, newsapi_key=newsapi_key
+    )
 
     scored: list[NewsItem] = []
     for item in raw_items:

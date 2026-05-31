@@ -43,6 +43,11 @@ from models.broker import (
     BrokerOrderType,
     BrokerState,
 )
+from models.broker_reads import (
+    BrokerHoldingsResult,
+    BrokerMarginsResult,
+    BrokerPositionsResult,
+)
 from services.broker_base import BrokerError
 from services.brokers import registry as brokers_registry
 from services.brokers.kite import KiteAdapter
@@ -184,9 +189,11 @@ def _read_error_to_http(exc: BrokerError) -> HTTPException:
     return HTTPException(status_code=400, detail=str(exc))
 
 
-async def _read_account(broker_id: BrokerId, method_name: str) -> AccountSummary:
-    """Read account state via a granular adapter method if it exists, else fall
-    back to ``account_info()`` (read-only by construction — no order path)."""
+async def _read_granular(broker_id: BrokerId, method_name: str):  # noqa: ANN202 - union return
+    """Call a granular read (``positions_info`` / ``holdings_info`` /
+    ``margins_info``) when the adapter implements it, else fall back to the
+    ``AccountSummary`` from ``account_info()`` for adapters without granular
+    reads. Read-only by construction — no order path is reachable here (§6.5)."""
     adapter = _get_adapter(broker_id)
     fn = getattr(adapter, method_name, None)
     try:
@@ -206,21 +213,31 @@ async def get_broker_account(broker_id: BrokerId) -> AccountSummary:
 
 
 @router.get("/{broker_id}/positions")
-async def get_broker_positions(broker_id: BrokerId) -> AccountSummary:
-    """Read positions (long-term holdings + intraday/F&O) — read-only."""
-    return await _read_account(broker_id, "positions_info")
+async def get_broker_positions(broker_id: BrokerId) -> BrokerPositionsResult | AccountSummary:
+    """Read intraday/F&O positions (net + day) — read-only.
+
+    Adapters with ``positions_info`` return the granular
+    :class:`BrokerPositionsResult`; adapters without it fall back to the
+    ``AccountSummary``."""
+    return await _read_granular(broker_id, "positions_info")
 
 
 @router.get("/{broker_id}/holdings")
-async def get_broker_holdings(broker_id: BrokerId) -> AccountSummary:
-    """Read long-term holdings — read-only."""
-    return await _read_account(broker_id, "holdings_info")
+async def get_broker_holdings(broker_id: BrokerId) -> BrokerHoldingsResult | AccountSummary:
+    """Read settled long-term holdings — read-only.
+
+    Adapters with ``holdings_info`` return the granular
+    :class:`BrokerHoldingsResult`; others fall back to the ``AccountSummary``."""
+    return await _read_granular(broker_id, "holdings_info")
 
 
 @router.get("/{broker_id}/margins")
-async def get_broker_margins(broker_id: BrokerId) -> AccountSummary:
-    """Read funds / buying power — read-only."""
-    return await _read_account(broker_id, "margins_info")
+async def get_broker_margins(broker_id: BrokerId) -> BrokerMarginsResult | AccountSummary:
+    """Read per-segment funds / buying power — read-only.
+
+    Adapters with ``margins_info`` return the granular
+    :class:`BrokerMarginsResult`; others fall back to the ``AccountSummary``."""
+    return await _read_granular(broker_id, "margins_info")
 
 
 @router.post("/{broker_id}/disconnect")

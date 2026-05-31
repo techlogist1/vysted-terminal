@@ -4,9 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AGENT_DOCK_DEFAULT_WIDTH, useAgentDockStore } from "@/store/agent-dock";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
+import { resetKeybindingsStoreForTests, useKeybindingsStore } from "@/store/keybindings";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
+import { DEFAULT_SETTINGS, resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 import type { DrawingSpec } from "../../types/drawings";
@@ -58,6 +60,8 @@ describe("workspace serialization", () => {
     useAgentModeStore.setState({ mode: "ask" });
     useAgentDockStore.setState({ collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH });
     useModelSelectionStore.setState({ overrides: {} });
+    resetKeybindingsStoreForTests();
+    resetSettingsStoreForTests();
   });
 
   afterEach(() => {
@@ -81,7 +85,55 @@ describe("workspace serialization", () => {
       agentMode: "ask",
       agentDock: { collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH },
       modelOverrides: {},
+      keybindingOverrides: {},
+      settings: DEFAULT_SETTINGS,
     });
+  });
+
+  it("round-trips keybinding overrides and the settings bundle (FR-037/038/039)", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+
+    // Set some non-default keybindings + preferences, then serialize.
+    useKeybindingsStore.getState().setBinding("palette.open", "mod+shift+p");
+    useSettingsStore.getState().setDefaultAgentId("buffett");
+    useSettingsStore.getState().setProviderPreferenceOrder(["groq", "ollama", "anthropic"]);
+    useSettingsStore.getState().setPaletteRecentsEnabled(false);
+
+    const saved = serializeWorkspace("research");
+    expect(saved.keybindingOverrides).toEqual({ "palette.open": "mod+shift+p" });
+    expect(saved.settings?.defaultAgentId).toBe("buffett");
+    expect(saved.settings?.providerPreferenceOrder).toEqual(["groq", "ollama", "anthropic"]);
+    expect(saved.settings?.paletteRecentsEnabled).toBe(false);
+
+    // Mutate the live state away…
+    resetKeybindingsStoreForTests();
+    resetSettingsStoreForTests();
+    expect(useKeybindingsStore.getState().overrides).toEqual({});
+    expect(useSettingsStore.getState().defaultAgentId).toBeNull();
+
+    // …then deserialize — the remaps + preferences come back exactly.
+    deserializeWorkspace(saved);
+    expect(useKeybindingsStore.getState().bindingFor("palette.open")).toBe("mod+shift+p");
+    expect(useSettingsStore.getState().defaultAgentId).toBe("buffett");
+    expect(useSettingsStore.getState().providerPreferenceOrder).toEqual([
+      "groq",
+      "ollama",
+      "anthropic",
+    ]);
+    expect(useSettingsStore.getState().paletteRecentsEnabled).toBe(false);
+  });
+
+  it("deserializeWorkspace tolerates an older blob with no keybindings/settings", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    useKeybindingsStore.getState().setBinding("palette.open", "mod+shift+p");
+
+    // An old blob (no keybindingOverrides / settings) must leave the live
+    // stores untouched, not wipe them.
+    deserializeWorkspace({ name: "old", layout: LAYOUT_A, enabledModules: {} });
+
+    expect(useKeybindingsStore.getState().bindingFor("palette.open")).toBe("mod+shift+p");
   });
 
   it("round-trips the agent mode, dock geometry, and model overrides (FR-003/004)", () => {

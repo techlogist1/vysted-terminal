@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import json
 import logging
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from pathlib import Path
 from typing import Any
 
@@ -39,6 +39,7 @@ from models.llm import (
     LLMMessage,
     LLMProviderId,
     LLMToolUseEvent,
+    LLMUsage,
 )
 from services import agent_tools
 from services.agent_tools import catalog
@@ -376,6 +377,7 @@ async def invoke_agent(
     model: str | None = None,
     options: dict[str, Any] | None = None,
     mode: str = "ask",
+    on_round_usage: Callable[[LLMUsage, str], None] | None = None,
 ) -> AsyncIterator[LLMStreamEvent]:
     """Invoke a registered agent and stream its response.
 
@@ -391,6 +393,14 @@ async def invoke_agent(
     Unknown agent ids surface as a single :class:`LLMErrorEvent` followed
     by a terminal :class:`LLMDoneEvent` so the SSE response always
     closes cleanly — clients only need one terminator.
+
+    ``on_round_usage`` is an optional per-round cost signal (P3 / FR-026): the
+    loop normally SWALLOWS each mid-run round's ``done`` usage while it loops on
+    tools, so a budget guard could otherwise only see the FINAL usage. When set,
+    it is called with ``(usage, model)`` at EVERY round's ``done`` (the swallowed
+    mid-run terminators AND the final one), so a detached Delegate-run executor
+    can enforce token/spend ceilings MID-run. It does not change the event stream
+    — the SSE consumer sees the same frames whether or not the callback is set.
     """
     spec = get_agent(agent_id)
     if spec is None:
@@ -432,6 +442,11 @@ async def invoke_agent(
                 continue
             if isinstance(event, LLMDoneEvent):
                 seen_done = True
+                # Per-round cost signal (FR-026): fire BEFORE we either swallow
+                # this terminator (mid-run) or yield it (final), so the budget
+                # guard sees every round's usage, not just the last one.
+                if on_round_usage is not None:
+                    on_round_usage(event.usage or LLMUsage(), resolved_model)
                 # If tools fired this round and we have budget left,
                 # swallow the per-round terminator and loop. Otherwise
                 # this is the final terminator and the SSE consumer

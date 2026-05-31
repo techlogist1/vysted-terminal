@@ -4,9 +4,12 @@ Two sources, both mapped to the shared :class:`NewsItem` model:
 
 * **RSS** — Yahoo Finance and MarketWatch market feeds, plus a per-symbol Yahoo
   Finance feed when symbols are requested. Always available, no key needed.
-* **NewsAPI** (https://newsapi.org) — used only when a ``NEWSAPI_KEY`` env var
-  is set. BYOK, per the project's local-first / bring-your-own-keys positioning;
-  absent the key the provider is RSS-only and never errors on that account.
+* **NewsAPI** (https://newsapi.org) — used only when a BYOK key is supplied.
+  FR-036: the key rides the request from the OS keychain (the ``/news`` router
+  reads it from a header and passes it as ``newsapi_key``); the ``NEWSAPI_KEY``
+  env var is a last-resort dev fallback only. Absent both, the provider is
+  RSS-only and never errors on that account. The key is never logged, echoed, or
+  persisted beyond process memory.
 
 Network I/O uses a *shared* ``httpx.AsyncClient`` (owned by ``app.state`` and
 created/closed in the FastAPI lifespan). Connection pooling matters: on a cold
@@ -207,8 +210,15 @@ async def fetch_newsapi(
     return items
 
 
-def _newsapi_key() -> str | None:
-    """Return the configured NewsAPI key, or ``None`` if BYOK was not provided."""
+def _newsapi_key(request_key: str | None = None) -> str | None:
+    """Resolve the NewsAPI key, preferring the request-supplied BYOK key.
+
+    FR-036: the key rides the request from the OS keychain (a header read by the
+    ``/news`` router), never env/disk. ``request_key`` (from the keychain) takes
+    precedence; the ``NEWSAPI_KEY`` env var is a last-resort dev fallback only.
+    """
+    if request_key and request_key.strip():
+        return request_key.strip()
     key = os.environ.get(_NEWSAPI_KEY_ENV, "").strip()
     return key or None
 
@@ -268,7 +278,13 @@ async def _fetch_newsapi_resilient(
     return []
 
 
-async def fetch_news(client: httpx.AsyncClient, symbols: list[str], limit: int) -> list[NewsItem]:
+async def fetch_news(
+    client: httpx.AsyncClient,
+    symbols: list[str],
+    limit: int,
+    *,
+    newsapi_key: str | None = None,
+) -> list[NewsItem]:
     """Fetch news from every configured source, de-duplicated and newest-first.
 
     ``symbols`` may be empty — in that case only the general market feeds are
@@ -277,13 +293,17 @@ async def fetch_news(client: httpx.AsyncClient, symbols: list[str], limit: int) 
     :class:`ProviderError` is raised *only* when nothing at all was collected
     (every source returned empty or failed) so the router can surface a clean
     502; any collected item yields a normal 200.
+
+    ``newsapi_key`` is the BYOK NewsAPI key the ``/news`` router reads from a
+    request header (sourced from the OS keychain — FR-036). It takes precedence
+    over the ``NEWSAPI_KEY`` env var; absent both, the fetch is RSS-only.
     """
     tasks: list[asyncio.Future[list[NewsItem]]] = [
         asyncio.ensure_future(_fetch_rss_resilient(client, feed_url, fallback_source=source_label))
         for source_label, feed_url in _feed_urls_for(symbols)
     ]
 
-    api_key = _newsapi_key()
+    api_key = _newsapi_key(newsapi_key)
     if api_key is not None:
         query = " OR ".join(symbols) if symbols else "stock market OR finance"
         tasks.append(

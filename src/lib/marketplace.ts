@@ -39,6 +39,8 @@ import tradesaManifest from "../../plugins/tradesa-v2/manifest.json";
 import tradesaPanelComponents from "../../plugins/tradesa-v2/panels";
 import { lensesPlugin } from "../../plugins/vysted-lenses";
 import lensesManifest from "../../plugins/vysted-lenses/manifest.json";
+import { newsPlugin } from "../../plugins/vysted-news";
+import newsManifest from "../../plugins/vysted-news/manifest.json";
 import { yfinancePlugin } from "../../plugins/yfinance";
 import yfinanceManifest from "../../plugins/yfinance/manifest.json";
 
@@ -146,6 +148,43 @@ export const CATALOG_ROWS: CatalogRow[] = [
     },
     lensesManifest,
     lensesPlugin,
+  ),
+  row(
+    {
+      pluginId: "vysted-news",
+      name: "Market News (RSS + optional NewsAPI)",
+      category: "data",
+      description:
+        "Sentiment-scored, symbol-tagged market news. Keyless over RSS out of the box; add a BYOK NewsAPI key for NewsAPI breadth.",
+      version: "1.0.0",
+      author: "Vysted",
+      icon: "newspaper",
+      preinstalled: true,
+      secretNamespace: "plugin",
+      // The NewsAPI key is OPTIONAL — RSS works with no key (FR-034 "needs no
+      // key" opt-out). Supplying it upgrades the feed; the hub renders this
+      // form generically (SC-007: zero per-source UI), the key is stored under
+      // plugin-secret:vysted-news:newsapi_key, and the /news fetch sends it as
+      // the X-Vysted-Newsapi-Key header.
+      credentialFields: [
+        {
+          key: "newsapi_key",
+          label: "NewsAPI key (optional)",
+          type: "password",
+          secret: true,
+          required: false,
+          placeholder: "RSS works without a key",
+          help: "Optional. Adds NewsAPI breadth on top of the keyless RSS feeds.",
+        },
+      ],
+      website: "https://newsapi.org/register",
+      instructions:
+        "News works with no key over RSS. For NewsAPI breadth, register a free key at newsapi.org and paste it here.",
+      standardModelKeys: ["news"],
+      preferenceRank: 50,
+    },
+    newsManifest,
+    newsPlugin,
   ),
   row(
     {

@@ -32,6 +32,14 @@ from models.broker import (
     BrokerOrderResult,
     BrokerPosition,
 )
+from models.broker_reads import (
+    BrokerHolding,
+    BrokerHoldingsResult,
+    BrokerLegPosition,
+    BrokerMarginsResult,
+    BrokerPositionsResult,
+    BrokerSegmentMargin,
+)
 from models.safety import AuditLogAppendRequest
 from services import audit_log, static_ip_detector
 from services.broker_base import BrokerAdapter, BrokerError
@@ -209,6 +217,69 @@ class KiteAdapter(BrokerAdapter):
         )
 
     # ------------------------------------------------------------------
+    # Granular read-only reads (FR-042) — NET-NEW, not on the LOCKED ABC.
+    #
+    # Each calls the DISTINCT kiteconnect read endpoint and returns the
+    # unmerged real shape. Paper / disconnected → a clearly-labelled
+    # synthetic result (synthetic=True, mode="paper") rather than a
+    # fabricated real-looking holding. No order/cancel path is reachable
+    # from here — these are pure reads (§6.5 untouched).
+    # ------------------------------------------------------------------
+
+    def _provenance_kwargs(self) -> dict[str, Any]:
+        """Shared FR-041 provenance fields for a granular read result."""
+        synthetic = self._mode == "paper" or self._client is None
+        return {
+            "broker": "kite",
+            "accountId": self._account_id or ("paper-kite" if synthetic else "_unset"),
+            "synthetic": synthetic,
+            "mode": self._mode,
+            "provider": "kite",
+            "capturedAt": int(time.time() * 1000),
+        }
+
+    async def positions_info(self) -> BrokerPositionsResult:
+        """Intraday / F&O positions via the distinct ``positions()`` call."""
+        if self._mode == "paper" or self._client is None:
+            return BrokerPositionsResult(**self._provenance_kwargs())
+        try:
+            positions = await asyncio.to_thread(self._client.positions)
+        except Exception as exc:  # noqa: BLE001
+            _raise_kite_read_error(exc)
+        positions = positions or {}
+        return BrokerPositionsResult(
+            net=_translate_kite_legs(positions.get("net") or []),
+            day=_translate_kite_legs(positions.get("day") or []),
+            **self._provenance_kwargs(),
+        )
+
+    async def holdings_info(self) -> BrokerHoldingsResult:
+        """Settled long-term holdings via the distinct ``holdings()`` call."""
+        if self._mode == "paper" or self._client is None:
+            return BrokerHoldingsResult(**self._provenance_kwargs())
+        try:
+            holdings = await asyncio.to_thread(self._client.holdings)
+        except Exception as exc:  # noqa: BLE001
+            _raise_kite_read_error(exc)
+        return BrokerHoldingsResult(
+            holdings=_translate_kite_holdings_granular(holdings or []),
+            **self._provenance_kwargs(),
+        )
+
+    async def margins_info(self) -> BrokerMarginsResult:
+        """Per-segment funds via the distinct ``margins()`` call."""
+        if self._mode == "paper" or self._client is None:
+            return BrokerMarginsResult(**self._provenance_kwargs())
+        try:
+            margins = await asyncio.to_thread(self._client.margins)
+        except Exception as exc:  # noqa: BLE001
+            _raise_kite_read_error(exc)
+        return BrokerMarginsResult(
+            segments=_translate_kite_margins(margins or {}),
+            **self._provenance_kwargs(),
+        )
+
+    # ------------------------------------------------------------------
     # Order placement
     # ------------------------------------------------------------------
 
@@ -340,6 +411,85 @@ def _translate_kite_positions_and_holdings(
                 averageCost=avg_cost,
                 marketValue=quantity * last_price,
                 unrealizedPnl=float(p.get("pnl") or 0.0),
+            )
+        )
+    return out
+
+
+def _translate_kite_legs(legs: list[dict[str, Any]]) -> list[BrokerLegPosition]:
+    """Map Kite ``positions()`` net/day legs to :class:`BrokerLegPosition`.
+
+    Unlike the merged ``_account_info`` path this keeps the genuine intraday/F&O
+    shape — including realized P&L, which the merged ``BrokerPosition`` has no
+    field for."""
+    out: list[BrokerLegPosition] = []
+    for leg in legs or []:
+        quantity = float(leg.get("quantity") or 0.0)
+        avg_cost = float(leg.get("average_price") or 0.0)
+        last_price = float(leg.get("last_price") or avg_cost)
+        out.append(
+            BrokerLegPosition(
+                symbol=str(leg.get("tradingsymbol") or ""),
+                quantity=quantity,
+                averageCost=avg_cost,
+                lastPrice=last_price,
+                unrealizedPnl=float(leg.get("unrealised") or leg.get("pnl") or 0.0),
+                realizedPnl=float(leg["realised"]) if leg.get("realised") is not None else None,
+                product=str(leg.get("product")) if leg.get("product") else None,
+            )
+        )
+    return out
+
+
+def _translate_kite_holdings_granular(holdings: list[dict[str, Any]]) -> list[BrokerHolding]:
+    """Map Kite ``holdings()`` rows to :class:`BrokerHolding` (settled long-term)."""
+    out: list[BrokerHolding] = []
+    for h in holdings or []:
+        quantity = float(h.get("quantity") or 0.0)
+        avg_cost = float(h.get("average_price") or 0.0)
+        last_price = float(h.get("last_price") or avg_cost)
+        out.append(
+            BrokerHolding(
+                symbol=str(h.get("tradingsymbol") or ""),
+                quantity=quantity,
+                averageCost=avg_cost,
+                lastPrice=last_price,
+                marketValue=quantity * last_price,
+                unrealizedPnl=float(h.get("pnl") or 0.0),
+            )
+        )
+    return out
+
+
+def _translate_kite_margins(margins: dict[str, Any]) -> list[BrokerSegmentMargin]:
+    """Map Kite ``margins()`` to per-segment available/used/net rows.
+
+    Kite returns ``{"equity": {"available": {"cash": n, ...}, "utilised":
+    {...}, "net": n}, "commodity": {...}}``. We sum the ``available`` and
+    ``utilised`` sub-maps and read ``net`` directly — one row per segment."""
+    out: list[BrokerSegmentMargin] = []
+    for segment, block in (margins or {}).items():
+        if not isinstance(block, dict):
+            continue
+        available_block = block.get("available") or {}
+        utilised_block = block.get("utilised") or block.get("used") or {}
+        available = (
+            sum(float(v or 0.0) for v in available_block.values())
+            if isinstance(available_block, dict)
+            else float(available_block or 0.0)
+        )
+        used = (
+            sum(float(v or 0.0) for v in utilised_block.values())
+            if isinstance(utilised_block, dict)
+            else float(utilised_block or 0.0)
+        )
+        out.append(
+            BrokerSegmentMargin(
+                segment=str(segment),
+                currency="INR",
+                available=available,
+                used=used,
+                net=float(block.get("net") or 0.0),
             )
         )
     return out
