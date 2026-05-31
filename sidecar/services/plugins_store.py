@@ -13,9 +13,9 @@ Schema is the runtime ``PluginPersistedConfig`` shape mirrored 1:1 from
 - ``enabled`` — INTEGER 0/1; defaults to 1 once the plugin first appears.
 - ``installed`` — INTEGER 0/1; the marketplace install-state flag (FR-054).
   Defaults to 1 so any config persisted before this column existed reads as
-  installed. ``CREATE TABLE IF NOT EXISTS`` does not migrate a pre-existing
-  table to add the column — that matches the store's existing no-migration
-  limitation; a fresh data directory just works.
+  installed. ``CREATE TABLE IF NOT EXISTS`` cannot add the column to a table
+  created by a pre-FR-054 build, so :func:`_migrate` ALTERs it in on connect;
+  existing rows backfill to installed=1. A fresh data directory just works too.
 - ``settings_json`` — opaque JSON blob the host never inspects.
 - ``granted_secret_ids_json`` — JSON array of secret ids the user granted to
   this plugin (resolved to values via the OS keychain when initializing).
@@ -45,9 +45,27 @@ CREATE TABLE IF NOT EXISTS plugin_configs (
 """
 
 
+# Columns added after the table's original (pre-FR-054) shape. ``CREATE TABLE
+# IF NOT EXISTS`` is a no-op against an existing table, so a database written by
+# an older build lacks these and every read raised ``sqlite3.OperationalError:
+# no such column: installed``. SQLite permits adding a NOT NULL column when a
+# constant DEFAULT is supplied, so existing rows backfill to the DDL default.
+_ADDED_COLUMNS = {
+    "installed": "ALTER TABLE plugin_configs ADD COLUMN installed INTEGER NOT NULL DEFAULT 1",
+}
+
+
 def _db_path() -> str:
     """Resolve the plugins database path under the current data directory."""
     return str(get_data_dir() / DB_FILENAME)
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Add post-creation columns to a pre-existing table (idempotent)."""
+    existing = {row["name"] for row in conn.execute("PRAGMA table_info(plugin_configs)")}
+    for column, ddl in _ADDED_COLUMNS.items():
+        if column not in existing:
+            conn.execute(ddl)
 
 
 @contextmanager
@@ -61,6 +79,7 @@ def _connect() -> Iterator[sqlite3.Connection]:
     conn.row_factory = sqlite3.Row
     try:
         conn.execute(_SCHEMA)
+        _migrate(conn)
         yield conn
         conn.commit()
     finally:

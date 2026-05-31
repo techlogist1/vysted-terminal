@@ -7,6 +7,8 @@ isolates each test's database.
 
 from __future__ import annotations
 
+import sqlite3
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -221,6 +223,54 @@ def test_installed_roundtrips_over_http(client: TestClient, temp_data_dir: objec
     )
     body = client.get("/plugins/marked-uninstalled/config").json()
     assert body["installed"] is False
+
+
+# --------------------------------------------------------------------------
+# pre-FR-054 migration — a plugins.db written before ``installed`` existed must
+# be ALTERed in place, not crash every /config read with OperationalError.
+# --------------------------------------------------------------------------
+
+
+def _write_legacy_db(plugin_id: str = "legacy-plugin") -> None:
+    """Create a pre-FR-054 ``plugin_configs`` table (no ``installed`` column)."""
+    conn = sqlite3.connect(plugins_store._db_path())
+    try:
+        conn.execute(
+            "CREATE TABLE plugin_configs ("
+            "plugin_id TEXT PRIMARY KEY, "
+            "enabled INTEGER NOT NULL DEFAULT 1, "
+            "settings_json TEXT NOT NULL DEFAULT '{}', "
+            "granted_secret_ids_json TEXT NOT NULL DEFAULT '[]')"
+        )
+        conn.execute(
+            "INSERT INTO plugin_configs "
+            "(plugin_id, enabled, settings_json, granted_secret_ids_json) "
+            "VALUES (?, 1, '{}', '[]')",
+            (plugin_id,),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def test_legacy_db_migrates_installed_column_in_store(temp_data_dir: object) -> None:
+    """Reading a pre-FR-054 database backfills ``installed`` instead of raising."""
+    _write_legacy_db()
+    # Before the migration this raised: sqlite3.OperationalError: no such column: installed.
+    fetched = plugins_store.get_config("legacy-plugin")
+    assert fetched is not None
+    assert fetched.installed is True  # backfilled to the DDL default
+    assert [c.plugin_id for c in plugins_store.list_configs()] == ["legacy-plugin"]
+
+
+def test_legacy_db_config_endpoint_is_200_not_500(
+    client: TestClient, temp_data_dir: object
+) -> None:
+    """GET /plugins/{id}/config over a legacy DB returns 200, not the observed 500."""
+    _write_legacy_db("vysted-kite")
+    response = client.get("/plugins/vysted-kite/config")
+    assert response.status_code == 200
+    assert response.json()["installed"] is True
 
 
 def test_settings_blob_roundtrips_complex_types(client: TestClient, temp_data_dir: object) -> None:
