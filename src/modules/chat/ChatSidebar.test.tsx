@@ -2,10 +2,13 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ChatSidebar } from "@/modules/chat/ChatSidebar";
+import { useAgentModeStore } from "@/store/agent-mode";
 import { useAgentsStore, type AgentSummary } from "@/store/agents";
+import { useChartSyncBus } from "@/store/chart-sync";
 import { useChatHistoryStore } from "@/store/chat-history";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { usePanelContextBus } from "@/store/panel-context";
+import { useProposedChangesStore } from "@/store/proposed-changes";
 
 // ---- Mocks ----
 
@@ -14,7 +17,15 @@ vi.mock("@tauri-apps/api/core", () => ({
 }));
 
 const streamChatMock = vi.hoisted(() => vi.fn(async () => undefined));
-const streamAgentInvocationMock = vi.hoisted(() => vi.fn(async () => undefined));
+const streamAgentInvocationMock = vi.hoisted(() =>
+  vi.fn<
+    (
+      agentId: string,
+      payload: unknown,
+      handlers: { onEvent: (event: unknown) => void },
+    ) => Promise<void>
+  >(async () => undefined),
+);
 
 vi.mock("@/modules/chat/streaming", () => ({
   streamChat: streamChatMock,
@@ -171,6 +182,9 @@ function seedStores() {
     focusedSource: null,
     updatedAt: 0,
   });
+  useAgentModeStore.setState({ mode: "ask" });
+  useProposedChangesStore.setState({ changes: [] });
+  useChartSyncBus.setState({ symbol: null });
 }
 
 describe("ChatSidebar", () => {
@@ -269,7 +283,9 @@ describe("ChatSidebar", () => {
   });
 
   it("surfaces an error when no API key is set for the default provider", async () => {
-    getSecretMock.mockResolvedValueOnce(null as unknown as string);
+    // Persistent null: the mount-time key-probe (provider-keys refresh) AND the
+    // per-send getSecret both resolve to "no key", so the no-key path fires.
+    getSecretMock.mockResolvedValue(null as unknown as string);
     render(<ChatSidebar />);
     const input = screen.getByLabelText("Chat input") as HTMLInputElement;
     fireEvent.change(input, { target: { value: "/ask hi" } });
@@ -319,5 +335,40 @@ describe("ChatSidebar", () => {
     render(<ChatSidebar />);
     expect(screen.getByLabelText("Panel context").textContent).toContain("AAPL");
     expect(screen.getByLabelText("Panel context").textContent).toContain("1D");
+  });
+
+  it("passes the active mode to the agent invocation (default Ask — FR-003)", async () => {
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "/agent buffett look at SPY" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(streamAgentInvocationMock).toHaveBeenCalledTimes(1));
+    const payload = (streamAgentInvocationMock.mock.calls[0] as unknown[])[1] as { mode?: string };
+    expect(payload.mode).toBe("ask");
+  });
+
+  it("stages an agent-proposed cockpit mutation as a reviewable diff — never auto-applies (FR-010)", async () => {
+    useAgentModeStore.setState({ mode: "build" });
+    streamAgentInvocationMock.mockImplementationOnce(
+      async (_id: unknown, _payload: unknown, handlers: { onEvent: (event: unknown) => void }) => {
+        handlers.onEvent({
+          kind: "tool_use",
+          name: "set_chart_symbol",
+          input: { symbol: "NVDA" },
+          toolCallId: "tc-1",
+        });
+        handlers.onEvent({ kind: "done" });
+      },
+    );
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "build me an NVDA view" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(useProposedChangesStore.getState().changes.length).toBe(1));
+    const change = useProposedChangesStore.getState().changes[0];
+    expect(change.status).toBe("pending");
+    expect(change.action).toEqual({ name: "set_chart_symbol", input: { symbol: "NVDA" } });
+    // The mutation did NOT apply — the chart bus is untouched until acceptance.
+    expect(useChartSyncBus.getState().symbol).toBeNull();
   });
 });

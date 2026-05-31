@@ -66,6 +66,9 @@ export async function streamAgentInvocation(
     provider: payload.provider,
     model: payload.model,
     api_key: payload.apiKey,
+    // The four-mode intent (FR-003). The sidecar enforces the read-only gate
+    // for "ask" (an external client can't bypass it); defaults to "ask".
+    mode: payload.mode ?? "ask",
     options: payload.options ?? {},
   });
   await consumeSseStream(url, body, handlers);

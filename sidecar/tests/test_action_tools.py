@@ -47,6 +47,10 @@ def test_ui_action_tools_return_host_directives() -> None:
         result = asyncio.run(local[tid]({"symbol": "AAPL", "panel": "chart"}))
         assert result["ok"] is True
         assert result["host_action"]["type"] == tid
+        # FR-010 diff gate: host actions are STAGED for review, never applied
+        # immediately — the model must not be told the change already happened.
+        assert "applied" not in result
+        assert result["status"] == "awaiting_user_review"
 
 
 def test_get_terminal_state_returns_inbound_snapshot() -> None:

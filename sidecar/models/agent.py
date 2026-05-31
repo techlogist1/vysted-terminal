@@ -11,7 +11,7 @@ surface (invocation requests, snapshots, results).
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -81,6 +81,13 @@ class AgentInvocationRequest(BaseModel):
     api_key: str | None = None
     #: Provider-specific overrides.
     options: dict[str, Any] = Field(default_factory=dict)
+    #: Agent mode (FR-003 four-mode spine). ``ask`` is read-only by default
+    #: (FR-013): the runtime strips every mutating tool before the adapter call
+    #: so an Ask invocation can never drive the host or propose an order. The
+    #: ``edit``/``build``/``delegate`` distinction is a frontend staging concern
+    #: — server-side they all pass the agent's full tool set (§6.5 still governs
+    #: ``propose_order``, which only ever proposes).
+    mode: Literal["ask", "edit", "build", "delegate"] = "ask"
 
 
 class AgentInvocationResult(BaseModel):

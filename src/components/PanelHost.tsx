@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { collectPanelComponents } from "@/lib/module-registry";
 import { autosaveLayout, restoreLastSessionOrDefault } from "@/lib/workspace";
 import { useModulesStore } from "@/store/modules";
+import { usePanelContextBus } from "@/store/panel-context";
 import { useWorkspaceStore } from "@/store/workspace";
 
 /** Debounce window for persisting the cockpit to the autosave slot. */
@@ -70,11 +71,18 @@ export function PanelHost() {
         }
         timer = setTimeout(() => void autosaveLayout(), AUTOSAVE_DEBOUNCE_MS);
       });
+      // Track the focused panel into the shared context bus so the agent knows
+      // what the user is "looking at" (FR-002/FR-007 — the deixis "this"/"it"
+      // resolves to the focused panel; hand focus updates the agent's next turn).
+      const focusSub = api.onDidActivePanelChange((panel) => {
+        usePanelContextBus.getState().setFocusedSource(panel?.id ?? null);
+      });
       cleanupRef.current = () => {
         if (timer) {
           clearTimeout(timer);
         }
         subscription.dispose();
+        focusSub.dispose();
       };
     });
   }

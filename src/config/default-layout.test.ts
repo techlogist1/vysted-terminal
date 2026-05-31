@@ -20,7 +20,7 @@ function fakeApi() {
 const ALL_PANELS = new Set(["chart", "equity-overview", "watchlist", "news", "portfolio", "chat"]);
 
 describe("applyDefaultLayout", () => {
-  it("places the five data panels + the AI chat sidebar and never opens Settings", () => {
+  it("places the five-panel starter cockpit and never opens Settings (FR-032)", () => {
     const { api, calls } = fakeApi();
     applyDefaultLayout(api as never, ALL_PANELS);
     expect(calls.map((call) => call.id)).toEqual([
@@ -29,16 +29,14 @@ describe("applyDefaultLayout", () => {
       "watchlist",
       "news",
       "portfolio",
-      "chat",
     ]);
     expect(calls.some((call) => call.id === "settings")).toBe(false);
   });
 
-  it("slots the chat sidebar to the right of the watchlist (BLUEPRINT §5.1)", () => {
+  it("no longer opens the agent as a panel — it is the shell column (FR-001)", () => {
     const { api, calls } = fakeApi();
     applyDefaultLayout(api as never, ALL_PANELS);
-    const chat = calls.find((call) => call.id === "chat");
-    expect(chat?.position).toEqual({ referencePanel: "watchlist", direction: "right" });
+    expect(calls.some((call) => call.id === "chat")).toBe(false);
   });
 
   it("skips panels whose module is disabled", () => {

@@ -1,8 +1,11 @@
 import type { SerializedDockview } from "dockview";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { AGENT_DOCK_DEFAULT_WIDTH, useAgentDockStore } from "@/store/agent-dock";
+import { useAgentModeStore } from "@/store/agent-mode";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useLLMProvidersStore } from "@/store/llm-providers";
+import { useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
@@ -52,6 +55,9 @@ describe("workspace serialization", () => {
     useChartDrawingsStore.setState({ byPanel: {} });
     useLLMProvidersStore.setState({ defaultProviderId: "anthropic" });
     useSymbolsStore.setState({ entries: [{ symbol: "AAPL", assetClass: "equity" }] });
+    useAgentModeStore.setState({ mode: "ask" });
+    useAgentDockStore.setState({ collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH });
+    useModelSelectionStore.setState({ overrides: {} });
   });
 
   afterEach(() => {
@@ -72,7 +78,27 @@ describe("workspace serialization", () => {
       chartDrawings: { byPanel: {} },
       defaultProviderId: "anthropic",
       watchlist: [{ symbol: "AAPL", assetClass: "equity" }],
+      agentMode: "ask",
+      agentDock: { collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH },
+      modelOverrides: {},
     });
+  });
+
+  it("round-trips the agent mode, dock geometry, and model overrides (FR-003/004)", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    deserializeWorkspace({
+      name: "saved",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      agentMode: "build",
+      agentDock: { collapsed: true, width: 520 },
+      modelOverrides: { anthropic: "claude-sonnet-4-5" },
+    });
+    expect(useAgentModeStore.getState().mode).toBe("build");
+    expect(useAgentDockStore.getState().collapsed).toBe(true);
+    expect(useAgentDockStore.getState().width).toBe(520);
+    expect(useModelSelectionStore.getState().overrides.anthropic).toBe("claude-sonnet-4-5");
   });
 
   it("deserializeWorkspace restores a persisted watchlist", () => {

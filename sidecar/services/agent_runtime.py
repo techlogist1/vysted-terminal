@@ -41,6 +41,7 @@ from models.llm import (
     LLMToolUseEvent,
 )
 from services import agent_tools
+from services.agent_tools import catalog
 from services.llm import get_provider
 from services.llm.base import LLMStreamEvent
 
@@ -289,12 +290,13 @@ def _build_local_tools(
 
     ``get_terminal_state`` / ``get_portfolio`` return state passed in the request
     (the sidecar can't read the frontend's stores). The host-action tools return
-    a synthetic success carrying a ``host_action`` directive — the frontend, on
-    seeing the ``tool_use`` event, performs the real UI action; the synthetic
-    result lets the model's loop continue. ``propose_order`` NEVER places an
-    order: it returns an ``awaiting_user_review`` directive the frontend turns
-    into a declined-by-default confirmation dialog (§6.5 — the AI has no path to
-    ``confirm_and_place``).
+    a synthetic result carrying a ``host_action`` directive — but the action is
+    STAGED for the user's review (the diff/accept trust gate, FR-010), NOT applied
+    immediately. So every host action reports ``awaiting_user_review`` (not
+    ``applied``): the model must tell the user it *proposed* the change for review,
+    never that it already happened. ``propose_order`` is the same shape (§6.5 — the
+    AI has no path to ``confirm_and_place``). The frontend stages the directive in
+    the proposed-changes queue and applies it only on the user's accept.
     """
     from services.agent_tools.schemas import HOST_ACTION_TOOLS
 
@@ -326,8 +328,10 @@ def _build_local_tools(
                 }
             return {
                 "ok": True,
-                "applied": True,
-                "note": "executed on host",
+                "status": "awaiting_user_review",
+                "staged_for_review": True,
+                "note": "Staged in the user's review queue — applies ONLY after they accept it. "
+                "Tell the user you proposed this change for review; do not claim it is done.",
                 "host_action": {"type": tool_id, "args": args},
             }
 
@@ -346,6 +350,7 @@ async def invoke_agent(
     provider: LLMProviderId | None = None,
     model: str | None = None,
     options: dict[str, Any] | None = None,
+    mode: str = "ask",
 ) -> AsyncIterator[LLMStreamEvent]:
     """Invoke a registered agent and stream its response.
 
@@ -372,6 +377,15 @@ async def invoke_agent(
     opts = dict(options or {})
     history = _coerce_history(opts.pop("history", None))
     tool_ids = list(spec.tools)  # the allow-list — finally sent to the provider
+    if mode == "ask":
+        # Ask is read-only by default (FR-013): strip every mutating capability
+        # SERVER-SIDE so an Ask invocation can never drive the host or propose an
+        # order. This drops the host-action mutators (open_panel, set_chart_symbol,
+        # add_to_watchlist) and propose_order (all read_only=False) while keeping
+        # read tools and the per-invocation reads get_terminal_state/get_portfolio.
+        # Enforced here, not in the adapter, so an external MCP client cannot
+        # bypass it (FR-005). The edit/build/delegate modes keep the full set.
+        tool_ids = [t for t in tool_ids if catalog.is_read_only(t) is True]
     local_tools = _build_local_tools(context_snapshot)
     messages = _compose_messages(spec, prompt, context_snapshot, history)
     adapter = get_provider(provider_id)

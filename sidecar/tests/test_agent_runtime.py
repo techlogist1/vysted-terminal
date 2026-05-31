@@ -17,8 +17,9 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from pydantic import ValidationError
 
-from models.agent import AgentContextSnapshot
+from models.agent import AgentContextSnapshot, AgentInvocationRequest
 from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMMessage, LLMUsage
 from services import agent_runtime
 
@@ -283,3 +284,91 @@ async def test_invoke_agent_model_override_wins(monkeypatch: pytest.MonkeyPatch)
         pass
     assert provider.captured_kwargs is not None
     assert provider.captured_kwargs["model"] == "claude-haiku-4-5"
+
+
+# ---------------------------------------------------------------------------
+# Mode gate (FR-003 four-mode spine / FR-005 / FR-013)
+#
+# `mode` gates the effective tool set SERVER-SIDE. Ask is read-only by default:
+# the runtime strips every mutating capability before the adapter call so an
+# external MCP client cannot bypass it. edit/build/delegate pass the full set.
+# ---------------------------------------------------------------------------
+
+#: The four mutating capabilities on the copilot's tool list — all read_only=False.
+#: Ask MUST strip every one; edit/build/delegate MUST keep them.
+_COPILOT_MUTATORS = {"open_panel", "set_chart_symbol", "add_to_watchlist", "propose_order"}
+
+
+async def _capture_tool_ids(monkeypatch: pytest.MonkeyPatch, **invoke_kwargs: Any) -> list[str]:
+    """Invoke the copilot through the fake provider and return the tool_ids the
+    runtime handed the adapter."""
+    agent_runtime.reload()
+    provider = _FakeProvider()
+    _patch_provider(monkeypatch, provider)
+    async for _ in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="x",
+        api_key="sk-test",
+        **invoke_kwargs,
+    ):
+        pass
+    assert provider.captured_kwargs is not None
+    tool_ids = provider.captured_kwargs["tool_ids"]
+    assert isinstance(tool_ids, list)
+    return tool_ids
+
+
+@pytest.mark.asyncio
+async def test_ask_mode_strips_all_mutators(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Ask mode filters the adapter's tool_ids to read-only capabilities — none
+    of the host-action mutators or propose_order survive, but read tools and the
+    per-invocation reads do."""
+    tool_ids = await _capture_tool_ids(monkeypatch, mode="ask")
+    selected = set(tool_ids)
+    # No mutating capability reaches the adapter.
+    assert selected.isdisjoint(_COPILOT_MUTATORS), (
+        f"Ask leaked mutators: {selected & _COPILOT_MUTATORS}"
+    )
+    # Read tools + per-invocation reads survive.
+    assert "price_data" in selected
+    assert "get_terminal_state" in selected
+    assert "get_portfolio" in selected
+    # Every surviving id is genuinely read-only per the catalog (source of truth).
+    from services.agent_tools import catalog
+
+    assert all(catalog.is_read_only(t) is True for t in tool_ids)
+
+
+@pytest.mark.asyncio
+async def test_default_mode_is_ask_and_read_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Omitting ``mode`` defaults to Ask — the read-only gate applies."""
+    tool_ids = await _capture_tool_ids(monkeypatch)
+    assert set(tool_ids).isdisjoint(_COPILOT_MUTATORS)
+    assert "price_data" in tool_ids
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("mode", ["edit", "build", "delegate"])
+async def test_action_modes_keep_full_tool_set(monkeypatch: pytest.MonkeyPatch, mode: str) -> None:
+    """edit/build/delegate pass the agent's tool set UNCHANGED — host actions and
+    propose_order are present (the staging distinction is a frontend concern)."""
+    tool_ids = await _capture_tool_ids(monkeypatch, mode=mode)
+    spec = agent_runtime.get_agent("copilot")
+    assert spec is not None
+    assert tool_ids == list(spec.tools)
+    assert _COPILOT_MUTATORS.issubset(set(tool_ids))
+
+
+def test_invocation_request_round_trips_mode() -> None:
+    """``AgentInvocationRequest`` accepts and round-trips ``mode``; it defaults to
+    Ask when omitted, and ``extra='forbid'`` still rejects unknown fields."""
+    # Default.
+    assert AgentInvocationRequest(prompt="hi").mode == "ask"
+    # Explicit, every allowed value.
+    for m in ("ask", "edit", "build", "delegate"):
+        req = AgentInvocationRequest(prompt="hi", mode=m)
+        assert req.mode == m
+        assert req.model_dump()["mode"] == m
+    # Invalid value rejected.
+    with pytest.raises(ValidationError):
+        AgentInvocationRequest(prompt="hi", mode="god")

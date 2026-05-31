@@ -18,12 +18,16 @@ import type { DockviewApi, SerializedDockview } from "dockview";
 import { applyDefaultLayout } from "@/config/default-layout";
 import { collectPanelComponents } from "@/lib/module-registry";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { useAgentDockStore } from "@/store/agent-dock";
+import { useAgentModeStore } from "@/store/agent-mode";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useLLMProvidersStore } from "@/store/llm-providers";
+import { useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
 import { type SymbolEntry, useSymbolsStore } from "@/store/symbols";
 import { AUTOSAVE_LAYOUT_NAME, useWorkspaceStore } from "@/store/workspace";
 import type { LLMProviderId } from "../../types/ai";
+import { type AgentMode, isAgentMode } from "../../types/agent-modes";
 import type { WorkspaceDrawings } from "../../types/drawings";
 
 /** The serialised form of a workspace, persisted as a `.vysted-workspace` file. */
@@ -52,6 +56,22 @@ export interface SerializedWorkspace {
    * — Phase 10 customizability). Optional for workspaces saved before this.
    */
   watchlist?: SymbolEntry[];
+  /**
+   * The active agent mode (Ask / Edit / Build / Delegate). Persisted so a
+   * cockpit reopens in the mode the user left it in (FR-003). Optional for
+   * workspaces saved before this shipped.
+   */
+  agentMode?: AgentMode;
+  /**
+   * The agent dominant-column geometry (collapsed + width in px) so the
+   * agent-first layout (FR-001) survives a relaunch. Optional for older blobs.
+   */
+  agentDock?: { collapsed: boolean; width: number };
+  /**
+   * Per-provider model overrides (FR-004). Optional for older blobs; the
+   * per-provider defaults apply when absent.
+   */
+  modelOverrides?: Partial<Record<LLMProviderId, string>>;
   /** Open to future-phase additions; the sidecar stores the body opaquely. */
   [key: string]: unknown;
 }
@@ -81,6 +101,12 @@ export function serializeWorkspace(name: string): SerializedWorkspace {
     chartDrawings: useChartDrawingsStore.getState().snapshot(),
     defaultProviderId: useLLMProvidersStore.getState().defaultProviderId,
     watchlist: useSymbolsStore.getState().entries,
+    agentMode: useAgentModeStore.getState().mode,
+    agentDock: {
+      collapsed: useAgentDockStore.getState().collapsed,
+      width: useAgentDockStore.getState().width,
+    },
+    modelOverrides: useModelSelectionStore.getState().overrides,
   };
 }
 
@@ -122,6 +148,20 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
   // default set in that case).
   if (Array.isArray(workspace.watchlist) && workspace.watchlist.length > 0) {
     useSymbolsStore.getState().setEntries(workspace.watchlist);
+  }
+  // Restore the agent mode / dock geometry / model overrides (older blobs lack
+  // them — keep the defaults). Guarded so a corrupt value can't seed garbage.
+  if (isAgentMode(workspace.agentMode)) {
+    useAgentModeStore.getState().setMode(workspace.agentMode);
+  }
+  if (workspace.agentDock && typeof workspace.agentDock === "object") {
+    useAgentDockStore.getState().setCollapsed(Boolean(workspace.agentDock.collapsed));
+    if (typeof workspace.agentDock.width === "number") {
+      useAgentDockStore.getState().setWidth(workspace.agentDock.width);
+    }
+  }
+  if (workspace.modelOverrides && typeof workspace.modelOverrides === "object") {
+    useModelSelectionStore.getState().setOverrides(workspace.modelOverrides);
   }
 }
 
@@ -279,6 +319,12 @@ export async function autosaveLayout(): Promise<void> {
       chartDrawings: useChartDrawingsStore.getState().snapshot(),
       defaultProviderId: useLLMProvidersStore.getState().defaultProviderId,
       watchlist: useSymbolsStore.getState().entries,
+      agentMode: useAgentModeStore.getState().mode,
+      agentDock: {
+        collapsed: useAgentDockStore.getState().collapsed,
+        width: useAgentDockStore.getState().width,
+      },
+      modelOverrides: useModelSelectionStore.getState().overrides,
     };
     await fetch(await workspaceUrl(), {
       method: "POST",

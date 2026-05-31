@@ -21,6 +21,8 @@
  * runtime types around invocation + streaming.
  */
 
+import type { AgentMode } from "./agent-modes";
+
 // ---------------------------------------------------------------------------
 // Providers + models
 // ---------------------------------------------------------------------------
@@ -136,6 +138,14 @@ export interface AgentInvocationRequest {
    * never persists it.
    */
   apiKey?: string;
+  /**
+   * The four-mode intent (FR-003): `"ask"` (read-only Q&A), `"edit"` (focused-
+   * panel change), `"build"` (multi-panel), `"delegate"` (background). The
+   * sidecar gates the effective tool set on this — `"ask"` is filtered to
+   * read-only capabilities so it can never mutate (enforced server-side so an
+   * external MCP client cannot bypass it). Defaults to `"ask"`.
+   */
+  mode?: AgentMode;
   /**
    * Provider-specific overrides + runtime options (mirrors the sidecar
    * `AgentInvocationRequest.options`). The copilot rides recent conversation

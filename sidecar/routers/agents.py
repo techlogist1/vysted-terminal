@@ -67,6 +67,7 @@ async def invoke_agent(agent_id: str, payload: AgentInvocationRequest) -> Stream
                 provider=payload.provider,
                 model=payload.model,
                 options=payload.options,
+                mode=payload.mode,
             ):
                 yield _encode_event(event)
         except Exception as exc:  # noqa: BLE001 — last-resort guard

@@ -5,54 +5,36 @@ import { Sparkles, Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
+import { isHostActionMutation } from "@/lib/host-actions";
 import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
 import { validateProvider } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
+import { useAgentModeStore } from "@/store/agent-mode";
+import { useAgentRunsStore } from "@/store/agent-runs";
 import { selectCustomAgents, selectFirstPartyAgents, useAgentsStore } from "@/store/agents";
-import { useChartSyncBus } from "@/store/chart-sync";
 import { useChatHistoryStore } from "@/store/chat-history";
 import { useLLMProvidersStore } from "@/store/llm-providers";
+import { useModelSelectionStore } from "@/store/model-selection";
 import { usePanelContextBus } from "@/store/panel-context";
-import { useSymbolsStore } from "@/store/symbols";
-import { useWorkspaceStore } from "@/store/workspace";
+import { useProposedChangesStore } from "@/store/proposed-changes";
+import { useProviderKeysStore } from "@/store/provider-keys";
 import type { AgentContextSnapshot, LLMProviderId, LLMStreamEvent } from "../../../types/ai";
+import { type AgentMode, AGENT_MODES, agentModeMeta } from "../../../types/agent-modes";
+import { AgentHud } from "./AgentHud";
+import { AgentsRail } from "./AgentsRail";
 import { captureTerminalState } from "./context-provider";
+import { ModeBar } from "./ModeBar";
+import { ProposedChangesReview } from "./ProposedChangesReview";
 import { parseSlashCommand, SLASH_HELP_LINES } from "./slash-commands";
 import { streamAgentInvocation, streamChat } from "./streaming";
 
 /** The default agent: the terminal-aware router/concierge. Bare text routes here. */
 const DEFAULT_AGENT_ID = "copilot";
 
-/** Execute a copilot host-action tool against the live stores, and return a
- *  short human label for the tool-step chip. UI actions (chart/panel/watchlist)
- *  apply immediately; `propose_order` is NOT executed here — it routes through
- *  the §6.5 confirmation dialog, so we only surface a review note. */
-function executeHostAction(name: string, input: Record<string, unknown>): string | null {
-  const symbol = typeof input.symbol === "string" ? input.symbol : "";
+/** A short chip label for a READ tool (read tools already ran server-side, so we
+ *  only narrate them — mutations are intercepted into the diff gate, not here). */
+function readToolLabel(name: string): string {
   switch (name) {
-    case "set_chart_symbol":
-      if (symbol) {
-        useChartSyncBus.getState().setSymbol("copilot", symbol);
-        return `Loading ${symbol} into the chart`;
-      }
-      return null;
-    case "open_panel": {
-      const panel = typeof input.panel === "string" ? input.panel : "";
-      if (panel) {
-        useWorkspaceStore.getState().openPanel(panel);
-        return `Opening ${panel}`;
-      }
-      return null;
-    }
-    case "add_to_watchlist":
-      if (symbol) {
-        const assetClass = input.asset_class === "crypto" ? "crypto" : "equity";
-        useSymbolsStore.getState().addSymbol(symbol, assetClass);
-        return `Adding ${symbol} to your watchlist`;
-      }
-      return null;
-    case "propose_order":
-      return `Prepared a ${String(input.side ?? "")} order for ${symbol || "review"} — review & confirm it in the broker panel`;
     case "get_terminal_state":
       return "Reading what you're looking at";
     case "get_portfolio":
@@ -63,20 +45,18 @@ function executeHostAction(name: string, input: Record<string, unknown>): string
 }
 
 /**
- * Vysted chat sidebar — agent picker, streaming response area, slash-command
- * composer.
+ * Vysted agent surface — the four-mode spine (Ask / Edit / Build / Delegate),
+ * the persona roster, the provider/model HUD, the agents rail, the streaming
+ * transcript, and the diff/accept trust gate. Promoted from a dockview panel to
+ * the shell's primary column (FR-001): its actions open + arrange the cockpit,
+ * and every agent-proposed mutation is staged as a reviewable diff (FR-010) —
+ * nothing lands before the user accepts. Orders route through the §6.5 dialog
+ * (FR-011); the AI never reaches placement.
  *
- * The sidebar reads:
- *  - First-party + custom agents from :func:`useAgentsStore`.
- *  - The seven BYOK providers from :func:`useLLMProvidersStore`.
- *  - The aggregated panel context (chart symbol, watchlist, equity, …) from
- *    :func:`selectSnapshot`.
- *
- * Slash commands are parsed in ``slash-commands.ts``; the composer dispatches
- * to ``streamChat`` (raw chat) or ``streamAgentInvocation`` (agent) and pipes
- * the resulting events into :func:`useChatHistoryStore`. API keys are read
- * from the OS keychain on demand via :func:`getSecret` — never cached on the
- * frontend after the request.
+ * Slash commands are parsed in `slash-commands.ts`; the composer dispatches to
+ * `streamChat` (raw chat) or `streamAgentInvocation` (agent) and pipes events
+ * into `useChatHistoryStore`. API keys are read from the OS keychain on demand —
+ * never cached on the frontend after the request.
  */
 export function ChatSidebar() {
   const messages = useChatHistoryStore((state) => state.messages);
@@ -98,11 +78,27 @@ export function ChatSidebar() {
   const setDefaultProviderId = useLLMProvidersStore((state) => state.setDefaultProviderId);
   const refreshProviders = useLLMProvidersStore((state) => state.refresh);
 
+  const keyStatuses = useProviderKeysStore((state) => state.status);
+  const refreshKeys = useProviderKeysStore((state) => state.refresh);
+
+  const mode = useAgentModeStore((state) => state.mode);
+  const setMode = useAgentModeStore((state) => state.setMode);
+
+  const setModelOverride = useModelSelectionStore((state) => state.setModel);
+
+  const pendingChangeCount = useProposedChangesStore(
+    (state) => state.changes.filter((c) => c.status === "pending").length,
+  );
+  const acceptAllChanges = useProposedChangesStore((state) => state.acceptAll);
+  const rejectAllChanges = useProposedChangesStore((state) => state.rejectAll);
+  const enqueueChange = useProposedChangesStore((state) => state.enqueue);
+
+  const startRun = useAgentRunsStore((state) => state.startRun);
+  const endRun = useAgentRunsStore((state) => state.endRun);
+  const updateRun = useAgentRunsStore((state) => state.updateRun);
+
   // Subscribe to the three primitive bus slices independently — each is a
   // stable reference, so subscribers do not re-render on unrelated updates.
-  // Aggregating into one object via a fresh `selectSnapshot` would re-mint
-  // the object on every store change and infinite-loop `useSyncExternalStore`
-  // (CLAUDE.md Phase-2 gotcha).
   const lastEventBySource = usePanelContextBus((state) => state.lastEventBySource);
   const focusedSource = usePanelContextBus((state) => state.focusedSource);
   const updatedAt = usePanelContextBus((state) => state.updatedAt);
@@ -111,21 +107,20 @@ export function ChatSidebar() {
     [lastEventBySource, focusedSource, updatedAt],
   );
 
-  // Default to the copilot router — bare text "just works" with tools + context.
   const [activeAgentId, setActiveAgentId] = useState<string | null>(DEFAULT_AGENT_ID);
+  // Explicit provider override (HUD pick); null = use the active agent's default.
+  const [providerOverride, setProviderOverride] = useState<LLMProviderId | null>(null);
   const [composer, setComposer] = useState("");
   const [statusLine, setStatusLine] = useState<string | null>(null);
   const [keyDialogProvider, setKeyDialogProvider] = useState<LLMProviderId | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  // Fetch agents + providers once on mount. Failures are silent — the static
-  // catalogs in the stores are the fallback.
   useEffect(() => {
     void refreshAgents();
     void refreshProviders();
-  }, [refreshAgents, refreshProviders]);
+    void refreshKeys();
+  }, [refreshAgents, refreshProviders, refreshKeys]);
 
-  // Autoscroll to the newest message whenever the conversation grows.
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -143,9 +138,23 @@ export function ChatSidebar() {
     );
   }, [activeAgentId, firstPartyAgents, customAgents]);
 
+  // The effective provider/model for the next send (FR-004): an explicit HUD
+  // override wins, else the active agent's default, else the session default.
+  const effectiveProvider = useMemo<LLMProviderId>(() => {
+    return (
+      providerOverride ??
+      (activeAgent?.defaultProvider as LLMProviderId | undefined) ??
+      defaultProviderId
+    );
+  }, [providerOverride, activeAgent, defaultProviderId]);
+  const effectiveModel = useModelSelectionStore((state) => state.modelFor(effectiveProvider));
+  const providerInfo = providers.find((p) => p.id === effectiveProvider);
+  const providerRequiresKey = providerInfo?.requiresKey ?? true;
+  const providerConfigured =
+    !providerRequiresKey || keyStatuses[effectiveProvider] === "configured";
+
   const contextBadge = useMemo(() => describeContext(contextSnapshot), [contextSnapshot]);
 
-  // Map agent id -> display name for the transcript identity header.
   const agentNameById = useMemo(() => {
     const map: Record<string, string> = {};
     for (const a of [...firstPartyAgents, ...customAgents]) {
@@ -153,6 +162,37 @@ export function ChatSidebar() {
     }
     return map;
   }, [firstPartyAgents, customAgents]);
+
+  // Global hotkeys for the agent surface: ⌥1–⌥4 switch mode (FR-003); when
+  // changes are pending, ⌘↵ accepts all and ⌘⌫ rejects all (FR-010 keyboard).
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.altKey && !event.metaKey && !event.ctrlKey) {
+        const found = AGENT_MODES.find((m) => event.code === `Digit${m.hotkeyDigit}`);
+        if (found) {
+          event.preventDefault();
+          setMode(found.id);
+          return;
+        }
+      }
+      // Bulk accept/reject (⌘↵ / ⌘⌫) — but NOT while the user is typing in a
+      // field: ⌘⌫ is the macOS "delete to line start" the composer needs.
+      const el = event.target as HTMLElement | null;
+      const typing =
+        !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
+      if ((event.metaKey || event.ctrlKey) && pendingChangeCount > 0 && !typing) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          void acceptAllChanges();
+        } else if (event.key === "Backspace") {
+          event.preventDefault();
+          rejectAllChanges();
+        }
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [setMode, pendingChangeCount, acceptAllChanges, rejectAllChanges]);
 
   const handleSend = useCallback(
     async (rawInput: string) => {
@@ -171,13 +211,13 @@ export function ChatSidebar() {
         return;
       }
       if (result.kind === "provider") {
-        // Best-effort: accept any of the seven known provider ids.
         const match = providers.find((p) => p.id === result.providerId);
         if (!match) {
           setStatusLine(`unknown provider: ${result.providerId}`);
           return;
         }
         setDefaultProviderId(match.id);
+        setProviderOverride(match.id);
         setStatusLine(`default provider → ${match.label}`);
         return;
       }
@@ -192,7 +232,7 @@ export function ChatSidebar() {
       }
 
       setStatusLine(null);
-      const prompt = result.kind === "raw" ? result.prompt : result.prompt;
+      const prompt = result.prompt;
       const agentForCall =
         result.kind === "agent"
           ? result.agentId
@@ -200,8 +240,6 @@ export function ChatSidebar() {
             ? activeAgentId
             : null;
 
-      // Recent-turn history (captured BEFORE the new user message) so the
-      // copilot holds a thread — last ~10 user/assistant turns.
       const history = useChatHistoryStore
         .getState()
         .messages.filter((m) => m.role === "user" || m.role === "assistant")
@@ -210,18 +248,21 @@ export function ChatSidebar() {
 
       appendUser(prompt);
 
-      // Resolve which provider's keychain key we need. On the agent path use
-      // the AGENT's default provider (BYOK fix — previously used the UI default,
-      // which sent the wrong key when they differed); else the session default.
+      // Resolve the effective provider/model (FR-004): HUD override → the called
+      // agent's default → session default. The key is resolved for THAT provider.
       const agentSpec = agentForCall
         ? (firstPartyAgents.find((a) => a.id === agentForCall) ??
           customAgents.find((a) => a.id === agentForCall) ??
           null)
         : null;
-      const provider = (agentSpec?.defaultProvider ?? defaultProviderId) as LLMProviderId;
-      const providerInfo = providers.find((p) => p.id === provider);
-      const requiresKey = providerInfo?.requiresKey ?? true;
-      const providerLabel = providerInfo?.label ?? provider;
+      const provider =
+        providerOverride ??
+        (agentSpec?.defaultProvider as LLMProviderId | undefined) ??
+        defaultProviderId;
+      const model = useModelSelectionStore.getState().modelFor(provider);
+      const providerMeta = providers.find((p) => p.id === provider);
+      const requiresKey = providerMeta?.requiresKey ?? true;
+      const providerLabel = providerMeta?.label ?? provider;
       let apiKey: string | null = null;
       if (requiresKey) {
         apiKey = await getSecret(KEYCHAIN_NAMESPACES.llmProvider(provider));
@@ -232,11 +273,6 @@ export function ChatSidebar() {
           return;
         }
       } else if (!(await validateProvider(provider))) {
-        // Keyless provider (e.g. Ollama) — gate the call on the local daemon
-        // actually being reachable, so a missing or stopped local model surfaces
-        // a clear onboarding message instead of failing the call silently (the
-        // ratified "offer both, never silently default to an absent local model"
-        // rule from US1 / FR-032).
         setStatusLine(
           `${providerLabel} isn't reachable. Start it (run \`ollama serve\` and pull the model) ` +
             "or switch to a cloud provider in Settings → AI Providers.",
@@ -248,23 +284,59 @@ export function ChatSidebar() {
         agentId: agentForCall ?? undefined,
         providerId: provider,
       });
+      const agentName = agentForCall
+        ? (agentNameById[agentForCall] ?? agentForCall)
+        : "Direct chat";
 
-      const handlers = makeHandlers(assistantId, {
+      // Track the run in the agents rail (FR-027 / US3 AS3) with a cancel that
+      // aborts the stream. P3 deepens this into durable, budget-guarded runs.
+      const controller = new AbortController();
+      const runId = startRun({
+        agentId: agentForCall,
+        agentName,
+        mode,
+        abort: () => controller.abort(),
+      });
+
+      const handlers = makeHandlers({
         onDelta: (text) => appendDelta(assistantId, text),
-        onError: (message) => fail(assistantId, message),
-        onDone: (usage) => finalize(assistantId, usage),
-        onToolUse: (name, input) => {
-          // Render a step chip AND drive the terminal for host-action tools.
-          const label = executeHostAction(name, input);
-          if (label) {
-            appendToolStep(assistantId, label);
+        onError: (message) => {
+          if (controller.signal.aborted) {
+            finalize(assistantId, null);
+            endRun(runId, "cancelled");
+          } else {
+            fail(assistantId, message);
+            endRun(runId, "error", message);
+          }
+        },
+        onDone: (usage) => {
+          finalize(assistantId, usage);
+          endRun(runId, "done");
+          if (usage) {
+            updateRun(runId, { tokens: usage.inputTokens + usage.outputTokens });
+          }
+        },
+        onToolUse: (name, input, toolCallId) => {
+          if (isHostActionMutation(name)) {
+            // FR-010 — stage the mutation as a reviewable diff instead of
+            // applying it. One agent turn = one batch (assistantId).
+            const id = enqueueChange({
+              toolCallId,
+              name,
+              input,
+              batchId: assistantId,
+              agentId: agentForCall ?? undefined,
+              agentName,
+            });
+            const change = useProposedChangesStore.getState().changes.find((c) => c.id === id);
+            appendToolStep(assistantId, `Proposed: ${change?.title ?? name} — review below`);
+          } else {
+            appendToolStep(assistantId, readToolLabel(name));
           }
         },
       });
 
       if (agentForCall) {
-        // Structured "what the user is looking at" snapshot — the sidecar
-        // renders a terse preamble + the get_terminal_state tool reads it.
         const terminalState = captureTerminalState();
         const snapshot: AgentContextSnapshot = {
           focusedSource: terminalState.focusedPanel,
@@ -276,20 +348,23 @@ export function ChatSidebar() {
           {
             prompt,
             contextSnapshot: snapshot,
+            provider,
+            model,
+            mode,
             apiKey: apiKey ?? undefined,
             options: { history },
           },
-          handlers,
+          { ...handlers, signal: controller.signal },
         );
       } else {
         await streamChat(
           {
             provider,
-            model: defaultModelFor(provider),
+            model,
             messages: [{ role: "user", content: prompt }],
             apiKey: apiKey ?? undefined,
           },
-          handlers,
+          { ...handlers, signal: controller.signal },
         );
       }
     },
@@ -298,15 +373,22 @@ export function ChatSidebar() {
       appendDelta,
       appendToolStep,
       appendUser,
+      agentNameById,
       beginAssistant,
       clearHistory,
       customAgents,
       defaultProviderId,
+      endRun,
+      enqueueChange,
       fail,
       finalize,
       firstPartyAgents,
+      mode,
+      providerOverride,
       providers,
       setDefaultProviderId,
+      startRun,
+      updateRun,
     ],
   );
 
@@ -314,14 +396,27 @@ export function ChatSidebar() {
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
       <header className="border-charcoal-700 flex items-center gap-2 border-b px-3 py-2">
         <Sparkles className="text-amber-400" size={14} aria-hidden />
-        <span className="text-charcoal-200 font-mono text-xs font-medium">Copilot</span>
+        <span className="text-charcoal-200 font-mono text-xs font-medium">Agent</span>
       </header>
+      <ModeBar mode={mode} onChange={setMode} />
       <RosterStrip
         firstParty={firstPartyAgents}
         custom={customAgents}
         activeAgentId={activeAgentId}
-        onChange={setActiveAgentId}
+        onChange={(id) => {
+          setActiveAgentId(id);
+          setProviderOverride(null);
+        }}
       />
+      <AgentHud
+        providers={providers}
+        provider={effectiveProvider}
+        model={effectiveModel}
+        providerConfigured={providerConfigured}
+        onProviderChange={(p) => setProviderOverride(p)}
+        onModelChange={(m) => setModelOverride(effectiveProvider, m)}
+      />
+      <AgentsRail />
       <ContextBadge text={contextBadge} />
       <div
         ref={scrollRef}
@@ -331,7 +426,7 @@ export function ChatSidebar() {
         className="flex-1 overflow-y-auto px-3 py-3"
       >
         {messages.length === 0 ? (
-          <EmptyState activeAgentName={activeAgent?.name ?? null} />
+          <EmptyState activeAgentName={activeAgent?.name ?? null} mode={mode} />
         ) : (
           <ul className="flex flex-col gap-3">
             {messages.map((message) => (
@@ -379,6 +474,7 @@ export function ChatSidebar() {
           </ul>
         )}
       </div>
+      <ProposedChangesReview />
       {statusLine && (
         <div className="border-charcoal-700 text-charcoal-300 border-t px-3 py-1 font-mono text-[0.65rem] whitespace-pre-line">
           {statusLine}
@@ -391,12 +487,20 @@ export function ChatSidebar() {
           setComposer("");
           void handleSend(text);
         }}
-        disabled={streaming}
+        // Delegate runs are background (US3 AS3): keep the composer live so the
+        // user can keep working the cockpit while the run streams in the rail.
+        disabled={streaming && mode !== "delegate"}
+        mode={mode}
       />
       <KeyEntryDialog
         open={keyDialogProvider !== null}
         providerId={keyDialogProvider}
-        onOpenChange={(open) => !open && setKeyDialogProvider(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setKeyDialogProvider(null);
+            void refreshKeys();
+          }
+        }}
       />
     </div>
   );
@@ -463,13 +567,23 @@ function ContextBadge({ text }: { text: string }) {
   );
 }
 
-function EmptyState({ activeAgentName }: { activeAgentName: string | null }) {
+function EmptyState({
+  activeAgentName,
+  mode,
+}: {
+  activeAgentName: string | null;
+  mode: AgentMode;
+}) {
+  const meta = agentModeMeta(mode);
   return (
     <div className="text-charcoal-400 flex h-full flex-col items-center justify-center gap-2 px-6 text-center font-mono text-xs">
       <Sparkles className="text-amber-400/70" size={20} aria-hidden />
       <p>
         Ask me anything about what you&rsquo;re looking at — your portfolio, a chart, a screen. I
         read the terminal and can drive it.
+      </p>
+      <p className="text-charcoal-500">
+        Mode: <span className="text-charcoal-300">{meta.label}</span> — {meta.consequence}
       </p>
       {activeAgentName && (
         <p className="text-charcoal-500">
@@ -485,9 +599,11 @@ interface ComposerProps {
   onChange: (value: string) => void;
   onSend: (text: string) => void;
   disabled: boolean;
+  mode: AgentMode;
 }
 
-function Composer({ value, onChange, onSend, disabled }: ComposerProps) {
+function Composer({ value, onChange, onSend, disabled, mode }: ComposerProps) {
+  const meta = agentModeMeta(mode);
   return (
     <form
       className="border-charcoal-700 flex items-center gap-2 border-t p-2"
@@ -502,7 +618,7 @@ function Composer({ value, onChange, onSend, disabled }: ComposerProps) {
         aria-label="Chat input"
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder="Ask anything — your portfolio, a chart, a screen…"
+        placeholder={`${meta.label} — ${meta.hint}`}
         disabled={disabled}
         className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 h-8 flex-1 rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
       />
@@ -523,42 +639,27 @@ function Composer({ value, onChange, onSend, disabled }: ComposerProps) {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function defaultModelFor(provider: LLMProviderId): string {
-  switch (provider) {
-    case "anthropic":
-      return "claude-opus-4-7";
-    case "openai":
-      return "gpt-4.1-mini";
-    case "gemini":
-      return "gemini-2.5-pro";
-    case "groq":
-      return "llama-3.3-70b-versatile";
-    case "ollama":
-      return "qwen2.5:7b";
-    case "deepseek":
-      return "deepseek-chat";
-    case "xai":
-      return "grok-2-latest";
-  }
-}
-
 interface InternalHandlers {
   onDelta: (text: string) => void;
   onError: (message: string) => void;
   onDone: (usage: { inputTokens: number; outputTokens: number } | null) => void;
-  onToolUse: (name: string, input: Record<string, unknown>) => void;
+  onToolUse: (name: string, input: Record<string, unknown>, toolCallId: string) => void;
 }
 
-function makeHandlers(
-  _assistantId: string,
-  internal: InternalHandlers,
-): { onEvent: (event: LLMStreamEvent) => void; onError: (err: Error) => void } {
+function makeHandlers(internal: InternalHandlers): {
+  onEvent: (event: LLMStreamEvent) => void;
+  onError: (err: Error) => void;
+} {
   return {
     onEvent: (event) => {
       if (event.kind === "delta") {
         internal.onDelta(event.text);
       } else if (event.kind === "tool_use") {
-        internal.onToolUse(event.name, (event.input as Record<string, unknown>) ?? {});
+        internal.onToolUse(
+          event.name,
+          (event.input as Record<string, unknown>) ?? {},
+          event.toolCallId,
+        );
       } else if (event.kind === "error") {
         internal.onError(event.message);
       } else if (event.kind === "done") {
@@ -588,7 +689,6 @@ function describeContext(snapshot: {
   if (!focused) {
     return `Context: ${snapshot.focusedSource}`;
   }
-  // Walk one level deep into a payload object to pull the most useful field.
   const payload = focused.payload;
   if (payload && typeof payload === "object") {
     const obj = payload as Record<string, unknown>;
