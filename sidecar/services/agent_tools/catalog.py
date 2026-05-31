@@ -651,6 +651,52 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=False,
             kind="host_action",
         ),
+        _cap(
+            "close_panel",
+            description=(
+                "Close a terminal panel by id (chart, watchlist, news, portfolio, "
+                "equity-overview, screener, macro, earnings, ...). Use when the user "
+                "asks to close, hide, or remove a panel."
+            ),
+            input_schema=_obj({"panel": {"type": "string"}}, ["panel"]),
+            domain="terminal",
+            read_only=False,
+            kind="host_action",
+        ),
+        _cap(
+            "focus_panel",
+            description=(
+                "Bring an already-open panel to the front and focus it, by id. Use "
+                "when the user asks to focus, switch to, or surface a panel."
+            ),
+            input_schema=_obj({"panel": {"type": "string"}}, ["panel"]),
+            domain="terminal",
+            read_only=False,
+            kind="host_action",
+        ),
+        _cap(
+            "arrange_layout",
+            description=(
+                "Rearrange the cockpit for the user to review. pattern='default' "
+                "resets to the default layout; pattern='focus' maximizes a single "
+                "panel (pass its id as `panel`). Use when the user asks to reset the "
+                "layout, tidy up, or focus on one panel."
+            ),
+            input_schema=_obj(
+                {
+                    "pattern": {
+                        "type": "string",
+                        "enum": ["default", "focus"],
+                        "default": "default",
+                    },
+                    "panel": {"type": "string", "description": "Required when pattern='focus'."},
+                },
+                ["pattern"],
+            ),
+            domain="terminal",
+            read_only=False,
+            kind="host_action",
+        ),
     ]
 )
 

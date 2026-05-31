@@ -23,9 +23,12 @@ import { useWorkspaceStore } from "@/store/workspace";
 import type { BrokerId, BrokerOrderProposal } from "../../types/broker";
 import type { ProposedChangeKind } from "../../types/proposed-change";
 
-/** The four catalog host-action tool ids (`kind="host_action"`, `read_only=false`). */
+/** The catalog host-action tool ids (`kind="host_action"`, `read_only=false`). */
 export const HOST_ACTION_NAMES = new Set([
   "open_panel",
+  "close_panel",
+  "focus_panel",
+  "arrange_layout",
   "set_chart_symbol",
   "add_to_watchlist",
   "propose_order",
@@ -80,6 +83,43 @@ export function describeHostAction(
         after: `${panelLabel(panel)} panel: open`,
       };
     }
+    case "close_panel": {
+      const panel = str(input, "panel");
+      const isOpen = useWorkspaceStore.getState().dockviewApi?.getPanel(panel) != null;
+      return {
+        kind: "panel",
+        title: `Close the ${panelLabel(panel)} panel`,
+        before: `${panelLabel(panel)} panel: ${isOpen ? "open" : "not open"}`,
+        after: `${panelLabel(panel)} panel: closed`,
+      };
+    }
+    case "focus_panel": {
+      const panel = str(input, "panel");
+      return {
+        kind: "panel",
+        title: `Focus the ${panelLabel(panel)} panel`,
+        before: `Foreground: the current panel`,
+        after: `Foreground: ${panelLabel(panel)}`,
+      };
+    }
+    case "arrange_layout": {
+      const pattern = str(input, "pattern") || "default";
+      const panel = str(input, "panel");
+      if (pattern === "focus") {
+        return {
+          kind: "panel",
+          title: `Focus on ${panel ? panelLabel(panel) : "one panel"}`,
+          before: "Layout: the current cockpit",
+          after: `Layout: ${panel ? panelLabel(panel) : "a single panel"} maximised`,
+        };
+      }
+      return {
+        kind: "panel",
+        title: "Reset to the default layout",
+        before: "Layout: the current cockpit",
+        after: "Layout: the default cockpit (clears layout customisations)",
+      };
+    }
     case "add_to_watchlist": {
       const entries = useSymbolsStore.getState().entries;
       const already = entries.some((e) => e.symbol.toUpperCase() === symbol.toUpperCase());
@@ -132,6 +172,45 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
         return `Opened ${panelLabel(panel)}`;
       }
       return null;
+    }
+    case "close_panel": {
+      const panel = str(input, "panel");
+      if (panel) {
+        useWorkspaceStore.getState().closePanel(panel);
+        return `Closed ${panelLabel(panel)}`;
+      }
+      return null;
+    }
+    case "focus_panel": {
+      const panel = str(input, "panel");
+      if (!panel) {
+        return null;
+      }
+      const ws = useWorkspaceStore.getState();
+      const target = ws.dockviewApi?.getPanel(panel);
+      if (target) {
+        target.api.setActive();
+      } else {
+        // Not open yet — opening a singleton focuses it.
+        ws.openPanel(panel);
+      }
+      return `Focused ${panelLabel(panel)}`;
+    }
+    case "arrange_layout": {
+      const ws = useWorkspaceStore.getState();
+      const pattern = str(input, "pattern") || "default";
+      if (pattern === "focus") {
+        const panel = str(input, "panel");
+        const target = panel ? ws.dockviewApi?.getPanel(panel) : null;
+        if (!target) {
+          return null;
+        }
+        target.api.setActive();
+        target.api.maximize();
+        return `Focused on ${panelLabel(panel)}`;
+      }
+      ws.resetToDefaultLayout();
+      return "Reset to the default layout";
     }
     case "add_to_watchlist":
       if (symbol) {

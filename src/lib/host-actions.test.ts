@@ -28,14 +28,47 @@ describe("host-actions", () => {
     vi.restoreAllMocks();
   });
 
-  it("classifies the four catalog host actions as mutations to gate", () => {
+  it("classifies the catalog host actions as mutations to gate", () => {
     expect([...HOST_ACTION_NAMES].sort()).toEqual(
-      ["add_to_watchlist", "open_panel", "propose_order", "set_chart_symbol"].sort(),
+      [
+        "add_to_watchlist",
+        "arrange_layout",
+        "close_panel",
+        "focus_panel",
+        "open_panel",
+        "propose_order",
+        "set_chart_symbol",
+      ].sort(),
     );
     expect(isHostActionMutation("set_chart_symbol")).toBe(true);
+    expect(isHostActionMutation("close_panel")).toBe(true);
+    expect(isHostActionMutation("arrange_layout")).toBe(true);
     expect(isHostActionMutation("propose_order")).toBe(true);
     expect(isHostActionMutation("price_data")).toBe(false);
     expect(isHostActionMutation("get_terminal_state")).toBe(false);
+  });
+
+  it("panel-control actions describe + apply (gated, no auto-apply)", () => {
+    // describe produces a reviewable diff with the "panel" kind
+    const close = describeHostAction("close_panel", { panel: "news" });
+    expect(close.kind).toBe("panel");
+    expect(close.title).toMatch(/Close/);
+    expect(close.after).toMatch(/closed/i);
+
+    const focus = describeHostAction("focus_panel", { panel: "chart" });
+    expect(focus.after).toMatch(/Chart/);
+
+    const reset = describeHostAction("arrange_layout", { pattern: "default" });
+    expect(reset.after).toMatch(/default/i);
+    const maximise = describeHostAction("arrange_layout", { pattern: "focus", panel: "chart" });
+    expect(maximise.after).toMatch(/maximised|Chart/);
+
+    // apply returns a label (the dockview ops no-op cleanly with no api in jsdom)
+    expect(applyHostAction("close_panel", { panel: "news" })).toMatch(/Closed/);
+    expect(applyHostAction("focus_panel", { panel: "chart" })).toMatch(/Focused/);
+    expect(applyHostAction("arrange_layout", { pattern: "default" })).toMatch(/default/i);
+    // focus pattern with no open target panel can't apply -> null (re-pends)
+    expect(applyHostAction("arrange_layout", { pattern: "focus", panel: "chart" })).toBeNull();
   });
 
   it("applyHostAction(set_chart_symbol) loads the symbol into the chart bus", () => {
