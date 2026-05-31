@@ -16,7 +16,7 @@
 
 ---
 
-## 1. What this window shipped (7 commits, all machine-verified)
+## 1. What this window shipped (foundation window, all machine-verified)
 
 | #   | Commit    | Item                                                                                                                                                                                                                                                                                 | Satisfies                                                      | Gate result                        |
 | --- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- | ---------------------------------- |
@@ -54,6 +54,10 @@ not three hand-maintained lists (Constitution Principle II — real, dogfooded).
   catalog schema against its real handler + Pydantic model; it found 2 genuine
   over-constraints (`sec_filings_list`/`sec_insider_transactions` required
   `symbol` though the handler accepts cik-OR-symbol) — both fixed before commit.
+- **Close-out hot-patch:** added `tests/test_news_tool.py` — the `news` tool
+  (added with the MCP projection) was the only domain tool lacking a dedicated
+  sibling test; now covered (register/invoke, symbol parsing, provider-error
+  envelope, §6.5 forbidden-id check). §6.5 audit re-confirmed 9/9.
 
 ## 3. Autonomous decisions & assumptions (Tier-2/3)
 
