@@ -136,6 +136,37 @@ async def test_token_breach_aborts_with_reason_and_checkpoint(
 
 
 @pytest.mark.asyncio
+async def test_wall_clock_breach_aborts_mid_round(monkeypatch: pytest.MonkeyPatch) -> None:
+    """SC-008 wall-clock: a round that STALLS without ever emitting a terminator
+    must still abort at the ceiling. breach() is only polled at a round terminator
+    that never arrives here, so the asyncio.timeout backstop is what enforces the
+    wall budget. (Regression guard for the self-validation finding: without the
+    backstop this run would hang indefinitely.)"""
+
+    class _HangingProvider:
+        """Stalls mid-round forever — no terminator, so the round-boundary
+        breach() check can never fire."""
+
+        async def stream_chat(self, **_kwargs: Any) -> AsyncIterator[Any]:
+            await asyncio.sleep(30)
+            yield LLMDoneEvent()  # pragma: no cover — never reached
+
+    _patch(monkeypatch, _HangingProvider())
+    run_id = run_manager.launch_run(
+        agent_id="copilot",
+        prompt="hang",
+        api_key="sk-test",
+        budget=RunBudget(max_wall_seconds=0.3),
+    )
+    row = await _await_terminal(run_id, timeout=5.0)
+    assert row is not None
+    assert row.status == "error"
+    assert "wall-clock ceiling" in (row.detail or "")
+    # A checkpoint was still captured so the run is resumable.
+    assert row.checkpoint_messages >= 1
+
+
+@pytest.mark.asyncio
 async def test_step_breach_aborts(monkeypatch: pytest.MonkeyPatch) -> None:
     _patch(monkeypatch, _LoopingProvider(per_round=1))
     run_id = run_manager.launch_run(

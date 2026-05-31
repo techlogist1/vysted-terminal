@@ -130,29 +130,42 @@ async def _drive_run(
             breach_reason = guard.breach()
 
     try:
-        async for event in agent_runtime.invoke_agent(
-            agent_id=agent_id,
-            prompt=prompt,
-            context_snapshot=snapshot,
-            api_key=api_key,
-            provider=provider,
-            model=model,
-            options=dict(options),
-            mode="delegate",
-            on_round_usage=_on_round_usage,
-        ):
-            kind = getattr(event, "kind", None)
-            if kind == "delta":
-                delta_buffer.append(getattr(event, "text", ""))
-            elif kind == "tool_use":
-                transcript.append(
-                    {"role": "assistant", "content": f"[tool_use {getattr(event, 'name', '?')}]"}
-                )
-            elif kind == "error":
-                breach_reason = breach_reason or getattr(event, "message", "agent error")
-            # After each round's terminator the guard may have flagged a breach.
-            if breach_reason is not None:
-                break
+        # The round-boundary breach() check below covers tokens/spend/steps (which
+        # only change at a round terminator) AND the common wall-clock case. But
+        # wall-clock advances continuously DURING a round, and the LLM adapters
+        # carry no per-stream timeout — so a single long round, or a stalled
+        # provider stream that never reaches its terminator, could outlive
+        # max_wall_seconds without the round-boundary check ever firing. This
+        # asyncio.timeout makes the wall ceiling a HARD ceiling regardless of round
+        # boundaries (SC-008). asyncio.timeout(None) is a documented no-op, so a
+        # run with no wall budget is unaffected.
+        async with asyncio.timeout(budget.max_wall_seconds):
+            async for event in agent_runtime.invoke_agent(
+                agent_id=agent_id,
+                prompt=prompt,
+                context_snapshot=snapshot,
+                api_key=api_key,
+                provider=provider,
+                model=model,
+                options=dict(options),
+                mode="delegate",
+                on_round_usage=_on_round_usage,
+            ):
+                kind = getattr(event, "kind", None)
+                if kind == "delta":
+                    delta_buffer.append(getattr(event, "text", ""))
+                elif kind == "tool_use":
+                    transcript.append(
+                        {
+                            "role": "assistant",
+                            "content": f"[tool_use {getattr(event, 'name', '?')}]",
+                        }
+                    )
+                elif kind == "error":
+                    breach_reason = breach_reason or getattr(event, "message", "agent error")
+                # After each round's terminator the guard may have flagged a breach.
+                if breach_reason is not None:
+                    break
 
         if delta_buffer:
             transcript.append({"role": "assistant", "content": "".join(delta_buffer)})
@@ -167,6 +180,24 @@ async def _drive_run(
         runs_store.update_run(
             run_id, status="done", detail="completed", checkpoint=list(transcript)
         )
+    except TimeoutError:
+        # The wall-clock backstop fired (asyncio.timeout). It cancels mid-round, so
+        # this is the ONLY path that enforces max_wall_seconds against a hung or
+        # over-long round. Abort with the stated reason + a resumable checkpoint
+        # (SC-008), exactly like a round-boundary breach.
+        if delta_buffer:
+            transcript.append({"role": "assistant", "content": "".join(delta_buffer)})
+        elapsed = guard.wall_seconds()
+        if budget.max_wall_seconds is not None and elapsed >= budget.max_wall_seconds:
+            reason = guard.breach() or (
+                f"wall-clock ceiling {budget.max_wall_seconds:g}s reached ({elapsed:.1f}s elapsed)"
+            )
+        else:
+            # A TimeoutError that is NOT the wall backstop (e.g. a tool raised its
+            # own timeout) — report it as a generic failure, never mislabeled as a
+            # ceiling breach.
+            reason = "run failed: operation timed out"
+        runs_store.update_run(run_id, status="error", detail=reason, checkpoint=list(transcript))
     except asyncio.CancelledError:
         # cancel_run already wrote status="cancelled"; persist the partial
         # transcript and re-raise so the task finishes in its cancelled state.
