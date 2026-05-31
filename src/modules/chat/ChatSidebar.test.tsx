@@ -200,12 +200,14 @@ describe("ChatSidebar", () => {
     cleanup();
   });
 
-  it("renders a clickable persona roster of the first-party agents", () => {
+  it("offers every first-party agent as a persona (lens) the user can pick", () => {
     render(<ChatSidebar />);
     const roster = screen.getByLabelText("Persona roster");
     expect(roster).toBeInTheDocument();
+    const picker = screen.getByRole("combobox", { name: "Active persona" });
+    expect(picker).toBeInTheDocument();
     for (const agent of FIRST_PARTY_AGENTS) {
-      expect(screen.getByRole("button", { name: agent.name })).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: agent.name })).toBeInTheDocument();
     }
   });
 

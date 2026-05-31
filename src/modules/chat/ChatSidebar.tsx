@@ -566,41 +566,47 @@ interface AgentPickerProps {
   onChange: (id: string | null) => void;
 }
 
-/** A visible, clickable roster of personas — no memorized ids. The copilot
- *  router is pinned first as the default; clicking a chip switches the lens. */
+/** The active persona ("lens") — one compact picker rather than a 13-chip strip
+ *  that scrolls and clips mid-name. The copilot router is pinned first as the
+ *  default; the full roster (12 investor personas + any custom agents) lives one
+ *  click away in the dropdown. Matches the AgentHud native-select pattern so the
+ *  whole HUD reads as one quiet, keyboard-driven control surface. */
 function RosterStrip({ firstParty, custom, activeAgentId, onChange }: AgentPickerProps) {
   const ordered = [...firstParty].sort((a, b) =>
     a.id === DEFAULT_AGENT_ID ? -1 : b.id === DEFAULT_AGENT_ID ? 1 : 0,
   );
-  const all = [...ordered, ...custom];
-  if (all.length === 0) {
+  if (ordered.length === 0 && custom.length === 0) {
     return null;
   }
   return (
     <div
       aria-label="Persona roster"
-      className="border-charcoal-700 flex items-center gap-1 overflow-x-auto border-b px-2 py-1.5"
+      className="border-charcoal-700 text-charcoal-400 flex items-center gap-1.5 border-b px-3 py-1.5 font-mono text-[0.6rem]"
     >
-      {all.map((agent) => {
-        const active = agent.id === activeAgentId;
-        return (
-          <button
-            key={agent.id}
-            type="button"
-            onClick={() => onChange(agent.id)}
-            aria-pressed={active}
-            title={agent.name}
-            className={cn(
-              "shrink-0 rounded-full border px-2.5 py-1 font-mono text-[0.65rem] whitespace-nowrap transition-colors",
-              active
-                ? "border-amber-500 bg-amber-500/15 text-amber-300"
-                : "border-charcoal-700 text-charcoal-400 hover:text-charcoal-100 hover:border-charcoal-600",
-            )}
-          >
-            {agent.name}
-          </button>
-        );
-      })}
+      <span className="shrink-0 tracking-wide uppercase">Lens</span>
+      <select
+        aria-label="Active persona"
+        value={activeAgentId ?? DEFAULT_AGENT_ID}
+        onChange={(event) => onChange(event.target.value)}
+        className="bg-charcoal-800 text-charcoal-200 border-charcoal-700 min-w-0 flex-1 truncate rounded border px-1.5 py-1 font-mono text-[0.7rem] outline-none focus:ring-1 focus:ring-amber-400"
+      >
+        <optgroup label="First-party">
+          {ordered.map((agent) => (
+            <option key={agent.id} value={agent.id}>
+              {agent.name}
+            </option>
+          ))}
+        </optgroup>
+        {custom.length > 0 && (
+          <optgroup label="Custom">
+            {custom.map((agent) => (
+              <option key={agent.id} value={agent.id}>
+                {agent.name}
+              </option>
+            ))}
+          </optgroup>
+        )}
+      </select>
     </div>
   );
 }

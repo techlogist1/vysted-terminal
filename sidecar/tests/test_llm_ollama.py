@@ -68,7 +68,7 @@ async def test_stream_chat_emits_dict_deltas_and_usage(monkeypatch: pytest.Monke
     out: list[Any] = []
     async for event in provider.stream_chat(
         messages=[LLMMessage(role="user", content="hi")],
-        model="llama3.1:8b",
+        model="qwen2.5:7b",
     ):
         out.append(event)
     kinds = [e.kind for e in out]
