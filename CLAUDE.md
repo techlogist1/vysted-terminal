@@ -174,6 +174,14 @@ onto a shared agent branch, which can sweep uncommitted lead edits into a teamma
   name, not id — omit it and Gemini multi-round breaks). A new first-party agent JSON bumps the
   roster count asserted by `test_agent_runtime`/`test_agents_router`/`test_mcp_server`.
 - `agent_tools` is a package — `reset_for_tests()` must re-register import-time tools.
+- **Durable Delegate runs execute DETACHED** (`services/run_manager.py` spawns
+  `asyncio.create_task` driving `invoke_agent`; state in `services/runs_store.py` SQLite,
+  routes in `routers/runs.py`). `run_manager.shutdown()` MUST stay in the `app.py` lifespan
+  `finally` or detached tasks leak. A `BudgetGuard` (`services/budget_guard.py`) meters every
+  round via `invoke_agent`'s `on_round_usage` callback; the first ceiling breach
+  (tokens/spend/wall/steps) aborts the run to `error` with a stated reason + resumable
+  checkpoint (SC-008). The runs router is **prefix-less** (`POST /agents/{id}/runs` +
+  `/runs/*`); `GET /runs` emits BOTH camelCase + snake_case so either spelling resolves.
 - **FastMCP tools must return a dict** (or declare `output_schema`). The data/analysis MCP
   tools are **projected from the catalog** (`mcp_capabilities()`) via
   `FunctionTool(parameters=<schema>, fn=<handler>)` dispatching to the same `agent_tools`
@@ -220,6 +228,13 @@ exchange_request_token` via `kiteconnect.generate_session` → `POST /brokers/ki
   `api_secret` crosses for the exchange only (never stored/echoed). New broker read routes
   are GET-only and duck-type to `account_info()` (no §6.5 ABC change). Manual request_token
   paste is the v1 flow. `static_ip_detector.py` warns on IP mismatch but does NOT pre-block.
+- **Granular broker reads** (`/positions` `/holdings` `/margins`) are DISTINCT shapes
+  (`models/broker_reads.py`, mirrored in `types/broker-reads.ts`) returned via an adapter
+  `positions_info`/`holdings_info`/`margins_info` seam — adapters without it fall back to
+  `account_info()` (the route is typed `…Result | AccountSummary`). Still GET-only (no §6.5
+  ABC change); every result carries the FR-041 provenance label (`synthetic`/`mode`/`provider`)
+  so paper/synthetic values are badged. Adding granular reads to an adapter = add the `*_info`
+  method only; the route + frontend `BrokerReadsSection` pick it up by duck-type.
 
 ### Versioning & process
 

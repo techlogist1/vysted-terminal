@@ -50,6 +50,56 @@
 
 ---
 
+## 0.5 Agent-native redesign — P1–P3 shipped (2026-05-31, branch `001-agent-native-redesign`)
+
+> The user-facing redesign (P1/P2/P3) has now landed on the branch (not `main`).
+> Full per-FR/SC accounting + gate results: **`docs/redesign/P1_P3_BUILD_REPORT.md`**.
+> Deltas that supersede the baseline below:
+>
+> - **P1 — agent-centric experience (US1–US4).** A four-mode agent spine
+>   (Ask / Edit-panel / Build / Delegate, ⌥1–4) with the agent as a co-equal
+>   primary surface alongside the hand-driven cockpit. **Every agent-proposed
+>   mutation routes through a diff/accept trust gate** (`src/store/proposed-changes.ts`)
+>   — the four host-actions (`open_panel`/`set_chart_symbol`/`add_to_watchlist`/
+>   `propose_order`, the catalog's only `read_only=false` capabilities) never
+>   auto-apply (SC-003). Offer-both onboarding preserves the keyboard cockpit.
+> - **P2 — framework + visual + marketplace (US5–US7, US10).** Minimal-dark
+>   "cold-instrument" shell (re-valued tokens; `chart-theme.ts` mirrors them),
+>   teaching command palette + status chrome (FR-033). The **plugin marketplace
+>   is the primary extensibility model**: brokers, data, panels, agents are all
+>   install/enable/configure/remove entries (`src/lib/marketplace.ts`). First-party
+>   pre-installed (yfinance + news keyless); **no broker registered at boot** —
+>   `bootstrap_default_adapters()` is no longer called from the lifespan (FR-051/
+>   SC-013); Kite is the reference broker plugin. MCP-as-framework for external
+>   tools (FR-025; static-import compiled-in plugins are governed here, genuinely-
+>   external load is the stdio-MCP path).
+> - **P3 — data + durable agents (US8/US9, FR-033–042).** The **provider-shaped
+>   data registry** (`provider_registry.py`) resolves by standard model key +
+>   preference order (not the asset-class chain); every result carries its serving
+>   provider as provenance (FR-035/040). A **BYOK credentials hub** is the
+>   marketplace config form rendered generically from each entry's
+>   `credentialFields` (SC-007: 0 per-source UI) — news is now a first-party data
+>   plugin (`plugins/vysted-news`) with an OPTIONAL NewsAPI key sent as the
+>   `X-Vysted-Newsapi-Key` header from the keychain (FR-036). **Granular broker
+>   reads** are real: `GET /brokers/{id}/{positions,holdings,margins}` return
+>   DISTINCT shapes (`sidecar/models/broker_reads.py`) via an adapter
+>   `positions_info`/`holdings_info`/`margins_info` seam (Kite implements it; others
+>   fall back to the summary), each provenance-labeled so paper/synthetic values
+>   are badged (FR-041/042/SC-012); routes stay GET-only (§6.5 untouched).
+>   **Durable Delegate runs** (`run_manager.py` + `runs_store.py` + `budget_guard.py`,
+>   `routers/runs.py`) run detached, survive the launching connection, and are
+>   bounded by a **BudgetGuard** (tokens/spend/wall/steps) whose first breach
+>   aborts the run with a stated reason + resumable checkpoint (SC-008); the agents
+>   rail shows live cost-so-far. **Cursor-grade settings + remappable keybindings**
+>   (`src/store/settings.ts` + `keybindings.ts`) persist in the workspace blob
+>   (FR-038/039/SC-011).
+>
+> §6.5 + Tier-1 LOCKED files (`types/plugin.ts`, the safety/broker models, the
+> §6.5 audit) remain **byte-for-byte untouched**; §6.5 audit stays 9/9; the broker
+> read surface adds no write/execution path.
+
+---
+
 ## 1. Executive summary — what the app IS today
 
 - A **Tauri 2.x desktop terminal** (Rust core + Next.js 16 static-export
