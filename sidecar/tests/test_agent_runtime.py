@@ -372,3 +372,35 @@ def test_invocation_request_round_trips_mode() -> None:
     # Invalid value rejected.
     with pytest.raises(ValidationError):
         AgentInvocationRequest(prompt="hi", mode="god")
+
+
+def test_get_agent_resolves_a_custom_agent(
+    tmp_path: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """get_agent falls back to the custom-agent store so user-authored AND
+    marketplace-registered plugin agents are invokable (FR-050 agent slice).
+    A truly-unknown id still returns None; first-party still resolves."""
+    from config import DATA_DIR_ENV
+    from models.custom_agent import CustomAgentCreate
+    from services import agents_store
+
+    monkeypatch.setenv(DATA_DIR_ENV, str(tmp_path))
+    agent_runtime.reload()
+    agents_store.create_agent(
+        CustomAgentCreate(
+            id="custom:vysted-lenses-quant-tutor",
+            name="Quant Tutor",
+            philosophy="Teaches as it analyzes.",
+            system_prompt="You are an educational finance lens. Ground every claim in a tool call.",
+            tools=["price_data", "fundamentals"],
+            default_provider="anthropic",
+        )
+    )
+    spec = agent_runtime.get_agent("custom:vysted-lenses-quant-tutor")
+    assert spec is not None
+    assert spec.id == "custom:vysted-lenses-quant-tutor"
+    assert spec.default_provider == "anthropic"
+    assert "price_data" in spec.tools
+    # First-party still resolves; an unknown custom id resolves to None.
+    assert agent_runtime.get_agent("copilot") is not None
+    assert agent_runtime.get_agent("custom:does-not-exist") is None

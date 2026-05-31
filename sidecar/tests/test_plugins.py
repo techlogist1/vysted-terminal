@@ -173,6 +173,56 @@ def test_delete_unknown_plugin_returns_404(client: TestClient, temp_data_dir: ob
     assert client.delete("/plugins/does-not-exist/config").status_code == 404
 
 
+# --------------------------------------------------------------------------
+# installed flag (FR-054 / SC-013) — marketplace install-state persistence
+# --------------------------------------------------------------------------
+
+
+def test_installed_defaults_true_in_store(temp_data_dir: object) -> None:
+    """A config that omits ``installed`` reads back as installed (default True)."""
+    stored = plugins_store.upsert_config(
+        PluginConfigPayload(plugin_id="market-plugin", enabled=True)
+    )
+    assert stored.installed is True
+    fetched = plugins_store.get_config("market-plugin")
+    assert fetched is not None
+    assert fetched.installed is True
+
+
+def test_installed_false_persists_in_store(temp_data_dir: object) -> None:
+    """Setting ``installed=False`` round-trips through the SQLite store."""
+    plugins_store.upsert_config(
+        PluginConfigPayload(plugin_id="uninstalled-plugin", enabled=True, installed=False)
+    )
+    fetched = plugins_store.get_config("uninstalled-plugin")
+    assert fetched is not None
+    assert fetched.installed is False
+
+
+def test_installed_roundtrips_over_http(client: TestClient, temp_data_dir: object) -> None:
+    """The marketplace persists install-state through POST/GET (default + False)."""
+    # Default: omit installed -> True.
+    default_response = client.post(
+        "/plugins/default-installed/config",
+        json={"enabled": True, "settings": {}, "granted_secret_ids": []},
+    )
+    assert default_response.status_code == 200
+    assert default_response.json()["installed"] is True
+
+    # Explicit False persists and is returned by GET.
+    client.post(
+        "/plugins/marked-uninstalled/config",
+        json={
+            "enabled": True,
+            "installed": False,
+            "settings": {},
+            "granted_secret_ids": [],
+        },
+    )
+    body = client.get("/plugins/marked-uninstalled/config").json()
+    assert body["installed"] is False
+
+
 def test_settings_blob_roundtrips_complex_types(client: TestClient, temp_data_dir: object) -> None:
     """Opaque settings blob preserves nested arrays/objects/numbers/booleans."""
     payload = {

@@ -1,0 +1,9 @@
+{
+  "id": "vysted-yfinance",
+  "version": "1.0.0",
+  "name": "Yahoo Finance (keyless equities)",
+  "entry": "index.ts",
+  "requiredHostVersion": "0.8.0",
+  "description": "The no-key equity + fundamentals data default — works out of the box, zero credentials. Pre-installed.",
+  "author": "Vysted"
+}

@@ -143,7 +143,7 @@ export function BrokerConnectPanel() {
       </header>
 
       {!firstLaunchTosAcked && (
-        <div className="m-3 rounded-md border border-amber-500/60 bg-amber-950/30 px-3 py-2 text-xs text-amber-200">
+        <div className="border-warning/60 bg-warning/10 text-warning m-3 rounded-md border px-3 py-2 text-xs">
           Accept the Terms of Service to connect a broker.
         </div>
       )}
@@ -303,7 +303,7 @@ function BrokerRow({ state, disabled }: BrokerRowProps) {
 function StatusBadge({ status }: { status: BrokerState["status"] }) {
   const color = {
     disconnected: "bg-charcoal-700 text-charcoal-300",
-    connecting: "bg-amber-800/40 text-amber-200",
+    connecting: "bg-warning/20 text-warning",
     connected: "bg-emerald-800/40 text-emerald-200",
     error: "bg-red-800/40 text-red-200",
   }[status];
@@ -335,7 +335,7 @@ function ReadOnlyBadge() {
   return (
     <span
       data-testid="broker-readonly-badge"
-      className="rounded bg-amber-800/40 px-1.5 py-[1px] text-[10px] text-amber-200 uppercase"
+      className="bg-warning/20 text-warning rounded px-1.5 py-[1px] text-[10px] uppercase"
     >
       read-only
     </span>

@@ -152,13 +152,21 @@ def get_broker_state(broker_id: BrokerId) -> BrokerState:
 
 @router.post("/{broker_id}/connect")
 async def connect_broker(broker_id: BrokerId, payload: BrokerConnectRequest) -> BrokerState:
-    """Open a session at the broker using BYOK credentials."""
+    """Open a session at the broker using BYOK credentials.
+
+    FR-051: brokers are not registered at boot. The connect path lazily
+    registers the adapter (``ensure_registered``) the first time its
+    marketplace plugin connects — read routes still 404 until you connect.
+    """
     if payload.broker != broker_id:
         raise HTTPException(
             status_code=400,
             detail=f"path broker {broker_id!r} does not match body broker {payload.broker!r}",
         )
-    adapter = _get_adapter(broker_id)
+    try:
+        adapter = brokers_registry.ensure_registered(broker_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
     try:
         await adapter.connect(payload.credentials)
     except BrokerError as exc:

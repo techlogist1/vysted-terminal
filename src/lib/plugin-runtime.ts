@@ -110,9 +110,12 @@ function defaultContext(context?: PluginRuntimeContext): Required<PluginRuntimeC
   };
 }
 
-/** Parse a `major.minor.patch` semver into a numeric triple (pre-release/build ignored). */
+/** Parse a `major.minor.patch` semver into a numeric triple (pre-release/build ignored).
+ *  Strips a leading range operator (`>=`, `>`, `^`, `~`, `=`, `<`) first so a manifest
+ *  written as `">=0.8.0"` parses to its floor `[0,8,0]` instead of `[0,0,0]`. */
 function parseSemver(version: string): [number, number, number] {
-  const core = version.split("+")[0].split("-")[0];
+  const cleaned = version.trim().replace(/^[\^~>=<\s]+/, "");
+  const core = cleaned.split("+")[0].split("-")[0];
   const parts = core.split(".").map((p) => Number.parseInt(p, 10));
   return [
     Number.isFinite(parts[0]) ? parts[0] : 0,
@@ -217,6 +220,7 @@ export class PluginRuntime {
       const stored = await this.context.persistence.load(plugin.manifest.id);
       persisted = stored ?? {
         pluginId: plugin.manifest.id,
+        installed: true,
         enabled: true,
         settings: {},
         grantedSecretIds: [],
@@ -228,6 +232,12 @@ export class PluginRuntime {
       }
     } catch (error) {
       return this.transitionToError(plugin.manifest.id, error, "config-load");
+    }
+
+    if (!persisted.installed) {
+      // Not installed via the marketplace — keep it discovered/stopped and
+      // contribute nothing (FR-050). The marketplace `installPlugin` flips this.
+      return this.transition(plugin.manifest.id, "stopped");
     }
 
     if (!persisted.enabled) {
@@ -282,6 +292,65 @@ export class PluginRuntime {
       return this.transitionToError(pluginId, error, "shutdown");
     }
     return this.transition(pluginId, "stopped", "stopped");
+  }
+
+  // ----- Marketplace lifecycle (FR-050) -----
+
+  /**
+   * Load (or update) the per-plugin persisted config, merging `patch`. The
+   * default for a never-seen plugin is installed+enabled — but the marketplace
+   * always passes an explicit `installed`/`enabled`, and the boot path only
+   * loads catalog entries it decided are installed, so a not-installed broker
+   * never auto-installs.
+   */
+  private async patchConfig(
+    pluginId: string,
+    patch: Partial<PluginPersistedConfig>,
+  ): Promise<void> {
+    const current = (await this.context.persistence.load(pluginId)) ?? {
+      pluginId,
+      installed: true,
+      enabled: true,
+      settings: {},
+      grantedSecretIds: [],
+    };
+    await this.context.persistence.save({ ...current, ...patch, pluginId });
+  }
+
+  /** Marketplace: merge a patch into the plugin's persisted config (e.g. the
+   *  granted secret ids set by the credentials hub on configure). */
+  async updateConfig(pluginId: string, patch: Partial<PluginPersistedConfig>): Promise<void> {
+    await this.patchConfig(pluginId, patch);
+  }
+
+  /** Read the plugin's persisted config (or null if never persisted). */
+  async readConfig(pluginId: string): Promise<PluginPersistedConfig | null> {
+    return this.context.persistence.load(pluginId);
+  }
+
+  /** Install a plugin via the marketplace: persist installed+enabled, then load. */
+  async installPlugin(plugin: DiscoveredPlugin): Promise<LoadedPluginSnapshot> {
+    await this.patchConfig(plugin.manifest.id, { installed: true, enabled: true });
+    this.discover(plugin);
+    return this.loadPlugin(plugin);
+  }
+
+  /** Enable an installed plugin: persist enabled, then load it. */
+  async enablePlugin(plugin: DiscoveredPlugin): Promise<LoadedPluginSnapshot> {
+    await this.patchConfig(plugin.manifest.id, { installed: true, enabled: true });
+    return this.loadPlugin(plugin);
+  }
+
+  /** Disable a plugin: persist enabled:false, then unload it (stays installed). */
+  async disablePlugin(pluginId: string): Promise<void> {
+    await this.patchConfig(pluginId, { enabled: false });
+    await this.unloadPlugin(pluginId);
+  }
+
+  /** Remove a plugin entirely: persist installed:false + enabled:false, then unload. */
+  async removePlugin(pluginId: string): Promise<void> {
+    await this.patchConfig(pluginId, { installed: false, enabled: false });
+    await this.unloadPlugin(pluginId);
   }
 
   /**

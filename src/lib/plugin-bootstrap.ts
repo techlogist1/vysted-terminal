@@ -1,24 +1,20 @@
 /**
- * Plugin bootstrap — discovers, loads, and wires bundled plugins into the
- * runtime + the React-facing stores at host startup.
+ * Plugin bootstrap — drives the marketplace catalog at host startup.
  *
- * This is the Phase-2 "bundled-import loader" (decision A1): bundled plugins
- * live under `plugins/<id>/`, exporting a `VystedPlugin` instance the host
- * imports statically. The bootstrap runs once on mount; tests can build their
- * own runtime without going through this entry.
+ * Every compiled-in plugin lives in `CATALOG_ROWS` (`src/lib/marketplace.ts`).
+ * On boot the runtime DISCOVERS all of them (so they're loadable + visible in
+ * the marketplace) but LOADS only those that are installed + enabled — first-
+ * party entries are pre-installed by default (populated first run, FR-032); the
+ * seven broker entries are available-but-not-pre-installed (FR-051: no broker
+ * registered at boot). Install/enable/disable/remove afterwards is driven by
+ * `useMarketplaceStore` over the same runtime.
  *
  * The runtime's persistence adapter is wired here to the sidecar `/plugins`
- * endpoint, so per-plugin config survives across launches without any browser
- * storage.
+ * endpoint, so per-plugin install/enable/settings survive across launches with
+ * no browser storage.
  */
 
-import { examplePlugin } from "../../plugins/example";
-import exampleManifest from "../../plugins/example/manifest.json";
-import { openbbMcpPlugin } from "../../plugins/openbb-mcp";
-import openbbMcpManifest from "../../plugins/openbb-mcp/manifest.json";
-import { tradesaPlugin } from "../../plugins/tradesa-v2";
-import tradesaManifest from "../../plugins/tradesa-v2/manifest.json";
-import tradesaPanelComponents from "../../plugins/tradesa-v2/panels";
+import { CATALOG_ROWS, CATALOG_BY_ID, type CatalogRow } from "@/lib/marketplace";
 
 import type { VystedModule } from "@/lib/module-registry";
 import {
@@ -30,11 +26,12 @@ import { getSecret } from "@/lib/keychain";
 import { getSidecarBaseUrl, sidecarGet, SidecarError } from "@/lib/sidecar-client";
 import { useModulesStore } from "@/store/modules";
 import { usePluginsStore } from "@/store/plugins";
+import { useWorkspaceStore } from "@/store/workspace";
 
 import type { FunctionComponent } from "react";
 
 import type { CommandResult } from "../../types/plugin";
-import type { PluginManifest, PluginPersistedConfig } from "../../types/plugin-runtime";
+import type { PluginPersistedConfig } from "../../types/plugin-runtime";
 
 /** Host (Vysted Terminal) semver — handed to plugins via `PluginConfig.hostVersion`. */
 export const HOST_VERSION = "0.8.0";
@@ -42,48 +39,8 @@ export const HOST_VERSION = "0.8.0";
 /** How often the runtime polls every active plugin's `healthCheck()`. */
 const HEALTH_POLL_INTERVAL_MS = 30_000;
 
-/** Bundled-import discovery list. New first-party plugins append here. */
-const BUNDLED_PLUGINS: DiscoveredPlugin[] = [
-  { manifest: exampleManifest as PluginManifest, instance: examplePlugin },
-  { manifest: openbbMcpManifest as PluginManifest, instance: openbbMcpPlugin },
-  { manifest: tradesaManifest as PluginManifest, instance: tradesaPlugin },
-];
-
-/**
- * Per-plugin companion panel-components map.
- *
- * Plugins that contribute panels ship a ``plugins/<id>/panels.ts`` file
- * exporting a ``Record<string, FunctionComponent>`` mapping each
- * ``PanelSpec.component`` id to the React component dockview renders.
- * This is the **"Trading-System Wrapper" plugin pattern** documented in
- * ``docs/PLUGIN_DEVELOPMENT.md``: the locked ``VystedPlugin`` contract
- * stays serializable (no React types leak in), and host-side glue
- * (this map) wires the companion components.
- *
- * The map is static at the host-build level (not dynamic-imported at
- * runtime) because Next.js static export can't resolve plugin-id-based
- * dynamic imports without filesystem-installed plugins (a v0.7+ scope
- * decision). First-party plugins are bundled into the host build; this
- * mirrors how ``BUNDLED_PLUGINS`` above already statically imports
- * each plugin's ``index.ts``.
- *
- * To add a new plugin with panels:
- *   1. Write ``plugins/<id>/index.ts`` exporting a ``VystedPlugin``.
- *   2. Write ``plugins/<id>/panels.ts`` exporting a
- *      ``Record<string, FunctionComponent>``.
- *   3. Add the plugin to ``BUNDLED_PLUGINS`` above.
- *   4. Add the entry below mapping ``manifest.id`` →
- *      ``{ panelComponents: <plugin>PanelComponents }``.
- *
- * Plugins that don't contribute panels (the ``example`` data-source
- * plugin, the ``openbb-mcp`` plugin) are omitted here; ``moduleForPlugin``
- * tolerates absence gracefully.
- */
-const PLUGIN_COMPANIONS: Record<string, { panelComponents: Record<string, FunctionComponent> }> = {
-  "tradesa-v2": { panelComponents: tradesaPanelComponents },
-};
-
 interface PluginConfigUpdateBody {
+  installed: boolean;
   enabled: boolean;
   settings: Record<string, unknown>;
   granted_secret_ids: string[];
@@ -91,6 +48,7 @@ interface PluginConfigUpdateBody {
 
 interface PluginConfigResponse {
   plugin_id: string;
+  installed?: boolean;
   enabled: boolean;
   settings: Record<string, unknown>;
   granted_secret_ids: string[];
@@ -106,13 +64,14 @@ function createSidecarPersistence(): PluginPersistenceAdapter {
         );
         return {
           pluginId: response.plugin_id,
+          // Older sidecars (pre-marketplace) omit `installed`; default true so a
+          // config written before the column existed reads as installed.
+          installed: response.installed ?? true,
           enabled: response.enabled,
           settings: response.settings ?? {},
           grantedSecretIds: response.granted_secret_ids ?? [],
         };
       } catch (error) {
-        // 404 is the "never persisted yet" path — treat it as null so the
-        // runtime falls back to the default config and writes it back.
         if (error instanceof SidecarError && error.status === 404) {
           return null;
         }
@@ -123,6 +82,7 @@ function createSidecarPersistence(): PluginPersistenceAdapter {
       const base = await getSidecarBaseUrl();
       const url = new URL(`/plugins/${encodeURIComponent(config.pluginId)}/config`, base);
       const body: PluginConfigUpdateBody = {
+        installed: config.installed,
         enabled: config.enabled,
         settings: config.settings,
         granted_secret_ids: config.grantedSecretIds,
@@ -139,13 +99,7 @@ function createSidecarPersistence(): PluginPersistenceAdapter {
   };
 }
 
-/**
- * Browser-dev fallback: in-memory persistence used when the host runs outside
- * Tauri (e.g. `pnpm dev` for visual verification). Plugins still load and
- * surface their capabilities; settings just don't survive a refresh. This
- * keeps the dev workflow honest — the runtime behaves the same shape, only
- * the persistence layer is swapped.
- */
+/** Browser-dev fallback: in-memory persistence used outside the Tauri shell. */
 function createInMemoryPersistence(): PluginPersistenceAdapter {
   const store = new Map<string, PluginPersistedConfig>();
   return {
@@ -158,12 +112,6 @@ function createInMemoryPersistence(): PluginPersistenceAdapter {
   };
 }
 
-/**
- * Resolve the persistence adapter for the current environment. Tauri runs
- * the sidecar so we use the sidecar-backed adapter; a browser-only
- * `pnpm dev` falls back to in-memory persistence so the runtime still works
- * for visual verification and module-level smoke tests.
- */
 async function resolvePersistence(): Promise<PluginPersistenceAdapter> {
   try {
     await getSidecarBaseUrl();
@@ -177,17 +125,13 @@ async function resolvePersistence(): Promise<PluginPersistenceAdapter> {
 }
 
 /**
- * Builds a `VystedModule` that surfaces a plugin's contributed panels and
- * commands through the existing dockview host + cmd+K palette. This is how
- * plugin contributions reach the rest of the app — there is no second
- * registry the host has to special-case.
- *
- * Plugins without panels and without commands return `null` so the caller
- * skips them; appending an empty module would still create a settings row
- * for it, which is misleading.
+ * Build a `VystedModule` surfacing a catalog row's panels + commands through the
+ * dockview host + cmd+K palette. Plugins without panels and commands return
+ * `null` so the caller skips them. The companion panel components come from the
+ * catalog row (the locked contract stays serializable; host glue wires React).
  */
-function moduleForPlugin(plugin: DiscoveredPlugin): VystedModule | null {
-  const instance = plugin.instance;
+export function moduleForPlugin(row: CatalogRow): VystedModule | null {
+  const instance = row.discovered.instance;
   const panels = instance.capabilities.contributesPanels ? (instance.getPanels?.() ?? []) : [];
   const commands = instance.capabilities.contributesCommands
     ? (instance.getCommands?.() ?? [])
@@ -201,9 +145,6 @@ function moduleForPlugin(plugin: DiscoveredPlugin): VystedModule | null {
       const id = command.commandId;
       if (!id) continue;
       commandHandlers[id] = () => {
-        // Fire-and-forget: command palette execution is synchronous from the
-        // user's perspective; the plugin owns any UI feedback. Errors are
-        // logged so the dev console captures them.
         void instance.executeCommand!(id, undefined).then((result: CommandResult) => {
           if (!result.ok) {
             console.warn(`[plugin ${instance.pluginId}] command ${id} failed:`, result.error);
@@ -212,23 +153,13 @@ function moduleForPlugin(plugin: DiscoveredPlugin): VystedModule | null {
       };
     }
   }
-  // Look up the per-plugin companion panel-components map. Plugins that
-  // contribute panels but don't ship a companion render with no React
-  // component bound — dockview will report "no component registered for
-  // <id>" in the panel header, which makes the wiring gap visible during
-  // development. Plugins that don't contribute panels at all simply have
-  // no entry in PLUGIN_COMPANIONS and skip this step.
-  const companion = PLUGIN_COMPANIONS[plugin.manifest.id];
-  const panelComponents: Record<string, FunctionComponent> = companion
-    ? { ...companion.panelComponents }
+  const panelComponents: Record<string, FunctionComponent> = row.panelComponents
+    ? { ...row.panelComponents }
     : {};
   if (panels.length > 0 && Object.keys(panelComponents).length === 0) {
-    // Surface the wiring gap loud and clear so future plugin authors
-    // notice they forgot the companion file.
     console.warn(
-      `[plugin-bootstrap] plugin ${instance.pluginId} contributes panels but has no entry in ` +
-        `PLUGIN_COMPANIONS — panels will render without a component. Add a panels.ts file + an ` +
-        `entry in src/lib/plugin-bootstrap.ts PLUGIN_COMPANIONS.`,
+      `[plugin-bootstrap] plugin ${instance.pluginId} contributes panels but the catalog row has ` +
+        `no panelComponents — panels will render without a component.`,
     );
   }
   return {
@@ -242,23 +173,52 @@ function moduleForPlugin(plugin: DiscoveredPlugin): VystedModule | null {
 }
 
 /**
- * Bootstrap the plugin runtime: builds the runtime, attaches it to
- * `usePluginsStore`, loads every bundled plugin, bridges their contributions
- * into `useModulesStore`, and starts the periodic health-check loop.
- *
- * Returns a teardown function — call it from a React `useEffect` cleanup so
- * a hot-reload or unmount tears the runtime + interval down cleanly.
+ * Bridge a loaded plugin's panels/commands into the module registry + enable
+ * them. Idempotent (`appendModules` de-dupes); used by the boot loop AND the
+ * marketplace store on enable/install so a freshly-enabled plugin's panels +
+ * commands appear immediately.
+ */
+export function bridgePluginModule(pluginId: string): void {
+  const row = CATALOG_BY_ID[pluginId];
+  if (!row) return;
+  const mod = moduleForPlugin(row);
+  if (!mod) return;
+  useModulesStore.getState().appendModules([mod]);
+  useModulesStore.getState().setModuleEnabled(mod.id, true);
+}
+
+/** Drop a plugin's panels/commands from the registry projections AND close any
+ *  of its open dockview panels, so its capabilities disappear cleanly on
+ *  disable/remove (US10 AS2). */
+export function unbridgePluginModule(pluginId: string): void {
+  useModulesStore.getState().setModuleEnabled(`plugin:${pluginId}`, false);
+  const row = CATALOG_BY_ID[pluginId];
+  const api = useWorkspaceStore.getState().dockviewApi;
+  if (!row || !api) return;
+  const mod = moduleForPlugin(row);
+  const panelIds = new Set((mod?.panels ?? []).map((p) => p.id));
+  if (panelIds.size === 0) return;
+  // dockview singleton panels keep their spec id; close every open panel of this
+  // plugin so no orphan surface lingers after the plugin is gone.
+  for (const panel of [...api.panels]) {
+    if (panelIds.has(panel.id)) {
+      try {
+        panel.api.close();
+      } catch {
+        // dockview may already have disposed it (HMR/StrictMode) — ignore.
+      }
+    }
+  }
+}
+
+/**
+ * Bootstrap the plugin runtime: build the runtime, attach it to
+ * `usePluginsStore`, DISCOVER every catalog plugin, LOAD the installed+enabled
+ * ones (first-party pre-installed by default; brokers none), bridge their
+ * contributions, and start the health-check loop. Returns a teardown function.
  */
 export async function bootstrapPlugins(): Promise<() => void> {
   const persistence = await resolvePersistence();
-  // Degrade gracefully if the sidecar base URL can't be resolved (non-Tauri
-  // dev without a ?sidecar-port=, or a failed Tauri port command). The port-0
-  // fallback keeps plugins loading in an unreachable state (their health checks
-  // then surface the failure) instead of aborting boot — but log it explicitly
-  // so the degraded state isn't silent (Phase 9.5). Deliberately not rethrown:
-  // the caller (page.tsx) has no rejection handler, so throwing would be an
-  // unhandled rejection that loads no plugins at all. In the Tauri shell this
-  // branch is unreachable (the port is picked at setup, before the sidecar binds).
   const sidecarBaseUrl = await getSidecarBaseUrl().catch((err: unknown) => {
     console.warn(
       "[plugin-bootstrap] sidecar base URL unavailable — plugins start in a degraded, " +
@@ -272,12 +232,7 @@ export async function bootstrapPlugins(): Promise<() => void> {
     hostVersion: HOST_VERSION,
     persistence,
     // FR-054/SC-015: resolve a plugin's granted secret ids from the OS keychain
-    // at load (the ids are canonical keychain accounts —
-    // KEYCHAIN_NAMESPACES.pluginSecret). Best-effort per id: outside the Tauri
-    // shell the keychain is unreachable, so a failed read is skipped (the plugin
-    // loads with what it can resolve) rather than erroring every plugin. This
-    // replaces the runtime's no-op default so plugin secrets actually flow
-    // through PluginConfig.secrets instead of being fetched out-of-band.
+    // at load. Best-effort per id (skip on a keychain miss outside Tauri).
     resolveSecrets: async (ids) => {
       const resolved: Record<string, string> = {};
       for (const id of ids) {
@@ -294,31 +249,37 @@ export async function bootstrapPlugins(): Promise<() => void> {
 
   const detachStore = usePluginsStore.getState().attachRuntime(runtime);
 
-  for (const plugin of BUNDLED_PLUGINS) {
+  for (const row of CATALOG_ROWS) {
+    const plugin: DiscoveredPlugin = row.discovered;
+    // Always discover so the plugin is loadable + appears in the marketplace.
     runtime.discover(plugin);
-    await runtime.loadPlugin(plugin);
-    const pluginModule = moduleForPlugin(plugin);
-    if (pluginModule) {
-      useModulesStore.getState().appendModules([pluginModule]);
+    let persisted: PluginPersistedConfig | null = null;
+    try {
+      persisted = await persistence.load(plugin.manifest.id);
+    } catch {
+      persisted = null;
+    }
+    const installed = persisted?.installed ?? row.entry.preinstalled;
+    const enabled = persisted?.enabled ?? row.entry.preinstalled;
+    if (installed && enabled) {
+      await runtime.loadPlugin(plugin);
+      const pluginModule = moduleForPlugin(row);
+      if (pluginModule) {
+        useModulesStore.getState().appendModules([pluginModule]);
+      }
     }
   }
 
-  // Periodic health checks keep the manager UI's history strip live.
   const interval = setInterval(() => {
     void runtime.healthCheckAll();
   }, HEALTH_POLL_INTERVAL_MS);
-
-  // Run one health check immediately so the panel doesn't sit on
-  // "awaiting first health check" for 30 seconds after launch.
   void runtime.healthCheckAll();
 
   return () => {
     clearInterval(interval);
     detachStore();
-    // Best-effort shutdown of every loaded plugin on teardown — fire-and-
-    // forget so cleanup never blocks unmount.
-    for (const plugin of BUNDLED_PLUGINS) {
-      void runtime.unloadPlugin(plugin.manifest.id);
+    for (const row of CATALOG_ROWS) {
+      void runtime.unloadPlugin(row.discovered.manifest.id);
     }
   };
 }

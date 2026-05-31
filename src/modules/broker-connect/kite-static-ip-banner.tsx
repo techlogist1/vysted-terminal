@@ -153,14 +153,14 @@ export function KiteStaticIpBanner({
         data-testid="kite-static-ip-banner"
         data-variant="error"
         className={cn(
-          "flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100",
+          "border-warning/40 bg-warning/10 text-warning flex items-start gap-2 rounded-md border px-3 py-2 text-xs",
           className,
         )}
       >
         <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         <div className="flex-1">
           <div className="font-medium">Static-IP status unavailable</div>
-          <div className="text-amber-200/80">{error}</div>
+          <div className="text-warning/80">{error}</div>
         </div>
       </div>
     );

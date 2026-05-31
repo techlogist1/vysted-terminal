@@ -50,9 +50,9 @@ PluginManagerPanel.displayName = "PluginManagerPanel";
 
 const STATE_TONE: Record<LoadedPluginState, string> = {
   discovered: "bg-charcoal-700 text-charcoal-200",
-  initializing: "bg-amber-900/40 text-amber-200",
+  initializing: "bg-warning/15 text-warning",
   active: "bg-emerald-900/40 text-emerald-200",
-  stopping: "bg-amber-900/40 text-amber-200",
+  stopping: "bg-warning/15 text-warning",
   stopped: "bg-charcoal-700 text-charcoal-300",
   error: "bg-rose-900/40 text-rose-200",
 };
@@ -167,9 +167,9 @@ interface HealthHistoryProps {
 }
 
 const HEALTH_TONE: Record<string, string> = {
-  healthy: "bg-emerald-500",
-  degraded: "bg-amber-500",
-  unavailable: "bg-rose-500",
+  healthy: "bg-positive",
+  degraded: "bg-warning",
+  unavailable: "bg-negative",
 };
 
 function HealthHistory({ history }: HealthHistoryProps) {

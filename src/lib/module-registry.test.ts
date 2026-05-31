@@ -18,6 +18,7 @@ describe("module registry", () => {
       "earnings",
       "equity-overview",
       "macro",
+      "marketplace",
       "news",
       "node-editor",
       "platform",

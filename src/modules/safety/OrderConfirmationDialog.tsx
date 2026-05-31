@@ -191,7 +191,7 @@ function OrderConfirmationDialogContent({
         {meta.banner !== null && (
           <div
             data-testid="ai-agent-banner"
-            className="rounded-md border border-amber-500/60 bg-amber-950/30 px-3 py-2 text-xs text-amber-200"
+            className="border-warning/60 bg-warning/10 text-warning rounded-md border px-3 py-2 text-xs"
           >
             {meta.banner}
           </div>
@@ -234,7 +234,7 @@ function OrderConfirmationDialogContent({
         {liveAckPrompt && (
           <div
             data-testid="live-order-ack-prompt"
-            className="mt-2 rounded-md border border-amber-500/60 bg-amber-950/30 px-3 py-2 text-xs text-amber-200"
+            className="border-warning/60 bg-warning/10 text-warning mt-2 rounded-md border px-3 py-2 text-xs"
           >
             <p className="mb-2">
               You are about to place your first <strong>live</strong> order at {proposal.broker}{" "}

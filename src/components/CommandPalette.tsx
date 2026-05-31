@@ -11,16 +11,29 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { executeCommand } from "@/lib/commands";
-import { useCommandPalette } from "@/store/command-palette";
+import { fuzzyRank } from "@/lib/fuzzy";
+import { cn } from "@/lib/utils";
+import { buildPaletteCorpus, useCommandPalette, type PaletteItem } from "@/store/command-palette";
+import { matchesEvent, useKeybindingsStore } from "@/store/keybindings";
 import type { CommandSpec } from "../../types/plugin";
+
+/** Human label per corpus kind, shown as a right-aligned category badge. */
+const KIND_LABEL: Record<PaletteItem["kind"], string> = {
+  command: "Command",
+  panel: "Panel",
+  symbol: "Symbol",
+  agent: "Agent",
+};
 
 export function CommandPalette() {
   const { open, setOpen, toggle, commands } = useCommandPalette();
 
   useEffect(() => {
     function handleKeyDown(event: globalThis.KeyboardEvent) {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      // The open shortcut is data-driven from the keybindings store (FR-031 /
+      // foundation for FR-039) — no hardcoded `key === "k"`.
+      const combo = useKeybindingsStore.getState().bindingFor("palette.open");
+      if (combo && matchesEvent(combo, event)) {
         event.preventDefault();
         toggle();
       }
@@ -41,12 +54,13 @@ export function CommandPalette() {
             Command Palette
           </DialogTitle>
           <DialogDescription className="sr-only">
-            Search and run commands contributed by the enabled modules.
+            Search and run commands, open panels, jump to a symbol, or pick an agent.
           </DialogDescription>
         </DialogHeader>
         {/* The body is a child component so its query/highlight state resets
             each time the palette opens — Radix unmounts DialogContent while
-            the dialog is closed. */}
+            the dialog is closed. Building the corpus here (on each open) keeps
+            it in sync with the live watchlist / agent roster. */}
         <CommandPaletteBody commands={commands} onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
@@ -67,24 +81,20 @@ function CommandPaletteBody({ commands, onClose }: CommandPaletteBodyProps) {
     inputRef.current?.focus();
   }, []);
 
-  const filtered = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    if (!needle) {
-      return commands;
-    }
-    return commands.filter(
-      (command) =>
-        command.title.toLowerCase().includes(needle) ||
-        command.trigger.toLowerCase().includes(needle),
-    );
-  }, [commands, query]);
+  // The full corpus is assembled once per open (commands change rarely while
+  // open; symbols/agents are read at build time). Fuzzy-rank it on each query.
+  const corpus = useMemo(() => buildPaletteCorpus(commands), [commands]);
+  const filtered = useMemo(
+    () => fuzzyRank(query, corpus, (item) => `${item.title} ${item.subtitle ?? ""}`),
+    [corpus, query],
+  );
 
   function run(index: number) {
-    const command = filtered[index];
-    if (!command) {
+    const item = filtered[index];
+    if (!item) {
       return;
     }
-    executeCommand(command);
+    item.run();
     onClose();
   }
 
@@ -98,6 +108,9 @@ function CommandPaletteBody({ commands, onClose }: CommandPaletteBodyProps) {
     } else if (event.key === "Enter") {
       event.preventDefault();
       run(highlight);
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      onClose();
     }
   }
 
@@ -115,30 +128,47 @@ function CommandPaletteBody({ commands, onClose }: CommandPaletteBodyProps) {
           setHighlight(0);
         }}
         onKeyDown={handleInputKeyDown}
-        placeholder="Search commands…"
-        aria-label="Search commands"
+        placeholder="Search commands, panels, symbols, agents…"
+        aria-label="Search the command palette"
         className="text-charcoal-100 placeholder:text-charcoal-400 w-full bg-transparent px-5 py-3 font-mono text-sm outline-none"
       />
-      <div className="border-charcoal-700 max-h-80 overflow-y-auto border-t py-1">
+      <div
+        role="listbox"
+        aria-label="Palette results"
+        className="border-charcoal-700 max-h-80 overflow-y-auto border-t py-1"
+      >
         {filtered.length === 0 ? (
           <p className="text-charcoal-400 px-5 py-6 text-center font-mono text-sm">
-            {commands.length === 0 ? "No commands registered yet." : "No matching commands."}
+            {corpus.length === 0 ? "Nothing to search yet." : "No matches."}
           </p>
         ) : (
-          filtered.map((command, index) => (
+          filtered.map((item, index) => (
             <button
-              key={command.id}
+              key={item.id}
               type="button"
+              role="option"
+              aria-selected={index === highlight}
               onClick={() => run(index)}
               onMouseEnter={() => setHighlight(index)}
-              className={`flex w-full flex-col gap-0.5 px-5 py-2 text-left font-mono ${
-                index === highlight ? "bg-charcoal-800" : ""
-              }`}
+              className={cn(
+                "flex w-full items-center gap-3 px-5 py-2 text-left font-mono",
+                index === highlight && "bg-charcoal-800",
+              )}
             >
-              <span className="text-charcoal-100 text-sm">{command.title}</span>
-              {command.description ? (
-                <span className="text-charcoal-400 text-xs">{command.description}</span>
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="text-charcoal-100 truncate text-sm">{item.title}</span>
+                {item.subtitle ? (
+                  <span className="text-charcoal-400 truncate text-xs">{item.subtitle}</span>
+                ) : null}
+              </span>
+              {item.keybinding ? (
+                <kbd className="border-charcoal-700 bg-charcoal-925 text-charcoal-300 shrink-0 rounded border px-1.5 py-0.5 font-mono text-[11px] leading-none">
+                  {item.keybinding}
+                </kbd>
               ) : null}
+              <span className="text-charcoal-500 shrink-0 text-[10px] tracking-wide uppercase">
+                {KIND_LABEL[item.kind]}
+              </span>
             </button>
           ))
         )}

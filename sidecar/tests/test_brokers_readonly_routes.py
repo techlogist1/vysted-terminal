@@ -25,6 +25,9 @@ def client(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> TestClient:
     brokers_registry.reset_for_tests()
     brokers_router._reset_pending_proposals_for_tests()
     c = TestClient(create_app())
+    # FR-051: create_app() no longer bootstraps brokers; the kite read-route
+    # tests need the kite adapter registered, so register it explicitly.
+    brokers_registry.ensure_registered("kite")
     yield c
     brokers_registry.reset_for_tests()
     kill_switch.reset_bus_for_tests()

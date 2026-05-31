@@ -22,6 +22,7 @@ class PluginConfigPayload(BaseModel):
 
     plugin_id: str
     enabled: bool = True
+    installed: bool = True
     settings: dict[str, Any] = Field(default_factory=dict)
     granted_secret_ids: list[str] = Field(default_factory=list)
 
@@ -30,5 +31,6 @@ class PluginConfigUpdate(BaseModel):
     """PUT/POST body for updating a plugin's config (id comes from the URL)."""
 
     enabled: bool = True
+    installed: bool = True
     settings: dict[str, Any] = Field(default_factory=dict)
     granted_secret_ids: list[str] = Field(default_factory=list)

@@ -4,6 +4,7 @@ mod openbb_mcp;
 mod sec_edgar_mcp;
 
 use std::net::TcpStream;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::thread;
 use std::time::{Duration, Instant};
@@ -137,6 +138,48 @@ fn resolve_data_dir(app: &tauri::App) -> String {
     dir.to_string_lossy().to_string()
 }
 
+/// The MCP protocol revision the sidecar's FastMCP transport speaks. Mirrors
+/// `_PROTOCOL_VERSION` in `sidecar/services/mcp_server.py` — keep both in sync.
+const MCP_PROTOCOL_VERSION: &str = "2025-06-18";
+
+/// Filename of the loopback MCP-endpoint discovery file written under the data
+/// directory once the sidecar is confirmed up (FR-025).
+const MCP_ENDPOINT_FILENAME: &str = "mcp-endpoint.json";
+
+/// Build the MCP-endpoint discovery JSON for a bound sidecar `port`.
+///
+/// Pure function (no I/O) so it is unit-testable: an external MCP client reads
+/// this to discover the loopback Streamable-HTTP endpoint without scraping the
+/// dev console. The fields mirror `types/mcp.ts`.
+fn mcp_endpoint_json(port: u16) -> String {
+    let value = serde_json::json!({
+        "sidecarPort": port,
+        "mcpEndpoint": format!("http://127.0.0.1:{port}/mcp"),
+        "protocolVersion": MCP_PROTOCOL_VERSION,
+    });
+    value.to_string()
+}
+
+/// Resolve the discovery-file path under `data_dir`. Pure (no I/O).
+fn mcp_endpoint_path(data_dir: &str) -> PathBuf {
+    Path::new(data_dir).join(MCP_ENDPOINT_FILENAME)
+}
+
+/// Write the MCP-endpoint discovery file under `data_dir` for a healthy
+/// sidecar on `port`. Best-effort: a write failure is logged, never fatal
+/// (consistent with the rest of the boot path's graceful degradation). A
+/// `port == 0` (failed) boot never calls this, so no stale file is written.
+fn write_mcp_endpoint_file(data_dir: &str, port: u16) {
+    let path = mcp_endpoint_path(data_dir);
+    match std::fs::write(&path, mcp_endpoint_json(port)) {
+        Ok(()) => println!("[vysted] wrote MCP endpoint discovery file {path:?}"),
+        Err(err) => eprintln!(
+            "[vysted] could not write the MCP endpoint discovery file {path:?} ({err}); \
+             external MCP clients must discover the port from the console line"
+        ),
+    }
+}
+
 /// Spawn + supervise the main Python sidecar. NEVER panics: on any failure it
 /// logs and returns, leaving the UI to open in a disconnected state and retry —
 /// the boot path previously `.expect()`-panicked here (no window, no error).
@@ -183,9 +226,14 @@ fn start_main_sidecar(app: &tauri::App, port: u16) {
         }
     });
 
+    let endpoint_data_dir = data_dir.clone();
     thread::spawn(move || {
         if wait_for_port(port) {
             println!("[vysted] Python sidecar healthy on 127.0.0.1:{port}");
+            // FR-025: publish the loopback MCP endpoint so an external MCP
+            // client can discover it without scraping the console. Only on a
+            // confirmed-up sidecar — a failed boot leaves no stale file.
+            write_mcp_endpoint_file(&endpoint_data_dir, port);
         } else {
             eprintln!("[vysted] Python sidecar did not come up on port {port}");
         }
@@ -298,12 +346,29 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::{
-        pick_free_port, wait_for_port_timeout, wait_for_port_with_retries, MCP_PORT_WAIT_ATTEMPTS,
-        MCP_PORT_WAIT_SECS,
+        mcp_endpoint_json, mcp_endpoint_path, pick_free_port, wait_for_port_timeout,
+        wait_for_port_with_retries, MCP_ENDPOINT_FILENAME, MCP_PORT_WAIT_ATTEMPTS,
+        MCP_PORT_WAIT_SECS, MCP_PROTOCOL_VERSION,
     };
     use std::net::TcpListener;
     use std::sync::atomic::{AtomicU32, Ordering};
     use std::time::Instant;
+
+    #[test]
+    fn mcp_endpoint_json_carries_port_endpoint_and_protocol() {
+        let json = mcp_endpoint_json(54321);
+        let value: serde_json::Value = serde_json::from_str(&json).expect("valid JSON");
+        assert_eq!(value["sidecarPort"], 54321);
+        assert_eq!(value["mcpEndpoint"], "http://127.0.0.1:54321/mcp");
+        assert_eq!(value["protocolVersion"], MCP_PROTOCOL_VERSION);
+    }
+
+    #[test]
+    fn mcp_endpoint_path_joins_filename_under_data_dir() {
+        let path = mcp_endpoint_path("/tmp/vysted-data");
+        assert!(path.ends_with(MCP_ENDPOINT_FILENAME));
+        assert_eq!(path.parent().unwrap().to_string_lossy(), "/tmp/vysted-data");
+    }
 
     #[test]
     fn pick_free_port_returns_a_usable_port() {

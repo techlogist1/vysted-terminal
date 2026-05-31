@@ -11,6 +11,11 @@ Schema is the runtime ``PluginPersistedConfig`` shape mirrored 1:1 from
 
 - ``plugin_id`` — primary key, the stable plugin id.
 - ``enabled`` — INTEGER 0/1; defaults to 1 once the plugin first appears.
+- ``installed`` — INTEGER 0/1; the marketplace install-state flag (FR-054).
+  Defaults to 1 so any config persisted before this column existed reads as
+  installed. ``CREATE TABLE IF NOT EXISTS`` does not migrate a pre-existing
+  table to add the column — that matches the store's existing no-migration
+  limitation; a fresh data directory just works.
 - ``settings_json`` — opaque JSON blob the host never inspects.
 - ``granted_secret_ids_json`` — JSON array of secret ids the user granted to
   this plugin (resolved to values via the OS keychain when initializing).
@@ -33,6 +38,7 @@ _SCHEMA = """
 CREATE TABLE IF NOT EXISTS plugin_configs (
     plugin_id TEXT PRIMARY KEY,
     enabled INTEGER NOT NULL DEFAULT 1,
+    installed INTEGER NOT NULL DEFAULT 1,
     settings_json TEXT NOT NULL DEFAULT '{}',
     granted_secret_ids_json TEXT NOT NULL DEFAULT '[]'
 )
@@ -76,6 +82,7 @@ def _row_to_payload(row: sqlite3.Row) -> PluginConfigPayload:
     return PluginConfigPayload(
         plugin_id=row["plugin_id"],
         enabled=bool(row["enabled"]),
+        installed=bool(row["installed"]),
         settings=settings,
         granted_secret_ids=granted,
     )
@@ -85,7 +92,7 @@ def list_configs() -> list[PluginConfigPayload]:
     """Return every stored plugin config, ordered by plugin id."""
     with _connect() as conn:
         rows = conn.execute(
-            "SELECT plugin_id, enabled, settings_json, granted_secret_ids_json "
+            "SELECT plugin_id, enabled, installed, settings_json, granted_secret_ids_json "
             "FROM plugin_configs ORDER BY plugin_id"
         ).fetchall()
     return [_row_to_payload(row) for row in rows]
@@ -95,7 +102,7 @@ def get_config(plugin_id: str) -> PluginConfigPayload | None:
     """Return one plugin's config, or ``None`` if it has never been persisted."""
     with _connect() as conn:
         row = conn.execute(
-            "SELECT plugin_id, enabled, settings_json, granted_secret_ids_json "
+            "SELECT plugin_id, enabled, installed, settings_json, granted_secret_ids_json "
             "FROM plugin_configs WHERE plugin_id = ?",
             (plugin_id,),
         ).fetchone()
@@ -110,14 +117,21 @@ def upsert_config(payload: PluginConfigPayload) -> PluginConfigPayload:
         conn.execute(
             """
             INSERT INTO plugin_configs
-                (plugin_id, enabled, settings_json, granted_secret_ids_json)
-            VALUES (?, ?, ?, ?)
+                (plugin_id, enabled, installed, settings_json, granted_secret_ids_json)
+            VALUES (?, ?, ?, ?, ?)
             ON CONFLICT(plugin_id) DO UPDATE SET
                 enabled = excluded.enabled,
+                installed = excluded.installed,
                 settings_json = excluded.settings_json,
                 granted_secret_ids_json = excluded.granted_secret_ids_json
             """,
-            (payload.plugin_id, 1 if payload.enabled else 0, settings_json, granted_json),
+            (
+                payload.plugin_id,
+                1 if payload.enabled else 0,
+                1 if payload.installed else 0,
+                settings_json,
+                granted_json,
+            ),
         )
     stored = get_config(payload.plugin_id)
     if stored is None:  # pragma: no cover - upsert always yields a row

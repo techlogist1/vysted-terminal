@@ -45,7 +45,6 @@ from routers import (
     workspace,
 )
 from services import agent_tools, backtest_strategies, mcp_client, mcp_server
-from services.brokers import registry as brokers_registry
 from services.errors import ProviderError
 
 _ROUTERS = (
@@ -185,10 +184,10 @@ def create_app() -> FastAPI:
     for module in _ROUTERS:
         app.include_router(module.router)
 
-    # India broker adapters (Teammate I — Dhan + Angel One + Kite).
-    # Bootstrapping at app-build time ensures the TestClient + uvicorn
-    # paths converge on the same registry state.
-    brokers_registry.bootstrap_default_adapters()
+    # FR-051: no broker is registered at app-build / boot time. Adapters
+    # register lazily via ``brokers_registry.ensure_registered(...)`` when a
+    # marketplace plugin connects (``POST /brokers/{id}/connect``), so a fresh
+    # boot has an empty broker registry.
 
     # v0.5.0 runtime extensions — backtest strategies + agent tools.
     # Registered at app-build time so TestClient + uvicorn paths converge.

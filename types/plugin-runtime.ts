@@ -124,6 +124,13 @@ export interface PluginRuntimeEvent {
  */
 export interface PluginPersistedConfig {
   pluginId: string;
+  /**
+   * Whether the plugin is INSTALLED via the marketplace (FR-050/FR-054). A
+   * not-installed plugin is in the catalog but contributes nothing — it isn't
+   * loaded. Defaults to `true` for backward compatibility (configs written
+   * before the marketplace existed were always installed).
+   */
+  installed: boolean;
   /** Whether the user enabled the plugin; defaults to `true` once first loaded. */
   enabled: boolean;
   /** Plugin-private settings; opaque to the host, mirrored into `PluginConfig.settings`. */

@@ -140,6 +140,7 @@ describe("PluginRuntime — lifecycle", () => {
     const persistence = {
       load: async (): Promise<PluginPersistedConfig> => ({
         pluginId: "a",
+        installed: true,
         enabled: false,
         settings: {},
         grantedSecretIds: [],
@@ -441,6 +442,7 @@ describe("PluginRuntime — config wiring", () => {
       persistence: {
         load: async () => ({
           pluginId: "a",
+          installed: true,
           enabled: true,
           settings: { theme: "dark" },
           grantedSecretIds: ["api-key"],

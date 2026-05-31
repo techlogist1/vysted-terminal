@@ -116,8 +116,33 @@ def list_agents() -> list[AgentSpec]:
 
 
 def get_agent(agent_id: str) -> AgentSpec | None:
-    """Return one agent's spec, or ``None`` if unknown."""
-    return _specs.get(agent_id)
+    """Return one agent's spec, or ``None`` if unknown.
+
+    Resolves first-party agents (the bundled JSON ``_specs``) first, then falls
+    back to the SQLite custom-agent store — so user-authored agents (the Custom
+    Agent Builder) AND marketplace-registered plugin agents (the agent slice of
+    the unified extension model, FR-050) are invokable through the same loop.
+    Read-only resolution; the agent's tools are catalog-validated and §6.5 stays
+    host-enforced regardless of the spec's origin.
+    """
+    spec = _specs.get(agent_id)
+    if spec is not None:
+        return spec
+    from services import agents_store
+
+    custom = agents_store.get_agent(agent_id)
+    if custom is None:
+        return None
+    return AgentSpec(
+        id=custom.id,
+        name=custom.name,
+        philosophy=custom.philosophy,
+        systemPrompt=custom.system_prompt,
+        tools=list(custom.tools),
+        defaultProvider=custom.default_provider,
+        defaultModel=custom.default_model,
+        icon=custom.icon,
+    )
 
 
 def reload(agents_dir: Path = AGENTS_DIR) -> None:

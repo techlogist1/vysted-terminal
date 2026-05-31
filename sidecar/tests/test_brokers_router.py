@@ -19,9 +19,13 @@ def broker_client(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> TestClie
     kill_switch.reset_bus_for_tests()
     brokers_registry.reset_for_tests()
     brokers_router._reset_pending_proposals_for_tests()
-    # create_app() now bootstraps the three India broker adapters as part of
-    # the v0.5.0 runtime-extension hook.
+    # FR-051: create_app() no longer bootstraps any broker. The order /
+    # read / mode tests need adapters registered, so register the three
+    # India adapters explicitly in the fixture (the boot path is now the
+    # lazy connect path, exercised by the dedicated SC-013 tests below).
     client = TestClient(create_app())
+    for broker_id in ("dhan", "angelone", "kite"):
+        brokers_registry.ensure_registered(broker_id)
     yield client
     brokers_registry.reset_for_tests()
     kill_switch.reset_bus_for_tests()
@@ -32,7 +36,75 @@ def broker_client(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> TestClie
 # ---------------------------------------------------------------------------
 
 
-def test_list_brokers_returns_three_india_adapters(broker_client: TestClient) -> None:
+def test_list_brokers_empty_on_fresh_boot(tmp_path, monkeypatch) -> None:
+    """FR-051 / SC-013: a fresh boot registers NO broker — the list is empty."""
+    monkeypatch.setenv(DATA_DIR_ENV, str(tmp_path))
+    kill_switch.reset_bus_for_tests()
+    brokers_registry.reset_for_tests()
+    client = TestClient(create_app())
+    try:
+        response = client.get("/brokers")
+        assert response.status_code == 200
+        assert response.json() == {"brokers": []}
+    finally:
+        brokers_registry.reset_for_tests()
+        kill_switch.reset_bus_for_tests()
+
+
+def test_connect_lazily_registers_adapter(tmp_path, monkeypatch) -> None:
+    """FR-051 / SC-013: POST /brokers/{id}/connect registers the adapter lazily.
+
+    Before connect the broker is absent from the list; after a (paper-mode)
+    connect it appears. Dhan is used because its paper-mode connect requires
+    only ``client_id`` + ``access_token`` and never touches a real SDK in the
+    test (the synthetic paper path), but to keep the test SDK-free we stub
+    ``_connect`` to a no-op and assert the registration happened.
+    """
+    monkeypatch.setenv(DATA_DIR_ENV, str(tmp_path))
+    kill_switch.reset_bus_for_tests()
+    brokers_registry.reset_for_tests()
+    client = TestClient(create_app())
+    try:
+        assert brokers_registry.has("dhan") is False
+        assert client.get("/brokers").json() == {"brokers": []}
+
+        async def _noop_connect(self, credentials: dict) -> None:  # noqa: ANN001
+            self._account_id = "paper-dhan"
+
+        monkeypatch.setattr(
+            "services.brokers.dhan.DhanAdapter._connect", _noop_connect, raising=True
+        )
+        response = client.post(
+            "/brokers/dhan/connect",
+            json={"broker": "dhan", "credentials": {}},
+        )
+        assert response.status_code == 200
+        assert response.json()["broker"] == "dhan"
+        # The adapter is now registered and surfaces in the list.
+        assert brokers_registry.has("dhan") is True
+        ids = [b["broker"] for b in client.get("/brokers").json()["brokers"]]
+        assert ids == ["dhan"]
+    finally:
+        brokers_registry.reset_for_tests()
+        kill_switch.reset_bus_for_tests()
+
+
+def test_read_routes_404_on_unregistered_broker(tmp_path, monkeypatch) -> None:
+    """Read routes do NOT lazy-register — you must connect first (FR-051)."""
+    monkeypatch.setenv(DATA_DIR_ENV, str(tmp_path))
+    kill_switch.reset_bus_for_tests()
+    brokers_registry.reset_for_tests()
+    client = TestClient(create_app())
+    try:
+        for path in ("account", "positions", "holdings", "margins", "state"):
+            assert client.get(f"/brokers/dhan/{path}").status_code == 404
+        assert brokers_registry.has("dhan") is False
+    finally:
+        brokers_registry.reset_for_tests()
+        kill_switch.reset_bus_for_tests()
+
+
+def test_list_brokers_returns_registered_india_adapters(broker_client: TestClient) -> None:
     response = broker_client.get("/brokers")
     assert response.status_code == 200
     body = response.json()

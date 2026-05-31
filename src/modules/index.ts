@@ -6,6 +6,7 @@ import { brokerConnectModule } from "./broker-connect";
 import { chartModule } from "./chart";
 import { chatModule } from "./chat";
 import { equityOverviewModule } from "./equity-overview";
+import { marketplaceModule } from "./marketplace";
 import { newsModule } from "./news";
 import { nodeEditorModule } from "./node-editor";
 import { platformModule } from "./platform";
@@ -61,6 +62,7 @@ export const vystedModules: VystedModule[] = [
   chatModule,
   platformModule,
   pluginManagerModule,
+  marketplaceModule,
   agentBuilderModule,
   nodeEditorModule,
   backtestModule,
