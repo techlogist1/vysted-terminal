@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Calendar, ChevronDown, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
 import { useEarningsStore } from "@/store/earnings";
 
 import type { EarningsEvent } from "../../../types/earnings";
@@ -94,11 +95,25 @@ export function EarningsCalendarPanel() {
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [expandedSymbol, setExpandedSymbol] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (upcomingStatus === "idle") {
-      void loadUpcoming();
+  // Once the user applies a window / watchlist, the auto-retry default loader
+  // goes inert so it never overwrites an explicit query on a reconnect re-fire.
+  const userInteractedRef = useRef(false);
+
+  // Default upcoming-window load on mount. Auto-retries on a cold-boot sidecar
+  // bind (and re-arms on reconnect) so a panel mounted before the sidecar was
+  // ready self-heals instead of latching the error banner. `loadUpcoming`
+  // swallows its error into store state — re-throw on the error status to drive
+  // the retry hook.
+  const loadDefault = useCallback(async () => {
+    if (userInteractedRef.current) {
+      return;
     }
-  }, [upcomingStatus, loadUpcoming]);
+    await loadUpcoming();
+    if (useEarningsStore.getState().upcomingStatus === "error") {
+      throw new Error(useEarningsStore.getState().upcomingError ?? "earnings load failed");
+    }
+  }, [loadUpcoming]);
+  useRetryOnSidecarReady(loadDefault, []);
 
   useEffect(() => {
     if (!expandedSymbol) return;
@@ -125,6 +140,7 @@ export function EarningsCalendarPanel() {
 
   const handleApply = (event: React.FormEvent) => {
     event.preventDefault();
+    userInteractedRef.current = true;
     const days = Math.max(1, Math.min(60, Number.parseInt(daysDraft, 10) || 7));
     const watchlist = watchlistDraft
       .split(",")

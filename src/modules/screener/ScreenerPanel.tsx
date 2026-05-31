@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback } from "react";
 import { Play, AlertCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
 import { useScreenerStore } from "@/store/screener";
 
 import type { ScreenerUniverseId } from "../../../types/screener";
@@ -38,11 +39,24 @@ export function ScreenerPanel() {
   const status = useScreenerStore((s) => s.status);
   const error = useScreenerStore((s) => s.error);
 
-  useEffect(() => {
-    if (universe !== "custom") {
-      void loadUniverse(universe);
+  // Load the selected universe's ticker metadata. Auto-retries on a cold-boot
+  // sidecar bind (and re-arms on reconnect) so a panel mounted before the
+  // sidecar was ready self-heals instead of latching a dead universe count.
+  // Re-arms per `universe` so switching universe loads the new one. The
+  // "custom" universe has no metadata to fetch, so it always resolves. The
+  // user-driven "Run screener" stays a separate explicit action.
+  // `loadUniverse` swallows its error into `universeStatus[id]` — re-throw on
+  // the error status to drive the retry hook.
+  const loadDefault = useCallback(async () => {
+    if (universe === "custom") {
+      return;
+    }
+    await loadUniverse(universe);
+    if (useScreenerStore.getState().universeStatus[universe] === "error") {
+      throw new Error(`Failed to load universe ${universe}`);
     }
   }, [universe, loadUniverse]);
+  useRetryOnSidecarReady(loadDefault, [universe]);
 
   const universeInfo = universeMeta[universe];
 

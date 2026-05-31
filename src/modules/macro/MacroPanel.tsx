@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
+import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
 import { selectSeriesStatus, useMacroStore } from "@/store/macro";
 
 import type { MacroProvider } from "../../../types/macro";
@@ -28,11 +29,20 @@ export function MacroPanel() {
   const status = useMacroStore((s) => selectSeriesStatus(s, provider, seriesId));
 
   // Load the default-on-mount series. Subsequent loads happen via the
-  // picker's onSelect callback.
-  useEffect(() => {
+  // picker's onSelect callback. The load auto-retries on a cold-boot sidecar
+  // bind (and re-arms on reconnect) so a panel mounted before the sidecar was
+  // ready self-heals instead of latching a permanent error. `loadSeries`
+  // swallows its error into store state, so re-throw on the error status to
+  // signal the retry hook.
+  const loadDefault = useCallback(async () => {
     select(provider, seriesId);
-    void loadSeries(provider, seriesId);
+    await loadSeries(provider, seriesId);
+    const status = selectSeriesStatus(useMacroStore.getState(), provider, seriesId);
+    if (status?.status === "error") {
+      throw new Error(status.error ?? "macro load failed");
+    }
   }, [provider, seriesId, loadSeries, select]);
+  useRetryOnSidecarReady(loadDefault, [provider, seriesId]);
 
   const onSelect = (nextProvider: MacroProvider, nextSeriesId: string) => {
     setProvider(nextProvider);

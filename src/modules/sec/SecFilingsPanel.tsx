@@ -12,10 +12,11 @@
  * writes the data through `useSecStore`.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
 import { selectFilings, useSecStore } from "@/store/sec";
 
 import type { Filing, FilingFormType } from "../../../types/sec";
@@ -48,16 +49,27 @@ export function SecFilingsPanel() {
   const [formFilter, setFormFilter] = useState<FilingFormType | "all">("all");
   const [tab, setTab] = useState<Tab>("filings");
 
+  // Once the user picks a symbol / form, the auto-retry default loader goes
+  // inert so it never fights an explicit choice (even on a reconnect re-fire
+  // after a failed default load, where `activeIdentifier` may already be set).
+  const userInteractedRef = useRef(false);
+
   // Initial load — default symbol = AAPL so populated-state screenshots
-  // capture real data on first mount.
-  useEffect(() => {
-    if (!activeIdentifier) {
-      setActiveIdentifier("AAPL");
-      void loadFilings("AAPL", undefined);
+  // capture real data on first mount. Auto-retries on a cold-boot sidecar bind
+  // (and re-arms on reconnect) so a panel mounted before the sidecar was ready
+  // self-heals. `loadFilings` swallows its error into store state — re-throw on
+  // the error status to drive the retry hook.
+  const loadDefault = useCallback(async () => {
+    if (userInteractedRef.current) {
+      return;
     }
-    // Intentional: run once on mount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    setActiveIdentifier("AAPL");
+    await loadFilings("AAPL", undefined);
+    if (useSecStore.getState().filingsStatus === "error") {
+      throw new Error(useSecStore.getState().filingsError ?? "filings load failed");
+    }
+  }, [loadFilings, setActiveIdentifier]);
+  useRetryOnSidecarReady(loadDefault, []);
 
   const filings = useMemo(() => {
     void filingsByIdentifier; // subscribe
@@ -69,6 +81,7 @@ export function SecFilingsPanel() {
       event?.preventDefault();
       const symbol = draftSymbol.trim();
       if (!symbol) return;
+      userInteractedRef.current = true;
       setActiveIdentifier(symbol);
       setActiveAccession(null);
       void loadFilings(symbol, formFilter === "all" ? undefined : formFilter);
@@ -78,6 +91,7 @@ export function SecFilingsPanel() {
 
   const onPickForm = useCallback(
     (value: FilingFormType | "all") => {
+      userInteractedRef.current = true;
       setFormFilter(value);
       if (activeIdentifier) {
         void loadFilings(activeIdentifier, value === "all" ? undefined : value);
