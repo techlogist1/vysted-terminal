@@ -164,12 +164,22 @@ export function WatchlistPanel() {
           <p className="text-charcoal-400 p-4 font-mono text-xs">No symbols tracked.</p>
         ) : (
           <table className="w-full table-fixed border-collapse">
+            {/* Explicit column widths so a squeezed panel never lets Price and
+                Change collide (the host-side min-width is the first guard; this
+                colgroup + per-cell clip is the second). Symbol gives way first
+                (it truncates); the numeric columns hold their room. */}
+            <colgroup>
+              <col className="w-[36%]" />
+              <col className="w-[32%]" />
+              <col className="w-[22%]" />
+              <col className="w-[10%]" />
+            </colgroup>
             <thead>
               <tr className="text-charcoal-400 border-charcoal-700 border-b text-left font-mono text-[0.65rem] uppercase">
-                <th className="px-3 py-2 font-medium">Symbol</th>
-                <th className="px-3 py-2 text-right font-medium">Price</th>
-                <th className="px-3 py-2 text-right font-medium">Change</th>
-                <th className="px-3 py-2" />
+                <th className="px-2.5 py-2 font-medium">Symbol</th>
+                <th className="px-2.5 py-2 text-right font-medium">Price</th>
+                <th className="px-2.5 py-2 text-right font-medium">Change</th>
+                <th className="px-1 py-2" />
               </tr>
             </thead>
             <tbody>
@@ -186,15 +196,15 @@ export function WatchlistPanel() {
                       isSelected && "bg-charcoal-800/40",
                     )}
                   >
-                    <td className="text-charcoal-100 truncate px-3 py-2 font-mono text-sm">
+                    <td className="text-charcoal-100 truncate px-2.5 py-2 font-mono text-sm">
                       {entry.symbol}
                     </td>
-                    <td className="text-charcoal-200 px-3 py-2 text-right font-mono text-sm">
+                    <td className="text-charcoal-200 overflow-hidden px-2.5 py-2 text-right font-mono text-sm text-ellipsis whitespace-nowrap tabular-nums">
                       {quote !== null ? formatPrice(quote.price) : "—"}
                     </td>
                     <td
                       className={cn(
-                        "px-3 py-2 text-right font-mono text-sm",
+                        "overflow-hidden px-2.5 py-2 text-right font-mono text-sm text-ellipsis whitespace-nowrap tabular-nums",
                         quote === null
                           ? "text-charcoal-400"
                           : positive
@@ -204,7 +214,7 @@ export function WatchlistPanel() {
                     >
                       {quote !== null ? formatPercent(change) : "—"}
                     </td>
-                    <td className="px-3 py-2 text-right">
+                    <td className="px-1 py-2 text-right">
                       <Button
                         type="button"
                         size="icon-xs"
