@@ -31,10 +31,16 @@ const PANEL_MIN_SIZE: Record<string, { minimumWidth: number; minimumHeight: numb
 };
 const DEFAULT_PANEL_MIN_SIZE = { minimumWidth: 300, minimumHeight: 180 };
 
-/** Clamp a panel's minimum size so it can't be dragged into overlap. */
+/** Clamp a panel's minimum size so it can't be dragged into overlap. Guarded:
+ *  a dockview throw on one panel (e.g. a disposed/edge state) must not abort a
+ *  whole-layout sweep, leaving later panels unconstrained. */
 function applyPanelConstraints(panel: IDockviewPanel): void {
-  const size = PANEL_MIN_SIZE[panel.api.component] ?? DEFAULT_PANEL_MIN_SIZE;
-  panel.api.setConstraints(size);
+  try {
+    const size = PANEL_MIN_SIZE[panel.api.component] ?? DEFAULT_PANEL_MIN_SIZE;
+    panel.api.setConstraints(size);
+  } catch {
+    // best-effort; a single panel failing to clamp must not break the others.
+  }
 }
 
 /**
@@ -45,10 +51,14 @@ function applyPanelConstraints(panel: IDockviewPanel): void {
  * a legacy sub-min blob) snaps up to a legible size.
  */
 function enforceConstraintsAfterRestore(panel: IDockviewPanel): void {
-  const size = PANEL_MIN_SIZE[panel.api.component] ?? DEFAULT_PANEL_MIN_SIZE;
-  panel.api.setConstraints(size);
-  if (panel.api.width > 0 && panel.api.width < size.minimumWidth) {
-    panel.api.setSize({ width: size.minimumWidth });
+  try {
+    const size = PANEL_MIN_SIZE[panel.api.component] ?? DEFAULT_PANEL_MIN_SIZE;
+    panel.api.setConstraints(size);
+    if (panel.api.width > 0 && panel.api.width < size.minimumWidth) {
+      panel.api.setSize({ width: size.minimumWidth });
+    }
+  } catch {
+    // best-effort; one panel throwing must not abort the post-restore sweep.
   }
 }
 

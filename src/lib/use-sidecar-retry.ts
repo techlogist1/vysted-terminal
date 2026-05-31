@@ -65,18 +65,40 @@ export function useRetryOnSidecarReady(
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
+    // Coalesce overlapping runs: at most one `loadFn` is ever in flight. A call
+    // that arrives while one is running (e.g. a reconnect edge firing mid-load)
+    // sets `rerunRequested` instead of starting a concurrent fetch; the in-flight
+    // attempt re-fires once on settle. This prevents duplicate fetches WITHOUT
+    // dropping recovery (even if the reconnect lands during the final backoff
+    // attempt, the queued rerun still fires).
+    let inFlight = false;
+    let rerunRequested = false;
     succeededRef.current = false;
 
     const attempt = (n: number) => {
+      if (inFlight) {
+        rerunRequested = true;
+        return;
+      }
+      inFlight = true;
       loadRef
         .current()
         .then(() => {
+          inFlight = false;
           if (!cancelled) {
             succeededRef.current = true;
           }
         })
         .catch(() => {
+          inFlight = false;
           if (cancelled || succeededRef.current) {
+            return;
+          }
+          if (rerunRequested) {
+            // A reconnect (or another trigger) arrived mid-flight — retry now,
+            // from a clean backoff generation, rather than waiting/looping.
+            rerunRequested = false;
+            attempt(0);
             return;
           }
           if (n < MAX_ATTEMPTS) {
