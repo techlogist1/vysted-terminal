@@ -11,7 +11,7 @@ OpenBB's own one-liner (`README.md:18-20`) is the thesis worth stealing:
 > exposes data to multiple surfaces at once: Python environments, OpenBB
 > Workspace and Excel, MCP servers for AI agents, and REST APIs.
 
-That is *exactly* Vysted's "MCP-as-framework" goal stated by a mature codebase.
+That is _exactly_ Vysted's "MCP-as-framework" goal stated by a mature codebase.
 The whole platform is built so that **one set of provider definitions projects
 into N consumption surfaces** (Python API, REST, MCP, CLI, Workspace widgets)
 with zero per-surface re-authoring. Vysted should treat that projection
@@ -29,18 +29,18 @@ four layers.
 Four small base classes define the entire data-connector contract:
 
 - **`QueryParams`** (`abstract/query_params.py`) — a Pydantic `BaseModel`
-  subclass for *inputs*. `extra="allow"`, an `__alias_dict__` for renaming
+  subclass for _inputs_. `extra="allow"`, an `__alias_dict__` for renaming
   fields to a provider's wire names at `model_dump` time, and a
   `__json_schema_extra__` hook that lets each provider tag a field with
   per-provider metadata (e.g. `{"symbol": {"multiple_items_allowed": True}}`)
   that gets merged into the OpenAPI schema (`query_params.py:18-52`).
-- **`Data`** (`abstract/data.py`) — Pydantic `BaseModel` for *outputs*.
+- **`Data`** (`abstract/data.py`) — Pydantic `BaseModel` for _outputs_.
   `extra="allow"`, plus an `AliasGenerator` that validates camelCase and
   serializes snake_case (`data.py:77-96`). The model is deliberately permissive
   so heterogeneous provider payloads still validate.
 - **`Provider`** (`abstract/provider.py`) — the registration object. A provider
   package constructs ONE `Provider(name, description, website, credentials,
-  fetcher_dict, instructions, ...)`. The `fetcher_dict` maps a **standard model
+fetcher_dict, instructions, ...)`. The `fetcher_dict` maps a **standard model
   name** (e.g. `"EquityHistorical"`) → a `Fetcher` class. Credentials are
   auto-namespaced: passing `credentials=["api_key"]` becomes `fmp_api_key`
   (`provider.py:46-51`). `instructions` is freeform markdown telling the user
@@ -56,6 +56,7 @@ Four small base classes define the entire data-connector contract:
   ships fetcher tests against this.
 
 ### 1.2 Standard models = the cross-provider contract
+
 (`core/openbb_core/provider/standard_models/`, 181 files)
 
 A **standard model** is the provider-agnostic schema for one data concept.
@@ -65,7 +66,8 @@ with shared field descriptions pulled from `utils/descriptions.py`
 (`standard_models/equity_historical.py:17-61`). This is the "least common
 denominator" every provider must satisfy.
 
-### 1.3 A provider implements by *subclassing* the standard model
+### 1.3 A provider implements by _subclassing_ the standard model
+
 (`providers/fmp/openbb_fmp/models/equity_historical.py`)
 
 The FMP equity-historical model shows the full pattern:
@@ -73,14 +75,14 @@ The FMP equity-historical model shows the full pattern:
 - `FMPEquityHistoricalQueryParams(EquityHistoricalQueryParams)` adds
   `__alias_dict__ = {"start_date": "from", "end_date": "to"}` (provider wire
   names), `__json_schema_extra__` to mark `symbol` as multi-item, and
-  *provider-only* fields (`interval`, `adjustment`) with validation
+  _provider-only_ fields (`interval`, `adjustment`) with validation
   (`fmp/.../equity_historical.py:21-49`).
 - `FMPEquityHistoricalData(EquityHistoricalData)` adds an `__alias_dict__`
   mapping the standard `open/high/low/close` onto FMP's `adjOpen/adjHigh/...`
-  and *extra* fields (`change`, `change_percent`) tagged with frontend-hint
+  and _extra_ fields (`change`, `change_percent`) tagged with frontend-hint
   metadata (`"x-unit_measurement": "percent"`) (`fmp/.../equity_historical.py:52-77`).
 - `FMPEquityHistoricalFetcher(Fetcher[FMPEquityHistoricalQueryParams,
-  list[FMPEquityHistoricalData]])` implements the three TET methods; the body
+list[FMPEquityHistoricalData]])` implements the three TET methods; the body
   of `aextract_data` is a one-line delegate to a helper
   (`fmp/.../equity_historical.py:79-131`).
 
@@ -92,6 +94,7 @@ yfinance, intrinio, tiingo, etc. — that shared key is what makes them
 interchangeable.
 
 ### 1.4 Discovery is via Python packaging entry points (zero central registry)
+
 (`core/openbb_core/app/extension_loader.py`)
 
 Providers/routers/post-processors are **never** listed in a central file. Each
@@ -142,13 +145,14 @@ fault-tolerant: a provider that fails to import is warned-and-skipped, not fatal
 > CLAUDE.md ("PyInstaller `--onefile` silently drops package metadata"). Vysted's
 > plugin discovery must stay the explicit static-import map it already uses
 > (`PLUGIN_COMPANIONS` / `BUNDLED_PLUGINS` in `src/lib/plugin-bootstrap.ts`,
-> `provider_registry` imports). The lesson is the *registration shape*
+> `provider_registry` imports). The lesson is the _registration shape_
 > (one object per provider, model-name keyed `fetcher_dict`, fault-tolerant
-> load), not the *discovery mechanism*.
+> load), not the _discovery mechanism_.
 
 ---
 
 ## 2. The dynamic standardized-model merge (the clever part)
+
 (`core/openbb_core/app/provider_interface.py`, `provider/registry_map.py`)
 
 This is the machinery that turns "5 providers each subclassing EquityHistorical"
@@ -164,15 +168,15 @@ data". Worth understanding because it is the hard part Vysted has not solved.
   across providers so one schema field carries per-provider flags
   (`registry_map._update_json_schema_extra:108-131`).
 - `ProviderInterface` (a singleton, `provider_interface.py:70-118`) then
-  *synthesizes Pydantic/dataclass types at runtime*:
+  _synthesizes Pydantic/dataclass types at runtime_:
   - `ProviderChoices` — a dataclass with `provider: Literal[<all providers for
-    this model>]` (`_generate_model_providers_dc:543-574`).
+this model>]` (`_generate_model_providers_dc:543-574`).
   - `StandardParams` / `ExtraParams` — dataclasses built with `make_dataclass`;
     standard params are required-shared, extra params are every provider-only
     field made `Optional` and tagged with `title=<provider>` so the executor can
     later filter them (`_extract_params:372-446`, `_generate_params_dc:500-541`).
   - the return annotation — an `OBBject[Union[Annotated[FMPData, Tag("fmp")],
-    Annotated[YFData, Tag("yf")], ...]]` with a Pydantic `Discriminator` keyed on
+Annotated[YFData, Tag("yf")], ...]]` with a Pydantic `Discriminator` keyed on
     a hidden `_provider` attr (`_get_annotated_union:678-697`,
     `_generate_return_annotations:699-741`). One endpoint, provider-correct
     response schema.
@@ -182,8 +186,8 @@ data". Worth understanding because it is the hard part Vysted has not solved.
   and unions the annotations. This is how the generated OpenAPI/MCP schema reads
   coherently despite N providers.
 
-> **Lesson for Vysted.** This runtime type-synthesis is *powerful but probably
-> over-engineered for Vysted's stage*. The takeaway is the **principle**: a
+> **Lesson for Vysted.** This runtime type-synthesis is _powerful but probably
+> over-engineered for Vysted's stage_. The takeaway is the **principle**: a
 > standard-model field set + per-provider extras + a provider discriminator, so
 > the agent/UI sees ONE schema and the response is unambiguously attributable to
 > a provider. Vysted can get 80% of the value with a much simpler rule:
@@ -198,6 +202,7 @@ data". Worth understanding because it is the hard part Vysted has not solved.
 ---
 
 ## 3. Router / command structure
+
 (`core/openbb_core/app/router.py`, `extensions/equity/.../price_router.py`)
 
 Routers are how a domain (equity, crypto, news) exposes commands. The pattern is
@@ -205,7 +210,7 @@ strikingly thin and is the model Vysted's FastAPI routers should converge toward
 
 - A domain extension builds an `openbb_core.app.router.Router(prefix="/price")`
   and decorates command functions with `@router.command(model="EquityHistorical",
-  examples=[...])` (`price_router.py:14,46-60`). Sub-routers nest via
+examples=[...])` (`price_router.py:14,46-60`). Sub-routers nest via
   `include_router` (`router.py:173-186`); the equity router composes
   `price/fundamental/estimates/...` sub-routers.
 - **The command body is a one-liner**:
@@ -259,10 +264,11 @@ carries the route + params as private attrs for downstream post-processors.
 ---
 
 ## 4. The CLI
+
 (`cli/openbb_cli/`)
 
 The CLI is the proof that the "introspect-once, project-everywhere" model
-generalizes to a *fourth* surface, and it does it the same way MCP does.
+generalizes to a _fourth_ surface, and it does it the same way MCP does.
 
 - `PlatformController` (`controllers/base_platform_controller.py:31-71`)
   wraps the **already-built Python API** (`from openbb import obb`) and feeds it
@@ -281,9 +287,9 @@ generalizes to a *fourth* surface, and it does it the same way MCP does.
 
 > **Lesson for Vysted.** The CLI is the strongest evidence for the central
 > thesis: OpenBB built ONE API and got Python + REST + MCP + CLI + Excel +
-> Workspace *for free* by introspecting it. Vysted's analog is the sidecar's
+> Workspace _for free_ by introspecting it. Vysted's analog is the sidecar's
 > FastAPI app — every surface (MCP server, agent tools, future CLI/automation)
-> should be a *projection* of those routes, generated from their OpenAPI, not a
+> should be a _projection_ of those routes, generated from their OpenAPI, not a
 > parallel hand-maintained list. The OBBject-registry "pipe results between
 > commands" idea also maps directly onto Vysted's node-editor / workflow engine
 > (`sidecar/services/workflow_engine.py`): a node's output is the next node's
@@ -292,6 +298,7 @@ generalizes to a *fourth* surface, and it does it the same way MCP does.
 ---
 
 ## 5. Credentials / BYOK hub
+
 (`core/openbb_core/app/model/credentials.py`)
 
 OpenBB's BYOK model is a single dynamically-built `Credentials` Pydantic model:
@@ -339,13 +346,16 @@ no chat runtime, no model-calling code in this repo. The integration is three
 surfaces:
 
 ### 6.1 `OBBject.to_llm()` — the data→LLM serializer
+
 (`model/obbject.py:337-353`) — the only LLM-aware code in core. Every result can
 be flattened to compact JSON records for a model's context.
 
 ### 6.2 The MCP server — the primary agent entry point
+
 (`extensions/mcp_server/openbb_mcp_server/app/app.py`, README) — covered in §7.
 
 ### 6.3 The Workspace agent/widget bridge
+
 (`extensions/platform_api/`) — `openbb-api` launches the FastAPI app as an
 OpenBB Workspace "custom backend" and auto-generates a `widgets.json`
 (`platform_api/.../utils/widgets.py`, `merge_agents.py`) from the OpenAPI spec so
@@ -359,13 +369,13 @@ agent-runtime-agnostic.
 > design and the most important strategic finding. **OpenBB has no
 > `agent_runtime`, no `llm-providers`, no per-vendor tool schemas** — it pushes
 > all of that to the client (Claude Desktop, Cursor, Workspace agents) and only
-> ships *tools + skills + prompts* over MCP. Vysted has gone the other way: it
+> ships _tools + skills + prompts_ over MCP. Vysted has gone the other way: it
 > ships a full in-house agent loop (`sidecar/services/agent_runtime.py`),
 > multi-vendor adapters (`src/store/llm-providers.ts`, `sidecar/services/llm/`),
 > AND a hand-maintained per-vendor tool schema catalog
 > (`agent_tools/schemas.py`). Both are valid — Vysted's positioning (a
 > self-contained desktop terminal, BYOK, works offline-of-an-external-agent)
-> *justifies* owning the loop in a way a data library doesn't. But the OpenBB
+> _justifies_ owning the loop in a way a data library doesn't. But the OpenBB
 > lesson stands: **the tool SURFACE the agent sees should be generated from the
 > route definitions, not hand-written three times.** Vysted's CLAUDE.md already
 > records the pain ("a model only calls tools if the adapter SENT a `tools=`
@@ -379,7 +389,8 @@ agent-runtime-agnostic.
 
 ## 7. How OpenBB exposes itself programmatically (Python / REST / MCP)
 
-### 7.1 Python API — a *generated* static package
+### 7.1 Python API — a _generated_ static package
+
 (`core/openbb_core/app/static/package_builder.py`, `core/openbb/package/`)
 
 `obb.equity.price.historical("AAPL")` is not hand-written. `PackageBuilder`
@@ -391,6 +402,7 @@ IDE-autocompletable, statically-typed, and zero-runtime-cost. `Container` /
 import side reads `obb.reference["paths"]` — the same metadata the CLI consumes.)
 
 ### 7.2 REST API
+
 (`core/openbb_core/api/rest_api.py`) — a stock FastAPI app. `AppLoader.add_routers`
 mounts the auto-built `router_commands` (the package router) plus `system` /
 `coverage` / auth routers under `system.api_settings.prefix`
@@ -400,6 +412,7 @@ clean 4xx/5xx JSON (`api/exception_handlers.py`). Launched via `openbb-api`
 everything else is generated from.
 
 ### 7.3 MCP — `FastMCP.from_fastapi(app)`, the framework keystone
+
 (`extensions/mcp_server/openbb_mcp_server/app/app.py:527-534`)
 
 This is the single most important file for Vysted's MCP-as-framework goal. The
@@ -408,7 +421,7 @@ an MCP tool automatically. Highlights:
 
 - `create_mcp_server(settings, fastapi_app)` calls
   `FastMCP.from_fastapi(app, mcp_component_fn=customize_components,
-  route_maps=..., auth=...)` (`app.py:346-534`). No tool is hand-registered;
+route_maps=..., auth=...)` (`app.py:346-534`). No tool is hand-registered;
   they fall out of the routes.
 - **Per-route MCP metadata via `openapi_extra["mcp_config"]`** — the same
   `@router.command(..., mcp_config={...})` channel that carries `widget_config`
@@ -419,7 +432,7 @@ an MCP tool automatically. Highlights:
 - **Tool categorization + progressive discovery** to fight context-window bloat
   (`app.py:379-549`, README §"Tool Discovery"). Tools are grouped into
   `category/subcategory` from the route path (`app.py:423-449`). With
-  `enable_tool_discovery`, ALL tools start *disabled* and the server exposes four
+  `enable_tool_discovery`, ALL tools start _disabled_ and the server exposes four
   admin tools — `available_categories`, `available_tools`, `activate_tools`,
   `activate_category` (`app.py:599-734`) — so an agent browses the catalog and
   enables only what it needs, **per-session** (each client has its own active
@@ -427,7 +440,7 @@ an MCP tool automatically. Highlights:
 - **Bundled skills + prompts as first-class MCP citizens** (`app.py:140-342`,
   `561-594`). The server ships Markdown SKILL guides
   (`skills/{develop_extension,build_workspace_app,configure_mcp_server,
-  work_with_server}/SKILL.md`) exposed as MCP resources at
+work_with_server}/SKILL.md`) exposed as MCP resources at
   `skill://<name>/SKILL.md`, vendor skill providers (Claude/Cursor/VSCode/Copilot/
   Codex/Gemini/Goose/OpenCode — `app.py:65-74`), a configurable system prompt,
   JSON-defined "server prompts" that encode multi-tool workflows (the
@@ -470,8 +483,8 @@ an MCP tool automatically. Highlights:
   `ProviderInterface`, `RegistryMap` are `SingletonMeta`/`@lru_cache`. The
   registry build is paid once. Vysted's `provider_registry`/`mcp_server` already
   cache (`get_mcp_server` lazy-builds once) — keep that.
-- **`extra="allow"` is load-bearing**, not laziness — it is *what makes provider
-  extras possible* without contract churn. Vysted's `sidecar/models/` should
+- **`extra="allow"` is load-bearing**, not laziness — it is _what makes provider
+  extras possible_ without contract churn. Vysted's `sidecar/models/` should
   adopt `extra="allow"` on the data models that plugins will extend, mirroring
   `Data` (`data.py:77-85`). (Keep strict `extra="forbid"` on the safety-critical
   ones — broker orders, audit log — where unknown fields must be rejected.)
@@ -517,22 +530,22 @@ an MCP tool automatically. Highlights:
 
 ### Key file index (for the next session)
 
-| Concern | OpenBB file |
-|---|---|
-| Fetcher TET contract | `core/openbb_core/provider/abstract/fetcher.py` |
-| Standard input/output models | `core/openbb_core/provider/abstract/{query_params,data}.py` |
-| Provider registration object | `core/openbb_core/provider/abstract/provider.py` |
-| Standard model example | `core/openbb_core/provider/standard_models/equity_historical.py` |
-| Provider impl example | `providers/fmp/openbb_fmp/models/equity_historical.py` + `__init__.py` |
-| Entry-point discovery | `core/openbb_core/app/extension_loader.py`, `provider/registry.py` |
-| Dynamic model merge | `core/openbb_core/app/provider_interface.py`, `provider/registry_map.py` |
-| Router + signature injection | `core/openbb_core/app/router.py`, `extensions/equity/.../price_router.py` |
-| Query → executor path | `core/openbb_core/app/query.py`, `provider/query_executor.py` |
-| Result envelope (+ to_llm) | `core/openbb_core/app/model/obbject.py` |
-| Credentials / BYOK hub | `core/openbb_core/app/model/credentials.py` |
-| Generated Python API | `core/openbb_core/app/static/package_builder.py` |
-| REST app | `core/openbb_core/api/rest_api.py` |
-| MCP-from-FastAPI (keystone) | `extensions/mcp_server/openbb_mcp_server/app/app.py` |
-| MCP framework playbook | `extensions/mcp_server/README.md` |
-| Workspace widget/agent bridge | `extensions/platform_api/` |
-| CLI auto-generation | `cli/openbb_cli/controllers/base_platform_controller.py`, `argparse_translator/` |
+| Concern                       | OpenBB file                                                                      |
+| ----------------------------- | -------------------------------------------------------------------------------- |
+| Fetcher TET contract          | `core/openbb_core/provider/abstract/fetcher.py`                                  |
+| Standard input/output models  | `core/openbb_core/provider/abstract/{query_params,data}.py`                      |
+| Provider registration object  | `core/openbb_core/provider/abstract/provider.py`                                 |
+| Standard model example        | `core/openbb_core/provider/standard_models/equity_historical.py`                 |
+| Provider impl example         | `providers/fmp/openbb_fmp/models/equity_historical.py` + `__init__.py`           |
+| Entry-point discovery         | `core/openbb_core/app/extension_loader.py`, `provider/registry.py`               |
+| Dynamic model merge           | `core/openbb_core/app/provider_interface.py`, `provider/registry_map.py`         |
+| Router + signature injection  | `core/openbb_core/app/router.py`, `extensions/equity/.../price_router.py`        |
+| Query → executor path         | `core/openbb_core/app/query.py`, `provider/query_executor.py`                    |
+| Result envelope (+ to_llm)    | `core/openbb_core/app/model/obbject.py`                                          |
+| Credentials / BYOK hub        | `core/openbb_core/app/model/credentials.py`                                      |
+| Generated Python API          | `core/openbb_core/app/static/package_builder.py`                                 |
+| REST app                      | `core/openbb_core/api/rest_api.py`                                               |
+| MCP-from-FastAPI (keystone)   | `extensions/mcp_server/openbb_mcp_server/app/app.py`                             |
+| MCP framework playbook        | `extensions/mcp_server/README.md`                                                |
+| Workspace widget/agent bridge | `extensions/platform_api/`                                                       |
+| CLI auto-generation           | `cli/openbb_cli/controllers/base_platform_controller.py`, `argparse_translator/` |

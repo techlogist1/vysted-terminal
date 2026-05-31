@@ -90,14 +90,14 @@ Kite bullet below.
 
 This clarification **sharpens** (does not reopen) the unified-extension-model decisions above. It
 reconciles "everything is a marketplace plugin" (FR-050/US10) with "first run is a populated starter
-cockpit" (FR-032): the *one extension model* and *populated first-run* are not in tension because the
+cockpit" (FR-032): the _one extension model_ and _populated first-run_ are not in tension because the
 first-party features **are** plugins — pre-installed ones.
 
 - **First-party panels, data providers, and agents ship PRE-INSTALLED as built-in plugins.** They are
   delivered through the **same** unified extension model as everything else (FR-050/FR-053) — they are
   not a separate hardcoded path — but they are **bundled and enabled by default** so first run is
-  populated out of the box (FR-032). "Built-in" describes *distribution* (pre-installed, enabled,
-  removable like any plugin), not a *privileged registration path*: a first-party plugin loads through
+  populated out of the box (FR-032). "Built-in" describes _distribution_ (pre-installed, enabled,
+  removable like any plugin), not a _privileged registration path_: a first-party plugin loads through
   the same runtime, manifest↔instance + `requiredHostVersion` checks, and §6.5 gate as a third-party
   one (FR-054/FR-055). The dogfooding principle (Constitution V) is satisfied because first-party
   features exercise the real contract.
@@ -108,7 +108,7 @@ first-party features **are** plugins — pre-installed ones.
 - **Brokers ship with NONE pre-installed.** No broker is bundled-and-enabled at first run; this is the
   same statement as FR-051's "no broker is hardcoded or registered at boot," now also covering the
   pre-installed set: the user installs the broker(s) they want from the marketplace and supplies BYOK
-  creds. Kite remains the canonical *reference* broker plugin (FR-052) — available to install, not
+  creds. Kite remains the canonical _reference_ broker plugin (FR-052) — available to install, not
   pre-installed.
 - **Net effect on acceptance:** FR-032's populated first-run is satisfied by the pre-installed
   first-party plugin set (panels + the keyless data plugin + the default agent); SC-013's "no broker
@@ -117,7 +117,7 @@ first-party features **are** plugins — pre-installed ones.
 
 ---
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — The novice talks to the terminal (agent-driven cockpit) (Priority: P1)
 
@@ -231,7 +231,7 @@ explicit accept, append-only audit on accept). There is no auto-apply path for o
 ever.
 
 **Why this priority**: This is the trust spine. Finance has no `git revert` on a placed
-order; verification is the product. Copying Cursor's diff/accept *correctly* (and
+order; verification is the product. Copying Cursor's diff/accept _correctly_ (and
 refusing its auto-apply regression) is non-negotiable and is a constitutional principle.
 
 **Independent Test**: An agent-proposed mutation never alters state until the user
@@ -300,8 +300,8 @@ the look and information hierarchy must be rebuilt around the agent for the prod
 as AI-native. Density with progressive disclosure is the constitutional UX principle.
 
 **Phasing note (the behavioral leap is P1; the visual leap is P2)**: Agent-centrality (US1–US4)
-ships in **P1 on the *existing* shell** — today's dockview cockpit and chrome — so the agent-first
-experience is usable *before* any reskin. This story (US6) — the minimal-dark visual rebuild, the
+ships in **P1 on the _existing_ shell** — today's dockview cockpit and chrome — so the agent-first
+experience is usable _before_ any reskin. This story (US6) — the minimal-dark visual rebuild, the
 redesigned command palette, and the status chrome — is the **visual leap and lands in P2**. P1 puts
 the new behavior on the old skin; P2 delivers the new skin. This is deliberate, not a surprise.
 
@@ -476,7 +476,7 @@ plugin, and an agent plugin.
   regardless of plugin code (paper-default, read-only, kill switch, position limits, diff/accept,
   append-only audit are all host-enforced); the plugin cannot opt out.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements — Agent-centric experience
 
@@ -574,7 +574,7 @@ plugin, and an agent plugin.
   a minimal preferences pane. Settings MUST persist locally (consistent with the local-first /
   no-cloud model) and be exportable/importable alongside the connections export in FR-037.
 - **FR-039**: Keyboard shortcuts/keybindings MUST be **user-remappable** from the settings surface —
-  not merely surfaced as mnemonics. (FR-031 *teaches* shortcuts; FR-039 lets the user *rebind* them,
+  not merely surfaced as mnemonics. (FR-031 _teaches_ shortcuts; FR-039 lets the user _rebind_ them,
   which the terminal cannot do today.) Conflicting bindings MUST be detected and surfaced; remaps
   persist locally and travel with the settings export (FR-038).
 
@@ -636,7 +636,7 @@ plugin, and an agent plugin.
   (`types/plugin.ts`, the §6.5 LOCKED set) and every §6.5 invariant stay byte-for-byte untouched
   (FR-012).
 
-### Key Entities *(data/contracts involved — conceptual, not implementation)*
+### Key Entities _(data/contracts involved — conceptual, not implementation)_
 
 - **Capability** — one terminal action (read or mutate) with: id, human description, input shape,
   output shape, **domain tag**, **read_only flag**, and the consumers it projects to (internal
@@ -669,7 +669,7 @@ plugin, and an agent plugin.
   host-side compatibility (manifest↔instance, `requiredHostVersion`) and never grants a plugin a path
   around the §6.5 safety boundary.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
@@ -744,7 +744,7 @@ plugin, and an agent plugin.
 - This window (Window 1) delivers understanding + tooling + this spec; **no implementation**. Plan/
   tasks/implement are a later window after operator review.
 
-## Open Product Decisions *(flagged for operator review — clarify step)*
+## Open Product Decisions _(flagged for operator review — clarify step)_
 
 These are genuine Tier-4 / product-scope decisions the spec does not settle by itself. The
 recommendation is given; the operator ratifies.

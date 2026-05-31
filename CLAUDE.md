@@ -14,6 +14,7 @@ a Tauri desktop app (Rust core + Next.js UI + Python FastAPI sidecar).
 
 This file is project DNA, not a frozen spec. When a session learns something the next
 session needs, update it in the same PR:
+
 - A convention emerged/changed → **Coding standards** or the relevant rule.
 - A non-obvious trap was diagnosed → **Gotchas** (one or two lines, the active rule only).
 - Model-assignment rules changed → **Model assignment**.
@@ -72,6 +73,7 @@ is for genuine Tier-4 blocks and hard blockers hit while the operator is unavail
 ## Tier-1 locked files & invariants
 
 Touch these only with operator sign-off:
+
 - **`types/plugin.ts`** — the `VystedPlugin` contract. Six capabilities (data, panels,
   commands, agents, nodes, control plane). Changing it breaks every downstream plugin and
   every phase. Stays serializable (no React types — panels ride the companion map below).
@@ -85,7 +87,7 @@ Touch these only with operator sign-off:
     grep-time audit (`test_safety_end_to_end.py`) over all call sites.
   - **Kill-switch** (`services/kill_switch.py` + `src-tauri/src/kill_switch.rs`).
   - **Read-only trading-wrapper layers** (see Plugins).
-  Never weaken a §6.5 safeguard without operator sign-off.
+    Never weaken a §6.5 safeguard without operator sign-off.
 - **CI workflows** (`.github/workflows/`), **Tauri config** (`src-tauri/tauri.conf.json`),
   **licensing** (`LICENSE`, `COMMERCIAL_LICENSE.md`), and **this file**.
 
@@ -106,12 +108,13 @@ surface (`inspect.getmembers` audit), (b) no non-GET router routes (`router.rout
 Teammate agents dispatched with `isolation: "worktree"` **do not always isolate** — some
 (historically Sonnet teammates) write into the lead's **main worktree** or switch its HEAD
 onto a shared agent branch, which can sweep uncommitted lead edits into a teammate commit.
+
 - **One isolated worktree per teammate; never the main worktree; never a shared agent
   branch** — each teammate pushes to its own `worktree-agent-<name>`.
 - **Before any lead work after dispatch AND before integrating**, run `git worktree list`
-  + `git branch`. If main's HEAD moved onto a teammate branch: stash lead files →
-  `git checkout main` → `git stash pop`, then confirm no lead file was captured
-  (`git log main..<branch> -- <lead-files>` empty = safe).
+  - `git branch`. If main's HEAD moved onto a teammate branch: stash lead files →
+    `git checkout main` → `git stash pop`, then confirm no lead file was captured
+    (`git log main..<branch> -- <lead-files>` empty = safe).
 - **Audit only via `origin/<branch>`.** Discard main-worktree contamination with
   `git restore --source HEAD -- <file>` + `git clean`, then fetch + merge from origin.
 - **Brief teammates to push every concrete deliverable** (each push is a recovery
@@ -129,6 +132,7 @@ onto a shared agent branch, which can sweep uncommitted lead edits into a teamma
 ## Gotchas (active rules)
 
 ### Sidecar & distribution
+
 - **Spawn port-owning subprocesses via Tauri Rust `app.shell().sidecar(...)`** (precedent
   `src-tauri/src/openbb_mcp.rs`), never Python `subprocess.Popen` — anyio + `_MEIPASS` +
   Windows handle-inheritance deadlock a `--onefile` server. After spawn, call
@@ -154,6 +158,7 @@ onto a shared agent branch, which can sweep uncommitted lead edits into a teamma
 - Main sidecar binary footprint target **≤120 MB**.
 
 ### Copilot & sidecar code
+
 - **The capability catalog (`sidecar/services/agent_tools/catalog.py`) is the ONE source of
   truth** (Constitution Principle II). `TOOL_SCHEMAS` (`schemas.py`), the custom-agent
   allow-list (`models/custom_agent.KNOWN_TOOL_IDS`), and the external MCP surface all DERIVE
@@ -181,6 +186,7 @@ onto a shared agent branch, which can sweep uncommitted lead edits into a teamma
   `Number.MAX_SAFE_INTEGER`); parse to `BigInt` only when computing.
 
 ### Frontend
+
 - **dockview is the panel layout engine** (`src/components/PanelHost.tsx`): a module
   registers a `PanelSpec` whose `component` id maps to a React component via
   `VystedModule.panelComponents`. dockview base CSS is imported in `globals.css` before the
@@ -191,9 +197,9 @@ onto a shared agent branch, which can sweep uncommitted lead edits into a teamma
   default `true` installs an OS handler that swallows HTML5 drag (macOS WKWebView too).
 - **Persisted UI state rides the workspace blob** (`SerializedWorkspace`,
   `src/lib/workspace.ts`), not localStorage. Add a field → include in `serializeWorkspace`
-  + `autosaveLayout`, restore in `deserializeWorkspace` (guard older blobs); if the change
-  doesn't move the dockview layout, add a store subscription in `page.tsx` calling
-  `autosaveLayout()`.
+  - `autosaveLayout`, restore in `deserializeWorkspace` (guard older blobs); if the change
+    doesn't move the dockview layout, add a store subscription in `page.tsx` calling
+    `autosaveLayout()`.
 - **Design token NAMES are historical, not literal** (`amber-*`→coral, `charcoal-*`→espresso,
   `brass-*`/`sage-*`→warm neutrals) so re-skinning re-values `tokens.css` alone. Canvas
   (`lightweight-charts`/drawings) can't read CSS vars — its palette is single-sourced in
@@ -204,17 +210,19 @@ onto a shared agent branch, which can sweep uncommitted lead edits into a teamma
   injection for visual regression, not chrome-devtools.
 
 ### Broker & credentials
+
 - **BYOK secrets:** the renderer reads the OS keychain (Tauri `keychain_set/get/delete`) and
   passes the secret in the request (a **header** for read-only plugins, never the body); the
   **sidecar cannot read the keychain**. Never log, echo, or persist beyond process memory.
   Loopback transport only. `test_<plugin>_router.py` asserts responses never echo creds.
 - **Kite Connect read-only login runs in the SIDECAR** (`services.brokers.kite.
-  exchange_request_token` via `kiteconnect.generate_session` → `POST /brokers/kite/session`);
+exchange_request_token` via `kiteconnect.generate_session` → `POST /brokers/kite/session`);
   `api_secret` crosses for the exchange only (never stored/echoed). New broker read routes
   are GET-only and duck-type to `account_info()` (no §6.5 ABC change). Manual request_token
   paste is the v1 flow. `static_ip_detector.py` warns on IP mismatch but does NOT pre-block.
 
 ### Versioning & process
+
 - **Version lives in many sources** — `package.json` + `Cargo.toml` + `tauri.conf.json` +
   sidecar `app.py FastAPI(version=…)` + `HOST_VERSION` (`plugin-bootstrap.ts`); `/health`
   derives from `request.app.version`. At bump: grep for stale version strings and run
@@ -275,7 +283,9 @@ carried forward, (4) plugin-contract lock verification, (5) next-phase entry con
 (6) file/commit pointers, (7) verification snapshot, (8) coordination lessons.
 
 <!-- SPECKIT START -->
+
 Active redesign spec lives under `specs/` and `.specify/memory/constitution.md`. For the
 current-state baseline (architecture, endpoints, subsystems, what works vs is deferred),
 read `docs/CURRENT_STATE.md`.
+
 <!-- SPECKIT END -->

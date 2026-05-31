@@ -72,17 +72,17 @@
   base-url override). Keys never persist; they ride the request and are read
   from the OS keychain on demand.
 - A **read-only broker layer**: genuine Kite Connect OAuth (`generate_session`)
-  + read-only positions/holdings/P&L for three Indian brokers (Kite, Dhan,
-  Angel One). A full §6.5-safety-gated execution machine (propose→confirm→place,
-  kill switch, append-only audit log, position limits) exists in code but is
-  **paper-only by hard default and never live-validated**.
+  - read-only positions/holdings/P&L for three Indian brokers (Kite, Dhan,
+    Angel One). A full §6.5-safety-gated execution machine (propose→confirm→place,
+    kill switch, append-only audit log, position limits) exists in code but is
+    **paper-only by hard default and never live-validated**.
 - A **plugin platform**: one serializable Tier-1 contract (`types/plugin.ts`,
   six capabilities) + a pure-TS runtime. Three plugins are actually loaded
   (`example`, `openbb-mcp`, `tradesa-v2`); seven broker plugins exist in the
   tree but are **not wired**. No filesystem/marketplace loader yet.
-- **Vysted speaks MCP on both sides**: as a *client* it proxies two bundled MCP
+- **Vysted speaks MCP on both sides**: as a _client_ it proxies two bundled MCP
   subprocesses (openbb-mcp fundamentals/macro, sec-edgar-mcp filings) into plain
-  REST routes; as a *server* it re-exposes 11 of its own endpoints as MCP tools
+  REST routes; as a _server_ it re-exposes 11 of its own endpoints as MCP tools
   for external clients (Claude Desktop / Code).
 - **Ships unsigned, no release pipeline, version strings stuck at `0.8.0`**
   despite Phase 8/9/9.5/10 merged to `main`. The auto-updater is configured but
@@ -138,7 +138,7 @@ request → sidecar holds in memory for the request only** — the sidecar
 the OS-chosen port, releases it (a narrow unguarded TOCTTOU window), and stores
 `SidecarPort(u16)`. The two MCP subprocesses are spawned first **on parallel
 threads** and `join`ed before the main sidecar spawns, so their
-`VYSTED_*_MCP_PORT` env vars are settled — the *entire* MCP handshake is an env
+`VYSTED_*_MCP_PORT` env vars are settled — the _entire_ MCP handshake is an env
 var, no IPC negotiation. The frontend learns the sidecar port via
 `get_sidecar_port` and `/health`-probes with backoff (120s deadline) before
 declaring connected.
@@ -221,55 +221,55 @@ asymmetry). Caching is per-router, not centralized.
 
 **Full endpoint inventory** (full mounted paths; "Service" = delegate):
 
-| Method | Path | Purpose | Service / notes |
-|---|---|---|---|
-| GET | `/health` | Liveness (Tauri polls on launch) | `provider_registry.active_providers()`; version from `request.app.version` |
-| GET | `/quotes/{symbol}` | Single latest quote | `provider_registry.get_quote` via `asyncio.to_thread` |
-| GET | `/quotes` | Batch quotes (`?symbols=`) | fan-out `asyncio.gather`; failed symbols silently skipped |
-| GET | `/history/{symbol}` | OHLCV (`?timeframe=&range=&asset_class=`) | `provider_registry.get_history` — **NOT thread-offloaded** |
-| GET | `/crypto/exchanges` | Supported ccxt exchanges | `ccxt_provider.SUPPORTED_EXCHANGES` |
-| GET | `/crypto/ticker` | REST ticker (`?exchange=&symbol=`) | `ccxt_provider.get_ticker` via thread |
-| GET | `/crypto/history` | OHLCV (`?exchange=&symbol=&timeframe=`) | `ccxt_provider.get_ohlcv` via thread |
-| WS | `/crypto/stream` | Live ticker WebSocket | `ccxt_provider.watch_ticker` (ccxt.pro) |
-| GET | `/indicators` | List supported indicator keys | declared before `/{symbol}` so it matches first |
-| GET | `/indicators/{symbol}` | Compute indicators (`?indicators=`) | `indicators.compute`; unknown key → 400 |
-| GET | `/fundamentals/{symbol}` | Valuation ratios + profile | `provider_registry.get_fundamentals` |
-| GET | `/fundamentals/{symbol}/income` `/balance` `/cashflow` | Financial statements | `provider_registry.get_*_statement` |
-| GET | `/fundamentals/{symbol}/ratings` | Aggregated analyst rating | `provider_registry.get_analyst_rating` |
-| GET | `/fundamentals/{symbol}/ratings/history` `/price-target-history` `/individual` | Extended ratings | `analyst_ratings_extended` + `data_cache` (TTL 6h) |
-| GET | `/news` | RSS+NewsAPI news, VADER sentiment, symbol-tagged | `news_provider.fetch_news` + `sentiment.score_text` |
-| GET | `/macro/search` `/catalog` | Catalog search / featured | `macro_router` (FRED/ECB/IMF/world-bank) |
-| GET | `/macro/{series_id}` | Macro series (`?provider=`) | new dispatcher (`MacroSeriesExtended`) or legacy openbb-mcp path |
-| GET | `/sec/status` | sec-edgar-mcp readiness | only `/sec` route that works when subprocess down |
-| GET | `/sec/filings/search` `/filings` `/filings/{accession}[/sections]` `/insider/{identifier}` | EDGAR filings + insider | `sec_filings_provider`; **501** when subprocess unbound |
-| GET | `/earnings/upcoming` `/{symbol}/history` `/surprises` `/estimates` | Earnings calendar/history | `earnings_provider` + `data_cache` (6h/24h TTLs) |
-| POST | `/screener/run` | Run screener (`ScreenerRequest`) | `screener.run_screener`; universe failure → 502, unknown → 400 |
-| GET | `/screener/universe` | Resolve universe (`?id=`) | `screener.resolve_universe`; `custom` → 400 |
-| GET/POST/PUT/DELETE | `/portfolio/positions[/{id}]` | Manual positions CRUD | `portfolio_db` (SQLite); 201/204/404 |
-| POST | `/quant/option/price` `/option/greeks` `/bond/price` `/yield-curve` | QuantLib pricing | `services.quant.*`; `ValueError` → 400 |
-| POST | `/backtest/run` | SSE `BacktestRunEvent` | `backtest_engine.run_backtest` + `bar_loader`; cached |
-| GET | `/backtest/strategies` `/runs` `/runs/{id}` | Strategy + run catalog | in-memory `backtest_store` |
-| POST | `/workflow/run` | SSE `WorkflowRunEvent` | `workflow_engine.run_workflow` |
-| POST/GET/DELETE | `/workflow/save` `/saved[/{id}]` | Workflow persistence | `workflow_store` |
-| GET | `/agents` | List first-party agents | `agent_runtime.list_agents()` (custom NOT merged) |
-| POST | `/agents/{agent_id}/invoke` | SSE `LLMStreamEvent` | `agent_runtime.invoke_agent`; 404 if unknown |
-| GET/POST/PUT/DELETE | `/custom-agents[/{id:path}]` | Custom-agent CRUD | `agents_store` (SQLite); 409 collision; `custom:` prefix enforced |
-| GET | `/llm/providers` | BYOK provider catalog | `services.llm.list_provider_info` |
-| POST | `/llm/keys/validate` | Probe a key | transport error → `{ok:false}` (never raises) |
-| POST | `/llm/chat` | SSE `LLMStreamEvent` | `adapter.stream_chat`; unknown provider → 400 |
-| GET | `/brokers` `/{id}/state` `/account` `/positions` `/holdings` `/margins` | Read-only broker state | `adapter.*`; session-expired → 419 |
-| POST | `/brokers/{id}/connect` `/disconnect` `/mode` `/read-only` | Session/mode control | `adapter.*`; mismatch → 400 |
-| POST | `/brokers/{id}/orders[/{proposal_id}/confirm]` `/orders/cancel` | Propose→confirm→place / cancel | `adapter.propose_order` / `confirm_and_place`; in-memory `_pending_proposals` |
-| GET/POST | `/brokers/kite/static-ip` `/session` | Kite static IP + real OAuth exchange | `kite.exchange_request_token` (SHA-256 + `/session/token`) |
-| GET | `/safety/audit-log[/export.csv]` | Tail / CSV append-only log | `audit_log`; limit 1–5000 |
-| POST/GET | `/safety/kill-switch[/reset][/status]` | Fire / reset / status | `kill_switch.get_bus()`; reset needs `acknowledged=true` |
-| GET/POST | `/safety/disclaimer-status` `/disclaimer-ack` | Session disclaimer acks | `disclaimer_session` |
-| GET | `/safety/static-ip-status` | Configured-vs-detected IP | `static_ip_detector` (advisory, no block) |
-| GET | `/tradesa-v2/*` (14 routes) | Read-only Tradesa bot mirror | `TradesaV2Provider`; GET-only by audit invariant; creds in headers |
-| GET/POST/DELETE | `/plugins[/{id}/config]` | Persisted plugin configs | `plugins_store` (SQLite) |
-| GET/POST/DELETE | `/workspace[/{name}]` | Workspace blob persistence | `workspace_store`; opaque JSON |
-| GET | `/mcp/status` `/openbb-mcp/status` | Vysted MCP + openbb-mcp readiness | `mcp_server.tool_count()` / `openbb_mcp_provider.status()` |
-| (JSON-RPC) | `/mcp/` | FastMCP Streamable-HTTP transport | mounted sub-app for external MCP clients |
+| Method              | Path                                                                                       | Purpose                                          | Service / notes                                                               |
+| ------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------ | ----------------------------------------------------------------------------- |
+| GET                 | `/health`                                                                                  | Liveness (Tauri polls on launch)                 | `provider_registry.active_providers()`; version from `request.app.version`    |
+| GET                 | `/quotes/{symbol}`                                                                         | Single latest quote                              | `provider_registry.get_quote` via `asyncio.to_thread`                         |
+| GET                 | `/quotes`                                                                                  | Batch quotes (`?symbols=`)                       | fan-out `asyncio.gather`; failed symbols silently skipped                     |
+| GET                 | `/history/{symbol}`                                                                        | OHLCV (`?timeframe=&range=&asset_class=`)        | `provider_registry.get_history` — **NOT thread-offloaded**                    |
+| GET                 | `/crypto/exchanges`                                                                        | Supported ccxt exchanges                         | `ccxt_provider.SUPPORTED_EXCHANGES`                                           |
+| GET                 | `/crypto/ticker`                                                                           | REST ticker (`?exchange=&symbol=`)               | `ccxt_provider.get_ticker` via thread                                         |
+| GET                 | `/crypto/history`                                                                          | OHLCV (`?exchange=&symbol=&timeframe=`)          | `ccxt_provider.get_ohlcv` via thread                                          |
+| WS                  | `/crypto/stream`                                                                           | Live ticker WebSocket                            | `ccxt_provider.watch_ticker` (ccxt.pro)                                       |
+| GET                 | `/indicators`                                                                              | List supported indicator keys                    | declared before `/{symbol}` so it matches first                               |
+| GET                 | `/indicators/{symbol}`                                                                     | Compute indicators (`?indicators=`)              | `indicators.compute`; unknown key → 400                                       |
+| GET                 | `/fundamentals/{symbol}`                                                                   | Valuation ratios + profile                       | `provider_registry.get_fundamentals`                                          |
+| GET                 | `/fundamentals/{symbol}/income` `/balance` `/cashflow`                                     | Financial statements                             | `provider_registry.get_*_statement`                                           |
+| GET                 | `/fundamentals/{symbol}/ratings`                                                           | Aggregated analyst rating                        | `provider_registry.get_analyst_rating`                                        |
+| GET                 | `/fundamentals/{symbol}/ratings/history` `/price-target-history` `/individual`             | Extended ratings                                 | `analyst_ratings_extended` + `data_cache` (TTL 6h)                            |
+| GET                 | `/news`                                                                                    | RSS+NewsAPI news, VADER sentiment, symbol-tagged | `news_provider.fetch_news` + `sentiment.score_text`                           |
+| GET                 | `/macro/search` `/catalog`                                                                 | Catalog search / featured                        | `macro_router` (FRED/ECB/IMF/world-bank)                                      |
+| GET                 | `/macro/{series_id}`                                                                       | Macro series (`?provider=`)                      | new dispatcher (`MacroSeriesExtended`) or legacy openbb-mcp path              |
+| GET                 | `/sec/status`                                                                              | sec-edgar-mcp readiness                          | only `/sec` route that works when subprocess down                             |
+| GET                 | `/sec/filings/search` `/filings` `/filings/{accession}[/sections]` `/insider/{identifier}` | EDGAR filings + insider                          | `sec_filings_provider`; **501** when subprocess unbound                       |
+| GET                 | `/earnings/upcoming` `/{symbol}/history` `/surprises` `/estimates`                         | Earnings calendar/history                        | `earnings_provider` + `data_cache` (6h/24h TTLs)                              |
+| POST                | `/screener/run`                                                                            | Run screener (`ScreenerRequest`)                 | `screener.run_screener`; universe failure → 502, unknown → 400                |
+| GET                 | `/screener/universe`                                                                       | Resolve universe (`?id=`)                        | `screener.resolve_universe`; `custom` → 400                                   |
+| GET/POST/PUT/DELETE | `/portfolio/positions[/{id}]`                                                              | Manual positions CRUD                            | `portfolio_db` (SQLite); 201/204/404                                          |
+| POST                | `/quant/option/price` `/option/greeks` `/bond/price` `/yield-curve`                        | QuantLib pricing                                 | `services.quant.*`; `ValueError` → 400                                        |
+| POST                | `/backtest/run`                                                                            | SSE `BacktestRunEvent`                           | `backtest_engine.run_backtest` + `bar_loader`; cached                         |
+| GET                 | `/backtest/strategies` `/runs` `/runs/{id}`                                                | Strategy + run catalog                           | in-memory `backtest_store`                                                    |
+| POST                | `/workflow/run`                                                                            | SSE `WorkflowRunEvent`                           | `workflow_engine.run_workflow`                                                |
+| POST/GET/DELETE     | `/workflow/save` `/saved[/{id}]`                                                           | Workflow persistence                             | `workflow_store`                                                              |
+| GET                 | `/agents`                                                                                  | List first-party agents                          | `agent_runtime.list_agents()` (custom NOT merged)                             |
+| POST                | `/agents/{agent_id}/invoke`                                                                | SSE `LLMStreamEvent`                             | `agent_runtime.invoke_agent`; 404 if unknown                                  |
+| GET/POST/PUT/DELETE | `/custom-agents[/{id:path}]`                                                               | Custom-agent CRUD                                | `agents_store` (SQLite); 409 collision; `custom:` prefix enforced             |
+| GET                 | `/llm/providers`                                                                           | BYOK provider catalog                            | `services.llm.list_provider_info`                                             |
+| POST                | `/llm/keys/validate`                                                                       | Probe a key                                      | transport error → `{ok:false}` (never raises)                                 |
+| POST                | `/llm/chat`                                                                                | SSE `LLMStreamEvent`                             | `adapter.stream_chat`; unknown provider → 400                                 |
+| GET                 | `/brokers` `/{id}/state` `/account` `/positions` `/holdings` `/margins`                    | Read-only broker state                           | `adapter.*`; session-expired → 419                                            |
+| POST                | `/brokers/{id}/connect` `/disconnect` `/mode` `/read-only`                                 | Session/mode control                             | `adapter.*`; mismatch → 400                                                   |
+| POST                | `/brokers/{id}/orders[/{proposal_id}/confirm]` `/orders/cancel`                            | Propose→confirm→place / cancel                   | `adapter.propose_order` / `confirm_and_place`; in-memory `_pending_proposals` |
+| GET/POST            | `/brokers/kite/static-ip` `/session`                                                       | Kite static IP + real OAuth exchange             | `kite.exchange_request_token` (SHA-256 + `/session/token`)                    |
+| GET                 | `/safety/audit-log[/export.csv]`                                                           | Tail / CSV append-only log                       | `audit_log`; limit 1–5000                                                     |
+| POST/GET            | `/safety/kill-switch[/reset][/status]`                                                     | Fire / reset / status                            | `kill_switch.get_bus()`; reset needs `acknowledged=true`                      |
+| GET/POST            | `/safety/disclaimer-status` `/disclaimer-ack`                                              | Session disclaimer acks                          | `disclaimer_session`                                                          |
+| GET                 | `/safety/static-ip-status`                                                                 | Configured-vs-detected IP                        | `static_ip_detector` (advisory, no block)                                     |
+| GET                 | `/tradesa-v2/*` (14 routes)                                                                | Read-only Tradesa bot mirror                     | `TradesaV2Provider`; GET-only by audit invariant; creds in headers            |
+| GET/POST/DELETE     | `/plugins[/{id}/config]`                                                                   | Persisted plugin configs                         | `plugins_store` (SQLite)                                                      |
+| GET/POST/DELETE     | `/workspace[/{name}]`                                                                      | Workspace blob persistence                       | `workspace_store`; opaque JSON                                                |
+| GET                 | `/mcp/status` `/openbb-mcp/status`                                                         | Vysted MCP + openbb-mcp readiness                | `mcp_server.tool_count()` / `openbb_mcp_provider.status()`                    |
+| (JSON-RPC)          | `/mcp/`                                                                                    | FastMCP Streamable-HTTP transport                | mounted sub-app for external MCP clients                                      |
 
 ### 3.3 Market-data & analytics services
 
@@ -291,8 +291,8 @@ openbb-mcp **if bundled** else yfinance; macro → openbb-mcp only else
   False → registry falls back. **Whether the binary ships in a given build is
   unverified from service code alone.**
 - **`news_provider.py`** — RSS (Yahoo, MarketWatch, per-symbol Yahoo; always on)
-  + NewsAPI (BYOK `NEWSAPI_KEY` only). Shared pooled `httpx.AsyncClient` (the
-  cold-start TLS-cascade fix). No caching — re-fetches live every request.
+  - NewsAPI (BYOK `NEWSAPI_KEY` only). Shared pooled `httpx.AsyncClient` (the
+    cold-start TLS-cascade fix). No caching — re-fetches live every request.
 - **`sentiment.py`** — VADER lexicon (a deliberate Tier-3 choice: FinBERT would
   drag `torch` into the bundle). Coarse, "at a glance," **not finance-grade** —
   flagged honestly in the docstring.
@@ -337,7 +337,7 @@ framework-free serializable contract: four fixed sections (identity, lifecycle,
 six-boolean `capabilities`, optional getters) + six capabilities
 (`contributesData/Panels/Commands/Agents/Nodes`, `supportsControlPlane`).
 `PanelSpec.component` is a **string id** resolved host-side (keeps the contract
-serializable). Negotiation checks the *flag*, not the method.
+serializable). Negotiation checks the _flag_, not the method.
 
 `PluginRuntime` (`src/lib/plugin-runtime.ts`, pure TS): discover → loadPlugin
 (honors persisted `enabled:false`) → collect contributions through
@@ -354,11 +354,11 @@ serializable, React components ride the **static `PLUGIN_COMPANIONS` map**
 `PluginConfig.secrets` is **effectively a no-op** (default `resolveSecrets`
 returns `{}`); plugins fetch creds out-of-band.
 
-| Bundled plugin | Type | Capabilities (true) | Status |
-|---|---|---|---|
-| `vysted-example` | data-source | data, commands, control-plane | Pedagogical; proves contract end-to-end. Working. |
-| `openbb-mcp` | data-source | data only | Declares 3 DataSources; `healthCheck` probes `/openbb-mcp/status`. Data actually flows through sidecar routes, not the plugin. |
-| `tradesa-v2` | trading-bot | data, panels, commands (control-plane **false**) | Read-only wrapper, **7 panels** + 7 cmd+K commands; the only bundled plugin exercising panels + the companion map. |
+| Bundled plugin   | Type        | Capabilities (true)                              | Status                                                                                                                         |
+| ---------------- | ----------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `vysted-example` | data-source | data, commands, control-plane                    | Pedagogical; proves contract end-to-end. Working.                                                                              |
+| `openbb-mcp`     | data-source | data only                                        | Declares 3 DataSources; `healthCheck` probes `/openbb-mcp/status`. Data actually flows through sidecar routes, not the plugin. |
+| `tradesa-v2`     | trading-bot | data, panels, commands (control-plane **false**) | Read-only wrapper, **7 panels** + 7 cmd+K commands; the only bundled plugin exercising panels + the companion map.             |
 
 **Two real gaps between narrative and wiring:** (1) `contributesAgents` /
 `contributesNodes` paths are **unexercised** by any bundled plugin (empty in
@@ -413,16 +413,16 @@ safeguards across sidecar + Rust + frontend, gated by
 `tests/test_safety_end_to_end.py`. **Verified 2026-05-30: 9/9 audit pass; 58
 passed combined with the Tradesa V2 read-only audits (~30s, pytest 9.0.3).**
 
-| # | Guarantee | Site | Test |
-|---|---|---|---|
-| 1 | Paper-mode default | `broker_base.py` `self._mode="paper"` (no constructor flips it) | `test_audit_1` |
-| 2 | Every order human-confirmed | `_place_confirmed` private, sole caller `confirm_and_place` | `test_audit_2` |
-| 3 | Position-size limits | `propose_order` raises before any broker call | `test_audit_3` |
-| 4 | Append-only audit log | SQLite `RAISE(ABORT)` triggers on UPDATE/DELETE + `query_only` reader | `test_audit_4` |
-| 5 | Global kill switch < 2s | `KillSwitchBus.fire` instruments p50/p95/max ack | `test_audit_5` |
-| 6 | AI-order gate | no `place_/submit_/execute_order` tool; AI can only propose | `test_audit_6` |
-| 7 | Read-only mode | `_read_only` checked in propose + re-checked in confirm | `test_audit_7` |
-| 8 | Layered disclaimers | keychain (TOS + per-broker) + sidecar in-memory (per-session) | `test_audit_8/8b` |
+| #   | Guarantee                   | Site                                                                  | Test              |
+| --- | --------------------------- | --------------------------------------------------------------------- | ----------------- |
+| 1   | Paper-mode default          | `broker_base.py` `self._mode="paper"` (no constructor flips it)       | `test_audit_1`    |
+| 2   | Every order human-confirmed | `_place_confirmed` private, sole caller `confirm_and_place`           | `test_audit_2`    |
+| 3   | Position-size limits        | `propose_order` raises before any broker call                         | `test_audit_3`    |
+| 4   | Append-only audit log       | SQLite `RAISE(ABORT)` triggers on UPDATE/DELETE + `query_only` reader | `test_audit_4`    |
+| 5   | Global kill switch < 2s     | `KillSwitchBus.fire` instruments p50/p95/max ack                      | `test_audit_5`    |
+| 6   | AI-order gate               | no `place_/submit_/execute_order` tool; AI can only propose           | `test_audit_6`    |
+| 7   | Read-only mode              | `_read_only` checked in propose + re-checked in confirm               | `test_audit_7`    |
+| 8   | Layered disclaimers         | keychain (TOS + per-broker) + sidecar in-memory (per-session)         | `test_audit_8/8b` |
 
 **Defense-in-depth template (canonical for this codebase):** type/structure gate
 (`_place_confirmed` only called from `confirm_and_place`, which requires
@@ -433,6 +433,7 @@ tree for call-sites / `auto_approve`). Each layer catches a different failure
 mode.
 
 **Honest gaps (real, documented):**
+
 - **`_place_confirmed` is convention-private, not language-private** — the
   "name-mangled" docstring is wrong; the actual enforcement is the grep gate, a
   CI check, not a type gate.
@@ -508,7 +509,7 @@ and mounts `DockviewReact`. **`collectPanelComponents` does a flat
 Watchlist/News/Portfolio stacking right, AI Assistant far-right column.
 
 **18 first-party modules** hard-listed in `src/modules/index.ts` (edit-once-
-per-phase so parallel work doesn't contend). Plugins bridge into the *same*
+per-phase so parallel work doesn't contend). Plugins bridge into the _same_
 registry via `moduleForPlugin` (id `plugin:<id>`) — no second registry.
 
 **Workspace blob persistence:** `SerializedWorkspace` round-trips layout +
@@ -538,14 +539,14 @@ fuzzy, no ranking, no recents.
 
 ### 3.9 Panels — market (Chart / Equity Overview / Watchlist / News / Portfolio / Screener)
 
-| Module | Panel | Singleton | Endpoints |
-|---|---|---|---|
-| chart | `ChartPanel.tsx` (~1150 lines) | no (multi-chart) | `/history/{symbol}`, `/indicators/{symbol}` |
-| equity-overview | `EquityOverviewPanel.tsx` | yes | `/quotes`, `/fundamentals` + `/income/balance/cashflow/ratings` |
-| watchlist | `WatchlistPanel.tsx` | yes | `/quotes` (batch), `/crypto/ticker` (per crypto) |
-| news | `NewsFeedPanel.tsx` | yes | `/news` |
-| portfolio | `PortfolioPanel.tsx` | yes | `/portfolio/positions` CRUD, `/quotes/{symbol}` |
-| screener | `ScreenerPanel.tsx` | yes | `/screener/run`, `/screener/universe` |
+| Module          | Panel                          | Singleton        | Endpoints                                                       |
+| --------------- | ------------------------------ | ---------------- | --------------------------------------------------------------- |
+| chart           | `ChartPanel.tsx` (~1150 lines) | no (multi-chart) | `/history/{symbol}`, `/indicators/{symbol}`                     |
+| equity-overview | `EquityOverviewPanel.tsx`      | yes              | `/quotes`, `/fundamentals` + `/income/balance/cashflow/ratings` |
+| watchlist       | `WatchlistPanel.tsx`           | yes              | `/quotes` (batch), `/crypto/ticker` (per crypto)                |
+| news            | `NewsFeedPanel.tsx`            | yes              | `/news`                                                         |
+| portfolio       | `PortfolioPanel.tsx`           | yes              | `/portfolio/positions` CRUD, `/quotes/{symbol}`                 |
+| screener        | `ScreenerPanel.tsx`            | yes              | `/screener/run`, `/screener/universe`                           |
 
 **Chart** is the heaviest panel: `lightweight-charts` candlesticks, 8-step
 timeframe, 50-indicator multi-select (server-computed; frontend never computes
@@ -676,7 +677,7 @@ terse system preamble (`_render_terminal_preamble`, with the deixis line —
 
 **Host-action tools drive the terminal.** `open_panel`, `set_chart_symbol`,
 `add_to_watchlist`, `propose_order` are per-invocation closures that return a
-*synthetic* success — the **real UI work happens frontend-side** in
+_synthetic_ success — the **real UI work happens frontend-side** in
 `ChatSidebar.executeHostAction`, dispatched off the streamed `tool_use` event,
 not the synthetic result (the `host_action` payload on the wire is effectively
 dead today). **`propose_order` NEVER places** (returns `awaiting_user_review` →
@@ -693,20 +694,20 @@ keychain.
 
 **The 14-id `TOOL_SCHEMAS` catalog — but only ~10 are reachable:**
 
-| Tool id | What it does | Reachable by an agent? |
-|---|---|---|
-| `price_data` | ≤90 OHLCV bars + latest quote | yes |
-| `fundamentals` | valuation ratios + profile | yes |
-| `backtest_summary` | digest a cached BacktestResult | yes |
-| `broker_portfolio` | read-only connected-broker account | yes |
-| `screener_run` | run the screener | yes |
-| `macro_series` | one macro series (schema omits required `provider`; handler rejects) | yes |
-| `earnings_history` | past earnings (≤12 quarters) | yes |
-| `analyst_history` | rating-change history | yes |
-| `sec_filings_list` | filings index (degrades if sec-edgar down) | yes |
-| `get_terminal_state` / `get_portfolio` | snapshot reads | yes (runtime-resolved) |
-| `open_panel` / `set_chart_symbol` / `add_to_watchlist` / `propose_order` | host actions | yes (runtime-resolved) |
-| `macro_search`, `earnings_upcoming`, `earnings_estimates`, `analyst_individual`, `price_target_history`, `sec_filing_content`, `sec_insider_transactions`, `price_option`, `compute_greeks`, `price_bond`, `yield_curve_value` | registered handlers, callable over REST | **NO — no `TOOL_SCHEMAS` entry → invisible to every model** |
+| Tool id                                                                                                                                                                                                                        | What it does                                                         | Reachable by an agent?                                      |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `price_data`                                                                                                                                                                                                                   | ≤90 OHLCV bars + latest quote                                        | yes                                                         |
+| `fundamentals`                                                                                                                                                                                                                 | valuation ratios + profile                                           | yes                                                         |
+| `backtest_summary`                                                                                                                                                                                                             | digest a cached BacktestResult                                       | yes                                                         |
+| `broker_portfolio`                                                                                                                                                                                                             | read-only connected-broker account                                   | yes                                                         |
+| `screener_run`                                                                                                                                                                                                                 | run the screener                                                     | yes                                                         |
+| `macro_series`                                                                                                                                                                                                                 | one macro series (schema omits required `provider`; handler rejects) | yes                                                         |
+| `earnings_history`                                                                                                                                                                                                             | past earnings (≤12 quarters)                                         | yes                                                         |
+| `analyst_history`                                                                                                                                                                                                              | rating-change history                                                | yes                                                         |
+| `sec_filings_list`                                                                                                                                                                                                             | filings index (degrades if sec-edgar down)                           | yes                                                         |
+| `get_terminal_state` / `get_portfolio`                                                                                                                                                                                         | snapshot reads                                                       | yes (runtime-resolved)                                      |
+| `open_panel` / `set_chart_symbol` / `add_to_watchlist` / `propose_order`                                                                                                                                                       | host actions                                                         | yes (runtime-resolved)                                      |
+| `macro_search`, `earnings_upcoming`, `earnings_estimates`, `analyst_individual`, `price_target_history`, `sec_filing_content`, `sec_insider_transactions`, `price_option`, `compute_greeks`, `price_bond`, `yield_curve_value` | registered handlers, callable over REST                              | **NO — no `TOOL_SCHEMAS` entry → invisible to every model** |
 
 **Material catalog gap:** ~11 registered handlers (the entire QuantLib quartet,
 extended earnings/analyst/SEC tools, macro search) have no schema entry and are
@@ -714,12 +715,13 @@ extended earnings/analyst/SEC tools, macro search) have no schema entry and are
 a `tool_use` block.
 
 **Honest copilot caveats:**
+
 - **Shipped default routes to Ollama `qwen2.5:7b`** — a local model that may not
   be installed; without a running daemon the default agent fails at first call
   unless the user overrides. It is also the agent doing the most tool
   orchestration, on the smallest model.
 - **Gemini multi-round tool use is likely broken** — Gemini keys
-  `function_response` by tool *name* read from `metadata["name"]`, but the runtime
+  `function_response` by tool _name_ read from `metadata["name"]`, but the runtime
   appends tool-result messages with only `tool_call_id` and no `name` → every
   result serialises `name=""`. Single-text Gemini calls are fine. OpenAI-family +
   Anthropic key by id and are correct.
@@ -769,13 +771,13 @@ places with a clean ownership split. `get_data_dir()` reads `VYSTED_DATA_DIR`
 (set by the core via `--data-dir`), falling back to `~/.vysted-terminal` outside
 Tauri.
 
-| Surface | Owner | Backing store | Location |
-|---|---|---|---|
-| Workspace blob (layout, modules, drawings, default provider, watchlist) | Sidecar | `<name>.vysted-workspace` JSON | `get_data_dir()/workspaces/` |
-| BYOK secrets (LLM keys, MCP endpoints, broker creds, plugin secrets, disclaimer acks) | Tauri Rust | OS credential store | macOS Keychain / Win Cred Mgr / Secret Service |
-| Portfolio positions | Sidecar | SQLite `positions` | `get_data_dir()/portfolio.db` |
-| Order audit log | Sidecar | SQLite `audit_orders` (append-only) | `get_data_dir()/audit_log.db` |
-| Upstream-data TTL cache | Sidecar | SQLite `cache` (WAL) | `get_data_dir()/data_cache.db` |
+| Surface                                                                               | Owner      | Backing store                       | Location                                       |
+| ------------------------------------------------------------------------------------- | ---------- | ----------------------------------- | ---------------------------------------------- |
+| Workspace blob (layout, modules, drawings, default provider, watchlist)               | Sidecar    | `<name>.vysted-workspace` JSON      | `get_data_dir()/workspaces/`                   |
+| BYOK secrets (LLM keys, MCP endpoints, broker creds, plugin secrets, disclaimer acks) | Tauri Rust | OS credential store                 | macOS Keychain / Win Cred Mgr / Secret Service |
+| Portfolio positions                                                                   | Sidecar    | SQLite `positions`                  | `get_data_dir()/portfolio.db`                  |
+| Order audit log                                                                       | Sidecar    | SQLite `audit_orders` (append-only) | `get_data_dir()/audit_log.db`                  |
+| Upstream-data TTL cache                                                               | Sidecar    | SQLite `cache` (WAL)                | `get_data_dir()/data_cache.db`                 |
 
 **The sidecar owns all filesystem persistence so the frontend never needs file
 access** — it reaches persistence only through `/workspace`, `/portfolio`,
@@ -810,40 +812,40 @@ Reference HEAD `3123e7c` (Phase 10). **Last release tag `v0.8.0`; Phase
 "automated gates pass against mocks," **not** "live/visually validated by a
 human."
 
-| Item | Status | Source |
-|---|---|---|
-| `pnpm ci-local` (full CI parity) | **Works** — exit 0: 619 vitest, 6 cargo, 942 pytest | PHASE_10_HANDOFF §"Gate results" |
-| §6.5 execution-safety layer | **Works** — 9/9 audit; 6 LOCKED files byte-identical to baseline | PHASE_10_HANDOFF; SAFETY_ARCHITECTURE |
-| All 3 sidecar binaries spawn + bind | **Works** — `smoke-test-sidecars.mjs` exit 0 (freshness + bind probe) | PHASE_10_HANDOFF |
-| Static-export build | **Works** — `next build` compiles (Fraunces + plugin-shell resolve) | PHASE_10_HANDOFF |
-| Copilot agentic tool loop | **Works against a mocked provider** (`test_tool_loop_e2e.py`); live answers unverified | PHASE_10_HANDOFF §2; CLAUDE.md |
-| Kite read-only OAuth exchange | **Works (unit/curl)** — real `generate_session`; live round-trip unverified | PHASE_10_HANDOFF §3 |
-| 5 core data panels + 50 indicators + dockview + workspace save/load | **Works** (mature, prior tags) — but reskinned in Phase 10, so visuals re-verify | §15; CHANGELOG |
-| Phase-6 analysis panels (macro/SEC/earnings/analyst/screener/quant) | **Works** (tests); backend liveness unverified from frontend | §11 |
-| Persisted watchlist + defaultProviderId | **Works** — ride the workspace blob, survive relaunch | PHASE_10_HANDOFF §5 |
-| "Claude after dark" reskin | **Builds**; every panel's rendered appearance is operator-eyeball | PHASE_10_HANDOFF §4 |
-| MCP cold-bind latency | **Buggy/fragile** — 34s isolated, worse under I/O contention; mitigated (45s×2, graceful fallback), not crash | BLOCKERS Phase 9.5 UC1 |
-| openbb/sec-edgar `_MEIPASS` deadlock root cause | **Buggy** — worked around at the supervisor, NOT actually fixed | BLOCKERS carry-forward #7 |
-| Smoke-test endpoint-data gap | **Buggy** — binds-but-empty-data still passes the gate | BLOCKERS S2 #8 |
-| Non-India broker adapters (Alpaca/IB/OANDA/ccxt) | **Dead at runtime** — implemented, never registered, not in `BUNDLED_PLUGINS` | BLOCKERS S2 #5 |
-| 7 broker plugins under `plugins/brokers/` | **Dead-wired** — never imported under `src/`; execution bypasses the plugin runtime | §8 |
-| `contributesAgents` / `contributesNodes` plugin paths | **Unexercised** — empty in practice | §8 |
-| Gemini multi-round tool use | **Likely broken** — `function_response` keyed by empty name | §4 |
-| `/positions` `/holdings` `/margins` distinct data | **No** — all alias `account_info()`; granular methods don't exist | §6 broker |
-| `resetKillSwitch()` / invalid-order-type tests | **Untested** (feature works; test gap is the bug) | BLOCKERS S1 |
-| Plugin manifest↔instance + `requiredHostVersion` checks | **Documented but not implemented** | §8 |
-| Capability `shell:allow-open` for frontend `open()` | **Probably denied at runtime** — permission not granted | §1 desktop |
-| Custom-agent tool allow-list | **Stale/out of sync** — 5 ids; `news`/`macro` not in `TOOL_SCHEMAS` | §11 |
-| Live order execution | **Designed + paper-only, never live-validated** — no live order ever placed | §15; SAFETY_ARCHITECTURE |
-| Kite `request_token` Rust-loopback auto-capture | **Deferred** — manual paste is the v1 flow | BLOCKERS Phase-10 #4 |
-| Copilot roster depth (`/agents/roster`, 3-pane panel, `delegate_to_persona`) | **Deferred** | BLOCKERS Phase-10 #5 |
-| Customizability follow-ups (connector hub, panel gallery, saved screens) | **Deferred** — DataSource registry currently inert | BLOCKERS Phase-10 #6 |
-| `--onedir` MCP packaging (true cold-bind fix) | **Deferred** — needs `tauri build`-verifiable change ci-local can't check | BLOCKERS Phase 9.5 |
-| Light theme | **Deferred to v1.1** — dark-only ships | BLOCKERS S2 #10 |
-| Launch ops (signing, updater wiring, channels, landing page, LICENSE flip, TOS dialog) | **Mostly deferred** (Phase 7 → still open) | BLOCKERS v0.7.0→Phase 10 |
-| `auto_export`/auto-updater end-to-end | **Non-functional** — `createUpdaterArtifacts:false`, no frontend caller, no release workflow | §1, §14 |
-| Version strings (`0.8.0` everywhere) | **Stale** — Phase 8/9/9.5/10 unbumped; intent unverified | §14 |
-| mypy/lint debt, a11y gaps, Linux transitive advisories | **Known debt** — see BLOCKERS S2/S3/S4 | BLOCKERS |
+| Item                                                                                   | Status                                                                                                        | Source                                |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| `pnpm ci-local` (full CI parity)                                                       | **Works** — exit 0: 619 vitest, 6 cargo, 942 pytest                                                           | PHASE_10_HANDOFF §"Gate results"      |
+| §6.5 execution-safety layer                                                            | **Works** — 9/9 audit; 6 LOCKED files byte-identical to baseline                                              | PHASE_10_HANDOFF; SAFETY_ARCHITECTURE |
+| All 3 sidecar binaries spawn + bind                                                    | **Works** — `smoke-test-sidecars.mjs` exit 0 (freshness + bind probe)                                         | PHASE_10_HANDOFF                      |
+| Static-export build                                                                    | **Works** — `next build` compiles (Fraunces + plugin-shell resolve)                                           | PHASE_10_HANDOFF                      |
+| Copilot agentic tool loop                                                              | **Works against a mocked provider** (`test_tool_loop_e2e.py`); live answers unverified                        | PHASE_10_HANDOFF §2; CLAUDE.md        |
+| Kite read-only OAuth exchange                                                          | **Works (unit/curl)** — real `generate_session`; live round-trip unverified                                   | PHASE_10_HANDOFF §3                   |
+| 5 core data panels + 50 indicators + dockview + workspace save/load                    | **Works** (mature, prior tags) — but reskinned in Phase 10, so visuals re-verify                              | §15; CHANGELOG                        |
+| Phase-6 analysis panels (macro/SEC/earnings/analyst/screener/quant)                    | **Works** (tests); backend liveness unverified from frontend                                                  | §11                                   |
+| Persisted watchlist + defaultProviderId                                                | **Works** — ride the workspace blob, survive relaunch                                                         | PHASE_10_HANDOFF §5                   |
+| "Claude after dark" reskin                                                             | **Builds**; every panel's rendered appearance is operator-eyeball                                             | PHASE_10_HANDOFF §4                   |
+| MCP cold-bind latency                                                                  | **Buggy/fragile** — 34s isolated, worse under I/O contention; mitigated (45s×2, graceful fallback), not crash | BLOCKERS Phase 9.5 UC1                |
+| openbb/sec-edgar `_MEIPASS` deadlock root cause                                        | **Buggy** — worked around at the supervisor, NOT actually fixed                                               | BLOCKERS carry-forward #7             |
+| Smoke-test endpoint-data gap                                                           | **Buggy** — binds-but-empty-data still passes the gate                                                        | BLOCKERS S2 #8                        |
+| Non-India broker adapters (Alpaca/IB/OANDA/ccxt)                                       | **Dead at runtime** — implemented, never registered, not in `BUNDLED_PLUGINS`                                 | BLOCKERS S2 #5                        |
+| 7 broker plugins under `plugins/brokers/`                                              | **Dead-wired** — never imported under `src/`; execution bypasses the plugin runtime                           | §8                                    |
+| `contributesAgents` / `contributesNodes` plugin paths                                  | **Unexercised** — empty in practice                                                                           | §8                                    |
+| Gemini multi-round tool use                                                            | **Likely broken** — `function_response` keyed by empty name                                                   | §4                                    |
+| `/positions` `/holdings` `/margins` distinct data                                      | **No** — all alias `account_info()`; granular methods don't exist                                             | §6 broker                             |
+| `resetKillSwitch()` / invalid-order-type tests                                         | **Untested** (feature works; test gap is the bug)                                                             | BLOCKERS S1                           |
+| Plugin manifest↔instance + `requiredHostVersion` checks                                | **Documented but not implemented**                                                                            | §8                                    |
+| Capability `shell:allow-open` for frontend `open()`                                    | **Probably denied at runtime** — permission not granted                                                       | §1 desktop                            |
+| Custom-agent tool allow-list                                                           | **Stale/out of sync** — 5 ids; `news`/`macro` not in `TOOL_SCHEMAS`                                           | §11                                   |
+| Live order execution                                                                   | **Designed + paper-only, never live-validated** — no live order ever placed                                   | §15; SAFETY_ARCHITECTURE              |
+| Kite `request_token` Rust-loopback auto-capture                                        | **Deferred** — manual paste is the v1 flow                                                                    | BLOCKERS Phase-10 #4                  |
+| Copilot roster depth (`/agents/roster`, 3-pane panel, `delegate_to_persona`)           | **Deferred**                                                                                                  | BLOCKERS Phase-10 #5                  |
+| Customizability follow-ups (connector hub, panel gallery, saved screens)               | **Deferred** — DataSource registry currently inert                                                            | BLOCKERS Phase-10 #6                  |
+| `--onedir` MCP packaging (true cold-bind fix)                                          | **Deferred** — needs `tauri build`-verifiable change ci-local can't check                                     | BLOCKERS Phase 9.5                    |
+| Light theme                                                                            | **Deferred to v1.1** — dark-only ships                                                                        | BLOCKERS S2 #10                       |
+| Launch ops (signing, updater wiring, channels, landing page, LICENSE flip, TOS dialog) | **Mostly deferred** (Phase 7 → still open)                                                                    | BLOCKERS v0.7.0→Phase 10              |
+| `auto_export`/auto-updater end-to-end                                                  | **Non-functional** — `createUpdaterArtifacts:false`, no frontend caller, no release workflow                  | §1, §14                               |
+| Version strings (`0.8.0` everywhere)                                                   | **Stale** — Phase 8/9/9.5/10 unbumped; intent unverified                                                      | §14                                   |
+| mypy/lint debt, a11y gaps, Linux transitive advisories                                 | **Known debt** — see BLOCKERS S2/S3/S4                                                                        | BLOCKERS                              |
 
 **Bottom line:** green on every machine-checkable gate, unproven on every
 human-checkable one. The §6.5 safety layer is the trustworthy core. The two
@@ -872,7 +874,7 @@ the surface and the agent-centrality.
 - **dockview panels + the workspace-blob persistence model.** The layout engine,
   the module registry, the opaque-blob round-trip, the unknown-component restore
   guard, the local-first ownership split (sidecar files + OS keychain). The
-  *arrangement* may change; the persistence + SSR-safe mounting mechanics are
+  _arrangement_ may change; the persistence + SSR-safe mounting mechanics are
   hard-won and should survive.
 - **Kite read-only broker connect.** The genuine `generate_session` OAuth +
   read-only positions/holdings/P&L is the canonical BYOK pattern and the one
@@ -904,7 +906,7 @@ the surface and the agent-centrality.
   `delegate_to_persona`) is the natural first build.
 - **MCP-as-framework.** Today MCP is plumbing (two proxied subprocesses + a
   serve-out surface with a manual copy-paste external-client flow). A
-  "Cursor for finance" thesis likely wants MCP as the *extension framework* —
+  "Cursor for finance" thesis likely wants MCP as the _extension framework_ —
   the inert DataSource/connector registry, the dead stdio transport reserved for
   filesystem plugins, and the missing marketplace/signing/loader are where this
   becomes real. The contract supports it; the wiring does not exist yet.

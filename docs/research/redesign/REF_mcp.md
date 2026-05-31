@@ -5,9 +5,9 @@ Research reference for the redesign. Goal: turn the Vysted sidecar into an
 MCP client) can drive — same capability layer the built-in Copilot uses. This
 is the "app as a framework" move: one tool catalog, two consumers.
 
-**Bottom line up front:** Vysted *already* ships a FastMCP server
+**Bottom line up front:** Vysted _already_ ships a FastMCP server
 (`sidecar/services/mcp_server.py`) mounted at `/mcp` over Streamable-HTTP, and
-*already* has a built-in agent runtime that consumes a tool catalog
+_already_ has a built-in agent runtime that consumes a tool catalog
 (`sidecar/services/agent_tools/`). The redesign work is not "build an MCP
 server from scratch" — it is **unifying the two tool surfaces into one catalog,
 broadening coverage to all eight domains, formalising the read-only/mutation
@@ -23,11 +23,11 @@ The protocol exposes three server-side primitives, distinguished by **who
 controls invocation** ([modelcontextprotocol.io spec][spec-prompts],
 [WorkOS features guide][workos]):
 
-| Primitive | Controlled by | Purpose | Side effects | Vysted fit |
-|---|---|---|---|---|
-| **Tools** | **Model** | Actions the LLM decides to call (query API, run computation, mutate state). The client may surface name/args and ask the user to confirm before invoking. | Allowed | quotes, history, fundamentals, screener, quant, news, portfolio reads; chart/watchlist drives; `propose_order` |
-| **Resources** | **Application** | Read-only contextual data the host injects into the model's context — "knowledge, not doing." Addressed by URI, no side effects. | None | the current workspace blob, the watchlist, a system/onboarding prompt, a portfolio snapshot, a saved-strategy doc |
-| **Prompts** | **User** | Pre-defined instruction templates / multi-step workflows the user explicitly selects (slash-command style). Can reference resources + tools. | None directly | "equity workup", "macro regime read", "portfolio risk review" — canned analyst playbooks |
+| Primitive     | Controlled by   | Purpose                                                                                                                                                   | Side effects  | Vysted fit                                                                                                        |
+| ------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Tools**     | **Model**       | Actions the LLM decides to call (query API, run computation, mutate state). The client may surface name/args and ask the user to confirm before invoking. | Allowed       | quotes, history, fundamentals, screener, quant, news, portfolio reads; chart/watchlist drives; `propose_order`    |
+| **Resources** | **Application** | Read-only contextual data the host injects into the model's context — "knowledge, not doing." Addressed by URI, no side effects.                          | None          | the current workspace blob, the watchlist, a system/onboarding prompt, a portfolio snapshot, a saved-strategy doc |
+| **Prompts**   | **User**        | Pre-defined instruction templates / multi-step workflows the user explicitly selects (slash-command style). Can reference resources + tools.              | None directly | "equity workup", "macro regime read", "portfolio risk review" — canned analyst playbooks                          |
 
 Key design rule from the spec: **tools are model-controlled, resources are
 app-controlled, prompts are user-controlled** ([WorkOS][workos],
@@ -35,13 +35,13 @@ app-controlled, prompts are user-controlled** ([WorkOS][workos],
 when a resource is the honest primitive — but note the practical reality below.
 
 **Practical caveat (important for Vysted):** most clients today (including
-Claude Code as an MCP *client*) consume **tools** far more reliably than
+Claude Code as an MCP _client_) consume **tools** far more reliably than
 resources or prompts — resource/prompt support is uneven across clients. OpenBB
 made the same call: it exposes everything as **tools** and uses a single
 `resource://system_prompt` resource for onboarding only ([OpenBB MCP
 docs][openbb-mcp]). **Recommendation: lead with tools for every capability,
-add a *small* set of resources (workspace, system prompt) and prompts (canned
-workflows) as progressive enhancement — never make a capability *only*
+add a _small_ set of resources (workspace, system prompt) and prompts (canned
+workflows) as progressive enhancement — never make a capability _only_
 reachable via resource/prompt.**
 
 ---
@@ -52,18 +52,18 @@ FastMCP supports stdio, HTTP, SSE, and Streamable-HTTP ([FastMCP /
 KDnuggets][kdnuggets], [DeepWiki][deepwiki]):
 
 - **stdio** — subprocess over stdin/stdout, no network. Ideal for local
-  editor integrations (Claude Desktop, Cursor) that *spawn* the server. Auth is
+  editor integrations (Claude Desktop, Cursor) that _spawn_ the server. Auth is
   inherited from the local process environment — no token layer
   ([FastMCP auth docs][fastmcp-auth]).
 - **SSE** — legacy server-initiated streaming over HTTP. Being superseded.
-- **Streamable-HTTP** — *the current standard for remote MCP and FastMCP's
-  recommended production transport* ([FastMCP][kdnuggets]). Single endpoint,
+- **Streamable-HTTP** — _the current standard for remote MCP and FastMCP's
+  recommended production transport_ ([FastMCP][kdnuggets]). Single endpoint,
   supports stateful sessions (`mcp-session-id` header) **or** stateless mode.
 
 **What Vysted does today:** Streamable-HTTP, `stateless_http=True`, mounted at
 `/mcp` in the main FastAPI app (`mcp_server.py:351` `get_streamable_http_app`,
 `app.py:213` `app.mount("/mcp", ...)`). Protocol revision `2025-06-18`. This is
-the right call for an app that is *already running* — the agent connects to the
+the right call for an app that is _already running_ — the agent connects to the
 live terminal's port (`http://127.0.0.1:<port>/mcp/`).
 
 **The gap for "framework others build on":** the HTTP server only exists while
@@ -71,7 +71,7 @@ the Tauri app is running, and its port is assigned at launch
 (`CLAUDE.md` stack note). An external agent in Claude Code needs either (a) a
 discoverable port, or (b) a **stdio entrypoint** it can spawn headless without
 the GUI. OpenBB ships exactly this dual story — the same `openbb-mcp` binary
-runs `--transport stdio` for Claude Desktop *or* `--transport streamable-http`
+runs `--transport stdio` for Claude Desktop _or_ `--transport streamable-http`
 (default) for a long-lived server ([OpenBB MCP docs][openbb-mcp]).
 
 **Recommendation:**
@@ -80,7 +80,7 @@ runs `--transport stdio` for Claude Desktop *or* `--transport streamable-http`
    path is in-process; external clients attach to the live terminal).
 2. **Add a stdio entrypoint** — a thin `python -m vysted.mcp` / PyInstaller
    binary that boots the FastAPI app headless (or just the tool layer) and
-   serves the *same* FastMCP instance over stdio. This is what makes Vysted a
+   serves the _same_ FastMCP instance over stdio. This is what makes Vysted a
    framework Claude Code can spawn without the desktop app open.
 3. **Publish the live port** to a well-known location (lockfile in app data dir,
    or a `.mcp.json` Vysted writes on launch) so an attached client can find it.
@@ -111,11 +111,11 @@ Load-bearing idioms:
   via `Annotated[str, "..."]` or `Annotated[int, Field(description=..., ge=1, le=1000)]`.
 - **Async tools** run on the loop; sync tools auto-offload to a thread pool.
 - **Return a dict (or a Pydantic model / dataclass)** for structured content.
-  *Vysted gotcha already in CLAUDE.md: FastMCP rejects a bare list/scalar —
-  `structured_content must be a dict`. Wrap lists as `{"agents": [...]}`.*
-- **`ToolAnnotations`** carry safety *hints* without spending context tokens:
+  _Vysted gotcha already in CLAUDE.md: FastMCP rejects a bare list/scalar —
+  `structured_content must be a dict`. Wrap lists as `{"agents": [...]}`._
+- **`ToolAnnotations`** carry safety _hints_ without spending context tokens:
   `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`
-  ([FastMCP tools][fastmcp-tools]). These are **advisory** — a client *may*
+  ([FastMCP tools][fastmcp-tools]). These are **advisory** — a client _may_
   use them to skip confirmation on read-only tools — not an enforcement
   boundary. Enforce separately (§5).
 - **Tags + enable/disable** for visibility: `@mcp.tool(tags={"broker"})` then
@@ -158,7 +158,7 @@ unified:**
 
 These were built in different phases and **do not share a catalog.** Note the
 asymmetry: the internal Copilot can drive the chart and propose orders; the
-external MCP surface can read quotes and *invoke a whole agent* but can't, say,
+external MCP surface can read quotes and _invoke a whole agent_ but can't, say,
 run the screener or read fundamentals through the same names. That divergence is
 the thing to fix.
 
@@ -185,30 +185,30 @@ the thing to fix.
 ```
 
 The catalog already half-exists: `TOOL_SCHEMAS` is provider-neutral and keyed by
-the *same id* used in the registry and in `AgentSpec.tools` — exactly the right
+the _same id_ used in the registry and in `AgentSpec.tools` — exactly the right
 seam. The redesign generates the FastMCP tool set **from that same catalog**
 instead of hand-writing a second list. Then:
 
-- Adding `price_data` once makes it visible to Copilot *and* to Claude Code.
+- Adding `price_data` once makes it visible to Copilot _and_ to Claude Code.
 - The `read-only` flag drives **both** the internal mutation gate **and** the
   MCP `readOnlyHint` annotation from one declaration.
 - Domain tags (`market-data`, `fundamentals`, `quant`, `broker`) let you do
   OpenBB-style category scoping (§6) for both consumers.
 
 **Precedent in OpenBB:** the OpenBB MCP server and OpenBB Workspace's built-in
-agents both consume the *same* Platform REST endpoints surfaced as tools — the
+agents both consume the _same_ Platform REST endpoints surfaced as tools — the
 MCP layer is "the interface that makes MCP work for financial workflows" rather
 than a separate integration ([OpenBB blog][openbb-iface]). Same idea: the app's
 own AI and external AIs eat from one bowl.
 
 **One wrinkle to design around — host-action tools.** `open_panel`,
-`set_chart_symbol`, `propose_order` are resolved *inside* `invoke_agent` because
+`set_chart_symbol`, `propose_order` are resolved _inside_ `invoke_agent` because
 they need request scope / must drive the frontend (`schemas.py` header comment;
 `agent_runtime._build_local_tools`). For an external MCP client there is **no
 frontend to drive** (it may be running headless). Two options:
 
 1. **Expose them anyway, with a "queued directive" semantics** — the MCP tool
-   returns a directive the *attached live app* picks up over a websocket/event
+   returns a directive the _attached live app_ picks up over a websocket/event
    bus (only meaningful when the GUI is attached; returns "no host attached"
    otherwise). This is the honest dual-mode behaviour.
 2. **Tag them `host-only` and exclude from the external surface by default** —
@@ -223,12 +223,12 @@ the documented path when a live GUI session is attached.
 ## 5. Safe / read-only by default, gate the mutations
 
 This is the highest-risk surface and Vysted already has strong precedent
-(§6.5 safety architecture). Layer the defenses — annotations are *advisory*,
+(§6.5 safety architecture). Layer the defenses — annotations are _advisory_,
 real enforcement is structural.
 
 **Layer 1 — read-only by default, declared in the catalog.** Every tool carries
 a `read_only: bool` (or a `mutates` flag). Default `read_only=True`. The FastMCP
-adapter sets `ToolAnnotations(readOnlyHint=True)` from it. Clients *may* skip
+adapter sets `ToolAnnotations(readOnlyHint=True)` from it. Clients _may_ skip
 the confirmation prompt for read-only tools, so getting this right matters for
 UX, not just safety ([FastMCP tools][fastmcp-tools], [WorkOS][workos]).
 
@@ -245,10 +245,10 @@ non-`readOnlyHint` unless it is on an explicit allowlist.
 **Layer 3 — the one sanctioned write path is propose-not-place.** Vysted's
 §6.5 invariant: the AI tool is `propose_order`, never `place_order` /
 `submit_order` / `execute_order` (the names `test_safety_end_to_end.py` greps
-the registry for). `propose_order` only *returns a directive that opens a
-confirmation dialog* the user must approve; the AI has no path to
+the registry for). `propose_order` only _returns a directive that opens a
+confirmation dialog_ the user must approve; the AI has no path to
 `confirm_and_place`. **For the MCP framework story, this is the model for ALL
-mutations:** an external agent can *propose*, a human *confirms*. The append-only
+mutations:** an external agent can _propose_, a human _confirms_. The append-only
 audit log (SQLite triggers, `RAISE(ABORT)` on UPDATE/DELETE) records every
 proposal/placement regardless of which consumer originated it.
 
@@ -276,7 +276,7 @@ non-loopback bind = auth required, block-and-ask (Tier-4) before shipping it.**
 and agent-created artifacts inherit the user's access controls with full data
 lineage ([OpenBB Workspace MCP][openbb-workspace]). Vysted is single-user
 local-first today so this is latent, but the principle to bake in now: an
-external agent operates with *the user's* entitlements, never a superset — the
+external agent operates with _the user's_ entitlements, never a superset — the
 broker connection it can read is the one the user connected, gated by the same
 §6.5 safety layer.
 
@@ -284,15 +284,15 @@ broker connection it can read is the one the user connected, gated by the same
 
 ## 6. Tool scoping & discovery at scale (the OpenBB lesson)
 
-A finance terminal has *dozens* of endpoints across eight domains. Dumping 60+
+A finance terminal has _dozens_ of endpoints across eight domains. Dumping 60+
 tools into one client's context is a token + accuracy problem. OpenBB's answer is
 **dynamic tool discovery** — worth adopting as Vysted's coverage grows
 ([OpenBB MCP docs][openbb-mcp]):
 
 - Root "admin" tools the agent calls first: `available_categories`,
   `available_tools` (by category), `activate_tools` / `deactivate_tools`. The
-  agent explores categories and *activates only the toolset it needs this
-  session*, instead of the host paying for all schemas every turn.
+  agent explores categories and _activates only the toolset it needs this
+  session_, instead of the host paying for all schemas every turn.
 - Disable via `--no-tool-discovery` for fixed/multi-client deployments.
 - Category scoping flags: `--allowed-categories` (what exists server-wide),
   `--default-categories` (what's on at startup, default `all`). Categories derive
@@ -302,7 +302,7 @@ tools into one client's context is a token + accuracy problem. OpenBB's answer i
 **For Vysted:** at the current ~12 tools, ship the **flat catalog** (no
 discovery overhead). **Design the catalog with domain tags from day one**
 (`market-data`, `fundamentals`, `screener`, `quant`, `portfolio`, `news`,
-`macro`, `broker`) so that *when* coverage crosses ~25–30 tools you can add the
+`macro`, `broker`) so that _when_ coverage crosses ~25–30 tools you can add the
 OpenBB-style `available_tools`/`activate_tools` discovery layer over the same
 tags with no catalog rewrite. This is a Tier-2/3 decision (spec-derivable) — the
 tags are cheap insurance.
@@ -314,16 +314,16 @@ tags are cheap insurance.
 **The eight-domain tool catalog** (map each to its existing router; reuse the
 in-process ASGI shim pattern):
 
-| Domain | MCP tools (read-only unless noted) | Router source |
-|---|---|---|
-| **Quotes** | `get_quote`, `get_history` (`price_data`) | `routers/quotes.py` |
-| **Charts** | `set_chart_symbol`*, `add_indicator`* (host-only, §4) | frontend drive |
-| **Screener** | `run_screener` (`screener_run`) | `routers/screener.py` |
-| **Fundamentals** | `get_fundamentals`, `earnings_history`, `analyst_history`, `sec_filings_list` | `routers/*` |
-| **Portfolio** | `get_portfolio`, `broker_portfolio` (read-only) | `routers/portfolio.py`, `routers/brokers.py` |
-| **News** | `get_news` (with sentiment) | `routers/news.py` |
-| **Quant** | `quant_stats`, `run_backtest` (read-only compute) | `routers/quant.py` |
-| **Brokers** | `broker_portfolio` (read); `propose_order` (**only** gated mutation) | `routers/brokers.py` |
+| Domain           | MCP tools (read-only unless noted)                                            | Router source                                |
+| ---------------- | ----------------------------------------------------------------------------- | -------------------------------------------- |
+| **Quotes**       | `get_quote`, `get_history` (`price_data`)                                     | `routers/quotes.py`                          |
+| **Charts**       | `set_chart_symbol`_, `add_indicator`_ (host-only, §4)                         | frontend drive                               |
+| **Screener**     | `run_screener` (`screener_run`)                                               | `routers/screener.py`                        |
+| **Fundamentals** | `get_fundamentals`, `earnings_history`, `analyst_history`, `sec_filings_list` | `routers/*`                                  |
+| **Portfolio**    | `get_portfolio`, `broker_portfolio` (read-only)                               | `routers/portfolio.py`, `routers/brokers.py` |
+| **News**         | `get_news` (with sentiment)                                                   | `routers/news.py`                            |
+| **Quant**        | `quant_stats`, `run_backtest` (read-only compute)                             | `routers/quant.py`                           |
+| **Brokers**      | `broker_portfolio` (read); `propose_order` (**only** gated mutation)          | `routers/brokers.py`                         |
 
 \* host-only tools: excluded from external surface by default (§4 option 2);
 returned as queued directives only when a live GUI session is attached.
@@ -336,7 +336,7 @@ returned as queued directives only when a live GUI session is attached.
    derived from the entry's `read_only` flag and a domain tag.
 2. **Streamable-HTTP at `/mcp`, stateless** — the in-app path (already built).
 3. **New stdio entrypoint** — headless spawnable binary for Claude Code /
-   Desktop, serving the *same* FastMCP instance.
+   Desktop, serving the _same_ FastMCP instance.
 4. **Port discovery file** — Vysted writes `<appdata>/vysted/mcp.json`
    (`{url, port, protocolVersion}`) on launch; document it so a project
    `.mcp.json` can point Claude Code at the live terminal.
@@ -365,7 +365,7 @@ external agents inherit the user's entitlements, never a superset.
 - Add a thin resource + prompt layer (progressive enhancement).
 
 **Blast-radius note:** none of this touches `types/plugin.ts` (Tier-1) — the MCP
-surface is a *consumer* of capabilities, orthogonal to the plugin contract.
+surface is a _consumer_ of capabilities, orthogonal to the plugin contract.
 Tool-catalog unification and stdio entrypoint are Tier-2 (spec-derivable);
 domain-tagging and the discovery-layer-when-it-grows decision are Tier-3
 (DNA-derived: max extensibility / "app as framework" positioning). **Any

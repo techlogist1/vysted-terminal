@@ -39,6 +39,7 @@ both the internal mutation gate and the external `readOnlyHint`. Vysted is a
 Read-only by default; every mutation is explicit, gated, and audited. The BLUEPRINT
 §6.5 invariants are permanent and may only be **strengthened**, never weakened without
 operator sign-off:
+
 - **Append-only audit log** enforced at the database level (SQLite triggers + a
   read-only reader connection), not by convention.
 - **Type-gated execution** (mutations only reachable through an explicit confirm path)
@@ -128,8 +129,8 @@ radius** — the plugin contract, licensing, the §6.5 safety model, core archit
   in the same PR that changes the behavior they describe. Build history goes to
   `CHANGELOG.md`, not into the rules.
 - **CI-parity verification is a hard gate.** `pnpm ci-local` (lint + format + typecheck
-  + clippy `-D warnings` + ruff + vitest + cargo test + pytest) and the sidecar
-  smoke-test pass before any release tag. A skipped or red gate invalidates the tag.
+  - clippy `-D warnings` + ruff + vitest + cargo test + pytest) and the sidecar
+    smoke-test pass before any release tag. A skipped or red gate invalidates the tag.
 - **Conventional commits, one per deliverable. No emojis in code or commits.**
 - **TDD where it pays:** contract tests for the plugin contract, the capability
   catalog, and the §6.5 safety surface are written and must hold before the behavior
@@ -148,6 +149,6 @@ current-state baseline lives in `docs/CURRENT_STATE.md`.
 
 **Versioning:** MAJOR = principle removed/redefined or governance incompatibility;
 MINOR = principle/section added or materially expanded; PATCH = clarifications and
-wording. 
+wording.
 
 **Version**: 1.0.0 | **Ratified**: 2026-05-30 | **Last Amended**: 2026-05-30

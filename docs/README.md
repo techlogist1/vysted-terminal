@@ -22,16 +22,16 @@ artifacts are under `docs/archive/`.
 
 ## Architecture references (current)
 
-| Doc | Covers |
-|---|---|
-| [BLUEPRINT.md](./BLUEPRINT.md) | Original architectural blueprint — §2 locked decisions, §6.5 safety, module catalog, phase plan |
-| [SAFETY_ARCHITECTURE.md](./SAFETY_ARCHITECTURE.md) | §6.5 execution-safety enforcement, file:line pointers, revert procedure |
-| [MCP_INTEGRATION.md](./MCP_INTEGRATION.md) | MCP on both sides — proxied subprocesses + the serve-out FastMCP surface |
-| [SIDECAR_API.md](./SIDECAR_API.md) | Sidecar HTTP surface overview |
-| [PLUGIN_DEVELOPMENT.md](./PLUGIN_DEVELOPMENT.md) | The `VystedPlugin` six-capability contract and how to build a plugin |
-| [BROKER_INTEGRATIONS.md](./BROKER_INTEGRATIONS.md) | Per-broker setup, Kite read-only OAuth, static-IP UX |
-| [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) | Design tokens and the (current) visual language |
-| [PHASE_10_HANDOFF.md](./PHASE_10_HANDOFF.md) | Latest phase handoff (copilot + integrations + reskin) |
+| Doc                                                | Covers                                                                                          |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| [BLUEPRINT.md](./BLUEPRINT.md)                     | Original architectural blueprint — §2 locked decisions, §6.5 safety, module catalog, phase plan |
+| [SAFETY_ARCHITECTURE.md](./SAFETY_ARCHITECTURE.md) | §6.5 execution-safety enforcement, file:line pointers, revert procedure                         |
+| [MCP_INTEGRATION.md](./MCP_INTEGRATION.md)         | MCP on both sides — proxied subprocesses + the serve-out FastMCP surface                        |
+| [SIDECAR_API.md](./SIDECAR_API.md)                 | Sidecar HTTP surface overview                                                                   |
+| [PLUGIN_DEVELOPMENT.md](./PLUGIN_DEVELOPMENT.md)   | The `VystedPlugin` six-capability contract and how to build a plugin                            |
+| [BROKER_INTEGRATIONS.md](./BROKER_INTEGRATIONS.md) | Per-broker setup, Kite read-only OAuth, static-IP UX                                            |
+| [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)             | Design tokens and the (current) visual language                                                 |
+| [PHASE_10_HANDOFF.md](./PHASE_10_HANDOFF.md)       | Latest phase handoff (copilot + integrations + reskin)                                          |
 
 ## History
 

@@ -19,13 +19,13 @@ vapor, and what each thing teaches Vysted.
 The repo mixes a genuinely large, working C++ core with **stale/marketing
 READMEs** that over-claim. Be skeptical of their prose; trust the source tree.
 
-| Claim (in their docs) | Reality in the tree | Verdict |
-|---|---|---|
-| "16 broker integrations" (`README.md:55`) | **22** broker dirs under `src/trading/brokers/` (zerodha, angelone, upstox, fyers, dhan, groww, kotak, iifl, fivepaisa, aliceblue, shoonya, motilal, ibkr, alpaca, tradier, saxo, samco, tradejini, flattrade, paytm, icicidirect, metaapi) | Under-claimed; real |
-| "100+ data connectors" (`README.md:54`) | **117** connectors registered across 10 `connectors/*.cpp` files; the `ConnectorRegistry.h` header comment still says "78" | Real, registry comment stale |
-| "37 agents… custom FinAgent Core framework" (`README.md:53`, `scripts/agents/README.md`) | Agents are **JSON config files**, not the per-investor Python classes the README lists. `scripts/agents/README.md` cites `base_agent.py`, `llm_executor.py`, `agent_manager.py`, `warren_buffett_agent.py`, `agno_trading/` — **none exist**. Runtime is a config-driven wrapper over the third-party **Agno** framework, not bespoke | README ~70% aspirational; runtime real but mis-described |
-| `docs/agentic-research/README.md` describes `design/03_architecture.md`, `papers/SUMMARY.md`, `04_impl_plan.md`, etc. | **Only the README exists** — every referenced design/papers/patterns file is absent. It's a research-plan index pointing at deleted/never-committed outputs | Pure aspiration |
-| "30+ agents powered by local LLMs (Ollama)" | Multi-provider is real (OpenAI/Anthropic/Gemini/Groq/DeepSeek/Ollama/Fincept-hosted); Ollama is one of many. Agent count by config: 11 trader/investor + 16 finagent_core configs + geopolitics/economic sets | Real, "Ollama-only" framing stale |
+| Claim (in their docs)                                                                                                 | Reality in the tree                                                                                                                                                                                                                                                                                                                   | Verdict                                                  |
+| --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| "16 broker integrations" (`README.md:55`)                                                                             | **22** broker dirs under `src/trading/brokers/` (zerodha, angelone, upstox, fyers, dhan, groww, kotak, iifl, fivepaisa, aliceblue, shoonya, motilal, ibkr, alpaca, tradier, saxo, samco, tradejini, flattrade, paytm, icicidirect, metaapi)                                                                                           | Under-claimed; real                                      |
+| "100+ data connectors" (`README.md:54`)                                                                               | **117** connectors registered across 10 `connectors/*.cpp` files; the `ConnectorRegistry.h` header comment still says "78"                                                                                                                                                                                                            | Real, registry comment stale                             |
+| "37 agents… custom FinAgent Core framework" (`README.md:53`, `scripts/agents/README.md`)                              | Agents are **JSON config files**, not the per-investor Python classes the README lists. `scripts/agents/README.md` cites `base_agent.py`, `llm_executor.py`, `agent_manager.py`, `warren_buffett_agent.py`, `agno_trading/` — **none exist**. Runtime is a config-driven wrapper over the third-party **Agno** framework, not bespoke | README ~70% aspirational; runtime real but mis-described |
+| `docs/agentic-research/README.md` describes `design/03_architecture.md`, `papers/SUMMARY.md`, `04_impl_plan.md`, etc. | **Only the README exists** — every referenced design/papers/patterns file is absent. It's a research-plan index pointing at deleted/never-committed outputs                                                                                                                                                                           | Pure aspiration                                          |
+| "30+ agents powered by local LLMs (Ollama)"                                                                           | Multi-provider is real (OpenAI/Anthropic/Gemini/Groq/DeepSeek/Ollama/Fincept-hosted); Ollama is one of many. Agent count by config: 11 trader/investor + 16 finagent_core configs + geopolitics/economic sets                                                                                                                         | Real, "Ollama-only" framing stale                        |
 
 **Lesson for Vysted:** their docs rot because they ship marketing copy as
 engineering docs and never reconcile. Vysted's `CLAUDE.md` "living document"
@@ -59,10 +59,11 @@ This is the single most impressive axis. **55 screen modules** under
   `settings`, `profile`, `auth`, `setup`, `recovery`, `launchpad`, `action_center`
 
 **Data domains via 117 connectors** (`src/screens/data_sources/connectors/`):
+
 - Market data (19): Yahoo, Alpha Vantage, Finnhub, IEX, Twelve Data, Quandl,
   Binance, Coinbase, Kraken, CoinGecko, Tiingo, Intrinio, Reuters, Tradier…
-- **Generic infra connectors** — this is the surprise: it's a *universal data
-  hub*, not just finance APIs. Relational DBs (Postgres, MySQL, Snowflake,
+- **Generic infra connectors** — this is the surprise: it's a _universal data
+  hub_, not just finance APIs. Relational DBs (Postgres, MySQL, Snowflake,
   CockroachDB…), NoSQL (Mongo, Redis, Cassandra, DynamoDB, Neo4j…), time-series
   (InfluxDB, QuestDB, kdb+, ClickHouse, Prometheus…), cloud storage (S3, GCS,
   Azure Blob, R2…), file formats (CSV, Parquet, Avro, ORC, Feather…), streaming
@@ -71,16 +72,17 @@ This is the single most impressive axis. **55 screen modules** under
   Databricks…), and alternative data (RavenPack, SafeGraph, Thinknum…).
 
 **Lesson for Vysted:**
+
 1. **The "universal data connector" idea is the strongest steal.** Vysted is
    BYOK + local-first + max-extensibility. A `DataSourcesScreen` where a user
-   wires their *own* Postgres / S3 / Kafka / Parquet into the terminal — not just
+   wires their _own_ Postgres / S3 / Kafka / Parquet into the terminal — not just
    curated finance feeds — is directly on Vysted's "the data isn't the limit"
    positioning, and Vysted's plugin `data` capability is the natural home for it.
    Fincept proves the breadth is achievable with a flat self-registering registry.
 2. **Breadth without depth is a trap.** 55 screens is a lot of surface; many are
    thin (the geopolitics/maritime/relationship-map panels lean on LLM prose over
    hard data). Vysted's "no Phase 2 / full-scope" DNA should resist breadth-for-
-   breadth. Pick the domains where Vysted has *real* data depth (Phase 6 macro/SEC/
+   breadth. Pick the domains where Vysted has _real_ data depth (Phase 6 macro/SEC/
    QuantLib already do) and let plugins fill the long tail.
 
 Cite: `src/screens/` (55 dirs), `src/screens/data_sources/connectors/*.cpp`
@@ -133,6 +135,7 @@ Agno Implementation").
 ### 2.2 Multi-agent orchestration
 
 Three coexisting patterns:
+
 - **`SuperAgent` triage router** (`super_agent.py`) — LLM classifies a query into
   one of 9 intents (trading/portfolio/analysis/risk/news/geopolitics/economics/
   research/general) and routes to the matching persona. **LLM-first with a keyword
@@ -143,11 +146,11 @@ Three coexisting patterns:
   LLM supports tool-calling it uses the `deepagents` lib; when not (Fincept-hosted
   LLM, Ollama) it falls back to `FinceptOrchestrator` — **pure HTTP + prompt-loop
   that produces the identical output schema** (`orchestrator.py`). Single best
-  idea here: *same output contract regardless of backend capability*.
+  idea here: _same output contract regardless of backend capability_.
 - **Hedge-fund org sims** (`scripts/agents/hedgeFundAgents/`) — only Renaissance
-  is actually built out: a multi-persona *organization* with `organization/
-  hierarchy.py`, `personas.py`, `communication.py`, and a `tracing/
-  workflow_tracer.py`. The other 7 funds named in the README are config stubs.
+  is actually built out: a multi-persona _organization_ with `organization/
+hierarchy.py`, `personas.py`, `communication.py`, and a `tracing/
+workflow_tracer.py`. The other 7 funds named in the README are config stubs.
 
 ### 2.3 The "true agentic" upgrade (the real gem)
 
@@ -183,19 +186,20 @@ stream over both a Qt signal AND a DataHub topic `task:event:<task_id>`. UI is a
 dedicated **`AgenticTasksPanel`** + `PlannerViewPanel` (`src/screens/agent_config/`).
 
 **Lessons for Vysted (high value):**
+
 1. **Vysted's agent loop is single-turn-ish; Fincept's durable runner is the
    upgrade path.** Vysted already has `invoke_agent` + the tool schema catalog
    (per the Phase-10 gotcha). The missing layer is exactly what `agentic/` adds:
    SQLite-checkpointed resumable tasks, a budget guard, a reflexion critic, HITL
    pause-for-question, and a scheduler. The `(task_id, step, state_blob)` on
    SQLite design is cheap and maps onto Vysted's sidecar persistence model.
-2. **BudgetGuard is a §6.5-adjacent safety primitive.** Vysted gates *broker
-   execution* with defense-in-depth; it should gate *autonomous agent spend* the
+2. **BudgetGuard is a §6.5-adjacent safety primitive.** Vysted gates _broker
+   execution_ with defense-in-depth; it should gate _autonomous agent spend_ the
    same way. A token/$/wall-clock/step ceiling that hard-aborts is the agentic
    analog of the kill switch — and it's ~150 LOC.
 3. **Personas-as-JSON-with-a-rubric, not personas-as-code, is the right call.**
    Vysted already ships agent JSONs (`copilot.json`, the Buffett/Dalio/… roster).
-   Fincept validates that the *quality lever is the structured rubric prompt*
+   Fincept validates that the _quality lever is the structured rubric prompt_
    ("every section required: MOAT / RETURNS ON CAPITAL / VALUATION"), not bespoke
    Python per investor. Keep Vysted's agents declarative; invest in rubric depth.
 4. **Same output contract across tool-calling vs prompt-loop backends** (their
@@ -239,16 +243,17 @@ Plus `src/core/keys/KeyConfigManager` for API-key config and `src/auth/`
 (PinManager, InactivityGuard, SessionGuard, SecurityAuditLog) for app-level lock.
 
 **Lessons for Vysted:**
+
 1. **The generic-config-dialog-from-schema pattern is the credentials-hub design
    Vysted should adopt.** A connector/broker declares its credential fields
    (label, type, `secret: true`) and the host renders the form, masks secrets,
    and round-trips test-connection — zero per-connector UI code. Vysted's
    `IBroker`-style `BrokerProfile.credential_fields` (below) already does this for
    brokers; generalize it to all data sources and into the plugin `data` contract.
-2. **Their AES-GCM-on-SQLite is a *weaker* model than Vysted's OS-keychain
+2. **Their AES-GCM-on-SQLite is a _weaker_ model than Vysted's OS-keychain
    (Tauri Rust `keychain_*`).** Machine-ID-derived keys are crackable by any same-
    user process; the OS keychain isn't. **Do not regress to this.** But steal the
-   *honesty*: Fincept documents exactly what its store does and doesn't protect.
+   _honesty_: Fincept documents exactly what its store does and doesn't protect.
    Vysted should keep an equivalent written threat model for its BYOK keychain
    flow (it already has the renderer→keychain→request-header pattern documented).
 3. **Import/export of connections** (`ImportExportConnections`) is a nice
@@ -269,12 +274,13 @@ in the repo for Vysted to study** because it's exactly the broker-execution-plug
 contract problem Vysted faces in Phase 5 / §6.5.
 
 `IBroker` design highlights:
+
 - **`BrokerProfile profile()`** — single source of truth per broker for the UI:
   `id, display_name, region, currency, credential_fields[], exchanges[],
-  product_types[], supports_bracket_order, has_native_paper,
-  default_paper_balance, default_watchlist[], brokerage_info`. The order form and
-  credentials dialog render entirely from this — *the same schema-driven UI idea
-  as connectors*, applied to brokers.
+product_types[], supports_bracket_order, has_native_paper,
+default_paper_balance, default_watchlist[], brokerage_info`. The order form and
+  credentials dialog render entirely from this — _the same schema-driven UI idea
+  as connectors_, applied to brokers.
 - **Pure-virtual core**: `exchange_token`, `place_order`, `modify_order`,
   `cancel_order`, `get_orders`, `get_positions`, `get_holdings`, `get_funds`,
   `get_quotes`, `get_history`. Everything else (GTT orders, market depth, option
@@ -300,11 +306,12 @@ this: `PaperTrading`, `SmartOrderEngine`, `OrderValidator`, `OrderMatcher`,
 `UnifiedTrading`.
 
 **Lessons for Vysted:**
+
 1. **`IBroker` + `BrokerProfile` is the contract Vysted's broker-execution
    plugins want.** Vysted's blueprint puts global broker execution in v1.0 behind
-   the §6.5 safety layer. Fincept's pattern — *one abstract interface, a declarative
+   the §6.5 safety layer. Fincept's pattern — _one abstract interface, a declarative
    `BrokerProfile` driving all UI, virtuals-with-safe-defaults so partial brokers
-   are first-class, and shared close-all/cancel-all/margin fallbacks in the base*
+   are first-class, and shared close-all/cancel-all/margin fallbacks in the base_
    — is a proven shape Vysted should mirror in its broker plugin contract. The
    "every advanced method defaults to `Not supported`" convention is how you ship
    22 brokers without 22× the surface.
@@ -313,14 +320,14 @@ this: `PaperTrading`, `SmartOrderEngine`, `OrderValidator`, `OrderMatcher`,
    Kite static-IP + manual request-token paste (Phase 10 gotcha); Fincept shows
    the generalized version (TOTP secret, client code, environment toggle as
    first-class credential field types).
-3. **CAUTION — this is where Fincept is *least* safe and Vysted must NOT copy.**
-   `IBroker::place_order` is on the *same* interface as `get_quotes`. There's an
+3. **CAUTION — this is where Fincept is _least_ safe and Vysted must NOT copy.**
+   `IBroker::place_order` is on the _same_ interface as `get_quotes`. There's an
    `OrderValidator` but **no §6.5-style append-only audit log, no type-level
    "confirmed-only execution" gate, no read-only-by-construction provider class.**
    Vysted's defense-in-depth (type gate + DB-enforced append-only audit +
    grep-able audit test, per the v0.5.0 §6.5 precedent) is materially stronger.
-   Steal Fincept's *ergonomics* (the interface shape, the profile-driven UI), keep
-   Vysted's *safety architecture*.
+   Steal Fincept's _ergonomics_ (the interface shape, the profile-driven UI), keep
+   Vysted's _safety architecture_.
 
 Cite: `src/trading/BrokerInterface.h`, `src/trading/brokers/*/` (22 dirs),
 `src/trading/exchanges/{kraken,hyperliquid}/`, `src/trading/{PaperTrading,
@@ -335,6 +342,7 @@ SmartOrderEngine,OrderValidator,RateLimiter,UnifiedTrading}.cpp`.
 Qt + **Advanced Docking System (ADS)**, driven by `src/app/DockScreenRouter.h`.
 Every screen is wrapped in a `CDockWidget` that can dock / tab / float /
 auto-hide / tear-off to a new monitor. Strong primitives:
+
 - **Lazy factories** — screens register a `std::function<QWidget*()>` factory;
   the heavy widget is built only on first navigation (avoids constructing all ~46
   screens at boot). A `suppress_visibility_materialize_` guard prevents
@@ -356,7 +364,7 @@ pushpins, workspace).
 ### 5.2 The DataHub (their best architectural idea)
 
 `src/datahub/DataHub.h` — an in-process **pub/sub bus** with typed topics that
-*everything* streams through: quotes, order books, news, vessel tracks, broker
+_everything_ streams through: quotes, order books, news, vessel tracks, broker
 ticks, geopolitical events, **agent outputs, and LLM token streams**. Topic
 naming is a consistent `<family>:<sub>:<id>[:<qualifier>]` grammar
 (`market:quote:AAPL`, `ws:kraken:ticker:BTC-USD`, `news:general`,
@@ -371,36 +379,38 @@ memory. Docs: `fincept-qt/docs/agents/datahub-guide.md`.
 There is **no first-party plugin/extension SDK**. Every screen, broker, and
 connector is **compiled into the monolith** (`grep` for plugin/extension dirs →
 nothing). Extensibility comes from two other directions:
-- **MCP** (`src/mcp/`) — Fincept is both an MCP *client* (can install external MCP
+
+- **MCP** (`src/mcp/`) — Fincept is both an MCP _client_ (can install external MCP
   servers via a `McpMarketplace` catalog: Fetch, Time, Git, SQLite, … each a
-  `{command, args, env_keys}` preset) **and** an MCP *server* exposing ~81 internal
+  `{command, args, env_keys}` preset) **and** an MCP _server_ exposing ~81 internal
   tool modules (`src/mcp/tools/*.cpp`) to LLM callers — including 4 generic
   **DataHub tools** (`datahub_list_topics / peek / request / subscribe_briefly`)
-  that let an agent observe *any* live stream by topic name.
+  that let an agent observe _any_ live stream by topic name.
 - **Node editor** (`src/screens/node_editor/`) — visual workflow builder (canvas/
   palette/properties/toolbar) for chaining tools/agents into automation pipelines.
 
 **Lessons for Vysted:**
+
 1. **The DataHub is the thing to seriously consider adopting.** Vysted's modules
    each own their data fetching; a typed pub/sub bus with a topic grammar + a
    `TopicPolicy` rate/coalesce layer would (a) decouple producers from panels, (b)
-   give the AI agent a *uniform observation surface* over every live stream (their
+   give the AI agent a _uniform observation surface_ over every live stream (their
    `datahub_subscribe_briefly` "watch this topic for 5s" tool is genuinely clever
-   for letting an agent reason about a *volatile* feed, not just a snapshot), and
+   for letting an agent reason about a _volatile_ feed, not just a snapshot), and
    (c) bound memory via retire-on-completion for per-run topics. This fits Vysted's
    plugin `data` + `agents` capabilities cleanly. **Biggest single architectural
    idea worth lifting.**
 2. **MCP-as-extensibility is the model Vysted is already aligned with.** Fincept
-   chose MCP (client marketplace + internal tool server) *instead of* a bespoke
-   plugin SDK — and it's the weaker choice for a *UI* extension story (you can't
+   chose MCP (client marketplace + internal tool server) _instead of_ a bespoke
+   plugin SDK — and it's the weaker choice for a _UI_ extension story (you can't
    ship a new panel via MCP). **Vysted's `VystedPlugin` contract is strictly
    better positioned**: it has a real panel/command/node/control-plane capability
-   surface Fincept lacks. Lesson: Vysted should keep MCP for *tool* extensibility
-   but not abandon the typed plugin contract for *UI/data* extensibility — that's
+   surface Fincept lacks. Lesson: Vysted should keep MCP for _tool_ extensibility
+   but not abandon the typed plugin contract for _UI/data_ extensibility — that's
    the gap Fincept never closed (monolith of 55 compiled screens).
 3. **Lazy panel factories + per-instance UUID state + symbol-group linking** are
    directly portable to Vysted's dockview host. Vysted already lazy-mounts
-   dockview after modules register; the *symbol-group linking* (change ticker in
+   dockview after modules register; the _symbol-group linking_ (change ticker in
    one panel → all linked panels follow) is a high-value UX feature Vysted's
    "AAPL anchor cockpit" convention would benefit from and doesn't have yet.
 4. **Multi-window tear-off to a second monitor** is table-stakes for a "terminal"
@@ -430,10 +440,10 @@ TopicPolicy.h}`, `fincept-qt/docs/agents/datahub-guide.md`, `src/mcp/
    `credential_fields[]`, the host renders/masks/tests — zero per-source UI.
    (`BrokerInterface.h::BrokerProfile`, `ConnectorRegistry.h`)
 4. **Copy `IBroker`'s ergonomics, keep Vysted's §6.5 safety.** Abstract interface
-   + declarative `BrokerProfile` + virtuals-default-to-`Not-supported` + shared
-   close-all/margin fallbacks. But Fincept has *no* append-only audit / type-gated
-   execution — Vysted's defense-in-depth is the safety layer Fincept is missing.
-   (`src/trading/BrokerInterface.h`)
+   - declarative `BrokerProfile` + virtuals-default-to-`Not-supported` + shared
+     close-all/margin fallbacks. But Fincept has _no_ append-only audit / type-gated
+     execution — Vysted's defense-in-depth is the safety layer Fincept is missing.
+     (`src/trading/BrokerInterface.h`)
 5. **Universal data connectors** (DBs, cloud, files, streaming protocols — not
    just finance APIs) is on-positioning for Vysted's "the data isn't the limit"
    and belongs in the plugin `data` capability. (`connectors/*.cpp`, 117 entries)

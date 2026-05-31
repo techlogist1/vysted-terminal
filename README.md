@@ -37,7 +37,7 @@ What's in the box today:
   kill-switch, append-only audit log) exists in code; **order execution is not enabled**.
 - **A plugin platform** — one serializable `VystedPlugin` contract (six capabilities:
   data, panels, commands, agents, nodes, control plane) so the terminal is extensible.
-- **MCP on both sides** — Vysted proxies bundled MCP data servers *and* re-exposes its
+- **MCP on both sides** — Vysted proxies bundled MCP data servers _and_ re-exposes its
   own capabilities as MCP tools for external agents (Claude Desktop / Code).
 
 **Honest status:** green on every machine-checkable gate (`pnpm ci-local`, 619 vitest,
@@ -87,15 +87,15 @@ node scripts/smoke-test-sidecars.mjs # spawn each sidecar binary, probe /health 
 
 ## Project Layout
 
-| Path         | Contents                                                              |
-| ------------ | --------------------------------------------------------------------- |
-| `src/`       | Next.js 16 frontend (React 19, TypeScript, Tailwind 4, shadcn/ui)     |
-| `src-tauri/` | Rust Tauri 2.x core — windowing, keychain, sidecar lifecycle, IPC     |
+| Path         | Contents                                                                 |
+| ------------ | ------------------------------------------------------------------------ |
+| `src/`       | Next.js 16 frontend (React 19, TypeScript, Tailwind 4, shadcn/ui)        |
+| `src-tauri/` | Rust Tauri 2.x core — windowing, keychain, sidecar lifecycle, IPC        |
 | `sidecar/`   | Python 3.13 FastAPI sidecar (+ MCP subprocesses), bundled by PyInstaller |
-| `types/`     | Shared TypeScript types; `plugin.ts` is the canonical plugin contract |
-| `plugins/`   | Bundled plugins (example, openbb-mcp, tradesa-v2)                     |
-| `styles/`    | Design tokens (`tokens.css`) — Tailwind 4 `@theme` variables          |
-| `docs/`      | Architecture docs — start at [`docs/README.md`](./docs/README.md)     |
+| `types/`     | Shared TypeScript types; `plugin.ts` is the canonical plugin contract    |
+| `plugins/`   | Bundled plugins (example, openbb-mcp, tradesa-v2)                        |
+| `styles/`    | Design tokens (`tokens.css`) — Tailwind 4 `@theme` variables             |
+| `docs/`      | Architecture docs — start at [`docs/README.md`](./docs/README.md)        |
 
 ---
 
