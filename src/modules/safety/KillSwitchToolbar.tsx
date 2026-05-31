@@ -3,26 +3,33 @@
 /**
  * KillSwitchToolbar — BLUEPRINT §6.5 #5 UI surface.
  *
- * Always-visible red button. Two fire paths converge here:
+ * The kill switch lives inline in the header as a quiet, always-available
+ * control: an octagon-stop icon that is cool-neutral at rest and escalates to
+ * red only when it has been FIRED. The app ships read-only with no live order
+ * path, so a permanent red "Halt All Trading" billboard would be fear-theater —
+ * the control earns prominence when there is something to halt, not before. The
+ * §6.5 mechanism behind it is unchanged; it stays one click (or one OS-global
+ * Cmd/Ctrl+Shift+K) away, with a clear tooltip and a loud fired-state banner.
  *
- *   1. **In-window click** — the button itself; sends `firedBy=user-toolbar`.
- *   2. **OS-wide shortcut** — the Tauri side
- *      (`src-tauri/src/kill_switch.rs`) emits `kill-switch:requested` with
- *      `{firedBy: "user-keyboard"}` when `Cmd/Ctrl+Shift+K` is pressed; this
- *      component listens and fires the POST.
+ * Two fire paths converge here:
+ *   1. **In-window click** — the icon; sends `firedBy=user-toolbar`.
+ *   2. **OS-wide shortcut** — the Tauri side (`src-tauri/src/kill_switch.rs`)
+ *      emits `kill-switch:requested {firedBy:"user-keyboard"}` on
+ *      `Cmd/Ctrl+Shift+K`; this component listens and fires the POST.
  *
- * Both paths POST `/safety/kill-switch` through `useSafetyStore.fireKillSwitch`,
- * then surface the per-subscriber ack times in a transient banner so the user
- * sees the kill switch propagated to every broker in <2s (BLUEPRINT §6.5 #5).
+ * Both POST `/safety/kill-switch` via `useSafetyStore.fireKillSwitch`. The
+ * fire result's per-subscriber ack latency is retained in the result + audit
+ * for the §6.5 <2s benchmark, but it is NOT surfaced in the user banner — that
+ * is bench telemetry, not user information. The banner states the *consequence*
+ * in human terms instead.
  *
- * The component degrades gracefully when the Tauri event API is unavailable
- * (Vitest, Storybook): the OS-shortcut listener silently no-ops and the
- * button still works.
+ * Degrades gracefully when the Tauri event API is unavailable (Vitest,
+ * Storybook): the OS-shortcut listener silently no-ops and the button works.
  */
 
 import { useCallback, useEffect, useState } from "react";
+import { OctagonX, RotateCcw } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSafetyStore } from "@/store/safety";
 
@@ -129,111 +136,135 @@ export function KillSwitchToolbar() {
   }, [resetKillSwitch]);
 
   return (
-    <div
-      data-testid="kill-switch-toolbar"
-      className="pointer-events-auto fixed top-2 right-2 z-50 flex flex-col items-end gap-1"
-    >
+    <>
+      {/* The control lives inline in the header flex (no fixed positioning, so
+          it can never overlap the neighbouring status / settings controls). */}
       {killSwitchFired ? (
-        <Button
+        <button
           type="button"
-          size="sm"
-          variant="outline"
           onClick={handleReset}
           disabled={busy}
           aria-label="Reset kill switch"
+          data-testid="kill-switch-toolbar"
           data-state="fired"
-          className="border-red-500 bg-red-950/40 text-red-300 hover:bg-red-900/40"
+          title="Kill switch fired — trading halted. Click to reset."
+          className="border-negative/60 bg-negative/15 text-negative hover:bg-negative/25 flex items-center gap-1.5 rounded-md border px-2 py-1 font-mono text-[11px] leading-none transition-colors disabled:opacity-50"
         >
-          Kill switch fired — Reset
-        </Button>
+          <OctagonX className="h-3.5 w-3.5" aria-hidden />
+          {busy ? "Resetting…" : "Halt fired — Reset"}
+        </button>
       ) : (
-        <Button
+        <button
           type="button"
-          size="sm"
-          variant="destructive"
           onClick={handleClick}
           disabled={busy}
           aria-label="Halt all trading (kill switch)"
+          data-testid="kill-switch-toolbar"
           data-state="armed"
-          title="Halt all trading (Cmd/Ctrl+Shift+K)"
+          title="Kill switch — halt trading & force read-only (⌘⌃⇧K)"
+          className={cn(
+            "text-charcoal-500 hover:text-negative hover:bg-charcoal-800 flex size-6 items-center justify-center rounded-md transition-colors disabled:opacity-50",
+            busy && "text-negative animate-pulse",
+          )}
         >
-          {busy ? "Firing…" : "Halt All Trading"}
-        </Button>
+          <OctagonX className="h-4 w-4" aria-hidden />
+        </button>
       )}
 
-      {fireError !== null && (
-        <div
-          role="alert"
-          data-testid="kill-switch-error"
-          className="w-72 rounded-md border border-red-500 bg-red-900/70 px-3 py-2 font-mono text-[10px] text-red-100 shadow-lg"
-        >
-          <div className="flex items-baseline justify-between">
-            <strong className="tracking-wide uppercase">Kill switch failed to fire</strong>
-            <button
-              type="button"
-              aria-label="Dismiss"
-              onClick={() => setFireError(null)}
-              className="text-red-200/80 hover:text-red-100"
+      {/* Notifications float below the header so they never disturb its layout. */}
+      <div className="pointer-events-none fixed top-11 right-3 z-50 flex flex-col items-end gap-1">
+        <div className="pointer-events-auto flex flex-col items-end gap-1">
+          {fireError !== null && (
+            <div
+              role="alert"
+              data-testid="kill-switch-error"
+              className="border-negative bg-negative/20 text-negative w-72 rounded-md border px-3 py-2 font-mono text-[11px] shadow-lg"
             >
-              ×
-            </button>
-          </div>
-          <p className="mt-1 leading-snug">{fireError} — retry, or halt manually at your broker.</p>
+              <div className="flex items-baseline justify-between">
+                <strong className="tracking-wide uppercase">Kill switch failed to fire</strong>
+                <button
+                  type="button"
+                  aria-label="Dismiss"
+                  onClick={() => setFireError(null)}
+                  className="hover:text-lume opacity-80"
+                >
+                  ×
+                </button>
+              </div>
+              <p className="mt-1 leading-snug">
+                {fireError} — retry, or halt manually at your broker.
+              </p>
+            </div>
+          )}
+          {banner !== null && (
+            <KillSwitchBanner
+              result={banner}
+              onDismiss={() => setBanner(null)}
+              onReset={handleReset}
+            />
+          )}
+          {!banner && lastResult !== null && killSwitchFired && (
+            <KillSwitchBanner result={lastResult} onDismiss={() => undefined} muted />
+          )}
         </div>
-      )}
-      {banner !== null && <KillSwitchBanner result={banner} onDismiss={() => setBanner(null)} />}
-      {!banner && lastResult !== null && killSwitchFired && (
-        <KillSwitchBanner result={lastResult} onDismiss={() => undefined} muted />
-      )}
-    </div>
+      </div>
+    </>
   );
 }
 
 interface BannerProps {
   result: KillSwitchFireResult;
   onDismiss: () => void;
+  onReset?: () => void;
   muted?: boolean;
 }
 
-function KillSwitchBanner({ result, onDismiss, muted = false }: BannerProps) {
-  const subscriberCount = Object.keys(result.ackTimesMs).length;
+function KillSwitchBanner({ result, onDismiss, onReset, muted = false }: BannerProps) {
+  // User-meaningful confirmation: how many connections acknowledged the halt.
+  // Latency percentiles (p95/max) stay in the result + audit for the §6.5
+  // benchmark but are deliberately NOT shown here — they are bench telemetry.
+  const ackCount = Object.keys(result.ackTimesMs).length;
   return (
     <div
       role="status"
       data-testid="kill-switch-banner"
       className={cn(
-        "w-72 rounded-md border px-3 py-2 font-mono text-[10px] shadow-lg",
+        "w-72 rounded-md border px-3 py-2.5 font-mono text-[11px] shadow-lg",
         muted
-          ? "border-red-900 bg-red-950/40 text-red-300"
-          : "border-red-500 bg-red-900/50 text-red-100",
+          ? "border-negative/40 bg-negative/10 text-negative/90"
+          : "border-negative bg-negative/20 text-negative",
       )}
     >
-      <div className="flex items-baseline justify-between">
-        <strong className="tracking-wide uppercase">Kill switch fired</strong>
+      <div className="flex items-baseline justify-between gap-2">
+        <strong className="flex items-center gap-1.5 tracking-wide uppercase">
+          <OctagonX className="h-3.5 w-3.5" aria-hidden />
+          Kill switch fired
+        </strong>
         <button
           type="button"
           aria-label="Dismiss"
           onClick={onDismiss}
-          className="text-red-200/80 hover:text-red-100"
+          className="hover:text-lume opacity-80"
         >
           ×
         </button>
       </div>
-      <p className="mt-1 leading-snug">{result.event.reason}</p>
-      <dl className="mt-2 grid grid-cols-3 gap-1">
-        <div>
-          <dt className="text-red-200/70">subs</dt>
-          <dd>{subscriberCount}</dd>
-        </div>
-        <div>
-          <dt className="text-red-200/70">p95</dt>
-          <dd>{result.p95AckMs.toFixed(1)}ms</dd>
-        </div>
-        <div>
-          <dt className="text-red-200/70">max</dt>
-          <dd>{result.maxAckMs.toFixed(1)}ms</dd>
-        </div>
-      </dl>
+      <p className="text-foreground/90 mt-1.5 leading-snug">
+        Trading halted — new orders blocked and all brokers forced read-only.
+      </p>
+      <p className="mt-1 opacity-70">
+        Acknowledged by {ackCount} connection{ackCount === 1 ? "" : "s"}.
+      </p>
+      {!muted && onReset && (
+        <button
+          type="button"
+          onClick={onReset}
+          className="border-negative/50 hover:bg-negative/25 mt-2 inline-flex items-center gap-1.5 rounded-md border px-2 py-1 leading-none transition-colors"
+        >
+          <RotateCcw className="h-3 w-3" aria-hidden />
+          Reset
+        </button>
+      )}
     </div>
   );
 }

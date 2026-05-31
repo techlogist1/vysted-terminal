@@ -37,9 +37,9 @@ export function OnboardingBanner() {
       className="border-charcoal-800 flex shrink-0 items-center gap-3 border-b border-amber-500/20 bg-gradient-to-r from-amber-500/10 to-transparent px-4 py-2"
     >
       <Sparkles className="size-4 shrink-0 text-amber-400" aria-hidden="true" />
-      <p className="text-charcoal-200 min-w-0 flex-1 truncate font-mono text-xs">
-        Add a cloud provider key, or run a local model (Ollama) — either unlocks the assistant,
-        agents, and research tools. Cloud keys stay in your OS keychain.
+      <p className="text-charcoal-200 min-w-0 flex-1 font-mono text-xs leading-snug">
+        Add a cloud provider key — or run a local model (Ollama) — to unlock the assistant, agents,
+        and research tools. Keys stay in your OS keychain; nothing leaves this machine.
       </p>
       <button
         type="button"

@@ -38,23 +38,25 @@ export function StatusChrome() {
   return (
     <div
       aria-label="Status"
-      className="text-charcoal-400 flex items-center gap-3 font-mono text-[0.6rem]"
+      className="text-charcoal-300 flex items-center gap-2.5 font-mono text-[11px] leading-none"
     >
-      <span className="flex items-center gap-1" title={`Sidecar: ${connLabel}`}>
+      <span className="flex items-center gap-1.5" title={`Sidecar: ${connLabel}`}>
         <span className={cn("size-1.5 rounded-full", dotClass)} aria-hidden />
         {connLabel}
       </span>
+      <span className="bg-charcoal-700 h-3 w-px" aria-hidden />
       <span
-        className="text-charcoal-500 max-w-[12rem] truncate"
+        className="text-charcoal-400 max-w-[13rem] truncate"
         title="Default provider / model (the agent panel shows the per-send effective provider)"
       >
         {provider} · {model}
       </span>
       {activeRunCount > 0 && (
-        <span className="flex items-center gap-1 text-amber-400" title="Running agents">
-          <span className="animate-pulse" aria-hidden>
-            ●
-          </span>
+        <span
+          className="text-primary flex items-center gap-1"
+          title={`${activeRunCount} agent run${activeRunCount === 1 ? "" : "s"} in progress`}
+        >
+          <span className="size-1.5 animate-pulse rounded-full bg-current" aria-hidden />
           {activeRunCount}
         </span>
       )}

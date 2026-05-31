@@ -8,6 +8,7 @@ import { CommandPalette } from "@/components/CommandPalette";
 import { OnboardingBanner } from "@/components/OnboardingBanner";
 import { PanelHost } from "@/components/PanelHost";
 import { useDesktopNotificationBridge } from "@/lib/desktop-notification";
+import { initDevMcpBridge } from "@/lib/dev-mcp-bridge";
 import { bootstrapPlugins } from "@/lib/plugin-bootstrap";
 import { autosaveLayout } from "@/lib/workspace";
 import { cn } from "@/lib/utils";
@@ -38,6 +39,12 @@ export default function Page() {
     useModulesStore.getState().registerModules(vystedModules);
     useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
     void useAppStore.getState().connectSidecar();
+
+    // Dev-only: bring up the tauri-plugin-mcp in-webview bridge so the local
+    // test-automation rig (snapshot / click / console + network capture) can
+    // drive the real app. No-op in the production static export (dead-stripped)
+    // and harmless outside the Tauri webview.
+    initDevMcpBridge();
 
     let teardown: (() => void) | null = null;
     let alive = true;
@@ -156,15 +163,16 @@ export default function Page() {
         </button>
         <div className="flex-1" />
         <StatusChrome />
+        <div className="bg-charcoal-700 mx-0.5 h-4 w-px" aria-hidden="true" />
         <KillSwitchToolbar />
         <button
           type="button"
           onClick={() => openPanel("settings")}
-          className="text-charcoal-300 hover:text-lume flex items-center gap-1.5 font-mono text-xs transition-colors"
+          className="text-charcoal-400 hover:text-lume hover:bg-charcoal-800 flex size-6 items-center justify-center rounded-md transition-colors"
           aria-label="Open settings"
+          title="Settings"
         >
-          <Settings2 className="h-3.5 w-3.5" />
-          Settings
+          <Settings2 className="h-4 w-4" />
         </button>
         <div
           className="tick-rule pointer-events-none absolute inset-x-0 bottom-0"
