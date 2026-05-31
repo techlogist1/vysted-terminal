@@ -211,6 +211,23 @@ PNGs at merge — the branch is untagged._
   binary WAS rebuilt this session (the running app uses the new catalog) and boots healthy;
   the openbb/sec sidecars are unchanged. Run full `ci-local` + smoke before any tag.
 
+## Post-build adversarial review
+
+A 5-dimension review workflow (11 agents, ~910k tokens) re-read the whole session diff —
+§6.5/safety, frontend, dockview constraints, sidecar/catalog, the cold-boot hook — and
+adversarially verified every high/critical finding. **The §6.5 reviewer confirmed nothing**
+(independent verification the kill-switch change + host-actions didn't weaken safety). Three
+findings survived verification; all addressed:
+
+1. `use-sidecar-retry`: a reconnect edge firing mid-load could start a concurrent fetch.
+   **Fixed** — overlapping runs coalesce to one rerun-on-settle (recovery preserved).
+2. `PanelHost`: an unguarded per-panel `setConstraints/setSize` throw could abort the
+   post-restore sweep. **Fixed** — each panel's constraint application is now try/guarded.
+3. `RosterStrip` `onChange` prop typed `string | null` but the `<select>` only emits `string`
+   — a contract-looseness, not a defect (the setter accepts both; pre-existing). Left as-is.
+
+Re-verified after the fixes: **vitest 744/744**, tsc/eslint clean.
+
 ---
 
 ## Still rough / unverifiable / follow-ups (ranked)

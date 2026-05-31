@@ -10,9 +10,10 @@ real Tauri app (`dev-tools` feature). Narrative: `OVERNIGHT_BUILD_REPORT.md`.
 | ---- | --------- | ----------------------------------------- | ------ | --------- | ----- | -------------------------------- |
 | wf1  | map       | `redesign-surface-map` (10 Explore subagents) | ~860k  | 276       | 343s  | 8/10 structured; full code map   |
 | tm1  | item 5    | teammate — cold-boot panel auto-retry     | ~93k   | 46        | 285s  | hook + 4 panels, 78 tests green  |
+| wf2  | review    | `overnight-diff-review` (5 review + verify subagents) | ~910k | 151 | 145s | 3 confirmed; 2 fixed, §6.5 clean |
 | lead | all       | Opus — rig driving, shell/overlap/Jarvis/model, integration, verification, report | — | — | — | — |
 
-Subagents: 11 (10 workflow + 1 teammate) + lead.
+Subagents: ~22 (10 map + 1 teammate + 11 review) + lead.
 
 ## Per-item outcome
 
@@ -32,8 +33,9 @@ Subagents: 11 (10 workflow + 1 teammate) + lead.
 
 ## Code
 
-7 commits · **32 files, +2375 / −191**. Branch pushed to origin (backup). NOT merged, NOT
-version-bumped (all five version sources read `0.8.0`).
+10 commits · **32 files, ~+2500 / −195** (incl. post-review hardening). Branch pushed to
+origin at every checkpoint (backup). NOT merged, NOT version-bumped (all five version sources
+read `0.8.0`).
 
 ## Guardrails
 
