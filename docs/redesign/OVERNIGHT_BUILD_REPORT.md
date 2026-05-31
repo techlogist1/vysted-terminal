@@ -129,14 +129,19 @@ Full spec in `PRODUCT_DESIGN_DECISIONS.md`. The calls that matter:
   wrong probe; and `requestAnimationFrame` is throttled to a halt on an unfocused WKWebView,
   so the sweep uses `setTimeout`.)
 
-### 5. Sidecar cold-boot + panel auto-retry  ·  IMPLEMENTED + unit-verified
+### 5. Sidecar cold-boot + panel auto-retry  ·  VERIFIED (live cold start)
 `src/lib/use-sidecar-retry.ts` (new) + Macro/SEC/Earnings/Screener panels.
 - New `useRetryOnSidecarReady` hook: bounded backoff + re-arm on the `sidecarStatus`
-  connecting/error → connected edge (the same edge I watched fire at this launch). The four
-  fetch-once panels that previously sat dead now recover, matching News/Portfolio.
-- 78 store/panel tests pass; tsc/eslint clean. **Live cold-boot recovery** (open one of these
-  panels *during* the bind window and watch it self-heal) is best confirmed at a real cold
-  start — see §"Still rough".
+  connecting/error → connected edge. The four fetch-once panels that previously sat dead now
+  recover, matching News/Portfolio. 78 store/panel tests pass; tsc/eslint clean.
+- **Live cold-start verification:** added a Macro panel to the layout, then restarted the
+  app. The sidecar cold-bound in ~25s; I watched the cockpit during the window
+  (`sidecarStatus:"Connecting…"`, Macro showing loading/error) and after the bind
+  (`sidecarStatus:"Connected"`, **Macro restored AND populated with FRED data, no error**;
+  watchlist populated with 6 quoted symbols). Panels populate after a cold start. Also
+  surfaced a useful nuance: the workspace *restore itself* awaits the sidecar (it fetches the
+  autosave blob from it), so a restored session degrades by *waiting*, not dying — the hook
+  covers the independent-mount edge where a panel's first probe fails.
 
 ### Item 1b (dock/palette/settings craft) — partial
 - DONE: persona roster 13-chips → one **Lens picker** (verified: a `combobox` with 13
@@ -212,17 +217,14 @@ PNGs at merge — the branch is untagged._
 
 1. **qwen2.5:7b multi-step tool-use is unreliable** (narrates instead of calling) — use a
    cloud key for reliable agent control. Wiring is proven; the model is the limit.
-2. **Live cold-boot panel recovery** (item 5) — implemented + unit-tested, but the self-heal
-   edge wasn't exercised live (needs a panel open *during* the ~16s bind window at a cold
-   start). Low risk: it reuses the proven News/Portfolio pattern.
-3. **Panel-placement policy** (big panels → main area) — not built; opening Marketplace/
+2. **Panel-placement policy** (big panels → main area) — not built; opening Marketplace/
    Settings can still land in a cramped rail cell. Clean follow-up.
-4. **Command palette polish** — title matches should outrank description matches (typing
+3. **Command palette polish** — title matches should outrank description matches (typing
    "market" surfaces personas above Marketplace); remove the duplicate "Marketplace" command;
    add match highlighting. Not built.
-5. **Settings Linear-grade pass** — de-dup Integrations vs Marketplace brokers; consistent
+4. **Settings Linear-grade pass** — de-dup Integrations vs Marketplace brokers; consistent
    single-row controls. Not built.
-6. **Screenshot framing** — exact 1920×1080 / 2560×1440 per-tag PNGs to be captured at merge
+5. **Screenshot framing** — exact 1920×1080 / 2560×1440 per-tag PNGs to be captured at merge
    (see §evidence for why the rig can't frame them).
 
 ---
