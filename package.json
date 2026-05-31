@@ -18,7 +18,8 @@
     "sec-edgar-mcp-sidecar:build": "node scripts/ensure-sec-edgar-mcp-sidecar.mjs --force",
     "sidecars:build": "node scripts/ensure-all-sidecars.mjs --force",
     "ci-local": "pnpm install --frozen-lockfile && node scripts/ensure-all-sidecars.mjs && pnpm lint && pnpm format:check && pnpm typecheck && cargo fmt --manifest-path src-tauri/Cargo.toml --check && cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings && python -m pip install ruff==0.15.12 && ruff check sidecar && ruff format --check sidecar && pnpm test && cargo test --manifest-path src-tauri/Cargo.toml && cd sidecar && python -m pip install -r requirements-dev.txt && pytest",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "tauri:mcp": "tauri dev --features dev-tools"
   },
   "dependencies": {
     "@tauri-apps/api": "2.11.0",
@@ -58,6 +59,7 @@
     "prettier-plugin-tailwindcss": "0.8.0",
     "tailwindcss": "4.3.0",
     "tailwindcss-animate": "1.0.7",
+    "tauri-plugin-mcp": "github:DaveDev42/tauri-plugin-mcp#bedc4acb3ad995ca42a070149a2dad6ae219389a",
     "typescript": "6.0.3",
     "vitest": "4.1.6"
   },

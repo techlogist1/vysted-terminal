@@ -251,11 +251,22 @@ fn get_sidecar_port(port: tauri::State<'_, SidecarPort>) -> u16 {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let app = tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_notification::init())
-        .plugin(kill_switch::build_plugin())
+        .plugin(kill_switch::build_plugin());
+
+    // Dev-only MCP test-automation plugin (DaveDev42/tauri-plugin-mcp). Compiled
+    // in ONLY under the `dev-tools` Cargo feature; release builds omit it (and
+    // its `mcp:default` capability) entirely. It opens a loopback Unix-socket /
+    // named-pipe debug server the `tauri-mcp` MCP server drives for E2E
+    // automation. The `let`-shadow (not `let mut`) keeps the non-feature build
+    // free of an unused-`mut` warning under clippy `-D warnings`.
+    #[cfg(feature = "dev-tools")]
+    let builder = builder.plugin(tauri_plugin_mcp::init());
+
+    let app = builder
         .invoke_handler(tauri::generate_handler![
             get_sidecar_port,
             keychain::keychain_set,

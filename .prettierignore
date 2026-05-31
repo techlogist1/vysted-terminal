@@ -4,6 +4,7 @@ node_modules/
 src-tauri/target/
 src-tauri/binaries/
 src-tauri/gen/
+src-tauri/capabilities/dev-tools.json
 sidecar/.venv/
 sidecar/build/
 sidecar/dist/
