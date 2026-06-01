@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, Send } from "lucide-react";
 
@@ -22,15 +29,27 @@ import { useModelSelectionStore } from "@/store/model-selection";
 import { usePanelContextBus } from "@/store/panel-context";
 import { useProposedChangesStore } from "@/store/proposed-changes";
 import { useProviderKeysStore } from "@/store/provider-keys";
+import { useSettingsStore } from "@/store/settings";
+import type { Region } from "@/lib/region";
 import type { AgentContextSnapshot, LLMProviderId, LLMStreamEvent } from "../../../types/ai";
 import { type AgentMode, AGENT_MODES, agentModeMeta } from "../../../types/agent-modes";
 import { AgentHud } from "./AgentHud";
 import { AgentsRail } from "./AgentsRail";
 import { BudgetConfig, DEFAULT_DELEGATE_BUDGET } from "./BudgetConfig";
 import { captureTerminalState } from "./context-provider";
+import { applyMentionPrefixes, type MentionDef, matchMention, resolveMention } from "./mentions";
+import { MentionPicker } from "./MentionPicker";
 import { ModeBar } from "./ModeBar";
 import { ProposedChangesReview } from "./ProposedChangesReview";
-import { parseSlashCommand, SLASH_HELP_LINES } from "./slash-commands";
+import {
+  parseSlashCommand,
+  parseSlashInvocation,
+  type SlashAction,
+  type SlashCommandDef,
+  SLASH_HELP_LINES,
+  matchSlash,
+} from "./slash-commands";
+import { SlashCommandPicker } from "./SlashCommandPicker";
 import { streamAgentInvocation, streamChat } from "./streaming";
 
 /**
@@ -148,6 +167,9 @@ export function ChatSidebar() {
   const rejectAllChanges = useProposedChangesStore((state) => state.rejectAll);
   const enqueueChange = useProposedChangesStore((state) => state.enqueue);
 
+  // Active session region — routes `@TICKER` resolution locale-first (NSE for IN).
+  const region = useSettingsStore((state) => state.region);
+
   const startRun = useAgentRunsStore((state) => state.startRun);
   const endRun = useAgentRunsStore((state) => state.endRun);
   const updateRun = useAgentRunsStore((state) => state.updateRun);
@@ -252,9 +274,132 @@ export function ChatSidebar() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [setMode, pendingChangeCount, acceptAllChanges, rejectAllChanges]);
 
+  // Stage a curated-slash action through the SAME diff/accept gate the agent uses
+  // (FR-100): in AUTO it auto-applies (orders excluded — but no slash action is an
+  // order), in ASK it queues for review. Returns nothing; surfaces the proposal in
+  // the status line so an ASK-mode user knows to confirm it below.
+  const enqueueSlashChange = useCallback(
+    (name: string, input: Record<string, unknown>) => {
+      const stamp = Date.now();
+      const id = enqueueChange({
+        toolCallId: `slash-${name}-${stamp}`,
+        name,
+        input,
+        batchId: `slash-${stamp}`,
+        agentName: "Slash command",
+      });
+      const change = useProposedChangesStore.getState().changes.find((c) => c.id === id);
+      const applied = useAgentAutonomyStore.getState().autonomy === "auto";
+      setStatusLine(change ? `${change.title} — ${applied ? "applied" : "review below"}` : null);
+    },
+    [enqueueChange],
+  );
+
+  // `/export` — download the current conversation as a markdown transcript. A pure
+  // frontend action (no cockpit mutation), so it does not ride the gate.
+  const exportConversation = useCallback(() => {
+    const msgs = useChatHistoryStore.getState().messages;
+    if (msgs.length === 0) {
+      setStatusLine("Nothing to export yet — start a conversation first.");
+      return;
+    }
+    const body = msgs
+      .map((m) => {
+        const who =
+          m.role === "user"
+            ? "You"
+            : m.agentId
+              ? (agentNameById[m.agentId] ?? m.agentId)
+              : "Assistant";
+        return `**${who}:**\n\n${m.content}`;
+      })
+      .join("\n\n---\n\n");
+    const blob = new Blob([`# Vysted conversation\n\n${body}\n`], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "vysted-conversation.md";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+    setStatusLine(`Exported ${msgs.length} message${msgs.length === 1 ? "" : "s"} to markdown.`);
+  }, [agentNameById]);
+
+  // Route a curated-slash ACTION (FR-100). UI/layout/chart/watchlist actions ride
+  // the gate via `enqueueSlashChange`; `clear`/`export` are local conveniences.
+  const dispatchSlashAction = useCallback(
+    (action: SlashAction, args: string) => {
+      setStatusLine(null);
+      switch (action) {
+        case "clear":
+          clearHistory();
+          return;
+        case "export":
+          exportConversation();
+          return;
+        case "chart": {
+          const [symbol, timeframe] = args.trim().split(/\s+/);
+          if (!symbol) {
+            setStatusLine("usage: /chart <ticker> [timeframe]");
+            return;
+          }
+          enqueueSlashChange("set_chart_symbol", {
+            symbol: symbol.toUpperCase(),
+            ...(timeframe ? { timeframe } : {}),
+          });
+          return;
+        }
+        case "watch": {
+          const symbol = args.trim().split(/\s+/)[0];
+          if (!symbol) {
+            setStatusLine("usage: /watch <ticker>");
+            return;
+          }
+          enqueueSlashChange("add_to_watchlist", { symbol: symbol.toUpperCase() });
+          return;
+        }
+        case "portfolio":
+          enqueueSlashChange("open_panel", { panel: "portfolio" });
+          return;
+        case "sources":
+          // The sources tray lives in the BriefPanel — opening it surfaces the
+          // citations behind the latest answer.
+          enqueueSlashChange("open_panel", { panel: "brief" });
+          return;
+        case "layout": {
+          // A named template (research-cockpit / compare / macro-scan / single-focus)
+          // or, absent an arg, the flagship research cockpit.
+          const pattern = args.trim() || "research-cockpit";
+          enqueueSlashChange("arrange_layout", { pattern });
+          return;
+        }
+        case "screener":
+          // `screener` is a prompt-kind command in the registry — it never reaches
+          // here as an action (kept exhaustive for the union).
+          return;
+      }
+    },
+    [clearHistory, enqueueSlashChange, exportConversation],
+  );
+
   const handleSend = useCallback(
     async (rawInput: string) => {
-      const result = parseSlashCommand(rawInput);
+      // Curated slash registry (FR-100) takes precedence over the legacy verbs.
+      // An ACTION dispatches through the gate and returns; a PROMPT composes its
+      // template and routes as raw agent text — we DON'T re-run the legacy parser
+      // on the composed string (it may itself start with "/", e.g. `/deep …`).
+      const invocation = parseSlashInvocation(rawInput);
+      let result: ReturnType<typeof parseSlashCommand>;
+      if (invocation) {
+        if (invocation.cmd.dispatch.kind === "action") {
+          dispatchSlashAction(invocation.cmd.dispatch.action, invocation.args);
+          return;
+        }
+        result = { kind: "raw", prompt: invocation.cmd.dispatch.template(invocation.args) };
+      } else {
+        result = parseSlashCommand(rawInput);
+      }
       if (result.kind === "error") {
         setStatusLine(result.message);
         return;
@@ -290,7 +435,11 @@ export function ChatSidebar() {
       }
 
       setStatusLine(null);
-      const prompt = result.prompt;
+      // `@analyst` / `@quant` mentions reroute the turn via a prompt prefix
+      // ("[Act as a fundamental analyst] …") without switching the active agent
+      // (FR-101); surface/scope/instrument mentions are left in place for the
+      // context layer. No agent mention → the prompt is returned untouched.
+      const prompt = applyMentionPrefixes(result.prompt);
       setLastPrompt(prompt);
       const agentForCall =
         result.kind === "agent"
@@ -471,6 +620,7 @@ export function ChatSidebar() {
       customAgents,
       defaultProviderId,
       delegateBudget,
+      dispatchSlashAction,
       endRun,
       enqueueChange,
       fail,
@@ -637,6 +787,7 @@ export function ChatSidebar() {
         // user can keep working the cockpit while the run streams in the rail.
         disabled={streaming && mode !== "delegate"}
         mode={mode}
+        region={region}
       />
       <KeyEntryDialog
         open={keyDialogProvider !== null}
@@ -752,38 +903,221 @@ interface ComposerProps {
   onSend: (text: string) => void;
   disabled: boolean;
   mode: AgentMode;
+  region: Region;
 }
 
-function Composer({ value, onChange, onSend, disabled, mode }: ComposerProps) {
+/**
+ * The chat composer with inline `/`-command and `@`-mention pickers (FR-100/101,
+ * SC-023). Both pickers are keyboard-first: ``/`` or ``@`` opens the relevant
+ * list, ↑/↓ moves the highlight, ↵ or ⇥ accepts, Esc dismisses. A `/cmd @entity`
+ * composition works because the two matchers key off different parse states —
+ * `matchSlash` fires only while typing the leading command name (no space yet),
+ * `matchMention` fires on the `@` token under the caret anywhere in the line. The
+ * pickers themselves are presentational; this owns the open/active/resolve state
+ * and the text splicing. Mention resolution is async + locale-aware (`/resolve`),
+ * race-guarded by a sequence token so a slow lookup never overwrites a newer one.
+ */
+function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerProps) {
   const meta = agentModeMeta(mode);
-  return (
-    <form
-      className="border-charcoal-700 flex items-center gap-2 border-t p-2"
-      onSubmit={(event) => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [caret, setCaret] = useState(0);
+  // The composer value at the moment Esc was pressed — keeps the picker dismissed
+  // until the text changes again (so Esc closes without losing what was typed).
+  const [dismissedAt, setDismissedAt] = useState<string | null>(null);
+  // Resolved `@`-mentions, keyed by the `region:query` they were fetched for so a
+  // render whose query has moved on simply ignores them (no effect-driven clear).
+  const [resolved, setResolved] = useState<{ key: string; matches: MentionDef[] }>({
+    key: "",
+    matches: [],
+  });
+  // The highlighted row, tied to the picker identity it was set against; when the
+  // identity changes the derived `activeIndex` falls back to the top.
+  const [active, setActive] = useState<{ index: number; sig: string }>({ index: 0, sig: "" });
+  const resolveSeq = useRef(0);
+
+  const slash = matchSlash(value);
+  const mention = matchMention(value, caret);
+  const suppressed = dismissedAt !== null && dismissedAt === value;
+  const showSlash = slash.open && slash.matches.length > 0 && !suppressed;
+  const showMention = mention.open && !showSlash && !suppressed;
+
+  // Resolve `@` mentions when the query (or region) changes — static matches plus
+  // live instruments from `/resolve`. Only the async `.then` sets state (a stale
+  // resolve is dropped by the seq token); a closed/changed picker is handled by
+  // the render-time key guard below, so there is no synchronous effect setState.
+  useEffect(() => {
+    if (!showMention) {
+      return;
+    }
+    const key = `${region}:${mention.query}`;
+    const seq = (resolveSeq.current += 1);
+    void resolveMention(mention.query, region).then((matches) => {
+      if (seq === resolveSeq.current) {
+        setResolved({ key, matches });
+      }
+    });
+  }, [showMention, mention.query, region]);
+
+  const mentionKey = `${region}:${mention.query}`;
+  const mentionMatches = showMention && resolved.key === mentionKey ? resolved.matches : [];
+  const items: (SlashCommandDef | MentionDef)[] = showSlash ? slash.matches : mentionMatches;
+  const pickerOpen = (showSlash || showMention) && items.length > 0;
+
+  // The highlight resets to the top whenever the picker identity (which list +
+  // query + length) changes; arrow keys move it within that identity. Derived, so
+  // there's no cascading setState-in-effect.
+  const pickerSig = showSlash
+    ? `s:${slash.query}:${slash.matches.length}`
+    : showMention
+      ? `m:${mention.query}:${mentionMatches.length}`
+      : "";
+  const activeIndex = active.sig === pickerSig ? active.index : 0;
+
+  function moveActive(delta: number) {
+    if (items.length === 0) {
+      return;
+    }
+    const nextIndex = (activeIndex + delta + items.length) % items.length;
+    setActive({ index: nextIndex, sig: pickerSig });
+  }
+
+  function syncCaret(el: HTMLInputElement) {
+    setCaret(el.selectionStart ?? el.value.length);
+  }
+
+  function pickSlash(cmd: SlashCommandDef) {
+    // Insert `/trigger ` — the trailing space closes the slash picker (matchSlash
+    // needs a space-free name) and positions the caret for arguments.
+    const next = `/${cmd.trigger} `;
+    onChange(next);
+    setDismissedAt(null);
+    requestAnimationFrame(() => {
+      const el = inputRef.current;
+      if (el) {
+        el.focus();
+        el.setSelectionRange(next.length, next.length);
+        syncCaret(el);
+      }
+    });
+  }
+
+  function pickMention(m: MentionDef) {
+    // Replace the `@token` ending at the caret with the picked token + a space.
+    const pos = Math.max(0, Math.min(caret, value.length));
+    const before = value.slice(0, pos);
+    const after = value.slice(pos);
+    const tokenStart = before.search(/@\S*$/);
+    const start = tokenStart < 0 ? before.length : tokenStart;
+    const next = `${before.slice(0, start)}${m.token} ${after}`;
+    const newCaret = start + m.token.length + 1;
+    onChange(next);
+    setDismissedAt(null);
+    requestAnimationFrame(() => {
+      const el = inputRef.current;
+      if (el) {
+        el.focus();
+        el.setSelectionRange(newCaret, newCaret);
+        syncCaret(el);
+      }
+    });
+  }
+
+  function acceptActive() {
+    const item = items[activeIndex] ?? items[0];
+    if (!item) {
+      return;
+    }
+    if (showSlash) {
+      pickSlash(item as SlashCommandDef);
+    } else {
+      pickMention(item as MentionDef);
+    }
+  }
+
+  function onKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
+    if (pickerOpen) {
+      if (event.key === "ArrowDown") {
         event.preventDefault();
-        if (value.trim()) {
-          onSend(value);
-        }
-      }}
-    >
-      <input
-        aria-label="Chat input"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={`${meta.label} — ${meta.hint}`}
-        disabled={disabled}
-        className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 h-8 flex-1 rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
-      />
-      <Button
-        type="submit"
-        size="icon-sm"
-        variant="outline"
-        aria-label="Send message"
-        disabled={disabled || value.trim().length === 0}
+        moveActive(1);
+        return;
+      }
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        moveActive(-1);
+        return;
+      }
+      if (event.key === "Enter" || event.key === "Tab") {
+        event.preventDefault();
+        acceptActive();
+        return;
+      }
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setDismissedAt(value);
+        return;
+      }
+    }
+    // No picker open: Enter submits via the form's onSubmit (default behaviour).
+  }
+
+  return (
+    <div className="relative">
+      {pickerOpen && (
+        <div className="absolute right-0 bottom-full left-0 mb-1 px-2">
+          {showSlash ? (
+            <SlashCommandPicker
+              matches={slash.matches}
+              activeIndex={activeIndex}
+              onPick={pickSlash}
+            />
+          ) : (
+            <MentionPicker
+              matches={mentionMatches}
+              activeIndex={activeIndex}
+              onPick={pickMention}
+            />
+          )}
+        </div>
+      )}
+      <form
+        className="border-charcoal-700 flex items-center gap-2 border-t p-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (value.trim()) {
+            onSend(value);
+          }
+        }}
       >
-        <Send />
-      </Button>
-    </form>
+        <input
+          ref={inputRef}
+          aria-label="Chat input"
+          value={value}
+          onChange={(event) => {
+            onChange(event.target.value);
+            setDismissedAt(null);
+            syncCaret(event.target);
+          }}
+          onKeyDown={onKeyDown}
+          onKeyUp={(event) => syncCaret(event.currentTarget)}
+          onClick={(event) => syncCaret(event.currentTarget)}
+          onSelect={(event) => syncCaret(event.currentTarget)}
+          placeholder={`${meta.label} — ${meta.hint}`}
+          disabled={disabled}
+          autoComplete="off"
+          spellCheck={false}
+          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 h-8 flex-1 rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
+        />
+        <Button
+          type="submit"
+          size="icon-sm"
+          variant="outline"
+          aria-label="Send message"
+          disabled={disabled || value.trim().length === 0}
+        >
+          <Send />
+        </Button>
+      </form>
+    </div>
   );
 }
 
