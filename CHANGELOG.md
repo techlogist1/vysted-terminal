@@ -4,6 +4,34 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## Pass A.2.0 — cleanup, deep bug-hunt, animation polish (branch `001-agent-native-redesign`, 2026-06-01)
+
+Polish pass on the agent-native redesign branch (not versioned, not merged). Full
+report: `docs/redesign/PASS_A20_REPORT.md`. Tier-2/3 decisions of record:
+
+- **Portfolio persistence moved from the sidecar SQLite to the workspace blob**
+  (Tier-3). The UI portfolio is now a frontend Zustand store (`src/store/portfolios.ts`)
+  of multiple NAMED portfolios with manual holdings, persisted in
+  `SerializedWorkspace.portfolios` — modelled on the watchlist precedent. Seeded with
+  ONE EMPTY portfolio (no fabricated demo data). The sidecar `/portfolio` router + SQLite
+  - `Position`/`PositionInput` models are LEFT in place (dead-but-green; lower blast
+    radius than deleting + touching `types/data.ts`). **Carry-forward:** the agent tool
+    `get_portfolio` still reads the sidecar SQLite, so it diverges from the UI — surfaced
+    to the operator (report §Surface) for a repoint/mirror/accept decision.
+- **dockview 4 ships a nested `.dv-shell.dockview-theme-abyss`** that re-declares the
+  `--dv-*` theme vars to a cold-navy abyss palette, shadowing a wrapper-only override —
+  so the warm tab strip needed the override scoped to `.dv-shell`. Caught only via live
+  DOM (the static globals.css looked correct). Documented so a future dockview bump
+  re-checks the shell.
+- **`tailwindcss-animate` was installed but never wired** into the Tailwind 4 pipeline
+  (no `@plugin`), so all Radix dialog animations were dead. Wired via
+  `@plugin "tailwindcss-animate"`; framer-motion seams added via a shared `@/lib/motion`
+  module + an app-level `MotionConfig reducedMotion="user"`.
+- **Shell viewport lock** (`html,body` overflow:hidden + overscroll-behavior:none + body
+  fixed) confines all scrolling to panel interiors — fixes the whole-app micro-scroll.
+
+§6.5 audit 9/9, vitest 745/745, tsc/eslint/prettier clean. No LOCKED file touched.
+
 ## v0.7.0 — Completion + Polish + Parity (2026-05-17)
 
 Phase 7 closes the gap between "feature-rich but inconsistent" (v0.6.5) and
