@@ -28,6 +28,7 @@ import { useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
 import { type SettingsBundle, useSettingsStore } from "@/store/settings";
 import { type SymbolEntry, useSymbolsStore } from "@/store/symbols";
+import { type Portfolio, usePortfoliosStore } from "@/store/portfolios";
 import { AUTOSAVE_LAYOUT_NAME, useWorkspaceStore } from "@/store/workspace";
 import type { LLMProviderId } from "../../types/ai";
 import { type AgentMode, isAgentMode } from "../../types/agent-modes";
@@ -59,6 +60,12 @@ export interface SerializedWorkspace {
    * — Phase 10 customizability). Optional for workspaces saved before this.
    */
   watchlist?: SymbolEntry[];
+  /**
+   * The user's named portfolios + the active one. Persisted so manually tracked
+   * holdings survive a relaunch (frontend-managed, no broker sync). Optional for
+   * blobs saved before multi-portfolio shipped (absent → one empty default).
+   */
+  portfolios?: { list: Portfolio[]; activeId: string };
   /**
    * The active agent mode (Ask / Edit / Build / Delegate). Persisted so a
    * cockpit reopens in the mode the user left it in (FR-003). Optional for
@@ -137,6 +144,10 @@ function buildWorkspacePayload(name: string): SerializedWorkspace {
     chartDrawings: useChartDrawingsStore.getState().snapshot(),
     defaultProviderId: useLLMProvidersStore.getState().defaultProviderId,
     watchlist: useSymbolsStore.getState().entries,
+    portfolios: {
+      list: usePortfoliosStore.getState().portfolios,
+      activeId: usePortfoliosStore.getState().activeId,
+    },
     agentMode: useAgentModeStore.getState().mode,
     autonomyMode: useAgentAutonomyStore.getState().autonomy,
     agentDock: {
@@ -197,6 +208,10 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
   // default set in that case).
   if (Array.isArray(workspace.watchlist) && workspace.watchlist.length > 0) {
     useSymbolsStore.getState().setEntries(workspace.watchlist);
+  }
+  // Restore named portfolios (older blobs lack them — keep the empty default).
+  if (workspace.portfolios && Array.isArray(workspace.portfolios.list)) {
+    usePortfoliosStore.getState().setAll(workspace.portfolios.list, workspace.portfolios.activeId);
   }
   // Restore the agent mode / dock geometry / model overrides (older blobs lack
   // them — keep the defaults). Guarded so a corrupt value can't seed garbage.

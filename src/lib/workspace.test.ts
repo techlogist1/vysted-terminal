@@ -84,6 +84,10 @@ describe("workspace serialization", () => {
       chartDrawings: { byPanel: {} },
       defaultProviderId: "anthropic",
       watchlist: [{ symbol: "AAPL", assetClass: "equity" }],
+      portfolios: {
+        list: [{ id: "default", name: "Portfolio", holdings: [] }],
+        activeId: "default",
+      },
       agentMode: "ask",
       autonomyMode: "ask",
       agentDock: { collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH },

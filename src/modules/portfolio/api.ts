@@ -1,64 +1,24 @@
 /**
- * Portfolio sidecar access.
+ * Portfolio live quotes.
  *
- * Positions CRUD against the sidecar's `/portfolio/positions` endpoints (SQLite
- * persistence, owned by the portfolio router). Live quotes for P&L come from
- * the shared `sidecarApi`; the panel joins positions to quotes and computes
- * P&L, weight, and risk metrics client-side — no derived sidecar model.
+ * Holdings are tracked client-side (`src/store/portfolios.ts`, persisted in the
+ * workspace blob) — there is NO sidecar positions CRUD. Only the LIVE QUOTES for
+ * P&L come from the sidecar; the panel joins holdings to quotes and computes
+ * P&L, weight, and risk metrics client-side.
  */
 
-import { sidecarGet, sidecarApi } from "@/lib/sidecar-client";
-import type { Position, PositionInput, Quote } from "../../../types/data";
+import { sidecarApi } from "@/lib/sidecar-client";
+import type { Quote } from "../../../types/data";
 
-/** Fetch every stored position. */
-export function fetchPositions(): Promise<Position[]> {
-  return sidecarGet<Position[]>("/portfolio/positions");
-}
-
-async function sidecarSend<T>(path: string, method: string, body?: unknown): Promise<T> {
-  const { getSidecarBaseUrl, SidecarError, extractSidecarDetail } =
-    await import("@/lib/sidecar-client");
-  const base = await getSidecarBaseUrl();
-  const response = await fetch(new URL(path, base).toString(), {
-    method,
-    headers: { "Content-Type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  if (!response.ok) {
-    // FastAPI 422 returns `detail` as an array of validation errors — extract a
-    // readable message instead of letting it stringify to "[object Object]".
-    let detail = response.statusText;
-    try {
-      detail = extractSidecarDetail(await response.json(), response.statusText);
-    } catch {
-      // Response body was not JSON — keep the status text.
-    }
-    throw new SidecarError(response.status, detail);
-  }
-  if (response.status === 204) {
-    return undefined as T;
-  }
-  return (await response.json()) as T;
-}
-
-/** Create a new manually entered position. */
-export function createPosition(input: PositionInput): Promise<Position> {
-  return sidecarSend<Position>("/portfolio/positions", "POST", input);
-}
-
-/** Overwrite an existing position. */
-export function updatePosition(id: number, input: PositionInput): Promise<Position> {
-  return sidecarSend<Position>(`/portfolio/positions/${id}`, "PUT", input);
-}
-
-/** Delete a position by id. */
-export function deletePosition(id: number): Promise<void> {
-  return sidecarSend<void>(`/portfolio/positions/${id}`, "DELETE");
+/** The minimal shape needed to resolve a live quote for a holding. */
+export interface QuoteTarget {
+  symbol: string;
+  assetClass: string;
 }
 
 /**
- * Fetch a live quote for one position symbol, mapping the asset class onto the
- * sidecar's quote endpoint. A symbol that fails to resolve comes back `null`.
+ * Fetch a live quote for one symbol, mapping the asset class onto the sidecar's
+ * quote endpoint. A symbol that fails to resolve comes back `null`.
  */
 export async function fetchPositionQuote(
   symbol: string,
@@ -71,16 +31,14 @@ export async function fetchPositionQuote(
   }
 }
 
-/** Fetch live quotes for a set of positions, keyed by upper-cased symbol. */
-export async function fetchPositionQuotes(positions: Position[]): Promise<Map<string, Quote>> {
+/** Fetch live quotes for a set of holdings, keyed by upper-cased symbol. */
+export async function fetchPositionQuotes(targets: QuoteTarget[]): Promise<Map<string, Quote>> {
   const quotes = new Map<string, Quote>();
-  const results = await Promise.all(
-    positions.map((position) => fetchPositionQuote(position.symbol, position.asset_class)),
-  );
-  positions.forEach((position, index) => {
+  const results = await Promise.all(targets.map((t) => fetchPositionQuote(t.symbol, t.assetClass)));
+  targets.forEach((t, index) => {
     const quote = results[index];
     if (quote !== null) {
-      quotes.set(position.symbol.toUpperCase(), quote);
+      quotes.set(t.symbol.toUpperCase(), quote);
     }
   });
   return quotes;

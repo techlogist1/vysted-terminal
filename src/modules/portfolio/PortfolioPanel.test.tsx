@@ -1,37 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 
-import { SidecarError } from "@/lib/sidecar-client";
-import type { Position, Quote } from "../../../types/data";
+import { usePortfoliosStore } from "@/store/portfolios";
+import type { Quote } from "../../../types/data";
 import { PortfolioPanel } from "./PortfolioPanel";
 
 vi.mock("./api", () => ({
-  fetchPositions: vi.fn(),
-  createPosition: vi.fn(),
-  updatePosition: vi.fn(),
-  deletePosition: vi.fn(),
   fetchPositionQuotes: vi.fn(),
 }));
 
 const api = await import("./api");
-const mockFetchPositions = vi.mocked(api.fetchPositions);
-const mockCreatePosition = vi.mocked(api.createPosition);
-const mockUpdatePosition = vi.mocked(api.updatePosition);
-const mockDeletePosition = vi.mocked(api.deletePosition);
 const mockFetchQuotes = vi.mocked(api.fetchPositionQuotes);
-
-function position(overrides: Partial<Position> = {}): Position {
-  return {
-    id: 1,
-    symbol: "AAPL",
-    quantity: 10,
-    cost_basis: 150,
-    asset_class: "equity",
-    opened_at: null,
-    note: null,
-    ...overrides,
-  };
-}
 
 function quote(symbol: string, price: number): Quote {
   return {
@@ -47,9 +26,30 @@ function quote(symbol: string, price: number): Quote {
   };
 }
 
+function resetStore() {
+  usePortfoliosStore.setState({
+    portfolios: [{ id: "default", name: "Portfolio", holdings: [] }],
+    activeId: "default",
+  });
+}
+
+function activeHoldings() {
+  const state = usePortfoliosStore.getState();
+  return state.portfolios.find((p) => p.id === state.activeId)?.holdings ?? [];
+}
+
+async function addHolding(symbol: string, quantity: string, costBasis: string) {
+  fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: symbol } });
+  fireEvent.change(screen.getByLabelText("Quantity"), { target: { value: quantity } });
+  fireEvent.change(screen.getByLabelText("Cost basis"), { target: { value: costBasis } });
+  await act(async () => {
+    fireEvent.submit(screen.getByLabelText("Symbol").closest("form")!);
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
-  mockFetchPositions.mockResolvedValue([]);
+  resetStore();
   mockFetchQuotes.mockResolvedValue(new Map());
 });
 
@@ -58,106 +58,105 @@ afterEach(() => {
 });
 
 describe("PortfolioPanel", () => {
-  it("shows a loading state then the empty message", async () => {
+  it("shows a real empty state for a fresh empty portfolio (no fake data)", () => {
     render(<PortfolioPanel />);
-    // Loading is now a skeleton table — no text visible during load.
-    expect(screen.queryByText("No positions tracked")).not.toBeInTheDocument();
-    expect(await screen.findByText("No positions tracked")).toBeInTheDocument();
+    expect(screen.getByText("This portfolio is empty")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /add your first holding/i })).toBeInTheDocument();
+    // No fabricated value anywhere.
+    expect(screen.queryByText(/107\.69/)).not.toBeInTheDocument();
   });
 
-  it("lists positions with computed P&L and weight", async () => {
-    mockFetchPositions.mockResolvedValue([position()]);
+  it("adds a manually entered holding to the active portfolio", async () => {
+    render(<PortfolioPanel />);
+    await addHolding("nvda", "5", "900");
+
+    expect(await screen.findByText("NVDA")).toBeInTheDocument();
+    const holdings = activeHoldings();
+    expect(holdings).toHaveLength(1);
+    expect(holdings[0]).toMatchObject({
+      symbol: "NVDA",
+      quantity: 5,
+      costBasis: 900,
+      assetClass: "equity",
+    });
+  });
+
+  it("computes P&L and weight from a live quote", async () => {
     mockFetchQuotes.mockResolvedValue(new Map([["AAPL", quote("AAPL", 200)]]));
     render(<PortfolioPanel />);
-    expect(await screen.findByText("AAPL")).toBeInTheDocument();
+    await addHolding("aapl", "10", "150");
+
     // 10 shares, cost 150 → cost 1500; price 200 → mkt 2000; P&L +500 (+33.33%).
-    // The value appears in both the summary header and the position row.
-    expect(screen.getAllByText("+$500.00 (+33.33%)").length).toBeGreaterThanOrEqual(2);
-    // Single position → 100% weight; value appears in the table row.
+    expect((await screen.findAllByText("+$500.00 (+33.33%)")).length).toBeGreaterThanOrEqual(2);
     expect(screen.getAllByText("100.0%").length).toBeGreaterThanOrEqual(1);
   });
 
-  it("surfaces a SidecarError from the initial load (after the auto-retry is exhausted)", async () => {
-    // Reject persistently so the terminal error surfaces once the bounded
-    // auto-retry (~50s of backoff) is exhausted.
-    vi.useFakeTimers();
-    mockFetchPositions.mockRejectedValue(new SidecarError(502, "sidecar offline"));
+  it("edits a holding through the row control", async () => {
     render(<PortfolioPanel />);
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(60000);
-    });
-    expect(screen.getByText("sidecar offline")).toBeInTheDocument();
-    vi.useRealTimers();
-  });
+    await addHolding("aapl", "10", "150");
+    await screen.findByText("AAPL");
 
-  it("shows Retry button on load failure and no empty-state message alongside it", async () => {
-    vi.useFakeTimers();
-    mockFetchPositions.mockRejectedValue(new SidecarError(503, "sidecar down"));
-    render(<PortfolioPanel />);
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(60000);
-    });
-    expect(screen.getByText("sidecar down")).toBeInTheDocument();
-    // A Retry affordance must appear.
-    expect(screen.getByRole("button", { name: /retry/i })).toBeInTheDocument();
-    // The clean empty-state message must NOT be shown alongside the error.
-    expect(screen.queryByText("No positions tracked")).not.toBeInTheDocument();
-    vi.useRealTimers();
-  });
-
-  it("shows clean empty-state (no error) for a successful zero-position load", async () => {
-    // default beforeEach: fetchPositions returns [], fetchQuotes returns empty Map
-    render(<PortfolioPanel />);
-    expect(await screen.findByText("No positions tracked")).toBeInTheDocument();
-    // No error message and no Retry button.
-    expect(screen.queryByRole("button", { name: /retry/i })).not.toBeInTheDocument();
-  });
-
-  it("creates a position through the form", async () => {
-    mockCreatePosition.mockResolvedValue(position());
-    render(<PortfolioPanel />);
-    await screen.findByText("No positions tracked");
-
-    fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: "nvda" } });
-    fireEvent.change(screen.getByLabelText("Quantity"), { target: { value: "5" } });
-    fireEvent.change(screen.getByLabelText("Cost basis"), { target: { value: "900" } });
+    fireEvent.click(screen.getByLabelText("Edit AAPL"));
+    expect((screen.getByLabelText("Symbol") as HTMLInputElement).value).toBe("AAPL");
+    fireEvent.change(screen.getByLabelText("Quantity"), { target: { value: "20" } });
     await act(async () => {
       fireEvent.submit(screen.getByLabelText("Symbol").closest("form")!);
     });
 
-    expect(mockCreatePosition).toHaveBeenCalledWith(
-      expect.objectContaining({ symbol: "NVDA", quantity: 5, cost_basis: 900 }),
-    );
+    expect(activeHoldings()[0].quantity).toBe(20);
   });
 
-  it("deletes a position through the row control", async () => {
-    mockFetchPositions.mockResolvedValue([position()]);
-    mockDeletePosition.mockResolvedValue(undefined);
+  it("deletes a holding through the row control", async () => {
     render(<PortfolioPanel />);
+    await addHolding("aapl", "10", "150");
     await screen.findByText("AAPL");
 
     await act(async () => {
       fireEvent.click(screen.getByLabelText("Delete AAPL"));
     });
-    expect(mockDeletePosition).toHaveBeenCalledWith(1);
+    expect(activeHoldings()).toHaveLength(0);
+    expect(screen.getByText("This portfolio is empty")).toBeInTheDocument();
   });
 
-  it("loads a position into the form for editing and updates it", async () => {
-    mockFetchPositions.mockResolvedValue([position()]);
-    mockUpdatePosition.mockResolvedValue(position({ quantity: 20 }));
+  it("validates required fields", async () => {
     render(<PortfolioPanel />);
-    await screen.findByText("AAPL");
-
-    fireEvent.click(screen.getByLabelText("Edit AAPL"));
-    expect((screen.getByLabelText("Symbol") as HTMLInputElement).value).toBe("AAPL");
-
-    fireEvent.change(screen.getByLabelText("Quantity"), { target: { value: "20" } });
     await act(async () => {
       fireEvent.submit(screen.getByLabelText("Symbol").closest("form")!);
     });
-    expect(mockUpdatePosition).toHaveBeenCalledWith(
-      1,
-      expect.objectContaining({ symbol: "AAPL", quantity: 20 }),
-    );
+    expect(screen.getByText("Symbol, quantity, and cost basis are required")).toBeInTheDocument();
+    expect(activeHoldings()).toHaveLength(0);
+  });
+
+  it("creates and switches to a new named portfolio", async () => {
+    render(<PortfolioPanel />);
+    fireEvent.click(screen.getByLabelText("New portfolio"));
+    fireEvent.change(screen.getByLabelText("New portfolio name"), { target: { value: "Crypto" } });
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText("Confirm"));
+    });
+
+    const state = usePortfoliosStore.getState();
+    expect(state.portfolios).toHaveLength(2);
+    const active = state.portfolios.find((p) => p.id === state.activeId);
+    expect(active?.name).toBe("Crypto");
+    expect(active?.holdings).toHaveLength(0);
+  });
+
+  it("renames the active portfolio", async () => {
+    render(<PortfolioPanel />);
+    fireEvent.click(screen.getByLabelText("Rename portfolio"));
+    fireEvent.change(screen.getByLabelText("Rename portfolio"), { target: { value: "Long-term" } });
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText("Confirm"));
+    });
+    expect(usePortfoliosStore.getState().portfolios[0].name).toBe("Long-term");
+  });
+
+  it("never drops below one portfolio when deleting the last", async () => {
+    render(<PortfolioPanel />);
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText("Delete portfolio"));
+    });
+    expect(usePortfoliosStore.getState().portfolios).toHaveLength(1);
   });
 });
