@@ -14,11 +14,14 @@ import { create } from "zustand";
 import type { LLMProviderId } from "../../types/ai";
 
 /**
- * Default model per provider — mirrors the sidecar's per-provider fallback
- * table. The user can override per provider via the model HUD.
+ * Default model per provider — an OFFLINE FALLBACK mirroring the sidecar's
+ * config-driven registry (`sidecar/config/model_registry.json`, served live on
+ * `GET /llm/providers` as `defaultModel`/`knownModels` into the llm-providers
+ * store). Edit the JSON to change models; keep this in lockstep as the no-sidecar
+ * fallback. The user can override per provider via the model HUD.
  */
 export const DEFAULT_MODEL_BY_PROVIDER: Record<LLMProviderId, string> = {
-  anthropic: "claude-opus-4-7",
+  anthropic: "claude-opus-4-8",
   openai: "gpt-4.1-mini",
   gemini: "gemini-2.5-pro",
   groq: "llama-3.3-70b-versatile",
@@ -27,11 +30,13 @@ export const DEFAULT_MODEL_BY_PROVIDER: Record<LLMProviderId, string> = {
   xai: "grok-2-latest",
 };
 
-/** A small, curated set of selectable models per provider for the HUD picker.
- *  Free-form override is also allowed — the contract keeps model ids as strings
- *  (`LLMModelId`) so releases between Vysted versions still work. */
+/** A small, curated set of selectable models per provider for the HUD picker —
+ *  the OFFLINE FALLBACK for the config-driven list (see above); the live list
+ *  comes from the llm-providers store's `knownModels`. Free-form override is also
+ *  allowed — the contract keeps model ids as strings (`LLMModelId`) so releases
+ *  between Vysted versions still work. */
 export const KNOWN_MODELS_BY_PROVIDER: Record<LLMProviderId, readonly string[]> = {
-  anthropic: ["claude-opus-4-7", "claude-sonnet-4-5", "claude-haiku-4-5"],
+  anthropic: ["claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5"],
   openai: ["gpt-4.1", "gpt-4.1-mini", "o4-mini"],
   gemini: ["gemini-2.5-pro", "gemini-2.5-flash"],
   groq: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],

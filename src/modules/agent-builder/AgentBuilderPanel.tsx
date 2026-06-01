@@ -361,7 +361,7 @@ export function AgentBuilderPanel() {
               aria-label="Default model"
               value={state.defaultModel}
               onChange={(e) => setField("defaultModel", e.target.value)}
-              placeholder="e.g. claude-opus-4-7"
+              placeholder="e.g. claude-opus-4-8"
               className="bg-charcoal-800 text-charcoal-100 h-8 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
             />
           </label>

@@ -26,7 +26,14 @@ export function AgentHud({
   onProviderChange: (provider: LLMProviderId) => void;
   onModelChange: (model: string) => void;
 }) {
-  const known = KNOWN_MODELS_BY_PROVIDER[provider] ?? [];
+  // Prefer the live, config-driven model list (served from the sidecar's
+  // model_registry.json into the provider row); fall back to the static map
+  // when the sidecar hasn't been reached yet.
+  const providerInfo = providers.find((p) => p.id === provider);
+  const known =
+    providerInfo?.knownModels && providerInfo.knownModels.length > 0
+      ? providerInfo.knownModels
+      : (KNOWN_MODELS_BY_PROVIDER[provider] ?? []);
   const modelOptions = known.includes(model) ? known : [model, ...known];
   const selectClass =
     "bg-charcoal-800 text-charcoal-200 border-charcoal-700 max-w-[10rem] truncate rounded border px-1 py-0.5 font-mono text-[0.6rem] outline-none focus:ring-1 focus:ring-amber-400";

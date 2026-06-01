@@ -1,0 +1,89 @@
+{
+  "_comment": "SINGLE SOURCE OF TRUTH for LLM providers, models, and pricing. EDIT THIS FILE to add/update a provider, default model, selectable model list, or price — a one-line data edit, not a code change. The sidecar derives PROVIDER_INFO (services/llm), _resolve_model defaults (services/agent_runtime), the BudgetGuard price table (services/budget_guard), and the custom-agent provider allow-list (models/custom_agent) from this file, and GET /llm/providers serves default_model + known_models to the frontend (which consumes them at runtime; the frontend's static tables are an offline fallback only). Pass-B registration seam — see docs/redesign/EXTENSION_SEAMS.md. NOTE: adding a NEW provider id also requires editing the closed LLMProviderId Literal in sidecar/models/llm.py AND types/ai.ts (type safety, by design); model ids are open strings so adding a model is JSON-only.",
+  "providers": [
+    {
+      "id": "anthropic",
+      "label": "Anthropic",
+      "requires_key": true,
+      "default_model": "claude-opus-4-8",
+      "known_models": ["claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5"]
+    },
+    {
+      "id": "openai",
+      "label": "OpenAI",
+      "requires_key": true,
+      "default_model": "gpt-4.1-mini",
+      "known_models": ["gpt-4.1", "gpt-4.1-mini", "o4-mini"]
+    },
+    {
+      "id": "gemini",
+      "label": "Google Gemini",
+      "requires_key": true,
+      "default_model": "gemini-2.5-pro",
+      "known_models": ["gemini-2.5-pro", "gemini-2.5-flash"]
+    },
+    {
+      "id": "groq",
+      "label": "Groq",
+      "requires_key": true,
+      "default_model": "llama-3.3-70b-versatile",
+      "known_models": ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+    },
+    {
+      "id": "ollama",
+      "label": "Ollama (local)",
+      "requires_key": false,
+      "default_base_url": "http://127.0.0.1:11434",
+      "default_model": "qwen2.5:7b",
+      "known_models": ["qwen2.5:7b", "llama3.1:8b"]
+    },
+    {
+      "id": "deepseek",
+      "label": "DeepSeek",
+      "requires_key": true,
+      "default_base_url": "https://api.deepseek.com",
+      "default_model": "deepseek-chat",
+      "known_models": ["deepseek-chat", "deepseek-reasoner"]
+    },
+    {
+      "id": "xai",
+      "label": "xAI",
+      "requires_key": true,
+      "default_base_url": "https://api.x.ai/v1",
+      "default_model": "grok-2-latest",
+      "known_models": ["grok-2-latest", "grok-2-mini"]
+    }
+  ],
+  "prices": {
+    "_comment": "Blended $/1M-token ESTIMATE for the BudgetGuard spend ceiling (SC-008). Matched by the LONGEST model-substring key per provider ('' = provider-wide fallback). These numbers are §6.5-adjacent (they meter the Delegate spend ceiling) — change deliberately. Mirrors services/budget_guard PRICE_TABLE verbatim.",
+    "default_rate_per_million": 5.0,
+    "by_provider": {
+      "anthropic": {
+        "claude-opus": 30.0,
+        "claude-sonnet": 9.0,
+        "claude-haiku": 2.0,
+        "claude": 9.0
+      },
+      "openai": {
+        "gpt-4.1-mini": 1.0,
+        "gpt-4.1-nano": 0.4,
+        "gpt-4.1": 6.0,
+        "gpt-4o-mini": 0.6,
+        "gpt-4o": 7.0,
+        "o3": 12.0,
+        "o1": 18.0,
+        "gpt": 4.0
+      },
+      "gemini": {
+        "gemini-2.5-pro": 5.0,
+        "gemini-2.5-flash": 0.6,
+        "gemini-2.0-flash": 0.4,
+        "gemini": 2.0
+      },
+      "groq": { "llama": 0.6, "mixtral": 0.6, "": 0.6 },
+      "deepseek": { "deepseek-reasoner": 2.2, "deepseek-chat": 0.9, "deepseek": 0.9 },
+      "xai": { "grok": 6.0 },
+      "ollama": { "": 0.0 }
+    }
+  }
+}

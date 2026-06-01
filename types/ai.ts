@@ -38,11 +38,12 @@ export type LLMProviderId =
   | "xai";
 
 /**
- * A free-form model identifier (e.g. `"claude-opus-4-7"`, `"gpt-4.1-mini"`,
- * `"llama3.1:70b"`). The host does not enumerate models — providers expose
- * their own catalogs via `POST /llm/models` (sidecar) and the agent builder
- * UI surfaces them as a dropdown. Strings keep the contract open to model
- * releases that ship between Vysted versions.
+ * A free-form model identifier (e.g. `"claude-opus-4-8"`, `"gpt-4.1-mini"`,
+ * `"llama3.1:8b"`). Model ids stay open strings so a model that ships between
+ * Vysted releases still works via a free-form override. The curated per-provider
+ * model lists are CONFIG-DRIVEN — the sidecar serves `default_model` +
+ * `known_models` on `GET /llm/providers` from `sidecar/config/model_registry.json`
+ * (the single source of truth); the HUD + agent builder surface them as a dropdown.
  */
 export type LLMModelId = string;
 
@@ -55,6 +56,12 @@ export interface LLMProviderInfo {
   requiresKey: boolean;
   /** Default endpoint URL — most providers are fixed; Ollama defaults to localhost. */
   defaultBaseUrl?: string;
+  /** Config-driven default model for this provider (from `model_registry.json`,
+   *  served on `GET /llm/providers`). Optional for an older sidecar. */
+  defaultModel?: string;
+  /** Curated selectable models for the HUD/builder dropdowns (config-driven).
+   *  Free-form override still works; this is a curation hint, not a gate. */
+  knownModels?: string[];
 }
 
 // ---------------------------------------------------------------------------

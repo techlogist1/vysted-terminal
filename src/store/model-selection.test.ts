@@ -18,8 +18,8 @@ describe("model-selection store (FR-004)", () => {
   });
 
   it("applies and clears a per-provider override", () => {
-    useModelSelectionStore.getState().setModel("anthropic", "claude-sonnet-4-5");
-    expect(useModelSelectionStore.getState().modelFor("anthropic")).toBe("claude-sonnet-4-5");
+    useModelSelectionStore.getState().setModel("anthropic", "claude-sonnet-4-6");
+    expect(useModelSelectionStore.getState().modelFor("anthropic")).toBe("claude-sonnet-4-6");
     useModelSelectionStore.getState().clearModel("anthropic");
     expect(useModelSelectionStore.getState().modelFor("anthropic")).toBe(
       DEFAULT_MODEL_BY_PROVIDER.anthropic,

@@ -25,31 +25,70 @@ export interface LLMProviderInfo {
   requiresKey: boolean;
   /** Default endpoint; Ollama defaults to localhost. */
   defaultBaseUrl?: string;
+  /** Config-driven default model (from the sidecar's model_registry.json). */
+  defaultModel?: string;
+  /** Config-driven curated model list for the HUD/builder dropdowns. */
+  knownModels?: string[];
 }
 
-/** Default static catalog — matches ``services/llm/__init__.PROVIDER_INFO``. */
+/**
+ * Default static catalog — an OFFLINE FALLBACK that mirrors the sidecar's
+ * `model_registry.json`. The real source of truth is that JSON, served live via
+ * `refresh()` → `GET /llm/providers`; this list only renders when the sidecar is
+ * unreachable at launch. Keep it in lockstep with the JSON when models change.
+ */
 export const DEFAULT_PROVIDERS: LLMProviderInfo[] = [
-  { id: "anthropic", label: "Anthropic", requiresKey: true },
-  { id: "openai", label: "OpenAI", requiresKey: true },
-  { id: "gemini", label: "Google Gemini", requiresKey: true },
-  { id: "groq", label: "Groq", requiresKey: true },
+  {
+    id: "anthropic",
+    label: "Anthropic",
+    requiresKey: true,
+    defaultModel: "claude-opus-4-8",
+    knownModels: ["claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5"],
+  },
+  {
+    id: "openai",
+    label: "OpenAI",
+    requiresKey: true,
+    defaultModel: "gpt-4.1-mini",
+    knownModels: ["gpt-4.1", "gpt-4.1-mini", "o4-mini"],
+  },
+  {
+    id: "gemini",
+    label: "Google Gemini",
+    requiresKey: true,
+    defaultModel: "gemini-2.5-pro",
+    knownModels: ["gemini-2.5-pro", "gemini-2.5-flash"],
+  },
+  {
+    id: "groq",
+    label: "Groq",
+    requiresKey: true,
+    defaultModel: "llama-3.3-70b-versatile",
+    knownModels: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
+  },
   {
     id: "ollama",
     label: "Ollama (local)",
     requiresKey: false,
     defaultBaseUrl: "http://127.0.0.1:11434",
+    defaultModel: "qwen2.5:7b",
+    knownModels: ["qwen2.5:7b", "llama3.1:8b"],
   },
   {
     id: "deepseek",
     label: "DeepSeek",
     requiresKey: true,
     defaultBaseUrl: "https://api.deepseek.com",
+    defaultModel: "deepseek-chat",
+    knownModels: ["deepseek-chat", "deepseek-reasoner"],
   },
   {
     id: "xai",
     label: "xAI",
     requiresKey: true,
     defaultBaseUrl: "https://api.x.ai/v1",
+    defaultModel: "grok-2-latest",
+    knownModels: ["grok-2-latest", "grok-2-mini"],
   },
 ];
 
@@ -58,6 +97,8 @@ interface SidecarProviderRow {
   label: string;
   requires_key: boolean;
   default_base_url?: string | null;
+  default_model?: string | null;
+  known_models?: string[] | null;
 }
 
 interface LLMProvidersState {
@@ -81,6 +122,8 @@ export const useLLMProvidersStore = create<LLMProvidersState>((set) => ({
         label: row.label,
         requiresKey: row.requires_key,
         defaultBaseUrl: row.default_base_url ?? undefined,
+        defaultModel: row.default_model ?? undefined,
+        knownModels: row.known_models ?? undefined,
       }));
       set({ providers });
     } catch {

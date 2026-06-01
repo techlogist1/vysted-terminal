@@ -146,13 +146,13 @@ describe("workspace serialization", () => {
       enabledModules: {},
       agentMode: "build",
       agentDock: { collapsed: true, width: 520 },
-      modelOverrides: { anthropic: "claude-sonnet-4-5" },
+      modelOverrides: { anthropic: "claude-sonnet-4-6" },
       modelOverridesV: 1,
     });
     expect(useAgentModeStore.getState().mode).toBe("build");
     expect(useAgentDockStore.getState().collapsed).toBe(true);
     expect(useAgentDockStore.getState().width).toBe(520);
-    expect(useModelSelectionStore.getState().overrides.anthropic).toBe("claude-sonnet-4-5");
+    expect(useModelSelectionStore.getState().overrides.anthropic).toBe("claude-sonnet-4-6");
   });
 
   it("drops a legacy model override with no trust marker (llama3.1:8b shadowing fix)", () => {

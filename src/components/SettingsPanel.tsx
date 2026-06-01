@@ -548,6 +548,12 @@ function PreferencesSection() {
     ...providerPreferenceOrder.filter((id) => liveIds.has(id)),
     ...providers.map((p) => p.id).filter((id) => !providerPreferenceOrder.includes(id)),
   ];
+  // Prefer the live, config-driven model list; fall back to the static map.
+  const defaultProviderInfo = providers.find((p) => p.id === defaultProviderId);
+  const defaultModelOptions: readonly string[] =
+    defaultProviderInfo?.knownModels && defaultProviderInfo.knownModels.length > 0
+      ? defaultProviderInfo.knownModels
+      : (KNOWN_MODELS_BY_PROVIDER[defaultProviderId] ?? []);
 
   return (
     <section aria-labelledby="settings-preferences">
@@ -612,7 +618,7 @@ function PreferencesSection() {
             onChange={(e) => setModel(defaultProviderId, e.target.value)}
             className={selectClass}
           >
-            {(KNOWN_MODELS_BY_PROVIDER[defaultProviderId] ?? []).map((model) => (
+            {defaultModelOptions.map((model) => (
               <option key={model} value={model}>
                 {model}
               </option>
