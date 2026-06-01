@@ -12,7 +12,9 @@
 // via the Cargo `dev-tools` feature.
 
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
+import { useAgentModeStore } from "@/store/agent-mode";
 import { useChartCommandStore } from "@/store/chart-command";
+import { useChatHistoryStore } from "@/store/chat-history";
 import { useProposedChangesStore } from "@/store/proposed-changes";
 import { useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
@@ -32,6 +34,11 @@ export function initDevMcpBridge(): void {
     // evaluate_script (region header + locale-native data verification).
     settings: useSettingsStore,
     symbols: useSymbolsStore,
+    // JARVIS sprint: the agent-surface stores, so the rig can verify the live
+    // research activity trace (Track A) and the inferred-intent mode (Track B)
+    // deterministically — without round-tripping a (weak local) tool-calling LLM.
+    chatHistory: useChatHistoryStore,
+    agentMode: useAgentModeStore,
   };
   void import("tauri-plugin-mcp")
     .then(({ initMcpBridge }) => initMcpBridge())
