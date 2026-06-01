@@ -40,6 +40,11 @@ from .openai import OpenAIProvider
 
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 XAI_BASE_URL = "https://api.x.ai/v1"
+#: OpenRouter — a unified BROKER (one key, all upstreams). OpenAI-shaped, so it
+#: rides :class:`OpenAIProvider` with this base url; the adapter adds OpenRouter
+#: attribution headers + cheapest-capable provider routing when provider_id is
+#: ``"openrouter"`` (JARVIS sprint, FINDINGS §2.2).
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 
 #: Built from the single-source registry (``config/model_registry.json``) so
@@ -90,11 +95,14 @@ def get_provider(provider_id: LLMProviderId, base_url: str | None = None) -> LLM
         return OpenAIProvider(base_url=base_url or DEEPSEEK_BASE_URL, provider_id="deepseek")
     if provider_id == "xai":
         return OpenAIProvider(base_url=base_url or XAI_BASE_URL, provider_id="xai")
+    if provider_id == "openrouter":
+        return OpenAIProvider(base_url=base_url or OPENROUTER_BASE_URL, provider_id="openrouter")
     raise ValueError(f"Unknown LLM provider id: {provider_id!r}")
 
 
 __all__ = [
     "DEEPSEEK_BASE_URL",
+    "OPENROUTER_BASE_URL",
     "PROVIDER_INFO",
     "XAI_BASE_URL",
     "LLMProvider",

@@ -27,7 +27,10 @@ import type { AgentMode } from "./agent-modes";
 // Providers + models
 // ---------------------------------------------------------------------------
 
-/** The seven BYOK providers Phase 3 ships. */
+/**
+ * The BYOK providers. `openrouter` (JARVIS sprint) is a unified BROKER — one key,
+ * all upstreams, cheapest-capable routing — riding the OpenAI-shaped wire format.
+ */
 export type LLMProviderId =
   | "anthropic"
   | "openai"
@@ -35,7 +38,8 @@ export type LLMProviderId =
   | "groq"
   | "ollama"
   | "deepseek"
-  | "xai";
+  | "xai"
+  | "openrouter";
 
 /**
  * A free-form model identifier (e.g. `"claude-opus-4-8"`, `"gpt-4.1-mini"`,

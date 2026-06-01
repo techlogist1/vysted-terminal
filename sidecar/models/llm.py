@@ -21,8 +21,12 @@ from pydantic import BaseModel, ConfigDict, Field
 # Provider + model identifiers
 # ---------------------------------------------------------------------------
 
-#: Closed set of the seven BYOK providers Phase 3 ships.
-LLMProviderId = Literal["anthropic", "openai", "gemini", "groq", "ollama", "deepseek", "xai"]
+#: Closed set of the BYOK providers. ``openrouter`` (added in the JARVIS sprint)
+#: is a unified BROKER — one key, all upstreams — that rides the OpenAI-shaped
+#: adapter via a base-url override, exactly like deepseek/xai.
+LLMProviderId = Literal[
+    "anthropic", "openai", "gemini", "groq", "ollama", "deepseek", "xai", "openrouter"
+]
 
 #: Free-form model identifier — providers ship new models between Vysted
 #: releases, so the host does not enumerate. Strings keep the contract open.

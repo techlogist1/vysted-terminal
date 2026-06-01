@@ -92,6 +92,7 @@ class _FakeOpenAI:
         **kwargs: Any,
     ) -> None:
         self.base_url = kwargs.get("base_url")
+        self.default_headers = kwargs.get("default_headers")
         self.chat = _FakeChat(_FakeCompletions(chunks or []))
         self.models = models or _FakeModels()
 
@@ -280,3 +281,73 @@ def test_get_provider_dispatches_xai_through_openai_base_url() -> None:
 def test_get_provider_unknown_raises() -> None:
     with pytest.raises(ValueError, match="Unknown LLM provider"):
         get_provider("not-real")  # type: ignore[arg-type]
+
+
+# ---------------------------------------------------------------------------
+# OpenRouter dispatch (JARVIS sprint — broker)
+# ---------------------------------------------------------------------------
+
+
+def test_get_provider_dispatches_openrouter_through_openai_base_url() -> None:
+    from services.llm import OPENROUTER_BASE_URL
+
+    provider = get_provider("openrouter")
+    assert isinstance(provider, OpenAIProvider)
+    assert provider._base_url == OPENROUTER_BASE_URL
+    assert provider._provider_id == "openrouter"
+
+
+@pytest.mark.asyncio
+async def test_openrouter_sends_attribution_headers_and_cheapest_capable_routing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """OpenRouter rides the OpenAI adapter but adds attribution headers and a
+    cheapest-capable provider-routing block; with tools sent it refuses a
+    provider that would drop them (require_parameters)."""
+    chunks = [_Chunk([_Choice(_Delta(content="ok"), finish_reason="stop")])]
+    state = _patch_client(monkeypatch, chunks=chunks)
+    provider = get_provider("openrouter")
+    async for _ in provider.stream_chat(
+        messages=[LLMMessage(role="user", content="hi")],
+        model="openai/gpt-4o-mini",
+        api_key="sk-or-test",
+        tool_ids=["price_data"],
+    ):
+        pass
+    client = state["last"]
+    # Attribution headers identify the app (no secret).
+    assert client.default_headers == {
+        "HTTP-Referer": "https://vysted.app",
+        "X-Title": "Vysted Terminal",
+    }
+    # Cheapest-capable routing rides extra_body.provider; tools => require_parameters.
+    kwargs = client.chat.completions.last_kwargs
+    assert kwargs is not None
+    provider_block = kwargs["extra_body"]["provider"]
+    assert provider_block["sort"] == "price"
+    assert provider_block["require_parameters"] is True
+
+
+def test_plain_openai_sends_no_attribution_headers_or_routing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A vanilla OpenAI instance must NOT carry OpenRouter-only headers/routing."""
+
+    async def _run() -> _FakeOpenAI:
+        chunks = [_Chunk([_Choice(_Delta(content="ok"), finish_reason="stop")])]
+        state = _patch_client(monkeypatch, chunks=chunks)
+        provider = OpenAIProvider()
+        async for _ in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="hi")],
+            model="gpt-4.1-mini",
+            api_key="sk-test",
+            tool_ids=["price_data"],
+        ):
+            pass
+        return state["last"]
+
+    import asyncio
+
+    client = asyncio.run(_run())
+    assert client.default_headers is None
+    assert "extra_body" not in (client.chat.completions.last_kwargs or {})

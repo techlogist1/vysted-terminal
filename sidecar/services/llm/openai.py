@@ -124,7 +124,17 @@ class OpenAIProvider(LLMProvider):
         self._provider_id = provider_id
 
     def _client(self, api_key: str | None) -> openai.AsyncOpenAI:
-        return openai.AsyncOpenAI(api_key=api_key, base_url=self._base_url)
+        # OpenRouter takes optional attribution headers (leaderboard/analytics
+        # only; safe to send). They identify the app, carry no secret.
+        default_headers: dict[str, str] | None = None
+        if self._provider_id == "openrouter":
+            default_headers = {
+                "HTTP-Referer": "https://vysted.app",
+                "X-Title": "Vysted Terminal",
+            }
+        return openai.AsyncOpenAI(
+            api_key=api_key, base_url=self._base_url, default_headers=default_headers
+        )
 
     async def stream_chat(
         self,
@@ -167,6 +177,19 @@ class OpenAIProvider(LLMProvider):
                 tools.append(openai_web_search_tool())
         if tools:
             request_kwargs["tools"] = tools
+        # OpenRouter cheapest-capable routing (FINDINGS §2.2): pick the cheapest
+        # PROVIDER of the chosen model, and — when we send tools — refuse a
+        # provider that would silently drop them (so multi-round tool use never
+        # breaks). Sent as ``extra_body.provider`` (OpenRouter-specific; ignored
+        # by vanilla OpenAI, but only openrouter instances reach this branch).
+        if self._provider_id == "openrouter":
+            or_provider: dict[str, Any] = {"sort": "price"}
+            if tools:
+                or_provider["require_parameters"] = True
+            request_kwargs["extra_body"] = {
+                **request_kwargs.get("extra_body", {}),
+                "provider": or_provider,
+            }
         request_kwargs.update(kwargs)
         try:
             stream = await client.chat.completions.create(**request_kwargs)

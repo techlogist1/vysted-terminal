@@ -52,6 +52,21 @@
       "default_base_url": "https://api.x.ai/v1",
       "default_model": "grok-2-latest",
       "known_models": ["grok-2-latest", "grok-2-mini"]
+    },
+    {
+      "id": "openrouter",
+      "label": "OpenRouter (broker)",
+      "requires_key": true,
+      "default_base_url": "https://openrouter.ai/api/v1",
+      "default_model": "openai/gpt-4o-mini",
+      "known_models": [
+        "openai/gpt-4o-mini",
+        "anthropic/claude-3.5-sonnet",
+        "google/gemini-2.0-flash-001",
+        "qwen/qwen3-30b-a3b-thinking-2507",
+        "deepseek/deepseek-chat",
+        "openrouter/auto"
+      ]
     }
   ],
   "prices": {
@@ -83,7 +98,18 @@
       "groq": { "llama": 0.6, "mixtral": 0.6, "": 0.6 },
       "deepseek": { "deepseek-reasoner": 2.2, "deepseek-chat": 0.9, "deepseek": 0.9 },
       "xai": { "grok": 6.0 },
-      "ollama": { "": 0.0 }
+      "ollama": { "": 0.0 },
+      "openrouter": {
+        "claude-3-opus": 18.0,
+        "claude": 9.0,
+        "gpt-4o-mini": 0.6,
+        "gpt": 5.0,
+        "gemini": 1.5,
+        "qwen": 1.0,
+        "llama": 0.6,
+        "deepseek": 0.9,
+        "": 2.0
+      }
     }
   }
 }

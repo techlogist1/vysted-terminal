@@ -28,6 +28,7 @@ export const DEFAULT_MODEL_BY_PROVIDER: Record<LLMProviderId, string> = {
   ollama: "qwen2.5:7b",
   deepseek: "deepseek-chat",
   xai: "grok-2-latest",
+  openrouter: "openai/gpt-4o-mini",
 };
 
 /** A small, curated set of selectable models per provider for the HUD picker —
@@ -43,6 +44,14 @@ export const KNOWN_MODELS_BY_PROVIDER: Record<LLMProviderId, readonly string[]> 
   ollama: ["qwen2.5:7b", "llama3.1:8b"],
   deepseek: ["deepseek-chat", "deepseek-reasoner"],
   xai: ["grok-2-latest", "grok-2-mini"],
+  openrouter: [
+    "openai/gpt-4o-mini",
+    "anthropic/claude-3.5-sonnet",
+    "google/gemini-2.0-flash-001",
+    "qwen/qwen3-30b-a3b-thinking-2507",
+    "deepseek/deepseek-chat",
+    "openrouter/auto",
+  ],
 };
 
 /** Is `model` one of the curated/known models for `provider`? Free-form picks

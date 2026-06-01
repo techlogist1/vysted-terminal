@@ -41,11 +41,11 @@ class _FakeProvider:
         return self._validate_returns
 
 
-def test_get_providers_returns_seven(client: TestClient) -> None:
+def test_get_providers_returns_all(client: TestClient) -> None:
     response = client.get("/llm/providers")
     assert response.status_code == 200
     body = response.json()
-    assert len(body) == 7
+    assert len(body) == 8
     ids = {row["id"] for row in body}
     assert ids == {
         "anthropic",
@@ -55,6 +55,7 @@ def test_get_providers_returns_seven(client: TestClient) -> None:
         "ollama",
         "deepseek",
         "xai",
+        "openrouter",
     }
     # Ollama is the only one that does not require a key.
     ollama_row = next(row for row in body if row["id"] == "ollama")
