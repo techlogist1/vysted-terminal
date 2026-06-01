@@ -47,12 +47,12 @@ function TabButton({
       aria-pressed={active}
       className={`-mb-px flex items-center gap-2 border-b-2 px-3 py-2 text-sm transition-colors ${
         active
-          ? "border-blue-500 text-zinc-100"
-          : "border-transparent text-zinc-400 hover:text-zinc-200"
+          ? "text-charcoal-100 border-amber-400"
+          : "text-charcoal-400 hover:text-charcoal-200 border-transparent"
       }`}
     >
       {children}
-      <span className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">
+      <span className="bg-charcoal-800 text-charcoal-300 rounded px-1.5 py-0.5 font-mono text-[10px]">
         {count}
       </span>
     </button>
@@ -70,8 +70,8 @@ function CurrentSettingsTable({ rows }: { rows: readonly TradesaBotSetting[] }) 
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex shrink-0 items-center gap-2 border-b border-zinc-800 bg-zinc-950/60 px-3 py-2">
-        <Search className="size-3.5 text-zinc-500" aria-hidden />
+      <div className="border-charcoal-800 bg-charcoal-925/60 flex shrink-0 items-center gap-2 border-b px-3 py-2">
+        <Search className="text-charcoal-500 size-3.5" aria-hidden />
         <input
           type="search"
           value={query}
@@ -79,9 +79,9 @@ function CurrentSettingsTable({ rows }: { rows: readonly TradesaBotSetting[] }) 
           placeholder="Filter by key…"
           aria-label="Filter settings by key"
           data-testid="tradesa-settings-search"
-          className="flex-1 bg-transparent text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none"
+          className="text-charcoal-200 placeholder:text-charcoal-600 flex-1 bg-transparent text-sm focus:outline-none"
         />
-        <span className="text-[10px] text-zinc-500">
+        <span className="text-charcoal-500 text-[10px]">
           {filtered.length} / {rows.length}
         </span>
       </div>
@@ -89,15 +89,15 @@ function CurrentSettingsTable({ rows }: { rows: readonly TradesaBotSetting[] }) 
       {filtered.length === 0 ? (
         <div
           data-testid="tradesa-settings-empty"
-          className="flex flex-1 items-center justify-center p-6 text-sm text-zinc-500"
+          className="text-charcoal-500 flex flex-1 items-center justify-center p-6 text-sm"
         >
           {rows.length === 0 ? "No settings loaded yet." : "No keys match your filter."}
         </div>
       ) : (
         <div className="overflow-auto">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10 bg-zinc-950">
-              <tr className="border-b border-zinc-800 text-left text-[11px] font-medium tracking-wide text-zinc-500 uppercase">
+            <thead className="bg-charcoal-950 sticky top-0 z-10">
+              <tr className="border-charcoal-800 text-charcoal-500 border-b text-left text-[11px] font-medium tracking-wide uppercase">
                 <th className="px-3 py-2">Key</th>
                 <th className="px-3 py-2">Value</th>
                 <th className="px-3 py-2">Description</th>
@@ -110,15 +110,15 @@ function CurrentSettingsTable({ rows }: { rows: readonly TradesaBotSetting[] }) 
                 <tr
                   key={row.key}
                   data-testid="tradesa-settings-row"
-                  className="border-b border-zinc-900/50 transition-colors hover:bg-zinc-900/40"
+                  className="border-charcoal-900/50 hover:bg-charcoal-900/40 border-b transition-colors"
                 >
-                  <td className="px-3 py-2 font-mono text-[11px] text-zinc-300">{row.key}</td>
-                  <td className="px-3 py-2 font-mono text-[11px] text-zinc-100">{row.value}</td>
-                  <td className="px-3 py-2 text-xs text-zinc-400">{row.description ?? "—"}</td>
-                  <td className="px-3 py-2 text-right text-xs text-zinc-400">
+                  <td className="text-charcoal-300 px-3 py-2 font-mono text-[11px]">{row.key}</td>
+                  <td className="text-charcoal-100 px-3 py-2 font-mono text-[11px]">{row.value}</td>
+                  <td className="text-charcoal-400 px-3 py-2 text-xs">{row.description ?? "—"}</td>
+                  <td className="text-charcoal-400 px-3 py-2 text-right text-xs">
                     {formatRelativeIso(row.updated_at)}
                   </td>
-                  <td className="px-3 py-2 text-xs text-zinc-400">{row.changed_by ?? "—"}</td>
+                  <td className="text-charcoal-400 px-3 py-2 text-xs">{row.changed_by ?? "—"}</td>
                 </tr>
               ))}
             </tbody>
@@ -134,7 +134,7 @@ function DriftList({ rows }: { rows: readonly TradesaSettingsDrift[] }) {
     return (
       <div
         data-testid="tradesa-drift-empty"
-        className="flex flex-1 items-center justify-center p-6 text-sm text-zinc-500"
+        className="text-charcoal-500 flex flex-1 items-center justify-center p-6 text-sm"
       >
         No drift detected since last refresh.
       </div>
@@ -146,21 +146,21 @@ function DriftList({ rows }: { rows: readonly TradesaSettingsDrift[] }) {
         <article
           key={`${drift.key}-${drift.changed_at}`}
           data-testid="tradesa-drift-row"
-          className="rounded-md border border-zinc-800 bg-zinc-900/40 p-3"
+          className="border-charcoal-800 bg-charcoal-900/40 rounded-md border p-3"
         >
           <header className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-[11px] text-zinc-300">{drift.key}</span>
-            <span className="ml-auto text-[10px] text-zinc-500">
+            <span className="text-charcoal-300 font-mono text-[11px]">{drift.key}</span>
+            <span className="text-charcoal-500 ml-auto text-[10px]">
               {formatRelativeIso(drift.changed_at)} by{" "}
-              <span className="text-zinc-400">{drift.changed_by ?? "system"}</span>
+              <span className="text-charcoal-400">{drift.changed_by ?? "system"}</span>
             </span>
           </header>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-            <span className="rounded bg-zinc-950 px-2 py-1 font-mono text-zinc-500 line-through">
+            <span className="bg-charcoal-950 text-charcoal-500 rounded px-2 py-1 font-mono line-through">
               {drift.previous_value ?? <em>unset</em>}
             </span>
-            <ArrowRight className="size-3.5 text-zinc-500" aria-hidden />
-            <span className="rounded bg-zinc-950 px-2 py-1 font-mono text-emerald-300">
+            <ArrowRight className="text-charcoal-500 size-3.5" aria-hidden />
+            <span className="bg-charcoal-950 text-positive rounded px-2 py-1 font-mono">
               {drift.current_value}
             </span>
           </div>
@@ -193,7 +193,7 @@ export function SettingsPanel() {
       <nav
         role="tablist"
         aria-label="Settings tabs"
-        className="flex shrink-0 border-b border-zinc-800 bg-zinc-950/60 px-2"
+        className="border-charcoal-800 bg-charcoal-925/60 flex shrink-0 border-b px-2"
       >
         <TabButton
           active={tab === "current"}

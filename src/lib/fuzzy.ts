@@ -9,6 +9,9 @@
  *
  *  - `fuzzyScore(query, target)` returns a numeric score (higher = better) or
  *    `null` when `query` is not a subsequence of `target` (no match at all).
+ *  - `fuzzyScoreWithIndices(query, target)` returns `{ score, indices }` or
+ *    `null` — same scoring, but also returns the matched character positions
+ *    so callers can highlight them (see CommandPalette.tsx for the JSX helper).
  *  - `fuzzyRank(query, items, keyFn)` ranks a list, dropping non-matches and
  *    sorting by score (stable for ties, so the caller's input order — e.g.
  *    recents/commands first — is preserved on equal scores).
@@ -56,20 +59,39 @@ function isBoundary(target: string, index: number): boolean {
  * (matches everything, neutrally — callers treat empty-query as "show all").
  */
 export function fuzzyScore(query: string, target: string): number | null {
+  return fuzzyScoreWithIndices(query, target)?.score ?? null;
+}
+
+/**
+ * Same as `fuzzyScore` but also returns the matched character positions (in the
+ * original `target` string, before lowercasing) so callers can highlight them.
+ */
+export function fuzzyScoreWithIndices(
+  query: string,
+  target: string,
+): { score: number; indices: number[] } | null {
   const q = query.trim().toLowerCase();
   if (q === "") {
-    return 0;
+    return { score: 0, indices: [] };
   }
   const t = target.toLowerCase();
 
   // Fast paths that also dominate the score: prefix > substring.
   if (t.startsWith(q)) {
-    return PREFIX_BONUS + q.length * CONTIGUOUS_BONUS + shortness(target);
+    const indices = Array.from({ length: q.length }, (_, i) => i);
+    return {
+      score: PREFIX_BONUS + q.length * CONTIGUOUS_BONUS + shortness(target),
+      indices,
+    };
   }
   const substringAt = t.indexOf(q);
   if (substringAt !== -1) {
     const boundary = isBoundary(t, substringAt) ? BOUNDARY_BONUS : 0;
-    return SUBSTRING_BONUS + boundary + q.length * CONTIGUOUS_BONUS + shortness(target);
+    const indices = Array.from({ length: q.length }, (_, i) => substringAt + i);
+    return {
+      score: SUBSTRING_BONUS + boundary + q.length * CONTIGUOUS_BONUS + shortness(target),
+      indices,
+    };
   }
 
   // General subsequence walk.
@@ -77,6 +99,7 @@ export function fuzzyScore(query: string, target: string): number | null {
   let queryIndex = 0;
   let prevMatchIndex = -2; // so the first match is never "contiguous"
   let gapPenalty = 0;
+  const indices: number[] = [];
 
   for (let targetIndex = 0; targetIndex < t.length && queryIndex < q.length; targetIndex += 1) {
     if (t[targetIndex] !== q[queryIndex]) {
@@ -98,6 +121,7 @@ export function fuzzyScore(query: string, target: string): number | null {
       gapPenalty += Math.min(targetIndex * LEADING_PENALTY, MAX_GAP_PENALTY);
     }
 
+    indices.push(targetIndex);
     prevMatchIndex = targetIndex;
     queryIndex += 1;
   }
@@ -105,7 +129,7 @@ export function fuzzyScore(query: string, target: string): number | null {
   if (queryIndex < q.length) {
     return null; // not all query chars matched → no subsequence match
   }
-  return score - gapPenalty + shortness(target);
+  return { score: score - gapPenalty + shortness(target), indices };
 }
 
 /** Tie-break reward: shorter targets score slightly higher. */

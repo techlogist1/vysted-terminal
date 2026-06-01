@@ -386,7 +386,10 @@ function CredentialsDialog({ broker, open, onClose, onSubmit }: CredentialsDialo
         }
       }}
     >
-      <DialogContent data-testid={`credentials-dialog-${broker}`}>
+      <DialogContent
+        data-testid={`credentials-dialog-${broker}`}
+        className="bg-charcoal-900 border-charcoal-700"
+      >
         <DialogHeader>
           <DialogTitle>Connect {brokerLabel(broker)}</DialogTitle>
           <DialogDescription>
@@ -397,7 +400,7 @@ function CredentialsDialog({ broker, open, onClose, onSubmit }: CredentialsDialo
         <form onSubmit={handleSubmit} className="flex flex-col gap-2">
           {fields.map((field) => (
             <label key={field.key} className="flex flex-col gap-1 text-xs">
-              <span className="text-muted-foreground text-[10px] uppercase">{field.label}</span>
+              <span className="text-charcoal-400 text-[10px] uppercase">{field.label}</span>
               <input
                 type={
                   field.key.includes("token") || field.key.includes("secret") || field.key === "pin"

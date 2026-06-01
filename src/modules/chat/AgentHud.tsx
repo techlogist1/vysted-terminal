@@ -9,7 +9,8 @@ import type { LLMProviderId, LLMProviderInfo } from "../../../types/ai";
  * by keyboard: the native `<select>`s are keyboard-driven (Tab to focus, arrows
  * to change). The persona (lens) is switched in the roster strip and the mode in
  * the mode bar (⌥1–⌥4); this HUD is the orthogonal provider/model axis. A "no
- * key" badge surfaces when the active provider has no configured BYOK key.
+ * key" badge surfaces when the active provider has no configured BYOK key —
+ * clicking it opens the key dialog for that provider.
  */
 export function AgentHud({
   providers,
@@ -18,6 +19,7 @@ export function AgentHud({
   providerConfigured,
   onProviderChange,
   onModelChange,
+  onKeyRequired,
 }: {
   providers: LLMProviderInfo[];
   provider: LLMProviderId;
@@ -25,6 +27,8 @@ export function AgentHud({
   providerConfigured: boolean;
   onProviderChange: (provider: LLMProviderId) => void;
   onModelChange: (model: string) => void;
+  /** Called when the user clicks "no key" — should open the key entry dialog for the provider. */
+  onKeyRequired?: (provider: LLMProviderId) => void;
 }) {
   // Prefer the live, config-driven model list (served from the sidecar's
   // model_registry.json into the provider row); fall back to the static map
@@ -39,7 +43,7 @@ export function AgentHud({
     "bg-charcoal-800 text-charcoal-200 border-charcoal-700 max-w-[10rem] truncate rounded border px-1 py-0.5 font-mono text-[0.6rem] outline-none focus:ring-1 focus:ring-amber-400";
   return (
     <div className="border-charcoal-700 text-charcoal-400 flex items-center gap-1.5 border-b px-3 py-1 font-mono text-[0.6rem]">
-      <span className="tracking-wide uppercase">Model</span>
+      <span className="shrink-0 tracking-wide uppercase">Provider</span>
       <select
         aria-label="Active provider"
         value={provider}
@@ -52,6 +56,7 @@ export function AgentHud({
           </option>
         ))}
       </select>
+      <span className="text-charcoal-600 shrink-0">/</span>
       <select
         aria-label="Active model"
         value={model}
@@ -65,9 +70,14 @@ export function AgentHud({
         ))}
       </select>
       {!providerConfigured && (
-        <span className="text-warning" title="No BYOK key configured for this provider">
+        <button
+          type="button"
+          onClick={() => onKeyRequired?.(provider)}
+          title="No BYOK key configured for this provider — click to add"
+          className="text-warning rounded px-1 transition-colors hover:text-amber-300"
+        >
           no key
-        </span>
+        </button>
       )}
     </div>
   );

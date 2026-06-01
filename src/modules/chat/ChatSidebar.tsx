@@ -168,6 +168,8 @@ export function ChatSidebar() {
   const [keyDialogProvider, setKeyDialogProvider] = useState<LLMProviderId | null>(null);
   const [delegateBudget, setDelegateBudget] = useState<AgentRunBudget>(DEFAULT_DELEGATE_BUDGET);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  // Tracks the last successfully dispatched prompt so the Retry button can re-send.
+  const [lastPrompt, setLastPrompt] = useState<string | null>(null);
 
   useEffect(() => {
     void refreshAgents();
@@ -287,6 +289,7 @@ export function ChatSidebar() {
 
       setStatusLine(null);
       const prompt = result.prompt;
+      setLastPrompt(prompt);
       const agentForCall =
         result.kind === "agent"
           ? result.agentId
@@ -475,6 +478,7 @@ export function ChatSidebar() {
       providerOverride,
       providers,
       setDefaultProviderId,
+      setLastPrompt,
       startRun,
       updateRun,
     ],
@@ -503,6 +507,7 @@ export function ChatSidebar() {
         providerConfigured={providerConfigured}
         onProviderChange={(p) => setProviderOverride(p)}
         onModelChange={(m) => setModelOverride(effectiveProvider, m)}
+        onKeyRequired={(p) => setKeyDialogProvider(p)}
       />
       <AutonomyToggle />
       {mode === "delegate" && <BudgetConfig budget={delegateBudget} onChange={setDelegateBudget} />}
@@ -568,7 +573,20 @@ export function ChatSidebar() {
                   )}
                 </div>
                 {message.error && (
-                  <div className="text-negative mt-1 text-[0.65rem]">{message.error}</div>
+                  <div className="mt-1 flex items-center gap-2 text-[0.65rem]">
+                    <span className="text-negative">Something went wrong — {message.error}</span>
+                    {lastPrompt && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void handleSend(lastPrompt);
+                        }}
+                        className="shrink-0 text-amber-400 underline transition-colors hover:text-amber-300"
+                      >
+                        Retry
+                      </button>
+                    )}
+                  </div>
                 )}
               </li>
             ))}

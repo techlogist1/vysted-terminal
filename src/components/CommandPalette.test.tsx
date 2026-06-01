@@ -1,10 +1,10 @@
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CommandPalette } from "@/components/CommandPalette";
 import type { VystedModule } from "@/lib/module-registry";
 import { useAgentsStore } from "@/store/agents";
-import { useChartSyncBus } from "@/store/chart-sync";
+import { useChartCommandStore } from "@/store/chart-command";
 import { useCommandPalette } from "@/store/command-palette";
 import { resetKeybindingsStoreForTests } from "@/store/keybindings";
 import { useModulesStore } from "@/store/modules";
@@ -78,7 +78,8 @@ describe("CommandPalette", () => {
     const options = screen.getAllByRole("option");
     // Only the symbol matches "nvda".
     expect(options).toHaveLength(1);
-    expect(within(options[0]).getByText("NVDA")).toBeInTheDocument();
+    // Matched chars may be split across <mark> elements; match by text content.
+    expect(options[0].textContent).toContain("NVDA");
   });
 
   it("renders a mnemonic <kbd> for a bound command", () => {
@@ -87,13 +88,10 @@ describe("CommandPalette", () => {
     expect(screen.getByText("⌘S")).toBeInTheDocument();
   });
 
-  it("selecting a symbol runs its action (broadcasts on the chart sync bus)", () => {
+  it("selecting a symbol runs its action (commands the chart to load it)", () => {
     render(<CommandPalette />);
     fireEvent.click(screen.getByText("NVDA"));
-    expect(useChartSyncBus.getState().symbol).toMatchObject({
-      symbol: "NVDA",
-      source: "palette",
-    });
+    expect(useChartCommandStore.getState().command?.symbol).toBe("NVDA");
     // Selecting closes the palette.
     expect(useCommandPalette.getState().open).toBe(false);
   });

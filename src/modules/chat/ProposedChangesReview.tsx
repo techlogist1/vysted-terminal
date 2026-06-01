@@ -56,7 +56,9 @@ export function ProposedChangesReview() {
           </button>
         </div>
       </header>
-      <ul className="mt-1.5 flex flex-col gap-1.5">
+      {/* max-h-48 + overflow-y-auto prevents the diff list from pushing the
+          composer off-screen when many changes are staged at once (HIGH finding). */}
+      <ul className="mt-1.5 flex max-h-48 flex-col gap-1.5 overflow-y-auto">
         {pending.map((change) => (
           <ProposedChangeCard
             key={change.id}
@@ -87,10 +89,9 @@ function ProposedChangeCard({
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="text-charcoal-100 font-mono text-[0.7rem]">{change.title}</div>
-          <div className="mt-0.5 font-mono text-[0.6rem] leading-relaxed">
-            <span className="text-negative/80">− {change.before}</span>
-            <br />
-            <span className="text-positive/90">+ {change.after}</span>
+          <div className="mt-0.5 overflow-hidden font-mono text-[0.6rem] leading-relaxed">
+            <span className="text-negative/80 block break-all">− {change.before}</span>
+            <span className="text-positive/90 block break-all">+ {change.after}</span>
           </div>
           {change.kind === "order" && (
             <div className="text-warning mt-0.5 font-mono text-[0.55rem]">

@@ -24,6 +24,8 @@ export function ModeBar({
       <div role="tablist" aria-label="Agent mode" className="flex items-center gap-1 px-2 pt-1.5">
         {AGENT_MODES.map((m) => {
           const active = m.id === mode;
+          // Shorten "Edit panel" → "Edit" to prevent 4 tabs crowding at 320px min-dock.
+          const displayLabel = m.label === "Edit panel" ? "Edit" : m.label;
           return (
             <button
               key={m.id}
@@ -35,11 +37,13 @@ export function ModeBar({
               className={cn(
                 "flex items-center gap-1.5 rounded-t-md px-2.5 py-1 font-mono text-[0.7rem] transition-colors",
                 active
-                  ? "bg-charcoal-800 border-charcoal-700 border border-b-transparent text-amber-300"
+                  ? // -mb-px makes the active-tab bottom flush-connect with the border-b below,
+                    // eliminating the 1px gap that made the active tab look detached.
+                    "bg-charcoal-800 border-charcoal-700 -mb-px border border-b-transparent text-amber-300"
                   : "text-charcoal-400 hover:text-charcoal-100",
               )}
             >
-              {m.label}
+              {displayLabel}
               <kbd className="border-charcoal-700 text-charcoal-500 rounded border px-1 text-[0.55rem]">
                 {m.hotkeyLabel}
               </kbd>

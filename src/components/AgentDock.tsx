@@ -94,7 +94,12 @@ export function AgentDock({ children }: { children: React.ReactNode }) {
         aria-orientation="vertical"
         onPointerDown={startDrag}
         className={cn(
-          "bg-charcoal-700/0 w-1 shrink-0 cursor-col-resize transition-colors hover:bg-amber-500/40",
+          // Widen the hit-target to ~12px via a transparent before-pseudo;
+          // the visible tint stays 2px. This fixes the 4px dead-zone on the
+          // drag handle that made it feel broken.
+          "relative w-3 shrink-0 cursor-col-resize",
+          "before:absolute before:inset-y-0 before:left-1/2 before:w-0.5 before:-translate-x-1/2",
+          "before:bg-charcoal-700/0 before:transition-colors before:hover:bg-amber-500/40",
         )}
       />
       <div className="min-w-0 flex-1">{children}</div>

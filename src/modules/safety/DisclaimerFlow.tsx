@@ -19,6 +19,7 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
+import { AlertCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -49,6 +50,7 @@ export function FirstLaunchTosDialog() {
   const ackFirstLaunchTos = useSafetyStore((s) => s.ackFirstLaunchTos);
   const [busy, setBusy] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [ackError, setAckError] = useState<string | null>(null);
 
   useEffect(() => {
     void (async () => {
@@ -59,8 +61,15 @@ export function FirstLaunchTosDialog() {
 
   const handleAck = useCallback(async () => {
     setBusy(true);
+    setAckError(null);
     try {
       await ackFirstLaunchTos();
+    } catch (err: unknown) {
+      setAckError(
+        err instanceof Error
+          ? err.message
+          : "Could not save acknowledgement — check your OS keychain permissions.",
+      );
     } finally {
       setBusy(false);
     }
@@ -74,6 +83,7 @@ export function FirstLaunchTosDialog() {
     <Dialog open>
       <DialogContent
         data-testid="first-launch-tos-dialog"
+        className="bg-charcoal-900 border-charcoal-700"
         showCloseButton={false}
         onEscapeKeyDown={(e) => e.preventDefault()}
         onPointerDownOutside={(e) => e.preventDefault()}
@@ -84,9 +94,15 @@ export function FirstLaunchTosDialog() {
             Please review the operating terms before connecting a broker.
           </DialogDescription>
         </DialogHeader>
-        <pre className="text-muted-foreground max-h-64 overflow-y-auto text-xs leading-snug whitespace-pre-wrap">
+        <pre className="text-charcoal-400 max-h-64 overflow-y-auto text-xs leading-snug whitespace-pre-wrap">
           {TOS_BODY}
         </pre>
+        {ackError !== null && (
+          <div className="border-negative/40 bg-negative/10 text-negative flex items-start gap-2 rounded-md border px-3 py-2 text-xs">
+            <AlertCircle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+            <p>{ackError}</p>
+          </div>
+        )}
         <DialogFooter>
           <Button
             data-testid="first-launch-tos-accept"
@@ -94,7 +110,7 @@ export function FirstLaunchTosDialog() {
             onClick={handleAck}
             disabled={busy}
           >
-            I understand — continue
+            {busy ? "Saving…" : "I understand — continue"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -148,14 +164,17 @@ export function BrokerFirstConnectDialog({
         }
       }}
     >
-      <DialogContent data-testid={`broker-first-connect-dialog-${broker}`}>
+      <DialogContent
+        data-testid={`broker-first-connect-dialog-${broker}`}
+        className="bg-charcoal-900 border-charcoal-700"
+      >
         <DialogHeader>
           <DialogTitle>Connect to {broker}</DialogTitle>
           <DialogDescription>
             Broker-specific terms reminder for {broker}. Acknowledge once per broker.
           </DialogDescription>
         </DialogHeader>
-        <p className="text-muted-foreground text-xs leading-relaxed">
+        <p className="text-charcoal-400 text-xs leading-relaxed">
           You are about to connect Vysted Terminal to your <strong>{broker}</strong> account. Vysted
           will store your credentials in the OS keychain (never in plain files); your credentials
           never leave the local machine. By accepting you confirm you have read{" "}

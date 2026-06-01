@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -98,10 +98,17 @@ function SaveWorkspaceForm({ onDone }: ModeProps) {
 function LoadWorkspaceList({ onDone }: ModeProps) {
   const [names, setNames] = useState<string[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fetchFailed, setFetchFailed] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const openSave = useWorkspaceDialog((state) => state.openSave);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     let cancelled = false;
+    setNames(null);
+    setError(null);
+    setFetchFailed(false);
     listWorkspaces()
       .then((result) => {
         if (!cancelled) {
@@ -110,14 +117,20 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
       })
       .catch((caught: unknown) => {
         if (!cancelled) {
-          setError(caught instanceof Error ? caught.message : "Could not list workspaces.");
+          setError(
+            `Could not reach the sidecar — ${caught instanceof Error ? caught.message : "unknown error."}`,
+          );
+          setFetchFailed(true);
           setNames([]);
         }
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [retryCount]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  const retryFetch = useCallback(() => setRetryCount((c) => c + 1), []);
 
   async function handleLoad(name: string) {
     setBusy(true);
@@ -126,7 +139,9 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
       await loadWorkspace(name);
       onDone();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not load the workspace.");
+      setError(
+        `Could not reach the sidecar — ${caught instanceof Error ? caught.message : "load failed."}`,
+      );
       setBusy(false);
     }
   }
@@ -138,7 +153,9 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
       await deleteWorkspace(name);
       setNames((current) => (current ?? []).filter((entry) => entry !== name));
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not delete the workspace.");
+      setError(
+        `Could not reach the sidecar — ${caught instanceof Error ? caught.message : "delete failed."}`,
+      );
     } finally {
       setBusy(false);
     }
@@ -152,14 +169,43 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
           Restores a saved panel layout and its enabled modules.
         </DialogDescription>
       </DialogHeader>
-      {error ? <p className="text-negative mt-3 font-mono text-xs">{error}</p> : null}
+      {error ? (
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <p className="text-negative font-mono text-xs">{error}</p>
+          {fetchFailed && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              onClick={retryFetch}
+              className="text-charcoal-400 hover:text-charcoal-200 shrink-0"
+            >
+              Retry
+            </Button>
+          )}
+        </div>
+      ) : null}
       <div className="mt-4 flex max-h-72 flex-col gap-1.5 overflow-y-auto">
         {names === null ? (
           <p className="text-charcoal-400 py-4 text-center font-mono text-xs">Loading…</p>
-        ) : names.length === 0 ? (
-          <p className="text-charcoal-400 py-4 text-center font-mono text-xs">
-            No saved workspaces yet.
-          </p>
+        ) : names.length === 0 && !fetchFailed ? (
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <p className="text-charcoal-400 font-mono text-xs">
+              No saved workspaces yet. Save your current layout first.
+            </p>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                onDone();
+                openSave();
+              }}
+              className="text-charcoal-400 hover:text-charcoal-200 font-mono text-xs"
+            >
+              Save current workspace
+            </Button>
+          </div>
         ) : (
           names.map((name) => (
             <div

@@ -16,6 +16,18 @@ import type { CommandSpec } from "../../types/plugin";
  */
 export type PaletteItemKind = "command" | "panel" | "symbol" | "agent";
 
+/**
+ * Kind-weighting multipliers applied to the fuzzy score when ranking.
+ * Commands and panels float above symbols and agents when the title score
+ * would otherwise tie with a subtitle-heavy agent philosophy match.
+ */
+export const KIND_WEIGHT: Record<PaletteItemKind, number> = {
+  command: 1.0,
+  panel: 0.9,
+  symbol: 0.8,
+  agent: 0.7,
+};
+
 /** A single searchable, runnable palette entry. */
 export interface PaletteItem {
   /** Stable id, unique within the corpus (kind-prefixed to avoid collisions). */

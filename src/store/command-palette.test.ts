@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { buildPaletteCorpus, useCommandPalette } from "./command-palette";
 import { useAgentsStore } from "./agents";
-import { useChartSyncBus } from "./chart-sync";
+import { useChartCommandStore } from "./chart-command";
 import { resetKeybindingsStoreForTests } from "./keybindings";
 import { useModulesStore } from "./modules";
 import { useSymbolsStore } from "./symbols";
@@ -100,11 +100,11 @@ describe("buildPaletteCorpus", () => {
     expect(save?.keybinding).toBeTruthy();
   });
 
-  it("symbol select broadcasts on the chart sync bus", () => {
+  it("symbol select commands the chart to load it", () => {
     const corpus = buildPaletteCorpus(commands);
     const symbol = corpus.find((i) => i.id === "symbol:AAPL");
     symbol?.run();
-    expect(useChartSyncBus.getState().symbol).toMatchObject({ symbol: "AAPL", source: "palette" });
+    expect(useChartCommandStore.getState().command?.symbol).toBe("AAPL");
   });
 
   it("panel select opens the panel via the workspace store", () => {

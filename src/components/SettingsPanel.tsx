@@ -8,14 +8,14 @@ import {
   Bot,
   Check,
   Download,
+  Info,
   KeyRound,
   Keyboard,
-  Layers,
   Network,
+  Package,
   Palette,
   Plug,
   RotateCcw,
-  Settings2,
   Sliders,
   Trash2,
   Upload,
@@ -24,12 +24,8 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
-import { INTEGRATIONS } from "@/lib/integrations/registry";
-import type { IntegrationSpec } from "@/lib/integrations/types";
 import { type Region, REGIONS } from "@/lib/region";
 import { cn } from "@/lib/utils";
-import { ConnectCard } from "@/modules/integrations/ConnectCard";
-import { useBrokersStore } from "@/store/brokers";
 import { deleteSecret, KEYCHAIN_NAMESPACES } from "@/lib/keychain";
 import { HOST_VERSION } from "@/lib/plugin-bootstrap";
 import {
@@ -97,7 +93,7 @@ export const SettingsPanel: FunctionComponent = () => {
         <div className="mx-auto flex max-w-2xl flex-col gap-8 p-6">
           <header>
             <h1 className="text-charcoal-100 flex items-center gap-2 font-serif text-2xl">
-              <Settings2 className="size-5 text-amber-400" aria-hidden="true" />
+              <Sliders className="size-5 text-amber-400" aria-hidden="true" />
               Settings
             </h1>
             <p className="text-charcoal-400 mt-1 font-mono text-xs">
@@ -217,7 +213,7 @@ function ProvidersSection() {
                         type="button"
                         aria-label={`Remove ${provider.label} key`}
                         onClick={() => void handleRemove(provider.id)}
-                        className="text-charcoal-400 rounded p-1.5 hover:text-red-400"
+                        className="text-charcoal-400 hover:text-negative rounded p-1.5"
                       >
                         <Trash2 className="size-3.5" aria-hidden="true" />
                       </button>
@@ -246,18 +242,7 @@ function ProvidersSection() {
 // ---------------------------------------------------------------------------
 
 function IntegrationsSection() {
-  const brokerStates = useBrokersStore((s) => s.byId) as Record<
-    string,
-    { status?: string } | undefined
-  >;
-  const refreshBrokers = useBrokersStore((s) => s.refresh);
-  const [connectSpec, setConnectSpec] = useState<IntegrationSpec | null>(null);
-
-  useEffect(() => {
-    void refreshBrokers();
-  }, [refreshBrokers]);
-
-  const brokers = INTEGRATIONS.filter((i) => i.category === "broker");
+  const openPanel = useWorkspaceStore((s) => s.openPanel);
 
   return (
     <section aria-labelledby="settings-integrations">
@@ -265,41 +250,16 @@ function IntegrationsSection() {
         id="settings-integrations"
         icon={<Network className="size-4 text-amber-400" aria-hidden="true" />}
         title="Integrations"
-        hint="Connect a broker for read-only positions, holdings & P&L the copilot can analyse over your real account. Order execution stays in the broker panel."
+        hint="Connect a broker for read-only positions, holdings & P&L the copilot can analyse over your real account."
       />
-      <ul className="flex flex-col gap-1.5">
-        {brokers.map((spec) => {
-          const connected = brokerStates[spec.id]?.status === "connected";
-          return (
-            <li
-              key={spec.id}
-              className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between gap-3 rounded-md border px-4 py-3"
-            >
-              <div className="flex min-w-0 flex-col">
-                <span className="text-charcoal-100 font-mono text-sm">{spec.label}</span>
-                <span className="text-charcoal-400 font-mono text-xs">{spec.blurb}</span>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <span
-                  className={`font-mono text-[10px] tracking-wide uppercase ${
-                    connected ? "text-positive" : "text-charcoal-500"
-                  }`}
-                >
-                  {connected ? "connected" : "not connected"}
-                </span>
-                <Button size="sm" variant="outline" onClick={() => setConnectSpec(spec)}>
-                  {connected ? "Manage" : "Connect"}
-                </Button>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-      <ConnectCard
-        spec={connectSpec}
-        open={connectSpec !== null}
-        onOpenChange={(open) => !open && setConnectSpec(null)}
-      />
+      <div className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between gap-3 rounded-md border px-4 py-3">
+        <span className="text-charcoal-400 font-mono text-xs">
+          Broker connections are managed in the Marketplace.
+        </span>
+        <Button size="sm" variant="outline" onClick={() => openPanel("marketplace-panel")}>
+          Open Marketplace
+        </Button>
+      </div>
     </section>
   );
 }
@@ -351,7 +311,7 @@ function LayoutsSection() {
     <section aria-labelledby="settings-layouts">
       <SectionHeader
         id="settings-layouts"
-        icon={<Layers className="size-4 text-amber-400" aria-hidden="true" />}
+        icon={<Package className="size-4 text-amber-400" aria-hidden="true" />}
         title="Layouts"
         hint="Drag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch."
       />
@@ -382,7 +342,7 @@ function LayoutsSection() {
           Reset to default
         </Button>
       </form>
-      {error && <p className="mb-2 font-mono text-xs text-red-400">{error}</p>}
+      {error && <p className="text-negative mb-2 font-mono text-xs">{error}</p>}
       {names === null ? (
         <p className="text-charcoal-400 font-mono text-xs">Loading layouts…</p>
       ) : names.length === 0 ? (
@@ -419,7 +379,7 @@ function LayoutsSection() {
                       await reload();
                     })
                   }
-                  className="text-charcoal-400 rounded p-1 hover:text-red-400"
+                  className="text-charcoal-400 hover:text-negative rounded p-1"
                 >
                   <X className="size-3.5" aria-hidden="true" />
                 </button>
@@ -448,7 +408,7 @@ function ModulesSection() {
     <section aria-labelledby="settings-modules">
       <SectionHeader
         id="settings-modules"
-        icon={<Layers className="size-4 text-amber-400" aria-hidden="true" />}
+        icon={<Package className="size-4 text-amber-400" aria-hidden="true" />}
         title="Modules"
         hint="Disabled modules contribute no panels or ⌘K commands."
       />
@@ -515,6 +475,7 @@ const STARTER_PANEL_LABELS: Record<string, string> = {
 function PreferencesSection() {
   const firstParty = useAgentsStore(selectFirstPartyAgents);
   const custom = useAgentsStore(selectCustomAgents);
+  const agentsLoading = useAgentsStore((s) => s.loading);
   const refreshAgents = useAgentsStore((s) => s.refresh);
 
   const providers = useLLMProvidersStore((s) => s.providers);
@@ -575,16 +536,25 @@ function PreferencesSection() {
         >
           <select
             aria-label="Default agent"
-            value={defaultAgentId ?? ""}
+            value={agentsLoading && agents.length === 0 ? "__loading__" : (defaultAgentId ?? "")}
+            disabled={agentsLoading && agents.length === 0}
             onChange={(e) => setDefaultAgentId(e.target.value === "" ? null : e.target.value)}
             className={selectClass}
           >
-            <option value="">No default (raw chat)</option>
-            {agents.map((agent) => (
-              <option key={agent.id} value={agent.id}>
-                {agent.name}
+            {agentsLoading && agents.length === 0 ? (
+              <option value="__loading__" disabled>
+                Loading agents…
               </option>
-            ))}
+            ) : (
+              <>
+                <option value="">No default (raw chat)</option>
+                {agents.map((agent) => (
+                  <option key={agent.id} value={agent.id}>
+                    {agent.name}
+                  </option>
+                ))}
+              </>
+            )}
           </select>
         </PrefRow>
 
@@ -717,16 +687,17 @@ function PreferencesSection() {
               return (
                 <label
                   key={panelId}
-                  className="text-charcoal-200 flex items-center gap-2 font-mono text-xs"
+                  title={label}
+                  className="text-charcoal-200 flex min-w-0 items-center gap-2 font-mono text-xs"
                 >
                   <input
                     type="checkbox"
                     aria-label={`Starter cockpit: ${label}`}
                     checked={checked}
                     onChange={(e) => toggleStarterCockpitPanel(panelId, e.target.checked)}
-                    className="size-4 accent-amber-400"
+                    className="size-4 shrink-0 accent-amber-400"
                   />
-                  {label}
+                  <span className="truncate">{label}</span>
                 </label>
               );
             })}
@@ -925,6 +896,11 @@ function KeybindingsSection() {
                           aria-label={`Record binding for ${def.label}`}
                           onClick={() => setRecording(isRecording ? null : actionId)}
                           onKeyDown={isRecording ? (e) => handleRecord(actionId, e) : undefined}
+                          onBlur={() => {
+                            // Cancel recording when focus leaves the button so
+                            // the control can't get stranded in recording state.
+                            if (isRecording) setRecording(null);
+                          }}
                           className={cn(
                             "rounded px-2 py-1 font-mono text-[11px] uppercase",
                             isRecording
@@ -1080,7 +1056,7 @@ function AboutSection() {
     <section aria-labelledby="settings-about" className="pb-4">
       <SectionHeader
         id="settings-about"
-        icon={<Settings2 className="size-4 text-amber-400" aria-hidden="true" />}
+        icon={<Info className="size-4 text-amber-400" aria-hidden="true" />}
         title="About"
       />
       <div className="border-charcoal-700 bg-charcoal-850 text-charcoal-300 flex flex-col gap-1.5 rounded-md border px-4 py-3 font-mono text-xs">

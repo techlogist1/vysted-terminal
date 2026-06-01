@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Maximize2, X } from "lucide-react";
+import { Maximize2, Send, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { answerDelegateRun } from "@/lib/delegate-runs";
@@ -128,7 +128,8 @@ function RunRow({
             }
           }}
         >
-          <span className="text-warning truncate" title={run.question}>
+          {/* min-w-0 ensures the question truncates before the input is pushed off */}
+          <span className="text-warning min-w-0 truncate" title={run.question}>
             {run.question}
           </span>
           <input
@@ -137,6 +138,14 @@ function RunRow({
             onChange={(e) => setAnswer(e.target.value)}
             className="bg-charcoal-800 text-charcoal-100 h-5 flex-1 rounded px-1.5 text-[0.6rem] outline-none focus:ring-1 focus:ring-amber-400"
           />
+          <button
+            type="submit"
+            aria-label="Submit answer"
+            disabled={!answer.trim()}
+            className="text-charcoal-500 hover:text-amber-300 disabled:opacity-30"
+          >
+            <Send size={10} aria-hidden />
+          </button>
         </form>
       )}
     </div>

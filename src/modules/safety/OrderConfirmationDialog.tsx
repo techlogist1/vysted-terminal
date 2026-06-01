@@ -20,6 +20,7 @@
  */
 
 import { useCallback, useMemo, useState } from "react";
+import { AlertCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -178,7 +179,11 @@ function OrderConfirmationDialogContent({
         }
       }}
     >
-      <DialogContent data-testid="order-confirmation-dialog" data-variant={meta.variant}>
+      <DialogContent
+        data-testid="order-confirmation-dialog"
+        data-variant={meta.variant}
+        className="bg-charcoal-900 border-charcoal-700"
+      >
         <DialogHeader>
           <DialogTitle>
             {meta.variant === "ai" ? "Confirm AI-proposed order" : "Confirm order"}
@@ -252,7 +257,17 @@ function OrderConfirmationDialogContent({
           </div>
         )}
 
-        {error !== null && <p className="text-negative text-xs">{error}</p>}
+        {error !== null && (
+          <div className="border-negative/40 bg-negative/10 text-negative flex items-start gap-2 rounded-md border px-3 py-2 text-xs">
+            <AlertCircle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+            <div>
+              <p>{error}</p>
+              <button type="button" className="mt-1 underline" onClick={() => void handleConfirm()}>
+                Try again
+              </button>
+            </div>
+          </div>
+        )}
 
         <DialogFooter>
           <Button variant="ghost" onClick={handleDecline} disabled={busy}>
@@ -275,8 +290,10 @@ function OrderConfirmationDialogContent({
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <>
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd>{value}</dd>
+      <dt className="text-charcoal-400">{label}</dt>
+      <dd className="text-charcoal-100 min-w-0 truncate text-right tabular-nums" title={value}>
+        {value}
+      </dd>
     </>
   );
 }

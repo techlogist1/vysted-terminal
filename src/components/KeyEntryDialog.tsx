@@ -87,6 +87,35 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
     }
   }
 
+  // When the provider requires no key, show a simpler "ready to use" body.
+  if (provider?.requiresKey === false) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="border-charcoal-700 bg-charcoal-900 max-w-md gap-0 p-0 shadow-2xl">
+          <DialogHeader className="border-charcoal-700 border-b px-5 py-3">
+            <DialogTitle className="text-charcoal-200 flex items-center gap-2 font-mono text-sm font-medium">
+              <KeyRound className="size-3.5 text-amber-400" aria-hidden="true" />
+              {provider.label}
+            </DialogTitle>
+            <DialogDescription className="text-charcoal-400 mt-1 font-mono text-xs">
+              No API key required for this provider.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 px-5 py-4">
+            <p className="text-charcoal-300 font-mono text-sm">
+              This provider does not require an API key — it is ready to use.
+            </p>
+            <div className="flex justify-end pt-1">
+              <Button size="sm" onClick={() => onOpenChange(false)}>
+                Got it
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="border-charcoal-700 bg-charcoal-900 max-w-md gap-0 p-0 shadow-2xl">
@@ -111,8 +140,8 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
             value={key}
             autoFocus
             onChange={(event) => setKey(event.target.value)}
-            placeholder={provider?.requiresKey === false ? "(no key required)" : "sk-..."}
-            disabled={!provider || provider.requiresKey === false}
+            placeholder="sk-..."
+            disabled={!provider}
             aria-label="API key"
             className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 h-9 rounded-md px-3 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
           />
@@ -133,11 +162,7 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              size="sm"
-              disabled={status === "validating" || !key || provider?.requiresKey === false}
-            >
+            <Button type="submit" size="sm" disabled={status === "validating" || !key}>
               {status === "validating" ? "Validating…" : "Save"}
             </Button>
           </div>
