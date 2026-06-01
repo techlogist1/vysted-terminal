@@ -29,6 +29,7 @@ from models.llm import (
 )
 
 from .base import LLMProvider, LLMStreamEvent
+from .native_search import gemini_google_search_tool
 
 
 def _split_system_and_contents(
@@ -100,20 +101,30 @@ class GeminiProvider(LLMProvider):
         api_key: str | None = None,
         **kwargs: Any,
     ) -> AsyncIterator[LLMStreamEvent]:
-        # Pop tool_ids before anything reaches the SDK — generate_content_stream
-        # rejects unknown kwargs, so this must never be forwarded.
+        # Pop tool_ids/web_search before anything reaches the SDK —
+        # generate_content_stream rejects unknown kwargs, so these must never be
+        # forwarded.
         tool_ids = kwargs.pop("tool_ids", None)
+        web_search = bool(kwargs.pop("web_search", False))
+        # Anthropic-only cap; pop so it never leaks into the SDK config.
+        kwargs.pop("web_search_max_uses", None)
         system, contents = _split_system_and_contents(messages)
         config: dict[str, Any] = {}
         if system is not None:
             config["system_instruction"] = system
         config.update(kwargs.pop("config", {}) or {})
+        tools: list[dict[str, Any]] = []
         if tool_ids:
             from services.agent_tools.schemas import gemini_tools
 
-            tools = gemini_tools(tool_ids)
-            if tools:
-                config["tools"] = tools
+            tools.extend(gemini_tools(tool_ids))
+        # Native server-side web search (FR-081): enable the ``google_search``
+        # grounding tool, opt-in via ``web_search``. Supported on current Gemini
+        # models; a model that rejects it surfaces an error the runtime handles.
+        if web_search:
+            tools.append(gemini_google_search_tool())
+        if tools:
+            config["tools"] = tools
         client = self._client(api_key)
         try:
             stream = await client.aio.models.generate_content_stream(

@@ -167,16 +167,19 @@ def _register_v0_6_5_runtime_extensions() -> None:
 
 
 class _RegionMiddleware:
-    """Pure-ASGI middleware threading the request's region into a ContextVar.
+    """Pure-ASGI middleware threading per-request locale + search config into ContextVars.
 
-    The frontend sends the active region as the ``X-Vysted-Region`` header on
-    every sidecar request (the same per-request transport BYOK secrets use). This
-    middleware reads it into the per-request ContextVar (:func:`config.get_region`)
-    so the provider registry, news, screener, and macro handlers shape data for
-    the user's locale (FR-060). Pure ASGI (not ``BaseHTTPMiddleware``) so the
-    ContextVar set runs in the same task as the endpoint and is reliably visible
-    to it. Absent the header, the region defaults to ``US`` — every existing
-    caller behaves exactly as before.
+    The frontend sends the active region as ``X-Vysted-Region`` and the web-search
+    tier + its BYOK credential as ``X-Vysted-Search-Tier`` / ``X-Vysted-Exa-Key`` /
+    ``X-Vysted-Searxng-Url`` on every sidecar request (the same per-request transport
+    BYOK secrets use). This middleware reads them into per-request ContextVars
+    (:func:`config.get_region`, :func:`config.get_search_tier`, …) so the provider
+    registry, news/screener/macro, and the agent search tools shape data + ground
+    web context for the user's locale + chosen tier (FR-060/080). Pure ASGI (not
+    ``BaseHTTPMiddleware``) so the ContextVar set runs in the same task as the
+    endpoint and is reliably visible to it. Absent the headers, region defaults to
+    ``US`` and the tier to ``native`` — every existing caller behaves as before. The
+    Exa key is a secret: held in process memory for the request only, reset on exit.
     """
 
     def __init__(self, app: Any) -> None:
@@ -187,15 +190,27 @@ class _RegionMiddleware:
             await self.app(scope, receive, send)
             return
         region: str | None = None
+        tier: str | None = None
+        exa_key: str | None = None
+        searxng_url: str | None = None
         for key, value in scope.get("headers", []):
             if key == b"x-vysted-region":
                 region = value.decode("latin-1")
-                break
-        token = config.set_request_region(region)
+            elif key == b"x-vysted-search-tier":
+                tier = value.decode("latin-1")
+            elif key == b"x-vysted-exa-key":
+                exa_key = value.decode("latin-1")
+            elif key == b"x-vysted-searxng-url":
+                searxng_url = value.decode("latin-1")
+        region_token = config.set_request_region(region)
+        search_tokens = config.set_request_search(
+            tier=tier, exa_key=exa_key, searxng_url=searxng_url
+        )
         try:
             await self.app(scope, receive, send)
         finally:
-            config.reset_request_region(token)
+            config.reset_request_search(search_tokens)
+            config.reset_request_region(region_token)
 
 
 def create_app() -> FastAPI:

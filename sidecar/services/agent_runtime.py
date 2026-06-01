@@ -29,6 +29,7 @@ from typing import Any
 
 import jsonschema
 
+import config
 from models.agent import (
     AgentContextSnapshot,
     AgentSpec,
@@ -43,7 +44,7 @@ from models.llm import (
 )
 from services import agent_tools, model_registry
 from services.agent_tools import catalog
-from services.llm import get_provider
+from services.llm import get_provider, native_search
 from services.llm.base import LLMStreamEvent
 
 logger = logging.getLogger(__name__)
@@ -269,6 +270,11 @@ def _resolve_model(spec: AgentSpec, override: str | None) -> str:
 #: price_data + fundamentals); a runaway agent that loops on the same
 #: tool is bounded by this constant.
 _MAX_TOOL_ROUNDS = 6
+#: Per-run web-search cap (FR-081) — bounds per-search billing during a multi-round
+#: research run, for BOTH the native tier (passed as the provider's max_uses) and
+#: the BYOK/local `web_search` tool (counted in the loop; further calls return a
+#: cap-reached message instead of dispatching).
+_WEB_SEARCH_CAP = 5
 
 
 LocalToolHandler = Any  # async (dict) -> dict, bound per-invocation
@@ -414,11 +420,29 @@ async def invoke_agent(
         # Enforced here, not in the adapter, so an external MCP client cannot
         # bypass it (FR-005). The edit/build/delegate modes keep the full set.
         tool_ids = [t for t in tool_ids if catalog.is_read_only(t) is True]
+
+    # Web-search tier dispatch (FR-080/081). On the NATIVE tier with a
+    # native-capable provider, ride the model's own server-side search (the
+    # adapter injects it via the `web_search` kwarg, capped at _WEB_SEARCH_CAP)
+    # and WITHHOLD the BYOK/local `web_search` tool so search isn't double-run.
+    # Otherwise (BYOK/local tier, or a native-incapable provider) keep the
+    # `web_search` tool — it routes to Exa/SearXNG, or returns an honest
+    # "unavailable" when nothing is configured (FR-082; never fabricates).
+    search_tier = config.get_search_tier()
+    if (
+        search_tier == config.SEARCH_TIER_NATIVE
+        and provider_id in native_search.SUPPORTS_NATIVE_SEARCH
+    ):
+        opts["web_search"] = True
+        opts["web_search_max_uses"] = _WEB_SEARCH_CAP
+        tool_ids = [t for t in tool_ids if t != "web_search"]
+
     local_tools = _build_local_tools(context_snapshot)
     messages = _compose_messages(spec, prompt, context_snapshot, history)
     adapter = get_provider(provider_id)
 
     rounds = 0
+    web_search_calls = 0  # per-run cap on the BYOK/local web_search tool (FR-081)
     while True:
         pending_tools: list[LLMToolUseEvent] = []
         seen_done = False
@@ -477,7 +501,24 @@ async def invoke_agent(
         # Dispatch every pending tool, append tool-result messages keyed
         # on the call ids, and re-enter the loop.
         for tool_call in pending_tools:
-            result_str = await _dispatch_tool(tool_call, local_tools)
+            if tool_call.name == "web_search":
+                # FR-081: bound per-search billing per run. Past the cap, return a
+                # synthesize-now signal instead of dispatching another search.
+                web_search_calls += 1
+                if web_search_calls > _WEB_SEARCH_CAP:
+                    result_str = json.dumps(
+                        {
+                            "ok": False,
+                            "message": (
+                                f"web-search cap reached ({_WEB_SEARCH_CAP} searches this "
+                                "run) — answer from the sources you already gathered."
+                            ),
+                        }
+                    )
+                else:
+                    result_str = await _dispatch_tool(tool_call, local_tools)
+            else:
+                result_str = await _dispatch_tool(tool_call, local_tools)
             messages.append(
                 LLMMessage(
                     role="tool",

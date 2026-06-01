@@ -84,6 +84,62 @@ def reset_request_region(token: object) -> None:
     _region_ctx.reset(token)  # type: ignore[arg-type]
 
 
+# --- Search config (Pass B / Pillar C — FR-080) -----------------------------
+#
+# The web-search tier + its BYOK credential ride each request the same way the
+# region and BYOK secrets do — per-request headers read into ContextVars by the
+# region middleware, reset on the way out, NEVER logged or persisted. The agent
+# tool loop reads these to pick native vs BYOK (Exa) vs local (SearXNG) search.
+# The Exa key is a SECRET: process-memory only, gone when the request ends.
+SEARCH_TIER_NATIVE = "native"
+_KNOWN_SEARCH_TIERS = frozenset({"native", "byok-exa", "local-searxng"})
+
+_search_tier_ctx: ContextVar[str] = ContextVar("vysted_search_tier", default=SEARCH_TIER_NATIVE)
+_exa_key_ctx: ContextVar[str | None] = ContextVar("vysted_exa_key", default=None)
+_searxng_url_ctx: ContextVar[str | None] = ContextVar("vysted_searxng_url", default=None)
+
+
+def normalize_search_tier(value: str | None) -> str:
+    """Coerce a value to a known search tier, defaulting to ``native``."""
+    if not value:
+        return SEARCH_TIER_NATIVE
+    candidate = value.strip().lower()
+    return candidate if candidate in _KNOWN_SEARCH_TIERS else SEARCH_TIER_NATIVE
+
+
+def get_search_tier() -> str:
+    return _search_tier_ctx.get()
+
+
+def get_exa_key() -> str | None:
+    """The per-request Exa BYOK key (from the keychain via header), or ``None``."""
+    return _exa_key_ctx.get()
+
+
+def get_searxng_url() -> str | None:
+    """The per-request SearXNG base URL (local tier), or ``None``."""
+    return _searxng_url_ctx.get()
+
+
+def set_request_search(
+    *, tier: str | None, exa_key: str | None, searxng_url: str | None
+) -> tuple[object, object, object]:
+    """Set the per-request search config; returns reset tokens (middleware teardown)."""
+    return (
+        _search_tier_ctx.set(normalize_search_tier(tier)),
+        _exa_key_ctx.set(exa_key.strip() if exa_key and exa_key.strip() else None),
+        _searxng_url_ctx.set(searxng_url.strip() if searxng_url and searxng_url.strip() else None),
+    )
+
+
+def reset_request_search(tokens: tuple[object, object, object]) -> None:
+    """Restore the search ContextVars to their prior values (middleware teardown)."""
+    tier_token, exa_token, searxng_token = tokens
+    _search_tier_ctx.reset(tier_token)  # type: ignore[arg-type]
+    _exa_key_ctx.reset(exa_token)  # type: ignore[arg-type]
+    _searxng_url_ctx.reset(searxng_token)  # type: ignore[arg-type]
+
+
 def get_data_dir() -> Path:
     """Return the application data directory, creating it if necessary."""
     raw = os.environ.get(DATA_DIR_ENV)

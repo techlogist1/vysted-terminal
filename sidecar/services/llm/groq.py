@@ -104,6 +104,15 @@ class GroqProvider(LLMProvider):
         **kwargs: Any,
     ) -> AsyncIterator[LLMStreamEvent]:
         tool_ids = kwargs.pop("tool_ids", None)
+        # Native server-side web search (FR-081): on Groq, search is handled by
+        # the Compound system server-side — a Compound model (``compound-*`` /
+        # ``groq/compound*``) runs web search automatically, so there is no
+        # explicit tool to inject; pass through. On a non-Compound Groq model
+        # there is no native search, so this is a graceful no-op (the runtime
+        # falls back to a BYOK search plugin). Either way, pop the kwargs so they
+        # never reach the SDK.
+        kwargs.pop("web_search", None)
+        kwargs.pop("web_search_max_uses", None)
         client = self._client(api_key)
         api_messages = _to_api_messages(messages)
         request_kwargs: dict[str, Any] = {

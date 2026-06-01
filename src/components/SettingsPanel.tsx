@@ -17,6 +17,7 @@ import {
   Palette,
   Plug,
   RotateCcw,
+  Search,
   Sliders,
   Trash2,
   Upload,
@@ -27,7 +28,8 @@ import { Button } from "@/components/ui/button";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
 import { type Region, REGIONS } from "@/lib/region";
 import { cn } from "@/lib/utils";
-import { deleteSecret, KEYCHAIN_NAMESPACES } from "@/lib/keychain";
+import { deleteSecret, getSecret, KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
+import { EXA_KEYCHAIN_ACCOUNT } from "@/lib/search-headers";
 import { HOST_VERSION } from "@/lib/plugin-bootstrap";
 import {
   autosaveLayout,
@@ -55,7 +57,9 @@ import { useLLMProvidersStore } from "@/store/llm-providers";
 import { KNOWN_MODELS_BY_PROVIDER, useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
 import { useProviderKeysStore } from "@/store/provider-keys";
+import { useSearchSettingsStore } from "@/store/search-settings";
 import { type SettingsBundle, useSettingsStore } from "@/store/settings";
+import { SEARCH_TIER_LABELS, SEARCH_TIERS, type SearchTier } from "../../types/search";
 import { AUTOSAVE_LAYOUT_NAME, isReservedLayoutName, useWorkspaceStore } from "@/store/workspace";
 import type { LLMProviderId } from "../../types/ai";
 
@@ -103,6 +107,7 @@ export const SettingsPanel: FunctionComponent = () => {
             </p>
           </header>
           <ProvidersSection />
+          <WebSearchSection />
           <PreferencesSection />
           <KeybindingsSection />
           <IntegrationsSection />
@@ -234,6 +239,171 @@ function ProvidersSection() {
         }}
         onSaved={(id) => void refreshOne(id)}
       />
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Web search (three tiers — FR-080/083/084)
+// ---------------------------------------------------------------------------
+
+/**
+ * Web search — the three-tier search control (FR-080/083/084).
+ *
+ *  - Tier picker: native (model's own web search on your provider key) /
+ *    BYOK Exa / local SearXNG.
+ *  - Exa API key (BYOK): stored in the OS keychain, sent as `X-Vysted-Exa-Key`.
+ *    Read/written here directly (the search-source plugin's secret namespace).
+ *  - SearXNG URL: the local-tier base URL (`X-Vysted-Searxng-Url`); blank =
+ *    autodetect `localhost:8080`.
+ */
+function WebSearchSection() {
+  const tier = useSearchSettingsStore((s) => s.tier);
+  const setTier = useSearchSettingsStore((s) => s.setTier);
+  const searxngUrl = useSearchSettingsStore((s) => s.searxngUrl);
+  const setSearxngUrl = useSearchSettingsStore((s) => s.setSearxngUrl);
+
+  // Exa key status is read straight from the keychain (BYOK; never in a store).
+  const [exaConfigured, setExaConfigured] = useState<boolean | null>(null);
+  const [exaInput, setExaInput] = useState("");
+  const [exaBusy, setExaBusy] = useState(false);
+
+  async function refreshExa() {
+    try {
+      const value = await getSecret(EXA_KEYCHAIN_ACCOUNT);
+      setExaConfigured(Boolean(value));
+    } catch {
+      setExaConfigured(false);
+    }
+  }
+
+  useEffect(() => {
+    // Only sets state after the awaited keychain read resolves (never
+    // synchronously) — same no-cascade pattern as the Layouts section.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void refreshExa();
+  }, []);
+
+  async function handleSaveExa() {
+    const value = exaInput.trim();
+    if (!value) {
+      return;
+    }
+    setExaBusy(true);
+    try {
+      await setSecret(EXA_KEYCHAIN_ACCOUNT, value);
+      setExaInput("");
+      await refreshExa();
+    } finally {
+      setExaBusy(false);
+    }
+  }
+
+  async function handleRemoveExa() {
+    setExaBusy(true);
+    try {
+      await deleteSecret(EXA_KEYCHAIN_ACCOUNT);
+      await refreshExa();
+    } finally {
+      setExaBusy(false);
+    }
+  }
+
+  return (
+    <section aria-labelledby="settings-search">
+      <SectionHeader
+        id="settings-search"
+        icon={<Search className="size-4 text-amber-400" aria-hidden="true" />}
+        title="Web search"
+        hint="Pick how the copilot searches the web. Native rides your model's own search; BYOK adds an Exa key for finance-grade retrieval; local routes through a private SearXNG so nothing leaves your machine."
+      />
+      <div className="flex flex-col gap-4">
+        {/* Tier picker */}
+        <PrefRow
+          label="Search tier"
+          hint="Native (model's web search), BYOK Exa, or local SearXNG."
+        >
+          <Select
+            aria-label="Search tier"
+            value={tier}
+            onChange={(e) => setTier(e.target.value as SearchTier)}
+          >
+            {SEARCH_TIERS.map((t) => (
+              <option key={t} value={t}>
+                {SEARCH_TIER_LABELS[t]}
+              </option>
+            ))}
+          </Select>
+        </PrefRow>
+
+        {/* Exa API key (BYOK, keychain) */}
+        <div className="border-charcoal-700 bg-charcoal-850 rounded-md border px-4 py-3">
+          <p className="text-charcoal-200 flex items-center gap-2 font-mono text-xs">
+            <KeyRound className="size-3.5 text-amber-400" aria-hidden="true" />
+            Exa API key (BYOK)
+          </p>
+          <p className="text-charcoal-400 mt-0.5 mb-2 font-mono text-[11px]">
+            Optional. Stored in your OS keychain — never on disk or sent anywhere but Exa. Powers
+            the BYOK search tier.
+          </p>
+          {exaConfigured ? (
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-positive flex items-center gap-1 font-mono text-xs">
+                <Check className="size-3" aria-hidden="true" /> Key configured
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={exaBusy}
+                onClick={() => void handleRemoveExa()}
+              >
+                <Trash2 className="size-3" aria-hidden="true" />
+                Remove
+              </Button>
+            </div>
+          ) : (
+            <form
+              className="flex items-center gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void handleSaveExa();
+              }}
+            >
+              <input
+                type="password"
+                value={exaInput}
+                onChange={(e) => setExaInput(e.target.value)}
+                placeholder="exa_..."
+                aria-label="Exa API key"
+                className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-400 h-8 flex-1 rounded-md border px-3 font-mono text-xs outline-none focus:border-amber-400"
+              />
+              <Button
+                type="submit"
+                size="sm"
+                variant="outline"
+                disabled={exaBusy || exaInput.trim() === ""}
+              >
+                Save key
+              </Button>
+            </form>
+          )}
+        </div>
+
+        {/* SearXNG URL (local tier) */}
+        <PrefRow
+          label="SearXNG URL"
+          hint="Local-tier base URL. Leave blank to autodetect localhost:8080."
+        >
+          <input
+            type="url"
+            value={searxngUrl}
+            onChange={(e) => setSearxngUrl(e.target.value)}
+            placeholder="http://localhost:8080"
+            aria-label="SearXNG URL"
+            className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-400 h-8 min-w-[12rem] rounded-md border px-3 font-mono text-xs outline-none focus:border-amber-400"
+          />
+        </PrefRow>
+      </div>
     </section>
   );
 }

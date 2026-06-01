@@ -31,6 +31,7 @@ from models.llm import (
 )
 
 from .base import LLMProvider, LLMStreamEvent
+from .native_search import openai_web_search_tool, xai_search_parameters
 
 
 def _to_api_messages(messages: list[LLMMessage]) -> list[dict[str, Any]]:
@@ -133,6 +134,10 @@ class OpenAIProvider(LLMProvider):
         **kwargs: Any,
     ) -> AsyncIterator[LLMStreamEvent]:
         tool_ids = kwargs.pop("tool_ids", None)
+        web_search = bool(kwargs.pop("web_search", False))
+        # ``web_search_max_uses`` is Anthropic-only; pop it so it never reaches
+        # the OpenAI/xAI SDK (the runtime caps these providers loop-side).
+        kwargs.pop("web_search_max_uses", None)
         client = self._client(api_key)
         api_messages = _to_api_messages(messages)
         request_kwargs: dict[str, Any] = {
@@ -141,12 +146,27 @@ class OpenAIProvider(LLMProvider):
             "stream": True,
             "stream_options": {"include_usage": True},
         }
+        tools: list[dict[str, Any]] = []
         if tool_ids:
             from services.agent_tools.schemas import openai_tools
 
-            tools = openai_tools(tool_ids)
-            if tools:
-                request_kwargs["tools"] = tools
+            tools.extend(openai_tools(tool_ids))
+        # Native server-side web search (FR-081), opt-in via ``web_search``.
+        # OpenAI takes a ``{"type": "web_search"}`` tools entry; xAI (dispatched
+        # through this adapter via the x.ai base_url) speaks Live Search through
+        # a top-level ``search_parameters`` block instead of a tool — gate on the
+        # provider id. DeepSeek has no native search, so it is left untouched
+        # (graceful no-op; the runtime falls back to a BYOK search plugin).
+        if web_search:
+            if self._provider_id == "xai":
+                request_kwargs["extra_body"] = {
+                    **request_kwargs.get("extra_body", {}),
+                    "search_parameters": xai_search_parameters(),
+                }
+            elif self._provider_id == "openai":
+                tools.append(openai_web_search_tool())
+        if tools:
+            request_kwargs["tools"] = tools
         request_kwargs.update(kwargs)
         try:
             stream = await client.chat.completions.create(**request_kwargs)

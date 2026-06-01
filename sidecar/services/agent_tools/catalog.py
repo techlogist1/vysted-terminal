@@ -35,6 +35,7 @@ Domain = Literal[
     "quotes",
     "charts",
     "indicators",
+    "research",
     "fundamentals",
     "screener",
     "macro",
@@ -231,6 +232,34 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 }
             ),
             domain="news",
+            read_only=True,
+            kind="read_handler",
+        ),
+        # --- web search (Pass B / Pillar C) ----------------------------------
+        _cap(
+            "web_search",
+            description=(
+                "Search the web for current context to ground an answer — recent "
+                "developments, analyst takes, macro events. Returns results + "
+                "normalized citations (url/title/excerpt). Uses the user's configured "
+                "search tier (their model's native search, a BYOK Exa key, or a local "
+                "SearXNG). Cite what you use. If no backend is configured the result "
+                "says so honestly — never fabricate a source."
+            ),
+            input_schema=_obj(
+                {
+                    "query": {"type": "string", "description": "The web search query."},
+                    "num_results": {"type": "integer", "default": 6},
+                    "category": {
+                        "type": "string",
+                        "enum": ["general", "news", "financial"],
+                        "default": "general",
+                        "description": "Bias retrieval toward news/financial sources.",
+                    },
+                },
+                ["query"],
+            ),
+            domain="research",
             read_only=True,
             kind="read_handler",
         ),

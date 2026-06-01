@@ -26,6 +26,7 @@ import { useKeybindingsStore } from "@/store/keybindings";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
+import { type SearchSettingsBundle, useSearchSettingsStore } from "@/store/search-settings";
 import { type SettingsBundle, useSettingsStore } from "@/store/settings";
 import { type SymbolEntry, useSymbolsStore } from "@/store/symbols";
 import { type Portfolio, usePortfoliosStore } from "@/store/portfolios";
@@ -108,6 +109,12 @@ export interface SerializedWorkspace {
    * defaults, theme knobs. NEVER carries secrets. Optional for older blobs.
    */
   settings?: SettingsBundle;
+  /**
+   * The three-tier web-search preference (FR-080/083/084): the active tier +
+   * the local SearXNG URL. NEVER carries the BYOK Exa key (keychain-only).
+   * Optional for older blobs (absent → native tier, autodetect SearXNG).
+   */
+  searchSettings?: SearchSettingsBundle;
   /** Open to future-phase additions; the sidecar stores the body opaquely. */
   [key: string]: unknown;
 }
@@ -158,6 +165,7 @@ function buildWorkspacePayload(name: string): SerializedWorkspace {
     modelOverridesV: MODEL_OVERRIDES_VERSION,
     keybindingOverrides: useKeybindingsStore.getState().overrides,
     settings: useSettingsStore.getState().toBundle(),
+    searchSettings: useSearchSettingsStore.getState().toBundle(),
   };
 }
 
@@ -247,6 +255,12 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
   }
   if (workspace.settings && typeof workspace.settings === "object") {
     useSettingsStore.getState().setAll(workspace.settings);
+  }
+  // Restore the web-search preference (older blobs lack it — keep the native
+  // default). `setAll` merges over the seed so a partial blob can't strip a
+  // field and a garbled tier falls back.
+  if (workspace.searchSettings && typeof workspace.searchSettings === "object") {
+    useSearchSettingsStore.getState().setAll(workspace.searchSettings);
   }
 }
 

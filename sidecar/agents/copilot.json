@@ -10,6 +10,7 @@
     "resolve_symbol",
     "price_data",
     "compare_symbols",
+    "web_search",
     "fundamentals",
     "screener_run",
     "macro_series",

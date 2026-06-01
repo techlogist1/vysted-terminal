@@ -9,6 +9,7 @@
 
 import { invoke } from "@tauri-apps/api/core";
 
+import { buildSearchHeaders } from "@/lib/search-headers";
 import { useSettingsStore } from "@/store/settings";
 import type {
   AnalystRating,
@@ -171,6 +172,17 @@ export async function sidecarGet<T>(
   const requestHeaders: Record<string, string> = {
     "X-Vysted-Region": useSettingsStore.getState().region,
   };
+  // The three-tier web-search contract (FR-080/083/084): the active tier, the
+  // BYOK Exa key (keychain), and the local SearXNG URL ride every request so the
+  // sidecar dispatches search to the right backend. Undefined values are dropped
+  // below (never an empty header). Merged FIRST so a per-call header arg still
+  // wins if it ever sets the same key.
+  const searchHeaders = await buildSearchHeaders();
+  for (const [key, value] of Object.entries(searchHeaders)) {
+    if (value !== undefined) {
+      requestHeaders[key] = value;
+    }
+  }
   // A per-call header arg takes precedence if it ever sets the same key.
   if (headers) {
     for (const [key, value] of Object.entries(headers)) {

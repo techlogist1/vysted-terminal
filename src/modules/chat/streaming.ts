@@ -8,6 +8,7 @@
  * ``LLMStreamEvent`` discriminated-union member.
  */
 
+import { buildSearchHeaders } from "@/lib/search-headers";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useSettingsStore } from "@/store/settings";
 import type {
@@ -80,17 +81,28 @@ async function consumeSseStream(
   body: string,
   handlers: StreamingHandlers,
 ): Promise<void> {
+  // The three-tier web-search contract (FR-080/083/084): the active tier, the
+  // BYOK Exa key (keychain), and the local SearXNG URL ride the chat/agent
+  // request so the sidecar dispatches web search to the right backend during a
+  // research run. Undefined values are dropped (never an empty header).
+  const searchHeaders = await buildSearchHeaders();
+  const requestHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+    Accept: "text/event-stream",
+    // Region (FR-060): the sidecar reads this so the agent's tool calls
+    // (price_data / resolve_symbol / …) route to the user's locale source.
+    "X-Vysted-Region": useSettingsStore.getState().region,
+  };
+  for (const [key, value] of Object.entries(searchHeaders)) {
+    if (value !== undefined) {
+      requestHeaders[key] = value;
+    }
+  }
   let response: Response;
   try {
     response = await fetch(url.toString(), {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "text/event-stream",
-        // Region (FR-060): the sidecar reads this so the agent's tool calls
-        // (price_data / resolve_symbol / …) route to the user's locale source.
-        "X-Vysted-Region": useSettingsStore.getState().region,
-      },
+      headers: requestHeaders,
       body,
       signal: handlers.signal,
     });

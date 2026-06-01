@@ -26,6 +26,7 @@ import { useCommandPalette } from "@/store/command-palette";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
+import { useSearchSettingsStore } from "@/store/search-settings";
 import { useSymbolsStore } from "@/store/symbols";
 import { usePortfoliosStore } from "@/store/portfolios";
 import { useWorkspaceStore } from "@/store/workspace";
@@ -115,6 +116,14 @@ export default function Page() {
         void autosaveLayout();
       }
     });
+    // The web-search tier + SearXNG URL (FR-080/083/084) ride the blob but do not
+    // move the dockview layout, so they need their own autosave trigger or a tier
+    // change is lost on relaunch (same pattern as model overrides above).
+    const unsubscribeSearch = useSearchSettingsStore.subscribe((state, previous) => {
+      if (state.tier !== previous.tier || state.searxngUrl !== previous.searxngUrl) {
+        void autosaveLayout();
+      }
+    });
     return () => {
       alive = false;
       unsubscribeEnabled();
@@ -126,6 +135,7 @@ export default function Page() {
       unsubscribeModels();
       unsubscribeDefaultProvider();
       unsubscribeAutonomy();
+      unsubscribeSearch();
       teardown?.();
     };
   }, []);

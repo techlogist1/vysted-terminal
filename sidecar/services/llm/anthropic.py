@@ -29,6 +29,7 @@ from models.llm import (
 )
 
 from .base import LLMProvider, LLMStreamEvent
+from .native_search import DEFAULT_WEB_SEARCH_MAX_USES, anthropic_web_search_tool
 
 #: Conservative default — anthropic SDK requires ``max_tokens`` on every call.
 DEFAULT_MAX_TOKENS = 4_096
@@ -106,6 +107,8 @@ class AnthropicProvider(LLMProvider):
     ) -> AsyncIterator[LLMStreamEvent]:
         max_tokens = int(kwargs.pop("max_tokens", DEFAULT_MAX_TOKENS))
         tool_ids = kwargs.pop("tool_ids", None)
+        web_search = bool(kwargs.pop("web_search", False))
+        web_search_max_uses = int(kwargs.pop("web_search_max_uses", DEFAULT_WEB_SEARCH_MAX_USES))
         system, rest = _split_system_and_messages(messages)
         client = self._client(api_key)
         stream_kwargs: dict[str, Any] = {
@@ -115,12 +118,18 @@ class AnthropicProvider(LLMProvider):
         }
         if system is not None:
             stream_kwargs["system"] = system
+        tools: list[dict[str, Any]] = []
         if tool_ids:
             from services.agent_tools.schemas import anthropic_tools
 
-            tools = anthropic_tools(tool_ids)
-            if tools:
-                stream_kwargs["tools"] = tools
+            tools.extend(anthropic_tools(tool_ids))
+        # Native server-side web search (FR-081): opt-in via ``web_search``.
+        # Anthropic supports it on every current model, so no model gate is
+        # needed; if a future model rejects it the runtime falls back.
+        if web_search:
+            tools.append(anthropic_web_search_tool(web_search_max_uses))
+        if tools:
+            stream_kwargs["tools"] = tools
         stream_kwargs.update(kwargs)
         try:
             async with client.messages.stream(**stream_kwargs) as stream:

@@ -5,16 +5,62 @@ One section per phase; the lead (Opus 4.8, 1M) appends as each phase closes.
 
 ## Running totals
 
-| Metric                   | Value (through B1)                                     |
-| ------------------------ | ------------------------------------------------------ |
-| Phases complete          | 1 / 6 (B1)                                             |
-| Sub-agents dispatched    | 4                                                      |
-| Files modified (tracked) | 20 (+561 / −63)                                        |
-| Files added              | 12 source/test + 3 data (2 masters JSON, 1 `__init__`) |
-| New source LOC           | ~1,640 (5 sidecar modules + 7 test files)              |
-| Bundled data added       | 528 KB (US 10,365 + NSE 2,675 instrument masters)      |
-| New dependency           | `jugaad-data==0.33.1` (keyless NSE)                    |
-| Sidecar binary footprint | 89 MB → 104 MB (≤120 MB budget held)                   |
+| Metric                | Value (through B3 code)                                         |
+| --------------------- | --------------------------------------------------------------- |
+| Phases complete       | 2.9 / 6 (B1, B2 done; B3 code done, live Exa validation paused) |
+| Sub-agents dispatched | 4 (B1) + 3 recon + 5 (B2) + 5 (B3) = 17                         |
+| New tests             | 44 (B1) + 34 (B2) + ~95 (B3) ≈ 173                              |
+| Test suite            | sidecar 1185 + web_search 5 · vitest green · §6.5 9/9           |
+| New dependency        | `jugaad-data==0.33.1` (keyless NSE)                             |
+| Commits               | 9fcb146·5e9ea9a (B1) · bb29fd6 (B2) · B3 pending                |
+
+## Phase B3 — Web search, three tiers (Pillar C · US14) — CODE DONE, paused at Exa key
+
+**Orchestration:** 5-agent dynamic workflow (`pass-b3-build`, 367,351 output tokens) over
+file-isolated units — search-core interface+registry+normalizer, Exa BYOK backend, SearXNG
+local backend, native-search injection across all 4 LLM adapters + citation normalizer,
+frontend tier/key wiring. Lead owned: catalog `web_search` + `research` domain, the
+`web_search` handler, agent-runtime native dispatch + per-run search cap, the Exa/SearXNG/tier
+per-request contextvars + middleware, the registry↔searxng class-name/region fix.
+
+**Built (FR-080–084, SC-020):** three-tier search — (1) **native** on the user's key for
+Anthropic/OpenAI/Gemini/Groq/xAI (adapter injection + max_uses cap, tool withheld so search
+isn't double-run); (2) **BYOK Exa** (locale domain allow-lists US/IN); (3) **local SearXNG**
+(autodetect + BYO URL, nothing leaves the machine). Honest fallback (FR-082) when nothing is
+configured — never fabricates a source. Per-run search cap (FR-081). Citations normalized to
+{url,title,excerpt}. Secrets ride per-request headers → contextvars, process-memory-only.
+
+**Gates green:** full sidecar 1185 + 5; §6.5 9/9; vitest/typecheck/lint/format clean; Tier-1
+LOCKED empty; order-grep clean. All BYOK/native HTTP **mocked** in tests.
+
+**PAUSED → operator stop #2:** the Exa BYOK path must be validated against the **real Exa key**
+(demo tokens don't cover it; never mocked for the gate). Native-search live validation
+additionally needs a native-capable LLM key. See report.
+
+## Phase B2 — JARVIS capability completeness + 2 seamlessness fixes (Pillar D · US15)
+
+**Orchestration:** 3 parallel recon agents (B2 cockpit + B2 indicators + B3 search surface)
+then a **5-agent dynamic workflow** (`pass-b2-build`, 252,547 output tokens) over file-isolated
+units — compare_symbols handler, indicator-presets, layout-templates, chart-command channel,
+completeness audit. Lead owned catalog + host-actions + registry integration and reviewed
+every diff. **Did NOT run a parallelizable phase lead-only** (per operator correction).
+
+**Built (FR-090–094, SC-016/022/025):** `compare_symbols` (read), `set_chart_indicators`
+(host_action) + per-asset-class presets, `arrange_layout` named templates (single-focus /
+research-cockpit / compare / macro-scan), chart-command indicator+comparison channel,
+`indicators` domain, SC-022 completeness audit.
+
+**Two operator-reported seamlessness fixes folded in (lead):**
+
+- AUTO chart-open silently failed → `set_chart_symbol`/`set_chart_indicators` ensureChartOpen()
+  (by component); copilot narration de-coupled from "confirm in the proposal bar".
+- Default provider not persisting → added the missing `useLLMProvidersStore` autosave
+  subscription in page.tsx.
+
+**Rig-verified live:** AUTO + set_chart_symbol on an empty cockpit → chart opens + loads
+(Bug 1 fixed, reproduced-then-fixed); `research-cockpit` on NVDA → multi-panel cockpit +
+MA(50/200)+RSI+MACD+Volume preset (SC-016, screenshot `b2-research-cockpit-NVDA.png`); Bug 2
+restore live-verified (DeepSeek default persisted across reload). §6.5 9/9, Tier-1 LOCKED empty.
 
 ## Phase B1 — Locale-native data foundation (Pillar A · US11)
 
