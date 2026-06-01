@@ -163,12 +163,24 @@ const copyMeta = ["fastmcp", "mcp", "anyio", "httpx", "starlette", "uvicorn"]
 // explicit --add-data; absent at runtime the loader raises at startup (it fails
 // loud by design) instead of silently serving an empty provider list.
 const addDataSep = isWin ? ";" : ":";
+//
+// `services/resolver_masters/` holds the bundled instrument masters
+// (us_instruments.json — SEC company_tickers snapshot; nse_instruments.json —
+// NSE EQUITY_L + ETF list) loaded at runtime via importlib.resources from the
+// `services.resolver_masters` package (services/symbol_resolver.py). Same case
+// as screener_universes: the package has an __init__.py but --onefile collects
+// only .py modules, not the JSON data — without this --add-data the symbol
+// resolver loads empty masters at runtime and every name/ticker dead-ends
+// (Pass B / B1). The dest mirrors the package hierarchy so importlib.resources
+// resolves `services.resolver_masters` inside the frozen binary.
 const agentsAbsPath = join(SIDECAR_DIR, "agents");
 const universesAbsPath = join(SIDECAR_DIR, "services", "screener_universes");
+const mastersAbsPath = join(SIDECAR_DIR, "services", "resolver_masters");
 const configAbsPath = join(SIDECAR_DIR, "config");
 const addData = [
   [agentsAbsPath, "agents"],
   [universesAbsPath, "services/screener_universes"],
+  [mastersAbsPath, "services/resolver_masters"],
   [configAbsPath, "config"],
 ]
   .map(([src, dest]) => `--add-data "${src}${addDataSep}${dest}"`)

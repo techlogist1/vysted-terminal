@@ -18,6 +18,7 @@ import asyncio
 import logging
 from typing import Any
 
+from config import get_region
 from models.macro_extended import (
     MacroCatalog,
     MacroProvider,
@@ -50,6 +51,28 @@ _PROVIDERS: dict[str, Any] = {
     "world-bank": world_bank_provider,
 }
 
+# Locale-sensible default macro provider per region (Pass B / Pillar A — FR-060).
+# Used ONLY when a caller does not name a provider — explicit provider requests
+# always dispatch to exactly the named provider (FRED/ECB/IMF/world-bank unchanged).
+# US/GLOBAL keep FRED (the historical default); IN prefers World Bank, whose WDI
+# indicators carry India series the FRED catalog does not.
+_DEFAULT_PROVIDER_BY_REGION: dict[str, str] = {
+    "US": "fred",
+    "IN": "world-bank",
+    "GLOBAL": "fred",
+}
+
+
+def default_provider_for_region(region: str | None = None) -> str:
+    """Return the locale-sensible default macro provider for ``region``.
+
+    ``region`` defaults to the active per-request region (:func:`config.get_region`).
+    US/GLOBAL → ``"fred"`` (unchanged historical default); IN → ``"world-bank"``.
+    Callers that name a provider explicitly never reach this.
+    """
+    resolved = region if region is not None else get_region()
+    return _DEFAULT_PROVIDER_BY_REGION.get(resolved, "fred")
+
 
 def _provider(provider: str | MacroProvider) -> Any:
     """Return the module for a provider id, or raise :class:`ProviderError`."""
@@ -62,8 +85,9 @@ def _provider(provider: str | MacroProvider) -> Any:
 
 async def get_series(
     series_id: str,
-    provider: str | MacroProvider,
+    provider: str | MacroProvider | None = None,
     *,
+    region: str | None = None,
     ttl_seconds: float = DEFAULT_CACHE_TTL_SECONDS,
 ) -> MacroSeriesExtended:
     """Fetch a macro time series via the dispatched provider, cache-aware.
@@ -71,9 +95,16 @@ async def get_series(
     Cache key: ``macro:<provider>:<series_id>``. Cache value is the
     JSON-serialised :class:`MacroSeriesExtended` payload; on hit we
     re-construct the model so callers always see the strict-typed contract.
+
+    ``provider`` may be ``None`` — in that case a locale-sensible default is
+    chosen from ``region`` (or the active per-request region), so an IN session
+    reaches World Bank rather than US FRED (FR-060). An explicit ``provider``
+    always dispatches to exactly that provider, region-independent.
     """
     if not series_id:
         raise ProviderError("series_id is required")
+    if provider is None:
+        provider = default_provider_for_region(region)
     mod = _provider(provider)
     key = f"macro:{mod.PROVIDER}:{series_id}"
 
@@ -91,14 +122,23 @@ async def get_series(
 
 async def search(
     query: str,
-    provider: str | MacroProvider,
+    provider: str | MacroProvider | None = None,
     *,
+    region: str | None = None,
     limit: int = 25,
     ttl_seconds: float = DEFAULT_CACHE_TTL_SECONDS,
 ) -> list[MacroSearchResult]:
-    """Search the dispatched provider's catalog, cache-aware."""
+    """Search the dispatched provider's catalog, cache-aware.
+
+    ``provider`` may be ``None`` — a locale-sensible default is then chosen from
+    ``region`` (or the active per-request region) so an IN session searches World
+    Bank rather than US FRED (FR-060). An explicit ``provider`` always searches
+    exactly that provider, region-independent.
+    """
     if not query:
         return []
+    if provider is None:
+        provider = default_provider_for_region(region)
     mod = _provider(provider)
     key = f"macro:{mod.PROVIDER}:search:{query.lower()}:{limit}"
 
@@ -138,6 +178,7 @@ async def get_catalog(
 
 __all__ = [
     "DEFAULT_CACHE_TTL_SECONDS",
+    "default_provider_for_region",
     "get_catalog",
     "get_series",
     "search",

@@ -9,7 +9,9 @@
  * this must JSON-serialise onto the wire.
  */
 
+import type { Region } from "@/lib/region";
 import { usePanelContextBus } from "@/store/panel-context";
+import { useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 
@@ -29,6 +31,8 @@ export interface TerminalState {
   watchlist: { symbols: string[]; selected: string | null };
   portfolio: { positionCount: number; totalValue: number } | null;
   openPanels: string[];
+  /** The user's active region/locale (drives region-first data) — Pass B B1. */
+  region: Region;
   capturedAt: number;
 }
 
@@ -105,6 +109,7 @@ export function captureTerminalState(): TerminalState {
     watchlist,
     portfolio,
     openPanels,
+    region: useSettingsStore.getState().region,
     capturedAt: bus.updatedAt || Date.now(),
   };
 }

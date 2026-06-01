@@ -145,6 +145,34 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
         ),
+        _cap(
+            "resolve_symbol",
+            description=(
+                "Resolve a free-text company name or ticker to a concrete "
+                "instrument (ticker, exchange, region, asset class), locale-aware "
+                "— 'Tata Steel' -> TATASTEEL on NSE, 'GOLDBEES' -> the NSE gold "
+                "ETF. Returns disambiguation candidates when confidence is low. "
+                "Call this FIRST when the user names a company so you load the "
+                "right instrument and never dead-end on a name."
+            ),
+            input_schema=_obj(
+                {
+                    "query": {
+                        "type": "string",
+                        "description": "Company name or ticker, e.g. 'Tata Steel' or 'AAPL'.",
+                    },
+                    "region": {
+                        "type": "string",
+                        "enum": ["US", "IN", "GLOBAL"],
+                        "description": "Optional locale override; defaults to the active region.",
+                    },
+                },
+                ["query"],
+            ),
+            domain="quotes",
+            read_only=True,
+            kind="read_handler",
+        ),
         # --- fundamentals ----------------------------------------------------
         _cap(
             "fundamentals",

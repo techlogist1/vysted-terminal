@@ -26,3 +26,9 @@ LICENSE
 # test that writes it is Tier-1 locked, so we cannot make it emit prettier-
 # clean JSON). Phase 9.5.
 docs/screenshots/v0.5.0/safety-audit/kill-switch-benchmark.json
+# Pass B (B1) bundled instrument masters — generated snapshots from the SEC
+# company_tickers + NSE EQUITY_L/ETF lists (10k US + 2.6k NSE rows), shipped
+# minified for a compact bundle and loaded via importlib.resources by
+# services/symbol_resolver.py. Generated reference data, not hand-edited source
+# — excluded from formatting like the §6.5 benchmark capture above.
+sidecar/services/resolver_masters/*.json

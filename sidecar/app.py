@@ -12,12 +12,14 @@ from __future__ import annotations
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Any
 
 import httpx
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+import config
 from routers import (
     agents,
     backtest,
@@ -164,6 +166,38 @@ def _register_v0_6_5_runtime_extensions() -> None:
     _at_v0_6_5.register_v0_6_5_tools()
 
 
+class _RegionMiddleware:
+    """Pure-ASGI middleware threading the request's region into a ContextVar.
+
+    The frontend sends the active region as the ``X-Vysted-Region`` header on
+    every sidecar request (the same per-request transport BYOK secrets use). This
+    middleware reads it into the per-request ContextVar (:func:`config.get_region`)
+    so the provider registry, news, screener, and macro handlers shape data for
+    the user's locale (FR-060). Pure ASGI (not ``BaseHTTPMiddleware``) so the
+    ContextVar set runs in the same task as the endpoint and is reliably visible
+    to it. Absent the header, the region defaults to ``US`` — every existing
+    caller behaves exactly as before.
+    """
+
+    def __init__(self, app: Any) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+        if scope.get("type") != "http":
+            await self.app(scope, receive, send)
+            return
+        region: str | None = None
+        for key, value in scope.get("headers", []):
+            if key == b"x-vysted-region":
+                region = value.decode("latin-1")
+                break
+        token = config.set_request_region(region)
+        try:
+            await self.app(scope, receive, send)
+        finally:
+            config.reset_request_region(token)
+
+
 def create_app() -> FastAPI:
     """Build and return a fully wired sidecar FastAPI application."""
     app = FastAPI(title="Vysted Terminal Sidecar", version="0.8.0", lifespan=_lifespan)
@@ -184,6 +218,10 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # Region threading (FR-060): read the ``X-Vysted-Region`` header into the
+    # per-request ContextVar so every handler shapes data for the user's locale.
+    app.add_middleware(_RegionMiddleware)
 
     @app.exception_handler(ProviderError)
     async def _provider_error_handler(_request: Request, exc: ProviderError) -> JSONResponse:

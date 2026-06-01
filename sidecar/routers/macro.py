@@ -18,6 +18,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query
 
+from config import get_region
 from models.macro_extended import (
     MacroCatalog,
     MacroProvider,
@@ -91,6 +92,18 @@ async def get_macro_series(
             # an explicit translate here lets the search/catalog endpoints
             # use the same status code.
             raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    # No explicit provider: pick a locale-sensible default (FR-060). US/GLOBAL
+    # keep the legacy openbb-mcp/FRED path below (unchanged); an IN session
+    # routes through the v0.6.0 dispatcher's region default (World Bank), whose
+    # WDI catalog carries India macro series the US FRED path does not.
+    if not provider:
+        region_default = macro_dispatcher.default_provider_for_region(get_region())
+        if region_default in _V0_6_0_PROVIDERS and region_default != "fred":
+            try:
+                return await macro_dispatcher.get_series(series_id, region_default)
+            except ProviderError as exc:
+                raise HTTPException(status_code=502, detail=str(exc)) from exc
 
     # Legacy path — Phase 1.A / Phase 3 openbb-mcp. A ProviderError here is an
     # upstream-gateway failure (openbb-mcp / FRED rejected the call — e.g. a

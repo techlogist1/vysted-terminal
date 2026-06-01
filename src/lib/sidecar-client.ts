@@ -9,6 +9,7 @@
 
 import { invoke } from "@tauri-apps/api/core";
 
+import { useSettingsStore } from "@/store/settings";
 import type {
   AnalystRating,
   BalanceSheet,
@@ -163,7 +164,14 @@ export async function sidecarGet<T>(
       }
     }
   }
-  const requestHeaders: Record<string, string> = {};
+  // The active region rides every sidecar request (Pass B B1 locale-native
+  // contract): the sidecar reads `X-Vysted-Region` to pick region-first data
+  // providers/feeds. Read at call time so a region change reflects immediately;
+  // `getState()` is SSR/static-export safe (no window/navigator at module load).
+  const requestHeaders: Record<string, string> = {
+    "X-Vysted-Region": useSettingsStore.getState().region,
+  };
+  // A per-call header arg takes precedence if it ever sets the same key.
   if (headers) {
     for (const [key, value] of Object.entries(headers)) {
       if (value !== undefined) {
@@ -172,7 +180,7 @@ export async function sidecarGet<T>(
     }
   }
   const response = await fetch(url.toString(), {
-    headers: Object.keys(requestHeaders).length > 0 ? requestHeaders : undefined,
+    headers: requestHeaders,
   });
   if (!response.ok) {
     let detail = response.statusText;

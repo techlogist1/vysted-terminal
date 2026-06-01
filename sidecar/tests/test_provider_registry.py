@@ -134,17 +134,20 @@ def test_active_providers_marks_macro_unavailable_without_openbb(
 # ---------------------------------------------------------------------------
 
 
-def _quote(provider: str):  # noqa: ANN202
+def _quote(provider: str, symbol: str = "AAPL"):  # noqa: ANN202
     from datetime import UTC, datetime
 
     from models.market import Quote
 
+    # The correctness gate (FR-063) rejects a quote whose symbol does not match
+    # the request, or one dated far behind the session calendar — so a realistic
+    # fake echoes the requested symbol and a current timestamp.
     return Quote(
-        symbol="X",
+        symbol=symbol,
         price=1.0,
         change=0.0,
         change_percent=0.0,
-        timestamp=datetime(2026, 5, 31, tzinfo=UTC),
+        timestamp=datetime.now(tz=UTC),
         provider=provider,
     )
 

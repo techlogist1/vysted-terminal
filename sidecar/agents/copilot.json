@@ -7,6 +7,7 @@
     "get_terminal_state",
     "get_portfolio",
     "broker_portfolio",
+    "resolve_symbol",
     "price_data",
     "fundamentals",
     "screener_run",

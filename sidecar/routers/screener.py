@@ -34,6 +34,11 @@ async def run_screener(request: ScreenerRequest) -> ScreenerResult:
     failures during the fan-out are swallowed per-symbol so a single
     upstream hiccup does not fail the whole run; if the universe itself
     cannot be resolved the route returns 502.
+
+    ``ScreenerRequest.universe`` is required (no default), so the universe is
+    always explicit here — region-aware default selection (US→sp500, IN→nifty50,
+    FR-060) lives in ``services.screener.default_universe_for_region`` for the
+    callers that must *choose* a default rather than override an explicit one.
     """
     try:
         return await screener.run_screener(request)

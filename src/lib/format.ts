@@ -29,6 +29,12 @@ function activeLocale(): string {
   return regionConfig(useSettingsStore.getState().region).locale;
 }
 
+/** The active region's ISO-4217 display currency (US → `USD`, byte-identical to
+ *  before). Read at call time so a region change reflects immediately. */
+function activeCurrency(): string {
+  return regionConfig(useSettingsStore.getState().region).currency;
+}
+
 /** Abbreviate a magnitude >= 1e6 to a ~3-significant-digit unit string, else null. */
 function abbreviate(abs: number): string | null {
   for (const { value, suffix } of MONEY_UNITS) {
@@ -41,22 +47,51 @@ function abbreviate(abs: number): string | null {
   return null;
 }
 
-/** USD with full cents precision. Non-finite -> "—". */
+/** Active-currency value with full cents precision. Non-finite -> "—".
+ *  (US → USD, byte-identical to before.) */
 export function formatMoney(value: number): string {
   if (!Number.isFinite(value)) return "—";
   return value.toLocaleString(activeLocale(), {
     style: "currency",
-    currency: "USD",
+    currency: activeCurrency(),
     maximumFractionDigits: 2,
   });
 }
 
-/** USD, abbreviated at >= $1M ($621.7Q etc.); full cents below that. Non-finite -> "—". */
+/**
+ * The active currency's symbol (e.g. `$`, `₹`), derived from Intl so the compact
+ * path never hardcodes `$`. Extracts the part either side of the magnitude in a
+ * formatted sample; falls back to the ISO code if the locale renders no symbol.
+ */
+function currencyAffix(): { prefix: string; suffix: string } {
+  const formatted = (1).toLocaleString(activeLocale(), {
+    style: "currency",
+    currency: activeCurrency(),
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+  const digitAt = formatted.search(/\d/);
+  if (digitAt === -1) {
+    return { prefix: `${activeCurrency()} `, suffix: "" };
+  }
+  const lastDigitAt =
+    formatted.length - 1 - [...formatted].reverse().findIndex((c) => /\d/.test(c));
+  return {
+    prefix: formatted.slice(0, digitAt).trimEnd(),
+    suffix: formatted.slice(lastDigitAt + 1).trimStart(),
+  };
+}
+
+/** Active currency, abbreviated at >= 1M (₹621.7Q etc.); full cents below that.
+ *  Non-finite -> "—". US output is byte-identical (`$`-prefixed). */
 export function formatCompactMoney(value: number): string {
   if (!Number.isFinite(value)) return "—";
   const abs = Math.abs(value);
   const abbr = abbreviate(abs);
-  if (abbr !== null) return `${value < 0 ? "-" : ""}$${abbr}`;
+  if (abbr !== null) {
+    const { prefix, suffix } = currencyAffix();
+    return `${value < 0 ? "-" : ""}${prefix}${abbr}${suffix}`;
+  }
   return formatMoney(value);
 }
 

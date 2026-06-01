@@ -14,6 +14,8 @@
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useChartCommandStore } from "@/store/chart-command";
 import { useProposedChangesStore } from "@/store/proposed-changes";
+import { useSettingsStore } from "@/store/settings";
+import { useSymbolsStore } from "@/store/symbols";
 
 export function initDevMcpBridge(): void {
   if (process.env.NODE_ENV === "production") return;
@@ -26,6 +28,10 @@ export function initDevMcpBridge(): void {
     chartCommand: useChartCommandStore,
     autonomy: useAgentAutonomyStore,
     proposedChanges: useProposedChangesStore,
+    // Pass B B1: let the rig set region + seed watchlist symbols via
+    // evaluate_script (region header + locale-native data verification).
+    settings: useSettingsStore,
+    symbols: useSymbolsStore,
   };
   void import("tauri-plugin-mcp")
     .then(({ initMcpBridge }) => initMcpBridge())

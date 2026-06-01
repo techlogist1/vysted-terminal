@@ -9,6 +9,7 @@
  */
 
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { useSettingsStore } from "@/store/settings";
 import type {
   AgentInvocationRequest,
   LLMMessage,
@@ -83,7 +84,13 @@ async function consumeSseStream(
   try {
     response = await fetch(url.toString(), {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "text/event-stream",
+        // Region (FR-060): the sidecar reads this so the agent's tool calls
+        // (price_data / resolve_symbol / …) route to the user's locale source.
+        "X-Vysted-Region": useSettingsStore.getState().region,
+      },
       body,
       signal: handlers.signal,
     });

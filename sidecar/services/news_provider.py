@@ -2,8 +2,16 @@
 
 Two sources, both mapped to the shared :class:`NewsItem` model:
 
-* **RSS** — Yahoo Finance and MarketWatch market feeds, plus a per-symbol Yahoo
-  Finance feed when symbols are requested. Always available, no key needed.
+* **RSS** — region-keyed market feeds (the active region is read per-request via
+  :func:`config.get_region`), plus a per-symbol Yahoo Finance feed when symbols
+  are requested. Always available, no key needed. The market-feed set is keyed by
+  region (Pass B / Pillar A — FR-060): US/GLOBAL use Yahoo Finance + MarketWatch;
+  IN uses the verified-working India feeds per ``docs/redesign/PASS_B_RESEARCH.md``
+  §A.2 — Economic Times Markets + ET Stocks
+  (``economictimes.indiatimes.com/markets/rssfeeds/…``), LiveMint
+  (``livemint.com/rss/news``), and the Zerodha Pulse aggregator
+  (``pulse.zerodha.com``). (Moneycontrol dropped first-party RSS and Business
+  Standard 403s on direct fetch, so neither is used.)
 * **NewsAPI** (https://newsapi.org) — used only when a BYOK key is supplied.
   FR-036: the key rides the request from the OS keychain (the ``/news`` router
   reads it from a header and passes it as ``newsapi_key``); the ``NEWSAPI_KEY``
@@ -43,6 +51,7 @@ from typing import Any
 import feedparser
 import httpx
 
+from config import get_region
 from models.news import NewsItem
 from services.errors import ProviderError
 
@@ -51,20 +60,60 @@ logger = logging.getLogger(__name__)
 PROVIDER_RSS = "rss"
 PROVIDER_NEWSAPI = "newsapi"
 
-# General market RSS feeds — used when no symbols are requested, and always
-# folded in alongside any per-symbol feeds.
-_MARKET_RSS_FEEDS: tuple[tuple[str, str], ...] = (
+# General market RSS feeds, keyed by region — used when no symbols are requested,
+# and always folded in alongside any per-symbol feeds. The active region is read
+# per-request via ``config.get_region`` (Pass B / Pillar A — FR-060). The IN feeds
+# are the verified-working set from ``docs/redesign/PASS_B_RESEARCH.md`` §A.2;
+# Moneycontrol (dropped first-party RSS) and Business Standard (403s) are
+# deliberately excluded. GLOBAL reuses the US set.
+_US_MARKET_RSS_FEEDS: tuple[tuple[str, str], ...] = (
     ("Yahoo Finance", "https://finance.yahoo.com/news/rssindex"),
     (
         "MarketWatch",
         "http://feeds.marketwatch.com/marketwatch/topstories/",
     ),
 )
-
-# Per-symbol Yahoo Finance RSS feed template.
-_SYMBOL_RSS_TEMPLATE = (
-    "https://feeds.finance.yahoo.com/rss/2.0/headline?s={symbol}&region=US&lang=en-US"
+_IN_MARKET_RSS_FEEDS: tuple[tuple[str, str], ...] = (
+    (
+        "Economic Times Markets",
+        "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms",
+    ),
+    (
+        "ET Stocks",
+        "https://economictimes.indiatimes.com/markets/stocks/rssfeeds/2146842.cms",
+    ),
+    ("LiveMint", "https://www.livemint.com/rss/news"),
+    ("Zerodha Pulse", "https://pulse.zerodha.com/feed.php"),
 )
+_MARKET_RSS_FEEDS_BY_REGION: dict[str, tuple[tuple[str, str], ...]] = {
+    "US": _US_MARKET_RSS_FEEDS,
+    "IN": _IN_MARKET_RSS_FEEDS,
+    "GLOBAL": _US_MARKET_RSS_FEEDS,
+}
+
+# Per-symbol Yahoo Finance RSS feed template. Yahoo serves ``.NS`` (NSE) per-symbol
+# feeds, so it is kept for every region; only the ``region``/``lang`` params shift
+# to the locale. For un-suffixed Indian symbols this is best-effort.
+_SYMBOL_RSS_TEMPLATE = (
+    "https://feeds.finance.yahoo.com/rss/2.0/headline?s={symbol}&region={region}&lang={lang}"
+)
+# Yahoo per-symbol feed region/lang params, keyed by Vysted region. GLOBAL reuses US.
+_SYMBOL_FEED_LOCALE_BY_REGION: dict[str, tuple[str, str]] = {
+    "US": ("US", "en-US"),
+    "IN": ("IN", "en-IN"),
+    "GLOBAL": ("US", "en-US"),
+}
+
+
+def _market_rss_feeds(region: str) -> tuple[tuple[str, str], ...]:
+    """Return the market RSS feed set for ``region`` (US set as the fallback)."""
+    return _MARKET_RSS_FEEDS_BY_REGION.get(region, _US_MARKET_RSS_FEEDS)
+
+
+def _symbol_feed_locale(region: str) -> tuple[str, str]:
+    """Return the Yahoo per-symbol ``(region, lang)`` params for ``region``."""
+    return _SYMBOL_FEED_LOCALE_BY_REGION.get(region, ("US", "en-US"))
+
 
 _NEWSAPI_URL = "https://newsapi.org/v2/everything"
 _NEWSAPI_KEY_ENV = "NEWSAPI_KEY"
@@ -223,18 +272,20 @@ def _newsapi_key(request_key: str | None = None) -> str | None:
     return key or None
 
 
-def _feed_urls_for(symbols: list[str]) -> list[tuple[str, str]]:
-    """Build the (source-label, feed-url) list for a request.
+def _feed_urls_for(symbols: list[str], region: str) -> list[tuple[str, str]]:
+    """Build the (source-label, feed-url) list for a request in ``region``.
 
-    General market feeds are always included; a per-symbol Yahoo Finance feed is
-    added for each requested symbol.
+    The region-appropriate general market feeds are always included; a per-symbol
+    Yahoo Finance feed (with locale-shaped ``region``/``lang`` params) is added for
+    each requested symbol.
     """
-    feeds = list(_MARKET_RSS_FEEDS)
+    feeds = list(_market_rss_feeds(region))
+    feed_region, feed_lang = _symbol_feed_locale(region)
     for symbol in symbols:
         feeds.append(
             (
                 f"Yahoo Finance · {symbol}",
-                _SYMBOL_RSS_TEMPLATE.format(symbol=symbol),
+                _SYMBOL_RSS_TEMPLATE.format(symbol=symbol, region=feed_region, lang=feed_lang),
             )
         )
     return feeds
@@ -297,10 +348,16 @@ async def fetch_news(
     ``newsapi_key`` is the BYOK NewsAPI key the ``/news`` router reads from a
     request header (sourced from the OS keychain — FR-036). It takes precedence
     over the ``NEWSAPI_KEY`` env var; absent both, the fetch is RSS-only.
+
+    The active region is read here (not passed by the router) via
+    :func:`config.get_region` so the market feeds + per-symbol locale are
+    region-appropriate (Pass B / Pillar A — FR-060) without changing the router
+    contract. The default ``"US"`` keeps every existing caller unchanged.
     """
+    region = get_region()
     tasks: list[asyncio.Future[list[NewsItem]]] = [
         asyncio.ensure_future(_fetch_rss_resilient(client, feed_url, fallback_source=source_label))
-        for source_label, feed_url in _feed_urls_for(symbols)
+        for source_label, feed_url in _feed_urls_for(symbols, region)
     ]
 
     api_key = _newsapi_key(newsapi_key)

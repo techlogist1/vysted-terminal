@@ -59,6 +59,12 @@ def register_v0_6_0_tools() -> None:
     news_tool.register()
     registered.append("news")
 
+    # Pass B (B1) — locale-aware symbol resolution (name/ticker -> instrument).
+    from services.agent_tools import resolve_symbol
+
+    resolve_symbol.register()
+    registered.append("resolve_symbol")
+
     if registered:
         logger.info("agent_tools: registered v0.6.0 domains: %s", ", ".join(registered))
     else:

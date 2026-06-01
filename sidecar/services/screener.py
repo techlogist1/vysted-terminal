@@ -53,6 +53,7 @@ import time
 from importlib import resources
 from typing import Any
 
+from config import get_region
 from models.fundamentals import Fundamentals
 from models.market import Quote
 from models.screener import (
@@ -71,6 +72,31 @@ from services import data_cache, provider_registry
 from services.errors import ProviderError
 
 logger = logging.getLogger(__name__)
+
+#: Locale-sensible default screener universe per region (Pass B / Pillar A —
+#: FR-060). The :class:`ScreenerRequest` always carries an explicit ``universe``
+#: today (the frontend universe-picker supplies it; the field is required with no
+#: default), so this is consulted only when a caller has to *choose* a default
+#: rather than overriding an explicit one — e.g. a region-aware UI/agent default
+#: or a future "no universe given" entrypoint. US/GLOBAL → ``sp500``; IN →
+#: ``nifty50`` (which already ships as ``nifty50.json``).
+_DEFAULT_UNIVERSE_BY_REGION: dict[str, ScreenerUniverseId] = {
+    "US": "sp500",
+    "IN": "nifty50",
+    "GLOBAL": "sp500",
+}
+
+
+def default_universe_for_region(region: str | None = None) -> ScreenerUniverseId:
+    """Return the locale-sensible default screener universe for ``region``.
+
+    ``region`` defaults to the active per-request region (:func:`config.get_region`).
+    US/GLOBAL → ``"sp500"``; IN → ``"nifty50"``. Used where a default universe must
+    be chosen; an explicit ``ScreenerRequest.universe`` is never overridden.
+    """
+    resolved = region if region is not None else get_region()
+    return _DEFAULT_UNIVERSE_BY_REGION.get(resolved, "sp500")
+
 
 #: How long the resolved ``crypto-top50`` list stays in the cache before a
 #: refresh is attempted. ccxt's top-by-volume ordering shifts slowly; one
@@ -356,6 +382,9 @@ async def run_screener(req: ScreenerRequest) -> ScreenerResult:
     """
     started_at = time.monotonic()
 
+    # ``req.universe`` is always explicit (required on ScreenerRequest, no default)
+    # — region-default selection happens upstream where a default is chosen, via
+    # ``default_universe_for_region``; here we honour exactly what the caller sent.
     universe = await resolve_universe(req.universe, req.custom_symbols)
 
     # Fan out fundamentals+quote fetches in parallel. ``return_exceptions``
@@ -388,6 +417,7 @@ async def run_screener(req: ScreenerRequest) -> ScreenerResult:
 
 __all__ = [
     "apply_criteria",
+    "default_universe_for_region",
     "resolve_universe",
     "run_screener",
 ]

@@ -96,3 +96,13 @@ fredapi==0.5.2
 # keychain at first call. Verified 2026-05-16 against
 # https://pypi.org/pypi/supabase/json — latest 2.30.0.
 supabase==2.30.0
+
+# Pass B (B1) — keyless India NSE data. jugaad-data wraps the live NSE site to
+# serve T+1 EOD OHLCV for every NSE equity + ETF (GOLDBEES/NIFTYBEES/SILVERBEES),
+# the symbols yfinance is documented-unreliable for (#2612/#2055). It is the
+# correctness-gated India default (services/india_provider.py), ranked above
+# gated yfinance for the IN region. Pure-Python; pulls requests/appdirs/bs4/lxml
+# as transitive deps (already requests-adjacent via yfinance). __version__ is a
+# literal (no importlib.metadata), so no --copy-metadata is needed; it ships no
+# package data, so no --collect-data. Verified live against NSE 2026-06-01.
+jugaad-data==0.33.1
