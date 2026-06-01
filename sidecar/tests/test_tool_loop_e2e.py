@@ -195,6 +195,54 @@ def test_research_steps_stream_live_during_a_tool_round(monkeypatch) -> None:
     assert "brief" in text
 
 
+class _CapturingProvider(LLMProvider):
+    """Answers immediately and records the kwargs (incl. the tool_ids) it was sent."""
+
+    def __init__(self) -> None:
+        self.kwargs: dict[str, Any] | None = None
+
+    async def stream_chat(
+        self,
+        messages: list[LLMMessage],
+        model: str,
+        api_key: str | None = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[LLMStreamEvent]:
+        self.kwargs = dict(kwargs)
+        yield LLMDeltaEvent(text="ok")
+        yield LLMDoneEvent()
+
+    async def validate_key(self, api_key: str | None = None) -> bool:
+        return True
+
+
+def _tool_ids_for(monkeypatch, prompt: str) -> list[str]:
+    agent_runtime.reload()
+    fake = _CapturingProvider()
+    monkeypatch.setattr(agent_runtime, "get_provider", lambda _pid, base_url=None: fake)
+    asyncio.run(_collect(agent_runtime.invoke_agent("copilot", prompt, api_key="x", mode="agent")))
+    assert fake.kwargs is not None
+    return list(fake.kwargs.get("tool_ids") or [])
+
+
+def test_agent_mode_infers_read_intent_and_gates_to_read_only(monkeypatch) -> None:
+    """Track B: the collapsed 'agent' mode infers a READ intent from the prompt and
+    strips the host-action mutators server-side — the old 'Ask' safety line, with
+    no picker."""
+    tids = _tool_ids_for(monkeypatch, "what is a P/E ratio?")
+    for mutator in ("set_chart_symbol", "open_panel", "add_to_watchlist", "propose_order"):
+        assert mutator not in tids
+    assert "price_data" in tids  # read tools survive
+
+
+def test_agent_mode_infers_build_intent_and_keeps_host_actions(monkeypatch) -> None:
+    """A build-leaning prompt keeps the host actions so the agent can drive the
+    cockpit (every mutation still rides the diff/accept gate frontend-side)."""
+    tids = _tool_ids_for(monkeypatch, "set up a research cockpit for NVDA")
+    assert "set_chart_symbol" in tids
+    assert "open_panel" in tids
+
+
 def test_tool_schemas_serialize_for_every_provider_shape() -> None:
     agent_runtime.reload()
     spec = agent_runtime.get_agent("copilot")

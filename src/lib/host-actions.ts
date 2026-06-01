@@ -13,7 +13,12 @@
  *                              propose→confirm path (the AI never places).
  */
 
-import { applyLayoutTemplate, type LayoutTemplate } from "@/lib/layout-templates";
+import {
+  applyCustomLayout,
+  applyLayoutTemplate,
+  type CustomPanelSpec,
+  type LayoutTemplate,
+} from "@/lib/layout-templates";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useBriefStore } from "@/store/brief";
 import { useBrokersStore } from "@/store/brokers";
@@ -100,6 +105,35 @@ function str(input: Record<string, unknown>, key: string): string {
 function strArray(input: Record<string, unknown>, key: string): string[] {
   const v = input[key];
   return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+}
+
+/**
+ * Parse the `panels` arg of a CUSTOM arrange (Track B). Tolerant of both shapes
+ * the model might emit: a bare `["chart","news"]` (host picks coherent positions)
+ * or `[{panel,direction,reference}, …]` (explicit "one here, one there"). Anything
+ * malformed is dropped so a sloppy arg never crashes the arrange.
+ */
+function parseCustomPanels(input: Record<string, unknown>): CustomPanelSpec[] {
+  const raw = input.panels;
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  const specs: CustomPanelSpec[] = [];
+  for (const item of raw) {
+    if (typeof item === "string") {
+      specs.push({ panel: item });
+    } else if (item && typeof item === "object") {
+      const o = item as Record<string, unknown>;
+      if (typeof o.panel === "string") {
+        specs.push({
+          panel: o.panel,
+          direction: typeof o.direction === "string" ? (o.direction as never) : undefined,
+          reference: typeof o.reference === "string" ? o.reference : undefined,
+        });
+      }
+    }
+  }
+  return specs;
 }
 
 /**
@@ -195,6 +229,16 @@ export function describeHostAction(
           title: `Focus on ${panel ? panelLabel(panel) : "one panel"}`,
           before: "Layout: the current cockpit",
           after: `Layout: ${panel ? panelLabel(panel) : "a single panel"} maximised`,
+        };
+      }
+      const customPanels = parseCustomPanels(input);
+      if (pattern === "custom" || customPanels.length > 0) {
+        const names = customPanels.map((p) => p.panel).join(" + ");
+        return {
+          kind: "panel",
+          title: names ? `Arrange ${names}` : "Arrange your panels",
+          before: "Layout: the current cockpit",
+          after: names ? `Layout: ${names}` : "Layout: a custom arrangement",
         };
       }
       if (LAYOUT_TEMPLATES.has(pattern)) {
@@ -341,6 +385,24 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
         target.api.setActive();
         target.api.maximize();
         return `Focused on ${panelLabel(panel)}`;
+      }
+      // CUSTOM arrange (Track B): "put the chart here and news there". Triggered
+      // by pattern="custom" OR a `panels` arg on any pattern. The host lays the
+      // named panels out coherently (or honours explicit per-panel directions) —
+      // the dockview engine already supports arbitrary placement.
+      const customPanels = parseCustomPanels(input);
+      if (pattern === "custom" || customPanels.length > 0) {
+        const api = ws.dockviewApi;
+        if (!api) {
+          return null;
+        }
+        const sym = str(input, "symbol");
+        applyCustomLayout(api, customPanels, { symbol: sym || undefined });
+        if (sym) {
+          useChartCommandStore.getState().loadSymbol(sym);
+        }
+        const names = customPanels.map((p) => p.panel).join(" + ");
+        return names ? `Arranged ${names}` : "Arranged your panels";
       }
       if (LAYOUT_TEMPLATES.has(pattern)) {
         const api = ws.dockviewApi;

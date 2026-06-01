@@ -1,7 +1,56 @@
 import type { DockviewApi } from "dockview";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { applyLayoutTemplate, planLayout, type LayoutTemplate } from "./layout-templates";
+import {
+  applyLayoutTemplate,
+  planCustom,
+  planLayout,
+  resolvePanelToken,
+  type LayoutTemplate,
+} from "./layout-templates";
+
+describe("planCustom (Track B — 'one panel here, one there')", () => {
+  it("places two panels side by side (2nd to the right of the anchor)", () => {
+    const plan = planCustom([{ panel: "chart" }, { panel: "news" }]);
+    expect(plan.panels.map((p) => p.id)).toEqual(["chart", "news"]);
+    expect(plan.panels[0].position).toBeUndefined(); // anchor
+    expect(plan.panels[1].position).toEqual({ referencePanel: "chart", direction: "right" });
+    expect(plan.focus).toBe("chart");
+  });
+
+  it("honours explicit per-panel direction + reference", () => {
+    const plan = planCustom([
+      { panel: "chart" },
+      { panel: "watchlist", direction: "right" },
+      { panel: "news", direction: "below", reference: "watchlist" },
+    ]);
+    expect(plan.panels[2].position).toEqual({ referencePanel: "watchlist", direction: "below" });
+  });
+
+  it("resolves loose aliases and drops unknown / duplicate panels", () => {
+    const plan = planCustom([
+      { panel: "equity" }, // alias → equity-overview
+      { panel: "totally-not-a-panel" }, // dropped
+      { panel: "equity-overview" }, // duplicate of the alias → dropped
+      { panel: "watch" }, // alias → watchlist
+    ]);
+    expect(plan.panels.map((p) => p.id)).toEqual(["equity-overview", "watchlist"]);
+  });
+
+  it("defaults the 3rd+ panels to stacking below the previous", () => {
+    const plan = planCustom([{ panel: "chart" }, { panel: "news" }, { panel: "portfolio" }]);
+    expect(plan.panels[2].position).toEqual({ referencePanel: "news", direction: "below" });
+  });
+});
+
+describe("resolvePanelToken", () => {
+  it("maps canonical ids and aliases, rejects unknowns", () => {
+    expect(resolvePanelToken("chart")).toEqual({ id: "chart", component: "chart-panel" });
+    expect(resolvePanelToken("Equity Overview")?.id).toBe("equity-overview");
+    expect(resolvePanelToken("holdings")?.id).toBe("portfolio");
+    expect(resolvePanelToken("nope")).toBeNull();
+  });
+});
 
 describe("planLayout", () => {
   it("single-focus: just the chart, maximized", () => {

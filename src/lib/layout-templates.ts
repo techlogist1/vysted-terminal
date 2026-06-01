@@ -19,6 +19,58 @@ import type { DockviewApi, Direction } from "dockview";
  */
 export type LayoutTemplate = "single-focus" | "research-cockpit" | "compare" | "macro-scan";
 
+/**
+ * Every arrangeable panel, by canonical id (matches `default-layout.ts` + the
+ * module specs). Broader than the template `PANEL` set below so a CUSTOM arrange
+ * ("put the chart here and news there") can place any of them (Track B).
+ */
+const ARRANGEABLE: Record<string, { id: string; component: string }> = {
+  chart: { id: "chart", component: "chart-panel" },
+  "equity-overview": { id: "equity-overview", component: "equity-overview-panel" },
+  watchlist: { id: "watchlist", component: "watchlist-panel" },
+  news: { id: "news", component: "news-panel" },
+  portfolio: { id: "portfolio", component: "portfolio-panel" },
+  macro: { id: "macro", component: "macro-panel" },
+  screener: { id: "screener", component: "screener-panel" },
+  brief: { id: "brief", component: "brief-panel" },
+};
+
+/** Loose aliases the agent (or a user) might say, mapped to a canonical id. */
+const PANEL_ALIASES: Record<string, string> = {
+  equity: "equity-overview",
+  overview: "equity-overview",
+  "equity-overview-panel": "equity-overview",
+  quote: "equity-overview",
+  watch: "watchlist",
+  "watch-list": "watchlist",
+  positions: "portfolio",
+  holdings: "portfolio",
+  macroeconomics: "macro",
+  economy: "macro",
+  screen: "screener",
+  research: "brief",
+};
+
+/** Resolve a free-text panel token to a canonical `{id, component}`, or `null`. */
+export function resolvePanelToken(name: string): { id: string; component: string } | null {
+  const key = (name || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[_\s]+/g, "-");
+  if (key in ARRANGEABLE) {
+    return ARRANGEABLE[key];
+  }
+  const aliased = PANEL_ALIASES[key];
+  return aliased ? ARRANGEABLE[aliased] : null;
+}
+
+/** One panel in a custom arrange — a name + an optional explicit placement. */
+export interface CustomPanelSpec {
+  panel: string;
+  direction?: "left" | "right" | "above" | "below" | "within";
+  reference?: string;
+}
+
 /** Relative placement for a planned panel (mirrors dockview's `AddPanelOptions.position`). */
 export interface PlannedPanelPosition {
   /** The panel `id` this one is placed relative to (NOT the component id). */
@@ -148,6 +200,62 @@ export function planLayout(template: LayoutTemplate, opts?: LayoutPlanOptions): 
         ],
         focus: PANEL.macro.id,
       };
+  }
+}
+
+/**
+ * PURE planner for a CUSTOM arrange (Track B — "one panel here, one there"):
+ * turn an ordered list of panel specs into a `LayoutPlan` the same generic
+ * `applyPlan` lands. Unknown panel tokens are dropped (never crash). The first
+ * panel anchors; each later panel honours an explicit `direction`/`reference`
+ * when given, else falls back to a coherent default — the 2nd panel beside the
+ * anchor (right), the rest stacking below the previous — so a bare list still
+ * produces a sensible side-by-side / column arrangement rather than one tile.
+ */
+export function planCustom(specs: CustomPanelSpec[], opts?: LayoutPlanOptions): LayoutPlan {
+  void opts; // symbols ride the chart-command channel, not the tiling (parity).
+  const panels: PlannedPanel[] = [];
+  const placedIds = new Set<string>();
+  let prevId: string | undefined;
+
+  for (const spec of specs) {
+    const resolved = resolvePanelToken(spec.panel);
+    if (!resolved || placedIds.has(resolved.id)) {
+      continue; // unknown or duplicate — skip, don't crash
+    }
+    let position: PlannedPanelPosition | undefined;
+    if (prevId !== undefined) {
+      const ref = spec.reference ? resolvePanelToken(spec.reference)?.id : undefined;
+      const direction = spec.direction ?? (panels.length === 1 ? "right" : "below");
+      position = { referencePanel: ref ?? prevId, direction };
+    }
+    panels.push({ id: resolved.id, component: resolved.component, position });
+    placedIds.add(resolved.id);
+    prevId = resolved.id;
+  }
+
+  return { panels, focus: panels[0]?.id };
+}
+
+/**
+ * IMPERATIVE applier for a custom arrange — mirrors `applyLayoutTemplate`'s
+ * rAF-batched apply but from a `planCustom` plan. Idempotent via the shared
+ * `applyPlan` (reuses already-open panels by id).
+ */
+export function applyCustomLayout(
+  api: DockviewApi,
+  specs: CustomPanelSpec[],
+  opts?: LayoutPlanOptions,
+): void {
+  const plan = planCustom(specs, opts);
+  if (plan.panels.length === 0) {
+    return;
+  }
+  const run = () => applyPlan(api, plan);
+  if (typeof requestAnimationFrame === "function") {
+    requestAnimationFrame(run);
+  } else {
+    run();
   }
 }
 

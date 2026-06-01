@@ -81,13 +81,14 @@ class AgentInvocationRequest(BaseModel):
     api_key: str | None = None
     #: Provider-specific overrides.
     options: dict[str, Any] = Field(default_factory=dict)
-    #: Agent mode (FR-003 four-mode spine). ``ask`` is read-only by default
-    #: (FR-013): the runtime strips every mutating tool before the adapter call
-    #: so an Ask invocation can never drive the host or propose an order. The
-    #: ``edit``/``build``/``delegate`` distinction is a frontend staging concern
-    #: — server-side they all pass the agent's full tool set (§6.5 still governs
-    #: ``propose_order``, which only ever proposes).
-    mode: Literal["ask", "edit", "build", "delegate"] = "ask"
+    #: Agent mode. The JARVIS-sprint collapse (Track B) makes ``agent`` the
+    #: primary surface: the runtime INFERS read vs edit/build from the prompt
+    #: (``classify_intent``) and applies the read-only tool gate iff the intent is
+    #: a read — so the safety line of the old ``ask`` survives without a picker.
+    #: ``delegate`` stays distinct (BudgetGuard). The legacy ``ask``/``edit``/
+    #: ``build`` values are accepted for back-compat: ``ask`` is read-only, the
+    #: others pass the full tool set (§6.5 still governs ``propose_order``).
+    mode: Literal["agent", "ask", "edit", "build", "delegate"] = "ask"
 
 
 class AgentInvocationResult(BaseModel):

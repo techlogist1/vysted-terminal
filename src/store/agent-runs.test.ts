@@ -20,7 +20,7 @@ describe("agent-runs store — the agents rail (FR-027 / US3 AS3)", () => {
     const id = useAgentRunsStore.getState().startRun({
       agentId: null,
       agentName: "Direct chat",
-      mode: "ask",
+      mode: "agent",
     });
     useAgentRunsStore.getState().endRun(id, "done");
     expect(useAgentRunsStore.getState().activeRuns()).toHaveLength(0);
@@ -32,7 +32,7 @@ describe("agent-runs store — the agents rail (FR-027 / US3 AS3)", () => {
     const id = useAgentRunsStore.getState().startRun({
       agentId: "copilot",
       agentName: "Copilot",
-      mode: "build",
+      mode: "agent",
       abort,
     });
     useAgentRunsStore.getState().cancelRun(id);
@@ -41,8 +41,10 @@ describe("agent-runs store — the agents rail (FR-027 / US3 AS3)", () => {
   });
 
   it("clearFinished keeps only running runs", () => {
-    const a = useAgentRunsStore.getState().startRun({ agentId: "x", agentName: "X", mode: "ask" });
-    useAgentRunsStore.getState().startRun({ agentId: "y", agentName: "Y", mode: "ask" });
+    const a = useAgentRunsStore
+      .getState()
+      .startRun({ agentId: "x", agentName: "X", mode: "agent" });
+    useAgentRunsStore.getState().startRun({ agentId: "y", agentName: "Y", mode: "agent" });
     useAgentRunsStore.getState().endRun(a, "done");
     useAgentRunsStore.getState().clearFinished();
     expect(useAgentRunsStore.getState().runs).toHaveLength(1);

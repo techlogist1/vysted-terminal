@@ -182,7 +182,7 @@ function seedStores() {
     focusedSource: null,
     updatedAt: 0,
   });
-  useAgentModeStore.setState({ mode: "ask" });
+  useAgentModeStore.setState({ mode: "agent" });
   useProposedChangesStore.setState({ changes: [] });
   useChartSyncBus.setState({ symbol: null });
 }
@@ -339,18 +339,19 @@ describe("ChatSidebar", () => {
     expect(screen.getByLabelText("Panel context").textContent).toContain("1D");
   });
 
-  it("passes the active mode to the agent invocation (default Ask — FR-003)", async () => {
+  it("passes the active mode to the agent invocation (default Agent — FR-003, Track B)", async () => {
     render(<ChatSidebar />);
     const input = screen.getByLabelText("Chat input") as HTMLInputElement;
     fireEvent.change(input, { target: { value: "/agent buffett look at SPY" } });
     fireEvent.submit(input.closest("form")!);
     await waitFor(() => expect(streamAgentInvocationMock).toHaveBeenCalledTimes(1));
     const payload = (streamAgentInvocationMock.mock.calls[0] as unknown[])[1] as { mode?: string };
-    expect(payload.mode).toBe("ask");
+    // Default is the inferred Agent surface; the sidecar derives read/edit/build.
+    expect(payload.mode).toBe("agent");
   });
 
   it("stages an agent-proposed cockpit mutation as a reviewable diff — never auto-applies (FR-010)", async () => {
-    useAgentModeStore.setState({ mode: "build" });
+    useAgentModeStore.setState({ mode: "agent" });
     streamAgentInvocationMock.mockImplementationOnce(
       async (_id: unknown, _payload: unknown, handlers: { onEvent: (event: unknown) => void }) => {
         handlers.onEvent({

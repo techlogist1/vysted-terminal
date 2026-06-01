@@ -48,6 +48,7 @@ from services import agent_tools, model_registry
 from services.agent_tools import catalog
 from services.llm import get_provider, native_search
 from services.llm.base import LLMStreamEvent
+from services.planner import classify_intent
 
 logger = logging.getLogger(__name__)
 
@@ -500,14 +501,24 @@ async def invoke_agent(
     opts = dict(options or {})
     history = _coerce_history(opts.pop("history", None))
     tool_ids = list(spec.tools)  # the allow-list — finally sent to the provider
-    if mode == "ask":
-        # Ask is read-only by default (FR-013): strip every mutating capability
-        # SERVER-SIDE so an Ask invocation can never drive the host or propose an
-        # order. This drops the host-action mutators (open_panel, set_chart_symbol,
-        # add_to_watchlist) and propose_order (all read_only=False) while keeping
-        # read tools and the per-invocation reads get_terminal_state/get_portfolio.
-        # Enforced here, not in the adapter, so an external MCP client cannot
-        # bypass it (FR-005). The edit/build/delegate modes keep the full set.
+    # Resolve whether this turn is READ-ONLY. The collapsed "agent" mode (Track B)
+    # has no Ask/Edit/Build picker — it INFERS the intent from the prompt
+    # (deterministic, no LLM) and gates a READ intent to read-only tools exactly as
+    # the old "Ask" mode did, so the §6.5-adjacent read-only line survives the
+    # mode-collapse. Legacy "ask" stays read-only for back-compat; everything else
+    # (agent-with-edit/build intent, delegate, legacy edit/build) keeps the full set.
+    inferred_intent: str | None = None
+    if mode == "agent":
+        inferred_intent = classify_intent(prompt).intent
+        read_only = inferred_intent == "read"
+    else:
+        read_only = mode == "ask"
+    if read_only:
+        # Strip every mutating capability SERVER-SIDE so a read turn can never drive
+        # the host or propose an order — drops the host-action mutators (open_panel,
+        # set_chart_symbol, add_to_watchlist) + propose_order (all read_only=False),
+        # keeping read tools + the per-invocation get_terminal_state/get_portfolio.
+        # Enforced here, not in the adapter, so an external MCP client can't bypass it.
         tool_ids = [t for t in tool_ids if catalog.is_read_only(t) is True]
 
     # Web-search tier dispatch (FR-080/081). On the NATIVE tier with a

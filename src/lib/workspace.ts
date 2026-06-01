@@ -33,7 +33,7 @@ import { type SymbolEntry, useSymbolsStore } from "@/store/symbols";
 import { type Portfolio, usePortfoliosStore } from "@/store/portfolios";
 import { AUTOSAVE_LAYOUT_NAME, useWorkspaceStore } from "@/store/workspace";
 import type { LLMProviderId } from "../../types/ai";
-import { type AgentMode, isAgentMode } from "../../types/agent-modes";
+import { type AgentMode, coerceAgentMode } from "../../types/agent-modes";
 import type { WorkspaceDrawings } from "../../types/drawings";
 
 /** The serialised form of a workspace, persisted as a `.vysted-workspace` file. */
@@ -230,9 +230,10 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
     usePortfoliosStore.getState().setAll(workspace.portfolios.list, workspace.portfolios.activeId);
   }
   // Restore the agent mode / dock geometry / model overrides (older blobs lack
-  // them — keep the defaults). Guarded so a corrupt value can't seed garbage.
-  if (isAgentMode(workspace.agentMode)) {
-    useAgentModeStore.getState().setMode(workspace.agentMode);
+  // them — keep the defaults). A legacy mode ("ask"/"edit"/"build") folds into the
+  // single inferred "agent" surface (Track B); only restore when a value is set.
+  if (workspace.agentMode !== undefined) {
+    useAgentModeStore.getState().setMode(coerceAgentMode(workspace.agentMode));
   }
   if (isAgentAutonomy(workspace.autonomyMode)) {
     useAgentAutonomyStore.getState().setAutonomy(workspace.autonomyMode);

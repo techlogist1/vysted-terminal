@@ -845,9 +845,11 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 "'research-cockpit' (chart + fundamentals + news/filings + brief — the "
                 "flagship deep dive); 'compare' (dual charts side by side, pass two "
                 "tickers as `symbols`); 'macro-scan' (heatmap + chart + screener). "
-                "'default' resets the layout; 'focus' maximises one panel (pass `panel`). "
+                "'default' resets the layout; 'focus' maximises one panel (pass `panel`); "
+                "'custom' places exactly the panels you name in `panels` ('put the chart "
+                "here and news there') — use it for an ad-hoc arrangement no template fits. "
                 "When the user says 'set me up to research X' pick 'research-cockpit'; "
-                "for 'compare X vs Y' pick 'compare'. Choose a sensible template yourself "
+                "for 'compare X vs Y' pick 'compare'. Choose the arrangement yourself "
                 "— do not ask the user how to arrange."
             ),
             input_schema=_obj(
@@ -861,6 +863,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                             "research-cockpit",
                             "compare",
                             "macro-scan",
+                            "custom",
                         ],
                         "default": "default",
                     },
@@ -873,6 +876,16 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                         "type": "array",
                         "items": {"type": "string"},
                         "description": "Two tickers for pattern='compare'.",
+                    },
+                    "panels": {
+                        "type": "array",
+                        "description": (
+                            "For pattern='custom': the panels to place, in order. Each item "
+                            "is a panel name (chart|watchlist|news|portfolio|equity-overview|"
+                            "macro|screener|brief) OR {panel, direction:left|right|above|below, "
+                            "reference}. The first anchors; bare items tile coherently."
+                        ),
+                        "items": {"type": ["string", "object"]},
                     },
                 },
                 ["pattern"],

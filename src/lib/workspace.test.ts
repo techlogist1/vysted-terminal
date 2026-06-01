@@ -58,7 +58,7 @@ describe("workspace serialization", () => {
     useChartDrawingsStore.setState({ byPanel: {} });
     useLLMProvidersStore.setState({ defaultProviderId: "anthropic" });
     useSymbolsStore.setState({ entries: [{ symbol: "AAPL", assetClass: "equity" }] });
-    useAgentModeStore.setState({ mode: "ask" });
+    useAgentModeStore.setState({ mode: "agent" });
     useAgentAutonomyStore.setState({ autonomy: "ask" });
     useAgentDockStore.setState({ collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH });
     useModelSelectionStore.setState({ overrides: {} });
@@ -88,7 +88,7 @@ describe("workspace serialization", () => {
         list: [{ id: "default", name: "Portfolio", holdings: [] }],
         activeId: "default",
       },
-      agentMode: "ask",
+      agentMode: "agent",
       autonomyMode: "ask",
       agentDock: { collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH },
       modelOverrides: {},
@@ -153,13 +153,16 @@ describe("workspace serialization", () => {
       name: "saved",
       layout: LAYOUT_A,
       enabledModules: {},
-      agentMode: "build",
+      // A legacy persisted value (pre-collapse) — deliberately not a current
+      // AgentMode; the restore path coerces it. Cast to feed it as an old blob.
+      agentMode: "build" as never,
       autonomyMode: "auto",
       agentDock: { collapsed: true, width: 520 },
       modelOverrides: { anthropic: "claude-sonnet-4-6" },
       modelOverridesV: 1,
     });
-    expect(useAgentModeStore.getState().mode).toBe("build");
+    // Track B: a legacy "build" blob folds into the single inferred "agent" surface.
+    expect(useAgentModeStore.getState().mode).toBe("agent");
     expect(useAgentAutonomyStore.getState().autonomy).toBe("auto");
     expect(useAgentDockStore.getState().collapsed).toBe(true);
     expect(useAgentDockStore.getState().width).toBe(520);
