@@ -86,6 +86,12 @@ const SHELL_DEFAULTS: Record<string, KeybindingDef> = {
     description: "Switch the agent to Delegate mode (autonomous background task).",
     category: "agent",
   },
+  "agent.toggle": {
+    keys: "mod+b",
+    label: "Toggle agent panel",
+    description: "Show or fully hide the agent column (hands the full cockpit back).",
+    category: "agent",
+  },
   "changes.acceptAll": {
     keys: "mod+enter",
     label: "Accept all proposed changes",

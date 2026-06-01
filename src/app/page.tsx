@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { LayoutGrid, PanelLeftClose, Save, Settings2 } from "lucide-react";
+import { LayoutGrid, PanelLeftClose, PanelLeftOpen, Save, Settings2 } from "lucide-react";
 
 import { AgentDock } from "@/components/AgentDock";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -135,9 +135,14 @@ export default function Page() {
               ? "text-charcoal-400 hover:text-lume"
               : "text-amber-300 hover:text-amber-200",
           )}
-          aria-label="Toggle agent column"
+          aria-label={agentCollapsed ? "Show agent panel" : "Hide agent panel"}
+          title={agentCollapsed ? "Show agent panel (⌘B)" : "Hide agent panel (⌘B)"}
         >
-          <PanelLeftClose className="h-3.5 w-3.5" />
+          {agentCollapsed ? (
+            <PanelLeftOpen className="h-3.5 w-3.5" />
+          ) : (
+            <PanelLeftClose className="h-3.5 w-3.5" />
+          )}
           Agent
         </button>
         <button

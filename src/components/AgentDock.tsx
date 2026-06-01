@@ -1,23 +1,24 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { PanelLeftOpen } from "lucide-react";
 
 import { ChatSidebar } from "@/modules/chat/ChatSidebar";
 import { cn } from "@/lib/utils";
 import { AGENT_DOCK_MAX_WIDTH, AGENT_DOCK_MIN_WIDTH, useAgentDockStore } from "@/store/agent-dock";
+import { matchesEvent, useKeybindingsStore } from "@/store/keybindings";
 
 /**
  * The agent's primary-column shell (FR-001) — the agent surface as a dominant,
  * resizable left column beside the dockview cockpit (passed as `children`), not
- * a bolted-on sidebar. A drag handle resizes it; the collapse control hands the
- * full cockpit back. On the P1 (existing) skin; P2 reskins this shell.
+ * a bolted-on sidebar. A drag handle resizes it; closing it FULLY hides the
+ * column (no leftover rail — Cursor-parity) and hands the whole cockpit back,
+ * reopened from the header "Agent" button or the agent.toggle shortcut (⌘B).
  */
 export function AgentDock({ children }: { children: React.ReactNode }) {
   const collapsed = useAgentDockStore((state) => state.collapsed);
   const width = useAgentDockStore((state) => state.width);
   const setWidth = useAgentDockStore((state) => state.setWidth);
-  const setCollapsed = useAgentDockStore((state) => state.setCollapsed);
+  const toggleCollapsed = useAgentDockStore((state) => state.toggleCollapsed);
 
   const draggingRef = useRef(false);
 
@@ -53,21 +54,25 @@ export function AgentDock({ children }: { children: React.ReactNode }) {
     document.body.style.userSelect = "none";
   }, []);
 
+  // Data-driven toggle shortcut (⌘B by default) — mirrors the command palette's
+  // keybinding dispatch. Lives here on the always-mounted wrapper so it works
+  // whether the dock is open or fully closed.
+  useEffect(() => {
+    function onKeyDown(event: globalThis.KeyboardEvent) {
+      const combo = useKeybindingsStore.getState().bindingFor("agent.toggle");
+      if (combo && matchesEvent(combo, event)) {
+        event.preventDefault();
+        toggleCollapsed();
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [toggleCollapsed]);
+
   if (collapsed) {
-    return (
-      <div className="flex h-full min-h-0 w-full">
-        <button
-          type="button"
-          aria-label="Show agent"
-          title="Show agent"
-          onClick={() => setCollapsed(false)}
-          className="border-charcoal-700 bg-charcoal-925 text-charcoal-400 flex w-7 shrink-0 items-center justify-center border-r hover:text-amber-300"
-        >
-          <PanelLeftOpen size={14} aria-hidden />
-        </button>
-        <div className="min-w-0 flex-1">{children}</div>
-      </div>
-    );
+    // Fully closed — no leftover rail. The cockpit takes the full width; reopen
+    // from the header "Agent" button or the agent.toggle shortcut (⌘B).
+    return <div className="h-full min-h-0 w-full">{children}</div>;
   }
 
   return (
