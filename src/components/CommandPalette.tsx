@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { CommandIcon, Loader2 } from "lucide-react";
 import React, { type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 
@@ -82,7 +81,7 @@ export function CommandPalette() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="border-charcoal-700 bg-charcoal-900 max-w-xl gap-0 p-0 shadow-2xl"
+        className="border-charcoal-700 bg-charcoal-900 max-w-xl gap-0 overflow-hidden p-0 shadow-2xl"
         showCloseButton={false}
       >
         <DialogHeader className="border-charcoal-700 border-b px-5 py-3">
@@ -165,6 +164,9 @@ function CommandPaletteBody({ commands, onClose }: CommandPaletteBodyProps) {
   const [highlight, setHighlight] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const itemRefs = useRef<HTMLButtonElement[]>([]);
+  // Only auto-scroll on keyboard nav; scrolling on hover makes the list jump
+  // under the cursor.
+  const navSourceRef = useRef<"kbd" | "mouse">("kbd");
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -177,6 +179,9 @@ function CommandPaletteBody({ commands, onClose }: CommandPaletteBodyProps) {
 
   // Scroll highlighted item into view on keyboard nav.
   useEffect(() => {
+    if (navSourceRef.current !== "kbd") {
+      return;
+    }
     const el = itemRefs.current[highlight];
     if (el && typeof el.scrollIntoView === "function") {
       el.scrollIntoView({ block: "nearest" });
@@ -195,9 +200,11 @@ function CommandPaletteBody({ commands, onClose }: CommandPaletteBodyProps) {
   function handleInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "ArrowDown") {
       event.preventDefault();
+      navSourceRef.current = "kbd";
       setHighlight((current) => Math.min(current + 1, ranked.length - 1));
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
+      navSourceRef.current = "kbd";
       setHighlight((current) => Math.max(current - 1, 0));
     } else if (event.key === "Enter") {
       event.preventDefault();
@@ -211,11 +218,7 @@ function CommandPaletteBody({ commands, onClose }: CommandPaletteBodyProps) {
   const activeId = ranked[highlight] ? `palette-item-${ranked[highlight].item.id}` : undefined;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.15, ease: "easeOut" }}
-    >
+    <div className="w-full min-w-0">
       <input
         ref={inputRef}
         value={query}
@@ -226,6 +229,9 @@ function CommandPaletteBody({ commands, onClose }: CommandPaletteBodyProps) {
         onKeyDown={handleInputKeyDown}
         placeholder="Search commands, panels, symbols, agents…"
         aria-label="Search the command palette"
+        role="combobox"
+        aria-expanded="true"
+        aria-haspopup="listbox"
         aria-controls="palette-listbox"
         aria-activedescendant={activeId}
         className="text-charcoal-100 placeholder:text-charcoal-400 w-full bg-transparent px-5 py-3 font-mono text-sm outline-none"
@@ -234,7 +240,7 @@ function CommandPaletteBody({ commands, onClose }: CommandPaletteBodyProps) {
         id="palette-listbox"
         role="listbox"
         aria-label="Palette results"
-        className="border-charcoal-700 max-h-80 overflow-y-auto border-t py-1"
+        className="border-charcoal-700 max-h-80 min-w-0 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto border-t py-1"
       >
         {ranked.length === 0 ? (
           corpus.length === 0 ? (
@@ -269,7 +275,10 @@ function CommandPaletteBody({ commands, onClose }: CommandPaletteBodyProps) {
               role="option"
               aria-selected={index === highlight}
               onClick={() => run(index)}
-              onMouseEnter={() => setHighlight(index)}
+              onMouseEnter={() => {
+                navSourceRef.current = "mouse";
+                setHighlight(index);
+              }}
               className={cn(
                 "flex w-full items-center gap-3 px-5 py-2 text-left font-mono",
                 index === highlight && "bg-charcoal-800",
@@ -295,6 +304,6 @@ function CommandPaletteBody({ commands, onClose }: CommandPaletteBodyProps) {
           ))
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
