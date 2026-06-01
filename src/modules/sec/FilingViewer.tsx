@@ -65,7 +65,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
           {detail?.filing.form_type ?? ""}
         </span>
         <span
-          className="text-charcoal-400 max-w-[16ch] truncate text-xs"
+          className="text-charcoal-400 max-w-[28ch] truncate text-xs"
           title={detail?.filing.company_name ?? ""}
         >
           {detail?.filing.company_name ?? ""}
@@ -88,7 +88,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
 
       {error && !detail && (
         <div className="flex min-h-0 flex-1">
-          <div className="w-56 shrink-0" />
+          <div className="border-charcoal-700 w-56 shrink-0 border-r" />
           <article
             className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center"
             data-testid="filing-viewer-error"

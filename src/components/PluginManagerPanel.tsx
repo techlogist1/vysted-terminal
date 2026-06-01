@@ -97,13 +97,18 @@ function PluginRow({ plugin, runtimeReady }: PluginRowProps) {
   const isToggleable = runtimeReady && plugin.instance !== undefined;
   const latestHealth = plugin.healthHistory.at(-1);
 
-  // Re-render every 5s so relative timestamps stay fresh while the panel is
-  // open. Cheap because dockview unmounts panels that aren't in view.
+  // Re-render every 5s so the relative timestamp stays fresh while the panel is
+  // open. Only arm the interval once there's a health sample to age — a row with
+  // no samples has no timestamp to refresh, so an empty tick is pure waste.
+  // Cheap regardless because dockview unmounts panels that aren't in view.
   const [, forceTick] = useState(0);
   useEffect(() => {
+    if (latestHealth === undefined) {
+      return;
+    }
     const interval = setInterval(() => forceTick((tick) => tick + 1), 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [latestHealth]);
 
   const stateLabel = useMemo(() => plugin.state.replace(/-/g, " "), [plugin.state]);
 

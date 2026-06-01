@@ -100,17 +100,19 @@ function StatementTable({
                 >
                   {line.label}
                 </td>
-                {statement.periods.map((period) => (
-                  <td
-                    key={period}
-                    className="text-charcoal-100 max-w-0 overflow-hidden px-3 py-1.5 text-right"
-                    title={String(line.values[period] ?? "")}
-                  >
-                    <span className="block truncate">
-                      {formatLargeNumber(line.values[period] ?? null)}
-                    </span>
-                  </td>
-                ))}
+                {statement.periods.map((period) => {
+                  const raw = line.values[period] ?? null;
+                  const formatted = formatLargeNumber(raw);
+                  return (
+                    <td
+                      key={period}
+                      className="text-charcoal-100 overflow-hidden px-3 py-1.5 text-right"
+                      title={raw === null ? formatted : `${formatted} (${raw})`}
+                    >
+                      <span className="block truncate">{formatted}</span>
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>
@@ -327,12 +329,13 @@ export function EquityOverviewPanel() {
               {quote !== null && (
                 <span
                   className={cn(
-                    "font-mono text-sm",
+                    "font-mono text-sm whitespace-nowrap",
                     quote.change_percent >= 0 ? "text-positive" : "text-negative",
                   )}
                 >
-                  {quote.change_percent >= 0 ? "+" : ""}
-                  {quote.change_percent.toFixed(2)}%
+                  {quote.change >= 0 ? "+" : ""}
+                  {formatNumber(quote.change)} ({quote.change_percent >= 0 ? "+" : ""}
+                  {quote.change_percent.toFixed(2)}%)
                 </span>
               )}
               {fundamentals?.sector != null && (
@@ -395,9 +398,12 @@ export function EquityOverviewPanel() {
                       {formatNumber(ratings.target_low)} – {formatNumber(ratings.target_high)}
                     </span>
                   </span>
-                  <span className="text-charcoal-400">
-                    SB {ratings.strong_buy} · B {ratings.buy} · H {ratings.hold} · S {ratings.sell}{" "}
-                    · SS {ratings.strong_sell}
+                  <span className="text-charcoal-400 flex flex-wrap gap-x-1.5">
+                    <span className="whitespace-nowrap">SB {ratings.strong_buy}</span>
+                    <span className="whitespace-nowrap">· B {ratings.buy}</span>
+                    <span className="whitespace-nowrap">· H {ratings.hold}</span>
+                    <span className="whitespace-nowrap">· S {ratings.sell}</span>
+                    <span className="whitespace-nowrap">· SS {ratings.strong_sell}</span>
                   </span>
                 </div>
               )}

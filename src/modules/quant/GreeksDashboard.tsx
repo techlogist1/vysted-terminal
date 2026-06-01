@@ -180,7 +180,7 @@ export function GreeksDashboard() {
           </p>
         )}
 
-        {!lastResult && status === "idle" && (
+        {!lastResult && !isRunning && (
           <div className="text-charcoal-500 flex h-full items-center justify-center font-mono text-xs">
             Fill in the BSM inputs and click Compute Greeks.
           </div>
@@ -196,7 +196,7 @@ export function GreeksDashboard() {
                 ${lastResult.price.toFixed(4)}
               </span>
             </div>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
               <BigGreek label="Δ Delta" value={lastResult.greeks.delta} testId="greek-delta" />
               <BigGreek label="Γ Gamma" value={lastResult.greeks.gamma} testId="greek-gamma" />
               <BigGreek label="ν Vega" value={lastResult.greeks.vega} testId="greek-vega" />

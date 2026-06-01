@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Newspaper } from "lucide-react";
 
 import { SidecarError } from "@/lib/sidecar-client";
 import { usePanelContextBus } from "@/store/panel-context";
@@ -56,13 +57,24 @@ function SentimentBadge({ item }: { item: NewsItem }) {
   const color = sentimentColor(item.sentiment_label);
   const label = item.sentiment_label ?? "unscored";
   const score = item.sentiment;
+  const scored = item.sentiment_label !== null;
   return (
     <span
       className={`flex items-center gap-1.5 font-mono text-[11px] ${color}`}
       title={score !== null ? `Sentiment score ${score.toFixed(2)}` : "No sentiment score"}
       data-testid="sentiment-badge"
     >
-      <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
+      {/* A filled dot reads as a confident signal; the unscored state instead
+          shows a hollow outline so a near-invisible muted fill never implies a
+          neutral/positive read where none was computed. */}
+      <span
+        aria-hidden="true"
+        className={
+          scored
+            ? "size-1.5 rounded-full bg-current"
+            : "size-1.5 rounded-full border border-current bg-transparent"
+        }
+      />
       <span className="tracking-wide uppercase">{label}</span>
       {score !== null ? (
         <span className="text-charcoal-400">
@@ -265,7 +277,7 @@ export function NewsFeedPanel() {
       {state.status === "ready" ? (
         state.items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-            <span className="text-charcoal-600 font-mono text-2xl">—</span>
+            <Newspaper className="text-charcoal-600 size-8" />
             <p className="text-charcoal-300 font-mono text-xs">No headlines for your watchlist.</p>
             <p className="text-charcoal-500 font-mono text-[11px]">
               Add a NewsAPI key in Settings to pull live articles, or add more symbols to your

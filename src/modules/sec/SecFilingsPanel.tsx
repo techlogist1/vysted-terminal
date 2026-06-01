@@ -233,7 +233,7 @@ function TabButton({ value, active, onClick, children }: TabButtonProps) {
       onClick={onClick}
       className={cn(
         "rounded-md px-2 py-1 text-xs",
-        active ? "bg-charcoal-700 text-charcoal-50" : "text-charcoal-300 hover:bg-charcoal-800",
+        active ? "bg-charcoal-700 text-lume" : "text-charcoal-300 hover:bg-charcoal-800",
       )}
     >
       {children}

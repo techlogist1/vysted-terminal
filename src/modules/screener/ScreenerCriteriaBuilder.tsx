@@ -98,7 +98,7 @@ function CriterionRow({ index, criterion }: CriterionRowProps) {
   return (
     <div
       data-testid={`criterion-row-${index}`}
-      className="border-border bg-background/60 grid grid-cols-[8rem,9rem,7rem,1fr,auto] items-center gap-2 rounded-md border p-2"
+      className="border-border bg-background/60 grid grid-cols-[8rem_9rem_7rem_1fr_auto] items-center gap-2 rounded-md border p-2"
     >
       <select
         aria-label="criterion category"

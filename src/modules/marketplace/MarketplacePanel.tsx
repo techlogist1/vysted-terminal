@@ -123,7 +123,7 @@ function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-charcoal-100 font-mono text-xs font-medium">{entry.name}</span>
-            <StateBadge state={state} preinstalled={entry.preinstalled} />
+            <StateBadge state={state} preinstalled={entry.preinstalled} hasCreds={hasCreds} />
           </div>
           <p className="text-charcoal-400 mt-0.5 font-mono text-[0.65rem]">{entry.description}</p>
           {state.errorMessage && (
@@ -210,15 +210,22 @@ function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
 function StateBadge({
   state,
   preinstalled,
+  hasCreds,
 }: {
   state: { installed: boolean; enabled: boolean; configured: boolean; runtimeState?: string };
   preinstalled: boolean;
+  hasCreds: boolean;
 }) {
   let label = "Available";
   let tone = "text-charcoal-500 border-charcoal-700";
   if (state.runtimeState === "error") {
     label = "Error";
     tone = "text-negative border-negative/40";
+  } else if (state.installed && hasCreds && !state.configured) {
+    // Installed but the BYOK key is still missing — flag it so the user knows
+    // the extension won't return data until they Configure it.
+    label = "Needs key";
+    tone = "text-warning border-warning/40";
   } else if (state.installed && state.enabled) {
     label = preinstalled ? "Pre-installed" : "Enabled";
     tone = "text-positive border-positive/40";

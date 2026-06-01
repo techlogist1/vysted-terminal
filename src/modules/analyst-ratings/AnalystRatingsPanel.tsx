@@ -25,9 +25,11 @@ type Tab = "history" | "price-targets" | "individual";
  * Errors land inline per-tab so a failure on one slice does not blank
  * the others.
  */
+const DEFAULT_SYMBOL = "AAPL";
+
 export function AnalystRatingsPanel() {
-  const [draft, setDraft] = useState("");
-  const [symbol, setSymbol] = useState<string | null>(null);
+  const [draft, setDraft] = useState(DEFAULT_SYMBOL);
+  const [symbol, setSymbol] = useState<string | null>(DEFAULT_SYMBOL);
   const [tab, setTab] = useState<Tab>("history");
 
   const histories = useAnalystRatingsStore((s) => s.histories);
@@ -65,6 +67,19 @@ export function AnalystRatingsPanel() {
 
   const tabError =
     tab === "history" ? historyError : tab === "price-targets" ? priceTargetError : individualError;
+
+  // A slice is "loading" while its symbol is set, the data hasn't arrived, and
+  // no error has landed — gate the child empty-states behind this so the fetch
+  // window isn't mislabelled as an empty result.
+  const historyLoading = symbol !== null && history === null && !historyError;
+  const priceTargetLoading = symbol !== null && targets === null && !priceTargetError;
+  const individualLoading = symbol !== null && individual === null && !individualError;
+  const tabLoading =
+    tab === "history"
+      ? historyLoading
+      : tab === "price-targets"
+        ? priceTargetLoading
+        : individualLoading;
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
@@ -122,15 +137,30 @@ export function AnalystRatingsPanel() {
             <header className="text-charcoal-100 mb-3 font-mono text-sm">
               {symbol}
               <span className="text-charcoal-500 ml-2 text-xs">
-                {tab === "history" && history !== null && `${history.length} rating changes`}
-                {tab === "price-targets" && targets !== null && `${targets.length} target updates`}
-                {tab === "individual" && individual !== null && `${individual.length} analysts`}
+                {!tabLoading &&
+                  tab === "history" &&
+                  history !== null &&
+                  `${history.length} rating changes`}
+                {!tabLoading &&
+                  tab === "price-targets" &&
+                  targets !== null &&
+                  `${targets.length} target updates`}
+                {!tabLoading &&
+                  tab === "individual" &&
+                  individual !== null &&
+                  `${individual.length} analysts`}
               </span>
             </header>
 
-            {tab === "history" && <RatingsHistoryTable history={history ?? []} />}
-            {tab === "price-targets" && <PriceTargetTimeline history={targets ?? []} />}
-            {tab === "individual" && <IndividualAnalystTable analysts={individual ?? []} />}
+            {tabLoading ? (
+              <p className="text-charcoal-400 animate-pulse font-mono text-xs">Loading {symbol}…</p>
+            ) : (
+              <>
+                {tab === "history" && <RatingsHistoryTable history={history ?? []} />}
+                {tab === "price-targets" && <PriceTargetTimeline history={targets ?? []} />}
+                {tab === "individual" && <IndividualAnalystTable analysts={individual ?? []} />}
+              </>
+            )}
           </div>
         </>
       )}
@@ -154,7 +184,7 @@ function TabButton({
       className={cn(
         "rounded-t-md px-3 py-1 font-mono text-xs",
         active
-          ? "bg-charcoal-800 border-charcoal-700 border-x border-t text-amber-400"
+          ? "bg-charcoal-800 border-charcoal-700 -mb-px border-x border-t text-amber-400"
           : "text-charcoal-400 hover:text-charcoal-200",
       )}
       aria-pressed={active}

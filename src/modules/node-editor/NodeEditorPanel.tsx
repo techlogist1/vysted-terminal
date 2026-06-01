@@ -422,7 +422,7 @@ function NodeEditorPanelInner() {
               setWorkflowName(event.target.value);
               setIsDirty(true);
             }}
-            className="bg-charcoal-800 text-charcoal-100 h-7 max-w-xs flex-1 rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 h-7 max-w-xs flex-1 rounded-md border px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
           />
           {isDirty && (
             <span className="text-charcoal-400 font-mono text-[10px] uppercase">unsaved</span>
@@ -488,6 +488,19 @@ function NodeEditorPanelInner() {
               </span>
             </div>
           )}
+
+          {/* Run overlay rides over the canvas as an absolute drawer rather than
+              consuming a third flex rail — three rails would starve the canvas
+              below the panel's min width. */}
+          {runState.status !== "idle" && (
+            <div className="absolute top-0 right-0 z-10 h-full">
+              <WorkflowRunOverlay
+                state={runState}
+                onClose={handleCloseOverlay}
+                onRerun={runState.status !== "running" ? handleRun : undefined}
+              />
+            </div>
+          )}
         </div>
 
         <PropertiesPanel
@@ -505,14 +518,6 @@ function NodeEditorPanelInner() {
             markDirty(); // node deletion is an unsaved mutation (Phase 9.5)
           }}
         />
-
-        {runState.status !== "idle" && (
-          <WorkflowRunOverlay
-            state={runState}
-            onClose={handleCloseOverlay}
-            onRerun={runState.status !== "running" ? handleRun : undefined}
-          />
-        )}
       </div>
 
       {/* Save dialog */}
@@ -746,15 +751,31 @@ interface LoadDialogProps {
 }
 
 function LoadDialog({ summaries, loadingList, error, onClose, onPick }: LoadDialogProps) {
+  // Close on Escape — the dialog is a hand-rolled modal (no Radix), so wire the
+  // keyboard dismissal explicitly while it's mounted.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
   return (
     <div
       data-testid="workflow-load-dialog"
       role="dialog"
       aria-modal="true"
       aria-labelledby="workflow-load-dialog-title"
+      onClick={onClose}
       className="bg-charcoal-950/60 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
     >
-      <div className="bg-charcoal-900 border-charcoal-700 flex w-[460px] flex-col gap-3 rounded-md border p-4">
+      <div
+        onClick={(event) => event.stopPropagation()}
+        className="bg-charcoal-900 border-charcoal-700 flex w-[460px] flex-col gap-3 rounded-md border p-4"
+      >
         <header className="flex items-baseline justify-between">
           <h2
             id="workflow-load-dialog-title"
@@ -773,9 +794,7 @@ function LoadDialog({ summaries, loadingList, error, onClose, onPick }: LoadDial
         </header>
         {error !== null && <p className="text-negative font-mono text-[10px]">{error}</p>}
         {loadingList ? (
-          <li className="text-charcoal-400 animate-pulse list-none font-mono text-xs">
-            Fetching workflows…
-          </li>
+          <p className="text-charcoal-400 animate-pulse font-mono text-xs">Fetching workflows…</p>
         ) : summaries.length === 0 ? (
           <p className="text-charcoal-400 font-mono text-xs">No saved workflows yet.</p>
         ) : (

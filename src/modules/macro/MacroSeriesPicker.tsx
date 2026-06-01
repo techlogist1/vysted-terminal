@@ -121,7 +121,7 @@ export function MacroSeriesPicker({ provider, onProviderChange, onSelect }: Prop
       />
 
       <div
-        className="border-charcoal-800 bg-charcoal-950 flex max-h-48 flex-col overflow-y-auto rounded-md border"
+        className="border-charcoal-800 bg-charcoal-950 flex max-h-48 flex-col overflow-y-auto rounded-md border md:max-h-72"
         role="listbox"
         aria-label="Macro series results"
       >

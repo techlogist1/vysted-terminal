@@ -265,9 +265,12 @@ export function EarningsCalendarPanel() {
             </Button>
           </div>
         ) : sortedEvents.length === 0 ? (
-          <p className="text-charcoal-400 font-mono text-xs">
-            No upcoming earnings in this window.
-          </p>
+          <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+            <Calendar className="text-charcoal-600 size-8" />
+            <p className="text-charcoal-400 font-mono text-xs">
+              No upcoming earnings in this window.
+            </p>
+          </div>
         ) : (
           <table className="w-full table-fixed border-collapse">
             <colgroup>

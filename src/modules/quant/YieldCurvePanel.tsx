@@ -263,17 +263,31 @@ export function YieldCurvePanel() {
               Sampled curve · {lastResult.curve.length} points · computed in{" "}
               {lastResult.duration_ms.toFixed(1)} ms
             </div>
-            <div className="text-charcoal-300 grid grid-cols-4 gap-2 font-mono text-[10px]">
-              <span className="text-charcoal-500">Tenor (y)</span>
-              <span className="text-charcoal-500">Date</span>
-              <span className="text-charcoal-500">Zero rate</span>
-              <span className="text-charcoal-500">DF</span>
+            <div className="text-charcoal-300 grid max-h-72 grid-cols-4 gap-x-2 overflow-y-auto font-mono text-[10px]">
+              <span className="text-charcoal-500 border-charcoal-700 bg-charcoal-850 sticky top-0 border-b pb-1">
+                Tenor (y)
+              </span>
+              <span className="text-charcoal-500 border-charcoal-700 bg-charcoal-850 sticky top-0 border-b pb-1">
+                Date
+              </span>
+              <span className="text-charcoal-500 border-charcoal-700 bg-charcoal-850 sticky top-0 border-b pb-1">
+                Zero rate
+              </span>
+              <span className="text-charcoal-500 border-charcoal-700 bg-charcoal-850 sticky top-0 border-b pb-1">
+                DF
+              </span>
               {lastResult.curve.map((p, idx) => (
                 <Fragment key={`pt-${idx}-${p.date}`}>
-                  <span>{p.tenor_years.toFixed(3)}</span>
-                  <span>{p.date}</span>
-                  <span className="text-amber-200">{(p.zero_rate * 100).toFixed(3)}%</span>
-                  <span>{p.discount_factor.toFixed(5)}</span>
+                  <span className="border-charcoal-800 border-b py-0.5">
+                    {p.tenor_years.toFixed(3)}
+                  </span>
+                  <span className="border-charcoal-800 border-b py-0.5">{p.date}</span>
+                  <span className="border-charcoal-800 border-b py-0.5 text-amber-200">
+                    {(p.zero_rate * 100).toFixed(3)}%
+                  </span>
+                  <span className="border-charcoal-800 border-b py-0.5">
+                    {p.discount_factor.toFixed(5)}
+                  </span>
                 </Fragment>
               ))}
             </div>

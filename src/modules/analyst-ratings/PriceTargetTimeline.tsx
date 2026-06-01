@@ -104,6 +104,15 @@ export function PriceTargetTimeline({ history }: Props) {
   }, [history]);
 
   return (
-    <div ref={containerRef} className="h-64 w-full" data-testid="price-target-timeline-chart" />
+    <div className="relative h-64 w-full" data-testid="price-target-timeline-chart">
+      <div ref={containerRef} className="h-full w-full" />
+      {history.length === 0 && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <p className="text-charcoal-400 font-mono text-xs">
+            No price-target history available for this symbol.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }

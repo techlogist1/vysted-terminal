@@ -184,7 +184,7 @@ export function BondPricerPanel() {
           </p>
         )}
 
-        {!lastResult && status === "idle" && (
+        {!lastResult && !isRunning && (
           <div className="text-charcoal-500 flex h-full items-center justify-center font-mono text-xs">
             Fill in the inputs on the left and click Price.
           </div>

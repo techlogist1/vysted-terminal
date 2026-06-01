@@ -206,7 +206,7 @@ export function ScreenerResultsTable() {
         <span className="font-mono tracking-wide uppercase">{result.universe}</span>
       </div>
       <div className="border-border min-h-0 flex-1 overflow-auto rounded-md border">
-        <table className="w-full text-sm">
+        <table className="w-full table-fixed text-sm">
           {TABLE_HEADER_COLS}
           <thead className="bg-muted/40">
             <tr>
@@ -243,7 +243,9 @@ export function ScreenerResultsTable() {
             ) : (
               rows.map((row) => (
                 <tr key={row.symbol} className="border-border/60 hover:bg-muted/30 border-b">
-                  <td className="px-3 py-2 font-mono font-semibold">{row.symbol}</td>
+                  <td className="px-3 py-2 font-mono font-semibold whitespace-nowrap">
+                    {row.symbol}
+                  </td>
                   <td className="max-w-0 truncate overflow-hidden px-3 py-2" title={row.name ?? ""}>
                     {row.name ?? "—"}
                   </td>
@@ -253,17 +255,17 @@ export function ScreenerResultsTable() {
                   >
                     {row.sector ?? "—"}
                   </td>
-                  <td className="px-3 py-2 text-right font-mono tabular-nums">
+                  <td className="px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums">
                     {fmtMarketCap(row.market_cap)}
                   </td>
-                  <td className="px-3 py-2 text-right font-mono tabular-nums">
+                  <td className="px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums">
                     {fmtNumber(row.pe_ratio)}
                   </td>
-                  <td className="px-3 py-2 text-right font-mono tabular-nums">
+                  <td className="px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums">
                     {fmtNumber(row.price)}
                   </td>
                   <td
-                    className={`px-3 py-2 text-right font-mono tabular-nums ${
+                    className={`px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums ${
                       row.change_percent_1d === null
                         ? "text-muted-foreground"
                         : row.change_percent_1d >= 0
@@ -275,7 +277,7 @@ export function ScreenerResultsTable() {
                       ? "—"
                       : `${row.change_percent_1d >= 0 ? "+" : ""}${row.change_percent_1d.toFixed(2)}%`}
                   </td>
-                  <td className="px-3 py-2 text-right font-mono tabular-nums">
+                  <td className="px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums">
                     {fmtVolume(row.volume)}
                   </td>
                 </tr>

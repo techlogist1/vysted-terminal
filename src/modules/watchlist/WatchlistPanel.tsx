@@ -14,6 +14,15 @@ import { useSymbolsStore as useWatchlistStore } from "@/store/symbols";
 const POLL_INTERVAL_MS = 5_000;
 
 function formatPrice(value: number): string {
+  // Sub-dollar assets (e.g. micro-cap crypto at 0.000021) would collapse to
+  // "0.00" at a fixed 2-digit precision — switch to significant-digit mode so
+  // small magnitudes keep their meaningful figures. Prices >= 1 stay at the
+  // conventional 2 decimal places.
+  if (Math.abs(value) < 1 && value !== 0) {
+    return value.toLocaleString("en-US", {
+      maximumSignificantDigits: 6,
+    });
+  }
   return value.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,

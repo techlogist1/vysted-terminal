@@ -120,9 +120,12 @@ afterEach(() => {
 });
 
 describe("AnalystRatingsPanel", () => {
-  it("requires a symbol before loading", () => {
+  it("default-loads a symbol on mount (populated-panel convention)", () => {
     render(<AnalystRatingsPanel />);
-    expect(screen.getByText(/Enter a symbol/i)).toBeInTheDocument();
+    // The panel seeds AAPL so it opens populated like the sibling analysis
+    // panels (SEC / macro / earnings), not on a blank "enter a symbol" frame.
+    expect((screen.getByLabelText("Symbol") as HTMLInputElement).value).toBe("AAPL");
+    expect(screen.queryByText(/Enter a symbol/i)).not.toBeInTheDocument();
   });
 
   it("loads history / price targets / individual on symbol submit", async () => {

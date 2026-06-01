@@ -61,7 +61,7 @@ export function MacroPanel() {
         {status?.status === "loading" ? (
           <div className="text-charcoal-400 flex h-full items-center justify-center font-mono text-[12px]">
             <div className="flex items-center gap-2">
-              <div className="border-charcoal-600 border-charcoal-900 size-3 animate-spin rounded-full border-2 border-t-amber-400" />
+              <div className="border-charcoal-600 size-3 animate-spin rounded-full border-2 border-t-amber-400" />
               Loading {seriesId}…
             </div>
           </div>

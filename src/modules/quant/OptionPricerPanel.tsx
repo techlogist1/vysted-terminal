@@ -339,7 +339,7 @@ export function OptionPricerPanel() {
           </p>
         )}
 
-        {!lastResult && status === "idle" && (
+        {!lastResult && !isRunning && (
           <div className="text-charcoal-500 flex h-full items-center justify-center font-mono text-xs">
             Fill in the inputs on the left and click Price.
           </div>
@@ -374,7 +374,7 @@ export function OptionPricerPanel() {
                 <div className="text-charcoal-500 mb-2 font-mono text-[10px] tracking-widest uppercase">
                   Greeks
                 </div>
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
                   <GreekCell label="Δ Delta" value={lastResult.greeks.delta} />
                   <GreekCell label="Γ Gamma" value={lastResult.greeks.gamma} />
                   <GreekCell label="ν Vega" value={lastResult.greeks.vega} />

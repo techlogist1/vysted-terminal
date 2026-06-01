@@ -17,7 +17,7 @@
  * remounts the body with a fresh `key`).
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -60,15 +60,29 @@ function WorkflowSaveDialogBody({
 
   const canSubmit = name.trim().length > 0 && !saving;
 
+  // Close on Escape — this is a hand-rolled modal (no Radix), so wire the
+  // keyboard dismissal explicitly while it's mounted.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
   return (
     <div
       data-testid="workflow-save-dialog"
       role="dialog"
       aria-modal="true"
       aria-labelledby="workflow-save-dialog-title"
+      onClick={onClose}
       className="bg-charcoal-950/60 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
     >
       <form
+        onClick={(event) => event.stopPropagation()}
         onSubmit={(event) => {
           event.preventDefault();
           if (!canSubmit) return;
@@ -100,7 +114,7 @@ function WorkflowSaveDialogBody({
             onChange={(event) => setName(event.target.value)}
             placeholder="Research: AAPL daily"
             autoFocus
-            className="bg-charcoal-800 text-charcoal-100 h-8 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 h-8 rounded-md border px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
           />
         </label>
         <label className="flex flex-col gap-1">

@@ -507,7 +507,8 @@ export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewPr
         {metrics && (
           <div className="mt-1 flex items-center justify-between">
             <span className="text-charcoal-500">
-              {run.request.strategyId} · {run.request.symbols.join(", ")}
+              {run.request.startDate} → {run.request.endDate} ·{" "}
+              {formatMoney(run.request.initialCapital)} initial
             </span>
             <Button
               type="button"

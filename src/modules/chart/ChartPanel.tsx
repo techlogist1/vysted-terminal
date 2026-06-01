@@ -73,6 +73,11 @@ const DRAWING_TOOLS: ReadonlyArray<{ kind: DrawingKind; label: string }> = [
   { kind: "text", label: "Text" },
 ];
 
+/** kind → toolbar label, so the inspector chips read "Fib Retr", not "fib-retracement". */
+const DRAWING_LABELS: Record<DrawingKind, string> = Object.fromEntries(
+  DRAWING_TOOLS.map((tool) => [tool.kind, tool.label]),
+) as Record<DrawingKind, string>;
+
 /** Vysted dark palette, applied to the lightweight-charts canvas. */
 const CHART_THEME = {
   layout: {
@@ -254,6 +259,10 @@ function ChartPanel(props: ChartPanelProps = {}) {
   const [compareInput, setCompareInput] = useState("");
   const [compareSymbol, setCompareSymbol] = useState<string | null>(null);
   const [compareNormalize, setCompareNormalize] = useState(true);
+  // Tracks whether the active overlay actually rendered points. A fetch that
+  // rejects or returns an empty series flips this to "error" so the compare
+  // chip can dim + flag "no data" instead of silently showing nothing.
+  const [compareState, setCompareState] = useState<"ok" | "error">("ok");
 
   // --- sync bus -----------------------------------------------------------
   const syncSubscriptions = useChartSyncBus((state) => selectSubscriptions(state, panelId));
@@ -790,12 +799,16 @@ function ChartPanel(props: ChartPanelProps = {}) {
       return;
     }
 
+    // `addOverlay` reports through the setState callbacks (never a synchronous
+    // effect-body setState): "ok" once a non-empty overlay renders, "error" on
+    // an empty series. The async `load` path also flags "error" on a rejection.
     const addOverlay = (rawSeries: OHLCVSeries) => {
       if (cancelled || !chartRef.current) {
         return;
       }
       const data = toComparisonLineData(rawSeries, compareNormalize);
       if (data.length === 0) {
+        setCompareState("error");
         return;
       }
       const overlay = chartRef.current.addSeries(LineSeries, {
@@ -810,14 +823,19 @@ function ChartPanel(props: ChartPanelProps = {}) {
       });
       overlay.setData(data);
       comparisonSeriesRef.current = overlay;
+      setCompareState("ok");
     };
 
     // Use the cached OHLCV when only normalize toggled — avoids a network
-    // round-trip and the visible blink of series-remove + async re-add.
+    // round-trip and the visible blink of series-remove + async re-add. The
+    // microtask defers the overlay add so the report is a callback, not a
+    // synchronous setState in the effect body.
     const cache = comparisonDataCacheRef.current;
     if (cache && cache.symbol === compareSymbol && cache.timeframe === timeframe) {
-      addOverlay(cache.series);
-      return;
+      void Promise.resolve().then(() => addOverlay(cache.series));
+      return () => {
+        cancelled = true;
+      };
     }
 
     const load = async () => {
@@ -829,8 +847,12 @@ function ChartPanel(props: ChartPanelProps = {}) {
         comparisonDataCacheRef.current = { symbol: compareSymbol, timeframe, series: rawSeries };
         addOverlay(rawSeries);
       } catch {
-        // Comparison-overlay failures are non-fatal — silently drop. The
-        // primary chart's error path already surfaces upstream issues.
+        // Comparison-overlay failures are non-fatal to the primary chart — the
+        // main error path already surfaces upstream issues. Flag the chip so the
+        // empty overlay is explained rather than silently missing.
+        if (!cancelled) {
+          setCompareState("error");
+        }
       }
     };
     void load();
@@ -869,6 +891,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
   const clearComparison = useCallback(() => {
     setCompareInput("");
     setCompareSymbol(null);
+    setCompareState("ok");
   }, []);
 
   const onToolToggle = useCallback((kind: DrawingKind) => {
@@ -1066,7 +1089,24 @@ function ChartPanel(props: ChartPanelProps = {}) {
           </Button>
           {compareSymbol ? (
             <>
-              <span className="px-1 font-mono text-[10px] text-amber-300">{compareSymbol}</span>
+              <span
+                className={cn(
+                  "flex items-center gap-0.5 px-1 font-mono text-[10px]",
+                  compareState === "error" ? "text-charcoal-500" : "text-amber-300",
+                )}
+                title={
+                  compareState === "error"
+                    ? `No comparison data for ${compareSymbol}`
+                    : compareSymbol
+                }
+              >
+                {compareSymbol}
+                {compareState === "error" ? (
+                  <span aria-hidden className="text-warning" title="No data">
+                    !
+                  </span>
+                ) : null}
+              </span>
               <button
                 type="button"
                 onClick={() => setCompareNormalize((current) => !current)}
@@ -1140,7 +1180,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
                     aria-label={`Select ${drawing.kind}`}
                     aria-pressed={active}
                   >
-                    {drawing.kind}
+                    {DRAWING_LABELS[drawing.kind] ?? drawing.kind}
                   </button>
                   <button
                     type="button"

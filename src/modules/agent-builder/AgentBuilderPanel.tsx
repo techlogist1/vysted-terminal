@@ -426,7 +426,7 @@ export function AgentBuilderPanel() {
       </form>
 
       {/* --- list column --- */}
-      <aside className="border-charcoal-700 flex min-h-0 flex-col border-l">
+      <aside className="border-charcoal-700 flex min-h-0 flex-col border-t lg:border-t-0 lg:border-l">
         <header className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
           <span className="text-charcoal-200 font-mono text-xs uppercase">Your agents</span>
           <span className="text-charcoal-500 font-mono text-[10px] uppercase">
@@ -475,10 +475,10 @@ export function AgentBuilderPanel() {
                 <button
                   type="button"
                   onClick={() => handleEdit(agent)}
-                  className="flex flex-1 flex-col items-start gap-0.5 text-left"
+                  className="flex w-full min-w-0 flex-1 flex-col items-start gap-0.5 text-left"
                 >
                   <span className="text-charcoal-100 font-mono text-xs">{agent.name}</span>
-                  <span className="text-charcoal-400 truncate font-mono text-[10px]">
+                  <span className="text-charcoal-400 w-full truncate font-mono text-[10px]">
                     {agent.id}
                   </span>
                 </button>
