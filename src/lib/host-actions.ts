@@ -13,6 +13,7 @@
  *                              propose→confirm path (the AI never places).
  */
 
+import { applyLayoutTemplate, type LayoutTemplate } from "@/lib/layout-templates";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useBrokersStore } from "@/store/brokers";
 import { useChartCommandStore } from "@/store/chart-command";
@@ -30,8 +31,17 @@ export const HOST_ACTION_NAMES = new Set([
   "focus_panel",
   "arrange_layout",
   "set_chart_symbol",
+  "set_chart_indicators",
   "add_to_watchlist",
   "propose_order",
+]);
+
+/** The named arrange_layout templates (beyond the legacy default/focus patterns). */
+const LAYOUT_TEMPLATES: ReadonlySet<string> = new Set([
+  "single-focus",
+  "research-cockpit",
+  "compare",
+  "macro-scan",
 ]);
 
 /** A host-action mutation the diff gate must intercept rather than auto-apply. */
@@ -42,6 +52,28 @@ export function isHostActionMutation(name: string): boolean {
 function str(input: Record<string, unknown>, key: string): string {
   const v = input[key];
   return typeof v === "string" ? v : "";
+}
+
+/** Read a string[] arg, dropping non-strings. */
+function strArray(input: Record<string, unknown>, key: string): string[] {
+  const v = input[key];
+  return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+}
+
+/**
+ * Ensure a chart panel is open so a chart command (symbol / indicators) has a
+ * consumer. A bare `set_chart_symbol` on an empty cockpit otherwise lands in the
+ * chart-command channel with no chart panel reading it — the symbol "doesn't
+ * take" (the AUTO-mode "no panels open yet" failure). Checks by COMPONENT so it
+ * is robust to the chart's generated panel ids (`chart-<id>`, singleton:false).
+ */
+function ensureChartOpen(): void {
+  const ws = useWorkspaceStore.getState();
+  const api = ws.dockviewApi;
+  const hasChart = api?.panels.some((p) => p.api.component === "chart-panel") ?? false;
+  if (!hasChart) {
+    ws.openPanel("chart");
+  }
 }
 
 function num(input: Record<string, unknown>, key: string): number {
@@ -72,6 +104,16 @@ export function describeHostAction(
         title: `Load ${symbol || "symbol"} into the chart`,
         before: `Chart symbol: ${current}`,
         after: `Chart symbol: ${symbol}${tf ? ` · ${tf}` : ""}`,
+      };
+    }
+    case "set_chart_indicators": {
+      const indicators = strArray(input, "indicators");
+      const current = useChartCommandStore.getState().activeIndicators;
+      return {
+        kind: "chart",
+        title: `Set chart indicators${symbol ? ` on ${symbol}` : ""}`,
+        before: `Indicators: ${current.length ? current.join(", ") : "none"}`,
+        after: `Indicators: ${indicators.length ? indicators.join(", ") : "none"}`,
       };
     }
     case "open_panel": {
@@ -111,6 +153,26 @@ export function describeHostAction(
           title: `Focus on ${panel ? panelLabel(panel) : "one panel"}`,
           before: "Layout: the current cockpit",
           after: `Layout: ${panel ? panelLabel(panel) : "a single panel"} maximised`,
+        };
+      }
+      if (LAYOUT_TEMPLATES.has(pattern)) {
+        const label =
+          pattern === "research-cockpit" ? "research cockpit" : pattern.replace("-", " ");
+        const sym = str(input, "symbol");
+        const syms = strArray(input, "symbols");
+        const scope =
+          pattern === "compare" && syms.length >= 2
+            ? ` (${syms.slice(0, 2).join(" vs ")})`
+            : sym
+              ? ` · ${sym}`
+              : syms[0]
+                ? ` · ${syms[0]}`
+                : "";
+        return {
+          kind: "panel",
+          title: `Arrange the ${label} layout`,
+          before: "Layout: the current cockpit",
+          after: `Layout: ${label}${scope}`,
         };
       }
       return {
@@ -161,13 +223,28 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
   switch (name) {
     case "set_chart_symbol":
       if (symbol) {
-        // Command the chart DIRECTLY (always-consumed channel) rather than the
-        // opt-in sync bus a default chart ignores — the BUG-6 fix.
+        // Open a chart first if none is on screen, so the symbol command has a
+        // consumer — otherwise "open X chart" on an empty cockpit lands nowhere
+        // (the AUTO-mode "no panels open yet" failure). Then command the chart
+        // DIRECTLY (always-consumed channel), not the opt-in sync bus — the BUG-6 fix.
+        ensureChartOpen();
         const tf = str(input, "timeframe");
         useChartCommandStore.getState().loadSymbol(symbol, tf || undefined);
         return `Loaded ${symbol} into the chart`;
       }
       return null;
+    case "set_chart_indicators": {
+      const indicators = strArray(input, "indicators");
+      ensureChartOpen();
+      const cc = useChartCommandStore.getState();
+      // If a symbol was named, load it first so the indicators apply to the
+      // intended chart; then set the selection (unscoped → the active chart).
+      if (symbol) {
+        cc.loadSymbol(symbol);
+      }
+      cc.setIndicators(indicators);
+      return `Set indicators: ${indicators.length ? indicators.join(", ") : "none"}`;
+    }
     case "open_panel": {
       const panel = str(input, "panel");
       if (panel) {
@@ -211,6 +288,32 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
         target.api.setActive();
         target.api.maximize();
         return `Focused on ${panelLabel(panel)}`;
+      }
+      if (LAYOUT_TEMPLATES.has(pattern)) {
+        const api = ws.dockviewApi;
+        if (!api) {
+          return null;
+        }
+        const sym = str(input, "symbol");
+        const syms = strArray(input, "symbols");
+        applyLayoutTemplate(api, pattern as LayoutTemplate, {
+          symbol: sym || undefined,
+          symbols: syms.length ? syms : undefined,
+        });
+        // The layout is symbol-agnostic — push symbols to the chart via the
+        // chart-command channel (compare = symbol A loaded + symbol B overlaid).
+        const cc = useChartCommandStore.getState();
+        if (pattern === "compare" && syms.length >= 2) {
+          cc.loadSymbol(syms[0]);
+          cc.setComparison(syms[1]);
+        } else if (sym) {
+          cc.loadSymbol(sym);
+        } else if (syms[0]) {
+          cc.loadSymbol(syms[0]);
+        }
+        const label =
+          pattern === "research-cockpit" ? "research cockpit" : pattern.replace("-", " ");
+        return `Arranged the ${label} layout`;
       }
       ws.resetToDefaultLayout();
       return "Reset to the default layout";

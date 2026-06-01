@@ -23,6 +23,7 @@ import { useAgentModeStore } from "@/store/agent-mode";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAppStore } from "@/store/app";
 import { useCommandPalette } from "@/store/command-palette";
+import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
 import { useSymbolsStore } from "@/store/symbols";
@@ -100,6 +101,15 @@ export default function Page() {
         void autosaveLayout();
       }
     });
+    // The default provider (FR-038) rides the blob (serializeWorkspace captures it)
+    // but, like the model overrides above, it does not move the dockview layout —
+    // so it needs its own autosave trigger or "set DeepSeek as default" is lost on
+    // relaunch (the default-provider-not-persisting bug).
+    const unsubscribeDefaultProvider = useLLMProvidersStore.subscribe((state, previous) => {
+      if (state.defaultProviderId !== previous.defaultProviderId) {
+        void autosaveLayout();
+      }
+    });
     const unsubscribeAutonomy = useAgentAutonomyStore.subscribe((state, previous) => {
       if (state.autonomy !== previous.autonomy) {
         void autosaveLayout();
@@ -114,6 +124,7 @@ export default function Page() {
       unsubscribeAgentMode();
       unsubscribeDock();
       unsubscribeModels();
+      unsubscribeDefaultProvider();
       unsubscribeAutonomy();
       teardown?.();
     };

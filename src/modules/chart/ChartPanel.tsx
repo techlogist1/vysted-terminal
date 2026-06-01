@@ -712,6 +712,51 @@ function ChartPanel(props: ChartPanelProps = {}) {
     useChartCommandStore.getState().reportActiveSymbol(symbol);
   }, [symbol]);
 
+  // Host command channel — indicator selection. Mirrors the symbol command above:
+  // ALWAYS consumed, `seq`-gated, scoped by optional symbol so a multi-chart
+  // workspace only retargets the matching chart. The new selection drives the
+  // existing fetch/render effect (we only swap local state here).
+  const indicatorCommand = useChartCommandStore((state) => state.indicatorCommand);
+  useEffect(() => {
+    const applyCommand = (cmd: { symbol?: string; indicators: string[] }) => {
+      if (cmd.symbol && cmd.symbol.toUpperCase() !== symbol.toUpperCase()) {
+        return;
+      }
+      setSelected(new Set(cmd.indicators));
+    };
+    if (indicatorCommand) {
+      applyCommand(indicatorCommand);
+    }
+    // `symbol` intentionally omitted from deps: re-running on every symbol change
+    // would replay a stale command. The seq-bumped command object is the trigger;
+    // the symbol guard is read fresh inside the handler at command time.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [indicatorCommand]);
+
+  // Report the active indicator selection so the diff gate's "before" reflects
+  // the real chart state. `selectedKeys` is the sorted, memoised projection.
+  useEffect(() => {
+    useChartCommandStore.getState().reportActiveIndicators(selectedKeys);
+  }, [selectedKeys]);
+
+  // Host command channel — comparison overlay. Mirrors the symbol command:
+  // ALWAYS consumed, `seq`-gated. Drives the existing comparison overlay effect.
+  const comparisonCommand = useChartCommandStore((state) => state.comparisonCommand);
+  useEffect(() => {
+    const applyCommand = (cmd: { symbol: string }) => {
+      setCompareSymbol(cmd.symbol);
+      setCompareInput(cmd.symbol);
+    };
+    if (comparisonCommand) {
+      applyCommand(comparisonCommand);
+    }
+  }, [comparisonCommand]);
+
+  // Report the active comparison-overlay symbol (or null) for the diff gate.
+  useEffect(() => {
+    useChartCommandStore.getState().reportActiveComparison(compareSymbol);
+  }, [compareSymbol]);
+
   // --- sync bus: broadcast our crosshair / visible-range / symbol --------
   useEffect(() => {
     const chart = chartRef.current;

@@ -5,16 +5,16 @@ One section per phase; the lead (Opus 4.8, 1M) appends as each phase closes.
 
 ## Running totals
 
-| Metric | Value (through B1) |
-| --- | --- |
-| Phases complete | 1 / 6 (B1) |
-| Sub-agents dispatched | 4 |
-| Files modified (tracked) | 20 (+561 / −63) |
-| Files added | 12 source/test + 3 data (2 masters JSON, 1 `__init__`) |
-| New source LOC | ~1,640 (5 sidecar modules + 7 test files) |
-| Bundled data added | 528 KB (US 10,365 + NSE 2,675 instrument masters) |
-| New dependency | `jugaad-data==0.33.1` (keyless NSE) |
-| Sidecar binary footprint | 89 MB → 104 MB (≤120 MB budget held) |
+| Metric                   | Value (through B1)                                     |
+| ------------------------ | ------------------------------------------------------ |
+| Phases complete          | 1 / 6 (B1)                                             |
+| Sub-agents dispatched    | 4                                                      |
+| Files modified (tracked) | 20 (+561 / −63)                                        |
+| Files added              | 12 source/test + 3 data (2 masters JSON, 1 `__init__`) |
+| New source LOC           | ~1,640 (5 sidecar modules + 7 test files)              |
+| Bundled data added       | 528 KB (US 10,365 + NSE 2,675 instrument masters)      |
+| New dependency           | `jugaad-data==0.33.1` (keyless NSE)                    |
+| Sidecar binary footprint | 89 MB → 104 MB (≤120 MB budget held)                   |
 
 ## Phase B1 — Locale-native data foundation (Pillar A · US11)
 
@@ -22,12 +22,12 @@ One section per phase; the lead (Opus 4.8, 1M) appends as each phase closes.
 
 **Sub-agents dispatched (4):**
 
-| Agent | Role | Reported output tokens |
-| --- | --- | --- |
-| Explore — frontend region-flow map | recon (read-only) | n/r |
-| Explore — rig launch procedure map | recon (read-only) | n/r |
-| Build — frontend region wiring | sidecar-client header + format currency + context + dev-stores | 50,821 |
-| Build — news/screener/macro region-keying | region-keyed feeds + macro/screener defaults | 95,481 |
+| Agent                                     | Role                                                           | Reported output tokens |
+| ----------------------------------------- | -------------------------------------------------------------- | ---------------------- |
+| Explore — frontend region-flow map        | recon (read-only)                                              | n/r                    |
+| Explore — rig launch procedure map        | recon (read-only)                                              | n/r                    |
+| Build — frontend region wiring            | sidecar-client header + format currency + context + dev-stores | 50,821                 |
+| Build — news/screener/macro region-keying | region-keyed feeds + macro/screener defaults                   | 95,481                 |
 
 Lead authored the correctness-critical spine directly (config region, `locale.py`,
 `correctness_gate.py`, `india_provider.py`, `symbol_resolver.py`, `provider_registry`
@@ -61,5 +61,5 @@ the existing `test_provider_registry` updated to satisfy the new correctness gat
   symbols cleanly (GOLDBEES's lone first-call `FileExistsError` is a cache-dir race, fixed
   with `makedirs(exist_ok=True)` + retry); live NSE quote endpoints (NSELive/nsepython) are
   blocked from this host → quotes derived from EOD bars (T+1, as ratified). Correctness gate
-  + preference-ordered fallthrough proven to fire (unit + live).
+  - preference-ordered fallthrough proven to fire (unit + live).
 - EODHD/Exa/Perplexity real keys — **not needed for B1** (keyless path only).

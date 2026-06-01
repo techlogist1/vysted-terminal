@@ -34,6 +34,7 @@ from typing import Any, Literal
 Domain = Literal[
     "quotes",
     "charts",
+    "indicators",
     "fundamentals",
     "screener",
     "macro",
@@ -168,6 +169,30 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                     },
                 },
                 ["query"],
+            ),
+            domain="quotes",
+            read_only=True,
+            kind="read_handler",
+        ),
+        _cap(
+            "compare_symbols",
+            description=(
+                "Compare 2-4 instruments side by side — latest quote, valuation "
+                "(P/E, market cap, margins), and recent relative performance. Use "
+                "when the user asks to compare names (e.g. 'NVDA vs AMD'). Pair it "
+                "with arrange_layout(pattern='compare') to build the dual-chart cockpit."
+            ),
+            input_schema=_obj(
+                {
+                    "symbols": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "2-4 tickers to compare, e.g. ['NVDA','AMD'].",
+                    },
+                    "timeframe": {"type": "string", "enum": _TF_ENUM, "default": "1d"},
+                    "asset_class": {"type": "string", "enum": _ASSET_ENUM, "default": "equity"},
+                },
+                ["symbols"],
             ),
             domain="quotes",
             read_only=True,
@@ -640,6 +665,38 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             kind="host_action",
         ),
         _cap(
+            "set_chart_indicators",
+            description=(
+                "Apply (or replace) the chart's technical indicators by key — e.g. "
+                "sma, ema, rsi, macd, bollinger, vwap, volume. Pass the full desired "
+                "set (it replaces the current selection). When the user says 'add a "
+                "200-day average' or 'set me up to study NVDA', pick a sensible set "
+                "for the asset class. Indicators are server-computed and overlay or "
+                "drop into a sub-pane automatically."
+            ),
+            input_schema=_obj(
+                {
+                    "indicators": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": (
+                            "Indicator keys, e.g. ['sma','volume','rsi','macd']. "
+                            "Replaces the current selection."
+                        ),
+                    },
+                    "symbol": {
+                        "type": "string",
+                        "description": "Optional — defaults to the focused chart's symbol.",
+                    },
+                    "timeframe": {"type": "string", "enum": _TF_ENUM},
+                },
+                ["indicators"],
+            ),
+            domain="indicators",
+            read_only=False,
+            kind="host_action",
+        ),
+        _cap(
             "add_to_watchlist",
             description="Add a symbol to the user's watchlist.",
             input_schema=_obj(
@@ -705,19 +762,40 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
         _cap(
             "arrange_layout",
             description=(
-                "Rearrange the cockpit for the user to review. pattern='default' "
-                "resets to the default layout; pattern='focus' maximizes a single "
-                "panel (pass its id as `panel`). Use when the user asks to reset the "
-                "layout, tidy up, or focus on one panel."
+                "Arrange the cockpit using a named template, for the user to review. "
+                "Templates: 'single-focus' (full-width chart + stats — a quick look); "
+                "'research-cockpit' (chart + fundamentals + news/filings + brief — the "
+                "flagship deep dive); 'compare' (dual charts side by side, pass two "
+                "tickers as `symbols`); 'macro-scan' (heatmap + chart + screener). "
+                "'default' resets the layout; 'focus' maximises one panel (pass `panel`). "
+                "When the user says 'set me up to research X' pick 'research-cockpit'; "
+                "for 'compare X vs Y' pick 'compare'. Choose a sensible template yourself "
+                "— do not ask the user how to arrange."
             ),
             input_schema=_obj(
                 {
                     "pattern": {
                         "type": "string",
-                        "enum": ["default", "focus"],
+                        "enum": [
+                            "default",
+                            "focus",
+                            "single-focus",
+                            "research-cockpit",
+                            "compare",
+                            "macro-scan",
+                        ],
                         "default": "default",
                     },
                     "panel": {"type": "string", "description": "Required when pattern='focus'."},
+                    "symbol": {
+                        "type": "string",
+                        "description": "Primary symbol for single-focus / research-cockpit.",
+                    },
+                    "symbols": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Two tickers for pattern='compare'.",
+                    },
                 },
                 ["pattern"],
             ),

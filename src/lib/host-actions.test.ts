@@ -37,6 +37,7 @@ describe("host-actions", () => {
         "focus_panel",
         "open_panel",
         "propose_order",
+        "set_chart_indicators",
         "set_chart_symbol",
       ].sort(),
     );
@@ -81,6 +82,58 @@ describe("host-actions", () => {
   it("applyHostAction(add_to_watchlist) tracks the symbol", () => {
     applyHostAction("add_to_watchlist", { symbol: "tsla", asset_class: "equity" });
     expect(useSymbolsStore.getState().entries.map((e) => e.symbol)).toContain("TSLA");
+  });
+
+  it("set_chart_indicators describes + applies the indicator selection (B2)", () => {
+    useChartCommandStore.setState({ activeIndicators: ["rsi"] });
+    const diff = describeHostAction("set_chart_indicators", {
+      indicators: ["ma", "volume", "rsi", "macd"],
+    });
+    expect(diff.kind).toBe("chart");
+    expect(diff.before).toContain("rsi");
+    expect(diff.after).toContain("macd");
+
+    const label = applyHostAction("set_chart_indicators", { indicators: ["ma", "rsi"] });
+    expect(label).toMatch(/ma, rsi/);
+    expect(useChartCommandStore.getState().indicatorCommand?.indicators).toEqual(["ma", "rsi"]);
+  });
+
+  it("arrange_layout describes the named templates (B2)", () => {
+    const research = describeHostAction("arrange_layout", {
+      pattern: "research-cockpit",
+      symbol: "NVDA",
+    });
+    expect(research.kind).toBe("panel");
+    expect(research.title).toMatch(/research cockpit/i);
+    expect(research.after).toContain("NVDA");
+
+    const compare = describeHostAction("arrange_layout", {
+      pattern: "compare",
+      symbols: ["AAPL", "MSFT"],
+    });
+    expect(compare.after).toMatch(/AAPL vs MSFT/);
+  });
+
+  it("set_chart_symbol opens a chart when none is open (AUTO 'no panels' fix)", async () => {
+    const { useWorkspaceStore } = await import("@/store/workspace");
+    const openPanel = vi.fn();
+    // No chart panel on screen → ensureChartOpen must open one before loading.
+    useWorkspaceStore.setState({
+      dockviewApi: { panels: [] } as never,
+      openPanel,
+    } as never);
+    applyHostAction("set_chart_symbol", { symbol: "TATASTEEL" });
+    expect(openPanel).toHaveBeenCalledWith("chart");
+    expect(useChartCommandStore.getState().command?.symbol).toBe("TATASTEEL");
+
+    // A chart already open (by component, robust to generated ids) → do NOT re-open.
+    openPanel.mockClear();
+    useWorkspaceStore.setState({
+      dockviewApi: { panels: [{ api: { component: "chart-panel" } }] } as never,
+      openPanel,
+    } as never);
+    applyHostAction("set_chart_symbol", { symbol: "RELIANCE" });
+    expect(openPanel).not.toHaveBeenCalled();
   });
 
   it("applyHostAction does NOT place an order (orders never apply directly)", () => {

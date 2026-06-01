@@ -65,6 +65,12 @@ def register_v0_6_0_tools() -> None:
     resolve_symbol.register()
     registered.append("resolve_symbol")
 
+    # Pass B (B2) — multi-symbol comparison (quote + fundamentals + relative perf).
+    from services.agent_tools import compare_symbols
+
+    compare_symbols.register()
+    registered.append("compare_symbols")
+
     if registered:
         logger.info("agent_tools: registered v0.6.0 domains: %s", ", ".join(registered))
     else:
