@@ -1,5 +1,8 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
+
+import { SPRING_PILL, tween } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 import { AGENT_MODES, agentModeMeta, type AgentMode } from "../../../types/agent-modes";
@@ -35,14 +38,21 @@ export function ModeBar({
               title={`${m.hint} (${m.hotkeyLabel})`}
               onClick={() => onChange(m.id)}
               className={cn(
-                "flex items-center gap-1.5 rounded-t-md px-2.5 py-1 font-mono text-[0.7rem] transition-colors",
+                "relative flex items-center gap-1.5 rounded-t-md px-2.5 py-1 font-mono text-[0.7rem] transition-colors",
                 active
                   ? // -mb-px makes the active-tab bottom flush-connect with the border-b below,
                     // eliminating the 1px gap that made the active tab look detached.
-                    "bg-charcoal-800 border-charcoal-700 -mb-px border border-b-transparent text-amber-300"
+                    "-mb-px text-amber-300"
                   : "text-charcoal-400 hover:text-charcoal-100",
               )}
             >
+              {active && (
+                <motion.span
+                  layoutId="mode-active-pill"
+                  className="bg-charcoal-800 border-charcoal-700 absolute inset-0 -z-10 rounded-t-md border border-b-transparent"
+                  transition={SPRING_PILL}
+                />
+              )}
               {displayLabel}
               <kbd className="border-charcoal-700 text-charcoal-500 rounded border px-1 text-[0.55rem]">
                 {m.hotkeyLabel}
@@ -51,12 +61,22 @@ export function ModeBar({
           );
         })}
       </div>
-      <p className="text-charcoal-400 px-3 py-1 font-mono text-[0.6rem]" aria-live="polite">
-        <span className={meta.mutates ? "text-amber-400/80" : "text-positive/80"} aria-hidden>
-          ●
-        </span>{" "}
-        {meta.consequence}
-      </p>
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={mode}
+          className="text-charcoal-400 px-3 py-1 font-mono text-[0.6rem]"
+          aria-live="polite"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={tween(0.12)}
+        >
+          <span className={meta.mutates ? "text-amber-400/80" : "text-positive/80"} aria-hidden>
+            ●
+          </span>{" "}
+          {meta.consequence}
+        </motion.p>
+      </AnimatePresence>
     </div>
   );
 }

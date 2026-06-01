@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { KeyEntryDialog } from "@/components/KeyEntryDialog";
 import { launchDelegateRun } from "@/lib/delegate-runs";
 import { isHostActionMutation } from "@/lib/host-actions";
 import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
+import { tween } from "@/lib/motion";
 import { validateProvider } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
@@ -510,7 +512,19 @@ export function ChatSidebar() {
         onKeyRequired={(p) => setKeyDialogProvider(p)}
       />
       <AutonomyToggle />
-      {mode === "delegate" && <BudgetConfig budget={delegateBudget} onChange={setDelegateBudget} />}
+      <AnimatePresence initial={false}>
+        {mode === "delegate" && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            style={{ overflow: "hidden" }}
+            transition={tween(0.2)}
+          >
+            <BudgetConfig budget={delegateBudget} onChange={setDelegateBudget} />
+          </motion.div>
+        )}
+      </AnimatePresence>
       <AgentsRail
         onForeground={(run) => {
           const id = beginAssistant({ agentId: run.agentId ?? undefined });
@@ -536,13 +550,17 @@ export function ChatSidebar() {
         ) : (
           <ul className="flex flex-col gap-3">
             {messages.map((message) => (
-              <li
+              <motion.li
                 key={message.id}
+                layout
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={tween(0.18)}
                 className={cn(
                   "rounded-md border px-3 py-2 font-mono text-xs",
                   message.role === "user"
                     ? "border-charcoal-700 bg-charcoal-800 text-charcoal-100"
-                    : "text-charcoal-100 border-amber-900/30 bg-amber-950/15",
+                    : "text-charcoal-100 border-amber-600/30 bg-amber-500/10",
                 )}
               >
                 <div className="text-charcoal-400 mb-1 text-[0.6rem] tracking-wide uppercase">
@@ -588,17 +606,26 @@ export function ChatSidebar() {
                     )}
                   </div>
                 )}
-              </li>
+              </motion.li>
             ))}
           </ul>
         )}
       </div>
       <ProposedChangesReview />
-      {statusLine && (
-        <div className="border-charcoal-700 text-charcoal-300 border-t px-3 py-1 font-mono text-[0.65rem] whitespace-pre-line">
-          {statusLine}
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {statusLine && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            style={{ overflow: "hidden" }}
+            transition={tween(0.16)}
+            className="border-charcoal-700 text-charcoal-300 border-t px-3 py-1 font-mono text-[0.65rem] whitespace-pre-line"
+          >
+            {statusLine}
+          </motion.div>
+        )}
+      </AnimatePresence>
       <Composer
         value={composer}
         onChange={setComposer}

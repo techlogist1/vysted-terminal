@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, X } from "lucide-react";
 
+import { tween } from "@/lib/motion";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import { useWorkspaceStore } from "@/store/workspace";
 
@@ -27,35 +29,46 @@ export function OnboardingBanner() {
     void refresh();
   }, [refresh]);
 
-  if (!probed || hasAnyKey || dismissed) {
-    return null;
-  }
+  const showBanner = probed && !hasAnyKey && !dismissed;
 
   return (
-    <div
-      role="status"
-      className="border-charcoal-800 flex shrink-0 items-center gap-3 border-b border-amber-500/20 bg-gradient-to-r from-amber-500/10 to-transparent px-4 py-2"
-    >
-      <Sparkles className="size-4 shrink-0 text-amber-400" aria-hidden="true" />
-      <p className="text-charcoal-200 min-w-0 flex-1 font-mono text-xs leading-snug">
-        Add a cloud provider key — or run a local model (Ollama) — to unlock the assistant, agents,
-        and research tools. Keys stay in your OS keychain; nothing leaves this machine.
-      </p>
-      <button
-        type="button"
-        onClick={() => openPanel("settings")}
-        className="shrink-0 rounded border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 font-mono text-xs text-amber-300 hover:bg-amber-500/20"
-      >
-        Set up a provider →
-      </button>
-      <button
-        type="button"
-        aria-label="Dismiss"
-        onClick={() => setDismissed(true)}
-        className="text-charcoal-500 hover:text-charcoal-200 shrink-0 rounded p-1"
-      >
-        <X className="size-3.5" aria-hidden="true" />
-      </button>
-    </div>
+    <AnimatePresence initial={false}>
+      {showBanner && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          style={{ overflow: "hidden" }}
+          transition={tween(0.28)}
+        >
+          <div
+            role="status"
+            className="flex shrink-0 items-center gap-3 border-b border-amber-500/20 bg-gradient-to-r from-amber-500/10 to-transparent px-4 py-2"
+          >
+            <Sparkles className="size-4 shrink-0 text-amber-400" aria-hidden="true" />
+            <p className="text-charcoal-200 min-w-0 flex-1 font-mono text-xs leading-snug">
+              Add a cloud provider key — or run a local model (Ollama) — to unlock the assistant,
+              agents, and research tools. Keys stay in your OS keychain; nothing leaves this
+              machine.
+            </p>
+            <button
+              type="button"
+              onClick={() => openPanel("settings")}
+              className="shrink-0 rounded border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 font-mono text-xs text-amber-300 hover:bg-amber-500/20"
+            >
+              Set up a provider →
+            </button>
+            <button
+              type="button"
+              aria-label="Dismiss"
+              onClick={() => setDismissed(true)}
+              className="text-charcoal-500 hover:text-charcoal-200 shrink-0 rounded p-1"
+            >
+              <X className="size-3.5" aria-hidden="true" />
+            </button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

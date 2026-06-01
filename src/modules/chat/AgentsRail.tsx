@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Maximize2, Send, X } from "lucide-react";
 
+import { tween } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { answerDelegateRun } from "@/lib/delegate-runs";
 import { useAgentRunsStore, type AgentRun } from "@/store/agent-runs";
@@ -28,24 +30,32 @@ export function AgentsRail({
     () => runs.filter((r) => r.status === "running" || r.status === "paused"),
     [runs],
   );
-  if (active.length === 0) {
-    return null;
-  }
 
   return (
-    <section
-      aria-label="Running agents"
-      className="border-charcoal-700 bg-charcoal-925 flex flex-col gap-1.5 border-b px-3 py-1.5"
-    >
-      {active.map((run) => (
-        <RunRow
-          key={run.id}
-          run={run}
-          onCancel={() => cancelRun(run.id)}
-          onForeground={onForeground}
-        />
-      ))}
-    </section>
+    <AnimatePresence initial={false}>
+      {active.length > 0 && (
+        <motion.section
+          aria-label="Running agents"
+          className="border-charcoal-700 bg-charcoal-925 flex flex-col gap-1.5 border-b px-3 py-1.5"
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          style={{ overflow: "hidden" }}
+          transition={tween(0.2)}
+        >
+          <AnimatePresence initial={false}>
+            {active.map((run) => (
+              <RunRow
+                key={run.id}
+                run={run}
+                onCancel={() => cancelRun(run.id)}
+                onForeground={onForeground}
+              />
+            ))}
+          </AnimatePresence>
+        </motion.section>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -70,7 +80,14 @@ function RunRow({
         : 1;
 
   return (
-    <div className="flex flex-col gap-1 font-mono text-[0.6rem]">
+    <motion.div
+      layout
+      className="flex flex-col gap-1 font-mono text-[0.6rem]"
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={tween(0.2)}
+    >
       <div className="flex items-center justify-between gap-2">
         <span className="flex min-w-0 items-center gap-1.5">
           <span
@@ -148,6 +165,6 @@ function RunRow({
           </button>
         </form>
       )}
-    </div>
+    </motion.div>
   );
 }

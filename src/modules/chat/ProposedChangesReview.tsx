@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Check, X } from "lucide-react";
 
+import { tween } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { useProposedChangesStore } from "@/store/proposed-changes";
 
@@ -23,52 +25,60 @@ export function ProposedChangesReview() {
   const rejectAll = useProposedChangesStore((state) => state.rejectAll);
 
   const pending = useMemo(() => changes.filter((c) => c.status === "pending"), [changes]);
-  if (pending.length === 0) {
-    return null;
-  }
 
   return (
-    <section
-      aria-label="Proposed changes"
-      className="border-charcoal-700 bg-charcoal-925 border-t px-3 py-2"
-    >
-      <header className="flex items-center justify-between gap-2">
-        <span className="text-charcoal-200 font-mono text-[0.65rem] tracking-wide uppercase">
-          {pending.length} proposed change{pending.length === 1 ? "" : "s"} — review before they
-          apply
-        </span>
-        <div className="flex shrink-0 items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => void acceptAll()}
-            className="border-positive/40 text-positive hover:bg-positive/10 rounded border px-2 py-0.5 font-mono text-[0.6rem]"
-            title="Accept all (⌘↵)"
-          >
-            Accept all
-          </button>
-          <button
-            type="button"
-            onClick={() => rejectAll()}
-            className="border-charcoal-700 text-charcoal-400 hover:text-negative rounded border px-2 py-0.5 font-mono text-[0.6rem]"
-            title="Reject all (⌘⌫)"
-          >
-            Reject all
-          </button>
-        </div>
-      </header>
-      {/* max-h-48 + overflow-y-auto prevents the diff list from pushing the
-          composer off-screen when many changes are staged at once (HIGH finding). */}
-      <ul className="mt-1.5 flex max-h-48 flex-col gap-1.5 overflow-y-auto">
-        {pending.map((change) => (
-          <ProposedChangeCard
-            key={change.id}
-            change={change}
-            onAccept={() => void accept(change.id)}
-            onReject={() => reject(change.id)}
-          />
-        ))}
-      </ul>
-    </section>
+    <AnimatePresence initial={false}>
+      {pending.length > 0 && (
+        <motion.section
+          aria-label="Proposed changes"
+          className="border-charcoal-700 bg-charcoal-925 border-t px-3 py-2"
+          initial={{ opacity: 0, y: 12, height: 0 }}
+          animate={{ opacity: 1, y: 0, height: "auto" }}
+          exit={{ opacity: 0, y: 8, height: 0 }}
+          style={{ overflow: "hidden" }}
+          transition={tween(0.24)}
+        >
+          <header className="flex items-center justify-between gap-2">
+            <span className="text-charcoal-200 font-mono text-[0.65rem] tracking-wide uppercase">
+              {pending.length} proposed change{pending.length === 1 ? "" : "s"} — review before they
+              apply
+            </span>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => void acceptAll()}
+                className="border-positive/40 text-positive hover:bg-positive/10 rounded border px-2 py-0.5 font-mono text-[0.6rem]"
+                title="Accept all (⌘↵)"
+              >
+                Accept all
+              </button>
+              <button
+                type="button"
+                onClick={() => rejectAll()}
+                className="border-charcoal-700 text-charcoal-400 hover:text-negative rounded border px-2 py-0.5 font-mono text-[0.6rem]"
+                title="Reject all (⌘⌫)"
+              >
+                Reject all
+              </button>
+            </div>
+          </header>
+          {/* max-h-48 + overflow-y-auto prevents the diff list from pushing the
+              composer off-screen when many changes are staged at once (HIGH finding). */}
+          <ul className="mt-1.5 flex max-h-48 flex-col gap-1.5 overflow-y-auto">
+            <AnimatePresence initial={false}>
+              {pending.map((change) => (
+                <ProposedChangeCard
+                  key={change.id}
+                  change={change}
+                  onAccept={() => void accept(change.id)}
+                  onReject={() => reject(change.id)}
+                />
+              ))}
+            </AnimatePresence>
+          </ul>
+        </motion.section>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -82,9 +92,14 @@ function ProposedChangeCard({
   onReject: () => void;
 }) {
   return (
-    <li
+    <motion.li
+      layout
       data-kind={change.kind}
       className="border-charcoal-700 bg-charcoal-900 rounded-md border px-2.5 py-1.5"
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 8, height: 0, marginBottom: 0 }}
+      transition={tween(0.2)}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
@@ -125,6 +140,6 @@ function ProposedChangeCard({
           </button>
         </div>
       </div>
-    </li>
+    </motion.li>
   );
 }
