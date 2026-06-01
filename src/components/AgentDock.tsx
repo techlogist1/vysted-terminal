@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 import { ChatSidebar } from "@/modules/chat/ChatSidebar";
 import { cn } from "@/lib/utils";
+import { tween } from "@/lib/motion";
 import { AGENT_DOCK_MAX_WIDTH, AGENT_DOCK_MIN_WIDTH, useAgentDockStore } from "@/store/agent-dock";
 import { matchesEvent, useKeybindingsStore } from "@/store/keybindings";
 
@@ -21,6 +23,10 @@ export function AgentDock({ children }: { children: React.ReactNode }) {
   const toggleCollapsed = useAgentDockStore((state) => state.toggleCollapsed);
 
   const draggingRef = useRef(false);
+  // `dragging` (state) mirrors draggingRef so the width transition can switch to
+  // instant during a drag; the ref keeps the pointermove handler closure-stable.
+  const [dragging, setDragging] = useState(false);
+  const reduceMotion = useReducedMotion();
 
   const onPointerMove = useCallback(
     (event: PointerEvent) => {
@@ -35,6 +41,7 @@ export function AgentDock({ children }: { children: React.ReactNode }) {
 
   const stopDrag = useCallback(() => {
     draggingRef.current = false;
+    setDragging(false);
     document.body.style.removeProperty("cursor");
     document.body.style.removeProperty("user-select");
   }, []);
@@ -50,6 +57,7 @@ export function AgentDock({ children }: { children: React.ReactNode }) {
 
   const startDrag = useCallback(() => {
     draggingRef.current = true;
+    setDragging(true);
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
   }, []);
@@ -69,39 +77,56 @@ export function AgentDock({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [toggleCollapsed]);
 
-  if (collapsed) {
-    // Fully closed — no leftover rail. The cockpit takes the full width; reopen
-    // from the header "Agent" button or the agent.toggle shortcut (⌘B).
-    return <div className="h-full min-h-0 w-full">{children}</div>;
-  }
+  // The dock collapses/expands by animating its width; during an interactive
+  // drag-resize the transition is instant so the handle tracks the pointer
+  // (animating width per drag-pixel would feel laggy). The cockpit (children)
+  // always renders and reflows to fill as the dock slides.
+  const dockTransition = dragging || reduceMotion ? { duration: 0 } : tween(0.26);
 
   return (
     <div className="flex h-full min-h-0 w-full">
-      <aside
-        aria-label="Agent"
-        style={{
-          width,
-          minWidth: AGENT_DOCK_MIN_WIDTH,
-          maxWidth: AGENT_DOCK_MAX_WIDTH,
-        }}
-        className="border-charcoal-700 h-full shrink-0 border-r"
-      >
-        <ChatSidebar />
-      </aside>
-      <div
-        role="separator"
-        aria-label="Resize agent column"
-        aria-orientation="vertical"
-        onPointerDown={startDrag}
-        className={cn(
-          // Widen the hit-target to ~12px via a transparent before-pseudo;
-          // the visible tint stays 2px. This fixes the 4px dead-zone on the
-          // drag handle that made it feel broken.
-          "relative w-3 shrink-0 cursor-col-resize",
-          "before:absolute before:inset-y-0 before:left-1/2 before:w-0.5 before:-translate-x-1/2",
-          "before:bg-charcoal-700/0 before:transition-colors before:hover:bg-amber-500/40",
+      <AnimatePresence initial={false}>
+        {!collapsed && (
+          <motion.aside
+            key="agent-dock"
+            aria-label="Agent"
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={dockTransition}
+            style={{ minWidth: 0, maxWidth: AGENT_DOCK_MAX_WIDTH, overflow: "hidden" }}
+            className="bg-charcoal-900 h-full shrink-0"
+          >
+            {/* Inner fixed-width track: the content holds full width while the
+                outer width animates, so the dock REVEALS/clips rather than
+                squishing its contents during the slide. */}
+            <div
+              style={{ width, minWidth: AGENT_DOCK_MIN_WIDTH, maxWidth: AGENT_DOCK_MAX_WIDTH }}
+              className="h-full"
+            >
+              <ChatSidebar />
+            </div>
+          </motion.aside>
         )}
-      />
+      </AnimatePresence>
+      {!collapsed && (
+        <div
+          role="separator"
+          aria-label="Resize agent column"
+          aria-orientation="vertical"
+          onPointerDown={startDrag}
+          className={cn(
+            // Widen the hit-target to ~12px via a transparent before-pseudo; the
+            // visible tint stays 2px. The splitter is painted the panel surface
+            // (charcoal-900) so the dock↔cockpit gutter is one continuous field
+            // with no dark seam falling through to the charcoal-950 root.
+            "bg-charcoal-900 relative w-3 shrink-0 cursor-col-resize",
+            "before:absolute before:inset-y-0 before:left-1/2 before:w-0.5 before:-translate-x-1/2",
+            "before:bg-charcoal-700/0 before:transition-colors before:hover:bg-amber-500/40",
+            dragging && "before:bg-amber-500/70",
+          )}
+        />
+      )}
       <div className="min-w-0 flex-1">{children}</div>
     </div>
   );

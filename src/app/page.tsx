@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { MotionConfig } from "framer-motion";
 import { LayoutGrid, PanelLeftClose, PanelLeftOpen, Save, Settings2 } from "lucide-react";
 
 import { AgentDock } from "@/components/AgentDock";
@@ -12,6 +13,7 @@ import { initDevMcpBridge } from "@/lib/dev-mcp-bridge";
 import { bootstrapPlugins } from "@/lib/plugin-bootstrap";
 import { autosaveLayout } from "@/lib/workspace";
 import { cn } from "@/lib/utils";
+import { EASE_INSTRUMENT } from "@/lib/motion";
 import { vystedModules } from "@/modules";
 import { DisclaimerFlow, OrderConfirmationDialog } from "@/modules/safety";
 import { WorkspaceDialog } from "@/modules/platform/WorkspaceDialog";
@@ -24,6 +26,7 @@ import { useCommandPalette } from "@/store/command-palette";
 import { useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
 import { useSymbolsStore } from "@/store/symbols";
+import { usePortfoliosStore } from "@/store/portfolios";
 import { useWorkspaceStore } from "@/store/workspace";
 import { StatusChrome } from "@/components/StatusChrome";
 
@@ -77,6 +80,11 @@ export default function Page() {
         void autosaveLayout();
       }
     });
+    const unsubscribePortfolios = usePortfoliosStore.subscribe((state, previous) => {
+      if (state.portfolios !== previous.portfolios || state.activeId !== previous.activeId) {
+        void autosaveLayout();
+      }
+    });
     const unsubscribeAgentMode = useAgentModeStore.subscribe((state, previous) => {
       if (state.mode !== previous.mode) {
         void autosaveLayout();
@@ -102,6 +110,7 @@ export default function Page() {
       unsubscribeEnabled();
       unsubscribeModules();
       unsubscribeSymbols();
+      unsubscribePortfolios();
       unsubscribeAgentMode();
       unsubscribeDock();
       unsubscribeModels();
@@ -117,89 +126,91 @@ export default function Page() {
   const agentCollapsed = useAgentDockStore((state) => state.collapsed);
 
   return (
-    <main className="bg-charcoal-950 flex h-screen w-screen flex-col overflow-hidden">
-      <CommandPalette />
-      <WorkspaceDialog />
-      {/* Header fascia. The agent toggle, palette, and save controls sit left;
+    <MotionConfig reducedMotion="user" transition={{ ease: EASE_INSTRUMENT }}>
+      <main className="bg-charcoal-950 flex h-full w-full flex-col overflow-hidden">
+        <CommandPalette />
+        <WorkspaceDialog />
+        {/* Header fascia. The agent toggle, palette, and save controls sit left;
           the live status chrome (sidecar / provider / running agents) and the
           settings entry sit right. */}
-      <header className="bg-charcoal-925 relative flex h-9 shrink-0 items-center gap-3 px-3">
-        <div className="flex items-center gap-2 select-none">
-          <span aria-hidden="true" className="size-2 rounded-[2px] bg-amber-400" />
-          <span className="text-charcoal-100 font-serif text-[17px] leading-none font-semibold tracking-[0.01em]">
-            VYSTED
-          </span>
-          <span className="hud-label mt-px leading-none">Terminal</span>
+        <header className="bg-charcoal-925 relative flex h-9 shrink-0 items-center gap-3 px-3">
+          <div className="flex items-center gap-2 select-none">
+            <span aria-hidden="true" className="size-2 rounded-[2px] bg-amber-400" />
+            <span className="text-charcoal-100 font-serif text-[17px] leading-none font-semibold tracking-[0.01em]">
+              VYSTED
+            </span>
+            <span className="hud-label mt-px leading-none">Terminal</span>
+          </div>
+          <div className="bg-charcoal-700 mx-1 h-4 w-px" aria-hidden="true" />
+          <button
+            type="button"
+            onClick={toggleAgent}
+            aria-pressed={!agentCollapsed}
+            className={cn(
+              "flex items-center gap-1.5 font-mono text-xs transition-colors",
+              agentCollapsed
+                ? "text-charcoal-400 hover:text-lume"
+                : "text-amber-300 hover:text-amber-200",
+            )}
+            aria-label={agentCollapsed ? "Show agent panel" : "Hide agent panel"}
+            title={agentCollapsed ? "Show agent panel (⌘B)" : "Hide agent panel (⌘B)"}
+          >
+            {agentCollapsed ? (
+              <PanelLeftOpen className="h-3.5 w-3.5" />
+            ) : (
+              <PanelLeftClose className="h-3.5 w-3.5" />
+            )}
+            Agent
+          </button>
+          <button
+            type="button"
+            onClick={() => openPalette(true)}
+            className="text-charcoal-300 hover:text-lume flex items-center gap-1.5 font-mono text-xs transition-colors"
+            aria-label="Open command palette"
+          >
+            <LayoutGrid className="h-3.5 w-3.5" />
+            Open panel
+            <kbd className="border-charcoal-700 text-charcoal-500 rounded border px-1 py-0.5 font-mono text-[10px]">
+              ⌘K
+            </kbd>
+          </button>
+          <button
+            type="button"
+            onClick={openSaveLayout}
+            className="text-charcoal-300 hover:text-lume flex items-center gap-1.5 font-mono text-xs transition-colors"
+            aria-label="Save layout"
+          >
+            <Save className="h-3.5 w-3.5" />
+            Save layout
+          </button>
+          <div className="flex-1" />
+          <StatusChrome />
+          <button
+            type="button"
+            onClick={() => openPanel("settings")}
+            className="text-charcoal-400 hover:text-lume hover:bg-charcoal-800 flex size-6 items-center justify-center rounded-md transition-colors"
+            aria-label="Open settings"
+            title="Settings"
+          >
+            <Settings2 className="h-4 w-4" />
+          </button>
+          <div
+            className="tick-rule pointer-events-none absolute inset-x-0 bottom-0"
+            aria-hidden="true"
+          />
+        </header>
+        <OnboardingBanner />
+        <div className="min-h-0 flex-1">
+          <AgentDock>
+            <PanelHost />
+          </AgentDock>
         </div>
-        <div className="bg-charcoal-700 mx-1 h-4 w-px" aria-hidden="true" />
-        <button
-          type="button"
-          onClick={toggleAgent}
-          aria-pressed={!agentCollapsed}
-          className={cn(
-            "flex items-center gap-1.5 font-mono text-xs transition-colors",
-            agentCollapsed
-              ? "text-charcoal-400 hover:text-lume"
-              : "text-amber-300 hover:text-amber-200",
-          )}
-          aria-label={agentCollapsed ? "Show agent panel" : "Hide agent panel"}
-          title={agentCollapsed ? "Show agent panel (⌘B)" : "Hide agent panel (⌘B)"}
-        >
-          {agentCollapsed ? (
-            <PanelLeftOpen className="h-3.5 w-3.5" />
-          ) : (
-            <PanelLeftClose className="h-3.5 w-3.5" />
-          )}
-          Agent
-        </button>
-        <button
-          type="button"
-          onClick={() => openPalette(true)}
-          className="text-charcoal-300 hover:text-lume flex items-center gap-1.5 font-mono text-xs transition-colors"
-          aria-label="Open command palette"
-        >
-          <LayoutGrid className="h-3.5 w-3.5" />
-          Open panel
-          <kbd className="border-charcoal-700 text-charcoal-500 rounded border px-1 py-0.5 font-mono text-[10px]">
-            ⌘K
-          </kbd>
-        </button>
-        <button
-          type="button"
-          onClick={openSaveLayout}
-          className="text-charcoal-300 hover:text-lume flex items-center gap-1.5 font-mono text-xs transition-colors"
-          aria-label="Save layout"
-        >
-          <Save className="h-3.5 w-3.5" />
-          Save layout
-        </button>
-        <div className="flex-1" />
-        <StatusChrome />
-        <button
-          type="button"
-          onClick={() => openPanel("settings")}
-          className="text-charcoal-400 hover:text-lume hover:bg-charcoal-800 flex size-6 items-center justify-center rounded-md transition-colors"
-          aria-label="Open settings"
-          title="Settings"
-        >
-          <Settings2 className="h-4 w-4" />
-        </button>
-        <div
-          className="tick-rule pointer-events-none absolute inset-x-0 bottom-0"
-          aria-hidden="true"
-        />
-      </header>
-      <OnboardingBanner />
-      <div className="min-h-0 flex-1">
-        <AgentDock>
-          <PanelHost />
-        </AgentDock>
-      </div>
-      {/* §6.5 surfaces mounted at the shell so they are reachable regardless of
+        {/* §6.5 surfaces mounted at the shell so they are reachable regardless of
           layout: the agent-proposed order confirm dialog (FR-011) and the
           layered first-launch disclaimer (§6.5 #8). */}
-      <OrderConfirmationDialog />
-      <DisclaimerFlow />
-    </main>
+        <OrderConfirmationDialog />
+        <DisclaimerFlow />
+      </main>
+    </MotionConfig>
   );
 }

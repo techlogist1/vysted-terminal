@@ -9,6 +9,11 @@
    override below, so the override reliably wins the cascade. */
 @import "dockview/dist/styles/dockview.css";
 
+/* Enter/leave keyframe utilities (animate-in / fade-in-0 / zoom-in-95 / …) used
+   by the Radix dialog primitive. Without this @plugin the utilities emit no CSS
+   and every dialog pops instantly. */
+@plugin "tailwindcss-animate";
+
 /* Map the Vysted primitives onto shadcn/ui's semantic names. Literal fallbacks
    keep this resilient if a token is ever missing. */
 @theme inline {
@@ -64,12 +69,24 @@
       "calt" 0;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    /* Lock the document box so the shell is a fixed viewport and ONLY panel
+       interiors scroll. Without this the document stays a live scroller and a
+       focus/inertia/sub-pixel event nudges the whole app a few px (the
+       whole-app micro-scroll). overscroll-behavior:none also stops dockview's
+       inner overflow:auto regions from chaining their scroll to the document. */
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
   }
 
   /* Low-chrome warm instrument: a flat graphite field with a single whisper of
      warm ambient at the very top, where the agent + chrome live. No grain, no
      vignette — the lit elements (the clay accent) carry the eye. */
   body {
+    /* Pin the viewport box: even a stray over-min child cannot shift the
+       document. Pairs with the html/body overflow:hidden lock above. */
+    position: fixed;
+    inset: 0;
     background-image: radial-gradient(
       120% 70% at 50% -10%,
       rgb(160 107 82 / 0.03),
@@ -96,6 +113,20 @@
   :focus-visible {
     outline: 1px solid var(--color-amber-400, #a06b52);
     outline-offset: 1px;
+  }
+
+  /* Honour the OS "reduce motion" setting: collapse every animation/transition
+     to an instant cut. The framer-motion tree additionally honours this via
+     <MotionConfig reducedMotion="user"> in page.tsx. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
@@ -133,7 +164,13 @@
    theme supplies defaults and this rule overrides the visible surfaces. Warm
    taupe hairline separators + a clay active tab read as a clean, flat
    instrument frame. */
-.dockview-theme-vysted {
+/* dockview 4.x wraps panel content in a nested `.dv-shell` that carries its OWN
+   default theme class (dockview-theme-abyss — cold navy), which RE-declares the
+   --dv-* variables and shadows a wrapper-only override. So the override must
+   also land on the `.dv-shell` itself (equal specificity, later in source →
+   wins) or the tab strip + group view render cold navy. */
+.dockview-theme-vysted,
+.dockview-theme-vysted .dv-shell {
   --dv-group-view-background-color: var(--color-charcoal-900, #16140f);
   --dv-tabs-and-actions-container-background-color: var(--color-charcoal-925, #100e0c);
   --dv-activegroup-visiblepanel-tab-background-color: var(--color-charcoal-875, #1a1714);
