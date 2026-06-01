@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, Settings2, Trash2, Power } from "lucide-react";
+import { Check, Settings2, Trash2, Power, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { MARKETPLACE_CATALOG } from "@/lib/marketplace";
@@ -37,6 +37,8 @@ const CATEGORY_ORDER: { id: MarketplaceCategory; label: string; blurb: string }[
  */
 export function MarketplacePanel() {
   const refresh = useMarketplaceStore((s) => s.refresh);
+  const refreshing = useMarketplaceStore((s) => s.refreshing);
+  const flags = useMarketplaceStore((s) => s.flags);
 
   useEffect(() => {
     void refresh();
@@ -52,6 +54,9 @@ export function MarketplacePanel() {
     return map;
   }, []);
 
+  // Show skeleton while initial refresh is in flight and flags haven't arrived yet.
+  const showSkeleton = refreshing && Object.keys(flags).length === 0;
+
   return (
     <div className="bg-charcoal-950 flex h-full w-full flex-col overflow-y-auto">
       <header className="border-charcoal-700 bg-charcoal-925 sticky top-0 z-10 border-b px-4 py-3">
@@ -60,25 +65,33 @@ export function MarketplacePanel() {
           Install, enable, configure, and remove extensions — brokers, data, panels, and agents.
         </p>
       </header>
-      <div className="flex flex-col gap-5 px-4 py-4">
-        {CATEGORY_ORDER.map(({ id, label, blurb }) => {
-          const entries = byCategory.get(id) ?? [];
-          if (entries.length === 0) return null;
-          return (
-            <section key={id} aria-label={label}>
-              <div className="mb-2">
-                <h3 className="hud-label">{label}</h3>
-                <p className="text-charcoal-500 mt-0.5 font-mono text-[0.6rem]">{blurb}</p>
-              </div>
-              <ul className="flex flex-col gap-2">
-                {entries.map((entry) => (
-                  <MarketplaceCard key={entry.pluginId} entry={entry} />
-                ))}
-              </ul>
-            </section>
-          );
-        })}
-      </div>
+      {showSkeleton ? (
+        <div className="flex flex-col gap-3 px-4 py-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-charcoal-800 h-14 animate-pulse rounded-md" />
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-5 px-4 py-4">
+          {CATEGORY_ORDER.map(({ id, label, blurb }) => {
+            const entries = byCategory.get(id) ?? [];
+            if (entries.length === 0) return null;
+            return (
+              <section key={id} aria-label={label}>
+                <div className="mb-2">
+                  <h3 className="hud-label">{label}</h3>
+                  <p className="text-charcoal-500 mt-0.5 font-mono text-[0.6rem]">{blurb}</p>
+                </div>
+                <ul className="flex flex-col gap-2">
+                  {entries.map((entry) => (
+                    <MarketplaceCard key={entry.pluginId} entry={entry} />
+                  ))}
+                </ul>
+              </section>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -114,7 +127,18 @@ function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
           </div>
           <p className="text-charcoal-400 mt-0.5 font-mono text-[0.65rem]">{entry.description}</p>
           {state.errorMessage && (
-            <p className="text-negative mt-0.5 font-mono text-[0.6rem]">{state.errorMessage}</p>
+            <div className="border-negative/30 bg-negative/10 mt-1 flex items-start justify-between gap-2 rounded-sm border px-2 py-1">
+              <p className="text-negative font-mono text-xs">{state.errorMessage}</p>
+              <Button
+                size="xs"
+                variant="ghost"
+                disabled={busy}
+                onClick={() => void enable(entry.pluginId)}
+                className="text-negative shrink-0"
+              >
+                Re-enable
+              </Button>
+            </div>
           )}
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
@@ -125,7 +149,8 @@ function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
               disabled={busy}
               onClick={() => void install(entry.pluginId)}
             >
-              Install
+              {busy ? <Loader2 className="size-3 animate-spin" /> : null}
+              {busy ? "Working…" : "Install"}
             </Button>
           )}
           {state.installed && !state.enabled && (
@@ -135,7 +160,8 @@ function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
               disabled={busy}
               onClick={() => void enable(entry.pluginId)}
             >
-              <Power className="size-3" /> Enable
+              {busy ? <Loader2 className="size-3 animate-spin" /> : <Power className="size-3" />}
+              {busy ? "Working…" : "Enable"}
             </Button>
           )}
           {state.installed && state.enabled && (
@@ -146,13 +172,15 @@ function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
               aria-label={`Disable ${entry.name}`}
               onClick={() => void disable(entry.pluginId)}
             >
-              <Power className="size-3" /> Disable
+              {busy ? <Loader2 className="size-3 animate-spin" /> : <Power className="size-3" />}
+              {busy ? "Working…" : "Disable"}
             </Button>
           )}
           {state.installed && hasCreds && (
             <Button
               size="icon-sm"
               variant="ghost"
+              disabled={busy}
               aria-label={`Configure ${entry.name}`}
               onClick={() => setConfiguring((v) => !v)}
             >
@@ -167,7 +195,7 @@ function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
               aria-label={`Remove ${entry.name}`}
               onClick={() => void remove(entry.pluginId)}
             >
-              <Trash2 className="size-3.5" />
+              {busy ? <Loader2 className="size-3 animate-spin" /> : <Trash2 className="size-3.5" />}
             </Button>
           )}
         </div>
@@ -209,6 +237,7 @@ function CredentialForm({ entry, onDone }: { entry: MarketplaceEntry; onDone: ()
   const configure = useMarketplaceStore((s) => s.configure);
   const busy = useMarketplaceStore((s) => s.busy[entry.pluginId] ?? false);
   const [values, setValues] = useState<Record<string, string>>({});
+  const [validationError, setValidationError] = useState<string | null>(null);
   const fields = entry.credentialFields ?? [];
 
   return (
@@ -216,6 +245,12 @@ function CredentialForm({ entry, onDone }: { entry: MarketplaceEntry; onDone: ()
       className="border-charcoal-700 mt-2.5 flex flex-col gap-2 border-t pt-2.5"
       onSubmit={(e) => {
         e.preventDefault();
+        const missing = fields.filter((f) => f.required && !values[f.key]?.trim());
+        if (missing.length > 0) {
+          setValidationError(`Required: ${missing.map((f) => f.label).join(", ")}`);
+          return;
+        }
+        setValidationError(null);
         void configure(entry.pluginId, values).then(onDone);
       }}
     >
@@ -246,17 +281,23 @@ function CredentialForm({ entry, onDone }: { entry: MarketplaceEntry; onDone: ()
             value={values[field.key] ?? ""}
             placeholder={field.placeholder}
             autoComplete="off"
-            onChange={(e) => setValues((v) => ({ ...v, [field.key]: e.target.value }))}
+            required={field.required}
+            onChange={(e) => {
+              setValidationError(null);
+              setValues((v) => ({ ...v, [field.key]: e.target.value }));
+            }}
             className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 h-7 rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
           />
         </label>
       ))}
+      {validationError && <p className="text-negative font-mono text-xs">{validationError}</p>}
       <div className="flex items-center justify-end gap-1.5">
         <Button type="button" size="sm" variant="ghost" onClick={onDone}>
           Cancel
         </Button>
         <Button type="submit" size="sm" variant="outline" disabled={busy}>
-          <Check className="size-3" /> Save credentials
+          {busy ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3" />}
+          {busy ? "Saving…" : "Save credentials"}
         </Button>
       </div>
       <p className="text-charcoal-500 font-mono text-[0.55rem]">

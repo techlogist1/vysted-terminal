@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Plus, X } from "lucide-react";
+import { ArrowUp, ChevronDown, Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { SidecarError } from "@/lib/sidecar-client";
@@ -43,6 +43,7 @@ export function WatchlistPanel() {
   const [rows, setRows] = useState<WatchlistRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
+  const [inFlight, setInFlight] = useState(false);
   const inFlightRef = useRef(false);
   const [draftAssetClass, setDraftAssetClass] = useState<"equity" | "crypto">("equity");
   // Tracks the symbol the user last interacted with via the row hover; null
@@ -88,6 +89,7 @@ export function WatchlistPanel() {
       return;
     }
     inFlightRef.current = true;
+    setInFlight(true);
     try {
       const next = await fetchWatchlistQuotes(entries);
       setRows(next);
@@ -97,6 +99,7 @@ export function WatchlistPanel() {
       setError(message);
     } finally {
       inFlightRef.current = false;
+      setInFlight(false);
     }
   }, [entries]);
 
@@ -135,35 +138,78 @@ export function WatchlistPanel() {
           onChange={(event) => setDraft(event.target.value)}
           className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 h-8 flex-1 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
         />
-        <select
-          aria-label="Asset class"
-          value={draftAssetClass}
-          onChange={(event) =>
-            setDraftAssetClass(event.target.value === "crypto" ? "crypto" : "equity")
-          }
-          className="bg-charcoal-800 text-charcoal-200 h-8 rounded-md px-2 font-mono text-xs outline-none"
-        >
-          <option value="equity">Equity</option>
-          <option value="crypto">Crypto</option>
-        </select>
+        <div className="relative">
+          <select
+            aria-label="Asset class"
+            value={draftAssetClass}
+            onChange={(event) =>
+              setDraftAssetClass(event.target.value === "crypto" ? "crypto" : "equity")
+            }
+            className="bg-charcoal-800 text-charcoal-200 h-8 appearance-none rounded-md px-2 pr-6 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+          >
+            <option value="equity">Equity</option>
+            <option value="crypto">Crypto</option>
+          </select>
+          <ChevronDown className="text-charcoal-400 pointer-events-none absolute top-1/2 right-1.5 size-3 -translate-y-1/2" />
+        </div>
         <Button type="submit" size="icon-sm" variant="outline" aria-label="Add to watchlist">
           <Plus />
         </Button>
       </form>
 
       {error !== null && (
-        <p className="text-negative border-charcoal-700 border-b px-3 py-2 font-mono text-xs">
-          {error}
-        </p>
+        <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
+          <span className="text-negative font-mono text-xs">Could not refresh quotes</span>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => void refresh()}
+            disabled={inFlight}
+          >
+            Retry
+          </Button>
+        </div>
       )}
 
       <div className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto">
         {rows === null ? (
-          <p className="text-charcoal-400 p-4 font-mono text-xs">Loading quotes…</p>
-        ) : rows.length === 0 ? (
-          <p className="text-charcoal-400 p-4 font-mono text-xs">No symbols tracked.</p>
-        ) : (
           <table className="w-full table-fixed border-collapse">
+            <colgroup>
+              <col className="w-[36%]" />
+              <col className="w-[32%]" />
+              <col className="w-[22%]" />
+              <col className="w-[10%]" />
+            </colgroup>
+            <tbody>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="border-charcoal-800 border-b">
+                  <td className="px-2.5 py-2">
+                    <div className="bg-charcoal-800 h-3 w-3/4 animate-pulse rounded" />
+                  </td>
+                  <td className="px-2.5 py-2">
+                    <div className="bg-charcoal-800 ml-auto h-3 w-full animate-pulse rounded" />
+                  </td>
+                  <td className="px-2.5 py-2">
+                    <div className="bg-charcoal-800 ml-auto h-3 w-full animate-pulse rounded" />
+                  </td>
+                  <td className="px-1 py-2" />
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : rows.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-2 p-6 text-center">
+            <span className="text-charcoal-400 font-mono text-xs">Your watchlist is empty</span>
+            <span className="text-charcoal-500 flex items-center gap-1 font-mono text-[0.65rem]">
+              <ArrowUp className="size-3" />
+              Type a ticker above to start tracking
+            </span>
+          </div>
+        ) : (
+          <table
+            className={cn("w-full table-fixed border-collapse", error !== null && "opacity-50")}
+          >
             {/* Explicit column widths so a squeezed panel never lets Price and
                 Change collide (the host-side min-width is the first guard; this
                 colgroup + per-cell clip is the second). Symbol gives way first
@@ -220,7 +266,10 @@ export function WatchlistPanel() {
                         size="icon-xs"
                         variant="ghost"
                         aria-label={`Remove ${entry.symbol}`}
-                        onClick={() => removeSymbol(entry.symbol)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeSymbol(entry.symbol);
+                        }}
                       >
                         <X />
                       </Button>

@@ -72,8 +72,11 @@ describe("PluginManagerPanel", () => {
   });
 
   it("renders the empty-state copy when no plugins are loaded", () => {
+    // Runtime attached but zero plugins → the inviting empty state (a null
+    // runtime now shows the distinct "loading runtime" state).
+    usePluginsStore.setState({ runtime: new PluginRuntime() });
     render(<PluginManagerPanel />);
-    expect(screen.getByText(/no plugins loaded yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/no plugins are loaded/i)).toBeInTheDocument();
   });
 
   it("renders each loaded plugin with its name, version, and active state", async () => {

@@ -18,6 +18,8 @@ import {
   type UTCTimestamp,
 } from "lightweight-charts";
 
+import { Lock, Unlock } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import {
   CHART_BORDER,
@@ -213,6 +215,12 @@ function ChartPanel(props: ChartPanelProps = {}) {
   const drawingPrimitivesRef = useRef<Map<string, DrawingPrimitive>>(new Map());
   // Comparison overlay — second-symbol line series, replaced on toggle.
   const comparisonSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  // Raw OHLCV cache for the comparison symbol — avoids re-fetching on normalize toggle.
+  const comparisonDataCacheRef = useRef<{
+    symbol: string;
+    timeframe: string;
+    series: OHLCVSeries;
+  } | null>(null);
 
   // --- form / data state --------------------------------------------------
   const [symbolInput, setSymbolInput] = useState(DEFAULT_SYMBOL);
@@ -227,6 +235,8 @@ function ChartPanel(props: ChartPanelProps = {}) {
   const [retryNonce, setRetryNonce] = useState(0);
   const [indicatorState, setIndicatorState] = useState<LoadState>("idle");
   const [indicatorError, setIndicatorError] = useState<string | null>(null);
+  // Bumped to force an indicator re-fetch (Retry) without deselecting+reselecting.
+  const [indicatorRetryNonce, setIndicatorRetryNonce] = useState(0);
   const [provider, setProvider] = useState<string | null>(null);
 
   // --- drawings state -----------------------------------------------------
@@ -514,7 +524,14 @@ function ChartPanel(props: ChartPanelProps = {}) {
     return () => {
       cancelled = true;
     };
-  }, [symbol, timeframe, selectedKeys, renderIndicators, clearIndicatorSeries]);
+  }, [
+    symbol,
+    timeframe,
+    selectedKeys,
+    renderIndicators,
+    clearIndicatorSeries,
+    indicatorRetryNonce,
+  ]);
 
   // --- drawings: reconcile store → primitives -----------------------------
   useEffect(() => {
@@ -772,28 +789,45 @@ function ChartPanel(props: ChartPanelProps = {}) {
     if (!compareSymbol) {
       return;
     }
+
+    const addOverlay = (rawSeries: OHLCVSeries) => {
+      if (cancelled || !chartRef.current) {
+        return;
+      }
+      const data = toComparisonLineData(rawSeries, compareNormalize);
+      if (data.length === 0) {
+        return;
+      }
+      const overlay = chartRef.current.addSeries(LineSeries, {
+        color: COMPARISON_LINE_COLOR,
+        lineWidth: 2,
+        priceLineVisible: false,
+        lastValueVisible: true,
+        title: `${compareSymbol}${compareNormalize ? " %" : ""}`,
+        // Normalised overlay rides its own price scale on the left so it
+        // does not warp the candle series' right scale.
+        priceScaleId: compareNormalize ? "left" : "right",
+      });
+      overlay.setData(data);
+      comparisonSeriesRef.current = overlay;
+    };
+
+    // Use the cached OHLCV when only normalize toggled — avoids a network
+    // round-trip and the visible blink of series-remove + async re-add.
+    const cache = comparisonDataCacheRef.current;
+    if (cache && cache.symbol === compareSymbol && cache.timeframe === timeframe) {
+      addOverlay(cache.series);
+      return;
+    }
+
     const load = async () => {
       try {
-        const series = await sidecarApi.history(compareSymbol, timeframe);
-        if (cancelled || !chartRef.current) {
+        const rawSeries = await sidecarApi.history(compareSymbol, timeframe);
+        if (cancelled) {
           return;
         }
-        const data = toComparisonLineData(series, compareNormalize);
-        if (data.length === 0) {
-          return;
-        }
-        const overlay = chartRef.current.addSeries(LineSeries, {
-          color: COMPARISON_LINE_COLOR,
-          lineWidth: 2,
-          priceLineVisible: false,
-          lastValueVisible: true,
-          title: `${compareSymbol}${compareNormalize ? " %" : ""}`,
-          // Normalised overlay rides its own price scale on the left so it
-          // does not warp the candle series' right scale.
-          priceScaleId: compareNormalize ? "left" : "right",
-        });
-        overlay.setData(data);
-        comparisonSeriesRef.current = overlay;
+        comparisonDataCacheRef.current = { symbol: compareSymbol, timeframe, series: rawSeries };
+        addOverlay(rawSeries);
       } catch {
         // Comparison-overlay failures are non-fatal — silently drop. The
         // primary chart's error path already surfaces upstream issues.
@@ -1032,6 +1066,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
           </Button>
           {compareSymbol ? (
             <>
+              <span className="px-1 font-mono text-[10px] text-amber-300">{compareSymbol}</span>
               <button
                 type="button"
                 onClick={() => setCompareNormalize((current) => !current)}
@@ -1114,7 +1149,11 @@ function ChartPanel(props: ChartPanelProps = {}) {
                     aria-label={drawing.locked ? "Unlock drawing" : "Lock drawing"}
                     className={cn("px-1 hover:text-amber-300", drawing.locked && "text-amber-300")}
                   >
-                    {drawing.locked ? "🔒" : "🔓"}
+                    {drawing.locked ? (
+                      <Lock className="size-2.5" />
+                    ) : (
+                      <Unlock className="size-2.5" />
+                    )}
                   </button>
                   <button
                     type="button"
@@ -1141,7 +1180,16 @@ function ChartPanel(props: ChartPanelProps = {}) {
             <span className="text-charcoal-400 font-mono text-xs">computing…</span>
           ) : null}
           {indicatorState === "error" ? (
-            <span className="text-negative font-mono text-xs">{indicatorError}</span>
+            <>
+              <span className="text-negative font-mono text-xs">{indicatorError}</span>
+              <button
+                type="button"
+                onClick={() => setIndicatorRetryNonce((n) => n + 1)}
+                className="text-charcoal-400 font-mono text-xs transition-colors hover:text-amber-300"
+              >
+                Retry
+              </button>
+            </>
           ) : null}
           {selected.size > 0 ? (
             <button

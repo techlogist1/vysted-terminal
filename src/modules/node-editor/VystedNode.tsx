@@ -35,9 +35,15 @@ function VystedNodeImpl({ data, selected }: NodeProps<Node<FlowNodeData>>) {
     return findEntry(registry, data.nodeTypeId)?.spec;
   }, [data.nodeTypeId, pluginNodes]);
 
+  const minHeight = Math.max(
+    48,
+    24 + Math.max(spec?.inputs.length ?? 0, spec?.outputs.length ?? 0) * 16 + 8,
+  );
+
   return (
     <div
       data-testid={`vysted-node-${data.nodeTypeId}`}
+      style={{ minHeight }}
       className={cn(
         "border-charcoal-700 bg-charcoal-850 min-w-[140px] rounded-md border px-3 py-2 font-mono shadow-sm",
         selected && "border-amber-500 shadow-amber-500/20",

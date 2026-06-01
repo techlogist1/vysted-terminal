@@ -34,6 +34,7 @@ export function ScreenerPanel() {
   const customSymbols = useScreenerStore((s) => s.customSymbols);
   const setCustomSymbols = useScreenerStore((s) => s.setCustomSymbols);
   const universeMeta = useScreenerStore((s) => s.universeMeta);
+  const universeStatus = useScreenerStore((s) => s.universeStatus);
   const loadUniverse = useScreenerStore((s) => s.loadUniverse);
   const runScreener = useScreenerStore((s) => s.runScreener);
   const status = useScreenerStore((s) => s.status);
@@ -61,7 +62,7 @@ export function ScreenerPanel() {
   const universeInfo = universeMeta[universe];
 
   return (
-    <div className="flex h-full flex-col gap-3 overflow-auto p-3">
+    <div className="flex h-full flex-col gap-3 overflow-hidden p-3">
       <div className="border-border flex flex-wrap items-end gap-3 border-b pb-3">
         <div className="flex flex-col gap-1">
           <label
@@ -83,11 +84,18 @@ export function ScreenerPanel() {
               </option>
             ))}
           </select>
-          {universeInfo && universe !== "custom" && (
-            <span className="text-muted-foreground text-[10px]">
-              {universeInfo.symbols.length} tickers · {universeInfo.asset_class}
-            </span>
-          )}
+          {universe !== "custom" &&
+            (universeStatus[universe] === "loading" ? (
+              <span className="text-muted-foreground animate-pulse text-[10px]">
+                Loading universe…
+              </span>
+            ) : universeStatus[universe] === "error" ? (
+              <span className="text-destructive text-[10px]">Failed to load universe</span>
+            ) : universeInfo ? (
+              <span className="text-muted-foreground text-[10px]">
+                {universeInfo.symbols.length} tickers · {universeInfo.asset_class}
+              </span>
+            ) : null)}
         </div>
         {universe === "custom" && (
           <div className="flex min-w-[16rem] flex-1 flex-col gap-1">
@@ -107,10 +115,17 @@ export function ScreenerPanel() {
             />
           </div>
         )}
+        {universe === "custom" && customSymbols.trim() === "" && (
+          <span className="text-warning font-mono text-[10px]">
+            Enter at least one ticker to screen.
+          </span>
+        )}
         <div className="ml-auto">
           <Button
             onClick={() => void runScreener()}
-            disabled={status === "loading"}
+            disabled={
+              status === "loading" || (universe === "custom" && customSymbols.trim() === "")
+            }
             data-testid="run-screener-button"
           >
             <Play className="mr-1.5 size-4" />
@@ -122,11 +137,25 @@ export function ScreenerPanel() {
       {error && (
         <div className="border-destructive/40 bg-destructive/10 text-destructive flex items-center gap-2 rounded-md border px-3 py-2 text-sm">
           <AlertCircle className="size-4 shrink-0" />
-          <span>{error}</span>
+          <span className="flex-1">
+            {error.startsWith("POST /screener/run failed")
+              ? "Screener failed: " +
+                error.replace(/^POST \/screener\/run failed \(\d+\):\s*/, "").slice(0, 120)
+              : error.slice(0, 120)}
+          </span>
+          <button
+            type="button"
+            className="ml-auto shrink-0 text-xs underline"
+            onClick={() => void runScreener()}
+          >
+            Retry
+          </button>
         </div>
       )}
 
-      <ScreenerCriteriaBuilder />
+      <div className="shrink-0">
+        <ScreenerCriteriaBuilder />
+      </div>
       <div className="min-h-0 flex-1">
         <ScreenerResultsTable />
       </div>

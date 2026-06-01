@@ -17,6 +17,8 @@ export interface StrategyPickerProps {
   onSelect: (id: string) => void;
   /** Disable selection while a backtest is streaming. */
   disabled?: boolean;
+  /** Show skeleton placeholders while the catalogue is loading. */
+  loading?: boolean;
 }
 
 export function StrategyPicker({
@@ -24,6 +26,7 @@ export function StrategyPicker({
   selectedId,
   onSelect,
   disabled,
+  loading,
 }: StrategyPickerProps) {
   const empty = strategies.length === 0;
 
@@ -32,7 +35,13 @@ export function StrategyPicker({
       <span className="text-charcoal-500 font-mono text-[10px] tracking-widest uppercase">
         Strategy
       </span>
-      {empty ? (
+      {loading ? (
+        <div className="flex flex-col gap-1">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-charcoal-800 rounded-control h-10 w-full animate-pulse" />
+          ))}
+        </div>
+      ) : empty ? (
         <p className="text-charcoal-400 font-mono text-xs">
           No strategies registered. The sidecar must be running.
         </p>

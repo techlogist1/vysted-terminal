@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Play } from "lucide-react";
+import { Loader2, Play } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -138,111 +138,121 @@ export function BacktestPanel() {
   return (
     <div className="bg-charcoal-900 flex h-full min-h-0 w-full">
       {/* Left rail — controls */}
-      <aside className="border-charcoal-700 flex w-72 flex-col gap-3 overflow-y-auto border-r p-3">
-        <StrategyPicker
-          strategies={strategies}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-          disabled={isRunning}
-        />
-        {catalogueStatus === "loading" && (
-          <p className="text-charcoal-400 font-mono text-xs">Loading strategies…</p>
-        )}
-        {catalogueStatus === "error" && (
-          <p className="text-negative font-mono text-xs">
-            {catalogueError ?? "Failed to load strategies"}
-          </p>
-        )}
-
-        {selectedSpec && (
-          <ParamsForm
-            schema={selectedSpec.paramsSchema as Record<string, unknown>}
-            values={params}
-            onChange={setParams}
+      <aside className="border-charcoal-700 flex w-72 shrink-0 flex-col border-r">
+        {/* Scrollable controls area */}
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3 pb-2">
+          <StrategyPicker
+            strategies={strategies}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
             disabled={isRunning}
+            loading={catalogueStatus === "loading"}
           />
-        )}
+          {catalogueStatus === "error" && (
+            <div className="flex flex-col gap-1.5">
+              <p className="text-negative font-mono text-xs">
+                {catalogueError ?? "Failed to load strategies"}
+              </p>
+              <Button size="sm" variant="outline" onClick={() => void refreshStrategies()}>
+                Retry
+              </Button>
+            </div>
+          )}
 
-        <div className="flex flex-col gap-1.5">
-          <span className="text-charcoal-500 font-mono text-[10px] tracking-widest uppercase">
-            Universe
-          </span>
-          <label className="flex flex-col gap-1">
-            <span className="text-charcoal-300 font-mono text-[10px]">Symbols (comma-sep)</span>
-            <input
-              value={symbols}
-              onChange={(e) => setSymbols(e.target.value)}
+          {selectedSpec && (
+            <ParamsForm
+              schema={selectedSpec.paramsSchema as Record<string, unknown>}
+              values={params}
+              onChange={setParams}
               disabled={isRunning}
-              spellCheck={false}
-              aria-label="Symbols"
-              className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs uppercase outline-none focus-visible:border-amber-500 disabled:opacity-50"
             />
-          </label>
-          <div className="grid grid-cols-2 gap-2">
+          )}
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-charcoal-500 font-mono text-[10px] tracking-widest uppercase">
+              Universe
+            </span>
             <label className="flex flex-col gap-1">
-              <span className="text-charcoal-300 font-mono text-[10px]">Start</span>
+              <span className="text-charcoal-300 font-mono text-[10px]">Symbols (comma-sep)</span>
               <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                value={symbols}
+                onChange={(e) => setSymbols(e.target.value)}
                 disabled={isRunning}
-                aria-label="Start date"
+                spellCheck={false}
+                aria-label="Symbols"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs uppercase outline-none focus-visible:border-amber-500 disabled:opacity-50"
+              />
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex flex-col gap-1">
+                <span className="text-charcoal-300 font-mono text-[10px]">Start</span>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  disabled={isRunning}
+                  aria-label="Start date"
+                  style={{ colorScheme: "dark" }}
+                  className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-charcoal-300 font-mono text-[10px]">End</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  disabled={isRunning}
+                  aria-label="End date"
+                  style={{ colorScheme: "dark" }}
+                  className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
+                />
+              </label>
+            </div>
+            <label className="flex flex-col gap-1">
+              <span className="text-charcoal-300 font-mono text-[10px]">Initial capital</span>
+              <input
+                type="number"
+                value={capital}
+                onChange={(e) => setCapital(Number(e.target.value))}
+                disabled={isRunning}
+                aria-label="Initial capital"
                 className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
               />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-charcoal-300 font-mono text-[10px]">End</span>
+              <span className="text-charcoal-300 font-mono text-[10px]">Walk-forward slices</span>
               <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                type="number"
+                min={1}
+                max={10}
+                value={walkForwardSlices}
+                onChange={(e) =>
+                  setWalkForwardSlices(Math.max(1, Math.min(10, Number(e.target.value) || 1)))
+                }
                 disabled={isRunning}
-                aria-label="End date"
+                aria-label="Walk-forward slices"
                 className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
               />
             </label>
           </div>
-          <label className="flex flex-col gap-1">
-            <span className="text-charcoal-300 font-mono text-[10px]">Initial capital</span>
-            <input
-              type="number"
-              value={capital}
-              onChange={(e) => setCapital(Number(e.target.value))}
-              disabled={isRunning}
-              aria-label="Initial capital"
-              className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-charcoal-300 font-mono text-[10px]">Walk-forward slices</span>
-            <input
-              type="number"
-              min={1}
-              max={10}
-              value={walkForwardSlices}
-              onChange={(e) =>
-                setWalkForwardSlices(Math.max(1, Math.min(10, Number(e.target.value) || 1)))
-              }
-              disabled={isRunning}
-              aria-label="Walk-forward slices"
-              className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
-            />
-          </label>
         </div>
-
-        <Button
-          type="button"
-          onClick={handleRun}
-          disabled={!canRun}
-          size="sm"
-          variant="default"
-          aria-label="Run backtest"
-          className={cn("mt-auto", !canRun && "cursor-not-allowed")}
-          data-testid="run-backtest"
-        >
-          <Play />
-          {isRunning ? "Running…" : "Run backtest"}
-        </Button>
+        {/* Sticky footer — Run button always visible */}
+        <div className="border-charcoal-700 shrink-0 border-t p-3">
+          <Button
+            type="button"
+            onClick={handleRun}
+            disabled={!canRun}
+            size="sm"
+            variant="default"
+            aria-label="Run backtest"
+            className={cn("w-full", !canRun && "cursor-not-allowed")}
+            data-testid="run-backtest"
+          >
+            {isRunning ? <Loader2 className="animate-spin" /> : <Play />}
+            {isRunning ? "Running…" : "Run backtest"}
+          </Button>
+        </div>
       </aside>
 
       {/* Main column — result view */}

@@ -180,6 +180,11 @@ export function WorkflowRunOverlay({ state, onClose, onRerun }: WorkflowRunOverl
           {state.durationMs !== undefined ? ` · ${state.durationMs.toFixed(0)}ms` : ""}
         </span>
       </div>
+      {state.status === "error" && state.message !== undefined && (
+        <p className="text-negative border-charcoal-800 border-b px-3 py-2 font-mono text-[10px]">
+          {state.message}
+        </p>
+      )}
 
       <ul className="flex-1 overflow-y-auto">
         {state.nodes.map((node) => (
@@ -202,7 +207,7 @@ export function WorkflowRunOverlay({ state, onClose, onRerun }: WorkflowRunOverl
               <span className="text-negative font-mono text-[10px]">{node.error}</span>
             )}
             {node.outputs !== undefined && Object.keys(node.outputs).length > 0 && (
-              <pre className="bg-charcoal-850 text-charcoal-300 max-h-32 overflow-auto rounded p-1 font-mono text-[10px] leading-snug whitespace-pre-wrap">
+              <pre className="bg-charcoal-850 text-charcoal-300 max-h-48 overflow-x-auto overflow-y-hidden rounded p-1 font-mono text-[10px] leading-snug whitespace-pre-wrap">
                 {formatOutputs(node.outputs)}
               </pre>
             )}

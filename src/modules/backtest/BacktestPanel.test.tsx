@@ -158,7 +158,7 @@ describe("BacktestPanel", () => {
     vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: SAMPLE_STRATEGIES });
     render(<BacktestPanel />);
     await waitFor(() => screen.getByText("Mean Reversion"));
-    expect(screen.getByText(/No backtest run yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/Run your first backtest/i)).toBeInTheDocument();
   });
 
   it("renders the result view once a run completes", async () => {

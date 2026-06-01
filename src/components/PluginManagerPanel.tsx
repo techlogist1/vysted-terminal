@@ -2,7 +2,9 @@
 
 import { type FunctionComponent, useEffect, useMemo, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { usePluginsStore } from "@/store/plugins";
+import { useWorkspaceStore } from "@/store/workspace";
 import type { LoadedPlugin, LoadedPluginState } from "../../types/plugin-runtime";
 
 /**
@@ -23,6 +25,7 @@ export const PluginManagerPanel: FunctionComponent = () => {
   const dataSources = usePluginsStore((state) => state.dataSources);
   const agents = usePluginsStore((state) => state.agents);
   const nodes = usePluginsStore((state) => state.nodes);
+  const openPanel = useWorkspaceStore((state) => state.openPanel);
 
   // Pin the latest health-history sample's status next to the plugin name.
   const enabledCount = plugins.filter((plugin) => plugin.state === "active").length;
@@ -32,16 +35,40 @@ export const PluginManagerPanel: FunctionComponent = () => {
       <header className="mb-4">
         <h2 className="text-charcoal-100 font-serif text-xl">Plugins</h2>
         <p className="text-charcoal-400 mt-1 font-mono text-xs">
-          {plugins.length === 0
-            ? "No plugins loaded yet."
-            : `${enabledCount} active of ${plugins.length} loaded · ${dataSources.length} data sources · ${agents.length} agents · ${nodes.length} nodes`}
+          {plugins.length > 0
+            ? `${enabledCount} active of ${plugins.length} loaded · ${dataSources.length} data sources · ${agents.length} agents · ${nodes.length} nodes`
+            : null}
         </p>
       </header>
-      <ul className="flex flex-col gap-2">
-        {plugins.map((plugin) => (
-          <PluginRow key={plugin.manifest.id} plugin={plugin} runtimeReady={runtime !== null} />
-        ))}
-      </ul>
+      {runtime === null ? (
+        // Runtime not attached yet — show skeleton rows
+        <ul className="flex flex-col gap-2">
+          {[...Array(3)].map((_, i) => (
+            <li key={i} className="border-charcoal-700 bg-charcoal-850 rounded-md border px-4 py-3">
+              <div className="bg-charcoal-700 h-3 w-2/3 animate-pulse rounded" />
+              <div className="bg-charcoal-700 mt-2 h-2 w-1/3 animate-pulse rounded" />
+            </li>
+          ))}
+          <p className="text-charcoal-500 mt-2 font-mono text-xs">Loading plugin runtime…</p>
+        </ul>
+      ) : plugins.length === 0 ? (
+        // Runtime attached but no plugins loaded
+        <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+          <h3 className="text-charcoal-200 font-serif text-base">Plugin Manager</h3>
+          <p className="text-charcoal-400 max-w-xs font-mono text-xs">
+            No plugins are loaded. Open Marketplace to install extensions.
+          </p>
+          <Button size="sm" variant="outline" onClick={() => openPanel("marketplace-panel")}>
+            Open Marketplace
+          </Button>
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {plugins.map((plugin) => (
+            <PluginRow key={plugin.manifest.id} plugin={plugin} runtimeReady={runtime !== null} />
+          ))}
+        </ul>
+      )}
     </div>
   );
 };
@@ -144,12 +171,21 @@ function PluginRow({ plugin, runtimeReady }: PluginRowProps) {
       </div>
 
       {plugin.errorMessage ? (
-        <p
+        <div
           data-testid={`plugin-error-${plugin.manifest.id}`}
-          className="border-negative/30 bg-negative/10 text-negative rounded-sm border px-2 py-1 font-mono text-xs"
+          className="border-negative/30 bg-negative/10 flex items-start justify-between gap-2 rounded-sm border px-2 py-1"
         >
-          {plugin.errorMessage}
-        </p>
+          <p className="text-negative font-mono text-xs">{plugin.errorMessage}</p>
+          <Button
+            size="xs"
+            variant="outline"
+            disabled={pending}
+            onClick={() => void handleToggle(true)}
+            className="text-negative border-negative/40 shrink-0"
+          >
+            Retry
+          </Button>
+        </div>
       ) : null}
 
       <div className="flex items-center justify-between gap-3">

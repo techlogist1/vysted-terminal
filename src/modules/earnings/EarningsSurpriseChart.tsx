@@ -117,5 +117,16 @@ export function EarningsSurpriseChart({ surprises, limit = 12 }: Props) {
     chartRef.current?.timeScale().fitContent();
   }, [surprises, limit]);
 
-  return <div ref={containerRef} className="h-48 w-full" data-testid="earnings-surprise-chart" />;
+  return (
+    <div className="relative h-48 w-full" data-testid="earnings-surprise-chart">
+      <div ref={containerRef} className="h-full w-full" />
+      {surprises.length === 0 && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <p className="text-charcoal-400 font-mono text-xs">
+            No surprise history available for this symbol.
+          </p>
+        </div>
+      )}
+    </div>
+  );
 }

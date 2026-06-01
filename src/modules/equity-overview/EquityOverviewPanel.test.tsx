@@ -107,7 +107,9 @@ afterEach(() => {
 describe("EquityOverviewPanel", () => {
   it("shows the empty prompt before a symbol is loaded", () => {
     render(<EquityOverviewPanel />);
-    expect(screen.getByText(/Enter a symbol to load fundamentals/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Fundamental data, statements, and analyst ratings/),
+    ).toBeInTheDocument();
   });
 
   it("loads and displays fundamentals, ratios, statements, and ratings", async () => {

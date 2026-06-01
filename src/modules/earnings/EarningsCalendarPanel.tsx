@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React from "react";
 import { Calendar, ChevronDown, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -83,6 +84,8 @@ export function EarningsCalendarPanel() {
   const histories = useEarningsStore((s) => s.histories);
   const surprises = useEarningsStore((s) => s.surprises);
   const estimates = useEarningsStore((s) => s.estimates);
+  const surpriseErrors = useEarningsStore((s) => s.surpriseErrors);
+  const estimateErrors = useEarningsStore((s) => s.estimateErrors);
   const getHistory = useEarningsStore((s) => s.getHistory);
   const getSurprises = useEarningsStore((s) => s.getSurprises);
   const getEstimates = useEarningsStore((s) => s.getEstimates);
@@ -185,14 +188,82 @@ export function EarningsCalendarPanel() {
       </form>
 
       {upcomingError !== null && (
-        <p className="text-negative border-charcoal-700 border-b px-3 py-2 font-mono text-xs">
-          {upcomingError}
-        </p>
+        <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
+          <span className="text-negative font-mono text-xs">{upcomingError}</span>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="shrink-0 text-amber-300 hover:text-amber-200"
+            onClick={() => {
+              userInteractedRef.current = true;
+              void loadUpcoming(lastDays, lastWatchlist);
+            }}
+          >
+            Retry
+          </Button>
+        </div>
       )}
 
       <div className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto p-3">
-        {upcomingStatus === "loading" ? (
-          <p className="text-charcoal-400 font-mono text-xs">Loading earnings calendar…</p>
+        {upcomingStatus === "loading" || upcomingStatus === "idle" ? (
+          <table className="w-full table-fixed border-collapse">
+            <colgroup>
+              <col style={{ width: "5%" }} />
+              <col style={{ width: "16%" }} />
+              <col style={{ width: "14%" }} />
+              <col style={{ width: "23%" }} />
+              <col style={{ width: "16%" }} />
+              <col style={{ width: "14%" }} />
+              <col style={{ width: "12%" }} />
+            </colgroup>
+            <tbody>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <tr key={i} className="border-charcoal-800 border-b">
+                  <td className="px-1 py-2">
+                    <div className="bg-charcoal-800 h-3 w-3 animate-pulse rounded" />
+                  </td>
+                  <td className="px-3 py-2">
+                    <div
+                      className="bg-charcoal-800 h-3 animate-pulse rounded"
+                      style={{ width: `${60 + (i % 3) * 15}%` }}
+                    />
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="bg-charcoal-800 h-3 w-4/5 animate-pulse rounded" />
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="bg-charcoal-800 h-3 w-3/4 animate-pulse rounded" />
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="bg-charcoal-800 h-3 w-2/3 animate-pulse rounded" />
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="bg-charcoal-800 ml-auto h-3 w-1/2 animate-pulse rounded" />
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="bg-charcoal-800 ml-auto h-3 w-2/3 animate-pulse rounded" />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : upcomingStatus === "error" ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+            <p className="text-negative font-mono text-xs">Could not load earnings calendar.</p>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="text-amber-300 hover:text-amber-200"
+              onClick={() => {
+                userInteractedRef.current = true;
+                void loadUpcoming(lastDays, lastWatchlist);
+              }}
+            >
+              Retry
+            </Button>
+          </div>
         ) : sortedEvents.length === 0 ? (
           <p className="text-charcoal-400 font-mono text-xs">
             No upcoming earnings in this window.
@@ -250,9 +321,8 @@ export function EarningsCalendarPanel() {
               {sortedEvents.map((event) => {
                 const isExpanded = expandedSymbol === event.symbol;
                 return (
-                  <>
+                  <React.Fragment key={event.symbol}>
                     <tr
-                      key={event.symbol}
                       onClick={() =>
                         setExpandedSymbol((current) =>
                           current === event.symbol ? null : event.symbol,
@@ -289,22 +359,70 @@ export function EarningsCalendarPanel() {
                       </td>
                     </tr>
                     {isExpanded && (
-                      <tr key={`${event.symbol}-drill`} className="border-charcoal-800 border-b">
+                      <tr className="border-charcoal-800 border-b">
                         <td colSpan={7} className="bg-charcoal-950 px-4 py-3">
                           <div className="flex flex-col gap-3">
                             <div className="flex flex-col gap-1">
                               <h4 className="text-charcoal-200 font-mono text-xs uppercase">
                                 {event.symbol} — Last quarters&apos; surprises
                               </h4>
-                              <EarningsSurpriseChart
-                                surprises={surprises[event.symbol]?.surprises ?? []}
-                              />
+                              {surpriseErrors[event.symbol] ? (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-negative font-mono text-xs">
+                                    {surpriseErrors[event.symbol]}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    className="font-mono text-xs text-amber-400 underline"
+                                    onClick={() => void getSurprises(event.symbol)}
+                                  >
+                                    Retry
+                                  </button>
+                                </div>
+                              ) : surprises[event.symbol] === undefined ? (
+                                <div className="flex gap-2">
+                                  {Array.from({ length: 4 }).map((_, i) => (
+                                    <div
+                                      key={i}
+                                      className="bg-charcoal-800 h-16 w-8 animate-pulse rounded"
+                                    />
+                                  ))}
+                                </div>
+                              ) : (
+                                <EarningsSurpriseChart
+                                  surprises={surprises[event.symbol]?.surprises ?? []}
+                                />
+                              )}
                             </div>
                             <div className="flex flex-col gap-1">
                               <h4 className="text-charcoal-200 font-mono text-xs uppercase">
                                 Next-quarter estimate detail
                               </h4>
-                              <EpsEstimateGrid estimate={estimates[event.symbol] ?? null} />
+                              {estimateErrors[event.symbol] ? (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-negative font-mono text-xs">
+                                    {estimateErrors[event.symbol]}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    className="font-mono text-xs text-amber-400 underline"
+                                    onClick={() => void getEstimates(event.symbol)}
+                                  >
+                                    Retry
+                                  </button>
+                                </div>
+                              ) : estimates[event.symbol] === undefined ? (
+                                <div className="grid grid-cols-3 gap-x-6 gap-y-2">
+                                  {Array.from({ length: 6 }).map((_, i) => (
+                                    <div
+                                      key={i}
+                                      className="bg-charcoal-800 h-3 animate-pulse rounded"
+                                    />
+                                  ))}
+                                </div>
+                              ) : (
+                                <EpsEstimateGrid estimate={estimates[event.symbol] ?? null} />
+                              )}
                             </div>
                             {histories[event.symbol] !== undefined && (
                               <p className="text-charcoal-500 font-mono text-[0.65rem]">
@@ -315,7 +433,7 @@ export function EarningsCalendarPanel() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </React.Fragment>
                 );
               })}
             </tbody>

@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { TrendingUp } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
 import { selectSeriesStatus, useMacroStore } from "@/store/macro";
 
@@ -58,21 +60,37 @@ export function MacroPanel() {
       <div className="flex-1 overflow-hidden">
         {status?.status === "loading" ? (
           <div className="text-charcoal-400 flex h-full items-center justify-center font-mono text-[12px]">
-            Loading {seriesId}…
+            <div className="flex items-center gap-2">
+              <div className="border-charcoal-600 border-charcoal-900 size-3 animate-spin rounded-full border-2 border-t-amber-400" />
+              Loading {seriesId}…
+            </div>
           </div>
         ) : status?.status === "error" ? (
           <div
             className="text-negative flex h-full flex-col items-center justify-center px-4 text-center font-mono text-[12px]"
             data-testid="macro-error"
           >
-            <div>Failed to load {seriesId}</div>
+            <div>Could not load {seriesId}</div>
             <div className="text-charcoal-400 mt-1 text-[10px]">{status.error}</div>
+            <Button
+              size="xs"
+              variant="ghost"
+              className="mt-3 text-amber-300 hover:text-amber-200"
+              onClick={() => void loadSeries(provider, seriesId)}
+              data-testid="macro-retry"
+            >
+              Retry
+            </Button>
           </div>
         ) : status?.status === "ready" && status.series ? (
           <MacroChart series={status.series} />
         ) : (
-          <div className="text-charcoal-500 flex h-full items-center justify-center font-mono text-[12px]">
-            Select a series.
+          <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
+            <TrendingUp className="text-charcoal-600 size-8" />
+            <p className="text-charcoal-300 font-mono text-[12px]">No series loaded</p>
+            <p className="text-charcoal-500 font-mono text-[10px]">
+              Browse Featured or search above to load a FRED, ECB, IMF, or World Bank time series.
+            </p>
           </div>
         )}
       </div>

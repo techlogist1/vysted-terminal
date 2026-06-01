@@ -48,7 +48,9 @@ describe("NewsFeedPanel", () => {
   it("shows a loading state before news resolves", () => {
     mockFetchNews.mockReturnValue(new Promise(() => {}));
     render(<NewsFeedPanel />);
-    expect(screen.getByText("Loading news…")).toBeInTheDocument();
+    // Loading is now a skeleton — verify the panel is in loading state via the
+    // Refresh button showing "Loading…" (it reads that when status === 'loading').
+    expect(screen.getByRole("button", { name: /loading/i })).toBeInTheDocument();
   });
 
   it("renders news items with headline, source, and sentiment", async () => {
@@ -105,7 +107,7 @@ describe("NewsFeedPanel", () => {
     mockFetchNews.mockResolvedValue([]);
     render(<NewsFeedPanel />);
     await waitFor(() => {
-      expect(screen.getByText("No news for the current watchlist.")).toBeInTheDocument();
+      expect(screen.getByText("No headlines for your watchlist.")).toBeInTheDocument();
     });
   });
 

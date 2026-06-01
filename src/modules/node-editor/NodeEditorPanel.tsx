@@ -136,6 +136,7 @@ function NodeEditorPanelInner() {
   // --- Load dialog (a simple modal list) ------------------------------------
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [savedList, setSavedList] = useState<SavedSummary[]>([]);
+  const [loadingList, setLoadingList] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   // --- Run state ------------------------------------------------------------
@@ -280,6 +281,8 @@ function NodeEditorPanelInner() {
 
   const openLoadDialog = useCallback(async () => {
     setLoadError(null);
+    setSavedList([]);
+    setLoadingList(true);
     setLoadDialogOpen(true);
     try {
       const base = await getSidecarBaseUrl();
@@ -297,6 +300,8 @@ function NodeEditorPanelInner() {
       setSavedList(summaries);
     } catch (error: unknown) {
       setLoadError(error instanceof Error ? error.message : "Failed to list workflows.");
+    } finally {
+      setLoadingList(false);
     }
   }, []);
 
@@ -423,7 +428,7 @@ function NodeEditorPanelInner() {
             <span className="text-charcoal-400 font-mono text-[10px] uppercase">unsaved</span>
           )}
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           <Button size="sm" variant="ghost" onClick={handleNew}>
             New
           </Button>
@@ -475,6 +480,14 @@ function NodeEditorPanelInner() {
             <Background gap={16} size={1} color="#332e26" bgColor="#16140f" />
             <Controls position="bottom-right" />
           </ReactFlow>
+          {nodes.length === 0 && (
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2">
+              <span className="text-charcoal-500 font-mono text-xs">Empty workflow</span>
+              <span className="text-charcoal-600 font-mono text-[10px]">
+                Drag a node from the palette to start
+              </span>
+            </div>
+          )}
         </div>
 
         <PropertiesPanel
@@ -517,6 +530,7 @@ function NodeEditorPanelInner() {
       {loadDialogOpen && (
         <LoadDialog
           summaries={savedList}
+          loadingList={loadingList}
           error={loadError}
           onClose={() => setLoadDialogOpen(false)}
           onPick={handleLoad}
@@ -622,7 +636,7 @@ function ConfigFieldEditor({
         aria-label={field.label}
         value={rawValue}
         onChange={(event) => onChange(event.target.value)}
-        className="bg-charcoal-800 text-charcoal-100 h-7 rounded-md px-2 font-mono text-xs outline-none"
+        className="bg-charcoal-800 text-charcoal-100 h-7 w-full rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
       >
         <option value="">—</option>
         {field.options.map((opt) => (
@@ -649,7 +663,7 @@ function ConfigFieldEditor({
         aria-label={field.label}
         value={rawValue || "false"}
         onChange={(event) => onChange(coerceConfigValue("boolean", event.target.value, value))}
-        className="bg-charcoal-800 text-charcoal-100 h-7 rounded-md px-2 font-mono text-xs outline-none"
+        className="bg-charcoal-800 text-charcoal-100 h-7 w-full rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
       >
         <option value="false">false</option>
         <option value="true">true</option>
@@ -725,12 +739,13 @@ function FreeFormConfigEditor({
 
 interface LoadDialogProps {
   summaries: readonly SavedSummary[];
+  loadingList: boolean;
   error: string | null;
   onClose: () => void;
   onPick: (id: string) => void;
 }
 
-function LoadDialog({ summaries, error, onClose, onPick }: LoadDialogProps) {
+function LoadDialog({ summaries, loadingList, error, onClose, onPick }: LoadDialogProps) {
   return (
     <div
       data-testid="workflow-load-dialog"
@@ -757,7 +772,11 @@ function LoadDialog({ summaries, error, onClose, onPick }: LoadDialogProps) {
           </button>
         </header>
         {error !== null && <p className="text-negative font-mono text-[10px]">{error}</p>}
-        {summaries.length === 0 ? (
+        {loadingList ? (
+          <li className="text-charcoal-400 animate-pulse list-none font-mono text-xs">
+            Fetching workflows…
+          </li>
+        ) : summaries.length === 0 ? (
           <p className="text-charcoal-400 font-mono text-xs">No saved workflows yet.</p>
         ) : (
           <ul className="flex max-h-72 flex-col gap-1 overflow-y-auto">

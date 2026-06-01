@@ -19,6 +19,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
@@ -43,9 +44,11 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 /**
  * Build an initial form state from an existing agent so "Edit" populates
  * every field. The id body strips the `custom:` prefix — the form input
- * only manages the body.
+ * only manages the body. An optional `defaultModel` override allows passing
+ * the value from AgentSummary (which carries it from the wire) since AgentSpec
+ * does not have a defaultModel field.
  */
-function formStateFromAgent(agent: AgentSpec): AgentBuilderFormState {
+function formStateFromAgent(agent: AgentSpec, defaultModel?: string | null): AgentBuilderFormState {
   const idBody = agent.id.startsWith(CUSTOM_AGENT_ID_PREFIX)
     ? agent.id.slice(CUSTOM_AGENT_ID_PREFIX.length)
     : agent.id;
@@ -58,7 +61,7 @@ function formStateFromAgent(agent: AgentSpec): AgentBuilderFormState {
     defaultProvider: (KNOWN_PROVIDER_IDS as readonly string[]).includes(agent.defaultProvider)
       ? (agent.defaultProvider as (typeof KNOWN_PROVIDER_IDS)[number])
       : "anthropic",
-    defaultModel: "",
+    defaultModel: defaultModel ?? "",
     icon: agent.icon ?? "",
   };
 }
@@ -119,9 +122,11 @@ export function AgentBuilderPanel() {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   const customAgents = useAgentsStore((s) => s.customAgents);
+  const customSummaries = useAgentsStore((s) => s.customSummaries);
   const refreshCustom = useAgentsStore((s) => s.refreshCustom);
   const setCustomAgents = useAgentsStore((s) => s.setCustomAgents);
   const customStatus = useAgentsStore((s) => s.customStatus);
+  const customError = useAgentsStore((s) => s.customError);
 
   useEffect(() => {
     void refreshCustom();
@@ -138,7 +143,9 @@ export function AgentBuilderPanel() {
       if (!isCustomAgent(agent)) {
         return;
       }
-      const next = formStateFromAgent(agent);
+      // Look up defaultModel from customSummaries since AgentSpec doesn't carry it.
+      const summary = customSummaries.find((s) => s.id === agent.id);
+      const next = formStateFromAgent(agent, summary?.defaultModel);
       setField("idBody", next.idBody);
       setField("name", next.name);
       setField("philosophy", next.philosophy);
@@ -159,7 +166,7 @@ export function AgentBuilderPanel() {
       setSaveMessage(null);
       setErrors({});
     },
-    [setField, state.tools, toggleTool],
+    [customSummaries, setField, state.tools, toggleTool],
   );
 
   const handleDelete = useCallback(
@@ -290,7 +297,7 @@ export function AgentBuilderPanel() {
         </label>
 
         {/* System prompt */}
-        <label className="flex flex-1 flex-col gap-1">
+        <label className="flex flex-col gap-1">
           <span className="text-charcoal-400 font-mono text-[10px] uppercase">System prompt</span>
           <textarea
             aria-label="System prompt"
@@ -298,7 +305,7 @@ export function AgentBuilderPanel() {
             onChange={(e) => setField("systemPrompt", e.target.value)}
             placeholder="You are a macro quant analyst. Reason from regime first; cite drawdown statistics when answering."
             rows={8}
-            className="bg-charcoal-800 text-charcoal-100 min-h-[8rem] flex-1 resize-y rounded-md p-2 font-mono text-xs leading-relaxed outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 min-h-[8rem] resize-y rounded-md p-2 font-mono text-xs leading-relaxed outline-none focus:ring-1 focus:ring-amber-400"
           />
           {errors.systemPrompt !== undefined && (
             <p className="text-negative font-mono text-[10px]">{errors.systemPrompt}</p>
@@ -343,7 +350,7 @@ export function AgentBuilderPanel() {
               onChange={(e) =>
                 setField("defaultProvider", e.target.value as (typeof KNOWN_PROVIDER_IDS)[number])
               }
-              className="bg-charcoal-800 text-charcoal-100 h-8 rounded-md px-2 font-mono text-xs outline-none"
+              className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 h-8 rounded-md border px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
             >
               {KNOWN_PROVIDER_IDS.map((id) => (
                 <option key={id} value={id}>
@@ -382,25 +389,38 @@ export function AgentBuilderPanel() {
         </label>
 
         {/* Save / cancel row */}
-        <div className="flex items-center gap-2 pt-2">
-          <Button
-            type="submit"
-            size="sm"
-            variant="outline"
-            disabled={saveStatus === "saving" || !liveValidation.ok}
-          >
-            {isEditing ? "Save changes" : "Create agent"}
-          </Button>
-          {isEditing && (
-            <Button type="button" size="sm" variant="ghost" onClick={handleCancelEdit}>
-              Cancel
+        <div className="flex flex-col gap-1.5 pt-2">
+          <div className="flex items-center gap-2">
+            <Button
+              type="submit"
+              size="sm"
+              variant="outline"
+              disabled={saveStatus === "saving" || !liveValidation.ok}
+            >
+              {saveStatus === "saving" && <Loader2 className="size-3 animate-spin" />}
+              {saveStatus === "saving" ? "Saving…" : isEditing ? "Save changes" : "Create agent"}
             </Button>
-          )}
-          {saveStatus === "saved" && saveMessage !== null && (
-            <span className="text-positive font-mono text-xs">{saveMessage}</span>
-          )}
+            {isEditing && (
+              <Button type="button" size="sm" variant="ghost" onClick={handleCancelEdit}>
+                Cancel
+              </Button>
+            )}
+            {saveStatus === "saved" && saveMessage !== null && (
+              <span className="text-positive font-mono text-xs">{saveMessage}</span>
+            )}
+          </div>
           {saveStatus === "error" && saveMessage !== null && (
-            <span className="text-negative font-mono text-xs">{saveMessage}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-negative overflow-hidden font-mono text-xs text-ellipsis">
+                {saveMessage}
+              </span>
+              <button
+                type="submit"
+                className="shrink-0 font-mono text-xs text-amber-400 underline hover:text-amber-300"
+              >
+                Try again
+              </button>
+            </div>
           )}
         </div>
       </form>
@@ -415,12 +435,33 @@ export function AgentBuilderPanel() {
         </header>
         <div className="flex-1 overflow-y-auto">
           {customStatus === "loading" && (
-            <p className="text-charcoal-400 px-3 py-3 font-mono text-xs">Loading…</p>
+            <div className="flex flex-col gap-2 px-3 py-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="bg-charcoal-800 h-8 animate-pulse rounded" />
+              ))}
+            </div>
+          )}
+          {customStatus === "error" && (
+            <div className="flex flex-col gap-1 px-3 py-3">
+              <p className="text-negative font-mono text-[10px]">
+                {customError ?? "Failed to load agents."}
+              </p>
+              <button
+                type="button"
+                onClick={() => void refreshCustom()}
+                className="text-left font-mono text-[10px] text-amber-400 underline hover:text-amber-300"
+              >
+                Retry
+              </button>
+            </div>
           )}
           {customStatus === "ready" && customAgents.length === 0 && (
-            <p className="text-charcoal-400 px-3 py-3 font-mono text-xs">
-              No custom agents yet — fill the form to create your first.
-            </p>
+            <div className="flex flex-col items-start gap-1 px-3 py-3">
+              <p className="text-charcoal-400 font-mono text-xs">No custom agents yet.</p>
+              <p className="text-charcoal-500 font-mono text-[10px]">
+                Fill the form to create your first.
+              </p>
+            </div>
           )}
           <ul>
             {customAgents.map((agent) => (

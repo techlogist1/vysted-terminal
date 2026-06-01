@@ -169,9 +169,26 @@ export function SecFilingsPanel() {
       </header>
 
       {filingsError && (
-        <p className="text-negative px-3 py-2 text-[11px]" data-testid="sec-filings-error">
-          {filingsError}
-        </p>
+        <div
+          className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2"
+          data-testid="sec-filings-error"
+        >
+          <span className="text-negative font-mono text-[11px]">
+            Could not load filings — {filingsError}
+          </span>
+          <Button
+            size="xs"
+            variant="ghost"
+            className="shrink-0 text-amber-300 hover:text-amber-200"
+            onClick={() =>
+              activeIdentifier &&
+              void loadFilings(activeIdentifier, formFilter === "all" ? undefined : formFilter)
+            }
+            disabled={!activeIdentifier}
+          >
+            Retry
+          </Button>
+        </div>
       )}
       {filingsStatus === "loading" && filings.filings.length === 0 && (
         <p className="text-charcoal-400 px-3 py-2 text-xs">Loading filings…</p>
@@ -187,6 +204,7 @@ export function SecFilingsPanel() {
         )}
         {tab === "filings" && hasOpenFiling && (
           <FilingViewer
+            key={activeAccession ?? "empty"}
             accession={activeAccession}
             identifier={activeIdentifier}
             onClose={onCloseViewer}

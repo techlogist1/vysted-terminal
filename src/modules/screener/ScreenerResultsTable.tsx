@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { SlidersHorizontal, Loader2 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { useScreenerStore } from "@/store/screener";
 
 import type { ScreenerResultRow } from "../../../types/screener";
@@ -77,9 +79,23 @@ function compareValue(
   return base * dir;
 }
 
+const TABLE_HEADER_COLS = (
+  <colgroup>
+    <col style={{ width: "60px" }} />
+    <col style={{ width: "30%" }} />
+    <col style={{ width: "15%" }} />
+    <col style={{ width: "80px" }} />
+    <col style={{ width: "56px" }} />
+    <col style={{ width: "72px" }} />
+    <col style={{ width: "64px" }} />
+    <col style={{ width: "72px" }} />
+  </colgroup>
+);
+
 export function ScreenerResultsTable() {
   const result = useScreenerStore((s) => s.lastResult);
   const status = useScreenerStore((s) => s.status);
+  const runScreener = useScreenerStore((s) => s.runScreener);
   const [sortKey, setSortKey] = useState<SortKey>("market_cap");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
@@ -100,23 +116,83 @@ export function ScreenerResultsTable() {
 
   if (status === "loading") {
     return (
-      <div className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-center text-sm">
-        Running screener…
+      <div className="flex h-full flex-col gap-2">
+        <div className="border-border min-h-0 flex-1 overflow-auto rounded-md border">
+          <table className="w-full text-sm">
+            {TABLE_HEADER_COLS}
+            <thead className="bg-muted/40">
+              <tr>
+                {COLUMNS.map((col) => (
+                  <th
+                    key={col.key}
+                    scope="col"
+                    className={`border-border border-b px-3 py-2 text-xs tracking-wide uppercase ${
+                      col.numeric ? "text-right" : "text-left"
+                    }`}
+                  >
+                    {col.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <tr key={i} className="border-border/60 border-b">
+                  {COLUMNS.map((col) => (
+                    <td key={col.key} className="px-3 py-2">
+                      <div
+                        className={`bg-muted/20 h-4 animate-pulse rounded ${col.numeric ? "ml-auto" : ""}`}
+                        style={{
+                          width: col.numeric
+                            ? "60%"
+                            : `${50 + ((i * 7 + col.key.length * 3) % 40)}%`,
+                        }}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="text-muted-foreground flex items-center gap-2 text-xs">
+          <Loader2 className="size-3 animate-spin" />
+          Running screener…
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "error" && !result) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+        <SlidersHorizontal className="text-muted-foreground size-6" />
+        <p className="text-destructive text-sm">Could not load results.</p>
+        <Button size="sm" variant="outline" onClick={() => void runScreener()}>
+          Retry
+        </Button>
       </div>
     );
   }
 
   if (!result) {
     return (
-      <div className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-center text-sm">
-        Run the screener to populate results.
+      <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+        <SlidersHorizontal className="text-muted-foreground size-6" />
+        <p className="text-foreground text-sm font-semibold">No results yet</p>
+        <p className="text-muted-foreground text-xs">
+          Set your criteria above and run the screener to find matching stocks.
+        </p>
+        <Button size="sm" variant="outline" onClick={() => void runScreener()}>
+          Run screener
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
-      <div className="text-muted-foreground flex items-center justify-between text-xs">
+    <div className="flex h-full flex-col gap-2">
+      <div className="text-muted-foreground flex shrink-0 items-center justify-between text-xs">
         <span>
           <span className="text-foreground font-semibold">{result.result_count}</span> rows (
           <span className="font-mono">{result.evaluated_count}</span> evaluated
@@ -129,15 +205,16 @@ export function ScreenerResultsTable() {
         </span>
         <span className="font-mono tracking-wide uppercase">{result.universe}</span>
       </div>
-      <div className="border-border overflow-auto rounded-md border">
+      <div className="border-border min-h-0 flex-1 overflow-auto rounded-md border">
         <table className="w-full text-sm">
+          {TABLE_HEADER_COLS}
           <thead className="bg-muted/40">
             <tr>
               {COLUMNS.map((col) => (
                 <th
                   key={col.key}
                   scope="col"
-                  className={`border-border cursor-pointer border-b px-3 py-2 text-xs tracking-wide uppercase select-none ${
+                  className={`border-border cursor-pointer border-b px-3 py-2 text-xs tracking-wide whitespace-nowrap uppercase select-none ${
                     col.numeric ? "text-right" : "text-left"
                   }`}
                   onClick={() => onHeaderClick(col.key)}
@@ -167,21 +244,40 @@ export function ScreenerResultsTable() {
               rows.map((row) => (
                 <tr key={row.symbol} className="border-border/60 hover:bg-muted/30 border-b">
                   <td className="px-3 py-2 font-mono font-semibold">{row.symbol}</td>
-                  <td className="px-3 py-2">{row.name ?? "—"}</td>
-                  <td className="text-muted-foreground px-3 py-2">{row.sector ?? "—"}</td>
-                  <td className="px-3 py-2 text-right font-mono">{fmtMarketCap(row.market_cap)}</td>
-                  <td className="px-3 py-2 text-right font-mono">{fmtNumber(row.pe_ratio)}</td>
-                  <td className="px-3 py-2 text-right font-mono">{fmtNumber(row.price)}</td>
+                  <td className="max-w-0 truncate overflow-hidden px-3 py-2" title={row.name ?? ""}>
+                    {row.name ?? "—"}
+                  </td>
                   <td
-                    className={`px-3 py-2 text-right font-mono ${
-                      (row.change_percent_1d ?? 0) >= 0 ? "text-positive" : "text-negative"
+                    className="text-muted-foreground max-w-0 truncate overflow-hidden px-3 py-2"
+                    title={row.sector ?? ""}
+                  >
+                    {row.sector ?? "—"}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono tabular-nums">
+                    {fmtMarketCap(row.market_cap)}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono tabular-nums">
+                    {fmtNumber(row.pe_ratio)}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono tabular-nums">
+                    {fmtNumber(row.price)}
+                  </td>
+                  <td
+                    className={`px-3 py-2 text-right font-mono tabular-nums ${
+                      row.change_percent_1d === null
+                        ? "text-muted-foreground"
+                        : row.change_percent_1d >= 0
+                          ? "text-positive"
+                          : "text-negative"
                     }`}
                   >
                     {row.change_percent_1d === null
                       ? "—"
                       : `${row.change_percent_1d >= 0 ? "+" : ""}${row.change_percent_1d.toFixed(2)}%`}
                   </td>
-                  <td className="px-3 py-2 text-right font-mono">{fmtVolume(row.volume)}</td>
+                  <td className="px-3 py-2 text-right font-mono tabular-nums">
+                    {fmtVolume(row.volume)}
+                  </td>
                 </tr>
               ))
             )}

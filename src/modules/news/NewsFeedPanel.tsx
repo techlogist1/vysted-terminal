@@ -44,6 +44,10 @@ function sentimentColor(label: string | null): string {
   if (label === "negative") {
     return "text-negative";
   }
+  // `neutral` is a scored, in-range result — 1 stop brighter than unscored null
+  if (label === "neutral") {
+    return "text-charcoal-300";
+  }
   return "text-charcoal-400";
 }
 
@@ -84,12 +88,14 @@ function NewsRow({ item, onFocus }: { item: NewsItem; onFocus: (id: string) => v
       >
         <p className="text-charcoal-100 font-serif text-sm leading-snug">{item.title}</p>
         <div className="flex items-center justify-between gap-3">
-          <span className="text-charcoal-400 truncate font-mono text-[11px]">
+          <span className="text-charcoal-400 min-w-0 truncate font-mono text-[11px]">
             {item.source}
             <span className="text-charcoal-600 mx-1.5">·</span>
             {relativeTime(item.published_at)}
           </span>
-          <SentimentBadge item={item} />
+          <span className="flex-shrink-0">
+            <SentimentBadge item={item} />
+          </span>
         </div>
         {item.symbols.length > 0 ? (
           <div className="flex flex-wrap gap-1">
@@ -219,23 +225,37 @@ export function NewsFeedPanel() {
         <button
           type="button"
           onClick={refresh}
-          className="text-charcoal-400 font-mono text-[11px] transition-colors hover:text-amber-400"
+          disabled={state.status === "loading"}
+          className="text-charcoal-400 font-mono text-[11px] transition-colors hover:text-amber-400 disabled:pointer-events-none disabled:opacity-40"
         >
-          Refresh
+          {state.status === "loading" ? "Loading…" : "Refresh"}
         </button>
       </header>
 
       {state.status === "loading" ? (
-        <p className="text-charcoal-400 px-4 py-6 font-mono text-xs">Loading news…</p>
+        <ul className="flex-1 overflow-y-auto">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <li
+              key={i}
+              className="border-charcoal-800 flex animate-pulse flex-col gap-1.5 border-b px-4 py-3"
+            >
+              <div className="bg-charcoal-800 h-3.5 w-3/4 rounded" />
+              <div className="flex gap-3">
+                <div className="bg-charcoal-800 h-2.5 w-1/3 rounded" />
+                <div className="bg-charcoal-800 ml-auto h-2.5 w-1/5 rounded" />
+              </div>
+            </li>
+          ))}
+        </ul>
       ) : null}
 
       {state.status === "error" ? (
-        <div className="flex flex-col items-start gap-2 px-4 py-6">
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center">
           <p className="text-negative font-mono text-xs">{state.message}</p>
           <button
             type="button"
             onClick={refresh}
-            className="text-charcoal-400 font-mono text-[11px] transition-colors hover:text-amber-400"
+            className="font-mono text-[11px] text-amber-400 transition-colors hover:text-amber-300"
           >
             Retry
           </button>
@@ -244,9 +264,21 @@ export function NewsFeedPanel() {
 
       {state.status === "ready" ? (
         state.items.length === 0 ? (
-          <p className="text-charcoal-400 px-4 py-6 font-mono text-xs">
-            No news for the current watchlist.
-          </p>
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
+            <span className="text-charcoal-600 font-mono text-2xl">—</span>
+            <p className="text-charcoal-300 font-mono text-xs">No headlines for your watchlist.</p>
+            <p className="text-charcoal-500 font-mono text-[11px]">
+              Add a NewsAPI key in Settings to pull live articles, or add more symbols to your
+              watchlist.
+            </p>
+            <button
+              type="button"
+              onClick={refresh}
+              className="font-mono text-[11px] text-amber-400 transition-colors hover:text-amber-300"
+            >
+              Refresh feed
+            </button>
+          </div>
         ) : (
           <ul className="flex-1 overflow-y-auto">
             {state.items.map((item) => (

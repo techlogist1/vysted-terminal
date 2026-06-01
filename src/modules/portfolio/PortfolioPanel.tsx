@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pencil, Plus, Trash2, X } from "lucide-react";
+import { Briefcase, Pencil, Plus, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { formatCompactMoney, formatMoney, formatPercent, formatSignedMoney } from "@/lib/format";
@@ -51,6 +51,8 @@ export function PortfolioPanel() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // Ref for the Symbol input — used by the empty-state CTA to focus it.
+  const symbolInputRef = useRef<HTMLInputElement | null>(null);
   // Pending auto-retry timer for the cold-boot bind race — cleared on unmount.
   const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Holds the current `load` so the retry timer can re-invoke it without `load`
@@ -84,6 +86,19 @@ export function PortfolioPanel() {
   useEffect(() => {
     loadRef.current = load;
   }, [load]);
+
+  // Clear a save/validation error as soon as the user edits any field — the
+  // red bar should not persist after the input has been corrected.
+  const formKey = `${form.symbol}|${form.quantity}|${form.costBasis}|${form.assetClass}|${form.note}`;
+  useEffect(() => {
+    // Only clear errors that belong to the save/validate path (summary !== null
+    // means positions are loaded — the load-error path clears on its own via load()).
+    if (error !== null && summary !== null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setError(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formKey]);
 
   useEffect(() => {
     // `load` only sets state after an awaited fetch resolves (never
@@ -205,10 +220,12 @@ export function PortfolioPanel() {
         <label className="flex flex-col gap-1">
           <span className="text-charcoal-400 font-mono text-[0.6rem] uppercase">Symbol</span>
           <input
+            ref={symbolInputRef}
             aria-label="Symbol"
             value={form.symbol}
+            disabled={busy}
             onChange={(event) => setForm((prev) => ({ ...prev, symbol: event.target.value }))}
-            className="bg-charcoal-800 text-charcoal-100 h-8 w-24 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 h-8 w-24 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
           />
         </label>
         <label className="flex flex-col gap-1">
@@ -217,8 +234,9 @@ export function PortfolioPanel() {
             aria-label="Quantity"
             inputMode="decimal"
             value={form.quantity}
+            disabled={busy}
             onChange={(event) => setForm((prev) => ({ ...prev, quantity: event.target.value }))}
-            className="bg-charcoal-800 text-charcoal-100 h-8 w-24 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 h-8 w-24 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
           />
         </label>
         <label className="flex flex-col gap-1">
@@ -227,8 +245,9 @@ export function PortfolioPanel() {
             aria-label="Cost basis"
             inputMode="decimal"
             value={form.costBasis}
+            disabled={busy}
             onChange={(event) => setForm((prev) => ({ ...prev, costBasis: event.target.value }))}
-            className="bg-charcoal-800 text-charcoal-100 h-8 w-24 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 h-8 w-24 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
           />
         </label>
         <label className="flex flex-col gap-1">
@@ -236,13 +255,14 @@ export function PortfolioPanel() {
           <select
             aria-label="Asset class"
             value={form.assetClass}
+            disabled={busy}
             onChange={(event) =>
               setForm((prev) => ({
                 ...prev,
                 assetClass: event.target.value === "crypto" ? "crypto" : "equity",
               }))
             }
-            className="bg-charcoal-800 text-charcoal-200 h-8 rounded-md px-2 font-mono text-xs outline-none"
+            className="bg-charcoal-800 text-charcoal-200 h-8 rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
           >
             <option value="equity">Equity</option>
             <option value="crypto">Crypto</option>
@@ -253,8 +273,9 @@ export function PortfolioPanel() {
           <input
             aria-label="Note"
             value={form.note}
+            disabled={busy}
             onChange={(event) => setForm((prev) => ({ ...prev, note: event.target.value }))}
-            className="bg-charcoal-800 text-charcoal-100 h-8 min-w-24 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 h-8 min-w-24 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
           />
         </label>
         <Button type="submit" size="sm" variant="outline" disabled={busy}>
@@ -283,9 +304,17 @@ export function PortfolioPanel() {
         </div>
       )}
       {error !== null && summary !== null && (
-        <p className="text-negative border-charcoal-700 border-b px-3 py-2 font-mono text-xs">
-          {error}
-        </p>
+        <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
+          <p className="text-negative font-mono text-xs">{error}</p>
+          <button
+            type="button"
+            onClick={() => setError(null)}
+            aria-label="Dismiss error"
+            className="text-charcoal-400 hover:text-charcoal-200 ml-auto pl-3"
+          >
+            <X className="size-3" />
+          </button>
+        </div>
       )}
 
       {summary !== null && summary.rows.length > 0 && (
@@ -298,7 +327,15 @@ export function PortfolioPanel() {
           </span>
           <span>
             Total P&amp;L:{" "}
-            <span className={summary.totalPnl >= 0 ? "text-positive" : "text-negative"}>
+            <span
+              className={
+                summary.totalPnl > 0
+                  ? "text-positive"
+                  : summary.totalPnl < 0
+                    ? "text-negative"
+                    : "text-charcoal-200"
+              }
+            >
               {formatSignedMoney(summary.totalPnl, true)} ({formatPercent(summary.totalPnlPercent)})
             </span>
           </span>
@@ -316,62 +353,123 @@ export function PortfolioPanel() {
 
       <div className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto">
         {summary === null ? (
-          <p className="text-charcoal-400 p-4 font-mono text-xs">Loading portfolio…</p>
+          <table className="w-full table-fixed border-collapse animate-pulse">
+            <colgroup>
+              <col style={{ width: "18%" }} />
+              <col style={{ width: "8%" }} />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "22%" }} />
+              <col style={{ width: "9%" }} />
+              <col style={{ width: "7%" }} />
+            </colgroup>
+            <tbody>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <tr key={i} className="border-charcoal-800 border-b">
+                  {[36, 20, 28, 28, 32, 52, 22, 16].map((w, j) => (
+                    <td key={j} className="px-3 py-2">
+                      <div
+                        className={`bg-charcoal-800 h-3 rounded`}
+                        style={{ width: `${w}%`, marginLeft: j > 0 ? "auto" : undefined }}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         ) : summary.rows.length === 0 ? (
-          <p className="text-charcoal-400 p-4 font-mono text-xs">
-            No positions yet — add one above.
-          </p>
+          <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
+            <Briefcase className="text-charcoal-600 size-8" />
+            <p className="text-charcoal-300 font-mono text-sm">No positions tracked</p>
+            <p className="text-charcoal-500 font-mono text-xs">
+              Manually add a stock or crypto holding to see P&amp;L, weight, and risk metrics.
+            </p>
+            <button
+              type="button"
+              onClick={() => symbolInputRef.current?.focus()}
+              className="border-charcoal-700 bg-charcoal-800 text-charcoal-300 rounded-md border px-3 py-1.5 font-mono text-xs transition-colors hover:border-amber-500 hover:text-amber-300"
+            >
+              Add your first position
+            </button>
+          </div>
         ) : (
-          <table className="w-full border-collapse">
+          <table className="w-full table-fixed border-collapse">
+            {/* Explicit column widths so the 8-column table holds at the
+                enforced minimum panel width without cells colliding.
+                Symbol gives way first (truncates); numeric columns hold.  */}
+            <colgroup>
+              <col style={{ width: "18%" }} />
+              <col style={{ width: "8%" }} />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "22%" }} />
+              <col style={{ width: "9%" }} />
+              <col style={{ width: "7%" }} />
+            </colgroup>
             <thead>
               <tr className="text-charcoal-400 border-charcoal-700 border-b text-left font-mono text-[0.65rem] uppercase">
                 <th className="px-3 py-2 font-medium">Symbol</th>
                 <th className="px-3 py-2 text-right font-medium">Qty</th>
                 <th className="px-3 py-2 text-right font-medium">Cost</th>
                 <th className="px-3 py-2 text-right font-medium">Price</th>
-                <th className="px-3 py-2 text-right font-medium">Mkt value</th>
+                <th className="px-3 py-2 text-right font-medium">Mkt val</th>
                 <th className="px-3 py-2 text-right font-medium">P&amp;L</th>
-                <th className="px-3 py-2 text-right font-medium">Weight</th>
+                <th className="px-3 py-2 text-right font-medium">Wt</th>
                 <th className="px-3 py-2" />
               </tr>
             </thead>
             <tbody>
               {summary.rows.map(({ position, quote, marketValue, pnl, pnlPercent, weight }) => {
-                const pnlPositive = (pnl ?? 0) >= 0;
+                const pnlColor =
+                  pnl === null
+                    ? "text-charcoal-400"
+                    : pnl > 0
+                      ? "text-positive"
+                      : pnl < 0
+                        ? "text-negative"
+                        : "text-charcoal-200";
                 return (
                   <tr
                     key={position.id ?? position.symbol}
                     className="border-charcoal-800 hover:bg-charcoal-800/50 border-b font-mono text-sm"
                   >
-                    <td className="text-charcoal-100 max-w-24 truncate px-3 py-2">
-                      {position.symbol}
+                    <td className="text-charcoal-100 overflow-hidden px-3 py-2">
+                      <span className="block truncate">{position.symbol}</span>
                     </td>
-                    <td className="text-charcoal-200 px-3 py-2 text-right">{position.quantity}</td>
-                    <td className="text-charcoal-200 px-3 py-2 text-right">
-                      {formatMoney(position.cost_basis)}
+                    <td className="text-charcoal-200 overflow-hidden px-3 py-2 text-right whitespace-nowrap tabular-nums">
+                      <span className="block truncate">
+                        {typeof position.quantity === "number"
+                          ? position.quantity.toLocaleString("en-US", { maximumFractionDigits: 8 })
+                          : position.quantity}
+                      </span>
                     </td>
-                    <td className="text-charcoal-200 px-3 py-2 text-right">
-                      {quote !== null ? formatMoney(quote.price) : "—"}
+                    <td className="text-charcoal-200 overflow-hidden px-3 py-2 text-right whitespace-nowrap tabular-nums">
+                      <span className="block truncate">{formatMoney(position.cost_basis)}</span>
                     </td>
-                    <td className="text-charcoal-200 px-3 py-2 text-right">
-                      {marketValue !== null ? formatCompactMoney(marketValue) : "—"}
+                    <td className="text-charcoal-200 overflow-hidden px-3 py-2 text-right whitespace-nowrap tabular-nums">
+                      <span className="block truncate">
+                        {quote !== null ? formatMoney(quote.price) : "—"}
+                      </span>
                     </td>
-                    <td
-                      className={cn(
-                        "px-3 py-2 text-right",
-                        pnl === null
-                          ? "text-charcoal-400"
-                          : pnlPositive
-                            ? "text-positive"
-                            : "text-negative",
-                      )}
-                    >
-                      {pnl !== null
-                        ? `${formatSignedMoney(pnl, true)} (${pnlPercent !== null ? formatPercent(pnlPercent) : "—"})`
-                        : "—"}
+                    <td className="text-charcoal-200 overflow-hidden px-3 py-2 text-right whitespace-nowrap tabular-nums">
+                      <span className="block truncate">
+                        {marketValue !== null ? formatCompactMoney(marketValue) : "—"}
+                      </span>
                     </td>
-                    <td className="text-charcoal-200 px-3 py-2 text-right">
-                      {weight !== null ? `${(weight * 100).toFixed(1)}%` : "—"}
+                    <td className={cn("max-w-0 overflow-hidden px-3 py-2 text-right", pnlColor)}>
+                      <span className="block truncate whitespace-nowrap">
+                        {pnl !== null
+                          ? `${formatSignedMoney(pnl, true)} (${pnlPercent !== null ? formatPercent(pnlPercent) : "—"})`
+                          : "—"}
+                      </span>
+                    </td>
+                    <td className="text-charcoal-200 overflow-hidden px-3 py-2 text-right whitespace-nowrap tabular-nums">
+                      <span className="block truncate">
+                        {weight !== null ? `${(weight * 100).toFixed(1)}%` : "—"}
+                      </span>
                     </td>
                     <td className="px-3 py-2 text-right whitespace-nowrap">
                       <Button
@@ -379,6 +477,7 @@ export function PortfolioPanel() {
                         size="icon-xs"
                         variant="ghost"
                         aria-label={`Edit ${position.symbol}`}
+                        disabled={busy}
                         onClick={() => handleEdit(position)}
                       >
                         <Pencil />

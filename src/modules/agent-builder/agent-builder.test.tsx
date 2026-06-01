@@ -75,11 +75,11 @@ function fillState(overrides: Partial<AgentBuilderFormState> = {}): AgentBuilder
 
 describe("validate()", () => {
   it("returns ok with a fully-formed payload on a valid form", () => {
-    const result = validate(fillState({ tools: new Set(["price_data", "macro"]) }));
+    const result = validate(fillState({ tools: new Set(["price_data", "macro_series"]) }));
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.payload.id).toBe(`${CUSTOM_AGENT_ID_PREFIX}macro-quant`);
-      expect(result.payload.tools).toEqual(["price_data", "macro"]);
+      expect(result.payload.tools).toEqual(["price_data", "macro_series"]);
       expect(result.payload.default_provider).toBe("anthropic");
     }
   });

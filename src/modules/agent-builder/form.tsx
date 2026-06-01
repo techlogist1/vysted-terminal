@@ -12,13 +12,33 @@
 
 import { useCallback, useState } from "react";
 
-/** Tool ids the host currently resolves — must match the sidecar allow-list. */
+/**
+ * Tool ids the host currently resolves — must match the sidecar allow-list
+ * (sidecar/services/agent_tools/catalog.py, verified by test_capability_catalog.py).
+ * NOTE: "news" and "macro" were purged — do not add them back. The macro tool
+ * is "macro_series". Update this list whenever catalog.py gains a new read_handler.
+ */
 export const KNOWN_TOOL_IDS = [
   "price_data",
   "fundamentals",
-  "news",
+  "macro_series",
+  "macro_search",
   "backtest_summary",
-  "macro",
+  "screener_run",
+  "analyst_history",
+  "analyst_individual",
+  "price_target_history",
+  "earnings_history",
+  "earnings_estimates",
+  "earnings_upcoming",
+  "sec_filings_list",
+  "sec_filing_content",
+  "sec_insider_transactions",
+  "broker_portfolio",
+  "price_option",
+  "compute_greeks",
+  "price_bond",
+  "yield_curve_value",
 ] as const;
 export type KnownToolId = (typeof KNOWN_TOOL_IDS)[number];
 

@@ -49,8 +49,12 @@ afterEach(() => {
 
 describe("WatchlistPanel", () => {
   it("shows a loading state before quotes resolve", () => {
+    // Never resolve so we stay in the loading/skeleton state.
+    mockFetch.mockReturnValue(new Promise(() => {}));
     render(<WatchlistPanel />);
-    expect(screen.getByText("Loading quotes…")).toBeInTheDocument();
+    // Loading is now a skeleton table — symbol/price/change cells are not rendered.
+    expect(screen.queryByText("SPY")).not.toBeInTheDocument();
+    expect(screen.queryByText("NVDA")).not.toBeInTheDocument();
   });
 
   it("renders the pre-loaded symbols with prices and change%", async () => {
@@ -72,7 +76,9 @@ describe("WatchlistPanel", () => {
   it("surfaces a SidecarError message", async () => {
     mockFetch.mockRejectedValueOnce(new SidecarError(502, "upstream down"));
     render(<WatchlistPanel />);
-    expect(await screen.findByText("upstream down")).toBeInTheDocument();
+    // Error banner now shows a human message and a Retry button.
+    expect(await screen.findByText("Could not refresh quotes")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /retry/i })).toBeInTheDocument();
   });
 
   it("adds a symbol through the form", async () => {

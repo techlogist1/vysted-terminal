@@ -59,7 +59,7 @@ export function FilingsListTable({ filings, selectedAccession, onSelect }: Filin
   }
 
   return (
-    <div className="flex-1 overflow-y-auto" data-testid="filings-list-table">
+    <div className="h-full overflow-y-auto" data-testid="filings-list-table">
       <table className="w-full table-fixed text-[11px]">
         <colgroup>
           <col className="w-[10ch]" />
@@ -99,6 +99,13 @@ export function FilingsListTable({ filings, selectedAccession, onSelect }: Filin
           </tr>
         </thead>
         <tbody>
+          {sorted.length === 0 && (
+            <tr>
+              <td colSpan={5} className="text-charcoal-400 px-3 py-6 text-center font-mono text-xs">
+                No filings match this filter. Try &ldquo;All forms&rdquo; or a different symbol.
+              </td>
+            </tr>
+          )}
           {sorted.map((filing) => (
             <tr
               key={filing.accession}

@@ -56,6 +56,8 @@ interface MarketplaceState {
   configured: Record<string, boolean>;
   /** Per-plugin in-flight guard so a double-click can't double-transition. */
   busy: Record<string, boolean>;
+  /** True while the initial refresh() is in flight (first open of the panel). */
+  refreshing: boolean;
   refresh: () => Promise<void>;
   stateFor: (pluginId: string) => MarketplacePluginState;
   install: (pluginId: string) => Promise<void>;
@@ -83,31 +85,37 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
   flags: {},
   configured: {},
   busy: {},
+  refreshing: false,
 
   refresh: async () => {
-    const runtime = usePluginsStore.getState().runtime;
-    const rows = Object.values(CATALOG_BY_ID);
-    const flags: Record<string, PersistedFlags> = {};
-    const configured: Record<string, boolean> = {};
-    await Promise.all(
-      rows.map(async (row) => {
-        const id = row.entry.pluginId;
-        let persisted = null;
-        if (runtime) {
-          try {
-            persisted = await runtime.readConfig(id);
-          } catch {
-            persisted = null;
+    set({ refreshing: true });
+    try {
+      const runtime = usePluginsStore.getState().runtime;
+      const rows = Object.values(CATALOG_BY_ID);
+      const flags: Record<string, PersistedFlags> = {};
+      const configured: Record<string, boolean> = {};
+      await Promise.all(
+        rows.map(async (row) => {
+          const id = row.entry.pluginId;
+          let persisted = null;
+          if (runtime) {
+            try {
+              persisted = await runtime.readConfig(id);
+            } catch {
+              persisted = null;
+            }
           }
-        }
-        flags[id] = {
-          installed: persisted?.installed ?? row.entry.preinstalled,
-          enabled: persisted?.enabled ?? row.entry.preinstalled,
-        };
-        configured[id] = await isConfigured(row.entry);
-      }),
-    );
-    set({ flags, configured });
+          flags[id] = {
+            installed: persisted?.installed ?? row.entry.preinstalled,
+            enabled: persisted?.enabled ?? row.entry.preinstalled,
+          };
+          configured[id] = await isConfigured(row.entry);
+        }),
+      );
+      set({ flags, configured, refreshing: false });
+    } catch {
+      set({ refreshing: false });
+    }
   },
 
   stateFor: (pluginId) => {
@@ -244,5 +252,5 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
 
 /** Test helper: reset the marketplace store. */
 export function resetMarketplaceStoreForTests(): void {
-  useMarketplaceStore.setState({ flags: {}, configured: {}, busy: {} });
+  useMarketplaceStore.setState({ flags: {}, configured: {}, busy: {}, refreshing: false });
 }

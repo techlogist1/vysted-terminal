@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Building2, Loader2, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { SidecarError } from "@/lib/sidecar-client";
@@ -101,8 +101,14 @@ function StatementTable({
                   {line.label}
                 </td>
                 {statement.periods.map((period) => (
-                  <td key={period} className="text-charcoal-100 px-3 py-1.5 text-right">
-                    {formatLargeNumber(line.values[period] ?? null)}
+                  <td
+                    key={period}
+                    className="text-charcoal-100 max-w-0 overflow-hidden px-3 py-1.5 text-right"
+                    title={String(line.values[period] ?? "")}
+                  >
+                    <span className="block truncate">
+                      {formatLargeNumber(line.values[period] ?? null)}
+                    </span>
                   </td>
                 ))}
               </tr>
@@ -125,6 +131,8 @@ export function EquityOverviewPanel() {
   const [data, setData] = useState<EquityOverview | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Tracks the last successfully submitted symbol so Retry can replay it.
+  const submittedSymbolRef = useRef<string | null>(null);
 
   // --- panel-context bus: publish symbol + which sections loaded ----------
   const publishPanelContext = usePanelContextBus((s) => s.publish);
@@ -172,14 +180,12 @@ export function EquityOverviewPanel() {
     };
   }, [unregisterPanelContext]);
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const symbol = draft.trim().toUpperCase();
-    if (symbol === "") {
-      return;
-    }
+  const doLoad = async (symbol: string) => {
+    submittedSymbolRef.current = symbol;
     setLoading(true);
     setError(null);
+    // Clear immediately so stale data from a previous symbol does not linger.
+    setData(null);
     try {
       const overview = await loadEquityOverview(symbol);
       if (overview.allFailed) {
@@ -194,6 +200,26 @@ export function EquityOverviewPanel() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const symbol = draft.trim().toUpperCase();
+    if (symbol === "") {
+      return;
+    }
+    await doLoad(symbol);
+  };
+
+  const handleRetry = async () => {
+    if (submittedSymbolRef.current) {
+      await doLoad(submittedSymbolRef.current);
+    }
+  };
+
+  const quickLoad = async (symbol: string) => {
+    setDraft(symbol);
+    await doLoad(symbol);
   };
 
   const quote = data?.quote ?? null;
@@ -214,24 +240,78 @@ export function EquityOverviewPanel() {
           className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 h-8 flex-1 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
         />
         <Button type="submit" size="sm" variant="outline" disabled={loading}>
-          <Search />
-          Load
+          {loading ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <Search className="size-3.5" />
+          )}
+          {loading ? "Loading" : "Load"}
         </Button>
       </form>
 
       {error !== null && (
-        <p className="text-negative border-charcoal-700 border-b px-3 py-2 font-mono text-xs">
-          {error}
-        </p>
+        <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
+          <p className="text-negative font-mono text-xs">{error}</p>
+          <Button type="button" size="sm" variant="ghost" onClick={() => void handleRetry()}>
+            Retry
+          </Button>
+        </div>
       )}
 
       <div className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto p-3">
         {loading ? (
-          <p className="text-charcoal-400 font-mono text-xs">Loading equity overview…</p>
+          <div className="flex animate-pulse flex-col gap-4">
+            {/* Header skeleton */}
+            <div className="flex flex-wrap gap-3">
+              <div className="bg-charcoal-800 h-7 w-20 rounded" />
+              <div className="bg-charcoal-800 h-5 w-32 self-end rounded" />
+              <div className="bg-charcoal-800 h-6 w-24 self-end rounded" />
+            </div>
+            {/* Valuation ratios skeleton */}
+            <div className="border-charcoal-700 rounded-md border">
+              <div className="border-charcoal-700 border-b px-3 py-2">
+                <div className="bg-charcoal-800 h-3 w-28 rounded" />
+              </div>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-3 py-2">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex justify-between gap-2">
+                    <div className="bg-charcoal-800 h-3 w-20 rounded" />
+                    <div className="bg-charcoal-800 h-3 w-12 rounded" />
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Analyst ratings skeleton */}
+            <div className="border-charcoal-700 rounded-md border">
+              <div className="border-charcoal-700 border-b px-3 py-2">
+                <div className="bg-charcoal-800 h-3 w-24 rounded" />
+              </div>
+              <div className="flex flex-wrap gap-x-6 gap-y-2 px-3 py-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="bg-charcoal-800 h-3 w-24 rounded" />
+                ))}
+              </div>
+            </div>
+          </div>
         ) : data === null ? (
-          <p className="text-charcoal-400 font-mono text-xs">
-            Enter a symbol to load fundamentals, statements, and analyst ratings.
-          </p>
+          <div className="flex flex-col items-center gap-4 pt-12 text-center">
+            <Building2 className="text-charcoal-600 size-8" />
+            <p className="text-charcoal-300 font-mono text-sm">
+              Fundamental data, statements, and analyst ratings for any ticker.
+            </p>
+            <div className="flex gap-2">
+              {["AAPL", "MSFT", "NVDA"].map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => void quickLoad(t)}
+                  className="border-charcoal-700 bg-charcoal-800 text-charcoal-300 rounded-md border px-3 py-1.5 font-mono text-xs transition-colors hover:border-amber-500 hover:text-amber-300"
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
         ) : (
           <div className="flex flex-col gap-4">
             <header className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
@@ -263,21 +343,24 @@ export function EquityOverviewPanel() {
               )}
             </header>
 
-            <section className="border-charcoal-700 rounded-md border">
+            <section className="border-charcoal-700 @container rounded-md border">
               <h3 className="text-charcoal-200 border-charcoal-700 border-b px-3 py-2 font-mono text-xs uppercase">
                 Valuation ratios
               </h3>
               {fundamentals === null ? (
                 <p className="text-charcoal-400 px-3 py-2 font-mono text-xs">Unavailable.</p>
               ) : (
-                <dl className="grid grid-cols-2 gap-x-6 gap-y-1 px-3 py-2 sm:grid-cols-3">
+                <dl className="grid grid-cols-2 gap-x-6 gap-y-1 px-3 py-2 @[420px]:grid-cols-3">
                   {RATIO_FIELDS.map(({ label, key, kind }) => {
                     const raw = fundamentals[key];
                     const value = typeof raw === "number" ? raw : null;
                     return (
-                      <div key={label} className="flex justify-between gap-2 font-mono text-xs">
-                        <dt className="text-charcoal-400">{label}</dt>
-                        <dd className="text-charcoal-100">
+                      <div
+                        key={label}
+                        className="flex min-w-0 justify-between gap-2 font-mono text-xs"
+                      >
+                        <dt className="text-charcoal-400 truncate">{label}</dt>
+                        <dd className="text-charcoal-100 flex-shrink-0">
                           {kind === "pct"
                             ? formatPercent(value)
                             : key === "market_cap"
