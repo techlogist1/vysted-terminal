@@ -185,6 +185,18 @@ function normalizeEvent(payload: Record<string, unknown>): LLMStreamEvent | null
       input: (payload.input as Record<string, unknown>) ?? {},
     };
   }
+  if (kind === "research_step") {
+    return {
+      kind: "research_step",
+      toolCallId: String(payload.tool_call_id ?? ""),
+      tool: String(payload.tool ?? ""),
+      stepKind: String(payload.step_kind ?? "tool"),
+      detail: String(payload.detail ?? ""),
+      latencyMs: typeof payload.latency_ms === "number" ? payload.latency_ms : undefined,
+      status: String(payload.status ?? "ok"),
+      index: Number(payload.index ?? 0),
+    };
+  }
   if (kind === "done") {
     const rawUsage = payload.usage as
       | { input_tokens?: number; output_tokens?: number }

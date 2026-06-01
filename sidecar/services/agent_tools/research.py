@@ -41,6 +41,9 @@ async def _research(args: dict[str, Any]) -> dict[str, Any]:
         query.strip(),
         region=config.get_region(),
         tool_call=agent_tools.invoke_tool,
+        # Forward steps LIVE to the runtime sink (Track A) so even the default
+        # FAST mode animates a working trace; ``None`` outside an agent run.
+        on_step=config.get_step_sink(),
     )
 
 

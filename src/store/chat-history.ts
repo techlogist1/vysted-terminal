@@ -16,6 +16,25 @@ import { create } from "zustand";
 
 import type { LLMProviderId, LLMUsage } from "../../types/ai";
 
+/**
+ * One live research-pipeline step (Track A) — the camelCase view of a sidecar
+ * ``research_step`` SSE event. Streamed WHILE a long research tool runs so the
+ * transcript can animate a "working" trace (plan → search → synthesize) instead
+ * of sitting silent for the whole multi-second round. UI-only, never persisted.
+ */
+export interface ResearchStepView {
+  /** plan | tool | search | compress | reflect | synthesize. */
+  stepKind: string;
+  /** A short human line describing what the step did. */
+  detail: string;
+  /** Wall-clock latency of the stage in ms, when measured. */
+  latencyMs?: number;
+  /** "ok" | "error" | "skipped". */
+  status: string;
+  /** Monotonic 1-based step counter within the run. */
+  index: number;
+}
+
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant" | "system";
@@ -33,6 +52,11 @@ export interface ChatMessage {
   /** Human-readable tool-use steps the copilot took (e.g. "Reading your
    *  portfolio…", "Pulling AAPL fundamentals…", "Opening chart"). UI-only. */
   toolSteps?: string[];
+  /** Live research-pipeline steps streamed during a research tool round (Track
+   *  A). The agent surface renders these as an animated "working" trace. */
+  researchSteps?: ResearchStepView[];
+  /** Epoch ms the first research step arrived — drives the live elapsed timer. */
+  researchStartedAt?: number;
   createdAt: number;
 }
 
@@ -48,6 +72,7 @@ interface ChatHistoryState {
   }) => string;
   appendAssistantDelta: (id: string, text: string) => void;
   appendToolStep: (id: string, step: string) => void;
+  appendResearchStep: (id: string, step: ResearchStepView) => void;
   finalizeAssistantMessage: (id: string, usage?: LLMUsage | null) => void;
   failAssistantMessage: (id: string, error: string) => void;
   clear: () => void;
@@ -104,6 +129,18 @@ export const useChatHistoryStore = create<ChatHistoryState>((set) => ({
       messages: state.messages.map((message) =>
         message.id === id
           ? { ...message, toolSteps: [...(message.toolSteps ?? []), step] }
+          : message,
+      ),
+    })),
+  appendResearchStep: (id, step) =>
+    set((state) => ({
+      messages: state.messages.map((message) =>
+        message.id === id
+          ? {
+              ...message,
+              researchSteps: [...(message.researchSteps ?? []), step],
+              researchStartedAt: message.researchStartedAt ?? Date.now(),
+            }
           : message,
       ),
     })),

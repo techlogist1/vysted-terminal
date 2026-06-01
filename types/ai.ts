@@ -97,6 +97,29 @@ export interface LLMMessage {
 export type LLMStreamEvent =
   | { kind: "delta"; text: string }
   | { kind: "tool_use"; toolCallId: string; name: string; input: Record<string, unknown> }
+  | {
+      /**
+       * A live research-pipeline step, emitted WHILE a long research tool runs
+       * (Track A). Lets the agent surface animate a "working" trace (plan →
+       * search → synthesize) in real time instead of going silent for the
+       * duration of a multi-second tool round. Cosmetic — never gates anything.
+       */
+      kind: "research_step";
+      /** The tool round this step belongs to (the `tool_use` call id). */
+      toolCallId: string;
+      /** The emitting tool, e.g. `"deep_research"` / `"research"`. */
+      tool: string;
+      /** plan | tool | search | compress | reflect | synthesize. */
+      stepKind: string;
+      /** A short human line describing what the step did. */
+      detail: string;
+      /** Wall-clock latency of the stage in ms, when measured. */
+      latencyMs?: number;
+      /** `"ok"` | `"error"` | `"skipped"`. */
+      status: string;
+      /** Monotonic 1-based step counter within the run (ordering/keys). */
+      index: number;
+    }
   | { kind: "thinking"; text: string }
   | { kind: "done"; usage?: LLMUsage; finishReason?: string }
   | { kind: "error"; message: string };

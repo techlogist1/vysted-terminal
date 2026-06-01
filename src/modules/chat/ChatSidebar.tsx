@@ -23,7 +23,7 @@ import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { type AgentRunBudget, useAgentRunsStore } from "@/store/agent-runs";
 import { selectCustomAgents, selectFirstPartyAgents, useAgentsStore } from "@/store/agents";
-import { useChatHistoryStore } from "@/store/chat-history";
+import { type ResearchStepView, useChatHistoryStore } from "@/store/chat-history";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelSelectionStore } from "@/store/model-selection";
 import { usePanelContextBus } from "@/store/panel-context";
@@ -41,6 +41,7 @@ import { applyMentionPrefixes, type MentionDef, matchMention, resolveMention } f
 import { MentionPicker } from "./MentionPicker";
 import { ModeBar } from "./ModeBar";
 import { ProposedChangesReview } from "./ProposedChangesReview";
+import { ResearchActivity } from "./ResearchActivity";
 import {
   parseSlashCommand,
   parseSlashInvocation,
@@ -138,6 +139,7 @@ export function ChatSidebar() {
   const beginAssistant = useChatHistoryStore((state) => state.beginAssistantMessage);
   const appendDelta = useChatHistoryStore((state) => state.appendAssistantDelta);
   const appendToolStep = useChatHistoryStore((state) => state.appendToolStep);
+  const appendResearchStep = useChatHistoryStore((state) => state.appendResearchStep);
   const finalize = useChatHistoryStore((state) => state.finalizeAssistantMessage);
   const fail = useChatHistoryStore((state) => state.failAssistantMessage);
   const clearHistory = useChatHistoryStore((state) => state.clear);
@@ -571,10 +573,15 @@ export function ChatSidebar() {
             });
             const change = useProposedChangesStore.getState().changes.find((c) => c.id === id);
             appendToolStep(assistantId, `Proposed: ${change?.title ?? name} — review below`);
+          } else if (name === "deep_research" || name === "research") {
+            // Track A: the live ResearchActivity surface (fed by onResearchStep)
+            // replaces the generic "Using …" one-liner for research tools, so the
+            // animated step trace isn't shadowed by a static label.
           } else {
             appendToolStep(assistantId, readToolLabel(name));
           }
         },
+        onResearchStep: (step) => appendResearchStep(assistantId, step),
       });
 
       if (agentForCall) {
@@ -720,6 +727,13 @@ export function ChatSidebar() {
                       ? (agentNameById[message.agentId] ?? message.agentId)
                       : "Assistant"}
                 </div>
+                {message.researchSteps && message.researchSteps.length > 0 && (
+                  <ResearchActivity
+                    steps={message.researchSteps}
+                    active={!!message.pending}
+                    startedAt={message.researchStartedAt}
+                  />
+                )}
                 {message.toolSteps && message.toolSteps.length > 0 && (
                   <ul className="mb-1.5 flex flex-col gap-0.5">
                     {message.toolSteps.map((step, i) => (
@@ -1130,6 +1144,7 @@ interface InternalHandlers {
   onError: (message: string) => void;
   onDone: (usage: { inputTokens: number; outputTokens: number } | null) => void;
   onToolUse: (name: string, input: Record<string, unknown>, toolCallId: string) => void;
+  onResearchStep: (step: ResearchStepView) => void;
 }
 
 function makeHandlers(internal: InternalHandlers): {
@@ -1146,6 +1161,14 @@ function makeHandlers(internal: InternalHandlers): {
           (event.input as Record<string, unknown>) ?? {},
           event.toolCallId,
         );
+      } else if (event.kind === "research_step") {
+        internal.onResearchStep({
+          stepKind: event.stepKind,
+          detail: event.detail,
+          latencyMs: event.latencyMs,
+          status: event.status,
+          index: event.index,
+        });
       } else if (event.kind === "error") {
         internal.onError(event.message);
       } else if (event.kind === "done") {

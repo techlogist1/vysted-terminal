@@ -14,8 +14,10 @@ temporary directory.
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from contextvars import ContextVar
 from pathlib import Path
+from typing import Any
 
 DATA_DIR_ENV = "VYSTED_DATA_DIR"
 
@@ -166,6 +168,38 @@ def set_request_llm_creds(provider: str, model: str, api_key: str | None) -> obj
 def reset_request_llm_creds(token: object) -> None:
     """Clear the active LLM creds (agent-loop teardown)."""
     _llm_creds_ctx.reset(token)  # type: ignore[arg-type]
+
+
+# --- Live research-step sink (Track A — aliveness) ---------------------------
+#
+# A long research tool (``deep_research`` / ``research``) runs for many seconds
+# inside a single agent tool round. The runtime publishes a per-tool-call SINK
+# here just before dispatching such a tool; the tool reads it and forwards each
+# :class:`~services.research.models.ResearchStep` it produces to the sink, which
+# the runtime drains and re-emits as ``research_step`` SSE events so the agent
+# surface can animate a live "working" trace. The sink is a plain callable
+# (``sink(step) -> None``), set + reset around each tool dispatch, task-local
+# (a child task copies it at creation), and ``None`` outside an agent run (so the
+# research engine degrades silently to no live trace — the brief still carries
+# the full step list). Cosmetic only: it never gates a mutation, never a secret.
+_step_sink_ctx: ContextVar[Callable[[Any], None] | None] = ContextVar(
+    "vysted_step_sink", default=None
+)
+
+
+def get_step_sink() -> Callable[[Any], None] | None:
+    """The active live-step sink for the current tool dispatch, or ``None``."""
+    return _step_sink_ctx.get()
+
+
+def set_step_sink(sink: Callable[[Any], None] | None) -> object:
+    """Publish a live-step sink for the current tool dispatch; returns a token."""
+    return _step_sink_ctx.set(sink)
+
+
+def reset_step_sink(token: object) -> None:
+    """Clear the live-step sink (per-tool-dispatch teardown)."""
+    _step_sink_ctx.reset(token)  # type: ignore[arg-type]
 
 
 def get_data_dir() -> Path:

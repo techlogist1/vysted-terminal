@@ -56,8 +56,13 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
 
     calls: dict[str, Any] = {}
 
-    async def _gather_fast(query, *, region, tool_call):  # noqa: ANN001
-        calls["gather_fast"] = {"query": query, "region": region, "tool_call": tool_call}
+    async def _gather_fast(query, *, region, tool_call, on_step=None):  # noqa: ANN001
+        calls["gather_fast"] = {
+            "query": query,
+            "region": region,
+            "tool_call": tool_call,
+            "on_step": on_step,
+        }
         return {"ok": True, "query": query, "region": region, "bundle": ["news", "quote"]}
 
     async def _run_deep_research(
@@ -139,7 +144,15 @@ def test_research_returns_the_bundle(research_modules, monkeypatch: pytest.Monke
     monkeypatch.setattr(agent_tools, "invoke_tool", sentinel)
     monkeypatch.setattr(config, "get_region", lambda: "IN")
 
-    out = _run(_research({"query": "  nvidia earnings  "}))
+    # Track A: the handler forwards the runtime's live step-sink to the loop.
+    def _sink(_step) -> None:  # noqa: ANN001
+        return None
+
+    token = config.set_step_sink(_sink)
+    try:
+        out = _run(_research({"query": "  nvidia earnings  "}))
+    finally:
+        config.reset_step_sink(token)
 
     assert out["ok"] is True
     assert out["bundle"] == ["news", "quote"]
@@ -148,6 +161,8 @@ def test_research_returns_the_bundle(research_modules, monkeypatch: pytest.Monke
     assert call["region"] == "IN"
     # The handler wires the real agent_tools.invoke_tool seam through.
     assert call["tool_call"] is sentinel
+    # …and the live step-sink (Track A) — None when no sink is set.
+    assert call["on_step"] is _sink
 
 
 # ---------------------------------------------------------------------------
@@ -174,7 +189,15 @@ def test_deep_research_native_runs_and_returns_brief(
     seam = object()
     monkeypatch.setattr(agent_tools, "invoke_tool", seam)
 
-    out = _run(_deep_research({"query": "rate cuts", "rounds": 2, "wall_seconds": 60}))
+    # Track A: the handler forwards the runtime's live step-sink as the loop's
+    # on_step, so steps stream to the SSE consumer while the loop runs.
+    streamed: list[Any] = []
+    sink = streamed.append
+    token = config.set_step_sink(sink)
+    try:
+        out = _run(_deep_research({"query": "rate cuts", "rounds": 2, "wall_seconds": 60}))
+    finally:
+        config.reset_step_sink(token)
 
     assert out["ok"] is True
     assert out["backend"] == "native"
@@ -190,8 +213,9 @@ def test_deep_research_native_runs_and_returns_brief(
     assert isinstance(call["budget"], BudgetGuard)
     # llm_call is an awaitable that proxies oneshot.complete.
     assert callable(call["llm_call"])
-    # on_step collected the loop's progress steps.
-    assert call["on_step"] is not None
+    # on_step IS the runtime sink, and the loop's steps streamed through it.
+    assert call["on_step"] is sink
+    assert streamed == ["plan", "synthesize"]
 
 
 def test_deep_research_clamps_rounds_and_wall(

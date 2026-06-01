@@ -21,11 +21,40 @@ fake and carries no import-time dependency on the agent-tool registry.
 from __future__ import annotations
 
 import asyncio
+import inspect
+import time
 from collections.abc import Awaitable, Callable
 from typing import Any
 
+from .models import ResearchStep
+
 #: Injected tool dispatcher — ``await tool_call(name, args) -> dict``.
 ToolCall = Callable[[str, dict[str, Any]], Awaitable[dict[str, Any]]]
+
+#: Injected step sink — ``on_step(ResearchStep) -> None`` (may be a coroutine).
+#: The FAST path is short (≤15s) but the agent surface still animates a live
+#: trace from it (Track A) so even the default research mode feels alive. ``None``
+#: outside an agent run (tests / direct calls) — emission is then a silent no-op.
+OnStep = Callable[[ResearchStep], Any]
+
+
+async def _emit(on_step: OnStep | None, step: ResearchStep) -> None:
+    """Forward one step to the sink, best-effort — a cosmetic trace must NEVER
+    break a research pull (a raising/garbled sink is swallowed)."""
+    if on_step is None:
+        return
+    try:
+        result = on_step(step)
+        if inspect.isawaitable(result):
+            await result
+    except Exception:  # noqa: BLE001 — the live trace is cosmetic, never fatal
+        pass
+
+
+def _ms(start: float) -> int:
+    """Elapsed wall time since ``start`` (a ``perf_counter`` reading) in ms."""
+    return int((time.perf_counter() - start) * 1000)
+
 
 #: Honest fallback line when no web backend answered (web_search ok==False). Kept
 #: short + actionable; the longer "how to unlock it" message rides the tool's own
@@ -142,6 +171,7 @@ async def gather_fast(
     *,
     region: str | None = None,
     tool_call: ToolCall,
+    on_step: OnStep | None = None,
 ) -> dict[str, Any]:
     """Pull the FAST structured research bundle for ``query`` (NO LLM).
 
@@ -160,9 +190,15 @@ async def gather_fast(
     resolve_args: dict[str, Any] = {"query": query}
     if region:
         resolve_args["region"] = region
+    t0 = time.perf_counter()
+    await _emit(on_step, ResearchStep("plan", f'resolving "{query}"'))
     resolved = await _safe_call(tool_call, "resolve_symbol", resolve_args)
 
     if not resolved.get("ok"):
+        await _emit(
+            on_step,
+            ResearchStep("plan", "could not resolve the query", _ms(t0), status="error"),
+        )
         return {
             "ok": False,
             "query": query,
@@ -174,9 +210,12 @@ async def gather_fast(
     symbol = instrument.get("symbol") or query
     name = instrument.get("name") or symbol
     asset_class = instrument.get("asset_class")
+    await _emit(on_step, ResearchStep("plan", f"resolved → {symbol}", _ms(t0)))
 
     # 2 — parallel structured fan-out. Each leg is pre-wrapped so a single
     # provider failure surfaces as ok:False in that slot, not a gather crash.
+    t1 = time.perf_counter()
+    await _emit(on_step, ResearchStep("tool", f"pulling market data for {symbol}"))
     price_res, fundamentals_res, news_res, filings_res = await asyncio.gather(
         _safe_call(tool_call, "price_data", {"symbol": symbol}),
         _safe_call(tool_call, "fundamentals", {"symbol": symbol}),
@@ -190,9 +229,16 @@ async def gather_fast(
         "news": _structured_value(news_res, "news"),
         "filings": _structured_value(filings_res, "filings"),
     }
+    _ok_legs = sum(1 for v in structured.values() if v.get("ok"))
+    await _emit(
+        on_step,
+        ResearchStep("tool", f"pulled {_ok_legs}/4 data sources", _ms(t1)),
+    )
 
     # 3 — ONE web round. The query frames the instrument by display name so a
     # web backend ranks on the company, not the bare ticker.
+    t2 = time.perf_counter()
+    await _emit(on_step, ResearchStep("search", f"searching the web for {name}"))
     web_res = await _safe_call(
         tool_call,
         "web_search",
@@ -212,6 +258,17 @@ async def gather_fast(
         detail = web_res.get("message") or web_res.get("error")
         if detail:
             web["detail"] = detail
+    _hits = len(web["citations"]) or len(web["results"])
+    await _emit(
+        on_step,
+        ResearchStep(
+            "search",
+            f"{_hits} web source(s)" if web_ok else "no web backend — structured only",
+            _ms(t2),
+            status="ok" if web_ok else "skipped",
+        ),
+    )
+    await _emit(on_step, ResearchStep("synthesize", "assembling the research bundle"))
 
     return {
         "ok": True,

@@ -89,6 +89,35 @@ class LLMToolUseEvent(BaseModel):
     input: dict[str, Any] = Field(default_factory=dict)
 
 
+class LLMResearchStepEvent(BaseModel):
+    """A live research-pipeline step, surfaced WHILE a long tool runs (Track A).
+
+    The deep/fast research tools run for many seconds inside a single tool round;
+    without this the SSE consumer sees the tool fire and then silence until the
+    result. The runtime drains each :class:`~services.research.models.ResearchStep`
+    the tool emits and forwards it as one of these events, so the agent surface
+    can animate a "thinking/working" trace (plan → search → synthesize) in real
+    time. Read-only/cosmetic — it never gates a mutation and carries no secrets.
+    """
+
+    kind: Literal["research_step"] = "research_step"
+    #: The tool round this step belongs to (the originating ``tool_use`` call id).
+    tool_call_id: str
+    #: The tool emitting the step (e.g. ``"deep_research"`` / ``"research"``).
+    tool: str
+    #: One of :data:`services.research.models.STEP_KINDS`
+    #: (plan/tool/search/compress/reflect/synthesize).
+    step_kind: str
+    #: A short human line, e.g. ``"researcher: demand outlook?"``.
+    detail: str
+    #: Wall time of the stage in ms, when measured.
+    latency_ms: int | None = None
+    #: ``"ok"`` / ``"error"`` / ``"skipped"`` — a non-fatal sub-failure is recorded.
+    status: str = "ok"
+    #: Monotonic 1-based step counter within the run (UI ordering/keys).
+    index: int = 0
+
+
 class LLMThinkingEvent(BaseModel):
     """Provider streamed extended-thinking text (Anthropic, OpenAI o-series)."""
 

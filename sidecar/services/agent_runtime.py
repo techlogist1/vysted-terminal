@@ -21,6 +21,7 @@ passed straight through to the provider adapter. Sidecar never persists.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 from collections.abc import AsyncIterator, Callable
@@ -39,6 +40,7 @@ from models.llm import (
     LLMErrorEvent,
     LLMMessage,
     LLMProviderId,
+    LLMResearchStepEvent,
     LLMToolUseEvent,
     LLMUsage,
 )
@@ -308,6 +310,93 @@ async def _dispatch_tool(
         return str(payload)
 
 
+class _ToolDone:
+    """Terminal item from :func:`_dispatch_tool_with_progress` — the JSON result
+    string of the completed tool. Distinguished from the live
+    :class:`LLMResearchStepEvent`s that precede it (which are forwarded to the
+    SSE consumer) so the caller can tell "a step to stream" from "the result"."""
+
+    __slots__ = ("result",)
+
+    def __init__(self, result: str) -> None:
+        self.result = result
+
+
+#: Pushed onto the step queue when the tool task finishes, so the drain loop
+#: knows no more live steps are coming.
+_STEP_SENTINEL = object()
+
+
+def _step_event(tool_call: LLMToolUseEvent, step: Any, index: int) -> LLMResearchStepEvent:
+    """Build a ``research_step`` SSE event from a tool's emitted step.
+
+    ``step`` is duck-typed: a :class:`~services.research.models.ResearchStep`
+    (attributes) or a plain dict — either is accepted so a future tool can emit
+    progress without importing the research models.
+    """
+    if isinstance(step, dict):
+        kind = step.get("kind", "tool")
+        detail = step.get("detail", "")
+        latency = step.get("latency_ms")
+        status = step.get("status", "ok")
+    else:
+        kind = getattr(step, "kind", "tool")
+        detail = getattr(step, "detail", "")
+        latency = getattr(step, "latency_ms", None)
+        status = getattr(step, "status", "ok")
+    return LLMResearchStepEvent(
+        tool_call_id=tool_call.tool_call_id,
+        tool=tool_call.name,
+        step_kind=str(kind),
+        detail=str(detail),
+        latency_ms=latency if isinstance(latency, int) else None,
+        status=str(status),
+        index=index,
+    )
+
+
+async def _dispatch_tool_with_progress(
+    tool_call: LLMToolUseEvent,
+    local_tools: dict[str, LocalToolHandler] | None = None,
+) -> AsyncIterator[LLMResearchStepEvent | _ToolDone]:
+    """Dispatch a tool, streaming any live research steps it emits, then yield a
+    terminal :class:`_ToolDone` carrying the JSON result string (Track A).
+
+    A long research tool (``deep_research`` / ``research``) pushes
+    :class:`ResearchStep`s onto a queue via the per-dispatch step-sink
+    (:func:`config.set_step_sink`, read inside the tool); this generator runs the
+    tool as a task and drains the queue, yielding one ``research_step`` event per
+    step WHILE the tool runs — turning an otherwise-silent multi-second tool round
+    into a live "working" trace. An instant tool emits nothing and this simply
+    yields ``_ToolDone`` immediately. The sink is reset on the way out so it never
+    leaks into the next dispatch; ``_dispatch_tool`` never raises (it serialises
+    failures), so the task result is always a string.
+    """
+    queue: asyncio.Queue[Any] = asyncio.Queue()
+    token = config.set_step_sink(queue.put_nowait)
+
+    async def _run() -> str:
+        try:
+            return await _dispatch_tool(tool_call, local_tools)
+        finally:
+            # The drain loop below blocks on the queue — always wake it, even on
+            # an (unexpected) cancellation, so the generator can finalise.
+            queue.put_nowait(_STEP_SENTINEL)
+
+    task = asyncio.create_task(_run())
+    index = 0
+    try:
+        while True:
+            item = await queue.get()
+            if item is _STEP_SENTINEL:
+                break
+            index += 1
+            yield _step_event(tool_call, item, index)
+        yield _ToolDone(await task)
+    finally:
+        config.reset_step_sink(token)
+
+
 def _build_local_tools(
     snapshot: AgentContextSnapshot | None,
 ) -> dict[str, LocalToolHandler]:
@@ -508,23 +597,30 @@ async def invoke_agent(
         # on the call ids, and re-enter the loop.
         for tool_call in pending_tools:
             if tool_call.name == "web_search":
-                # FR-081: bound per-search billing per run. Past the cap, return a
-                # synthesize-now signal instead of dispatching another search.
+                # FR-081: bound per-search billing per run.
                 web_search_calls += 1
-                if web_search_calls > _WEB_SEARCH_CAP:
-                    result_str = json.dumps(
-                        {
-                            "ok": False,
-                            "message": (
-                                f"web-search cap reached ({_WEB_SEARCH_CAP} searches this "
-                                "run) — answer from the sources you already gathered."
-                            ),
-                        }
-                    )
-                else:
-                    result_str = await _dispatch_tool(tool_call, local_tools)
+            if tool_call.name == "web_search" and web_search_calls > _WEB_SEARCH_CAP:
+                # Past the cap, return a synthesize-now signal instead of
+                # dispatching another search.
+                result_str = json.dumps(
+                    {
+                        "ok": False,
+                        "message": (
+                            f"web-search cap reached ({_WEB_SEARCH_CAP} searches this "
+                            "run) — answer from the sources you already gathered."
+                        ),
+                    }
+                )
             else:
-                result_str = await _dispatch_tool(tool_call, local_tools)
+                # Stream any live research steps the tool emits WHILE it runs
+                # (Track A — a long deep_research round is no longer silent), then
+                # take the JSON result string from the terminal _ToolDone.
+                result_str = ""
+                async for item in _dispatch_tool_with_progress(tool_call, local_tools):
+                    if isinstance(item, _ToolDone):
+                        result_str = item.result
+                    else:
+                        yield item
             messages.append(
                 LLMMessage(
                     role="tool",

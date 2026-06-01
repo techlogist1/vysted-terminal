@@ -22,12 +22,20 @@ from models.llm import (
     LLMDoneEvent,
     LLMErrorEvent,
     LLMMessage,
+    LLMResearchStepEvent,
     LLMThinkingEvent,
     LLMToolUseEvent,
 )
 
 #: One streaming event — the discriminated union the SSE router serialises.
-LLMStreamEvent = LLMDeltaEvent | LLMToolUseEvent | LLMThinkingEvent | LLMDoneEvent | LLMErrorEvent
+LLMStreamEvent = (
+    LLMDeltaEvent
+    | LLMToolUseEvent
+    | LLMResearchStepEvent
+    | LLMThinkingEvent
+    | LLMDoneEvent
+    | LLMErrorEvent
+)
 
 
 class LLMProvider(ABC):

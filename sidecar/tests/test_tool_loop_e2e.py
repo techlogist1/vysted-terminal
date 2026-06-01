@@ -17,14 +17,16 @@ import asyncio
 from collections.abc import AsyncIterator
 from typing import Any
 
+import config
 from models.agent import AgentContextSnapshot
 from models.llm import (
     LLMDeltaEvent,
     LLMDoneEvent,
     LLMMessage,
+    LLMResearchStepEvent,
     LLMToolUseEvent,
 )
-from services import agent_runtime
+from services import agent_runtime, agent_tools
 from services.agent_tools.schemas import anthropic_tools, gemini_tools, openai_tools
 from services.llm.base import LLMProvider, LLMStreamEvent
 
@@ -121,6 +123,76 @@ def test_copilot_tool_loop_runs_end_to_end(monkeypatch) -> None:
 
     # (5) the context preamble rendered the deixis line with the focused symbol.
     assert any(m.role == "system" and "AAPL" in m.content for m in second)
+
+
+class _ResearchProvider(LLMProvider):
+    """Round 1: call a long research tool. Round 2: answer from its result."""
+
+    def __init__(self) -> None:
+        self.n = 0
+
+    async def stream_chat(
+        self,
+        messages: list[LLMMessage],
+        model: str,
+        api_key: str | None = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[LLMStreamEvent]:
+        self.n += 1
+        if self.n == 1:
+            yield LLMToolUseEvent(tool_call_id="tc1", name="deep_research", input={"query": "x"})
+            yield LLMDoneEvent()
+        else:
+            yield LLMDeltaEvent(text="here is the brief")
+            yield LLMDoneEvent()
+
+    async def validate_key(self, api_key: str | None = None) -> bool:
+        return True
+
+
+def test_research_steps_stream_live_during_a_tool_round(monkeypatch) -> None:
+    """Track A: a tool that emits ResearchSteps via the runtime step-sink
+    surfaces them as live ``research_step`` events INTERLEAVED into the stream —
+    before the terminal ``done`` — so a long research round is no longer silent.
+    """
+    from services.research.models import ResearchStep
+
+    agent_runtime.reload()
+
+    async def _emitting_tool(args: dict[str, Any]) -> dict[str, Any]:
+        # The runtime publishes a per-dispatch sink; the tool forwards its steps.
+        sink = config.get_step_sink()
+        assert sink is not None
+        sink(ResearchStep("plan", "decomposed into 2 questions"))
+        sink(ResearchStep("search", "searched the web", latency_ms=42))
+        sink(ResearchStep("synthesize", "wrote the brief"))
+        return {"ok": True, "summary": "fake brief"}
+
+    # Override the real deep_research for this round; reset restores it.
+    agent_tools.register_tool("deep_research", _emitting_tool)
+    fake = _ResearchProvider()
+    monkeypatch.setattr(agent_runtime, "get_provider", lambda _pid, base_url=None: fake)
+
+    try:
+        events = asyncio.run(
+            _collect(agent_runtime.invoke_agent("copilot", "research x", api_key="x"))
+        )
+    finally:
+        agent_tools.reset_for_tests()
+
+    steps = [e for e in events if isinstance(e, LLMResearchStepEvent)]
+    # (1) all three steps streamed, in order, with the right kinds + indices.
+    assert [s.step_kind for s in steps] == ["plan", "search", "synthesize"]
+    assert [s.index for s in steps] == [1, 2, 3]
+    assert steps[1].latency_ms == 42
+    # (2) each carries the originating tool + tool_call_id (UI grouping).
+    assert all(s.tool == "deep_research" and s.tool_call_id == "tc1" for s in steps)
+    # (3) they interleave BEFORE the terminal done (not after the run finishes).
+    kinds = [type(e).__name__ for e in events]
+    assert kinds.index("LLMResearchStepEvent") < kinds.index("LLMDoneEvent")
+    # (4) the tool result still fed back so the model could answer.
+    text = "".join(e.text for e in events if isinstance(e, LLMDeltaEvent))
+    assert "brief" in text
 
 
 def test_tool_schemas_serialize_for_every_provider_shape() -> None:

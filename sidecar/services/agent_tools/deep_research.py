@@ -93,14 +93,17 @@ async def _run_native(query: str, rounds: int, wall: int) -> dict[str, Any]:
         max_steps=rounds * (_MAX_RESEARCHERS + 2),
         max_wall_seconds=wall,
     )
-    steps: list[Any] = []
+    # Forward each step LIVE to the runtime's step-sink (Track A) so the agent
+    # surface animates a "working" trace while this multi-second loop runs. The
+    # sink is ``None`` outside an agent invocation (tests / direct calls) — the
+    # loop still records every step into the returned brief regardless.
     brief = await deep.run_deep_research(
         query,
         region=config.get_region(),
         tool_call=agent_tools.invoke_tool,
         llm_call=llm_call,
         budget=budget,
-        on_step=steps.append,
+        on_step=config.get_step_sink(),
         max_researchers=_MAX_RESEARCHERS,
     )
     out = brief.to_dict()
