@@ -1,31 +1,40 @@
-# Vysted Terminal — Design System ("Claude after dark")
+# Vysted Terminal — Design System ("warm instrument")
 
-Phase 10. Replaces the Phase 9.5 "INSTRUMENT" amber-brass / lume-cream /
-warm-brown-black chronograph system.
+The agent-native craft pass (Pass A). Replaces the cold "instrument" minimal-dark
+system (graphite `#0a0b0d` + a single ion-blue `#4f86f7` accent), which itself had
+replaced an earlier warm "Claude after dark" espresso/coral system. _Sub-sections
+further down may still reference those earlier iterations — the **authoritative
+values are always `styles/tokens.css` + `src/lib/chart-theme.ts`**, not this prose._
 
 **Source of truth:** `styles/tokens.css` (the `@theme` token block) +
 `src/app/globals.css` (shadcn semantic mapping + chrome primitives + dockview
 theme). **Canvas mirror:** `src/lib/chart-theme.ts` — lightweight-charts and the
 drawing primitives render to `<canvas>` and cannot read CSS variables, so they
 import their palette from this one module (never re-declare hex per chart file).
+**Token NAMES are historical** (`charcoal`/`amber`/`brass`/`sage`/`lume`) so 80+
+consumer files re-skin with zero edits — read the role, not the name.
 
 ## The concept
 
-A warm **espresso near-black** base (red-brown undertone — never cold slate,
-never flat `#000`) carrying a single **coral / clay accent** (`#d97757`, the
-canonical Claude clay). **Cream / warm-paper** body text. A humanist display
-serif (**Fraunces**, with its optical-size + SOFT axes) over a precise data mono
-(**JetBrains Mono**). Bloomberg / JARVIS information density, expressed in
-Claude's restrained, warm, human language.
+A **warm-neutral graphite near-black** base (`#0b0a09` → cream `#e8e4dc`, R≥G≥B at
+every stop, a gentle warm undertone — aged graphite / worn brass, never cold-blue,
+never flat black, never warm-orange "toy retro") carrying a single **desaturated
+warm-clay accent** (`amber-400 = #a06b52`, ~30–40% saturation) that lights up only
+the active / agent-driven affordance. **Near-monochrome** — real color is reserved
+almost entirely for the P&L signals (gain `#38b25f` / loss `#ef5369`). A precise
+grotesque display (**Hanken Grotesk**, the `--font-serif` slot) over a data mono
+(**JetBrains Mono**) with tabular figures. Bloomberg density in Cursor's and
+Claude's restrained, warm, minimal language; the reference temperature is
+Anthropic's own warm neutrals (`#141413` dark / cream / clay) over Cursor's
+near-mono alpha-border structure.
 
-In one line: **take the amber-brass chronograph apart, keep its density and
-warmth, and rebuild it in Claude's coral-on-espresso palette with a humanist
-serif nameplate.**
+In one line: **a warm, aged, expensive-minimal instrument — near-monochrome warm
+graphite with one quiet clay accent, the data the only thing in full color.**
 
 ## Deliberately NOT
 
-- **No cold neutrals.** Every dark is red-brown-tinted espresso, never slate /
-  zinc, never flat black.
+- **No cold / blue neutrals.** Every dark is a warm-neutral graphite, never slate /
+  zinc / blue-graphite, never flat black, never warm-orange.
 - **No cyan HUD cliché.** A cold teal (`#4ec9a3`) had drifted into the earnings
   chart; it is gone.
 - **No purple/blue gradients. No Inter/Roboto.** Humanist serif display + a
