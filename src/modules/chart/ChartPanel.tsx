@@ -21,6 +21,7 @@ import {
 import { Lock, Unlock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { type Freshness, StalenessBadge } from "@/components/DataBadges";
 import {
   CHART_BORDER,
   CHART_CROSSHAIR,
@@ -243,6 +244,8 @@ function ChartPanel(props: ChartPanelProps = {}) {
   // Bumped to force an indicator re-fetch (Retry) without deselecting+reselecting.
   const [indicatorRetryNonce, setIndicatorRetryNonce] = useState(0);
   const [provider, setProvider] = useState<string | null>(null);
+  // Calendar-aware staleness of the series' last bar (FR-041 / SC-019).
+  const [freshness, setFreshness] = useState<Freshness | null>(null);
 
   // --- drawings state -----------------------------------------------------
   const [activeTool, setActiveTool] = useState<DrawingKind | null>(null);
@@ -340,6 +343,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
           chartRef.current?.timeScale().fitContent();
         }
         setProvider(series.provider);
+        setFreshness(series.freshness ?? null);
         setPriceState("ready");
       } catch (error: unknown) {
         if (cancelled) {
@@ -1064,9 +1068,11 @@ function ChartPanel(props: ChartPanelProps = {}) {
           ))}
         </div>
 
-        <div className="text-charcoal-400 ml-auto font-mono text-xs">
+        <div className="text-charcoal-400 ml-auto flex items-center gap-2 font-mono text-xs">
           <span className="text-charcoal-200">{symbol}</span>
-          {provider && priceState === "ready" ? <span className="ml-2">via {provider}</span> : null}
+          {provider && priceState === "ready" ? <span>via {provider}</span> : null}
+          {/* Calendar-aware freshness so a stale series is never read as current. */}
+          {freshness && priceState === "ready" ? <StalenessBadge freshness={freshness} /> : null}
         </div>
       </div>
 

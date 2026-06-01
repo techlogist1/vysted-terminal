@@ -19,10 +19,34 @@ import asyncio
 
 from fastapi import APIRouter, Query
 
+import config
 from models.market import Quote
 from services import provider_registry
+from services.locale import freshness_for
 
 router = APIRouter(prefix="/quotes", tags=["quotes"])
+
+
+def _label_freshness(quote: Quote, asset_class: str) -> Quote:
+    """Stamp the calendar-aware staleness label on a quote (FR-041 / SC-019).
+
+    A quote already passed the provider correctness gate, so it is never
+    fabricated; this adds the live/eod/stale label the UI badges so a legitimate
+    weekend/holiday close is not mistaken for a live tick and a genuinely stale
+    value is shown as stale, never as live. Crypto trades 24/7, so a fresh fetch
+    is always ``live``; equity/ETF freshness is read against the locale's trading
+    calendar (region from the per-request ContextVar set by the middleware).
+    """
+    if asset_class == "crypto":
+        quote.freshness = "live"
+        return quote
+    try:
+        quote.freshness = freshness_for(
+            config.get_region(), quote.timestamp.date(), intraday=True
+        ).state
+    except Exception:  # noqa: BLE001 — a label failure must never drop the quote
+        quote.freshness = None
+    return quote
 
 
 @router.get("/{symbol}")
@@ -33,7 +57,8 @@ async def get_quote(symbol: str, asset_class: str = "equity") -> Quote:
     request never blocks the event loop. A ``ProviderError`` propagates to the
     app-level handler and surfaces as a clean 502 (unchanged behaviour).
     """
-    return await asyncio.to_thread(provider_registry.get_quote, symbol, asset_class)
+    quote = await asyncio.to_thread(provider_registry.get_quote, symbol, asset_class)
+    return _label_freshness(quote, asset_class)
 
 
 @router.get("")
@@ -57,4 +82,6 @@ async def get_quotes(
         if symbol
     ]
     results = await asyncio.gather(*tasks, return_exceptions=True)
-    return [result for result in results if isinstance(result, Quote)]
+    return [
+        _label_freshness(result, asset_class) for result in results if isinstance(result, Quote)
+    ]

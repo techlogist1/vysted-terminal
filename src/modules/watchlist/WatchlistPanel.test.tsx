@@ -26,6 +26,7 @@ function quote(symbol: string, price: number, changePercent: number): Quote {
     market_state: null,
     timestamp: "2026-05-15T00:00:00Z",
     provider: "yfinance",
+    freshness: "eod",
   };
 }
 
@@ -71,6 +72,19 @@ describe("WatchlistPanel", () => {
     expect(await screen.findByText("-1.50%")).toBeInTheDocument();
     expect(screen.getByText("-1.50%").className).toContain("text-negative");
     expect(screen.getAllByText("+2.50%")[0].className).toContain("text-positive");
+  });
+
+  it("badges each quoted row with provenance + freshness (SC-019)", async () => {
+    render(<WatchlistPanel />);
+    await screen.findByText("SPY");
+    // One provenance + one staleness badge per quoted row — a stale value is
+    // never shown as a live tick.
+    const provenance = screen.getAllByTestId("provenance-badge");
+    const staleness = screen.getAllByTestId("staleness-badge");
+    expect(provenance.length).toBe(DEFAULT_SYMBOLS.length);
+    expect(staleness.length).toBe(DEFAULT_SYMBOLS.length);
+    expect(provenance[0]).toHaveTextContent("yfinance");
+    expect(staleness[0]).toHaveTextContent(/EOD/i);
   });
 
   it("surfaces a SidecarError message", async () => {

@@ -8,6 +8,9 @@
 
 // --- market ---------------------------------------------------------------
 
+/** Calendar-aware staleness label for a served market value (FR-041 / SC-019). */
+export type Freshness = "live" | "eod" | "stale";
+
 /** A point-in-time price quote for one instrument. */
 export interface Quote {
   symbol: string;
@@ -19,6 +22,8 @@ export interface Quote {
   market_state: string | null;
   timestamp: string;
   provider: string;
+  /** Set by the quotes router so the UI never shows a stale value as live. */
+  freshness?: Freshness | null;
 }
 
 /** A single open/high/low/close/volume bar. */
@@ -37,6 +42,8 @@ export interface OHLCVSeries {
   timeframe: string;
   bars: OHLCVBar[];
   provider: string;
+  /** Staleness of the LAST bar, set by the history router (FR-041 / SC-019). */
+  freshness?: Freshness | null;
 }
 
 /** One dated observation within a macro series. */

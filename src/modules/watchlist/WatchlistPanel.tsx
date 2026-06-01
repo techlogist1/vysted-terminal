@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUp, ChevronDown, Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ProvenanceBadge, StalenessBadge } from "@/components/DataBadges";
 import { SidecarError } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { usePanelContextBus } from "@/store/panel-context";
@@ -251,8 +252,22 @@ export function WatchlistPanel() {
                       isSelected && "bg-charcoal-800/40",
                     )}
                   >
-                    <td className="text-charcoal-100 truncate px-2.5 py-2 font-mono text-sm">
-                      {entry.symbol}
+                    <td className="px-2.5 py-2">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-charcoal-100 truncate font-mono text-sm">
+                          {entry.symbol}
+                        </span>
+                        {/* Provenance + calendar-aware freshness so a stale value
+                            is never shown as a live tick (FR-041 / SC-019). */}
+                        {quote !== null && (
+                          <span className="flex items-center gap-1 overflow-hidden">
+                            <ProvenanceBadge provider={quote.provider} />
+                            {quote.freshness != null && (
+                              <StalenessBadge freshness={quote.freshness} />
+                            )}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="text-charcoal-200 overflow-hidden px-2.5 py-2 text-right font-mono text-sm text-ellipsis whitespace-nowrap tabular-nums">
                       {quote !== null ? formatPrice(quote.price) : "—"}

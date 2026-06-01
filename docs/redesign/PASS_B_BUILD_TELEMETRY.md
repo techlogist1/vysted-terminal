@@ -5,15 +5,32 @@ One section per phase; the lead (Opus 4.8, 1M) appends as each phase closes.
 
 ## Running totals
 
-| Metric                | Value (through B6 — PASS B COMPLETE)                                            |
-| --------------------- | ------------------------------------------------------------------------------- |
-| Phases complete       | **6 / 6** (B1, B2, B3, B4, B5, B6) — no key gates (operator: no spend)           |
-| Sub-agents dispatched | 4 (B1) + 3 recon + 5 (B2) + 5 (B3) + 4 (B4) + 4 (B5/B6) = **25**                 |
-| New tests             | ~270 across B1–B6                                                                |
-| Test suite            | sidecar **1236** · vitest **845** · §6.5 **9/9**                                 |
-| New dependency        | `jugaad-data==0.33.1` (keyless NSE) — no new dep in B5/B6                        |
-| Sidecar binary        | rebuilt B1–B6 (new `/resolve` router folded in; no new PyInstaller flags)        |
+| Metric                | Value (through B6 — PASS B COMPLETE)                                                            |
+| --------------------- | ----------------------------------------------------------------------------------------------- |
+| Phases complete       | **6 / 6** (B1, B2, B3, B4, B5, B6) — no key gates (operator: no spend)                          |
+| Sub-agents dispatched | 4 (B1) + 3 recon + 5 (B2) + 5 (B3) + 4 (B4) + 4 (B5/B6) = **25**                                |
+| New tests             | ~280 across B1–B6                                                                               |
+| Test suite            | sidecar **1240** · vitest **846** · §6.5 **9/9**                                                |
+| New dependency        | `jugaad-data==0.33.1` (keyless NSE) — no new dep in B5/B6                                       |
+| Sidecar binary        | rebuilt B1–B6 (new `/resolve` router folded in; no new PyInstaller flags)                       |
 | Commits               | 9fcb146·5e9ea9a (B1) · bb29fd6 (B2) · 4c94888 (B3) · df1b6e4 (B4) · 4c4af93 (B5) · fe23f15 (B6) |
+
+## Closeout audit + SC-019 fix
+
+An 11-agent adversarial verification workflow (read-only Explore auditors, one per SC + a
+safety auditor) independently re-checked every Pass-B success criterion against the code/tests:
+**SC-016/017/018/020/021/022/023/024/025 + SAFETY = pass; SC-019 = partial.** The lone partial
+was honest: the correctness gate + 100% provenance + 0-fabricated core was fully done, but the
+calendar-aware **staleness label was surfaced only on the brief + broker-reads**, not the
+always-visible quote surfaces — so a stale watchlist/chart value could read as live.
+
+**Closed in this pass (SC-019 → pass):** `Quote.freshness` + `OHLCVSeries.freshness` (additive,
+mirrored in `types/data.ts`), computed in the quotes + history routers from the existing
+calendar-aware `locale.freshness_for` (region-aware; crypto = 24/7 live); badged on the watchlist
+rows (`ProvenanceBadge` + `StalenessBadge`) and the chart header (next to the existing `via
+<provider>`). A stale value is now labelled `stale` everywhere, never shown as a live tick. +4
+sidecar tests (live/eod/stale + crypto-live), +1 vitest (watchlist badges). No Tier-1 file
+touched; the change is correctness-adjacent but isolated to the routers + presentational badges.
 
 ## Rig verification sweep (closeout — `docs/screenshots/passB-b5b6/`)
 
@@ -23,17 +40,17 @@ shots **populated + dark**. The M1 display can't host a 16:9 point-window large 
 shot is captured at the Retina-2× native **2560×1664** with an aspect-preserved **1920×1248**
 downscale (`<name>@1920.png`) — both mandated resolutions, no distortion.
 
-| Shot                              | SC(s)            | What it proves (live)                                                            |
-| --------------------------------- | ---------------- | ------------------------------------------------------------------------------- |
-| `b5-slash-picker`                 | SC-023           | `/` opens the curated picker with all **11** commands ranked                     |
-| `b5-mention-apple-US`             | SC-023           | `@apple` → `@AAPL · US · Apple Inc.` first (prominence-ranked), live `/resolve`  |
-| `b5-mention-reliance-IN`          | SC-017/023       | IN region: `@reli` → `@RELIANCE · NSE` first, all-NSE candidates (locale-aware)  |
-| `b6-research-cockpit-NVDA`        | SC-016/019       | NVDA chart + MA/RSI/MACD/Volume + `NVDA via yfinance` provenance                 |
-| `b6-honest-brief-NVDA`            | SC-020           | the honest **"structured-data-only — no web backend configured"** brief banner   |
-| `b6-india-RELIANCE-IN`            | SC-017/019 + CF2 | RELIANCE (NSE) chart + **news re-fetched to India coverage on the region switch**|
-| `b6-portfolio-p1-populated`       | SC-024           | portfolio (RELIANCE+NIFTYBEES) **₹** market-value + P&L + concentration          |
-| `b6-flagship-cockpit-US-NVDA`     | SC-016/025       | the flagship cockpit, hero/hand-off state                                        |
-| `b5b6-baseline-restored-cockpit`  | SC-016/020       | workspace-blob restore: cockpit + honest brief survive a relaunch                |
+| Shot                             | SC(s)            | What it proves (live)                                                             |
+| -------------------------------- | ---------------- | --------------------------------------------------------------------------------- |
+| `b5-slash-picker`                | SC-023           | `/` opens the curated picker with all **11** commands ranked                      |
+| `b5-mention-apple-US`            | SC-023           | `@apple` → `@AAPL · US · Apple Inc.` first (prominence-ranked), live `/resolve`   |
+| `b5-mention-reliance-IN`         | SC-017/023       | IN region: `@reli` → `@RELIANCE · NSE` first, all-NSE candidates (locale-aware)   |
+| `b6-research-cockpit-NVDA`       | SC-016/019       | NVDA chart + MA/RSI/MACD/Volume + `NVDA via yfinance` provenance                  |
+| `b6-honest-brief-NVDA`           | SC-020           | the honest **"structured-data-only — no web backend configured"** brief banner    |
+| `b6-india-RELIANCE-IN`           | SC-017/019 + CF2 | RELIANCE (NSE) chart + **news re-fetched to India coverage on the region switch** |
+| `b6-portfolio-p1-populated`      | SC-024           | portfolio (RELIANCE+NIFTYBEES) **₹** market-value + P&L + concentration           |
+| `b6-flagship-cockpit-US-NVDA`    | SC-016/025       | the flagship cockpit, hero/hand-off state                                         |
+| `b5b6-baseline-restored-cockpit` | SC-016/020       | workspace-blob restore: cockpit + honest brief survive a relaunch                 |
 
 **Live behaviors confirmed on the rig:** the binary-level `/resolve` serves locale-first
 (RELIANCE→NSE/IN, Apple→AAPL/US); every curated slash action + cockpit mutation rode the

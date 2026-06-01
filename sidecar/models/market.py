@@ -23,6 +23,10 @@ class Quote(BaseModel):
     market_state: str | None = None
     timestamp: datetime
     provider: str
+    # Calendar-aware staleness label ("live" | "eod" | "stale"), set by the
+    # quotes router from ``locale.freshness_for`` so the UI never shows a stale
+    # value as live (FR-041 / SC-019). Optional + additive.
+    freshness: str | None = None
 
 
 class OHLCVBar(BaseModel):
@@ -43,6 +47,10 @@ class OHLCVSeries(BaseModel):
     timeframe: str
     bars: list[OHLCVBar]
     provider: str
+    # Calendar-aware staleness of the LAST bar ("live" | "eod" | "stale"), set by
+    # the history router so the chart never shows a stale series as current
+    # (FR-041 / SC-019). Optional + additive.
+    freshness: str | None = None
 
 
 class MacroObservation(BaseModel):
