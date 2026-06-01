@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
 import { INTEGRATIONS } from "@/lib/integrations/registry";
 import type { IntegrationSpec } from "@/lib/integrations/types";
+import { type Region, REGIONS } from "@/lib/region";
 import { cn } from "@/lib/utils";
 import { ConnectCard } from "@/modules/integrations/ConnectCard";
 import { useBrokersStore } from "@/store/brokers";
@@ -534,6 +535,8 @@ function PreferencesSection() {
   const toggleStarterCockpitPanel = useSettingsStore((s) => s.toggleStarterCockpitPanel);
   const themeKnobs = useSettingsStore((s) => s.themeKnobs);
   const setThemeKnobs = useSettingsStore((s) => s.setThemeKnobs);
+  const region = useSettingsStore((s) => s.region);
+  const setRegion = useSettingsStore((s) => s.setRegion);
 
   useEffect(() => {
     void refreshAgents();
@@ -621,6 +624,25 @@ function PreferencesSection() {
             {defaultModelOptions.map((model) => (
               <option key={model} value={model}>
                 {model}
+              </option>
+            ))}
+          </select>
+        </PrefRow>
+
+        {/* Region / locale — Pass A item 8 foundation seam (defaults to US) */}
+        <PrefRow
+          label="Region"
+          hint="Locale used for number formatting. Defaults to United States — a foundation for region-first data + feeds in a later release."
+        >
+          <select
+            aria-label="Region"
+            value={region}
+            onChange={(e) => setRegion(e.target.value as Region)}
+            className={selectClass}
+          >
+            {REGIONS.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.label}
               </option>
             ))}
           </select>

@@ -9,12 +9,25 @@
  * "+2855345159126.89%"; compact formatting prevents that class of overflow.
  */
 
+import { regionConfig } from "@/lib/region";
+import { useSettingsStore } from "@/store/settings";
+
 const MONEY_UNITS: readonly { value: number; suffix: string }[] = [
   { value: 1e15, suffix: "Q" },
   { value: 1e12, suffix: "T" },
   { value: 1e9, suffix: "B" },
   { value: 1e6, suffix: "M" },
 ];
+
+/**
+ * Region/locale read seam (Pass A item 8). The active region's BCP-47 locale
+ * drives number grouping; default `US` → `en-US` (identical to before). A later
+ * pass extends region into currency/FX + region-first data — this is where the
+ * locale is consumed. Read at call time so a region change reflects immediately.
+ */
+function activeLocale(): string {
+  return regionConfig(useSettingsStore.getState().region).locale;
+}
 
 /** Abbreviate a magnitude >= 1e6 to a ~3-significant-digit unit string, else null. */
 function abbreviate(abs: number): string | null {
@@ -31,7 +44,7 @@ function abbreviate(abs: number): string | null {
 /** USD with full cents precision. Non-finite -> "—". */
 export function formatMoney(value: number): string {
   if (!Number.isFinite(value)) return "—";
-  return value.toLocaleString("en-US", {
+  return value.toLocaleString(activeLocale(), {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 2,
@@ -73,5 +86,5 @@ export function formatCompactNumber(value: number): string {
   const abs = Math.abs(value);
   const abbr = abbreviate(abs);
   if (abbr !== null) return `${value < 0 ? "-" : ""}${abbr}`;
-  return value.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  return value.toLocaleString(activeLocale(), { maximumFractionDigits: 2 });
 }

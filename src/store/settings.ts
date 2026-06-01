@@ -25,6 +25,7 @@
 
 import { create } from "zustand";
 
+import { type Region, DEFAULT_REGION, isRegion } from "@/lib/region";
 import { autosaveLayout } from "@/lib/workspace";
 import type { LLMProviderId } from "../../types/ai";
 
@@ -71,6 +72,12 @@ export interface SettingsBundle {
   panelDefaults: PanelDefaults;
   /** Dark-only theme knobs. */
   themeKnobs: ThemeKnobs;
+  /**
+   * Region / locale (Pass A item 8 seam). Defaults to `US`; drives locale-aware
+   * formatting today and is the read point a later pass uses to make data/feeds
+   * region-first. See `src/lib/region.ts` + EXTENSION_SEAMS.md.
+   */
+  region: Region;
 }
 
 /** The default starter-cockpit composition — mirrors `config/default-layout`. */
@@ -91,6 +98,7 @@ export const DEFAULT_SETTINGS: Readonly<SettingsBundle> = Object.freeze<Settings
   starterCockpitPanelIds: [...DEFAULT_STARTER_COCKPIT_PANEL_IDS],
   panelDefaults: {},
   themeKnobs: { accentIntensity: "normal", density: "comfortable" },
+  region: DEFAULT_REGION,
 });
 
 interface SettingsState extends SettingsBundle {
@@ -105,6 +113,7 @@ interface SettingsState extends SettingsBundle {
   toggleStarterCockpitPanel: (panelId: string, on: boolean) => void;
   setPanelDefault: (panelId: string, prefs: Record<string, unknown>) => void;
   setThemeKnobs: (knobs: Partial<ThemeKnobs>) => void;
+  setRegion: (region: Region) => void;
   /** Replace the entire bundle (workspace/settings restore + import). */
   setAll: (bundle: Partial<SettingsBundle>) => void;
   /** Snapshot the current preferences as a plain bundle (for export). */
@@ -121,6 +130,7 @@ function seed(): SettingsBundle {
     starterCockpitPanelIds: [...DEFAULT_SETTINGS.starterCockpitPanelIds],
     panelDefaults: {},
     themeKnobs: { ...DEFAULT_SETTINGS.themeKnobs },
+    region: DEFAULT_SETTINGS.region,
   };
 }
 
@@ -206,6 +216,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     persist();
   },
 
+  setRegion: (region) => {
+    set({ region });
+    persist();
+  },
+
   setAll: (bundle) => {
     // Merge over the seed so a partial blob (older export, hand-edited import)
     // can't strip a field — every key keeps a sane value.
@@ -237,6 +252,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         bundle.themeKnobs && typeof bundle.themeKnobs === "object"
           ? { ...base.themeKnobs, ...bundle.themeKnobs }
           : base.themeKnobs,
+      region: isRegion(bundle.region) ? bundle.region : base.region,
     });
     persist();
   },
@@ -251,6 +267,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       starterCockpitPanelIds: [...s.starterCockpitPanelIds],
       panelDefaults: { ...s.panelDefaults },
       themeKnobs: { ...s.themeKnobs },
+      region: s.region,
     };
   },
 }));
