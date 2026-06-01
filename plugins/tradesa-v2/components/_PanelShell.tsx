@@ -55,7 +55,7 @@ function SkeletonBody() {
       {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={i}
-          className="h-8 animate-pulse rounded bg-zinc-800/60"
+          className="bg-charcoal-800/60 h-8 animate-pulse rounded"
           style={{ width: `${85 - i * 8}%` }}
         />
       ))}
@@ -75,15 +75,15 @@ function UnauthenticatedBody({
       data-testid="tradesa-unauthenticated"
       className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center"
     >
-      <h3 className="text-base font-semibold text-zinc-200">Tradesa V2 — {title}</h3>
-      <p className="max-w-md text-sm text-zinc-400">
+      <h3 className="text-charcoal-200 text-base font-semibold">Tradesa V2 — {title}</h3>
+      <p className="text-charcoal-400 max-w-md text-sm">
         Connect Vysted Terminal to your Tradesa V2 Supabase project to read live bot state. Vysted
         is observation-only — it never writes to your bot.
       </p>
       <button
         type="button"
         onClick={onOpenSettings}
-        className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+        className="text-charcoal-950 rounded-md bg-amber-500 px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
       >
         Open Settings
       </button>
@@ -104,14 +104,14 @@ function SupabaseErrorBody({
       data-testid="tradesa-supabase-error"
       className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center"
     >
-      <h3 className="text-base font-semibold text-red-300">Supabase unreachable</h3>
-      <p className="max-w-md text-sm text-zinc-400">
+      <h3 className="text-negative text-base font-semibold">Supabase unreachable</h3>
+      <p className="text-charcoal-400 max-w-md text-sm">
         {message || "Tradesa V2's Supabase project returned an error or is unreachable."}
       </p>
       <button
         type="button"
         onClick={onRetry}
-        className="inline-flex items-center gap-2 rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm font-medium text-zinc-200 transition-colors hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
+        className="border-charcoal-700 bg-charcoal-900 text-charcoal-200 hover:bg-charcoal-800 focus-visible:ring-charcoal-500 inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2"
       >
         <RefreshCw className="size-3.5" />
         Retry
@@ -129,7 +129,7 @@ function BotOfflineBanner({ ageSeconds }: { ageSeconds: number | null | undefine
     <div
       role="alert"
       data-testid="tradesa-bot-offline-banner"
-      className="border-b border-red-900/60 bg-red-950/40 px-3 py-2 text-xs text-red-200"
+      className="border-negative/40 bg-negative/10 text-negative border-b px-3 py-2 text-xs"
     >
       Tradesa V2 bot is offline (no heartbeat in {ageLabel}). Showing last-known data — values may
       be stale.
@@ -142,7 +142,7 @@ function PartialBanner({ message }: { message: string | null | undefined }) {
     <div
       role="alert"
       data-testid="tradesa-partial-banner"
-      className="border-b border-amber-900/60 bg-amber-950/40 px-3 py-2 text-xs text-amber-200"
+      className="border-warning/40 bg-warning/10 text-warning border-b px-3 py-2 text-xs"
     >
       {message || "Some Tradesa V2 endpoints are unreachable — showing partial data."}
     </div>
@@ -157,7 +157,7 @@ export function PanelShell({ title, children, muteOnBotOffline = true }: PanelSh
   const handleSettingsClose = () => setSettingsOpen(false);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-zinc-950 text-zinc-100">
+    <div className="bg-charcoal-950 text-charcoal-100 flex h-full flex-col overflow-hidden">
       <TradesaBotStatusStrip />
 
       {status === "connecting" && <SkeletonBody />}

@@ -129,10 +129,10 @@ export function formatPercent(ratio: number | null | undefined): string {
 // ---------------------------------------------------------------------------
 
 const TONE_CLASS: Record<"ok" | "warn" | "error" | "muted", string> = {
-  ok: "text-emerald-300 bg-emerald-950/40 border-emerald-800/60",
-  warn: "text-amber-300 bg-amber-950/40 border-amber-800/60",
-  error: "text-red-300 bg-red-950/40 border-red-800/60",
-  muted: "text-zinc-400 bg-zinc-900/40 border-zinc-800",
+  ok: "text-positive bg-positive/15 border-positive/40",
+  warn: "text-warning bg-warning/15 border-warning/40",
+  error: "text-negative bg-negative/15 border-negative/40",
+  muted: "text-charcoal-400 bg-charcoal-800/60 border-charcoal-700",
 };
 
 export function toneClasses(tone: "ok" | "warn" | "error" | "muted"): string {

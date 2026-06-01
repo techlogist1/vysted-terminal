@@ -25,8 +25,8 @@ import type { TradesaSentinelBlock } from "../../../types/tradesa_v2";
 
 function FailModeBadge({ failClosed }: { failClosed: boolean }) {
   const cls = failClosed
-    ? "bg-red-950/60 text-red-300 border-red-800"
-    : "bg-zinc-900 text-zinc-400 border-zinc-700";
+    ? "text-negative bg-negative/15 border-negative/40"
+    : "bg-charcoal-800 text-charcoal-400 border-charcoal-700";
   return (
     <span
       data-testid={`tradesa-fail-${failClosed ? "closed" : "open"}`}
@@ -46,7 +46,7 @@ function SentinelTable({ rows }: { rows: readonly TradesaSentinelBlock[] }) {
     return (
       <div
         data-testid="tradesa-sentinel-empty"
-        className="flex flex-1 items-center justify-center p-6 text-sm text-zinc-500"
+        className="text-charcoal-500 flex flex-1 items-center justify-center p-6 text-sm"
       >
         No sentinel-gate data yet.
       </div>
@@ -57,8 +57,8 @@ function SentinelTable({ rows }: { rows: readonly TradesaSentinelBlock[] }) {
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="overflow-auto">
         <table className="w-full text-sm">
-          <thead className="sticky top-0 z-10 bg-zinc-950">
-            <tr className="border-b border-zinc-800 text-left text-[11px] font-medium tracking-wide text-zinc-500 uppercase">
+          <thead className="bg-charcoal-925 sticky top-0 z-10">
+            <tr className="border-charcoal-700 text-charcoal-500 border-b text-left text-[11px] font-medium tracking-wide uppercase">
               <th className="px-3 py-2">Gate</th>
               <th className="px-3 py-2">Label</th>
               <th className="px-3 py-2 text-right">Today</th>
@@ -72,25 +72,27 @@ function SentinelTable({ rows }: { rows: readonly TradesaSentinelBlock[] }) {
               <tr
                 key={gate.gate_id}
                 data-testid="tradesa-sentinel-row"
-                className="border-b border-zinc-900/50 transition-colors hover:bg-zinc-900/40"
+                className="border-charcoal-800 hover:bg-charcoal-800/40 border-b transition-colors"
               >
-                <td className="px-3 py-2 font-mono text-[11px] text-zinc-400">{gate.gate_id}</td>
-                <td className="px-3 py-2 text-xs text-zinc-200">{gate.gate_label}</td>
+                <td className="text-charcoal-400 px-3 py-2 font-mono text-[11px]">
+                  {gate.gate_id}
+                </td>
+                <td className="text-charcoal-200 px-3 py-2 text-xs">{gate.gate_label}</td>
                 <td className="px-3 py-2 text-right">
                   <span
                     className={`inline-flex rounded px-1.5 py-0.5 font-mono text-xs ${
                       gate.today_count > 0
-                        ? "bg-amber-950/60 text-amber-300"
-                        : "bg-zinc-900 text-zinc-500"
+                        ? "text-warning bg-warning/15"
+                        : "bg-charcoal-800 text-charcoal-500"
                     }`}
                   >
                     {gate.today_count.toLocaleString()}
                   </span>
                 </td>
-                <td className="px-3 py-2 text-right font-mono text-xs text-zinc-400">
+                <td className="text-charcoal-400 px-3 py-2 text-right font-mono text-xs">
                   {gate.total_count.toLocaleString()}
                 </td>
-                <td className="px-3 py-2 text-right text-xs text-zinc-400">
+                <td className="text-charcoal-400 px-3 py-2 text-right text-xs">
                   {formatRelativeIso(gate.last_blocked_at)}
                 </td>
                 <td className="px-3 py-2">

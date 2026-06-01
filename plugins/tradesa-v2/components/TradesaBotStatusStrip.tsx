@@ -24,17 +24,17 @@ export function TradesaBotStatusStrip() {
 
   const dotClass =
     tone === "ok"
-      ? "bg-emerald-400"
+      ? "bg-positive"
       : tone === "warn"
-        ? "bg-amber-400"
+        ? "bg-warning"
         : tone === "error"
-          ? "bg-red-400"
-          : "bg-zinc-500";
+          ? "bg-negative"
+          : "bg-charcoal-500";
 
   const modeClass =
     state?.bot_mode === "live"
-      ? "bg-red-900/60 text-red-200 border-red-800"
-      : "bg-blue-900/60 text-blue-200 border-blue-800";
+      ? "bg-negative/15 text-negative border-negative/40"
+      : "bg-charcoal-800 text-charcoal-300 border-charcoal-700";
 
   return (
     <div
@@ -42,7 +42,7 @@ export function TradesaBotStatusStrip() {
       aria-label="Tradesa V2 bot status"
       data-tone={tone}
       data-testid="tradesa-status-strip"
-      className="flex shrink-0 items-center gap-2 border-b border-zinc-800 bg-zinc-950/80 px-3 py-2 text-xs text-zinc-300"
+      className="border-charcoal-700 bg-charcoal-925/80 text-charcoal-300 flex shrink-0 items-center gap-2 border-b px-3 py-2 text-xs"
     >
       <span aria-hidden className={`inline-block size-2 rounded-full ${dotClass}`} />
       <span className={`rounded border px-1.5 py-0.5 font-medium ${toneClasses(tone)}`}>
@@ -59,26 +59,26 @@ export function TradesaBotStatusStrip() {
       )}
 
       {state?.heartbeat_age_s !== null && state?.heartbeat_age_s !== undefined && (
-        <span className="text-zinc-500">
+        <span className="text-charcoal-500">
           heartbeat {formatRelativeSeconds(state.heartbeat_age_s)}
         </span>
       )}
 
       {state?.kill_switch_engaged === true && (
-        <span className="rounded border border-red-700 bg-red-900/60 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-red-100 uppercase">
+        <span className="border-negative bg-negative/15 text-negative rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase">
           Kill Switch
         </span>
       )}
 
       {state?.message && status !== "healthy" && (
-        <span className="hidden truncate text-zinc-500 sm:inline-block">{state.message}</span>
+        <span className="text-charcoal-500 hidden truncate sm:inline-block">{state.message}</span>
       )}
 
       <button
         type="button"
         aria-label="Reload bot status"
         onClick={() => void refresh()}
-        className="ml-auto inline-flex size-6 items-center justify-center rounded text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
+        className="text-charcoal-400 hover:bg-charcoal-700 hover:text-charcoal-200 ml-auto inline-flex size-6 items-center justify-center rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
       >
         <RefreshCw className="size-3.5" />
       </button>

@@ -161,7 +161,7 @@ export function TradesaSettingsDialog({ open, onClose }: TradesaSettingsDialogPr
             </div>
           </label>
 
-          <div className="rounded-md border border-amber-900/50 bg-amber-950/30 px-3 py-2 text-xs text-amber-200">
+          <div className="border-warning/40 bg-warning/10 text-warning rounded-md border px-3 py-2 text-xs">
             Your service-role key has full read+write power on your Tradesa V2 Supabase project.
             Vysted Terminal uses it read-only. Keep it on this machine only — don&apos;t share via
             screen-share or chat.

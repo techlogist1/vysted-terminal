@@ -60,13 +60,13 @@ describe("TradesaBotStatusStrip", () => {
     expect(screen.getByText("Kill Switch")).toBeInTheDocument();
   });
 
-  it("renders red-tone live badge when bot_mode is 'live'", () => {
+  it("renders negative-tone live badge when bot_mode is 'live'", () => {
     setConnectionState(makeConnectionState("healthy", { bot_mode: "live" }));
     installStubAdapter({ probeState: makeConnectionState("healthy") });
     render(<TradesaBotStatusStrip />);
     const liveBadge = screen.getByLabelText("Mode: live");
     expect(liveBadge).toHaveTextContent("live");
-    expect(liveBadge.className).toContain("text-red-200");
+    expect(liveBadge.className).toContain("text-negative");
   });
 
   it("reload button calls refreshConnection adapter", async () => {

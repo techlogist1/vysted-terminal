@@ -25,8 +25,8 @@ import type { TradesaTrade } from "../../../types/tradesa_v2";
 function SideBadge({ side }: { side: TradesaTrade["side"] }) {
   const cls =
     side === "long"
-      ? "bg-emerald-950/60 text-emerald-300 border-emerald-800"
-      : "bg-red-950/60 text-red-300 border-red-800";
+      ? "text-positive bg-positive/15 border-positive/40"
+      : "text-negative bg-negative/15 border-negative/40";
   return (
     <span
       data-testid={`tradesa-side-${side}`}
@@ -42,10 +42,10 @@ function PositionsTable({ rows }: { rows: readonly TradesaTrade[] }) {
     return (
       <div
         data-testid="tradesa-positions-empty"
-        className="flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-sm text-zinc-500"
+        className="text-charcoal-500 flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-sm"
       >
         <p>No open positions.</p>
-        <p className="text-xs text-zinc-600">
+        <p className="text-charcoal-400 text-xs">
           The bot opens positions when the Director LLM signals OPEN_LONG / OPEN_SHORT.
         </p>
       </div>
@@ -56,8 +56,8 @@ function PositionsTable({ rows }: { rows: readonly TradesaTrade[] }) {
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="overflow-auto">
         <table className="w-full text-sm">
-          <thead className="sticky top-0 z-10 bg-zinc-950">
-            <tr className="border-b border-zinc-800 text-left text-[11px] font-medium tracking-wide text-zinc-500 uppercase">
+          <thead className="bg-charcoal-925 sticky top-0 z-10">
+            <tr className="border-charcoal-700 text-charcoal-500 border-b text-left text-[11px] font-medium tracking-wide uppercase">
               <th className="px-3 py-2">Instrument</th>
               <th className="px-3 py-2">Side</th>
               <th className="px-3 py-2 text-right">Qty</th>
@@ -72,37 +72,37 @@ function PositionsTable({ rows }: { rows: readonly TradesaTrade[] }) {
               <tr
                 key={trade.id}
                 data-testid="tradesa-position-row"
-                className="border-b border-zinc-900/50 transition-colors hover:bg-zinc-900/40"
+                className="border-charcoal-800 hover:bg-charcoal-800/40 border-b transition-colors"
               >
                 <td className="px-3 py-2">
-                  <span className="inline-flex rounded bg-zinc-800/80 px-1.5 py-0.5 font-mono text-xs text-zinc-200">
+                  <span className="bg-charcoal-800 text-charcoal-200 inline-flex rounded px-1.5 py-0.5 font-mono text-xs">
                     {trade.instrument}
                   </span>
                 </td>
                 <td className="px-3 py-2">
                   <SideBadge side={trade.side} />
                 </td>
-                <td className="px-3 py-2 text-right font-mono text-xs text-zinc-200">
+                <td className="text-charcoal-200 px-3 py-2 text-right font-mono text-xs">
                   {formatNumber(trade.qty, 4)}
                 </td>
-                <td className="px-3 py-2 text-right font-mono text-xs text-zinc-200">
+                <td className="text-charcoal-200 px-3 py-2 text-right font-mono text-xs">
                   {formatNumber(trade.entry_price, 2)}
                 </td>
-                <td className="px-3 py-2 text-right font-mono text-xs text-amber-300">
+                <td className="text-warning px-3 py-2 text-right font-mono text-xs">
                   {formatNumber(trade.stop_loss_price, 2)}
                 </td>
                 <td className="px-3 py-2 text-right">
                   <span
                     className={`inline-flex rounded px-1.5 py-0.5 font-mono text-[10px] ${
                       trade.leverage > 4
-                        ? "bg-red-950/60 text-red-300"
-                        : "bg-zinc-900 text-zinc-400"
+                        ? "text-negative bg-negative/15"
+                        : "bg-charcoal-800 text-charcoal-400"
                     }`}
                   >
                     {trade.leverage}x
                   </span>
                 </td>
-                <td className="px-3 py-2 text-right text-xs text-zinc-400">
+                <td className="text-charcoal-400 px-3 py-2 text-right text-xs">
                   {formatRelativeIso(trade.opened_at)}
                 </td>
               </tr>

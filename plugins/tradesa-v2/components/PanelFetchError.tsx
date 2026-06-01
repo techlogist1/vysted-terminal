@@ -21,14 +21,14 @@ export function PanelFetchError({
     <div
       role="alert"
       data-testid="panel-fetch-error"
-      className="flex items-center justify-between gap-3 border-b border-amber-900/50 bg-amber-950/40 px-3 py-1.5 text-xs text-amber-200"
+      className="border-warning/40 bg-warning/10 text-warning flex items-center justify-between gap-3 border-b px-3 py-1.5 text-xs"
     >
       <span className="truncate">Could not refresh this panel: {error}</span>
       {onRetry !== undefined && (
         <button
           type="button"
           onClick={onRetry}
-          className="shrink-0 rounded border border-amber-700/60 px-2 py-0.5 font-mono text-[10px] tracking-wide uppercase hover:bg-amber-900/40"
+          className="border-warning/50 hover:bg-warning/15 shrink-0 rounded border px-2 py-0.5 font-mono text-[10px] tracking-wide uppercase"
         >
           Retry
         </button>

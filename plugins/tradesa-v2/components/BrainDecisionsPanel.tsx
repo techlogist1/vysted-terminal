@@ -27,11 +27,11 @@ import type { DecisionAction, TradesaCostRollup, TradesaDecision } from "../../.
 // ---------------------------------------------------------------------------
 
 const ACTION_TONE: Record<DecisionAction, string> = {
-  OPEN_LONG: "bg-emerald-950/60 text-emerald-300 border-emerald-800",
-  OPEN_SHORT: "bg-red-950/60 text-red-300 border-red-800",
-  CLOSE: "bg-amber-950/60 text-amber-300 border-amber-800",
-  ADJUST_SL: "bg-amber-950/60 text-amber-300 border-amber-800",
-  HOLD: "bg-zinc-900 text-zinc-400 border-zinc-700",
+  OPEN_LONG: "text-positive bg-positive/15 border-positive/40",
+  OPEN_SHORT: "text-negative bg-negative/15 border-negative/40",
+  CLOSE: "text-warning bg-warning/15 border-warning/40",
+  ADJUST_SL: "text-warning bg-warning/15 border-warning/40",
+  HOLD: "bg-charcoal-800 text-charcoal-400 border-charcoal-700",
 };
 
 function ActionBadge({ action }: { action: DecisionAction }) {
@@ -51,12 +51,12 @@ function ConfidenceBar({ value }: { value: number }) {
   const pct = Math.round(clamped * 100);
   const tone =
     clamped >= 0.75
-      ? "bg-emerald-500"
+      ? "bg-positive"
       : clamped >= 0.5
-        ? "bg-blue-500"
+        ? "bg-warning"
         : clamped >= 0.25
-          ? "bg-amber-500"
-          : "bg-red-500";
+          ? "bg-warning"
+          : "bg-negative";
   return (
     <div
       role="progressbar"
@@ -66,10 +66,10 @@ function ConfidenceBar({ value }: { value: number }) {
       aria-label="Decision confidence"
       className="flex items-center gap-2"
     >
-      <div className="h-1.5 w-20 overflow-hidden rounded-full bg-zinc-800">
+      <div className="bg-charcoal-800 h-1.5 w-20 overflow-hidden rounded-full">
         <div className={`h-full ${tone}`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="font-mono text-[10px] text-zinc-400">{pct}%</span>
+      <span className="text-charcoal-400 font-mono text-[10px]">{pct}%</span>
     </div>
   );
 }
@@ -83,49 +83,51 @@ function DecisionCard({ decision }: { decision: TradesaDecision }) {
   return (
     <article
       data-testid="tradesa-decision-card"
-      className="rounded-md border border-zinc-800 bg-zinc-900/40 p-3 transition-colors hover:bg-zinc-900/70"
+      className="border-charcoal-800 bg-charcoal-900/40 hover:bg-charcoal-900/70 rounded-md border p-3 transition-colors"
     >
       <header className="flex flex-wrap items-center gap-2">
         <ActionBadge action={decision.action} />
-        <span className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">
+        <span className="bg-charcoal-800 text-charcoal-300 rounded px-1.5 py-0.5 font-mono text-[10px]">
           {decision.instrument}
         </span>
         <ConfidenceBar value={decision.confidence} />
-        <span className="ml-auto text-[10px] text-zinc-500">
+        <span className="text-charcoal-500 ml-auto text-[10px]">
           {formatRelativeIso(decision.timestamp)}
         </span>
       </header>
 
       {(decision.size_pct !== null || decision.stop_loss_pct !== null) && (
-        <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-zinc-400">
+        <div className="text-charcoal-400 mt-2 flex flex-wrap gap-3 text-[11px]">
           {decision.size_pct !== null && (
             <span>
               size{" "}
-              <span className="font-mono text-zinc-200">{formatPercent(decision.size_pct)}</span>
+              <span className="text-charcoal-200 font-mono">
+                {formatPercent(decision.size_pct)}
+              </span>
             </span>
           )}
           {decision.stop_loss_pct !== null && (
             <span>
               SL{" "}
-              <span className="font-mono text-zinc-200">
+              <span className="text-charcoal-200 font-mono">
                 {formatPercent(decision.stop_loss_pct)}
               </span>
             </span>
           )}
           <span>
-            lev <span className="font-mono text-zinc-200">{decision.leverage}x</span>
+            lev <span className="text-charcoal-200 font-mono">{decision.leverage}x</span>
           </span>
         </div>
       )}
 
       {rationale && (
-        <div className="mt-2 text-xs leading-relaxed text-zinc-300">
+        <div className="text-charcoal-300 mt-2 text-xs leading-relaxed">
           {expanded ? rationale : truncated}
           {isLong && (
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
-              className="ml-2 text-blue-400 hover:text-blue-300 hover:underline"
+              className="ml-2 text-amber-400 hover:text-amber-300 hover:underline"
             >
               {expanded ? "show less" : "show more"}
             </button>
@@ -141,7 +143,7 @@ function DecisionsColumn({ decisions }: { decisions: readonly TradesaDecision[] 
     return (
       <div
         data-testid="tradesa-decisions-empty"
-        className="flex h-full items-center justify-center p-6 text-sm text-zinc-500"
+        className="text-charcoal-500 flex h-full items-center justify-center p-6 text-sm"
       >
         No brain decisions yet — Router LLM hasn&apos;t fired the Director.
       </div>
@@ -173,20 +175,24 @@ function CostColumn({ rollup }: { rollup: TradesaCostRollup | undefined }) {
   return (
     <aside
       data-testid="tradesa-cost-rollup"
-      className="flex w-full flex-col gap-3 border-l border-zinc-800 bg-zinc-950/60 p-3 md:w-72"
+      className="border-charcoal-800 bg-charcoal-925/60 flex w-full flex-col gap-3 border-l p-3 md:w-72"
     >
       <header>
-        <h3 className="text-xs font-medium tracking-wide text-zinc-500 uppercase">
+        <h3 className="text-charcoal-500 text-xs font-medium tracking-wide uppercase">
           Today&apos;s LLM cost
         </h3>
-        <p className="mt-1 font-mono text-2xl text-zinc-100">{formatUsd(rollup?.total_usd ?? 0)}</p>
-        {rollup?.date && <p className="text-[10px] text-zinc-600">{rollup.date} UTC</p>}
+        <p className="text-charcoal-100 mt-1 font-mono text-2xl">
+          {formatUsd(rollup?.total_usd ?? 0)}
+        </p>
+        {rollup?.date && <p className="text-charcoal-500 text-[10px]">{rollup.date} UTC</p>}
       </header>
 
       <div className="flex flex-col gap-2">
-        <h4 className="text-[10px] font-medium tracking-wide text-zinc-500 uppercase">By model</h4>
+        <h4 className="text-charcoal-500 text-[10px] font-medium tracking-wide uppercase">
+          By model
+        </h4>
         {entries.length === 0 ? (
-          <p className="text-xs text-zinc-500">No LLM calls today.</p>
+          <p className="text-charcoal-500 text-xs">No LLM calls today.</p>
         ) : (
           <ul className="flex flex-col gap-1.5">
             {entries.map((entry) => (
@@ -195,13 +201,13 @@ function CostColumn({ rollup }: { rollup: TradesaCostRollup | undefined }) {
                 data-testid="tradesa-cost-row"
                 className="flex flex-col gap-0.5"
               >
-                <div className="flex justify-between text-[11px] text-zinc-300">
+                <div className="text-charcoal-300 flex justify-between text-[11px]">
                   <span className="truncate font-mono">{entry.model}</span>
-                  <span className="font-mono text-zinc-400">{formatUsd(entry.cost)}</span>
+                  <span className="text-charcoal-400 font-mono">{formatUsd(entry.cost)}</span>
                 </div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-zinc-800">
+                <div className="bg-charcoal-800 h-1.5 overflow-hidden rounded-full">
                   <div
-                    className="h-full bg-blue-500"
+                    className="h-full bg-amber-500"
                     style={{ width: `${Math.round(entry.pct * 100)}%` }}
                   />
                 </div>

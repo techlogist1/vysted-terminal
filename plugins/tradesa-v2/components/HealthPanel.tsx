@@ -24,22 +24,22 @@ import type { TradesaKillSwitchEvent, KillSwitchSource } from "../../../types/tr
 import type { TradesaBotHealthLike } from "../connection";
 
 const STATUS_TONE: Record<string, string> = {
-  running: "bg-emerald-950/60 text-emerald-300 border-emerald-800",
-  starting: "bg-blue-950/60 text-blue-300 border-blue-800",
-  degraded: "bg-amber-950/60 text-amber-300 border-amber-800",
-  stopping: "bg-zinc-900 text-zinc-400 border-zinc-700",
+  running: "text-positive bg-positive/15 border-positive/40",
+  starting: "text-warning bg-warning/15 border-warning/40",
+  degraded: "text-warning bg-warning/15 border-warning/40",
+  stopping: "bg-charcoal-800 text-charcoal-400 border-charcoal-700",
 };
 
 const SOURCE_TONE: Record<KillSwitchSource, string> = {
-  operator_telegram: "bg-blue-950/60 text-blue-300 border-blue-800",
-  manual_cli: "bg-zinc-900 text-zinc-300 border-zinc-700",
-  sentinel: "bg-amber-950/60 text-amber-300 border-amber-800",
-  self_tuning: "bg-purple-950/60 text-purple-300 border-purple-800",
-  daily_loss: "bg-red-950/60 text-red-300 border-red-800",
+  operator_telegram: "bg-charcoal-800 text-charcoal-300 border-charcoal-700",
+  manual_cli: "bg-charcoal-800 text-charcoal-300 border-charcoal-700",
+  sentinel: "text-warning bg-warning/15 border-warning/40",
+  self_tuning: "bg-amber-500/15 text-amber-300 border-amber-500/40",
+  daily_loss: "text-negative bg-negative/15 border-negative/40",
 };
 
 function SourceBadge({ source }: { source: KillSwitchSource }) {
-  const cls = SOURCE_TONE[source] ?? "bg-zinc-900 text-zinc-400 border-zinc-700";
+  const cls = SOURCE_TONE[source] ?? "bg-charcoal-800 text-charcoal-400 border-charcoal-700";
   return (
     <span
       data-testid={`tradesa-source-${source}`}
@@ -55,53 +55,57 @@ function HealthCard({ latest }: { latest: TradesaBotHealthLike | null }) {
     return (
       <div
         data-testid="tradesa-health-card"
-        className="border-b border-zinc-800 bg-zinc-950/60 p-4 text-sm text-zinc-500"
+        className="border-charcoal-800 bg-charcoal-925/60 text-charcoal-500 border-b p-4 text-sm"
       >
         No heartbeat recorded yet.
       </div>
     );
   }
   const statusTone =
-    STATUS_TONE[latest.status?.toLowerCase()] ?? "bg-zinc-900 text-zinc-300 border-zinc-700";
-  const tile = "flex flex-col gap-0.5 rounded-md border border-zinc-800 bg-zinc-900/40 px-3 py-2";
+    STATUS_TONE[latest.status?.toLowerCase()] ??
+    "bg-charcoal-800 text-charcoal-300 border-charcoal-700";
+  const tile =
+    "border-charcoal-800 bg-charcoal-900/40 flex flex-col gap-0.5 rounded-md border px-3 py-2";
   return (
     <div
       data-testid="tradesa-health-card"
-      className="grid shrink-0 grid-cols-2 gap-3 border-b border-zinc-800 bg-zinc-950/60 p-4 md:grid-cols-4"
+      className="border-charcoal-800 bg-charcoal-925/60 grid shrink-0 grid-cols-2 gap-3 border-b p-4 md:grid-cols-4"
     >
       <div className={tile}>
-        <div className="text-[10px] tracking-wide text-zinc-500 uppercase">Status</div>
+        <div className="text-charcoal-500 text-[10px] tracking-wide uppercase">Status</div>
         <span
           className={`mt-0.5 inline-flex w-fit rounded border px-1.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase ${statusTone}`}
         >
           {latest.status}
         </span>
         {latest.detail && (
-          <span className="mt-1 truncate text-[10px] text-zinc-500">{latest.detail}</span>
+          <span className="text-charcoal-500 mt-1 truncate text-[10px]">{latest.detail}</span>
         )}
       </div>
       <div className={tile}>
-        <div className="text-[10px] tracking-wide text-zinc-500 uppercase">Uptime</div>
-        <div className="mt-0.5 font-mono text-sm text-zinc-100">
+        <div className="text-charcoal-500 text-[10px] tracking-wide uppercase">Uptime</div>
+        <div className="text-charcoal-100 mt-0.5 font-mono text-sm">
           {formatUptime(latest.uptime_s)}
         </div>
       </div>
       <div className={tile}>
-        <div className="text-[10px] tracking-wide text-zinc-500 uppercase">FD count</div>
-        <div className="mt-0.5 font-mono text-sm text-zinc-100">
+        <div className="text-charcoal-500 text-[10px] tracking-wide uppercase">FD count</div>
+        <div className="text-charcoal-100 mt-0.5 font-mono text-sm">
           {latest.fd_count !== null ? latest.fd_count.toLocaleString() : "—"}
         </div>
       </div>
       <div className={tile}>
-        <div className="text-[10px] tracking-wide text-zinc-500 uppercase">Threads</div>
-        <div className="mt-0.5 font-mono text-sm text-zinc-100">
+        <div className="text-charcoal-500 text-[10px] tracking-wide uppercase">Threads</div>
+        <div className="text-charcoal-100 mt-0.5 font-mono text-sm">
           {latest.thread_count !== null ? latest.thread_count.toLocaleString() : "—"}
         </div>
       </div>
       <div className={`${tile} col-span-2 md:col-span-4`}>
-        <div className="text-[10px] tracking-wide text-zinc-500 uppercase">Last heartbeat</div>
-        <div className="mt-0.5 text-sm text-zinc-100">{formatRelativeIso(latest.recorded_at)}</div>
-        <div className="text-[10px] text-zinc-600">
+        <div className="text-charcoal-500 text-[10px] tracking-wide uppercase">Last heartbeat</div>
+        <div className="text-charcoal-100 mt-0.5 text-sm">
+          {formatRelativeIso(latest.recorded_at)}
+        </div>
+        <div className="text-charcoal-500 text-[10px]">
           {latest.recorded_at} ({latest.service})
         </div>
       </div>
@@ -114,7 +118,7 @@ function KillSwitchTimeline({ events }: { events: TradesaKillSwitchEvent[] }) {
     return (
       <div
         data-testid="tradesa-killswitch-empty"
-        className="flex flex-1 items-center justify-center p-6 text-sm text-zinc-500"
+        className="text-charcoal-500 flex flex-1 items-center justify-center p-6 text-sm"
       >
         No kill-switch events recorded.
       </div>
@@ -122,7 +126,7 @@ function KillSwitchTimeline({ events }: { events: TradesaKillSwitchEvent[] }) {
   }
   return (
     <div className="flex flex-1 flex-col overflow-auto p-3">
-      <h3 className="mb-2 text-[11px] font-medium tracking-wide text-zinc-500 uppercase">
+      <h3 className="text-charcoal-500 mb-2 text-[11px] font-medium tracking-wide uppercase">
         Kill-switch events
       </h3>
       <ul className="flex flex-col gap-2">
@@ -130,23 +134,23 @@ function KillSwitchTimeline({ events }: { events: TradesaKillSwitchEvent[] }) {
           <li
             key={event.id}
             data-testid="tradesa-killswitch-row"
-            className="rounded-md border border-zinc-800 bg-zinc-900/40 p-3"
+            className="border-charcoal-800 bg-charcoal-900/40 rounded-md border p-3"
           >
             <div className="flex flex-wrap items-center gap-2">
               <SourceBadge source={event.source} />
-              <span className="text-xs text-zinc-300">
-                {event.actor ?? <em className="text-zinc-500">unknown actor</em>}
+              <span className="text-charcoal-300 text-xs">
+                {event.actor ?? <em className="text-charcoal-500">unknown actor</em>}
               </span>
-              <span className="ml-auto text-[10px] text-zinc-500">
+              <span className="text-charcoal-500 ml-auto text-[10px]">
                 {formatRelativeIso(event.fired_at)}
               </span>
             </div>
-            {event.reason && <p className="mt-1.5 text-xs text-zinc-300">{event.reason}</p>}
-            <div className="mt-1.5 text-[10px] text-zinc-500">
+            {event.reason && <p className="text-charcoal-300 mt-1.5 text-xs">{event.reason}</p>}
+            <div className="text-charcoal-500 mt-1.5 text-[10px]">
               {event.cleared_at ? (
                 <>cleared {formatRelativeIso(event.cleared_at)}</>
               ) : (
-                <span className="inline-flex rounded border border-red-800 bg-red-950/40 px-1.5 py-0.5 text-red-300">
+                <span className="border-negative/40 bg-negative/15 text-negative inline-flex rounded border px-1.5 py-0.5">
                   still active
                 </span>
               )}
