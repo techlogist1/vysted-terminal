@@ -15,7 +15,7 @@
 
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useBrokersStore } from "@/store/brokers";
-import { useChartSyncBus } from "@/store/chart-sync";
+import { useChartCommandStore } from "@/store/chart-command";
 import { useOrdersStore } from "@/store/orders";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
@@ -65,7 +65,7 @@ export function describeHostAction(
   const symbol = str(input, "symbol");
   switch (name) {
     case "set_chart_symbol": {
-      const current = useChartSyncBus.getState().symbol?.symbol ?? "—";
+      const current = useChartCommandStore.getState().activeSymbol ?? "—";
       const tf = str(input, "timeframe");
       return {
         kind: "chart",
@@ -161,7 +161,10 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
   switch (name) {
     case "set_chart_symbol":
       if (symbol) {
-        useChartSyncBus.getState().setSymbol("copilot", symbol);
+        // Command the chart DIRECTLY (always-consumed channel) rather than the
+        // opt-in sync bus a default chart ignores — the BUG-6 fix.
+        const tf = str(input, "timeframe");
+        useChartCommandStore.getState().loadSymbol(symbol, tf || undefined);
         return `Loaded ${symbol} into the chart`;
       }
       return null;

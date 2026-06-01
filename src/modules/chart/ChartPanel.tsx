@@ -31,6 +31,7 @@ import {
 } from "@/lib/chart-theme";
 import { SidecarError, sidecarApi } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
+import { useChartCommandStore } from "@/store/chart-command";
 import { newDrawingId, useChartDrawingsStore } from "@/store/chart-drawings";
 import {
   selectSubscriptions,
@@ -221,6 +222,9 @@ function ChartPanel(props: ChartPanelProps = {}) {
 
   const [priceState, setPriceState] = useState<LoadState>("idle");
   const [priceError, setPriceError] = useState<string | null>(null);
+  // Bumped to force a price re-fetch (Retry) even when symbol/timeframe are
+  // unchanged — a plain `setSymbol(s => s)` is an Object.is no-op and never reruns.
+  const [retryNonce, setRetryNonce] = useState(0);
   const [indicatorState, setIndicatorState] = useState<LoadState>("idle");
   const [indicatorError, setIndicatorError] = useState<string | null>(null);
   const [provider, setProvider] = useState<string | null>(null);
@@ -334,7 +338,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
     return () => {
       cancelled = true;
     };
-  }, [symbol, timeframe]);
+  }, [symbol, timeframe, retryNonce]);
 
   // --- indicator data -----------------------------------------------------
   const clearIndicatorSeries = useCallback(() => {
@@ -655,6 +659,32 @@ function ChartPanel(props: ChartPanelProps = {}) {
     };
     handleBroadcast(symbolBroadcast);
   }, [syncSubscriptions.symbol, symbolBroadcast, panelId]);
+
+  // Host command channel — ALWAYS consumed (unlike the opt-in symbol sync above),
+  // so an agent `set_chart_symbol` or a command-palette symbol pick actually lands
+  // on this chart (BUG-6 fix). A new command bumps `seq`, so the effect re-runs;
+  // on mount it adopts any pending command (covers "open a chart, then load X").
+  const chartCommand = useChartCommandStore((state) => state.command);
+  useEffect(() => {
+    // Indirect through a handler (matches the symbol-sync effect above) so the
+    // store→local-state sync isn't flagged as a direct setState-in-effect.
+    const applyCommand = (cmd: { symbol: string; timeframe?: string }) => {
+      setSymbol(cmd.symbol);
+      setSymbolInput(cmd.symbol);
+      if (cmd.timeframe && (TIMEFRAMES as readonly string[]).includes(cmd.timeframe)) {
+        setTimeframe(cmd.timeframe as Timeframe);
+      }
+    };
+    if (chartCommand) {
+      applyCommand(chartCommand);
+    }
+  }, [chartCommand]);
+
+  // Report the displayed symbol so the diff gate's "before" reflects the real
+  // chart state (not the stale sync-bus value).
+  useEffect(() => {
+    useChartCommandStore.getState().reportActiveSymbol(symbol);
+  }, [symbol]);
 
   // --- sync bus: broadcast our crosshair / visible-range / symbol --------
   useEffect(() => {
@@ -1040,11 +1070,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
         {priceState === "error" ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-6 text-center">
             <p className="text-negative font-mono text-sm">{priceError}</p>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setSymbol((current) => `${current}`)}
-            >
+            <Button size="sm" variant="outline" onClick={() => setRetryNonce((n) => n + 1)}>
               Retry
             </Button>
           </div>

@@ -10,6 +10,7 @@ import { isHostActionMutation } from "@/lib/host-actions";
 import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
 import { validateProvider } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
+import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { type AgentRunBudget, useAgentRunsStore } from "@/store/agent-runs";
 import { selectCustomAgents, selectFirstPartyAgents, useAgentsStore } from "@/store/agents";
@@ -29,6 +30,56 @@ import { ModeBar } from "./ModeBar";
 import { ProposedChangesReview } from "./ProposedChangesReview";
 import { parseSlashCommand, SLASH_HELP_LINES } from "./slash-commands";
 import { streamAgentInvocation, streamChat } from "./streaming";
+
+/**
+ * Autonomy switcher (Claude-Code-style) — `ask` keeps every change in the diff
+ * gate; `auto` applies UI/layout/chart/watchlist changes without a per-action
+ * confirmation. Orders are NEVER auto-applied in either mode (enforced in
+ * `proposed-changes`, not here). Sits beside the model HUD as the agent's
+ * confirmation-friction axis (orthogonal to the four intent modes).
+ */
+function AutonomyToggle() {
+  const autonomy = useAgentAutonomyStore((state) => state.autonomy);
+  const setAutonomy = useAgentAutonomyStore((state) => state.setAutonomy);
+  return (
+    <div className="border-charcoal-700 text-charcoal-400 flex items-center gap-2 border-b px-3 py-1 font-mono text-[0.6rem]">
+      <span className="tracking-wide uppercase">Autonomy</span>
+      <div
+        role="radiogroup"
+        aria-label="Agent autonomy"
+        className="border-charcoal-700 flex overflow-hidden rounded border"
+      >
+        {(["ask", "auto"] as const).map((level) => (
+          <button
+            key={level}
+            type="button"
+            role="radio"
+            aria-checked={autonomy === level}
+            onClick={() => setAutonomy(level)}
+            className={cn(
+              "px-2 py-0.5 uppercase transition-colors",
+              autonomy === level
+                ? "text-charcoal-950 bg-amber-400"
+                : "text-charcoal-400 hover:text-lume",
+            )}
+          >
+            {level}
+          </button>
+        ))}
+      </div>
+      <span
+        className="text-charcoal-500 truncate"
+        title={
+          autonomy === "auto"
+            ? "Auto-apply: UI / layout / chart / watchlist changes apply without a per-action confirmation. Orders ALWAYS route through the confirm-before-place dialog."
+            : "Ask: every proposed change waits for your accept in the diff gate."
+        }
+      >
+        {autonomy === "auto" ? "applies UI changes without asking" : "review every change"}
+      </span>
+    </div>
+  );
+}
 
 /** The default agent: the terminal-aware router/concierge. Bare text routes here. */
 const DEFAULT_AGENT_ID = "copilot";
@@ -453,6 +504,7 @@ export function ChatSidebar() {
         onProviderChange={(p) => setProviderOverride(p)}
         onModelChange={(m) => setModelOverride(effectiveProvider, m)}
       />
+      <AutonomyToggle />
       {mode === "delegate" && <BudgetConfig budget={delegateBudget} onChange={setDelegateBudget} />}
       <AgentsRail
         onForeground={(run) => {

@@ -20,6 +20,7 @@ import { collectPanelComponents } from "@/lib/module-registry";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useAgentDockStore } from "@/store/agent-dock";
 import { useAgentModeStore } from "@/store/agent-mode";
+import { type AgentAutonomy, isAgentAutonomy, useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useKeybindingsStore } from "@/store/keybindings";
 import { useLLMProvidersStore } from "@/store/llm-providers";
@@ -64,6 +65,12 @@ export interface SerializedWorkspace {
    * workspaces saved before this shipped.
    */
   agentMode?: AgentMode;
+  /**
+   * The agent AUTONOMY mode (ask / auto) — orthogonal to agentMode. Persisted so
+   * a user who turned on auto-apply keeps it across a relaunch. Optional for older
+   * blobs (absent → the default `ask` gate).
+   */
+  autonomyMode?: AgentAutonomy;
   /**
    * The agent dominant-column geometry (collapsed + width in px) so the
    * agent-first layout (FR-001) survives a relaunch. Optional for older blobs.
@@ -131,6 +138,7 @@ function buildWorkspacePayload(name: string): SerializedWorkspace {
     defaultProviderId: useLLMProvidersStore.getState().defaultProviderId,
     watchlist: useSymbolsStore.getState().entries,
     agentMode: useAgentModeStore.getState().mode,
+    autonomyMode: useAgentAutonomyStore.getState().autonomy,
     agentDock: {
       collapsed: useAgentDockStore.getState().collapsed,
       width: useAgentDockStore.getState().width,
@@ -194,6 +202,9 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
   // them — keep the defaults). Guarded so a corrupt value can't seed garbage.
   if (isAgentMode(workspace.agentMode)) {
     useAgentModeStore.getState().setMode(workspace.agentMode);
+  }
+  if (isAgentAutonomy(workspace.autonomyMode)) {
+    useAgentAutonomyStore.getState().setAutonomy(workspace.autonomyMode);
   }
   if (workspace.agentDock && typeof workspace.agentDock === "object") {
     useAgentDockStore.getState().setCollapsed(Boolean(workspace.agentDock.collapsed));

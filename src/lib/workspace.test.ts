@@ -2,6 +2,7 @@ import type { SerializedDockview } from "dockview";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AGENT_DOCK_DEFAULT_WIDTH, useAgentDockStore } from "@/store/agent-dock";
+import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { resetKeybindingsStoreForTests, useKeybindingsStore } from "@/store/keybindings";
@@ -58,6 +59,7 @@ describe("workspace serialization", () => {
     useLLMProvidersStore.setState({ defaultProviderId: "anthropic" });
     useSymbolsStore.setState({ entries: [{ symbol: "AAPL", assetClass: "equity" }] });
     useAgentModeStore.setState({ mode: "ask" });
+    useAgentAutonomyStore.setState({ autonomy: "ask" });
     useAgentDockStore.setState({ collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH });
     useModelSelectionStore.setState({ overrides: {} });
     resetKeybindingsStoreForTests();
@@ -83,6 +85,7 @@ describe("workspace serialization", () => {
       defaultProviderId: "anthropic",
       watchlist: [{ symbol: "AAPL", assetClass: "equity" }],
       agentMode: "ask",
+      autonomyMode: "ask",
       agentDock: { collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH },
       modelOverrides: {},
       modelOverridesV: 1,
@@ -145,11 +148,13 @@ describe("workspace serialization", () => {
       layout: LAYOUT_A,
       enabledModules: {},
       agentMode: "build",
+      autonomyMode: "auto",
       agentDock: { collapsed: true, width: 520 },
       modelOverrides: { anthropic: "claude-sonnet-4-6" },
       modelOverridesV: 1,
     });
     expect(useAgentModeStore.getState().mode).toBe("build");
+    expect(useAgentAutonomyStore.getState().autonomy).toBe("auto");
     expect(useAgentDockStore.getState().collapsed).toBe(true);
     expect(useAgentDockStore.getState().width).toBe(520);
     expect(useModelSelectionStore.getState().overrides.anthropic).toBe("claude-sonnet-4-6");

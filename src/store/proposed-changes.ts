@@ -12,6 +12,7 @@
 import { create } from "zustand";
 
 import { applyHostAction, describeHostAction, routeOrderProposal } from "@/lib/host-actions";
+import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 
 import type { ProposedChange } from "../../types/proposed-change";
 
@@ -70,6 +71,14 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
       createdAt: Date.now(),
     };
     set((state) => ({ changes: [...state.changes, change] }));
+    // Autonomy: in AUTO mode, the UI/layout/chart/watchlist host-actions apply
+    // without a per-action confirmation (still recorded in the transcript).
+    // HARD SAFETY LINE — an ORDER is NEVER auto-applied in any mode: it is
+    // excluded here AND `accept()` would route it through the §6.5 confirm dialog
+    // anyway. `auto` changes confirmation friction, never the safety enforcement.
+    if (described.kind !== "order" && useAgentAutonomyStore.getState().autonomy === "auto") {
+      void get().accept(id);
+    }
     return id;
   },
 

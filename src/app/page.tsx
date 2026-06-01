@@ -18,6 +18,7 @@ import { WorkspaceDialog } from "@/modules/platform/WorkspaceDialog";
 import { useWorkspaceDialog } from "@/modules/platform/workspace-dialog-store";
 import { useAgentDockStore } from "@/store/agent-dock";
 import { useAgentModeStore } from "@/store/agent-mode";
+import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAppStore } from "@/store/app";
 import { useCommandPalette } from "@/store/command-palette";
 import { useModelSelectionStore } from "@/store/model-selection";
@@ -91,6 +92,11 @@ export default function Page() {
         void autosaveLayout();
       }
     });
+    const unsubscribeAutonomy = useAgentAutonomyStore.subscribe((state, previous) => {
+      if (state.autonomy !== previous.autonomy) {
+        void autosaveLayout();
+      }
+    });
     return () => {
       alive = false;
       unsubscribeEnabled();
@@ -99,6 +105,7 @@ export default function Page() {
       unsubscribeAgentMode();
       unsubscribeDock();
       unsubscribeModels();
+      unsubscribeAutonomy();
       teardown?.();
     };
   }, []);

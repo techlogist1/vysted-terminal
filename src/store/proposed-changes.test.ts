@@ -24,6 +24,7 @@ vi.mock("@/lib/host-actions", () => ({
   describeHostAction: describeHostActionMock,
 }));
 
+import { resetAgentAutonomyStoreForTests, useAgentAutonomyStore } from "@/store/agent-autonomy";
 import {
   resetProposedChangesStoreForTests,
   useProposedChangesStore,
@@ -41,6 +42,7 @@ function enqueue(name: string, input: Record<string, unknown> = {}, batchId = "b
 describe("proposed-changes store — the diff/accept trust gate (FR-010)", () => {
   beforeEach(() => {
     resetProposedChangesStoreForTests();
+    resetAgentAutonomyStoreForTests();
     applyHostActionMock.mockClear();
     routeOrderProposalMock.mockClear();
   });
@@ -112,5 +114,34 @@ describe("proposed-changes store — the diff/accept trust gate (FR-010)", () =>
     useProposedChangesStore.getState().rejectAll();
     expect(useProposedChangesStore.getState().pending()).toHaveLength(0);
     expect(applyHostActionMock).not.toHaveBeenCalled();
+  });
+
+  // --- autonomy (item 7) — AUTO auto-applies non-order; ASK gates everything ---
+
+  it("ASK mode (default) leaves a non-order change pending — no auto-apply", () => {
+    useAgentAutonomyStore.getState().setAutonomy("ask");
+    enqueue("set_chart_symbol", { symbol: "NVDA" });
+    expect(applyHostActionMock).not.toHaveBeenCalled();
+    expect(useProposedChangesStore.getState().pending()).toHaveLength(1);
+  });
+
+  it("AUTO mode applies a UI/chart/watchlist change on enqueue, no manual accept", async () => {
+    useAgentAutonomyStore.getState().setAutonomy("auto");
+    enqueue("set_chart_symbol", { symbol: "NVDA" });
+    await Promise.resolve(); // flush the void accept() microtask
+    expect(applyHostActionMock).toHaveBeenCalledTimes(1);
+    expect(applyHostActionMock).toHaveBeenCalledWith("set_chart_symbol", { symbol: "NVDA" });
+    expect(useProposedChangesStore.getState().changes[0].status).toBe("accepted");
+  });
+
+  it("AUTO mode NEVER auto-applies an ORDER — it stays gated (hard safety line)", async () => {
+    useAgentAutonomyStore.getState().setAutonomy("auto");
+    enqueue("propose_order", { symbol: "AAPL", side: "buy", quantity: 1 });
+    await Promise.resolve();
+    // The order is NOT auto-accepted: no route, no apply, still pending for the
+    // explicit §6.5 confirm path. `auto` changes friction, not safety.
+    expect(routeOrderProposalMock).not.toHaveBeenCalled();
+    expect(applyHostActionMock).not.toHaveBeenCalled();
+    expect(useProposedChangesStore.getState().changes[0].status).toBe("pending");
   });
 });

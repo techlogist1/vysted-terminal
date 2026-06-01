@@ -12,13 +12,13 @@ import {
   routeOrderProposal,
 } from "@/lib/host-actions";
 import { useBrokersStore } from "@/store/brokers";
-import { useChartSyncBus } from "@/store/chart-sync";
+import { useChartCommandStore } from "@/store/chart-command";
 import { useOrdersStore } from "@/store/orders";
 import { useSymbolsStore } from "@/store/symbols";
 
 describe("host-actions", () => {
   beforeEach(() => {
-    useChartSyncBus.setState({ symbol: null });
+    useChartCommandStore.setState({ command: null, activeSymbol: null });
     useSymbolsStore.setState({ entries: [] });
     useOrdersStore.setState({ proposals: [], activeProposalId: null });
     useBrokersStore.setState({ byId: {} });
@@ -71,10 +71,11 @@ describe("host-actions", () => {
     expect(applyHostAction("arrange_layout", { pattern: "focus", panel: "chart" })).toBeNull();
   });
 
-  it("applyHostAction(set_chart_symbol) loads the symbol into the chart bus", () => {
+  it("applyHostAction(set_chart_symbol) commands the chart to load the symbol", () => {
     const label = applyHostAction("set_chart_symbol", { symbol: "NVDA" });
     expect(label).toMatch(/NVDA/);
-    expect(useChartSyncBus.getState().symbol?.symbol).toBe("NVDA");
+    // The always-consumed command channel (NOT the opt-in sync bus) — BUG-6 fix.
+    expect(useChartCommandStore.getState().command?.symbol).toBe("NVDA");
   });
 
   it("applyHostAction(add_to_watchlist) tracks the symbol", () => {
@@ -89,7 +90,7 @@ describe("host-actions", () => {
   });
 
   it("describeHostAction renders a reviewable old→new diff per kind", () => {
-    useChartSyncBus.setState({ symbol: { symbol: "SPY", source: "x", seq: 1 } });
+    useChartCommandStore.setState({ activeSymbol: "SPY" });
     const chart = describeHostAction("set_chart_symbol", { symbol: "NVDA", timeframe: "1d" });
     expect(chart.kind).toBe("chart");
     expect(chart.before).toContain("SPY");

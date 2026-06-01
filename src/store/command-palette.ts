@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 import { executeCommand } from "@/lib/commands";
 import { selectCustomAgents, selectFirstPartyAgents, useAgentsStore } from "@/store/agents";
-import { useChartSyncBus } from "@/store/chart-sync";
+import { useChartCommandStore } from "@/store/chart-command";
 import { formatBinding, useKeybindingsStore } from "@/store/keybindings";
 import { useModulesStore } from "@/store/modules";
 import { useSymbolsStore } from "@/store/symbols";
@@ -106,15 +106,15 @@ export function buildPaletteCorpus(commands: CommandSpec[]): PaletteItem[] {
     });
   }
 
-  // 3) Symbols — selecting one broadcasts it on the chart sync bus so every
-  //    symbol-subscribed chart tracks it (the same path the copilot uses).
+  // 3) Symbols — selecting one commands the open chart to load it (the same
+  //    always-consumed channel the copilot uses, so it actually lands).
   for (const entry of useSymbolsStore.getState().entries) {
     items.push({
       id: `symbol:${entry.symbol}`,
       kind: "symbol",
       title: entry.symbol,
       subtitle: entry.assetClass === "crypto" ? "Crypto" : "Equity",
-      run: () => useChartSyncBus.getState().setSymbol("palette", entry.symbol),
+      run: () => useChartCommandStore.getState().loadSymbol(entry.symbol),
     });
   }
 

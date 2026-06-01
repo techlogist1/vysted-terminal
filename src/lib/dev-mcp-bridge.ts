@@ -10,9 +10,23 @@
 // (absent from release installs) is never referenced or bundled. The Rust
 // plugin that answers this bridge is likewise compiled out of release builds
 // via the Cargo `dev-tools` feature.
+
+import { useAgentAutonomyStore } from "@/store/agent-autonomy";
+import { useChartCommandStore } from "@/store/chart-command";
+import { useProposedChangesStore } from "@/store/proposed-changes";
+
 export function initDevMcpBridge(): void {
   if (process.env.NODE_ENV === "production") return;
   if (typeof window === "undefined") return;
+  // Dev-only: expose the agent act-path stores so the rig can drive + inspect
+  // them deterministically (verify the chart-command channel, the autonomy
+  // auto-apply, and the diff gate without round-tripping an LLM). Same NODE_ENV
+  // strip + `dev-tools` guard as the bridge below — never in the production export.
+  (window as unknown as { __vystedStores?: unknown }).__vystedStores = {
+    chartCommand: useChartCommandStore,
+    autonomy: useAgentAutonomyStore,
+    proposedChanges: useProposedChangesStore,
+  };
   void import("tauri-plugin-mcp")
     .then(({ initMcpBridge }) => initMcpBridge())
     .catch((err) => {
