@@ -26,6 +26,31 @@ export function isReservedLayoutName(name: string): boolean {
   return name.startsWith("__");
 }
 
+/** Side-rail data panels that belong in the dockview side stack, not the main
+ *  content group. Everything else is "primary content" and tabs into the centre. */
+const RAIL_PANEL_IDS = new Set(["watchlist", "news", "portfolio"]);
+
+/**
+ * Placement position for a newly-opened panel (PRODUCT_DESIGN_DECISIONS §7): a
+ * primary-content panel tabs `within` the main / centre group (anchored on the
+ * chart or equity overview, else any open non-rail panel) so a wide panel never
+ * lands in a cramped rail cell. Rail panels — and the case where no centre anchor
+ * is open yet (the panel is the first to mount) — return `undefined` for
+ * dockview's default placement.
+ */
+function mainGroupPosition(
+  api: DockviewApi,
+  panelId: string,
+): { referencePanel: string; direction: "within" } | undefined {
+  if (RAIL_PANEL_IDS.has(panelId)) {
+    return undefined;
+  }
+  const anchorId =
+    ["chart", "equity-overview"].find((id) => api.getPanel(id)) ??
+    api.panels.find((p) => !RAIL_PANEL_IDS.has(p.id))?.id;
+  return anchorId ? { referencePanel: anchorId, direction: "within" } : undefined;
+}
+
 interface WorkspaceState {
   /** Name of the active workspace. */
   name: string;
@@ -72,6 +97,13 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         height: spec.defaultSize.h * GRID_UNIT_PX,
       });
     };
+    // Panel-placement policy (PRODUCT_DESIGN_DECISIONS §7): a primary-content
+    // panel (everything except the side-rail data panels) tabs INTO the main /
+    // center group beside the chart instead of landing in dockview's last-focused
+    // slot — which can be a cramped rail cell where a wide panel (Settings,
+    // Marketplace, a backtest) is unusable. Rail panels keep the default side-
+    // stack placement; if no center anchor is open yet, fall back to the default.
+    const position = mainGroupPosition(api, panelId);
     if (spec.singleton !== false) {
       // Singleton panel: focus the open instance, otherwise add a fresh one.
       const existing = api.getPanel(panelId);
@@ -79,7 +111,9 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         existing.api.setActive();
         return;
       }
-      applySize(api.addPanel({ id: spec.id, component: spec.component, title: spec.title }));
+      applySize(
+        api.addPanel({ id: spec.id, component: spec.component, title: spec.title, position }),
+      );
       return;
     }
     // Non-singleton (Phase 2 chart): mint a unique panel id so multiple
@@ -87,7 +121,9 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     const uniqueId = `${spec.id}-${Date.now().toString(36)}-${Math.random()
       .toString(36)
       .slice(2, 6)}`;
-    applySize(api.addPanel({ id: uniqueId, component: spec.component, title: spec.title }));
+    applySize(
+      api.addPanel({ id: uniqueId, component: spec.component, title: spec.title, position }),
+    );
   },
   closePanel: (panelId) => {
     get().dockviewApi?.getPanel(panelId)?.api.close();

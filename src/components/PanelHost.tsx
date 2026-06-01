@@ -23,11 +23,46 @@ const AUTOSAVE_DEBOUNCE_MS = 1500;
  * listed gets `DEFAULT_PANEL_MIN_SIZE`.
  */
 const PANEL_MIN_SIZE: Record<string, { minimumWidth: number; minimumHeight: number }> = {
-  "chart-panel": { minimumWidth: 360, minimumHeight: 220 },
+  // --- Default-cockpit panels ---
+  // chart: the always-present indicator selector (max-h-56 = 224px) + two
+  // flex-wrap toolbars (~80px) sit BELOW the chart canvas; at the old 220px
+  // floor the `flex-1` canvas collapsed to 0px and lightweight-charts rendered
+  // a 0-height surface. 480px = ~200px usable canvas + ~80px toolbars + the
+  // 200px indicator-section floor, so the canvas keeps a legible height.
+  "chart-panel": { minimumWidth: 360, minimumHeight: 480 },
   "equity-overview-panel": { minimumWidth: 340, minimumHeight: 200 },
   "watchlist-panel": { minimumWidth: 264, minimumHeight: 140 },
   "news-panel": { minimumWidth: 280, minimumHeight: 160 },
-  "portfolio-panel": { minimumWidth: 300, minimumHeight: 160 },
+  "portfolio-panel": { minimumWidth: 520, minimumHeight: 160 },
+
+  // --- Wide content panels (fixed-width aside / canvas + a results floor) ---
+  // Each width = the panel's hardcoded fixed column(s) + a usable second pane,
+  // so the `flex-1` results/canvas section never collapses to 0 at the min.
+  "node-editor-panel": { minimumWidth: 560, minimumHeight: 320 }, // palette 224 + props 256 + 80 canvas
+  "option-pricer-panel": { minimumWidth: 640, minimumHeight: 320 }, // w-80 aside (320) + 320 results
+  "bond-pricer-panel": { minimumWidth: 640, minimumHeight: 300 }, // w-80 aside (320) + 320 results
+  "yield-curve-panel": { minimumWidth: 640, minimumHeight: 360 }, // w-80 aside (320) + 320 chart
+  "greeks-dashboard-panel": { minimumWidth: 600, minimumHeight: 280 }, // w-72 aside (288) + 312 heatmap
+  "backtest-panel": { minimumWidth: 680, minimumHeight: 340 }, // w-72 aside (288) + 392 results
+  "screener-panel": { minimumWidth: 580, minimumHeight: 360 }, // 384px criteria grid + padding + remove
+  "sec-filings-panel": { minimumWidth: 480, minimumHeight: 300 },
+  "earnings-calendar-panel": { minimumWidth: 560, minimumHeight: 240 },
+  "analyst-ratings-panel": { minimumWidth: 420, minimumHeight: 260 },
+  "macro-panel": { minimumWidth: 400, minimumHeight: 300 },
+  "audit-log-viewer": { minimumWidth: 440, minimumHeight: 200 },
+
+  // --- Primary-content / config panels (opened from the palette) ---
+  "settings-panel": { minimumWidth: 480, minimumHeight: 300 },
+  "marketplace-panel": { minimumWidth: 380, minimumHeight: 300 },
+  "agent-builder-panel": { minimumWidth: 380, minimumHeight: 280 },
+  "plugin-manager-panel": { minimumWidth: 340, minimumHeight: 200 },
+
+  // --- Rail / narrow companion panels ---
+  // chat-sidebar is a narrow companion; the generic 300px default snaps it 56%
+  // wider than its declared defaultSize, so give it a tighter, usable floor.
+  "chat-sidebar": { minimumWidth: 200, minimumHeight: 160 },
+  "broker-connect-panel": { minimumWidth: 320, minimumHeight: 200 },
+  "broker-order-entry": { minimumWidth: 280, minimumHeight: 200 },
 };
 const DEFAULT_PANEL_MIN_SIZE = { minimumWidth: 300, minimumHeight: 180 };
 
@@ -54,8 +89,15 @@ function enforceConstraintsAfterRestore(panel: IDockviewPanel): void {
   try {
     const size = PANEL_MIN_SIZE[panel.api.component] ?? DEFAULT_PANEL_MIN_SIZE;
     panel.api.setConstraints(size);
+    // Grow a panel restored below its minimum on BOTH axes — `setConstraints`
+    // only clamps future sash drags, it doesn't retroactively grow an under-min
+    // panel a saved blob restored too small (e.g. a blob saved before min-sizes
+    // existed, or one saved while the panel was squeezed).
     if (panel.api.width > 0 && panel.api.width < size.minimumWidth) {
       panel.api.setSize({ width: size.minimumWidth });
+    }
+    if (panel.api.height > 0 && panel.api.height < size.minimumHeight) {
+      panel.api.setSize({ height: size.minimumHeight });
     }
   } catch {
     // best-effort; one panel throwing must not abort the post-restore sweep.
