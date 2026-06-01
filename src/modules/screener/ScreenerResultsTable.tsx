@@ -122,7 +122,7 @@ export function ScreenerResultsTable() {
           <span className="font-mono">{result.evaluated_count}</span> evaluated
           {result.skipped_count > 0 && (
             <>
-              , <span className="font-mono text-amber-500">{result.skipped_count} skipped</span>
+              , <span className="text-warning font-mono">{result.skipped_count} skipped</span>
             </>
           )}
           ,<span className="font-mono"> {result.duration_ms.toFixed(0)} ms</span>)
@@ -174,7 +174,7 @@ export function ScreenerResultsTable() {
                   <td className="px-3 py-2 text-right font-mono">{fmtNumber(row.price)}</td>
                   <td
                     className={`px-3 py-2 text-right font-mono ${
-                      (row.change_percent_1d ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"
+                      (row.change_percent_1d ?? 0) >= 0 ? "text-positive" : "text-negative"
                     }`}
                   >
                     {row.change_percent_1d === null

@@ -181,9 +181,9 @@ interface AuditRowProps {
 function AuditRow({ entry }: AuditRowProps) {
   const payloadPreview = useMemo(() => JSON.stringify(entry.payload), [entry.payload]);
   const outcomeColor = entry.outcome.startsWith("rejected")
-    ? "text-red-400"
+    ? "text-negative"
     : entry.outcome === "declined"
-      ? "text-amber-300"
+      ? "text-warning"
       : "text-charcoal-200";
   return (
     <tr data-testid={`audit-row-${entry.id}`} className="border-charcoal-800 border-b">

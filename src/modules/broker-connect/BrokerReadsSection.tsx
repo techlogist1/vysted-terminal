@@ -84,7 +84,7 @@ export function BrokerReadsSection({ broker }: { broker: BrokerId }) {
           {loading && reads.positions === undefined && (
             <p className="text-charcoal-500 text-[10px]">Reading account…</p>
           )}
-          {error !== null && <p className="text-[10px] text-red-400">{error}</p>}
+          {error !== null && <p className="text-negative text-[10px]">{error}</p>}
 
           {reads.positions !== undefined && <PositionsBlock result={reads.positions} />}
           {reads.holdings !== undefined && <HoldingsBlock result={reads.holdings} />}
@@ -120,7 +120,7 @@ function ProvenanceBadge({
       data-testid="broker-read-provenance"
       className={cn(
         "rounded px-1 py-[1px] text-[9px] uppercase",
-        synthetic ? "bg-warning/20 text-warning" : "bg-emerald-800/40 text-emerald-200",
+        synthetic ? "bg-warning/20 text-warning" : "bg-positive/15 text-positive",
       )}
       title={synthetic ? "Paper-mode synthetic placeholder — not a real broker read" : provider}
     >

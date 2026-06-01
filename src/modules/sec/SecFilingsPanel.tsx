@@ -169,7 +169,7 @@ export function SecFilingsPanel() {
       </header>
 
       {filingsError && (
-        <p className="px-3 py-2 text-[11px] text-red-400" data-testid="sec-filings-error">
+        <p className="text-negative px-3 py-2 text-[11px]" data-testid="sec-filings-error">
           {filingsError}
         </p>
       )}

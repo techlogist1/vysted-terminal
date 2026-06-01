@@ -18,13 +18,13 @@ type SortKey = "filed_date" | "form_type" | "period_of_report";
 type SortDir = "asc" | "desc";
 
 const FORM_COLOR: Record<string, string> = {
-  "10-K": "text-emerald-300",
-  "10-Q": "text-sky-300",
-  "8-K": "text-amber-300",
-  "DEF 14A": "text-violet-300",
-  "3": "text-slate-300",
-  "4": "text-rose-300",
-  "5": "text-orange-300",
+  "10-K": "text-charcoal-300",
+  "10-Q": "text-charcoal-300",
+  "8-K": "text-warning",
+  "DEF 14A": "text-charcoal-300",
+  "3": "text-charcoal-300",
+  "4": "text-charcoal-300",
+  "5": "text-charcoal-300",
 };
 
 interface FilingsListTableProps {

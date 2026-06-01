@@ -248,7 +248,7 @@ function BrokerRow({ state, disabled }: BrokerRowProps) {
           <StatusBadge status={state.status} />
           <ModeBadge mode={state.mode} />
           {state.readOnly && <ReadOnlyBadge />}
-          {state.error !== undefined && <span className="text-red-400">err: {state.error}</span>}
+          {state.error !== undefined && <span className="text-negative">err: {state.error}</span>}
         </div>
         {state.broker === "kite" && state.mode === "live" && sidecarBaseUrl !== null && (
           <div className="mt-1">
@@ -306,8 +306,8 @@ function StatusBadge({ status }: { status: BrokerState["status"] }) {
   const color = {
     disconnected: "bg-charcoal-700 text-charcoal-300",
     connecting: "bg-warning/20 text-warning",
-    connected: "bg-emerald-800/40 text-emerald-200",
-    error: "bg-red-800/40 text-red-200",
+    connected: "bg-positive/15 text-positive",
+    error: "bg-negative/15 text-negative",
   }[status];
   return (
     <span
@@ -325,7 +325,7 @@ function ModeBadge({ mode }: { mode: BrokerMode }) {
       data-testid="broker-mode-badge"
       className={cn(
         "rounded px-1.5 py-[1px] text-[10px] uppercase",
-        mode === "paper" ? "bg-sky-800/40 text-sky-200" : "bg-red-800/40 text-red-200",
+        mode === "paper" ? "bg-warning/15 text-warning" : "bg-negative/15 text-negative",
       )}
     >
       {mode}
@@ -411,7 +411,7 @@ function CredentialsDialog({ broker, open, onClose, onSubmit }: CredentialsDialo
               />
             </label>
           ))}
-          {error !== null && <p className="text-xs text-red-400">{error}</p>}
+          {error !== null && <p className="text-negative text-xs">{error}</p>}
           <DialogFooter>
             <Button variant="ghost" type="button" onClick={onClose}>
               Cancel

@@ -73,7 +73,7 @@ export function InsiderTradingTable({ identifier }: InsiderTradingTableProps) {
 
       <div className="flex-1 overflow-y-auto">
         {error && (
-          <p className="px-3 py-2 text-[11px] text-red-400" data-testid="insider-error">
+          <p className="text-negative px-3 py-2 text-[11px]" data-testid="insider-error">
             {error}
           </p>
         )}
@@ -110,7 +110,7 @@ interface InsiderRowProps {
 }
 
 function InsiderRow({ txn }: InsiderRowProps) {
-  const directionColor = txn.direction === "disposed" ? "text-rose-300" : "text-emerald-300";
+  const directionColor = txn.direction === "disposed" ? "text-negative" : "text-positive";
   return (
     <tr
       data-testid={`insider-row-${txn.accession}-${txn.reporter_cik}`}

@@ -252,7 +252,7 @@ function OrderConfirmationDialogContent({
           </div>
         )}
 
-        {error !== null && <p className="text-xs text-red-400">{error}</p>}
+        {error !== null && <p className="text-negative text-xs">{error}</p>}
 
         <DialogFooter>
           <Button variant="ghost" onClick={handleDecline} disabled={busy}>

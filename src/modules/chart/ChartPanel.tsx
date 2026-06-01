@@ -1093,7 +1093,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
                   <button
                     type="button"
                     onClick={() => onDeleteDrawing(drawing.id)}
-                    className="px-1 hover:text-red-400"
+                    className="hover:text-negative px-1"
                     aria-label="Delete drawing"
                   >
                     ×

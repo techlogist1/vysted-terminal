@@ -445,7 +445,7 @@ export function AgentBuilderPanel() {
                   type="button"
                   aria-label={`Delete ${agent.name}`}
                   onClick={() => handleDelete(agent.id)}
-                  className="text-charcoal-400 font-mono text-[10px] hover:text-red-400"
+                  className="text-charcoal-400 hover:text-negative font-mono text-[10px]"
                 >
                   ×
                 </button>

@@ -81,8 +81,8 @@ describe("InsiderTradingTable", () => {
   it("colours acquired and disposed differently (via class assertion)", async () => {
     const { container } = render(<InsiderTradingTable identifier="AAPL" />);
     await waitFor(() => screen.getByTestId("insider-row-0000320193-24-001000-0001214156"));
-    const disposed = container.querySelector(".text-rose-300");
-    const acquired = container.querySelector(".text-emerald-300");
+    const disposed = container.querySelector(".text-negative");
+    const acquired = container.querySelector(".text-positive");
     expect(disposed).not.toBeNull();
     expect(acquired).not.toBeNull();
   });

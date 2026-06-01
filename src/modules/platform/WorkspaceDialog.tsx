@@ -82,7 +82,7 @@ function SaveWorkspaceForm({ onDone }: ModeProps) {
         aria-label="Workspace name"
         className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 mt-4 w-full rounded-md border px-3 py-2 font-mono text-sm outline-none focus:border-amber-400"
       />
-      {error ? <p className="mt-2 font-mono text-xs text-red-400">{error}</p> : null}
+      {error ? <p className="text-negative mt-2 font-mono text-xs">{error}</p> : null}
       <div className="mt-4 flex justify-end gap-2">
         <Button type="button" variant="ghost" size="sm" onClick={onDone} disabled={busy}>
           Cancel
@@ -152,7 +152,7 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
           Restores a saved panel layout and its enabled modules.
         </DialogDescription>
       </DialogHeader>
-      {error ? <p className="mt-3 font-mono text-xs text-red-400">{error}</p> : null}
+      {error ? <p className="text-negative mt-3 font-mono text-xs">{error}</p> : null}
       <div className="mt-4 flex max-h-72 flex-col gap-1.5 overflow-y-auto">
         {names === null ? (
           <p className="text-charcoal-400 py-4 text-center font-mono text-xs">Loading…</p>
@@ -180,7 +180,7 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
                 size="xs"
                 onClick={() => handleDelete(name)}
                 disabled={busy}
-                className="text-charcoal-400 hover:text-red-400"
+                className="text-charcoal-400 hover:text-negative"
               >
                 Delete
               </Button>

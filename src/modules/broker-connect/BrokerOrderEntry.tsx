@@ -238,7 +238,7 @@ export function BrokerOrderEntry() {
         )}
       </div>
 
-      {error !== null && <p className="text-xs text-red-400">{error}</p>}
+      {error !== null && <p className="text-negative text-xs">{error}</p>}
 
       <Button type="submit" variant="outline" disabled={busy} data-testid="propose-order">
         {busy ? "Proposing…" : "Propose order"}

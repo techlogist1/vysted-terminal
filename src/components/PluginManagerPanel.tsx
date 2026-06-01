@@ -51,10 +51,10 @@ PluginManagerPanel.displayName = "PluginManagerPanel";
 const STATE_TONE: Record<LoadedPluginState, string> = {
   discovered: "bg-charcoal-700 text-charcoal-200",
   initializing: "bg-warning/15 text-warning",
-  active: "bg-emerald-900/40 text-emerald-200",
+  active: "bg-positive/15 text-positive",
   stopping: "bg-warning/15 text-warning",
   stopped: "bg-charcoal-700 text-charcoal-300",
-  error: "bg-rose-900/40 text-rose-200",
+  error: "bg-negative/15 text-negative",
 };
 
 interface PluginRowProps {
@@ -146,7 +146,7 @@ function PluginRow({ plugin, runtimeReady }: PluginRowProps) {
       {plugin.errorMessage ? (
         <p
           data-testid={`plugin-error-${plugin.manifest.id}`}
-          className="rounded-sm border border-rose-900/50 bg-rose-950/50 px-2 py-1 font-mono text-xs text-rose-200"
+          className="border-negative/30 bg-negative/10 text-negative rounded-sm border px-2 py-1 font-mono text-xs"
         >
           {plugin.errorMessage}
         </p>

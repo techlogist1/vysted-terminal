@@ -82,7 +82,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
       </header>
 
       {error && (
-        <p className="px-3 py-2 text-[11px] text-red-400" data-testid="filing-viewer-error">
+        <p className="text-negative px-3 py-2 text-[11px]" data-testid="filing-viewer-error">
           {error}
         </p>
       )}
@@ -105,7 +105,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
                     className={cn(
                       "hover:bg-charcoal-800 w-full px-3 py-1.5 text-left text-[11px]",
                       activeSectionId === section.id
-                        ? "bg-charcoal-800 text-charcoal-100 border-l-2 border-l-emerald-300"
+                        ? "bg-charcoal-800 text-charcoal-100 border-l-2 border-l-amber-400"
                         : "text-charcoal-300",
                     )}
                     data-testid={`filing-section-${section.id}`}

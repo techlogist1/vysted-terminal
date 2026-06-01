@@ -1,83 +1,89 @@
-/* Vysted Terminal — design tokens. "Cold instrument" minimal-dark system (the
- * agent-native redesign, FR-030 — supersedes the warm "Claude after dark" set).
+/* Vysted Terminal — design tokens. "Warm instrument" minimal-dark system (the
+ * agent-native redesign craft pass — supersedes the cold ion-blue set).
  *
- * The aesthetic: a cold graphite-ink near-black canvas (neutral, faint blue
- * undertone — never warm espresso, never flat black), low-chrome and flat, with
- * a SINGLE restrained ion-blue accent that lights up only the live / active /
- * agent-driven elements — a calm dark precision instrument where the AI and the
- * data are the only lit things. Cool near-white text, a precise grotesque
+ * The aesthetic: a warm-neutral graphite near-black canvas (a faint warm
+ * undertone — aged paper / worn brass under near-black, never cool-blue, never
+ * flat black, never warm-orange "toy retro"), low-chrome and flat, near-
+ * MONOCHROME with a SINGLE desaturated warm-clay accent that lights up only the
+ * active / agent-driven affordance. Real chroma is reserved almost entirely for
+ * the data (the green/red P&L signals). Warm cream text, a precise grotesque
  * display (Hanken Grotesk) over a data mono (JetBrains Mono), Bloomberg density
- * in Cursor's restrained, keyboard-first language. NOT a warm dashboard, NOT
- * skeuomorphic, NOT a purple-gradient SaaS — a cold instrument.
+ * in Cursor's restrained, keyboard-first language. The reference temperature is
+ * Anthropic's own warm neutrals (#141413 dark, cream text, clay accent) over
+ * Cursor's near-mono structure (off-white not pure-white, accent only on the one
+ * active thing). NOT cold, NOT skeuomorphic, NOT a saturated SaaS gradient.
  *
  * NOTE ON NAMES: token NAMES are kept from the retired systems (`charcoal`,
  * `amber`, `brass`, `sage`, `lume`) so the 80+ files that reference them as
  * Tailwind classes re-skin with zero edits — only the VALUES changed. The names
- * are historical, not literal: `amber-*` now renders the ION-BLUE accent,
- * `charcoal-*` renders cold GRAPHITE INK, `brass-*`/`sage-*` render cool
- * NEUTRALS, `lume` is a cool near-white. Read the role column, not the name.
- * The canvas palette is mirrored in src/lib/chart-theme.ts — change BOTH in
- * lockstep or the chart drifts (FR-030). See docs/DESIGN_SYSTEM.md.
+ * are historical, not literal: `amber-*` now renders the WARM-CLAY accent,
+ * `charcoal-*` renders WARM GRAPHITE INK, `brass-*`/`sage-*` render warm
+ * NEUTRALS, `lume` is a warm cream near-white. Read the role column, not the
+ * name. The canvas palette is mirrored in src/lib/chart-theme.ts — change BOTH
+ * in lockstep or the chart drifts (FR-030). See docs/DESIGN_SYSTEM.md.
  *
  * Defined as a Tailwind 4 @theme block so every token is also a utility class
- * (bg-charcoal-900, text-amber-400 [ion blue], font-serif [Hanken], ...).
+ * (bg-charcoal-900, text-amber-400 [clay], font-serif [Hanken], ...).
  * Semantic shadcn mapping + chrome primitives live in src/app/globals.css.
  */
 
 @theme {
-  /* --- Graphite ink (name: charcoal) — cold neutral near-blacks, a faint blue
-   * undertone, graduated for elevation: 950 = deepest well, 800/700 = raised
-   * chrome + borders, 100 = body text. Flat and low-chrome, never warm. */
-  --color-charcoal-950: #0a0b0d; /* deepest well — app/root bg */
-  --color-charcoal-925: #0e0f13; /* header fascia, tab-strip bg */
-  --color-charcoal-900: #121419; /* card / panel surface */
-  --color-charcoal-875: #16181e; /* popover / active tab */
-  --color-charcoal-850: #1a1d24; /* raised inset (node bg) */
-  --color-charcoal-800: #21242c; /* secondary / muted surface */
-  --color-charcoal-700: #2b2f39; /* borders / inputs / dividers */
-  --color-charcoal-600: #3d424f; /* strong border / disabled fg */
-  --color-charcoal-500: #5a616f; /* faint label / kbd chip text */
-  --color-charcoal-400: #868d9c; /* muted foreground */
-  --color-charcoal-300: #a9b0bf; /* secondary text */
-  --color-charcoal-200: #cbd1dd; /* bright secondary / chart text */
-  --color-charcoal-100: #e7eaf1; /* foreground / cool near-white body text */
+  /* --- Warm graphite ink (name: charcoal) — warm-neutral near-blacks, R≥G≥B at
+   * every stop (a gentle 2→17 warm gap), graduated for elevation: 950 = deepest
+   * well, 925/900 = raised chrome + surface, 700 = borders, 100 = body text.
+   * Flat and low-chrome, warm but never orange, never flat black. */
+  --color-charcoal-950: #0b0a09; /* deepest well — app/root bg */
+  --color-charcoal-925: #100e0c; /* header fascia, tab-strip bg */
+  --color-charcoal-900: #16140f; /* card / panel surface */
+  --color-charcoal-875: #1a1714; /* popover / active tab */
+  --color-charcoal-850: #1f1c17; /* raised inset (node bg) */
+  --color-charcoal-800: #26221c; /* secondary / muted surface */
+  --color-charcoal-700: #332e26; /* borders / inputs / dividers */
+  --color-charcoal-600: #494238; /* strong border / disabled fg */
+  --color-charcoal-500: #6b6356; /* faint label / kbd chip text */
+  --color-charcoal-400: #988f7f; /* muted foreground (AA on bg) */
+  --color-charcoal-300: #b8b0a1; /* secondary text (AAA) */
+  --color-charcoal-200: #d6cfc2; /* bright secondary / chart text */
+  --color-charcoal-100: #e8e4dc; /* foreground / warm cream body text */
 
-  /* --- Ion blue (name: amber) — the single lit accent. One cool electric-blue
-   * hue across states: 200 faint glow, 300 hover, 400 brand, 500 pressed, 600
-   * deep border. Deliberately blue (not red/green) so it never collides with the
-   * P&L gain/loss signals; used sparingly — the one lit color on the ink. --- */
-  --color-amber-200: #c7d6fd; /* faint highlight / glow fill / selection tint */
-  --color-amber-300: #93b2fa; /* hover-bright accent, focus emphasis */
-  --color-amber-400: #4f86f7; /* BRAND / primary / default accent (ion blue) */
-  --color-amber-500: #3a6ee0; /* pressed/active, active-sash, node-selected */
-  --color-amber-600: #2b53b0; /* deep border / dense accent */
+  /* --- Warm clay (name: amber) — the single desaturated warm accent. One earthy
+   * clay hue across states, light→dark: 200 faint tint/glow, 300 hover-bright,
+   * 400 brand, 500 pressed/sash, 600 deep border. ~30–40% saturation so it reads
+   * as worn brass/clay and recedes into the warm graphite — used sparingly, it is
+   * the one lit color on the ink, and it never competes with the P&L signals. --- */
+  --color-amber-200: #c89177; /* faint highlight / glow fill / selection tint */
+  --color-amber-300: #b0795f; /* hover-bright accent, focus emphasis, accent text */
+  --color-amber-400: #a06b52; /* BRAND / primary / default accent (warm clay) */
+  --color-amber-500: #7c5240; /* pressed/active, active-sash, node-selected */
+  --color-amber-600: #5c3b2e; /* deep border / dense accent */
 
-  /* --- Cool neutral (name: brass) — a quiet steel gray for stray legacy use +
-   * the .hud-label legend tone. --- */
-  --color-brass-200: #b9c0cc;
-  --color-brass-300: #8b94a3; /* .hud-label legend text */
-  --color-brass-400: #6b7280; /* hairline / scrollbar source tone */
-  --color-brass-500: #4e545f;
-  --color-brass-600: #363b44;
+  /* --- Warm neutral (name: brass) — a quiet warm taupe-gray for stray legacy use
+   * + the .hud-label legend tone. --- */
+  --color-brass-200: #c2bbac;
+  --color-brass-300: #9a9183; /* .hud-label legend text */
+  --color-brass-400: #757065; /* hairline / scrollbar source tone */
+  --color-brass-500: #565049;
+  --color-brass-600: #3a352d;
 
-  /* --- Cool near-white (name: lume) — active-tab text, peak readouts, selection
-   * text. A clean paper-white, faintly cool (never warm, never green). --- */
-  --color-lume: #f4f6fa;
+  /* --- Warm cream near-white (name: lume) — active-tab text, peak readouts,
+   * selection text. A clean paper-white, faintly warm (never cool, never green). */
+  --color-lume: #f2efe9;
 
-  /* --- Cool neutral second (name: sage) — desaturated cool gray so secondary
-   * data series never compete with the ion accent. --- */
-  --color-sage-300: #b6bdc8;
-  --color-sage-400: #8b94a3;
-  --color-sage-500: #6b7280;
+  /* --- Warm neutral second (name: sage) — desaturated warm gray so secondary
+   * data series never compete with the clay accent. --- */
+  --color-sage-300: #bfb8a9;
+  --color-sage-400: #988f7f;
+  --color-sage-500: #757065;
 
-  /* --- Signal colors — three distinguishable hues tuned for the cold ink and
-   * kept clear of the blue accent. Gains = clean cool green (145°); losses =
-   * clear red (350°, well-separated from blue); caution = amber-gold (42°). --- */
+  /* --- Signal colors — three distinguishable hues tuned for the warm ink and
+   * kept clear of the clay accent. Gains = clean green (145°); losses = clear red
+   * (350°); caution = amber-gold (42°). These are the ONLY saturated colors on
+   * screen — against the warm near-black they pop cleanly (AA/AAA verified). --- */
   --color-positive: #38b25f;
   --color-positive-bright: #56cc7c;
   --color-negative: #ef5369;
   --color-negative-bright: #ff6b80;
-  --color-warning: #e0a23c; /* caution: kill-switch armed, stale data, paper-vs-live */
+  --color-warning: #e0a23c; /* caution: stale data, paper-vs-live */
 
   /* --- Typography — a precise grotesque display (Hanken Grotesk) over a data
    * mono. The --font-* inner vars are supplied by next/font in
