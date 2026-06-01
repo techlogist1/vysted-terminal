@@ -15,9 +15,14 @@ We map each result to the normalized :class:`~services.search.base.SearchResult`
 results to :class:`~services.search.base.Citation` chips via
 :func:`~services.search.base.normalize_results_to_citations`.
 
-:func:`detect_searxng` autodetects a running instance by probing ``/healthz`` then
-``/config`` with a short timeout so the registry can light up the Tier-3 option only
-when a local SearXNG is actually reachable.
+:func:`detect_searxng` autodetects a running instance with the **capability probe**
+``/search?q=…&format=json`` — a 200 with JSON means the instance is up AND the JSON
+output the backend needs is enabled (it is OFF by default in SearXNG). A 403 means
+"up but JSON disabled" (the operator must add ``json`` to ``search.formats``); both
+non-usable cases return ``None`` so the registry only lights up Tier-3 when search
+will actually work. When no URL is configured it probes the two conventional local
+ports — ``8888`` (pip dev server) then ``8080`` (docker) — so a default install on
+either is found.
 """
 
 from __future__ import annotations
@@ -37,11 +42,18 @@ from .base import (
 #: Default SearXNG location — the conventional local docker/host port.
 DEFAULT_BASE_URL = "http://localhost:8080"
 
+#: Conventional local ports probed (in order) when no URL is configured: the pip
+#: dev server binds ``8888``, the docker image binds ``8080``.
+_DEFAULT_PROBE_URLS: tuple[str, ...] = ("http://localhost:8888", "http://localhost:8080")
+
 #: Identifier this backend reports in :class:`SearchResponse.backend`.
 BACKEND_ID = "searxng"
 
-#: Short timeout for the autodetect probe — a missing instance must fail fast.
-_DETECT_TIMEOUT_SECS = 2.0
+#: Timeout for the autodetect capability probe. A MISSING instance still fails
+#: fast (connection-refused returns immediately regardless of this value); the
+#: budget exists because a PRESENT instance's ``format=json`` query fans out to
+#: many upstream engines and can take a couple of seconds to aggregate.
+_DETECT_TIMEOUT_SECS = 6.0
 
 #: Per-request search timeout (a local instance is fast; cap a hung upstream).
 _SEARCH_TIMEOUT_SECS = 20.0
@@ -52,33 +64,51 @@ def _normalize_base_url(base_url: str | None) -> str:
     return (base_url or DEFAULT_BASE_URL).rstrip("/")
 
 
+async def _json_capable(http: httpx.AsyncClient, base: str) -> bool:
+    """Capability probe: is a SearXNG at ``base`` up AND serving JSON search?
+
+    SearXNG has no ``/healthz`` (upstream issue #4026) and ``/config`` only proves
+    the instance is up, NOT that the JSON output format is enabled (it is OFF by
+    default — a search would then 403). So we probe the real thing: a tiny
+    ``/search?format=json``. Only a 200 with a parseable JSON body (a ``results``
+    list) counts as usable; a 403 (JSON disabled) or any error is "not usable".
+    """
+    try:
+        response = await http.get(f"{base}/search", params={"q": "ping", "format": "json"})
+    except httpx.HTTPError:
+        return False
+    if not response.is_success:
+        return False
+    try:
+        payload = response.json()
+    except (ValueError, httpx.HTTPError):
+        return False
+    return isinstance(payload, dict) and isinstance(payload.get("results"), list)
+
+
 async def detect_searxng(
     base_url: str | None = None,
     *,
     client: httpx.AsyncClient | None = None,
 ) -> str | None:
-    """Probe for a reachable local SearXNG and return its base URL, else ``None``.
+    """Probe for a reachable, JSON-capable local SearXNG; return its base URL else ``None``.
 
-    Tries ``<base_url>/healthz`` first (SearXNG's liveness endpoint) and falls
-    back to ``<base_url>/config`` (always present on a running instance). A 2xx
-    from either means the instance is up; any connection error, timeout, or
-    non-2xx status means "no local SearXNG here" → ``None``. Nothing is raised:
-    autodetect is best-effort so the registry can silently skip the Tier-3
-    option when no private instance is running.
+    Uses the capability probe (:func:`_json_capable`) so a "found" instance is one
+    that can actually answer ``format=json`` searches — never a false positive
+    from an up-but-JSON-disabled instance. With no ``base_url`` it tries the two
+    conventional local ports (``8888`` pip, then ``8080`` docker); with one given
+    it probes only that. Best-effort: never raises, so the registry silently skips
+    Tier-3 when no usable private instance is running.
 
     Pass ``client`` to reuse a caller-owned :class:`httpx.AsyncClient`
     (the test seam); otherwise a short-timeout client is created per call.
     """
-    resolved = _normalize_base_url(base_url)
+    candidates = [_normalize_base_url(base_url)] if base_url else list(_DEFAULT_PROBE_URLS)
 
     async def _probe(http: httpx.AsyncClient) -> str | None:
-        for path in ("/healthz", "/config"):
-            try:
-                response = await http.get(f"{resolved}{path}")
-            except httpx.HTTPError:
-                continue
-            if response.is_success:
-                return resolved
+        for candidate in candidates:
+            if await _json_capable(http, candidate):
+                return candidate
         return None
 
     if client is not None:
@@ -134,6 +164,15 @@ class SearxngBackend(SearchBackend):
                     response = await http.get(url, params=params)
             response.raise_for_status()
             payload: Any = response.json()
+        except httpx.HTTPStatusError as exc:
+            if exc.response is not None and exc.response.status_code == 403:
+                raise SearchError(
+                    f"SearXNG at {self.base_url} has JSON output disabled — add 'json' to "
+                    "search.formats in settings.yml (and restart), then retry"
+                ) from exc
+            raise SearchError(
+                f"no local SearXNG at {self.base_url} — start one or pick another search tier"
+            ) from exc
         except httpx.HTTPError as exc:
             raise SearchError(
                 f"no local SearXNG at {self.base_url} — start one or pick another search tier"

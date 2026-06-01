@@ -32,6 +32,11 @@ _PERPLEXITY_NEEDS_KEY = (
     "Perplexity deep research needs an API key (opt-in, paid). Add it in "
     "Settings, or use the built-in deep research."
 )
+_TONGYI_NEEDS_KEY = (
+    "Tongyi-DeepResearch runs remotely via OpenRouter (it's a 30B-A3B model — too "
+    "large to host on this device). Add an OpenRouter key in Settings, or use the "
+    "built-in deep research."
+)
 _NO_MODEL = "No model configured for deep research."
 
 
@@ -69,6 +74,58 @@ async def _run_perplexity(query: str, key: str | None) -> dict[str, Any]:
     out["ok"] = True
     out.setdefault("cost_estimate_usd", perplexity.estimate_cost_usd(query))
     out["backend"] = "perplexity"
+    return out
+
+
+async def _run_tongyi(query: str, key: str | None, rounds: int, wall: int) -> dict[str, Any]:
+    """Run the built-in deep loop with its LLM bound to OpenRouter's Tongyi model.
+
+    Reuses :func:`deep.run_deep_research` (so the live step-log still streams to the
+    activity surface — Track A) but drives plan/synthesis through OpenRouter's
+    Tongyi-DeepResearch model — runtime-probed, with a live Qwen-A3B fallback
+    (Track C / FINDINGS §2.4). OPT-IN + BYOK: needs an OpenRouter key (reused from
+    the active creds when the user is already on OpenRouter), never auto-selected.
+    """
+    import config
+    from services.budget_guard import BudgetGuard
+    from services.llm import oneshot
+    from services.research import deep, tongyi
+
+    api_key = key or None
+    if not api_key:
+        creds = config.get_llm_creds()
+        # Reuse the active key only when the user is already talking via OpenRouter.
+        if creds is not None and creds[0] == "openrouter":
+            api_key = creds[2]
+    if not tongyi.is_configured(api_key):
+        return {"ok": False, "message": _TONGYI_NEEDS_KEY}
+
+    model = await tongyi.resolve_model(api_key)  # probe Tongyi slug → Qwen-A3B fallback
+
+    from services import agent_tools
+
+    async def llm_call(messages: list[dict[str, Any]]) -> str:
+        return await oneshot.complete("openrouter", model, api_key, messages)
+
+    budget = BudgetGuard(
+        max_steps=rounds * (_MAX_RESEARCHERS + 2),
+        max_wall_seconds=wall,
+    )
+    brief = await deep.run_deep_research(
+        query,
+        region=config.get_region(),
+        tool_call=agent_tools.invoke_tool,
+        llm_call=llm_call,
+        budget=budget,
+        on_step=config.get_step_sink(),
+        max_researchers=_MAX_RESEARCHERS,
+    )
+    out = brief.to_dict()
+    out["ok"] = True
+    out["backend"] = "tongyi"
+    out["model"] = model
+    out["provenance"] = f"{tongyi.PROVENANCE_NOTE} · {model}"
+    out.setdefault("cost_estimate_usd", tongyi.estimate_cost_usd(query))
     return out
 
 
@@ -119,9 +176,11 @@ async def _deep_research(args: dict[str, Any]) -> dict[str, Any]:
         query: What to research. Required.
         rounds: Research rounds, clamped to ``[1, 5]`` (default 3).
         wall_seconds: Wall-clock budget, clamped to ``[30, 300]`` (default 120).
-        backend: ``"native"`` (default, built-in) or ``"perplexity"`` (opt-in,
-            paid — never auto-selected).
-        api_key: Optional Perplexity key for the perplexity backend.
+        backend: ``"native"`` (default, built-in), ``"perplexity"`` (opt-in,
+            paid), or ``"tongyi"`` (frontier deep-research via OpenRouter, opt-in
+            — needs an OpenRouter key). The opt-in backends are never auto-selected.
+        api_key: Optional key for the chosen opt-in backend (Perplexity /
+            OpenRouter), when not reused from the active credentials.
 
     Returns the brief dict (``ok: True``) or ``{"ok": False, "message": ...}``.
     """
@@ -139,6 +198,8 @@ async def _deep_research(args: dict[str, Any]) -> dict[str, Any]:
 
     if backend == "perplexity":
         return await _run_perplexity(query, args.get("api_key"))
+    if backend == "tongyi":
+        return await _run_tongyi(query, args.get("api_key"), rounds, wall)
     return await _run_native(query, rounds, wall)
 
 

@@ -427,7 +427,7 @@ function WebSearchSection() {
         {/* SearXNG URL (local tier) */}
         <PrefRow
           label="SearXNG URL"
-          hint="Local-tier base URL. Leave blank to autodetect localhost:8080."
+          hint="Local-tier base URL. Leave blank to autodetect localhost:8888 then :8080."
         >
           <input
             type="url"
@@ -438,6 +438,26 @@ function WebSearchSection() {
             className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-400 h-8 min-w-[12rem] rounded-md border px-3 font-mono text-xs outline-none focus:border-amber-400"
           />
         </PrefRow>
+        {/* Run-a-local-instance hint — keyless private search in one command.
+            JSON output is OFF by default in SearXNG, so the setup must enable it. */}
+        {tier === "local-searxng" && (
+          <div className="border-charcoal-700 bg-charcoal-850 rounded-md border px-4 py-3">
+            <p className="text-charcoal-200 font-mono text-[11px]">
+              No instance yet? Run one locally (keyless, ~200 MB):
+            </p>
+            <pre className="text-charcoal-300 bg-charcoal-900 mt-1.5 overflow-x-auto rounded p-2 font-mono text-[10px] leading-relaxed">
+              {
+                "docker run -d -p 8080:8080 \\\n  -e SEARXNG_SETTINGS_PATH=/etc/searxng/settings.yml \\\n  searxng/searxng"
+              }
+            </pre>
+            <p className="text-charcoal-400 mt-1.5 font-mono text-[11px]">
+              Then enable JSON output: add <code className="text-amber-400">json</code> to{" "}
+              <code className="text-amber-400">search.formats</code> and set{" "}
+              <code className="text-amber-400">server.limiter: false</code> in settings.yml. The
+              terminal autodetects it on the next research run.
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );

@@ -288,7 +288,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 "that returns a synthesized, cited brief. Use for '/deep' or 'go "
                 "deeper'. Bounded by rounds + wall-clock; on the budget ceiling it "
                 "synthesizes from what it has (never times out into nothing). The "
-                "optional Perplexity backend is opt-in and paid — never auto-selected."
+                "optional Perplexity + Tongyi backends are opt-in — never auto-selected."
             ),
             input_schema=_obj(
                 {
@@ -297,9 +297,13 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                     "wall_seconds": {"type": "integer", "default": 120, "description": "30-300."},
                     "backend": {
                         "type": "string",
-                        "enum": ["native", "perplexity"],
+                        "enum": ["native", "perplexity", "tongyi"],
                         "default": "native",
-                        "description": "'perplexity' is opt-in + paid; needs a key.",
+                        "description": (
+                            "'perplexity' (opt-in, paid, needs a key) or 'tongyi' "
+                            "(frontier deep-research via OpenRouter, opt-in, needs an "
+                            "OpenRouter key) — else the built-in 'native' loop."
+                        ),
                     },
                 },
                 ["query"],
