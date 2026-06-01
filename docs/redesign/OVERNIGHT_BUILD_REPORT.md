@@ -33,7 +33,7 @@ agent driving the cockpit through the diff gate — end-to-end against the live 
 - **All gates green** for everything touched: `format:check`/`eslint`/`tsc` clean, **vitest
   744 passed**, **§6.5 audit still 9/9** (55 safety tests), catalog/MCP-parity/runtime green.
 - **Tier-1 LOCKED files byte-for-byte untouched.** No STOP-AND-SURFACE guardrail was hit —
-  one was *avoided by design* (see §"Guardrails").
+  one was _avoided by design_ (see §"Guardrails").
 
 ---
 
@@ -46,7 +46,7 @@ Full spec in `PRODUCT_DESIGN_DECISIONS.md`. The calls that matter:
    `fixed`-positioned, overlapping its neighbours). **Decision: demote to a quiet, neutral
    octagon-stop icon in the header that escalates to red only when fired.** The §6.5 kill
    switch is fully preserved — one click or the OS-global ⌘⌃⇧K away, with a loud fired-state
-   banner + reset. This is a *frontend presentation* change; `kill_switch.rs` and the safety
+   banner + reset. This is a _frontend presentation_ change; `kill_switch.rs` and the safety
    model are untouched. (Verified: the audit stays 9/9.)
 2. **Kill-switch toast leaked developer data.** It rendered a `subs / p95 / max` ms grid.
    **Decision: state the consequence in human terms** ("Trading halted — new orders blocked,
@@ -54,14 +54,14 @@ Full spec in `PRODUCT_DESIGN_DECISIONS.md`. The calls that matter:
    fire-result + audit for the §6.5 <2s benchmark).
 3. **Keep the mono-instrument identity; sharpen, don't reskin.** The palette (cold graphite +
    single ion-blue accent, tabular-nums, mono body + grotesque headings) is coherent. The
-   flat feel came from *bugs, cramped density, 9.6px text, and empty defaults* — not the
+   flat feel came from _bugs, cramped density, 9.6px text, and empty defaults_ — not the
    typeface. A global font swap across 18 panels on an autonomous run I can't fully eyeball is
    high-regret; "crafted" here is bought with precision. (An explicit, recorded tradeoff.)
 4. **Four modes stay, as a switcher** (Cursor-style), with the honest one-line consequence
    line kept ("Reads only — never changes the cockpit").
 5. **Persona roster was clutter.** 13 always-on chips scrolling and clipping mid-name → **one
    "Lens" picker**; the 12 personas live one click away.
-6. **Agent must *arrange*, not just answer** — the Jarvis thesis. Add `close_panel`,
+6. **Agent must _arrange_, not just answer** — the Jarvis thesis. Add `close_panel`,
    `focus_panel`, `arrange_layout` as host-actions, all through the same diff gate.
 7. **Panel placement + first-frame**: big content panels belong in the main area, not a
    cramped rail; the first frame should never be a blank "enter a symbol". (Placement policy
@@ -71,8 +71,10 @@ Full spec in `PRODUCT_DESIGN_DECISIONS.md`. The calls that matter:
 
 ## What got built (per brief item 1–6)
 
-### 1 + 6. Minimal-dark craft pass + product-judgment (shell)  ·  VERIFIED
+### 1 + 6. Minimal-dark craft pass + product-judgment (shell) · VERIFIED
+
 `src/app/page.tsx`, `StatusChrome.tsx`, `KillSwitchToolbar.tsx`, `OnboardingBanner.tsx`.
+
 - Kill switch: `fixed top-2 right-2 z-50` → **inline** quiet `OctagonX` icon; the overlap is
   gone. **Proven by rect math against the live DOM**: `overlap_ks_settings:false`,
   `overlap_ks_status:false`, `bodyHasHaltText:false`.
@@ -83,9 +85,11 @@ Full spec in `PRODUCT_DESIGN_DECISIONS.md`. The calls that matter:
 - Accessible names / `data-state` / the `kill-switch-banner` testid preserved → §6.5 UI tests
   stay green.
 
-### 2. Jarvis — the agent drives the cockpit through the diff gate  ·  VERIFIED (headline)
+### 2. Jarvis — the agent drives the cockpit through the diff gate · VERIFIED (headline)
+
 `catalog.py` (+3 host-actions), `copilot.json` (tools + prompt), `host-actions.ts`,
 `ChatSidebar`/`proposed-changes` gate (kept), real dockview ops.
+
 - New `close_panel` / `focus_panel` / `arrange_layout` capabilities (`read_only=false`,
   `kind=host_action`) — the catalog's only mutating class — wired to real dockview
   (`close` / `setActive` / `maximize` / `resetToDefaultLayout`).
@@ -97,7 +101,8 @@ Full spec in `PRODUCT_DESIGN_DECISIONS.md`. The calls that matter:
 - Safety: host-actions stay local (not projected to MCP); no `place_/submit_/execute_order`,
   no `auto_approve`. `test_safety_end_to_end` + catalog/MCP-parity suites pass.
 
-### 3. Model for reliable tool-use (Qwen)  ·  VERIFIED + an honest finding
+### 3. Model for reliable tool-use (Qwen) · VERIFIED + an honest finding
+
 - The local default was **already** `qwen2.5:7b` across `model-selection.ts`, `_resolve_model`,
   and `copilot.json`; the `llama3.1:8b` the UI showed was a **stale workspace-blob override**,
   which cleared on a layout reset — the header + dock now correctly read `qwen2.5:7b`. Fixed
@@ -116,8 +121,10 @@ Full spec in `PRODUCT_DESIGN_DECISIONS.md`. The calls that matter:
     tool, the user is told something happened that didn't. A prompt nudge could reduce the
     false claim, but 7b adherence is fundamentally limited; cloud keys solve it cleanly.
 
-### 4. Overlap / squeeze (app-wide)  ·  VERIFIED
+### 4. Overlap / squeeze (app-wide) · VERIFIED
+
 `PanelHost.tsx`, `default-layout` (via host-side map), `WatchlistPanel.tsx`.
+
 - **No content overlap at any size** — proven by driving the rig to squeeze the watchlist to
   **90px** and confirming `adjacentOverlap:[false,false,false]`; the numeric cells now
   `overflow:hidden / text-ellipsis` so Price and Change can never collide (the "73,618.0256%"
@@ -129,8 +136,10 @@ Full spec in `PRODUCT_DESIGN_DECISIONS.md`. The calls that matter:
   wrong probe; and `requestAnimationFrame` is throttled to a halt on an unfocused WKWebView,
   so the sweep uses `setTimeout`.)
 
-### 5. Sidecar cold-boot + panel auto-retry  ·  VERIFIED (live cold start)
+### 5. Sidecar cold-boot + panel auto-retry · VERIFIED (live cold start)
+
 `src/lib/use-sidecar-retry.ts` (new) + Macro/SEC/Earnings/Screener panels.
+
 - New `useRetryOnSidecarReady` hook: bounded backoff + re-arm on the `sidecarStatus`
   connecting/error → connected edge. The four fetch-once panels that previously sat dead now
   recover, matching News/Portfolio. 78 store/panel tests pass; tsc/eslint clean.
@@ -139,11 +148,12 @@ Full spec in `PRODUCT_DESIGN_DECISIONS.md`. The calls that matter:
   (`sidecarStatus:"Connecting…"`, Macro showing loading/error) and after the bind
   (`sidecarStatus:"Connected"`, **Macro restored AND populated with FRED data, no error**;
   watchlist populated with 6 quoted symbols). Panels populate after a cold start. Also
-  surfaced a useful nuance: the workspace *restore itself* awaits the sidecar (it fetches the
-  autosave blob from it), so a restored session degrades by *waiting*, not dying — the hook
+  surfaced a useful nuance: the workspace _restore itself_ awaits the sidecar (it fetches the
+  autosave blob from it), so a restored session degrades by _waiting_, not dying — the hook
   covers the independent-mount edge where a panel's first probe fails.
 
 ### Item 1b (dock/palette/settings craft) — partial
+
 - DONE: persona roster 13-chips → one **Lens picker** (verified: a `combobox` with 13
   options, value `copilot`).
 - DEFERRED (documented follow-ups, not started): panel-placement policy (big panels → main
@@ -158,19 +168,19 @@ Full spec in `PRODUCT_DESIGN_DECISIONS.md`. The calls that matter:
 
 All against the real running app (sidecar :53479, qwen2.5:7b, Ollama up):
 
-| Claim | How verified | Result |
-|---|---|---|
-| Header overlap gone | live-DOM bounding-rect math | `overlap_ks_settings=false`, `overlap_ks_status=false`, no "Halt All Trading" text |
-| Kill switch quiet icon, escalates on fire | DOM + screenshots | armed `OctagonX` icon, `data-state=armed`, tests green |
-| Watchlist no overlap at squeeze | forced panel to 90px, read cell rects | `adjacentOverlap=[false,false,false]`, cells clip |
-| Min-size `setConstraints` enforces | set min then `setSize(100)` | clamped to 264 (engine honours it) |
-| Jarvis: propose → gate → accept → drive | drove the live agent + clicked Accept | diff shown, panel stayed open, then `getPanel('news')===null` |
-| qwen tool-use (single) | "close the news panel" | tool called, e2e success |
-| qwen tool-use (multi/again) | "open screener + NVDA", "add TSLA" | **narrated, no tool call** (model limit) |
-| Model default = qwen2.5:7b | header + dock readout | `Connected · ollama · qwen2.5:7b` |
-| Persona declutter | DOM | one `Active persona` combobox, 13 options |
-| Command palette | opened + filtered | renders, shortcut badges, fuzzy match (ranking follow-up noted) |
-| Marketplace | opened | Kite/Dhan/Angel/Alpaca, "Read-only; no order execution", none pre-installed |
+| Claim                                     | How verified                          | Result                                                                             |
+| ----------------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------- |
+| Header overlap gone                       | live-DOM bounding-rect math           | `overlap_ks_settings=false`, `overlap_ks_status=false`, no "Halt All Trading" text |
+| Kill switch quiet icon, escalates on fire | DOM + screenshots                     | armed `OctagonX` icon, `data-state=armed`, tests green                             |
+| Watchlist no overlap at squeeze           | forced panel to 90px, read cell rects | `adjacentOverlap=[false,false,false]`, cells clip                                  |
+| Min-size `setConstraints` enforces        | set min then `setSize(100)`           | clamped to 264 (engine honours it)                                                 |
+| Jarvis: propose → gate → accept → drive   | drove the live agent + clicked Accept | diff shown, panel stayed open, then `getPanel('news')===null`                      |
+| qwen tool-use (single)                    | "close the news panel"                | tool called, e2e success                                                           |
+| qwen tool-use (multi/again)               | "open screener + NVDA", "add TSLA"    | **narrated, no tool call** (model limit)                                           |
+| Model default = qwen2.5:7b                | header + dock readout                 | `Connected · ollama · qwen2.5:7b`                                                  |
+| Persona declutter                         | DOM                                   | one `Active persona` combobox, 13 options                                          |
+| Command palette                           | opened + filtered                     | renders, shortcut badges, fuzzy match (ranking follow-up noted)                    |
+| Marketplace                               | opened                                | Kite/Dhan/Angel/Alpaca, "Read-only; no order execution", none pre-installed        |
 
 **Screenshots:** clean rig captures of the redesigned cockpit, the header fix, and the live
 proposal diff are embedded in the build session (the primary, app-only evidence). One
@@ -184,7 +194,7 @@ PNGs at merge — the branch is untagged._
 
 ## Guardrails
 
-- **No STOP-AND-SURFACE was hit.** One was *avoided by design*: the obvious overlap fix was to
+- **No STOP-AND-SURFACE was hit.** One was _avoided by design_: the obvious overlap fix was to
   add `minimumWidth` to `PanelSpec` in `types/plugin.ts` — a LOCKED Tier-1 file. I **rejected
   that** and put the min-size map host-side in `PanelHost` instead. `types/plugin.ts` and the
   whole §6.5 / Tier-1 set are **byte-for-byte untouched**.
@@ -285,7 +295,7 @@ Re-verified after the fixes: **vitest 744/744**, tsc/eslint clean.
 ## What needs your eyes first (ranked)
 
 1. **The kill-switch re-presentation** (loud red → quiet icon). It's a safety-surface
-   *presentation* change — confirm it reads right and is still obviously discoverable. (The
+   _presentation_ change — confirm it reads right and is still obviously discoverable. (The
    mechanism + audit are untouched; this is the one call most worth your judgment.)
 2. **The Jarvis loop** — drive it yourself: Build mode → "close the news panel" → see the
    proposal → accept → watch it close. Then add a cloud key and try a multi-step ("set me up

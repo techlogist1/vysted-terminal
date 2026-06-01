@@ -6,12 +6,12 @@ real Tauri app (`dev-tools` feature). Narrative: `OVERNIGHT_BUILD_REPORT.md`.
 
 ## Agents / workflows dispatched
 
-| #    | Phase     | Agent / workflow                          | Tokens | Tool-uses | Wall  | Outcome                          |
-| ---- | --------- | ----------------------------------------- | ------ | --------- | ----- | -------------------------------- |
-| wf1  | map       | `redesign-surface-map` (10 Explore subagents) | ~860k  | 276       | 343s  | 8/10 structured; full code map   |
-| tm1  | item 5    | teammate — cold-boot panel auto-retry     | ~93k   | 46        | 285s  | hook + 4 panels, 78 tests green  |
-| wf2  | review    | `overnight-diff-review` (5 review + verify subagents) | ~910k | 151 | 145s | 3 confirmed; 2 fixed, §6.5 clean |
-| lead | all       | Opus — rig driving, shell/overlap/Jarvis/model, integration, verification, report | — | — | — | — |
+| #    | Phase  | Agent / workflow                                                                  | Tokens | Tool-uses | Wall | Outcome                          |
+| ---- | ------ | --------------------------------------------------------------------------------- | ------ | --------- | ---- | -------------------------------- |
+| wf1  | map    | `redesign-surface-map` (10 Explore subagents)                                     | ~860k  | 276       | 343s | 8/10 structured; full code map   |
+| tm1  | item 5 | teammate — cold-boot panel auto-retry                                             | ~93k   | 46        | 285s | hook + 4 panels, 78 tests green  |
+| wf2  | review | `overnight-diff-review` (5 review + verify subagents)                             | ~910k  | 151       | 145s | 3 confirmed; 2 fixed, §6.5 clean |
+| lead | all    | Opus — rig driving, shell/overlap/Jarvis/model, integration, verification, report | —      | —         | —    | —                                |
 
 Subagents: ~22 (10 map + 1 teammate + 11 review) + lead.
 
