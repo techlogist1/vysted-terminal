@@ -8,6 +8,7 @@ import {
   Bot,
   Check,
   ChevronDown,
+  Cpu,
   Download,
   Info,
   KeyRound,
@@ -57,6 +58,12 @@ import { useLLMProvidersStore } from "@/store/llm-providers";
 import { KNOWN_MODELS_BY_PROVIDER, useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
 import { useProviderKeysStore } from "@/store/provider-keys";
+import {
+  fetchHardwareReport,
+  type HardwareReport,
+  type ScoredModel,
+  verdictMeta,
+} from "@/lib/hardware-fit";
 import { useSearchSettingsStore } from "@/store/search-settings";
 import { type SettingsBundle, useSettingsStore } from "@/store/settings";
 import { SEARCH_TIER_LABELS, SEARCH_TIERS, type SearchTier } from "../../types/search";
@@ -108,6 +115,7 @@ export const SettingsPanel: FunctionComponent = () => {
           </header>
           <ProvidersSection />
           <WebSearchSection />
+          <HardwareSection />
           <PreferencesSection />
           <KeybindingsSection />
           <IntegrationsSection />
@@ -669,6 +677,101 @@ const STARTER_PANEL_LABELS: Record<string, string> = {
   "earnings-calendar-panel": "Earnings Calendar",
   "analyst-ratings-panel": "Analyst Ratings",
 };
+
+// ---------------------------------------------------------------------------
+// Hardware capability (Track D — local-model fit gate)
+// ---------------------------------------------------------------------------
+
+/** One scored model row — a verdict chip + the reason. */
+function FitRow({ model }: { model: ScoredModel }) {
+  const meta = verdictMeta(model.verdict);
+  return (
+    <li className="flex items-baseline justify-between gap-3 py-1">
+      <div className="min-w-0">
+        <div className="text-charcoal-200 truncate font-mono text-xs">{model.name}</div>
+        <div className="text-charcoal-500 truncate font-mono text-[0.65rem]">{model.reason}</div>
+      </div>
+      <span className={cn("shrink-0 font-mono text-[0.65rem] font-semibold", meta.className)}>
+        {meta.label}
+      </span>
+    </li>
+  );
+}
+
+/**
+ * Hardware capability — detects the device and shows which local models it can
+ * run, gating the heavy local paths (FINDINGS §2.5). On a 16 GB M1, local
+ * deep-research is honestly marked "remote" and the app uses the keyless-remote
+ * path; on a 32 GB+ box the same models flip to "runs locally" with no change.
+ */
+function HardwareSection() {
+  const [report, setReport] = useState<HardwareReport | null | "loading">("loading");
+
+  useEffect(() => {
+    let alive = true;
+    void fetchHardwareReport().then((r) => {
+      if (alive) {
+        setReport(r);
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  return (
+    <section aria-labelledby="settings-hardware">
+      <SectionHeader
+        id="settings-hardware"
+        icon={<Cpu className="size-4 text-amber-400" aria-hidden="true" />}
+        title="Hardware & local models"
+        hint="What this machine can run on-device. Heavy local paths (local deep-research, large local LLMs) enable only where the hardware earns it; everything else uses the keyless-remote path."
+      />
+      {report === "loading" && (
+        <p className="text-charcoal-500 font-mono text-xs">Detecting device…</p>
+      )}
+      {report === null && (
+        <p className="text-charcoal-500 font-mono text-xs">
+          Hardware detection unavailable (sidecar not connected).
+        </p>
+      )}
+      {report && report !== "loading" && (
+        <div className="flex flex-col gap-3">
+          <div className="border-charcoal-700 bg-charcoal-900 rounded-md border p-3">
+            <div className="text-charcoal-100 font-mono text-xs">{report.device.chip}</div>
+            <div className="text-charcoal-400 mt-1 font-mono text-[0.65rem]">
+              {report.device.ramGib} GiB RAM · {report.device.gpuBudgetGib} GiB GPU budget ·{" "}
+              {report.device.perfCores}P/{report.device.totalCores} cores · {report.device.osName}{" "}
+              {report.device.osVersion}
+            </div>
+          </div>
+          {report.ollama.models.length > 0 && (
+            <div>
+              <div className="text-charcoal-400 mb-1 font-mono text-[0.65rem] uppercase">
+                Installed local models (Ollama)
+              </div>
+              <ul className="divide-charcoal-800 divide-y">
+                {report.ollama.models.map((m) => (
+                  <FitRow key={m.name} model={m} />
+                ))}
+              </ul>
+            </div>
+          )}
+          <div>
+            <div className="text-charcoal-400 mb-1 font-mono text-[0.65rem] uppercase">
+              Frontier deep-research models
+            </div>
+            <ul className="divide-charcoal-800 divide-y">
+              {report.referenceCandidates.map((m) => (
+                <FitRow key={m.name} model={m} />
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
 
 function PreferencesSection() {
   const firstParty = useAgentsStore(selectFirstPartyAgents);

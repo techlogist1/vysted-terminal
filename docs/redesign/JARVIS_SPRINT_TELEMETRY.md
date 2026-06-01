@@ -15,7 +15,8 @@ phase; never rewrite history. Started 2026-06-02._
 | Phase | What | Agents | Wall | Files/lines | Notes |
 | ----- | ---- | ------ | ---- | ----------- | ----- |
 | 0 — Spike | Map as-built Pass-B + 4 external-integration feasibility + HW fit | 8 (1 workflow) | ~4.5 min | docs only (+2 files) | read-only; ~615k subagent tokens; verdicts in FINDINGS §2 |
-| A — Aliveness | Live research step-log surface (SSE research_step + ResearchActivity) | 0 (lead) | — | 15 files | commit `ba517ca`; sidecar e2e + vitest + typecheck green; rig pending (consolidated) |
+| A — Aliveness | Live research step-log surface (SSE research_step + ResearchActivity) | 0 (lead) | — | 15 files | commit `ba517ca`; sidecar e2e + vitest + typecheck green; **RIG-VERIFIED** (live "RESEARCHING" trace, 12s timer, 5 steps, scanline; populated dark cockpit, Connected) |
+| E — Smart brain | OpenRouter broker + in-house planner (intent + decompose) | 0 (lead) | — | 11 files | commit `5131758`; +rig-bridge `(infra)`; 259-test sweep + 22 planner tests + typecheck green |
 
 ## Running totals
 

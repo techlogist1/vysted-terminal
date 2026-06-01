@@ -44,6 +44,7 @@ from routers import (
     safety,
     screener,
     sec_filings,
+    system,
     tradesa_v2,
     workflow,
     workspace,
@@ -77,6 +78,7 @@ _ROUTERS = (
     quant,
     earnings,
     screener,
+    system,
     tradesa_v2,
 )
 
