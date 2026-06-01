@@ -95,6 +95,28 @@ user; complexity is **layered, not flattened**, and never dumped on the front do
 minimal, populated starter cockpit is the default — plugins open as tabs the user or
 agent opens, never preloaded en masse.
 
+### VIII. Locale-Native & Correct, Everywhere (the "McDonald's principle")
+
+The product is **natively local wherever the user is** — same product philosophy, locally
+shaped execution. A US user gets US tickers, US sources, USD, US market hours, US news; an
+Indian user gets NSE/BSE, INR, IST, Indian sources and news. The active **region drives**
+ticker/exchange resolution, currency, market-hours-aware freshness, number/date formatting,
+and default data/news sources. The product is never "US-first with a bolt-on"; it is local
+by default in each locale it serves.
+
+**Correctness is non-negotiable.** For a research product, wrong data is fatal. The system
+MUST NOT present wrong, stale, or glitchy data behind a populated surface. A **correctness
+gate** rejects empty/invalid/stale/mismatched provider responses; resolution + retrieval walk
+a **preference-ordered, multi-source provider chain** and serve the first valid,
+**provenance-tagged** result — surfacing an honest, human "unavailable" (naming what would
+unlock it) **only when every configured source has failed**. Stale/cache-served and
+synthetic/paper values are always labeled, never shown as live (this sharpens Principle VI).
+
+**Resourcefulness — never dead-end.** When a path fails, the agent MUST try another
+source/route and succeed, or fail cleanly with a **human message**. It MUST NOT give up and
+print raw JSON, fabricate a value, or load the wrong instrument. A near-superintelligent
+assistant does not dead-end; the illusion of effortless competence rests on it.
+
 ## Additional Constraints (Stack, Scope & Decision Authority)
 
 **Stack (Locked — BLUEPRINT §2):** Tauri 2.x (Rust core) + Next.js 16 static export +
@@ -151,4 +173,12 @@ current-state baseline lives in `docs/CURRENT_STATE.md`.
 MINOR = principle/section added or materially expanded; PATCH = clarifications and
 wording.
 
-**Version**: 1.0.0 | **Ratified**: 2026-05-30 | **Last Amended**: 2026-05-30
+**Version**: 1.1.0 | **Ratified**: 2026-05-30 | **Last Amended**: 2026-06-01
+
+<!--
+  v1.1.0 (2026-06-01, operator-ratified): MINOR — added Principle VIII "Locale-Native &
+  Correct, Everywhere" (the McDonald's principle + correctness-non-negotiable +
+  resourcefulness/never-dead-end) to govern the Pass-B agent-native research layer. Sharpens
+  Principle VI (Verification). Propagated to specs/001-agent-native-redesign/spec.md
+  (Clarifications → Session 2026-06-01; FR-060–FR-065, FR-093). No Locked decision reversed.
+-->

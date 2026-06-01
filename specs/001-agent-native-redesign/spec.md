@@ -4,7 +4,9 @@
 
 **Created**: 2026-05-30
 
-**Status**: Draft — for operator review (Window 1: understand + spec; no build)
+**Status**: Draft — Pass A redesign spec + **Pass B agent-native research layer authored & operator-ratified**
+(clarify resolved 2026-06-01). Awaiting operator review of the locked spec before the phased build. **No
+implementation in this window.**
 
 **Last amended**: 2026-05-31 — (a) operator amendment: the plugin marketplace is the **primary
 extensibility model** (brokers, data providers/connectors, panels, and agents are all marketplace
@@ -114,6 +116,48 @@ first-party features **are** plugins — pre-installed ones.
   first-party plugin set (panels + the keyless data plugin + the default agent); SC-013's "no broker
   registered at boot / installable-and-removable through the marketplace" is unaffected because brokers
   are explicitly excluded from the pre-installed set.
+
+### Session 2026-06-01 (Pass B — operator ratification of the agent-native research layer)
+
+Pass B extends the spec with the **agent-native research layer** — six pillars: (A) locale-native data
+
+- symbol resolution + multi-source fallback, (B) fast + deep research with the B+A output (cockpit +
+  cited brief), (C) three-tier web search (native / BYOK / local), (D) JARVIS capability-completeness +
+  smart-arrangement + resourcefulness, (E) `/` and `@` commands, (F) multi-portfolio + the `get_portfolio`
+  fix. Added: **US11–US17**, **FR-060–FR-111**, **SC-016–SC-025**, the Pass-B entities/assumptions, and
+  the **Open Product Decisions — Pass B** list. Grounding: `docs/redesign/PASS_B_RESEARCH.md` (a 42-agent,
+  adversarially-verified research pass). The twelve open product decisions were surfaced to the operator
+  and **ratified as follows** (every recommendation accepted):
+
+1. **v1 locale scope** → **US + India, both first-class & deep**; GLOBAL best-effort. (FR-060)
+2. **India data default** → **keyless jugaad-data / NSE-Bhavcopy pre-installed** (zero-key, T+1 EOD);
+   yfinance is the correctness-gated **US** default and last-resort for India (documented `#2612`/`#2055`);
+   Angel One SmartAPI / Dhan / Zerodha + EODHD/Twelve Data are optional BYOK upgrades. (FR-064)
+3. **`get_portfolio` fix** → **the portfolio panel publishes its active-portfolio holdings to the
+   panel-context bus; the agent reads that** — single source of truth = the frontend multi-portfolio
+   store; no sidecar SQLite mirror. (FR-110/111)
+4. **JARVIS posture v1** → **prompt-driven assembly** ("research X" → cockpit); fully-anticipatory
+   pre-loading is a later enhancement. (US15)
+5. **Web-search default tier** → **native-on-your-key default** + honest fallback prompt (BYOK/local) for
+   the ~4 providers without native search; per-search cost surfaced + a per-run search cap. (FR-081)
+6. **Default BYOK search backend** → **Exa**, with Tavily/Linkup as alternates. (FR-083)
+7. **Deep-research depth + trigger** → FAST default + explicit **`/deep` & "go deeper"**; budgets
+   **rounds=3 (max 5), wall=120s (max 300s)**, abort→synthesize. (FR-072)
+8. **BYOK deep backend** → **ship Perplexity Sonar deep-research as an optional, opt-in-per-run DEEP
+   engine** (cost shown, never auto-selected). (FR-073)
+9. **Research output layout** → ship **single-focus / research-cockpit / compare** templates (macro-scan
+   recommended) with the **brief as a real dockview panel**. (FR-074/091)
+10. **Slash/@ command set** → ship the **curated 11 slash + 9 @** set; `@analyst`/`@quant` as
+    **prompt-prefix routing** to existing personas; custom `.vysted/commands/` deferred to v2. (FR-100/101)
+11. **Local Tier-3 search** → **BYO SearXNG URL + autodetect `localhost:8080`** in v1; bundled Docker
+    one-click deferred. (FR-084)
+12. **Constitution amendment** → **ratified**: add **Principle VIII — Locale-Native & Correct, Everywhere**
+    (the "McDonald's principle" + correctness-non-negotiable + resourcefulness/never-dead-end); constitution
+    **1.0.0 → 1.1.0**.
+
+Every Pass-B pillar preserves the §6.5 boundary, Tier-1 LOCKED files, read-only brokers, paper-default,
+kill-switch, append-only audit, and the diff/accept gate **byte-for-byte** (FR-012/055/094); no LOCKED
+file is touched.
 
 ---
 
@@ -451,6 +495,251 @@ plugin, and an agent plugin.
    any state mutation, **Then** the host §6.5 gate governs it (paper-default, read-only, kill switch,
    position limits, diff/accept, append-only audit); the plugin cannot opt out (see FR-055).
 
+---
+
+### User Story 11 — Locale-native data, everywhere (the "McDonald's principle") (Priority: P1 — Pass B)
+
+A user in India says "set me up to look at Tata Steel" (or "GOLDBEES") and the terminal serves
+**correct NSE/BSE data, in INR, on IST market hours, with Indian news sources** — the same product,
+locally shaped. A user in the US gets US tickers, USD, US market hours, US sources. There are **no
+symbol dead-ends**: a free-text name or ticker resolves to the right instrument wherever it lists,
+the data comes from a locale-appropriate source, and if the first source fails the system **falls
+through to another** — saying "unavailable" (with a reason) only when every configured source has
+failed. The terminal **never shows wrong, stale, or glitchy data** behind a populated surface.
+
+**Why this priority**: Correctness is non-negotiable for a research product — wrong data is fatal —
+and locale-native coverage is what lets the product be "Perplexity Finance, but better" for a user
+_anywhere_, not a US-first tool with an India bolt-on. It is the foundation the research engine and
+JARVIS rest on (a brief built on wrong data is worse than no brief). The motivating defect (GOLDBEES
+dead-ended; yfinance is documented-unreliable for Indian tickers — `PASS_B_RESEARCH.md` §A.1) is a
+correctness bug, not a polish item.
+
+**Independent Test**: With region=IN, a basket including GOLDBEES, TATASTEEL, RELIANCE, NIFTYBEES
+resolves and loads correct quotes/history from a locale-appropriate source (or returns an honest,
+human "unavailable + why"); with region=US, AAPL/MSFT/SPY load from US sources; in both, every
+served value carries its provider as provenance and no value is fabricated or stale-shown-as-live.
+Fully testable as a scripted symbol basket → resolved instrument + provenance-tagged data (or honest
+unavailable), with zero raw-JSON dead-ends.
+
+**Acceptance Scenarios**:
+
+1. **Given** region=IN, **When** the user asks for an Indian instrument by name or ticker (incl. an
+   ETF like GOLDBEES), **Then** it resolves to the correct NSE/BSE instrument and loads correct data
+   from a locale-appropriate source, denominated/formatted for IN (INR, IST, en-IN), with provenance.
+2. **Given** a data source fails or returns an empty/invalid response, **When** the system fetches,
+   **Then** it falls through the preference-ordered provider chain and serves the first valid result
+   (provenance-tagged) — or, only if all sources fail, a human "unavailable" message naming what would
+   unlock it (a key, a source), never raw JSON and never wrong data.
+3. **Given** a new data source declared as a plugin (exchanges, data types, region it serves),
+   **When** installed/enabled/configured via the marketplace, **Then** the registry resolves through
+   it by standard model key + preference order with zero per-source UI code (FR-034/035/053).
+4. **Given** a value would be stale (after-hours, cache-served) or synthetic/paper, **When** it is
+   shown, **Then** it is labeled as such (staleness/provenance badge), never presented as live/real.
+
+---
+
+### User Story 12 — Fast research builds the cockpit and writes the brief (B+A) (Priority: P1 — Pass B)
+
+The user says "research NVDA." Without twenty questions, JARVIS resolves the symbol, pulls
+**structured data** (price, fundamentals, recent filings, news) from the providers in parallel, runs
+**one light web-search round** for context, **arranges a coherent cockpit** (chart center with
+sensible default indicators, fundamentals beside it, news/filings below), and drops a **synthesized
+written brief** — a Perplexity-style answer with inline `[n]` citations and a sources tray — as a
+panel inside the cockpit. Quick (target seconds, not minutes). The edge over Perplexity Finance: it
+combines the _actual_ structured filings/financials (with provenance) with web context, in a terminal
+that builds itself.
+
+**Why this priority**: This is the flagship JARVIS experience and the product's reason to beat
+Perplexity Finance — the agent doesn't just answer, it builds the research workspace. Fast research
+on by default is the "research this" path most users use most.
+
+**Independent Test**: "research <ticker>" composes a multi-panel cockpit (chart + default indicators,
+fundamentals, news/filings) and a brief panel with ≥K cited sources, every structured number
+provenance-tagged, in under the fast-research latency target — testable as a scripted research call →
+resulting workspace state + brief + citations. Not everything dumped in one tile.
+
+**Acceptance Scenarios**:
+
+1. **Given** a configured provider + (where needed) a search backend, **When** the user asks to
+   research a company, **Then** JARVIS arranges the research-cockpit layout (not one tile), loads the
+   chart with sensible default indicators for the asset class, and pulls fundamentals + news + filings
+   — each value provenance-tagged.
+2. **Given** the structured + web data is gathered, **When** JARVIS synthesizes, **Then** it writes a
+   brief panel with inline `[n]` citations and a sources tray (favicon/title/domain/snippet), labeled
+   with mode (FAST), source count, and cost.
+3. **Given** the cockpit + brief are built, **When** the user manipulates a panel by hand or asks a
+   follow-up, **Then** the agent modifies the existing cockpit (does not start over) and the change
+   rides the diff/accept gate (US4) / autonomy mode.
+4. **Given** a data source fails mid-research, **When** JARVIS continues, **Then** it falls through to
+   another source (Pillar A) and the brief notes any gap honestly — it does not fabricate or dead-end.
+
+---
+
+### User Story 13 — Deep research (go deeper), budget-bounded (Priority: P2 — Pass B)
+
+When fast isn't enough, the user invokes deep research ("go deeper" on a brief, or `/deep`). JARVIS
+runs a multi-round search→read→reflect→search-again loop across many sources until coverage is
+satisfied or a **hard budget** (rounds / wall-clock / tokens / spend) is hit — at which point it
+synthesizes immediately from what it has (never times out into nothing). Optionally, a user with a
+deep-research API key (e.g. Perplexity Sonar) can route deep mode through that backend, explicitly and
+with cost shown. The output is the same B+A shape: a richer cockpit + a longer cited brief, with a
+visible step log.
+
+**Why this priority**: Deep research is the thorough, opt-in counterpart to fast — it depends on fast
+existing first, and (like Delegate, US9) autonomous multi-round spend is a safety surface that must be
+bounded. P2 because it builds on US12.
+
+**Independent Test**: A deep-research run loops across multiple sources and either satisfies a coverage
+floor (≥1 source each for price/fundamentals/news/web) or aborts at its budget ceiling — and in both
+cases produces a synthesized brief (never a bare timeout); the step log and cost-so-far are visible;
+the BYOK deep backend, if configured, is opt-in per run.
+
+**Acceptance Scenarios**:
+
+1. **Given** deep mode, **When** the loop runs, **Then** it is bounded by a hard ceiling
+   (rounds/wall/tokens/spend, wired to the BudgetGuard, FR-026), and the first breach forces immediate
+   synthesis from gathered context with a stated reason — not an error, not a silent overrun.
+2. **Given** a configured deep-research backend key, **When** the user opts into the paid path for a
+   run, **Then** the estimated cost is shown first, the path is explicit (never auto-selected), and
+   citations carry provenance ("via <backend>").
+3. **Given** a deep run, **When** it proceeds, **Then** the agents rail / brief shows live step log,
+   sources-so-far, and cost-so-far.
+
+---
+
+### User Story 14 — Web search, three tiers of freedom (Priority: P1 — Pass B)
+
+The user is never forced into a subscription to get web grounding. **Native (default):** if their
+model supports server-side web search on their existing key (Anthropic/OpenAI/Gemini/Groq/xAI), JARVIS
+rides it. **BYOK search API (optional power):** they can add an Exa/Tavily/etc. key for better
+retrieval. **Local (optional, total privacy):** they can point at a local SearXNG so nothing leaves
+the machine. Each backend is a marketplace plugin; the user picks their tier. When the active model
+has no native search (DeepSeek, local Ollama, bare Qwen/Llama), JARVIS says so honestly and routes to
+a configured BYOK/local backend rather than failing or silently degrading.
+
+**Why this priority**: Web search underpins both research tiers and the "fast research" default. The
+freedom thesis (ride your own key; don't force subscriptions) is core to the BYOK/local-first
+identity. P1 because research can't ground without it.
+
+**Independent Test**: With each supported provider, JARVIS performs a grounded search using only the
+user's existing key where native search exists (citations returned), and gracefully routes to a
+configured BYOK/local backend (with an honest prompt) where it doesn't; each search backend
+installs/configures as a marketplace plugin exposing a common search interface; locale-aware domain
+preferences apply.
+
+**Acceptance Scenarios**:
+
+1. **Given** an active model with native search, **When** JARVIS needs web context, **Then** it uses
+   the provider's native search on the user's key, returns normalized citations, and respects a
+   per-run search cap (cost-aware).
+2. **Given** an active model with no native search, **When** JARVIS needs web context, **Then** it
+   surfaces an honest prompt and uses the configured BYOK or local search backend — never failing
+   silently or fabricating.
+3. **Given** a configured search plugin, **When** it runs, **Then** locale-aware domain preferences
+   apply (US vs IN source sets) and results carry source URLs.
+4. **Given** a local (SearXNG) backend, **When** selected, **Then** web search runs without data
+   leaving the machine.
+
+---
+
+### User Story 15 — JARVIS does every obvious action, with taste, and never dead-ends (Priority: P1 — Pass B)
+
+The agent can do every obvious thing a user would expect of a finance copilot — open/close/focus/
+arrange panels (with smart layout judgment), apply/remove chart indicators, load any symbol
+(locale-aware, resourceful), set timeframes, pull fundamentals/filings/news, compare tickers, run
+fast/deep research, and manage portfolios — all by name. When asked to "set up" or "research"
+something it makes good layout + indicator + data choices on its own (a thoughtful cockpit, not
+everything in one tile, not asking the user how to arrange). When a path fails it tries another route
+and succeeds, or fails cleanly with a human message — it **never gives up and prints raw JSON**. Every
+mutating action routes through the diff/accept gate; AUTO mode skips per-action confirm for
+UI/layout/chart/watchlist only — never an order; §6.5 is never bypassed.
+
+**Why this priority**: This is the north-star JARVIS feeling, and it is all-or-nothing: a single
+missing obvious action, a bad arrangement, or one raw-JSON dead-end breaks the illusion of an
+effortless, anticipatory assistant. The three sub-pillars — capability completeness, smart-defaults
+judgment, resourcefulness — are each first-class.
+
+**Independent Test**: A capability-completeness audit shows every enumerated obvious action is
+reachable by the agent and by hand; a "research X"/"set up Y" request produces a coherent
+named-template cockpit with sensible default indicators (not one tile); a deliberately-hard symbol
+(GOLDBEES) is handled by fallthrough or an honest message (zero raw-JSON dead-ends); every mutating
+action is gated (orders never auto-applied; §6.5 audit clean).
+
+**Acceptance Scenarios**:
+
+1. **Given** any obvious finance action (arrange/close/focus panels, set/remove indicators, load
+   symbol, set timeframe, pull fundamentals/filings/news, compare, research, portfolio), **When** the
+   user asks for it in natural language, **Then** the agent performs it via a catalog capability —
+   none is agent-unreachable or hand-unreachable.
+2. **Given** "research X" / "set me up to look at Y", **When** the agent composes the cockpit,
+   **Then** it picks a sensible named layout template and default indicators for the asset class on
+   its own (a thoughtful arrangement), without asking the user how to arrange.
+3. **Given** a load/research path fails, **When** the agent recovers, **Then** it tries another
+   source/route and succeeds, or returns a human message naming the cause — never raw JSON, never
+   wrong data.
+4. **Given** any agent mutation, **When** proposed, **Then** it routes through the diff/accept gate;
+   AUTO auto-applies only UI/layout/chart/watchlist; an order never auto-applies in any mode and always
+   routes through §6.5 confirm-before-place (FR-010/011/012).
+
+---
+
+### User Story 16 — `/` and `@` commands in the agent panel (Priority: P2 — Pass B)
+
+Inside the agent panel the user has a clean, fast command surface: **slash-commands** (`/research`,
+`/deep`, `/compare`, `/chart`, `/screener`, `/watch`, `/portfolio`, `/layout`, `/export`, `/sources`,
+`/clear`) for structured actions, and **`@`-mentions** (`@TICKER`, `@INDEX`, `@chart`, `@news`,
+`@filings`, `@watchlist`, `@portfolio`, `@analyst`, `@quant`) to reference instruments, surfaces,
+scopes, and sub-specialists — orthogonally composable (`/compare @AAPL @MSFT`). Inline fuzzy
+autocomplete, locale-aware ticker resolution, keyboard-driven.
+
+**Why this priority**: This makes agent interaction powerful and fast for the hands-on user (the
+OpenCode/Cursor grammar reborn for finance), but it is a UX layer on top of the capability surface
+(US15) and the research engine — so P2.
+
+**Independent Test**: Typing `/` shows the slash picker (fuzzy, keyboard-nav, mnemonic shown); each
+command executes its action; typing `@` shows the mention picker (instruments resolve locale-aware,
+showing `[exchange: price chg%]`); a mention injects the correct context; `/cmd @entity` composes.
+
+**Acceptance Scenarios**:
+
+1. **Given** the agent composer, **When** the user types `/`, **Then** a fuzzy, keyboard-navigable
+   slash picker appears and the selected command runs its action (e.g. `/research` opens the research
+   flow).
+2. **Given** the composer, **When** the user types `@`, **Then** a mention picker appears; `@TICKER`
+   resolves locale-aware (NSE for an IN session) and injects that instrument's context; `@panel`/
+   `@scope` injects the right surface/scope.
+3. **Given** a composed `/compare @A @B`, **When** submitted, **Then** intent (compare) and scope
+   (A, B) resolve together.
+
+---
+
+### User Story 17 — Multi-portfolio truth: the agent reads the real portfolio (Priority: P1 — Pass B)
+
+The user manages multiple named portfolios in the UI (create/rename/switch/delete, manual holdings —
+shipped in Pass A.2.0). When they ask JARVIS "how's my portfolio doing," the agent answers from the
+**same portfolio the UI shows** — the active multi-portfolio store — never from a stale or divergent
+source. Switching the active portfolio changes what the agent reads.
+
+**Why this priority**: Correctness (Pillar A's mandate applied to the user's own data). The agent
+answering from a stale/wrong portfolio is a trust-breaking correctness bug — small surface, critical
+impact. P1.
+
+**Independent Test**: With ≥2 portfolios, the agent's `get_portfolio` (and any portfolio-aware answer)
+returns exactly the active portfolio's holdings/P&L as shown in the UI; creating/switching/editing a
+portfolio in the UI changes the agent's read with zero divergence.
+
+**Acceptance Scenarios**:
+
+1. **Given** a multi-portfolio store with an active portfolio, **When** the agent reads the portfolio,
+   **Then** it returns the active portfolio's real holdings (symbol/quantity/cost/asset-class) + P&L
+   as shown in the UI — not a divergent or empty source.
+2. **Given** the user switches the active portfolio, **When** the agent next reads, **Then** it
+   reflects the newly-active portfolio.
+3. **Given** a manual edit to holdings in the UI, **When** the agent reads, **Then** the change is
+   reflected (single source of truth).
+
+---
+
 ### Edge Cases
 
 - **No provider configured / local model absent.** First agent use must route to onboarding,
@@ -475,6 +764,25 @@ plugin, and an agent plugin.
 - **A broker (or any) plugin attempts a write/execution path.** The host §6.5 gate governs it
   regardless of plugin code (paper-default, read-only, kill switch, position limits, diff/accept,
   append-only audit are all host-enforced); the plugin cannot opt out.
+
+**Pass B edge cases:**
+
+- **Symbol resolves to multiple instruments across exchanges** (e.g. "Reliance" → RELIANCE.NS vs
+  .BO vs a US ADR). Resolution ranks by user locale; below a confidence threshold the agent surfaces
+  a disambiguation choice rather than silently acting on the wrong instrument.
+- **Active model has no native web search** (DeepSeek / local Ollama / bare Qwen/Llama). The agent
+  routes to a configured BYOK/local search backend with an honest prompt; it never fabricates web
+  context or fails silently.
+- **All data sources fail for a symbol.** Honest "unavailable" with the reason and what would unlock
+  it (a key/source) — never raw JSON, never a fabricated value (the GOLDBEES-class defect).
+- **Deep-research budget exhausted mid-loop.** Synthesize immediately from gathered context with a
+  stated reason (abort→synthesize), never a bare timeout/error.
+- **After-hours / stale / paper data.** Labeled as stale/synthetic (badge), never shown as live/real.
+- **Native search per-search billing.** A per-run search cap prevents runaway cost during multi-round
+  research; cost-so-far is legible.
+- **Indian ticker via yfinance returns "possibly delisted" / silently-wrong OHLC** (documented
+  `#2612`/`#2055`). The correctness gate rejects it and the registry falls through to a locale-
+  appropriate source; yfinance is never the trusted India primary.
 
 ## Requirements _(mandatory)_
 
@@ -636,6 +944,140 @@ plugin, and an agent plugin.
   (`types/plugin.ts`, the §6.5 LOCKED set) and every §6.5 invariant stay byte-for-byte untouched
   (FR-012).
 
+### Functional Requirements — Locale-native data, resolution & fallback (Pass B / Pillar A)
+
+- **FR-060**: Region MUST drive the user-local shape of the product — ticker/exchange resolution,
+  currency, market hours, number/date formatting, and default news/data sources — so the terminal is
+  natively local wherever the user is. This extends the Pass-A region seam (`region.ts` / `settings` /
+  `format.ts`) into the sidecar (a `get_region()` read threaded through the provider registry, news,
+  screener, and macro handlers). The v1 locale set is **US + India (both first-class & deep); GLOBAL
+  best-effort** `[RESOLVED 2026-06-01]`.
+- **FR-061**: The system MUST resolve a free-text name or ticker to a concrete instrument (ticker,
+  exchange, region, asset class) via a **keyless-first resolver** (bundled US + NSE/BSE instrument
+  masters + a live keyless lookup), locale-ranked, with disambiguation surfaced when confidence is low
+  ("Tata Steel" → TATASTEEL on NSE for an IN session; "GOLDBEES" → the NSE gold ETF).
+- **FR-062**: Data retrieval MUST be fault-tolerant and **never dead-end**: the registry resolves by
+  standard model key + preference order (FR-035) and MUST fall through to the next provider on a
+  missing-key / empty / invalid response, serving the first valid, provenance-tagged result — and MUST
+  surface an honest, human "unavailable" (naming what would unlock it) ONLY when all configured sources
+  fail. Raw JSON dumped at the user is a defect.
+- **FR-063**: The system MUST NOT present wrong, stale, or glitchy data as correct. A **correctness
+  gate** MUST reject a provider response (advancing to the next) on empty/null data, non-positive price,
+  exchange-calendar-aware staleness, a returned-symbol mismatch, or missing required fields; anomalous
+  values surface a data-quality warning rather than silent display; stale/cache-served and
+  synthetic/paper values are labeled (FR-041). **yfinance MUST NOT be trusted for `.NS`/`.BO` tickers
+  without this gate** (documented `#2612`/`#2055`).
+- **FR-064**: Each data source MUST be a marketplace plugin (FR-050/053) declaring the exchanges, data
+  types, and region(s) it serves, configured/keyed via the credentials hub (FR-034). The keyless India
+  equity default ships pre-installed as the **keyless jugaad-data / NSE-Bhavcopy default** (zero-key,
+  T+1 EOD); Angel One/Dhan/Zerodha + EODHD/Twelve Data are optional BYOK upgrades `[RESOLVED 2026-06-01]`;
+  yfinance remains the keyless US default; brokers stay none-pre-installed and read-only (FR-051).
+- **FR-065**: Every served value MUST carry provenance (the provider that served it), and locale-shaped
+  output (currency, market-hours-aware freshness, locale formatting) MUST be correct for the active
+  region — e.g. an NSE quote denominated in INR with IST session context, never an ET-anchored VWAP
+  applied to NSE data.
+
+### Functional Requirements — Research engine: fast + deep + B+A output (Pass B / Pillar B)
+
+- **FR-070**: The system MUST provide a **fast research** path (default-on) that, from a single
+  instruction ("research X" / "set up Y"), resolves the symbol, pulls structured data (price,
+  fundamentals, filings, news) from providers in parallel, runs one light web-search round, synthesizes,
+  and produces the B+A output (FR-074) — targeting an interactive latency of **≤15s typical**
+  `[RESOLVED 2026-06-01]`.
+- **FR-071**: The system MUST provide an opt-in **deep research** path ("go deeper" / `/deep`) that runs
+  a multi-round search→read→reflect→search-again loop until a coverage floor (≥1 source each for
+  price/fundamentals/news/web context) is met or a hard budget is hit.
+- **FR-072**: Deep research MUST be bounded by a hard, user-visible ceiling on rounds, wall-clock,
+  tokens, and spend, wired to the existing BudgetGuard (FR-026); the first breach MUST force **immediate
+  synthesis from gathered context** with a stated reason (abort→synthesize) — never a silent overrun,
+  never a bare timeout. Defaults: **rounds=3 (max 5), wall=120s (max 300s)**; trigger is **explicit
+  `/deep` + "go deeper"** (not auto-detect) `[RESOLVED 2026-06-01]`.
+- **FR-073**: The system MAY support a **BYOK deep-research backend** (e.g. Perplexity Sonar) as an
+  explicit, opt-in-per-run DEEP path with estimated cost shown before starting; it MUST NEVER be
+  auto-selected, and its citations MUST carry provenance ("via <backend>"). **Perplexity Sonar ships as
+  an optional, opt-in-per-run DEEP engine** `[RESOLVED 2026-06-01]`.
+- **FR-074**: Research output MUST be **B+A**: it BUILDS the workspace (arranges a coherent
+  named-template cockpit, FR-090/091) AND drops a **synthesized written brief panel** — markdown with
+  inline `[n]` citations, a sources tray (title/domain/snippet), and a metadata header (mode FAST|DEEP,
+  source count, cost) — inside it; the brief is a **real dockview panel** `[RESOLVED 2026-06-01]`.
+  Structured numbers in the brief MUST be provenance-tagged; web claims MUST be cited
+  (FR-040).
+- **FR-075**: Each research run MUST be **step-logged** (plan/tool/search/compress/reflect/synthesize
+  records with latency + status), and the step log + cost-so-far MUST be inspectable.
+
+### Functional Requirements — Web search, three tiers of freedom (Pass B / Pillar C)
+
+- **FR-080**: The system MUST support web search across **three user-selectable tiers**, each a
+  marketplace search-source plugin conforming to a common search interface: (1) **native** — the active
+  model's server-side web search on the user's existing key; (2) **BYOK search API**; (3)
+  **local/private**. The user picks their tier; no tier requires a subscription beyond the user's own
+  keys.
+- **FR-081**: The native tier MUST be the default where the active model supports server-side web search
+  (Anthropic/OpenAI/Gemini/Groq/xAI), riding the user's existing key and returning normalized citations;
+  a **per-run search cap** MUST bound per-search billing during multi-round research. The default is
+  **native-on-your-key + honest fallback** `[RESOLVED 2026-06-01]`.
+- **FR-082**: Where the active model has **no native web search** (DeepSeek, local Ollama, bare
+  Qwen/Llama), the system MUST surface an honest prompt and route to a configured BYOK or local backend
+  — it MUST NOT fail silently or fabricate web context.
+- **FR-083**: The BYOK search tier MUST ship at least one best-in-class finance-suitable backend —
+  **Exa** (default), with Tavily/Linkup as alternates `[RESOLVED 2026-06-01]`; backends MUST
+  support locale-aware domain preferences (US vs IN source sets).
+- **FR-084**: The local tier MUST allow web search with **no data leaving the machine** (SearXNG-class),
+  via auto-detect + a configurable local URL: **BYO SearXNG URL + autodetect `localhost:8080`** in v1
+  (bundled Docker one-click deferred) `[RESOLVED 2026-06-01]`.
+
+### Functional Requirements — JARVIS completeness, smart arrangement & resourcefulness (Pass B / Pillar D)
+
+- **FR-090**: The agent capability catalog MUST be **complete** for every obvious finance action so none
+  is agent-unreachable: open/close/focus/arrange panels, apply/remove chart indicators, load any symbol
+  (locale-aware), set timeframe, pull fundamentals/filings/news, compare instruments, run fast/deep
+  research, and read/manage portfolios. Every such capability MUST also be reachable by hand (FR-005).
+  New capabilities register once in the catalog and project to the internal copilot + external MCP by
+  the same name (FR-020).
+- **FR-091**: The agent MUST arrange the cockpit with **built-in taste**: `arrange_layout` MUST offer
+  **named templates** (at least single-focus, research-cockpit, compare; macro-scan recommended) and the
+  agent MUST pick a sensible template + default indicators for the asset class **on its own** when asked
+  to "research"/"set up" — composing a thoughtful cockpit, not dumping everything in one tile, and not
+  asking the user how to arrange.
+- **FR-092**: The system MUST apply **sensible default indicators per asset class** (equity daily:
+  SMA50/200 + volume + RSI14; intraday: EMA9/21 + session-VWAP locale-anchored; ETF/index: + RS-line;
+  crypto: EMA50/200 + week-VWAP + RSI, with OI/funding when a derivatives feed is available), centered
+  and legible — via a `set_chart_indicators` host-action through the existing chart-command channel;
+  indicators stay server-computed (canvas reads `chart-theme.ts`, never CSS vars).
+- **FR-093**: The agent MUST be **resourceful and never dead-end**: on a failed path it MUST try an
+  alternate source/route (Pillar A fallback) and succeed, or fail cleanly with a human message — it MUST
+  NOT give up and print raw JSON or show wrong data (the GOLDBEES-class defect).
+- **FR-094**: Every agent-mutating capability added by Pass B (arrange / indicators / research-driven
+  panel changes / etc.) MUST route through the existing **diff/accept gate** (FR-010); AUTO autonomy MAY
+  skip per-action confirm for **UI/layout/chart/watchlist ONLY** and MUST NEVER auto-apply an order; the
+  §6.5 boundary MUST NEVER be bypassed in any mode; brokers stay read-only; Tier-1 LOCKED files stay
+  byte-for-byte untouched (FR-012/055).
+
+### Functional Requirements — `/` and `@` command surface (Pass B / Pillar E)
+
+- **FR-100**: The agent panel MUST provide a **slash-command surface** (inline fuzzy autocomplete,
+  keyboard-driven) covering at least: `/research`, `/deep`, `/compare`, `/chart`, `/screener`, `/watch`,
+  `/portfolio`, `/layout`, `/export`, `/sources`, `/clear` — the **curated set ships in v1**; custom
+  `.vysted/commands/` deferred to v2 `[RESOLVED 2026-06-01]`.
+- **FR-101**: The agent panel MUST provide an **@-mention surface** (inline fuzzy picker) covering
+  instruments (`@TICKER`/`@INDEX`, locale-aware resolution showing `[exchange: price chg%]`), surfaces
+  (`@chart`/`@news`/`@filings`/`@terminal`), scopes (`@watchlist`/`@portfolio`), and sub-specialist
+  routing (`@analyst`/`@quant`, implemented as **prompt-prefix routing to existing personas** in v1)
+  `[RESOLVED 2026-06-01]`.
+- **FR-102**: Slash intent and @ scope MUST be **orthogonally composable** (`/compare @AAPL @MSFT`); a
+  ticker MUST NOT be a slash command; the surfaces MUST not conflict with the §6.5 gate (a `/research` or
+  any command that triggers a mutation still routes through the diff/accept gate).
+
+### Functional Requirements — Multi-portfolio truth (Pass B / Pillar F)
+
+- **FR-110**: The agent's portfolio read (the `get_portfolio` capability and any portfolio-aware answer)
+  MUST return the **active portfolio from the real multi-portfolio store the UI shows**
+  (`src/store/portfolios.ts` via the workspace blob) — never a stale or divergent source. **Fix: the
+  portfolio panel publishes active-portfolio holdings to the panel-context bus, which the agent reads**
+  (single source of truth = the frontend store) `[RESOLVED 2026-06-01]`.
+- **FR-111**: Switching/creating/editing the active portfolio in the UI MUST change what the agent reads
+  (single source of truth), with zero divergence; synthetic/paper values stay labeled (FR-041).
+
 ### Key Entities _(data/contracts involved — conceptual, not implementation)_
 
 - **Capability** — one terminal action (read or mutate) with: id, human description, input shape,
@@ -668,6 +1110,25 @@ plugin, and an agent plugin.
   surface for plugins: the front door for gaining a broker, data source, panel, or agent. Enforces
   host-side compatibility (manifest↔instance, `requiredHostVersion`) and never grants a plugin a path
   around the §6.5 safety boundary.
+
+**Pass B entities:**
+
+- **Region / Locale Profile** — the active region (US / IN / …) driving ticker/exchange resolution,
+  currency, market hours, formatting, and default news/data sources; read frontend (`region.ts` /
+  `settings`) + sidecar (`get_region`).
+- **Symbol Resolution** — a free-text/ticker query resolved to `(ticker, exchange, region, asset_class)`
+  with a confidence + disambiguation candidates; cached; locale-ranked.
+- **Data Source Plugin** — a provider declaring the exchanges, data types, and region(s) it serves + its
+  credential shape; registered in the provider registry; carries provenance on results; the data slice of
+  the one extension model (FR-053/064).
+- **Research Run / Brief** — a fast or deep research invocation with a mode (FAST/DEEP), a step log,
+  gathered sources, a budget (deep), and a synthesized cited brief (the B+A output panel).
+- **Search Backend** — a marketplace search-source plugin (native / BYOK / local) implementing a common
+  `search(query, options) → {results, citations}` interface, with locale-aware domain preferences.
+- **Layout Template** — a named cockpit arrangement (single-focus / research-cockpit / compare /
+  macro-scan) the agent picks by query intent; the taste behind `arrange_layout`.
+- **Slash Command / Mention** — the agent-panel command grammar: `/commands` (intent) + `@mentions`
+  (scope), orthogonally composable.
 
 ## Success Criteria _(mandatory)_
 
@@ -718,6 +1179,42 @@ plugin, and an agent plugin.
   incompatible plugin), and a plugin's declared secrets **resolve through `PluginConfig`** at use (no
   out-of-band credential fetch) — closing the documented-but-absent gaps of §3.4.
 
+**Pass B — JARVIS-AGI experience & pillar criteria:**
+
+- **SC-016** _(coherent cockpit, unprompted)_: "research X" composes a coherent multi-panel cockpit on
+  its own — a **named layout template (not one tile)** with the chart carrying asset-class default
+  indicators, fundamentals + news/filings panels, and a brief panel with **≥3 cited sources** — for a
+  representative ticker basket, 100% of the time.
+- **SC-017** _(no symbol dead-ends across locales)_: a US + India basket (incl. GOLDBEES, TATASTEEL,
+  NIFTYBEES, RELIANCE) each resolves and loads from a locale-appropriate source **OR** returns an honest
+  human "unavailable + why" — **0 raw-JSON dead-ends, 0 wrong/stale values shown as live** (audit).
+- **SC-018** _(fast research latency)_: fast research completes within the latency target (recommend
+  **≤15s typical**) for a representative ticker — structured pull + web round + synthesis + arrangement
+  included.
+- **SC-019** _(data is never wrong)_: for the test basket, **100% of served values carry provenance**,
+  stale/synthetic values are labeled, and the correctness gate + fallback chain admit **0 fabricated
+  values** (audit).
+- **SC-020** _(native search coverage + honest fallback)_: native web search works on the
+  native-capable providers (Anthropic/OpenAI/Gemini/Groq/xAI) using **only the user's existing key**
+  (citations returned); the rest (DeepSeek/Ollama/bare Qwen/Llama) route to a configured BYOK/local
+  backend with an honest prompt — **0 silent failures, 0 fabricated web context**.
+- **SC-021** _(deep research is bounded)_: a deep-research run satisfies the coverage floor **or** aborts
+  at its rounds/wall/token/spend ceiling, and in **both** cases produces a synthesized brief (never a
+  bare timeout) — 100% of the time; cost-so-far + step log visible.
+- **SC-022** _(capability completeness)_: an audit shows **every** enumerated obvious action
+  (arrange/close/focus, set/remove indicators, load symbol locale-aware, set timeframe,
+  fundamentals/filings/news, compare, fast/deep research, portfolio) is reachable by the internal agent
+  **and** by hand — **0 obvious actions missing**.
+- **SC-023** _(/@ surface resolves)_: every shipped slash command executes its action; `@TICKER` resolves
+  locale-aware to the correct instrument; `@panel`/`@scope` inject the correct context; `/cmd @entity`
+  composes.
+- **SC-024** _(portfolio truth)_: for ≥2 portfolios, the agent's portfolio read **equals** the active
+  portfolio shown in the UI across create/switch/edit, with **0 divergence**.
+- **SC-025** _(Pass-B mutations stay gated; §6.5 untouched)_: every Pass-B agent mutation
+  (arrange/indicators/research-driven panel changes) is gated 100% (diff/accept; AUTO only for
+  UI/layout/chart/watchlist; orders never auto-applied); the §6.5 audit stays **9/9**; Tier-1 LOCKED
+  files are byte-for-byte untouched (audit-grep).
+
 ## Assumptions
 
 - The existing foundation is **kept and consumed, not rebuilt**: the FastAPI sidecar + ~107 data
@@ -743,6 +1240,23 @@ plugin, and an agent plugin.
 - Dark-only ships; light theme stays deferred to a later release.
 - This window (Window 1) delivers understanding + tooling + this spec; **no implementation**. Plan/
   tasks/implement are a later window after operator review.
+
+**Pass B assumptions:**
+
+- Pass B builds on the **four Pass-A seams** (capability catalog, provider registry, model registry,
+  region) + the **Pass A.2.0 multi-portfolio store** + the **JARVIS host-actions/autonomy** + the warm
+  theme — these are kept and consumed, **not rebuilt or re-derived** (`EXTENSION_SEAMS.md`,
+  `PASS_A_REPORT.md`, `PASS_A20_REPORT.md`, `PASS_B_RESEARCH.md`).
+- **yfinance is documented-unreliable for Indian tickers** (`#2612` "possibly delisted" + `#2055`
+  silent wrong OHLC, both won't-fix); it stays the US keyless default but is gated/last-resort for
+  India. Keyless India data (jugaad-data / NSE-Bhavcopy-class) ships pre-installed; broker (Angel
+  One/Dhan/Zerodha) + EODHD/Twelve Data are BYOK upgrades. _(See clarify.)_
+- **Native LLM web search is "billable to the user's key"** (per-search fees), not free; only ~5 of the
+  supported providers offer it; the BYOK + local tiers exist for the rest.
+- **Locale scope for v1 is US + India deep** _(pending clarify)_; GLOBAL is best-effort.
+- The **§6.5 boundary, Tier-1 LOCKED files, read-only brokers, paper-default, kill-switch, append-only
+  audit, and the diff/accept gate are untouched** by every Pass-B pillar; any pillar that appears to
+  require touching a LOCKED file is a **stop-and-surface**, routed around (FR-012/055/094).
 
 ## Open Product Decisions _(flagged for operator review — clarify step)_
 
@@ -777,3 +1291,47 @@ recommendation is given; the operator ratifies.
    symbol-group panel linking as a later track. The visible payoff being deferred is **symbol-group
    panel linking** (change the ticker in one linked panel → all linked panels follow).
    _Operator-ratified — see Clarifications._
+
+### Open Product Decisions — Pass B _(flagged for operator review — clarify step; recommendations grounded in `PASS_B_RESEARCH.md`)_
+
+> **✅ All twelve resolved 2026-06-01 (operator ratification) — every recommendation was ratified. See
+> Clarifications → Session 2026-06-01 for the canonical record.** The list below is retained as the
+> rationale trail; the corresponding `[NEEDS CLARIFICATION]` markers in FR-060–FR-111 are now
+> `[RESOLVED 2026-06-01]`.
+
+These were the genuine Tier-4 / product-scope forks Pass B did not settle by itself. The
+recommendation is given; the operator ratified each at clarify.
+
+1. **v1 locale scope** (FR-060) — _Recommend:_ **US + India both first-class & deep** (Perplexity Finance
+   already covers India; the only way to beat it there is going deeper). GLOBAL best-effort. Alt: US-first,
+   India v2.
+2. **India data default** (FR-064) — _Recommend:_ **keyless jugaad-data / NSE-Bhavcopy pre-installed** (zero
+   key, T+1 EOD) + yfinance gated/last-resort; Angel One SmartAPI / Dhan / Zerodha + EODHD/Twelve Data as
+   BYOK upgrades. Alt: require a BYOK broker/EODHD key for India.
+3. **`get_portfolio` fix approach** (FR-110) — _Recommend:_ the **portfolio panel publishes active-portfolio
+   holdings to the panel-context bus**, which the agent reads (single source of truth = the frontend store).
+   Alt: mirror to sidecar SQLite, or add a `/agent/portfolio` route.
+4. **Web-search default tier** (FR-081) — _Recommend:_ **native-on-your-key default** + honest fallback
+   prompt (BYOK/local) for the ~4 providers without native search; surface per-search cost. Alt: require a
+   BYOK search key for everyone / local-first default.
+5. **BYOK search default pick** (FR-083) — _Recommend:_ **Exa** (best-in-class for finance; $10 free credits)
+   with Tavily/Linkup as alternates. (Bing dead; Brave free tier gutted.)
+6. **Local Tier-3 search** (FR-084) — _Recommend:_ **BYO SearXNG URL + autodetect `localhost:8080`** in v1;
+   defer a bundled Docker one-click. Alt: ship the Docker Compose one-click now / defer Tier 3.
+7. **Deep-research depth + trigger** (FR-072) — _Recommend:_ FAST default + explicit **`/deep` & "go deeper"**;
+   budgets **rounds=3 (max 5), wall=120s (max 300s)**; abort→synthesize. Alt: always-ask / auto-detect by
+   query complexity.
+8. **Perplexity Sonar deep backend** (FR-073) — _Recommend:_ **optional, opt-in per run** (cost shown, never
+   auto-selected). Alt: native loop only / defer.
+9. **Research output layout** (FR-074) — _Recommend:_ ship the **research-cockpit / single-focus / compare**
+   templates (macro-scan recommended) with the **brief as a real dockview panel**. Alt: brief as a slide-in
+   drawer; fewer templates v1 (compare needs a shared time-axis lock — evaluate cost).
+10. **Slash/@ command set** (FR-100/101) — _Recommend:_ ship the **curated 11 slash + 9 @** set; custom
+    `.vysted/commands/` deferred to v2; `@analyst`/`@quant` as **prompt-prefix routing** to existing personas
+    in v1 (not new sub-agents).
+11. **JARVIS posture v1** (US15) — _Recommend:_ **prompt-driven assembly** ("research X" → cockpit), lower
+    failure surface; fully-anticipatory pre-loading is a later enhancement. Alt: fully anticipatory in v1.
+12. **Constitution amendment** — _Recommend:_ add a principle **"VIII. Locale-Native & Correct, Everywhere"**
+    (locale-native "McDonald's principle" + correctness-non-negotiable + resourcefulness/never-dead-end);
+    MINOR bump (1.0.0 → 1.1.0), operator-ratified per Governance. Alt: keep 7 principles (treat as an
+    application of Principles V/VI).
