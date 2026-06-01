@@ -620,6 +620,7 @@ export function ChatSidebar() {
       activeAgentId,
       appendDelta,
       appendToolStep,
+      appendResearchStep,
       appendUser,
       agentNameById,
       beginAssistant,

@@ -92,7 +92,7 @@ OpenCode (`opencode serve` + `@opencode-ai/sdk`) is technically embeddable — s
 reasoning/tool parts over SSE, and a `deny|ask|allow` permission gate resolved over HTTP all
 exist. **But it owns the agent loop by design** (Vercel AI SDK `streamText`: LLM→tool→feed-
 back, synchronous). Embedding it means two competing loops + two safety gates, with
-OpenCode's gate sitting *upstream* of ours — which **inverts the §6.5 architecture** (our gate
+OpenCode's gate sitting _upstream_ of ours — which **inverts the §6.5 architecture** (our gate
 must be the unconditional chokepoint, never downstream of an external resolver). Its tools are
 coding-shaped; the only §6.5-safe config (`permission: deny` + custom finance tools routed to
 our gate) is also the config where it contributes nothing but reasoning we can produce in-house.
@@ -121,16 +121,17 @@ Read the response `model` + `X-Generation-Id` for the supervised audit trail.
 The SearXNG backend, three-tier dispatch, BYO-URL setting, and per-request header threading
 are **already built and tested** (`sidecar/services/search/searxng.py`, `registry.py`,
 `config.py`, `search-headers.ts`). Two concrete gaps Track C fixes:
+
 1. **Autodetect probes `/healthz`** — but SearXNG core has **no `/healthz`** (upstream issue
    #4026). The correct probe is `GET /search?q=test&format=json` (200+JSON = usable; 403 =
    up-but-JSON-disabled, surface the `settings.yml` fix). Also probe `8888` (pip default) then
    `8080` (Docker default).
 2. **JSON format + limiter** — a real instance needs `search.formats: [html, json]` and
    `server.limiter: false` + `public_instance: false` (the latter drops the Redis/Valkey dep).
-**Verified path (taken):** fix the probe, document/ship a one-command local-SearXNG setup
-(OrbStack/Docker `searxng/searxng`, ~200 MB), live-verify autodetect + a real search end-to-end
-during the sprint. **Ambitious path (logged):** auto-launch/bundle a SearXNG instance from the
-Tauri core — fragile under PyInstaller + needs process lifecycle mgmt; log as follow-up.
+   **Verified path (taken):** fix the probe, document/ship a one-command local-SearXNG setup
+   (OrbStack/Docker `searxng/searxng`, ~200 MB), live-verify autodetect + a real search end-to-end
+   during the sprint. **Ambitious path (logged):** auto-launch/bundle a SearXNG instance from the
+   Tauri core — fragile under PyInstaller + needs process lifecycle mgmt; log as follow-up.
 
 ### 2.4 Tongyi-DeepResearch fit on this M1 (16GB) — **VERDICT: REMOTE (forced by fit-scorer)**
 
@@ -177,8 +178,8 @@ coherent chunk and rig/test-verified before the next.
   compound request into a proposed step list the existing gate approves. Spine supervises;
   OpenRouter brokers; the planner reasons — never bypassing the loop or §6.5.
 - **D — Hardware fit-scorer:** `sidecar/services/hardware_fit.py` per §2.5 + a settings surface
-  + an agent-readable capability so the app degrades gracefully and enables heavy local paths
-  only where the device earns it.
+  - an agent-readable capability so the app degrades gracefully and enables heavy local paths
+    only where the device earns it.
 - **C — Research engine whole:** fix the SearXNG autodetect probe + ship local-SearXNG setup
   (§2.3, live-verified); add a **Tongyi-remote** deep backend via OpenRouter (probed + Qwen-A3B
   fallback, §2.4), gated by the fit-scorer. Exa/native/Perplexity stay the BYOK/opt-in upgrades.
@@ -203,7 +204,7 @@ the operator. Appended as forks are hit.)_
 - **Fork:** use OpenCode (`opencode serve`) as the supervised reasoning engine for B's
   intent/multi-step/arrange, vs. strengthen our own loop.
 - **Fallback taken:** in-house planner pass in the existing loop.
-- **Why:** OpenCode owns the agent loop by design and its permission gate would sit *upstream*
+- **Why:** OpenCode owns the agent loop by design and its permission gate would sit _upstream_
   of §6.5 — running it on/near the execution path inverts the safety architecture (a Tier-4
   risk to the floor). The §6.5-safe config reduces it to a pure reasoner we can replicate
   in-house at zero new-process cost. A clean partial win (our own smarter planner) beats an
@@ -224,3 +225,24 @@ the operator. Appended as forks are hit.)_
 - **Logged for operator:** the live OpenRouter API shows the Tongyi slug **unreachable today**
   (0 endpoints) — wired as a runtime-probed target with a live Qwen-A3B fallback; revisit when
   OpenRouter relists it (a boot/cron `/endpoints` probe promotes it automatically).
+
+### 4.3 Multi-step: preamble-driven decomposition vs. an LLM pre-pass (Track B)
+
+- **Fork:** wire `planner.decompose()` (the LLM compound-decomposer) as a live PRE-PASS in
+  `invoke_agent` vs. drive multi-step through the model itself via the prompt.
+- **Decision taken:** the deterministic half of the planner — `classify_intent` — IS live-wired
+  (it gates read-only vs. mutating server-side, the mode-collapse spine). For decomposition, the
+  copilot preamble now explicitly instructs the model to decompose a compound request and emit
+  the whole host-action sequence in one turn; the existing loop already supports a batch of tool
+  calls per round + the diff/accept gate batches them. A capable model (via the OpenRouter broker)
+  decomposes reliably this way.
+- **Why not the LLM pre-pass:** a `decompose()` pre-pass would be a SECOND decomposition (redundant
+  with the model's own, since the preamble already instructs it) and adds an LLM round-trip's
+  latency to every compound build. Verifying it _improves_ behavior also needs a live capable model
+  (the local qwen-7b tool-use is unreliable) — so a live pre-pass couldn't be cleanly verified
+  tonight. Per the floor (verified-working > ambitious-unverified), I shipped the preamble path
+  (verifiable) and kept `decompose()` as a **tested, exported planner utility** ready for an
+  explicit-plan surface.
+- **Logged for operator:** wire `decompose()` to a visible "plan-then-execute" surface (the plan
+  rendered in the activity log, steps staged in the gate) when a capable model is the default — a
+  follow-up that makes the in-house planning _visible_, not just reliable.
