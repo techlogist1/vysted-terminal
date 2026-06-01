@@ -11,7 +11,7 @@ describe("planLayout", () => {
     expect(plan.focus).toBe("chart");
   });
 
-  it("research-cockpit (flagship): chart anchor + equity-overview right + news below equity", () => {
+  it("research-cockpit (flagship): chart anchor + right column equity/brief/news", () => {
     const plan = planLayout("research-cockpit");
     expect(plan.panels).toEqual([
       { id: "chart", component: "chart-panel" },
@@ -21,16 +21,21 @@ describe("planLayout", () => {
         position: { referencePanel: "chart", direction: "right" },
       },
       {
-        id: "news",
-        component: "news-panel",
+        id: "brief",
+        component: "brief-panel",
         position: { referencePanel: "equity-overview", direction: "below" },
       },
+      {
+        id: "news",
+        component: "news-panel",
+        position: { referencePanel: "brief", direction: "below" },
+      },
     ]);
-    // Flagship cockpit focuses the chart and is NOT a maximize template.
-    expect(plan.focus).toBe("chart");
+    // The cited brief docks BESIDE the chart (right column), focused, never a tab.
+    expect(plan.focus).toBe("brief");
     expect(plan.maximize).toBeUndefined();
-    // Does NOT depend on a brief panel existing (added later by B4).
-    expect(plan.panels.some((p) => p.id === "brief")).toBe(false);
+    // The brief docks in the cockpit (B6 brief-docking carry-forward cleared).
+    expect(plan.panels.some((p) => p.id === "brief")).toBe(true);
   });
 
   it("compare: single chart-focused layout, maximized (overlay is driven elsewhere)", () => {
@@ -142,11 +147,11 @@ describe("applyLayoutTemplate (smoke)", () => {
     expect(api.maximizeGroup).toHaveBeenCalledTimes(1);
   });
 
-  it("places all three research-cockpit panels with resolved positions", () => {
+  it("places all four research-cockpit panels with resolved positions", () => {
     const api = makeFakeApi();
     applyLayoutTemplate(api, "research-cockpit");
     const ids = api.addPanel.mock.calls.map((c) => (c[0] as { id: string }).id);
-    expect(ids).toEqual(["chart", "equity-overview", "news"]);
+    expect(ids).toEqual(["chart", "equity-overview", "brief", "news"]);
     // equity-overview placed right of chart (chart added first in the same pass)
     const equityCall = api.addPanel.mock.calls.find(
       (c) => (c[0] as { id: string }).id === "equity-overview",
@@ -155,9 +160,9 @@ describe("applyLayoutTemplate (smoke)", () => {
       referencePanel: "chart",
       direction: "right",
     });
-    // focuses the chart, does not maximize
+    // focuses the cited brief (the right-column anchor), does not maximize
     expect(api.maximizeGroup).not.toHaveBeenCalled();
-    expect(api.getPanel("chart")?.api.setActive).toHaveBeenCalled();
+    expect(api.getPanel("brief")?.api.setActive).toHaveBeenCalled();
   });
 
   it("is idempotent: re-applying reuses open panels instead of re-adding", () => {

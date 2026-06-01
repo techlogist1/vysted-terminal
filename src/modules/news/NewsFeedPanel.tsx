@@ -5,6 +5,7 @@ import { Newspaper } from "lucide-react";
 
 import { SidecarError } from "@/lib/sidecar-client";
 import { usePanelContextBus } from "@/store/panel-context";
+import { useSettingsStore } from "@/store/settings";
 import { toNewsSymbol, useSymbolsStore } from "@/store/symbols";
 
 import type { NewsItem } from "../../../types/data";
@@ -146,6 +147,11 @@ export function NewsFeedPanel() {
   // fetch effect's dependency is stable as long as the symbol list does not
   // change.
   const newsSymbols = useMemo(() => entries.map(toNewsSymbol), [entries]);
+  // The active region (Pass A/B locale + region-first feeds). Switching it must
+  // re-fetch: the header is already locale-aware, but the feed itself becomes
+  // region-first as the sidecar grows region routing, so a region change should
+  // pull a fresh list — not leave a stale US feed under an India locale.
+  const region = useSettingsStore((s) => s.region);
 
   const [state, setState] = useState<LoadState>({ status: "loading" });
   // Tracks the article the user last hovered/focused on; `null` when nothing
@@ -219,8 +225,9 @@ export function NewsFeedPanel() {
       }
     };
     // `newsSymbols` is memoised per symbol list; `refreshNonce` re-triggers a
-    // manual refresh. (setState lives in async callbacks, never synchronously.)
-  }, [newsSymbols, refreshNonce]);
+    // manual refresh; `region` re-fetches on a region switch (region-first feed).
+    // (setState lives in async callbacks, never synchronously.)
+  }, [newsSymbols, region, refreshNonce]);
 
   // Manual refresh / retry — surface the loading state, then re-run the effect.
   const refresh = useCallback(() => {

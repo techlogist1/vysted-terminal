@@ -123,18 +123,57 @@ export function PortfolioPanel() {
   }, [pfAction]);
 
   // --- panel-context bus: publish the ACTIVE portfolio's snapshot ----------
+  // Multi-portfolio truth (FR-110/111, SC-024): publish the ACTIVE portfolio's
+  // full holdings — symbol/quantity/costBasis/assetClass, plus the computed
+  // marketValue/pnl per row where a live quote resolved (null otherwise, so the
+  // payload stays provenance-honest) — alongside the active id/name. The chat
+  // context-provider extracts these so the agent's get_portfolio reads the real
+  // store with zero divergence.
   const publishPanelContext = usePanelContextBus((s) => s.publish);
   const unregisterPanelContext = usePanelContextBus((s) => s.unregisterSource);
   const positionCount = summary.rows.length;
   const totalValue = summary.totalMarketValue;
+  const activePortfolioId = active?.id ?? null;
+  const activePortfolioName = active?.name ?? null;
+  // Serialise the published holdings as a stable string so the publish effect
+  // only fires when the holdings (or their resolved P&L) actually change.
+  const publishedHoldings = useMemo(
+    () =>
+      summary.rows.map(({ position, marketValue, pnl }) => ({
+        symbol: position.symbol,
+        quantity: position.quantity,
+        costBasis: position.cost_basis,
+        assetClass: position.asset_class === "crypto" ? "crypto" : "equity",
+        marketValue: marketValue ?? null,
+        pnl: pnl ?? null,
+      })),
+    [summary.rows],
+  );
+  const holdingsKey = JSON.stringify(publishedHoldings);
   useEffect(() => {
     publishPanelContext({
       source: "portfolio",
       kind: "snapshot",
-      payload: { positionCount, totalValue },
+      payload: {
+        positionCount,
+        totalValue,
+        activePortfolioId,
+        activePortfolioName,
+        holdings: publishedHoldings,
+      },
       emittedAt: Date.now(),
     });
-  }, [publishPanelContext, positionCount, totalValue]);
+    // `publishedHoldings` is captured fresh whenever `holdingsKey` changes; the
+    // key is the exhaustive dep so we don't re-publish on referential churn.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    publishPanelContext,
+    positionCount,
+    totalValue,
+    activePortfolioId,
+    activePortfolioName,
+    holdingsKey,
+  ]);
   useEffect(() => {
     return () => {
       unregisterPanelContext("portfolio");

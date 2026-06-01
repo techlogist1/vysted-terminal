@@ -2,6 +2,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SidecarError } from "@/lib/sidecar-client";
+import { useSettingsStore } from "@/store/settings";
 import { DEFAULT_SYMBOLS, useSymbolsStore } from "@/store/symbols";
 
 import type { NewsItem } from "../../../types/data";
@@ -38,6 +39,8 @@ describe("NewsFeedPanel", () => {
     // Reset the shared symbols store between tests so per-test mutations do
     // not leak into other cases.
     useSymbolsStore.setState({ entries: [...DEFAULT_SYMBOLS] });
+    // Reset region to the default so a prior region-switch test can't leak.
+    useSettingsStore.setState({ region: "US" });
     mockFetchNews.mockReset();
   });
 
@@ -101,6 +104,18 @@ describe("NewsFeedPanel", () => {
     await waitFor(() => expect(mockFetchNews).toHaveBeenCalledTimes(2));
     const [symbols] = mockFetchNews.mock.calls[1];
     expect(symbols).toEqual(["TSLA"]);
+  });
+
+  it("re-fetches when the active region changes (region-first feed)", async () => {
+    mockFetchNews.mockResolvedValue([]);
+    render(<NewsFeedPanel />);
+    await waitFor(() => expect(mockFetchNews).toHaveBeenCalledTimes(1));
+
+    act(() => {
+      useSettingsStore.setState({ region: "IN" });
+    });
+
+    await waitFor(() => expect(mockFetchNews).toHaveBeenCalledTimes(2));
   });
 
   it("renders an empty state when there is no news", async () => {

@@ -63,6 +63,7 @@ const PANEL = {
   news: { id: "news", component: "news-panel" },
   macro: { id: "macro", component: "macro-panel" },
   screener: { id: "screener", component: "screener-panel" },
+  brief: { id: "brief", component: "brief-panel" },
 } as const;
 
 /**
@@ -85,14 +86,10 @@ export function planLayout(template: LayoutTemplate, opts?: LayoutPlanOptions): 
       };
 
     case "research-cockpit":
-      // FLAGSHIP ("research NVDA"): chart anchors the left; equity-overview tabs
-      // to its right; news stacks below the equity-overview.
-      //
-      // NOTE: the BriefPanel (added by workstream B4) slots in BELOW the news
-      // panel here once it exists — append a `{ id: "brief", component:
-      // "brief-panel", position: { referencePanel: PANEL.news.id, direction:
-      // "below" } }` entry then. This template does NOT depend on a brief panel
-      // existing today, so it stays inert until B4 lands.
+      // FLAGSHIP ("research NVDA"): chart anchors the left; the right column
+      // stacks equity-overview (top), the BriefPanel (the B+A synthesized brief),
+      // and news (bottom) — so the cited brief docks BESIDE the chart, never as a
+      // tab in the chart group. The agent populates the brief via publish_brief.
       return {
         panels: [
           { id: PANEL.chart.id, component: PANEL.chart.component },
@@ -102,12 +99,17 @@ export function planLayout(template: LayoutTemplate, opts?: LayoutPlanOptions): 
             position: { referencePanel: PANEL.chart.id, direction: "right" },
           },
           {
-            id: PANEL.news.id,
-            component: PANEL.news.component,
+            id: PANEL.brief.id,
+            component: PANEL.brief.component,
             position: { referencePanel: PANEL.equityOverview.id, direction: "below" },
           },
+          {
+            id: PANEL.news.id,
+            component: PANEL.news.component,
+            position: { referencePanel: PANEL.brief.id, direction: "below" },
+          },
         ],
-        focus: PANEL.chart.id,
+        focus: PANEL.brief.id,
       };
 
     case "compare":

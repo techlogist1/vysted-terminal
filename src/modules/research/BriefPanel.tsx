@@ -4,6 +4,7 @@ import { Fragment, useCallback, useMemo, useRef, useState, type ReactNode } from
 import { ChevronDown, ChevronRight, ExternalLink, FlaskConical, Globe } from "lucide-react";
 
 import type { BriefSource, BriefStep, ResearchBriefData } from "../../../types/brief";
+import { ProvenanceBadge, StalenessBadge } from "@/components/DataBadges";
 import { useBriefStore } from "@/store/brief";
 
 const IS_DEV = process.env.NODE_ENV !== "production";
@@ -218,6 +219,17 @@ function MetaHeader({ brief }: { brief: ResearchBriefData }) {
         ) : null}
         {typeof spend === "number" ? (
           <span className="text-charcoal-500 font-mono text-[10px]">· {formatSpend(spend)}</span>
+        ) : null}
+      </div>
+      {/* Provenance line: WHERE the brief drew from (web vs structured-data-only)
+          and WHEN it was produced, so a cached/offline run is never mistaken for
+          a fresh web pull. Subtle by design — it sits under the mode/cost row. */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <ProvenanceBadge
+          provider={brief.webAvailable ? "web + structured data" : "structured data"}
+        />
+        {typeof brief.createdAt === "number" ? (
+          <StalenessBadge freshness="eod" asOf={brief.createdAt} />
         ) : null}
       </div>
       <h2 className="text-charcoal-100 font-serif text-sm leading-snug">{brief.query}</h2>

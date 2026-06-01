@@ -336,6 +336,18 @@ function WebSearchSection() {
           </Select>
         </PrefRow>
 
+        {/* Active-tier status: a one-line confirmation of where searches route,
+            so the selected tier's effect is never ambiguous. */}
+        <p className="text-charcoal-400 -mt-2 font-mono text-[11px]">
+          {tier === "native"
+            ? "Searches run on your active model's own web search — no extra key needed."
+            : tier === "byok-exa"
+              ? exaConfigured
+                ? "Searches route through Exa using your stored key."
+                : "Add an Exa key below to activate this tier."
+              : "Searches route through your local SearXNG instance — nothing leaves your machine."}
+        </p>
+
         {/* Exa API key (BYOK, keychain) */}
         <div className="border-charcoal-700 bg-charcoal-850 rounded-md border px-4 py-3">
           <p className="text-charcoal-200 flex items-center gap-2 font-mono text-xs">
@@ -346,7 +358,12 @@ function WebSearchSection() {
             Optional. Stored in your OS keychain — never on disk or sent anywhere but Exa. Powers
             the BYOK search tier.
           </p>
-          {exaConfigured ? (
+          {exaConfigured === null ? (
+            // Keychain read in flight — show a quiet checking state instead of
+            // briefly flashing the "needs a key" form (which is misleading if a
+            // key IS stored).
+            <span className="text-charcoal-400 font-mono text-xs">Checking…</span>
+          ) : exaConfigured ? (
             <div className="flex items-center justify-between gap-2">
               <span className="text-positive flex items-center gap-1 font-mono text-xs">
                 <Check className="size-3" aria-hidden="true" /> Key configured
@@ -362,30 +379,40 @@ function WebSearchSection() {
               </Button>
             </div>
           ) : (
-            <form
-              className="flex items-center gap-2"
-              onSubmit={(e) => {
-                e.preventDefault();
-                void handleSaveExa();
-              }}
-            >
-              <input
-                type="password"
-                value={exaInput}
-                onChange={(e) => setExaInput(e.target.value)}
-                placeholder="exa_..."
-                aria-label="Exa API key"
-                className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-400 h-8 flex-1 rounded-md border px-3 font-mono text-xs outline-none focus:border-amber-400"
-              />
-              <Button
-                type="submit"
-                size="sm"
-                variant="outline"
-                disabled={exaBusy || exaInput.trim() === ""}
+            <>
+              {/* When the BYOK tier is selected but no key is stored, the tier
+                  can't actually run — say so plainly rather than silently falling
+                  back. */}
+              {tier === "byok-exa" ? (
+                <p className="text-warning mb-2 font-mono text-[11px]">
+                  The BYOK search tier is selected but needs an Exa key to work — add one below.
+                </p>
+              ) : null}
+              <form
+                className="flex items-center gap-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void handleSaveExa();
+                }}
               >
-                Save key
-              </Button>
-            </form>
+                <input
+                  type="password"
+                  value={exaInput}
+                  onChange={(e) => setExaInput(e.target.value)}
+                  placeholder="exa_..."
+                  aria-label="Exa API key"
+                  className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-400 h-8 flex-1 rounded-md border px-3 font-mono text-xs outline-none focus:border-amber-400"
+                />
+                <Button
+                  type="submit"
+                  size="sm"
+                  variant="outline"
+                  disabled={exaBusy || exaInput.trim() === ""}
+                >
+                  Save key
+                </Button>
+              </form>
+            </>
           )}
         </div>
 

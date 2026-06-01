@@ -22,6 +22,27 @@ export interface TerminalChart {
   indicators: string[];
 }
 
+/** One holding of the active portfolio, as the panel publishes it. */
+export interface TerminalHolding {
+  symbol: string;
+  quantity: number;
+  costBasis: number;
+  assetClass: string;
+  /** Live market value, or null when no quote resolved (provenance-honest). */
+  marketValue?: number | null;
+  /** Unrealised P&L, or null when no quote resolved. */
+  pnl?: number | null;
+}
+
+/** The active portfolio's snapshot the copilot's get_portfolio reads. */
+export interface TerminalPortfolio {
+  positionCount: number;
+  totalValue: number;
+  activePortfolioId?: string;
+  activePortfolioName?: string;
+  holdings: TerminalHolding[];
+}
+
 /** Structured snapshot the copilot reasons over (serialisable). */
 export interface TerminalState {
   focusedPanel: string | null;
@@ -29,7 +50,7 @@ export interface TerminalState {
   focusedSymbol: string | null;
   charts: TerminalChart[];
   watchlist: { symbols: string[]; selected: string | null };
-  portfolio: { positionCount: number; totalValue: number } | null;
+  portfolio: TerminalPortfolio | null;
   openPanels: string[];
   /** The user's active region/locale (drives region-first data) — Pass B B1. */
   region: Region;
@@ -44,6 +65,33 @@ function asString(value: unknown): string | null {
   return typeof value === "string" && value ? value : null;
 }
 
+/** Coerce the bus payload's `holdings` array into `TerminalHolding[]` — older
+ *  payloads (pre multi-portfolio truth) carry no `holdings`, yielding `[]`. */
+function extractHoldings(value: unknown): TerminalHolding[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const holdings: TerminalHolding[] = [];
+  for (const raw of value) {
+    const row = asRecord(raw);
+    const symbol = asString(row.symbol);
+    if (symbol === null) {
+      continue;
+    }
+    const marketValue = typeof row.marketValue === "number" ? row.marketValue : null;
+    const pnl = typeof row.pnl === "number" ? row.pnl : null;
+    holdings.push({
+      symbol,
+      quantity: Number(row.quantity ?? 0),
+      costBasis: Number(row.costBasis ?? 0),
+      assetClass: asString(row.assetClass) ?? "equity",
+      marketValue,
+      pnl,
+    });
+  }
+  return holdings;
+}
+
 /** Read the live bus + stores once and assemble a structured snapshot. */
 export function captureTerminalState(): TerminalState {
   const bus = usePanelContextBus.getState();
@@ -51,7 +99,7 @@ export function captureTerminalState(): TerminalState {
 
   const charts: TerminalChart[] = [];
   let watchlist: { symbols: string[]; selected: string | null } = { symbols: [], selected: null };
-  let portfolio: { positionCount: number; totalValue: number } | null = null;
+  let portfolio: TerminalPortfolio | null = null;
 
   for (const [source, event] of Object.entries(bySource)) {
     const payload = asRecord(event?.payload);
@@ -71,9 +119,14 @@ export function captureTerminalState(): TerminalState {
         selected: asString(payload.selectedSymbol),
       };
     } else if (source === "portfolio") {
+      const activePortfolioId = asString(payload.activePortfolioId);
+      const activePortfolioName = asString(payload.activePortfolioName);
       portfolio = {
         positionCount: Number(payload.positionCount ?? 0),
         totalValue: Number(payload.totalValue ?? 0),
+        ...(activePortfolioId !== null ? { activePortfolioId } : {}),
+        ...(activePortfolioName !== null ? { activePortfolioName } : {}),
+        holdings: extractHoldings(payload.holdings),
       };
     }
   }
