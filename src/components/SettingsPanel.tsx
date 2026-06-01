@@ -7,6 +7,7 @@ import {
   ArrowUp,
   Bot,
   Check,
+  ChevronDown,
   Download,
   Info,
   KeyRound,
@@ -534,12 +535,11 @@ function PreferencesSection() {
           hint="The persona the copilot starts with each session."
           icon={<Bot className="size-3.5 text-amber-400" aria-hidden="true" />}
         >
-          <select
+          <Select
             aria-label="Default agent"
             value={agentsLoading && agents.length === 0 ? "__loading__" : (defaultAgentId ?? "")}
             disabled={agentsLoading && agents.length === 0}
             onChange={(e) => setDefaultAgentId(e.target.value === "" ? null : e.target.value)}
-            className={selectClass}
           >
             {agentsLoading && agents.length === 0 ? (
               <option value="__loading__" disabled>
@@ -555,7 +555,7 @@ function PreferencesSection() {
                 ))}
               </>
             )}
-          </select>
+          </Select>
         </PrefRow>
 
         {/* Default provider */}
@@ -563,21 +563,20 @@ function PreferencesSection() {
           label="Default provider"
           hint="The provider the copilot uses when an agent has no preference."
         >
-          <select
+          <Select
             aria-label="Default provider"
             value={defaultProviderId}
             onChange={(e) => {
               setDefaultProviderId(e.target.value as LLMProviderId);
               void autosaveLayout();
             }}
-            className={selectClass}
           >
             {providers.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.label}
               </option>
             ))}
-          </select>
+          </Select>
         </PrefRow>
 
         {/* Default model for the default provider */}
@@ -585,18 +584,17 @@ function PreferencesSection() {
           label="Default model"
           hint={`The model used for ${providerLabel(defaultProviderId)}.`}
         >
-          <select
+          <Select
             aria-label="Default model"
             value={modelFor(defaultProviderId)}
             onChange={(e) => setModel(defaultProviderId, e.target.value)}
-            className={selectClass}
           >
             {defaultModelOptions.map((model) => (
               <option key={model} value={model}>
                 {model}
               </option>
             ))}
-          </select>
+          </Select>
         </PrefRow>
 
         {/* Region / locale — Pass A item 8 foundation seam (defaults to US) */}
@@ -604,18 +602,17 @@ function PreferencesSection() {
           label="Region"
           hint="Locale used for number formatting. Defaults to United States — a foundation for region-first data + feeds in a later release."
         >
-          <select
+          <Select
             aria-label="Region"
             value={region}
             onChange={(e) => setRegion(e.target.value as Region)}
-            className={selectClass}
           >
             {REGIONS.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.label}
               </option>
             ))}
-          </select>
+          </Select>
         </PrefRow>
 
         {/* Provider preference order */}
@@ -715,7 +712,7 @@ function PreferencesSection() {
           </p>
           <div className="flex flex-col gap-2">
             <PrefRow label="Accent intensity">
-              <select
+              <Select
                 aria-label="Accent intensity"
                 value={themeKnobs.accentIntensity}
                 onChange={(e) =>
@@ -723,25 +720,23 @@ function PreferencesSection() {
                     accentIntensity: e.target.value as typeof themeKnobs.accentIntensity,
                   })
                 }
-                className={selectClass}
               >
                 <option value="muted">Muted</option>
                 <option value="normal">Normal</option>
                 <option value="vivid">Vivid</option>
-              </select>
+              </Select>
             </PrefRow>
             <PrefRow label="Density">
-              <select
+              <Select
                 aria-label="Density"
                 value={themeKnobs.density}
                 onChange={(e) =>
                   setThemeKnobs({ density: e.target.value as typeof themeKnobs.density })
                 }
-                className={selectClass}
               >
                 <option value="comfortable">Comfortable</option>
                 <option value="compact">Compact</option>
-              </select>
+              </Select>
             </PrefRow>
           </div>
         </div>
@@ -812,6 +807,14 @@ function KeybindingsSection() {
   }
 
   function handleRecord(actionId: string, event: React.KeyboardEvent) {
+    // Escape cancels recording instead of being bound — caught BEFORE the
+    // combo is read so it can never be captured as a binding.
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      setRecording(null);
+      return;
+    }
     // Recording must swallow the keystroke so it never dispatches the action
     // (e.g. recording over ⌘K must not also open the palette).
     event.preventDefault();
@@ -871,7 +874,7 @@ function KeybindingsSection() {
                     <li
                       key={actionId}
                       className={cn(
-                        "border-charcoal-700 bg-charcoal-850 flex items-center justify-between gap-3 rounded-md border px-4 py-2.5",
+                        "border-charcoal-700 bg-charcoal-850 flex items-center justify-between gap-3 rounded-md border px-4 py-3",
                         conflicted && "border-warning/50",
                       )}
                     >
@@ -889,7 +892,7 @@ function KeybindingsSection() {
                             conflicted ? "text-warning" : "text-charcoal-100",
                           )}
                         >
-                          {isRecording ? "Press keys…" : formatBinding(combo)}
+                          {isRecording ? "Press keys… (Esc to cancel)" : formatBinding(combo)}
                         </kbd>
                         <button
                           type="button"
@@ -1099,9 +1102,31 @@ function SectionHeader({
   );
 }
 
-/** Shared `<select>` styling for the preferences controls. */
+/**
+ * Shared `<select>` styling for the preferences controls. `appearance-none`
+ * strips the cold WKWebView OS-default chrome (so the warm chevron below shows
+ * through); `pr-7` reserves room for that chevron.
+ */
 const selectClass =
-  "border-charcoal-700 bg-charcoal-900 text-charcoal-100 h-8 min-w-[12rem] rounded-md border px-2 font-mono text-xs outline-none focus:border-amber-400";
+  "border-charcoal-700 bg-charcoal-900 text-charcoal-100 h-8 min-w-[12rem] appearance-none rounded-md border pr-7 pl-2 font-mono text-xs outline-none focus:border-amber-400";
+
+/**
+ * A `<select>` wrapped in a `relative` container with a warm chevron overlay —
+ * the chevron replaces the suppressed native control glyph (`appearance-none`).
+ */
+function Select({ className, children, ...props }: React.ComponentProps<"select">) {
+  return (
+    <div className="relative inline-block">
+      <select className={cn(selectClass, className)} {...props}>
+        {children}
+      </select>
+      <ChevronDown
+        className="text-charcoal-400 pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2"
+        aria-hidden="true"
+      />
+    </div>
+  );
+}
 
 /** A labelled preference row: label + hint on the left, a control on the right. */
 function PrefRow({

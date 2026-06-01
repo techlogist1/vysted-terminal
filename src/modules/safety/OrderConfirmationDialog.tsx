@@ -262,9 +262,14 @@ function OrderConfirmationDialogContent({
             <AlertCircle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
             <div>
               <p>{error}</p>
-              <button type="button" className="mt-1 underline" onClick={() => void handleConfirm()}>
+              <Button
+                size="xs"
+                variant="ghost"
+                className="mt-1"
+                onClick={() => void handleConfirm()}
+              >
                 Try again
-              </button>
+              </Button>
             </div>
           </div>
         )}

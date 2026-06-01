@@ -143,7 +143,7 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
             placeholder="sk-..."
             disabled={!provider}
             aria-label="API key"
-            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 h-9 rounded-md px-3 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
+            className="border-charcoal-700 bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 h-9 rounded-md border px-3 font-mono text-sm outline-none focus:border-amber-400 disabled:opacity-50"
           />
           {status === "invalid" && (
             <p className="text-negative font-mono text-xs">{errorDetail ?? "Invalid key."}</p>

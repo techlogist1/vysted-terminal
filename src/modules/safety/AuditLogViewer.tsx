@@ -9,6 +9,7 @@
  */
 
 import { useCallback, useEffect, useMemo } from "react";
+import { ChevronDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
@@ -214,18 +215,24 @@ function FilterSelect({ label, value, options, onChange, dataTestId }: FilterSel
   return (
     <label className="flex flex-col gap-0.5">
       <span className="text-charcoal-400 text-[10px] uppercase">{label}</span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        data-testid={dataTestId}
-        className="bg-charcoal-800 text-charcoal-100 h-7 rounded-md px-2 text-xs outline-none"
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          data-testid={dataTestId}
+          className="bg-charcoal-800 text-charcoal-100 h-7 w-full appearance-none rounded-md pr-6 pl-2 text-xs outline-none focus:ring-1 focus:ring-amber-400"
+        >
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown
+          className="text-charcoal-400 pointer-events-none absolute top-1/2 right-1.5 size-3 -translate-y-1/2"
+          aria-hidden="true"
+        />
+      </div>
     </label>
   );
 }
@@ -246,7 +253,7 @@ function DateRangeFilter({ startMs, endMs, onChange }: DateRangeFilterProps) {
           data-testid="audit-filter-start"
           value={startMs !== null ? toLocalInputValue(startMs) : ""}
           onChange={(e) => onChange(fromLocalInputValue(e.target.value), endMs)}
-          className="bg-charcoal-800 text-charcoal-100 h-7 rounded-md px-2 text-[11px] outline-none"
+          className="bg-charcoal-800 text-charcoal-100 h-7 rounded-md px-2 text-[11px] outline-none focus:ring-1 focus:ring-amber-400"
         />
       </label>
       <label className="flex flex-col gap-0.5">
@@ -256,7 +263,7 @@ function DateRangeFilter({ startMs, endMs, onChange }: DateRangeFilterProps) {
           data-testid="audit-filter-end"
           value={endMs !== null ? toLocalInputValue(endMs) : ""}
           onChange={(e) => onChange(startMs, fromLocalInputValue(e.target.value))}
-          className="bg-charcoal-800 text-charcoal-100 h-7 rounded-md px-2 text-[11px] outline-none"
+          className="bg-charcoal-800 text-charcoal-100 h-7 rounded-md px-2 text-[11px] outline-none focus:ring-1 focus:ring-amber-400"
         />
       </label>
     </div>

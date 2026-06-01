@@ -17,8 +17,16 @@ import { useModelForProvider } from "@/store/model-selection";
 export function StatusChrome() {
   const status = useAppStore((state) => state.sidecarStatus);
   const provider = useLLMProvidersStore((state) => state.defaultProviderId);
+  const providers = useLLMProvidersStore((state) => state.providers);
   const model = useModelForProvider(provider);
   const runs = useAgentRunsStore((state) => state.runs);
+
+  // Human label for the active provider (e.g. "OpenAI"), not its raw id.
+  const providerLabel = provider
+    ? (providers.find((p) => p.id === provider)?.label ?? provider)
+    : "";
+  // Join only the parts we actually have so we never render a leading " · ".
+  const providerModel = [providerLabel, model].filter(Boolean).join(" · ");
 
   const activeRunCount = useMemo(
     () => runs.filter((r) => r.status === "running" || r.status === "paused").length,
@@ -43,13 +51,17 @@ export function StatusChrome() {
         <span className={cn("size-1.5 rounded-full", dotClass)} aria-hidden />
         {connLabel}
       </span>
-      <span className="bg-charcoal-700 h-3 w-px" aria-hidden />
-      <span
-        className="text-charcoal-400 max-w-[13rem] truncate"
-        title="Default provider / model (the agent panel shows the per-send effective provider)"
-      >
-        {provider} · {model}
-      </span>
+      {providerModel && (
+        <>
+          <span className="bg-charcoal-700 h-3 w-px" aria-hidden />
+          <span
+            className="text-charcoal-400 max-w-[13rem] truncate"
+            title="Default provider / model (the agent panel shows the per-send effective provider)"
+          >
+            {providerModel}
+          </span>
+        </>
+      )}
       {activeRunCount > 0 && (
         <span
           className="text-primary flex items-center gap-1"
