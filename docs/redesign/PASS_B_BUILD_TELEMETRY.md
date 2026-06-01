@@ -40,17 +40,18 @@ shots **populated + dark**. The M1 display can't host a 16:9 point-window large 
 shot is captured at the Retina-2× native **2560×1664** with an aspect-preserved **1920×1248**
 downscale (`<name>@1920.png`) — both mandated resolutions, no distortion.
 
-| Shot                             | SC(s)            | What it proves (live)                                                             |
-| -------------------------------- | ---------------- | --------------------------------------------------------------------------------- |
-| `b5-slash-picker`                | SC-023           | `/` opens the curated picker with all **11** commands ranked                      |
-| `b5-mention-apple-US`            | SC-023           | `@apple` → `@AAPL · US · Apple Inc.` first (prominence-ranked), live `/resolve`   |
-| `b5-mention-reliance-IN`         | SC-017/023       | IN region: `@reli` → `@RELIANCE · NSE` first, all-NSE candidates (locale-aware)   |
-| `b6-research-cockpit-NVDA`       | SC-016/019       | NVDA chart + MA/RSI/MACD/Volume + `NVDA via yfinance` provenance                  |
-| `b6-honest-brief-NVDA`           | SC-020           | the honest **"structured-data-only — no web backend configured"** brief banner    |
-| `b6-india-RELIANCE-IN`           | SC-017/019 + CF2 | RELIANCE (NSE) chart + **news re-fetched to India coverage on the region switch** |
-| `b6-portfolio-p1-populated`      | SC-024           | portfolio (RELIANCE+NIFTYBEES) **₹** market-value + P&L + concentration           |
-| `b6-flagship-cockpit-US-NVDA`    | SC-016/025       | the flagship cockpit, hero/hand-off state                                         |
-| `b5b6-baseline-restored-cockpit` | SC-016/020       | workspace-blob restore: cockpit + honest brief survive a relaunch                 |
+| Shot                              | SC(s)            | What it proves (live)                                                             |
+| --------------------------------- | ---------------- | --------------------------------------------------------------------------------- |
+| `b5-slash-picker`                 | SC-023           | `/` opens the curated picker with all **11** commands ranked                      |
+| `b5-mention-apple-US`             | SC-023           | `@apple` → `@AAPL · US · Apple Inc.` first (prominence-ranked), live `/resolve`   |
+| `b5-mention-reliance-IN`          | SC-017/023       | IN region: `@reli` → `@RELIANCE · NSE` first, all-NSE candidates (locale-aware)   |
+| `b6-research-cockpit-NVDA`        | SC-016/019       | NVDA chart + MA/RSI/MACD/Volume + `NVDA via yfinance` provenance                  |
+| `b6-honest-brief-NVDA`            | SC-020           | the honest **"structured-data-only — no web backend configured"** brief banner    |
+| `b6-india-RELIANCE-IN`            | SC-017/019 + CF2 | RELIANCE (NSE) chart + **news re-fetched to India coverage on the region switch** |
+| `b6-portfolio-p1-populated`       | SC-024           | portfolio (RELIANCE+NIFTYBEES) **₹** market-value + P&L + concentration           |
+| `b6-sc019-watchlist-freshness-IN` | SC-019           | watchlist rows badged `nse` provenance + `EOD` freshness (stale never shown live) |
+| `b6-flagship-cockpit-US-NVDA`     | SC-016/025       | the flagship cockpit, hero/hand-off state                                         |
+| `b5b6-baseline-restored-cockpit`  | SC-016/020       | workspace-blob restore: cockpit + honest brief survive a relaunch                 |
 
 **Live behaviors confirmed on the rig:** the binary-level `/resolve` serves locale-first
 (RELIANCE→NSE/IN, Apple→AAPL/US); every curated slash action + cockpit mutation rode the
