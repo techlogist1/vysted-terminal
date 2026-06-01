@@ -37,6 +37,7 @@ describe("host-actions", () => {
         "focus_panel",
         "open_panel",
         "propose_order",
+        "publish_brief",
         "set_chart_indicators",
         "set_chart_symbol",
       ].sort(),

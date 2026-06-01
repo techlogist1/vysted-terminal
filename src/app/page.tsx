@@ -22,6 +22,7 @@ import { useAgentDockStore } from "@/store/agent-dock";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAppStore } from "@/store/app";
+import { useBriefStore } from "@/store/brief";
 import { useCommandPalette } from "@/store/command-palette";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelSelectionStore } from "@/store/model-selection";
@@ -124,6 +125,14 @@ export default function Page() {
         void autosaveLayout();
       }
     });
+    // The latest research brief (FR-074) rides the blob but does not move the
+    // dockview layout, so it needs its own autosave trigger — same pattern as the
+    // web-search preference above.
+    const unsubscribeBrief = useBriefStore.subscribe((state, previous) => {
+      if (state.brief !== previous.brief) {
+        void autosaveLayout();
+      }
+    });
     return () => {
       alive = false;
       unsubscribeEnabled();
@@ -136,6 +145,7 @@ export default function Page() {
       unsubscribeDefaultProvider();
       unsubscribeAutonomy();
       unsubscribeSearch();
+      unsubscribeBrief();
       teardown?.();
     };
   }, []);

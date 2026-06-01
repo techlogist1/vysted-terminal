@@ -441,6 +441,12 @@ async def invoke_agent(
     messages = _compose_messages(spec, prompt, context_snapshot, history)
     adapter = get_provider(provider_id)
 
+    # Publish the active LLM creds for the run so an in-loop research tool
+    # (deep_research) can call the SAME model the user is talking to. Task-local
+    # (each request is its own asyncio task with a copied context), so it does
+    # not leak across requests; the key stays process-memory-only.
+    config.set_request_llm_creds(provider_id, resolved_model, api_key)
+
     rounds = 0
     web_search_calls = 0  # per-run cap on the BYOK/local web_search tool (FR-081)
     while True:

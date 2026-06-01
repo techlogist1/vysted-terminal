@@ -95,6 +95,8 @@ describe("workspace serialization", () => {
       modelOverridesV: 1,
       keybindingOverrides: {},
       settings: DEFAULT_SETTINGS,
+      searchSettings: { tier: "native", searxngUrl: "" },
+      brief: null,
     });
   });
 

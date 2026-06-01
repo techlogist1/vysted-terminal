@@ -140,6 +140,34 @@ def reset_request_search(tokens: tuple[object, object, object]) -> None:
     _searxng_url_ctx.reset(searxng_token)  # type: ignore[arg-type]
 
 
+# --- Active LLM credentials (Pass B / Pillar B — deep research) --------------
+#
+# The agent invocation already carries the provider/model/api_key in its request
+# body; ``invoke_agent`` publishes them into a ContextVar so an in-loop research
+# tool (``deep_research``) can call the SAME LLM the user is talking to without
+# re-plumbing the key through every tool signature. The key is a SECRET: held in
+# process memory for the invocation only, set + reset around the agent loop,
+# never logged or persisted. Read with :func:`get_llm_creds`.
+_llm_creds_ctx: ContextVar[tuple[str, str, str | None] | None] = ContextVar(
+    "vysted_llm_creds", default=None
+)
+
+
+def get_llm_creds() -> tuple[str, str, str | None] | None:
+    """The active ``(provider, model, api_key)`` for the current agent run, or None."""
+    return _llm_creds_ctx.get()
+
+
+def set_request_llm_creds(provider: str, model: str, api_key: str | None) -> object:
+    """Publish the active LLM creds for the run; returns a reset token."""
+    return _llm_creds_ctx.set((provider, model, api_key))
+
+
+def reset_request_llm_creds(token: object) -> None:
+    """Clear the active LLM creds (agent-loop teardown)."""
+    _llm_creds_ctx.reset(token)  # type: ignore[arg-type]
+
+
 def get_data_dir() -> Path:
     """Return the application data directory, creating it if necessary."""
     raw = os.environ.get(DATA_DIR_ENV)

@@ -263,6 +263,51 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
         ),
+        _cap(
+            "research",
+            description=(
+                "FAST research bundle for a company: resolves the symbol and pulls "
+                "price, fundamentals, recent news, and filings in parallel plus one "
+                "web round — returns a provenance-tagged data bundle and a suggested "
+                "cockpit layout + indicators. Call this for 'research X' / 'set me up "
+                "to look at X', then arrange the research-cockpit, load the chart, and "
+                "write a cited brief into the brief panel with publish_brief."
+            ),
+            input_schema=_obj(
+                {"query": {"type": "string", "description": "Company name or ticker."}},
+                ["query"],
+            ),
+            domain="research",
+            read_only=True,
+            kind="read_handler",
+        ),
+        _cap(
+            "deep_research",
+            description=(
+                "DEEP research: a budget-bounded multi-round search→read→reflect loop "
+                "that returns a synthesized, cited brief. Use for '/deep' or 'go "
+                "deeper'. Bounded by rounds + wall-clock; on the budget ceiling it "
+                "synthesizes from what it has (never times out into nothing). The "
+                "optional Perplexity backend is opt-in and paid — never auto-selected."
+            ),
+            input_schema=_obj(
+                {
+                    "query": {"type": "string", "description": "The research question."},
+                    "rounds": {"type": "integer", "default": 3, "description": "1-5."},
+                    "wall_seconds": {"type": "integer", "default": 120, "description": "30-300."},
+                    "backend": {
+                        "type": "string",
+                        "enum": ["native", "perplexity"],
+                        "default": "native",
+                        "description": "'perplexity' is opt-in + paid; needs a key.",
+                    },
+                },
+                ["query"],
+            ),
+            domain="research",
+            read_only=True,
+            kind="read_handler",
+        ),
         # --- screener --------------------------------------------------------
         _cap(
             "screener_run",
@@ -829,6 +874,46 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 ["pattern"],
             ),
             domain="terminal",
+            read_only=False,
+            kind="host_action",
+        ),
+        _cap(
+            "publish_brief",
+            description=(
+                "Publish a synthesized research brief into the brief panel (the B+A "
+                "research output). Pass the markdown body (with inline [n] citation "
+                "markers), the sources, the mode (FAST|DEEP), and metadata. Use after "
+                "gathering data with research/deep_research. If web sources were "
+                "unavailable, set web_available=false and say so in the brief — never "
+                "fabricate a source."
+            ),
+            input_schema=_obj(
+                {
+                    "markdown": {"type": "string", "description": "The brief body (markdown)."},
+                    "sources": {
+                        "type": "array",
+                        "items": _obj(
+                            {
+                                "url": {"type": "string"},
+                                "title": {"type": "string"},
+                                "excerpt": {"type": "string"},
+                                "domain": {"type": "string"},
+                            }
+                        ),
+                        "description": "Cited sources, in [n] order.",
+                    },
+                    "mode": {"type": "string", "enum": ["FAST", "DEEP"], "default": "FAST"},
+                    "query": {"type": "string"},
+                    "symbol": {"type": "string"},
+                    "web_available": {"type": "boolean", "default": True},
+                    "note": {
+                        "type": "string",
+                        "description": "e.g. the honest no-web-search note.",
+                    },
+                },
+                ["markdown"],
+            ),
+            domain="research",
             read_only=False,
             kind="host_action",
         ),

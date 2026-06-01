@@ -12,6 +12,7 @@ import { nodeEditorModule } from "./node-editor";
 import { platformModule } from "./platform";
 import { pluginManagerModule } from "./plugin-manager";
 import { portfolioModule } from "./portfolio";
+import { researchModule } from "./research";
 import { safetyModule } from "./safety";
 import { watchlistModule } from "./watchlist";
 // Phase 6 — uncomment per teammate at integration time. Each teammate owns
@@ -62,6 +63,7 @@ export const vystedModules: VystedModule[] = [
   portfolioModule,
   equityOverviewModule,
   chatModule,
+  researchModule,
   platformModule,
   pluginManagerModule,
   marketplaceModule,

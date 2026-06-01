@@ -25,6 +25,7 @@ describe("module registry", () => {
       "plugin-manager",
       "portfolio",
       "quant",
+      "research",
       "safety",
       "screener",
       "sec-filings",

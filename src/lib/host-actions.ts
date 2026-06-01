@@ -15,6 +15,7 @@
 
 import { applyLayoutTemplate, type LayoutTemplate } from "@/lib/layout-templates";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { useBriefStore } from "@/store/brief";
 import { useBrokersStore } from "@/store/brokers";
 import { useChartCommandStore } from "@/store/chart-command";
 import { useOrdersStore } from "@/store/orders";
@@ -22,6 +23,7 @@ import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 
 import type { BrokerId, BrokerOrderProposal } from "../../types/broker";
+import type { BriefSource, BriefStep, ResearchBriefData } from "../../types/brief";
 import type { ProposedChangeKind } from "../../types/proposed-change";
 
 /** The catalog host-action tool ids (`kind="host_action"`, `read_only=false`). */
@@ -33,8 +35,48 @@ export const HOST_ACTION_NAMES = new Set([
   "set_chart_symbol",
   "set_chart_indicators",
   "add_to_watchlist",
+  "publish_brief",
   "propose_order",
 ]);
+
+/** Build a frontend ResearchBriefData from a publish_brief tool input.
+ *
+ * Normalises the mode to the frontend's uppercase FAST|DEEP (the sidecar
+ * research models emit lowercase) and never trusts the agent for the honest web
+ * flag — `web_available === false` flows through so the brief shows the honest
+ * "structured data only" banner rather than implying web sources exist.
+ */
+function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
+  const rawSources = Array.isArray(input.sources) ? input.sources : [];
+  const sources: BriefSource[] = rawSources
+    .filter((s): s is Record<string, unknown> => typeof s === "object" && s !== null)
+    .map((s) => ({
+      url: typeof s.url === "string" ? s.url : "",
+      title: typeof s.title === "string" ? s.title : typeof s.url === "string" ? s.url : "",
+      excerpt: typeof s.excerpt === "string" ? s.excerpt : "",
+      domain: typeof s.domain === "string" ? s.domain : undefined,
+    }))
+    .filter((s) => s.url);
+  const mode = str(input, "mode").toUpperCase() === "DEEP" ? "DEEP" : "FAST";
+  const cost =
+    typeof input.cost === "object" && input.cost !== null
+      ? (input.cost as { tokens?: number; spendUsd?: number; spend_usd?: number })
+      : undefined;
+  const steps = Array.isArray(input.steps) ? (input.steps as BriefStep[]) : undefined;
+  return {
+    query: str(input, "query"),
+    symbol: str(input, "symbol") || undefined,
+    mode,
+    markdown: str(input, "markdown"),
+    sources,
+    sourceCount: sources.length,
+    cost: cost ? { tokens: cost.tokens, spendUsd: cost.spendUsd ?? cost.spend_usd } : undefined,
+    webAvailable: input.web_available !== false,
+    note: str(input, "note") || undefined,
+    steps,
+    createdAt: Date.now(),
+  };
+}
 
 /** The named arrange_layout templates (beyond the legacy default/focus patterns). */
 const LAYOUT_TEMPLATES: ReadonlySet<string> = new Set([
@@ -182,6 +224,17 @@ export function describeHostAction(
         after: "Layout: the default cockpit (clears layout customisations)",
       };
     }
+    case "publish_brief": {
+      const sources = Array.isArray(input.sources) ? input.sources : [];
+      const mode = str(input, "mode").toUpperCase() === "DEEP" ? "DEEP" : "FAST";
+      const webOff = input.web_available === false;
+      return {
+        kind: "panel",
+        title: `Publish the ${mode} research brief${symbol ? ` on ${symbol}` : ""}`,
+        before: "Brief panel: previous brief (if any)",
+        after: `Brief: ${sources.length} cited source${sources.length === 1 ? "" : "s"}${webOff ? " · structured-data-only" : ""}`,
+      };
+    }
     case "add_to_watchlist": {
       const entries = useSymbolsStore.getState().entries;
       const already = entries.some((e) => e.symbol.toUpperCase() === symbol.toUpperCase());
@@ -317,6 +370,16 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
       }
       ws.resetToDefaultLayout();
       return "Reset to the default layout";
+    }
+    case "publish_brief": {
+      const brief = briefFromInput(input);
+      if (!brief.markdown.trim()) {
+        return null;
+      }
+      // Open the brief panel so the B+A output is on screen, then publish.
+      useWorkspaceStore.getState().openPanel("brief");
+      useBriefStore.getState().setBrief(brief);
+      return `Published the ${brief.mode} research brief`;
     }
     case "add_to_watchlist":
       if (symbol) {

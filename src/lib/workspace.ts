@@ -20,6 +20,7 @@ import { collectPanelComponents } from "@/lib/module-registry";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useAgentDockStore } from "@/store/agent-dock";
 import { useAgentModeStore } from "@/store/agent-mode";
+import { type BriefBundle, useBriefStore } from "@/store/brief";
 import { type AgentAutonomy, isAgentAutonomy, useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useKeybindingsStore } from "@/store/keybindings";
@@ -115,6 +116,12 @@ export interface SerializedWorkspace {
    * Optional for older blobs (absent → native tier, autodetect SearXNG).
    */
   searchSettings?: SearchSettingsBundle;
+  /**
+   * The most recent research brief JARVIS produced (FR-074). Non-secret research
+   * output, so it rides the blob and survives a relaunch. `null`/absent when no
+   * brief has been produced yet.
+   */
+  brief?: BriefBundle;
   /** Open to future-phase additions; the sidecar stores the body opaquely. */
   [key: string]: unknown;
 }
@@ -166,6 +173,7 @@ function buildWorkspacePayload(name: string): SerializedWorkspace {
     keybindingOverrides: useKeybindingsStore.getState().overrides,
     settings: useSettingsStore.getState().toBundle(),
     searchSettings: useSearchSettingsStore.getState().toBundle(),
+    brief: useBriefStore.getState().toBundle(),
   };
 }
 
@@ -261,6 +269,13 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
   // field and a garbled tier falls back.
   if (workspace.searchSettings && typeof workspace.searchSettings === "object") {
     useSearchSettingsStore.getState().setAll(workspace.searchSettings);
+  }
+  // Restore the most recent research brief (older blobs lack it — keep empty).
+  // `fromBundle` validates the shape so a garbled/partial blob restores to empty
+  // rather than rendering a half-populated brief. `null` is a valid "no brief"
+  // bundle, so guard on the key's presence, not truthiness.
+  if ("brief" in workspace) {
+    useBriefStore.getState().fromBundle((workspace.brief ?? null) as BriefBundle);
   }
 }
 

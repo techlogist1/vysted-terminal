@@ -5,14 +5,42 @@ One section per phase; the lead (Opus 4.8, 1M) appends as each phase closes.
 
 ## Running totals
 
-| Metric                | Value (through B3 code)                                         |
-| --------------------- | --------------------------------------------------------------- |
-| Phases complete       | 2.9 / 6 (B1, B2 done; B3 code done, live Exa validation paused) |
-| Sub-agents dispatched | 4 (B1) + 3 recon + 5 (B2) + 5 (B3) = 17                         |
-| New tests             | 44 (B1) + 34 (B2) + ~95 (B3) ≈ 173                              |
-| Test suite            | sidecar 1185 + web_search 5 · vitest green · §6.5 9/9           |
-| New dependency        | `jugaad-data==0.33.1` (keyless NSE)                             |
-| Commits               | 9fcb146·5e9ea9a (B1) · bb29fd6 (B2) · B3 pending                |
+| Metric                | Value (through B4)                                           |
+| --------------------- | ------------------------------------------------------------ |
+| Phases complete       | 4 / 6 (B1, B2, B3, B4) — no key gates (operator: no spend)   |
+| Sub-agents dispatched | 4 (B1) + 3 recon + 5 (B2) + 5 (B3) + 4 (B4) = 21             |
+| New tests             | ~220 across B1–B4                                            |
+| Test suite            | sidecar 1227 · vitest 794 · §6.5 9/9                         |
+| New dependency        | `jugaad-data==0.33.1` (keyless NSE)                          |
+| Sidecar binary        | rebuilt B1–B4 (search + research packages auto-collected)    |
+| Commits               | 9fcb146·5e9ea9a (B1) · bb29fd6 (B2) · 4c94888 (B3) · B4 next |
+
+## Phase B4 — Research engine: fast + deep + B+A output (Pillar B · US12/US13)
+
+**Plan change (operator):** no Exa/Perplexity key, no spend, no key stops. B3 closed unkeyed
+(Exa shows "needs a key"; the honest no-web fallback is the real default path). B4 native deep
+loop is the working default; Perplexity Sonar is present-but-unconfigured (opt-in, never
+auto-selects, "needs a key" if chosen).
+
+**Orchestration:** 4-agent dynamic workflow (`pass-b4-build`, 290,318 output tokens) — BriefPanel
+
+- brief store, the research service (FAST structured bundle + DEEP BudgetGuard loop with parallel
+  researchers + abort→synthesize), the Perplexity backend, the research/deep_research handlers + a
+  one-shot LLM helper. Lead owned: catalog (research / deep_research / publish_brief), the
+  publish_brief host-action (mode-normalized FAST|DEEP), the LLM-creds contextvar + invoke_agent
+  publish, copilot tools + the research-flow prompt (explicit "honest no-web → structured data only,
+  never fabricate"), registry wiring.
+
+**Built (FR-070–075, SC-016/018/019/021):** FAST = prompt-driven (research bundle → cockpit +
+indicators + publish_brief), provenance-tagged; DEEP = budget-bounded loop (rounds 3/max5, wall
+120s/max300s, coverage floor, **abort→synthesize, never a bare timeout**); BriefPanel (markdown +
+inline [n] citations + sources tray + metadata + dev step-log + the **prominent honest
+"structured-data-only" banner** when web is unavailable).
+
+**Verified (source-level, no keys):** `research(NVDA)` returns real structured data with provenance
+(yfinance price/fundamentals, rss news) and `web.available=false` + the honest note — never
+fabricated. Gates: sidecar 1227; vitest 794; §6.5 9/9; Tier-1 LOCKED empty; order-grep clean;
+format/lint clean. Live rig demo follows.
 
 ## Phase B3 — Web search, three tiers (Pillar C · US14) — CODE DONE, paused at Exa key
 
