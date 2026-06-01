@@ -33,7 +33,10 @@ const PANEL_MIN_SIZE: Record<string, { minimumWidth: number; minimumHeight: numb
   "equity-overview-panel": { minimumWidth: 340, minimumHeight: 200 },
   "watchlist-panel": { minimumWidth: 264, minimumHeight: 140 },
   "news-panel": { minimumWidth: 280, minimumHeight: 160 },
-  "portfolio-panel": { minimumWidth: 520, minimumHeight: 160 },
+  // portfolio: a named-portfolio header (~48px) + the flex-wrap add-holding form
+  // (~150px) sit above the holdings table / empty state, so a low floor squeezed
+  // the content (and the empty-state CTA) into a sliver in the default rail.
+  "portfolio-panel": { minimumWidth: 520, minimumHeight: 320 },
 
   // --- Wide content panels (fixed-width aside / canvas + a results floor) ---
   // Each width = the panel's hardcoded fixed column(s) + a usable second pane,
