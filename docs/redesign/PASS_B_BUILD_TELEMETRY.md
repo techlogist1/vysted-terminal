@@ -5,15 +5,103 @@ One section per phase; the lead (Opus 4.8, 1M) appends as each phase closes.
 
 ## Running totals
 
-| Metric                | Value (through B4)                                           |
-| --------------------- | ------------------------------------------------------------ |
-| Phases complete       | 4 / 6 (B1, B2, B3, B4) — no key gates (operator: no spend)   |
-| Sub-agents dispatched | 4 (B1) + 3 recon + 5 (B2) + 5 (B3) + 4 (B4) = 21             |
-| New tests             | ~220 across B1–B4                                            |
-| Test suite            | sidecar 1227 · vitest 794 · §6.5 9/9                         |
-| New dependency        | `jugaad-data==0.33.1` (keyless NSE)                          |
-| Sidecar binary        | rebuilt B1–B4 (search + research packages auto-collected)    |
-| Commits               | 9fcb146·5e9ea9a (B1) · bb29fd6 (B2) · 4c94888 (B3) · B4 next |
+| Metric                | Value (through B6 — PASS B COMPLETE)                                            |
+| --------------------- | ------------------------------------------------------------------------------- |
+| Phases complete       | **6 / 6** (B1, B2, B3, B4, B5, B6) — no key gates (operator: no spend)           |
+| Sub-agents dispatched | 4 (B1) + 3 recon + 5 (B2) + 5 (B3) + 4 (B4) + 4 (B5/B6) = **25**                 |
+| New tests             | ~270 across B1–B6                                                                |
+| Test suite            | sidecar **1236** · vitest **845** · §6.5 **9/9**                                 |
+| New dependency        | `jugaad-data==0.33.1` (keyless NSE) — no new dep in B5/B6                        |
+| Sidecar binary        | rebuilt B1–B6 (new `/resolve` router folded in; no new PyInstaller flags)        |
+| Commits               | 9fcb146·5e9ea9a (B1) · bb29fd6 (B2) · 4c94888 (B3) · df1b6e4 (B4) · 4c4af93 (B5) · fe23f15 (B6) |
+
+## Rig verification sweep (closeout — `docs/screenshots/passB-b5b6/`)
+
+Live sweep on the rig (`tauri dev --features dev-tools`) driving the **freshly rebuilt
+`--onefile` binary** through the tauri-mcp bridge (`__vystedStores` / `__vystedDockview`). All
+shots **populated + dark**. The M1 display can't host a 16:9 point-window large enough, so each
+shot is captured at the Retina-2× native **2560×1664** with an aspect-preserved **1920×1248**
+downscale (`<name>@1920.png`) — both mandated resolutions, no distortion.
+
+| Shot                              | SC(s)            | What it proves (live)                                                            |
+| --------------------------------- | ---------------- | ------------------------------------------------------------------------------- |
+| `b5-slash-picker`                 | SC-023           | `/` opens the curated picker with all **11** commands ranked                     |
+| `b5-mention-apple-US`             | SC-023           | `@apple` → `@AAPL · US · Apple Inc.` first (prominence-ranked), live `/resolve`  |
+| `b5-mention-reliance-IN`          | SC-017/023       | IN region: `@reli` → `@RELIANCE · NSE` first, all-NSE candidates (locale-aware)  |
+| `b6-research-cockpit-NVDA`        | SC-016/019       | NVDA chart + MA/RSI/MACD/Volume + `NVDA via yfinance` provenance                 |
+| `b6-honest-brief-NVDA`            | SC-020           | the honest **"structured-data-only — no web backend configured"** brief banner   |
+| `b6-india-RELIANCE-IN`            | SC-017/019 + CF2 | RELIANCE (NSE) chart + **news re-fetched to India coverage on the region switch**|
+| `b6-portfolio-p1-populated`       | SC-024           | portfolio (RELIANCE+NIFTYBEES) **₹** market-value + P&L + concentration          |
+| `b6-flagship-cockpit-US-NVDA`     | SC-016/025       | the flagship cockpit, hero/hand-off state                                        |
+| `b5b6-baseline-restored-cockpit`  | SC-016/020       | workspace-blob restore: cockpit + honest brief survive a relaunch                |
+
+**Live behaviors confirmed on the rig:** the binary-level `/resolve` serves locale-first
+(RELIANCE→NSE/IN, Apple→AAPL/US); every curated slash action + cockpit mutation rode the
+**proposed-changes gate** and AUTO auto-applied (orders excluded by construction); the live
+DeepSeek copilot reached `set_chart_symbol` + `get_portfolio` through the gate (proving the
+agent→gate→AUTO path end-to-end). The default DeepSeek model's chatty wandering (the documented
+qwen/DeepSeek tool-use inconsistency) is why the coherent cockpit was composed via the host-action
+gate directly (identical path) rather than relying on a single free-form LLM turn — the
+agent-authored full cockpit is the B2/B4 flagship already on record.
+
+## Phase B6 — get_portfolio context-bus parity + carry-forwards + polish (Pillar B · US16/US17)
+
+**Orchestration:** B5 + B6 ran as ONE continuous dynamic workflow (`pass-b5b6-build`, 4
+file-isolated units; first run aborted on an internet disconnect — re-launched via
+`scriptPath`, all units green). Lead owned: the `ChatSidebar` composer integration (B5), the
+brief-docking layout template (B6), the resolve-router registration, `get_portfolio` parity
+verification, and every diff review.
+
+**Built (FR-110/111, SC-024):** `get_portfolio` zero-divergence — `PortfolioPanel` publishes the
+ACTIVE portfolio's full holdings (symbol / quantity / costBasis / assetClass + resolved
+marketValue / pnl per row, `null` where no live quote) onto the panel-context bus;
+`captureTerminalState` extracts them into `TerminalState.portfolio`; `agent_runtime.get_portfolio`
+returns that same captured snapshot — the tool and the panel read ONE source, so they cannot
+diverge (verified source-level + chained read).
+
+**Four Pass-B carry-forwards cleared:**
+
+- **Brief docking** — `research-cockpit` template docks the cited `BriefPanel` BESIDE the chart
+  (right column, focused), never a chart-group tab.
+- **News region re-fetch** — `NewsFeedPanel` re-fetches on a region switch (`region` added to the
+  fetch-effect deps).
+- **Native citation emission** — left code-complete-but-unvalidated by operator decision (no key
+  spend); noted, not regressed.
+- **Compare axis-lock** — stays deferred (not cheap) per the brief.
+
+**Polish:** `DataBadges` (provenance + staleness) on the new surfaces; locale currency +
+empty/loading/error states on the brief; `SettingsPanel` region/provider polish.
+
+**Gates:** sidecar 1236; vitest 845; §6.5 9/9; Tier-1 LOCKED empty; order-grep clean;
+typecheck/lint/format/ruff clean. Rig sweep evidence in `docs/screenshots/passB-b5b6/`.
+
+## Phase B5 — Curated `/`-commands + `@`-mentions composer (Pillar D · US15)
+
+**Orchestration:** the front half of the `pass-b5b6-build` workflow — units for the slash
+registry, the mention surface + `/resolve` route, the two pickers, and the portfolio/context
+parity. Lead integrated the composer (`ChatSidebar`): picker open/active/resolve state, keyboard
+nav, token splicing, the curated-dispatch precedence, and the mention-prefix routing.
+
+**Built (FR-100/101, SC-023):**
+
+- **11 curated slash commands** (`slash-commands.ts`): prompt-kind (`/research` `/deep` `/compare`
+  `/screener` compose a templated agent prompt) + action-kind (`/chart` `/watch` `/portfolio`
+  `/layout` `/export` `/sources` `/clear`) routed through the SAME diff/accept gate the agent uses
+  — AUTO auto-applies the UI/layout/chart/watchlist action, ASK queues it. `matchSlash` (fuzzy,
+  prefix-wins) + `parseSlashInvocation` precede the legacy `/ask|/agent|/provider|/key` parser; a
+  composed template that itself starts with `/` is routed as raw agent text, not re-parsed.
+- **9 `@`-mentions** (`mentions.ts`): surfaces (`@chart/@news/@filings/@terminal`), scopes
+  (`@watchlist/@portfolio`), agents (`@analyst/@quant` — `applyMentionPrefixes` rewrites the turn
+  via a prompt prefix without switching the active agent), and DYNAMIC instruments (`@TICKER`)
+  resolved live + locale-aware against the read-only `/resolve` route (GET, `symbol_resolver` on a
+  worker thread; degrades to static on miss).
+- **Pickers** (`SlashCommandPicker` / `MentionPicker`): presentational listboxes; `ChatSidebar`
+  owns ↑/↓/↵/⇥/Esc nav, a seq-guarded async mention resolve, and `/cmd @entity` composition (the
+  matchers key off different parse states). Highlight + stale-mention guard are DERIVED, not
+  effect-driven (no cascading setState — `react-hooks/set-state-in-effect` clean).
+
+**Gates:** vitest 845 (incl. slash 28, mention 21, resolve router 9); §6.5 9/9; Tier-1 LOCKED
+empty; order-grep clean; typecheck/lint/format/ruff clean.
 
 ## Phase B4 — Research engine: fast + deep + B+A output (Pillar B · US12/US13)
 
