@@ -75,6 +75,14 @@ export interface SerializedWorkspace {
    */
   modelOverrides?: Partial<Record<LLMProviderId, string>>;
   /**
+   * Trust marker for {@link modelOverrides}. Blobs written before this existed
+   * captured the then-current default as a pseudo-override (the `llama3.1:8b`
+   * shadowing bug); on restore those are treated as untrusted and dropped once,
+   * reverting to live defaults. Restored only when this equals the current
+   * {@link MODEL_OVERRIDES_VERSION}.
+   */
+  modelOverridesV?: number;
+  /**
    * Remappable-keybinding overrides (FR-038/FR-039), keyed by action id. Only
    * the user's remaps persist — the immutable default keymap is not stored.
    * Optional for older blobs (no overrides → defaults apply).
@@ -99,11 +107,18 @@ export class WorkspaceError extends Error {
 }
 
 /**
- * Capture the current workspace from the live stores: the dockview layout plus
- * the modules `enabled` map plus per-chart-panel drawings. Throws if the
- * dockview layout has not mounted yet.
+ * Bumped when {@link SerializedWorkspace.modelOverrides} trust semantics change.
+ * See the field doc — gates the one-time drop of legacy captured overrides.
  */
-export function serializeWorkspace(name: string): SerializedWorkspace {
+const MODEL_OVERRIDES_VERSION = 1;
+
+/**
+ * Build the serialised workspace body from the live stores — the SINGLE source
+ * for both explicit save ({@link serializeWorkspace}) and {@link autosaveLayout}
+ * so a newly-added field can never half-persist (autosave-only or save-only).
+ * Throws if the dockview layout has not mounted yet.
+ */
+function buildWorkspacePayload(name: string): SerializedWorkspace {
   const api = useWorkspaceStore.getState().dockviewApi;
   if (!api) {
     throw new WorkspaceError("The panel layout is not ready yet.");
@@ -121,9 +136,19 @@ export function serializeWorkspace(name: string): SerializedWorkspace {
       width: useAgentDockStore.getState().width,
     },
     modelOverrides: useModelSelectionStore.getState().overrides,
+    modelOverridesV: MODEL_OVERRIDES_VERSION,
     keybindingOverrides: useKeybindingsStore.getState().overrides,
     settings: useSettingsStore.getState().toBundle(),
   };
+}
+
+/**
+ * Capture the current workspace from the live stores: the dockview layout plus
+ * the modules `enabled` map plus per-chart-panel drawings. Throws if the
+ * dockview layout has not mounted yet.
+ */
+export function serializeWorkspace(name: string): SerializedWorkspace {
+  return buildWorkspacePayload(name);
 }
 
 /**
@@ -176,7 +201,16 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
       useAgentDockStore.getState().setWidth(workspace.agentDock.width);
     }
   }
-  if (workspace.modelOverrides && typeof workspace.modelOverrides === "object") {
+  // Restore model overrides ONLY from a blob written with the current trust
+  // marker; legacy blobs (no `modelOverridesV`) captured the then-default as a
+  // pseudo-override (the `llama3.1:8b` shadowing bug) and are dropped once,
+  // reverting to live defaults. `setOverrides` additionally prunes any model no
+  // longer offered for its provider.
+  if (
+    workspace.modelOverridesV === MODEL_OVERRIDES_VERSION &&
+    workspace.modelOverrides &&
+    typeof workspace.modelOverrides === "object"
+  ) {
     useModelSelectionStore.getState().setOverrides(workspace.modelOverrides);
   }
   // Restore remappable-keybinding overrides + the preferences bundle (older
@@ -337,22 +371,7 @@ export async function autosaveLayout(): Promise<void> {
     return;
   }
   try {
-    const payload: SerializedWorkspace = {
-      name: AUTOSAVE_LAYOUT_NAME,
-      layout: api.toJSON(),
-      enabledModules: useModulesStore.getState().enabled,
-      chartDrawings: useChartDrawingsStore.getState().snapshot(),
-      defaultProviderId: useLLMProvidersStore.getState().defaultProviderId,
-      watchlist: useSymbolsStore.getState().entries,
-      agentMode: useAgentModeStore.getState().mode,
-      agentDock: {
-        collapsed: useAgentDockStore.getState().collapsed,
-        width: useAgentDockStore.getState().width,
-      },
-      modelOverrides: useModelSelectionStore.getState().overrides,
-      keybindingOverrides: useKeybindingsStore.getState().overrides,
-      settings: useSettingsStore.getState().toBundle(),
-    };
+    const payload = buildWorkspacePayload(AUTOSAVE_LAYOUT_NAME);
     await fetch(await workspaceUrl(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -13,7 +13,7 @@ import { bootstrapPlugins } from "@/lib/plugin-bootstrap";
 import { autosaveLayout } from "@/lib/workspace";
 import { cn } from "@/lib/utils";
 import { vystedModules } from "@/modules";
-import { DisclaimerFlow, KillSwitchToolbar, OrderConfirmationDialog } from "@/modules/safety";
+import { DisclaimerFlow, OrderConfirmationDialog } from "@/modules/safety";
 import { WorkspaceDialog } from "@/modules/platform/WorkspaceDialog";
 import { useWorkspaceDialog } from "@/modules/platform/workspace-dialog-store";
 import { useAgentDockStore } from "@/store/agent-dock";
@@ -115,7 +115,7 @@ export default function Page() {
       <WorkspaceDialog />
       {/* Header fascia. The agent toggle, palette, and save controls sit left;
           the live status chrome (sidecar / provider / running agents) and the
-          kill switch sit right. */}
+          settings entry sit right. */}
       <header className="bg-charcoal-925 relative flex h-9 shrink-0 items-center gap-3 px-3">
         <div className="flex items-center gap-2 select-none">
           <span aria-hidden="true" className="size-2 rounded-[2px] bg-amber-400" />
@@ -163,8 +163,6 @@ export default function Page() {
         </button>
         <div className="flex-1" />
         <StatusChrome />
-        <div className="bg-charcoal-700 mx-0.5 h-4 w-px" aria-hidden="true" />
-        <KillSwitchToolbar />
         <button
           type="button"
           onClick={() => openPanel("settings")}

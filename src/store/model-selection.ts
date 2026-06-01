@@ -40,12 +40,49 @@ export const KNOWN_MODELS_BY_PROVIDER: Record<LLMProviderId, readonly string[]> 
   xai: ["grok-2-latest", "grok-2-mini"],
 };
 
+/** Is `model` one of the curated/known models for `provider`? Free-form picks
+ *  via {@link ModelSelectionState.setModel} bypass this (the contract keeps
+ *  model ids open strings); it gates only the *restore* path, where a persisted
+ *  override that is no longer offered (e.g. a model dropped from the editable
+ *  registry, or a then-default captured by an older build) must not shadow the
+ *  current default forever. */
+export function isKnownModel(provider: LLMProviderId, model: string): boolean {
+  const known = KNOWN_MODELS_BY_PROVIDER[provider];
+  return Array.isArray(known) && known.includes(model);
+}
+
+/** Drop any restored override whose model is not currently offered for that
+ *  provider, so a stale persisted id can't shadow the live default (the
+ *  `llama3.1:8b` regression). */
+function pruneRestoredOverrides(
+  raw: Partial<Record<LLMProviderId, string>>,
+): Partial<Record<LLMProviderId, string>> {
+  const next: Partial<Record<LLMProviderId, string>> = {};
+  for (const [provider, model] of Object.entries(raw)) {
+    if (typeof model === "string" && isKnownModel(provider as LLMProviderId, model)) {
+      next[provider as LLMProviderId] = model;
+    }
+  }
+  return next;
+}
+
+/** The effective model id for a provider (override → default → safe dash so an
+ *  unknown/custom provider id never renders `provider · undefined`). */
+function resolveModel(
+  overrides: Partial<Record<LLMProviderId, string>>,
+  provider: LLMProviderId,
+): string {
+  return overrides[provider] ?? DEFAULT_MODEL_BY_PROVIDER[provider] ?? "—";
+}
+
 interface ModelSelectionState {
   /** User overrides, keyed by provider id. */
   overrides: Partial<Record<LLMProviderId, string>>;
   setModel: (provider: LLMProviderId, model: string) => void;
   clearModel: (provider: LLMProviderId) => void;
-  /** Replace all overrides — used to restore a persisted selection on launch. */
+  /** Replace all overrides — used to restore a persisted selection on launch.
+   *  Restored overrides are validated against the known-model list (see
+   *  {@link pruneRestoredOverrides}); a direct {@link setModel} pick is not. */
   setOverrides: (overrides: Partial<Record<LLMProviderId, string>>) => void;
   /** The effective model id for a provider (override → default). */
   modelFor: (provider: LLMProviderId) => string;
@@ -61,13 +98,20 @@ export const useModelSelectionStore = create<ModelSelectionState>((set, get) => 
       delete next[provider];
       return { overrides: next };
     }),
-  setOverrides: (overrides) => set({ overrides: { ...overrides } }),
-  modelFor: (provider) => get().overrides[provider] ?? DEFAULT_MODEL_BY_PROVIDER[provider],
+  setOverrides: (overrides) => set({ overrides: pruneRestoredOverrides(overrides) }),
+  modelFor: (provider) => resolveModel(get().overrides, provider),
 }));
 
 /** Convenience: the effective model for a provider (non-reactive read). */
 export function modelForProvider(provider: LLMProviderId): string {
   return useModelSelectionStore.getState().modelFor(provider);
+}
+
+/** Reactive hook: the effective model for a provider. Single read path so any
+ *  override validation applies everywhere (HUD + status chrome) — never
+ *  re-implement `overrides[p] ?? default` inline. */
+export function useModelForProvider(provider: LLMProviderId): string {
+  return useModelSelectionStore((state) => resolveModel(state.overrides, provider));
 }
 
 /** Test helper: reset the model-selection store. */

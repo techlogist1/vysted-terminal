@@ -46,8 +46,10 @@ import { screenerModule } from "./screener"; // Teammate Sc (lead-completed v0.6
  * + Strategy Critic surface (BLUEPRINT Use Case 2).
  *
  * v0.5.0 adds `safetyModule` (Teammate S) — the audit-log viewer panel +
- * the always-mounted KillSwitchToolbar / OrderConfirmationDialog / DisclaimerFlow
- * surfaces (exported from `src/modules/safety/index.ts`).
+ * the always-mounted OrderConfirmationDialog / DisclaimerFlow surfaces
+ * (exported from `src/modules/safety/index.ts`). The kill switch is read-only-
+ * app presentation that the agent-native craft pass removed from the UI; the
+ * §6.5 mechanism (`kill_switch.rs`, store slice, audit) stays intact and dormant.
  *
  * v0.5.0 adds `brokerConnectModule` (Teammate S, depends on Teammates I/G/X
  * for the underlying broker adapters) — the connection-manager panel +

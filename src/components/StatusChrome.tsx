@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useAgentRunsStore } from "@/store/agent-runs";
 import { useAppStore } from "@/store/app";
 import { useLLMProvidersStore } from "@/store/llm-providers";
-import { DEFAULT_MODEL_BY_PROVIDER, useModelSelectionStore } from "@/store/model-selection";
+import { useModelForProvider } from "@/store/model-selection";
 
 /**
  * Status chrome (FR-033) — surfaces the three live signals that were computed
@@ -17,14 +17,13 @@ import { DEFAULT_MODEL_BY_PROVIDER, useModelSelectionStore } from "@/store/model
 export function StatusChrome() {
   const status = useAppStore((state) => state.sidecarStatus);
   const provider = useLLMProvidersStore((state) => state.defaultProviderId);
-  const overrides = useModelSelectionStore((state) => state.overrides);
+  const model = useModelForProvider(provider);
   const runs = useAgentRunsStore((state) => state.runs);
 
   const activeRunCount = useMemo(
     () => runs.filter((r) => r.status === "running" || r.status === "paused").length,
     [runs],
   );
-  const model = overrides[provider] ?? DEFAULT_MODEL_BY_PROVIDER[provider];
 
   const dotClass =
     status === "connected"

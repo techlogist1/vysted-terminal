@@ -6,7 +6,7 @@ import { useAgentModeStore } from "@/store/agent-mode";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { resetKeybindingsStoreForTests, useKeybindingsStore } from "@/store/keybindings";
 import { useLLMProvidersStore } from "@/store/llm-providers";
-import { useModelSelectionStore } from "@/store/model-selection";
+import { DEFAULT_MODEL_BY_PROVIDER, useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
 import { DEFAULT_SETTINGS, resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
@@ -85,6 +85,7 @@ describe("workspace serialization", () => {
       agentMode: "ask",
       agentDock: { collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH },
       modelOverrides: {},
+      modelOverridesV: 1,
       keybindingOverrides: {},
       settings: DEFAULT_SETTINGS,
     });
@@ -146,11 +147,31 @@ describe("workspace serialization", () => {
       agentMode: "build",
       agentDock: { collapsed: true, width: 520 },
       modelOverrides: { anthropic: "claude-sonnet-4-5" },
+      modelOverridesV: 1,
     });
     expect(useAgentModeStore.getState().mode).toBe("build");
     expect(useAgentDockStore.getState().collapsed).toBe(true);
     expect(useAgentDockStore.getState().width).toBe(520);
     expect(useModelSelectionStore.getState().overrides.anthropic).toBe("claude-sonnet-4-5");
+  });
+
+  it("drops a legacy model override with no trust marker (llama3.1:8b shadowing fix)", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    // A blob written before the trust marker existed captured the then-default
+    // ollama model as a pseudo-override. On restore it must be ignored so the
+    // live default (qwen2.5:7b) is shown, not the stale captured id.
+    deserializeWorkspace({
+      name: "legacy",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      modelOverrides: { ollama: "llama3.1:8b" },
+      // no modelOverridesV → legacy, untrusted
+    });
+    expect(useModelSelectionStore.getState().overrides.ollama).toBeUndefined();
+    expect(useModelSelectionStore.getState().modelFor("ollama")).toBe(
+      DEFAULT_MODEL_BY_PROVIDER.ollama,
+    );
   });
 
   it("deserializeWorkspace restores a persisted watchlist", () => {

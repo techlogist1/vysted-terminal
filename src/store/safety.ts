@@ -11,8 +11,10 @@
  *   - **Kill switch** — `POST /safety/kill-switch` writes to the sidecar
  *     bus; `GET /safety/kill-switch/status` returns the current state.
  *     The Tauri side emits `kill-switch:requested` from the OS-wide
- *     `Cmd/Ctrl+Shift+K` shortcut (`src-tauri/src/kill_switch.rs`); the
- *     `KillSwitchToolbar` listens and fires the POST.
+ *     `Cmd/Ctrl+Shift+K` shortcut (`src-tauri/src/kill_switch.rs`). This store
+ *     slice + the §6.5 mechanism stay intact, but the read-only app's craft
+ *     pass removed the kill-switch UI surface, so nothing currently listens for
+ *     the event or renders the fired banner (the mechanism is dormant, not gone).
  *   - **Audit log live tail** — `GET /safety/audit-log?limit=200`, polled
  *     every 2s. Polling beats SSE for v0.5.0 because the safety router
  *     does not (yet) expose an audit-log SSE channel; the audit log is
