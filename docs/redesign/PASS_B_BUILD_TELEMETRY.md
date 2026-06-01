@@ -5,15 +5,34 @@ One section per phase; the lead (Opus 4.8, 1M) appends as each phase closes.
 
 ## Running totals
 
-| Metric                | Value (through B6 — PASS B COMPLETE)                                                            |
-| --------------------- | ----------------------------------------------------------------------------------------------- |
-| Phases complete       | **6 / 6** (B1, B2, B3, B4, B5, B6) — no key gates (operator: no spend)                          |
-| Sub-agents dispatched | 4 (B1) + 3 recon + 5 (B2) + 5 (B3) + 4 (B4) + 4 (B5/B6) = **25**                                |
-| New tests             | ~280 across B1–B6                                                                               |
-| Test suite            | sidecar **1240** · vitest **846** · §6.5 **9/9**                                                |
-| New dependency        | `jugaad-data==0.33.1` (keyless NSE) — no new dep in B5/B6                                       |
-| Sidecar binary        | rebuilt B1–B6 (new `/resolve` router folded in; no new PyInstaller flags)                       |
-| Commits               | 9fcb146·5e9ea9a (B1) · bb29fd6 (B2) · 4c94888 (B3) · df1b6e4 (B4) · 4c4af93 (B5) · fe23f15 (B6) |
+| Metric                | Value (through B6 — PASS B COMPLETE)                                                          |
+| --------------------- | --------------------------------------------------------------------------------------------- |
+| Phases complete       | **6 / 6** (B1, B2, B3, B4, B5, B6) — no key gates (operator: no spend)                        |
+| Sub-agents dispatched | 25 build (B1–B6) + 11 closeout audit = **36**                                                 |
+| New tests             | ~280 across B1–B6 (incl. SC-019 freshness: +4 sidecar, +1 vitest)                             |
+| Test suite            | sidecar **1240** · vitest **846** · §6.5 **9/9**                                              |
+| New dependency        | `jugaad-data==0.33.1` (keyless NSE, B1) — none in B2–B6 or the SC-019 fix                     |
+| Sidecar binary        | rebuilt B1–B6 + SC-019 (105 MB; `/resolve` + `freshness` folded in); smoke-clean              |
+| Commits               | B1–B6 (9fcb146…fe23f15) · 5cd9dad (sweep) · c35ff0b (SC-019) · 76fbb09 (SC-019 evidence)      |
+| Branch                | `001-agent-native-redesign` fully pushed — **no merge to main, no version bump** (deliberate) |
+
+## Carry-forward to the next window (handoff)
+
+Pass B is **accepted and closed**. Branch `001-agent-native-redesign` is fully pushed; **no merge
+to main, no version bump** — deliberate, a later track. Two open items remain for the next window:
+
+1. **Native-citation emission — code-complete but UNVALIDATED.** The native web-search citation
+   path (Anthropic/OpenAI/Gemini/Groq/xAI adapters → normalized `{url,title,excerpt}`) is built
+   and unit-tested with mocked HTTP, but never exercised against a real provider key (operator:
+   no spend). Validate end-to-end once a native-capable LLM key is available.
+2. **Compare dual-panel shared-time-axis lock — DEFERRED.** `compare` currently overlays the
+   second symbol on the single chart via the chart-command channel; a true dual-panel layout with
+   a locked/shared time axis was judged not-cheap and left out of scope. Pick up if a side-by-side
+   compare view is wanted.
+
+Everything else from the Pass-B brief (US11–US17, FR-060–111, SC-016–025) shipped and verified;
+the four in-flight carry-forwards (brief docking, news region re-fetch, get_portfolio parity,
+SC-019 staleness surfacing) were all **cleared in-window**.
 
 ## Closeout audit + SC-019 fix
 
