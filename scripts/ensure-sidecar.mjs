@@ -154,12 +154,22 @@ const copyMeta = ["fastmcp", "mcp", "anyio", "httpx", "starlette", "uvicorn"]
 // blank, exit 1). PyInstaller resolves SOURCE in --add-data relative to
 // --specpath, not cwd. Since --specpath is the build/ subdirectory, use an
 // absolute SOURCE so paths resolve regardless of where the spec-file lives.
+//
+// `config/` holds model_registry.json — the single source of truth for the LLM
+// provider list, per-provider default model, selectable model lists, and the
+// BudgetGuard price table (services/model_registry.py loads it by path via
+// `Path(sys._MEIPASS) / "config" / "model_registry.json"` under the freeze).
+// Like `agents/`, it is a plain data dir, so --onefile drops it without an
+// explicit --add-data; absent at runtime the loader raises at startup (it fails
+// loud by design) instead of silently serving an empty provider list.
 const addDataSep = isWin ? ";" : ":";
 const agentsAbsPath = join(SIDECAR_DIR, "agents");
 const universesAbsPath = join(SIDECAR_DIR, "services", "screener_universes");
+const configAbsPath = join(SIDECAR_DIR, "config");
 const addData = [
   [agentsAbsPath, "agents"],
   [universesAbsPath, "services/screener_universes"],
+  [configAbsPath, "config"],
 ]
   .map(([src, dest]) => `--add-data "${src}${addDataSep}${dest}"`)
   .join(" ");

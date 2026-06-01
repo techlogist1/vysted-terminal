@@ -34,7 +34,7 @@ def _valid_create_body(agent_id: str = "custom:macro-quant") -> dict:
         "system_prompt": "You are a macro quant analyst.",
         "tools": ["price_data", "macro_series"],
         "default_provider": "anthropic",
-        "default_model": "claude-opus-4-7",
+        "default_model": "claude-opus-4-8",
         "icon": "brain",
     }
 
@@ -82,7 +82,7 @@ def test_create_custom_agent(client: TestClient, temp_data_dir: object) -> None:
     assert body["name"] == "Macro Quant"
     assert body["tools"] == ["price_data", "macro_series"]
     assert body["default_provider"] == "anthropic"
-    assert body["default_model"] == "claude-opus-4-7"
+    assert body["default_model"] == "claude-opus-4-8"
     assert isinstance(body["created_at"], int)
     assert body["created_at"] == body["updated_at"]
 

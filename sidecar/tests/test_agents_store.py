@@ -29,7 +29,7 @@ def _sample_create(agent_id: str = "custom:macro-quant") -> CustomAgentCreate:
         system_prompt="You are a macro quant analyst. Reason from regime first.",
         tools=["price_data", "macro_series"],
         default_provider="anthropic",
-        default_model="claude-opus-4-7",
+        default_model="claude-opus-4-8",
         icon="brain",
     )
 

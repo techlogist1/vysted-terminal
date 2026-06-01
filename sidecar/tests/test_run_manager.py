@@ -189,7 +189,7 @@ async def test_spend_breach_aborts(monkeypatch: pytest.MonkeyPatch) -> None:
         agent_id="copilot",
         prompt="spend",
         provider="anthropic",
-        model="claude-opus-4-7",
+        model="claude-opus-4-8",
         api_key="sk-test",
         budget=RunBudget(max_spend_usd=1.0),
     )

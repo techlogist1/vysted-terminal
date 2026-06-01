@@ -60,6 +60,18 @@ def test_get_providers_returns_seven(client: TestClient) -> None:
     ollama_row = next(row for row in body if row["id"] == "ollama")
     assert ollama_row["requires_key"] is False
     assert ollama_row["default_base_url"]
+    # Every row now carries the registry-sourced default_model + known_models.
+    for row in body:
+        assert isinstance(row["default_model"], str) and row["default_model"]
+        assert isinstance(row["known_models"], list) and row["known_models"]
+        assert row["default_model"] in row["known_models"]
+    anthropic_row = next(row for row in body if row["id"] == "anthropic")
+    assert anthropic_row["default_model"] == "claude-opus-4-8"
+    assert anthropic_row["known_models"] == [
+        "claude-opus-4-8",
+        "claude-sonnet-4-6",
+        "claude-haiku-4-5",
+    ]
 
 
 def test_validate_key_ok(
@@ -122,7 +134,7 @@ def test_chat_streams_sse_frames(
         "/llm/chat",
         json={
             "provider": "anthropic",
-            "model": "claude-opus-4-7",
+            "model": "claude-opus-4-8",
             "messages": [{"role": "user", "content": "hi"}],
             "api_key": "sk-routed",
         },

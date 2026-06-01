@@ -137,7 +137,7 @@ async def test_stream_chat_emits_text_deltas(monkeypatch: pytest.MonkeyPatch) ->
             LLMMessage(role="system", content="be brief"),
             LLMMessage(role="user", content="hi"),
         ],
-        model="claude-opus-4-7",
+        model="claude-opus-4-8",
         api_key="sk-test",
     ):
         out.append(event)
@@ -181,7 +181,7 @@ async def test_stream_chat_emits_thinking_and_tool_use(monkeypatch: pytest.Monke
     out: list[Any] = []
     async for event in provider.stream_chat(
         messages=[LLMMessage(role="user", content="quote AAPL")],
-        model="claude-opus-4-7",
+        model="claude-opus-4-8",
         api_key="sk-test",
     ):
         out.append(event)
@@ -207,7 +207,7 @@ async def test_stream_chat_handles_anthropic_error(monkeypatch: pytest.MonkeyPat
     out: list[Any] = []
     async for event in provider.stream_chat(
         messages=[LLMMessage(role="user", content="hi")],
-        model="claude-opus-4-7",
+        model="claude-opus-4-8",
         api_key="sk-test",
     ):
         out.append(event)

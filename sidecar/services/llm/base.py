@@ -55,7 +55,7 @@ class LLMProvider(ABC):
         :param messages: The conversation, oldest first. The adapter may
             translate ``role="system"`` messages into the provider's native
             system-prompt slot.
-        :param model: Provider-specific model id (e.g. ``"claude-opus-4-7"``,
+        :param model: Provider-specific model id (e.g. ``"claude-opus-4-8"``,
             ``"gpt-4.1-mini"``, ``"llama3.1:70b"``).
         :param api_key: BYOK key; required for all providers except Ollama.
         :param kwargs: Provider-specific options (temperature, max tokens, …).

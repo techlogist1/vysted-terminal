@@ -41,7 +41,7 @@ from models.llm import (
     LLMToolUseEvent,
     LLMUsage,
 )
-from services import agent_tools
+from services import agent_tools, model_registry
 from services.agent_tools import catalog
 from services.llm import get_provider
 from services.llm.base import LLMStreamEvent
@@ -258,17 +258,10 @@ def _resolve_model(spec: AgentSpec, override: str | None) -> str:
         return override
     if spec.default_model:
         return spec.default_model
-    # Fallback default per provider — kept narrow to today's leading models.
-    defaults: dict[str, str] = {
-        "anthropic": "claude-opus-4-7",
-        "openai": "gpt-4.1-mini",
-        "gemini": "gemini-2.5-pro",
-        "groq": "llama-3.3-70b-versatile",
-        "ollama": "qwen2.5:7b",
-        "deepseek": "deepseek-chat",
-        "xai": "grok-2-latest",
-    }
-    return defaults.get(spec.default_provider, "gpt-4.1-mini")
+    # Per-provider default from the single-source registry
+    # (config/model_registry.json). A last-resort fallback covers a provider
+    # somehow absent from the registry so a model id is never empty.
+    return model_registry.default_model_for(spec.default_provider) or "gpt-4.1-mini"
 
 
 #: Hard cap on tool-call rounds in a single invocation. Strategy Critic

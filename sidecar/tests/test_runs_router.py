@@ -56,7 +56,7 @@ def test_launch_returns_201_with_run_id(
         json={
             "prompt": "research NVDA",
             "provider": "anthropic",
-            "model": "claude-opus-4-7",
+            "model": "claude-opus-4-8",
             "apiKey": "sk-secret-123",
             "budget": {"maxTokens": 50000, "maxSpendUsd": 2.5},
             "options": {"temperature": 0.2},

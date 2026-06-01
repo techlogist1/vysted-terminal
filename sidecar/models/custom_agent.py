@@ -23,6 +23,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field, field_validator
 
+from services import model_registry
 from services.agent_tools.catalog import agent_selectable_tool_ids
 
 #: The closed set of tool ids the host currently resolves — derived from the
@@ -36,19 +37,11 @@ from services.agent_tools.catalog import agent_selectable_tool_ids
 #: (``propose_order`` only proposes; §6.5 governs placement).
 KNOWN_TOOL_IDS: frozenset[str] = agent_selectable_tool_ids()
 
-#: The seven BYOK provider ids accepted in ``default_provider``. Identical to
-#: the ``LLMProviderId`` discriminated union in ``types/ai.ts``.
-KNOWN_PROVIDER_IDS: frozenset[str] = frozenset(
-    {
-        "anthropic",
-        "openai",
-        "gemini",
-        "groq",
-        "ollama",
-        "deepseek",
-        "xai",
-    }
-)
+#: The BYOK provider ids accepted in ``default_provider`` — derived from the
+#: single-source registry (``config/model_registry.json``) so this allow-list
+#: can never drift from the provider list the LLM layer dispatches. Mirrors the
+#: ``LLMProviderId`` discriminated union in ``types/ai.ts``.
+KNOWN_PROVIDER_IDS: frozenset[str] = frozenset(model_registry.provider_ids())
 
 #: Required prefix for every custom-agent id — prevents collisions with the
 #: 12 first-party agent ids (``buffett``, ``graham``, …) and makes the chat

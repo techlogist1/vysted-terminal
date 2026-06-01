@@ -18,7 +18,10 @@ dialog.
 
 from __future__ import annotations
 
+from typing import cast
+
 from models.llm import LLMProviderId, LLMProviderInfo
+from services import model_registry
 
 from .anthropic import AnthropicProvider
 from .base import LLMProvider
@@ -30,34 +33,29 @@ from .openai import OpenAIProvider
 # ---------------------------------------------------------------------------
 # OpenAI-shaped base URLs for DeepSeek + xAI dispatch
 # ---------------------------------------------------------------------------
+# These are the dispatch defaults baked into ``get_provider`` below. They must
+# match the ``default_base_url`` for deepseek/xai in config/model_registry.json
+# (the registry is the source of truth served to the frontend; these constants
+# are the runtime dispatch fallback when no per-request override is supplied).
 
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 XAI_BASE_URL = "https://api.x.ai/v1"
 
 
-PROVIDER_INFO: tuple[LLMProviderInfo, ...] = (
-    LLMProviderInfo(id="anthropic", label="Anthropic", requires_key=True),
-    LLMProviderInfo(id="openai", label="OpenAI", requires_key=True),
-    LLMProviderInfo(id="gemini", label="Google Gemini", requires_key=True),
-    LLMProviderInfo(id="groq", label="Groq", requires_key=True),
+#: Built from the single-source registry (``config/model_registry.json``) so
+#: the provider list, labels, default base urls, default models, and selectable
+#: model lists never drift from a second hardcoded copy. Source of truth for
+#: ``GET /llm/providers``.
+PROVIDER_INFO: tuple[LLMProviderInfo, ...] = tuple(
     LLMProviderInfo(
-        id="ollama",
-        label="Ollama (local)",
-        requires_key=False,
-        default_base_url="http://127.0.0.1:11434",
-    ),
-    LLMProviderInfo(
-        id="deepseek",
-        label="DeepSeek",
-        requires_key=True,
-        default_base_url=DEEPSEEK_BASE_URL,
-    ),
-    LLMProviderInfo(
-        id="xai",
-        label="xAI",
-        requires_key=True,
-        default_base_url=XAI_BASE_URL,
-    ),
+        id=cast(LLMProviderId, row["id"]),
+        label=row["label"],
+        requires_key=bool(row["requires_key"]),
+        default_base_url=row.get("default_base_url"),
+        default_model=row.get("default_model", ""),
+        known_models=list(row.get("known_models", [])),
+    )
+    for row in model_registry.provider_rows()
 )
 
 

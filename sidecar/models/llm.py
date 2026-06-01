@@ -36,6 +36,11 @@ class LLMProviderInfo(BaseModel):
     label: str
     requires_key: bool
     default_base_url: str | None = None
+    #: Registry default model id for this provider (served to the frontend
+    #: dropdown). Single-sourced from ``config/model_registry.json``.
+    default_model: str = ""
+    #: Selectable model ids for this provider (offline fallback for the UI).
+    known_models: list[str] = Field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------

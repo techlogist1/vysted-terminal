@@ -29,58 +29,32 @@ from __future__ import annotations
 import time
 
 from models.llm import LLMUsage
+from services import model_registry
 
 # ---------------------------------------------------------------------------
 # Price table — blended $/1M tokens, best-effort ESTIMATE.
 #
 # Keyed ``(provider, model_substring)``: the model id is matched by the longest
 # substring key that is contained in the requested model, so version-suffixed
-# ids ("claude-opus-4-7-20251234", "gpt-4.1-mini-2025") resolve without an exact
+# ids ("claude-opus-4-8-20251234", "gpt-4.1-mini-2025") resolve without an exact
 # enumeration. Rates blend input+output into one figure (a Delegate run's mix is
 # read-heavy tool calls + short completions) — exact per-direction billing lives
 # with the provider, not here. Local providers (Ollama) are zero-cost. Rates are
 # a snapshot and WILL drift; treat ``spend_usd`` as guidance, not an invoice.
+#
+# Single-sourced from ``config/model_registry.json`` (``prices.by_provider`` /
+# ``prices.default_rate_per_million``) — edit the JSON, not this file. These
+# numbers meter the Delegate spend ceiling (§6.5-adjacent / SC-008); the
+# matching and abort logic below stays unchanged.
 # ---------------------------------------------------------------------------
 
 #: $/1M tokens, blended. Order within a provider does not matter — the matcher
-#: prefers the longest matching key.
-PRICE_TABLE: dict[tuple[str, str], float] = {
-    # Anthropic
-    ("anthropic", "claude-opus"): 30.0,
-    ("anthropic", "claude-sonnet"): 9.0,
-    ("anthropic", "claude-haiku"): 2.0,
-    ("anthropic", "claude"): 9.0,
-    # OpenAI
-    ("openai", "gpt-4.1-mini"): 1.0,
-    ("openai", "gpt-4.1-nano"): 0.4,
-    ("openai", "gpt-4.1"): 6.0,
-    ("openai", "gpt-4o-mini"): 0.6,
-    ("openai", "gpt-4o"): 7.0,
-    ("openai", "o3"): 12.0,
-    ("openai", "o1"): 18.0,
-    ("openai", "gpt"): 4.0,
-    # Google Gemini
-    ("gemini", "gemini-2.5-pro"): 5.0,
-    ("gemini", "gemini-2.5-flash"): 0.6,
-    ("gemini", "gemini-2.0-flash"): 0.4,
-    ("gemini", "gemini"): 2.0,
-    # Groq (hosted open models — cheap)
-    ("groq", "llama"): 0.6,
-    ("groq", "mixtral"): 0.6,
-    ("groq", ""): 0.6,
-    # DeepSeek
-    ("deepseek", "deepseek-reasoner"): 2.2,
-    ("deepseek", "deepseek-chat"): 0.9,
-    ("deepseek", "deepseek"): 0.9,
-    # xAI
-    ("xai", "grok"): 6.0,
-    # Ollama — runs locally, no metered spend.
-    ("ollama", ""): 0.0,
-}
+#: prefers the longest matching key. Loaded from the registry at import.
+PRICE_TABLE: dict[tuple[str, str], float] = model_registry.price_table()
 
 #: Fallback blended rate for a provider/model not in :data:`PRICE_TABLE`.
 #: Picked to be neither alarmingly high nor a free pass — an estimate, by design.
-DEFAULT_RATE_PER_M: float = 5.0
+DEFAULT_RATE_PER_M: float = model_registry.default_rate_per_million()
 
 
 def price_per_million(provider: str, model: str) -> float:

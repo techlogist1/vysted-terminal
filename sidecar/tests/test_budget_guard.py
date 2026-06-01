@@ -28,8 +28,8 @@ def _usage(inp: int, out: int) -> LLMUsage:
 def test_price_table_resolves_known_models() -> None:
     """Known provider/model pairs resolve to their blended rate, longest match."""
     # Longest-substring match wins: "claude-opus" over the "claude" catch-all.
-    assert price_per_million("anthropic", "claude-opus-4-7-20251234") == 30.0
-    assert price_per_million("anthropic", "claude-sonnet-4-5") == 9.0
+    assert price_per_million("anthropic", "claude-opus-4-8-20251234") == 30.0
+    assert price_per_million("anthropic", "claude-sonnet-4-6") == 9.0
     assert price_per_million("anthropic", "claude-haiku-4-5") == 2.0
     assert price_per_million("openai", "gpt-4.1-mini-2025") == 1.0
     assert price_per_million("openai", "gpt-4.1") == 6.0
