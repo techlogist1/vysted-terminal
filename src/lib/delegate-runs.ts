@@ -40,6 +40,24 @@ interface RunWire {
 const POLL_MS = 2000;
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 
+/** Consecutive `/runs` poll failures. After {@link POLL_FAIL_THRESHOLD} the live
+ *  rail badges its active runs as stale instead of freezing on a frozen readout
+ *  forever (A6 — a delegate run must never silently lose contact). */
+let pollFailures = 0;
+const POLL_FAIL_THRESHOLD = 5;
+
+/** Badge every active run as having lost contact with the sidecar. */
+function markRunsStale(): void {
+  const store = useAgentRunsStore.getState();
+  for (const run of store.runs) {
+    if (run.sidecarRunId && (run.status === "running" || run.status === "paused")) {
+      store.updateRun(run.id, {
+        detail: "Lost contact with the run — the sidecar may be down. Status may be stale.",
+      });
+    }
+  }
+}
+
 function ensurePolling(): void {
   if (pollTimer !== null || typeof window === "undefined") {
     return;
@@ -124,13 +142,20 @@ export async function pollDelegateRuns(): Promise<void> {
     const base = await getSidecarBaseUrl();
     const response = await fetch(new URL("/runs", base).toString());
     if (!response.ok) {
-      return;
+      throw new Error(`/runs HTTP ${response.status}`);
     }
     const wire = (await response.json()) as { runs?: RunWire[] } | RunWire[];
     runs = Array.isArray(wire) ? wire : (wire.runs ?? []);
   } catch {
+    // A single dropped poll is fine; sustained failure means we've lost the
+    // sidecar — badge the runs stale rather than showing a frozen live readout.
+    pollFailures += 1;
+    if (pollFailures >= POLL_FAIL_THRESHOLD) {
+      markRunsStale();
+    }
     return;
   }
+  pollFailures = 0; // a successful poll clears the staleness state
   const store = useAgentRunsStore.getState();
   for (const w of runs) {
     const local = store.bySidecarId(w.id);
@@ -162,30 +187,52 @@ export async function cancelDelegateRun(sidecarRunId: string): Promise<void> {
   }
 }
 
+/** The result of a run control action — `ok:false` carries a human reason so the
+ *  caller can surface it instead of silently dropping a failed submit (A6). */
+export interface RunActionResult {
+  ok: boolean;
+  error?: string;
+}
+
 /** Answer a human-in-the-loop question a paused run is waiting on (FR-028). */
-export async function answerDelegateRun(sidecarRunId: string, answer: string): Promise<void> {
+export async function answerDelegateRun(
+  sidecarRunId: string,
+  answer: string,
+): Promise<RunActionResult> {
   try {
     const base = await getSidecarBaseUrl();
-    await fetch(new URL(`/runs/${encodeURIComponent(sidecarRunId)}/answer`, base).toString(), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ answer }),
-    });
-  } catch {
-    // Best-effort; the poll will reconcile.
+    const response = await fetch(
+      new URL(`/runs/${encodeURIComponent(sidecarRunId)}/answer`, base).toString(),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answer }),
+      },
+    );
+    if (!response.ok) {
+      return { ok: false, error: `Couldn't send your answer (HTTP ${response.status}).` };
+    }
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Couldn't send your answer." };
   }
 }
 
 /** Resume a paused/checkpointed run (FR-028). */
-export async function resumeDelegateRun(sidecarRunId: string): Promise<void> {
+export async function resumeDelegateRun(sidecarRunId: string): Promise<RunActionResult> {
   try {
     const base = await getSidecarBaseUrl();
-    await fetch(new URL(`/runs/${encodeURIComponent(sidecarRunId)}/resume`, base).toString(), {
-      method: "POST",
-    });
+    const response = await fetch(
+      new URL(`/runs/${encodeURIComponent(sidecarRunId)}/resume`, base).toString(),
+      { method: "POST" },
+    );
+    if (!response.ok) {
+      return { ok: false, error: `Couldn't resume the run (HTTP ${response.status}).` };
+    }
     ensurePolling();
-  } catch {
-    // Best-effort.
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Couldn't resume the run." };
   }
 }
 

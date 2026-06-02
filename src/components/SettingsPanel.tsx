@@ -278,6 +278,7 @@ function WebSearchSection() {
   const [exaConfigured, setExaConfigured] = useState<boolean | null>(null);
   const [exaInput, setExaInput] = useState("");
   const [exaBusy, setExaBusy] = useState(false);
+  const [exaError, setExaError] = useState<string | null>(null);
 
   async function refreshExa() {
     try {
@@ -301,10 +302,15 @@ function WebSearchSection() {
       return;
     }
     setExaBusy(true);
+    setExaError(null);
     try {
       await setSecret(EXA_KEYCHAIN_ACCOUNT, value);
       setExaInput("");
       await refreshExa();
+    } catch (err) {
+      // A keychain write can fail (locked keychain, denied access). Surface it —
+      // otherwise refreshExa() shows "not configured" and the user thinks it saved.
+      setExaError(err instanceof Error ? err.message : "Couldn't save the key to the keychain.");
     } finally {
       setExaBusy(false);
     }
@@ -312,9 +318,14 @@ function WebSearchSection() {
 
   async function handleRemoveExa() {
     setExaBusy(true);
+    setExaError(null);
     try {
       await deleteSecret(EXA_KEYCHAIN_ACCOUNT);
       await refreshExa();
+    } catch (err) {
+      setExaError(
+        err instanceof Error ? err.message : "Couldn't remove the key from the keychain.",
+      );
     } finally {
       setExaBusy(false);
     }
@@ -423,6 +434,11 @@ function WebSearchSection() {
                   Save key
                 </Button>
               </form>
+              {exaError && (
+                <p className="text-negative mt-2 font-mono text-[11px]" role="alert">
+                  {exaError}
+                </p>
+              )}
             </>
           )}
         </div>

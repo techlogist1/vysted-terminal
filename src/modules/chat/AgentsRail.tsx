@@ -69,6 +69,8 @@ function RunRow({
   onForeground?: (run: AgentRun) => void;
 }) {
   const [answer, setAnswer] = useState("");
+  const [answerBusy, setAnswerBusy] = useState(false);
+  const [answerError, setAnswerError] = useState<string | null>(null);
   const cost = run.cost;
   const budget = run.budget;
   // Budget usage fraction (tokens-based, the most common ceiling) for the bar.
@@ -135,35 +137,51 @@ function RunRow({
         </div>
       )}
       {run.status === "paused" && run.question && run.sidecarRunId && (
-        <form
-          className="mt-0.5 flex items-center gap-1"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (answer.trim()) {
-              void answerDelegateRun(run.sidecarRunId!, answer.trim());
-              setAnswer("");
-            }
-          }}
-        >
-          {/* min-w-0 ensures the question truncates before the input is pushed off */}
-          <span className="text-warning min-w-0 truncate" title={run.question}>
-            {run.question}
-          </span>
-          <input
-            aria-label="Answer the agent's question"
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            className="bg-charcoal-800 text-charcoal-100 h-5 flex-1 rounded px-1.5 text-[0.6rem] outline-none focus:ring-1 focus:ring-amber-400"
-          />
-          <button
-            type="submit"
-            aria-label="Submit answer"
-            disabled={!answer.trim()}
-            className="text-charcoal-500 hover:text-amber-300 disabled:opacity-30"
+        <>
+          <form
+            className="mt-0.5 flex items-center gap-1"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const text = answer.trim();
+              if (!text) return;
+              setAnswerBusy(true);
+              setAnswerError(null);
+              void answerDelegateRun(run.sidecarRunId!, text).then((r) => {
+                setAnswerBusy(false);
+                if (r.ok) {
+                  setAnswer(""); // keep the text on failure so it isn't lost
+                } else {
+                  setAnswerError(r.error ?? "Couldn't send your answer — retry.");
+                }
+              });
+            }}
           >
-            <Send size={10} aria-hidden />
-          </button>
-        </form>
+            {/* min-w-0 ensures the question truncates before the input is pushed off */}
+            <span className="text-warning min-w-0 truncate" title={run.question}>
+              {run.question}
+            </span>
+            <input
+              aria-label="Answer the agent's question"
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              disabled={answerBusy}
+              className="bg-charcoal-800 text-charcoal-100 h-5 flex-1 rounded px-1.5 text-[0.6rem] outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
+            />
+            <button
+              type="submit"
+              aria-label="Submit answer"
+              disabled={!answer.trim() || answerBusy}
+              className="text-charcoal-500 hover:text-amber-300 disabled:opacity-30"
+            >
+              <Send size={10} aria-hidden />
+            </button>
+          </form>
+          {answerError && (
+            <span className="text-negative mt-0.5 block text-[0.55rem]" role="alert">
+              {answerError}
+            </span>
+          )}
+        </>
       )}
     </motion.div>
   );

@@ -57,6 +57,11 @@ export function PortfolioPanel() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [quotes, setQuotes] = useState<Map<string, Quote>>(new Map());
+  // Distinct from the form-validation `error`: a failed live-quote fetch must not
+  // silently leave every Price/Mkt-val/P&L cell at "—" forever (A6 — failure is
+  // designed for). `quotesNonce` lets the banner's Retry re-run the fetch.
+  const [quotesError, setQuotesError] = useState(false);
+  const [quotesNonce, setQuotesNonce] = useState(0);
   const symbolInputRef = useRef<HTMLInputElement | null>(null);
 
   // Portfolio header inline-edit state (create / rename).
@@ -89,18 +94,25 @@ export function PortfolioPanel() {
     let cancelled = false;
     // fetchPositionQuotes([]) resolves to an empty map, so an emptied portfolio
     // clears its quotes via the async path — no synchronous setState in-effect.
-    void fetchPositionQuotes(
-      holdings.map((h) => ({ symbol: h.symbol, assetClass: h.assetClass })),
-    ).then((q) => {
-      if (!cancelled) {
-        setQuotes(q);
-      }
-    });
+    void fetchPositionQuotes(holdings.map((h) => ({ symbol: h.symbol, assetClass: h.assetClass })))
+      .then((q) => {
+        if (!cancelled) {
+          setQuotes(q);
+          setQuotesError(false);
+        }
+      })
+      .catch(() => {
+        // A rejected quote fetch must not vanish — badge it so the user knows the
+        // values are stale/absent rather than reading "—" as "no data".
+        if (!cancelled) {
+          setQuotesError(true);
+        }
+      });
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [quotesKey]);
+  }, [quotesKey, quotesNonce]);
 
   const summary = useMemo(() => buildPortfolioSummary(positions, quotes), [positions, quotes]);
 
@@ -488,6 +500,21 @@ export function PortfolioPanel() {
               </span>
             </>
           )}
+        </div>
+      )}
+
+      {quotesError && holdings.length > 0 && (
+        <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
+          <span className="text-warning font-mono text-[0.7rem]">
+            Couldn&apos;t refresh live quotes — values shown without market data.
+          </span>
+          <button
+            type="button"
+            onClick={() => setQuotesNonce((n) => n + 1)}
+            className="font-mono text-[0.7rem] text-amber-400 transition-colors hover:text-amber-300"
+          >
+            Retry
+          </button>
         </div>
       )}
 
