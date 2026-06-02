@@ -59,7 +59,10 @@ export const useModelCatalogStore = create<ModelCatalogState>((set, get) => ({
   fetchCatalog: async (provider, opts) => {
     const existing = get().byProvider[provider];
     const fresh = existing && Date.now() - existing.fetchedAt < CATALOG_TTL_MS;
-    if (existing?.loading) return;
+    // A forced refresh always proceeds — even past a stuck `loading` (e.g. a
+    // prior fetch orphaned when the webview suspended) so the refresh control can
+    // always recover. Non-forced calls dedupe against an in-flight or fresh fetch.
+    if (existing?.loading && !opts?.force) return;
     if (fresh && !opts?.force) return;
 
     // Keep any prior models visible while refreshing (no empty flicker).

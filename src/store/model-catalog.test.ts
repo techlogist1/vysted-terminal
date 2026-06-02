@@ -78,6 +78,16 @@ describe("useModelCatalogStore.fetchCatalog", () => {
     expect(sidecarGetMock).toHaveBeenCalledTimes(2);
   });
 
+  it("lets a forced refresh proceed past a stuck loading state", async () => {
+    // Simulate an orphaned in-flight fetch (loading never cleared).
+    useModelCatalogStore.setState({
+      byProvider: { openrouter: { models: [], source: "fallback", fetchedAt: 0, loading: true } },
+    });
+    await useModelCatalogStore.getState().fetchCatalog("openrouter", { force: true });
+    expect(sidecarGetMock).toHaveBeenCalledTimes(1); // forced past the loading guard
+    expect(useModelCatalogStore.getState().byProvider.openrouter?.loading).toBe(false);
+  });
+
   it("degrades to an error state but keeps prior models on a failed refresh", async () => {
     await useModelCatalogStore.getState().fetchCatalog("openrouter");
     sidecarGetMock.mockRejectedValueOnce(new Error("sidecar down"));
