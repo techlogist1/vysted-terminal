@@ -68,6 +68,31 @@ export interface LLMProviderInfo {
   knownModels?: string[];
 }
 
+/** One model in a LIVE provider catalog (`GET /llm/models`). Mirrors the sidecar
+ *  `LLMModelOption`. Richer than a bare id string — `supportsTools` lets the agent
+ *  picker flag a model that would break host-actions. Fields beyond id/label are
+ *  best-effort; `undefined`/`null` means "the catalog did not say", never "false". */
+export interface LLMModelOption {
+  id: string;
+  label: string;
+  contextLength?: number | null;
+  /** `true`/`false` when known; `null`/`undefined` when the catalog is silent. */
+  supportsTools?: boolean | null;
+  /** Short price hint, e.g. `"$0.30 / $1.20 per 1M"`. */
+  pricing?: string | null;
+}
+
+/** `GET /llm/models` payload — a provider's live (or fallback) model list.
+ *  Mirrors the sidecar `LLMModelCatalog`. `source` is `"live"` when the
+ *  provider's catalog API answered, `"fallback"` when the registry known-models
+ *  were served because the live fetch failed. */
+export interface LLMModelCatalog {
+  provider: LLMProviderId;
+  models: LLMModelOption[];
+  source: "live" | "fallback";
+  note?: string | null;
+}
+
 // ---------------------------------------------------------------------------
 // Chat messages
 // ---------------------------------------------------------------------------

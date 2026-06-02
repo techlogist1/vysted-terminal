@@ -27,8 +27,8 @@ export const DEFAULT_MODEL_BY_PROVIDER: Record<LLMProviderId, string> = {
   groq: "llama-3.3-70b-versatile",
   ollama: "qwen2.5:7b",
   deepseek: "deepseek-chat",
-  xai: "grok-2-latest",
-  openrouter: "openai/gpt-4o-mini",
+  xai: "grok-4",
+  openrouter: "google/gemini-2.5-flash",
 };
 
 /** A small, curated set of selectable models per provider for the HUD picker —
@@ -43,13 +43,13 @@ export const KNOWN_MODELS_BY_PROVIDER: Record<LLMProviderId, readonly string[]> 
   groq: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
   ollama: ["qwen2.5:7b", "llama3.1:8b"],
   deepseek: ["deepseek-chat", "deepseek-reasoner"],
-  xai: ["grok-2-latest", "grok-2-mini"],
+  xai: ["grok-4", "grok-3"],
   openrouter: [
-    "openai/gpt-4o-mini",
-    "anthropic/claude-3.5-sonnet",
-    "google/gemini-2.0-flash-001",
-    "qwen/qwen3-30b-a3b-thinking-2507",
-    "deepseek/deepseek-chat",
+    "anthropic/claude-sonnet-4.5",
+    "openai/gpt-5-mini",
+    "google/gemini-2.5-flash",
+    "deepseek/deepseek-chat-v3.1",
+    "x-ai/grok-4.3",
     "openrouter/auto",
   ],
 };
@@ -61,6 +61,12 @@ export const KNOWN_MODELS_BY_PROVIDER: Record<LLMProviderId, readonly string[]> 
  *  registry, or a then-default captured by an older build) must not shadow the
  *  current default forever. */
 export function isKnownModel(provider: LLMProviderId, model: string): boolean {
+  // OpenRouter is a BROKER with a live, open-ended catalog (hundreds of models
+  // fetched at runtime via `GET /llm/models`), so the static list here is a
+  // fallback hint, NOT the set of valid ids. Never prune a restored OpenRouter
+  // pick against it — otherwise a model the user chose from the live dropdown is
+  // silently dropped to the default on relaunch.
+  if (provider === "openrouter") return true;
   const known = KNOWN_MODELS_BY_PROVIDER[provider];
   return Array.isArray(known) && known.includes(model);
 }

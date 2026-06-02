@@ -87,8 +87,23 @@ export const DEFAULT_PROVIDERS: LLMProviderInfo[] = [
     label: "xAI",
     requiresKey: true,
     defaultBaseUrl: "https://api.x.ai/v1",
-    defaultModel: "grok-2-latest",
-    knownModels: ["grok-2-latest", "grok-2-mini"],
+    defaultModel: "grok-4",
+    knownModels: ["grok-4", "grok-3"],
+  },
+  {
+    id: "openrouter",
+    label: "OpenRouter (broker)",
+    requiresKey: true,
+    defaultBaseUrl: "https://openrouter.ai/api/v1",
+    defaultModel: "google/gemini-2.5-flash",
+    knownModels: [
+      "anthropic/claude-sonnet-4.5",
+      "openai/gpt-5-mini",
+      "google/gemini-2.5-flash",
+      "deepseek/deepseek-chat-v3.1",
+      "x-ai/grok-4.3",
+      "openrouter/auto",
+    ],
   },
 ];
 

@@ -47,6 +47,46 @@ class LLMProviderInfo(BaseModel):
     known_models: list[str] = Field(default_factory=list)
 
 
+class LLMModelOption(BaseModel):
+    """One model in a LIVE provider catalog (``GET /llm/models``).
+
+    Richer than the bare ``known_models`` string list: carries the metadata the
+    model picker needs to mark a model — most importantly ``supports_tools`` so
+    the agent surface can flag a model that would break host-actions (the whole
+    point of the OpenRouter live-catalog fix). All fields beyond ``id``/``label``
+    are best-effort: ``None`` means "the provider's catalog did not say", never
+    "false".
+    """
+
+    #: The routable model id passed back as ``model`` in a chat request.
+    id: str
+    #: Human-friendly name for the dropdown (falls back to ``id``).
+    label: str
+    #: Max context window, when the catalog reports it.
+    context_length: int | None = None
+    #: ``True``/``False`` when known; ``None`` when the provider's catalog is
+    #: silent on tool-calling support (so the UI marks "unknown", not "no").
+    supports_tools: bool | None = None
+    #: Short human price hint (e.g. ``"$0.30 / $1.20 per 1M"``), when available.
+    pricing: str | None = None
+
+
+class LLMModelCatalog(BaseModel):
+    """``GET /llm/models`` payload — a provider's live (or fallback) model list.
+
+    ``source`` is ``"live"`` when the provider's catalog API answered and
+    ``"fallback"`` when we served the registry ``known_models`` because the live
+    fetch failed or returned nothing. ``note`` is a short honest line for the UI
+    (e.g. "routable on your key · 247 tool-capable" or "live catalog
+    unavailable"). Read-only; carries no credential.
+    """
+
+    provider: LLMProviderId
+    models: list[LLMModelOption] = Field(default_factory=list)
+    source: Literal["live", "fallback"] = "fallback"
+    note: str | None = None
+
+
 # ---------------------------------------------------------------------------
 # Chat messages
 # ---------------------------------------------------------------------------

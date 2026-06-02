@@ -25,6 +25,7 @@ import { type AgentRunBudget, useAgentRunsStore } from "@/store/agent-runs";
 import { selectCustomAgents, selectFirstPartyAgents, useAgentsStore } from "@/store/agents";
 import { type ResearchStepView, useChatHistoryStore } from "@/store/chat-history";
 import { useLLMProvidersStore } from "@/store/llm-providers";
+import { useModelCatalog, useModelCatalogStore } from "@/store/model-catalog";
 import { useModelSelectionStore } from "@/store/model-selection";
 import { usePanelContextBus } from "@/store/panel-context";
 import { useProposedChangesStore } from "@/store/proposed-changes";
@@ -230,6 +231,8 @@ export function ChatSidebar() {
     );
   }, [providerOverride, activeAgent, defaultProviderId]);
   const effectiveModel = useModelSelectionStore((state) => state.modelFor(effectiveProvider));
+  // Live model catalog for the active provider — auto-fetched, TTL-cached.
+  const { entry: modelCatalog, refresh: refreshModelCatalog } = useModelCatalog(effectiveProvider);
   const providerInfo = providers.find((p) => p.id === effectiveProvider);
   const providerRequiresKey = providerInfo?.requiresKey ?? true;
   const providerConfigured =
@@ -665,9 +668,13 @@ export function ChatSidebar() {
         provider={effectiveProvider}
         model={effectiveModel}
         providerConfigured={providerConfigured}
+        modelOptions={modelCatalog?.models}
+        catalogNote={modelCatalog?.note}
+        catalogLoading={modelCatalog?.loading}
         onProviderChange={(p) => setProviderOverride(p)}
         onModelChange={(m) => setModelOverride(effectiveProvider, m)}
         onKeyRequired={(p) => setKeyDialogProvider(p)}
+        onRefreshModels={refreshModelCatalog}
       />
       <AutonomyToggle />
       <AnimatePresence initial={false}>
@@ -809,8 +816,14 @@ export function ChatSidebar() {
         providerId={keyDialogProvider}
         onOpenChange={(open) => {
           if (!open) {
+            const justConfigured = keyDialogProvider;
             setKeyDialogProvider(null);
             void refreshKeys();
+            // A freshly-saved key re-narrows the live catalog (e.g. OpenRouter
+            // /models/user) — force a refetch for that provider.
+            if (justConfigured) {
+              void useModelCatalogStore.getState().fetchCatalog(justConfigured, { force: true });
+            }
           }
         }}
       />

@@ -24,6 +24,7 @@ from models.llm import (
     LLMDoneEvent,
     LLMErrorEvent,
     LLMMessage,
+    LLMModelOption,
     LLMToolUseEvent,
     LLMUsage,
 )
@@ -210,3 +211,22 @@ class OllamaProvider(LLMProvider):
             return False
         except Exception:  # pragma: no cover — connection refused, etc.
             return False
+
+    async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:  # noqa: ARG002
+        """Live catalog = whatever the user has actually pulled locally.
+
+        The static two-name fallback is useless for Ollama — the real list is
+        the local daemon's installed models, which ``client.list()`` returns.
+        """
+        try:
+            client = self._client()
+            resp = await client.list()
+        except Exception:  # pragma: no cover — daemon not running / unreachable
+            return []
+        options: list[LLMModelOption] = []
+        for model in _attr(resp, "models", None) or []:
+            name = _attr(model, "model", None) or _attr(model, "name", None)
+            if name:
+                options.append(LLMModelOption(id=str(name), label=str(name)))
+        options.sort(key=lambda opt: opt.id.lower())
+        return options

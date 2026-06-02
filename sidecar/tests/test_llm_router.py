@@ -14,7 +14,7 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMUsage
+from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMModelOption, LLMUsage
 from routers import llm as llm_router
 
 
@@ -151,6 +151,103 @@ def test_chat_streams_sse_frames(
     ]
     assert [f["kind"] for f in frames] == ["delta", "delta", "done"]
     assert fake.last_api_key == "sk-routed"
+
+
+class _CatalogProvider:
+    """Adapter stub whose ``list_models`` returns a canned catalog."""
+
+    def __init__(
+        self,
+        models: list[LLMModelOption],
+        captured: dict[str, Any] | None = None,
+    ) -> None:
+        self._models = models
+        self.captured = captured if captured is not None else {}
+
+    async def stream_chat(self, *_a: Any, **_kw: Any) -> AsyncIterator[Any]:  # pragma: no cover
+        if False:
+            yield None
+
+    async def validate_key(self, api_key: str | None = None) -> bool:  # noqa: ARG002
+        return True
+
+    async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
+        self.captured["api_key"] = api_key
+        return self._models
+
+
+def test_get_models_live_carries_metadata_and_note(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    models = [
+        LLMModelOption(
+            id="x/tool", label="X Tool", supports_tools=True, context_length=128000, pricing="free"
+        ),
+        LLMModelOption(id="x/plain", label="X Plain", supports_tools=False),
+    ]
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: _CatalogProvider(models))
+    response = client.get("/llm/models", params={"provider": "openrouter"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["source"] == "live"
+    assert body["provider"] == "openrouter"
+    assert [m["id"] for m in body["models"]] == ["x/tool", "x/plain"]
+    assert body["models"][0]["supports_tools"] is True
+    assert body["models"][0]["context_length"] == 128000
+    assert "tool-capable" in body["note"]
+    # No key sent → the OpenRouter note says full catalog, not "routable on your key".
+    assert "full catalog" in body["note"]
+
+
+def test_get_models_openrouter_routable_note_and_never_echoes_key(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+    models = [LLMModelOption(id="x/tool", label="X", supports_tools=True)]
+    monkeypatch.setattr(
+        llm_router, "get_provider", lambda *_a, **_k: _CatalogProvider(models, captured)
+    )
+    response = client.get(
+        "/llm/models",
+        params={"provider": "openrouter"},
+        headers={"X-LLM-Key": "sk-secret-do-not-echo"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert "routable on your key" in body["note"]
+    # The key reached the adapter as the api_key argument …
+    assert captured["api_key"] == "sk-secret-do-not-echo"
+    # … but is NEVER reflected in the response body (BYOK no-echo contract).
+    assert "sk-secret-do-not-echo" not in response.text
+
+
+def test_get_models_falls_back_to_registry_when_empty(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: _CatalogProvider([]))
+    response = client.get("/llm/models", params={"provider": "anthropic"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["source"] == "fallback"
+    assert "claude-opus-4-8" in [m["id"] for m in body["models"]]
+    assert "unavailable" in body["note"]
+
+
+def test_get_models_adapter_error_degrades_to_fallback(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _Boom(_CatalogProvider):
+        async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
+            raise RuntimeError("network down")
+
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: _Boom([]))
+    response = client.get("/llm/models", params={"provider": "groq"})
+    assert response.status_code == 200
+    assert response.json()["source"] == "fallback"
 
 
 def test_chat_invalid_provider_returns_400(client: TestClient) -> None:

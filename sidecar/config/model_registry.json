@@ -50,21 +50,21 @@
       "label": "xAI",
       "requires_key": true,
       "default_base_url": "https://api.x.ai/v1",
-      "default_model": "grok-2-latest",
-      "known_models": ["grok-2-latest", "grok-2-mini"]
+      "default_model": "grok-4",
+      "known_models": ["grok-4", "grok-3"]
     },
     {
       "id": "openrouter",
       "label": "OpenRouter (broker)",
       "requires_key": true,
       "default_base_url": "https://openrouter.ai/api/v1",
-      "default_model": "openai/gpt-4o-mini",
+      "default_model": "google/gemini-2.5-flash",
       "known_models": [
-        "openai/gpt-4o-mini",
-        "anthropic/claude-3.5-sonnet",
-        "google/gemini-2.0-flash-001",
-        "qwen/qwen3-30b-a3b-thinking-2507",
-        "deepseek/deepseek-chat",
+        "anthropic/claude-sonnet-4.5",
+        "openai/gpt-5-mini",
+        "google/gemini-2.5-flash",
+        "deepseek/deepseek-chat-v3.1",
+        "x-ai/grok-4.3",
         "openrouter/auto"
       ]
     }

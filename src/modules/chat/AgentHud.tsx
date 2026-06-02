@@ -1,44 +1,67 @@
 "use client";
 
+import { Fragment } from "react";
+import { RefreshCw } from "lucide-react";
+
+import { buildModelGroups, modelOptionLabel } from "@/lib/model-options";
 import { KNOWN_MODELS_BY_PROVIDER } from "@/store/model-selection";
 
-import type { LLMProviderId, LLMProviderInfo } from "../../../types/ai";
+import type { LLMModelOption, LLMProviderId, LLMProviderInfo } from "../../../types/ai";
 
 /**
  * The active provider + model HUD (FR-004) — both always visible and switchable
  * by keyboard: the native `<select>`s are keyboard-driven (Tab to focus, arrows
  * to change). The persona (lens) is switched in the roster strip and the mode in
- * the mode bar (⌥1–⌥4); this HUD is the orthogonal provider/model axis. A "no
- * key" badge surfaces when the active provider has no configured BYOK key —
- * clicking it opens the key dialog for that provider.
+ * the mode bar (⌥1–⌥4); this HUD is the orthogonal provider/model axis.
+ *
+ * The model list is the LIVE provider catalog (`useModelCatalog`) when available,
+ * falling back to the config-driven `knownModels` before it loads. Tool-calling
+ * capable models are surfaced first and grouped; a non-tool-capable model is
+ * marked (it would break the agent's host-actions). A "no key" badge surfaces
+ * when the active provider has no configured BYOK key.
  */
 export function AgentHud({
   providers,
   provider,
   model,
   providerConfigured,
+  modelOptions,
+  catalogNote,
+  catalogLoading,
   onProviderChange,
   onModelChange,
   onKeyRequired,
+  onRefreshModels,
 }: {
   providers: LLMProviderInfo[];
   provider: LLMProviderId;
   model: string;
   providerConfigured: boolean;
+  /** Live catalog options; empty/undefined before the first fetch resolves. */
+  modelOptions?: LLMModelOption[];
+  /** Honest one-line catalog status (e.g. "routable on your key · 245 tool-capable"). */
+  catalogNote?: string | null;
+  catalogLoading?: boolean;
   onProviderChange: (provider: LLMProviderId) => void;
   onModelChange: (model: string) => void;
   /** Called when the user clicks "no key" — should open the key entry dialog for the provider. */
   onKeyRequired?: (provider: LLMProviderId) => void;
+  /** Force a live re-fetch of the model catalog (e.g. after adding a key). */
+  onRefreshModels?: () => void;
 }) {
-  // Prefer the live, config-driven model list (served from the sidecar's
-  // model_registry.json into the provider row); fall back to the static map
-  // when the sidecar hasn't been reached yet.
   const providerInfo = providers.find((p) => p.id === provider);
-  const known =
+  // Live catalog when present; otherwise the config-driven known list (and the
+  // static map as the last resort before the sidecar is reached).
+  const fallbackKnown =
     providerInfo?.knownModels && providerInfo.knownModels.length > 0
       ? providerInfo.knownModels
       : (KNOWN_MODELS_BY_PROVIDER[provider] ?? []);
-  const modelOptions = known.includes(model) ? known : [model, ...known];
+  const baseOptions: LLMModelOption[] =
+    modelOptions && modelOptions.length > 0
+      ? modelOptions
+      : fallbackKnown.map((id) => ({ id, label: id }));
+  const { groups, selectedIsNoTools } = buildModelGroups(baseOptions, model);
+
   const selectClass =
     "bg-charcoal-800 text-charcoal-200 border-charcoal-700 max-w-[10rem] truncate rounded border px-1 py-0.5 font-mono text-[0.6rem] outline-none focus:ring-1 focus:ring-amber-400";
   return (
@@ -62,13 +85,47 @@ export function AgentHud({
         value={model}
         onChange={(event) => onModelChange(event.target.value)}
         className={selectClass}
+        title={catalogNote ?? undefined}
       >
-        {modelOptions.map((m) => (
-          <option key={m} value={m}>
-            {m}
-          </option>
-        ))}
+        {groups.map((group, index) =>
+          group.label ? (
+            <optgroup key={group.label} label={group.label}>
+              {group.options.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {modelOptionLabel(option)}
+                </option>
+              ))}
+            </optgroup>
+          ) : (
+            <Fragment key={`flat-${index}`}>
+              {group.options.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {modelOptionLabel(option)}
+                </option>
+              ))}
+            </Fragment>
+          ),
+        )}
       </select>
+      {onRefreshModels && (
+        <button
+          type="button"
+          onClick={onRefreshModels}
+          title={catalogNote ?? "Refresh model list"}
+          aria-label="Refresh model list"
+          className="hover:text-charcoal-200 shrink-0 rounded p-0.5 transition-colors"
+        >
+          <RefreshCw className={`size-3 ${catalogLoading ? "animate-spin" : ""}`} />
+        </button>
+      )}
+      {selectedIsNoTools && (
+        <span
+          className="text-warning shrink-0"
+          title="This model has no tool-calling — agent host-actions will fail. Pick a tool-capable model."
+        >
+          ⚠ no tools
+        </span>
+      )}
       {!providerConfigured && (
         <button
           type="button"

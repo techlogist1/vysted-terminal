@@ -24,11 +24,12 @@ from models.llm import (
     LLMDoneEvent,
     LLMErrorEvent,
     LLMMessage,
+    LLMModelOption,
     LLMToolUseEvent,
     LLMUsage,
 )
 
-from .base import LLMProvider, LLMStreamEvent
+from .base import LLMProvider, LLMStreamEvent, is_chat_model
 
 
 def _parse_tool_args(raw: str) -> dict[str, Any]:
@@ -199,3 +200,27 @@ class GroqProvider(LLMProvider):
             return False
         except groq.GroqError:
             raise
+
+    async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
+        """Live catalog via ``/openai/v1/models``, filtered to chat models.
+
+        Groq rotates and decommissions models often, so a static list silently
+        goes wrong — and it also serves whisper (audio) models the chat picker
+        must drop.
+        """
+        if not api_key:
+            return []
+        try:
+            client = self._client(api_key)
+            page = await client.models.list()
+        except groq.AuthenticationError:
+            return []
+        except groq.PermissionDeniedError:
+            return []
+        options = [
+            LLMModelOption(id=str(model.id), label=str(model.id))
+            for model in (getattr(page, "data", None) or [])
+            if getattr(model, "id", None) and is_chat_model(str(model.id))
+        ]
+        options.sort(key=lambda opt: opt.id.lower())
+        return options

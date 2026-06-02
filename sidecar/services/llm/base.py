@@ -22,6 +22,7 @@ from models.llm import (
     LLMDoneEvent,
     LLMErrorEvent,
     LLMMessage,
+    LLMModelOption,
     LLMResearchStepEvent,
     LLMThinkingEvent,
     LLMToolUseEvent,
@@ -36,6 +37,39 @@ LLMStreamEvent = (
     | LLMDoneEvent
     | LLMErrorEvent
 )
+
+#: Substring hints that mark a non-chat model id (embeddings, audio, image,
+#: moderation, …) so the OpenAI-shaped + Groq live catalogs don't pollute a
+#: chat-model picker with whisper/dall-e/embedding ids. Best-effort, lower-cased
+#: match; the contract keeps model ids open strings so a missed filter is never
+#: fatal (the user can still type any id).
+_NON_CHAT_HINTS = (
+    "embed",
+    "whisper",
+    "tts",
+    "dall-e",
+    "dalle",
+    "moderation",
+    "rerank",
+    "audio",
+    "transcrib",
+    "speech",
+    "image",
+    "stable-diffusion",
+    "flux",
+    "guard",
+)
+
+
+def is_chat_model(model_id: str) -> bool:
+    """Heuristic: ``True`` unless the id clearly names a non-chat model.
+
+    Used to filter a provider's full ``/models`` list down to chat-capable
+    entries for the dropdown. Conservative by design — it only drops ids that
+    name a different modality (embeddings/audio/image/moderation).
+    """
+    low = model_id.lower()
+    return not any(hint in low for hint in _NON_CHAT_HINTS)
 
 
 class LLMProvider(ABC):
@@ -80,3 +114,15 @@ class LLMProvider(ABC):
         distinct "provider unreachable" status.
         """
         raise NotImplementedError
+
+    async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
+        """Return the provider's LIVE model catalog (``GET /llm/models``).
+
+        Default is ``[]`` — meaning "no live list; the router serves the
+        registry ``known_models`` fallback". Adapters override to surface what
+        their ``validate_key`` probe already fetches and throws away. Like
+        ``validate_key`` this MUST NOT raise on a 401/403 (return ``[]`` so the
+        fallback kicks in); it MAY raise on a transport error, which the router
+        catches and degrades to the fallback list.
+        """
+        return []

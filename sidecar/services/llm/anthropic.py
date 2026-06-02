@@ -23,6 +23,7 @@ from models.llm import (
     LLMDoneEvent,
     LLMErrorEvent,
     LLMMessage,
+    LLMModelOption,
     LLMThinkingEvent,
     LLMToolUseEvent,
     LLMUsage,
@@ -163,6 +164,27 @@ class AnthropicProvider(LLMProvider):
             # Any other API-level error is a real transport issue — propagate
             # so the router can surface "provider unreachable".
             raise
+
+    async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
+        """Live catalog via ``/v1/models``. Every Claude model is tool-capable."""
+        if not api_key:
+            return []
+        try:
+            client = self._client(api_key)
+            page = await client.models.list(limit=100)
+        except anthropic.AuthenticationError:
+            return []
+        except anthropic.PermissionDeniedError:
+            return []
+        return [
+            LLMModelOption(
+                id=str(model.id),
+                label=str(getattr(model, "display_name", None) or model.id),
+                supports_tools=True,
+            )
+            for model in (getattr(page, "data", None) or [])
+            if getattr(model, "id", None)
+        ]
 
 
 # ---------------------------------------------------------------------------

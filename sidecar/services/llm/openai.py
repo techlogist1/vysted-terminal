@@ -26,11 +26,12 @@ from models.llm import (
     LLMDoneEvent,
     LLMErrorEvent,
     LLMMessage,
+    LLMModelOption,
     LLMToolUseEvent,
     LLMUsage,
 )
 
-from .base import LLMProvider, LLMStreamEvent
+from .base import LLMProvider, LLMStreamEvent, is_chat_model
 from .native_search import openai_web_search_tool, xai_search_parameters
 
 
@@ -265,3 +266,34 @@ class OpenAIProvider(LLMProvider):
             return False
         except openai.OpenAIError:
             raise
+
+    async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
+        """Live model catalog.
+
+        OpenRouter gets the rich treatment (user-scoped + tool-capability) via
+        :func:`openrouter_catalog.fetch_openrouter_catalog`. The plain
+        OpenAI-shaped providers (OpenAI, DeepSeek, xAI) surface what
+        ``/v1/models`` returns, filtered down to chat models — their catalog API
+        does not expose per-model tool-calling, so ``supports_tools`` stays
+        ``None`` (unknown, not "no").
+        """
+        if self._provider_id == "openrouter":
+            from .openrouter_catalog import fetch_openrouter_catalog
+
+            return await fetch_openrouter_catalog(api_key, self._base_url)
+        if not api_key:
+            return []
+        try:
+            client = self._client(api_key)
+            page = await client.models.list()
+        except openai.AuthenticationError:
+            return []
+        except openai.PermissionDeniedError:
+            return []
+        options = [
+            LLMModelOption(id=str(model.id), label=str(model.id))
+            for model in (getattr(page, "data", None) or [])
+            if getattr(model, "id", None) and is_chat_model(str(model.id))
+        ]
+        options.sort(key=lambda opt: opt.id.lower())
+        return options

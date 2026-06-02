@@ -24,6 +24,7 @@ from models.llm import (
     LLMDoneEvent,
     LLMErrorEvent,
     LLMMessage,
+    LLMModelOption,
     LLMToolUseEvent,
     LLMUsage,
 )
@@ -193,4 +194,33 @@ class GeminiProvider(LLMProvider):
                 return False
             raise
         except genai_errors.APIError:
+            raise
+
+    async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
+        """Live catalog via ``models.list``, kept to ``generateContent`` models."""
+        if not api_key:
+            return []
+        try:
+            client = self._client(api_key)
+            options: list[LLMModelOption] = []
+            async for model in await client.aio.models.list():
+                actions = getattr(model, "supported_actions", None) or []
+                if "generateContent" not in actions:
+                    continue
+                name = getattr(model, "name", "") or ""
+                model_id = name.split("/")[-1] if name else ""
+                if not model_id:
+                    continue
+                options.append(
+                    LLMModelOption(
+                        id=model_id,
+                        label=str(getattr(model, "display_name", None) or model_id),
+                        context_length=getattr(model, "input_token_limit", None),
+                    )
+                )
+            return options
+        except genai_errors.ClientError as exc:
+            status = getattr(exc, "status_code", None) or getattr(exc, "code", None)
+            if status in {401, 403}:
+                return []
             raise

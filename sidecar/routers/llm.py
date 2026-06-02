@@ -21,15 +21,19 @@ import json
 import logging
 from collections.abc import AsyncIterator
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import StreamingResponse
 
 from models.llm import (
     LLMChatRequest,
     LLMKeyValidationRequest,
     LLMKeyValidationResponse,
+    LLMModelCatalog,
+    LLMModelOption,
+    LLMProviderId,
     LLMProviderInfo,
 )
+from services import model_registry
 from services.llm import get_provider, list_provider_info
 from services.llm.base import LLMStreamEvent
 
@@ -42,6 +46,53 @@ router = APIRouter(prefix="/llm", tags=["llm"])
 def get_providers() -> list[LLMProviderInfo]:
     """Return the seven BYOK provider catalog entries."""
     return list_provider_info()
+
+
+@router.get("/models")
+async def get_models(
+    provider: LLMProviderId,
+    base_url: str | None = None,
+    x_llm_key: str | None = Header(default=None, alias="X-LLM-Key"),
+) -> LLMModelCatalog:
+    """Return a provider's LIVE model catalog, with a registry fallback.
+
+    The BYOK key rides the ``X-LLM-Key`` header (read-only-plugin pattern: secret
+    in a header, never the body/query/log) so the OpenRouter path can narrow to
+    the caller's account-routable models. When the live fetch fails or returns
+    nothing, the registry ``known_models`` are served with ``source="fallback"``
+    so the picker is never empty. GET-only, never echoes the key.
+    """
+    try:
+        adapter = get_provider(provider, base_url=base_url)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    models: list[LLMModelOption] = []
+    try:
+        models = await adapter.list_models(x_llm_key)
+    except Exception as exc:  # noqa: BLE001 — any transport failure degrades to fallback
+        logger.warning("provider %s model-list error: %s", provider, type(exc).__name__)
+
+    if models:
+        tool_count = sum(1 for model in models if model.supports_tools)
+        if provider == "openrouter":
+            scope = "routable on your key" if x_llm_key else "full catalog"
+            note = f"Live · {scope} · {len(models)} models, {tool_count} tool-capable"
+        elif tool_count:
+            note = f"Live · {len(models)} models, {tool_count} tool-capable"
+        else:
+            note = f"Live · {len(models)} models"
+        return LLMModelCatalog(provider=provider, models=models, source="live", note=note)
+
+    fallback = [
+        LLMModelOption(id=mid, label=mid) for mid in model_registry.known_models_for(provider)
+    ]
+    return LLMModelCatalog(
+        provider=provider,
+        models=fallback,
+        source="fallback",
+        note="Live catalog unavailable — showing known models",
+    )
 
 
 @router.post("/keys/validate")
