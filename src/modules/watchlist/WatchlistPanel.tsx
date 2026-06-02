@@ -6,6 +6,7 @@ import { ArrowUp, ChevronDown, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProvenanceBadge, StalenessBadge } from "@/components/DataBadges";
 import { SidecarError } from "@/lib/sidecar-client";
+import { useTickFlash } from "@/lib/use-flash-value";
 import { cn } from "@/lib/utils";
 import { usePanelContextBus } from "@/store/panel-context";
 import { fetchWatchlistQuotes, type WatchlistRow } from "./api";
@@ -33,6 +34,90 @@ function formatPrice(value: number): string {
 function formatPercent(value: number): string {
   const sign = value > 0 ? "+" : "";
   return `${sign}${value.toFixed(2)}%`;
+}
+
+/** A brief green/red wash on the cell when its number ticks (reduced-motion
+ *  aware via {@link useTickFlash}); fades out over the same duration. */
+function flashClass(dir: "up" | "down" | null): string {
+  if (dir === "up") return "bg-positive/15";
+  if (dir === "down") return "bg-negative/15";
+  return "bg-transparent";
+}
+
+/**
+ * One watchlist row — its own component so each owns a `useTickFlash` hook (a
+ * price change paints a transient up/down wash, the Bloomberg "it moved" signal
+ * a polled terminal otherwise lacks). The sign colour on Change still carries
+ * the direction under reduced motion; the flash is purely additive signal.
+ */
+function WatchlistQuoteRow({
+  row,
+  isSelected,
+  onSelect,
+  onRemove,
+}: {
+  row: WatchlistRow;
+  isSelected: boolean;
+  onSelect: () => void;
+  onRemove: () => void;
+}) {
+  const { entry, quote } = row;
+  const change = quote?.change_percent ?? 0;
+  const positive = change >= 0;
+  const flash = useTickFlash(quote?.price ?? null);
+  return (
+    <tr
+      onClick={onSelect}
+      className={cn(
+        "border-charcoal-800 hover:bg-charcoal-800/50 cursor-pointer border-b",
+        isSelected && "bg-charcoal-800/40",
+      )}
+    >
+      <td className="px-2.5 py-2">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-charcoal-100 truncate font-mono text-sm">{entry.symbol}</span>
+          {/* Provenance + calendar-aware freshness so a stale value is never shown
+              as a live tick (FR-041 / SC-019). */}
+          {quote !== null && (
+            <span className="flex items-center gap-1 overflow-hidden">
+              <ProvenanceBadge provider={quote.provider} />
+              {quote.freshness != null && <StalenessBadge freshness={quote.freshness} />}
+            </span>
+          )}
+        </div>
+      </td>
+      <td
+        className={cn(
+          "text-charcoal-200 overflow-hidden rounded-sm px-2.5 py-2 text-right font-mono text-sm text-ellipsis whitespace-nowrap tabular-nums transition-colors duration-700",
+          flashClass(flash),
+        )}
+      >
+        {quote !== null ? formatPrice(quote.price) : "—"}
+      </td>
+      <td
+        className={cn(
+          "overflow-hidden px-2.5 py-2 text-right font-mono text-sm text-ellipsis whitespace-nowrap tabular-nums",
+          quote === null ? "text-charcoal-400" : positive ? "text-positive" : "text-negative",
+        )}
+      >
+        {quote !== null ? formatPercent(change) : "—"}
+      </td>
+      <td className="px-1 py-2 text-right">
+        <Button
+          type="button"
+          size="icon-xs"
+          variant="ghost"
+          aria-label={`Remove ${entry.symbol}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+        >
+          <X />
+        </Button>
+      </td>
+    </tr>
+  );
 }
 
 /**
@@ -239,68 +324,15 @@ export function WatchlistPanel() {
               </tr>
             </thead>
             <tbody>
-              {rows.map(({ entry, quote }) => {
-                const change = quote?.change_percent ?? 0;
-                const positive = change >= 0;
-                const isSelected = selectedSymbol === entry.symbol;
-                return (
-                  <tr
-                    key={entry.symbol}
-                    onClick={() => setSelectedSymbol(entry.symbol)}
-                    className={cn(
-                      "border-charcoal-800 hover:bg-charcoal-800/50 cursor-pointer border-b",
-                      isSelected && "bg-charcoal-800/40",
-                    )}
-                  >
-                    <td className="px-2.5 py-2">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-charcoal-100 truncate font-mono text-sm">
-                          {entry.symbol}
-                        </span>
-                        {/* Provenance + calendar-aware freshness so a stale value
-                            is never shown as a live tick (FR-041 / SC-019). */}
-                        {quote !== null && (
-                          <span className="flex items-center gap-1 overflow-hidden">
-                            <ProvenanceBadge provider={quote.provider} />
-                            {quote.freshness != null && (
-                              <StalenessBadge freshness={quote.freshness} />
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="text-charcoal-200 overflow-hidden px-2.5 py-2 text-right font-mono text-sm text-ellipsis whitespace-nowrap tabular-nums">
-                      {quote !== null ? formatPrice(quote.price) : "—"}
-                    </td>
-                    <td
-                      className={cn(
-                        "overflow-hidden px-2.5 py-2 text-right font-mono text-sm text-ellipsis whitespace-nowrap tabular-nums",
-                        quote === null
-                          ? "text-charcoal-400"
-                          : positive
-                            ? "text-positive"
-                            : "text-negative",
-                      )}
-                    >
-                      {quote !== null ? formatPercent(change) : "—"}
-                    </td>
-                    <td className="px-1 py-2 text-right">
-                      <Button
-                        type="button"
-                        size="icon-xs"
-                        variant="ghost"
-                        aria-label={`Remove ${entry.symbol}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeSymbol(entry.symbol);
-                        }}
-                      >
-                        <X />
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })}
+              {rows.map((row) => (
+                <WatchlistQuoteRow
+                  key={row.entry.symbol}
+                  row={row}
+                  isSelected={selectedSymbol === row.entry.symbol}
+                  onSelect={() => setSelectedSymbol(row.entry.symbol)}
+                  onRemove={() => removeSymbol(row.entry.symbol)}
+                />
+              ))}
             </tbody>
           </table>
         )}

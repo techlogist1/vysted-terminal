@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { Newspaper } from "lucide-react";
 
+import { STAGGER, tween } from "@/lib/motion";
 import { SidecarError } from "@/lib/sidecar-client";
 import { usePanelContextBus } from "@/store/panel-context";
 import { useSettingsStore } from "@/store/settings";
@@ -88,9 +90,25 @@ function SentimentBadge({ item }: { item: NewsItem }) {
 }
 
 /** One row in the feed: headline, source · time, sentiment, symbol tags. */
-function NewsRow({ item, onFocus }: { item: NewsItem; onFocus: (id: string) => void }) {
+function NewsRow({
+  item,
+  index,
+  onFocus,
+}: {
+  item: NewsItem;
+  index: number;
+  onFocus: (id: string) => void;
+}) {
   return (
-    <li className="border-charcoal-800 border-b last:border-b-0">
+    <motion.li
+      className="border-charcoal-800 border-b last:border-b-0"
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      // Staggered fade-in so a fresh feed cascades in rather than popping (the
+      // global MotionConfig reducedMotion="user" gate zeroes this when the user
+      // prefers reduced motion). Capped so a long feed doesn't crawl in.
+      transition={{ ...tween(0.2), delay: Math.min(index, 8) * STAGGER }}
+    >
       <a
         href={item.url}
         target="_blank"
@@ -123,7 +141,7 @@ function NewsRow({ item, onFocus }: { item: NewsItem; onFocus: (id: string) => v
           </div>
         ) : null}
       </a>
-    </li>
+    </motion.li>
   );
 }
 
@@ -300,8 +318,8 @@ export function NewsFeedPanel() {
           </div>
         ) : (
           <ul className="flex-1 overflow-y-auto">
-            {state.items.map((item) => (
-              <NewsRow key={item.id} item={item} onFocus={setFocusedArticleId} />
+            {state.items.map((item, index) => (
+              <NewsRow key={item.id} item={item} index={index} onFocus={setFocusedArticleId} />
             ))}
           </ul>
         )

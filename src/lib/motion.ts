@@ -14,6 +14,13 @@ export const EASE_DETENT: [number, number, number, number] = [0.32, 0.9, 0.5, 1]
 /** Durations (seconds) — fast for micro-states, base for most, slow for reveals. */
 export const DUR = { fast: 0.16, base: 0.22, slow: 0.28 } as const;
 
+/** How long a price tick-flash stays lit before fading (ms). The fade itself
+ *  rides a CSS `transition-colors` of the same duration. */
+export const FLASH_MS = 650;
+
+/** Per-item delay (seconds) for a staggered list reveal (data landing). */
+export const STAGGER = 0.035;
+
 /** A house tween at the instrument easing. */
 export const tween = (duration: number = DUR.base): Transition => ({
   duration,
