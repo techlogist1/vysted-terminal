@@ -1,11 +1,29 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { DEFAULT_PROVIDERS } from "@/store/llm-providers";
 import {
   DEFAULT_MODEL_BY_PROVIDER,
+  KNOWN_MODELS_BY_PROVIDER,
   modelForProvider,
   resetModelSelectionStoreForTests,
   useModelSelectionStore,
 } from "@/store/model-selection";
+
+// Drift guard (Track 3 simplicity, cycle-safe form): the static fallback tables
+// here are NOT derived from llm-providers' DEFAULT_PROVIDERS at module load (that
+// caused a circular-import TDZ failure), so this test asserts they stay in
+// lockstep instead — editing one without the other fails here, not silently.
+describe("model-selection — static tables match DEFAULT_PROVIDERS (drift guard)", () => {
+  it("default model + known models agree with the provider catalog", () => {
+    for (const p of DEFAULT_PROVIDERS) {
+      expect(DEFAULT_MODEL_BY_PROVIDER[p.id]).toBe(p.defaultModel ?? "—");
+      expect([...(KNOWN_MODELS_BY_PROVIDER[p.id] ?? [])]).toEqual([...(p.knownModels ?? [])]);
+    }
+    expect(Object.keys(DEFAULT_MODEL_BY_PROVIDER).sort()).toEqual(
+      DEFAULT_PROVIDERS.map((p) => p.id).sort(),
+    );
+  });
+});
 
 describe("model-selection store (FR-004)", () => {
   beforeEach(() => resetModelSelectionStoreForTests());

@@ -11,31 +11,51 @@
 
 import { create } from "zustand";
 
-import { DEFAULT_PROVIDERS } from "@/store/llm-providers";
 import type { LLMProviderId } from "../../types/ai";
 
 /**
  * Default model per provider — an OFFLINE FALLBACK mirroring the sidecar's
  * config-driven registry (`sidecar/config/model_registry.json`, served live on
  * `GET /llm/providers` as `defaultModel`/`knownModels` into the llm-providers
- * store). DERIVED from `llm-providers`' `DEFAULT_PROVIDERS` so the static model
- * table lives in exactly ONE place on the frontend (it used to be duplicated
- * byte-for-byte here and there); edit the JSON + `DEFAULT_PROVIDERS` to change
- * models. The user can override per provider via the model HUD.
+ * store). Kept as a literal here (NOT derived from `llm-providers.DEFAULT_PROVIDERS`)
+ * to avoid a module-load circular-import: this file is pulled in via `workspace.ts`
+ * in an order where a top-level `DEFAULT_PROVIDERS.map(...)` would run before that
+ * export initialises. A `model-selection.test.ts` drift-guard asserts this table
+ * stays in lockstep with `DEFAULT_PROVIDERS` instead — edit both + the JSON together.
  */
-export const DEFAULT_MODEL_BY_PROVIDER: Record<LLMProviderId, string> = Object.fromEntries(
-  DEFAULT_PROVIDERS.map((p) => [p.id, p.defaultModel ?? "—"]),
-) as Record<LLMProviderId, string>;
+export const DEFAULT_MODEL_BY_PROVIDER: Record<LLMProviderId, string> = {
+  anthropic: "claude-opus-4-8",
+  openai: "gpt-4.1-mini",
+  gemini: "gemini-2.5-pro",
+  groq: "llama-3.3-70b-versatile",
+  ollama: "qwen2.5:7b",
+  deepseek: "deepseek-chat",
+  xai: "grok-4",
+  openrouter: "google/gemini-2.5-flash",
+};
 
 /** Curated selectable models per provider for the HUD picker — the OFFLINE
- *  FALLBACK for the config-driven list, DERIVED from `DEFAULT_PROVIDERS` (the
- *  live list comes from the llm-providers store's `knownModels`). Free-form
- *  override is also allowed — the contract keeps model ids as strings so
- *  releases between Vysted versions still work. */
-export const KNOWN_MODELS_BY_PROVIDER: Record<LLMProviderId, readonly string[]> =
-  Object.fromEntries(
-    DEFAULT_PROVIDERS.map((p) => [p.id, p.knownModels ?? []] as const),
-  ) as unknown as Record<LLMProviderId, readonly string[]>;
+ *  FALLBACK for the config-driven list (the live list comes from the llm-providers
+ *  store's `knownModels`). Kept in lockstep with `DEFAULT_PROVIDERS.knownModels`
+ *  by the drift-guard test (see note above). Free-form override is also allowed —
+ *  the contract keeps model ids as strings so releases between Vysted versions work. */
+export const KNOWN_MODELS_BY_PROVIDER: Record<LLMProviderId, readonly string[]> = {
+  anthropic: ["claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5"],
+  openai: ["gpt-4.1", "gpt-4.1-mini", "o4-mini"],
+  gemini: ["gemini-2.5-pro", "gemini-2.5-flash"],
+  groq: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
+  ollama: ["qwen2.5:7b", "llama3.1:8b"],
+  deepseek: ["deepseek-chat", "deepseek-reasoner"],
+  xai: ["grok-4", "grok-3"],
+  openrouter: [
+    "anthropic/claude-sonnet-4.5",
+    "openai/gpt-5-mini",
+    "google/gemini-2.5-flash",
+    "deepseek/deepseek-chat-v3.1",
+    "x-ai/grok-4.3",
+    "openrouter/auto",
+  ],
+};
 
 /** Is `model` one of the curated/known models for `provider`? Free-form picks
  *  via {@link ModelSelectionState.setModel} bypass this (the contract keeps

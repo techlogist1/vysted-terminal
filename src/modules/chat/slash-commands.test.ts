@@ -165,14 +165,15 @@ describe("parseSlashInvocation", () => {
 });
 
 describe("SLASH_COMMANDS registry", () => {
-  it("contains all 11 curated commands", () => {
-    expect(SLASH_COMMANDS).toHaveLength(11);
+  it("contains all 12 curated commands", () => {
+    expect(SLASH_COMMANDS).toHaveLength(12);
     expect(SLASH_COMMANDS.map((c) => c.trigger).sort()).toEqual(
       [
         "chart",
         "clear",
         "compare",
         "deep",
+        "deep heavy",
         "export",
         "layout",
         "portfolio",
