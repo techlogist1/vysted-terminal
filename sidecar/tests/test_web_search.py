@@ -33,10 +33,11 @@ def test_missing_query_is_rejected() -> None:
     assert out["ok"] is False and "error" in out
 
 
-def test_honest_fallback_when_no_backend(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_honest_message_when_even_ddg_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
     from services.search import registry
 
-    # byok-exa tier but no key -> registry.resolve returns None -> honest message.
+    # Defensive path: if EVERY backend (including the ddg floor) fails to resolve,
+    # the handler still returns an honest message rather than a fabricated source.
     token = config._search_tier_ctx.set("byok-exa")
     try:
         monkeypatch.setattr(registry, "resolve", lambda *a, **k: None)
@@ -46,6 +47,53 @@ def test_honest_fallback_when_no_backend(monkeypatch: pytest.MonkeyPatch) -> Non
     assert out["ok"] is False
     assert "Exa" in out["message"] or "SearXNG" in out["message"]
     assert "search" in out["message"].lower()
+
+
+def test_ddg_is_the_keyless_floor(monkeypatch: pytest.MonkeyPatch) -> None:
+    from services.search import registry
+
+    # byok-exa tier with no key: exa/searxng resolve to None, so the keyless
+    # DuckDuckGo floor serves the query — web search is never dark out of the box.
+    def _resolve(active_id, **_kw):  # noqa: ANN001, ANN003
+        return _FakeBackend("ddg") if active_id == "ddg" else None
+
+    token = config._search_tier_ctx.set("byok-exa")
+    try:
+        monkeypatch.setattr(registry, "resolve", _resolve)
+        out = _run(_web_search({"query": "nvidia earnings"}))
+    finally:
+        config._search_tier_ctx.reset(token)
+    assert out["ok"] is True
+    assert out["backend"] == "ddg"
+    assert out["results"][0]["url"] == "https://x.com/a"
+
+
+def test_local_searxng_tier_autodetects_when_no_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    from services.search import registry, searxng
+
+    detected: dict[str, object] = {}
+
+    async def _fake_detect(base=None, *, client=None):  # noqa: ANN001, ANN202
+        detected["called"] = True
+        return "http://localhost:8888"
+
+    monkeypatch.setattr(searxng, "detect_searxng", _fake_detect)
+
+    captured: dict[str, object] = {}
+
+    def _resolve(active_id, *, exa_key=None, searxng_url=None, region=None):  # noqa: ANN001
+        captured["searxng_url"] = searxng_url
+        return _FakeBackend("searxng") if active_id == "searxng" else None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    token = config._search_tier_ctx.set("local-searxng")
+    try:
+        out = _run(_web_search({"query": "x"}))
+    finally:
+        config._search_tier_ctx.reset(token)
+    assert detected.get("called") is True
+    assert captured["searxng_url"] == "http://localhost:8888"  # autodetected URL flows through
+    assert out["ok"] is True and out["backend"] == "searxng"
 
 
 def test_dispatch_returns_results_and_citations(monkeypatch: pytest.MonkeyPatch) -> None:

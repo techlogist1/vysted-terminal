@@ -11,6 +11,9 @@ Backend ids:
 
   * ``"exa"`` — Tier-2 BYOK REST search; needs ``EXA_API_KEY`` (``exa_key``).
   * ``"searxng"`` — Tier-3 local/private metasearch; needs a base ``searxng_url``.
+  * ``"ddg"`` — the keyless FLOOR (DuckDuckGo); needs nothing, so it always
+    resolves. Not a user-selectable tier — the ``web_search`` handler falls back
+    to it last so search is never dark on a fresh, key-less install.
 
 The concrete backends live in :mod:`services.search.exa` /
 :mod:`services.search.searxng` and are **lazy-imported** here (guarded) so the
@@ -24,8 +27,9 @@ from collections.abc import Callable
 
 from .base import SearchBackend
 
-#: Known backend ids, in preference order (BYOK first, then local).
-KNOWN_BACKENDS: tuple[str, ...] = ("exa", "searxng")
+#: Known backend ids, in preference order (BYOK first, then local, then the
+#: keyless DuckDuckGo floor that always resolves).
+KNOWN_BACKENDS: tuple[str, ...] = ("exa", "searxng", "ddg")
 
 
 def _build_exa(
@@ -54,11 +58,23 @@ def _build_searxng(
     return SearxngSearchBackend(base_url=searxng_url, region=region)
 
 
+def _build_ddg(
+    *, exa_key: str | None, searxng_url: str | None, region: str | None
+) -> SearchBackend | None:
+    """Construct the keyless DuckDuckGo floor — UNCONDITIONAL (needs no credential)."""
+    try:
+        from .ddg import DdgSearchBackend
+    except ImportError:
+        return None
+    return DdgSearchBackend(region=region)
+
+
 # Each builder takes the full credential bundle by keyword and returns a backend
 # or ``None``; keeping a uniform signature lets resolve() dispatch generically.
 _BUILDERS: dict[str, Callable[..., SearchBackend | None]] = {
     "exa": _build_exa,
     "searxng": _build_searxng,
+    "ddg": _build_ddg,
 }
 
 

@@ -123,6 +123,17 @@ def test_resolve_returns_none_without_searxng_url() -> None:
     assert resolve("searxng", searxng_url="") is None
 
 
+def test_resolve_ddg_is_unconditional_keyless_floor() -> None:
+    from services.search.ddg import DdgSearchBackend
+    from services.search.registry import KNOWN_BACKENDS
+
+    # The ddg floor needs no key/url — it ALWAYS resolves, so web search is never
+    # dark on a fresh install.
+    backend = resolve("ddg")
+    assert isinstance(backend, DdgSearchBackend)
+    assert "ddg" in KNOWN_BACKENDS
+
+
 def test_resolve_returns_none_for_unknown_backend() -> None:
     assert resolve("brave", exa_key="k", searxng_url="http://u") is None
 

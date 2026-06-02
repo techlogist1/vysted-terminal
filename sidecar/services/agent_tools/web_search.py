@@ -51,6 +51,15 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
     exa_key = config.get_exa_key()
     searxng_url = config.get_searxng_url()
 
+    # Wire the real SearXNG autodetect: a local-searxng tier with no configured
+    # URL probes the conventional local ports (8888 pip → 8080 docker) before
+    # giving up — previously this autodetect was dead code, so the Settings copy
+    # that promised it was lying.
+    if tier == "local-searxng" and not searxng_url:
+        from services.search.searxng import detect_searxng
+
+        searxng_url = await detect_searxng()
+
     backend_id = _TIER_BACKEND.get(tier)
     backend = None
     if backend_id:
@@ -59,12 +68,19 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
         )
     else:
         # Native tier but the tool was reachable (a native-incapable provider):
-        # use any BYOK/local backend the user has configured, else honest-fail.
+        # use any BYOK/local backend the user has configured.
         backend = registry.resolve("exa", exa_key=exa_key, region=region) or registry.resolve(
             "searxng", searxng_url=searxng_url, region=region
         )
 
+    # The keyless FLOOR: DuckDuckGo needs no key/URL, so it ALWAYS resolves. Wiring
+    # it last means web search is never dark on a fresh install (Track 1 — "works
+    # out of the box") while never overriding a configured native/BYOK/SearXNG
+    # route the user chose.
     if backend is None:
+        backend = registry.resolve("ddg", region=region)
+
+    if backend is None:  # pragma: no cover — ddg always resolves; defensive only
         return {"ok": False, "query": query, "message": _NO_BACKEND_MESSAGE}
 
     options = {"numResults": num_results, "category": category, "region": region}
