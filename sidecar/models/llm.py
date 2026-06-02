@@ -162,6 +162,27 @@ class LLMResearchStepEvent(BaseModel):
     index: int = 0
 
 
+class LLMAgentPlanEvent(BaseModel):
+    """A visible "plan-then-execute" surface for a compound request (Track 6 #2).
+
+    When a tool-capable model handles a compound request, the runtime runs the
+    in-house planner (``services.planner.decompose``) and emits this event BEFORE
+    the tool loop, so the user sees the intended steps up front. It is ADVISORY —
+    the loop still drives execution; ``staged`` host-action steps are pre-queued
+    into the diff/accept gate (never auto-applied beyond the existing AUTO rules,
+    and there is no order verb in the planner vocabulary, so §6.5 is untouched).
+    """
+
+    kind: Literal["agent_plan"] = "agent_plan"
+    #: The restated goal the plan addresses.
+    goal: str
+    #: Ordered steps: ``{action, args, rationale, staged}`` (``staged`` = whether
+    #: the step is a host-action pre-queued into the review gate).
+    steps: list[dict[str, Any]] = Field(default_factory=list)
+    #: A short note when the planner degraded (e.g. "answering directly").
+    note: str | None = None
+
+
 class LLMThinkingEvent(BaseModel):
     """Provider streamed extended-thinking text (Anthropic, OpenAI o-series)."""
 

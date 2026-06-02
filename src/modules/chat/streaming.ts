@@ -197,6 +197,26 @@ function normalizeEvent(payload: Record<string, unknown>): LLMStreamEvent | null
       index: Number(payload.index ?? 0),
     };
   }
+  if (kind === "agent_plan") {
+    const rawSteps = Array.isArray(payload.steps) ? payload.steps : [];
+    return {
+      kind: "agent_plan",
+      goal: String(payload.goal ?? ""),
+      steps: rawSteps.map((s) => {
+        const step = (s ?? {}) as Record<string, unknown>;
+        return {
+          action: String(step.action ?? ""),
+          args:
+            step.args && typeof step.args === "object"
+              ? (step.args as Record<string, unknown>)
+              : {},
+          rationale: String(step.rationale ?? ""),
+          staged: step.staged === true,
+        };
+      }),
+      note: typeof payload.note === "string" ? payload.note : undefined,
+    };
+  }
   if (kind === "done") {
     const rawUsage = payload.usage as
       | { input_tokens?: number; output_tokens?: number }

@@ -2,6 +2,34 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { useChatHistoryStore } from "./chat-history";
 
+describe("chat-history — agent plan (Track 6 #2)", () => {
+  beforeEach(() => {
+    useChatHistoryStore.getState().clear();
+  });
+
+  it("attaches a visible plan to the owning assistant message", () => {
+    const store = useChatHistoryStore.getState();
+    const id = store.beginAssistantMessage({ agentId: "copilot" });
+    store.setPlan(id, {
+      goal: "open a chart and add to watchlist",
+      steps: [
+        {
+          action: "set_chart_symbol",
+          args: { symbol: "AAPL" },
+          rationale: "chart it",
+          staged: true,
+        },
+        { action: "research", args: { query: "bull case" }, rationale: "dig in", staged: false },
+      ],
+      note: undefined,
+    });
+    const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id);
+    expect(msg?.plan?.steps).toHaveLength(2);
+    expect(msg?.plan?.steps[0].staged).toBe(true);
+    expect(msg?.plan?.steps[1].action).toBe("research");
+  });
+});
+
 describe("chat-history — research steps (Track A)", () => {
   beforeEach(() => {
     useChatHistoryStore.getState().clear();

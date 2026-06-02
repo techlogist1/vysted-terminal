@@ -219,6 +219,80 @@ async def test_invoke_agent_composes_system_and_context(monkeypatch: pytest.Monk
 
 
 @pytest.mark.asyncio
+async def test_invoke_agent_emits_plan_for_compound_on_capable_model(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A compound request on a capable model surfaces a visible plan whose
+    host-action steps are flagged ``staged`` and never include an order verb."""
+    agent_runtime.reload()
+    provider = _FakeProvider()
+    _patch_provider(monkeypatch, provider)
+
+    async def _fake_complete(prov, model, key, messages):  # noqa: ANN001, ANN202
+        return (
+            '[{"action":"set_chart_symbol","args":{"symbol":"AAPL"},"rationale":"chart AAPL"},'
+            '{"action":"add_to_watchlist","args":{"symbol":"NVDA"},"rationale":"watch NVDA"}]'
+        )
+
+    monkeypatch.setattr(agent_runtime.oneshot, "complete", _fake_complete)
+
+    events: list[Any] = []
+    async for event in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="open a chart of AAPL and add NVDA to my watchlist",
+        provider="openai",
+        model="gpt-4.1-mini",
+        api_key="sk-test",
+        mode="agent",
+    ):
+        events.append(event)
+
+    plans = [e for e in events if e.kind == "agent_plan"]
+    assert len(plans) == 1
+    plan = plans[0]
+    assert len(plan.steps) == 2
+    assert all(s["staged"] for s in plan.steps)  # both host-actions pre-stage
+    assert all(s["action"] != "propose_order" for s in plan.steps)  # §6.5: no order verb
+    # The plan precedes the loop's own stream.
+    kinds = [e.kind for e in events]
+    assert kinds.index("agent_plan") < kinds.index("done")
+
+
+@pytest.mark.asyncio
+async def test_invoke_agent_no_plan_on_local_model(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The unreliable local (ollama) path skips the plan surface entirely."""
+    agent_runtime.reload()
+    _patch_provider(monkeypatch, _FakeProvider())
+    events: list[Any] = []
+    async for event in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="open a chart of AAPL and add NVDA to my watchlist",
+        provider="ollama",
+        mode="agent",
+    ):
+        events.append(event)
+    assert [e for e in events if e.kind == "agent_plan"] == []
+
+
+@pytest.mark.asyncio
+async def test_invoke_agent_no_plan_for_simple_request(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A non-compound (single) request shows no plan surface."""
+    agent_runtime.reload()
+    _patch_provider(monkeypatch, _FakeProvider())
+    events: list[Any] = []
+    async for event in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="what is AAPL's PE ratio?",
+        provider="openai",
+        model="gpt-4.1-mini",
+        api_key="sk-test",
+        mode="agent",
+    ):
+        events.append(event)
+    assert [e for e in events if e.kind == "agent_plan"] == []
+
+
+@pytest.mark.asyncio
 async def test_invoke_agent_omits_context_when_none(monkeypatch: pytest.MonkeyPatch) -> None:
     agent_runtime.reload()
     provider = _FakeProvider()

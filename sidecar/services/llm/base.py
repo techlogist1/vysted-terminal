@@ -18,6 +18,7 @@ from collections.abc import AsyncIterator
 from typing import Any
 
 from models.llm import (
+    LLMAgentPlanEvent,
     LLMDeltaEvent,
     LLMDoneEvent,
     LLMErrorEvent,
@@ -33,6 +34,7 @@ LLMStreamEvent = (
     LLMDeltaEvent
     | LLMToolUseEvent
     | LLMResearchStepEvent
+    | LLMAgentPlanEvent
     | LLMThinkingEvent
     | LLMDoneEvent
     | LLMErrorEvent

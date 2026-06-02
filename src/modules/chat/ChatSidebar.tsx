@@ -23,7 +23,11 @@ import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { type AgentRunBudget, useAgentRunsStore } from "@/store/agent-runs";
 import { selectCustomAgents, selectFirstPartyAgents, useAgentsStore } from "@/store/agents";
-import { type ResearchStepView, useChatHistoryStore } from "@/store/chat-history";
+import {
+  type AgentPlanView,
+  type ResearchStepView,
+  useChatHistoryStore,
+} from "@/store/chat-history";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelCatalog, useModelCatalogStore } from "@/store/model-catalog";
 import { useModelSelectionStore } from "@/store/model-selection";
@@ -41,6 +45,7 @@ import { captureTerminalState } from "./context-provider";
 import { applyMentionPrefixes, type MentionDef, matchMention, resolveMention } from "./mentions";
 import { MentionPicker } from "./MentionPicker";
 import { ModeBar } from "./ModeBar";
+import { PlanView } from "./PlanView";
 import { ProposedChangesReview } from "./ProposedChangesReview";
 import { ResearchActivity } from "./ResearchActivity";
 import {
@@ -161,6 +166,7 @@ export function ChatSidebar() {
   const appendDelta = useChatHistoryStore((state) => state.appendAssistantDelta);
   const appendToolStep = useChatHistoryStore((state) => state.appendToolStep);
   const appendResearchStep = useChatHistoryStore((state) => state.appendResearchStep);
+  const setPlan = useChatHistoryStore((state) => state.setPlan);
   const finalize = useChatHistoryStore((state) => state.finalizeAssistantMessage);
   const fail = useChatHistoryStore((state) => state.failAssistantMessage);
   const clearHistory = useChatHistoryStore((state) => state.clear);
@@ -487,8 +493,7 @@ export function ChatSidebar() {
           customAgents.find((a) => a.id === agentForCall) ??
           null)
         : null;
-      const provider =
-        providerOverride ?? agentProviderPreference(agentSpec) ?? defaultProviderId;
+      const provider = providerOverride ?? agentProviderPreference(agentSpec) ?? defaultProviderId;
       const model = useModelSelectionStore.getState().modelFor(provider);
       const providerMeta = providers.find((p) => p.id === provider);
       const requiresKey = providerMeta?.requiresKey ?? true;
@@ -602,6 +607,11 @@ export function ChatSidebar() {
           }
         },
         onResearchStep: (step) => appendResearchStep(assistantId, step),
+        // Track 6 #2: surface the plan up front (visible plan-then-execute). It is
+        // ADVISORY — the loop below still drives execution and stages each
+        // host-action through the existing gate, so we don't pre-stage here (that
+        // would double-apply). The plan just shows what's coming.
+        onPlan: (plan) => setPlan(assistantId, plan),
       });
 
       if (agentForCall) {
@@ -641,6 +651,7 @@ export function ChatSidebar() {
       appendDelta,
       appendToolStep,
       appendResearchStep,
+      setPlan,
       appendUser,
       agentNameById,
       beginAssistant,
@@ -759,6 +770,7 @@ export function ChatSidebar() {
                       ? (agentNameById[message.agentId] ?? message.agentId)
                       : "Assistant"}
                 </div>
+                {message.plan && <PlanView plan={message.plan} active={!!message.pending} />}
                 {message.researchSteps && message.researchSteps.length > 0 && (
                   <ResearchActivity
                     steps={message.researchSteps}
@@ -1183,6 +1195,7 @@ interface InternalHandlers {
   onDone: (usage: { inputTokens: number; outputTokens: number } | null) => void;
   onToolUse: (name: string, input: Record<string, unknown>, toolCallId: string) => void;
   onResearchStep: (step: ResearchStepView) => void;
+  onPlan: (plan: AgentPlanView) => void;
 }
 
 function makeHandlers(internal: InternalHandlers): {
@@ -1207,6 +1220,8 @@ function makeHandlers(internal: InternalHandlers): {
           status: event.status,
           index: event.index,
         });
+      } else if (event.kind === "agent_plan") {
+        internal.onPlan({ goal: event.goal, steps: event.steps, note: event.note });
       } else if (event.kind === "error") {
         internal.onError(event.message);
       } else if (event.kind === "done") {

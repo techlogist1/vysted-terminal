@@ -149,9 +149,36 @@ export type LLMStreamEvent =
       /** Monotonic 1-based step counter within the run (ordering/keys). */
       index: number;
     }
+  | {
+      /**
+       * A visible "plan-then-execute" surface for a compound request (Track 6 #2),
+       * emitted BEFORE the tool loop on a capable model. Advisory — the loop still
+       * drives execution; `staged` host-action steps are pre-queued into the
+       * diff/accept gate. No order verb exists in the planner vocabulary.
+       */
+      kind: "agent_plan";
+      /** The restated goal the plan addresses. */
+      goal: string;
+      /** Ordered steps; `staged` marks a host-action pre-queued for review. */
+      steps: PlanStepView[];
+      /** A short note when the planner degraded (e.g. "answering directly"). */
+      note?: string;
+    }
   | { kind: "thinking"; text: string }
   | { kind: "done"; usage?: LLMUsage; finishReason?: string }
   | { kind: "error"; message: string };
+
+/** One step of an {@link LLMStreamEvent} `agent_plan` (Track 6 #2). */
+export interface PlanStepView {
+  /** A planner action verb (e.g. `set_chart_symbol`, `research`, `answer`). */
+  action: string;
+  /** Best-effort args for the action. */
+  args: Record<string, unknown>;
+  /** A short human line shown in the plan list. */
+  rationale: string;
+  /** Whether this step was pre-staged into the diff/accept gate. */
+  staged: boolean;
+}
 
 /** Token usage reported on `done`. Optional — some providers omit usage on stream. */
 export interface LLMUsage {

@@ -36,6 +36,7 @@ from models.agent import (
     AgentSpec,
 )
 from models.llm import (
+    LLMAgentPlanEvent,
     LLMDoneEvent,
     LLMErrorEvent,
     LLMMessage,
@@ -46,9 +47,49 @@ from models.llm import (
 )
 from services import agent_tools, model_registry
 from services.agent_tools import catalog
-from services.llm import get_provider, native_search
+from services.llm import get_provider, native_search, oneshot
 from services.llm.base import LLMStreamEvent
-from services.planner import classify_intent
+from services.planner import classify_intent, decompose
+
+#: Host-action steps a plan may PRE-STAGE into the diff/accept gate (the planner
+#: vocabulary minus research/deep_research/answer, which execute inside the loop,
+#: and with NO order verb — so a plan never touches the §6.5 path).
+_STAGEABLE_PLAN_ACTIONS = frozenset(
+    {"open_panel", "set_chart_symbol", "set_chart_indicators", "add_to_watchlist", "arrange_layout"}
+)
+
+#: Providers reliable enough at instruction-following for the visible planner. The
+#: local ollama/qwen-7b path is unreliable (tool-use + JSON), so it stays on the
+#: preamble-driven loop with NO plan surface (graceful degrade, not a worse run).
+_PLANNER_PROVIDERS = frozenset({"anthropic", "openai", "gemini", "xai", "openrouter", "deepseek"})
+
+
+def _planner_enabled(provider_id: str, mode: str) -> bool:
+    """True when the visible plan-then-execute pre-pass should run for this turn."""
+    return mode == "agent" and provider_id in _PLANNER_PROVIDERS
+
+
+def _planner_context(snapshot: AgentContextSnapshot | None) -> dict[str, Any] | None:
+    """Best-effort planner context — the focused symbol so "this"/"it" resolves.
+
+    Reads the focused panel's context entry for a ``symbol``; returns ``None`` when
+    none is found (the planner works fine without it). Never raises.
+    """
+    if snapshot is None:
+        return None
+    try:
+        by_source = snapshot.by_source or {}
+        candidates = [snapshot.focused_source, "chart", "equity-overview"]
+        for src in candidates:
+            entry = by_source.get(src) if src else None
+            if isinstance(entry, dict):
+                symbol = entry.get("symbol") or entry.get("ticker")
+                if isinstance(symbol, str) and symbol:
+                    return {"focusedSymbol": symbol}
+    except Exception:  # noqa: BLE001 — context is a best-effort nicety
+        return None
+    return None
+
 
 logger = logging.getLogger(__name__)
 
@@ -546,6 +587,34 @@ async def invoke_agent(
     # (each request is its own asyncio task with a copied context), so it does
     # not leak across requests; the key stays process-memory-only.
     config.set_request_llm_creds(provider_id, resolved_model, api_key)
+
+    # --- Visible plan-then-execute pre-pass (Track 6 #2) ---------------------
+    # For a COMPOUND request on a capable model, decompose the goal into an
+    # ordered plan, surface it (so the user sees the steps up front), and PRE-STAGE
+    # the host-action steps into the diff/accept gate. ADVISORY only: the tool loop
+    # below still drives execution; this never blocks, never raises, and on a weak
+    # local model it is skipped entirely (the loop's preamble-driven path stands).
+    if not read_only and _planner_enabled(provider_id, mode) and classify_intent(prompt).compound:
+        try:
+
+            async def _plan_llm_call(p: str) -> str:
+                return await oneshot.complete(
+                    provider_id, resolved_model, api_key, [{"role": "user", "content": p}]
+                )
+
+            plan = await decompose(
+                prompt,
+                llm_call=_plan_llm_call,
+                context=_planner_context(context_snapshot),
+            )
+            if plan.ok and len(plan.steps) > 1:
+                steps = [
+                    {**step.to_dict(), "staged": step.action in _STAGEABLE_PLAN_ACTIONS}
+                    for step in plan.steps
+                ]
+                yield LLMAgentPlanEvent(goal=plan.goal, steps=steps, note=plan.note)
+        except Exception:  # noqa: BLE001 — the plan is best-effort; never break a turn
+            logger.debug("planner pre-pass skipped (non-fatal)", exc_info=True)
 
     rounds = 0
     web_search_calls = 0  # per-run cap on the BYOK/local web_search tool (FR-081)

@@ -14,7 +14,7 @@
 
 import { create } from "zustand";
 
-import type { LLMProviderId, LLMUsage } from "../../types/ai";
+import type { LLMProviderId, LLMUsage, PlanStepView } from "../../types/ai";
 
 /**
  * One live research-pipeline step (Track A) — the camelCase view of a sidecar
@@ -57,7 +57,17 @@ export interface ChatMessage {
   researchSteps?: ResearchStepView[];
   /** Epoch ms the first research step arrived — drives the live elapsed timer. */
   researchStartedAt?: number;
+  /** The visible plan for a compound request (Track 6 #2), shown before the
+   *  steps execute. Advisory — staged host-actions ride the diff/accept gate. */
+  plan?: AgentPlanView;
   createdAt: number;
+}
+
+/** A decomposed plan attached to an assistant message (Track 6 #2). */
+export interface AgentPlanView {
+  goal: string;
+  steps: PlanStepView[];
+  note?: string;
 }
 
 interface ChatHistoryState {
@@ -73,6 +83,7 @@ interface ChatHistoryState {
   appendAssistantDelta: (id: string, text: string) => void;
   appendToolStep: (id: string, step: string) => void;
   appendResearchStep: (id: string, step: ResearchStepView) => void;
+  setPlan: (id: string, plan: AgentPlanView) => void;
   finalizeAssistantMessage: (id: string, usage?: LLMUsage | null) => void;
   failAssistantMessage: (id: string, error: string) => void;
   clear: () => void;
@@ -142,6 +153,12 @@ export const useChatHistoryStore = create<ChatHistoryState>((set) => ({
               researchStartedAt: message.researchStartedAt ?? Date.now(),
             }
           : message,
+      ),
+    })),
+  setPlan: (id, plan) =>
+    set((state) => ({
+      messages: state.messages.map((message) =>
+        message.id === id ? { ...message, plan } : message,
       ),
     })),
   finalizeAssistantMessage: (id, usage) =>
