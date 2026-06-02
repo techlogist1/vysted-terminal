@@ -54,7 +54,9 @@ import {
   type KeybindingDef,
   useKeybindingsStore,
 } from "@/store/keybindings";
+import { buildModelGroups, modelOptionLabel } from "@/lib/model-options";
 import { useLLMProvidersStore } from "@/store/llm-providers";
+import { useModelCatalog } from "@/store/model-catalog";
 import { KNOWN_MODELS_BY_PROVIDER, useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
 import { useProviderKeysStore } from "@/store/provider-keys";
@@ -68,7 +70,7 @@ import { useSearchSettingsStore } from "@/store/search-settings";
 import { type SettingsBundle, useSettingsStore } from "@/store/settings";
 import { SEARCH_TIER_LABELS, SEARCH_TIERS, type SearchTier } from "../../types/search";
 import { AUTOSAVE_LAYOUT_NAME, isReservedLayoutName, useWorkspaceStore } from "@/store/workspace";
-import type { LLMProviderId } from "../../types/ai";
+import type { LLMModelOption, LLMProviderId } from "../../types/ai";
 
 /**
  * Settings — the discoverable control surface (Cursor-grade preferences,
@@ -174,23 +176,24 @@ function ProvidersSection() {
               className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between gap-3 rounded-md border px-4 py-3"
             >
               <div className="flex min-w-0 flex-col">
-                <span className="text-charcoal-100 flex items-center gap-2 font-mono text-sm">
-                  {provider.label}
+                <span className="text-charcoal-100 flex min-w-0 items-center gap-2 font-mono text-sm">
+                  <span className="truncate">{provider.label}</span>
                   {isDefault && (
-                    <span className="rounded bg-amber-500/15 px-1.5 py-0.5 font-mono text-[10px] tracking-wide text-amber-400 uppercase">
+                    <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 font-mono text-[10px] tracking-wide text-amber-400 uppercase">
                       default
                     </span>
                   )}
                 </span>
-                <span className="mt-0.5 flex items-center gap-1.5 font-mono text-xs">
+                <span className="text-charcoal-400 mt-0.5 flex min-w-0 items-center gap-1.5 font-mono text-xs">
                   {!needsKey ? (
-                    <span className="text-charcoal-400">No key required (local)</span>
+                    <span className="truncate">No key required (local)</span>
                   ) : configured ? (
-                    <span className="text-positive flex items-center gap-1">
-                      <Check className="size-3" aria-hidden="true" /> Key configured
+                    <span className="text-positive flex min-w-0 items-center gap-1">
+                      <Check className="size-3 shrink-0" aria-hidden="true" />
+                      <span className="truncate">Key configured</span>
                     </span>
                   ) : (
-                    <span className="text-charcoal-400">No key yet</span>
+                    <span className="truncate">No key yet</span>
                   )}
                 </span>
               </div>
@@ -833,12 +836,22 @@ function PreferencesSection() {
     ...providerPreferenceOrder.filter((id) => liveIds.has(id)),
     ...providers.map((p) => p.id).filter((id) => !providerPreferenceOrder.includes(id)),
   ];
-  // Prefer the live, config-driven model list; fall back to the static map.
+  // Prefer the LIVE provider catalog (queried from the provider's own models
+  // API); fall back to the config-driven known list, then the static map.
   const defaultProviderInfo = providers.find((p) => p.id === defaultProviderId);
-  const defaultModelOptions: readonly string[] =
+  const { entry: defaultModelCatalog } = useModelCatalog(defaultProviderId);
+  const fallbackModelIds: readonly string[] =
     defaultProviderInfo?.knownModels && defaultProviderInfo.knownModels.length > 0
       ? defaultProviderInfo.knownModels
       : (KNOWN_MODELS_BY_PROVIDER[defaultProviderId] ?? []);
+  const defaultModelOptions: LLMModelOption[] =
+    defaultModelCatalog?.models && defaultModelCatalog.models.length > 0
+      ? defaultModelCatalog.models
+      : fallbackModelIds.map((id) => ({ id, label: id }));
+  const { groups: defaultModelGroups } = buildModelGroups(
+    defaultModelOptions,
+    modelFor(defaultProviderId),
+  );
 
   return (
     <section aria-labelledby="settings-preferences">
@@ -902,18 +915,34 @@ function PreferencesSection() {
         {/* Default model for the default provider */}
         <PrefRow
           label="Default model"
-          hint={`The model used for ${providerLabel(defaultProviderId)}.`}
+          hint={
+            defaultModelCatalog?.note
+              ? `${providerLabel(defaultProviderId)} — ${defaultModelCatalog.note}`
+              : `The model used for ${providerLabel(defaultProviderId)}.`
+          }
         >
           <Select
             aria-label="Default model"
             value={modelFor(defaultProviderId)}
             onChange={(e) => setModel(defaultProviderId, e.target.value)}
           >
-            {defaultModelOptions.map((model) => (
-              <option key={model} value={model}>
-                {model}
-              </option>
-            ))}
+            {defaultModelGroups.map((group, index) =>
+              group.label ? (
+                <optgroup key={group.label} label={group.label}>
+                  {group.options.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {modelOptionLabel(option)}
+                    </option>
+                  ))}
+                </optgroup>
+              ) : (
+                group.options.map((option) => (
+                  <option key={`${index}-${option.id}`} value={option.id}>
+                    {modelOptionLabel(option)}
+                  </option>
+                ))
+              ),
+            )}
           </Select>
         </PrefRow>
 
