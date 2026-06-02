@@ -135,6 +135,10 @@ export async function pollDelegateRuns(): Promise<void> {
     .getState()
     .runs.some((r) => r.sidecarRunId && (r.status === "running" || r.status === "paused"));
   if (!active) {
+    // No active runs — clear any residual failure count so a NEW run can't
+    // inherit a near-threshold count and badge stale on its very first dropped
+    // poll (adversarial-review finding).
+    pollFailures = 0;
     return;
   }
   let runs: RunWire[];
