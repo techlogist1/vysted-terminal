@@ -170,7 +170,8 @@ export const SLASH_COMMANDS: SlashCommandDef[] = [
   {
     trigger: "deep heavy",
     title: "Deep research — Heavy",
-    description: "The expert panel: several research angles explored in parallel, then synthesized.",
+    description:
+      "The expert panel: several research angles explored in parallel, then synthesized.",
     argHint: "<q>",
     dispatch: {
       kind: "prompt",
