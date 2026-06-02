@@ -49,6 +49,44 @@ def _clamp(value: Any, lo: int, hi: int, default: int) -> int:
     return max(lo, min(hi, n))
 
 
+def _emit_backend_step(detail: str) -> None:
+    """Surface which deep-research ENGINE actually ran, as a live research step.
+
+    Rides the existing step-sink → ``research_step`` SSE channel (Track A) so the
+    activity surface shows an honest "running on X" line — never a silent fallback
+    (the Tongyi-vs-Qwen case the user must be able to see). No-ops outside an agent
+    invocation (no sink wired) and never raises (a cosmetic line must not break a
+    run). The ``engine`` kind renders un-truncated in :file:`ResearchActivity.tsx`.
+    """
+    import config
+
+    sink = config.get_step_sink()
+    if sink is None:
+        return
+    from services.research.models import ResearchStep
+
+    try:
+        sink(ResearchStep(kind="engine", detail=detail))
+    except Exception:  # pragma: no cover — cosmetic; must never break a run
+        pass
+
+
+def _device_phrase() -> str:
+    """``"on this NNGB device (fit-scorer RED)"`` from the live device profile.
+
+    Sourced from :func:`hardware_fit.detect_device` so the RAM figure is correct
+    on every machine (not a hardcoded "16GB"); degrades to a generic phrase if
+    detection is unavailable.
+    """
+    try:
+        from services.hardware_fit import detect_device
+
+        ram_gib = round(detect_device().ram_bytes / (1024**3))
+        return f"on this {ram_gib}GB device (fit-scorer RED)"
+    except Exception:  # pragma: no cover — detection is best-effort
+        return "locally (fit-scorer RED)"
+
+
 async def _run_perplexity(query: str, key: str | None) -> dict[str, Any]:
     """Run the opt-in paid Perplexity backend, or honest-fail without a key.
 
@@ -68,6 +106,7 @@ async def _run_perplexity(query: str, key: str | None) -> dict[str, Any]:
     if not perplexity.is_configured(api_key):
         return {"ok": False, "message": _PERPLEXITY_NEEDS_KEY}
 
+    _emit_backend_step("Perplexity — sonar-deep-research (paid)")
     backend = perplexity.PerplexityDeepBackend(api_key)
     brief = await backend.research(query, region=config.get_region())
     out = brief.to_dict()
@@ -101,6 +140,18 @@ async def _run_tongyi(query: str, key: str | None, rounds: int, wall: int) -> di
         return {"ok": False, "message": _TONGYI_NEEDS_KEY}
 
     model = await tongyi.resolve_model(api_key)  # probe Tongyi slug → Qwen-A3B fallback
+
+    # Honest engine line: name the model actually used and, when the dedicated
+    # Tongyi slug isn't routing, say WHY (device too small + slug unrouted) so the
+    # fallback is never silent.
+    if model == tongyi.TONGYI_SLUG:
+        _emit_backend_step(f"Tongyi-DeepResearch-30B-A3B via OpenRouter ({model})")
+    else:
+        _emit_backend_step(
+            f"{model} (fallback) — Tongyi-DeepResearch-30B-A3B can't host "
+            f"{_device_phrase()} and OpenRouter isn't routing the "
+            f"{tongyi.TONGYI_SLUG} slug yet"
+        )
 
     from services import agent_tools
 
@@ -140,6 +191,8 @@ async def _run_native(query: str, rounds: int, wall: int) -> dict[str, Any]:
     if creds is None:
         return {"ok": False, "message": _NO_MODEL}
     provider, model, key = creds
+
+    _emit_backend_step(f"Your active model — {provider}/{model}")
 
     async def llm_call(messages: list[dict[str, Any]]) -> str:
         return await oneshot.complete(provider, model, key, messages)

@@ -20,6 +20,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   Check,
   Compass,
+  Cpu,
   FileSearch,
   Layers,
   Lightbulb,
@@ -37,6 +38,7 @@ import type { ResearchStepView } from "@/store/chat-history";
 
 /** Per-step-kind icon + verb. Unknown kinds fall back to the generic tool look. */
 const STEP_META: Record<string, { icon: LucideIcon; label: string }> = {
+  engine: { icon: Cpu, label: "Engine" },
   plan: { icon: Compass, label: "Planning" },
   tool: { icon: Wrench, label: "Gathering data" },
   search: { icon: FileSearch, label: "Searching the web" },
@@ -125,6 +127,9 @@ export function ResearchActivity({ steps, active, startedAt }: ResearchActivityP
             const isCurrent = active && i === lastIndex;
             const errored = step.status === "error";
             const skipped = step.status === "skipped";
+            // The engine line carries the honest backend/fallback reason — show it
+            // in full (wrapped) rather than truncated, so it stays legible.
+            const isEngine = step.stepKind === "engine";
             return (
               <motion.li
                 key={`${step.index}-${step.stepKind}`}
@@ -132,7 +137,10 @@ export function ResearchActivity({ steps, active, startedAt }: ResearchActivityP
                 initial={{ opacity: 0, x: -4 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={tween(0.16)}
-                className="flex items-center gap-1.5 text-[0.62rem]"
+                className={cn(
+                  "flex gap-1.5 text-[0.62rem]",
+                  isEngine ? "items-start" : "items-center",
+                )}
               >
                 <span
                   className={cn(
@@ -153,7 +161,7 @@ export function ResearchActivity({ steps, active, startedAt }: ResearchActivityP
                 </span>
                 <span
                   className={cn(
-                    "truncate",
+                    isEngine ? "min-w-0 flex-1" : "truncate",
                     errored
                       ? "text-negative/80"
                       : skipped

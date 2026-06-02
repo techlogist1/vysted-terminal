@@ -215,7 +215,14 @@ def test_deep_research_native_runs_and_returns_brief(
     assert callable(call["llm_call"])
     # on_step IS the runtime sink, and the loop's steps streamed through it.
     assert call["on_step"] is sink
-    assert streamed == ["plan", "synthesize"]
+    # The handler emits an honest "engine" step first (which backend ran), then
+    # the loop's own steps stream through the same sink.
+    from services.research.models import ResearchStep
+
+    assert isinstance(streamed[0], ResearchStep)
+    assert streamed[0].kind == "engine"
+    assert "anthropic/claude-x" in streamed[0].detail
+    assert streamed[1:] == ["plan", "synthesize"]
 
 
 def test_deep_research_clamps_rounds_and_wall(

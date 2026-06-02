@@ -128,3 +128,44 @@ async def test_run_tongyi_reuses_openrouter_creds_and_runs_the_deep_loop(
     assert out["cost_estimate_usd"] > 0
     assert captured["query"] == "research NVDA"
     assert callable(captured["llm_call"])
+
+
+@pytest.mark.asyncio
+async def test_run_tongyi_emits_honest_engine_fallback_step(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """When the Tongyi slug isn't routing, the live trace says so honestly."""
+    import config
+    from services.agent_tools import deep_research
+    from services.research import deep
+    from services.research.models import ResearchStep
+
+    monkeypatch.setattr(config, "get_llm_creds", lambda: ("openrouter", "x", "sk-or-key"))
+    monkeypatch.setattr(config, "get_region", lambda: "US")
+
+    streamed: list[object] = []
+    monkeypatch.setattr(config, "get_step_sink", lambda: streamed.append)
+
+    async def _fake_resolve(_key: str, *, client=None) -> str:  # noqa: ANN001 — fell back
+        return tongyi.FALLBACK_SLUGS[0]
+
+    monkeypatch.setattr(tongyi, "resolve_model", _fake_resolve)
+
+    class _Brief:
+        def to_dict(self) -> dict[str, object]:
+            return {"markdown": "b", "sources": [], "steps": []}
+
+    async def _fake_deep(query, **kwargs):  # noqa: ANN001, ANN003, ARG001
+        return _Brief()
+
+    monkeypatch.setattr(deep, "run_deep_research", _fake_deep)
+
+    await deep_research._run_tongyi("research NVDA", "sk-or-key", 2, 60)
+
+    engine = [s for s in streamed if isinstance(s, ResearchStep) and s.kind == "engine"]
+    assert engine, "expected an honest engine step"
+    detail = engine[0].detail
+    assert tongyi.FALLBACK_SLUGS[0] in detail
+    assert "fallback" in detail.lower()
+    assert tongyi.TONGYI_SLUG in detail  # names the slug that isn't routing yet
+    assert "isn't routing" in detail
