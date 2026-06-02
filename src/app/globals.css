@@ -181,9 +181,11 @@
   --dv-inactivegroup-visiblepanel-tab-color: var(--color-charcoal-300, #b8b0a1);
   --dv-inactivegroup-hiddenpanel-tab-background-color: var(--color-charcoal-925, #100e0c);
   --dv-inactivegroup-hiddenpanel-tab-color: var(--color-charcoal-600, #494238);
-  --dv-separator-border: 1px solid var(--hairline);
-  --dv-tab-divider-color: var(--hairline);
-  --dv-paneview-header-border-color: var(--hairline);
+  /* Panel/tab seams: the 20% taupe hairline — Cursor-style, barely-there but
+     present (the 12% variant read as no border at all on the dark canvas). */
+  --dv-separator-border: 1px solid var(--hairline-strong);
+  --dv-tab-divider-color: var(--hairline-strong);
+  --dv-paneview-header-border-color: var(--hairline-strong);
   --dv-paneview-active-outline-color: var(--color-amber-400, #a06b52);
   --dv-active-sash-color: var(--color-amber-500, #7c5240);
   --dv-sash-color: transparent;

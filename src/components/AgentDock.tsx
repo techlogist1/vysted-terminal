@@ -95,7 +95,7 @@ export function AgentDock({ children }: { children: React.ReactNode }) {
             exit={{ width: 0, opacity: 0 }}
             transition={dockTransition}
             style={{ minWidth: 0, maxWidth: AGENT_DOCK_MAX_WIDTH, overflow: "hidden" }}
-            className="bg-charcoal-900 h-full shrink-0"
+            className="bg-charcoal-900 h-full shrink-0 border-r border-r-[color:var(--hairline-strong)]"
           >
             {/* Inner fixed-width track: the content holds full width while the
                 outer width animates, so the dock REVEALS/clips rather than
