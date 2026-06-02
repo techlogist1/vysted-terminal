@@ -73,13 +73,31 @@ export function isKnownModel(provider: LLMProviderId, model: string): boolean {
 
 /** Drop any restored override whose model is not currently offered for that
  *  provider, so a stale persisted id can't shadow the live default (the
- *  `llama3.1:8b` regression). */
+ *  `llama3.1:8b` regression). Used only for UNTRUSTED/legacy blobs — a current
+ *  blob (see {@link ModelSelectionState.setOverrides} `trusted`) skips this,
+ *  because the static known-model list can't see the LIVE catalog and would
+ *  silently drop a model the user picked from the live dropdown. */
 function pruneRestoredOverrides(
   raw: Partial<Record<LLMProviderId, string>>,
 ): Partial<Record<LLMProviderId, string>> {
   const next: Partial<Record<LLMProviderId, string>> = {};
   for (const [provider, model] of Object.entries(raw)) {
     if (typeof model === "string" && isKnownModel(provider as LLMProviderId, model)) {
+      next[provider as LLMProviderId] = model;
+    }
+  }
+  return next;
+}
+
+/** Keep every string-valued override as-is (no static-list pruning). The caller
+ *  has already vouched for the blob's trust (a current `modelOverridesV`), so a
+ *  live-catalog model id the static list can't know about is preserved. */
+function sanitizeOverrides(
+  raw: Partial<Record<LLMProviderId, string>>,
+): Partial<Record<LLMProviderId, string>> {
+  const next: Partial<Record<LLMProviderId, string>> = {};
+  for (const [provider, model] of Object.entries(raw)) {
+    if (typeof model === "string") {
       next[provider as LLMProviderId] = model;
     }
   }
@@ -101,9 +119,14 @@ interface ModelSelectionState {
   setModel: (provider: LLMProviderId, model: string) => void;
   clearModel: (provider: LLMProviderId) => void;
   /** Replace all overrides — used to restore a persisted selection on launch.
-   *  Restored overrides are validated against the known-model list (see
-   *  {@link pruneRestoredOverrides}); a direct {@link setModel} pick is not. */
-  setOverrides: (overrides: Partial<Record<LLMProviderId, string>>) => void;
+   *  An UNTRUSTED restore (legacy blob) is validated against the known-model list
+   *  (see {@link pruneRestoredOverrides}); a `trusted` restore (a current
+   *  `modelOverridesV` blob) is kept verbatim so a live-catalog pick survives. A
+   *  direct {@link setModel} pick is never pruned. */
+  setOverrides: (
+    overrides: Partial<Record<LLMProviderId, string>>,
+    opts?: { trusted?: boolean },
+  ) => void;
   /** The effective model id for a provider (override → default). */
   modelFor: (provider: LLMProviderId) => string;
 }
@@ -118,7 +141,10 @@ export const useModelSelectionStore = create<ModelSelectionState>((set, get) => 
       delete next[provider];
       return { overrides: next };
     }),
-  setOverrides: (overrides) => set({ overrides: pruneRestoredOverrides(overrides) }),
+  setOverrides: (overrides, opts) =>
+    set({
+      overrides: opts?.trusted ? sanitizeOverrides(overrides) : pruneRestoredOverrides(overrides),
+    }),
   modelFor: (provider) => resolveModel(get().overrides, provider),
 }));
 

@@ -247,14 +247,16 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
   // Restore model overrides ONLY from a blob written with the current trust
   // marker; legacy blobs (no `modelOverridesV`) captured the then-default as a
   // pseudo-override (the `llama3.1:8b` shadowing bug) and are dropped once,
-  // reverting to live defaults. `setOverrides` additionally prunes any model no
-  // longer offered for its provider.
+  // reverting to live defaults. The version gate already discharges that legacy
+  // risk, so a current blob restores `trusted` — verbatim, WITHOUT the static
+  // known-model prune that would otherwise silently drop a model the user picked
+  // from the LIVE catalog (the persistence bug for the default-model picker).
   if (
     workspace.modelOverridesV === MODEL_OVERRIDES_VERSION &&
     workspace.modelOverrides &&
     typeof workspace.modelOverrides === "object"
   ) {
-    useModelSelectionStore.getState().setOverrides(workspace.modelOverrides);
+    useModelSelectionStore.getState().setOverrides(workspace.modelOverrides, { trusted: true });
   }
   // Restore remappable-keybinding overrides + the preferences bundle (older
   // blobs lack them — keep the defaults). `setOverrides` normalises on the way

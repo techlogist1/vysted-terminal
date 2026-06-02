@@ -15,6 +15,9 @@ import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { useChartCommandStore } from "@/store/chart-command";
 import { useChatHistoryStore } from "@/store/chat-history";
+import { useLLMProvidersStore } from "@/store/llm-providers";
+import { useModelCatalogStore } from "@/store/model-catalog";
+import { useModelSelectionStore } from "@/store/model-selection";
 import { useProposedChangesStore } from "@/store/proposed-changes";
 import { useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
@@ -39,6 +42,12 @@ export function initDevMcpBridge(): void {
     // deterministically — without round-tripping a (weak local) tool-calling LLM.
     chatHistory: useChatHistoryStore,
     agentMode: useAgentModeStore,
+    // JARVIS sprint 2 (Track 4): the provider/model stores, so the rig can verify
+    // the default-provider/model persistence round-trip (set default → autosave →
+    // reload → still default) end-to-end without driving the UI selects.
+    llmProviders: useLLMProvidersStore,
+    modelSelection: useModelSelectionStore,
+    modelCatalog: useModelCatalogStore,
   };
   void import("tauri-plugin-mcp")
     .then(({ initMcpBridge }) => initMcpBridge())

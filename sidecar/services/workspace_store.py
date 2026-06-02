@@ -14,10 +14,14 @@ workspaces directory.
 from __future__ import annotations
 
 import json
+import logging
+import os
 import re
 from typing import Any
 
 from config import get_workspaces_dir
+
+logger = logging.getLogger(__name__)
 
 WORKSPACE_SUFFIX = ".vysted-workspace"
 
@@ -63,17 +67,49 @@ def list_workspaces() -> list[str]:
 
 
 def save_workspace(name: str, workspace: dict[str, Any]) -> None:
-    """Persist ``workspace`` as ``<name>.vysted-workspace``, overwriting any prior."""
+    """Persist ``workspace`` as ``<name>.vysted-workspace``, overwriting any prior.
+
+    The write is ATOMIC: the body is written to a per-writer temp file then
+    ``os.replace``-d over the target. The frontend fires several debounced
+    autosaves that can land concurrently (provider, model, watchlist, layout …);
+    a plain ``write_text`` lets two concurrent writers interleave/truncate the
+    same file into invalid JSON (a real observed corruption — ``load_workspace``
+    then 500s and the session silently reverts to the default layout). A temp +
+    atomic rename makes it last-writer-wins, never a torn file.
+    """
     path = _path_for(name)
-    path.write_text(json.dumps(workspace, indent=2), encoding="utf-8")
+    payload = json.dumps(workspace, indent=2)
+    # Unique temp name per writer (pid+id) so two concurrent saves don't clobber
+    # each other's temp; same directory so ``os.replace`` is a same-filesystem
+    # atomic rename.
+    tmp = path.with_name(f"{path.name}.{os.getpid()}.{id(workspace)}.tmp")
+    try:
+        tmp.write_text(payload, encoding="utf-8")
+        os.replace(tmp, path)
+    finally:
+        # If the rename failed (e.g. mid-shutdown), don't leak the temp file.
+        try:
+            tmp.unlink(missing_ok=True)
+        except OSError:
+            pass
 
 
 def load_workspace(name: str) -> dict[str, Any]:
-    """Return the stored JSON for ``name``; raise if it does not exist."""
+    """Return the stored JSON for ``name``; raise if it does not exist.
+
+    A corrupt file (truncated by a pre-atomic-write race, or externally edited)
+    is treated as *missing* rather than raising a 500 — the frontend's restore
+    path falls back to the default layout on a not-found, so a damaged autosave
+    degrades gracefully instead of dead-ending the boot.
+    """
     path = _path_for(name)
     if not path.is_file():
         raise WorkspaceNotFoundError(name)
-    return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        logger.warning("workspace %r is corrupt (%s); treating as missing", name, exc)
+        raise WorkspaceNotFoundError(name) from exc
 
 
 def delete_workspace(name: str) -> None:

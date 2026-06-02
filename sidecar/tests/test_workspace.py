@@ -82,3 +82,54 @@ def test_unsafe_name_is_rejected(client: TestClient) -> None:
         json={"name": "../escape", "workspace": _sample_workspace()},
     )
     assert response.status_code == 400
+
+
+def test_corrupt_file_degrades_to_404_not_500(client: TestClient) -> None:
+    """A torn/corrupt autosave (e.g. an old pre-atomic-write race) must not 500.
+
+    The frontend's restore path falls back to the default layout on a 404, so a
+    damaged blob degrades gracefully instead of dead-ending the boot.
+    """
+    from config import get_workspaces_dir
+    from services.workspace_store import WORKSPACE_SUFFIX
+
+    # Write a file that is valid JSON followed by garbage — exactly the shape the
+    # observed concurrent-write race produced ("Extra data: ...").
+    path = get_workspaces_dir() / f"__autosave__{WORKSPACE_SUFFIX}"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text('{"name": "x"}\n  "stray": "tail"\n}', encoding="utf-8")
+
+    response = client.get("/workspace/__autosave__")
+    assert response.status_code == 404  # not 500
+
+
+def test_save_is_atomic_under_concurrency(client: TestClient) -> None:
+    """Concurrent saves of the same name must never leave a torn (invalid-JSON)
+    file — each writer writes a temp then atomically renames, so the result is
+    always one writer's complete body."""
+    import json
+    import threading
+
+    from config import get_workspaces_dir
+    from services import workspace_store
+    from services.workspace_store import WORKSPACE_SUFFIX
+
+    bodies = [{"name": "race", "n": i, "pad": "x" * (500 * (i + 1))} for i in range(12)]
+
+    def _save(body: dict) -> None:
+        for _ in range(8):
+            workspace_store.save_workspace("race", body)
+
+    threads = [threading.Thread(target=_save, args=(b,)) for b in bodies]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    # The file must be parseable (no torn write) and equal to one of the bodies.
+    path = get_workspaces_dir() / f"race{WORKSPACE_SUFFIX}"
+    loaded = json.loads(path.read_text(encoding="utf-8"))  # must not raise
+    assert loaded in bodies
+    # No stray temp files leaked.
+    leftover = list(get_workspaces_dir().glob("*.tmp"))
+    assert leftover == []

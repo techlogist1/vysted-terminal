@@ -169,6 +169,23 @@ describe("workspace serialization", () => {
     expect(useModelSelectionStore.getState().overrides.anthropic).toBe("claude-sonnet-4-6");
   });
 
+  it("keeps a current-blob live-catalog model override the static list can't know", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    // The persistence bug: a model the user picked from the LIVE catalog (e.g. a
+    // newer OpenAI id) is NOT in the static KNOWN_MODELS_BY_PROVIDER list, so the
+    // old restore pruned it back to the default. A current (trusted) blob must
+    // restore it verbatim — the version gate already covers the legacy case.
+    deserializeWorkspace({
+      name: "current",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      modelOverrides: { openai: "gpt-5-pro-2026" },
+      modelOverridesV: 1,
+    });
+    expect(useModelSelectionStore.getState().modelFor("openai")).toBe("gpt-5-pro-2026");
+  });
+
   it("drops a legacy model override with no trust marker (llama3.1:8b shadowing fix)", () => {
     const fakeApi = createFakeDockviewApi(LAYOUT_A);
     useWorkspaceStore.setState({ dockviewApi: fakeApi as never });

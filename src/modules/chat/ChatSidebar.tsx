@@ -107,6 +107,26 @@ function AutonomyToggle() {
 /** The default agent: the terminal-aware router/concierge. Bare text routes here. */
 const DEFAULT_AGENT_ID = "copilot";
 
+/**
+ * First-party "generic" agents that carry NO deliberate provider preference. The
+ * agent JSON schema *requires* a `defaultProvider`, so the generic concierge
+ * (`copilot`) ships a boilerplate one (`ollama`) — but it must NOT shadow the
+ * user's chosen/persisted default provider (that was the persistence bug: a saved
+ * "DeepSeek as default" was masked forever by copilot's pin). Persona agents
+ * (Buffett, researcher, …) keep their deliberate pin; only these defer. */
+const GENERIC_AGENT_IDS = new Set<string>([DEFAULT_AGENT_ID]);
+
+/** The agent's *deliberate* provider preference, or undefined for a generic agent
+ *  (whose boilerplate pin must defer to the user's persisted default). */
+function agentProviderPreference(
+  agent: { id: string; defaultProvider?: string } | null | undefined,
+): LLMProviderId | undefined {
+  if (!agent || GENERIC_AGENT_IDS.has(agent.id)) {
+    return undefined;
+  }
+  return agent.defaultProvider as LLMProviderId | undefined;
+}
+
 /** A short chip label for a READ tool (read tools already ran server-side, so we
  *  only narrate them — mutations are intercepted into the diff gate, not here). */
 function readToolLabel(name: string): string {
@@ -222,13 +242,11 @@ export function ChatSidebar() {
   }, [activeAgentId, firstPartyAgents, customAgents]);
 
   // The effective provider/model for the next send (FR-004): an explicit HUD
-  // override wins, else the active agent's default, else the session default.
+  // override wins, else the active agent's *deliberate* provider preference (a
+  // generic concierge has none — see GENERIC_AGENT_IDS), else the user's
+  // persisted default provider.
   const effectiveProvider = useMemo<LLMProviderId>(() => {
-    return (
-      providerOverride ??
-      (activeAgent?.defaultProvider as LLMProviderId | undefined) ??
-      defaultProviderId
-    );
+    return providerOverride ?? agentProviderPreference(activeAgent) ?? defaultProviderId;
   }, [providerOverride, activeAgent, defaultProviderId]);
   const effectiveModel = useModelSelectionStore((state) => state.modelFor(effectiveProvider));
   // Live model catalog for the active provider — auto-fetched, TTL-cached.
@@ -462,16 +480,15 @@ export function ChatSidebar() {
       appendUser(prompt);
 
       // Resolve the effective provider/model (FR-004): HUD override → the called
-      // agent's default → session default. The key is resolved for THAT provider.
+      // agent's *deliberate* provider preference (a generic concierge has none) →
+      // the user's persisted default. The key is resolved for THAT provider.
       const agentSpec = agentForCall
         ? (firstPartyAgents.find((a) => a.id === agentForCall) ??
           customAgents.find((a) => a.id === agentForCall) ??
           null)
         : null;
       const provider =
-        providerOverride ??
-        (agentSpec?.defaultProvider as LLMProviderId | undefined) ??
-        defaultProviderId;
+        providerOverride ?? agentProviderPreference(agentSpec) ?? defaultProviderId;
       const model = useModelSelectionStore.getState().modelFor(provider);
       const providerMeta = providers.find((p) => p.id === provider);
       const requiresKey = providerMeta?.requiresKey ?? true;
@@ -671,7 +688,14 @@ export function ChatSidebar() {
         modelOptions={modelCatalog?.models}
         catalogNote={modelCatalog?.note}
         catalogLoading={modelCatalog?.loading}
-        onProviderChange={(p) => setProviderOverride(p)}
+        onProviderChange={(p) => {
+          // The HUD pick wins this session AND becomes the persisted default
+          // (setDefaultProviderId rides the page.tsx autosave subscription), so a
+          // provider chosen in the prominent HUD survives a relaunch — not just
+          // the one set in Settings.
+          setProviderOverride(p);
+          setDefaultProviderId(p);
+        }}
         onModelChange={(m) => setModelOverride(effectiveProvider, m)}
         onKeyRequired={(p) => setKeyDialogProvider(p)}
         onRefreshModels={refreshModelCatalog}

@@ -34,4 +34,19 @@ describe("model-selection store (FR-004)", () => {
       DEFAULT_MODEL_BY_PROVIDER.openai,
     );
   });
+
+  it("untrusted setOverrides prunes a model not in the static known list", () => {
+    // A model id the static KNOWN_MODELS_BY_PROVIDER list does not contain — an
+    // untrusted (legacy) restore drops it so a stale id can't shadow the default.
+    useModelSelectionStore.getState().setOverrides({ openai: "gpt-5-pro-2026" });
+    expect(useModelSelectionStore.getState().overrides.openai).toBeUndefined();
+  });
+
+  it("trusted setOverrides keeps a live-catalog model the static list can't know", () => {
+    // The persistence bug: a model the user picked from the LIVE catalog (not in
+    // the static fallback) was pruned on restore. A current blob restores trusted,
+    // so it survives.
+    useModelSelectionStore.getState().setOverrides({ openai: "gpt-5-pro-2026" }, { trusted: true });
+    expect(useModelSelectionStore.getState().modelFor("openai")).toBe("gpt-5-pro-2026");
+  });
 });
