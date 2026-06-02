@@ -24,8 +24,11 @@ from typing import Any
 
 #: ``ResearchStep.kind`` values — the stages a research run emits. ``plan`` and
 #: ``reflect`` are LLM turns; ``tool`` / ``search`` are data pulls; ``compress``
-#: folds findings citation-preserving; ``synthesize`` writes the final brief.
-STEP_KINDS = ("plan", "tool", "search", "compress", "reflect", "synthesize")
+#: folds findings citation-preserving; ``distill`` rewrites the IterResearch
+#: central report; ``synthesize`` writes the final brief. (Informational only —
+#: ``ResearchStep`` does NOT validate ``kind`` against this, so a new kind such as
+#: ``engine`` or an explorer-tagged detail renders fine with no schema change.)
+STEP_KINDS = ("plan", "tool", "search", "compress", "distill", "reflect", "synthesize")
 
 #: ``ResearchBrief.mode`` values — the two research entry points.
 RESEARCH_MODES = ("fast", "deep")

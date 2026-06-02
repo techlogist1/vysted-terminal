@@ -52,6 +52,7 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
     parent = types.ModuleType("services.research")
     fast_mod = types.ModuleType("services.research.fast")
     deep_mod = types.ModuleType("services.research.deep")
+    iter_mod = types.ModuleType("services.research.iter")
     perplexity_mod = types.ModuleType("services.research.perplexity")
 
     calls: dict[str, Any] = {}
@@ -89,9 +90,56 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
             on_step("synthesize")
         return _FakeBrief({"summary": "deep brief", "citations": [{"url": "https://x"}]})
 
+    async def _run_iter_research(
+        query,  # noqa: ANN001
+        *,
+        region,  # noqa: ANN001
+        tool_call,  # noqa: ANN001
+        llm_call,  # noqa: ANN001
+        budget,  # noqa: ANN001
+        on_step=None,  # noqa: ANN001
+        max_researchers=3,  # noqa: ANN001
+    ):
+        calls["run_iter_research"] = {
+            "query": query,
+            "region": region,
+            "tool_call": tool_call,
+            "llm_call": llm_call,
+            "budget": budget,
+            "on_step": on_step,
+            "max_researchers": max_researchers,
+        }
+        if on_step is not None:
+            on_step("plan")
+            on_step("distill")
+            on_step("synthesize")
+        return _FakeBrief({"summary": "iter brief", "citations": [{"url": "https://x"}]})
+
+    async def _run_heavy_research(
+        query,  # noqa: ANN001
+        *,
+        angles=3,  # noqa: ANN001
+        region,  # noqa: ANN001
+        tool_call,  # noqa: ANN001
+        llm_call,  # noqa: ANN001
+        budget,  # noqa: ANN001
+        on_step=None,  # noqa: ANN001
+        max_researchers=3,  # noqa: ANN001
+    ):
+        calls["run_heavy_research"] = {
+            "query": query,
+            "angles": angles,
+            "budget": budget,
+            "on_step": on_step,
+            "max_researchers": max_researchers,
+        }
+        return _FakeBrief({"summary": "heavy brief", "citations": [{"url": "https://x"}]})
+
     fast_mod.gather_fast = _gather_fast  # type: ignore[attr-defined]
     deep_mod.run_deep_research = _run_deep_research  # type: ignore[attr-defined]
     deep_mod.ResearchBrief = _FakeBrief  # type: ignore[attr-defined]
+    iter_mod.run_iter_research = _run_iter_research  # type: ignore[attr-defined]
+    iter_mod.run_heavy_research = _run_heavy_research  # type: ignore[attr-defined]
 
     # Perplexity fake — default: NOT configured (no key).
     perplexity_state: dict[str, Any] = {"configured": False, "research_query": None}
@@ -117,10 +165,12 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setitem(sys.modules, "services.research", parent)
     monkeypatch.setitem(sys.modules, "services.research.fast", fast_mod)
     monkeypatch.setitem(sys.modules, "services.research.deep", deep_mod)
+    monkeypatch.setitem(sys.modules, "services.research.iter", iter_mod)
     monkeypatch.setitem(sys.modules, "services.research.perplexity", perplexity_mod)
     # Make the submodules reachable as attributes of the parent (belt + braces).
     parent.fast = fast_mod  # type: ignore[attr-defined]
     parent.deep = deep_mod  # type: ignore[attr-defined]
+    parent.iter = iter_mod  # type: ignore[attr-defined]
     parent.perplexity = perplexity_mod  # type: ignore[attr-defined]
 
     return types.SimpleNamespace(calls=calls, perplexity_state=perplexity_state)
@@ -201,8 +251,10 @@ def test_deep_research_native_runs_and_returns_brief(
 
     assert out["ok"] is True
     assert out["backend"] == "native"
-    assert out["summary"] == "deep brief"
-    call = research_modules.calls["run_deep_research"]
+    # Native now defaults to the IterResearch loop.
+    assert out["mode"] == "iter"
+    assert out["summary"] == "iter brief"
+    call = research_modules.calls["run_iter_research"]
     assert call["query"] == "rate cuts"
     assert call["region"] == "US"
     assert call["tool_call"] is seam
@@ -215,14 +267,15 @@ def test_deep_research_native_runs_and_returns_brief(
     assert callable(call["llm_call"])
     # on_step IS the runtime sink, and the loop's steps streamed through it.
     assert call["on_step"] is sink
-    # The handler emits an honest "engine" step first (which backend ran), then
+    # The handler emits an honest "engine" step first (naming IterResearch), then
     # the loop's own steps stream through the same sink.
     from services.research.models import ResearchStep
 
     assert isinstance(streamed[0], ResearchStep)
     assert streamed[0].kind == "engine"
     assert "anthropic/claude-x" in streamed[0].detail
-    assert streamed[1:] == ["plan", "synthesize"]
+    assert "IterResearch" in streamed[0].detail
+    assert streamed[1:] == ["plan", "distill", "synthesize"]
 
 
 def test_deep_research_clamps_rounds_and_wall(
@@ -232,7 +285,38 @@ def test_deep_research_clamps_rounds_and_wall(
     # Out-of-range rounds/wall must not raise; the handler clamps them.
     out = _run(_deep_research({"query": "q", "rounds": 99, "wall_seconds": 5}))
     assert out["ok"] is True
+    assert research_modules.calls["run_iter_research"]["query"] == "q"
+
+
+def test_deep_research_single_mode_uses_legacy_loop(
+    research_modules, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """mode='single' runs the proven single-pass loop (the explicit fallback)."""
+    monkeypatch.setattr(config, "get_llm_creds", lambda: ("anthropic", "claude-x", "sk-test"))
+    out = _run(_deep_research({"query": "q", "mode": "single"}))
+    assert out["ok"] is True
+    assert out["mode"] == "single"
     assert research_modules.calls["run_deep_research"]["query"] == "q"
+    assert "run_iter_research" not in research_modules.calls
+
+
+def test_deep_research_heavy_mode_runs_the_panel(
+    research_modules, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """angles>=2 (or heavy:true) routes to the expert-panel Heavy loop."""
+    monkeypatch.setattr(config, "get_llm_creds", lambda: ("anthropic", "claude-x", "sk-test"))
+    out = _run(_deep_research({"query": "thesis", "angles": 3}))
+    assert out["ok"] is True
+    assert out["mode"] == "heavy"
+    assert out["summary"] == "heavy brief"
+    call = research_modules.calls["run_heavy_research"]
+    assert call["query"] == "thesis"
+    assert call["angles"] == 3
+
+    research_modules.calls.clear()
+    out2 = _run(_deep_research({"query": "thesis", "heavy": True}))
+    assert out2["mode"] == "heavy"
+    assert research_modules.calls["run_heavy_research"]["angles"] == 3
 
 
 def test_deep_research_native_llm_call_proxies_oneshot(
@@ -252,7 +336,7 @@ def test_deep_research_native_llm_call_proxies_oneshot(
 
     _run(_deep_research({"query": "q"}))
 
-    llm_call = research_modules.calls["run_deep_research"]["llm_call"]
+    llm_call = research_modules.calls["run_iter_research"]["llm_call"]
     result = _run(llm_call([{"role": "user", "content": "hi"}]))
     assert result == "joined-completion"
     assert captured["provider"] == "openai"

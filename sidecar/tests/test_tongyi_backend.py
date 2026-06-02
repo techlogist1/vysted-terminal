@@ -94,7 +94,7 @@ async def test_run_tongyi_reuses_openrouter_creds_and_runs_the_deep_loop(
 ) -> None:
     import config
     from services.agent_tools import deep_research
-    from services.research import deep
+    from services.research import iter as iter_research
 
     monkeypatch.setattr(
         config, "get_llm_creds", lambda: ("openrouter", "openai/gpt-4o-mini", "sk-or-key")
@@ -113,12 +113,13 @@ async def test_run_tongyi_reuses_openrouter_creds_and_runs_the_deep_loop(
         def to_dict(self) -> dict[str, object]:
             return {"markdown": "the brief", "sources": [], "steps": []}
 
-    async def _fake_deep(query, **kwargs):  # noqa: ANN001, ANN003
+    async def _fake_loop(query, **kwargs):  # noqa: ANN001, ANN003
         captured["query"] = query
         captured["llm_call"] = kwargs.get("llm_call")
         return _Brief()
 
-    monkeypatch.setattr(deep, "run_deep_research", _fake_deep)
+    # tongyi now runs the IterResearch loop by default (the upgraded path).
+    monkeypatch.setattr(iter_research, "run_iter_research", _fake_loop)
 
     out = await deep_research._run_tongyi("research NVDA", None, 2, 60)
     assert out["ok"] is True
@@ -137,7 +138,7 @@ async def test_run_tongyi_emits_honest_engine_fallback_step(
     """When the Tongyi slug isn't routing, the live trace says so honestly."""
     import config
     from services.agent_tools import deep_research
-    from services.research import deep
+    from services.research import iter as iter_research
     from services.research.models import ResearchStep
 
     monkeypatch.setattr(config, "get_llm_creds", lambda: ("openrouter", "x", "sk-or-key"))
@@ -155,10 +156,10 @@ async def test_run_tongyi_emits_honest_engine_fallback_step(
         def to_dict(self) -> dict[str, object]:
             return {"markdown": "b", "sources": [], "steps": []}
 
-    async def _fake_deep(query, **kwargs):  # noqa: ANN001, ANN003, ARG001
+    async def _fake_loop(query, **kwargs):  # noqa: ANN001, ANN003, ARG001
         return _Brief()
 
-    monkeypatch.setattr(deep, "run_deep_research", _fake_deep)
+    monkeypatch.setattr(iter_research, "run_iter_research", _fake_loop)
 
     await deep_research._run_tongyi("research NVDA", "sk-or-key", 2, 60)
 

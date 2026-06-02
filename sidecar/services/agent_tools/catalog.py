@@ -286,15 +286,38 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             description=(
                 "DEEP research: a budget-bounded multi-round search→read→reflect loop "
                 "that returns a synthesized, cited brief. Use for '/deep' or 'go "
-                "deeper'. Bounded by rounds + wall-clock; on the budget ceiling it "
-                "synthesizes from what it has (never times out into nothing). The "
-                "optional Perplexity + Tongyi backends are opt-in — never auto-selected."
+                "deeper'. By default runs IterResearch (a central evolving report, "
+                "rebuilt each round so context never bloats). Pass angles=2-3 for "
+                "Heavy mode — an expert PANEL of parallel research angles synthesized "
+                "into one brief (use when the user wants the deepest, most thorough "
+                "answer, e.g. 'go all out' or '/deep heavy'). Bounded by rounds + "
+                "wall-clock; on the budget ceiling it synthesizes from what it has "
+                "(never times out into nothing). Perplexity + Tongyi backends are "
+                "opt-in — never auto-selected."
             ),
             input_schema=_obj(
                 {
                     "query": {"type": "string", "description": "The research question."},
                     "rounds": {"type": "integer", "default": 3, "description": "1-5."},
                     "wall_seconds": {"type": "integer", "default": 120, "description": "30-300."},
+                    "mode": {
+                        "type": "string",
+                        "enum": ["iter", "single"],
+                        "default": "iter",
+                        "description": (
+                            "'iter' (default): IterResearch evolving-report loop. "
+                            "'single': the legacy single-pass loop."
+                        ),
+                    },
+                    "angles": {
+                        "type": "integer",
+                        "default": 1,
+                        "description": (
+                            "1 (default) = one agent. 2-3 = Heavy mode: that many "
+                            "parallel research angles synthesized into one brief "
+                            "(deeper, more thorough, higher cost)."
+                        ),
+                    },
                     "backend": {
                         "type": "string",
                         "enum": ["native", "perplexity", "tongyi"],

@@ -43,6 +43,7 @@ const STEP_META: Record<string, { icon: LucideIcon; label: string }> = {
   tool: { icon: Wrench, label: "Gathering data" },
   search: { icon: FileSearch, label: "Searching the web" },
   compress: { icon: Layers, label: "Distilling findings" },
+  distill: { icon: Layers, label: "Distilling into the report" },
   reflect: { icon: Lightbulb, label: "Assessing coverage" },
   synthesize: { icon: PenLine, label: "Writing the brief" },
 };

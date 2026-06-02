@@ -28,6 +28,12 @@ from services.agent_tools import register_tool
 #: the BudgetGuard step ceiling alongside ``rounds`` below.
 _MAX_RESEARCHERS = 3
 
+#: ``angles`` at or above this triggers Heavy mode (the expert panel). Below it,
+#: the single-agent loop runs. ``_MAX_ANGLES`` caps the panel width. Kept in
+#: lockstep with ``iter._MIN_ANGLES`` / ``iter._MAX_ANGLES``.
+_MIN_HEAVY_ANGLES = 2
+_MAX_ANGLES = 3
+
 _PERPLEXITY_NEEDS_KEY = (
     "Perplexity deep research needs an API key (opt-in, paid). Add it in "
     "Settings, or use the built-in deep research."
@@ -116,19 +122,21 @@ async def _run_perplexity(query: str, key: str | None) -> dict[str, Any]:
     return out
 
 
-async def _run_tongyi(query: str, key: str | None, rounds: int, wall: int) -> dict[str, Any]:
+async def _run_tongyi(
+    query: str, key: str | None, rounds: int, wall: int, mode: str = "iter", angles: int = 1
+) -> dict[str, Any]:
     """Run the built-in deep loop with its LLM bound to OpenRouter's Tongyi model.
 
-    Reuses :func:`deep.run_deep_research` (so the live step-log still streams to the
-    activity surface — Track A) but drives plan/synthesis through OpenRouter's
+    Reuses the shared :func:`_run_loop` (iter / heavy / single — so the live
+    step-log still streams to the activity surface, Track A) but drives
+    plan/synthesis through OpenRouter's
     Tongyi-DeepResearch model — runtime-probed, with a live Qwen-A3B fallback
     (Track C / FINDINGS §2.4). OPT-IN + BYOK: needs an OpenRouter key (reused from
     the active creds when the user is already on OpenRouter), never auto-selected.
     """
     import config
-    from services.budget_guard import BudgetGuard
     from services.llm import oneshot
-    from services.research import deep, tongyi
+    from services.research import tongyi
 
     api_key = key or None
     if not api_key:
@@ -153,72 +161,107 @@ async def _run_tongyi(query: str, key: str | None, rounds: int, wall: int) -> di
             f"{tongyi.TONGYI_SLUG} slug yet"
         )
 
-    from services import agent_tools
-
     async def llm_call(messages: list[dict[str, Any]]) -> str:
         return await oneshot.complete("openrouter", model, api_key, messages)
 
-    budget = BudgetGuard(
-        max_steps=rounds * (_MAX_RESEARCHERS + 2),
-        max_wall_seconds=wall,
-    )
-    brief = await deep.run_deep_research(
-        query,
-        region=config.get_region(),
-        tool_call=agent_tools.invoke_tool,
-        llm_call=llm_call,
-        budget=budget,
-        on_step=config.get_step_sink(),
-        max_researchers=_MAX_RESEARCHERS,
+    brief = await _run_loop(
+        mode=mode, angles=angles, query=query, llm_call=llm_call, rounds=rounds, wall=wall
     )
     out = brief.to_dict()
     out["ok"] = True
     out["backend"] = "tongyi"
     out["model"] = model
+    out["mode"] = "heavy" if angles >= _MIN_HEAVY_ANGLES else mode
     out["provenance"] = f"{tongyi.PROVENANCE_NOTE} · {model}"
     out.setdefault("cost_estimate_usd", tongyi.estimate_cost_usd(query))
     return out
 
 
-async def _run_native(query: str, rounds: int, wall: int) -> dict[str, Any]:
+async def _run_loop(
+    *,
+    mode: str,
+    angles: int,
+    query: str,
+    llm_call: Any,
+    rounds: int,
+    wall: int,
+) -> Any:
+    """Pick + run the research loop, returning a ``ResearchBrief``.
+
+    - ``angles >= 2`` → Heavy mode: an expert PANEL of parallel iter explorers +
+      a synthesis agent (test-time scaling).
+    - ``mode == "iter"`` (default) → the IterResearch loop: a central evolving
+      report + per-round workspace reconstruction (no context bloat).
+    - ``mode == "single"`` → the legacy single-pass loop (explicit fallback).
+
+    The iter/heavy loops are designed never to raise (budget breach →
+    abort→synthesize); a belt-and-suspenders ``except`` still drops to the proven
+    single-pass ``run_deep_research`` so the default path can never error out.
+    Budget scales with the angle fan-out so the panel stays inside one ceiling.
+    """
+    import config
+    from services import agent_tools
+    from services.budget_guard import BudgetGuard
+    from services.research import deep
+    from services.research import iter as iter_research
+
+    step_factor = angles if angles >= _MIN_HEAVY_ANGLES else 1
+    budget = BudgetGuard(
+        max_steps=step_factor * rounds * (_MAX_RESEARCHERS + 2),
+        max_wall_seconds=wall,
+    )
+    common = {
+        "region": config.get_region(),
+        "tool_call": agent_tools.invoke_tool,
+        "llm_call": llm_call,
+        "budget": budget,
+        # Forward each step LIVE to the runtime's step-sink (Track A) so the agent
+        # surface animates a "working" trace — including the parallel angle
+        # exploration in Heavy mode. ``None`` outside an agent invocation.
+        "on_step": config.get_step_sink(),
+        "max_researchers": _MAX_RESEARCHERS,
+    }
+    if angles >= _MIN_HEAVY_ANGLES:
+        return await iter_research.run_heavy_research(query, angles=angles, **common)
+    if mode == "single":
+        return await deep.run_deep_research(query, **common)
+    try:
+        return await iter_research.run_iter_research(query, **common)
+    except Exception:  # pragma: no cover — iter never raises; fall back regardless
+        return await deep.run_deep_research(query, **common)
+
+
+def _engine_label(provider: str, model: str, mode: str, angles: int) -> str:
+    """Honest engine line naming the loop that actually ran."""
+    if angles >= _MIN_HEAVY_ANGLES:
+        return f"Your active model — {provider}/{model} · Heavy mode ({angles} parallel angles)"
+    if mode == "single":
+        return f"Your active model — {provider}/{model} · single-pass"
+    return f"Your active model — {provider}/{model} · IterResearch (evolving report)"
+
+
+async def _run_native(query: str, rounds: int, wall: int, mode: str, angles: int) -> dict[str, Any]:
     """Run the built-in deep-research loop against the user's active model."""
     import config
-    from services.budget_guard import BudgetGuard
     from services.llm import oneshot
-    from services.research import deep
 
     creds = config.get_llm_creds()
     if creds is None:
         return {"ok": False, "message": _NO_MODEL}
     provider, model, key = creds
 
-    _emit_backend_step(f"Your active model — {provider}/{model}")
+    _emit_backend_step(_engine_label(provider, model, mode, angles))
 
     async def llm_call(messages: list[dict[str, Any]]) -> str:
         return await oneshot.complete(provider, model, key, messages)
 
-    from services import agent_tools
-
-    budget = BudgetGuard(
-        max_steps=rounds * (_MAX_RESEARCHERS + 2),
-        max_wall_seconds=wall,
-    )
-    # Forward each step LIVE to the runtime's step-sink (Track A) so the agent
-    # surface animates a "working" trace while this multi-second loop runs. The
-    # sink is ``None`` outside an agent invocation (tests / direct calls) — the
-    # loop still records every step into the returned brief regardless.
-    brief = await deep.run_deep_research(
-        query,
-        region=config.get_region(),
-        tool_call=agent_tools.invoke_tool,
-        llm_call=llm_call,
-        budget=budget,
-        on_step=config.get_step_sink(),
-        max_researchers=_MAX_RESEARCHERS,
+    brief = await _run_loop(
+        mode=mode, angles=angles, query=query, llm_call=llm_call, rounds=rounds, wall=wall
     )
     out = brief.to_dict()
     out["ok"] = True
     out["backend"] = "native"
+    out["mode"] = "heavy" if angles >= _MIN_HEAVY_ANGLES else mode
     return out
 
 
@@ -229,6 +272,12 @@ async def _deep_research(args: dict[str, Any]) -> dict[str, Any]:
         query: What to research. Required.
         rounds: Research rounds, clamped to ``[1, 5]`` (default 3).
         wall_seconds: Wall-clock budget, clamped to ``[30, 300]`` (default 120).
+        mode: ``"iter"`` (default) runs the IterResearch loop — a central evolving
+            report + per-round workspace reconstruction; ``"single"`` runs the
+            legacy single-pass loop.
+        angles: ``1`` (default) runs one agent; ``2``–``3`` runs Heavy mode — an
+            expert PANEL of that many parallel research angles synthesised into one
+            brief (more cost, deeper coverage).
         backend: ``"native"`` (default, built-in), ``"perplexity"`` (opt-in,
             paid), or ``"tongyi"`` (frontier deep-research via OpenRouter, opt-in
             — needs an OpenRouter key). The opt-in backends are never auto-selected.
@@ -247,13 +296,20 @@ async def _deep_research(args: dict[str, Any]) -> dict[str, Any]:
 
     rounds = _clamp(args.get("rounds", 3), 1, 5, 3)
     wall = _clamp(args.get("wall_seconds", 120), 30, 300, 120)
+    mode = str(args.get("mode") or "iter").strip().lower()
+    if mode not in ("iter", "single"):
+        mode = "iter"
+    angles = _clamp(args.get("angles", 1), 1, _MAX_ANGLES, 1)
+    # ``heavy: true`` is an ergonomic alias for the default panel width.
+    if args.get("heavy") is True and angles < _MIN_HEAVY_ANGLES:
+        angles = _MAX_ANGLES
     backend = str(args.get("backend") or "native").strip().lower()
 
     if backend == "perplexity":
         return await _run_perplexity(query, args.get("api_key"))
     if backend == "tongyi":
-        return await _run_tongyi(query, args.get("api_key"), rounds, wall)
-    return await _run_native(query, rounds, wall)
+        return await _run_tongyi(query, args.get("api_key"), rounds, wall, mode, angles)
+    return await _run_native(query, rounds, wall, mode, angles)
 
 
 def register() -> None:

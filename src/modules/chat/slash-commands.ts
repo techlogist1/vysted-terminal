@@ -168,6 +168,17 @@ export const SLASH_COMMANDS: SlashCommandDef[] = [
     dispatch: { kind: "prompt", template: (args) => `/deep — go deeper on ${args}` },
   },
   {
+    trigger: "deep heavy",
+    title: "Deep research — Heavy",
+    description: "The expert panel: several research angles explored in parallel, then synthesized.",
+    argHint: "<q>",
+    dispatch: {
+      kind: "prompt",
+      template: (args) =>
+        `Run a HEAVY deep-research panel (angles=3) on ${args} — explore multiple angles in parallel and synthesize one cited brief.`,
+    },
+  },
+  {
     trigger: "compare",
     title: "Compare",
     description: "Compare two tickers or entities side by side.",
