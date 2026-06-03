@@ -7,6 +7,7 @@ import { useAgentsStore, type AgentSummary } from "@/store/agents";
 import { useChartSyncBus } from "@/store/chart-sync";
 import { useChatHistoryStore } from "@/store/chat-history";
 import { useLLMProvidersStore } from "@/store/llm-providers";
+import { useOnboardingStore } from "@/store/onboarding";
 import { usePanelContextBus } from "@/store/panel-context";
 import { useProposedChangesStore } from "@/store/proposed-changes";
 
@@ -296,16 +297,19 @@ describe("ChatSidebar", () => {
     expect(streamChatMock).not.toHaveBeenCalled();
   });
 
-  it("gates a keyless provider (Ollama) that isn't reachable instead of failing silently", async () => {
+  it("gates a keyless provider (Ollama) that isn't reachable by opening guided setup", async () => {
     // The ratified onboarding rule: a keyless local provider must be reachable
-    // before the call fires; an absent local model surfaces a clear message
-    // (validateProvider returns false here — no sidecar/daemon in jsdom).
+    // before the call fires. When it isn't (validateProvider false — no daemon in
+    // jsdom), the send surfaces an honest status AND opens the first-run setup
+    // flow (Track 2) rather than dead-ending; the data tools still work meanwhile.
+    useOnboardingStore.setState({ forceOpen: false });
     useLLMProvidersStore.setState({ defaultProviderId: "ollama" });
     render(<ChatSidebar />);
     const input = screen.getByLabelText("Chat input") as HTMLInputElement;
     fireEvent.change(input, { target: { value: "/ask hi" } });
     fireEvent.submit(input.closest("form")!);
-    await waitFor(() => expect(screen.getByText(/isn't reachable/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/set up yet/i)).toBeInTheDocument());
+    expect(useOnboardingStore.getState().forceOpen).toBe(true);
     expect(streamChatMock).not.toHaveBeenCalled();
   });
 

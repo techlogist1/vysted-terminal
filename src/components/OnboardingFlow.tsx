@@ -133,8 +133,11 @@ export function OnboardingFlow() {
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const finish = useCallback(
-    (choice: string) => {
-      void markSeen(choice);
+    async (choice: string) => {
+      // Await the durable keychain write BEFORE tearing down, so a force-quit
+      // immediately after dismiss can't lose the "seen" marker (it would re-show
+      // once otherwise). The write is a fast IPC round-trip — imperceptible.
+      await markSeen(choice);
       setOpen(false);
       closeForce();
     },
@@ -143,7 +146,7 @@ export function OnboardingFlow() {
 
   // Any non-completion exit (skip / escape / outside-click) marks it seen so the
   // upgrade isn't re-nagged; the keyless chat CTA can always re-open it.
-  const handleDismiss = useCallback(() => finish("skip"), [finish]);
+  const handleDismiss = useCallback(() => void finish("skip"), [finish]);
 
   if (!open) {
     return null;
@@ -199,7 +202,7 @@ export function OnboardingFlow() {
               <DoneStep
                 choice={chosen}
                 onMarkSeen={() => void markSeen(chosen ?? "seen")}
-                onClose={() => finish(chosen ?? "seen")}
+                onClose={() => void finish(chosen ?? "seen")}
               />
             )}
           </motion.div>
@@ -447,6 +450,10 @@ function LocalStep({
 
   const load = useCallback(async () => {
     setLoading(true);
+    // Reset transient pull state so a re-check (daemon down→up) can't show a stale
+    // "Download failed" message next to a freshly-healthy daemon.
+    setPullError(null);
+    setProgress(null);
     const [recResult, statusResult] = await Promise.all([
       fetchLocalModelRecommendation(),
       fetchOllamaStatus(),
@@ -642,10 +649,15 @@ function DoneStep({
   onMarkSeen: () => void;
   onClose: () => void;
 }) {
-  // Persist the marker as soon as the success screen renders, so closing the app
-  // from here still counts as completed.
+  // Persist the marker ONCE as soon as the success screen renders, so closing the
+  // app from here still counts as completed. A `fired` ref guards against the
+  // re-render that markSeen triggers (seen false→true) re-running the effect.
+  const fired = useRef(false);
   useEffect(() => {
-    onMarkSeen();
+    if (!fired.current) {
+      fired.current = true;
+      onMarkSeen();
+    }
   }, [onMarkSeen]);
 
   return (
