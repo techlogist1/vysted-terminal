@@ -11,8 +11,12 @@ backend, no telemetry: data and secrets stay on your machine.
 > **[`specs/001-agent-native-redesign/spec.md`](./specs/001-agent-native-redesign/spec.md)**
 > for where it's headed.
 
-<!-- HERO_SCREENSHOT: a fresh dark, populated shot of the research cockpit (visual
-     brief + chart) is wired in here at release time. -->
+<p align="center">
+  <img src="docs/screenshots/v0.8.0/research-cockpit-hero.png" width="880"
+       alt="Vysted Terminal — ask the agent to research NVDA and a visual, cited brief lands in the cockpit: a metric-card grid, a key-metrics table, and a written valuation analysis, beside a live research trace." />
+  <br />
+  <em>Ask the agent to “research NVDA” — a visual, cited brief lands in the cockpit (metric cards, key-metrics table, written analysis) beside a live research trace.</em>
+</p>
 
 ---
 
@@ -58,6 +62,11 @@ Vysted works the moment you open it — **no account, no key, no setup.** Live q
 charts, news, screeners, and web research (keyless, via DuckDuckGo) all run out of the
 box. A first-run flow then offers two ways to turn on the AI agent and deep research,
 and you can switch anytime from Settings:
+
+<p align="center">
+  <img src="docs/screenshots/v0.8.0/onboarding-welcome.png" width="760"
+       alt="Vysted first-run: a dark welcome that explains the terminal already works keyless, then offers two paths — connect one OpenRouter key, or run a model locally." />
+</p>
 
 - **Private & free — a local model.** Vysted fit-scores your machine and sets up a model
   that runs entirely on your computer through [Ollama](https://ollama.com) — no key, no
