@@ -473,7 +473,15 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
     if not isinstance(payload, dict) or not payload.get("ok"):
         return None
     markdown = payload.get("markdown")
-    if not isinstance(markdown, str) or not markdown.strip():
+    structured = payload.get("structured")
+    has_markdown = isinstance(markdown, str) and bool(markdown.strip())
+    has_structured = isinstance(structured, dict) and bool(structured)
+    # Fire when the result carries prose OR the structured bundle: a DEEP run
+    # returns a synthesized markdown (a full brief auto-renders); a FAST run
+    # returns only the structured data (the model writes the prose) — seeding
+    # structured here keeps the native metric cards populated even when the
+    # model's own publish_brief omits the big structured dict.
+    if not has_markdown and not has_structured:
         return None
     # Forward only the fields the publish_brief host-action consumes (snake_case,
     # exactly as the frontend's briefFromInput reads them). web_available flows
@@ -482,9 +490,9 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
         "query": payload.get("query", ""),
         "symbol": payload.get("symbol", ""),
         "mode": payload.get("mode", "fast"),
-        "markdown": markdown,
+        "markdown": markdown if isinstance(markdown, str) else "",
         "sources": payload.get("sources", []),
-        "structured": payload.get("structured"),
+        "structured": structured,
         "cost": payload.get("cost"),
         "web_available": payload.get("web_available", False),
         "note": payload.get("note"),

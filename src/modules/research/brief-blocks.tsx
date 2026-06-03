@@ -141,7 +141,12 @@ export function deriveMetrics(structured: BriefStructured | undefined): MetricsM
     push("Fwd P/E", formatNumber(fund.forward_pe));
     push("PEG", formatNumber(fund.peg_ratio));
     push("Price/Book", formatNumber(fund.price_to_book));
-    push("Div yield", formatFractionPct(fund.dividend_yield));
+    // yfinance's dividend_yield unit is historically unreliable (CURRENT_STATE
+    // §3.3) — guard the unit-error blow-up (an equity yield ≥ 25% is almost
+    // certainly mis-scaled) rather than show a wrong number on a trust surface.
+    if (typeof fund.dividend_yield === "number" && fund.dividend_yield * 100 < 25) {
+      push("Div yield", formatFractionPct(fund.dividend_yield));
+    }
     push("EPS", formatNumber(fund.eps));
     push("Beta", formatNumber(fund.beta));
     const lo = fund.fifty_two_week_low;
@@ -282,92 +287,6 @@ export function parseBodyBlocks(source: string): BodyBlock[] {
 
 // --- inline rendering: emphasis + citation chips + LIVE ticker chips ---------
 
-/** Finance acronyms / words that look like tickers but are not — never chipped. */
-const TICKER_STOPLIST = new Set([
-  "USD",
-  "EUR",
-  "INR",
-  "GBP",
-  "JPY",
-  "CNY",
-  "CAD",
-  "AUD",
-  "CHF",
-  "GDP",
-  "CPI",
-  "PPI",
-  "PCE",
-  "PMI",
-  "FOMC",
-  "RBI",
-  "ECB",
-  "BOJ",
-  "FED",
-  "CEO",
-  "CFO",
-  "COO",
-  "CTO",
-  "IPO",
-  "ETF",
-  "FY",
-  "TTM",
-  "YTD",
-  "YOY",
-  "QOQ",
-  "MOM",
-  "EPS",
-  "PE",
-  "PEG",
-  "ROE",
-  "ROA",
-  "ROI",
-  "ROIC",
-  "EBITDA",
-  "EBIT",
-  "FCF",
-  "DCF",
-  "NAV",
-  "AUM",
-  "AI",
-  "ML",
-  "API",
-  "SaaS",
-  "SEC",
-  "FDA",
-  "FTC",
-  "DOJ",
-  "IRS",
-  "SEBI",
-  "NSE",
-  "BSE",
-  "NYSE",
-  "USA",
-  "UK",
-  "EU",
-  "UAE",
-  "OK",
-  "TLDR",
-  "Q1",
-  "Q2",
-  "Q3",
-  "Q4",
-  "H1",
-  "H2",
-  "FX",
-  "IT",
-  "AND",
-  "THE",
-  "FOR",
-  "WITH",
-  "FROM",
-]);
-
-/** A bare uppercase token that plausibly reads as a ticker symbol. */
-function looksLikeTicker(token: string): boolean {
-  // 2–6 uppercase letters, optional .NS/.BO exchange suffix (NSE/BSE).
-  return /^[A-Z]{2,6}(\.[A-Z]{1,3})?$/.test(token) && !TICKER_STOPLIST.has(token);
-}
-
 interface InlineCtx {
   onCite: (n: number) => void;
   /** High-confidence symbols (resolved + watchlist + structured) — always chipped. */
@@ -402,10 +321,15 @@ function CiteChip({ n, onCite }: { n: number; onCite: (n: number) => void }) {
   );
 }
 
-/** Split a plain-text run into ticker chips ($CASHTAG or a known/ticker token) + text. */
+/** Split a plain-text run into ticker chips ($CASHTAG or a KNOWN symbol) + text.
+ *
+ * Precision over recall: a chip only fires on an explicit `$TICKER` cashtag or a
+ * symbol in the high-confidence known set (resolved symbol + watchlist +
+ * structured). A bare uppercase word (GPU, CUDA, the company NAME) is NEVER
+ * chipped — a chip that loads a junk symbol is worse than a missing chip. */
 function renderTickers(text: string, known: Set<string>, keyBase: number): ReactNode[] {
   const nodes: ReactNode[] = [];
-  // $CASHTAG (explicit) or a bare uppercase word boundary candidate.
+  // $CASHTAG (explicit) or a bare word-boundary candidate (matched only when known).
   const pattern = /(\$[A-Za-z][A-Za-z0-9.\-]{0,9})|([A-Za-z][A-Za-z0-9.\-]{1,9})/g;
   let last = 0;
   let key = keyBase;
@@ -418,7 +342,7 @@ function renderTickers(text: string, known: Set<string>, keyBase: number): React
       symbol = m[1].slice(1).toUpperCase();
     } else {
       const upper = token.toUpperCase();
-      if (known.has(upper) || (token === upper && looksLikeTicker(token))) {
+      if (known.has(upper)) {
         symbol = upper;
       }
     }

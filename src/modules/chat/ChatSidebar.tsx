@@ -132,11 +132,21 @@ function agentProviderPreference(
   return agent.defaultProvider as LLMProviderId | undefined;
 }
 
-/** First N sentences of a reply, for the collapsed "short chat" view (Track 3). */
-function firstSentences(text: string, max = 2): string {
+/** A short lead for the collapsed "short chat" view (Track 3): the first couple
+ *  of sentences, hard-capped to ~220 chars at a word boundary — so even a verbose
+ *  bulleted summary collapses to a glance, with the rest behind the toggle. */
+function firstSentences(text: string, max = 2, maxChars = 220): string {
   const trimmed = text.trim();
   const parts = trimmed.split(/(?<=[.!?])\s+/);
-  return parts.length <= max ? trimmed : parts.slice(0, max).join(" ").trim();
+  let out = parts.length <= max ? trimmed : parts.slice(0, max).join(" ").trim();
+  if (out.length > maxChars) {
+    out =
+      out
+        .slice(0, maxChars)
+        .replace(/\s+\S*$/, "")
+        .trim() + "…";
+  }
+  return out;
 }
 
 /**

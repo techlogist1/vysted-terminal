@@ -13,7 +13,7 @@ subagent tokens). Companion: `JARVIS_SPRINT_3_TELEMETRY.md`, prior
 
 The whole research→brief→chat flow is **LLM-driven**: the agent calls
 `research`/`deep_research`, gets the full `ResearchBrief` back **as a tool-result
-JSON string that only the model sees**, and must then *remember* to call the
+JSON string that only the model sees**, and must then _remember_ to call the
 `publish_brief` host-action with the markdown+sources copied across. On the
 default local model (`qwen2.5:7b`, unreliable tool-use) that copy step is the
 exact failure behind "the agent feels dead / nothing renders / it dumps an essay
@@ -39,6 +39,7 @@ do the job.** "Showing not telling" must be robust on a weak model, or it's the
 same half-working feature. Two backbone decisions:
 
 ### 1a. Auto-publish the brief (the robustness backstop)
+
 When `research`/`deep_research` returns `ok`, the **runtime deterministically
 publishes the brief** (carrying the FULL bundle incl. `structured`) instead of
 waiting for the model to call `publish_brief`. It rides the **existing
@@ -50,6 +51,7 @@ skips (the live research trace still animated; the model can still publish). App
 strictly better, never half-rewired.
 
 ### 1b. Typed blocks are FRONTEND-DERIVED, not LLM-emitted
+
 The frontier ideal (json-render / A2UI / Portable-Text: _model emits a typed
 block array, host renders native components_) is right about the **render model**
 but wrong about the **producer** for our weakest target. So the **producer is a
@@ -70,15 +72,15 @@ guaranteed fallback** when derivation yields nothing (empty body).
 A render-agnostic, **frontend-derived** document. Block kinds (subset of the
 frontier catalog, tailored to what we can derive deterministically):
 
-| Block        | Source                                            | Render |
-| ------------ | ------------------------------------------------- | ------ |
-| `headline`   | resolved symbol/name + query + mode + verdict-neutral | title card, kicker `DEEP · NVDA`, provenance + freshness badges |
-| `metric`     | `structured.price` + `structured.fundamentals`    | metric-card grid: price, change% (green/red caret), P/E fwd, mkt cap, div yield, 52w range, volume — mono tabular, color ONLY the delta |
-| `prose`      | markdown paragraphs/headings                      | spans with **ticker chips** (Track 2) + `[n]` citation chips |
-| `table`      | markdown pipe tables                              | dense dark table (`divide-y`, right-aligned tabular-nums) — kills the chat wall-of-pipes |
-| `keyPoints`  | a leading bullet list / "key points" section      | bordered callout card, max ~5 |
-| `callout`    | `note` (no-web / budget breach)                   | left accent bar + glyph, tone-styled (honest, never hidden) |
-| `sources`    | `sources[]`                                       | existing source tray (favicon, domain, excerpt) |
+| Block       | Source                                                | Render                                                                                                                                  |
+| ----------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `headline`  | resolved symbol/name + query + mode + verdict-neutral | title card, kicker `DEEP · NVDA`, provenance + freshness badges                                                                         |
+| `metric`    | `structured.price` + `structured.fundamentals`        | metric-card grid: price, change% (green/red caret), P/E fwd, mkt cap, div yield, 52w range, volume — mono tabular, color ONLY the delta |
+| `prose`     | markdown paragraphs/headings                          | spans with **ticker chips** (Track 2) + `[n]` citation chips                                                                            |
+| `table`     | markdown pipe tables                                  | dense dark table (`divide-y`, right-aligned tabular-nums) — kills the chat wall-of-pipes                                                |
+| `keyPoints` | a leading bullet list / "key points" section          | bordered callout card, max ~5                                                                                                           |
+| `callout`   | `note` (no-web / budget breach)                       | left accent bar + glyph, tone-styled (honest, never hidden)                                                                             |
+| `sources`   | `sources[]`                                           | existing source tray (favicon, domain, excerpt)                                                                                         |
 
 **Visual constitution** (lifted from the reverse-engineered Claude widget rules,
 and already congruent with `tokens.css`): two font weights; tabular/mono numerals

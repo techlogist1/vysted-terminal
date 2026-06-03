@@ -72,13 +72,31 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
   // backs the native metric cards. Passed through verbatim when present — it is
   // non-secret research data, the same shape the sidecar's ResearchBrief emits.
   // Absent on older briefs / structured-only runs → the panel renders no cards.
-  const structured =
+  const symbol = str(input, "symbol") || undefined;
+  let structured =
     typeof input.structured === "object" && input.structured !== null
       ? (input.structured as BriefStructured)
       : undefined;
+  // Preserve the structured bundle across a structured-LESS re-publish: the
+  // runtime auto-publish seeds the live metric data, and a model-issued
+  // publish_brief (which doesn't copy the big structured dict — and often omits
+  // the symbol arg) would otherwise wipe it. Carry it over when the symbol
+  // matches OR the model omitted the symbol on a brief published moments ago —
+  // the auto-publish always seeds the CURRENT symbol first, so a recent prior
+  // brief is this same research turn (the recency bound rules out cross-symbol
+  // contamination). Keeps the native metric cards populated either way.
+  if (!structured) {
+    const prev = useBriefStore.getState().brief;
+    const sameSymbol =
+      !!prev?.symbol && !!symbol && prev.symbol.toUpperCase() === symbol.toUpperCase();
+    const recent = typeof prev?.createdAt === "number" && Date.now() - prev.createdAt < 120_000;
+    if (prev?.structured && (sameSymbol || (!symbol && recent))) {
+      structured = prev.structured;
+    }
+  }
   return {
     query: str(input, "query"),
-    symbol: str(input, "symbol") || undefined,
+    symbol,
     mode,
     markdown: str(input, "markdown"),
     sources,
@@ -463,7 +481,9 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
     }
     case "publish_brief": {
       const brief = briefFromInput(input);
-      if (!brief.markdown.trim()) {
+      // Allow a structured-only seed (the FAST auto-publish carries live metrics
+      // before the model writes the prose); reject only a truly empty brief.
+      if (!brief.markdown.trim() && !brief.structured) {
         return null;
       }
       // Open the brief panel so the B+A output is on screen, then publish.
