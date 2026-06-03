@@ -89,7 +89,7 @@ export function FirstLaunchTosDialog() {
         onPointerDownOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Welcome to Vysted Terminal</DialogTitle>
+          <DialogTitle>Welcome to Vysted</DialogTitle>
           <DialogDescription>
             Please review the operating terms before connecting a broker.
           </DialogDescription>

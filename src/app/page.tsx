@@ -183,10 +183,9 @@ export default function Page() {
         <header className="bg-charcoal-925 relative flex h-9 shrink-0 items-center gap-3 px-3">
           <div className="flex items-center gap-2 select-none">
             <span aria-hidden="true" className="size-2 rounded-[2px] bg-amber-400" />
-            <span className="text-charcoal-100 font-serif text-[17px] leading-none font-semibold tracking-[0.01em]">
-              VYSTED
+            <span className="text-charcoal-100 font-serif text-[15px] leading-none font-semibold tracking-[-0.02em]">
+              Vysted
             </span>
-            <span className="hud-label mt-px leading-none">Terminal</span>
           </div>
           <div className="bg-charcoal-700 mx-1 h-4 w-px" aria-hidden="true" />
           <button

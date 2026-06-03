@@ -1586,8 +1586,8 @@ function AboutSection() {
       />
       <div className="border-charcoal-700 bg-charcoal-850 text-charcoal-300 flex flex-col gap-1.5 rounded-md border px-4 py-3 font-mono text-xs">
         <p>
-          Vysted Terminal <span className="text-charcoal-500">v{HOST_VERSION}</span> — an
-          open-source, AI-native finance terminal.
+          Vysted <span className="text-charcoal-500">v{HOST_VERSION}</span> — an open-source,
+          AI-native finance terminal.
         </p>
         <p className="text-charcoal-400">
           Plugin architecture · local-first · bring-your-own-keys. Your data, your keys, your

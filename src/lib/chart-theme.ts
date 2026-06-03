@@ -5,45 +5,46 @@
  * Canvas elements render to a `<canvas>` bitmap and CANNOT read CSS custom
  * properties, so each chart/drawing file used to hard-code its own copy of the
  * palette — which is exactly how values silently drifted off-palette. This
- * module mirrors `styles/tokens.css` ("warm instrument" minimal-dark) once;
- * when a token changes, update both the CSS token AND its constant here — but
- * only here, not in 12 files (FR-030: re-skin the canvas + tokens in lockstep).
+ * module mirrors `styles/tokens.css` (minimal-dark "cold instrument" — neutral
+ * zinc + cool-teal accent) once; when a token changes, update both the CSS token
+ * AND its constant here — but only here, not in 12 files (FR-030: re-skin the
+ * canvas + tokens in lockstep).
  *
  * NOTE: the export NAMES (`ACCENT_CORAL`, `coralFill`, …) are historical and
- * kept so the 12 importing files don't churn — they now carry the WARM-CLAY
+ * kept so the 12 importing files don't churn — they now carry the COOL-TEAL
  * accent, mirroring the `amber-*` token. Read the role, not the name.
  */
 
-// --- Warm graphite-ink surfaces (mirror charcoal-*) ------------------------
-export const CHART_SURFACE = "#16140f"; // charcoal-900 — chart background
-export const CHART_TEXT = "#d6cfc2"; // charcoal-200 — axis / label text
-export const CHART_TEXT_MUTED = "#988f7f"; // charcoal-400 — secondary labels
-export const CHART_GRID = "#26221c"; // charcoal-800 — gridlines
-export const CHART_BORDER = "#332e26"; // charcoal-700 — scale borders
-export const CHART_CROSSHAIR = "#494238"; // charcoal-600 — crosshair
+// --- Neutral zinc surfaces (mirror charcoal-*) -----------------------------
+export const CHART_SURFACE = "#161619"; // charcoal-900 — chart background
+export const CHART_TEXT = "#a1a1aa"; // charcoal-400 — axis / label text (muted)
+export const CHART_TEXT_MUTED = "#71717a"; // charcoal-500 — secondary labels
+export const CHART_GRID = "#27272a"; // charcoal-800 — gridlines
+export const CHART_BORDER = "#34343a"; // charcoal-700 — scale borders
+export const CHART_CROSSHAIR = "#3f3f46"; // charcoal-600 — crosshair
 
-// --- Warm-clay accent (mirror amber-* [clay]) ------------------------------
-export const ACCENT_CORAL = "#a06b52"; // amber-400 — brand / default accent
-export const ACCENT_CORAL_BRIGHT = "#b0795f"; // amber-300 — emphasis
-export const ACCENT_CORAL_DEEP = "#5c3b2e"; // amber-600 — deep accent / line
+// --- Cool-teal accent (mirror amber-* [teal]) ------------------------------
+export const ACCENT_CORAL = "#2dd4bf"; // amber-400 — brand / default accent (teal)
+export const ACCENT_CORAL_BRIGHT = "#5eead4"; // amber-300 — emphasis
+export const ACCENT_CORAL_DEEP = "#115e59"; // amber-600 — deep accent / line
 
-// --- Semantic signal colors (the only saturated colors; kept clear of clay) -
-export const POSITIVE = "#38b25f"; // gains — green
-export const POSITIVE_BRIGHT = "#56cc7c";
-export const NEGATIVE = "#ef5369"; // losses — clear red (distinct from clay)
-export const NEGATIVE_BRIGHT = "#ff6b80";
-export const WARNING = "#e0a23c"; // caution — amber-gold
+// --- Semantic signal colors (the only saturated colors; kept clear of teal) -
+export const POSITIVE = "#22c55e"; // gains — green-500
+export const POSITIVE_BRIGHT = "#4ade80";
+export const NEGATIVE = "#ef4444"; // losses — red-500 (distinct from teal)
+export const NEGATIVE_BRIGHT = "#f87171";
+export const WARNING = "#f59e0b"; // caution — amber-500
 
-// --- Neutral data series (mirror sage-* → warm steel) ----------------------
-export const NEUTRAL = "#988f7f"; // sage-400 — comparison / secondary series
-export const NEUTRAL_LIGHT = "#bfb8a9"; // sage-300
+// --- Neutral data series (mirror sage-* → zinc neutral) --------------------
+export const NEUTRAL = "#a1a1aa"; // sage-400 — comparison / secondary series
+export const NEUTRAL_LIGHT = "#d4d4d8"; // sage-300
 
 // --- RGB tuples for alpha fills (canvas wants rgba()) ----------------------
-export const ACCENT_CORAL_RGB = "160, 107, 82"; // #a06b52 — warm clay
-export const POSITIVE_RGB = "56, 178, 95";
-export const NEGATIVE_RGB = "239, 83, 105";
+export const ACCENT_CORAL_RGB = "45, 212, 191"; // #2dd4bf — cool teal
+export const POSITIVE_RGB = "34, 197, 94";
+export const NEGATIVE_RGB = "239, 68, 68";
 
-/** `rgba()` fill from the warm-clay accent at the given alpha (0–1). */
+/** `rgba()` fill from the teal accent at the given alpha (0–1). */
 export function coralFill(alpha: number): string {
   return `rgba(${ACCENT_CORAL_RGB}, ${alpha})`;
 }
@@ -57,16 +58,16 @@ export function negativeFill(alpha: number): string {
 }
 
 /**
- * Distinct, on-brand indicator line palette — warm-clay lead, warm steel
- * neutrals, and a green. Order is chosen so the first few overlaid indicators
- * read clearly against the warm graphite surface.
+ * Distinct, on-brand indicator line palette — teal lead, zinc neutrals, and a
+ * green. Order is chosen so the first few overlaid indicators read clearly
+ * against the neutral zinc surface.
  */
 export const INDICATOR_PALETTE = [
-  ACCENT_CORAL, // warm clay
-  NEUTRAL, // warm steel
+  ACCENT_CORAL, // teal
+  NEUTRAL, // zinc neutral
   POSITIVE, // green
-  ACCENT_CORAL_BRIGHT, // clay-bright
-  NEUTRAL_LIGHT, // light steel
+  ACCENT_CORAL_BRIGHT, // teal-bright
+  NEUTRAL_LIGHT, // light zinc
 ] as const;
 
 /**

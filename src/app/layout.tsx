@@ -1,28 +1,26 @@
 import type { Metadata } from "next";
-import { Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
+import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-// Hanken Grotesk — a precise, modern grotesque display face for the wordmark +
-// headings: clean and confident at display sizes, the cold-instrument voice
-// (supersedes the warm Fraunces serif). Exposed as --font-display, which the
-// `--font-serif` token slot now references.
-const display = Hanken_Grotesk({
+// Inter — the Geist-class UI sans for the wordmark, headings, and dense chrome:
+// tall x-height, tabular figures, the reference data-terminal face. Exposed as
+// --font-display, which the `--font-serif` token slot now references.
+const display = Inter({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
-  weight: ["500", "600", "700"],
 });
 
-// JetBrains Mono — the data/terminal workhorse: every price, label, and chrome
-// element. Kept from the prior system; ideal for a finance instrument.
-const jetbrainsMono = JetBrains_Mono({
+// Geist Mono — the data/terminal workhorse: every price, label, and chrome
+// element. Contemporary, compressed, and pairs with Inter's geometry.
+const jetbrainsMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains-mono",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Vysted Terminal",
+  title: "Vysted",
   description: "The AI-native, extensible finance workspace.",
 };
 

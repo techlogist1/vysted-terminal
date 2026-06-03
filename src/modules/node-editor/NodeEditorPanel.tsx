@@ -475,9 +475,9 @@ function NodeEditorPanelInner() {
             className="h-full w-full"
           >
             {/* ReactFlow's Background dots aren't CSS-themed — pin them to the
-                warm-instrument palette (charcoal-900 canvas, charcoal-700 dots).
+                cold-instrument palette (charcoal-900 canvas, charcoal-700 dots).
                 Keep in lockstep with tokens.css (FR-030). */}
-            <Background gap={16} size={1} color="#332e26" bgColor="#16140f" />
+            <Background gap={16} size={1} color="#34343a" bgColor="#161619" />
             <Controls position="bottom-right" />
           </ReactFlow>
           {nodes.length === 0 && (

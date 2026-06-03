@@ -17,38 +17,39 @@
 /* Map the Vysted primitives onto shadcn/ui's semantic names. Literal fallbacks
    keep this resilient if a token is ever missing. */
 @theme inline {
-  --color-background: var(--color-charcoal-950, #0b0a09);
-  --color-foreground: var(--color-charcoal-100, #e8e4dc);
-  --color-card: var(--color-charcoal-900, #16140f);
-  --color-card-foreground: var(--color-charcoal-100, #e8e4dc);
-  --color-popover: var(--color-charcoal-875, #1a1714);
-  --color-popover-foreground: var(--color-charcoal-100, #e8e4dc);
-  --color-primary: var(--color-amber-400, #a06b52);
-  --color-primary-foreground: var(--color-charcoal-950, #0b0a09);
-  --color-secondary: var(--color-charcoal-800, #26221c);
-  --color-secondary-foreground: var(--color-charcoal-100, #e8e4dc);
-  --color-muted: var(--color-charcoal-800, #26221c);
-  --color-muted-foreground: var(--color-charcoal-400, #988f7f);
-  /* Accent = brand warm clay (single-accent system). */
-  --color-accent: var(--color-amber-400, #a06b52);
-  --color-accent-foreground: var(--color-charcoal-950, #0b0a09);
-  --color-border: var(--color-charcoal-700, #332e26);
-  --color-input: var(--color-charcoal-700, #332e26);
-  --color-ring: var(--color-amber-400, #a06b52);
-  --color-destructive: var(--color-negative, #ef5369);
+  --color-background: var(--color-charcoal-950, #09090b);
+  --color-foreground: var(--color-charcoal-100, #fafafa);
+  --color-card: var(--color-charcoal-900, #161619);
+  --color-card-foreground: var(--color-charcoal-100, #fafafa);
+  --color-popover: var(--color-charcoal-875, #1b1b1f);
+  --color-popover-foreground: var(--color-charcoal-100, #fafafa);
+  --color-primary: var(--color-amber-400, #2dd4bf);
+  --color-primary-foreground: var(--color-charcoal-950, #09090b);
+  --color-secondary: var(--color-charcoal-800, #27272a);
+  --color-secondary-foreground: var(--color-charcoal-100, #fafafa);
+  --color-muted: var(--color-charcoal-800, #27272a);
+  --color-muted-foreground: var(--color-charcoal-400, #a1a1aa);
+  /* Accent = brand cool teal (single-accent system). */
+  --color-accent: var(--color-amber-400, #2dd4bf);
+  --color-accent-foreground: var(--color-charcoal-950, #09090b);
+  --color-border: var(--color-charcoal-700, #34343a);
+  --color-input: var(--color-charcoal-700, #34343a);
+  --color-ring: var(--color-amber-400, #2dd4bf);
+  --color-destructive: var(--color-negative, #ef4444);
   --radius: var(--radius-panel); /* track the token, not a literal */
 }
 
 /* --- Chrome primitives -----------------------------------------------------
- * Composite vars for the flat, low-chrome warm-instrument frame: a warm taupe
+ * Composite vars for the flat, low-chrome cold-instrument frame: a neutral zinc
  * hairline rule, a single flat top-edge highlight (a whisper of depth, no metal
- * bezel), and a clay ring for active controls. Plain CSS vars (not @theme)
+ * bezel), and a teal ring for active controls. Plain CSS vars (not @theme)
  * since they are composite shadows, not single-value utilities. */
 :root {
-  --hairline: rgb(152 143 127 / 0.12); /* warm taupe @ 12% — quiet fine divider */
-  --hairline-strong: rgb(152 143 127 / 0.2); /* warm taupe @ 20% */
-  --bezel-shadow: inset 0 1px 0 rgb(242 239 233 / 0.04), 0 1px 2px rgb(0 0 0 / 0.4);
-  --glow-coral: 0 0 0 1px rgb(160 107 82 / 0.4), 0 0 10px rgb(160 107 82 / 0.16);
+  --accent-rgb: 45 212 191; /* teal accent as space-separated rgb (for rgb(var()/a)) */
+  --hairline: rgb(82 82 91 / 0.14); /* zinc @ 14% — quiet fine divider */
+  --hairline-strong: rgb(82 82 91 / 0.24); /* zinc @ 24% */
+  --bezel-shadow: inset 0 1px 0 rgb(250 250 250 / 0.04), 0 1px 2px rgb(0 0 0 / 0.4);
+  --glow-coral: 0 0 0 1px rgb(var(--accent-rgb) / 0.4), 0 0 10px rgb(var(--accent-rgb) / 0.16);
 }
 
 @layer base {
@@ -89,7 +90,7 @@
     inset: 0;
     background-image: radial-gradient(
       120% 70% at 50% -10%,
-      rgb(160 107 82 / 0.03),
+      rgb(var(--accent-rgb) / 0.03),
       transparent 55%
     );
     background-attachment: fixed;
@@ -106,12 +107,12 @@
 
   /* Warm-clay selection + a crisp clay focus ring everywhere. */
   ::selection {
-    background: rgb(160 107 82 / 0.32);
-    color: var(--color-lume, #f2efe9);
+    background: rgb(var(--accent-rgb) / 0.3);
+    color: var(--color-lume, #fafafa);
   }
 
   :focus-visible {
-    outline: 1px solid var(--color-amber-400, #a06b52);
+    outline: 1px solid var(--color-amber-400, #2dd4bf);
     outline-offset: 1px;
   }
 
@@ -138,13 +139,13 @@
     text-transform: uppercase;
     letter-spacing: 0.12em;
     font-size: 0.625rem;
-    color: var(--color-brass-300, #9a9183);
+    color: var(--color-brass-300, #a1a1aa);
   }
 
-  /* Flat panel edge — a whisper of warm depth, no metal bevel. */
+  /* Flat panel edge — a whisper of depth, no metal bevel. */
   .instrument-bezel {
     box-shadow: var(--bezel-shadow);
-    border-top: 1px solid rgb(242 239 233 / 0.04);
+    border-top: 1px solid rgb(250 250 250 / 0.04);
   }
 
   /* A single flat warm hairline (e.g. under the header). */
@@ -153,9 +154,45 @@
     height: 1px;
   }
 
-  /* Clay ring for an active/primary control. */
+  /* Teal ring for an active/primary control. */
   .hud-active {
     box-shadow: var(--glow-coral);
+  }
+
+  /* Agent-active node — a 1px accent border + soft teal glow (living-system, not
+     neon). Glow radius kept under 16px. */
+  .node-glow {
+    box-shadow:
+      0 0 0 1px var(--color-amber-400, #2dd4bf),
+      0 0 12px 2px rgb(var(--accent-rgb) / 0.18);
+  }
+
+  /* Streaming cursor — a 2px accent bar that blinks while tokens arrive. Apply
+     `.stream-cursor` to the trailing inline element of streaming text. */
+  .stream-cursor::after {
+    content: "";
+    display: inline-block;
+    width: 2px;
+    height: 1.05em;
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    background: var(--color-amber-400, #2dd4bf);
+    border-radius: 1px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .stream-cursor::after {
+      animation: stream-blink 1s steps(2, jump-none) infinite;
+    }
+  }
+}
+
+@keyframes stream-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
   }
 }
 
@@ -192,7 +229,7 @@
   --dv-context-menu-background-color: var(--color-charcoal-875, #1a1714);
   --dv-context-menu-color: var(--color-charcoal-200, #d6cfc2);
   --dv-icon-hover-background-color: var(--color-charcoal-700, #332e26);
-  --dv-drag-over-background-color: rgb(160 107 82 / 0.14);
+  --dv-drag-over-background-color: rgb(var(--accent-rgb) / 0.14);
   --dv-drag-over-border-color: var(--color-amber-400, #a06b52);
   --dv-tab-font-size: 11px;
 }
@@ -240,18 +277,18 @@
 }
 
 *::-webkit-scrollbar-thumb {
-  background: rgb(117 112 101 / 0.4);
+  background: rgb(113 113 122 / 0.4);
   border-radius: 4px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: rgb(160 107 82 / 0.55);
+  background: rgb(var(--accent-rgb) / 0.55);
   background-clip: padding-box;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgb(117 112 101 / 0.4) transparent;
+  scrollbar-color: rgb(113 113 122 / 0.4) transparent;
 }

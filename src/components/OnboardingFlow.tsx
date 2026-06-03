@@ -166,7 +166,7 @@ export function OnboardingFlow() {
         onInteractOutside={(e) => e.preventDefault()}
         className="border-charcoal-700 bg-charcoal-950 max-w-2xl gap-0 overflow-hidden p-0 shadow-2xl"
       >
-        <DialogTitle className="sr-only">Welcome to Vysted Terminal</DialogTitle>
+        <DialogTitle className="sr-only">Welcome to Vysted</DialogTitle>
         <DialogDescription className="sr-only">
           Set up Vysted: connect a cloud model with one key, or run a local model — or explore
           first; the terminal already works with no key.

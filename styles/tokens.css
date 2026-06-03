@@ -1,102 +1,107 @@
-/* Vysted Terminal — design tokens. "Warm instrument" minimal-dark system (the
- * agent-native redesign craft pass — supersedes the cold ion-blue set).
+/* Vysted — design tokens. Minimal-dark "cold instrument" system (the 003 rebuild
+ * visual pass — supersedes the warm "Claude after dark" clay/espresso set).
  *
- * The aesthetic: a warm-neutral graphite near-black canvas (a faint warm
- * undertone — aged paper / worn brass under near-black, never cool-blue, never
- * flat black, never warm-orange "toy retro"), low-chrome and flat, near-
- * MONOCHROME with a SINGLE desaturated warm-clay accent that lights up only the
- * active / agent-driven affordance. Real chroma is reserved almost entirely for
- * the data (the green/red P&L signals). Warm cream text, a precise grotesque
- * display (Hanken Grotesk) over a data mono (JetBrains Mono), Bloomberg density
- * in Cursor's restrained, keyboard-first language. The reference temperature is
- * Anthropic's own warm neutrals (#141413 dark, cream text, clay accent) over
- * Cursor's near-mono structure (off-white not pure-white, accent only on the one
- * active thing). NOT cold, NOT skeuomorphic, NOT a saturated SaaS gradient.
+ * The aesthetic: a NEUTRAL zinc near-black canvas (Vercel Geist / Linear / Raycast
+ * grade — no warm or cool tint, chrome that disappears so the data dominates),
+ * a SINGLE cool-teal accent that lights up only the active / agent-driven
+ * affordance, and saturated green/red reserved entirely for the P&L signals.
+ * Geist Sans-class UI type over a Geist Mono data face, Bloomberg density in
+ * Cursor's restrained, keyboard-first language. NOT warm, NOT neon, NOT a
+ * saturated SaaS gradient, NOT a 90s terminal.
  *
  * NOTE ON NAMES: token NAMES are kept from the retired systems (`charcoal`,
- * `amber`, `brass`, `sage`, `lume`) so the 80+ files that reference them as
- * Tailwind classes re-skin with zero edits — only the VALUES changed. The names
- * are historical, not literal: `amber-*` now renders the WARM-CLAY accent,
- * `charcoal-*` renders WARM GRAPHITE INK, `brass-*`/`sage-*` render warm
- * NEUTRALS, `lume` is a warm cream near-white. Read the role column, not the
- * name. The canvas palette is mirrored in src/lib/chart-theme.ts — change BOTH
- * in lockstep or the chart drifts (FR-030). See docs/DESIGN_SYSTEM.md.
+ * `amber`, `brass`, `sage`, `lume`) so the ~92 files that reference them as
+ * Tailwind classes re-skin with ZERO edits — only the VALUES changed. The names
+ * are historical, not literal: `charcoal-*` now renders the NEUTRAL ZINC ramp,
+ * `amber-*` now renders the COOL-TEAL accent, `brass-*`/`sage-*` render zinc
+ * neutrals, `lume` is a near-white. Read the role column, not the name. The
+ * canvas palette is mirrored in src/lib/chart-theme.ts — change BOTH in lockstep
+ * or the chart drifts (FR-030). See docs/DESIGN_SYSTEM.md.
  *
  * Defined as a Tailwind 4 @theme block so every token is also a utility class
- * (bg-charcoal-900, text-amber-400 [clay], font-serif [Hanken], ...).
+ * (bg-charcoal-900, text-amber-400 [teal], font-serif [Inter], ...).
  * Semantic shadcn mapping + chrome primitives live in src/app/globals.css.
  */
 
 @theme {
-  /* --- Warm graphite ink (name: charcoal) — warm-neutral near-blacks, R≥G≥B at
-   * every stop (a gentle 2→17 warm gap), graduated for elevation: 950 = deepest
-   * well, 925/900 = raised chrome + surface, 700 = borders, 100 = body text.
-   * Flat and low-chrome, warm but never orange, never flat black. */
-  --color-charcoal-950: #0b0a09; /* deepest well — app/root bg */
-  --color-charcoal-925: #100e0c; /* header fascia, tab-strip bg */
-  --color-charcoal-900: #16140f; /* card / panel surface */
-  --color-charcoal-875: #1a1714; /* popover / active tab */
-  --color-charcoal-850: #1f1c17; /* raised inset (node bg) */
-  --color-charcoal-800: #26221c; /* secondary / muted surface */
-  --color-charcoal-700: #332e26; /* borders / inputs / dividers */
-  --color-charcoal-600: #494238; /* strong border / disabled fg */
-  --color-charcoal-500: #6b6356; /* faint label / kbd chip text */
-  --color-charcoal-400: #988f7f; /* muted foreground (AA on bg) */
-  --color-charcoal-300: #b8b0a1; /* secondary text (AAA) */
-  --color-charcoal-200: #d6cfc2; /* bright secondary / chart text */
-  --color-charcoal-100: #e8e4dc; /* foreground / warm cream body text */
+  /* --- Neutral zinc ink (name: charcoal) — pure-neutral near-blacks, graduated
+   * for elevation: 950 = deepest well, 925/900 = chrome + surface, 700 = borders,
+   * 100 = body text. The Vercel Geist / shadcn zinc ramp — maximally neutral so
+   * the teal accent and green/red signals pop and the chrome recedes. */
+  --color-charcoal-950: #09090b; /* deepest well — app/root bg (zinc-950) */
+  --color-charcoal-925: #0d0d10; /* header fascia, tab-strip bg */
+  --color-charcoal-900: #161619; /* card / panel surface (≈zinc-900) */
+  --color-charcoal-875: #1b1b1f; /* popover / active tab */
+  --color-charcoal-850: #202024; /* raised inset (node bg) */
+  --color-charcoal-800: #27272a; /* secondary / muted surface (zinc-800) */
+  --color-charcoal-700: #34343a; /* borders / inputs / dividers */
+  --color-charcoal-600: #3f3f46; /* strong border / disabled fg (zinc-700) */
+  --color-charcoal-500: #71717a; /* faint label / kbd chip text (zinc-500) */
+  --color-charcoal-400: #a1a1aa; /* muted foreground (AA on bg, zinc-400) */
+  --color-charcoal-300: #d4d4d8; /* secondary text (zinc-300) */
+  --color-charcoal-200: #e4e4e7; /* bright secondary / chart text (zinc-200) */
+  --color-charcoal-100: #fafafa; /* foreground / body text (zinc-50) */
 
-  /* --- Warm clay (name: amber) — the single desaturated warm accent. One earthy
-   * clay hue across states, light→dark: 200 faint tint/glow, 300 hover-bright,
-   * 400 brand, 500 pressed/sash, 600 deep border. ~30–40% saturation so it reads
-   * as worn brass/clay and recedes into the warm graphite — used sparingly, it is
-   * the one lit color on the ink, and it never competes with the P&L signals. --- */
-  --color-amber-200: #c89177; /* faint highlight / glow fill / selection tint */
-  --color-amber-300: #b0795f; /* hover-bright accent, focus emphasis, accent text */
-  --color-amber-400: #a06b52; /* BRAND / primary / default accent (warm clay) */
-  --color-amber-500: #7c5240; /* pressed/active, active-sash, node-selected */
-  --color-amber-600: #5c3b2e; /* deep border / dense accent */
+  /* --- Cool teal (name: amber) — the single accent. One teal hue across states,
+   * light→dark: 200 faint tint/glow, 300 hover-bright, 400 brand, 500 pressed/
+   * sash, 600 deep border. Reads "data / intelligence" (Perplexity precedent),
+   * sits ~180° from the P&L gains-green so it never competes, and pops cleanly on
+   * the neutral zinc without neon aggression. Used sparingly — the one lit color. */
+  --color-amber-200: #99f6e4; /* faint highlight / glow fill / selection tint (teal-200) */
+  --color-amber-300: #5eead4; /* hover-bright accent, focus emphasis, accent text (teal-300) */
+  --color-amber-400: #2dd4bf; /* BRAND / primary / default accent (teal-400) */
+  --color-amber-500: #0d9488; /* pressed/active, active-sash, node-selected (teal-600) */
+  --color-amber-600: #115e59; /* deep border / dense accent (teal-800) */
 
-  /* --- Warm neutral (name: brass) — a quiet warm taupe-gray for stray legacy use
-   * + the .hud-label legend tone. --- */
-  --color-brass-200: #c2bbac;
-  --color-brass-300: #9a9183; /* .hud-label legend text */
-  --color-brass-400: #757065; /* hairline / scrollbar source tone */
-  --color-brass-500: #565049;
-  --color-brass-600: #3a352d;
+  /* --- Zinc neutral (name: brass) — a quiet neutral for stray legacy use + the
+   * .hud-label legend tone + the hairline source tone. --- */
+  --color-brass-200: #d4d4d8;
+  --color-brass-300: #a1a1aa; /* .hud-label legend text */
+  --color-brass-400: #52525b; /* hairline / scrollbar source tone (zinc-600) */
+  --color-brass-500: #3f3f46;
+  --color-brass-600: #27272a;
 
-  /* --- Warm cream near-white (name: lume) — active-tab text, peak readouts,
-   * selection text. A clean paper-white, faintly warm (never cool, never green). */
-  --color-lume: #f2efe9;
+  /* --- Near-white (name: lume) — active-tab text, peak readouts, selection text.
+   * A clean neutral white (zinc-50). */
+  --color-lume: #fafafa;
 
-  /* --- Warm neutral second (name: sage) — desaturated warm gray so secondary
-   * data series never compete with the clay accent. --- */
-  --color-sage-300: #bfb8a9;
-  --color-sage-400: #988f7f;
-  --color-sage-500: #757065;
+  /* --- Zinc neutral second (name: sage) — desaturated neutral so secondary data
+   * series never compete with the teal accent. --- */
+  --color-sage-300: #d4d4d8;
+  --color-sage-400: #a1a1aa;
+  --color-sage-500: #71717a;
 
-  /* --- Signal colors — three distinguishable hues tuned for the warm ink and
-   * kept clear of the clay accent. Gains = clean green (145°); losses = clear red
-   * (350°); caution = amber-gold (42°). These are the ONLY saturated colors on
-   * screen — against the warm near-black they pop cleanly (AA/AAA verified). --- */
-  --color-positive: #38b25f;
-  --color-positive-bright: #56cc7c;
-  --color-negative: #ef5369;
-  --color-negative-bright: #ff6b80;
-  --color-warning: #e0a23c; /* caution: stale data, paper-vs-live */
+  /* --- Signal colors — the Tailwind semantic defaults, battle-tested for CVD on
+   * a zinc near-black. Gains = green-500; losses = red-500; caution = amber-500.
+   * These are the ONLY saturated colors on screen and the teal accent is kept
+   * clear of them. --- */
+  --color-positive: #22c55e;
+  --color-positive-bright: #4ade80;
+  --color-negative: #ef4444;
+  --color-negative-bright: #f87171;
+  --color-warning: #f59e0b; /* caution: stale data, paper-vs-live */
 
-  /* --- Typography — a precise grotesque display (Hanken Grotesk) over a data
-   * mono. The --font-* inner vars are supplied by next/font in
-   * src/app/layout.tsx (display → --font-display, mono → --font-jetbrains-mono).
-   * The `--font-serif` slot name is historical — it now renders the grotesque. */
+  /* --- Typography — a Geist-class UI sans (Inter) over a Geist Mono data face.
+   * The --font-* inner vars are supplied by next/font in src/app/layout.tsx
+   * (display → --font-display [Inter], mono → --font-jetbrains-mono [Geist Mono]).
+   * The `--font-serif` slot name is historical — it now renders the UI sans.
+   * Numerics use tabular figures + slashed zero (set in globals.css). */
   --font-serif: var(--font-display), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace;
+  --font-mono:
+    var(--font-jetbrains-mono), ui-monospace, "Geist Mono", "SF Mono", "Cascadia Mono", monospace;
 
   /* --- Radius rhythm — tight + precise for the low-chrome instrument look. --- */
   --radius-panel: 0.375rem;
   --radius-control: 0.25rem;
 
-  /* --- Motion — calm, confident easing (no mechanical overshoot). --- */
+  /* --- Motion — three duration tiers + arriving/transient easings (2026 AI-app
+   * convention). The legacy --ease-instrument/--ease-detent are kept (referenced
+   * by existing code); the new tokens are additive. --- */
+  --duration-instant: 100ms; /* hover flips, color transitions, active flash */
+  --duration-fast: 160ms; /* panel open/close, tooltip, tab switch */
+  --duration-base: 240ms; /* modal/popover, layout shift, sidebar slide */
+  --ease-out: cubic-bezier(0, 0, 0.2, 1); /* elements arriving on screen */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1); /* elements that start+end on screen */
   --ease-instrument: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-detent: cubic-bezier(0.32, 0.9, 0.5, 1);
 }
