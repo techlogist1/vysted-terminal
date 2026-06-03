@@ -14,14 +14,14 @@ works on machine gates but feels vintage, jargon-heavy, and breaks on small
 things (empty data, phantom proposals, enter-to-send, clipped menus). The engine
 (sidecar, §6.5 safety, dockview, Kite read path, copilot tool-loop, the
 IterResearch/Heavy deep-research harness) is strong and **stays**. We rebuild the
-*surface*: agent UX, visual identity, research presentation, data depth, a native
+_surface_: agent UX, visual identity, research presentation, data depth, a native
 screener, and an OS-for-finance workspace — so Vysted becomes the comfort
 go-to app for a trader the way Obsidian is for notes and Cursor is for code.
 
 **KEEP (do not rebuild).** The FastAPI sidecar + provider registry; the §6.5
 safety layer byte-for-byte; dockview + the workspace-blob persistence model; Kite
 read-only OAuth; the copilot tool loop + capability catalog; the IterResearch +
-Heavy-mode harness *with its existing wall guards*; the deterministic typed-block
+Heavy-mode harness _with its existing wall guards_; the deterministic typed-block
 brief renderer; BYOK keychain flow; MCP-on-both-sides.
 
 **FLOOR (sacred, every commit).** §6.5 audit 9/9. Tier-1 LOCKED files byte-for-
@@ -40,19 +40,20 @@ to main, no version bump.
 
 **Verified live OpenRouter catalog (2026-06-03, per-1M tokens in/out):**
 
-| Slug | In/Out | Ctx | Thinking? | Note |
-|---|---|---|---|---|
-| `minimax/minimax-m3` | $0.30/$1.20 (promo; list $0.60/$2.40) | 1M | **No** | agentic/tool-use native, multimodal, BrowseComp 83.5 |
-| `qwen/qwen3.6-flash` | $0.1875/$1.125 | 1M | **No** | rock-bottom cost floor |
-| `moonshotai/kimi-k2.6` | $0.684/$3.42 | 262K | **No** | native sub-agent swarm, best OPEN BrowseComp 86.3 |
-| `deepseek/deepseek-v4-pro` | $0.435/$0.87 | 1M | **Yes (high/xhigh)** | MIT, value power option — cap reasoning |
-| `deepseek/deepseek-v4-flash` | $0.098/$0.197 | 1M | **Yes** | cheapest 1M ctx but **reasoning → hang risk** |
-| `qwen/qwen3.7-max` | $1.25/$3.75 | 1M | mixed | verified BFCL v4 #1 tool-caller (0.750) |
-| `qwen/qwen3.7-plus` | $0.40/$1.60 | 1M | mixed | cheaper agentic tool-caller |
+| Slug                         | In/Out                                | Ctx  | Thinking?            | Note                                                 |
+| ---------------------------- | ------------------------------------- | ---- | -------------------- | ---------------------------------------------------- |
+| `minimax/minimax-m3`         | $0.30/$1.20 (promo; list $0.60/$2.40) | 1M   | **No**               | agentic/tool-use native, multimodal, BrowseComp 83.5 |
+| `qwen/qwen3.6-flash`         | $0.1875/$1.125                        | 1M   | **No**               | rock-bottom cost floor                               |
+| `moonshotai/kimi-k2.6`       | $0.684/$3.42                          | 262K | **No**               | native sub-agent swarm, best OPEN BrowseComp 86.3    |
+| `deepseek/deepseek-v4-pro`   | $0.435/$0.87                          | 1M   | **Yes (high/xhigh)** | MIT, value power option — cap reasoning              |
+| `deepseek/deepseek-v4-flash` | $0.098/$0.197                         | 1M   | **Yes**              | cheapest 1M ctx but **reasoning → hang risk**        |
+| `qwen/qwen3.7-max`           | $1.25/$3.75                           | 1M   | mixed                | verified BFCL v4 #1 tool-caller (0.750)              |
+| `qwen/qwen3.7-plus`          | $0.40/$1.60                           | 1M   | mixed                | cheaper agentic tool-caller                          |
 
 **Decisions.**
+
 - **Keyless/low-cost DEFAULT → `minimax/minimax-m3`.** HARD RULE: the keyless
-  default MUST be a **non-thinking** model. The *current* default
+  default MUST be a **non-thinking** model. The _current_ default
   `deepseek-v4-flash` is a reasoning model — it reproduces the exact 8-min-hang
   class that killed Tongyi. Swap it. Floor alternative: `qwen/qwen3.6-flash`.
 - **POWER deep-research → `moonshotai/kimi-k2.6`** (native swarm maps onto Heavy
@@ -78,7 +79,7 @@ to `minimax/minimax-m3`. (b) Add a **three-tier wall envelope**: per-inner-LLM-
 call timeout ~25-30s (below the 60s call cap) on plan/distill/reflect/extract, so
 one slow "thinking" call can't eat a 90s round; on inner timeout → treat as empty
 completion (loop already degrades). (c) **Non-thinking guard:** when a user swaps
-in a reasoning model (deepseek-v4-*, qwen3.6-max-preview), keep the BudgetGuard
+in a reasoning model (deepseek-v4-\*, qwen3.6-max-preview), keep the BudgetGuard
 step/wall ceiling tight so it can't hang. (d) Surface which coverage dimension was
 thin on abort in `brief.note`.
 
@@ -98,7 +99,7 @@ as-is**. Add the high-leverage gaps:
   biggest credibility win. After the distilled report: extract load-bearing
   factual claims (esp. every **number**), generate a verification question per
   claim, answer each **independently** by re-pulling the SAME structured tools
-  *without showing the model its prior claim* (isolation kills confirmation bias),
+  _without showing the model its prior claim_ (isolation kills confirmation bias),
   then correct mismatches and **drop unverifiable numbers** rather than ship them.
   A distinct `ResearchStep('verify',…)`, **budget-gated** (skipped, not
   half-run, on breach → synthesize unverified with a note).
@@ -150,8 +151,8 @@ at nseindia.com from abroad; `jugaad-data` is EOD quote/OHLCV only. So:
    openbb-mcp and yfinance for region IN; an **"Add EODHD key"** empty state when
    India fundamentals are thin. Never silently dash.
 3. **True autocomplete:** `/autocomplete?q=` endpoint backed by `symbol_resolver`
-   + bundled masters (US + NSE/BSE), on-keystroke, <100ms for bundled, keeping the
-   0.72 disambiguation. Wire it into the symbol search box and `@`-mention.
+   - bundled masters (US + NSE/BSE), on-keystroke, <100ms for bundled, keeping the
+     0.72 disambiguation. Wire it into the symbol search box and `@`-mention.
 4. **Correctness gate** extended to flag all-null India fundamentals (not just
    symbol-mismatch/staleness). **Provider + freshness badges** on
    `EquityOverviewPanel` (`Quote.provider`/`Fundamentals.provider` +
@@ -174,7 +175,7 @@ good. Rebuild the chrome and fix the 5 pinned bugs (`ChatSidebar.tsx`):
 - **Composer = one compound input.** Full-width text area; **mode pill**
   (Quick / Deep / Manual mapping to existing agent/deep-research/edit) on the
   left; **model picker chip** on the right; attachment + slash trigger between.
-  An **autonomy badge (ASK / AUTO)** as a colored pill *above* the input (green =
+  An **autonomy badge (ASK / AUTO)** as a colored pill _above_ the input (green =
   AUTO, amber = ASK) — never a checkbox buried in settings; never ambiguous.
   **Deep Research is a toggle button** in the composer (Perplexity pattern), not a
   jargon slash a normal user won't find.
@@ -182,7 +183,7 @@ good. Rebuild the chrome and fix the 5 pinned bugs (`ChatSidebar.tsx`):
   handshake so picker-accept is synchronous and, when no picker is open, Enter
   always submits exactly once (no double-send, no swallow).
 - **Bug 2 — phantom permission bar** (`:370-386`): build the statusLine message
-  from the autonomy state *at enqueue time*; **clear statusLine on autonomy
+  from the autonomy state _at enqueue time_; **clear statusLine on autonomy
   toggle and on pending-change resolution** (add the effect hook that's missing).
   AUTO vs ASK must be correct and unambiguous; never claim "proposed in the
   permission bar" when nothing is pending.
@@ -242,6 +243,7 @@ zero-churn rule — only hexes change.
 
 Renderer already does typed blocks + GFM table parse + clickable `$CASHTAG` chips
 → chart (`brief-blocks.tsx`). Add:
+
 - **Real screener-grade tables**: add a `screener` leg to the FAST fan-out
   (`fast.py`) + extend `BriefStructured` (`types/brief.ts`) with `analyst`,
   `earnings`, `screener` legs → native `TableBlock`s (the sidecar already has
@@ -262,6 +264,7 @@ Renderer already does typed blocks + GFM table parse + clickable `$CASHTAG` chip
 
 Screener is a functional **island** (AND-only, 13 numeric fields, no drill-down).
 Build to screener.in grade:
+
 - **Cockpit drill-down (highest-value gap):** row `onClick` → `panel-context` bus
   (`source='screener'`) → chart + equity-overview switch symbol. <200ms perceived.
 - **Expose filtered-but-hidden fields** in result rows (forward_pe, peg, p/b, div
@@ -281,6 +284,7 @@ Build to screener.in grade:
 ## 8. Workspace / OS-for-finance (Pillar: workspace)
 
 Named workspaces already exist (save/load/delete via cmd+K). Add:
+
 - **Per-stock research spaces**: optional `ticker` on `SerializedWorkspace` +
   "New Research Space for [TICKER]" (applies research-cockpit + loads ticker;
   saved `research-[TICKER]`); group/badge in the dialog.
@@ -305,6 +309,7 @@ Named workspaces already exist (save/load/delete via cmd+K). Add:
 **Sequence** (lead-authored, coherent commits; agents used for read-only
 diagnosis, isolated artifact generation, and review — never teammate writes into
 the lead tree, per the contamination rule):
+
 1. **Visual tokens + type + motion + wordmark** (mechanical, unblocks every
    surface looking right; fast).
 2. **Data depth** (foundational — research/screener are worthless on thin data):
@@ -320,22 +325,23 @@ the lead tree, per the contamination rule):
 
 **Failure mode → prevention:**
 
-| Surface | Failure mode | Prevention baked in |
-|---|---|---|
-| Composer | Enter doesn't send / double-sends | synchronous picker-accept + single-fire submit; E2E test |
-| Permission bar | phantom "proposed…" when nothing pending | message built at enqueue; cleared on autonomy toggle + resolution |
-| Slash/mention | clipped off-screen | viewport-aware flip + max-w; opens upward; ≤8 items |
-| Symbol | wrong-stock / dead-end on ambiguity | `needs_disambiguation` → agent asks a clarifying question |
-| Stock page | all dashes / `-88.58` | region-gated fundamentals, normalization fix, reason-not-dash, provenance badge |
-| Search | no autocomplete | `/autocomplete` on-keystroke, bundled masters + live fallback |
-| Research | model hangs 8+ min | non-thinking default + 3-tier wall envelope + BudgetGuard |
-| Research | wrong numbers shipped | CoVe verify pass (independent re-pull), drop unverifiable |
-| Brief | cross-symbol metric contamination | key structured carry-over by symbol, not 120s recency |
-| Screener | island, can't act on results | row-click → panel-context bus → cockpit |
-| Data | synthetic/stale shown as live | provenance + freshness badges; correctness gate; labels |
+| Surface        | Failure mode                             | Prevention baked in                                                             |
+| -------------- | ---------------------------------------- | ------------------------------------------------------------------------------- |
+| Composer       | Enter doesn't send / double-sends        | synchronous picker-accept + single-fire submit; E2E test                        |
+| Permission bar | phantom "proposed…" when nothing pending | message built at enqueue; cleared on autonomy toggle + resolution               |
+| Slash/mention  | clipped off-screen                       | viewport-aware flip + max-w; opens upward; ≤8 items                             |
+| Symbol         | wrong-stock / dead-end on ambiguity      | `needs_disambiguation` → agent asks a clarifying question                       |
+| Stock page     | all dashes / `-88.58`                    | region-gated fundamentals, normalization fix, reason-not-dash, provenance badge |
+| Search         | no autocomplete                          | `/autocomplete` on-keystroke, bundled masters + live fallback                   |
+| Research       | model hangs 8+ min                       | non-thinking default + 3-tier wall envelope + BudgetGuard                       |
+| Research       | wrong numbers shipped                    | CoVe verify pass (independent re-pull), drop unverifiable                       |
+| Brief          | cross-symbol metric contamination        | key structured carry-over by symbol, not 120s recency                           |
+| Screener       | island, can't act on results             | row-click → panel-context bus → cockpit                                         |
+| Data           | synthetic/stale shown as live            | provenance + freshness badges; correctness gate; labels                         |
 
 **Open questions for the operator (batched; Tier-4 / taste only — everything else
 decided autonomously):**
+
 1. Wordmark: **"Vysted"** title-case (picked) vs lowercase "vysted" (softer,
    Arc/Perplexity energy). I shipped title-case; trivially swappable.
 2. India screener-grade fundamentals depend on **EODHD BYOK (paid ~€60/mo)** —
