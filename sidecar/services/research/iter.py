@@ -46,6 +46,7 @@ from services.research.deep import (
     _record_structured,
     _record_web,
     _reflect_says_complete,
+    _round_wall_limit,
     _run_researcher,
     _safe_llm,
     _safe_tool,
@@ -242,12 +243,14 @@ async def run_iter_research(
             note=reason,
         )
 
-    while True:
-        # --- top-of-round budget gate: FIRST breach => abort→synthesize -------
-        reason = budget.breach()
-        if reason is not None:
-            return await abort_synthesize(reason)
-        budget.record(None, _ROUND_MODEL, _ROUND_PROVIDER)
+    async def _run_round() -> bool:
+        """One iter round: reconstruct workspace → plan → researchers → distill →
+        reflect. Returns True when coverage is met AND reflect says complete.
+
+        Extracted so the round runs under a per-round ``asyncio.timeout`` guard (a
+        single slow round can't outlive the wall budget) while still mutating the
+        shared ``report``/``findings``/``steps`` accumulators in place."""
+        nonlocal last_round_findings
         report.round += 1
 
         # --- RECONSTRUCT WORKSPACE: plan from {report + latest evidence} ------
@@ -364,7 +367,29 @@ async def run_iter_research(
         await _emit(on_step, reflect_step)
 
         # Coverage FLOOR: every dimension needs >=1 source before "complete".
-        if _coverage_met(findings.coverage) and _reflect_says_complete(reflect_text):
+        return _coverage_met(findings.coverage) and _reflect_says_complete(reflect_text)
+
+    while True:
+        # --- top-of-round budget gate: FIRST breach => abort→synthesize -------
+        reason = budget.breach()
+        if reason is not None:
+            return await abort_synthesize(reason)
+        budget.record(None, _ROUND_MODEL, _ROUND_PROVIDER)
+
+        # --- per-round wall guard --------------------------------------------
+        # Bound EACH round so one slow "thinking"-model round can't blow the wall
+        # budget (the run-level breach is only checked at the TOP of a round, and
+        # this foreground path has no outer asyncio.timeout). On overrun, abort→
+        # synthesize from whatever was distilled so far (never a bare timeout).
+        limit = _round_wall_limit(budget)
+        try:
+            async with asyncio.timeout(limit):
+                done = await _run_round()
+        except TimeoutError:
+            return await abort_synthesize(
+                f"per-round wall-clock guard: round exceeded {limit:.0f}s"
+            )
+        if done:
             break
 
     # --- clean completion: synthesize from the evolving report --------------

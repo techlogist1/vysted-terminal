@@ -94,6 +94,33 @@ def test_iter_returns_brief_mode_deep() -> None:
     assert brief.source_count >= 1
 
 
+def test_iter_per_round_wall_guard_aborts_not_hangs() -> None:
+    """The slow-fallback fix: a round whose LLM calls outlive the wall slice is
+    cut by the per-round ``asyncio.timeout`` guard and aborts→synthesizes — the
+    run STILL returns a brief (never the 8-minutes-unfinished hang)."""
+
+    class SlowLLM:
+        async def __call__(self, messages: list[dict[str, Any]]) -> str:
+            # Much longer than the tiny per-round wall slice below (a stand-in for
+            # a heavy "thinking" model streaming for minutes).
+            await asyncio.sleep(0.3)
+            return "x"
+
+    # A small-but-nonzero wall budget: the round-1 top-of-round breach passes
+    # (~0s elapsed), then the per-round guard fires inside the first LLM call.
+    brief = _run(
+        run_iter_research(
+            "research NVDA",
+            tool_call=fake_tool,
+            llm_call=SlowLLM(),
+            budget=BudgetGuard(max_wall_seconds=0.05),
+        )
+    )
+    assert isinstance(brief, ResearchBrief)
+    assert brief.markdown.strip()  # abort→synthesize still ships a brief
+    assert brief.note is not None and "wall-clock guard" in brief.note
+
+
 def test_iter_context_is_reconstructed_not_appended() -> None:
     """The KEY IterResearch property: a later round's plan context carries the
     distilled report + only the latest round's evidence — NOT the full history."""

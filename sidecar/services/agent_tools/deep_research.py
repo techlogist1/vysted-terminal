@@ -28,6 +28,15 @@ from services.agent_tools import register_tool
 #: the BudgetGuard step ceiling alongside ``rounds`` below.
 _MAX_RESEARCHERS = 3
 
+#: Per-LLM-call wall-clock cap (seconds) for the research loop. An LLM adapter
+#: carries no per-stream timeout, so without this a slow "thinking" model could
+#: stall ONE plan/distill/reflect/synthesis call for minutes (the cause of the
+#: 8-minutes-unfinished bug). 60s is generous for a real completion yet bounds a
+#: hang; the per-ROUND guard in deep/iter is the authoritative wall enforcement,
+#: this is defense-in-depth at the single-call layer. On timeout the loop gets the
+#: partial text and degrades gracefully.
+_LLM_CALL_TIMEOUT_SECS = 60.0
+
 #: ``angles`` at or above this triggers Heavy mode (the expert panel). Below it,
 #: the single-agent loop runs. ``_MAX_ANGLES`` caps the panel width. Kept in
 #: lockstep with ``iter._MIN_ANGLES`` / ``iter._MAX_ANGLES``.
@@ -166,7 +175,9 @@ async def _run_tongyi(
         )
 
     async def llm_call(messages: list[dict[str, Any]]) -> str:
-        return await oneshot.complete("openrouter", model, api_key, messages)
+        return await oneshot.complete(
+            "openrouter", model, api_key, messages, timeout=_LLM_CALL_TIMEOUT_SECS
+        )
 
     brief = await _run_loop(
         mode=mode, angles=angles, query=query, llm_call=llm_call, rounds=rounds, wall=wall
@@ -257,7 +268,9 @@ async def _run_native(query: str, rounds: int, wall: int, mode: str, angles: int
     _emit_backend_step(_engine_label(provider, model, mode, angles))
 
     async def llm_call(messages: list[dict[str, Any]]) -> str:
-        return await oneshot.complete(provider, model, key, messages)
+        return await oneshot.complete(
+            provider, model, key, messages, timeout=_LLM_CALL_TIMEOUT_SECS
+        )
 
     brief = await _run_loop(
         mode=mode, angles=angles, query=query, llm_call=llm_call, rounds=rounds, wall=wall

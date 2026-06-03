@@ -326,9 +326,15 @@ def test_deep_research_native_llm_call_proxies_oneshot(
     monkeypatch.setattr(config, "get_llm_creds", lambda: ("openai", "gpt-x", "sk-key"))
     captured: dict[str, Any] = {}
 
-    async def _fake_complete(provider, model, api_key, messages):  # noqa: ANN001
+    async def _fake_complete(provider, model, api_key, messages, *, timeout=None):  # noqa: ANN001
         captured.update(
-            {"provider": provider, "model": model, "api_key": api_key, "messages": messages}
+            {
+                "provider": provider,
+                "model": model,
+                "api_key": api_key,
+                "messages": messages,
+                "timeout": timeout,
+            }
         )
         return "joined-completion"
 
@@ -343,6 +349,8 @@ def test_deep_research_native_llm_call_proxies_oneshot(
     assert captured["model"] == "gpt-x"
     assert captured["api_key"] == "sk-key"
     assert captured["messages"] == [{"role": "user", "content": "hi"}]
+    # The per-call wall-clock cap is wired (so one slow round can't run unbounded).
+    assert isinstance(captured["timeout"], (int, float)) and captured["timeout"] > 0
 
 
 # ---------------------------------------------------------------------------

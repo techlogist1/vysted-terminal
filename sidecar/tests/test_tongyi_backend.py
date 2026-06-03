@@ -110,7 +110,7 @@ async def test_run_tongyi_reuses_openrouter_creds_and_runs_the_deep_loop(
     monkeypatch.setattr(config, "get_step_sink", lambda: None)
 
     async def _fake_resolve(_key: str, *, client=None) -> str:  # noqa: ANN001
-        return "qwen/qwen3-30b-a3b-thinking-2507"
+        return "qwen/qwen3-coder-30b-a3b-instruct"
 
     monkeypatch.setattr(tongyi, "resolve_model", _fake_resolve)
 
@@ -131,7 +131,7 @@ async def test_run_tongyi_reuses_openrouter_creds_and_runs_the_deep_loop(
     out = await deep_research._run_tongyi("research NVDA", None, 2, 60)
     assert out["ok"] is True
     assert out["backend"] == "tongyi"
-    assert out["model"] == "qwen/qwen3-30b-a3b-thinking-2507"
+    assert out["model"] == "qwen/qwen3-coder-30b-a3b-instruct"
     assert "Tongyi" in out["provenance"]
     assert out["cost_estimate_usd"] > 0
     assert captured["query"] == "research NVDA"

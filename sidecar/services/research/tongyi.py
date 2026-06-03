@@ -15,8 +15,9 @@ Two reality checks baked in (FINDINGS §2.4, verified against the live OpenRoute
   provider). So the model is **runtime-probed by a real minimal completion** (NOT the
   ``/endpoints`` listing, which lags and is account-scoped): a 200 with a `choices`
   payload → use it; a 404/error → fall back to the closest live A3B analog
-  (``qwen/qwen3-30b-a3b-thinking-2507``), then the strongest live agentic Qwen. The
-  brief's provenance always names the model actually used, and the probe flips to
+  (``qwen/qwen3-coder-30b-a3b-instruct`` — a NON-thinking instruct model, so it
+  won't stall the loop with long reasoning streams), then the strongest live
+  agentic Qwen. The brief's provenance always names the model actually used, and the probe flips to
   Tongyi automatically the instant a provider serves it again.
 - It is **opt-in + BYOK** (an OpenRouter key) and **never auto-selected** — the
   handler only reaches it on an explicit ``backend == "tongyi"`` with a key
@@ -36,8 +37,14 @@ OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 TONGYI_SLUG = "alibaba/tongyi-deepresearch-30b-a3b"
 
 #: Live, tool-capable fallbacks in preference order (closest A3B analog first).
+#: Leads with the NON-THINKING instruct A3B: it's the closest live analog to the
+#: unrouted Tongyi-DeepResearch-30B-A3B and, unlike a "thinking" variant, it does
+#: NOT emit long reasoning streams that stall a multi-round research loop (the
+#: 8-minutes-unfinished bug). ``resolve_model`` returns ``FALLBACK_SLUGS[0]`` on a
+#: probe miss, so the first entry is the one that actually runs.
 FALLBACK_SLUGS: tuple[str, ...] = (
-    "qwen/qwen3-30b-a3b-thinking-2507",
+    "qwen/qwen3-coder-30b-a3b-instruct",
+    "qwen/qwen3-30b-a3b",
     "qwen/qwen3-235b-a22b-thinking-2507",
 )
 

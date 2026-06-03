@@ -56,6 +56,29 @@ _COVERAGE_DIMS = ("price", "fundamentals", "news", "web")
 _ROUND_MODEL = "research-deep"
 _ROUND_PROVIDER = "research"
 
+#: Hard per-round wall-clock cap (seconds). Even with run-level wall budget left,
+#: a SINGLE round (plan → parallel researchers → compress/distill → reflect) may
+#: not run longer than this. The run-level ``budget.breach()`` is only checked at
+#: the TOP of each round, so before this guard a single slow "thinking"-model
+#: round could stream for minutes uninterrupted (the "8-minutes-unfinished" bug).
+#: On overrun the round aborts→synthesizes (never a bare timeout — the SC-008
+#: invariant), preserving the partial brief gathered so far.
+_PER_ROUND_WALL_SECS = 90.0
+
+
+def _round_wall_limit(budget: BudgetGuard) -> float:
+    """Seconds the CURRENT round may run before the per-round guard fires.
+
+    The per-round cap (:data:`_PER_ROUND_WALL_SECS`), further bounded by the run's
+    remaining wall budget so a round can never outlive the wall ceiling. Always a
+    finite, non-negative number (even with no wall budget the per-round cap
+    applies), so ``asyncio.timeout`` is never a silent no-op for a research round.
+    """
+    limit = _PER_ROUND_WALL_SECS
+    if budget.max_wall_seconds is not None:
+        limit = min(limit, budget.max_wall_seconds - budget.wall_seconds())
+    return max(limit, 0.0)
+
 
 async def _emit(on_step: OnStep | None, step: ResearchStep) -> None:
     """Send one step to the sink, awaiting it if it's a coroutine, swallowing
@@ -413,18 +436,14 @@ async def run_deep_research(
             note=reason,
         )
 
-    open_questions: list[str] = []
+    async def _run_round() -> bool:
+        """One DEEP round: plan → parallel researchers → compress → reflect.
 
-    while True:
-        # --- top-of-round budget gate: FIRST breach => abort→synthesize -------
-        reason = budget.breach()
-        if reason is not None:
-            return await abort_synthesize(reason)
-
-        # Each round counts as one step so the step ceiling advances. No usage at
-        # this layer — pass None; the lead's handler wires real usage if it has it.
-        budget.record(None, _ROUND_MODEL, _ROUND_PROVIDER)
-
+        Returns True when the coverage floor is met AND reflect says complete.
+        Extracted so the round can run under a per-round ``asyncio.timeout`` guard
+        (a single slow round can't outlive the wall budget) while still mutating
+        the shared ``findings``/``steps`` accumulators in place.
+        """
         # --- plan: what's unanswered? -> sub-questions ------------------------
         t0 = time.monotonic()
         plan_text = await _safe_llm(
@@ -539,8 +558,33 @@ async def run_deep_research(
         # Coverage FLOOR: reflect may only declare complete once every dimension
         # (price/fundamentals/news/web) has >=1 source. Under-covered runs keep
         # going (bounded by the budget) regardless of what the model said.
-        coverage_floor = _coverage_met(findings.coverage)
-        if coverage_floor and _reflect_says_complete(reflect_text):
+        return _coverage_met(findings.coverage) and _reflect_says_complete(reflect_text)
+
+    while True:
+        # --- top-of-round budget gate: FIRST breach => abort→synthesize -------
+        reason = budget.breach()
+        if reason is not None:
+            return await abort_synthesize(reason)
+
+        # Each round counts as one step so the step ceiling advances. No usage at
+        # this layer — pass None; the lead's handler wires real usage if it has it.
+        budget.record(None, _ROUND_MODEL, _ROUND_PROVIDER)
+
+        # --- per-round wall guard --------------------------------------------
+        # The run-level wall budget is only checked at the TOP of a round, and the
+        # foreground deep_research path (unlike the Delegate path) has no outer
+        # asyncio.timeout — so a single slow "thinking"-model round could stream
+        # for minutes. Bound EACH round; on overrun abort→synthesize from whatever
+        # was gathered (never a bare timeout — SC-008).
+        limit = _round_wall_limit(budget)
+        try:
+            async with asyncio.timeout(limit):
+                done = await _run_round()
+        except TimeoutError:
+            return await abort_synthesize(
+                f"per-round wall-clock guard: round exceeded {limit:.0f}s"
+            )
+        if done:
             break
 
         # Otherwise re-enter the loop — the top-of-round budget gate decides

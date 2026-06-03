@@ -103,7 +103,17 @@ export const DEFAULT_STARTER_COCKPIT_PANEL_IDS: readonly string[] = [
 /** The immutable seed bundle — what a fresh install (or a reset) starts from. */
 export const DEFAULT_SETTINGS: Readonly<SettingsBundle> = Object.freeze<SettingsBundle>({
   defaultAgentId: null,
-  providerPreferenceOrder: ["anthropic", "openai", "gemini", "groq", "ollama", "deepseek", "xai"],
+  // OpenRouter first — the recommended one-key broker for every model (Track 4).
+  providerPreferenceOrder: [
+    "openrouter",
+    "anthropic",
+    "openai",
+    "gemini",
+    "groq",
+    "ollama",
+    "deepseek",
+    "xai",
+  ],
   paletteRecentsEnabled: true,
   paletteScopedToPanel: false,
   starterCockpitPanelIds: [...DEFAULT_STARTER_COCKPIT_PANEL_IDS],
