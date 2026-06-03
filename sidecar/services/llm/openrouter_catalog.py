@@ -11,8 +11,8 @@ Endpoint choice (verified against OpenRouter's docs + live API, JARVIS sprint):
 - With a key we hit ``GET /api/v1/models/user`` (``Authorization: Bearer``),
   which narrows the ~340-model public catalog to what the caller's account can
   actually route given its provider preferences / privacy / guardrails — the
-  right list for a BYOK user (e.g. an Amazon Bedrock integration). Without a key
-  we fall back to the public ``GET /api/v1/models`` (no auth, full catalog).
+  right list for a BYOK user. Without a key we fall back to the public
+  ``GET /api/v1/models`` (no auth, full catalog).
 - Tool-capability uses the server-side ``?supported_parameters=tools`` filter
   (it reflects actually-routable-with-tools endpoints, not just the advertised
   union array), with a per-model ``supported_parameters`` check as the fallback

@@ -34,6 +34,14 @@ from models.llm import (
 from .base import LLMProvider, LLMStreamEvent, is_chat_model
 from .native_search import openai_web_search_tool, xai_search_parameters
 
+#: OpenRouter provider slugs Vysted never routes through. Amazon Bedrock is
+#: excluded on every OpenRouter request so the terminal runs clean on OpenRouter's
+#: own credits / other providers rather than a (historically unreliable, billed-
+#: separately) account-level Bedrock BYOK integration. Sent as ``provider.ignore``
+#: (OpenRouter-specific; only openrouter instances reach the branch that uses it).
+#: A slug that no longer exists is a harmless no-op, never a routing break.
+_OPENROUTER_IGNORE_PROVIDERS = ["amazon-bedrock"]
+
 
 def _to_api_messages(messages: list[LLMMessage]) -> list[dict[str, Any]]:
     """Convert host messages to OpenAI chat-completions shape.
@@ -184,7 +192,10 @@ class OpenAIProvider(LLMProvider):
         # breaks). Sent as ``extra_body.provider`` (OpenRouter-specific; ignored
         # by vanilla OpenAI, but only openrouter instances reach this branch).
         if self._provider_id == "openrouter":
-            or_provider: dict[str, Any] = {"sort": "price"}
+            or_provider: dict[str, Any] = {
+                "sort": "price",
+                "ignore": list(_OPENROUTER_IGNORE_PROVIDERS),
+            }
             if tools:
                 or_provider["require_parameters"] = True
             request_kwargs["extra_body"] = {

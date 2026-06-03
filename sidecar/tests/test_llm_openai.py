@@ -326,6 +326,9 @@ async def test_openrouter_sends_attribution_headers_and_cheapest_capable_routing
     provider_block = kwargs["extra_body"]["provider"]
     assert provider_block["sort"] == "price"
     assert provider_block["require_parameters"] is True
+    # Run clean on OpenRouter's own credits — never an account-level Amazon Bedrock
+    # BYOK integration (Track 4: drop Bedrock).
+    assert "amazon-bedrock" in provider_block["ignore"]
 
 
 def test_plain_openai_sends_no_attribution_headers_or_routing(
