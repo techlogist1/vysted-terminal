@@ -104,7 +104,7 @@ function AutonomyToggle() {
             : "Ask: every proposed change waits for your accept in the diff gate."
         }
       >
-        {autonomy === "auto" ? "applies UI changes without asking" : "review every change"}
+        {autonomy === "auto" ? "auto-applies UI · orders always ask" : "review every change"}
       </span>
     </div>
   );
@@ -380,7 +380,12 @@ export function ChatSidebar() {
       });
       const change = useProposedChangesStore.getState().changes.find((c) => c.id === id);
       const applied = useAgentAutonomyStore.getState().autonomy === "auto";
-      setStatusLine(change ? `${change.title} — ${applied ? "applied" : "review below"}` : null);
+      // In AUTO the change auto-applied (it's already gone from `changes`) → a brief
+      // past-tense confirmation. In ASK the ProposedChangesReview panel below is the
+      // single source of truth for what's pending — we DON'T set a second
+      // "review below" status line that lingers after the change is resolved (the
+      // phantom "proposed in the permission bar" bug). Clear any prior line either way.
+      setStatusLine(applied ? `Applied: ${change?.title ?? name}` : null);
     },
     [enqueueChange],
   );
@@ -691,7 +696,14 @@ export function ChatSidebar() {
             if (name === "publish_brief") {
               markBriefPublished(assistantId);
             } else {
-              appendToolStep(assistantId, `Proposed: ${change?.title ?? name} — review below`);
+              // Reflect the ACTUAL autonomy: AUTO auto-applied (no "review below"
+              // phantom), ASK queued it for the diff gate below.
+              const auto = useAgentAutonomyStore.getState().autonomy === "auto";
+              const title = change?.title ?? name;
+              appendToolStep(
+                assistantId,
+                auto ? `Applied: ${title}` : `Proposed: ${title} — review below`,
+              );
             }
           } else if (name === "deep_research" || name === "research") {
             // Track A: the live ResearchActivity surface (fed by onResearchStep)
@@ -773,10 +785,6 @@ export function ChatSidebar() {
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
-      <header className="border-charcoal-700 flex items-center gap-2 border-b px-3 py-2">
-        <Sparkles className="text-amber-400" size={14} aria-hidden />
-        <span className="text-charcoal-200 font-mono text-xs font-medium">Agent</span>
-      </header>
       <ModeBar mode={mode} onChange={setMode} />
       <RosterStrip
         firstParty={firstPartyAgents}
@@ -1213,14 +1221,24 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
         setDismissedAt(value);
         return;
       }
+      return;
     }
-    // No picker open: Enter submits via the form's onSubmit (default behaviour).
+    // No picker open: submit on Enter EXPLICITLY. Don't rely on the form's default
+    // Enter-submit — with a React-controlled input + the picker state machine it
+    // was unreliable (the enter-to-send bug). Shift+Enter is reserved (no submit)
+    // for a future multi-line composer.
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      if (!disabled && value.trim()) {
+        onSend(value);
+      }
+    }
   }
 
   return (
     <div className="relative">
       {pickerOpen && (
-        <div className="absolute right-0 bottom-full left-0 mb-1 px-2">
+        <div className="absolute right-0 bottom-full left-0 mb-1 max-h-[min(18rem,45vh)] overflow-y-auto px-2">
           {showSlash ? (
             <SlashCommandPicker
               matches={slash.matches}
