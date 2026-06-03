@@ -132,6 +132,55 @@ function agentProviderPreference(
   return agent.defaultProvider as LLMProviderId | undefined;
 }
 
+/** First N sentences of a reply, for the collapsed "short chat" view (Track 3). */
+function firstSentences(text: string, max = 2): string {
+  const trimmed = text.trim();
+  const parts = trimmed.split(/(?<=[.!?])\s+/);
+  return parts.length <= max ? trimmed : parts.slice(0, max).join(" ").trim();
+}
+
+/**
+ * Assistant reply body. When this turn published a research brief (Track 3), the
+ * depth lives in the rendered brief — so a long reply collapses to its first
+ * couple of sentences with a "show full analysis" toggle, killing the wall of
+ * markdown the chat used to dump. Streaming (pending) and short replies always
+ * render in full.
+ */
+function MessageBody({
+  content,
+  pending,
+  briefPublished,
+}: {
+  content: string;
+  pending?: boolean;
+  briefPublished?: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = content.trim().length > 200;
+  const collapsible = Boolean(briefPublished) && !pending && isLong;
+  const collapsed = collapsible && !expanded;
+  const shown = collapsed ? firstSentences(content) : content;
+  return (
+    <div className="whitespace-pre-wrap">
+      {shown}
+      {pending && (
+        <span className="text-charcoal-400 animate-pulse" aria-hidden>
+          ▋
+        </span>
+      )}
+      {collapsible && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="text-charcoal-400 ml-1.5 align-baseline text-[0.65rem] underline transition-colors hover:text-amber-300"
+        >
+          {collapsed ? "show full analysis" : "show less"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 /** A short chip label for a READ tool (read tools already ran server-side, so we
  *  only narrate them — mutations are intercepted into the diff gate, not here). */
 function readToolLabel(name: string): string {
@@ -167,6 +216,7 @@ export function ChatSidebar() {
   const appendToolStep = useChatHistoryStore((state) => state.appendToolStep);
   const appendResearchStep = useChatHistoryStore((state) => state.appendResearchStep);
   const setPlan = useChatHistoryStore((state) => state.setPlan);
+  const markBriefPublished = useChatHistoryStore((state) => state.markBriefPublished);
   const finalize = useChatHistoryStore((state) => state.finalizeAssistantMessage);
   const fail = useChatHistoryStore((state) => state.failAssistantMessage);
   const clearHistory = useChatHistoryStore((state) => state.clear);
@@ -597,7 +647,14 @@ export function ChatSidebar() {
               agentName,
             });
             const change = useProposedChangesStore.getState().changes.find((c) => c.id === id);
-            appendToolStep(assistantId, `Proposed: ${change?.title ?? name} — review below`);
+            // Track 3: a brief published this turn (model-issued OR the runtime's
+            // synthetic auto-publish) means the depth lives in the rendered brief
+            // — collapse the chat essay to a short pointer.
+            if (name === "publish_brief") {
+              markBriefPublished(assistantId);
+            } else {
+              appendToolStep(assistantId, `Proposed: ${change?.title ?? name} — review below`);
+            }
           } else if (name === "deep_research" || name === "research") {
             // Track A: the live ResearchActivity surface (fed by onResearchStep)
             // replaces the generic "Using …" one-liner for research tools, so the
@@ -652,6 +709,7 @@ export function ChatSidebar() {
       appendToolStep,
       appendResearchStep,
       setPlan,
+      markBriefPublished,
       appendUser,
       agentNameById,
       beginAssistant,
@@ -790,14 +848,11 @@ export function ChatSidebar() {
                     ))}
                   </ul>
                 )}
-                <div className="whitespace-pre-wrap">
-                  {message.content}
-                  {message.pending && (
-                    <span className="text-charcoal-400 animate-pulse" aria-hidden>
-                      ▋
-                    </span>
-                  )}
-                </div>
+                <MessageBody
+                  content={message.content}
+                  pending={message.pending}
+                  briefPublished={message.briefPublished}
+                />
                 {message.error && (
                   <div className="mt-1 flex items-center gap-2 text-[0.65rem]">
                     <span className="text-negative">Something went wrong — {message.error}</span>

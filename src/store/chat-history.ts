@@ -60,6 +60,11 @@ export interface ChatMessage {
   /** The visible plan for a compound request (Track 6 #2), shown before the
    *  steps execute. Advisory — staged host-actions ride the diff/accept gate. */
   plan?: AgentPlanView;
+  /** Set when this turn published a research brief to the brief panel (Track 3).
+   *  The depth lives in the rendered brief, so the chat reply collapses to a
+   *  short summary (with a "show full analysis" toggle) instead of a wall of
+   *  markdown. */
+  briefPublished?: boolean;
   createdAt: number;
 }
 
@@ -84,6 +89,7 @@ interface ChatHistoryState {
   appendToolStep: (id: string, step: string) => void;
   appendResearchStep: (id: string, step: ResearchStepView) => void;
   setPlan: (id: string, plan: AgentPlanView) => void;
+  markBriefPublished: (id: string) => void;
   finalizeAssistantMessage: (id: string, usage?: LLMUsage | null) => void;
   failAssistantMessage: (id: string, error: string) => void;
   clear: () => void;
@@ -159,6 +165,12 @@ export const useChatHistoryStore = create<ChatHistoryState>((set) => ({
     set((state) => ({
       messages: state.messages.map((message) =>
         message.id === id ? { ...message, plan } : message,
+      ),
+    })),
+  markBriefPublished: (id) =>
+    set((state) => ({
+      messages: state.messages.map((message) =>
+        message.id === id ? { ...message, briefPublished: true } : message,
       ),
     })),
   finalizeAssistantMessage: (id, usage) =>

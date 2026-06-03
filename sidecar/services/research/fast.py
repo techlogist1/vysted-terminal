@@ -166,6 +166,25 @@ def _structured_value(result: dict[str, Any], payload_key: str) -> dict[str, Any
     return value
 
 
+async def snapshot_structured(tool_call: ToolCall, symbol: str) -> dict[str, Any]:
+    """A price + fundamentals snapshot as provenance-tagged structured legs.
+
+    Shared by the FAST bundle and the DEEP/iter briefs so BOTH back the frontend
+    metric cards from the same uniform ``{ok, provider, data}`` shape. Each leg is
+    pre-wrapped (a single provider failure surfaces as ``ok: False`` in that slot,
+    never a crash), so this never raises — an empty/failed leg simply renders no
+    card.
+    """
+    price_res, fund_res = await asyncio.gather(
+        _safe_call(tool_call, "price_data", {"symbol": symbol}),
+        _safe_call(tool_call, "fundamentals", {"symbol": symbol}),
+    )
+    return {
+        "price": _structured_value(price_res, "quote"),
+        "fundamentals": _structured_value(fund_res, "fundamentals"),
+    }
+
+
 async def gather_fast(
     query: str,
     *,
@@ -282,4 +301,4 @@ async def gather_fast(
     }
 
 
-__all__ = ["ToolCall", "gather_fast"]
+__all__ = ["ToolCall", "gather_fast", "snapshot_structured"]

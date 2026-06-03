@@ -320,6 +320,9 @@ _MAX_TOOL_ROUNDS = 6
 #: cap-reached message instead of dispatching).
 _WEB_SEARCH_CAP = 5
 
+#: Research tools whose result the runtime auto-publishes to the brief panel.
+_RESEARCH_TOOLS = ("research", "deep_research")
+
 
 LocalToolHandler = Any  # async (dict) -> dict, bound per-invocation
 
@@ -437,6 +440,50 @@ async def _dispatch_tool_with_progress(
         yield _ToolDone(await task)
     finally:
         config.reset_step_sink(token)
+
+
+def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolUseEvent | None:
+    """Build a synthetic ``publish_brief`` host-action from a research result.
+
+    The full :class:`ResearchBrief` (markdown + sources + the ``structured``
+    bundle that backs the metric cards) is serialised into ``result_str`` — but
+    only the MODEL sees it; a weak local model may never call ``publish_brief``,
+    leaving the brief panel empty (the "research feels dead" failure). So the
+    runtime emits this synthetic ``tool_use`` deterministically after every
+    successful research round: it rides the SAME proposed-changes gate as a
+    model-issued publish (AUTO applies it, review queues it — never bypasses the
+    trust gate), and is idempotent with a model-issued publish (``setBrief``
+    replaces). Returns ``None`` on a malformed/failed result so a broken run
+    never half-publishes — the live research trace still animated.
+    """
+    try:
+        payload = json.loads(result_str)
+    except (json.JSONDecodeError, ValueError, TypeError):
+        return None
+    if not isinstance(payload, dict) or not payload.get("ok"):
+        return None
+    markdown = payload.get("markdown")
+    if not isinstance(markdown, str) or not markdown.strip():
+        return None
+    # Forward only the fields the publish_brief host-action consumes (snake_case,
+    # exactly as the frontend's briefFromInput reads them). web_available flows
+    # through verbatim so the honest "structured-data-only" banner survives.
+    brief_input: dict[str, Any] = {
+        "query": payload.get("query", ""),
+        "symbol": payload.get("symbol", ""),
+        "mode": payload.get("mode", "fast"),
+        "markdown": markdown,
+        "sources": payload.get("sources", []),
+        "structured": payload.get("structured"),
+        "cost": payload.get("cost"),
+        "web_available": payload.get("web_available", False),
+        "note": payload.get("note"),
+    }
+    return LLMToolUseEvent(
+        tool_call_id=f"{tool_call.tool_call_id}__autobrief",
+        name="publish_brief",
+        input=brief_input,
+    )
 
 
 def _build_local_tools(
@@ -714,6 +761,15 @@ async def invoke_agent(
                     metadata={"name": tool_call.name},
                 )
             )
+            # Auto-publish the brief deterministically (Track 3): the full brief
+            # is in result_str but only the model sees it. Emit a synthetic
+            # publish_brief so the panel ALWAYS renders — even when a weak model
+            # never calls it — riding the existing review/AUTO gate. The model is
+            # told (in its prompt) it need not publish; a duplicate is idempotent.
+            if tool_call.name in _RESEARCH_TOOLS:
+                auto_brief = _auto_publish_event(tool_call, result_str)
+                if auto_brief is not None:
+                    yield auto_brief
         rounds += 1
         if rounds >= _MAX_TOOL_ROUNDS:
             # Hit the cap — let the next provider stream finalise. The

@@ -950,6 +950,15 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                         "type": "string",
                         "description": "e.g. the honest no-web-search note.",
                     },
+                    "structured": {
+                        "type": "object",
+                        "description": (
+                            "The provenance-tagged structured bundle "
+                            "(price/fundamentals/news/filings) from the research result — "
+                            "pass it through verbatim so the panel renders native metric "
+                            "cards. Optional; omit if you have none."
+                        ),
+                    },
                 },
                 ["markdown"],
             ),

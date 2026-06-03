@@ -37,6 +37,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from services.budget_guard import BudgetGuard
+from services.research.fast import snapshot_structured
 from services.research.models import ResearchBrief, ResearchSource, ResearchStep
 
 #: Injected tool dispatcher — ``await tool_call(name, args) -> dict``.
@@ -388,6 +389,10 @@ async def run_deep_research(
     instrument = (resolved.get("resolved") or {}) if resolved.get("ok") else {}
     symbol = instrument.get("symbol") or query
     structured["resolved"] = resolved
+    # Snapshot price + fundamentals so a DEEP brief backs the same native metric
+    # cards as a FAST one (additive; a failed leg renders no card, never raises).
+    if resolved.get("ok"):
+        structured.update(await snapshot_structured(tool_call, symbol))
 
     async def abort_synthesize(reason: str) -> ResearchBrief:
         """Immediate abort→synthesis from whatever is gathered (never raises)."""

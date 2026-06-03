@@ -52,6 +52,7 @@ from services.research.deep import (
     _split_subquestions,
     _synthesize_brief,
 )
+from services.research.fast import snapshot_structured
 from services.research.models import ResearchBrief, ResearchSource, ResearchStep
 
 #: Hard cap on the rendered working report so the reconstructed context stays
@@ -211,6 +212,10 @@ async def run_iter_research(
     instrument = (resolved.get("resolved") or {}) if resolved.get("ok") else {}
     symbol = instrument.get("symbol") or query
     structured["resolved"] = resolved
+    # Snapshot price + fundamentals so an iter/Heavy brief backs the same native
+    # metric cards as a FAST one (additive; a failed leg renders no card).
+    if resolved.get("ok"):
+        structured.update(await snapshot_structured(tool_call, symbol))
 
     last_round_findings: list[str] = []
 
