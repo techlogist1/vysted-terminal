@@ -28,7 +28,7 @@ import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 
 import type { BrokerId, BrokerOrderProposal } from "../../types/broker";
-import type { BriefSource, BriefStep, ResearchBriefData } from "../../types/brief";
+import type { BriefSource, BriefStep, BriefStructured, ResearchBriefData } from "../../types/brief";
 import type { ProposedChangeKind } from "../../types/proposed-change";
 
 /** The catalog host-action tool ids (`kind="host_action"`, `read_only=false`). */
@@ -68,6 +68,14 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
       ? (input.cost as { tokens?: number; spendUsd?: number; spend_usd?: number })
       : undefined;
   const steps = Array.isArray(input.steps) ? (input.steps as BriefStep[]) : undefined;
+  // The provenance-tagged structured bundle (price/fundamentals/news/filings)
+  // backs the native metric cards. Passed through verbatim when present — it is
+  // non-secret research data, the same shape the sidecar's ResearchBrief emits.
+  // Absent on older briefs / structured-only runs → the panel renders no cards.
+  const structured =
+    typeof input.structured === "object" && input.structured !== null
+      ? (input.structured as BriefStructured)
+      : undefined;
   return {
     query: str(input, "query"),
     symbol: str(input, "symbol") || undefined,
@@ -79,8 +87,24 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
     webAvailable: input.web_available !== false,
     note: str(input, "note") || undefined,
     steps,
+    structured,
     createdAt: Date.now(),
   };
+}
+
+/**
+ * Load a symbol into the chart via the always-consumed chart-command channel —
+ * the shared path behind both the agent's `set_chart_symbol` host-action and a
+ * user clicking a ticker chip in the brief. Opens a chart first if none is on
+ * screen (so the command has a consumer), then commands it directly. Fit-aware:
+ * it retargets the EXISTING chart, never spawns a panel per call.
+ */
+export function loadSymbolIntoChart(symbol: string, timeframe?: string): void {
+  if (!symbol) {
+    return;
+  }
+  ensureChartOpen();
+  useChartCommandStore.getState().loadSymbol(symbol, timeframe || undefined);
 }
 
 /** The named arrange_layout templates (beyond the legacy default/focus patterns). */
@@ -320,13 +344,10 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
   switch (name) {
     case "set_chart_symbol":
       if (symbol) {
-        // Open a chart first if none is on screen, so the symbol command has a
-        // consumer — otherwise "open X chart" on an empty cockpit lands nowhere
-        // (the AUTO-mode "no panels open yet" failure). Then command the chart
-        // DIRECTLY (always-consumed channel), not the opt-in sync bus — the BUG-6 fix.
-        ensureChartOpen();
-        const tf = str(input, "timeframe");
-        useChartCommandStore.getState().loadSymbol(symbol, tf || undefined);
+        // Command the chart DIRECTLY (always-consumed channel), not the opt-in
+        // sync bus — the BUG-6 fix. The shared helper opens a chart first if the
+        // cockpit is empty (the AUTO-mode "no panels open yet" failure).
+        loadSymbolIntoChart(symbol, str(input, "timeframe"));
         return `Loaded ${symbol} into the chart`;
       }
       return null;

@@ -12,6 +12,45 @@
  * only non-secret research output (the BYOK web-search key is keychain-only).
  */
 
+import type { Fundamentals, Quote } from "./data";
+
+/**
+ * One leg of the research bundle's `structured` map — a provenance-tagged data
+ * pull (price / fundamentals / news / filings). Uniform shape so a consumer reads
+ * provenance the same way for every leg: `ok` + `provider` always, `data` when
+ * `ok`, `error` when not. `data`'s concrete shape depends on the leg.
+ */
+export interface BriefStructuredLeg<T = unknown> {
+  /** Whether this leg's pull succeeded. */
+  ok: boolean;
+  /** The serving provider (e.g. `yfinance`), for the FR-041 provenance badge. */
+  provider?: string | null;
+  /** The payload when `ok` (a `Quote` for price, `Fundamentals` for fundamentals, …). */
+  data?: T;
+  /** A short human reason when the leg failed. */
+  error?: string;
+}
+
+/**
+ * The research bundle's `structured` map — the real, provenance-tagged numbers
+ * behind the brief (price/fundamentals/news/filings), used to render native
+ * metric cards rather than re-parse them out of prose. Optional + every leg
+ * optional: a DEEP run may carry only `resolved`, a structured-only run may have
+ * empty legs. NEVER fabricated — an absent/`ok:false` leg renders nothing.
+ */
+export interface BriefStructured {
+  /** The symbol-resolution result (instrument identity). */
+  resolved?: unknown;
+  /** Latest quote leg. */
+  price?: BriefStructuredLeg<Quote>;
+  /** Valuation-ratios leg. */
+  fundamentals?: BriefStructuredLeg<Fundamentals>;
+  /** Recent-news leg. */
+  news?: BriefStructuredLeg;
+  /** Filings-index leg. */
+  filings?: BriefStructuredLeg;
+}
+
 /** One cited source behind an inline `[n]` chip in the brief body. */
 export interface BriefSource {
   /** Canonical URL of the source. */
@@ -88,6 +127,13 @@ export interface ResearchBriefData {
   note?: string;
   /** The dev-only research step trace, when the pipeline emitted one. */
   steps?: BriefStep[];
+  /**
+   * The provenance-tagged structured bundle (price/fundamentals/news/filings)
+   * the pipeline gathered, used to render native metric cards. Optional — older
+   * briefs and structured-only runs may omit it; an absent leg renders nothing
+   * (never fabricated).
+   */
+  structured?: BriefStructured;
   /** Epoch milliseconds the brief was produced. */
   createdAt: number;
 }

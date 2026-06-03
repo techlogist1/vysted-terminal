@@ -1,11 +1,12 @@
 "use client";
 
-import { Fragment, useCallback, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import { ChevronDown, ChevronRight, ExternalLink, FlaskConical, Globe } from "lucide-react";
 
 import type { BriefSource, BriefStep, ResearchBriefData } from "../../../types/brief";
 import { ProvenanceBadge, StalenessBadge } from "@/components/DataBadges";
 import { useBriefStore } from "@/store/brief";
+import { BriefBody } from "./brief-blocks";
 
 const IS_DEV = process.env.NODE_ENV !== "production";
 
@@ -33,155 +34,9 @@ function formatSpend(usd: number): string {
   return usd >= 1 ? `$${usd.toFixed(2)}` : `$${usd.toFixed(usd >= 0.01 ? 2 : 4)}`;
 }
 
-// --- minimal safe markdown -------------------------------------------------
-//
-// The repo ships no markdown library and we must NOT inject raw HTML, so the
-// brief body is rendered with a deliberately small, safe subset: headings,
-// bullet/ordered lists, paragraphs, and inline emphasis / code / `[n]` citation
-// chips. Everything is built from React nodes — there is no `dangerouslySet…`
-// anywhere, so a malicious source title or body can never inject markup.
-
-/** Split a line of inline markdown into bold / italic / code / citation / text spans. */
-function renderInline(text: string, onCite: (n: number) => void): ReactNode[] {
-  const nodes: ReactNode[] = [];
-  // One pass over a combined token regex keeps ordering correct across the
-  // different inline kinds. `[n]` citation markers get an interactive chip; the
-  // rest map to plain emphasis spans.
-  const pattern = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[(\d+)\])/g;
-  let last = 0;
-  let key = 0;
-  let match: RegExpExecArray | null;
-  while ((match = pattern.exec(text)) !== null) {
-    if (match.index > last) {
-      nodes.push(<Fragment key={key++}>{text.slice(last, match.index)}</Fragment>);
-    }
-    const token = match[0];
-    if (match[2] !== undefined) {
-      const n = Number(match[2]);
-      nodes.push(
-        <button
-          key={key++}
-          type="button"
-          onClick={() => onCite(n)}
-          className="mx-px inline-flex translate-y-[-1px] items-center rounded-[3px] bg-amber-600/20 px-1 align-baseline font-mono text-[10px] leading-tight text-amber-300 transition-colors hover:bg-amber-600/30 hover:text-amber-200 focus-visible:ring-1 focus-visible:ring-amber-400/60 focus-visible:outline-none"
-          aria-label={`Jump to source ${n}`}
-        >
-          {n}
-        </button>,
-      );
-    } else if (token.startsWith("**")) {
-      nodes.push(
-        <strong key={key++} className="text-lume font-semibold">
-          {token.slice(2, -2)}
-        </strong>,
-      );
-    } else if (token.startsWith("*")) {
-      nodes.push(
-        <em key={key++} className="text-charcoal-200 italic">
-          {token.slice(1, -1)}
-        </em>,
-      );
-    } else {
-      nodes.push(
-        <code
-          key={key++}
-          className="bg-charcoal-800 rounded-[3px] px-1 py-px font-mono text-[12px] text-amber-200"
-        >
-          {token.slice(1, -1)}
-        </code>,
-      );
-    }
-    last = pattern.lastIndex;
-  }
-  if (last < text.length) {
-    nodes.push(<Fragment key={key++}>{text.slice(last)}</Fragment>);
-  }
-  return nodes;
-}
-
-/** Render a markdown string into a safe React tree (no raw HTML injection). */
-function Markdown({ source, onCite }: { source: string; onCite: (n: number) => void }) {
-  const blocks = useMemo(() => {
-    const lines = source.replace(/\r\n/g, "\n").split("\n");
-    const out: ReactNode[] = [];
-    let list: { ordered: boolean; items: string[] } | null = null;
-    let key = 0;
-
-    const flushList = () => {
-      if (!list) {
-        return;
-      }
-      const current = list;
-      const ListTag = current.ordered ? "ol" : "ul";
-      out.push(
-        <ListTag
-          key={key++}
-          className={`text-charcoal-200 my-2 ml-5 flex flex-col gap-1 text-[13px] leading-relaxed ${
-            current.ordered ? "list-decimal" : "list-disc"
-          }`}
-        >
-          {current.items.map((item, i) => (
-            <li key={i} className="pl-1">
-              {renderInline(item, onCite)}
-            </li>
-          ))}
-        </ListTag>,
-      );
-      list = null;
-    };
-
-    for (const raw of lines) {
-      const line = raw.trimEnd();
-      const heading = /^(#{1,4})\s+(.*)$/.exec(line);
-      const bullet = /^[-*]\s+(.*)$/.exec(line);
-      const ordered = /^\d+\.\s+(.*)$/.exec(line);
-
-      if (heading) {
-        flushList();
-        const level = heading[1].length;
-        const sizes = ["text-base", "text-sm", "text-[13px]", "text-xs"];
-        out.push(
-          <p
-            key={key++}
-            className={`text-lume mt-3 mb-1 font-serif font-semibold first:mt-0 ${sizes[level - 1]}`}
-          >
-            {renderInline(heading[2], onCite)}
-          </p>,
-        );
-        continue;
-      }
-      if (bullet) {
-        if (!list || list.ordered) {
-          flushList();
-          list = { ordered: false, items: [] };
-        }
-        list.items.push(bullet[1]);
-        continue;
-      }
-      if (ordered) {
-        if (!list || !list.ordered) {
-          flushList();
-          list = { ordered: true, items: [] };
-        }
-        list.items.push(ordered[1]);
-        continue;
-      }
-      flushList();
-      if (line.trim() === "") {
-        continue;
-      }
-      out.push(
-        <p key={key++} className="text-charcoal-200 my-2 text-[13px] leading-relaxed">
-          {renderInline(line, onCite)}
-        </p>,
-      );
-    }
-    flushList();
-    return out;
-  }, [source, onCite]);
-
-  return <div className="font-sans">{blocks}</div>;
-}
+// The brief BODY is now rendered as a typed-block document (metric cards, tables,
+// prose with live ticker chips + citation chips) by `BriefBody` in `brief-blocks`
+// — deterministically derived from the brief, never a wall of raw markdown.
 
 // --- metadata header -------------------------------------------------------
 
@@ -459,9 +314,7 @@ export function BriefPanel() {
           </p>
         ) : null}
 
-        <div className="px-4 pt-2 pb-4">
-          <Markdown source={brief.markdown} onCite={scrollToSource} />
-        </div>
+        <BriefBody brief={brief} onCite={scrollToSource} />
       </div>
 
       {brief.sources.length > 0 ? (
