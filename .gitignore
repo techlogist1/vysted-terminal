@@ -8,6 +8,7 @@ sidecar/sec_edgar_mcp_subprocess/.venv/
 .next/
 out/
 dist/
+next-env.d.ts
 *.tsbuildinfo
 src-tauri/target/
 src-tauri/binaries/

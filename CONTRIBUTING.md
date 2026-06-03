@@ -3,10 +3,12 @@
 Contributions are welcome. This document covers the mechanics: environment setup, coding standards,
 the commit and PR workflow, the Contributor License Agreement, and a note on the plugin contract.
 
-**Scope note.** This repository is at Phase 0 — the foundation is in place, but feature work is
-gated by the phase-by-phase roadmap in [`docs/BLUEPRINT.md`](./docs/BLUEPRINT.md). If you are
-planning a non-trivial contribution, open an issue first to confirm it aligns with the current
-phase's scope before investing time in implementation.
+**Scope note.** Phases 0–10 are merged (data layer, charting, agentic copilot, node editor +
+backtest, broker read-only + §6.5 safety, macro/research/QuantLib, integrations) and an
+agent-native redesign is in flight — see [`docs/CURRENT_STATE.md`](./docs/CURRENT_STATE.md) for the
+honest works/buggy/deferred map and [`docs/BLUEPRINT.md`](./docs/BLUEPRINT.md) for the architecture.
+If you are planning a non-trivial contribution, open an issue first to confirm it aligns with the
+current direction before investing time in implementation.
 
 ---
 

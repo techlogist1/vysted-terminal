@@ -17,8 +17,6 @@ artifacts are under `docs/archive/`.
   success criteria, open product decisions).
 - **[`../.specify/memory/constitution.md`](../.specify/memory/constitution.md)** — the
   seven governing principles.
-- **[research/redesign/](./research/redesign/)** — the reference study (Cursor, OpenBB,
-  Fincept, MCP patterns, landscape) + `REFERENCE_SYNTHESIS.md` (design implications).
 
 ## Architecture references (current)
 

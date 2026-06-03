@@ -11,6 +11,9 @@ backend, no telemetry: data and secrets stay on your machine.
 > **[`specs/001-agent-native-redesign/spec.md`](./specs/001-agent-native-redesign/spec.md)**
 > for where it's headed.
 
+<!-- HERO_SCREENSHOT: a fresh dark, populated shot of the research cockpit (visual
+     brief + chart) is wired in here at release time. -->
+
 ---
 
 ## Overview
@@ -46,6 +49,58 @@ any BYOK/live-broker round-trip are operator-verified, not CI-verified** (the ha
 can't drive the webview with real data). The app currently ships **unsigned with no
 release pipeline**, and version strings sit at `0.8.0` pending a release cut. See
 [`docs/CURRENT_STATE.md`](./docs/CURRENT_STATE.md) for the full works/buggy/deferred map.
+
+---
+
+## Powering the AI: keyless or one key
+
+Vysted works the moment you open it — **no account, no key, no setup.** Live quotes,
+charts, news, screeners, and web research (keyless, via DuckDuckGo) all run out of the
+box. A first-run flow then offers two ways to turn on the AI agent and deep research,
+and you can switch anytime from Settings:
+
+- **Private & free — a local model.** Vysted fit-scores your machine and sets up a model
+  that runs entirely on your computer through [Ollama](https://ollama.com) — no key, no
+  cost, fully offline. Slower and less capable than the cloud, but it never leaves your
+  machine.
+- **Most power — one OpenRouter key.** [OpenRouter](https://openrouter.ai/keys) is a
+  single key that brokers every top model (Claude, GPT, Gemini, DeepSeek, Kimi…). Add a
+  few dollars of credit; a typical research run costs only cents. The default is a fast,
+  cheap, non-thinking agentic model so research never stalls.
+
+Either way, **your keys live in the OS keychain — they never touch disk, and there is no
+Vysted server for them to reach.** The app only makes network calls to the data and LLM
+providers you configure.
+
+---
+
+## Download & install (macOS, Apple Silicon)
+
+Grab the latest `.dmg` from the
+[Releases](https://github.com/techlogist1/vysted-terminal/releases) page (Apple Silicon /
+M-series — an Intel build isn't published yet), open it, and drag **Vysted Terminal** to
+Applications.
+
+Because the app is **open-source and unsigned** (no paid Apple Developer certificate),
+macOS Gatekeeper blocks it on first launch. To open it the first time:
+
+1. Double-click the app — macOS says it "cannot be opened." Click **Done** (do _not_ move
+   it to Trash).
+2. Open **System Settings → Privacy & Security**, scroll to the bottom, and click
+   **Open Anyway** next to the Vysted Terminal notice.
+3. Confirm **Open**. macOS remembers the choice — every later launch opens normally.
+
+> The old "right-click → Open" trick no longer works for unsigned apps on macOS 15
+> (Sequoia) and later — use **Open Anyway** above. From a terminal you can instead clear
+> the quarantine flag directly:
+>
+> ```bash
+> xattr -dr com.apple.quarantine "/Applications/Vysted Terminal.app"
+> ```
+
+On first launch the app starts its local data/AI engine (a one-time ~30–90s warm-up while
+the bundled engine unpacks); the cockpit populates once it's ready. Everything runs on
+`127.0.0.1` — no Python or other runtime needs to be pre-installed.
 
 ---
 
