@@ -36,16 +36,18 @@ OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 #: The dedicated Tongyi-DeepResearch slug (probe-gated — see module docstring).
 TONGYI_SLUG = "alibaba/tongyi-deepresearch-30b-a3b"
 
-#: Live, tool-capable fallbacks in preference order (closest A3B analog first).
-#: Leads with the NON-THINKING instruct A3B: it's the closest live analog to the
-#: unrouted Tongyi-DeepResearch-30B-A3B and, unlike a "thinking" variant, it does
-#: NOT emit long reasoning streams that stall a multi-round research loop (the
-#: 8-minutes-unfinished bug). ``resolve_model`` returns ``FALLBACK_SLUGS[0]`` on a
-#: probe miss, so the first entry is the one that actually runs.
+#: Live, tool-capable fallbacks in preference order. EVERY entry is NON-THINKING
+#: by design: a "thinking" variant emits long reasoning streams that stall a
+#: multi-round research loop (the 8-minutes-unfinished bug). Leads with
+#: minimax/minimax-m3 — a cheap ($0.30-0.60/1M in), 1M-context, agentic non-thinking
+#: model verified on the live OpenRouter catalog (2026-06-03) that won't hang —
+#: then the NON-THINKING instruct A3B (the closest live analog to the unrouted
+#: Tongyi-DeepResearch-30B-A3B). ``resolve_model`` returns ``FALLBACK_SLUGS[0]`` on
+#: a probe miss, so the first entry is the one that actually runs.
 FALLBACK_SLUGS: tuple[str, ...] = (
+    "minimax/minimax-m3",
     "qwen/qwen3-coder-30b-a3b-instruct",
     "qwen/qwen3-30b-a3b",
-    "qwen/qwen3-235b-a22b-thinking-2507",
 )
 
 #: Provenance label stamped on a Tongyi-backed brief (the resolved model appended).

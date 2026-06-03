@@ -31,7 +31,7 @@ export const DEFAULT_MODEL_BY_PROVIDER: Record<LLMProviderId, string> = {
   ollama: "qwen2.5:7b",
   deepseek: "deepseek-chat",
   xai: "grok-4",
-  openrouter: "deepseek/deepseek-v4-flash",
+  openrouter: "minimax/minimax-m3",
 };
 
 /** Curated selectable models per provider for the HUD picker — the OFFLINE
@@ -48,12 +48,14 @@ export const KNOWN_MODELS_BY_PROVIDER: Record<LLMProviderId, readonly string[]> 
   deepseek: ["deepseek-chat", "deepseek-reasoner"],
   xai: ["grok-4", "grok-3"],
   openrouter: [
+    "minimax/minimax-m3",
     "deepseek/deepseek-v4-flash",
     "moonshotai/kimi-k2.6",
-    "google/gemini-3-flash-preview",
-    "qwen/qwen3-coder-30b-a3b-instruct",
     "deepseek/deepseek-v4-pro",
+    "qwen/qwen3.7-max",
+    "qwen/qwen3.7-plus",
     "z-ai/glm-5.1",
+    "qwen/qwen3.6-flash",
     "openrouter/auto",
   ],
 };
