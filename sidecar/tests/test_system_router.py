@@ -114,6 +114,120 @@ def test_ollama_probe_failure_is_silent(
     assert resp.json()["ollama"]["models"] == []
 
 
+# --- onboarding: local-model recommendation + ollama status/pull (Track 2) ---
+
+
+def test_local_model_recommendation_shape(client: TestClient) -> None:
+    resp = client.get("/system/local-model-recommendation")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["device"]["ramGib"] > 0
+    # Every onboarding candidate is scored with a verdict.
+    names = {c["name"] for c in body["candidates"]}
+    assert {"qwen3:8b", "qwen2.5-coder:7b", "llama3.1:8b"} <= names
+    for c in body["candidates"]:
+        assert c["verdict"] in ("green", "marginal", "red")
+    # recommended is a green/marginal candidate or null (device can't host any).
+    rec = body["recommended"]
+    assert rec is None or (rec["verdict"] in ("green", "marginal") and rec["name"] in names)
+
+
+def test_ollama_status_not_running_when_daemon_absent(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class _Boom:
+        def __init__(self, *a: Any, **k: Any) -> None:
+            pass
+
+        async def __aenter__(self) -> _Boom:
+            return self
+
+        async def __aexit__(self, *a: Any) -> None:
+            return None
+
+        async def get(self, _url: str) -> Any:
+            raise OSError("connection refused")
+
+    monkeypatch.setattr(system.httpx, "AsyncClient", _Boom)
+    resp = client.get("/system/ollama/status")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["running"] is False
+    assert body["models"] == []
+
+
+def test_ollama_status_lists_models_when_running(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class _Resp:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict[str, Any]:
+            return {"models": [{"name": "qwen3:8b"}, {"name": "llama3.1:8b"}]}
+
+    class _Client:
+        def __init__(self, *a: Any, **k: Any) -> None:
+            pass
+
+        async def __aenter__(self) -> _Client:
+            return self
+
+        async def __aexit__(self, *a: Any) -> None:
+            return None
+
+        async def get(self, _url: str) -> _Resp:
+            return _Resp()
+
+    monkeypatch.setattr(system.httpx, "AsyncClient", _Client)
+    resp = client.get("/system/ollama/status")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["running"] is True
+    assert body["models"] == ["qwen3:8b", "llama3.1:8b"]
+
+
+def test_ollama_pull_streams_progress(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    import ollama
+
+    class _FakeClient:
+        def __init__(self, *a: Any, **k: Any) -> None:
+            pass
+
+        async def pull(self, model: str, *, stream: bool) -> Any:
+            async def _gen() -> Any:
+                yield {"status": "pulling manifest", "total": None, "completed": None}
+                yield {"status": "downloading", "total": 100, "completed": 100}
+
+            return _gen()
+
+    monkeypatch.setattr(ollama, "AsyncClient", _FakeClient)
+    resp = client.post("/system/ollama/pull", params={"model": "qwen3:8b"})
+    assert resp.status_code == 200
+    # SSE frames: the progress events plus a terminal done event.
+    assert "downloading" in resp.text
+    assert '"done": true' in resp.text
+
+
+def test_ollama_pull_reports_error_as_stream_event(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import ollama
+
+    class _BoomClient:
+        def __init__(self, *a: Any, **k: Any) -> None:
+            pass
+
+        async def pull(self, model: str, *, stream: bool) -> Any:
+            raise RuntimeError("daemon down")
+
+    monkeypatch.setattr(ollama, "AsyncClient", _BoomClient)
+    resp = client.post("/system/ollama/pull", params={"model": "qwen3:8b"})
+    assert resp.status_code == 200
+    assert '"error"' in resp.text
+    assert "daemon down" in resp.text
+
+
 # --- deep-research routing probe (Track 5) -----------------------------------
 
 

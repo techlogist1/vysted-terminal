@@ -10,11 +10,14 @@ the same scorer so the gate is single-sourced.
 
 from __future__ import annotations
 
+import json
 import re
-from typing import Any
+from collections.abc import AsyncIterator
+from typing import Annotated, Any
 
 import httpx
-from fastapi import APIRouter, Header
+from fastapi import APIRouter, Header, HTTPException, Query
+from fastapi.responses import StreamingResponse
 
 from services.hardware_fit import ModelCandidate, detect_device, score
 from services.research import tongyi
@@ -24,6 +27,24 @@ router = APIRouter(prefix="/system", tags=["system"])
 #: Default local ollama endpoint (keyless). Best-effort — absent in most installs.
 _OLLAMA_URL = "http://127.0.0.1:11434"
 _OLLAMA_TIMEOUT = 1.5
+
+#: Small chat models scored for the first-run "use a local model" path (Path B).
+#: Each is a reliable OpenAI-style tool-caller that fits a typical laptop; the
+#: onboarding flow offers the best-fitting one for the detected device. Sized by
+#: total params + a Q4_K_M quant (the ollama default), 8K context for the score.
+_ONBOARDING_CANDIDATES: tuple[ModelCandidate, ...] = (
+    ModelCandidate(name="qwen3:8b", total_params_b=8.2, quant="q4_k_m", desired_ctx=8192),
+    ModelCandidate(name="qwen2.5-coder:7b", total_params_b=7.6, quant="q4_k_m", desired_ctx=8192),
+    ModelCandidate(name="llama3.1:8b", total_params_b=8.0, quant="q4_k_m", desired_ctx=8192),
+)
+
+
+def _attr(obj: Any, key: str, default: Any = None) -> Any:
+    """Read a field from a dict or an attr-styled SDK object (ollama ProgressResponse)."""
+    if isinstance(obj, dict):
+        return obj.get(key, default)
+    return getattr(obj, key, default)
+
 
 #: Reference candidates that illustrate the gate regardless of what's installed.
 #: Tongyi-DeepResearch is the load-bearing one (Track C's local-vs-remote fork).
@@ -94,6 +115,84 @@ async def get_hardware() -> dict[str, Any]:
         },
         "referenceCandidates": [score(c, device).to_dict() for c in _REFERENCE_CANDIDATES],
     }
+
+
+@router.get("/local-model-recommendation")
+async def local_model_recommendation() -> dict[str, Any]:
+    """Score the first-run local-model candidates against this device (Path B).
+
+    Returns the device profile, every candidate's fit verdict, and the RECOMMENDED
+    model to pull — the first GREEN (best tool-caller first), else the first
+    MARGINAL, else ``null`` (the device can't comfortably host any small model, so
+    onboarding should steer the user to the cloud-key path instead). Keyless +
+    pure-compute (no daemon needed): it scores by spec, it does not require Ollama.
+    """
+    device = detect_device()
+    scored = [score(c, device) for c in _ONBOARDING_CANDIDATES]
+    recommended = next((v for v in scored if v.verdict == "green"), None) or next(
+        (v for v in scored if v.verdict == "marginal"), None
+    )
+    return {
+        "device": device.to_dict(),
+        "candidates": [v.to_dict() for v in scored],
+        "recommended": recommended.to_dict() if recommended else None,
+    }
+
+
+@router.get("/ollama/status")
+async def ollama_status() -> dict[str, Any]:
+    """Report whether the local Ollama daemon is reachable + what models are pulled.
+
+    Best-effort + keyless. ``running: false`` (with an empty model list) means the
+    daemon is not installed / not started — the onboarding flow then shows install
+    guidance; ``running: true`` with a model already present means it can be used
+    immediately (no pull). Never raises — Ollama is an optional local accelerator.
+    """
+    try:
+        async with httpx.AsyncClient(timeout=_OLLAMA_TIMEOUT) as client:
+            resp = await client.get(f"{_OLLAMA_URL}/api/tags")
+            resp.raise_for_status()
+            data = resp.json()
+    except Exception:  # noqa: BLE001 — daemon absent/unreachable is a normal state
+        return {"running": False, "endpoint": _OLLAMA_URL, "models": []}
+    models = [m.get("name") for m in (data.get("models") or []) if m.get("name")]
+    return {"running": True, "endpoint": _OLLAMA_URL, "models": models}
+
+
+@router.post("/ollama/pull")
+async def pull_ollama_model(
+    model: Annotated[str, Query(min_length=1, description="Ollama model tag to pull.")],
+) -> StreamingResponse:
+    """Stream the progress of pulling an Ollama model as SSE (Path B setup).
+
+    Wraps ``ollama.AsyncClient.pull(stream=True)`` and re-frames each
+    ``ProgressResponse`` as a ``data: {json}`` SSE event ``{status, total,
+    completed}`` so the UI can render a live download bar (never a frozen wait).
+    A terminal ``{done: true}`` event closes the stream; any failure (daemon down,
+    unknown model) closes with ``{error, done: true}`` rather than a 500. Local +
+    keyless: it pulls an open model to the user's own machine — no §6.5 surface.
+    """
+    model_tag = model.strip()
+    if not model_tag:
+        raise HTTPException(status_code=400, detail="model is required")
+
+    async def _generator() -> AsyncIterator[bytes]:
+        try:
+            import ollama
+
+            client = ollama.AsyncClient()
+            async for progress in await client.pull(model_tag, stream=True):
+                payload = {
+                    "status": _attr(progress, "status", "") or "",
+                    "total": _attr(progress, "total", None),
+                    "completed": _attr(progress, "completed", None),
+                }
+                yield f"data: {json.dumps(payload)}\n\n".encode()
+            yield f"data: {json.dumps({'status': 'success', 'done': True})}\n\n".encode()
+        except Exception as exc:  # noqa: BLE001 — surface as a stream error, not a 500
+            yield f"data: {json.dumps({'error': str(exc), 'done': True})}\n\n".encode()
+
+    return StreamingResponse(_generator(), media_type="text/event-stream")
 
 
 @router.get("/deepresearch/probe")

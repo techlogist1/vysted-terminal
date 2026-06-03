@@ -33,6 +33,7 @@ import { useModelCatalog, useModelCatalogStore } from "@/store/model-catalog";
 import { useModelSelectionStore } from "@/store/model-selection";
 import { usePanelContextBus } from "@/store/panel-context";
 import { useProposedChangesStore } from "@/store/proposed-changes";
+import { useOnboardingStore } from "@/store/onboarding";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import { useSettingsStore } from "@/store/settings";
 import type { Region } from "@/lib/region";
@@ -568,10 +569,14 @@ export function ChatSidebar() {
           return;
         }
       } else if (!(await validateProvider(provider))) {
+        // The keyless default (local Ollama) isn't set up yet — this is the
+        // zero-setup first impression. Open the guided setup (add a key or run a
+        // local model) rather than dead-ending; the data tools work meanwhile.
         setStatusLine(
-          `${providerLabel} isn't reachable. Start it (run \`ollama serve\` and pull the model) ` +
-            "or switch to a cloud provider in Settings → AI Providers.",
+          "No AI model is set up yet — opening setup. (Quotes, charts, news and web " +
+            "research already work without one.)",
         );
+        useOnboardingStore.getState().open();
         return;
       }
 

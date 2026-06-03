@@ -44,6 +44,14 @@ export const KEYCHAIN_NAMESPACES = {
    * `broker:<broker-id>:_meta:first-connect-ack` respectively.
    */
   broker: (brokerId: string, field: string): string => `broker:${brokerId}:${field}`,
+
+  /**
+   * App-level meta flag (not a credential) — e.g. `app-meta:onboarding-complete`.
+   * Used for durable first-run state that must survive a workspace-layout reset
+   * or an imported older blob (the same durability reason the disclaimer acks use
+   * the keychain). Carries no secret; the stored value is a timestamp/choice tag.
+   */
+  appMeta: (key: string): string => `app-meta:${key}`,
 } as const;
 
 /** Persist a secret to the OS keychain under `account`. Overwrites any prior value. */

@@ -7,6 +7,7 @@ import { LayoutGrid, PanelLeftClose, PanelLeftOpen, Save, Settings2 } from "luci
 import { AgentDock } from "@/components/AgentDock";
 import { CommandPalette } from "@/components/CommandPalette";
 import { OnboardingBanner } from "@/components/OnboardingBanner";
+import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { PanelHost } from "@/components/PanelHost";
 import { useDesktopNotificationBridge } from "@/lib/desktop-notification";
 import { initDevMcpBridge } from "@/lib/dev-mcp-bridge";
@@ -241,6 +242,10 @@ export default function Page() {
           layered first-launch disclaimer (§6.5 #8). */}
         <OrderConfirmationDialog />
         <DisclaimerFlow />
+        {/* First-run onboarding (Track 2). Renders AFTER the §6.5 TOS (it
+          sequences on `firstLaunchTosAcked`), is dismissible, and shows once —
+          the terminal works keyless, so this is an upgrade, not a gate. */}
+        <OnboardingFlow />
       </main>
     </MotionConfig>
   );
