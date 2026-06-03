@@ -8,6 +8,7 @@ import type { EquityOverview } from "./api";
 
 vi.mock("./api", () => ({
   loadEquityOverview: vi.fn(),
+  autocompleteSymbols: vi.fn(() => Promise.resolve([])),
 }));
 
 const { loadEquityOverview } = await import("./api");
@@ -33,16 +34,38 @@ function fundamentals(): Fundamentals {
     name: "Apple Inc.",
     sector: "Technology",
     industry: "Consumer Electronics",
+    currency: "USD",
     market_cap: 3_000_000_000_000,
     pe_ratio: 31.2,
     forward_pe: 28.4,
     peg_ratio: 2.1,
     price_to_book: 47,
+    price_to_sales: 8.1,
+    ev_to_ebitda: 24,
+    book_value: 4.4,
     dividend_yield: 0.0044,
+    dividend_per_share: 1.0,
     eps: 6.17,
     beta: 1.25,
     fifty_two_week_high: 220,
     fifty_two_week_low: 160,
+    fifty_two_week_change: 0.18,
+    roe: 1.5,
+    roa: 0.28,
+    gross_margin: 0.46,
+    operating_margin: 0.3,
+    profit_margin: 0.25,
+    debt_to_equity: 1.5,
+    current_ratio: 0.95,
+    quick_ratio: 0.85,
+    revenue_ttm: 400_000_000_000,
+    net_income_ttm: 100_000_000_000,
+    free_cash_flow: 95_000_000_000,
+    shares_outstanding: 15_500_000_000,
+    revenue_growth: 0.05,
+    earnings_growth: 0.11,
+    held_percent_insiders: 0.0007,
+    held_percent_institutions: 0.61,
     provider: "yfinance",
   };
 }
@@ -108,7 +131,7 @@ describe("EquityOverviewPanel", () => {
   it("shows the empty prompt before a symbol is loaded", () => {
     render(<EquityOverviewPanel />);
     expect(
-      screen.getByText(/Fundamental data, statements, and analyst ratings/),
+      screen.getByText(/Screener-grade fundamentals, statements, and ratings/),
     ).toBeInTheDocument();
   });
 

@@ -7,7 +7,7 @@
  * `null` for any section that failed and an `error` only if every call failed.
  */
 
-import { sidecarApi } from "@/lib/sidecar-client";
+import { sidecarApi, sidecarGet } from "@/lib/sidecar-client";
 import type {
   AnalystRating,
   BalanceSheet,
@@ -16,6 +16,37 @@ import type {
   IncomeStatement,
   Quote,
 } from "../../../types/data";
+
+/** One autocomplete candidate from the read-only `/resolve/autocomplete` route. */
+export interface SymbolCandidate {
+  symbol: string;
+  name: string;
+  exchange: string;
+  region: string;
+  asset_class: string;
+  yahoo_symbol: string;
+  confidence: number;
+}
+
+/**
+ * On-keystroke symbol autocomplete — masters-only, network-free server-side, so
+ * it stays fast enough to fire per keystroke. Empty/blank query short-circuits to
+ * `[]` without a request; any failure degrades to `[]` (the search box still works).
+ */
+export async function autocompleteSymbols(query: string, limit = 8): Promise<SymbolCandidate[]> {
+  if (!query.trim()) {
+    return [];
+  }
+  try {
+    const res = await sidecarGet<{ candidates: SymbolCandidate[] }>("/resolve/autocomplete", {
+      q: query,
+      limit: String(limit),
+    });
+    return res.candidates ?? [];
+  } catch {
+    return [];
+  }
+}
 
 /** The assembled equity-overview payload for one symbol. */
 export interface EquityOverview {

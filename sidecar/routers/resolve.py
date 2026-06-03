@@ -89,3 +89,25 @@ async def resolve_symbol(
         "needs_disambiguation": resolution.needs_disambiguation,
         "candidates": [_instrument_payload(c) for c in resolution.candidates],
     }
+
+
+@router.get("/autocomplete")
+async def autocomplete_symbols(
+    q: str = Query("", description="Partial name or ticker to autocomplete."),
+    region: str | None = Query(None, description="Override region (US | IN | GLOBAL)."),
+    limit: int = Query(8, ge=1, le=20, description="Max candidates to return."),
+) -> dict[str, object]:
+    """On-keystroke autocomplete: a fast, masters-only, network-free candidate
+    list (ticker-prefix or name match, locale-ranked). Distinct from ``/resolve``
+    — no fuzzy/live-lookup fallback, so it stays keystroke-fast. Empty query → an
+    empty list (HTTP 200), never a 500."""
+    active_region = normalize_region(region) if region else get_region()
+    query = q.strip()
+    if not query:
+        return {"query": q, "region": active_region, "candidates": []}
+    candidates = await asyncio.to_thread(symbol_resolver.autocomplete, query, active_region, limit)
+    return {
+        "query": query,
+        "region": active_region,
+        "candidates": [_instrument_payload(c) for c in candidates],
+    }

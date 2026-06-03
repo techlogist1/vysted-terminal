@@ -63,22 +63,56 @@ export interface MacroSeries {
 
 // --- fundamentals ---------------------------------------------------------
 
-/** Snapshot of valuation ratios and company profile for one symbol. */
+/**
+ * Snapshot of valuation, profitability, health, and profile for one symbol.
+ * Mirrors `sidecar/models/fundamentals.py` — keep in sync. Fraction fields
+ * (`*_margin`, `roe`, `roa`, `*_growth`, `held_percent_*`, `fifty_two_week_change`,
+ * `dividend_yield`) are 0.21 = 21%; `debt_to_equity` is a ratio (1.5 = 150%);
+ * currency sizes (`revenue_ttm`/`net_income_ttm`/`free_cash_flow`/
+ * `dividend_per_share`) are in `currency`.
+ */
 export interface Fundamentals {
   symbol: string;
   name: string | null;
   sector: string | null;
   industry: string | null;
+  currency: string | null;
+  // Valuation
   market_cap: number | null;
   pe_ratio: number | null;
   forward_pe: number | null;
   peg_ratio: number | null;
   price_to_book: number | null;
+  price_to_sales: number | null;
+  ev_to_ebitda: number | null;
+  book_value: number | null;
   dividend_yield: number | null;
+  dividend_per_share: number | null;
   eps: number | null;
   beta: number | null;
   fifty_two_week_high: number | null;
   fifty_two_week_low: number | null;
+  fifty_two_week_change: number | null;
+  // Profitability (fractions)
+  roe: number | null;
+  roa: number | null;
+  gross_margin: number | null;
+  operating_margin: number | null;
+  profit_margin: number | null;
+  // Financial health
+  debt_to_equity: number | null;
+  current_ratio: number | null;
+  quick_ratio: number | null;
+  // Size & growth
+  revenue_ttm: number | null;
+  net_income_ttm: number | null;
+  free_cash_flow: number | null;
+  shares_outstanding: number | null;
+  revenue_growth: number | null;
+  earnings_growth: number | null;
+  // Ownership (fractions)
+  held_percent_insiders: number | null;
+  held_percent_institutions: number | null;
   provider: string;
 }
 

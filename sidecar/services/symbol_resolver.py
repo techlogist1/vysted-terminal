@@ -303,6 +303,47 @@ def _clamp(instrument: Instrument) -> Instrument:
     )
 
 
+def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[Instrument]:
+    """Masters-only, network-free candidate list for on-keystroke autocomplete.
+
+    Matches by ticker-prefix OR name-prefix/substring across both masters,
+    locale-ranked, capped at ``limit``. Deliberately skips the fuzzy
+    ``SequenceMatcher`` and the live ``yfinance.Search`` fallback that
+    :func:`resolve` uses, so it stays a pure in-memory lookup fast enough to fire
+    on every keystroke (<100ms over the bundled masters).
+    """
+    region = region or REGION_US
+    bare = strip_exchange_suffix(query).strip()
+    if not bare:
+        return []
+    q_sym = bare.upper()
+    q_lc = query.strip().lower()
+
+    def _score(sym: str, name: str) -> float | None:
+        if sym == q_sym:
+            return 1.0
+        if sym.startswith(q_sym):
+            return 0.95
+        name_lc = name.lower()
+        if name_lc.startswith(q_lc):
+            return 0.9
+        if q_lc in name_lc:
+            return 0.8
+        return None
+
+    out: list[Instrument] = []
+    for sym, (name, _typ) in _nse_master().items():
+        s = _score(sym, name)
+        if s is not None:
+            out.append(_instrument_nse(sym, s + _locale_bonus(region, REGION_IN)))
+    for sym, name in _us_master().items():
+        s = _score(sym, name)
+        if s is not None:
+            out.append(_instrument_us(sym, s + _locale_bonus(region, REGION_US)))
+    out.sort(key=lambda i: i.score, reverse=True)
+    return [_clamp(c) for c in out[:limit]]
+
+
 def _live_lookup(query: str, region: str) -> Instrument | None:
     """Guarded ``yfinance.Search`` fallback for symbols not in the masters.
 
@@ -337,6 +378,7 @@ __all__ = [
     "DISAMBIGUATION_THRESHOLD",
     "Instrument",
     "Resolution",
+    "autocomplete",
     "is_nse_symbol",
     "is_us_symbol",
     "region_hint",
