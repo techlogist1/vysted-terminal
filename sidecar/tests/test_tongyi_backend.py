@@ -30,10 +30,14 @@ def test_estimate_cost_is_a_small_positive_band() -> None:
 
 
 @pytest.mark.asyncio
-async def test_resolve_uses_tongyi_when_endpoints_are_live() -> None:
+async def test_resolve_uses_tongyi_when_the_slug_is_callable() -> None:
+    # Routability is the HONEST signal — a real minimal completion succeeds.
     def _handler(request: httpx.Request) -> httpx.Response:
-        assert tongyi.TONGYI_SLUG in request.url.path
-        return httpx.Response(200, json={"data": {"endpoints": [{"name": "alibaba"}]}})
+        assert request.method == "POST"
+        assert request.url.path.endswith("/chat/completions")
+        return httpx.Response(
+            200, json={"choices": [{"message": {"role": "assistant", "content": "ok"}}]}
+        )
 
     async with httpx.AsyncClient(transport=_mock(_handler)) as client:
         model = await tongyi.resolve_model("sk-or", client=client)
@@ -41,10 +45,23 @@ async def test_resolve_uses_tongyi_when_endpoints_are_live() -> None:
 
 
 @pytest.mark.asyncio
-async def test_resolve_falls_back_when_tongyi_has_zero_endpoints() -> None:
-    # The real OpenRouter state today: listed but unrouted (empty endpoints).
+async def test_resolve_falls_back_on_404_no_endpoints() -> None:
+    # The real OpenRouter state today: a call 404s with "No endpoints found".
     def _handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, json={"data": {"endpoints": []}})
+        return httpx.Response(
+            404, json={"error": {"message": "No endpoints found for ...", "code": 404}}
+        )
+
+    async with httpx.AsyncClient(transport=_mock(_handler)) as client:
+        model = await tongyi.resolve_model("sk-or", client=client)
+    assert model == tongyi.FALLBACK_SLUGS[0]
+
+
+@pytest.mark.asyncio
+async def test_resolve_falls_back_on_200_with_error_body() -> None:
+    # OpenRouter sometimes 200s an error envelope — not a real completion.
+    def _handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"error": {"message": "model unavailable"}})
 
     async with httpx.AsyncClient(transport=_mock(_handler)) as client:
         model = await tongyi.resolve_model("sk-or", client=client)
@@ -55,16 +72,6 @@ async def test_resolve_falls_back_when_tongyi_has_zero_endpoints() -> None:
 async def test_resolve_falls_back_on_probe_error() -> None:
     def _handler(request: httpx.Request) -> httpx.Response:
         raise httpx.ConnectError("network down")
-
-    async with httpx.AsyncClient(transport=_mock(_handler)) as client:
-        model = await tongyi.resolve_model("sk-or", client=client)
-    assert model == tongyi.FALLBACK_SLUGS[0]
-
-
-@pytest.mark.asyncio
-async def test_resolve_falls_back_on_non_2xx() -> None:
-    def _handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(404, text="not found")
 
     async with httpx.AsyncClient(transport=_mock(_handler)) as client:
         model = await tongyi.resolve_model("sk-or", client=client)

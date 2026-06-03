@@ -9,11 +9,15 @@ the activity surface) but binds the loop's LLM to OpenRouter's Tongyi model.
 
 Two reality checks baked in (FINDINGS §2.4, verified against the live OpenRouter API):
 
-- The ``alibaba/tongyi-deepresearch-30b-a3b`` slug is *listed but currently
-  unreachable* (0 live endpoints). So the model is **runtime-probed**: if its
-  ``/endpoints`` is non-empty we use it, otherwise we fall back to the closest
-  live A3B analog (``qwen/qwen3-30b-a3b-thinking-2507``), then the strongest live
-  agentic Qwen. The brief's provenance always names the model actually used.
+- The ``alibaba/tongyi-deepresearch-30b-a3b`` slug is currently *unrouted* — a real
+  call returns OpenRouter's own 404 "No endpoints found" (verified 2026-06-03 with a
+  live key; the listing PAGE still shows pricing, which is not the same as a serving
+  provider). So the model is **runtime-probed by a real minimal completion** (NOT the
+  ``/endpoints`` listing, which lags and is account-scoped): a 200 with a `choices`
+  payload → use it; a 404/error → fall back to the closest live A3B analog
+  (``qwen/qwen3-30b-a3b-thinking-2507``), then the strongest live agentic Qwen. The
+  brief's provenance always names the model actually used, and the probe flips to
+  Tongyi automatically the instant a provider serves it again.
 - It is **opt-in + BYOK** (an OpenRouter key) and **never auto-selected** — the
   handler only reaches it on an explicit ``backend == "tongyi"`` with a key
   present (the same guard shape as the Perplexity backend).
@@ -40,8 +44,8 @@ FALLBACK_SLUGS: tuple[str, ...] = (
 #: Provenance label stamped on a Tongyi-backed brief (the resolved model appended).
 PROVENANCE_NOTE = "via Tongyi-DeepResearch (OpenRouter)"
 
-#: Probe timeout — a quick endpoints check; failure just means "use the fallback".
-_PROBE_TIMEOUT_SECS = 4.0
+#: Probe timeout — a minimal live completion; failure just means "use the fallback".
+_PROBE_TIMEOUT_SECS = 8.0
 
 # Coarse pre-run cost estimate. Tongyi/Qwen-A3B on OpenRouter bill ~$0.09/1M in,
 # ~$0.40/1M out; a multi-round deep run lands in a few cents. Surfaced before opt-in.
@@ -66,27 +70,49 @@ def estimate_cost_usd(query: str) -> float:
 
 
 async def resolve_model(api_key: str, *, client: httpx.AsyncClient | None = None) -> str:
-    """Return the model slug to use: the dedicated Tongyi slug if it is reachable
-    on OpenRouter right now, else the first live fallback.
+    """Return the model slug to use: the dedicated Tongyi slug if it is ACTUALLY
+    CALLABLE on OpenRouter right now, else the first live fallback.
 
-    Best-effort: any probe error (network, non-2xx, malformed body) resolves to the
-    fallback rather than raising — a deep run must never dead-end on a probe miss.
+    Routability is checked the HONEST way — a minimal `/chat/completions` (the same
+    call a real run makes, capped at one token) — NOT the `/models/.../endpoints`
+    listing. The listing lags/omits served models and is account-scoped, so it
+    can both (a) report `[]` for a model that is in fact callable and (b) be masked
+    by a BYOK provider whose catalog excludes the author (verified 2026-06-03: a
+    real call to the Tongyi slug returns OpenRouter's own 404 "No endpoints found"
+    while the Qwen-A3B fallback completes on the same key — a genuine routing gap,
+    not a probe artefact). A 200 with a real `choices` payload → routable; a 404 /
+    error / 200-with-error-body → fall back. Best-effort: never raises (a deep run
+    must not dead-end on a probe miss). The instant a provider serves Tongyi again,
+    this flips to the dedicated slug with no code change.
     """
+
+    payload = {
+        "model": TONGYI_SLUG,
+        "messages": [{"role": "user", "content": "ping"}],
+        "max_tokens": 1,
+        "temperature": 0,
+    }
 
     async def _probe(http: httpx.AsyncClient) -> bool:
         try:
-            resp = await http.get(
-                f"{OPENROUTER_BASE_URL}/models/{TONGYI_SLUG}/endpoints",
+            resp = await http.post(
+                f"{OPENROUTER_BASE_URL}/chat/completions",
                 headers={"Authorization": f"Bearer {api_key}"},
+                json=payload,
             )
-            resp.raise_for_status()
-            data = resp.json()
-        except (httpx.HTTPError, ValueError):
+        except httpx.HTTPError:
             return False
-        # OpenRouter shape: {"data": {"endpoints": [...]}} (or {"endpoints": [...]}).
-        body = data.get("data", data) if isinstance(data, dict) else {}
-        endpoints = body.get("endpoints") if isinstance(body, dict) else None
-        return bool(isinstance(endpoints, list) and endpoints)
+        if resp.status_code != 200:
+            return False  # 404 "No endpoints found" / 4xx / 5xx → not callable
+        try:
+            data = resp.json()
+        except ValueError:
+            return False
+        # OpenRouter can return 200 with an error body; a routable model returns
+        # a non-empty `choices` array.
+        if not isinstance(data, dict) or data.get("error"):
+            return False
+        return bool(data.get("choices"))
 
     reachable = False
     if client is not None:

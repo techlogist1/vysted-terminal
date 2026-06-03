@@ -125,3 +125,41 @@ loss.)_
   `-D warnings` → ruff → **875 vitest (112 files)** → **8 cargo** → **1326 pytest (1 skipped)**.
 - **`smoke-test-sidecars.mjs`: PASS** on the rebuilt binary.
 - App + rig **left running, display kept awake** (`caffeinate -dimsu`).
+
+---
+
+## 6. Follow-up — Tongyi probe re-diagnosis (operator-flagged)
+
+The operator flagged the "Tongyi unavailable → fallback" report as a suspected bug (Tongyi
+appears live on OpenRouter's page with pricing; prime suspect: the account's **Amazon Bedrock
+BYOK** masking it). Diagnosed against the LIVE API with the configured key (through the sidecar,
+so the key never touched the shell):
+
+| Check (live, with the real key)                                                           | Result                                                                                     |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Real `/chat/completions` → `alibaba/tongyi-deepresearch-30b-a3b`                          | **HTTP 404 "No endpoints found"** (OpenRouter's own error; `user_id` present → key authed) |
+| Real `/chat/completions` → `…-a3b:free`                                                   | **HTTP 404 "No endpoints found"**                                                          |
+| Real `/chat/completions` → `qwen/qwen3-30b-a3b-thinking-2507` (control, same key/account) | **✅ real completion**                                                                     |
+| Public `GET /models/.../endpoints`                                                        | `endpoints: []`                                                                            |
+| Public `GET /api/v1/models` (343 models)                                                  | Tongyi **absent**                                                                          |
+
+**Root cause: a real OpenRouter routing gap — Tongyi currently has 0 serving providers.** NOT
+Bedrock masking (the Qwen fallback routes fine through the same Bedrock-BYOK account/key; the
+404 is OpenRouter's _global_ "no provider," not an account/provider restriction). NOT a
+stale/cached probe (live-verified, both variants). The pricing on OpenRouter's model PAGE
+persists even when no provider is currently serving the model — "has pricing" ≠ "is served."
+
+**Fix:** the probe (`tongyi.resolve_model`) no longer reads the `/endpoints` listing (it lags
+served models and is account-scoped — it can both report `[]` for a callable model and be masked
+by a BYOK provider's catalog). It now checks the **authoritative signal — a real minimal
+completion** (the same call a run makes, capped at one token): a 200 with a `choices` payload →
+use Tongyi; a 404/error → honest fallback. Correct now (404 → Qwen-A3B), and it **auto-flips to
+"Tongyi routing OK" the instant a provider serves the slug again** — no code change. 16 tongyi/
+probe tests green; sidecar rebuilt + smoke PASS.
+
+**Rig-proven:** with Tongyi SELECTED, `/deep NVDA` ran — the live trace's honest engine line read
+"`qwen/qwen3-30b-a3b-thinking-2507` (fallback) — Tongyi-DeepResearch-30B-A3B can't host on this
+16GB device (fit-scorer RED) and OpenRouter isn't routing the alibaba/tongyi-deepresearch-30b-a3b
+slug yet" → the deep IterResearch loop ran on the fallback and produced a brief. The
+backend-selection threading + the real-call probe + the transparent fallback all work end-to-end.
+I did **not** fake a "Tongyi OK" — that would violate the no-simulated-success floor.
