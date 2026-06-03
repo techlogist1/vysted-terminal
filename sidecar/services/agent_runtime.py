@@ -228,6 +228,16 @@ def _render_terminal_preamble(ts: dict[str, Any]) -> str:
         )
     if ts.get("openPanels"):
         lines.append("Open panels: " + ", ".join(ts["openPanels"]) + ".")
+    vp = ts.get("viewport")
+    if isinstance(vp, dict) and isinstance(vp.get("width"), (int, float)) and vp["width"] > 0:
+        w = int(vp["width"])
+        if w < 1180:
+            fit = "compact — show the ESSENTIALS (chart + brief), not a 4-panel cockpit"
+        elif w < 1500:
+            fit = "standard — a 3-4 panel cockpit fits"
+        else:
+            fit = "wide — full multi-panel layouts fit comfortably"
+        lines.append(f"Viewport: {w}px wide ({fit}).")
     if focused:
         lines.append(
             f'When the user says "this" or "it", they mean {focused} '

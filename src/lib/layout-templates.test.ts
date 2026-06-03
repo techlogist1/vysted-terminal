@@ -3,6 +3,7 @@ import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   applyLayoutTemplate,
+  fitLayoutTemplate,
   planCustom,
   planLayout,
   resolvePanelToken,
@@ -236,5 +237,55 @@ describe("applyLayoutTemplate (smoke)", () => {
       referencePanel: "macro",
       direction: "below",
     });
+  });
+});
+
+/** A fake api with a configurable viewport width for the fit-aware tests. */
+function makeFakeApiWithWidth(width: number) {
+  const api = makeFakeApi() as ReturnType<typeof makeFakeApi> & { width: number; height: number };
+  Object.defineProperty(api, "width", { value: width, configurable: true });
+  Object.defineProperty(api, "height", { value: 900, configurable: true });
+  return api;
+}
+
+describe("fitLayoutTemplate (Track 4 — fit-aware arrangement)", () => {
+  const originalRaf = globalThis.requestAnimationFrame;
+  beforeEach(() => {
+    (globalThis as { requestAnimationFrame?: unknown }).requestAnimationFrame = undefined;
+  });
+  afterAll(() => {
+    globalThis.requestAnimationFrame = originalRaf;
+  });
+
+  it("keeps the full research-cockpit on a wide display", () => {
+    const api = makeFakeApiWithWidth(1920);
+    const result = fitLayoutTemplate(api, "research-cockpit");
+    expect(result).toEqual({ applied: "research-cockpit", downgraded: false });
+    const ids = api.addPanel.mock.calls.map((c) => (c[0] as { id: string }).id);
+    expect(ids).toEqual(["chart", "equity-overview", "brief", "news"]);
+  });
+
+  it("downgrades research-cockpit to chart + brief essentials on a narrow display", () => {
+    const api = makeFakeApiWithWidth(900);
+    const result = fitLayoutTemplate(api, "research-cockpit");
+    expect(result).toEqual({ applied: "essentials-research", downgraded: true });
+    const ids = api.addPanel.mock.calls.map((c) => (c[0] as { id: string }).id);
+    // Only the essentials — the brief is NEVER hidden on a research turn.
+    expect(ids).toEqual(["chart", "brief"]);
+    expect(api.getPanel("brief")?.api.setActive).toHaveBeenCalled();
+  });
+
+  it("collapses macro-scan to a single focus on a narrow display", () => {
+    const api = makeFakeApiWithWidth(900);
+    const result = fitLayoutTemplate(api, "macro-scan");
+    expect(result).toEqual({ applied: "single-focus", downgraded: true });
+    expect(api.maximizeGroup).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not downgrade when the viewport hasn't measured yet (width 0)", () => {
+    const api = makeFakeApiWithWidth(0);
+    const result = fitLayoutTemplate(api, "research-cockpit");
+    expect(result.downgraded).toBe(false);
+    expect(result.applied).toBe("research-cockpit");
   });
 });

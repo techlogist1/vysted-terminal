@@ -291,6 +291,83 @@ export function applyLayoutTemplate(
   }
 }
 
+// --- fit-aware arrangement (Track 4) ----------------------------------------
+//
+// A multi-panel template crammed onto a small display reads as chaos. The
+// `fitLayoutTemplate` wrapper reads the live viewport width and DOWNGRADES a
+// panel-heavy template to a layout that genuinely fits — for research that means
+// the ESSENTIALS (chart + brief), so the depth is still visible and the agent can
+// say "click any ticker to go deeper" rather than vomiting four panels. A wide
+// display gets the full template unchanged. This is deterministic + invisible to
+// the agent (the bulletproof safety net); the agent is ALSO made viewport-aware
+// via the terminal snapshot so it self-selects well, but this guard catches a
+// misfit even if the agent ignores the signal.
+
+/** Width (px) the 4-panel research-cockpit needs; below it → chart + brief only. */
+const RESEARCH_COCKPIT_MIN_WIDTH = 1180;
+/** Width (px) the 3-panel macro-scan needs; below it → a single maximized focus. */
+const MACRO_SCAN_MIN_WIDTH = 1080;
+/** Assumed width when dockview hasn't measured yet (comfortable default — never
+ *  downgrade on an unknown dimension). */
+const DEFAULT_FIT_WIDTH = 1440;
+
+/** What `fitLayoutTemplate` actually applied — so a caller can phrase an honest
+ *  "showing the essentials on this screen" message when it downgraded. */
+export interface FitResult {
+  applied: LayoutTemplate | "essentials-research";
+  downgraded: boolean;
+}
+
+/** The 2-panel ESSENTIALS research layout: chart anchors the left, the brief
+ *  docks beside it — the small-screen fallback for the research-cockpit so the
+ *  cited brief (the star of a research turn) is never hidden. */
+function essentialsResearchPlan(): LayoutPlan {
+  return {
+    panels: [
+      { id: PANEL.chart.id, component: PANEL.chart.component },
+      {
+        id: PANEL.brief.id,
+        component: PANEL.brief.component,
+        position: { referencePanel: PANEL.chart.id, direction: "right" },
+      },
+    ],
+    focus: PANEL.brief.id,
+  };
+}
+
+/**
+ * Apply a layout template, fitting it to the current viewport. A panel-heavy
+ * template on a narrow display is downgraded to a layout that actually fits
+ * (research-cockpit → chart + brief; macro-scan → single focus); a wide display
+ * gets the requested template unchanged. Returns what was applied so the caller
+ * can phrase an honest message. The fit decision reads `api.width` at apply time
+ * (most-recent dimension), guarding the `> 0` not-yet-measured case.
+ */
+export function fitLayoutTemplate(
+  api: DockviewApi,
+  template: LayoutTemplate,
+  opts?: LayoutPlanOptions,
+): FitResult {
+  const width = typeof api.width === "number" && api.width > 0 ? api.width : DEFAULT_FIT_WIDTH;
+
+  if (template === "research-cockpit" && width < RESEARCH_COCKPIT_MIN_WIDTH) {
+    const plan = essentialsResearchPlan();
+    const run = () => applyPlan(api, plan);
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(run);
+    } else {
+      run();
+    }
+    return { applied: "essentials-research", downgraded: true };
+  }
+  if (template === "macro-scan" && width < MACRO_SCAN_MIN_WIDTH) {
+    applyLayoutTemplate(api, "single-focus", opts);
+    return { applied: "single-focus", downgraded: true };
+  }
+  applyLayoutTemplate(api, template, opts);
+  return { applied: template, downgraded: false };
+}
+
 /** Apply a resolved plan to the dockview api. Extracted so the rAF wrapper above
  *  stays a thin scheduler and the placement logic is testable in isolation. */
 function applyPlan(api: DockviewApi, plan: LayoutPlan): void {

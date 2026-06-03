@@ -52,6 +52,10 @@ export interface TerminalState {
   watchlist: { symbols: string[]; selected: string | null };
   portfolio: TerminalPortfolio | null;
   openPanels: string[];
+  /** Cockpit viewport size (px) so the agent arranges a layout that FITS the
+   *  screen (Track 4) — never 15 panels on a small display. Omitted before the
+   *  dockview layout has measured. */
+  viewport?: { width: number; height: number };
   /** The user's active region/locale (drives region-first data) — Pass B B1. */
   region: Region;
   capturedAt: number;
@@ -143,13 +147,21 @@ export function captureTerminalState(): TerminalState {
     (focusedPanel && charts.find((c) => c.panelId === focusedPanel)) || charts[0] || null;
   const focusedSymbol = focusedChart?.symbol ?? watchlist.selected ?? watchlist.symbols[0] ?? null;
 
-  // Open panels from the dockview layout, if mounted.
+  // Open panels + viewport size from the dockview layout, if mounted.
   let openPanels: string[] = [];
+  let viewport: { width: number; height: number } | undefined;
   try {
-    const api = useWorkspaceStore.getState().dockviewApi;
-    const panels = (api as { panels?: { id: string }[] } | null)?.panels;
+    const api = useWorkspaceStore.getState().dockviewApi as {
+      panels?: { id: string }[];
+      width?: number;
+      height?: number;
+    } | null;
+    const panels = api?.panels;
     if (Array.isArray(panels)) {
       openPanels = panels.map((p) => p.id);
+    }
+    if (typeof api?.width === "number" && api.width > 0) {
+      viewport = { width: Math.round(api.width), height: Math.round(api.height ?? 0) };
     }
   } catch {
     // dockview not mounted — leave empty.
@@ -162,6 +174,7 @@ export function captureTerminalState(): TerminalState {
     watchlist,
     portfolio,
     openPanels,
+    ...(viewport ? { viewport } : {}),
     region: useSettingsStore.getState().region,
     capturedAt: bus.updatedAt || Date.now(),
   };

@@ -15,7 +15,7 @@
 
 import {
   applyCustomLayout,
-  applyLayoutTemplate,
+  fitLayoutTemplate,
   type CustomPanelSpec,
   type LayoutTemplate,
 } from "@/lib/layout-templates";
@@ -432,7 +432,9 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
         }
         const sym = str(input, "symbol");
         const syms = strArray(input, "symbols");
-        applyLayoutTemplate(api, pattern as LayoutTemplate, {
+        // Fit-aware (Track 4): on a narrow display a panel-heavy template is
+        // downgraded to a layout that actually fits (research → chart + brief).
+        const fit = fitLayoutTemplate(api, pattern as LayoutTemplate, {
           symbol: sym || undefined,
           symbols: syms.length ? syms : undefined,
         });
@@ -446,6 +448,11 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
           cc.loadSymbol(sym);
         } else if (syms[0]) {
           cc.loadSymbol(syms[0]);
+        }
+        if (fit.downgraded) {
+          return fit.applied === "essentials-research"
+            ? "Arranged the essentials (chart + brief) to fit your screen — click any ticker to go deeper"
+            : "Arranged a single-focus layout to fit your screen";
         }
         const label =
           pattern === "research-cockpit" ? "research cockpit" : pattern.replace("-", " ");
