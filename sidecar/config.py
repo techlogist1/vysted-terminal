@@ -170,6 +170,34 @@ def reset_request_llm_creds(token: object) -> None:
     _llm_creds_ctx.reset(token)  # type: ignore[arg-type]
 
 
+# --- Deep-research engine selection (Track 5) --------------------------------
+#
+# The user picks the DEEP engine in Settings (native IterResearch / Tongyi-via-
+# OpenRouter). The frontend publishes the choice — and, for Tongyi, the BYOK
+# OpenRouter key — on the agent-invoke request; ``invoke_agent`` sets them here so
+# the ``deep_research`` tool defaults to the chosen backend WITHOUT relying on the
+# model to pass a tool arg (authoritative, not LLM-dependent). The key is a SECRET:
+# process-memory-only for the invocation, task-local, never logged or persisted.
+_deep_research_ctx: ContextVar[tuple[str | None, str | None]] = ContextVar(
+    "vysted_deep_research", default=(None, None)
+)
+
+
+def get_deep_research_backend() -> str | None:
+    """The user's selected deep-research backend for this run (``native``/``tongyi``)."""
+    return _deep_research_ctx.get()[0]
+
+
+def get_deep_research_key() -> str | None:
+    """The BYOK OpenRouter key supplied for the Tongyi backend this run, or None."""
+    return _deep_research_ctx.get()[1]
+
+
+def set_request_deep_research(backend: str | None, api_key: str | None) -> object:
+    """Publish the deep-research backend + optional key for the run; returns a token."""
+    return _deep_research_ctx.set((backend, api_key))
+
+
 # --- Live research-step sink (Track A — aliveness) ---------------------------
 #
 # A long research tool (``deep_research`` / ``research``) runs for many seconds

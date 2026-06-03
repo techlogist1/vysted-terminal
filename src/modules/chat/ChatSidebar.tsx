@@ -565,6 +565,25 @@ export function ChatSidebar() {
         return;
       }
 
+      // Thread the user's deep-research engine selection (Track 5) to the agent so
+      // /deep routes to the chosen backend without depending on the model; for
+      // Tongyi, forward the BYOK OpenRouter key (per-request, never persisted) so
+      // it works regardless of the active provider. Read at call time.
+      const deepResearchBackend = useSettingsStore.getState().deepResearchBackend;
+      let deepResearchKey: string | undefined;
+      if (deepResearchBackend === "tongyi") {
+        try {
+          deepResearchKey =
+            (await getSecret(KEYCHAIN_NAMESPACES.llmProvider("openrouter"))) ?? undefined;
+        } catch {
+          deepResearchKey = undefined;
+        }
+      }
+      const deepResearchOptions = {
+        deepResearchBackend,
+        ...(deepResearchKey ? { deepResearchKey } : {}),
+      };
+
       // Delegate launches a DURABLE, budget-guarded background run (US9) instead
       // of a foreground stream — it survives this turn and appears in the agents
       // rail with live cost-so-far; its proposed changes still ride the diff gate.
@@ -591,7 +610,11 @@ export function ChatSidebar() {
           model,
           apiKey: apiKey ?? undefined,
           budget: delegateBudget,
-          options: { history },
+          // Carry only the non-secret backend choice into a DURABLE run — never
+          // the OpenRouter key (a delegate run's state is persisted; secrets stay
+          // off disk). A delegate Tongyi run reuses the key only if the active
+          // provider is already OpenRouter.
+          options: { history, deepResearchBackend },
         });
         return;
       }
@@ -687,7 +710,7 @@ export function ChatSidebar() {
             model,
             mode,
             apiKey: apiKey ?? undefined,
-            options: { history },
+            options: { history, ...deepResearchOptions },
           },
           { ...handlers, signal: controller.signal },
         );

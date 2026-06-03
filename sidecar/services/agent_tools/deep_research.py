@@ -140,6 +140,10 @@ async def _run_tongyi(
 
     api_key = key or None
     if not api_key:
+        # The renderer forwards a BYOK OpenRouter key with the run when Tongyi is
+        # the selected engine (Track 5) — use it regardless of the active provider.
+        api_key = config.get_deep_research_key()
+    if not api_key:
         creds = config.get_llm_creds()
         # Reuse the active key only when the user is already talking via OpenRouter.
         if creds is not None and creds[0] == "openrouter":
@@ -303,7 +307,13 @@ async def _deep_research(args: dict[str, Any]) -> dict[str, Any]:
     # ``heavy: true`` is an ergonomic alias for the default panel width.
     if args.get("heavy") is True and angles < _MIN_HEAVY_ANGLES:
         angles = _MAX_ANGLES
-    backend = str(args.get("backend") or "native").strip().lower()
+    # The user's Settings selection (Track 5) is authoritative when the model does
+    # not pass an explicit backend arg — so picking "Tongyi" actually routes there
+    # without depending on the LLM. Defaults to native; opt-in backends never auto.
+    import config
+
+    backend = str(args.get("backend") or config.get_deep_research_backend() or "native")
+    backend = backend.strip().lower()
 
     if backend == "perplexity":
         return await _run_perplexity(query, args.get("api_key"))

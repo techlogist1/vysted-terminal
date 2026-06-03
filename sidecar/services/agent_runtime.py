@@ -645,6 +645,17 @@ async def invoke_agent(
     # not leak across requests; the key stays process-memory-only.
     config.set_request_llm_creds(provider_id, resolved_model, api_key)
 
+    # Publish the user's selected deep-research engine (Track 5) so the
+    # deep_research tool defaults to it without the model passing a tool arg. For
+    # Tongyi, the renderer also forwards the BYOK OpenRouter key (kept in process
+    # memory for the run only, never logged). Task-local like the creds above.
+    dr_backend = opts.pop("deepResearchBackend", None)
+    dr_key = opts.pop("deepResearchKey", None)
+    config.set_request_deep_research(
+        dr_backend.strip().lower() if isinstance(dr_backend, str) and dr_backend.strip() else None,
+        dr_key if isinstance(dr_key, str) and dr_key.strip() else None,
+    )
+
     # --- Visible plan-then-execute pre-pass (Track 6 #2) ---------------------
     # For a COMPOUND request on a capable model, decompose the goal into an
     # ordered plan, surface it (so the user sees the steps up front), and PRE-STAGE

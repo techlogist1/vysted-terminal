@@ -112,3 +112,63 @@ def test_ollama_probe_failure_is_silent(
     resp = client.get("/system/hardware")
     assert resp.status_code == 200
     assert resp.json()["ollama"]["models"] == []
+
+
+# --- deep-research routing probe (Track 5) -----------------------------------
+
+
+def test_deepresearch_probe_without_key_is_unconfigured(client: TestClient) -> None:
+    # No OpenRouter key → Tongyi is unconfigured (no network call), native always on.
+    resp = client.get("/system/deepresearch/probe")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["native"]["available"] is True
+    assert body["tongyi"]["configured"] is False
+    assert body["tongyi"]["live"] is False
+    assert body["tongyi"]["resolvedModel"] is None
+
+
+def test_deepresearch_probe_reports_live_when_slug_routes(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async def _resolve(_key: str, **_kw: Any) -> str:
+        return system.tongyi.TONGYI_SLUG
+
+    monkeypatch.setattr(system.tongyi, "resolve_model", _resolve)
+    resp = client.get("/system/deepresearch/probe", headers={"X-OpenRouter-Key": "sk-or-test"})
+    assert resp.status_code == 200
+    tongyi = resp.json()["tongyi"]
+    assert tongyi["configured"] is True
+    assert tongyi["live"] is True
+    assert tongyi["usingFallback"] is False
+    assert tongyi["resolvedModel"] == system.tongyi.TONGYI_SLUG
+
+
+def test_deepresearch_probe_reports_fallback_when_slug_unrouted(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fallback = system.tongyi.FALLBACK_SLUGS[0]
+
+    async def _resolve(_key: str, **_kw: Any) -> str:
+        return fallback
+
+    monkeypatch.setattr(system.tongyi, "resolve_model", _resolve)
+    resp = client.get("/system/deepresearch/probe", headers={"X-OpenRouter-Key": "sk-or-test"})
+    assert resp.status_code == 200
+    tongyi = resp.json()["tongyi"]
+    assert tongyi["configured"] is True
+    assert tongyi["live"] is False
+    assert tongyi["usingFallback"] is True
+    assert tongyi["resolvedModel"] == fallback
+    assert fallback in tongyi["note"]
+
+
+def test_deepresearch_probe_never_echoes_the_key(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async def _resolve(_key: str, **_kw: Any) -> str:
+        return system.tongyi.FALLBACK_SLUGS[0]
+
+    monkeypatch.setattr(system.tongyi, "resolve_model", _resolve)
+    resp = client.get("/system/deepresearch/probe", headers={"X-OpenRouter-Key": "sk-or-SECRET"})
+    assert "sk-or-SECRET" not in resp.text

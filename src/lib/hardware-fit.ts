@@ -54,6 +54,49 @@ export async function fetchHardwareReport(): Promise<HardwareReport | null> {
   }
 }
 
+/** The live deep-research routing probe (Track 5) — what each engine WILL run. */
+export interface DeepResearchProbe {
+  native: { available: boolean; label: string; note: string };
+  tongyi: {
+    slug: string;
+    /** Whether a BYOK OpenRouter key was supplied for the probe. */
+    configured: boolean;
+    /** Whether the dedicated Tongyi slug is routing on OpenRouter right now. */
+    live: boolean;
+    /** Whether the run will use a fallback model instead of the Tongyi slug. */
+    usingFallback: boolean;
+    /** The model that will actually run (Tongyi slug or the resolved fallback). */
+    resolvedModel: string | null;
+    estimateUsd?: number;
+    note: string;
+  };
+}
+
+/**
+ * Probe the deep-research engine routing. When an OpenRouter key is supplied it
+ * is sent in the `X-OpenRouter-Key` header for the live Tongyi `/endpoints`
+ * check (used only for the probe — never stored). `null` when the sidecar is
+ * unreachable.
+ */
+export async function probeDeepResearch(
+  openrouterKey: string | null,
+): Promise<DeepResearchProbe | null> {
+  try {
+    const base = await getSidecarBaseUrl();
+    const headers: Record<string, string> = {};
+    if (openrouterKey) {
+      headers["X-OpenRouter-Key"] = openrouterKey;
+    }
+    const resp = await fetch(new URL("/system/deepresearch/probe", base).toString(), { headers });
+    if (!resp.ok) {
+      return null;
+    }
+    return (await resp.json()) as DeepResearchProbe;
+  } catch {
+    return null;
+  }
+}
+
 /** Human label + tailwind text colour for a verdict chip. */
 export function verdictMeta(verdict: FitVerdict): { label: string; className: string } {
   switch (verdict) {

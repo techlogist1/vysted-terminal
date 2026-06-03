@@ -14,9 +14,10 @@ import re
 from typing import Any
 
 import httpx
-from fastapi import APIRouter
+from fastapi import APIRouter, Header
 
 from services.hardware_fit import ModelCandidate, detect_device, score
+from services.research import tongyi
 
 router = APIRouter(prefix="/system", tags=["system"])
 
@@ -92,4 +93,62 @@ async def get_hardware() -> dict[str, Any]:
             "models": await _score_ollama_models(device),
         },
         "referenceCandidates": [score(c, device).to_dict() for c in _REFERENCE_CANDIDATES],
+    }
+
+
+@router.get("/deepresearch/probe")
+async def probe_deep_research(
+    x_openrouter_key: str | None = Header(default=None, alias="X-OpenRouter-Key"),
+) -> dict[str, Any]:
+    """Live routing probe for the deep-research engine SELECTOR (Track 5).
+
+    Honestly reports what each engine WILL run right now so the Settings UI never
+    implies Tongyi works when it doesn't: the native loop is always available; the
+    Tongyi backend is probed against OpenRouter's live ``/endpoints`` and reports
+    whether the dedicated slug is routing or the run will fall back to Qwen-A3B
+    (plus a coarse cost estimate). The BYOK OpenRouter key arrives in the
+    ``X-OpenRouter-Key`` header (renderer reads the keychain); it is used for the
+    probe only and NEVER logged, echoed, or persisted.
+    """
+    native = {
+        "available": True,
+        "label": "Native (IterResearch)",
+        "note": "Vysted's own bounded deep loop on your configured model — always available.",
+    }
+
+    if not tongyi.is_configured(x_openrouter_key):
+        return {
+            "native": native,
+            "tongyi": {
+                "slug": tongyi.TONGYI_SLUG,
+                "configured": False,
+                "live": False,
+                "usingFallback": False,
+                "resolvedModel": None,
+                "note": "Add an OpenRouter key (BYOK) to route deep research through Tongyi.",
+            },
+        }
+
+    # is_configured already validated the key is non-empty.
+    assert x_openrouter_key is not None
+    try:
+        resolved = await tongyi.resolve_model(x_openrouter_key)
+    except Exception:  # noqa: BLE001 — a probe miss is "use the fallback", never an error
+        resolved = tongyi.FALLBACK_SLUGS[0]
+    live = resolved == tongyi.TONGYI_SLUG
+    return {
+        "native": native,
+        "tongyi": {
+            "slug": tongyi.TONGYI_SLUG,
+            "configured": True,
+            "live": live,
+            "usingFallback": not live,
+            "resolvedModel": resolved,
+            "estimateUsd": tongyi.estimate_cost_usd("deep research run"),
+            "note": (
+                "Tongyi routing OK on OpenRouter."
+                if live
+                else f"Tongyi unavailable on OpenRouter right now — using {resolved}."
+            ),
+        },
     }

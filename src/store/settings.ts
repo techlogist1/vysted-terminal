@@ -35,6 +35,14 @@ export type AccentIntensity = "muted" | "normal" | "vivid";
 /** Row density for list-heavy panels — the other dark-only knob. */
 export type Density = "comfortable" | "compact";
 
+/**
+ * The DEEP research engine the agent drives (Track 5). `native` is Vysted's own
+ * bounded IterResearch loop on the configured model (always available). `tongyi`
+ * is opt-in + BYOK (an OpenRouter key), NEVER auto-selected; the Tongyi slug is
+ * runtime-probed and falls back to a live Qwen-A3B when it isn't routing.
+ */
+export type DeepResearchBackend = "native" | "tongyi";
+
 /** Dark-only theming knobs. We never leave the dark language; these tune it. */
 export interface ThemeKnobs {
   accentIntensity: AccentIntensity;
@@ -78,6 +86,9 @@ export interface SettingsBundle {
    * region-first. See `src/lib/region.ts` + EXTENSION_SEAMS.md.
    */
   region: Region;
+  /** The selected DEEP research engine (Track 5). Default `native`; `tongyi` is
+   *  opt-in + BYOK and never auto-selected. */
+  deepResearchBackend: DeepResearchBackend;
 }
 
 /** The default starter-cockpit composition — mirrors `config/default-layout`. */
@@ -99,6 +110,7 @@ export const DEFAULT_SETTINGS: Readonly<SettingsBundle> = Object.freeze<Settings
   panelDefaults: {},
   themeKnobs: { accentIntensity: "normal", density: "comfortable" },
   region: DEFAULT_REGION,
+  deepResearchBackend: "native",
 });
 
 interface SettingsState extends SettingsBundle {
@@ -114,6 +126,7 @@ interface SettingsState extends SettingsBundle {
   setPanelDefault: (panelId: string, prefs: Record<string, unknown>) => void;
   setThemeKnobs: (knobs: Partial<ThemeKnobs>) => void;
   setRegion: (region: Region) => void;
+  setDeepResearchBackend: (backend: DeepResearchBackend) => void;
   /** Replace the entire bundle (workspace/settings restore + import). */
   setAll: (bundle: Partial<SettingsBundle>) => void;
   /** Snapshot the current preferences as a plain bundle (for export). */
@@ -131,6 +144,7 @@ function seed(): SettingsBundle {
     panelDefaults: {},
     themeKnobs: { ...DEFAULT_SETTINGS.themeKnobs },
     region: DEFAULT_SETTINGS.region,
+    deepResearchBackend: DEFAULT_SETTINGS.deepResearchBackend,
   };
 }
 
@@ -221,6 +235,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     persist();
   },
 
+  setDeepResearchBackend: (backend) => {
+    set({ deepResearchBackend: backend });
+    persist();
+  },
+
   setAll: (bundle) => {
     // Merge over the seed so a partial blob (older export, hand-edited import)
     // can't strip a field — every key keeps a sane value.
@@ -253,6 +272,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           ? { ...base.themeKnobs, ...bundle.themeKnobs }
           : base.themeKnobs,
       region: isRegion(bundle.region) ? bundle.region : base.region,
+      deepResearchBackend:
+        bundle.deepResearchBackend === "tongyi" || bundle.deepResearchBackend === "native"
+          ? bundle.deepResearchBackend
+          : base.deepResearchBackend,
     });
     persist();
   },
@@ -268,6 +291,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       panelDefaults: { ...s.panelDefaults },
       themeKnobs: { ...s.themeKnobs },
       region: s.region,
+      deepResearchBackend: s.deepResearchBackend,
     };
   },
 }));
