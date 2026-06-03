@@ -88,3 +88,57 @@ def test_transport_failure_raises_search_error() -> None:
     client = _FakeClient(_FakeResp("", status=503))
     with pytest.raises(SearchError):
         _run(DdgSearchBackend(client=client).search("q"))
+
+
+# --- Track 3 keyless hardening ---------------------------------------------
+
+_LITE_FIXTURE = """
+<table>
+  <tr><td>
+    <a rel="nofollow" href="https://lite-ex.com/nvda"
+       class="result-link">NVDA Lite <b>Result</b></a>
+  </td></tr>
+  <tr><td class="result-snippet">A lite-page snippet about datacenter demand.</td></tr>
+</table>
+"""
+
+
+class _MapClient:
+    """Returns a different response per endpoint (keyed by URL substring)."""
+
+    def __init__(self, by_url: dict[str, _FakeResp]) -> None:
+        self._by_url = by_url
+        self.calls: list[str] = []
+
+    async def post(self, url, data=None, headers=None):  # noqa: ANN001, ANN201
+        self.calls.append(url)
+        for needle, resp in self._by_url.items():
+            if needle in url:
+                return resp
+        raise AssertionError(f"unexpected url {url}")
+
+
+def test_rate_limit_status_raises_honest_error() -> None:
+    """A 202 anomaly/soft-block surfaces a clear rate-limit SearchError (not a
+    silent empty result the loop would read as 'no web data')."""
+    client = _FakeClient(_FakeResp("<html>anomaly</html>", status=202))
+    with pytest.raises(SearchError, match="rate-limit"):
+        _run(DdgSearchBackend(client=client).search("q"))
+
+
+def test_lite_fallback_when_html_empty() -> None:
+    """Zero rows from the HTML endpoint → fall back to the DDG Lite page."""
+    client = _MapClient(
+        {
+            "html.duckduckgo.com": _FakeResp("<html><body>no results</body></html>"),
+            "lite.duckduckgo.com": _FakeResp(_LITE_FIXTURE),
+        }
+    )
+    resp = _run(DdgSearchBackend(client=client).search("nvda"))
+    assert len(resp.results) == 1
+    assert resp.results[0].url == "https://lite-ex.com/nvda"
+    assert resp.results[0].title == "NVDA Lite Result"
+    assert "datacenter demand" in resp.results[0].snippet
+    # The HTML endpoint was tried first, then Lite.
+    assert any("html.duckduckgo.com" in u for u in client.calls)
+    assert any("lite.duckduckgo.com" in u for u in client.calls)

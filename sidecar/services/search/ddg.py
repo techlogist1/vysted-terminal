@@ -18,6 +18,7 @@ yields no parsed rows returns an empty (but successful) response.
 
 from __future__ import annotations
 
+import asyncio
 import html
 import re
 from urllib.parse import parse_qs, unquote, urlparse
@@ -39,6 +40,23 @@ BACKEND_ID = "ddg"
 #: rate-limit redirects) and the ``html.`` host returns server-rendered rows.
 _ENDPOINT = "https://html.duckduckgo.com/html/"
 
+#: The DDG Lite endpoint — a simpler, more stable results table. Used as a
+#: fallback when the HTML endpoint parses ZERO rows (markup drift or a soft block)
+#: so a transient HTML-side hiccup doesn't leave a keyless user with no web data.
+_LITE_ENDPOINT = "https://lite.duckduckgo.com/lite/"
+
+#: DDG soft-rate-limit statuses. ``html.duckduckgo.com`` answers an over-eager
+#: client with 202 (an "anomaly" challenge page) rather than a 4xx; treat it (and
+#: 429) as a RETRIABLE rate-limit so the loop surfaces an honest "try again"
+#: instead of silently parsing a block page as "no results".
+_RATE_LIMIT_STATUSES = frozenset({202, 429})
+
+#: Bounded retry: a single re-attempt with a short backoff absorbs a transient
+#: network blip / momentary rate-limit without turning a keyless search into a
+#: long stall.
+_MAX_ATTEMPTS = 2
+_BACKOFF_SECS = 0.3
+
 #: A desktop User-Agent — the bare httpx UA gets a thinner/blocked response.
 _USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
@@ -57,6 +75,13 @@ _ANCHOR = re.compile(r'class="result__a"[^>]*href="([^"]+)"[^>]*>(.*?)</a>', re.
 _SNIPPET = re.compile(r'class="result__snippet"[^>]*>(.*?)</a>', re.S)
 _URLLABEL = re.compile(r'class="result__url"[^>]*>(.*?)</a>', re.S)
 _TAG = re.compile(r"<[^>]+>")
+
+# DDG Lite markup: result links carry class="result-link" (attribute order
+# varies, so match the whole anchor tag then pull href out); snippets are a
+# following td.result-snippet, paired positionally (a missing snippet → "").
+_LITE_ANCHOR = re.compile(r'<a\b([^>]*\bclass="[^"]*result-link[^"]*"[^>]*)>(.*?)</a>', re.S)
+_LITE_HREF = re.compile(r'href="([^"]+)"')
+_LITE_SNIPPET = re.compile(r'class="result-snippet"[^>]*>(.*?)</td>', re.S)
 
 
 def _strip(fragment: str) -> str:
@@ -109,6 +134,77 @@ def _parse(text: str, *, limit: int) -> list[SearchResult]:
     return out
 
 
+def _parse_lite(text: str, *, limit: int) -> list[SearchResult]:
+    """Map the DDG Lite results table to normalized :class:`SearchResult`s.
+
+    Anchors (``result-link``) and snippets (``result-snippet``) are paired
+    positionally; a missing snippet degrades to "". Returns an empty list (not an
+    error) when nothing parses — same contract as :func:`_parse`.
+    """
+    snippets = _LITE_SNIPPET.findall(text)
+    out: list[SearchResult] = []
+    for index, match in enumerate(_LITE_ANCHOR.finditer(text)):
+        attrs, title = match.group(1), match.group(2)
+        href_match = _LITE_HREF.search(attrs)
+        if not href_match:
+            continue
+        url = _decode_href(href_match.group(1))
+        if not url.startswith("http"):
+            continue
+        out.append(
+            SearchResult(
+                url=url,
+                title=_strip(title) or url,
+                snippet=_strip(snippets[index]) if index < len(snippets) else "",
+                source="duckduckgo",
+            )
+        )
+        if len(out) >= limit:
+            break
+    return out
+
+
+async def _fetch(http: httpx.AsyncClient, endpoint: str, data: dict[str, str]) -> str:
+    """POST to a DDG endpoint with a bounded retry + honest rate-limit handling.
+
+    Returns the response text. Raises :class:`SearchError` (unreachable OR
+    rate-limited) only after the retry budget is spent — so a transient blip
+    self-heals, while a persistent block surfaces a clear, human message instead
+    of being silently parsed as "no results".
+    """
+    headers = {"User-Agent": _USER_AGENT}
+    unreachable = (
+        "keyless web search (DuckDuckGo) is unreachable — check your network, "
+        "or add an Exa key / local SearXNG for a dedicated search route"
+    )
+    for attempt in range(_MAX_ATTEMPTS):
+        last = attempt + 1 >= _MAX_ATTEMPTS
+        try:
+            resp = await http.post(endpoint, data=data, headers=headers)
+        except httpx.HTTPError as exc:
+            if last:
+                raise SearchError(unreachable) from exc
+            await asyncio.sleep(_BACKOFF_SECS)
+            continue
+        if resp.status_code in _RATE_LIMIT_STATUSES:
+            if last:
+                raise SearchError(
+                    "keyless web search (DuckDuckGo) is rate-limiting right now — wait a "
+                    "moment and retry, or add an Exa key / local SearXNG for a dedicated route"
+                )
+            await asyncio.sleep(_BACKOFF_SECS)
+            continue
+        try:
+            resp.raise_for_status()
+        except httpx.HTTPError as exc:
+            if last:
+                raise SearchError(unreachable) from exc
+            await asyncio.sleep(_BACKOFF_SECS)
+            continue
+        return resp.text
+    raise SearchError(unreachable)  # pragma: no cover — loop always returns/raises
+
+
 class DdgSearchBackend(SearchBackend):
     """Keyless DuckDuckGo metasearch — the always-available search floor."""
 
@@ -125,29 +221,37 @@ class DdgSearchBackend(SearchBackend):
         kl = _REGION_KL.get((self.region or "").strip().upper())
         if kl:
             data["kl"] = kl
-        headers = {"User-Agent": _USER_AGENT}
-        try:
-            if self._client is not None:
-                response = await self._client.post(_ENDPOINT, data=data, headers=headers)
-            else:
-                async with httpx.AsyncClient(
-                    timeout=_SEARCH_TIMEOUT_SECS, follow_redirects=True
-                ) as http:
-                    response = await http.post(_ENDPOINT, data=data, headers=headers)
-            response.raise_for_status()
-        except httpx.HTTPError as exc:
-            raise SearchError(
-                "keyless web search (DuckDuckGo) is unreachable — check your network, "
-                "or add an Exa key / local SearXNG for a dedicated search route"
-            ) from exc
 
-        results = _parse(response.text, limit=limit)
+        if self._client is not None:
+            results = await self._search_with(self._client, data, limit)
+        else:
+            async with httpx.AsyncClient(
+                timeout=_SEARCH_TIMEOUT_SECS, follow_redirects=True
+            ) as http:
+                results = await self._search_with(http, data, limit)
+
         return SearchResponse(
             results=results,
             citations=normalize_results_to_citations(results, limit=limit),
             backend=BACKEND_ID,
             query=query,
         )
+
+    async def _search_with(
+        self, http: httpx.AsyncClient, data: dict[str, str], limit: int
+    ) -> list[SearchResult]:
+        """Query the HTML endpoint; on zero rows, fall back to DDG Lite."""
+        results = _parse(await _fetch(http, _ENDPOINT, data), limit=limit)
+        if results:
+            return results
+        # Zero rows from HTML (markup drift or a soft block) → try the simpler,
+        # more stable Lite page. A Lite failure leaves the empty HTML result —
+        # never worse than before this fallback existed.
+        try:
+            lite_text = await _fetch(http, _LITE_ENDPOINT, data)
+        except SearchError:
+            return results
+        return _parse_lite(lite_text, limit=limit)
 
 
 def _coerce_limit(opts: dict) -> int | None:
