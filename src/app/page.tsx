@@ -26,6 +26,7 @@ import { useAppStore } from "@/store/app";
 import { useBriefStore } from "@/store/brief";
 import { useCommandPalette } from "@/store/command-palette";
 import { useLLMProvidersStore } from "@/store/llm-providers";
+import { useModelCatalogStore } from "@/store/model-catalog";
 import { useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
 import { useSearchSettingsStore } from "@/store/search-settings";
@@ -47,6 +48,15 @@ export default function Page() {
     useModulesStore.getState().registerModules(vystedModules);
     useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
     void useAppStore.getState().connectSidecar();
+
+    // Warm the default provider's LIVE model catalog up front so the model pickers
+    // are populated from the full live list (e.g. OpenRouter's hundreds) before the
+    // user ever opens a dropdown — otherwise the first open can briefly show the
+    // small static fallback while the fetch is in flight. Idempotent + cached; the
+    // default-provider subscription below re-warms it when the restore changes it.
+    void useModelCatalogStore
+      .getState()
+      .fetchCatalog(useLLMProvidersStore.getState().defaultProviderId);
 
     // Dev-only: bring up the tauri-plugin-mcp in-webview bridge so the local
     // test-automation rig (snapshot / click / console + network capture) can
@@ -111,6 +121,11 @@ export default function Page() {
     const unsubscribeDefaultProvider = useLLMProvidersStore.subscribe((state, previous) => {
       if (state.defaultProviderId !== previous.defaultProviderId) {
         void autosaveLayout();
+        // Warm the newly-default provider's live catalog (e.g. after a workspace
+        // restore flips the seed `ollama` to the persisted `openrouter`) so the
+        // Settings/HUD model pickers show the full live list without a load-window
+        // gap on the static fallback.
+        void useModelCatalogStore.getState().fetchCatalog(state.defaultProviderId);
       }
     });
     const unsubscribeAutonomy = useAgentAutonomyStore.subscribe((state, previous) => {

@@ -157,6 +157,13 @@ export function OnboardingFlow() {
       <DialogContent
         data-testid="onboarding-flow"
         showCloseButton={false}
+        // Don't let an incidental outside-pointer (e.g. the workspace-restore
+        // opening a panel during boot) or a stray Escape dismiss the headline
+        // before the user reads it — it only closes via its explicit buttons
+        // (Skip / Add key / Set up local / Start exploring). Mirrors the §6.5 TOS.
+        onEscapeKeyDown={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
         className="border-charcoal-700 bg-charcoal-950 max-w-2xl gap-0 overflow-hidden p-0 shadow-2xl"
       >
         <DialogTitle className="sr-only">Welcome to Vysted Terminal</DialogTitle>
