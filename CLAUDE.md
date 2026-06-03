@@ -192,6 +192,17 @@ onto a shared agent branch, which can sweep uncommitted lead edits into a teamma
 - **`types/data.ts` mirrors `sidecar/models/` by hand** — change both in the same commit.
 - **Arbitrary-precision numbers cross the wire as strings** (XBRL/SEC overflow JS
   `Number.MAX_SAFE_INTEGER`); parse to `BigInt` only when computing.
+- **Research auto-publishes the brief** (`agent_runtime._auto_publish_event`): on a `research`/
+  `deep_research` ok-result the runtime emits a synthetic `publish_brief` carrying `structured`
+  (+ markdown when present) so the brief renders without the model calling `publish_brief` — it
+  fires on `structured`-OR-markdown (FAST returns no markdown → the model writes the prose, the live
+  metrics auto-fill). Rides the existing proposed-changes gate (never bypasses §6.5; orders still
+  never auto-apply). Deep-research engine = the Settings selection threaded via the agent-invoke
+  request → `config.get_deep_research_backend()` ContextVar (authoritative, NOT an LLM tool arg);
+  the Tongyi BYOK OpenRouter key rides the foreground (never-persisted) request only, never the
+  durable delegate path. Live routing probe: `GET /system/deepresearch/probe` (`X-OpenRouter-Key`
+  header, never logged) → `tongyi.resolve_model` (the Tongyi slug is listed-but-unrouted → honest
+  Qwen-A3B fallback).
 
 ### Frontend
 
@@ -216,6 +227,19 @@ onto a shared agent branch, which can sweep uncommitted lead edits into a teamma
 - **chrome-devtools MCP can't synthesize trusted (`isTrusted`) events** — canvas-interactive
   features (drawings, drag-to-pan, lightweight-charts gestures) need Playwright/native event
   injection for visual regression, not chrome-devtools.
+- **The research brief renders as TYPED BLOCKS, not raw markdown** (`src/modules/research/
+brief-blocks.tsx` `BriefBody`): a color-coded metric-card grid derived from `brief.structured`
+  (`deriveMetrics`; returns null → no card, never a fabricated value) + the synthesis markdown
+  parsed into heading/prose/list/**table** blocks (the table parse kills the chat's wall-of-pipes).
+  `structured` rides the brief contract (`types/brief.ts`); `briefFromInput` preserves it across a
+  structured-less re-publish of the same symbol (so the model's publish doesn't wipe the
+  auto-publish's live metrics). Tickers chip ONLY on `$CASHTAG` + the known-set
+  (resolved/watchlist/structured) — never a bare uppercase word (NVIDIA/GPU/CUDA) — and a chip →
+  `loadSymbolIntoChart` (the always-consumed chart-command channel; fit-aware, no panel-per-click).
+- **Arrange is viewport-fit-aware** (`layout-templates.fitLayoutTemplate`): a panel-heavy template
+  below a width threshold downgrades to the essentials (research-cockpit → chart + brief,
+  macro-scan → single-focus); existing templates stay the fallback, and the `__terminal__` snapshot
+  carries `viewport` so the agent self-selects on a small display too.
 
 ### Broker & credentials
 
