@@ -149,6 +149,13 @@ export function deriveMetrics(structured: BriefStructured | undefined): MetricsM
     }
     push("EPS", formatNumber(fund.eps));
     push("Beta", formatNumber(fund.beta));
+    // Screener-grade quality + growth cards (from the expanded fundamentals).
+    // push() skips a "—" value, so absent fields render no card — never a fake one.
+    push("ROE", formatFractionPct(fund.roe));
+    push("Net margin", formatFractionPct(fund.profit_margin));
+    push("Debt/Equity", formatNumber(fund.debt_to_equity));
+    push("Rev growth", formatFractionPct(fund.revenue_growth));
+    push("Revenue", formatLarge(fund.revenue_ttm));
     const lo = fund.fifty_two_week_low;
     const hi = fund.fifty_two_week_high;
     if (typeof lo === "number" && typeof hi === "number") {

@@ -89,7 +89,10 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
     const prev = useBriefStore.getState().brief;
     const sameSymbol =
       !!prev?.symbol && !!symbol && prev.symbol.toUpperCase() === symbol.toUpperCase();
-    const recent = typeof prev?.createdAt === "number" && Date.now() - prev.createdAt < 120_000;
+    // Tight 20s window (was 120s): the auto-publish → model publish_brief round-trip
+    // is a few seconds, so 20s safely covers the same turn while shrinking the
+    // cross-symbol contamination window 6x (AAPL then MSFT within seconds).
+    const recent = typeof prev?.createdAt === "number" && Date.now() - prev.createdAt < 20_000;
     if (prev?.structured && (sameSymbol || (!symbol && recent))) {
       structured = prev.structured;
     }
