@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { SlidersHorizontal, Loader2 } from "lucide-react";
+import { Download, SlidersHorizontal, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { loadSymbolIntoChart } from "@/lib/host-actions";
 import { useScreenerStore } from "@/store/screener";
 
 import type { ScreenerResultRow } from "../../../types/screener";
@@ -53,6 +54,56 @@ function fmtVolume(value: number | null): string {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
   return value.toLocaleString("en-US");
+}
+
+/** Serialise the current result rows to CSV (RFC-4180 quoting) for Excel/Sheets. */
+function rowsToCsv(rows: ScreenerResultRow[]): string {
+  const headers = [
+    "Symbol",
+    "Name",
+    "Sector",
+    "Industry",
+    "Market cap",
+    "P/E",
+    "Price",
+    "1d %",
+    "Volume",
+  ];
+  const esc = (v: unknown): string => {
+    const s = v === null || v === undefined ? "" : String(v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const lines = [headers.join(",")];
+  for (const r of rows) {
+    lines.push(
+      [
+        r.symbol,
+        r.name,
+        r.sector,
+        r.industry,
+        r.market_cap,
+        r.pe_ratio,
+        r.price,
+        r.change_percent_1d,
+        r.volume,
+      ]
+        .map(esc)
+        .join(","),
+    );
+  }
+  return lines.join("\n");
+}
+
+function downloadScreenerCsv(rows: ScreenerResultRow[], universe: string): void {
+  const blob = new Blob([rowsToCsv(rows)], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `vysted-screener-${universe}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 // Direction-aware comparator that always pins null/unknown values LAST, in both
@@ -203,7 +254,18 @@ export function ScreenerResultsTable() {
           )}
           ,<span className="font-mono"> {result.duration_ms.toFixed(0)} ms</span>)
         </span>
-        <span className="font-mono tracking-wide uppercase">{result.universe}</span>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => downloadScreenerCsv(rows, result.universe)}
+            disabled={rows.length === 0}
+            className="text-charcoal-300 flex items-center gap-1 font-mono text-xs transition-colors hover:text-amber-300 disabled:opacity-40"
+            title="Export results to CSV (open in Excel / Sheets)"
+          >
+            <Download className="size-3" /> Export CSV
+          </button>
+          <span className="font-mono tracking-wide uppercase">{result.universe}</span>
+        </div>
       </div>
       <div className="border-border min-h-0 flex-1 overflow-auto rounded-md border">
         <table className="w-full table-fixed text-sm">
@@ -242,8 +304,13 @@ export function ScreenerResultsTable() {
               </tr>
             ) : (
               rows.map((row) => (
-                <tr key={row.symbol} className="border-border/60 hover:bg-muted/30 border-b">
-                  <td className="px-3 py-2 font-mono font-semibold whitespace-nowrap">
+                <tr
+                  key={row.symbol}
+                  className="border-border/60 hover:bg-muted/30 cursor-pointer border-b"
+                  onClick={() => loadSymbolIntoChart(row.symbol)}
+                  title={`Load ${row.symbol} into the chart`}
+                >
+                  <td className="px-3 py-2 font-mono font-semibold whitespace-nowrap text-amber-300">
                     {row.symbol}
                   </td>
                   <td className="max-w-0 truncate overflow-hidden px-3 py-2" title={row.name ?? ""}>
