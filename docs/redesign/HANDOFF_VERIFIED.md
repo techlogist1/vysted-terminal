@@ -1,5 +1,35 @@
 # Vysted rebuild — verified handoff (Part 3)
 
+> ## ✅✅ HOT-PATCH ADDENDUM (2026-06-04, after a sidecar REBUILD) — the §A/§B bugs are FIXED & verified LIVE
+>
+> The screener-sparseness root cause (§A) and the dividend_yield unit bug (§B) below were
+> fixed (commit `e2f8024`), the main sidecar binary was **rebuilt** (so the fix + the full
+> 506-symbol universe are now actually running), and the result was driven **live in the UI**:
+>
+> - **Fundamentals enrichment fires** — `GET /fundamentals/AAPL` now returns `provider=yfinance`
+>   with `roe=1.41, profit_margin=0.27, operating_margin=0.32, debt_to_equity=0.80,
+>   revenue_growth=0.17` (all were `null`). The registry now falls through to yfinance when
+>   openbb returns no screener-grade fields, not only on error.
+> - **Screener is populated** — `roe>0.15` over the full universe: `evaluated 506, results`
+>   populated (NVDA roe 1.14, AAPL 1.42, GOOGL 0.39, MSFT 0.34, AMZN 0.24…). Was **0 rows**.
+>   The "Quality compounders" preset returns **50 rows in ~20 ms** (warm cache).
+>   Evidence: `verification/screener-quality-compounders-LIVE.png`.
+> - **Row → cockpit** — clicking the NVDA result row loaded NVDA into the chart (populated
+>   candles, "NVDA via yfinance"). Evidence: `verification/screener-row-to-chart-nvda-LIVE.png`.
+> - **dividend_yield correct** — Equity Overview for AAPL shows **0.35%** (was the 100×-wrong
+>   35%), with the full profitability/health/growth block populated, badged YFINANCE.
+>   Evidence: `verification/equity-overview-aapl-fixed-LIVE.png`.
+> - **Floor intact:** §6.5 audit 9/9 after the change; Tier-1 untouched; version still 0.8.0.
+>
+> **One follow-up flagged (NOT fixed — cosmetic, deferred to the big pass):** the screener's
+> universe dropdown still reads **"S&P 500 (Top 100)"** even though the live screen evaluates
+> 506. That label is a stale **frontend** string (the sidecar snapshot label is now "S&P 500");
+> the data is full-universe, only the dropdown caption lags.
+>
+> Everything ABOVE this line supersedes the matching items below (kept for the root-cause trail).
+
+---
+
 **Branch:** `003-vysted-rebuild` · **Date:** 2026-06-04 · **Verifier:** Opus 4.8 lead
 **Method:** drove the **live running app** (dev build on `localhost:3000`, tauri-mcp
 `evaluate_script` + `get_logs`) + **direct sidecar calls** (`127.0.0.1:49615`, loopback)
