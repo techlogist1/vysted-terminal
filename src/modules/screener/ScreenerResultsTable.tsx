@@ -158,6 +158,13 @@ function compareValue(
   return base * dir;
 }
 
+// Column widths are sized so each header label (uppercase) PLUS its sort arrow
+// fits without clipping; every cell (incl. <th>) also truncates so nothing can
+// ever bleed into a neighbour (Bug-1: the "SECTOMARKET CAP" header collision).
+// The numeric columns are wide enough for their headers — "MARKET CAP ▼" and
+// "FWD P/E" were the two that overran their old 80/64px cells. The table carries
+// a min-width so a narrow dockview split HORIZONTAL-SCROLLS rather than crushing
+// columns together (the parent is overflow-auto).
 const TABLE_HEADER_COLS = (
   <colgroup>
     {/* Symbol: wide enough for a 10-char NSE ticker (BHARTIARTL, ADANIPORTS) in
@@ -165,17 +172,22 @@ const TABLE_HEADER_COLS = (
     <col style={{ width: "104px" }} />
     <col style={{ width: "22%" }} />
     <col style={{ width: "13%" }} />
-    <col style={{ width: "80px" }} />
+    <col style={{ width: "116px" }} />
     <col style={{ width: "56px" }} />
-    <col style={{ width: "64px" }} />
+    <col style={{ width: "78px" }} />
     <col style={{ width: "56px" }} />
     <col style={{ width: "52px" }} />
     <col style={{ width: "52px" }} />
     <col style={{ width: "72px" }} />
     <col style={{ width: "64px" }} />
-    <col style={{ width: "72px" }} />
+    <col style={{ width: "78px" }} />
   </colgroup>
 );
+
+// Sum of the fixed-px columns (104+116+56+78+56+52+52+72+64+78 = 728) plus a
+// sensible floor for the two percentage text columns. Below this the panel
+// scrolls horizontally; above it the % columns absorb the slack.
+const TABLE_MIN_WIDTH = "min-w-[920px]";
 
 export function ScreenerResultsTable() {
   const result = useScreenerStore((s) => s.lastResult);
@@ -302,7 +314,7 @@ export function ScreenerResultsTable() {
         </div>
       </div>
       <div className="border-border min-h-0 flex-1 overflow-auto rounded-md border">
-        <table className="w-full table-fixed text-sm">
+        <table className={`w-full table-fixed text-sm ${TABLE_MIN_WIDTH}`}>
           {TABLE_HEADER_COLS}
           <thead className="bg-muted/40">
             <tr>
@@ -310,7 +322,8 @@ export function ScreenerResultsTable() {
                 <th
                   key={col.key}
                   scope="col"
-                  className={`border-border cursor-pointer border-b px-3 py-2 text-xs tracking-wide whitespace-nowrap uppercase select-none ${
+                  title={col.label}
+                  className={`border-border cursor-pointer overflow-hidden border-b px-2 py-2 text-xs tracking-wide overflow-ellipsis whitespace-nowrap uppercase select-none ${
                     col.numeric ? "text-right" : "text-left"
                   }`}
                   onClick={() => onHeaderClick(col.key)}
