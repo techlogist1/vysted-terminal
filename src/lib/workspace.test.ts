@@ -104,7 +104,7 @@ describe("workspace serialization", () => {
       autonomyMode: "ask",
       agentDock: { collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH },
       modelOverrides: {},
-      modelOverridesV: 2,
+      modelOverridesV: 3,
       keybindingOverrides: {},
       settings: DEFAULT_SETTINGS,
       searchSettings: { tier: "native", searxngUrl: "" },
@@ -172,7 +172,7 @@ describe("workspace serialization", () => {
       autonomyMode: "auto",
       agentDock: { collapsed: true, width: 520 },
       modelOverrides: { anthropic: "claude-sonnet-4-6" },
-      modelOverridesV: 2,
+      modelOverridesV: 3,
     });
     // Track B: a legacy "build" blob folds into the single inferred "agent" surface.
     expect(useAgentModeStore.getState().mode).toBe("agent");
@@ -194,7 +194,7 @@ describe("workspace serialization", () => {
       layout: LAYOUT_A,
       enabledModules: {},
       modelOverrides: { openai: "gpt-5-pro-2026" },
-      modelOverridesV: 2,
+      modelOverridesV: 3,
     });
     expect(useModelSelectionStore.getState().modelFor("openai")).toBe("gpt-5-pro-2026");
   });
@@ -216,6 +216,23 @@ describe("workspace serialization", () => {
     expect(useModelSelectionStore.getState().modelFor("ollama")).toBe(
       DEFAULT_MODEL_BY_PROVIDER.ollama,
     );
+  });
+
+  it("drops a model override from a pre-current trust version (the R3 v2->v3 bump)", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    // The R3 default-model change bumped MODEL_OVERRIDES_VERSION 2->3 so a blob that
+    // captured the OLD keyless default (minimax/minimax-m3 at trust version 2) is now
+    // STALE — its override drops so the workspace adopts the current default instead
+    // of shadowing it.
+    deserializeWorkspace({
+      name: "pre-r3",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      modelOverrides: { openrouter: "minimax/minimax-m3" },
+      modelOverridesV: 2, // an OLD numbered version < current → dropped
+    });
+    expect(useModelSelectionStore.getState().overrides.openrouter).toBeUndefined();
   });
 
   it("deserializeWorkspace restores a persisted watchlist", () => {
