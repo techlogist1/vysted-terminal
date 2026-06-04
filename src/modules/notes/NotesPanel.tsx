@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { NotebookPen } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -10,12 +9,16 @@ import { useNotesStore } from "@/store/notes";
  * Notes panel — a free-text research scratchpad, scoped per-stock (type a ticker)
  * or "General". Notes ride the workspace blob, so they persist with a saved/named
  * workspace and a per-stock research space (a layout saved for one ticker keeps
- * its notes). Quick-switch chips list the tickers that already have notes.
+ * its notes). The active scope (`focusSymbol`) is lifted into the store so a
+ * per-stock research space can open the panel already scoped to its ticker — and
+ * that scope persists across a reload. Quick-switch chips list the tickers that
+ * already have notes.
  */
 export function NotesPanel() {
-  const [scope, setScope] = useState("");
   const general = useNotesStore((s) => s.general);
   const bySymbol = useNotesStore((s) => s.bySymbol);
+  const scope = useNotesStore((s) => s.focusSymbol);
+  const setScope = useNotesStore((s) => s.setFocusSymbol);
   const setGeneral = useNotesStore((s) => s.setGeneral);
   const setSymbolNote = useNotesStore((s) => s.setSymbolNote);
 

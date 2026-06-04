@@ -4,7 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AGENT_DOCK_DEFAULT_WIDTH, useAgentDockStore } from "@/store/agent-dock";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAgentModeStore } from "@/store/agent-mode";
+import { resetChartCommandStoreForTests, useChartCommandStore } from "@/store/chart-command";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
+import { useNotesStore } from "@/store/notes";
 import { resetKeybindingsStoreForTests, useKeybindingsStore } from "@/store/keybindings";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { DEFAULT_MODEL_BY_PROVIDER, useModelSelectionStore } from "@/store/model-selection";
@@ -21,8 +23,10 @@ vi.mock("@/lib/sidecar-client", () => ({
 }));
 
 import {
+  createResearchSpace,
   deserializeWorkspace,
   loadWorkspace,
+  researchSpaceName,
   restoreLastSessionOrDefault,
   saveWorkspace,
   serializeWorkspace,
@@ -42,6 +46,14 @@ function createFakeDockviewApi(initial: SerializedDockview) {
     addPanel: vi.fn(),
     clear: vi.fn(),
     getPanel: vi.fn(),
+    // `applyPlan` (research-space layout) reads `panels` + `width` and may
+    // exit a maximized group; an empty panel list + a comfortable width + these
+    // no-op spies keep the fake good enough for it.
+    panels: [] as { id: string }[],
+    width: 1440,
+    hasMaximizedGroup: vi.fn(() => false),
+    exitMaximizedGroup: vi.fn(),
+    maximizeGroup: vi.fn(),
     get current() {
       return layout;
     },
@@ -97,7 +109,7 @@ describe("workspace serialization", () => {
       settings: DEFAULT_SETTINGS,
       searchSettings: { tier: "native", searxngUrl: "" },
       brief: null,
-      notes: { general: "", bySymbol: {} },
+      notes: { general: "", bySymbol: {}, focusSymbol: "" },
     });
   });
 
@@ -268,6 +280,47 @@ describe("workspace serialization", () => {
     expect(body.name).toBe("research");
     expect(body.workspace.layout).toEqual(LAYOUT_A);
     expect(body.workspace.enabledModules).toEqual({ chart: true, platform: true });
+  });
+
+  it("createResearchSpace builds a per-stock cockpit and saves it under 'Research: TICKER'", async () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    resetChartCommandStoreForTests();
+    useNotesStore.getState().fromBundle(null);
+
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 200 }));
+
+    const name = await createResearchSpace("nvda");
+
+    // Named + returned as a research space.
+    expect(name).toBe("Research: NVDA");
+    expect(researchSpaceName("nvda")).toBe("Research: NVDA");
+    // Built a clean layout: cleared then tiled the research panels.
+    expect(fakeApi.clear).toHaveBeenCalled();
+    expect(fakeApi.addPanel).toHaveBeenCalled();
+    const addedComponents = fakeApi.addPanel.mock.calls.map(
+      (c) => (c[0] as { component?: string }).component,
+    );
+    expect(addedComponents).toContain("chart-panel");
+    expect(addedComponents).toContain("brief-panel");
+    expect(addedComponents).toContain("notes-panel");
+    // Loaded the symbol into the chart (via the chart-command channel) + scoped
+    // the notes to it.
+    expect(useChartCommandStore.getState().command?.symbol).toBe("NVDA");
+    expect(useNotesStore.getState().focusSymbol).toBe("NVDA");
+    // Persisted under the research-space name.
+    const saved = fetchMock.mock.calls.find(([, init]) => init?.method === "POST");
+    expect(saved).toBeDefined();
+    const body = JSON.parse(saved![1]?.body as string) as { name: string };
+    expect(body.name).toBe("Research: NVDA");
+  });
+
+  it("createResearchSpace rejects an empty ticker", async () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    await expect(createResearchSpace("   ")).rejects.toThrow(/ticker is required/);
   });
 
   it("loadWorkspace fetches from the sidecar and applies the workspace", async () => {

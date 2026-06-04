@@ -59,6 +59,14 @@ export const platformModule: VystedModule = {
       icon: "folder-open",
       commandId: "platform.load-workspace",
     },
+    {
+      id: "platform.new-research-space",
+      trigger: "new research space",
+      title: "New Research Space",
+      description: "Dedicated cockpit for one ticker — chart, brief, scoped notes",
+      icon: "folder-plus",
+      commandId: "platform.new-research-space",
+    },
   ],
   panelComponents: {
     "settings-panel": SettingsPanel,
@@ -66,5 +74,6 @@ export const platformModule: VystedModule = {
   commandHandlers: {
     "platform.save-workspace": () => useWorkspaceDialog.getState().openSave(),
     "platform.load-workspace": () => useWorkspaceDialog.getState().openLoad(),
+    "platform.new-research-space": () => useWorkspaceDialog.getState().openResearchSpace(),
   },
 };

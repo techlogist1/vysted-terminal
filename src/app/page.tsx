@@ -158,7 +158,11 @@ export default function Page() {
     // Research notes (003) ride the blob too; autosaveLayout is debounced so
     // per-keystroke edits coalesce into one write.
     const unsubscribeNotes = useNotesStore.subscribe((state, previous) => {
-      if (state.general !== previous.general || state.bySymbol !== previous.bySymbol) {
+      if (
+        state.general !== previous.general ||
+        state.bySymbol !== previous.bySymbol ||
+        state.focusSymbol !== previous.focusSymbol
+      ) {
         void autosaveLayout();
       }
     });

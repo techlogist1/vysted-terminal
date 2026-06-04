@@ -16,8 +16,10 @@
 import type { DockviewApi, SerializedDockview } from "dockview";
 
 import { applyDefaultLayout } from "@/config/default-layout";
+import { applyResearchSpaceLayout } from "@/lib/layout-templates";
 import { collectPanelComponents } from "@/lib/module-registry";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { useChartCommandStore } from "@/store/chart-command";
 import { useAgentDockStore } from "@/store/agent-dock";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { type BriefBundle, useBriefStore } from "@/store/brief";
@@ -451,6 +453,48 @@ export async function autosaveLayout(): Promise<void> {
   } catch {
     // Best-effort autosave; ignore transient failures.
   }
+}
+
+/** Prefix every per-stock research space's name carries, so they're recognisable
+ *  in the Load Workspace list (e.g. "Research: NVDA"). */
+export const RESEARCH_SPACE_PREFIX = "Research: ";
+
+/** The saved-workspace name for a given ticker's research space. */
+export function researchSpaceName(symbol: string): string {
+  return `${RESEARCH_SPACE_PREFIX}${symbol.trim().toUpperCase()}`;
+}
+
+/**
+ * Create a per-stock RESEARCH SPACE for `symbol` and persist it as a named
+ * workspace ("Research: TICKER"). A research space is a dedicated cockpit that
+ * bundles one ticker's research surface — the chart (symbol loaded), the equity
+ * overview + the synthesised brief, and a Notes scratchpad scoped to the ticker —
+ * saved so the user can return to it from Load Workspace.
+ *
+ * Builds the layout SYNCHRONOUSLY (so the save captures it), pushes the symbol
+ * through the always-consumed chart-command channel, scopes the Notes panel, then
+ * saves. Throws (WorkspaceError) on a missing symbol or an unmounted layout.
+ */
+export async function createResearchSpace(rawSymbol: string): Promise<string> {
+  const symbol = rawSymbol.trim().toUpperCase();
+  if (!symbol) {
+    throw new WorkspaceError("A ticker is required for a research space.");
+  }
+  const api = useWorkspaceStore.getState().dockviewApi;
+  if (!api) {
+    throw new WorkspaceError("The panel layout is not ready yet.");
+  }
+  // Clean, dedicated research layout (chart + overview + brief + notes).
+  applyResearchSpaceLayout(api);
+  // Load the symbol into the chart (always-consumed channel — the chart panel,
+  // just added, picks it up on mount) and scope the Notes panel to the ticker.
+  useChartCommandStore.getState().loadSymbol(symbol);
+  useNotesStore.getState().setFocusSymbol(symbol);
+  // Persist as a named workspace so it shows up in Load Workspace. `saveWorkspace`
+  // serialises the live layout we just built and marks it active.
+  const name = researchSpaceName(symbol);
+  await saveWorkspace(name);
+  return name;
 }
 
 /** Delete a saved workspace from the sidecar. */

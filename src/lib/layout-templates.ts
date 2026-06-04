@@ -33,6 +33,7 @@ const ARRANGEABLE: Record<string, { id: string; component: string }> = {
   macro: { id: "macro", component: "macro-panel" },
   screener: { id: "screener", component: "screener-panel" },
   brief: { id: "brief", component: "brief-panel" },
+  notes: { id: "notes", component: "notes-panel" },
 };
 
 /** Loose aliases the agent (or a user) might say, mapped to a canonical id. */
@@ -116,6 +117,7 @@ const PANEL = {
   macro: { id: "macro", component: "macro-panel" },
   screener: { id: "screener", component: "screener-panel" },
   brief: { id: "brief", component: "brief-panel" },
+  notes: { id: "notes", component: "notes-panel" },
 } as const;
 
 /**
@@ -366,6 +368,57 @@ export function fitLayoutTemplate(
   }
   applyLayoutTemplate(api, template, opts);
   return { applied: template, downgraded: false };
+}
+
+// --- per-stock research SPACE (003 workspace OS) ----------------------------
+//
+// A "research space" is a dedicated, named workspace bundling ONE ticker's
+// research surface: the chart (left) + the equity overview & synthesised brief
+// (right column) + a notes scratchpad scoped to the ticker. Distinct from the
+// agent's `research-cockpit` arrange — this CLEARS the cockpit first (it's a
+// space, not an overlay) and includes the Notes panel, and it applies
+// SYNCHRONOUSLY so the caller (`createResearchSpace`) can serialise the layout
+// into a saved workspace on the very next line without racing an rAF.
+
+/** Width (px) below which a research SPACE drops the equity-overview panel so the
+ *  chart + brief + notes still fit cleanly. */
+const RESEARCH_SPACE_MIN_WIDTH = 1180;
+
+/**
+ * Build a clean per-stock research space layout on `api`. Clears the current
+ * cockpit, then tiles chart + (equity overview) + brief + notes. Fit-aware: a
+ * narrow viewport drops the overview (chart + brief + notes). Synchronous — no
+ * rAF — so a caller can immediately `api.toJSON()` the result. Symbol-agnostic:
+ * the caller pushes the ticker via the chart-command channel + the notes scope.
+ */
+export function applyResearchSpaceLayout(api: DockviewApi): void {
+  api.clear();
+  const width = typeof api.width === "number" && api.width > 0 ? api.width : DEFAULT_FIT_WIDTH;
+  const compact = width < RESEARCH_SPACE_MIN_WIDTH;
+  const panels: PlannedPanel[] = [{ id: PANEL.chart.id, component: PANEL.chart.component }];
+  let lastRightId: string = PANEL.chart.id;
+  if (!compact) {
+    panels.push({
+      id: PANEL.equityOverview.id,
+      component: PANEL.equityOverview.component,
+      position: { referencePanel: PANEL.chart.id, direction: "right" },
+    });
+    lastRightId = PANEL.equityOverview.id;
+  }
+  panels.push({
+    id: PANEL.brief.id,
+    component: PANEL.brief.component,
+    position: {
+      referencePanel: lastRightId,
+      direction: compact ? "right" : "below",
+    },
+  });
+  panels.push({
+    id: PANEL.notes.id,
+    component: PANEL.notes.component,
+    position: { referencePanel: PANEL.brief.id, direction: "below" },
+  });
+  applyPlan(api, { panels, focus: PANEL.brief.id });
 }
 
 /** Apply a resolved plan to the dockview api. Extracted so the rAF wrapper above

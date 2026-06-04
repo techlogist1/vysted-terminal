@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Briefcase, Check, FolderPlus, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Briefcase, Check, Download, FolderPlus, Pencil, Plus, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { buildCsv, downloadCsv } from "@/lib/csv";
 import { formatCompactMoney, formatMoney, formatPercent, formatSignedMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { usePanelContextBus } from "@/store/panel-context";
@@ -268,6 +269,47 @@ export function PortfolioPanel() {
     setPfName("");
   };
 
+  // Export the active portfolio to CSV — the hand-entered fields plus the
+  // live-quote-derived market value / P&L / weight (blank where no quote
+  // resolved, so the export stays provenance-honest). No-op when empty.
+  const handleExport = () => {
+    if (summary.rows.length === 0) {
+      return;
+    }
+    const csv = buildCsv(
+      [
+        "Symbol",
+        "Quantity",
+        "Cost basis",
+        "Asset class",
+        "Price",
+        "Market value",
+        "P&L",
+        "P&L %",
+        "Weight %",
+        "Note",
+      ],
+      summary.rows.map(({ position, quote, marketValue, pnl, pnlPercent, weight }) => [
+        position.symbol,
+        position.quantity,
+        position.cost_basis,
+        position.asset_class,
+        quote?.price ?? "",
+        marketValue ?? "",
+        pnl ?? "",
+        pnlPercent ?? "",
+        weight !== null ? (weight * 100).toFixed(2) : "",
+        position.note ?? "",
+      ]),
+    );
+    const safeName =
+      active.name
+        .trim()
+        .replace(/[^a-z0-9]+/gi, "-")
+        .toLowerCase() || "portfolio";
+    downloadCsv(`vysted-portfolio-${safeName}.csv`, csv);
+  };
+
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
       {/* Portfolio switcher / create / rename / delete. */}
@@ -351,6 +393,17 @@ export function PortfolioPanel() {
               }}
             >
               <Pencil />
+            </Button>
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="ghost"
+              aria-label="Export portfolio to CSV"
+              title="Export portfolio to CSV"
+              onClick={handleExport}
+              disabled={holdings.length === 0}
+            >
+              <Download />
             </Button>
             <Button
               type="button"

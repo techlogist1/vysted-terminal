@@ -1,10 +1,11 @@
 import { create } from "zustand";
 
 /**
- * Which workspace operation the dialog is collecting a name for. `null` means
- * the dialog is closed.
+ * Which workspace operation the dialog is collecting input for. `null` means the
+ * dialog is closed. `"research-space"` prompts for a ticker to spin up a per-stock
+ * research space (chart + overview + brief + scoped notes, saved as a workspace).
  */
-export type WorkspaceDialogMode = "save" | "load" | null;
+export type WorkspaceDialogMode = "save" | "load" | "research-space" | null;
 
 interface WorkspaceDialogState {
   /** Active dialog mode, or `null` when closed. */
@@ -13,6 +14,8 @@ interface WorkspaceDialogState {
   openSave: () => void;
   /** Open the dialog in load mode (lists saved workspaces to pick from). */
   openLoad: () => void;
+  /** Open the dialog to create a per-stock research space (prompts for a ticker). */
+  openResearchSpace: () => void;
   /** Close the dialog. */
   close: () => void;
 }
@@ -27,5 +30,6 @@ export const useWorkspaceDialog = create<WorkspaceDialogState>((set) => ({
   mode: null,
   openSave: () => set({ mode: "save" }),
   openLoad: () => set({ mode: "load" }),
+  openResearchSpace: () => set({ mode: "research-space" }),
   close: () => set({ mode: null }),
 }));

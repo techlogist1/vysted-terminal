@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUp, ChevronDown, Plus, X } from "lucide-react";
+import { ArrowUp, ChevronDown, Download, Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ProvenanceBadge, StalenessBadge } from "@/components/DataBadges";
+import { buildCsv, downloadCsv } from "@/lib/csv";
 import { SidecarError } from "@/lib/sidecar-client";
 import { useTickFlash } from "@/lib/use-flash-value";
 import { cn } from "@/lib/utils";
@@ -220,6 +221,28 @@ export function WatchlistPanel() {
     setDraft("");
   };
 
+  // Export the watchlist to CSV — uses the live quotes when they've loaded, else
+  // falls back to the tracked symbols alone (so an export never blocks on a
+  // pending refresh). No-op on an empty watchlist.
+  const handleExport = () => {
+    const source: { entry: (typeof entries)[number]; quote: WatchlistRow["quote"] }[] =
+      rows ?? entries.map((entry) => ({ entry, quote: null }));
+    if (source.length === 0) {
+      return;
+    }
+    const csv = buildCsv(
+      ["Symbol", "Asset class", "Price", "Change %", "Provider"],
+      source.map(({ entry, quote }) => [
+        entry.symbol,
+        entry.assetClass,
+        quote?.price ?? "",
+        quote?.change_percent ?? "",
+        quote?.provider ?? "",
+      ]),
+    );
+    downloadCsv("vysted-watchlist.csv", csv);
+  };
+
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
       <form
@@ -249,6 +272,17 @@ export function WatchlistPanel() {
         </div>
         <Button type="submit" size="icon-sm" variant="outline" aria-label="Add to watchlist">
           <Plus />
+        </Button>
+        <Button
+          type="button"
+          size="icon-sm"
+          variant="ghost"
+          aria-label="Export watchlist to CSV"
+          title="Export watchlist to CSV"
+          onClick={handleExport}
+          disabled={entries.length === 0}
+        >
+          <Download />
         </Button>
       </form>
 

@@ -3,6 +3,7 @@ import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   applyLayoutTemplate,
+  applyResearchSpaceLayout,
   fitLayoutTemplate,
   planCustom,
   planLayout,
@@ -169,6 +170,7 @@ function makeFakeApi() {
     },
     getPanel: vi.fn((id: string) => panels.get(id)),
     addPanel,
+    clear: vi.fn(() => panels.clear()),
     hasMaximizedGroup: vi.fn(() => false),
     exitMaximizedGroup: vi.fn(),
     maximizeGroup: vi.fn(),
@@ -287,5 +289,24 @@ describe("fitLayoutTemplate (Track 4 — fit-aware arrangement)", () => {
     const result = fitLayoutTemplate(api, "research-cockpit");
     expect(result.downgraded).toBe(false);
     expect(result.applied).toBe("research-cockpit");
+  });
+});
+
+describe("applyResearchSpaceLayout (003 per-stock research space)", () => {
+  it("clears the cockpit then tiles chart + overview + brief + notes on a wide display", () => {
+    const api = makeFakeApiWithWidth(1920);
+    applyResearchSpaceLayout(api);
+    expect(api.clear).toHaveBeenCalledTimes(1);
+    const ids = api.addPanel.mock.calls.map((c) => (c[0] as { id: string }).id);
+    expect(ids).toEqual(["chart", "equity-overview", "brief", "notes"]);
+    // brief is the focused anchor of the research surface
+    expect(api.getPanel("brief")?.api.setActive).toHaveBeenCalled();
+  });
+
+  it("drops the equity overview on a narrow display (chart + brief + notes)", () => {
+    const api = makeFakeApiWithWidth(900);
+    applyResearchSpaceLayout(api);
+    const ids = api.addPanel.mock.calls.map((c) => (c[0] as { id: string }).id);
+    expect(ids).toEqual(["chart", "brief", "notes"]);
   });
 });
