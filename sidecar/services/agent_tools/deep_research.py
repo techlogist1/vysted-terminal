@@ -47,11 +47,6 @@ _PERPLEXITY_NEEDS_KEY = (
     "Perplexity deep research needs an API key (opt-in, paid). Add it in "
     "Settings, or use the built-in deep research."
 )
-_TONGYI_NEEDS_KEY = (
-    "Tongyi-DeepResearch runs remotely via OpenRouter (it's a 30B-A3B model — too "
-    "large to host on this device). Add an OpenRouter key in Settings, or use the "
-    "built-in deep research."
-)
 _NO_MODEL = "No model configured for deep research."
 
 
@@ -68,10 +63,10 @@ def _emit_backend_step(detail: str) -> None:
     """Surface which deep-research ENGINE actually ran, as a live research step.
 
     Rides the existing step-sink → ``research_step`` SSE channel (Track A) so the
-    activity surface shows an honest "running on X" line — never a silent fallback
-    (the Tongyi-vs-Qwen case the user must be able to see). No-ops outside an agent
-    invocation (no sink wired) and never raises (a cosmetic line must not break a
-    run). The ``engine`` kind renders un-truncated in :file:`ResearchActivity.tsx`.
+    activity surface shows an honest "running on X" line — never a silent engine
+    swap the user can't see. No-ops outside an agent invocation (no sink wired) and
+    never raises (a cosmetic line must not break a run). The ``engine`` kind renders
+    un-truncated in :file:`ResearchActivity.tsx`.
     """
     import config
 
@@ -84,22 +79,6 @@ def _emit_backend_step(detail: str) -> None:
         sink(ResearchStep(kind="engine", detail=detail))
     except Exception:  # pragma: no cover — cosmetic; must never break a run
         pass
-
-
-def _device_phrase() -> str:
-    """``"on this NNGB device (fit-scorer RED)"`` from the live device profile.
-
-    Sourced from :func:`hardware_fit.detect_device` so the RAM figure is correct
-    on every machine (not a hardcoded "16GB"); degrades to a generic phrase if
-    detection is unavailable.
-    """
-    try:
-        from services.hardware_fit import detect_device
-
-        ram_gib = round(detect_device().ram_bytes / (1024**3))
-        return f"on this {ram_gib}GB device (fit-scorer RED)"
-    except Exception:  # pragma: no cover — detection is best-effort
-        return "locally (fit-scorer RED)"
 
 
 async def _run_perplexity(query: str, key: str | None) -> dict[str, Any]:
@@ -128,67 +107,6 @@ async def _run_perplexity(query: str, key: str | None) -> dict[str, Any]:
     out["ok"] = True
     out.setdefault("cost_estimate_usd", perplexity.estimate_cost_usd(query))
     out["backend"] = "perplexity"
-    return out
-
-
-async def _run_tongyi(
-    query: str, key: str | None, rounds: int, wall: int, mode: str = "iter", angles: int = 1
-) -> dict[str, Any]:
-    """Run the built-in deep loop with its LLM bound to OpenRouter's Tongyi model.
-
-    Reuses the shared :func:`_run_loop` (iter / heavy / single — so the live
-    step-log still streams to the activity surface, Track A) but drives
-    plan/synthesis through OpenRouter's
-    Tongyi-DeepResearch model — runtime-probed, with a live Qwen-A3B fallback
-    (Track C / FINDINGS §2.4). OPT-IN + BYOK: needs an OpenRouter key (reused from
-    the active creds when the user is already on OpenRouter), never auto-selected.
-    """
-    import config
-    from services.llm import oneshot
-    from services.research import tongyi
-
-    api_key = key or None
-    if not api_key:
-        # The renderer forwards a BYOK OpenRouter key with the run when Tongyi is
-        # the selected engine (Track 5) — use it regardless of the active provider.
-        api_key = config.get_deep_research_key()
-    if not api_key:
-        creds = config.get_llm_creds()
-        # Reuse the active key only when the user is already talking via OpenRouter.
-        if creds is not None and creds[0] == "openrouter":
-            api_key = creds[2]
-    if not tongyi.is_configured(api_key):
-        return {"ok": False, "message": _TONGYI_NEEDS_KEY}
-
-    model = await tongyi.resolve_model(api_key)  # probe Tongyi slug → Qwen-A3B fallback
-
-    # Honest engine line: name the model actually used and, when the dedicated
-    # Tongyi slug isn't routing, say WHY (device too small + slug unrouted) so the
-    # fallback is never silent.
-    if model == tongyi.TONGYI_SLUG:
-        _emit_backend_step(f"Tongyi-DeepResearch-30B-A3B via OpenRouter ({model})")
-    else:
-        _emit_backend_step(
-            f"{model} (fallback) — Tongyi-DeepResearch-30B-A3B can't host "
-            f"{_device_phrase()} and OpenRouter isn't routing the "
-            f"{tongyi.TONGYI_SLUG} slug yet"
-        )
-
-    async def llm_call(messages: list[dict[str, Any]]) -> str:
-        return await oneshot.complete(
-            "openrouter", model, api_key, messages, timeout=_LLM_CALL_TIMEOUT_SECS
-        )
-
-    brief = await _run_loop(
-        mode=mode, angles=angles, query=query, llm_call=llm_call, rounds=rounds, wall=wall
-    )
-    out = brief.to_dict()
-    out["ok"] = True
-    out["backend"] = "tongyi"
-    out["model"] = model
-    out["mode"] = "heavy" if angles >= _MIN_HEAVY_ANGLES else mode
-    out["provenance"] = f"{tongyi.PROVENANCE_NOTE} · {model}"
-    out.setdefault("cost_estimate_usd", tongyi.estimate_cost_usd(query))
     return out
 
 
@@ -295,11 +213,10 @@ async def _deep_research(args: dict[str, Any]) -> dict[str, Any]:
         angles: ``1`` (default) runs one agent; ``2``–``3`` runs Heavy mode — an
             expert PANEL of that many parallel research angles synthesised into one
             brief (more cost, deeper coverage).
-        backend: ``"native"`` (default, built-in), ``"perplexity"`` (opt-in,
-            paid), or ``"tongyi"`` (frontier deep-research via OpenRouter, opt-in
-            — needs an OpenRouter key). The opt-in backends are never auto-selected.
-        api_key: Optional key for the chosen opt-in backend (Perplexity /
-            OpenRouter), when not reused from the active credentials.
+        backend: ``"native"`` (default, built-in) or ``"perplexity"`` (opt-in,
+            paid — needs a Perplexity key). Perplexity is never auto-selected.
+        api_key: Optional key for the opt-in Perplexity backend, when not reused
+            from the active credentials.
 
     Returns the brief dict (``ok: True``) or ``{"ok": False, "message": ...}``.
     """
@@ -321,8 +238,8 @@ async def _deep_research(args: dict[str, Any]) -> dict[str, Any]:
     if args.get("heavy") is True and angles < _MIN_HEAVY_ANGLES:
         angles = _MAX_ANGLES
     # The user's Settings selection (Track 5) is authoritative when the model does
-    # not pass an explicit backend arg — so picking "Tongyi" actually routes there
-    # without depending on the LLM. Defaults to native; opt-in backends never auto.
+    # not pass an explicit backend arg. Defaults to native; Perplexity (opt-in,
+    # paid) is never auto-selected.
     import config
 
     backend = str(args.get("backend") or config.get_deep_research_backend() or "native")
@@ -330,8 +247,6 @@ async def _deep_research(args: dict[str, Any]) -> dict[str, Any]:
 
     if backend == "perplexity":
         return await _run_perplexity(query, args.get("api_key"))
-    if backend == "tongyi":
-        return await _run_tongyi(query, args.get("api_key"), rounds, wall, mode, angles)
     return await _run_native(query, rounds, wall, mode, angles)
 
 

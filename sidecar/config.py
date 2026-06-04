@@ -172,30 +172,23 @@ def reset_request_llm_creds(token: object) -> None:
 
 # --- Deep-research engine selection (Track 5) --------------------------------
 #
-# The user picks the DEEP engine in Settings (native IterResearch / Tongyi-via-
-# OpenRouter). The frontend publishes the choice — and, for Tongyi, the BYOK
-# OpenRouter key — on the agent-invoke request; ``invoke_agent`` sets them here so
-# the ``deep_research`` tool defaults to the chosen backend WITHOUT relying on the
-# model to pass a tool arg (authoritative, not LLM-dependent). The key is a SECRET:
-# process-memory-only for the invocation, task-local, never logged or persisted.
-_deep_research_ctx: ContextVar[tuple[str | None, str | None]] = ContextVar(
-    "vysted_deep_research", default=(None, None)
-)
+# The user picks the DEEP engine in Settings (native IterResearch — the default —
+# or the opt-in paid Perplexity backend). The frontend publishes the choice on the
+# agent-invoke request; ``invoke_agent`` sets it here so the ``deep_research`` tool
+# defaults to the chosen backend WITHOUT relying on the model to pass a tool arg
+# (authoritative, not LLM-dependent). Task-local: each request is its own asyncio
+# task with a copied context, so the choice never leaks across requests.
+_deep_research_ctx: ContextVar[str | None] = ContextVar("vysted_deep_research", default=None)
 
 
 def get_deep_research_backend() -> str | None:
-    """The user's selected deep-research backend for this run (``native``/``tongyi``)."""
-    return _deep_research_ctx.get()[0]
+    """The user's selected deep-research backend for this run (``native``/``perplexity``)."""
+    return _deep_research_ctx.get()
 
 
-def get_deep_research_key() -> str | None:
-    """The BYOK OpenRouter key supplied for the Tongyi backend this run, or None."""
-    return _deep_research_ctx.get()[1]
-
-
-def set_request_deep_research(backend: str | None, api_key: str | None) -> object:
-    """Publish the deep-research backend + optional key for the run; returns a token."""
-    return _deep_research_ctx.set((backend, api_key))
+def set_request_deep_research(backend: str | None) -> object:
+    """Publish the deep-research backend for the run; returns a reset token."""
+    return _deep_research_ctx.set(backend)
 
 
 # --- Live research-step sink (Track A — aliveness) ---------------------------

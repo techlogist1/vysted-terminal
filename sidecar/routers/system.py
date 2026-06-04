@@ -3,7 +3,7 @@
 ``GET /system/hardware`` reports the detected device and scores models for the
 local-vs-remote gate (FINDINGS §2.5): the installed ollama models (best-effort,
 keyless) plus a few reference candidates so the UI can show, e.g., "your 16 GB
-M1 can't run Tongyi-DeepResearch locally — using the remote path." The frontend
+M1 can't run a 30B model locally — using the remote path." The frontend
 gates the heavy LOCAL toggles on these verdicts; the agent/research engine reuses
 the same scorer so the gate is single-sourced.
 """
@@ -16,11 +16,10 @@ from collections.abc import AsyncIterator
 from typing import Annotated, Any
 
 import httpx
-from fastapi import APIRouter, Header, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 
 from services.hardware_fit import ModelCandidate, detect_device, score
-from services.research import tongyi
 
 router = APIRouter(prefix="/system", tags=["system"])
 
@@ -46,18 +45,19 @@ def _attr(obj: Any, key: str, default: Any = None) -> Any:
     return getattr(obj, key, default)
 
 
-#: Reference candidates that illustrate the gate regardless of what's installed.
-#: Tongyi-DeepResearch is the load-bearing one (Track C's local-vs-remote fork).
+#: Reference candidates that illustrate the local-vs-remote gate regardless of
+#: what's installed — a 30B-A3B MoE is the load-bearing illustration (a model that
+#: only the largest local machines fit, so most devices use the remote path).
 _REFERENCE_CANDIDATES: tuple[ModelCandidate, ...] = (
     ModelCandidate(
-        name="Tongyi-DeepResearch-30B-A3B (IQ3_S)",
+        name="30B-A3B MoE (IQ3_S)",
         file_size_bytes=int(13.3 * 1e9),
         total_params_b=30.5,
         active_params_b=3.3,
         quant="iq3_s",
     ),
     ModelCandidate(
-        name="Tongyi-DeepResearch-30B-A3B (Q4_K_M)",
+        name="30B-A3B MoE (Q4_K_M)",
         file_size_bytes=int(18.6 * 1e9),
         total_params_b=30.5,
         active_params_b=3.3,
@@ -193,61 +193,3 @@ async def pull_ollama_model(
             yield f"data: {json.dumps({'error': str(exc), 'done': True})}\n\n".encode()
 
     return StreamingResponse(_generator(), media_type="text/event-stream")
-
-
-@router.get("/deepresearch/probe")
-async def probe_deep_research(
-    x_openrouter_key: str | None = Header(default=None, alias="X-OpenRouter-Key"),
-) -> dict[str, Any]:
-    """Live routing probe for the deep-research engine SELECTOR (Track 5).
-
-    Honestly reports what each engine WILL run right now so the Settings UI never
-    implies Tongyi works when it doesn't: the native loop is always available; the
-    Tongyi backend is probed against OpenRouter's live ``/endpoints`` and reports
-    whether the dedicated slug is routing or the run will fall back to Qwen-A3B
-    (plus a coarse cost estimate). The BYOK OpenRouter key arrives in the
-    ``X-OpenRouter-Key`` header (renderer reads the keychain); it is used for the
-    probe only and NEVER logged, echoed, or persisted.
-    """
-    native = {
-        "available": True,
-        "label": "Native (IterResearch)",
-        "note": "Vysted's own bounded deep loop on your configured model — always available.",
-    }
-
-    if not tongyi.is_configured(x_openrouter_key):
-        return {
-            "native": native,
-            "tongyi": {
-                "slug": tongyi.TONGYI_SLUG,
-                "configured": False,
-                "live": False,
-                "usingFallback": False,
-                "resolvedModel": None,
-                "note": "Add an OpenRouter key (BYOK) to route deep research through Tongyi.",
-            },
-        }
-
-    # is_configured already validated the key is non-empty.
-    assert x_openrouter_key is not None
-    try:
-        resolved = await tongyi.resolve_model(x_openrouter_key)
-    except Exception:  # noqa: BLE001 — a probe miss is "use the fallback", never an error
-        resolved = tongyi.FALLBACK_SLUGS[0]
-    live = resolved == tongyi.TONGYI_SLUG
-    return {
-        "native": native,
-        "tongyi": {
-            "slug": tongyi.TONGYI_SLUG,
-            "configured": True,
-            "live": live,
-            "usingFallback": not live,
-            "resolvedModel": resolved,
-            "estimateUsd": tongyi.estimate_cost_usd("deep research run"),
-            "note": (
-                "Tongyi routing OK on OpenRouter."
-                if live
-                else f"Tongyi unavailable on OpenRouter right now — using {resolved}."
-            ),
-        },
-    }

@@ -379,7 +379,8 @@ def score(candidate: ModelCandidate, device: DeviceProfile | None = None) -> Fit
 
 def can_run_locally(candidate: ModelCandidate, device: DeviceProfile | None = None) -> bool:
     """Gate helper: True iff the device earns the local path (GREEN or MARGINAL).
-    A RED candidate routes to the keyless-remote fallback (e.g. Track C Tongyi)."""
+    A RED candidate routes to the keyless-remote path (e.g. a 30B MoE the device
+    can't fit)."""
     return score(candidate, device).verdict in (VERDICT_GREEN, VERDICT_MARGINAL)
 
 

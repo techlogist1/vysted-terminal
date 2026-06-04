@@ -292,8 +292,8 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 "into one brief (use when the user wants the deepest, most thorough "
                 "answer, e.g. 'go all out' or '/deep heavy'). Bounded by rounds + "
                 "wall-clock; on the budget ceiling it synthesizes from what it has "
-                "(never times out into nothing). Perplexity + Tongyi backends are "
-                "opt-in — never auto-selected."
+                "(never times out into nothing). The Perplexity backend is opt-in — "
+                "never auto-selected."
             ),
             input_schema=_obj(
                 {
@@ -320,12 +320,11 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                     },
                     "backend": {
                         "type": "string",
-                        "enum": ["native", "perplexity", "tongyi"],
+                        "enum": ["native", "perplexity"],
                         "default": "native",
                         "description": (
-                            "'perplexity' (opt-in, paid, needs a key) or 'tongyi' "
-                            "(frontier deep-research via OpenRouter, opt-in, needs an "
-                            "OpenRouter key) — else the built-in 'native' loop."
+                            "'perplexity' (opt-in, paid, needs a Perplexity key) — "
+                            "else the built-in 'native' loop."
                         ),
                     },
                 },

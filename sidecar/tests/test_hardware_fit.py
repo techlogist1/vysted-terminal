@@ -2,8 +2,8 @@
 
 ``score`` is pure given a :class:`DeviceProfile`, so every case uses a fixed
 profile — no dependency on the host the tests run on. The load-bearing cases:
-the 16 GB M1 forces local-Tongyi → remote, while a 64 GB box auto-promotes it to
-local with NO code change (FINDINGS §2.5 / §4.2).
+the 16 GB M1 forces a local 30B-A3B MoE → remote, while a 64 GB box auto-promotes
+it to local with NO code change (FINDINGS §2.5 / §4.2).
 """
 
 from __future__ import annotations
@@ -59,10 +59,10 @@ def _qwen7b() -> ModelCandidate:
     return ModelCandidate(name="qwen2.5:7b", file_size_bytes=4_683_087_332, quant="q4_k_m")
 
 
-def _tongyi_30b_iq3() -> ModelCandidate:
+def _moe_30b_a3b_iq3() -> ModelCandidate:
     # 30B-A3B MoE; IQ3_S ≈ 13.3 GB on disk; all experts resident.
     return ModelCandidate(
-        name="tongyi-deepresearch-30b-a3b",
+        name="30b-a3b-moe",
         file_size_bytes=int(13.3 * 1e9),
         total_params_b=30.5,
         active_params_b=3.3,
@@ -79,22 +79,22 @@ def test_qwen7b_runs_locally_on_16gb_at_capped_context() -> None:
     assert can_run_locally(capped, dev)
 
 
-def test_local_tongyi_30b_is_red_on_16gb_forcing_remote() -> None:
+def test_local_30b_moe_is_red_on_16gb_forcing_remote() -> None:
     dev = _m1_16gb()
-    v = score(_tongyi_30b_iq3(), dev)
+    v = score(_moe_30b_a3b_iq3(), dev)
     assert v.verdict == VERDICT_RED
-    assert can_run_locally(_tongyi_30b_iq3(), dev) is False
+    assert can_run_locally(_moe_30b_a3b_iq3(), dev) is False
     # MoE footprint is sized against TOTAL params, annotated as throughput.
     assert "moe" in v.signals
     assert "30.5B" in v.throughput_note
 
 
-def test_tongyi_30b_auto_promotes_to_local_on_64gb() -> None:
+def test_30b_moe_auto_promotes_to_local_on_64gb() -> None:
     dev = _m_64gb()
-    v = score(_tongyi_30b_iq3(), dev)
+    v = score(_moe_30b_a3b_iq3(), dev)
     # Same candidate, same code — the bigger box earns the local path.
     assert v.verdict in (VERDICT_GREEN, VERDICT_MARGINAL)
-    assert can_run_locally(_tongyi_30b_iq3(), dev) is True
+    assert can_run_locally(_moe_30b_a3b_iq3(), dev) is True
 
 
 def test_ctx_max_is_reported_and_below_4096_is_red() -> None:
