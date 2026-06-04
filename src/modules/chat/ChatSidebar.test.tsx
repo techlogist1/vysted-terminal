@@ -203,6 +203,9 @@ describe("ChatSidebar", () => {
 
   it("offers every first-party agent as a persona (lens) the user can pick", () => {
     render(<ChatSidebar />);
+    // The persona/provider controls now collapse into the composer disclosure
+    // (the one-clean-composer rebuild) — open it before asserting the roster.
+    fireEvent.click(screen.getByLabelText("Agent controls"));
     const roster = screen.getByLabelText("Persona roster");
     expect(roster).toBeInTheDocument();
     const picker = screen.getByRole("combobox", { name: "Active persona" });
@@ -210,6 +213,17 @@ describe("ChatSidebar", () => {
     for (const agent of FIRST_PARTY_AGENTS) {
       expect(screen.getByRole("option", { name: agent.name })).toBeInTheDocument();
     }
+  });
+
+  it("exposes Deep Research as a composer toggle (a +/mode, not slash jargon)", () => {
+    render(<ChatSidebar />);
+    const deep = screen.getByRole("button", { name: /deep research/i });
+    expect(deep).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(deep);
+    expect(screen.getByRole("button", { name: /deep research/i })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 
   it("renders an empty-state hint until a message is sent", () => {

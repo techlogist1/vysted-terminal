@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Sparkles, Send } from "lucide-react";
+import { Send, SlidersHorizontal, Sparkles, Telescope } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
@@ -61,51 +61,43 @@ import { SlashCommandPicker } from "./SlashCommandPicker";
 import { streamAgentInvocation, streamChat } from "./streaming";
 
 /**
- * Autonomy switcher (Claude-Code-style) — `ask` keeps every change in the diff
- * gate; `auto` applies UI/layout/chart/watchlist changes without a per-action
- * confirmation. Orders are NEVER auto-applied in either mode (enforced in
- * `proposed-changes`, not here). Sits beside the model HUD as the agent's
- * confirmation-friction axis (orthogonal to the four intent modes).
+ * Autonomy pill (compact, lives in the composer toolbar) — `ask` keeps every
+ * change in the diff gate; `auto` applies UI/layout/chart/watchlist changes
+ * without a per-action confirmation. Orders are NEVER auto-applied in either mode
+ * (enforced in `proposed-changes`, not here). The label is unambiguous so the
+ * AUTO-vs-ASK state is never in doubt.
  */
 function AutonomyToggle() {
   const autonomy = useAgentAutonomyStore((state) => state.autonomy);
   const setAutonomy = useAgentAutonomyStore((state) => state.setAutonomy);
   return (
-    <div className="border-charcoal-700 text-charcoal-400 flex items-center gap-2 border-b px-3 py-1 font-mono text-[0.6rem]">
-      <span className="tracking-wide uppercase">Autonomy</span>
-      <div
-        role="radiogroup"
-        aria-label="Agent autonomy"
-        className="border-charcoal-700 flex overflow-hidden rounded border"
-      >
-        {(["ask", "auto"] as const).map((level) => (
-          <button
-            key={level}
-            type="button"
-            role="radio"
-            aria-checked={autonomy === level}
-            onClick={() => setAutonomy(level)}
-            className={cn(
-              "px-2 py-0.5 uppercase transition-colors",
-              autonomy === level
-                ? "text-charcoal-950 bg-amber-400"
-                : "text-charcoal-400 hover:text-lume",
-            )}
-          >
-            {level}
-          </button>
-        ))}
-      </div>
-      <span
-        className="text-charcoal-500 truncate"
-        title={
-          autonomy === "auto"
-            ? "Auto-apply: UI / layout / chart / watchlist changes apply without a per-action confirmation. Orders ALWAYS route through the confirm-before-place dialog."
-            : "Ask: every proposed change waits for your accept in the diff gate."
-        }
-      >
-        {autonomy === "auto" ? "auto-applies UI · orders always ask" : "review every change"}
-      </span>
+    <div
+      role="radiogroup"
+      aria-label="Agent autonomy"
+      title={
+        autonomy === "auto"
+          ? "Auto-apply: UI / layout / chart / watchlist changes apply without a per-action confirmation. Orders ALWAYS route through the confirm-before-place dialog."
+          : "Ask: every proposed change waits for your accept in the diff gate."
+      }
+      className="border-charcoal-700 flex shrink-0 overflow-hidden rounded border font-mono text-[0.6rem]"
+    >
+      {(["ask", "auto"] as const).map((level) => (
+        <button
+          key={level}
+          type="button"
+          role="radio"
+          aria-checked={autonomy === level}
+          onClick={() => setAutonomy(level)}
+          className={cn(
+            "px-1.5 py-0.5 uppercase transition-colors",
+            autonomy === level
+              ? "text-charcoal-950 bg-amber-400"
+              : "text-charcoal-400 hover:text-lume",
+          )}
+        >
+          {level}
+        </button>
+      ))}
     </div>
   );
 }
@@ -281,6 +273,11 @@ export function ChatSidebar() {
   const [statusLine, setStatusLine] = useState<string | null>(null);
   const [keyDialogProvider, setKeyDialogProvider] = useState<LLMProviderId | null>(null);
   const [delegateBudget, setDelegateBudget] = useState<AgentRunBudget>(DEFAULT_DELEGATE_BUDGET);
+  // Perplexity-style composer: the Mode/Lens/Provider controls collapse into a
+  // disclosure that's closed by default (one clean composer), and Deep Research is
+  // a visible toggle (not a slash a normal user won't find).
+  const [controlsOpen, setControlsOpen] = useState(false);
+  const [deepResearch, setDeepResearch] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   // Tracks the last successfully dispatched prompt so the Retry button can re-send.
   const [lastPrompt, setLastPrompt] = useState<string | null>(null);
@@ -785,50 +782,6 @@ export function ChatSidebar() {
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
-      <ModeBar mode={mode} onChange={setMode} />
-      <RosterStrip
-        firstParty={firstPartyAgents}
-        custom={customAgents}
-        activeAgentId={activeAgentId}
-        onChange={(id) => {
-          setActiveAgentId(id);
-          setProviderOverride(null);
-        }}
-      />
-      <AgentHud
-        providers={providers}
-        provider={effectiveProvider}
-        model={effectiveModel}
-        providerConfigured={providerConfigured}
-        modelOptions={modelCatalog?.models}
-        catalogNote={modelCatalog?.note}
-        catalogLoading={modelCatalog?.loading}
-        onProviderChange={(p) => {
-          // The HUD pick wins this session AND becomes the persisted default
-          // (setDefaultProviderId rides the page.tsx autosave subscription), so a
-          // provider chosen in the prominent HUD survives a relaunch — not just
-          // the one set in Settings.
-          setProviderOverride(p);
-          setDefaultProviderId(p);
-        }}
-        onModelChange={(m) => setModelOverride(effectiveProvider, m)}
-        onKeyRequired={(p) => setKeyDialogProvider(p)}
-        onRefreshModels={refreshModelCatalog}
-      />
-      <AutonomyToggle />
-      <AnimatePresence initial={false}>
-        {mode === "delegate" && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            style={{ overflow: "hidden" }}
-            transition={tween(0.2)}
-          >
-            <BudgetConfig budget={delegateBudget} onChange={setDelegateBudget} />
-          </motion.div>
-        )}
-      </AnimatePresence>
       <AgentsRail
         onForeground={(run) => {
           const id = beginAssistant({ agentId: run.agentId ?? undefined });
@@ -935,19 +888,115 @@ export function ChatSidebar() {
           </motion.div>
         )}
       </AnimatePresence>
-      <Composer
-        value={composer}
-        onChange={setComposer}
-        onSend={(text) => {
-          setComposer("");
-          void handleSend(text);
-        }}
-        // Delegate runs are background (US3 AS3): keep the composer live so the
-        // user can keep working the cockpit while the run streams in the rail.
-        disabled={streaming && mode !== "delegate"}
-        mode={mode}
-        region={region}
-      />
+      {/* ── Composer dock — ONE clean surface. The Mode / Lens / Provider / Model
+          controls collapse into a disclosure (closed by default); Deep Research is
+          a visible toggle (not jargon), and autonomy + the active model read inline. ── */}
+      <div className="border-charcoal-700 border-t">
+        <AnimatePresence initial={false}>
+          {controlsOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              style={{ overflow: "hidden" }}
+              transition={tween(0.16)}
+            >
+              <ModeBar mode={mode} onChange={setMode} />
+              <RosterStrip
+                firstParty={firstPartyAgents}
+                custom={customAgents}
+                activeAgentId={activeAgentId}
+                onChange={(id) => {
+                  setActiveAgentId(id);
+                  setProviderOverride(null);
+                }}
+              />
+              <AgentHud
+                providers={providers}
+                provider={effectiveProvider}
+                model={effectiveModel}
+                providerConfigured={providerConfigured}
+                modelOptions={modelCatalog?.models}
+                catalogNote={modelCatalog?.note}
+                catalogLoading={modelCatalog?.loading}
+                onProviderChange={(p) => {
+                  // The HUD pick wins this session AND becomes the persisted default
+                  // (rides the page.tsx autosave), so it survives a relaunch.
+                  setProviderOverride(p);
+                  setDefaultProviderId(p);
+                }}
+                onModelChange={(m) => setModelOverride(effectiveProvider, m)}
+                onKeyRequired={(p) => setKeyDialogProvider(p)}
+                onRefreshModels={refreshModelCatalog}
+              />
+              {mode === "delegate" && (
+                <BudgetConfig budget={delegateBudget} onChange={setDelegateBudget} />
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Always-on compact toolbar: Deep toggle · autonomy · active model · controls */}
+        <div className="flex items-center gap-1.5 px-2 pt-1.5">
+          <button
+            type="button"
+            onClick={() => setDeepResearch((v) => !v)}
+            aria-pressed={deepResearch}
+            title="Deep Research — a multi-step, cited research run instead of a quick answer"
+            className={cn(
+              "flex shrink-0 items-center gap-1 rounded-md border px-2 py-0.5 font-mono text-[0.65rem] transition-colors",
+              deepResearch
+                ? "border-amber-500/50 bg-amber-500/15 text-amber-300"
+                : "border-charcoal-700 text-charcoal-400 hover:text-lume",
+            )}
+          >
+            <Telescope className="size-3" /> Deep research
+          </button>
+          <AutonomyToggle />
+          <div className="min-w-0 flex-1" />
+          <button
+            type="button"
+            onClick={() => setControlsOpen((o) => !o)}
+            title="Provider / model / persona / mode"
+            className="text-charcoal-500 hover:text-charcoal-200 max-w-[9rem] shrink truncate font-mono text-[0.6rem] transition-colors"
+          >
+            {effectiveModel}
+          </button>
+          <button
+            type="button"
+            onClick={() => setControlsOpen((o) => !o)}
+            aria-expanded={controlsOpen}
+            aria-label="Agent controls"
+            title="Provider / model / persona / mode"
+            className={cn(
+              "shrink-0 rounded p-0.5 transition-colors",
+              controlsOpen ? "text-amber-300" : "text-charcoal-400 hover:text-lume",
+            )}
+          >
+            <SlidersHorizontal className="size-3.5" />
+          </button>
+        </div>
+
+        <Composer
+          value={composer}
+          onChange={setComposer}
+          onSend={(text) => {
+            setComposer("");
+            // The Deep Research toggle routes a plain prompt through the deep loop
+            // (the existing /deep path) — a discoverable toggle, not a slash a
+            // normal user won't find. A typed slash is respected as-is.
+            const routed =
+              deepResearch && text.trim() && !text.trim().startsWith("/") ? `/deep ${text}` : text;
+            void handleSend(routed);
+          }}
+          // Delegate runs are background (US3 AS3): keep the composer live so the
+          // user can keep working the cockpit while the run streams in the rail.
+          disabled={streaming && mode !== "delegate"}
+          mode={mode}
+          region={region}
+          deep={deepResearch}
+        />
+      </div>
       <KeyEntryDialog
         open={keyDialogProvider !== null}
         providerId={keyDialogProvider}
@@ -1069,6 +1118,8 @@ interface ComposerProps {
   disabled: boolean;
   mode: AgentMode;
   region: Region;
+  /** Deep Research toggle is on — reflected in the placeholder. */
+  deep?: boolean;
 }
 
 /**
@@ -1082,7 +1133,7 @@ interface ComposerProps {
  * and the text splicing. Mention resolution is async + locale-aware (`/resolve`),
  * race-guarded by a sequence token so a slow lookup never overwrites a newer one.
  */
-function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerProps) {
+function Composer({ value, onChange, onSend, disabled, mode, region, deep }: ComposerProps) {
   const meta = agentModeMeta(mode);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [caret, setCaret] = useState(0);
@@ -1276,7 +1327,11 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
           onKeyUp={(event) => syncCaret(event.currentTarget)}
           onClick={(event) => syncCaret(event.currentTarget)}
           onSelect={(event) => syncCaret(event.currentTarget)}
-          placeholder={`${meta.label} — ${meta.hint}`}
+          placeholder={
+            deep
+              ? "Deep Research — ask for a multi-step, cited brief"
+              : `${meta.label} — ${meta.hint}`
+          }
           disabled={disabled}
           autoComplete="off"
           spellCheck={false}
