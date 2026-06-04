@@ -6,6 +6,10 @@
       "env": {
         "TAURI_APP_DIR": "."
       }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
     }
   }
 }
