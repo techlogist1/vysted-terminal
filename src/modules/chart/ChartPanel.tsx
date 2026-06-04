@@ -332,6 +332,14 @@ function ChartPanel(props: ChartPanelProps = {}) {
         }
         const candleData = toCandlestickData(series);
         if (candleData.length === 0) {
+          // Bug-2: an all-providers-empty history now returns a clean 200 (not a
+          // 502). Clear the PRIOR symbol's series so its candles don't linger
+          // behind the empty-state overlay — the chart must visibly show "No price
+          // data", not the previous symbol's chart.
+          candleSeriesRef.current?.setData([]);
+          candleDataRef.current = [];
+          setProvider(series.provider);
+          setFreshness(series.freshness ?? null);
           setPriceError("No price data for this symbol");
           setPriceState("error");
           return;
@@ -692,7 +700,9 @@ function ChartPanel(props: ChartPanelProps = {}) {
         return;
       }
       try {
-        chart.timeScale().setVisibleRange({ from: from as unknown as Time, to: to as unknown as Time });
+        chart
+          .timeScale()
+          .setVisibleRange({ from: from as unknown as Time, to: to as unknown as Time });
       } catch {
         // Transient: the series was replaced between the broadcast and this apply.
         // The next broadcast (or the autosave-driven re-fit) re-syncs the range.
@@ -1214,12 +1224,16 @@ function ChartPanel(props: ChartPanelProps = {}) {
       <div className="relative min-h-0 flex-1">
         <div ref={containerRef} className="absolute inset-0" data-testid="chart-container" />
         {priceState === "loading" ? (
-          <div className="text-charcoal-400 absolute inset-0 flex items-center justify-center font-mono text-sm">
+          <div className="text-charcoal-400 bg-charcoal-950/80 absolute inset-0 z-10 flex items-center justify-center font-mono text-sm">
             Loading {symbol}…
           </div>
         ) : null}
         {priceState === "error" ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-6 text-center">
+          // z-10 + opaque surface: the lightweight-charts canvas paints its grid
+          // ABOVE a transparent sibling, so without this the empty-state message is
+          // occluded by the (now-cleared) chart (Bug-2 — the chart must visibly show
+          // "No price data", not a blank grid the user can't read text over).
+          <div className="bg-charcoal-950/92 absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 p-6 text-center">
             <p className="text-negative font-mono text-sm">{priceError}</p>
             <Button size="sm" variant="outline" onClick={() => setRetryNonce((n) => n + 1)}>
               Retry
