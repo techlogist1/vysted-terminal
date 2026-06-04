@@ -28,3 +28,38 @@ def test_get_history_carries_freshness(client: TestClient, mock_yfinance: object
     chart never shows a stale series as current (SC-019)."""
     body = client.get("/history/AAPL", params={"timeframe": "1d"}).json()
     assert body["freshness"] in {"live", "eod", "stale"}
+
+
+def test_get_history_empty_series_returns_clean_200(client: TestClient, monkeypatch) -> None:
+    """Bug-2: when every provider yields an EMPTY series the route downgrades to a
+    clean 200 empty series (the chart renders its honest "No price data" state),
+    NOT a scary (502)."""
+    from services import provider_registry
+    from services.correctness_gate import EmptySeriesError
+
+    def _all_empty(symbol: str, timeframe: str, range_, asset_class: str):
+        raise EmptySeriesError(f"correctness gate: empty series for {symbol!r} from 'yfinance'")
+
+    monkeypatch.setattr(provider_registry, "get_history", _all_empty)
+    resp = client.get("/history/ZZZZ", params={"timeframe": "1d"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["symbol"] == "ZZZZ"
+    assert body["timeframe"] == "1d"
+    assert body["bars"] == []
+    assert body["provider"] == "none"
+
+
+def test_get_history_integrity_failure_still_502(client: TestClient, monkeypatch) -> None:
+    """A genuine data-integrity failure (a non-empty CorrectnessError — non-positive
+    close / symbol mismatch) still surfaces as 502; only the empty-series case is
+    softened (the recon's "distinguish on the specific failure" rule)."""
+    from services import provider_registry
+    from services.correctness_gate import CorrectnessError
+
+    def _integrity_fail(symbol: str, timeframe: str, range_, asset_class: str):
+        raise CorrectnessError("correctness gate: non-positive last close -1.0 for 'AAPL'")
+
+    monkeypatch.setattr(provider_registry, "get_history", _integrity_fail)
+    resp = client.get("/history/AAPL", params={"timeframe": "1d"})
+    assert resp.status_code == 502

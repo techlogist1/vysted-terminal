@@ -7,6 +7,7 @@ from fastapi import APIRouter, Query
 import config
 from models.market import OHLCVSeries
 from services import provider_registry
+from services.correctness_gate import EmptySeriesError
 from services.locale import freshness_for
 
 router = APIRouter(prefix="/history", tags=["history"])
@@ -43,6 +44,17 @@ def get_history(
     range_: str | None = Query(None, alias="range"),
     asset_class: str = "equity",
 ) -> OHLCVSeries:
-    """Return an OHLCV series for ``symbol`` at the requested timeframe."""
-    series = provider_registry.get_history(symbol, timeframe, range_, asset_class)
+    """Return an OHLCV series for ``symbol`` at the requested timeframe.
+
+    Bug-2: if every provider returns an *empty* series (a transient gap, an
+    illiquid/newly-listed/delisted name — not a server fault), the correctness
+    gate raises :class:`EmptySeriesError`. We downgrade that one case to a clean
+    ``200`` empty series so the chart renders its honest "No price data" state
+    instead of a scary ``(502)``. A genuine integrity failure (non-positive
+    close, symbol mismatch, no-provider) still propagates to the 502 handler.
+    """
+    try:
+        series = provider_registry.get_history(symbol, timeframe, range_, asset_class)
+    except EmptySeriesError:
+        return OHLCVSeries(symbol=symbol, timeframe=timeframe, bars=[], provider="none")
     return _label_series_freshness(series, asset_class, timeframe)

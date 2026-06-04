@@ -45,6 +45,19 @@ class CorrectnessError(ProviderError):
     """
 
 
+class EmptySeriesError(CorrectnessError):
+    """A history series came back with zero bars (Bug-2).
+
+    Distinguished from the other correctness rejections (non-positive close,
+    symbol mismatch) so the ``/history`` router can downgrade an
+    all-providers-empty history to a clean ``200`` "no price data" response
+    instead of a scary ``502``, while a genuine data-integrity failure still
+    surfaces as ``502``. Still a :class:`CorrectnessError` (→
+    :class:`ProviderError`) so provider preference-ordered fall-through is
+    unchanged — an empty result from provider A still advances to provider B.
+    """
+
+
 def _match_key(symbol: str) -> str:
     """Normalise a symbol for cross-provider identity comparison.
 
@@ -98,7 +111,7 @@ def validate_series(series: OHLCVSeries, requested_symbol: str, region: str) -> 
     applies to the *quote*, which claims to be current.
     """
     if not series.bars:
-        raise CorrectnessError(
+        raise EmptySeriesError(
             f"correctness gate: empty series for {requested_symbol!r} from {series.provider!r}"
         )
     last = series.bars[-1]
