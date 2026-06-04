@@ -202,7 +202,7 @@ onto a shared agent branch, which can sweep uncommitted lead edits into a teamma
   the Tongyi BYOK OpenRouter key rides the foreground (never-persisted) request only, never the
   durable delegate path. Live routing probe: `GET /system/deepresearch/probe` (`X-OpenRouter-Key`
   header, never logged) → `tongyi.resolve_model` (the Tongyi slug is listed-but-unrouted → honest
-  Qwen-A3B fallback).
+  `minimax/minimax-m3` fallback, surfaced as `usingFallback:true` with a stated reason).
 
 ### Frontend
 

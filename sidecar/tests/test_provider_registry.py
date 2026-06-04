@@ -70,17 +70,70 @@ def test_fundamentals_prefers_openbb_then_falls_through_to_yfinance(
     assert result.provider == "yfinance"
 
 
-def test_fundamentals_serves_openbb_when_it_succeeds(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_fundamentals_serves_openbb_when_it_is_screener_complete(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from services import openbb_mcp_provider
 
     monkeypatch.setattr(openbb_mcp_provider, "is_available", lambda: True)
 
     async def openbb_ok(symbol: str) -> Fundamentals:
-        return _fundamentals("openbb-mcp")
+        # Screener-COMPLETE (carries roe) → openbb wins; no fall-through.
+        return _fundamentals("openbb-mcp", roe=0.2)
 
     monkeypatch.setattr(openbb_mcp_provider, "get_fundamentals", openbb_ok)
     result = asyncio.run(provider_registry.get_fundamentals("AAPL"))
     assert result.provider == "openbb-mcp"  # preferred provider served it
+    assert result.roe == 0.2
+
+
+def test_fundamentals_incomplete_openbb_falls_through_to_yfinance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An openbb result with NO screener-grade fields (its real behaviour) is
+    incomplete → the registry enriches from yfinance, which populates them."""
+    from services import openbb_mcp_provider, yfinance_provider
+
+    monkeypatch.setattr(openbb_mcp_provider, "is_available", lambda: True)
+
+    async def openbb_sparse(symbol: str) -> Fundamentals:
+        # Valid (has pe) but missing every screener-grade field — the openbb case.
+        return _fundamentals("openbb-mcp", pe_ratio=30.0)
+
+    monkeypatch.setattr(openbb_mcp_provider, "get_fundamentals", openbb_sparse)
+    monkeypatch.setattr(
+        yfinance_provider,
+        "get_fundamentals",
+        lambda symbol: _fundamentals("yfinance", roe=0.18, profit_margin=0.25),
+    )
+
+    result = asyncio.run(provider_registry.get_fundamentals("AAPL"))
+    assert result.provider == "yfinance"  # enriched from the richer path
+    assert result.roe == 0.18
+    assert result.profit_margin == 0.25
+
+
+def test_fundamentals_returns_partial_when_every_provider_is_sparse(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """If NO provider has screener-grade fields, the highest-ranked partial is
+    still returned — incompleteness is never a hard failure."""
+    from services import openbb_mcp_provider, yfinance_provider
+
+    monkeypatch.setattr(openbb_mcp_provider, "is_available", lambda: True)
+
+    async def openbb_sparse(symbol: str) -> Fundamentals:
+        return _fundamentals("openbb-mcp", pe_ratio=30.0)
+
+    monkeypatch.setattr(openbb_mcp_provider, "get_fundamentals", openbb_sparse)
+    monkeypatch.setattr(
+        yfinance_provider, "get_fundamentals", lambda symbol: _fundamentals("yfinance")
+    )
+
+    result = asyncio.run(provider_registry.get_fundamentals("AAPL"))
+    # openbb is rank-10 (higher than yfinance); its partial is the one kept.
+    assert result.provider == "openbb-mcp"
+    assert result.pe_ratio == 30.0
 
 
 def test_macro_with_no_provider_raises_provider_error(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -152,5 +205,5 @@ def _quote(provider: str, symbol: str = "AAPL"):  # noqa: ANN202
     )
 
 
-def _fundamentals(provider: str) -> Fundamentals:
-    return Fundamentals(symbol="AAPL", provider=provider)
+def _fundamentals(provider: str, **fields: float) -> Fundamentals:
+    return Fundamentals(symbol="AAPL", provider=provider, **fields)

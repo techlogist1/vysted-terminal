@@ -182,6 +182,44 @@ _PROVIDERS: tuple[ProviderDeclaration, ...] = (
 # CorrectnessError (a ProviderError) to advance to the next provider.
 Validator = Callable[[Any], Any]
 
+# An acceptor decides whether a VALID result is also COMPLETE enough to return,
+# or whether the registry should try the next (richer) provider. Distinct from a
+# Validator: a validator rejects a WRONG result (raises → fall through); an
+# acceptor declines an INCOMPLETE-but-correct result (returns False → try next,
+# but keep it as the fallback if no richer provider exists). Used for the
+# openbb→yfinance fundamentals enrichment below.
+Acceptor = Callable[[Any], bool]
+
+# The profitability / financial-health / growth fields the screener's numeric
+# criteria + the curated presets rely on. openbb-mcp serves valuation (pe,
+# market-cap, dividend) but does not populate these, so a fundamentals result
+# with NONE of them is treated as "incomplete" — the registry falls through to
+# the richer yfinance path that does populate them (fixing the empty screener /
+# equity overview + the 5 empty presets). Kept as a tuple so the acceptor below
+# and any future caller share one definition.
+_SCREENER_GRADE_FIELDS: tuple[str, ...] = (
+    "roe",
+    "roa",
+    "profit_margin",
+    "operating_margin",
+    "gross_margin",
+    "debt_to_equity",
+    "current_ratio",
+    "quick_ratio",
+    "revenue_growth",
+    "earnings_growth",
+)
+
+
+def _fundamentals_screener_complete(result: Any) -> bool:
+    """True when a fundamentals result carries at least one screener-grade field.
+
+    A result missing ALL of :data:`_SCREENER_GRADE_FIELDS` (the openbb-mcp case
+    for nearly every symbol) is incomplete → the registry tries the next provider
+    (yfinance), which populates them. If every provider is sparse, the highest-
+    ranked partial is still returned (never a hard failure)."""
+    return any(getattr(result, field, None) is not None for field in _SCREENER_GRADE_FIELDS)
+
 
 def _effective_region(symbol: str | None, region: str | None) -> str:
     """Resolve the region a request should route to.
@@ -271,28 +309,53 @@ async def _resolve_async(
     validate: Validator | None,
     /,
     *args: Any,
+    accept: Acceptor | None = None,
 ) -> Any:
     """Walk providers for ``model_key`` in preference order, awaiting async
     accessors and calling sync ones inline (these resolvers back fundamentals/
     statements/analyst/macro — openbb-mcp async first, yfinance sync fallback).
     The correctness gate is applied to each result before acceptance.
 
+    ``accept`` (optional) gates COMPLETENESS, not correctness: when a result is
+    valid but ``accept`` returns False (e.g. openbb fundamentals missing every
+    screener-grade field), the registry keeps it as a fallback and tries the next
+    (richer) provider; the first such partial is returned only if no later
+    provider yields an accepted result. ``accept=None`` preserves the original
+    "first valid wins" behaviour for every other model-key.
+
     Provenance is left untouched (see :func:`_resolve_sync`)."""
     candidates = _candidates(model_key, asset_class, region)
     if not candidates:
         raise _no_provider_error(model_key, asset_class, region)
     last_exc: ProviderError | None = None
+    best_incomplete: Any = None
+    have_incomplete = False
     for provider in candidates:
         try:
             fn = provider.serves[model_key]
             result = fn(*args)
             resolved = await result if inspect.isawaitable(result) else result
-            return validate(resolved) if validate is not None else resolved
+            validated = validate(resolved) if validate is not None else resolved
         except ProviderError as exc:
             last_exc = exc
             _log.warning(
                 "provider %s failed for %s, falling through: %s", provider.id, model_key, exc
             )
+            continue
+        if accept is None or accept(validated):
+            return validated
+        # Valid but INCOMPLETE for this model-key — remember the highest-ranked
+        # partial and try the next provider for richer data.
+        if not have_incomplete:
+            best_incomplete = validated
+            have_incomplete = True
+            _log.info(
+                "provider %s returned an incomplete %s; trying next for richer data",
+                provider.id,
+                model_key,
+            )
+    if have_incomplete:
+        return best_incomplete
     assert last_exc is not None
     raise last_exc
 
@@ -328,11 +391,19 @@ def get_history(
 
 
 async def get_fundamentals(symbol: str, region: str | None = None) -> Fundamentals:
-    """Return valuation ratios + company profile; prefers openbb-mcp, falls
-    through to yfinance on a ProviderError."""
+    """Return valuation ratios + company profile. Prefers openbb-mcp, but falls
+    through to yfinance both on a ProviderError AND when openbb returns a result
+    with no screener-grade fields (roe/margins/debt/growth) — see
+    :func:`_fundamentals_screener_complete`. This is what fills the screener,
+    the equity overview, and the curated presets with real ratios."""
     eff = _effective_region(symbol, region)
     return await _resolve_async(
-        "fundamentals", "equity", eff, _fundamentals_validator(symbol, eff), symbol
+        "fundamentals",
+        "equity",
+        eff,
+        _fundamentals_validator(symbol, eff),
+        symbol,
+        accept=_fundamentals_screener_complete,
     )
 
 

@@ -218,7 +218,9 @@ def test_get_fundamentals_combines_profile_and_metrics(recorder: _RecordingClien
                 "forward_pe": 28.4,
                 "peg_ratio": 2.1,
                 "price_to_book": 47.0,
-                "dividend_yield": 0.0044,
+                # openbb returns dividend_yield as a PERCENT (0.44 = 0.44%) — the
+                # provider normalises it to a fraction (the contract's unit).
+                "dividend_yield": 0.44,
                 "eps": 6.17,
                 "beta": 1.25,
                 "fifty_two_week_high": 220.0,
@@ -230,6 +232,7 @@ def test_get_fundamentals_combines_profile_and_metrics(recorder: _RecordingClien
     assert fundamentals.symbol == "AAPL"
     assert fundamentals.name == "Apple Inc."
     assert fundamentals.market_cap == 3_000_000_000_000
+    # 0.44% (percent, as openbb sends it) → 0.0044 fraction (the contract unit).
     assert fundamentals.dividend_yield == pytest.approx(0.0044)
     assert fundamentals.provider == "openbb-mcp"
 

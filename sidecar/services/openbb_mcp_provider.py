@@ -384,7 +384,15 @@ async def get_fundamentals(symbol: str) -> Fundamentals:
     if not profile_row and not metric_row:
         raise ProviderError(f"openbb-mcp fundamentals returned no rows for {symbol!r}")
 
+    # OpenBB's equity_fundamental_metrics returns dividend_yield as a PERCENT
+    # (e.g. AAPL → 0.35 meaning 0.35%), but the Fundamentals contract stores it as
+    # a FRACTION (0.0035). The earlier "fraction already" assumption was wrong and
+    # surfaced as a ~100x-too-high yield. Normalise percent → fraction here. (After
+    # the screener-completeness fallback in provider_registry, most symbols are
+    # served by yfinance — already a fraction — but this keeps the rare openbb-only
+    # result honest.)
     raw_yield = _coerce_float(metric_row.get("dividend_yield"))
+    dividend_yield = raw_yield / 100.0 if raw_yield is not None else None
     return Fundamentals(
         symbol=normalized,
         name=profile_row.get("name") or profile_row.get("long_name"),
@@ -395,8 +403,8 @@ async def get_fundamentals(symbol: str) -> Fundamentals:
         forward_pe=_coerce_float(metric_row.get("forward_pe")),
         peg_ratio=_coerce_float(metric_row.get("peg_ratio")),
         price_to_book=_coerce_float(metric_row.get("price_to_book")),
-        # OpenBB returns dividend_yield as a fraction already.
-        dividend_yield=raw_yield,
+        # Percent → fraction normalised above (the contract stores a fraction).
+        dividend_yield=dividend_yield,
         eps=_coerce_float(metric_row.get("eps") or metric_row.get("trailing_eps")),
         beta=_coerce_float(profile_row.get("beta") or metric_row.get("beta")),
         fifty_two_week_high=_coerce_float(
