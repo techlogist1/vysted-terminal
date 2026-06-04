@@ -23,6 +23,7 @@ import pytest
 from models.fundamentals import Fundamentals
 from models.market import Quote
 from models.screener import (
+    CriterionGroup,
     NumericBetweenCriterion,
     NumericRange,
     NumericThresholdCriterion,
@@ -94,13 +95,16 @@ async def test_resolve_universe_sp500_loads_snapshot() -> None:
     universe = await screener.resolve_universe("sp500")
     assert universe.id == "sp500"
     assert universe.asset_class == "equity"
-    # Honest label — the snapshot is the top-100 subset, not the full 500.
-    assert universe.label == "S&P 500 (Top 100)"
-    # Snapshot ships 100 names for v0.6.0; assert ≥ 50 to guard against a
-    # corrupted JSON without coupling to the exact list.
-    assert len(universe.symbols) >= 50
+    # Full-index snapshot now (003 rebuild) — honest "S&P 500", not a Top-100 subset.
+    assert universe.label == "S&P 500"
+    # Snapshot ships the full ~500-name index; assert ≥ 400 to guard against a
+    # corrupted/truncated JSON without coupling to the exact (drift-prone) list.
+    assert len(universe.symbols) >= 400
     assert "AAPL" in universe.symbols
     assert "MSFT" in universe.symbols
+    # No dupes — multi-class issuers (GOOGL/GOOG) are distinct symbols, but the
+    # same ticker must never appear twice.
+    assert len(universe.symbols) == len(set(universe.symbols))
 
 
 @pytest.mark.asyncio
@@ -290,6 +294,154 @@ def test_apply_criteria_sorted_by_market_cap_desc_with_none_last() -> None:
     # No criteria — every row passes; check ordering.
     result = screener.apply_criteria(rows, [])
     assert [r.symbol for r in result] == ["C", "D", "A", "B"]
+
+
+# ---------------------------------------------------------------------------
+# CriterionGroup — AND/OR boolean tree (003 rebuild OR-grammar)
+# ---------------------------------------------------------------------------
+
+
+def test_apply_criteria_or_group_matches_either_branch() -> None:
+    """An OR group matches a row satisfying ANY one leaf (cheap OR high-yield)."""
+    rows = [
+        (
+            _make_fundamentals("CHEAP", market_cap=300e9, pe_ratio=10.0, dividend_yield=0.0),
+            _make_quote("CHEAP"),
+        ),
+        (
+            _make_fundamentals("YIELD", market_cap=200e9, pe_ratio=40.0, dividend_yield=0.06),
+            _make_quote("YIELD"),
+        ),
+        (
+            _make_fundamentals("MEH", market_cap=100e9, pe_ratio=40.0, dividend_yield=0.0),
+            _make_quote("MEH"),
+        ),
+    ]
+    group = CriterionGroup(
+        combinator="or",
+        criteria=[
+            NumericThresholdCriterion(field="pe_ratio", operator="lt", value=15.0),
+            NumericThresholdCriterion(field="dividend_yield", operator="gt", value=0.04),
+        ],
+    )
+    result = screener.apply_criteria(rows, [], group=group)
+    assert {r.symbol for r in result} == {"CHEAP", "YIELD"}
+
+
+def test_apply_criteria_nested_group_and_within_or() -> None:
+    """(P/E < 15 AND ROE > 0.2) OR dividend_yield > 0.04 — nested combinators."""
+    rows = [
+        # passes the AND branch
+        (
+            _make_fundamentals("A", pe_ratio=10.0, roe=0.30, dividend_yield=0.0, market_cap=300e9),
+            _make_quote("A"),
+        ),
+        # fails AND (low ROE) and has no yield → dropped
+        (
+            _make_fundamentals("B", pe_ratio=10.0, roe=0.05, dividend_yield=0.0, market_cap=200e9),
+            _make_quote("B"),
+        ),
+        # passes the OR via dividend yield
+        (
+            _make_fundamentals("C", pe_ratio=40.0, roe=0.05, dividend_yield=0.06, market_cap=100e9),
+            _make_quote("C"),
+        ),
+    ]
+    group = CriterionGroup(
+        combinator="or",
+        criteria=[
+            CriterionGroup(
+                combinator="and",
+                criteria=[
+                    NumericThresholdCriterion(field="pe_ratio", operator="lt", value=15.0),
+                    NumericThresholdCriterion(field="roe", operator="gt", value=0.20),
+                ],
+            ),
+            NumericThresholdCriterion(field="dividend_yield", operator="gt", value=0.04),
+        ],
+    )
+    result = screener.apply_criteria(rows, [], group=group)
+    assert {r.symbol for r in result} == {"A", "C"}
+
+
+def test_apply_criteria_empty_group_matches_all() -> None:
+    """An empty group is a no-op filter regardless of combinator (mirrors flat path)."""
+    rows = [
+        (_make_fundamentals("A", market_cap=200e9), _make_quote("A")),
+        (_make_fundamentals("B", market_cap=100e9), _make_quote("B")),
+    ]
+    group = CriterionGroup(combinator="or", criteria=[])
+    result = screener.apply_criteria(rows, [], group=group)
+    assert {r.symbol for r in result} == {"A", "B"}
+
+
+@pytest.mark.asyncio
+async def test_run_screener_or_group_end_to_end(monkeypatch: pytest.MonkeyPatch) -> None:
+    """run_screener honours ``req.group`` (OR) over the flat criteria."""
+
+    fake = {
+        "CHEAP": _make_fundamentals("CHEAP", market_cap=300e9, pe_ratio=10.0, dividend_yield=0.0),
+        "YIELD": _make_fundamentals("YIELD", market_cap=200e9, pe_ratio=40.0, dividend_yield=0.06),
+        "MEH": _make_fundamentals("MEH", market_cap=100e9, pe_ratio=40.0, dividend_yield=0.0),
+    }
+
+    async def fake_get_fundamentals(symbol: str) -> Fundamentals:
+        return fake[symbol]
+
+    def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
+        return _make_quote(symbol)
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
+
+    request = ScreenerRequest(
+        universe="custom",
+        custom_symbols=["CHEAP", "YIELD", "MEH"],
+        criteria=[],
+        group=CriterionGroup(
+            combinator="or",
+            criteria=[
+                NumericThresholdCriterion(field="pe_ratio", operator="lt", value=15.0),
+                NumericThresholdCriterion(field="dividend_yield", operator="gt", value=0.04),
+            ],
+        ),
+        limit=10,
+    )
+    result = await screener.run_screener(request)
+    assert {row.symbol for row in result.rows} == {"CHEAP", "YIELD"}
+
+
+@pytest.mark.asyncio
+async def test_run_screener_caches_pairs_across_runs(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The batching layer caches each symbol's pair — a second run hits the cache
+    and does NOT re-call the provider (key prerequisite for the full-500 universe)."""
+
+    calls: dict[str, int] = {}
+
+    async def fake_get_fundamentals(symbol: str) -> Fundamentals:
+        calls[symbol] = calls.get(symbol, 0) + 1
+        return _make_fundamentals(symbol, sector="Technology", market_cap=200e9)
+
+    def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
+        return _make_quote(symbol)
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
+
+    request = ScreenerRequest(
+        universe="custom",
+        custom_symbols=["AAA", "BBB"],
+        criteria=[StringEqCriterion(field="sector", operator="eq", value="Technology")],
+        limit=10,
+    )
+    first = await screener.run_screener(request)
+    assert {r.symbol for r in first.rows} == {"AAA", "BBB"}
+    assert calls == {"AAA": 1, "BBB": 1}
+
+    # Second identical run resolves entirely from the per-symbol cache.
+    second = await screener.run_screener(request)
+    assert {r.symbol for r in second.rows} == {"AAA", "BBB"}
+    assert calls == {"AAA": 1, "BBB": 1}, "expected cache hit, provider re-called"
 
 
 # ---------------------------------------------------------------------------

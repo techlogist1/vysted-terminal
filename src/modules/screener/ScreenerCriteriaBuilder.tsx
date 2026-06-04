@@ -286,13 +286,48 @@ function CriterionRow({ index, criterion }: CriterionRowProps) {
 export function ScreenerCriteriaBuilder() {
   const criteria = useScreenerStore((s) => s.criteria);
   const add = useScreenerStore((s) => s.addCriterion);
+  const combinator = useScreenerStore((s) => s.combinator);
+  const setCombinator = useScreenerStore((s) => s.setCombinator);
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <h3 className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
-          Criteria (AND)
-        </h3>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <h3 className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
+            Criteria
+          </h3>
+          {/* Match ALL (AND) / ANY (OR) — drives the `group` boolean tree on run.
+              A row of independent thresholds reads as "match ALL"; flip to "ANY"
+              for an OR sweep (e.g. cheap-by-P/E OR high-yield). */}
+          <div
+            role="radiogroup"
+            aria-label="criteria combinator"
+            className="border-border bg-background/60 flex items-center rounded-md border p-0.5 text-xs"
+          >
+            {(
+              [
+                { value: "and", label: "Match ALL" },
+                { value: "or", label: "Match ANY" },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                role="radio"
+                aria-checked={combinator === opt.value}
+                aria-label={opt.label}
+                onClick={() => setCombinator(opt.value)}
+                className={
+                  combinator === opt.value
+                    ? "text-background bg-foreground rounded px-2 py-0.5 font-medium transition-colors"
+                    : "text-muted-foreground hover:text-foreground rounded px-2 py-0.5 transition-colors"
+                }
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <Button
           size="sm"
           variant="outline"
@@ -308,7 +343,16 @@ export function ScreenerCriteriaBuilder() {
             No criteria — every universe member will match.
           </p>
         ) : (
-          criteria.map((c, i) => <CriterionRow key={i} index={i} criterion={c} />)
+          criteria.map((c, i) => (
+            <div key={i} className="space-y-1.5">
+              {i > 0 ? (
+                <div className="text-muted-foreground pl-2 font-mono text-[10px] tracking-widest uppercase">
+                  {combinator === "or" ? "or" : "and"}
+                </div>
+              ) : null}
+              <CriterionRow index={i} criterion={c} />
+            </div>
+          ))
         )}
       </div>
     </div>

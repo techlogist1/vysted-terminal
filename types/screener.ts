@@ -97,6 +97,20 @@ export type ScreenerNumericField =
 /** The fields an ``"eq"`` operator may target. */
 export type ScreenerStringField = "sector" | "industry" | "currency";
 
+/**
+ * A boolean combinator node — AND/OR over leaf criteria or nested groups.
+ *
+ * Enables OR + nested logic (e.g. ``(P/E < 15 AND ROE > 0.2) OR dividend_yield >
+ * 0.04``) beyond the flat AND-only ``criteria`` list. An EMPTY ``criteria`` array
+ * matches everything (no filter) regardless of ``combinator``, mirroring the flat
+ * path's "no criteria = show all". Recursive — a child may itself be a group.
+ * Hand-mirrors ``CriterionGroup`` in ``sidecar/models/screener.py``.
+ */
+export interface CriterionGroup {
+  combinator: "and" | "or";
+  criteria: (ScreenerCriterion | CriterionGroup)[];
+}
+
 // ---------------------------------------------------------------------------
 // Request / response
 // ---------------------------------------------------------------------------
@@ -107,8 +121,12 @@ export interface ScreenerRequest {
   universe: ScreenerUniverseId;
   /** Custom tickers when ``universe = "custom"``. Otherwise ignored. */
   custom_symbols?: string[];
-  /** AND-combined criteria. v0.6.0 doesn't support OR / nested grouping. */
+  /** Flat AND-combined criteria (back-compat wire shape). When ``group`` is
+   * present it SUPERSEDES this; keep both in sync for older readers. */
   criteria: ScreenerCriterion[];
+  /** Optional boolean tree (AND/OR, nestable). When present it supersedes the
+   * flat ``criteria``. Lets the UI / agent express OR + grouped logic. */
+  group?: CriterionGroup | null;
   /** Maximum rows to return (default 200, max 1000). */
   limit: number;
 }

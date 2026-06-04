@@ -57,6 +57,7 @@ from config import get_region
 from models.fundamentals import Fundamentals
 from models.market import Quote
 from models.screener import (
+    CriterionGroup,
     NumericBetweenCriterion,
     NumericThresholdCriterion,
     ScreenerCriterion,
@@ -110,6 +111,16 @@ _SYMBOL_TIMEOUT_SECONDS = 30.0
 #: Hard upper bound on the request's ``limit`` field. v0.6.0 doesn't need
 #: pagination so the result table caps at 1000 rows.
 _MAX_LIMIT = 1000
+
+#: Batching layer (003 — the prerequisite for the full-500 universe). The screener
+#: fans out a per-symbol fundamentals+quote fetch; doing all ~500 at once would get
+#: yfinance to rate-limit/drop. A semaphore throttles concurrency, and a per-symbol
+#: cache makes re-runs (and overlapping universes) near-instant. 12 concurrent keeps
+#: the first cold run brisk without tripping rate limits.
+_FETCH_CONCURRENCY = 12
+#: Per-symbol pair cache TTL — fundamentals move daily, quotes intraday; an hour is
+#: a sound research-screener freshness window and makes iterating criteria instant.
+_PAIR_CACHE_TTL_SECONDS = 3600.0
 
 
 # ---------------------------------------------------------------------------
@@ -288,28 +299,52 @@ def _evaluate_criterion(
     return False
 
 
+def _evaluate_group(
+    group: CriterionGroup,
+    fundamentals: Fundamentals,
+    quote: Quote | None,
+) -> bool:
+    """Recursively evaluate an AND/OR group. An empty group matches everything."""
+    if not group.criteria:
+        return True
+    results = [
+        _evaluate_group(node, fundamentals, quote)
+        if isinstance(node, CriterionGroup)
+        else _evaluate_criterion(node, fundamentals, quote)
+        for node in group.criteria
+    ]
+    return any(results) if group.combinator == "or" else all(results)
+
+
 def apply_criteria(
     rows: list[tuple[Fundamentals, Quote | None]],
     criteria: list[ScreenerCriterion],
+    group: CriterionGroup | None = None,
 ) -> list[ScreenerResultRow]:
-    """Apply AND-combined criteria to a list of fundamentals+quote pairs.
+    """Filter fundamentals+quote pairs by the criteria, ordered by market_cap desc.
 
-    Returns a list of :class:`ScreenerResultRow`, ordered by
-    ``market_cap`` descending. Symbols whose ``market_cap`` is unknown
-    sort to the end.
+    When ``group`` is given it supersedes the flat ``criteria`` and is evaluated as
+    a boolean AND/OR tree; otherwise the flat ``criteria`` are AND-combined (the
+    back-compat path). Symbols whose ``market_cap`` is unknown sort to the end.
     """
     matched: list[ScreenerResultRow] = []
     for fundamentals, quote in rows:
         passed_indices: list[int] = []
-        all_passed = True
-        for idx, criterion in enumerate(criteria):
-            if _evaluate_criterion(criterion, fundamentals, quote):
-                passed_indices.append(idx)
-            else:
-                all_passed = False
-                break
-        if not all_passed:
-            continue
+        if group is not None:
+            # Boolean-tree path (OR / nested). matched_criteria isn't a flat-index
+            # concept here, so it stays empty.
+            if not _evaluate_group(group, fundamentals, quote):
+                continue
+        else:
+            all_passed = True
+            for idx, criterion in enumerate(criteria):
+                if _evaluate_criterion(criterion, fundamentals, quote):
+                    passed_indices.append(idx)
+                else:
+                    all_passed = False
+                    break
+            if not all_passed:
+                continue
         matched.append(
             ScreenerResultRow(
                 symbol=fundamentals.symbol,
@@ -380,11 +415,51 @@ async def _fetch_pair(symbol: str, asset_class: str) -> tuple[Fundamentals, Quot
     return fundamentals, quote
 
 
-async def run_screener(req: ScreenerRequest) -> ScreenerResult:
-    """Resolve the universe, fan out, filter, and return the result.
+async def _cached_pair(
+    symbol: str, asset_class: str, sem: asyncio.Semaphore
+) -> tuple[Fundamentals, Quote | None] | None:
+    """Cache-first, concurrency-throttled wrapper over :func:`_fetch_pair`.
 
-    AND-combines every criterion. Returns up to ``req.limit`` rows
-    sorted by market cap desc.
+    A cache hit (within ``_PAIR_CACHE_TTL_SECONDS``) returns instantly with no
+    network call; a miss fetches UNDER the semaphore — throttling the cold fan-out
+    so a ~500-symbol universe doesn't trip yfinance rate limits — then caches the
+    serialised pair. This is the batching layer that makes the full S&P 500
+    universe viable (and re-runs / overlapping universes near-instant).
+    """
+    cache_key = f"screener:pair:{asset_class}:{symbol.upper()}"
+    cached = await data_cache.get(cache_key, _PAIR_CACHE_TTL_SECONDS)
+    if isinstance(cached, dict) and "fundamentals" in cached:
+        try:
+            fundamentals = Fundamentals(**cached["fundamentals"])
+            quote = Quote(**cached["quote"]) if cached.get("quote") else None
+            return fundamentals, quote
+        except Exception as exc:  # noqa: BLE001 - a stale/garbled cache row is just a miss
+            logger.debug("screener: bad cache row for %s: %s", symbol, exc)
+
+    async with sem:
+        pair = await _fetch_pair(symbol, asset_class)
+    if pair is None:
+        return None
+    fundamentals, quote = pair
+    try:
+        await data_cache.set(
+            cache_key,
+            {
+                "fundamentals": fundamentals.model_dump(mode="json"),
+                "quote": quote.model_dump(mode="json") if quote is not None else None,
+            },
+        )
+    except Exception as exc:  # noqa: BLE001 - caching is best-effort, never fatal
+        logger.debug("screener: cache write failed for %s: %s", symbol, exc)
+    return pair
+
+
+async def run_screener(req: ScreenerRequest) -> ScreenerResult:
+    """Resolve the universe, fan out (throttled + cached), filter, and return.
+
+    Filters by the request's ``group`` (AND/OR boolean tree) when present, else by
+    the flat AND-combined ``criteria``. Returns up to ``req.limit`` rows sorted by
+    market cap desc.
     """
     started_at = time.monotonic()
 
@@ -393,17 +468,19 @@ async def run_screener(req: ScreenerRequest) -> ScreenerResult:
     # ``default_universe_for_region``; here we honour exactly what the caller sent.
     universe = await resolve_universe(req.universe, req.custom_symbols)
 
-    # Fan out fundamentals+quote fetches in parallel. ``return_exceptions``
-    # is False here because ``_fetch_pair`` already swallows per-symbol
-    # failures — a raised exception inside _fetch_pair is a true bug.
+    # Throttled + cached fan-out (the batching layer). The semaphore caps live
+    # concurrency so a full-500 cold run doesn't trip rate limits; cache hits skip
+    # the network entirely. ``_cached_pair`` swallows per-symbol failures (returns
+    # None), so a raised exception here is a true bug.
+    sem = asyncio.Semaphore(_FETCH_CONCURRENCY)
     pairs_raw = await asyncio.gather(
-        *(_fetch_pair(sym, universe.asset_class) for sym in universe.symbols)
+        *(_cached_pair(sym, universe.asset_class, sem) for sym in universe.symbols)
     )
     pairs: list[tuple[Fundamentals, Quote | None]] = [
         pair for pair in pairs_raw if pair is not None
     ]
 
-    matched = apply_criteria(pairs, list(req.criteria))
+    matched = apply_criteria(pairs, list(req.criteria), group=req.group)
 
     # Apply limit. Clamp to ``_MAX_LIMIT`` so a malformed request body
     # cannot pull a 10k-row response.

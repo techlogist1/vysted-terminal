@@ -351,10 +351,20 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                     "criteria": {
                         "type": "array",
                         "description": (
-                            "Discriminated-union filters, e.g. "
+                            "Discriminated-union filters, AND-combined, e.g. "
                             '[{"field":"pe_ratio","operator":"lt","value":15}]'
                         ),
                         "items": {"type": "object"},
+                    },
+                    "group": {
+                        "type": "object",
+                        "description": (
+                            "Optional AND/OR boolean tree (supersedes the flat "
+                            "AND-only 'criteria' when present). Shape: "
+                            '{"combinator":"and"|"or","criteria":[<criterion>|<group>...]}. '
+                            "Nestable — a child may itself be a group. Use for OR "
+                            "sweeps, e.g. (P/E<15 AND ROE>0.2) OR dividend_yield>0.04."
+                        ),
                     },
                     "custom_symbols": {
                         "type": "array",

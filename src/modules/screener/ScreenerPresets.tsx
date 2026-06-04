@@ -121,11 +121,15 @@ const PRESETS: ScreenerPreset[] = [
 export function ScreenerPresets() {
   const setUniverse = useScreenerStore((s) => s.setUniverse);
   const setCriteria = useScreenerStore((s) => s.setCriteria);
+  const setCombinator = useScreenerStore((s) => s.setCombinator);
   const runScreener = useScreenerStore((s) => s.runScreener);
 
   const apply = (preset: ScreenerPreset) => {
     setUniverse(preset.universe);
     setCriteria(preset.criteria);
+    // Every preset is AND-semantics — reset the combinator so a prior "Match
+    // ANY" selection doesn't silently turn the preset into an OR sweep.
+    setCombinator("and");
     void runScreener();
   };
 

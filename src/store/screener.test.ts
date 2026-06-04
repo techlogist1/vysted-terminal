@@ -136,6 +136,32 @@ describe("useScreenerStore", () => {
       expect(body.custom_symbols).toEqual(["AAPL", "MSFT", "NVDA"]);
     });
 
+    it("combinator='and' (default) sends no group; criteria stay flat", async () => {
+      const fetchMock = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValue(new Response(JSON.stringify(RESULT_SAMPLE), { status: 200 }));
+      await useScreenerStore.getState().runScreener();
+      const [, init] = fetchMock.mock.calls[0]!;
+      const body = JSON.parse(String(init!.body));
+      expect(body.group).toBeUndefined();
+      expect(body.criteria).toHaveLength(3);
+    });
+
+    it("combinator='or' sends a flat OR group over the same criteria", async () => {
+      const fetchMock = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValue(new Response(JSON.stringify(RESULT_SAMPLE), { status: 200 }));
+      useScreenerStore.getState().setCombinator("or");
+      await useScreenerStore.getState().runScreener();
+      const [, init] = fetchMock.mock.calls[0]!;
+      const body = JSON.parse(String(init!.body));
+      expect(body.group).toBeDefined();
+      expect(body.group.combinator).toBe("or");
+      expect(body.group.criteria).toHaveLength(3);
+      // criteria stays populated alongside group (older readers + match-index).
+      expect(body.criteria).toHaveLength(3);
+    });
+
     it("captures errors and sets status=error", async () => {
       vi.spyOn(globalThis, "fetch").mockResolvedValue(
         new Response(JSON.stringify({ detail: "boom" }), { status: 500 }),

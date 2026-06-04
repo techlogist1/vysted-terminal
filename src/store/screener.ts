@@ -17,6 +17,7 @@ import { create } from "zustand";
 import { getSidecarBaseUrl, sidecarGet } from "@/lib/sidecar-client";
 
 import type {
+  CriterionGroup,
   ScreenerCriterion,
   ScreenerRequest,
   ScreenerResult,
@@ -25,6 +26,10 @@ import type {
 } from "../../types/screener";
 
 export type ScreenerStatus = "idle" | "loading" | "ready" | "error";
+
+/** Top-level combinator the builder applies across its flat criteria list:
+ * "and" = match ALL, "or" = match ANY. Maps to the `group` boolean tree. */
+export type ScreenerCombinator = "and" | "or";
 
 // In-flight universe fetches, deduped by id. Two concurrent loadUniverse(id)
 // calls both missed the cache and fired duplicate requests (Phase 9.5); a
@@ -37,6 +42,8 @@ interface ScreenerState {
   universe: ScreenerUniverseId;
   customSymbols: string;
   criteria: ScreenerCriterion[];
+  /** How the flat criteria combine: "and" = match ALL (default), "or" = ANY. */
+  combinator: ScreenerCombinator;
 
   // --- last-run cache -------------------------------------------------
   lastResult: ScreenerResult | null;
@@ -50,6 +57,7 @@ interface ScreenerState {
   // --- public API -----------------------------------------------------
   setUniverse: (id: ScreenerUniverseId) => void;
   setCustomSymbols: (raw: string) => void;
+  setCombinator: (combinator: ScreenerCombinator) => void;
   setCriteria: (criteria: ScreenerCriterion[]) => void;
   addCriterion: (criterion: ScreenerCriterion) => void;
   removeCriterion: (index: number) => void;
@@ -99,6 +107,7 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
   universe: "sp500",
   customSymbols: "",
   criteria: DEFAULT_CRITERIA,
+  combinator: "and",
   lastResult: null,
   status: "idle",
   error: null,
@@ -107,6 +116,7 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
 
   setUniverse: (id) => set({ universe: id }),
   setCustomSymbols: (raw) => set({ customSymbols: raw }),
+  setCombinator: (combinator) => set({ combinator }),
   setCriteria: (criteria) => set({ criteria }),
   addCriterion: (criterion) => set((state) => ({ criteria: [...state.criteria, criterion] })),
   removeCriterion: (index) =>
@@ -121,12 +131,19 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
     }),
 
   runScreener: async (limit = 200) => {
-    const { universe, customSymbols, criteria } = get();
+    const { universe, customSymbols, criteria, combinator } = get();
     set({ status: "loading", error: null });
+    // "and" = the flat criteria path (back-compat). "or" rides the `group`
+    // boolean tree, which supersedes the flat list server-side — we send a flat
+    // OR group over the same criteria. `criteria` stays populated either way so
+    // older readers and the matched-criteria index column still resolve.
+    const group: CriterionGroup | undefined =
+      combinator === "or" ? { combinator: "or", criteria: [...criteria] } : undefined;
     const req: ScreenerRequest = {
       universe,
       criteria,
       limit,
+      ...(group ? { group } : {}),
       ...(universe === "custom" ? { custom_symbols: parseCustomSymbols(customSymbols) } : {}),
     };
     try {
@@ -184,6 +201,7 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       universe: "sp500",
       customSymbols: "",
       criteria: DEFAULT_CRITERIA,
+      combinator: "and",
       lastResult: null,
       status: "idle",
       error: null,

@@ -156,6 +156,33 @@ ScreenerCriterion = (
 )
 
 
+class CriterionGroup(BaseModel):
+    """A boolean combinator node — AND/OR over leaf criteria or nested groups.
+
+    Enables OR + nested logic (e.g. ``(P/E < 15 AND ROE > 0.2) OR dividend_yield >
+    0.04``) beyond the flat AND-only ``criteria`` list. An EMPTY group matches
+    everything (no filter) regardless of combinator, mirroring the "no criteria =
+    show all" behaviour of the flat path. Recursive: a child may itself be a group.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    combinator: Literal["and", "or"] = "and"
+    # ``from __future__ import annotations`` makes this whole annotation a string,
+    # so the recursive self-reference resolves at ``model_rebuild()`` below — do
+    # NOT quote ``CriterionGroup`` inline (``UnionType | str`` fails to eval).
+    criteria: list[
+        NumericThresholdCriterion
+        | NumericBetweenCriterion
+        | StringEqCriterion
+        | SetInCriterion
+        | CriterionGroup
+    ] = Field(default_factory=list)
+
+
+CriterionGroup.model_rebuild()
+
+
 # ---------------------------------------------------------------------------
 # Request / response
 # ---------------------------------------------------------------------------
@@ -169,6 +196,10 @@ class ScreenerRequest(BaseModel):
     universe: ScreenerUniverseId
     custom_symbols: list[str] | None = None
     criteria: list[ScreenerCriterion]
+    # Optional boolean tree (AND/OR, nestable). When present it SUPERSEDES the flat
+    # ``criteria`` (which stays AND-combined for back-compat). Lets the UI / agent
+    # express OR + grouped logic without breaking the old wire shape.
+    group: CriterionGroup | None = None
     # Upper-bounded to match types/screener.ts ("max 1000") and the runtime
     # clamp in services/screener.py (_MAX_LIMIT=1000) — Phase 9.5.
     limit: int = Field(default=200, ge=1, le=1000)
