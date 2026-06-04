@@ -62,10 +62,8 @@ import { KNOWN_MODELS_BY_PROVIDER, useModelSelectionStore } from "@/store/model-
 import { useModulesStore } from "@/store/modules";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import {
-  type DeepResearchProbe,
   fetchHardwareReport,
   type HardwareReport,
-  probeDeepResearch,
   type ScoredModel,
   verdictMeta,
 } from "@/lib/hardware-fit";
@@ -817,154 +815,31 @@ function HardwareSection() {
 }
 
 // ---------------------------------------------------------------------------
-// Deep-research engine (Track 5 — selector + live Tongyi routing probe)
+// Deep-research engine (Track 5)
 // ---------------------------------------------------------------------------
 
-/** One selectable deep-research engine (radio button). */
-function EngineOption({
-  selected,
-  onSelect,
-  title,
-  description,
-}: {
-  selected: boolean;
-  onSelect: () => void;
-  title: string;
-  description: string;
-}) {
-  return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={selected}
-      onClick={onSelect}
-      className={cn(
-        "flex w-full flex-col gap-1 rounded-md border p-3 text-left transition-colors",
-        selected
-          ? "border-amber-500/60 bg-amber-500/5"
-          : "border-charcoal-700 bg-charcoal-900 hover:border-charcoal-600",
-      )}
-    >
-      <span className="flex items-center gap-2">
-        <span
-          aria-hidden="true"
-          className={cn(
-            "size-3 shrink-0 rounded-full border",
-            selected ? "border-amber-400 bg-amber-400" : "border-charcoal-600",
-          )}
-        />
-        <span className="text-charcoal-100 font-mono text-xs font-medium">{title}</span>
-      </span>
-      <span className="text-charcoal-400 pl-5 font-mono text-[0.65rem] leading-relaxed">
-        {description}
-      </span>
-    </button>
-  );
-}
-
 /**
- * Deep-research engine selector (Track 5) — pick the engine behind `/deep` and
- * "go deeper": the always-available native IterResearch loop, or Tongyi via
- * OpenRouter (opt-in + BYOK). A LIVE routing probe reports honestly whether the
- * Tongyi slug is routing right now or the run will fall back to Qwen-A3B — the
- * fallback is never hidden. The OpenRouter key is read from the keychain for the
- * probe only and never persisted here.
+ * Deep-research note (Track 5) — deep research runs Vysted's own native
+ * IterResearch loop on the user's configured model. There is no engine selector:
+ * native is the only user-facing engine (the opt-in paid Perplexity backend is
+ * agent-selected with its own key, never surfaced here), so this is a static
+ * explanation, not a radio group + routing probe.
  */
 function DeepResearchSection() {
-  const backend = useSettingsStore((s) => s.deepResearchBackend);
-  const setBackend = useSettingsStore((s) => s.setDeepResearchBackend);
-  const [probe, setProbe] = useState<DeepResearchProbe | null | "loading">("loading");
-  const [refreshNonce, setRefreshNonce] = useState(0);
-
-  useEffect(() => {
-    let alive = true;
-    void (async () => {
-      // Reset to "loading" inside the async (not synchronously in the effect
-      // body) so a re-probe shows the spinner without a cascading render.
-      setProbe("loading");
-      let key: string | null = null;
-      try {
-        key = await getSecret(KEYCHAIN_NAMESPACES.llmProvider("openrouter"));
-      } catch {
-        key = null;
-      }
-      const result = await probeDeepResearch(key);
-      if (alive) {
-        setProbe(result);
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [refreshNonce]);
-
-  const tongyi = probe && probe !== "loading" ? probe.tongyi : null;
-  const statusLabel = !tongyi
-    ? ""
-    : !tongyi.configured
-      ? "needs a key"
-      : tongyi.live
-        ? "Tongyi routing OK"
-        : "using fallback";
-  const statusTone = !tongyi
-    ? "text-charcoal-500"
-    : tongyi.live
-      ? "text-positive"
-      : tongyi.configured
-        ? "text-amber-400"
-        : "text-charcoal-500";
-
   return (
     <section aria-labelledby="settings-deepresearch">
       <SectionHeader
         id="settings-deepresearch"
         icon={<FlaskConical className="size-4 text-amber-400" aria-hidden="true" />}
-        title="Deep research engine"
-        hint="Which engine powers /deep and 'go deeper'. Tongyi is opt-in + bring-your-own OpenRouter key, never auto-selected — and it honestly falls back when the model isn't routing."
+        title="Deep research"
+        hint="How /deep and 'go deeper' work."
       />
-      <div role="radiogroup" aria-label="Deep research engine" className="flex flex-col gap-2">
-        <EngineOption
-          selected={backend === "native"}
-          onSelect={() => setBackend("native")}
-          title="Native (IterResearch)"
-          description="Vysted's own bounded deep loop on your configured model. Always available, no extra key."
-        />
-        <EngineOption
-          selected={backend === "tongyi"}
-          onSelect={() => setBackend("tongyi")}
-          title="Tongyi-DeepResearch (OpenRouter)"
-          description="Alibaba's frontier agentic deep-research model via OpenRouter (opt-in, BYOK). Falls back to a live Qwen-A3B when the Tongyi slug isn't routing."
-        />
-      </div>
-      {/* Live routing probe — below the group so the option buttons stay clean. */}
-      <div className="mt-2 flex items-center gap-2 px-1 font-mono text-[0.65rem]">
-        {probe === "loading" ? (
-          <span className="text-charcoal-500">Probing OpenRouter routing…</span>
-        ) : probe === null ? (
-          <span className="text-charcoal-500">
-            Routing probe unavailable (sidecar not connected).
-          </span>
-        ) : (
-          <>
-            <span className={cn("shrink-0 font-semibold", statusTone)}>{statusLabel}</span>
-            <span className="text-charcoal-400 min-w-0 truncate" title={tongyi?.note}>
-              {tongyi?.note}
-            </span>
-            {typeof tongyi?.estimateUsd === "number" && (
-              <span className="text-charcoal-500 shrink-0">
-                ~${tongyi.estimateUsd.toFixed(2)}/run
-              </span>
-            )}
-          </>
-        )}
-        <button
-          type="button"
-          onClick={() => setRefreshNonce((n) => n + 1)}
-          className="text-charcoal-500 ml-auto inline-flex shrink-0 items-center gap-1 transition-colors hover:text-amber-300"
-        >
-          <RotateCcw className="size-3" aria-hidden="true" /> refresh
-        </button>
-      </div>
+      <p className="text-charcoal-400 px-1 font-mono text-[0.7rem] leading-relaxed">
+        Deep research runs Vysted&rsquo;s own bounded{" "}
+        <span className="text-charcoal-200">IterResearch</span> loop on your configured model — a
+        multi-round search → read → reflect → synthesize pass that returns a cited brief. Always
+        available, no extra key, no extra cost.
+      </p>
     </section>
   );
 }

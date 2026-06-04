@@ -37,11 +37,12 @@ export type Density = "comfortable" | "compact";
 
 /**
  * The DEEP research engine the agent drives (Track 5). `native` is Vysted's own
- * bounded IterResearch loop on the configured model (always available). `tongyi`
- * is opt-in + BYOK (an OpenRouter key), NEVER auto-selected; the Tongyi slug is
- * runtime-probed and falls back to a live Qwen-A3B when it isn't routing.
+ * bounded IterResearch loop on the configured model — always available, no extra
+ * key. `perplexity` is an opt-in, paid backend the agent can select with its own
+ * Perplexity key; it is never auto-selected and is not offered in Settings (native
+ * is the only user-facing engine).
  */
-export type DeepResearchBackend = "native" | "tongyi";
+export type DeepResearchBackend = "native" | "perplexity";
 
 /** Dark-only theming knobs. We never leave the dark language; these tune it. */
 export interface ThemeKnobs {
@@ -86,8 +87,8 @@ export interface SettingsBundle {
    * region-first. See `src/lib/region.ts` + EXTENSION_SEAMS.md.
    */
   region: Region;
-  /** The selected DEEP research engine (Track 5). Default `native`; `tongyi` is
-   *  opt-in + BYOK and never auto-selected. */
+  /** The selected DEEP research engine (Track 5). Default `native` — Vysted's own
+   *  IterResearch loop. */
   deepResearchBackend: DeepResearchBackend;
 }
 
@@ -283,9 +284,9 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           : base.themeKnobs,
       region: isRegion(bundle.region) ? bundle.region : base.region,
       deepResearchBackend:
-        bundle.deepResearchBackend === "tongyi" || bundle.deepResearchBackend === "native"
+        bundle.deepResearchBackend === "native" || bundle.deepResearchBackend === "perplexity"
           ? bundle.deepResearchBackend
-          : base.deepResearchBackend,
+          : base.deepResearchBackend, // legacy "tongyi" blobs coerce to native
     });
     persist();
   },
