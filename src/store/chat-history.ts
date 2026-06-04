@@ -93,6 +93,8 @@ interface ChatHistoryState {
   finalizeAssistantMessage: (id: string, usage?: LLMUsage | null) => void;
   failAssistantMessage: (id: string, error: string) => void;
   clear: () => void;
+  /** Replace the whole transcript (used to swap between agent spaces/threads). */
+  loadMessages: (messages: ChatMessage[]) => void;
 }
 
 function _uuid(): string {
@@ -188,4 +190,5 @@ export const useChatHistoryStore = create<ChatHistoryState>((set) => ({
       streamingMessageId: state.streamingMessageId === id ? null : state.streamingMessageId,
     })),
   clear: () => set({ messages: [], streamingMessageId: null }),
+  loadMessages: (messages) => set({ messages, streamingMessageId: null }),
 }));

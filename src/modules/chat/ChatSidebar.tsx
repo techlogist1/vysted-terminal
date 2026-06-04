@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Send, SlidersHorizontal, Sparkles, Telescope } from "lucide-react";
+import { Plus, Send, SlidersHorizontal, Sparkles, Telescope } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
@@ -21,6 +21,7 @@ import { validateProvider } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAgentModeStore } from "@/store/agent-mode";
+import { useAgentSpacesStore } from "@/store/agent-spaces";
 import { type AgentRunBudget, useAgentRunsStore } from "@/store/agent-runs";
 import { selectCustomAgents, selectFirstPartyAgents, useAgentsStore } from "@/store/agents";
 import {
@@ -278,6 +279,12 @@ export function ChatSidebar() {
   // a visible toggle (not a slash a normal user won't find).
   const [controlsOpen, setControlsOpen] = useState(false);
   const [deepResearch, setDeepResearch] = useState(false);
+  // Multiple agent spaces (chat threads/pages) — switching swaps the transcript.
+  const spaces = useAgentSpacesStore((s) => s.spaces);
+  const activeSpaceId = useAgentSpacesStore((s) => s.activeId);
+  const newSpace = useAgentSpacesStore((s) => s.newSpace);
+  const switchSpace = useAgentSpacesStore((s) => s.switchTo);
+  const closeSpace = useAgentSpacesStore((s) => s.closeSpace);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   // Tracks the last successfully dispatched prompt so the Retry button can re-send.
   const [lastPrompt, setLastPrompt] = useState<string | null>(null);
@@ -546,6 +553,16 @@ export function ChatSidebar() {
         .slice(-10)
         .map((m) => ({ role: m.role, content: m.content }));
 
+      // Auto-title the space from its first prompt (Perplexity-style) so the space
+      // tabs read as real threads, not "Chat 1/2/3". Read via getState to avoid
+      // adding a dep to this memoised handler.
+      if (useChatHistoryStore.getState().messages.length === 0) {
+        const cleaned = prompt.replace(/^\/\S+\s*/, "").trim();
+        const title = cleaned.length > 28 ? `${cleaned.slice(0, 28).trim()}…` : cleaned;
+        if (title) {
+          useAgentSpacesStore.getState().renameActive(title);
+        }
+      }
       appendUser(prompt);
 
       // Resolve the effective provider/model (FR-004): HUD override → the called
@@ -782,6 +799,52 @@ export function ChatSidebar() {
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
+      {/* Agent spaces — multiple chat threads/pages (Perplexity/Cursor). Switching
+          archives the live transcript and restores the target's. */}
+      <div className="border-charcoal-700 flex items-center gap-1 overflow-x-auto border-b px-2 py-1">
+        {spaces.map((s) => {
+          const active = s.id === activeSpaceId;
+          return (
+            <div
+              key={s.id}
+              className={cn(
+                "flex shrink-0 items-center rounded font-mono text-[0.65rem]",
+                active ? "bg-charcoal-800 text-charcoal-100" : "text-charcoal-400",
+              )}
+            >
+              <button
+                type="button"
+                onClick={() => switchSpace(s.id)}
+                className={cn("max-w-[10rem] truncate px-2 py-0.5 transition-colors", {
+                  "hover:text-lume": !active,
+                })}
+                title={s.title}
+              >
+                {s.title}
+              </button>
+              {spaces.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => closeSpace(s.id)}
+                  aria-label={`Close ${s.title}`}
+                  className="text-charcoal-500 hover:text-negative px-1 transition-colors"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          );
+        })}
+        <button
+          type="button"
+          onClick={newSpace}
+          aria-label="New chat space"
+          title="New chat space"
+          className="text-charcoal-400 shrink-0 rounded px-1.5 py-0.5 transition-colors hover:text-amber-300"
+        >
+          <Plus className="size-3" />
+        </button>
+      </div>
       <AgentsRail
         onForeground={(run) => {
           const id = beginAssistant({ agentId: run.agentId ?? undefined });
