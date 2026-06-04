@@ -219,11 +219,15 @@ onto a shared agent branch, which can sweep uncommitted lead edits into a teamma
   - `autosaveLayout`, restore in `deserializeWorkspace` (guard older blobs); if the change
     doesn't move the dockview layout, add a store subscription in `page.tsx` calling
     `autosaveLayout()`.
-- **Design token NAMES are historical, not literal** (`amber-*`→coral, `charcoal-*`→espresso,
-  `brass-*`/`sage-*`→warm neutrals) so re-skinning re-values `tokens.css` alone. Canvas
-  (`lightweight-charts`/drawings) can't read CSS vars — its palette is single-sourced in
-  `src/lib/chart-theme.ts`; change BOTH or canvas drifts. _(The redesign replaces this warm
-  palette with a Cursor-style minimal-dark one — change both sources together.)_
+- **Design token NAMES are historical, not literal** (`amber-*`→**cool-indigo** accent,
+  `charcoal-*`→**neutral-zinc** near-black ramp, `brass-*`/`sage-*`→zinc neutrals, `lume`→
+  near-white) so re-skinning re-values `tokens.css` alone. Canvas (`lightweight-charts`/
+  drawings) can't read CSS vars — the canvas palette is single-sourced in
+  `src/lib/chart-theme.ts` and the chrome accent rgb in `globals.css` `--accent-rgb`; change
+  ALL THREE in lockstep or the canvas/glow drifts. _(003 rebuild: the warm "Claude after dark"
+  clay/espresso palette was replaced by the minimal **zinc + cool-indigo** system; the keyless
+  research-model default is now the non-thinking `minimax/minimax-m3`; the header is a
+  mark-only brand, no text wordmark.)_
 - **chrome-devtools MCP can't synthesize trusted (`isTrusted`) events** — canvas-interactive
   features (drawings, drag-to-pan, lightweight-charts gestures) need Playwright/native event
   injection for visual regression, not chrome-devtools.
@@ -299,8 +303,11 @@ defaults — empty shots hide layout bugs. Capture dark theme at **both** 1920×
 2560×1440; per-release subfolder under `docs/screenshots/v<tag>/`, **never overwrite**
 existing shots. Populated anchors: watchlist `AAPL, MSFT, NVDA, SPY, QQQ, BTC/USDT,
 ETH/USDT`; chart SPY + indicators + VWAP; equity overview AAPL; news with sentiment;
-portfolio ≥1 position with P&L. _(The redesign supersedes the warm "Claude after dark"
-cockpit convention — update this section when the new shell lands.)_
+portfolio ≥1 position with P&L. _(003 rebuild: the cockpit is now the minimal **zinc
+near-black + cool-indigo** shell with a mark-only brand (no text wordmark). The rig's
+in-webview `screenshot` wedges on an occluded WKWebView — capture via the bridge-independent
+Quartz path (`/tmp/rigcap.py`, matched on `kCGWindowOwnerName == "vysted-terminal"`) instead;
+`evaluate_script` reads live state for verification regardless of focus.)_
 
 ## Reference docs
 

@@ -23,10 +23,10 @@ export const CHART_GRID = "#27272a"; // charcoal-800 — gridlines
 export const CHART_BORDER = "#34343a"; // charcoal-700 — scale borders
 export const CHART_CROSSHAIR = "#3f3f46"; // charcoal-600 — crosshair
 
-// --- Cool-teal accent (mirror amber-* [teal]) ------------------------------
-export const ACCENT_CORAL = "#2dd4bf"; // amber-400 — brand / default accent (teal)
-export const ACCENT_CORAL_BRIGHT = "#5eead4"; // amber-300 — emphasis
-export const ACCENT_CORAL_DEEP = "#115e59"; // amber-600 — deep accent / line
+// --- Cool-indigo accent (mirror amber-* [indigo]) --------------------------
+export const ACCENT_CORAL = "#818cf8"; // amber-400 — brand / default accent (indigo)
+export const ACCENT_CORAL_BRIGHT = "#a5b4fc"; // amber-300 — emphasis
+export const ACCENT_CORAL_DEEP = "#3730a3"; // amber-600 — deep accent / line
 
 // --- Semantic signal colors (the only saturated colors; kept clear of teal) -
 export const POSITIVE = "#22c55e"; // gains — green-500
@@ -40,7 +40,7 @@ export const NEUTRAL = "#a1a1aa"; // sage-400 — comparison / secondary series
 export const NEUTRAL_LIGHT = "#d4d4d8"; // sage-300
 
 // --- RGB tuples for alpha fills (canvas wants rgba()) ----------------------
-export const ACCENT_CORAL_RGB = "45, 212, 191"; // #2dd4bf — cool teal
+export const ACCENT_CORAL_RGB = "129, 140, 248"; // #818cf8 — cool indigo
 export const POSITIVE_RGB = "34, 197, 94";
 export const NEGATIVE_RGB = "239, 68, 68";
 

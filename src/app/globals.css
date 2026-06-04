@@ -23,18 +23,18 @@
   --color-card-foreground: var(--color-charcoal-100, #fafafa);
   --color-popover: var(--color-charcoal-875, #1b1b1f);
   --color-popover-foreground: var(--color-charcoal-100, #fafafa);
-  --color-primary: var(--color-amber-400, #2dd4bf);
+  --color-primary: var(--color-amber-400, #818cf8);
   --color-primary-foreground: var(--color-charcoal-950, #09090b);
   --color-secondary: var(--color-charcoal-800, #27272a);
   --color-secondary-foreground: var(--color-charcoal-100, #fafafa);
   --color-muted: var(--color-charcoal-800, #27272a);
   --color-muted-foreground: var(--color-charcoal-400, #a1a1aa);
-  /* Accent = brand cool teal (single-accent system). */
-  --color-accent: var(--color-amber-400, #2dd4bf);
+  /* Accent = brand cool indigo (single-accent system). */
+  --color-accent: var(--color-amber-400, #818cf8);
   --color-accent-foreground: var(--color-charcoal-950, #09090b);
   --color-border: var(--color-charcoal-700, #34343a);
   --color-input: var(--color-charcoal-700, #34343a);
-  --color-ring: var(--color-amber-400, #2dd4bf);
+  --color-ring: var(--color-amber-400, #818cf8);
   --color-destructive: var(--color-negative, #ef4444);
   --radius: var(--radius-panel); /* track the token, not a literal */
 }
@@ -42,10 +42,10 @@
 /* --- Chrome primitives -----------------------------------------------------
  * Composite vars for the flat, low-chrome cold-instrument frame: a neutral zinc
  * hairline rule, a single flat top-edge highlight (a whisper of depth, no metal
- * bezel), and a teal ring for active controls. Plain CSS vars (not @theme)
+ * bezel), and an indigo ring for active controls. Plain CSS vars (not @theme)
  * since they are composite shadows, not single-value utilities. */
 :root {
-  --accent-rgb: 45 212 191; /* teal accent as space-separated rgb (for rgb(var()/a)) */
+  --accent-rgb: 129 140 248; /* indigo accent as space-separated rgb (for rgb(var()/a)) */
   --hairline: rgb(82 82 91 / 0.14); /* zinc @ 14% — quiet fine divider */
   --hairline-strong: rgb(82 82 91 / 0.24); /* zinc @ 24% */
   --bezel-shadow: inset 0 1px 0 rgb(250 250 250 / 0.04), 0 1px 2px rgb(0 0 0 / 0.4);
@@ -112,7 +112,7 @@
   }
 
   :focus-visible {
-    outline: 1px solid var(--color-amber-400, #2dd4bf);
+    outline: 1px solid var(--color-amber-400, #818cf8);
     outline-offset: 1px;
   }
 
@@ -163,7 +163,7 @@
      neon). Glow radius kept under 16px. */
   .node-glow {
     box-shadow:
-      0 0 0 1px var(--color-amber-400, #2dd4bf),
+      0 0 0 1px var(--color-amber-400, #818cf8),
       0 0 12px 2px rgb(var(--accent-rgb) / 0.18);
   }
 
@@ -176,7 +176,7 @@
     height: 1.05em;
     margin-left: 2px;
     vertical-align: text-bottom;
-    background: var(--color-amber-400, #2dd4bf);
+    background: var(--color-amber-400, #818cf8);
     border-radius: 1px;
   }
   @media (prefers-reduced-motion: no-preference) {

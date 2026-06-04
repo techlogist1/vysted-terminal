@@ -3,7 +3,7 @@
  *
  * The aesthetic: a NEUTRAL zinc near-black canvas (Vercel Geist / Linear / Raycast
  * grade — no warm or cool tint, chrome that disappears so the data dominates),
- * a SINGLE cool-teal accent that lights up only the active / agent-driven
+ * a SINGLE cool-indigo accent that lights up only the active / agent-driven
  * affordance, and saturated green/red reserved entirely for the P&L signals.
  * Geist Sans-class UI type over a Geist Mono data face, Bloomberg density in
  * Cursor's restrained, keyboard-first language. NOT warm, NOT neon, NOT a
@@ -13,7 +13,7 @@
  * `amber`, `brass`, `sage`, `lume`) so the ~92 files that reference them as
  * Tailwind classes re-skin with ZERO edits — only the VALUES changed. The names
  * are historical, not literal: `charcoal-*` now renders the NEUTRAL ZINC ramp,
- * `amber-*` now renders the COOL-TEAL accent, `brass-*`/`sage-*` render zinc
+ * `amber-*` now renders the COOL-INDIGO accent, `brass-*`/`sage-*` render zinc
  * neutrals, `lume` is a near-white. Read the role column, not the name. The
  * canvas palette is mirrored in src/lib/chart-theme.ts — change BOTH in lockstep
  * or the chart drifts (FR-030). See docs/DESIGN_SYSTEM.md.
@@ -42,16 +42,16 @@
   --color-charcoal-200: #e4e4e7; /* bright secondary / chart text (zinc-200) */
   --color-charcoal-100: #fafafa; /* foreground / body text (zinc-50) */
 
-  /* --- Cool teal (name: amber) — the single accent. One teal hue across states,
-   * light→dark: 200 faint tint/glow, 300 hover-bright, 400 brand, 500 pressed/
-   * sash, 600 deep border. Reads "data / intelligence" (Perplexity precedent),
-   * sits ~180° from the P&L gains-green so it never competes, and pops cleanly on
-   * the neutral zinc without neon aggression. Used sparingly — the one lit color. */
-  --color-amber-200: #99f6e4; /* faint highlight / glow fill / selection tint (teal-200) */
-  --color-amber-300: #5eead4; /* hover-bright accent, focus emphasis, accent text (teal-300) */
-  --color-amber-400: #2dd4bf; /* BRAND / primary / default accent (teal-400) */
-  --color-amber-500: #0d9488; /* pressed/active, active-sash, node-selected (teal-600) */
-  --color-amber-600: #115e59; /* deep border / dense accent (teal-800) */
+  /* --- Cool indigo (name: amber) — the single accent. One indigo hue across
+   * states, light→dark: 200 faint tint/glow, 300 hover-bright, 400 brand, 500
+   * pressed/sash, 600 deep border. Restrained and minimal (Linear/Cursor energy,
+   * not vibe-coded neon), clearly distinct from the P&L green/red, and the one lit
+   * color on the neutral zinc ink — used sparingly. */
+  --color-amber-200: #c7d2fe; /* faint highlight / glow fill / selection tint (indigo-200) */
+  --color-amber-300: #a5b4fc; /* hover-bright accent, focus emphasis, accent text (indigo-300) */
+  --color-amber-400: #818cf8; /* BRAND / primary / default accent (indigo-400) */
+  --color-amber-500: #4f46e5; /* pressed/active, active-sash, node-selected (indigo-600) */
+  --color-amber-600: #3730a3; /* deep border / dense accent (indigo-800) */
 
   /* --- Zinc neutral (name: brass) — a quiet neutral for stray legacy use + the
    * .hud-label legend tone + the hairline source tone. --- */

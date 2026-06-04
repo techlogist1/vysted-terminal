@@ -92,7 +92,7 @@ describe("workspace serialization", () => {
       autonomyMode: "ask",
       agentDock: { collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH },
       modelOverrides: {},
-      modelOverridesV: 1,
+      modelOverridesV: 2,
       keybindingOverrides: {},
       settings: DEFAULT_SETTINGS,
       searchSettings: { tier: "native", searxngUrl: "" },
@@ -159,7 +159,7 @@ describe("workspace serialization", () => {
       autonomyMode: "auto",
       agentDock: { collapsed: true, width: 520 },
       modelOverrides: { anthropic: "claude-sonnet-4-6" },
-      modelOverridesV: 1,
+      modelOverridesV: 2,
     });
     // Track B: a legacy "build" blob folds into the single inferred "agent" surface.
     expect(useAgentModeStore.getState().mode).toBe("agent");
@@ -181,7 +181,7 @@ describe("workspace serialization", () => {
       layout: LAYOUT_A,
       enabledModules: {},
       modelOverrides: { openai: "gpt-5-pro-2026" },
-      modelOverridesV: 1,
+      modelOverridesV: 2,
     });
     expect(useModelSelectionStore.getState().modelFor("openai")).toBe("gpt-5-pro-2026");
   });

@@ -181,11 +181,10 @@ export default function Page() {
           the live status chrome (sidecar / provider / running agents) and the
           settings entry sit right. */}
         <header className="bg-charcoal-925 relative flex h-9 shrink-0 items-center gap-3 px-3">
-          <div className="flex items-center gap-2 select-none">
-            <span aria-hidden="true" className="size-2 rounded-[2px] bg-amber-400" />
-            <span className="text-charcoal-100 font-serif text-[15px] leading-none font-semibold tracking-[-0.02em]">
-              Vysted
-            </span>
+          {/* Mark-only brand — no text wordmark (Cursor/Linear-minimal). The
+              accessible name lives on the mark; the document title carries "Vysted". */}
+          <div className="flex items-center select-none" aria-label="Vysted" title="Vysted">
+            <span aria-hidden="true" className="size-2.5 rounded-[3px] bg-amber-400" />
           </div>
           <div className="bg-charcoal-700 mx-1 h-4 w-px" aria-hidden="true" />
           <button

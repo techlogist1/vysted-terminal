@@ -137,8 +137,12 @@ export class WorkspaceError extends Error {
 /**
  * Bumped when {@link SerializedWorkspace.modelOverrides} trust semantics change.
  * See the field doc — gates the one-time drop of legacy captured overrides.
+ *
+ * v2 (003 rebuild): the keyless default model changed (deepseek-v4-flash ->
+ * minimax/minimax-m3), so any persisted pre-rebuild override is dropped on load
+ * and the workspace adopts the new default instead of shadowing it.
  */
-const MODEL_OVERRIDES_VERSION = 1;
+const MODEL_OVERRIDES_VERSION = 2;
 
 /**
  * Build the serialised workspace body from the live stores — the SINGLE source
