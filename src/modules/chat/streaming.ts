@@ -68,9 +68,11 @@ export async function streamAgentInvocation(
     provider: payload.provider,
     model: payload.model,
     api_key: payload.apiKey,
-    // The four-mode intent (FR-003). The sidecar enforces the read-only gate
-    // for "ask" (an external client can't bypass it); defaults to "ask".
-    mode: payload.mode ?? "ask",
+    // Intent axis (FR-003): the sidecar infers read-vs-mutate from the prompt via
+    // classify_intent and gates a read intent to read-only tools server-side. The
+    // default matches DEFAULT_AGENT_MODE ("agent") — the legacy "ask"/"edit"/"build"
+    // mode vocabulary is gone (the spine collapsed to agent|delegate, S-15).
+    mode: payload.mode ?? "agent",
     options: payload.options ?? {},
   });
   await consumeSseStream(url, body, handlers);

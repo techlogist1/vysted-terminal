@@ -739,11 +739,16 @@ export function ChatSidebar() {
           { ...handlers, signal: controller.signal },
         );
       } else {
+        // FR-116 / coherence: the raw-chat path must preserve conversation context
+        // too, so a mid-conversation MODEL SWAP doesn't reset the thread. `history`
+        // (the last-10 user/assistant turns, captured above BEFORE appendUser, so it
+        // excludes the current prompt) is prepended; previously this path sent only
+        // the single current turn and silently dropped everything before it.
         await streamChat(
           {
             provider,
             model,
-            messages: [{ role: "user", content: prompt }],
+            messages: [...history, { role: "user", content: prompt }],
             apiKey: apiKey ?? undefined,
           },
           { ...handlers, signal: controller.signal },
