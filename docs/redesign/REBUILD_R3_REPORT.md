@@ -287,3 +287,15 @@ The operator eyeballed two real bugs the R3 report had over-claimed. Both fixed 
   save→persist path round-trips. serialize/deserialize restore is covered by 20 passing
   `workspace.test.ts` cases. So "layouts don't work" was the macOS **menu** (Bug 2 above), not
   Save-layout — Save-layout works.
+
+### Gate results (hot-patch)
+
+All green. ci-local's individual code-gates pass: **eslint ✓ · prettier `format:check` ✓ · tsc
+`typecheck` ✓ · cargo fmt ✓ · cargo clippy `-D warnings` ✓**. The remaining suites, run directly via
+`.venv`/`npx` (ci-local itself aborts at its `python -m pip install …` step because this Mac exposes
+only `python3`, not `python` — a pre-existing local-env quirk a CI runner doesn't hit, not a code
+failure): **ruff check + format ✓ · vitest 898 ✓ · cargo test 8/8 ✓ · pytest 1338 passed, 1 skipped ✓
+· §6.5 audit 9/9 ✓ · smoke-test ✓** (all three sidecars boot cleanly: main `/health` + screener
+universe OK, openbb-mcp + sec-edgar-mcp bind and survive). Tier-1 LOCKED files
+(`tauri.conf.json`, `kill_switch.rs`, the safety models, CI workflows) byte-for-byte untouched;
+version `0.8.0`; no merge to main.
