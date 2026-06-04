@@ -656,7 +656,15 @@ function ChartPanel(props: ChartPanelProps = {}) {
       if (!broadcast || broadcast.source === panelId || broadcast.time === null) {
         return;
       }
-      chartRef.current?.setCrosshairPosition(NaN, broadcast.time as Time, candleSeriesRef.current!);
+      // Bug-3: candleSeriesRef can be momentarily null while the series remounts
+      // during a synced timeframe switch. The old `!` non-null assertion handed
+      // `setCrosshairPosition` a null series → runtime throw. Skip this sync tick;
+      // the next broadcast re-syncs once the series is live again.
+      const series = candleSeriesRef.current;
+      if (!series) {
+        return;
+      }
+      chartRef.current?.setCrosshairPosition(NaN, broadcast.time as Time, series);
     };
     handleBroadcast(crosshairBroadcast);
   }, [syncSubscriptions.crosshair, crosshairBroadcast, panelId]);
@@ -669,9 +677,26 @@ function ChartPanel(props: ChartPanelProps = {}) {
       if (!broadcast || broadcast.source === panelId) {
         return;
       }
-      chartRef.current
-        ?.timeScale()
-        .setVisibleRange({ from: broadcast.from as Time, to: broadcast.to as Time });
+      // Bug-3: a synced timeframe switch broadcasts a range computed against the
+      // OTHER chart's just-replaced data, so from/to can be non-finite or inverted
+      // while this chart's series is remounting. lightweight-charts throws on an
+      // invalid range and React surfaces an error overlay. Validate (finite +
+      // from<to), require a live chart+series, and try/catch the apply.
+      const from = broadcast.from as unknown as number;
+      const to = broadcast.to as unknown as number;
+      if (!Number.isFinite(from) || !Number.isFinite(to) || from >= to) {
+        return;
+      }
+      const chart = chartRef.current;
+      if (!chart || !candleSeriesRef.current) {
+        return;
+      }
+      try {
+        chart.timeScale().setVisibleRange({ from: from as unknown as Time, to: to as unknown as Time });
+      } catch {
+        // Transient: the series was replaced between the broadcast and this apply.
+        // The next broadcast (or the autosave-driven re-fit) re-syncs the range.
+      }
     };
     handleBroadcast(visibleRangeBroadcast);
   }, [syncSubscriptions.visibleRange, visibleRangeBroadcast, panelId]);

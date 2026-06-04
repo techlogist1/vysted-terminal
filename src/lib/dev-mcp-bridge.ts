@@ -14,6 +14,7 @@
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { useChartCommandStore } from "@/store/chart-command";
+import { useChartSyncBus } from "@/store/chart-sync";
 import { useChatHistoryStore } from "@/store/chat-history";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelCatalogStore } from "@/store/model-catalog";
@@ -48,6 +49,11 @@ export function initDevMcpBridge(): void {
     llmProviders: useLLMProvidersStore,
     modelSelection: useModelSelectionStore,
     modelCatalog: useModelCatalogStore,
+    // R4 Bug-3: the cross-chart sync bus, so the rig can deterministically inject
+    // a malformed visible-range broadcast (NaN / inverted from>to) at a subscribed
+    // chart and confirm the guard prevents the lightweight-charts throw + React
+    // error overlay — the exact crash input, against the REAL chart.
+    chartSync: useChartSyncBus,
   };
   void import("tauri-plugin-mcp")
     .then(({ initMcpBridge }) => initMcpBridge())
