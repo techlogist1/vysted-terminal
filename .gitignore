@@ -50,3 +50,6 @@ graphify-out/
 # - .tauri-mcp.sock is the live loopback debug socket
 src-tauri/capabilities/dev-tools.json
 .tauri-mcp.sock
+
+# Playwright MCP transient artifacts (snapshots/console logs)
+.playwright-mcp/
