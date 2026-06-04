@@ -205,8 +205,14 @@ function StatementTable({
             </tr>
           </thead>
           <tbody>
-            {statement.lines.map((line) => (
-              <tr key={line.label} className="border-charcoal-800 border-b font-mono text-xs">
+            {statement.lines.map((line, i) => (
+              // Statements routinely repeat line labels ("Other", "Total"), so the
+              // label alone is not a stable key — suffix the row index to avoid the
+              // React duplicate-key error + row mis-association.
+              <tr
+                key={`${line.label}-${i}`}
+                className="border-charcoal-800 border-b font-mono text-xs"
+              >
                 <td
                   className="text-charcoal-200 px-3 py-1.5 leading-tight break-words"
                   title={line.label}
