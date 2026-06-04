@@ -160,7 +160,9 @@ function compareValue(
 
 const TABLE_HEADER_COLS = (
   <colgroup>
-    <col style={{ width: "60px" }} />
+    {/* Symbol: wide enough for a 10-char NSE ticker (BHARTIARTL, ADANIPORTS) in
+        mono; the cell itself also truncates so it can NEVER bleed into Name. */}
+    <col style={{ width: "104px" }} />
     <col style={{ width: "22%" }} />
     <col style={{ width: "13%" }} />
     <col style={{ width: "80px" }} />
@@ -348,7 +350,10 @@ export function ScreenerResultsTable() {
                   }}
                   title={`Open ${displaySymbol(row.symbol)} — overview + chart`}
                 >
-                  <td className="px-3 py-2 font-mono font-semibold whitespace-nowrap text-amber-300">
+                  <td
+                    className="max-w-0 truncate overflow-hidden px-3 py-2 font-mono font-semibold text-amber-300"
+                    title={row.symbol}
+                  >
                     {displaySymbol(row.symbol)}
                   </td>
                   <td className="max-w-0 truncate overflow-hidden px-3 py-2" title={row.name ?? ""}>
