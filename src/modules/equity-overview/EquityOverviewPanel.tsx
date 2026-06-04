@@ -6,6 +6,7 @@ import { Building2, Loader2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidecarError } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
+import { useEquityCommandStore } from "@/store/equity-command";
 import { usePanelContextBus } from "@/store/panel-context";
 import type { FinancialStatement, Fundamentals, Quote } from "../../../types/data";
 import {
@@ -266,6 +267,13 @@ export function EquityOverviewPanel() {
   const publishPanelContext = usePanelContextBus((s) => s.publish);
   const unregisterPanelContext = usePanelContextBus((s) => s.unregisterSource);
 
+  // --- external "open this company" command channel -------------------------
+  // The always-consumed seam (mirror of chart-command): a screener row, a
+  // watchlist entry, a brief ticker chip, or a ⌘K result issues
+  // `equity-command.loadSymbol(symbol)` and this panel loads it — so "click any
+  // company anywhere → the full overview" works without reaching into local state.
+  const equityCommand = useEquityCommandStore((s) => s.command);
+
   const loadedSections = useMemo<string[]>(() => {
     if (data === null) {
       return [];
@@ -393,6 +401,23 @@ export function EquityOverviewPanel() {
     setDraft(symbol);
     await doLoad(symbol);
   };
+
+  // Consume the external open-company command. Keyed on the command object (whose
+  // `seq` bumps on every issue), so re-opening the SAME symbol still re-loads; a
+  // null command (initial) is a no-op. The load is deferred a tick so the state
+  // updates never fire synchronously in the effect body (the codebase's
+  // no-synchronous-setState-in-effect rule, as the autocomplete effect does).
+  useEffect(() => {
+    if (!equityCommand) {
+      return;
+    }
+    const symbol = equityCommand.symbol;
+    const handle = setTimeout(() => {
+      setDraft(symbol);
+      void doLoad(symbol);
+    }, 0);
+    return () => clearTimeout(handle);
+  }, [equityCommand]);
 
   const quote = data?.quote ?? null;
   const fundamentals = data?.fundamentals ?? null;

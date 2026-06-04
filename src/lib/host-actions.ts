@@ -23,6 +23,7 @@ import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useBriefStore } from "@/store/brief";
 import { useBrokersStore } from "@/store/brokers";
 import { useChartCommandStore } from "@/store/chart-command";
+import { useEquityCommandStore } from "@/store/equity-command";
 import { useOrdersStore } from "@/store/orders";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
@@ -126,6 +127,26 @@ export function loadSymbolIntoChart(symbol: string, timeframe?: string): void {
   }
   ensureChartOpen();
   useChartCommandStore.getState().loadSymbol(symbol, timeframe || undefined);
+}
+
+/**
+ * Open the Equity Overview for a company via the always-consumed equity-command
+ * channel — the shared "click any company anywhere → the full overview" path
+ * behind a screener row, a watchlist entry, a brief ticker chip, and a ⌘K symbol
+ * pick. Opens the (singleton) panel first so the command has a consumer, then
+ * commands it. Reuses the keyless yfinance overview endpoints — no key required.
+ */
+export function openCompanyOverview(symbol: string): void {
+  if (!symbol) {
+    return;
+  }
+  const ws = useWorkspaceStore.getState();
+  const api = ws.dockviewApi;
+  const hasPanel = api?.panels.some((p) => p.api.component === "equity-overview-panel") ?? false;
+  if (!hasPanel) {
+    ws.openPanel("equity-overview");
+  }
+  useEquityCommandStore.getState().loadSymbol(symbol);
 }
 
 /** The named arrange_layout templates (beyond the legacy default/focus patterns). */

@@ -6,6 +6,7 @@ import { ArrowUp, ChevronDown, Download, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProvenanceBadge, StalenessBadge } from "@/components/DataBadges";
 import { buildCsv, downloadCsv } from "@/lib/csv";
+import { openCompanyOverview } from "@/lib/host-actions";
 import { SidecarError } from "@/lib/sidecar-client";
 import { useTickFlash } from "@/lib/use-flash-value";
 import { cn } from "@/lib/utils";
@@ -363,7 +364,10 @@ export function WatchlistPanel() {
                   key={row.entry.symbol}
                   row={row}
                   isSelected={selectedSymbol === row.entry.symbol}
-                  onSelect={() => setSelectedSymbol(row.entry.symbol)}
+                  onSelect={() => {
+                    setSelectedSymbol(row.entry.symbol);
+                    openCompanyOverview(row.entry.symbol);
+                  }}
                   onRemove={() => removeSymbol(row.entry.symbol)}
                 />
               ))}

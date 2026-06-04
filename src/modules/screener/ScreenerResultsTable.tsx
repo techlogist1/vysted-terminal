@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Download, SlidersHorizontal, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { loadSymbolIntoChart } from "@/lib/host-actions";
+import { loadSymbolIntoChart, openCompanyOverview } from "@/lib/host-actions";
 import { useScreenerStore } from "@/store/screener";
 
 import type { ScreenerResultRow } from "../../../types/screener";
@@ -67,6 +67,13 @@ function fmtVolume(value: number | null | undefined): string {
 /** Format a fraction (0.21) as a percent ("21.0%"). */
 function fmtPct(value: number | null | undefined): string {
   return value == null || Number.isNaN(value) ? "—" : `${(value * 100).toFixed(1)}%`;
+}
+
+/** Display label for a routed symbol — strips the Yahoo `.NS`/`.BO` suffix so the
+ *  Symbol column reads "RELIANCE", not "RELIANCE.NS" (the leak the operator saw),
+ *  while the routed `row.symbol` is kept for the click handler. */
+function displaySymbol(symbol: string): string {
+  return symbol.replace(/\.(NS|BO)$/i, "");
 }
 
 /** Serialise the current result rows to CSV (RFC-4180 quoting) for Excel/Sheets. */
@@ -332,11 +339,17 @@ export function ScreenerResultsTable() {
                 <tr
                   key={row.symbol}
                   className="border-border/60 hover:bg-muted/30 cursor-pointer border-b"
-                  onClick={() => loadSymbolIntoChart(row.symbol)}
-                  title={`Load ${row.symbol} into the chart`}
+                  onClick={() => {
+                    // Row click → the full company overview (the operator's
+                    // "click any company → one overview page") AND the chart, so
+                    // the cockpit drills to the row in one click.
+                    openCompanyOverview(row.symbol);
+                    loadSymbolIntoChart(row.symbol);
+                  }}
+                  title={`Open ${displaySymbol(row.symbol)} — overview + chart`}
                 >
                   <td className="px-3 py-2 font-mono font-semibold whitespace-nowrap text-amber-300">
-                    {row.symbol}
+                    {displaySymbol(row.symbol)}
                   </td>
                   <td className="max-w-0 truncate overflow-hidden px-3 py-2" title={row.name ?? ""}>
                     {row.name ?? "—"}
