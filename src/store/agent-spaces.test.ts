@@ -10,7 +10,11 @@ function msg(content: string): ChatMessage {
 describe("agent spaces", () => {
   beforeEach(() => {
     useChatHistoryStore.getState().clear();
-    useAgentSpacesStore.setState({ spaces: [{ id: "a", title: "A" }], activeId: "a", archived: {} });
+    useAgentSpacesStore.setState({
+      spaces: [{ id: "a", title: "A" }],
+      activeId: "a",
+      archived: {},
+    });
   });
 
   it("new space archives the live transcript and starts empty; switching restores it", () => {
