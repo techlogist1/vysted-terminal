@@ -95,7 +95,7 @@ export const DEFAULT_PROVIDERS: LLMProviderInfo[] = [
     label: "OpenRouter (broker)",
     requiresKey: true,
     defaultBaseUrl: "https://openrouter.ai/api/v1",
-    defaultModel: "minimax/minimax-m3",
+    defaultModel: "deepseek/deepseek-v4-flash",
     knownModels: [
       "minimax/minimax-m3",
       "deepseek/deepseek-v4-flash",

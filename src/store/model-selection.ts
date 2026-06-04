@@ -31,7 +31,7 @@ export const DEFAULT_MODEL_BY_PROVIDER: Record<LLMProviderId, string> = {
   ollama: "qwen2.5:7b",
   deepseek: "deepseek-chat",
   xai: "grok-4",
-  openrouter: "minimax/minimax-m3",
+  openrouter: "deepseek/deepseek-v4-flash",
 };
 
 /** Curated selectable models per provider for the HUD picker — the OFFLINE

@@ -58,7 +58,7 @@
       "label": "OpenRouter (broker)",
       "requires_key": true,
       "default_base_url": "https://openrouter.ai/api/v1",
-      "default_model": "minimax/minimax-m3",
+      "default_model": "deepseek/deepseek-v4-flash",
       "known_models": [
         "minimax/minimax-m3",
         "deepseek/deepseek-v4-flash",
