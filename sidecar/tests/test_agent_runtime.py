@@ -478,3 +478,66 @@ def test_get_agent_resolves_a_custom_agent(
     # First-party still resolves; an unknown custom id resolves to None.
     assert agent_runtime.get_agent("copilot") is not None
     assert agent_runtime.get_agent("custom:does-not-exist") is None
+
+
+class _StubToolCall:
+    """Minimal stand-in for the LLMToolUseEvent _auto_publish_event reads."""
+
+    def __init__(self, tool_call_id: str = "tc-1") -> None:
+        self.tool_call_id = tool_call_id
+
+
+def test_auto_publish_maps_fast_web_round_into_brief_sources() -> None:
+    """The keyless '0 sources / structured only' bug: a FAST bundle strands its web
+    round under web.{citations,results} (no top-level `sources`). The synthetic
+    publish_brief must surface those as brief sources so a quick research shows the
+    REAL DuckDuckGo results — not an empty source list."""
+    fast_bundle = {
+        "ok": True,
+        "query": "NVDA",
+        "symbol": "NVDA",
+        "structured": {"price": {"ok": True}},
+        "web": {
+            "available": True,
+            "citations": [
+                {"url": "https://finance.yahoo.com/quote/NVDA/news/", "title": "NVDA News"},
+                {"url": "https://stockanalysis.com/stocks/nvda/", "title": "NVDA", "snippet": "x"},
+            ],
+        },
+    }
+    event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(fast_bundle))
+    assert event is not None
+    assert event.name == "publish_brief"
+    sources = event.input["sources"]
+    assert len(sources) == 2
+    assert sources[0]["url"] == "https://finance.yahoo.com/quote/NVDA/news/"
+    assert sources[1]["excerpt"] == "x"  # snippet → excerpt
+    assert event.input["web_available"] is True
+
+
+def test_auto_publish_passes_through_deep_sources_and_honest_no_web() -> None:
+    """A DEEP bundle's top-level `sources` pass through unchanged; a FAST bundle whose
+    web round found nothing (web.available False) yields no sources + an honest
+    web_available False (the structured-only banner survives)."""
+    deep_bundle = {
+        "ok": True,
+        "query": "AAPL",
+        "markdown": "## Brief\nText [1].",
+        "sources": [{"url": "https://sec.gov/x", "title": "10-K", "domain": "sec"}],
+        "web_available": True,
+    }
+    deep_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(deep_bundle))
+    assert deep_event is not None
+    assert deep_event.input["sources"] == deep_bundle["sources"]
+    assert deep_event.input["web_available"] is True
+
+    no_web = {
+        "ok": True,
+        "query": "AAPL",
+        "structured": {"price": {"ok": True}},
+        "web": {"available": False, "citations": [], "note": "structured only"},
+    }
+    no_web_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(no_web))
+    assert no_web_event is not None
+    assert no_web_event.input["sources"] == []
+    assert no_web_event.input["web_available"] is False

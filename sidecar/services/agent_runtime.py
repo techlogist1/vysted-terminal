@@ -483,18 +483,43 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
     # model's own publish_brief omits the big structured dict.
     if not has_markdown and not has_structured:
         return None
+    # Sources: a DEEP run carries a top-level ``sources`` list; a FAST run strands
+    # its web round under ``web.{citations,results}`` with NO top-level ``sources``
+    # — so the synthetic publish dropped them and a quick research rendered
+    # "0 sources / structured only" even though the keyless DuckDuckGo floor had
+    # returned real results. Map the FAST web round into brief sources so a quick
+    # research surfaces the REAL web citations (the same shape the DEEP path emits).
+    sources = payload.get("sources")
+    web = payload.get("web") if isinstance(payload.get("web"), dict) else None
+    if not sources and web is not None:
+        rows = web.get("citations") or web.get("results") or []
+        sources = [
+            {
+                "url": row.get("url"),
+                "title": row.get("title") or row.get("url"),
+                "excerpt": row.get("excerpt") or row.get("snippet") or "",
+                "domain": row.get("source") or "web",
+            }
+            for row in rows
+            if isinstance(row, dict) and row.get("url")
+        ]
+    sources = sources or []
+    # web_available: the top-level flag (DEEP) or ``web.available`` (FAST). The
+    # honest "structured-data-only" banner survives when no web round answered.
+    web_available = payload.get("web_available")
+    if web_available is None and web is not None:
+        web_available = web.get("available")
     # Forward only the fields the publish_brief host-action consumes (snake_case,
-    # exactly as the frontend's briefFromInput reads them). web_available flows
-    # through verbatim so the honest "structured-data-only" banner survives.
+    # exactly as the frontend's briefFromInput reads them).
     brief_input: dict[str, Any] = {
         "query": payload.get("query", ""),
         "symbol": payload.get("symbol", ""),
         "mode": payload.get("mode", "fast"),
         "markdown": markdown if isinstance(markdown, str) else "",
-        "sources": payload.get("sources", []),
+        "sources": sources,
         "structured": structured,
         "cost": payload.get("cost"),
-        "web_available": payload.get("web_available", False),
+        "web_available": bool(web_available),
         "note": payload.get("note"),
     }
     return LLMToolUseEvent(
@@ -654,14 +679,11 @@ async def invoke_agent(
     config.set_request_llm_creds(provider_id, resolved_model, api_key)
 
     # Publish the user's selected deep-research engine (Track 5) so the
-    # deep_research tool defaults to it without the model passing a tool arg. For
-    # Tongyi, the renderer also forwards the BYOK OpenRouter key (kept in process
-    # memory for the run only, never logged). Task-local like the creds above.
+    # deep_research tool defaults to it without the model passing a tool arg.
+    # Task-local like the creds above.
     dr_backend = opts.pop("deepResearchBackend", None)
-    dr_key = opts.pop("deepResearchKey", None)
     config.set_request_deep_research(
         dr_backend.strip().lower() if isinstance(dr_backend, str) and dr_backend.strip() else None,
-        dr_key if isinstance(dr_key, str) and dr_key.strip() else None,
     )
 
     # --- Visible plan-then-execute pre-pass (Track 6 #2) ---------------------
