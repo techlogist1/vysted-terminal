@@ -16,6 +16,10 @@ type SortKey =
   | "industry"
   | "market_cap"
   | "pe_ratio"
+  | "forward_pe"
+  | "roe"
+  | "debt_to_equity"
+  | "dividend_yield"
   | "price"
   | "change_percent_1d"
   | "volume";
@@ -28,32 +32,41 @@ const COLUMNS: { key: SortKey; label: string; numeric: boolean }[] = [
   { key: "sector", label: "Sector", numeric: false },
   { key: "market_cap", label: "Market cap", numeric: true },
   { key: "pe_ratio", label: "P/E", numeric: true },
+  { key: "forward_pe", label: "Fwd P/E", numeric: true },
+  { key: "roe", label: "ROE", numeric: true },
+  { key: "debt_to_equity", label: "D/E", numeric: true },
+  { key: "dividend_yield", label: "Div", numeric: true },
   { key: "price", label: "Price", numeric: true },
   { key: "change_percent_1d", label: "1d %", numeric: true },
   { key: "volume", label: "Volume", numeric: true },
 ];
 
-function fmtMarketCap(value: number | null): string {
-  if (value === null) return "—";
+function fmtMarketCap(value: number | null | undefined): string {
+  if (value == null) return "—";
   if (value >= 1_000_000_000_000) return `${(value / 1_000_000_000_000).toFixed(2)}T`;
   if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(2)}B`;
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
   return value.toLocaleString("en-US");
 }
 
-function fmtNumber(value: number | null, digits = 2): string {
-  if (value === null) return "—";
+function fmtNumber(value: number | null | undefined, digits = 2): string {
+  if (value == null) return "—";
   return value.toLocaleString("en-US", {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   });
 }
 
-function fmtVolume(value: number | null): string {
-  if (value === null) return "—";
+function fmtVolume(value: number | null | undefined): string {
+  if (value == null) return "—";
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
   return value.toLocaleString("en-US");
+}
+
+/** Format a fraction (0.21) as a percent ("21.0%"). */
+function fmtPct(value: number | null | undefined): string {
+  return value == null || Number.isNaN(value) ? "—" : `${(value * 100).toFixed(1)}%`;
 }
 
 /** Serialise the current result rows to CSV (RFC-4180 quoting) for Excel/Sheets. */
@@ -65,6 +78,10 @@ function rowsToCsv(rows: ScreenerResultRow[]): string {
     "Industry",
     "Market cap",
     "P/E",
+    "Fwd P/E",
+    "ROE",
+    "D/E",
+    "Div yield",
     "Price",
     "1d %",
     "Volume",
@@ -83,6 +100,10 @@ function rowsToCsv(rows: ScreenerResultRow[]): string {
         r.industry,
         r.market_cap,
         r.pe_ratio,
+        r.forward_pe,
+        r.roe,
+        r.debt_to_equity,
+        r.dividend_yield,
         r.price,
         r.change_percent_1d,
         r.volume,
@@ -120,9 +141,9 @@ function compareValue(
 ): number {
   const av = a[key];
   const bv = b[key];
-  if (av === null && bv === null) return 0;
-  if (av === null) return 1; // nulls always last, regardless of direction
-  if (bv === null) return -1;
+  if (av == null && bv == null) return 0;
+  if (av == null) return 1; // null/undefined always last, regardless of direction
+  if (bv == null) return -1;
   const base =
     typeof av === "number" && typeof bv === "number"
       ? av - bv
@@ -133,10 +154,14 @@ function compareValue(
 const TABLE_HEADER_COLS = (
   <colgroup>
     <col style={{ width: "60px" }} />
-    <col style={{ width: "30%" }} />
-    <col style={{ width: "15%" }} />
+    <col style={{ width: "22%" }} />
+    <col style={{ width: "13%" }} />
     <col style={{ width: "80px" }} />
     <col style={{ width: "56px" }} />
+    <col style={{ width: "64px" }} />
+    <col style={{ width: "56px" }} />
+    <col style={{ width: "52px" }} />
+    <col style={{ width: "52px" }} />
     <col style={{ width: "72px" }} />
     <col style={{ width: "64px" }} />
     <col style={{ width: "72px" }} />
@@ -327,6 +352,18 @@ export function ScreenerResultsTable() {
                   </td>
                   <td className="px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums">
                     {fmtNumber(row.pe_ratio)}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums">
+                    {fmtNumber(row.forward_pe)}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums">
+                    {fmtPct(row.roe)}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums">
+                    {fmtNumber(row.debt_to_equity)}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums">
+                    {fmtPct(row.dividend_yield)}
                   </td>
                   <td className="px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums">
                     {fmtNumber(row.price)}

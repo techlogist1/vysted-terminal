@@ -9,6 +9,7 @@ import { useScreenerStore } from "@/store/screener";
 
 import type { ScreenerUniverseId } from "../../../types/screener";
 import { ScreenerCriteriaBuilder } from "./ScreenerCriteriaBuilder";
+import { ScreenerPresets } from "./ScreenerPresets";
 import { ScreenerResultsTable } from "./ScreenerResultsTable";
 
 const UNIVERSE_LABELS: Record<ScreenerUniverseId, string> = {
@@ -153,6 +154,9 @@ export function ScreenerPanel() {
         </div>
       )}
 
+      <div className="shrink-0">
+        <ScreenerPresets />
+      </div>
       <div className="shrink-0">
         <ScreenerCriteriaBuilder />
       </div>

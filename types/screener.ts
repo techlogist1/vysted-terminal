@@ -58,16 +58,38 @@ export type ScreenerCriterion =
 /** The fields a numeric operator may target. Tracks the
  * ``Fundamentals`` shape's numeric columns plus a few price-derived columns. */
 export type ScreenerNumericField =
+  // Valuation
   | "market_cap"
   | "pe_ratio"
   | "forward_pe"
   | "peg_ratio"
   | "price_to_book"
+  | "price_to_sales"
+  | "ev_to_ebitda"
+  | "book_value"
   | "dividend_yield"
   | "eps"
   | "beta"
+  // Profitability (fractions: 0.20 = 20%)
+  | "roe"
+  | "roa"
+  | "gross_margin"
+  | "operating_margin"
+  | "profit_margin"
+  // Financial health
+  | "debt_to_equity"
+  | "current_ratio"
+  | "quick_ratio"
+  // Growth (fractions)
+  | "revenue_growth"
+  | "earnings_growth"
+  // Range / ownership
   | "fifty_two_week_high"
   | "fifty_two_week_low"
+  | "fifty_two_week_change"
+  | "held_percent_insiders"
+  | "held_percent_institutions"
+  // Price-derived (from the live quote)
   | "price"
   | "change_percent_1d"
   | "volume";
@@ -99,6 +121,17 @@ export interface ScreenerResultRow {
   industry: string | null;
   market_cap: number | null;
   pe_ratio: number | null;
+  // Optional in the TS mirror (the sidecar always sends them, but older blobs /
+  // test fixtures may omit them) — the table + CSV treat absent as "—".
+  forward_pe?: number | null;
+  peg_ratio?: number | null;
+  price_to_book?: number | null;
+  /** Dividend yield as a fraction (0.012 = 1.2%). */
+  dividend_yield?: number | null;
+  /** Return on equity as a fraction (0.20 = 20%). */
+  roe?: number | null;
+  /** Debt-to-equity ratio (1.5 = 150%). */
+  debt_to_equity?: number | null;
   price: number | null;
   change_percent_1d: number | null;
   /** Volume (most recent close). */

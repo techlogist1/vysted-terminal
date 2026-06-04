@@ -45,16 +45,38 @@ class ScreenerUniverse(BaseModel):
 # ---------------------------------------------------------------------------
 
 ScreenerNumericField = Literal[
+    # Valuation
     "market_cap",
     "pe_ratio",
     "forward_pe",
     "peg_ratio",
     "price_to_book",
+    "price_to_sales",
+    "ev_to_ebitda",
+    "book_value",
     "dividend_yield",
     "eps",
     "beta",
+    # Profitability (fractions: 0.20 = 20%)
+    "roe",
+    "roa",
+    "gross_margin",
+    "operating_margin",
+    "profit_margin",
+    # Financial health
+    "debt_to_equity",
+    "current_ratio",
+    "quick_ratio",
+    # Growth (fractions)
+    "revenue_growth",
+    "earnings_growth",
+    # Range / ownership
     "fifty_two_week_high",
     "fifty_two_week_low",
+    "fifty_two_week_change",
+    "held_percent_insiders",
+    "held_percent_institutions",
+    # Price-derived (from the live quote)
     "price",
     "change_percent_1d",
     "volume",
@@ -175,6 +197,12 @@ class ScreenerResultRow(BaseModel):
     industry: str | None = None
     market_cap: float | None = None
     pe_ratio: float | None = None
+    forward_pe: float | None = None
+    peg_ratio: float | None = None
+    price_to_book: float | None = None
+    dividend_yield: float | None = None
+    roe: float | None = None
+    debt_to_equity: float | None = None
     price: float | None = None
     change_percent_1d: float | None = None
     volume: float | None = None
