@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import pytest
 
+import config
 from services import symbol_resolver, yfinance_provider
 
 
@@ -29,6 +30,27 @@ def test_yahoo_symbol_keeps_us_dot_quirk(monkeypatch: pytest.MonkeyPatch) -> Non
     monkeypatch.setattr(symbol_resolver, "is_nse_symbol", lambda s: False)
     monkeypatch.setattr(symbol_resolver, "is_us_symbol", lambda s: True)
     assert yfinance_provider._yahoo_symbol("BRK.B") == "BRK-B"
+
+
+def test_yahoo_symbol_in_session_dual_listed(monkeypatch: pytest.MonkeyPatch) -> None:
+    # IN session: a DUAL-listed ticker (INFY trades on both NSE and NYSE) takes the
+    # INR NSE listing, not the USD ADR — the locale-correct result for an IN user.
+    monkeypatch.setattr(config, "get_region", lambda: "IN")
+    assert yfinance_provider._yahoo_symbol("INFY") == "INFY.NS"
+    # ...but a clearly-US ticker still resolves US even in an IN session (hint wins).
+    monkeypatch.setattr(symbol_resolver, "region_hint", lambda s: "US")
+    assert yfinance_provider._yahoo_symbol("AAPL") == "AAPL"
+
+
+def test_yahoo_symbol_in_session_master_gap(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A bare ticker NOT in the bundled master still gets .NS in an IN session, so a
+    # master gap no longer silently dead-ends to an empty US lookup (Yahoo 404s an
+    # unknown .NS -> honest "unavailable", never a wrong row).
+    monkeypatch.setattr(symbol_resolver, "region_hint", lambda s: None)
+    monkeypatch.setattr(symbol_resolver, "is_nse_symbol", lambda s: False)
+    monkeypatch.setattr(symbol_resolver, "is_us_symbol", lambda s: False)
+    monkeypatch.setattr(config, "get_region", lambda: "IN")
+    assert yfinance_provider._yahoo_symbol("TATAMOTORS") == "TATAMOTORS.NS"
 
 
 def test_autocomplete_matches_ticker_prefix() -> None:

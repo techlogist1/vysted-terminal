@@ -18,6 +18,7 @@ from typing import Any
 import pandas as pd
 import yfinance as yf
 
+import config
 from models.fundamentals import (
     AnalystRating,
     BalanceSheet,
@@ -77,6 +78,16 @@ def _yahoo_symbol(symbol: str) -> str:
     s = symbol.strip().upper()
     if s.endswith((".NS", ".BO")):
         return s
+    # Region-aware NSE resolution. The symbol's intrinsic hint wins; else the
+    # active session region. In an IN context a bare (dot-free) ticker takes the
+    # NSE listing — this covers (a) in-master NSE names, (b) DUAL-listed names like
+    # INFY where the IN user wants the INR NSE listing, not the US ADR, and (c)
+    # names NOT in the bundled master (Yahoo 404s an unknown .NS, surfacing an
+    # honest "unavailable" rather than silently serving a wrong/empty US row). A
+    # dotted US quirk ticker (BRK.B) is left to the dash path below.
+    region = symbol_resolver.region_hint(s) or config.get_region()
+    if region == "IN" and "." not in s:
+        return f"{s}.NS"
     if symbol_resolver.is_nse_symbol(s) and not symbol_resolver.is_us_symbol(s):
         return f"{s}.NS"
     return s.replace(".", "-")

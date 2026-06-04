@@ -133,33 +133,40 @@ dividend-yield normalization (yfinance returns % vs the fraction contract;
 `yfinance_provider.py:~153`). Dashes render by design when a field is `null`
 (`EquityOverviewPanel.tsx:13-21`).
 
-**Honest data constraint (decided).** There is **no globally-reachable keyless
-India fundamentals source in 2026** — `nselib`/`NseIndiaApi`/`0xramm` geo-block
-at nseindia.com from abroad; `jugaad-data` is EOD quote/OHLCV only. So:
+**Honest data ceiling (VERIFIED live, 2026-06-04 — corrected from the original
+framing).** The keyless **Yahoo-backed** path (yfinance `.NS`) DOES deliver the
+full screener-grade field set for Indian stocks — tested: RELIANCE 35/35, ROUTE
+34/35 (only PEG genuinely null), INFY-as-IN resolves to the INR NSE listing. The
+0xramm pattern is Yahoo-backed too, so it returns the SAME data this path already
+does — no advantage; its autocomplete value is covered by our bundled masters.
+EODHD/NSE-direct is therefore **NOT** needed for the core fields. The geo-block
+caveat applies only to the **NSE-direct** libs (`nselib`/`NseIndiaApi`/raw
+nseindia.com), not the Yahoo path. So:
 
-1. **Keyless fix first (the foundational win):** (a) reproduce `-88.58`, fix the
-   dividend-yield normalization with NaN/None guards; (b) **region-gate
-   fundamentals** like quotes already are — add an India fundamentals path that
-   uses yfinance `.NS` best-effort and badges provenance; (c) **expand the
-   Fundamentals model** with screener-grade fields: `revenue_ttm`,
-   `net_income_ttm`, `free_cash_flow`, `debt_to_equity`, `roe`, `roa`,
-   `current_ratio`, `quick_ratio`, `shares_outstanding`, `dividend_per_share`,
-   plus the Indian non-negotiables where available (promoter %, but flag if
-   unavailable). Mirror in `types/data.ts` same commit.
-2. **EODHD BYOK rung (screener-grade supplement, surfaced honestly):** a
-   Yahoo-independent EODHD fundamentals provider, BYOK-gated, ranked between
-   openbb-mcp and yfinance for region IN; an **"Add EODHD key"** empty state when
-   India fundamentals are thin. Never silently dash.
-3. **True autocomplete:** `/autocomplete?q=` endpoint backed by `symbol_resolver`
-   - bundled masters (US + NSE/BSE), on-keystroke, <100ms for bundled, keeping the
-     0.72 disambiguation. Wire it into the symbol search box and `@`-mention.
-4. **Correctness gate** extended to flag all-null India fundamentals (not just
-   symbol-mismatch/staleness). **Provider + freshness badges** on
-   `EquityOverviewPanel` (`Quote.provider`/`Fundamentals.provider` +
-   `Quote.freshness` are produced but not rendered). Replace bare `—` with a
-   reason ("Not applicable — banking sector" / "Add EODHD key").
+1. **Keyless Yahoo is the default and the foundational win:** (a) fix the
+   dividend-yield normalization (NaN/None + absurd-value guard); (b) **region-aware
+   `_yahoo_symbol`** — a bare ticker in an IN context (intrinsic hint OR session
+   region) takes the `.NS` listing, covering in-master names, DUAL-listed names
+   (INFY → INR NSE not the USD ADR), and master gaps (Yahoo 404s an unknown `.NS`
+   → honest "unavailable", never a wrong row); stop dot→dash mangling `ROUTE.NS`;
+   (c) **expand Fundamentals to ~35 fields** incl. `held_percent_insiders/
+institutions` as promoter/institutional **proxies**. Mirror in `types/data.ts`.
+2. **What the keyless path genuinely CANNOT give** (reserve for a future India-
+   disclosure source — EODHD or NSE/BSE filings, NOT a paywall for the basics):
+   exact NSE-filed **promoter holding %**, the **FII-vs-DII split** (Yahoo gives
+   combined institutional only), **pledged %**, **10-yr financial-history depth**
+   (Yahoo NSE statements run ~4yr), **quarterly shareholding trend**, **concall
+   transcripts**, Piotroski/credit ratings. These are the deepest India fields —
+   deferred, surfaced honestly, never blocking the core page.
+3. **True autocomplete:** `/resolve/autocomplete?q=` backed by `symbol_resolver`
+   - bundled masters (US + NSE/BSE), on-keystroke, masters-only (<100ms). Wired
+     into the symbol search box; `@`-mention keeps `/resolve`.
+4. **Provider + freshness badges** on `EquityOverviewPanel`; a resolution miss
+   shows an honest "newly listed / renamed / delisted — search for the exact
+   listing", never a phantom paywall.
 
-**Do NOT** bundle the geo-blocked NSE libs; do NOT depend on 0xramm.
+**Do NOT** bundle the geo-blocked NSE-direct libs; **do NOT** push an EODHD key for
+data the keyless Yahoo path already serves.
 
 **Locale-native (constitution VIII):** Rs. Crores default + IST timestamps + NSE/
 BSE exchange badge on every price for IN; USD/US-hours for US. Region drives

@@ -572,8 +572,8 @@ export function EquityOverviewPanel() {
                   Fundamentals
                 </h3>
                 <p className="text-charcoal-400 px-3 py-2 font-mono text-xs">
-                  Limited fundamentals from the keyless source for this symbol. Add an EODHD key in
-                  Settings → AI Providers for full NSE/BSE depth.
+                  No fundamentals resolved for this symbol — it may be newly listed, renamed, or
+                  delisted. Try the search above to pick the exact listing.
                 </p>
               </section>
             ) : (
