@@ -249,6 +249,52 @@ fn get_sidecar_port(port: tauri::State<'_, SidecarPort>) -> u16 {
     port.0
 }
 
+/// Install the macOS "Layout" menu (modes-as-tools, Cursor-menu-bar style): the
+/// standard default menu + a Layout submenu whose items emit `vysted://menu-layout`
+/// with a layout-template id the frontend applies. macOS-only by design (the
+/// operator's Mac-first call); Windows/Linux keep their existing chrome untouched.
+/// Non-fatal: a menu-build failure logs and leaves the app running menu-less.
+#[cfg(target_os = "macos")]
+fn install_layout_menu(app: &tauri::App) -> tauri::Result<()> {
+    use tauri::menu::{Menu, MenuItem, Submenu};
+    use tauri::Emitter;
+
+    let h = app.handle();
+    let layout = Submenu::with_items(
+        h,
+        "Layout",
+        true,
+        &[
+            &MenuItem::with_id(
+                h,
+                "layout:research-cockpit",
+                "Fundamental Analysis",
+                true,
+                None::<&str>,
+            )?,
+            &MenuItem::with_id(
+                h,
+                "layout:single-focus",
+                "Technical Analysis",
+                true,
+                None::<&str>,
+            )?,
+            &MenuItem::with_id(h, "layout:macro-scan", "Macro Scan", true, None::<&str>)?,
+            &MenuItem::with_id(h, "layout:compare", "Compare", true, None::<&str>)?,
+            &MenuItem::with_id(h, "layout:default", "Reset Layout", true, None::<&str>)?,
+        ],
+    )?;
+    let menu = Menu::default(h)?;
+    menu.append(&layout)?;
+    app.set_menu(menu)?;
+    app.on_menu_event(move |app, event| {
+        if let Some(template) = event.id().0.strip_prefix("layout:") {
+            let _ = app.emit("vysted://menu-layout", template.to_string());
+        }
+    });
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = tauri::Builder::default()
@@ -333,6 +379,13 @@ pub fn run() {
             // portfolio SQLite database + saved-workspace files beneath the
             // data directory. See `start_main_sidecar` / `resolve_data_dir`.
             start_main_sidecar(app, port);
+
+            // macOS modes-as-tools menu (Layout → Fundamental / Technical / Macro /
+            // Compare / Reset). Non-fatal; macOS-only.
+            #[cfg(target_os = "macos")]
+            if let Err(err) = install_layout_menu(app) {
+                eprintln!("[menu] failed to install layout menu: {err}");
+            }
 
             Ok(())
         })

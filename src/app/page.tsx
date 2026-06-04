@@ -11,6 +11,7 @@ import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { PanelHost } from "@/components/PanelHost";
 import { useDesktopNotificationBridge } from "@/lib/desktop-notification";
 import { initDevMcpBridge } from "@/lib/dev-mcp-bridge";
+import { initMenuBridge } from "@/lib/menu-bridge";
 import { bootstrapPlugins } from "@/lib/plugin-bootstrap";
 import { autosaveLayout } from "@/lib/workspace";
 import { cn } from "@/lib/utils";
@@ -64,6 +65,10 @@ export default function Page() {
     // drive the real app. No-op in the production static export (dead-stripped)
     // and harmless outside the Tauri webview.
     initDevMcpBridge();
+
+    // macOS Layout menu bridge (003) — applies the native menu's layout-mode
+    // selection to the live cockpit. No-op outside a Tauri webview.
+    const disposeMenu = initMenuBridge();
 
     let teardown: (() => void) | null = null;
     let alive = true;
@@ -171,6 +176,7 @@ export default function Page() {
       unsubscribeSearch();
       unsubscribeBrief();
       unsubscribeNotes();
+      disposeMenu();
       teardown?.();
     };
   }, []);
