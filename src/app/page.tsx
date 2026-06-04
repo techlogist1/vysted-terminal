@@ -24,6 +24,7 @@ import { useAgentModeStore } from "@/store/agent-mode";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAppStore } from "@/store/app";
 import { useBriefStore } from "@/store/brief";
+import { useNotesStore } from "@/store/notes";
 import { useCommandPalette } from "@/store/command-palette";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelCatalogStore } from "@/store/model-catalog";
@@ -149,6 +150,13 @@ export default function Page() {
         void autosaveLayout();
       }
     });
+    // Research notes (003) ride the blob too; autosaveLayout is debounced so
+    // per-keystroke edits coalesce into one write.
+    const unsubscribeNotes = useNotesStore.subscribe((state, previous) => {
+      if (state.general !== previous.general || state.bySymbol !== previous.bySymbol) {
+        void autosaveLayout();
+      }
+    });
     return () => {
       alive = false;
       unsubscribeEnabled();
@@ -162,6 +170,7 @@ export default function Page() {
       unsubscribeAutonomy();
       unsubscribeSearch();
       unsubscribeBrief();
+      unsubscribeNotes();
       teardown?.();
     };
   }, []);

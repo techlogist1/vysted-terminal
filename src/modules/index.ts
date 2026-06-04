@@ -24,6 +24,7 @@ import { earningsModule } from "./earnings"; // Teammate E
 import { analystRatingsModule } from "./analyst-ratings"; // Teammate E
 import { quantModule } from "./quant"; // Teammate Q
 import { screenerModule } from "./screener"; // Teammate Sc (lead-completed v0.6.1)
+import { notesModule } from "./notes"; // 003 rebuild — OS-for-finance research notes
 
 /**
  * The complete first-party module registry. This file is intentionally complete
@@ -81,4 +82,5 @@ export const vystedModules: VystedModule[] = [
   earningsModule, // Teammate E
   analystRatingsModule, // Teammate E
   screenerModule, // Teammate Sc (lead-completed v0.6.1)
+  notesModule, // 003 rebuild — in-app research notes (per-stock + general)
 ];

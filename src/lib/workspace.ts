@@ -21,6 +21,7 @@ import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useAgentDockStore } from "@/store/agent-dock";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { type BriefBundle, useBriefStore } from "@/store/brief";
+import { type NotesBundle, useNotesStore } from "@/store/notes";
 import { type AgentAutonomy, isAgentAutonomy, useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useKeybindingsStore } from "@/store/keybindings";
@@ -122,6 +123,9 @@ export interface SerializedWorkspace {
    * brief has been produced yet.
    */
   brief?: BriefBundle;
+  /** In-app research notes (per-stock + general) — ride the blob like the brief
+   * so they persist with a named workspace / per-stock research space (003). */
+  notes?: NotesBundle;
   /** Open to future-phase additions; the sidecar stores the body opaquely. */
   [key: string]: unknown;
 }
@@ -178,6 +182,7 @@ function buildWorkspacePayload(name: string): SerializedWorkspace {
     settings: useSettingsStore.getState().toBundle(),
     searchSettings: useSearchSettingsStore.getState().toBundle(),
     brief: useBriefStore.getState().toBundle(),
+    notes: useNotesStore.getState().toBundle(),
   };
 }
 
@@ -283,6 +288,10 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
   // bundle, so guard on the key's presence, not truthiness.
   if ("brief" in workspace) {
     useBriefStore.getState().fromBundle((workspace.brief ?? null) as BriefBundle);
+  }
+  // Restore research notes (older blobs lack them — keep empty).
+  if ("notes" in workspace) {
+    useNotesStore.getState().fromBundle((workspace.notes ?? null) as NotesBundle);
   }
 }
 

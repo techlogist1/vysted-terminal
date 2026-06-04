@@ -21,6 +21,7 @@ describe("module registry", () => {
       "marketplace",
       "news",
       "node-editor",
+      "notes",
       "platform",
       "plugin-manager",
       "portfolio",

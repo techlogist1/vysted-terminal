@@ -97,6 +97,7 @@ describe("workspace serialization", () => {
       settings: DEFAULT_SETTINGS,
       searchSettings: { tier: "native", searxngUrl: "" },
       brief: null,
+      notes: { general: "", bySymbol: {} },
     });
   });
 
