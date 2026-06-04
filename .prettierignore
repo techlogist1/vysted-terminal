@@ -32,3 +32,6 @@ docs/screenshots/v0.5.0/safety-audit/kill-switch-benchmark.json
 # services/symbol_resolver.py. Generated reference data, not hand-edited source
 # — excluded from formatting like the §6.5 benchmark capture above.
 sidecar/services/resolver_masters/*.json
+
+# Playwright MCP transient artifacts
+.playwright-mcp/

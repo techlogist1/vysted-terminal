@@ -239,3 +239,51 @@ on merge:
 Branch `003-vysted-rebuild`, no merge to main, version `0.8.0` throughout, §6.5 **9/9** maintained,
 Tier-1 LOCKED files byte-for-byte untouched. The dev app + rig are left running and the display
 caffeinated, per the brief.
+
+---
+
+## 9. Hot-patch (post-R3) — two operator-confirmed bugs on shipped surfaces
+
+The operator eyeballed two real bugs the R3 report had over-claimed. Both fixed + verified.
+
+### BUG 1 — screener SYMBOL column bled into NAME (`fix(screener)` 09df8de)
+
+- **Root cause:** the R3 "fix" addressed the `.NS` _suffix_ (a different thing); the actual bug was
+  CSS. Under `table-fixed`, the SYMBOL `<td>` had `whitespace-nowrap` but **no `overflow-hidden`/
+  truncate**, and the column was only 60px — so a 10-char NSE ticker overran its fixed cell box and
+  rendered _on top of_ the NAME column (`BHARTIARTLBharti…`, `HINDUNILVRHindus…`). The R3 DOM-content
+  check couldn't see the visual overlap.
+- **Fix:** widen the Symbol col 60px→104px (fits a 10-char NSE ticker in mono) AND mirror the Name
+  cell's clipping (`max-w-0 truncate overflow-hidden` + `title`) so SYMBOL can never bleed regardless
+  of width.
+- **Verified VISUALLY** (not DOM): ran the NIFTY 50 screener in the live app, screenshotted the
+  rendered table, and confirmed by eye that SYMBOL and NAME are cleanly separated on every row —
+  `RELIANCE / BHARTIARTL / HINDUNILVR / BAJFINANCE / ADANIPORTS / SUNPHARMA / KOTAKBANK` each render
+  fully in their own column with zero overlap. Evidence:
+  `verification/r3-bugfix-screener-columns-table-LIVE.png`. **VERIFIED FIXED.**
+
+### BUG 2 — macOS Layout menu modes did nothing (`fix(menu)` 410eb54)
+
+- **Root cause (traced in the live app):** the frontend half WORKS — I delivered `vysted://menu-layout`
+  to the running app via its internal event API and watched dockview re-arrange (the `default` payload
+  reset the layout, dropping the `brief` panel). The dead half was Rust: the menu-CLICK handler was
+  registered with `app.on_menu_event` **inside `setup()`**, which rendered the items but never fired
+  on click.
+- **Fix:** moved the handler to the Tauri **`Builder::on_menu_event`** (the reliable place for macOS
+  app-menu events in Tauri 2) and made the emit observable (`[menu] layout '<t>' → emitted …`).
+  `menu-bridge.ts` also logs receipt + registration. `lib.rs` + `capabilities` only — the LOCKED
+  `tauri.conf.json` + `kill_switch.rs` were not touched. `cargo clippy -D warnings` + `fmt` clean; the
+  app recompiled + relaunched.
+- **Verification status:** the listener+handler fire end-to-end in the rebuilt app (PROVEN — emitting
+  `default` re-arranged dockview). The native menu **CLICK** itself cannot be driven by the rig (known
+  Phase-9 limitation). → **NEEDS LOKAVYA TO RE-CLICK each Layout mode to ratify.** On click, the app
+  log shows `[menu] layout '<mode>' → emitted vysted://menu-layout` and the cockpit re-arranges; if a
+  click logs nothing, the menu-event still isn't reaching the handler (escalate).
+- **Save-layout (Bug-2 part 2) — VERIFIED WORKING.** Driven live: clicking the top-bar "Save layout"
+  button opens the save dialog (`role="dialog"` present — the `openSave` handler fires, NOT a no-op).
+  Persistence is real: `GET /workspace` on the live sidecar returns **`["__autosave__", "chicken",
+"testing"]`** — the `__autosave__` blob (layouts auto-persist via the `page.tsx` `autosaveLayout()`
+  subscriptions) PLUS two named workspaces the operator himself saved through this dialog, proving the
+  save→persist path round-trips. serialize/deserialize restore is covered by 20 passing
+  `workspace.test.ts` cases. So "layouts don't work" was the macOS **menu** (Bug 2 above), not
+  Save-layout — Save-layout works.
