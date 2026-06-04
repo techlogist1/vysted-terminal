@@ -2,7 +2,7 @@
 
 The redesign verification work needs to drive the **real running app** (not
 self-report from code/tests). Vysted is a Tauri desktop app: a Rust core hosting
-a **WKWebView** (macOS) — *not* Chromium — with a Python sidecar. That shapes
+a **WKWebView** (macOS) — _not_ Chromium — with a Python sidecar. That shapes
 which tools can verify which surfaces. We use three tiers.
 
 ## Tier 1 — Playwright MCP (`@playwright/mcp`) — the web UI
@@ -39,10 +39,10 @@ the sidecar live).
   plan**, requires Claude Code **≥ v2.1.85**. This machine is on **v2.1.162** — the
   version threshold is met.
 - **Caveat (load timing):** MCP servers AND native Computer Use tools are
-  resolved at **session start**. A server/tool added or approved *mid-session*
+  resolved at **session start**. A server/tool added or approved _mid-session_
   connects but its tools are **not surfaced to the already-running agent** — they
   appear only in a **fresh** session. So a session that needs Tier 1/2 tools must
-  be started *after* the servers are approved.
+  be started _after_ the servers are approved.
 
 ## Tier 3 — tauri-mcp + Bash + sidecar — everything scriptable
 
