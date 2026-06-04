@@ -203,9 +203,8 @@ describe("ChatSidebar", () => {
 
   it("offers every first-party agent as a persona (lens) the user can pick", () => {
     render(<ChatSidebar />);
-    // The persona/provider controls now collapse into the composer disclosure
-    // (the one-clean-composer rebuild) — open it before asserting the roster.
-    fireEvent.click(screen.getByLabelText("Agent controls"));
+    // The persona/provider controls are ALWAYS visible inline (no disclosure) — the
+    // from-scratch composer rebuild surfaces the roster without any click.
     const roster = screen.getByLabelText("Persona roster");
     expect(roster).toBeInTheDocument();
     const picker = screen.getByRole("combobox", { name: "Active persona" });

@@ -9,14 +9,14 @@ import {
   useState,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus, Send, SlidersHorizontal, Sparkles, Telescope } from "lucide-react";
+import { Plus, Send, Sparkles, Telescope } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
 import { launchDelegateRun } from "@/lib/delegate-runs";
 import { isHostActionMutation } from "@/lib/host-actions";
 import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
-import { tween } from "@/lib/motion";
+import { SPRING_PILL, tween } from "@/lib/motion";
 import { validateProvider } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
@@ -46,7 +46,6 @@ import { BudgetConfig, DEFAULT_DELEGATE_BUDGET } from "./BudgetConfig";
 import { captureTerminalState } from "./context-provider";
 import { applyMentionPrefixes, type MentionDef, matchMention, resolveMention } from "./mentions";
 import { MentionPicker } from "./MentionPicker";
-import { ModeBar } from "./ModeBar";
 import { PlanView } from "./PlanView";
 import { ProposedChangesReview } from "./ProposedChangesReview";
 import { ResearchActivity } from "./ResearchActivity";
@@ -274,10 +273,9 @@ export function ChatSidebar() {
   const [statusLine, setStatusLine] = useState<string | null>(null);
   const [keyDialogProvider, setKeyDialogProvider] = useState<LLMProviderId | null>(null);
   const [delegateBudget, setDelegateBudget] = useState<AgentRunBudget>(DEFAULT_DELEGATE_BUDGET);
-  // Perplexity-style composer: the Mode/Lens/Provider controls collapse into a
-  // disclosure that's closed by default (one clean composer), and Deep Research is
-  // a visible toggle (not a slash a normal user won't find).
-  const [controlsOpen, setControlsOpen] = useState(false);
+  // Clean composer: Mode / Lens / Provider+Model / Autonomy are ALL inline and
+  // always visible (no disclosure gear — the Round-2 "hide the stack" anti-pattern
+  // is gone). Deep Research is a visible toggle, not a slash a normal user won't find.
   const [deepResearch, setDeepResearch] = useState(false);
   // Multiple agent spaces (chat threads/pages) — switching swaps the transcript.
   const spaces = useAgentSpacesStore((s) => s.spaces);
@@ -936,56 +934,24 @@ export function ChatSidebar() {
           </motion.div>
         )}
       </AnimatePresence>
-      {/* ── Composer dock — ONE clean surface. The Mode / Lens / Provider / Model
-          controls collapse into a disclosure (closed by default); Deep Research is
-          a visible toggle (not jargon), and autonomy + the active model read inline. ── */}
+      {/* ── Composer dock — ONE clean surface. Mode / Lens / Provider+Model /
+          Autonomy / Deep Research are ALL inline and ALWAYS VISIBLE. No disclosure
+          gear, no hidden control stack (the Round-2 "hide it and call it a rebuild"
+          anti-pattern is gone). Deep Research is a visible toggle, not jargon. ── */}
       <div className="border-charcoal-700 border-t">
-        <AnimatePresence initial={false}>
-          {controlsOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              style={{ overflow: "hidden" }}
-              transition={tween(0.16)}
-            >
-              <ModeBar mode={mode} onChange={setMode} />
-              <RosterStrip
-                firstParty={firstPartyAgents}
-                custom={customAgents}
-                activeAgentId={activeAgentId}
-                onChange={(id) => {
-                  setActiveAgentId(id);
-                  setProviderOverride(null);
-                }}
-              />
-              <AgentHud
-                providers={providers}
-                provider={effectiveProvider}
-                model={effectiveModel}
-                providerConfigured={providerConfigured}
-                modelOptions={modelCatalog?.models}
-                catalogNote={modelCatalog?.note}
-                catalogLoading={modelCatalog?.loading}
-                onProviderChange={(p) => {
-                  // The HUD pick wins this session AND becomes the persisted default
-                  // (rides the page.tsx autosave), so it survives a relaunch.
-                  setProviderOverride(p);
-                  setDefaultProviderId(p);
-                }}
-                onModelChange={(m) => setModelOverride(effectiveProvider, m)}
-                onKeyRequired={(p) => setKeyDialogProvider(p)}
-                onRefreshModels={refreshModelCatalog}
-              />
-              {mode === "delegate" && (
-                <BudgetConfig budget={delegateBudget} onChange={setDelegateBudget} />
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Always-on compact toolbar: Deep toggle · autonomy · active model · controls */}
-        <div className="flex items-center gap-1.5 px-2 pt-1.5">
+        {/* Control row 1: mode · persona (lens) · spacer · Deep · autonomy */}
+        <div className="flex flex-wrap items-center gap-1.5 px-2 pt-1.5">
+          <ModeSwitch mode={mode} onChange={setMode} />
+          <PersonaSelect
+            firstParty={firstPartyAgents}
+            custom={customAgents}
+            activeAgentId={activeAgentId}
+            onChange={(id) => {
+              setActiveAgentId(id);
+              setProviderOverride(null);
+            }}
+          />
+          <div className="min-w-0 flex-1" />
           <button
             type="button"
             onClick={() => setDeepResearch((v) => !v)}
@@ -1001,29 +967,30 @@ export function ChatSidebar() {
             <Telescope className="size-3" /> Deep research
           </button>
           <AutonomyToggle />
-          <div className="min-w-0 flex-1" />
-          <button
-            type="button"
-            onClick={() => setControlsOpen((o) => !o)}
-            title="Provider / model / persona / mode"
-            className="text-charcoal-500 hover:text-charcoal-200 max-w-[9rem] shrink truncate font-mono text-[0.6rem] transition-colors"
-          >
-            {effectiveModel}
-          </button>
-          <button
-            type="button"
-            onClick={() => setControlsOpen((o) => !o)}
-            aria-expanded={controlsOpen}
-            aria-label="Agent controls"
-            title="Provider / model / persona / mode"
-            className={cn(
-              "shrink-0 rounded p-0.5 transition-colors",
-              controlsOpen ? "text-amber-300" : "text-charcoal-400 hover:text-lume",
-            )}
-          >
-            <SlidersHorizontal className="size-3.5" />
-          </button>
         </div>
+        {/* Control row 2: provider / model HUD (always visible — keyboard-driven) */}
+        <AgentHud
+          providers={providers}
+          provider={effectiveProvider}
+          model={effectiveModel}
+          providerConfigured={providerConfigured}
+          modelOptions={modelCatalog?.models}
+          catalogNote={modelCatalog?.note}
+          catalogLoading={modelCatalog?.loading}
+          onProviderChange={(p) => {
+            // The HUD pick wins this session AND becomes the persisted default
+            // (rides the page.tsx autosave), so it survives a relaunch.
+            setProviderOverride(p);
+            setDefaultProviderId(p);
+          }}
+          onModelChange={(m) => setModelOverride(effectiveProvider, m)}
+          onKeyRequired={(p) => setKeyDialogProvider(p)}
+          onRefreshModels={refreshModelCatalog}
+        />
+        {/* Delegate-only: the BudgetGuard ceiling for the durable background run. */}
+        {mode === "delegate" && (
+          <BudgetConfig budget={delegateBudget} onChange={setDelegateBudget} />
+        )}
 
         <Composer
           value={composer}
@@ -1076,12 +1043,47 @@ interface AgentPickerProps {
   onChange: (id: string | null) => void;
 }
 
-/** The active persona ("lens") — one compact picker rather than a 13-chip strip
- *  that scrolls and clips mid-name. The copilot router is pinned first as the
- *  default; the full roster (12 investor personas + any custom agents) lives one
- *  click away in the dropdown. Matches the AgentHud native-select pattern so the
- *  whole HUD reads as one quiet, keyboard-driven control surface. */
-function RosterStrip({ firstParty, custom, activeAgentId, onChange }: AgentPickerProps) {
+/** Compact, always-visible mode selector (Agent / Delegate) — the two-mode spine
+ *  on ⌥1–⌥2, inline in the composer (never behind a disclosure). The active tab
+ *  carries a shared-layout pill so switching animates between the two. */
+function ModeSwitch({ mode, onChange }: { mode: AgentMode; onChange: (mode: AgentMode) => void }) {
+  return (
+    <div role="tablist" aria-label="Agent mode" className="flex shrink-0 items-center gap-0.5">
+      {AGENT_MODES.map((m) => {
+        const active = m.id === mode;
+        return (
+          <button
+            key={m.id}
+            role="tab"
+            type="button"
+            aria-selected={active}
+            title={`${m.hint} (${m.hotkeyLabel})`}
+            onClick={() => onChange(m.id)}
+            className={cn(
+              "relative rounded px-2 py-0.5 font-mono text-[0.65rem] transition-colors",
+              active ? "text-amber-300" : "text-charcoal-400 hover:text-lume",
+            )}
+          >
+            {active && (
+              <motion.span
+                layoutId="composer-mode-pill"
+                className="bg-charcoal-800 border-charcoal-700 absolute inset-0 -z-10 rounded border"
+                transition={SPRING_PILL}
+              />
+            )}
+            {m.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** The active persona ("lens") — one compact picker, always visible in the
+ *  composer (no disclosure). The copilot router is pinned first as the default;
+ *  the full roster (12 investor personas + any custom agents) lives one click away
+ *  in the dropdown. Matches the AgentHud native-select pattern. */
+function PersonaSelect({ firstParty, custom, activeAgentId, onChange }: AgentPickerProps) {
   const ordered = [...firstParty].sort((a, b) =>
     a.id === DEFAULT_AGENT_ID ? -1 : b.id === DEFAULT_AGENT_ID ? 1 : 0,
   );
@@ -1091,14 +1093,14 @@ function RosterStrip({ firstParty, custom, activeAgentId, onChange }: AgentPicke
   return (
     <div
       aria-label="Persona roster"
-      className="border-charcoal-700 text-charcoal-400 flex items-center gap-1.5 border-b px-3 py-1.5 font-mono text-[0.6rem]"
+      className="text-charcoal-400 flex min-w-0 shrink items-center gap-1 font-mono text-[0.6rem]"
     >
       <span className="shrink-0 tracking-wide uppercase">Lens</span>
       <select
         aria-label="Active persona"
         value={activeAgentId ?? DEFAULT_AGENT_ID}
         onChange={(event) => onChange(event.target.value)}
-        className="bg-charcoal-800 text-charcoal-200 border-charcoal-700 min-w-0 flex-1 truncate rounded border px-1.5 py-1 font-mono text-[0.7rem] outline-none focus:ring-1 focus:ring-amber-400"
+        className="bg-charcoal-800 text-charcoal-200 border-charcoal-700 max-w-[9rem] min-w-0 truncate rounded border px-1.5 py-0.5 font-mono text-[0.65rem] outline-none focus:ring-1 focus:ring-amber-400"
       >
         <optgroup label="First-party">
           {ordered.map((agent) => (
