@@ -5,8 +5,9 @@
 **Created**: 2026-05-30
 
 **Status**: Draft — Pass A redesign spec + **Pass B agent-native research layer authored & operator-ratified**
-(clarify resolved 2026-06-01). Awaiting operator review of the locked spec before the phased build. **No
-implementation in this window.**
+(clarify resolved 2026-06-01) + **Pass C R4 experience-layer execution spec authored 2026-06-05**
+(US18–US25, FR-112–130, SC-026–039; detail in `docs/redesign/REBUILD_R4_SPEC.md` + the four R4 supporting
+docs). Awaiting operator review before the phased build. **No implementation in the spec windows.**
 
 **Last amended**: 2026-05-31 — (a) operator amendment: the plugin marketplace is the **primary
 extensibility model** (brokers, data providers/connectors, panels, and agents are all marketplace
@@ -158,6 +159,37 @@ Pass B extends the spec with the **agent-native research layer** — six pillars
 Every Pass-B pillar preserves the §6.5 boundary, Tier-1 LOCKED files, read-only brokers, paper-default,
 kill-switch, append-only audit, and the diff/accept gate **byte-for-byte** (FR-012/055/094); no LOCKED
 file is touched.
+
+### Session 2026-06-05 (Pass C — R4 experience-layer execution spec authored)
+
+Pass C is the **executable experience-layer rebuild spec** — authored in a dedicated spec window from a
+20-agent codebase + live-research recon, to be run by a separate build window. It **extends** (does not
+reopen) Pass A/B and the Constitution; the full treatment + four supporting docs (design language,
+stale-code register, failure-mode matrix, build sequence) live under `docs/redesign/`. It adds **US18–US25,
+FR-112–130, SC-026–039** (appended below — see "Pass C — R4 Experience-Layer Execution"). Highlights:
+
+- **Agent-as-OS spine** (the ranked-#1 pillar): three coherent speeds — FAST (bare `@TICKER` → instant
+  LLM-free cockpit), ORCHESTRATED (propose a panel set + ask-when-unsure, via the §6.5 bar), DEEP (one
+  research path); continuous situational awareness + re-read-after-mutation; host-action completeness
+  (screener-filter write, drawings, save-workspace) — all registered in the catalog, all §6.5-gated.
+- **Coherence audit:** collapse the 5 research paths + 3 triggers into ONE model; model-swap preserves
+  context on every path; Enter sends everywhere; one mode system; no hardcoded-should-be-dynamic; fix
+  TS↔Python brief contract drift.
+- **Original design language** ("Cold Instrument" — OKLCH zinc + one rationed cool-indigo, no neon/glow),
+  applied via the historical token names (zero-churn); **market-session awareness** (0% today) + shared
+  state primitives so every surface renders empty/loading/error/market-closed/symbol-not-found/stale.
+- **Feature builds** (R3 orphans rebuilt fresh, deps installed): ⌘K Raycast-grade palette (cmdk), Tiptap
+  notes (markdown canonical blob, atomic write), screener formula-grammar (mathjs-in-Worker — **never
+  expr-eval**, CVE-2025-12735), research-presentation deepening + company-overview AI narrative
+  (numbers-from-structured-only + numeric-verification pass), client-side shareable briefs (md/PNG/PDF).
+- **Screener performance:** full S&P 500 in single-digit seconds cold / sub-second warm via the Yahoo v7
+  batch quote endpoint + async + caching + warm precompute, with a **visible skip ledger** (no silent
+  drops). **Four bugs** fixed/confirmed with rendered-pixel / trusted-event / native proof.
+
+Pass C preserves the §6.5 boundary, Tier-1 LOCKED files, read-only brokers, paper-default, kill-switch,
+append-only audit, and the diff/accept gate **byte-for-byte** (FR-012/039/127/SC-039); no LOCKED file is
+touched; no version bump; branch only. **No Constitution amendment** — Pass C is entirely an application
+of Principles I–VIII (no new principle), so the constitution stays **1.1.0**.
 
 ---
 
@@ -1335,3 +1367,108 @@ recommendation is given; the operator ratified each at clarify.
     (locale-native "McDonald's principle" + correctness-non-negotiable + resourcefulness/never-dead-end);
     MINOR bump (1.0.0 → 1.1.0), operator-ratified per Governance. Alt: keep 7 principles (treat as an
     application of Principles V/VI).
+
+---
+
+## Pass C — R4 Experience-Layer Execution (US18–US25, FR-112–130, SC-026–039)
+
+> Added 2026-06-05 (see Clarifications → Session 2026-06-05). The **authoritative detail** is
+> `docs/redesign/REBUILD_R4_SPEC.md` (master) + `R4_DESIGN_LANGUAGE.md`, `R4_STALE_CODE_REGISTER.md`,
+> `R4_FAILURE_MODE_MATRIX.md`, `R4_BUILD_SEQUENCE.md`. This appendix is the canonical id index so the
+> requirements live in Spec Kit. IDs extend the consumed ranges (US1–17, FR-001–111, SC-001–025) with no
+> collision. All comply with the Constitution v1.1.0 and preserve §6.5 + Tier-1 LOCKED files byte-for-byte.
+
+### User Stories
+
+- **US18 (P1)** Agent-as-OS — drives the whole app at three speeds (FAST/ORCHESTRATED/DEEP) with live
+  situational awareness; every mutation via the §6.5 bar.
+- **US19 (P1)** One coherent app — collapsed research, context-preserving model-swap, Enter-sends, one mode
+  system, no hardcoded-should-be-dynamic.
+- **US20 (P2)** ⌘K Raycast-grade palette · **US21 (P2)** Tiptap notes · **US22 (P2)** Screener
+  formula-grammar · **US23 (P2)** Research presentation + overview narrative + shareable briefs.
+- **US24 (P1)** Screener returns the full universe in seconds with zero silent skips.
+- **US25 (P2)** Original design language + graceful states everywhere + teach-the-agent first-run +
+  per-research-space memory.
+
+### Functional Requirements
+
+- **FR-112** Three agent speeds: FAST (bare `@TICKER`/quick command → default cockpit instantly, LLM-free),
+  ORCHESTRATED (propose a panel set + ask-when-unsure, routed through the §6.5 bar), DEEP (one research path).
+- **FR-113** Continuous situational awareness (live open-panels/focused-symbol/viewport every turn; "this"
+  resolves focus) + mandatory re-read of app state after any mutating action.
+- **FR-114** Host-action completeness for obvious app-driving verbs (write screener filters, drawings,
+  save-workspace, remove-from-watchlist, plan-stageable indicators/close/focus); each catalog-registered +
+  §6.5-gated (orders never auto-apply, never FAST).
+- **FR-115** Research collapses to ONE user-facing model (one entry; "go deeper" escalates in place;
+  mode/angles/backend internal; 0 redundant user-visible triggers; one deep loop; Perplexity opt-in-per-run
+  or removed).
+- **FR-116** One interaction language: model-swap preserves context on every path; Enter sends in every
+  composer; one mode system.
+- **FR-117** No hardcoded-that-should-be-dynamic; no TS↔Python contract drift; the stale-code register is
+  executed.
+- **FR-118** Locale-aware market-session awareness (US+India first-class) on every price surface
+  (open/pre/after/closed/last-close@tz), combined with staleness/provenance; a closed price never shown live.
+- **FR-119** Every interactive element + data surface renders its full state set via shared primitives;
+  0 silent `—` / raw-JSON dead-ends / silent skips.
+- **FR-120** Raycast-grade ⌘K palette (grouped/scoped Ask-AI/Agents/Actions/Panels/Symbols; agents ranked
+  above symbols; symbols gated; free-text AI-ask routes to the agent).
+- **FR-121** Tiptap/Obsidian-grade notes (per-stock+general; markdown canonical blob via atomic write;
+  slash/tables/wikilinks/markdown round-trip; `.md` share).
+- **FR-122** Screener formula-grammar (nested AND/OR `CriterionGroup` editor + mathjs-in-Worker formula leaf
+  — **never expr-eval**; agent-configurable via host action).
+- **FR-123** Research presentation deepening (tables, ask-a-follow-up, storyline; clickable deduplicated
+  source-type-badged sources rail with inline `[n]` hover/jump, broken-citations-shown).
+- **FR-124** Company-overview AI narrative (The-Take→business→storyline→balanced bull/bear→risks, typed
+  blocks beside metric cards; numbers from structured only + post-generation numeric-verification pass;
+  cite-every-claim; no buy/sell rec).
+- **FR-125** Shareable briefs, client-side only (markdown copy/export; PNG via html-to-image oklch-safe;
+  PDF via window.print()+print stylesheet, jsPDF fallback; no backend/hosted link).
+- **FR-126** Screener returns the full universe in seconds (batch quote endpoint + async + caching tiers +
+  warm precompute; cold ≤ single-digit seconds for S&P 500, sub-second warm) with a visible skip ledger;
+  0 silently dropped symbols.
+- **FR-127** The four named bugs (screener column overlap, 502 empty-series, date-change crash, macOS Layout
+  menu) fixed/confirmed with rendered-pixel / trusted-event / native proof.
+- **FR-128** The original "Cold Instrument" design language applied (OKLCH zinc+indigo re-value into
+  historical token names, 3-place canvas lockstep; type/spacing/unified-motion tokens; elevation-by-luminance
+  with no neon/glow; warm-clay fallbacks purged; accent ≤5% of pixels).
+- **FR-129** First-run teaches the agent's power (interactive "try this" chips that run); keyboard-first
+  navigation throughout.
+- **FR-130** Session restore + per-research-space agent memory (typed research-space field; per-space agent
+  context persisted in the workspace blob, restored on reopen).
+
+### Success Criteria
+
+- **SC-026** Three speeds demonstrated with pixel proof (FAST opens a cockpit with no model call;
+  ORCHESTRATED proposes+asks via the §6.5 bar; DEEP is the one path); 100% of mutations gated.
+- **SC-027** "tell me more about this" resolves the focused symbol 100%; host-action completeness audit
+  (screener-filter/drawings/save reachable by agent and hand); re-read-after-mutation holds.
+- **SC-028** Exactly one research entry; 0 user-visible mode/angles/backend knobs; one deep loop (audit).
+- **SC-029** Model swap preserves context on every path; Enter sends in every composer; one mode system (audit).
+- **SC-030** Every matrix surface renders its full state set incl market-closed + symbol-not-found; 0 silent
+  `—`/raw-JSON/silent-skips (visual audit, US+India).
+- **SC-031** ⌘K groups+scopes; agents rank above symbols; AI-ask routes; symbols gated (no >3k flood) — pixel proof.
+- **SC-032** Notes round-trips markdown; atomic write survives a mid-save crash; `.md` share opens correctly.
+- **SC-033** Screener nested AND/OR + formula leaf evaluate; agent writes filters; expr-eval absent (audit).
+- **SC-034** Full S&P 500 screen cold ≤ single-digit seconds / warm sub-second, <5% skips ALL itemized
+  (no silent drop) — measured live.
+- **SC-035** Research sources deduplicated+clickable across both legs; overview narrative passes the
+  numeric-verification pass with 0 fabricated numbers; brief exports md/PNG/PDF and each artifact opens correctly.
+- **SC-036** Each of the four bugs has saved visual/behavioral proof (header gap at narrow width; 502→clean
+  empty; no date-crash under synced toggle; menu switches modes).
+- **SC-037** Design language applied: contrast floors measured (body ≥4.5:1, large/non-text ≥3:1); no
+  neon/glow; warm-clay fallbacks `rg`-clean; populated screenshots at both 1920×1080 and 2560×1440 saved.
+- **SC-038** First-run "try this" chips run; per-research-space agent memory persists across relaunch.
+- **SC-039** The floor holds at every milestone: §6.5 audit 9/9; Tier-1 LOCKED byte-for-byte untouched;
+  orders never auto-apply; keyless-first intact; `pnpm ci-local` + smoke-test green (audit-grep).
+
+### Open Product Decisions — Pass C _(flagged for operator; recommendation-first — see `REBUILD_R4_SPEC.md` §10)_
+
+1. **India realtime BYOK** — _Recommend:_ R4 stays keyless-Yahoo-default + documents the ladder; broker-WS
+   (Kite/Upstox) + EODHD are a separate later track. (Alt: pull broker-WS into R4.)
+2. **Branch** — _Recommend:_ cut a fresh `004` off `003-vysted-rebuild`. (Either permitted.)
+3. **Accent value** — _Recommend:_ adopt the OKLCH-refined ~12–15%-desaturated cool-indigo (hue unchanged);
+   one-line revert to the exact ratified `#818cf8` if preferred.
+4. **Sidecar Python-dep tolerance for the perf fix** — _Recommend:_ pure-`httpx` first; allow
+   `curl_cffi`/`yahooquery` only if the PyInstaller `--onefile` binary still builds + boots (smoke-test green).
+5. **Deep-research escalation UX** — _Recommend:_ explicit "go deeper" + auto-escalate on clear signals
+   within the budget; never an auto-paid backend. (Alt: pure auto-detect / always-ask.)
