@@ -25,8 +25,12 @@ export function initMenuBridge(): () => void {
       const { listen } = await import("@tauri-apps/api/event");
       const dispose = await listen<string>("vysted://menu-layout", (event) => {
         const template = event.payload;
+        // Observable so a native-menu click is confirmable in the app console
+        // (the operator's ratifying click should log this line).
+        console.info(`[menu-bridge] received vysted://menu-layout → ${template}`);
         const api = useWorkspaceStore.getState().dockviewApi;
         if (!api) {
+          console.warn("[menu-bridge] no dockview api yet — layout not applied");
           return;
         }
         if (template === "default") {
@@ -37,6 +41,7 @@ export function initMenuBridge(): () => void {
       });
       if (alive) {
         unlisten = dispose;
+        console.info("[menu-bridge] listening for vysted://menu-layout");
       } else {
         dispose();
       }

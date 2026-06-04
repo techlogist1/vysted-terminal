@@ -257,7 +257,6 @@ fn get_sidecar_port(port: tauri::State<'_, SidecarPort>) -> u16 {
 #[cfg(target_os = "macos")]
 fn install_layout_menu(app: &tauri::App) -> tauri::Result<()> {
     use tauri::menu::{Menu, MenuItem, Submenu};
-    use tauri::Emitter;
 
     let h = app.handle();
     let layout = Submenu::with_items(
@@ -287,11 +286,11 @@ fn install_layout_menu(app: &tauri::App) -> tauri::Result<()> {
     let menu = Menu::default(h)?;
     menu.append(&layout)?;
     app.set_menu(menu)?;
-    app.on_menu_event(move |app, event| {
-        if let Some(template) = event.id().0.strip_prefix("layout:") {
-            let _ = app.emit("vysted://menu-layout", template.to_string());
-        }
-    });
+    // NOTE: the menu-CLICK handler is registered on the Tauri Builder in `run()`
+    // via `.on_menu_event` — the reliable place for macOS app-menu events in
+    // Tauri 2. A handler set here in `setup()` via `app.on_menu_event` did NOT
+    // fire on click (the items rendered but did nothing), so this fn only BUILDS
+    // + installs the menu now.
     Ok(())
 }
 
@@ -322,6 +321,23 @@ pub fn run() {
             openbb_mcp::get_openbb_mcp_port,
             sec_edgar_mcp::get_sec_edgar_mcp_port,
         ])
+        // macOS Layout menu CLICK handler. Registered on the BUILDER (not via
+        // `app.on_menu_event` in setup, which rendered the items but never fired on
+        // click) — the reliable place for app-menu events in Tauri 2. Each item's id
+        // is `layout:<template>`; forward `<template>` to the frontend menu-bridge
+        // over `vysted://menu-layout` so dockview re-arranges. The emit outcome is
+        // logged so a menu click is observable in the app log (`[menu] …`).
+        .on_menu_event(|app, event| {
+            use tauri::Emitter;
+            if let Some(template) = event.id().0.strip_prefix("layout:") {
+                match app.emit("vysted://menu-layout", template.to_string()) {
+                    Ok(()) => {
+                        eprintln!("[menu] layout '{template}' → emitted vysted://menu-layout")
+                    }
+                    Err(e) => eprintln!("[menu] layout '{template}' emit FAILED: {e}"),
+                }
+            }
+        })
         .setup(|app| {
             // `0` = no free port (extremely rare); the UI still opens and
             // shows disconnected rather than panicking at boot.
