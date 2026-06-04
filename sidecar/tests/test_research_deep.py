@@ -13,7 +13,10 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
+import pytest
+
 from services.budget_guard import BudgetGuard
+from services.research import deep
 from services.research.deep import run_deep_research
 from services.research.models import ResearchBrief, ResearchStep
 
@@ -264,3 +267,18 @@ def test_deep_never_raises_on_dead_llm() -> None:
 
     assert isinstance(brief, ResearchBrief)
     assert brief.markdown.strip()  # the deterministic fallback fired
+
+
+def test_safe_llm_per_call_guard_returns_empty_on_overrun(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The universal mid-call wall guard: a single inner LLM call that outlives the
+    per-call cap yields '' (so the loop degrades to abort→synthesize) instead of
+    hanging the round — the hang-prevention backstop for any swapped-in model,
+    including a 'thinking' one whose injected call path carries no timeout."""
+    monkeypatch.setattr(deep, "_LLM_CALL_TIMEOUT_SECS", 0.05)
+
+    async def slow(_messages: list[dict[str, Any]]) -> str:
+        await asyncio.sleep(5)  # far past the tiny cap — would hang the round without the guard
+        return "should never arrive"
+
+    out = asyncio.run(deep._safe_llm(slow, [{"role": "user", "content": "x"}]))
+    assert out == ""

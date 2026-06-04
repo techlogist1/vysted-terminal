@@ -102,12 +102,26 @@ async def _safe_tool(tool_call: ToolCall, name: str, args: dict[str, Any]) -> di
     return result if isinstance(result, dict) else {"ok": False, "error": "non-dict result"}
 
 
+#: Universal per-inner-LLM-call wall-clock cap (seconds). The native research path
+#: bounds each call at the adapter (``deep_research._LLM_CALL_TIMEOUT_SECS``), but
+#: the INJECTED ``llm_call`` carries no timeout on the workflow-node and unit-test
+#: paths — so a single slow "thinking"-model call could stall a round right up to
+#: the per-round guard. This caps EVERY inner call (both this loop and ``iter.py``,
+#: which imports ``_safe_llm``), so one call can never hang the loop regardless of
+#: which model is swapped in. On overrun the call yields an empty completion and the
+#: loop degrades to abort→synthesize (the SC-008 invariant), exactly as on any other
+#: LLM failure. 60s matches the adapter cap so it never aborts a call the adapter
+#: would have allowed, while bounding the otherwise-unguarded paths.
+_LLM_CALL_TIMEOUT_SECS = 60.0
+
+
 async def _safe_llm(llm_call: LLMCall, messages: list[dict[str, Any]]) -> str:
-    """One-shot LLM completion, converting a failure to an empty string so the
-    loop degrades to abort→synthesize rather than raising mid-round."""
+    """One-shot LLM completion, converting a failure OR a per-call overrun
+    (>:data:`_LLM_CALL_TIMEOUT_SECS`) to an empty string so the loop degrades to
+    abort→synthesize rather than raising or HANGING mid-round."""
     try:
-        out = await llm_call(messages)
-    except Exception:  # noqa: BLE001 — an LLM failure ends the round, not the run
+        out = await asyncio.wait_for(llm_call(messages), timeout=_LLM_CALL_TIMEOUT_SECS)
+    except Exception:  # noqa: BLE001 — an LLM failure or per-call overrun ends the round, not the run
         return ""
     return out if isinstance(out, str) else ""
 
