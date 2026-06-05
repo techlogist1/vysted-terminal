@@ -140,7 +140,7 @@ class _ResearchProvider(LLMProvider):
     ) -> AsyncIterator[LLMStreamEvent]:
         self.n += 1
         if self.n == 1:
-            yield LLMToolUseEvent(tool_call_id="tc1", name="deep_research", input={"query": "x"})
+            yield LLMToolUseEvent(tool_call_id="tc1", name="research", input={"query": "x"})
             yield LLMDoneEvent()
         else:
             yield LLMDeltaEvent(text="here is the brief")
@@ -168,8 +168,8 @@ def test_research_steps_stream_live_during_a_tool_round(monkeypatch) -> None:
         sink(ResearchStep("synthesize", "wrote the brief"))
         return {"ok": True, "summary": "fake brief"}
 
-    # Override the real deep_research for this round; reset restores it.
-    agent_tools.register_tool("deep_research", _emitting_tool)
+    # Override the real research tool for this round; reset restores it.
+    agent_tools.register_tool("research", _emitting_tool)
     fake = _ResearchProvider()
     monkeypatch.setattr(agent_runtime, "get_provider", lambda _pid, base_url=None: fake)
 
@@ -186,7 +186,7 @@ def test_research_steps_stream_live_during_a_tool_round(monkeypatch) -> None:
     assert [s.index for s in steps] == [1, 2, 3]
     assert steps[1].latency_ms == 42
     # (2) each carries the originating tool + tool_call_id (UI grouping).
-    assert all(s.tool == "deep_research" and s.tool_call_id == "tc1" for s in steps)
+    assert all(s.tool == "research" and s.tool_call_id == "tc1" for s in steps)
     # (3) they interleave BEFORE the terminal done (not after the run finishes).
     kinds = [type(e).__name__ for e in events]
     assert kinds.index("LLMResearchStepEvent") < kinds.index("LLMDoneEvent")

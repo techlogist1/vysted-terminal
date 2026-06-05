@@ -76,10 +76,12 @@ def test_single_panel_edit_is_not_compound() -> None:
 
 
 def test_decompose_parses_a_valid_plan() -> None:
+    # FR-115: there is ONE research action — `research` with an internal `depth`
+    # arg ('deep' here). The removed `deep_research` verb is no longer a plan action.
     plan_json = """[
       {"action": "arrange_layout", "args": {"pattern": "research-cockpit"}, "rationale": "stage"},
       {"action": "set_chart_symbol", "args": {"symbol": "NVDA"}, "rationale": "focus NVDA"},
-      {"action": "deep_research", "args": {"query": "NVDA outlook"}, "rationale": "the ask"}
+      {"action": "research", "args": {"query": "NVDA outlook", "depth": "deep"}, "rationale": "ask"}
     ]"""
 
     async def fake_llm(_prompt: str) -> str:
@@ -87,8 +89,9 @@ def test_decompose_parses_a_valid_plan() -> None:
 
     plan = _run(decompose("set up NVDA and research it deeply", llm_call=fake_llm))
     assert plan.ok
-    assert [s.action for s in plan.steps] == ["arrange_layout", "set_chart_symbol", "deep_research"]
+    assert [s.action for s in plan.steps] == ["arrange_layout", "set_chart_symbol", "research"]
     assert plan.steps[1].args == {"symbol": "NVDA"}
+    assert plan.steps[2].args == {"query": "NVDA outlook", "depth": "deep"}
     assert all(s.action in PLAN_ACTIONS for s in plan.steps)
 
 

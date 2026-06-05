@@ -154,30 +154,16 @@ export interface SlashCommandDef {
  */
 export const SLASH_COMMANDS: SlashCommandDef[] = [
   {
+    // The ONE research entry (FR-115 / SC-028). There is no `/deep` or
+    // `/deep heavy` — depth is internal escalation, not a user knob. The agent
+    // starts at depth='quick' and "Go deeper" (the brief-panel affordance)
+    // escalates the SAME run in place. The agent picks the depth from the
+    // natural-language ask; the user never names a mode/angles/backend.
     trigger: "research",
     title: "Research",
-    description: "Run a standard research pass on a question or ticker.",
+    description: "Research a question or ticker — go deeper from the brief once it lands.",
     argHint: "<q>",
     dispatch: { kind: "prompt", template: (args) => `research ${args}` },
-  },
-  {
-    trigger: "deep",
-    title: "Deep research",
-    description: "Go deeper — the agent maps this to a full deep-research run.",
-    argHint: "<q>",
-    dispatch: { kind: "prompt", template: (args) => `/deep — go deeper on ${args}` },
-  },
-  {
-    trigger: "deep heavy",
-    title: "Deep research — Heavy",
-    description:
-      "The expert panel: several research angles explored in parallel, then synthesized.",
-    argHint: "<q>",
-    dispatch: {
-      kind: "prompt",
-      template: (args) =>
-        `Run a HEAVY deep-research panel (angles=3) on ${args} — explore multiple angles in parallel and synthesize one cited brief.`,
-    },
   },
   {
     trigger: "compare",

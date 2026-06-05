@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus, Send, Sparkles, Telescope } from "lucide-react";
+import { Plus, Send, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
@@ -20,6 +20,7 @@ import { SPRING_PILL, tween } from "@/lib/motion";
 import { validateProvider } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
+import { useAgentCommandStore } from "@/store/agent-command";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { useAgentSpacesStore } from "@/store/agent-spaces";
 import { type AgentRunBudget, useAgentRunsStore } from "@/store/agent-runs";
@@ -275,8 +276,8 @@ export function ChatSidebar() {
   const [delegateBudget, setDelegateBudget] = useState<AgentRunBudget>(DEFAULT_DELEGATE_BUDGET);
   // Clean composer: Mode / Lens / Provider+Model / Autonomy are ALL inline and
   // always visible (no disclosure gear — the Round-2 "hide the stack" anti-pattern
-  // is gone). Deep Research is a visible toggle, not a slash a normal user won't find.
-  const [deepResearch, setDeepResearch] = useState(false);
+  // is gone). There is no "Deep Research" toggle: research is ONE model and depth
+  // is the agent's call + the brief's "Go deeper" escalation (FR-115 / SC-028).
   // Multiple agent spaces (chat threads/pages) — switching swaps the transcript.
   const spaces = useAgentSpacesStore((s) => s.spaces);
   const activeSpaceId = useAgentSpacesStore((s) => s.activeId);
@@ -702,10 +703,11 @@ export function ChatSidebar() {
                 auto ? `Applied: ${title}` : `Proposed: ${title} — review below`,
               );
             }
-          } else if (name === "deep_research" || name === "research") {
+          } else if (name === "research") {
             // Track A: the live ResearchActivity surface (fed by onResearchStep)
-            // replaces the generic "Using …" one-liner for research tools, so the
-            // animated step trace isn't shadowed by a static label.
+            // replaces the generic "Using …" one-liner for the research tool, so the
+            // animated step trace isn't shadowed by a static label. (ONE research
+            // tool now — depth is internal, so this single name covers every tier.)
           } else {
             appendToolStep(assistantId, readToolLabel(name));
           }
@@ -784,6 +786,24 @@ export function ChatSidebar() {
       updateRun,
     ],
   );
+
+  // Agent-command channel (FR-115): a non-chat module — the brief panel's "Go
+  // deeper" affordance, a first-run "try this" chip — pushes a prompt here, and
+  // we route it through the SAME `handleSend` (one send path: provider/model/
+  // history/gate). Track the consumed `seq` so a repeat (clicking "Go deeper"
+  // twice) re-fires. While a stream is in flight we DON'T consume the seq — the
+  // effect re-runs when `streaming` flips to false and dispatches then, so a
+  // "Go deeper" click queued mid-run escalates the moment the current run ends
+  // (no interleaving, and no synchronous setState in the effect body).
+  const lastAgentCmdSeq = useRef(0);
+  const agentCommand = useAgentCommandStore((s) => s.command);
+  useEffect(() => {
+    if (!agentCommand || agentCommand.seq === lastAgentCmdSeq.current || streaming) {
+      return;
+    }
+    lastAgentCmdSeq.current = agentCommand.seq;
+    void handleSend(agentCommand.prompt);
+  }, [agentCommand, streaming, handleSend]);
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
@@ -944,7 +964,10 @@ export function ChatSidebar() {
           gear, no hidden control stack (the Round-2 "hide it and call it a rebuild"
           anti-pattern is gone). Deep Research is a visible toggle, not jargon. ── */}
       <div className="border-charcoal-700 border-t">
-        {/* Control row 1: mode · persona (lens) · spacer · Deep · autonomy */}
+        {/* Control row 1: mode · persona (lens) · spacer · autonomy. There is NO
+            "Deep Research" toggle (FR-115 / SC-028): research is ONE model — ask
+            naturally and the agent picks the depth, then "Go deeper" on the brief
+            escalates the SAME run in place. Depth is never a user knob. */}
         <div className="flex flex-wrap items-center gap-1.5 px-2 pt-1.5">
           <ModeSwitch mode={mode} onChange={setMode} />
           <PersonaSelect
@@ -957,20 +980,6 @@ export function ChatSidebar() {
             }}
           />
           <div className="min-w-0 flex-1" />
-          <button
-            type="button"
-            onClick={() => setDeepResearch((v) => !v)}
-            aria-pressed={deepResearch}
-            title="Deep Research — a multi-step, cited research run instead of a quick answer"
-            className={cn(
-              "flex shrink-0 items-center gap-1 rounded-md border px-2 py-0.5 font-mono text-[0.65rem] transition-colors",
-              deepResearch
-                ? "border-amber-500/50 bg-amber-500/15 text-amber-300"
-                : "border-charcoal-700 text-charcoal-400 hover:text-lume",
-            )}
-          >
-            <Telescope className="size-3" /> Deep research
-          </button>
           <AutonomyToggle />
         </div>
         {/* Control row 2: provider / model HUD (always visible — keyboard-driven) */}
@@ -1002,19 +1011,16 @@ export function ChatSidebar() {
           onChange={setComposer}
           onSend={(text) => {
             setComposer("");
-            // The Deep Research toggle routes a plain prompt through the deep loop
-            // (the existing /deep path) — a discoverable toggle, not a slash a
-            // normal user won't find. A typed slash is respected as-is.
-            const routed =
-              deepResearch && text.trim() && !text.trim().startsWith("/") ? `/deep ${text}` : text;
-            void handleSend(routed);
+            // ONE research model (FR-115): the input is sent verbatim. There is no
+            // depth knob to prepend — the agent infers the depth from the ask and
+            // "Go deeper" on the brief escalates in place via the agent-command bus.
+            void handleSend(text);
           }}
           // Delegate runs are background (US3 AS3): keep the composer live so the
           // user can keep working the cockpit while the run streams in the rail.
           disabled={streaming && mode !== "delegate"}
           mode={mode}
           region={region}
-          deep={deepResearch}
         />
       </div>
       <KeyEntryDialog
@@ -1173,8 +1179,6 @@ interface ComposerProps {
   disabled: boolean;
   mode: AgentMode;
   region: Region;
-  /** Deep Research toggle is on — reflected in the placeholder. */
-  deep?: boolean;
 }
 
 /**
@@ -1188,7 +1192,7 @@ interface ComposerProps {
  * and the text splicing. Mention resolution is async + locale-aware (`/resolve`),
  * race-guarded by a sequence token so a slow lookup never overwrites a newer one.
  */
-function Composer({ value, onChange, onSend, disabled, mode, region, deep }: ComposerProps) {
+function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerProps) {
   const meta = agentModeMeta(mode);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [caret, setCaret] = useState(0);
@@ -1382,11 +1386,7 @@ function Composer({ value, onChange, onSend, disabled, mode, region, deep }: Com
           onKeyUp={(event) => syncCaret(event.currentTarget)}
           onClick={(event) => syncCaret(event.currentTarget)}
           onSelect={(event) => syncCaret(event.currentTarget)}
-          placeholder={
-            deep
-              ? "Deep Research — ask for a multi-step, cited brief"
-              : `${meta.label} — ${meta.hint}`
-          }
+          placeholder={`${meta.label} — ${meta.hint}`}
           disabled={disabled}
           autoComplete="off"
           spellCheck={false}

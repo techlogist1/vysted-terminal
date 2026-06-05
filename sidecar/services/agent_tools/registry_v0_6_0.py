@@ -77,13 +77,14 @@ def register_v0_6_0_tools() -> None:
     web_search.register()
     registered.append("web_search")
 
-    # Pass B (B4) — research engine: FAST bundle + DEEP budget-bounded loop.
-    from services.agent_tools import deep_research, research
+    # Pass B (B4) — the ONE research engine (FR-115): a single ``research`` tool
+    # that escalates in place from a fast bundle (depth=quick) to the DEEP
+    # budget-bounded loop (depth=deep/heavy). ``deep_research`` is no longer a
+    # registered tool — its engine is called internally by ``research``.
+    from services.agent_tools import research
 
     research.register()
-    deep_research.register()
     registered.append("research")
-    registered.append("deep_research")
 
     if registered:
         logger.info("agent_tools: registered v0.6.0 domains: %s", ", ".join(registered))

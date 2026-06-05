@@ -1,9 +1,16 @@
-"""Pass B (Pillar B) — the research + deep_research agent-tool handlers + oneshot.
+"""Pass B (Pillar B) — the ONE ``research`` agent-tool handler + oneshot.
 
-The research service (``services.research.fast`` / ``.deep`` / ``.perplexity``)
-is built in parallel; these tests inject lightweight fake modules into
-``sys.modules`` so the handlers' lazy imports resolve to the fakes. Every seam
-the handlers touch — ``gather_fast``, ``run_deep_research``, ``config.get_llm_creds``,
+After the R4 research collapse (FR-115 / SC-028) there is a SINGLE ``research``
+handler with an INTERNAL ``depth`` arg (``quick`` | ``deep`` | ``heavy``):
+``quick`` runs the fast gather, ``deep``/``heavy`` run the ONE deep loop via the
+internal ``deep_research.run_deep_brief`` engine. There is no ``deep_research``
+tool and no user/model ``mode`` knob.
+
+The research service (``services.research.fast`` / ``.deep`` / ``.iter`` /
+``.perplexity``) is built in parallel; these tests inject lightweight fake modules
+into ``sys.modules`` so the handler's lazy imports resolve to the fakes. Every
+seam the handler touches — ``gather_fast``, ``run_iter_research`` /
+``run_heavy_research`` / ``run_deep_research``, ``config.get_llm_creds``,
 ``agent_tools.invoke_tool``, the Perplexity backend, and the LLM provider — is
 faked; no test makes a live call.
 """
@@ -18,7 +25,6 @@ from typing import Any
 import pytest
 
 import config
-from services.agent_tools.deep_research import _deep_research
 from services.agent_tools.research import _research
 from services.llm import oneshot
 
@@ -44,7 +50,7 @@ class _FakeBrief:
 
 @pytest.fixture
 def research_modules(monkeypatch: pytest.MonkeyPatch):
-    """Inject fake ``services.research.{fast,deep,perplexity}`` modules.
+    """Inject fake ``services.research.{fast,deep,iter,perplexity}`` modules.
 
     Returns a namespace exposing the fakes' record/override hooks so each test
     can assert call args and steer the return value.
@@ -76,19 +82,10 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
         on_step=None,  # noqa: ANN001
         max_researchers=3,  # noqa: ANN001
     ):
-        calls["run_deep_research"] = {
-            "query": query,
-            "region": region,
-            "tool_call": tool_call,
-            "llm_call": llm_call,
-            "budget": budget,
-            "on_step": on_step,
-            "max_researchers": max_researchers,
-        }
-        if on_step is not None:
-            on_step("plan")
-            on_step("synthesize")
-        return _FakeBrief({"summary": "deep brief", "citations": [{"url": "https://x"}]})
+        # The single-pass loop is the NAMED internal fallback only — it should NOT
+        # be reached on the normal deep path (iter never raises). A test asserts so.
+        calls["run_deep_research"] = {"query": query}
+        return _FakeBrief({"summary": "single-pass brief", "citations": [{"url": "https://x"}]})
 
     async def _run_iter_research(
         query,  # noqa: ANN001
@@ -162,22 +159,29 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
     perplexity_mod.estimate_cost_usd = _estimate_cost_usd  # type: ignore[attr-defined]
     perplexity_mod.PerplexityDeepBackend = _PerplexityDeepBackend  # type: ignore[attr-defined]
 
+    # Keep the REAL ``services.research.models`` reachable under the shadowed
+    # parent — the deep engine's honest "engine" step (``_emit_backend_step``)
+    # imports ``ResearchStep`` from it, and it carries no heavy deps.
+    from services.research import models as models_mod
+
     monkeypatch.setitem(sys.modules, "services.research", parent)
     monkeypatch.setitem(sys.modules, "services.research.fast", fast_mod)
     monkeypatch.setitem(sys.modules, "services.research.deep", deep_mod)
     monkeypatch.setitem(sys.modules, "services.research.iter", iter_mod)
     monkeypatch.setitem(sys.modules, "services.research.perplexity", perplexity_mod)
+    monkeypatch.setitem(sys.modules, "services.research.models", models_mod)
     # Make the submodules reachable as attributes of the parent (belt + braces).
     parent.fast = fast_mod  # type: ignore[attr-defined]
     parent.deep = deep_mod  # type: ignore[attr-defined]
     parent.iter = iter_mod  # type: ignore[attr-defined]
     parent.perplexity = perplexity_mod  # type: ignore[attr-defined]
+    parent.models = models_mod  # type: ignore[attr-defined]
 
     return types.SimpleNamespace(calls=calls, perplexity_state=perplexity_state)
 
 
 # ---------------------------------------------------------------------------
-# research handler
+# research handler — quick depth (the default, fast gather)
 # ---------------------------------------------------------------------------
 
 
@@ -187,7 +191,9 @@ def test_research_missing_query_is_rejected(research_modules) -> None:  # noqa: 
     assert "query" in out["message"].lower()
 
 
-def test_research_returns_the_bundle(research_modules, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_research_quick_returns_the_bundle(
+    research_modules, monkeypatch: pytest.MonkeyPatch
+) -> None:
     from services import agent_tools
 
     sentinel = object()
@@ -200,6 +206,7 @@ def test_research_returns_the_bundle(research_modules, monkeypatch: pytest.Monke
 
     token = config.set_step_sink(_sink)
     try:
+        # No depth -> defaults to quick (the fast gather).
         out = _run(_research({"query": "  nvidia earnings  "}))
     finally:
         config.reset_step_sink(token)
@@ -211,64 +218,62 @@ def test_research_returns_the_bundle(research_modules, monkeypatch: pytest.Monke
     assert call["region"] == "IN"
     # The handler wires the real agent_tools.invoke_tool seam through.
     assert call["tool_call"] is sentinel
-    # …and the live step-sink (Track A) — None when no sink is set.
+    # …and the live step-sink (Track A).
     assert call["on_step"] is _sink
+    # No deep loop touched on the quick path.
+    assert "run_iter_research" not in research_modules.calls
+    assert "run_heavy_research" not in research_modules.calls
 
 
 # ---------------------------------------------------------------------------
-# deep_research handler — native backend
+# research handler — deep depth (the ONE deep loop, native backend)
 # ---------------------------------------------------------------------------
 
 
-def test_deep_research_no_creds_is_human_message(
+def test_research_deep_no_creds_is_human_message(
     research_modules, monkeypatch: pytest.MonkeyPatch
 ) -> None:  # noqa: ARG001
     monkeypatch.setattr(config, "get_llm_creds", lambda: None)
-    out = _run(_deep_research({"query": "rate cuts"}))
+    out = _run(_research({"query": "rate cuts", "depth": "deep"}))
     assert out["ok"] is False
     assert out["message"] == "No model configured for deep research."
 
 
-def test_deep_research_native_runs_and_returns_brief(
+def test_research_deep_runs_the_iter_loop_and_returns_brief(
     research_modules, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     from services import agent_tools
 
     monkeypatch.setattr(config, "get_llm_creds", lambda: ("anthropic", "claude-x", "sk-test"))
     monkeypatch.setattr(config, "get_region", lambda: "US")
+    monkeypatch.setattr(config, "get_deep_research_backend", lambda: None)
     seam = object()
     monkeypatch.setattr(agent_tools, "invoke_tool", seam)
 
-    # Track A: the handler forwards the runtime's live step-sink as the loop's
-    # on_step, so steps stream to the SSE consumer while the loop runs.
     streamed: list[Any] = []
     sink = streamed.append
     token = config.set_step_sink(sink)
     try:
-        out = _run(_deep_research({"query": "rate cuts", "rounds": 2, "wall_seconds": 60}))
+        out = _run(_research({"query": "rate cuts", "depth": "deep", "rounds": 2}))
     finally:
         config.reset_step_sink(token)
 
     assert out["ok"] is True
     assert out["backend"] == "native"
-    # Native now defaults to the IterResearch loop.
-    assert out["mode"] == "iter"
+    # depth='deep' runs the IterResearch loop (the ONE deep loop), reported as "deep".
+    assert out["mode"] == "deep"
     assert out["summary"] == "iter brief"
     call = research_modules.calls["run_iter_research"]
     assert call["query"] == "rate cuts"
     assert call["region"] == "US"
     assert call["tool_call"] is seam
     assert call["max_researchers"] == 3
-    # A BudgetGuard was constructed and passed in.
     from services.budget_guard import BudgetGuard
 
     assert isinstance(call["budget"], BudgetGuard)
-    # llm_call is an awaitable that proxies oneshot.complete.
     assert callable(call["llm_call"])
-    # on_step IS the runtime sink, and the loop's steps streamed through it.
     assert call["on_step"] is sink
-    # The handler emits an honest "engine" step first (naming IterResearch), then
-    # the loop's own steps stream through the same sink.
+    # The handler emits an honest "engine" step first (naming IterResearch).
     from services.research.models import ResearchStep
 
     assert isinstance(streamed[0], ResearchStep)
@@ -278,34 +283,36 @@ def test_deep_research_native_runs_and_returns_brief(
     assert streamed[1:] == ["plan", "distill", "synthesize"]
 
 
-def test_deep_research_clamps_rounds_and_wall(
+def test_research_deep_is_the_one_loop_single_pass_is_not_reached(
+    research_modules, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """SC-028 / S-9: the normal deep path runs the iter loop ONLY — the single-pass
+    ``run_deep_research`` is the internal fallback and never runs when iter
+    succeeds."""
+    monkeypatch.setattr(config, "get_llm_creds", lambda: ("anthropic", "claude-x", "sk-test"))
+    monkeypatch.setattr(config, "get_deep_research_backend", lambda: None)
+    out = _run(_research({"query": "q", "depth": "deep"}))
+    assert out["ok"] is True
+    assert "run_iter_research" in research_modules.calls
+    assert "run_deep_research" not in research_modules.calls
+
+
+def test_research_deep_clamps_rounds_and_wall(
     research_modules, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(config, "get_llm_creds", lambda: ("anthropic", "claude-x", "sk-test"))
-    # Out-of-range rounds/wall must not raise; the handler clamps them.
-    out = _run(_deep_research({"query": "q", "rounds": 99, "wall_seconds": 5}))
+    monkeypatch.setattr(config, "get_deep_research_backend", lambda: None)
+    # Out-of-range rounds/wall must not raise; the engine clamps them.
+    out = _run(_research({"query": "q", "depth": "deep", "rounds": 99, "wall_seconds": 5}))
     assert out["ok"] is True
     assert research_modules.calls["run_iter_research"]["query"] == "q"
 
 
-def test_deep_research_single_mode_uses_legacy_loop(
-    research_modules, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """mode='single' runs the proven single-pass loop (the explicit fallback)."""
+def test_research_heavy_runs_the_panel(research_modules, monkeypatch: pytest.MonkeyPatch) -> None:
+    """depth='heavy' routes to the expert-panel Heavy loop (angles=3)."""
     monkeypatch.setattr(config, "get_llm_creds", lambda: ("anthropic", "claude-x", "sk-test"))
-    out = _run(_deep_research({"query": "q", "mode": "single"}))
-    assert out["ok"] is True
-    assert out["mode"] == "single"
-    assert research_modules.calls["run_deep_research"]["query"] == "q"
-    assert "run_iter_research" not in research_modules.calls
-
-
-def test_deep_research_heavy_mode_runs_the_panel(
-    research_modules, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """angles>=2 (or heavy:true) routes to the expert-panel Heavy loop."""
-    monkeypatch.setattr(config, "get_llm_creds", lambda: ("anthropic", "claude-x", "sk-test"))
-    out = _run(_deep_research({"query": "thesis", "angles": 3}))
+    monkeypatch.setattr(config, "get_deep_research_backend", lambda: None)
+    out = _run(_research({"query": "thesis", "depth": "heavy"}))
     assert out["ok"] is True
     assert out["mode"] == "heavy"
     assert out["summary"] == "heavy brief"
@@ -313,17 +320,13 @@ def test_deep_research_heavy_mode_runs_the_panel(
     assert call["query"] == "thesis"
     assert call["angles"] == 3
 
-    research_modules.calls.clear()
-    out2 = _run(_deep_research({"query": "thesis", "heavy": True}))
-    assert out2["mode"] == "heavy"
-    assert research_modules.calls["run_heavy_research"]["angles"] == 3
 
-
-def test_deep_research_native_llm_call_proxies_oneshot(
+def test_research_deep_llm_call_proxies_oneshot(
     research_modules, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """The injected llm_call must drive oneshot.complete with the active creds."""
     monkeypatch.setattr(config, "get_llm_creds", lambda: ("openai", "gpt-x", "sk-key"))
+    monkeypatch.setattr(config, "get_deep_research_backend", lambda: None)
     captured: dict[str, Any] = {}
 
     async def _fake_complete(provider, model, api_key, messages, *, timeout=None):  # noqa: ANN001
@@ -340,7 +343,7 @@ def test_deep_research_native_llm_call_proxies_oneshot(
 
     monkeypatch.setattr(oneshot, "complete", _fake_complete)
 
-    _run(_deep_research({"query": "q"}))
+    _run(_research({"query": "q", "depth": "deep"}))
 
     llm_call = research_modules.calls["run_iter_research"]["llm_call"]
     result = _run(llm_call([{"role": "user", "content": "hi"}]))
@@ -354,18 +357,18 @@ def test_deep_research_native_llm_call_proxies_oneshot(
 
 
 # ---------------------------------------------------------------------------
-# deep_research handler — perplexity backend (opt-in, never auto-run)
+# research handler — perplexity backend (opt-in-per-run, NEVER auto-run)
 # ---------------------------------------------------------------------------
 
 
-def test_deep_research_perplexity_without_key_returns_optin_message(
+def test_research_perplexity_without_key_returns_optin_message(
     research_modules, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     # No Perplexity key configured -> is_configured False -> opt-in message.
     research_modules.perplexity_state["configured"] = False
     monkeypatch.setattr(config, "get_llm_creds", lambda: ("anthropic", "claude-x", "sk-test"))
 
-    out = _run(_deep_research({"query": "fed policy", "backend": "perplexity"}))
+    out = _run(_research({"query": "fed policy", "depth": "deep", "backend": "perplexity"}))
 
     assert out["ok"] is False
     assert "Perplexity deep research needs an API key" in out["message"]
@@ -374,14 +377,21 @@ def test_deep_research_perplexity_without_key_returns_optin_message(
     assert research_modules.perplexity_state["research_query"] is None
 
 
-def test_deep_research_perplexity_with_key_runs_backend(
+def test_research_perplexity_with_key_runs_backend(
     research_modules, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     research_modules.perplexity_state["configured"] = True
     monkeypatch.setattr(config, "get_region", lambda: "US")
 
     out = _run(
-        _deep_research({"query": "fed policy", "backend": "perplexity", "api_key": "pplx-123"})
+        _research(
+            {
+                "query": "fed policy",
+                "depth": "deep",
+                "backend": "perplexity",
+                "api_key": "pplx-123",
+            }
+        )
     )
 
     assert out["ok"] is True
@@ -391,24 +401,19 @@ def test_deep_research_perplexity_with_key_runs_backend(
     assert research_modules.perplexity_state["research_query"] == "fed policy"
 
 
-def test_deep_research_perplexity_never_selected_for_native_default(
+def test_research_perplexity_never_selected_for_native_default(
     research_modules, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Default backend is native — Perplexity is never auto-selected."""
+    """Default backend is native — Perplexity is never auto-selected (SC-028)."""
     research_modules.perplexity_state["configured"] = True
     monkeypatch.setattr(config, "get_llm_creds", lambda: ("anthropic", "claude-x", "sk-test"))
+    monkeypatch.setattr(config, "get_deep_research_backend", lambda: None)
 
-    out = _run(_deep_research({"query": "anything"}))  # no backend -> native
+    out = _run(_research({"query": "anything", "depth": "deep"}))  # no backend -> native
 
     assert out["backend"] == "native"
     # The paid backend was untouched.
     assert research_modules.perplexity_state["research_query"] is None
-
-
-def test_deep_research_missing_query_is_rejected(research_modules) -> None:  # noqa: ARG001
-    out = _run(_deep_research({"backend": "native"}))
-    assert out["ok"] is False
-    assert "query" in out["message"].lower()
 
 
 # ---------------------------------------------------------------------------
@@ -474,16 +479,15 @@ def test_oneshot_adapter_failure_returns_empty(monkeypatch: pytest.MonkeyPatch) 
 
 
 # ---------------------------------------------------------------------------
-# registration
+# registration — ONE research tool (FR-115); deep_research is NOT a tool
 # ---------------------------------------------------------------------------
 
 
 def test_research_tools_register() -> None:
     import services.agent_tools as agent_tools
-    from services.agent_tools import deep_research as deep_mod
     from services.agent_tools import research as research_mod
 
     research_mod.register()
-    deep_mod.register()
     assert "research" in agent_tools.registered_tools()
-    assert "deep_research" in agent_tools.registered_tools()
+    # The collapse removed the second tool: there is no ``deep_research`` handler.
+    assert "deep_research" not in agent_tools.registered_tools()

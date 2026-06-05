@@ -1,28 +1,40 @@
-"""Agent tool — ``deep_research`` (multi-round, budgeted research loop).
+"""Deep-research engine — the DEEP/HEAVY half of the ONE ``research`` capability.
 
-Drives a bounded, multi-researcher deep-research run and returns a structured
-:class:`~services.research.deep.ResearchBrief` as a dict. Two backends:
+This module is NO LONGER a registered agent tool. After the R4 research collapse
+(FR-115 / SC-028) there is exactly ONE user-facing + model-facing research
+capability — ``research`` (see :mod:`services.agent_tools.research`) — with depth
+as an INTERNAL escalation arg (``quick`` | ``deep`` | ``heavy``). This module
+supplies the deep/heavy engine behind ``depth in {"deep", "heavy"}`` via
+:func:`run_deep_brief`; the ``research`` handler calls it directly. There is no
+second tool name, no second catalog capability, and no user-visible ``/deep``.
 
-- **native** (default) — runs the built-in deep-research loop
-  (:func:`services.research.deep.run_deep_research`) against the SAME model the
-  user is talking to (via :func:`config.get_llm_creds` + the one-shot
+Two backends:
+
+- **native** (default) — runs the built-in deep-research loop against the SAME
+  model the user is talking to (via :func:`config.get_llm_creds` + the one-shot
   :func:`services.llm.oneshot.complete` seam), metered by a
   :class:`~services.budget_guard.BudgetGuard`. No extra key, no extra cost.
-- **perplexity** — OPT-IN, PAID. Only runs when the user has explicitly
-  configured a Perplexity key; this handler NEVER auto-selects Perplexity. With
-  no key it returns an honest "needs a key" message naming exactly what unlocks
-  it.
+- **perplexity** — OPT-IN-PER-RUN, PAID. Only runs when the caller EXPLICITLY
+  passes ``backend="perplexity"`` AND the user has configured a Perplexity key;
+  it is NEVER auto-selected (the catalog default is ``native`` and the Settings
+  ContextVar only ever resolves to ``native``/``perplexity`` on an explicit user
+  opt-in). With no key it returns an honest "needs a key" message.
 
-The research service is built in parallel; everything from it is imported lazily
-inside the call so the module imports cleanly before the service lands and the
-tests can monkeypatch each seam in place.
+One deep LOOP (S-9): :mod:`services.research.iter` is THE deep loop
+(``run_iter_research`` for ``deep``, ``run_heavy_research`` for ``heavy``).
+:mod:`services.research.deep` (``run_deep_research``, single-pass) is the INTERNAL
+helper module (iter reuses its tested helpers verbatim) AND the belt-and-suspenders
+FALLBACK only — it is no longer reachable as a user/model ``mode`` and never runs
+on the normal path; iter's abort→synthesize covers degradation. There is no
+user-reachable second deep loop.
+
+The research service is imported lazily inside the call so the module imports
+cleanly before the service lands and the tests can monkeypatch each seam in place.
 """
 
 from __future__ import annotations
 
 from typing import Any
-
-from services.agent_tools import register_tool
 
 #: How many researcher agents the native loop may fan out to per round. Bounds
 #: the BudgetGuard step ceiling alongside ``rounds`` below.
@@ -37,8 +49,8 @@ _MAX_RESEARCHERS = 3
 #: partial text and degrades gracefully.
 _LLM_CALL_TIMEOUT_SECS = 60.0
 
-#: ``angles`` at or above this triggers Heavy mode (the expert panel). Below it,
-#: the single-agent loop runs. ``_MAX_ANGLES`` caps the panel width. Kept in
+#: ``angles`` for the Heavy panel. ``deep`` runs the single-agent iter loop
+#: (angles=1); ``heavy`` fans out to ``_MAX_ANGLES`` parallel explorers. Kept in
 #: lockstep with ``iter._MIN_ANGLES`` / ``iter._MAX_ANGLES``.
 _MIN_HEAVY_ANGLES = 2
 _MAX_ANGLES = 3
@@ -82,10 +94,10 @@ def _emit_backend_step(detail: str) -> None:
 
 
 async def _run_perplexity(query: str, key: str | None) -> dict[str, Any]:
-    """Run the opt-in paid Perplexity backend, or honest-fail without a key.
+    """Run the opt-in-per-run paid Perplexity backend, or honest-fail without a key.
 
     NEVER auto-selects Perplexity — the caller already chose ``backend=perplexity``
-    explicitly. Without a configured key, returns the "needs a key" message.
+    explicitly per-run. Without a configured key, returns the "needs a key" message.
     """
     import config
     from services.research import perplexity
@@ -112,25 +124,24 @@ async def _run_perplexity(query: str, key: str | None) -> dict[str, Any]:
 
 async def _run_loop(
     *,
-    mode: str,
     angles: int,
     query: str,
     llm_call: Any,
     rounds: int,
     wall: int,
 ) -> Any:
-    """Pick + run the research loop, returning a ``ResearchBrief``.
+    """Run THE one deep loop, returning a ``ResearchBrief``.
 
     - ``angles >= 2`` → Heavy mode: an expert PANEL of parallel iter explorers +
       a synthesis agent (test-time scaling).
-    - ``mode == "iter"`` (default) → the IterResearch loop: a central evolving
-      report + per-round workspace reconstruction (no context bloat).
-    - ``mode == "single"`` → the legacy single-pass loop (explicit fallback).
+    - otherwise → the IterResearch loop: a central evolving report + per-round
+      workspace reconstruction (no context bloat).
 
     The iter/heavy loops are designed never to raise (budget breach →
     abort→synthesize); a belt-and-suspenders ``except`` still drops to the proven
-    single-pass ``run_deep_research`` so the default path can never error out.
-    Budget scales with the angle fan-out so the panel stays inside one ceiling.
+    single-pass ``run_deep_research`` (the NAMED internal fallback — never a
+    user/model-reachable mode) so the default path can never error out. Budget
+    scales with the angle fan-out so the panel stays inside one ceiling.
     """
     import config
     from services import agent_tools
@@ -156,24 +167,22 @@ async def _run_loop(
     }
     if angles >= _MIN_HEAVY_ANGLES:
         return await iter_research.run_heavy_research(query, angles=angles, **common)
-    if mode == "single":
-        return await deep.run_deep_research(query, **common)
     try:
         return await iter_research.run_iter_research(query, **common)
     except Exception:  # pragma: no cover — iter never raises; fall back regardless
+        # The NAMED single-pass fallback (S-9): not a parallel user-reachable
+        # loop, only the catch-all so the deep path can never error out.
         return await deep.run_deep_research(query, **common)
 
 
-def _engine_label(provider: str, model: str, mode: str, angles: int) -> str:
+def _engine_label(provider: str, model: str, angles: int) -> str:
     """Honest engine line naming the loop that actually ran."""
     if angles >= _MIN_HEAVY_ANGLES:
         return f"Your active model — {provider}/{model} · Heavy mode ({angles} parallel angles)"
-    if mode == "single":
-        return f"Your active model — {provider}/{model} · single-pass"
     return f"Your active model — {provider}/{model} · IterResearch (evolving report)"
 
 
-async def _run_native(query: str, rounds: int, wall: int, mode: str, angles: int) -> dict[str, Any]:
+async def _run_native(query: str, rounds: int, wall: int, angles: int) -> dict[str, Any]:
     """Run the built-in deep-research loop against the user's active model."""
     import config
     from services.llm import oneshot
@@ -183,76 +192,66 @@ async def _run_native(query: str, rounds: int, wall: int, mode: str, angles: int
         return {"ok": False, "message": _NO_MODEL}
     provider, model, key = creds
 
-    _emit_backend_step(_engine_label(provider, model, mode, angles))
+    _emit_backend_step(_engine_label(provider, model, angles))
 
     async def llm_call(messages: list[dict[str, Any]]) -> str:
         return await oneshot.complete(
             provider, model, key, messages, timeout=_LLM_CALL_TIMEOUT_SECS
         )
 
-    brief = await _run_loop(
-        mode=mode, angles=angles, query=query, llm_call=llm_call, rounds=rounds, wall=wall
-    )
+    brief = await _run_loop(angles=angles, query=query, llm_call=llm_call, rounds=rounds, wall=wall)
     out = brief.to_dict()
     out["ok"] = True
     out["backend"] = "native"
-    out["mode"] = "heavy" if angles >= _MIN_HEAVY_ANGLES else mode
+    out["mode"] = "heavy" if angles >= _MIN_HEAVY_ANGLES else "deep"
     return out
 
 
-async def _deep_research(args: dict[str, Any]) -> dict[str, Any]:
-    """Run a budgeted multi-round deep-research brief for ``query``.
+async def run_deep_brief(
+    query: str,
+    *,
+    depth: str = "deep",
+    rounds: Any = 3,
+    wall_seconds: Any = 120,
+    backend: str | None = None,
+    api_key: str | None = None,
+) -> dict[str, Any]:
+    """Run a budgeted deep/heavy research brief for ``query`` — the DEEP engine
+    behind the ONE ``research`` capability.
 
     Args:
-        query: What to research. Required.
+        query: What to research (already validated/non-blank by the caller).
+        depth: ``"deep"`` (single-agent iter loop) or ``"heavy"`` (the expert
+            panel of parallel angles). Anything else is treated as ``"deep"``.
         rounds: Research rounds, clamped to ``[1, 5]`` (default 3).
         wall_seconds: Wall-clock budget, clamped to ``[30, 300]`` (default 120).
-        mode: ``"iter"`` (default) runs the IterResearch loop — a central evolving
-            report + per-round workspace reconstruction; ``"single"`` runs the
-            legacy single-pass loop.
-        angles: ``1`` (default) runs one agent; ``2``–``3`` runs Heavy mode — an
-            expert PANEL of that many parallel research angles synthesised into one
-            brief (more cost, deeper coverage).
-        backend: ``"native"`` (default, built-in) or ``"perplexity"`` (opt-in,
-            paid — needs a Perplexity key). Perplexity is never auto-selected.
+        backend: ``"native"`` (default) or ``"perplexity"`` (opt-in-per-run,
+            paid). When ``None`` the user's Settings selection (Track 5) is read
+            from the ContextVar; it only ever resolves to native unless the user
+            explicitly opted into Perplexity for the run. NEVER auto-selects
+            Perplexity.
         api_key: Optional key for the opt-in Perplexity backend, when not reused
             from the active credentials.
 
     Returns the brief dict (``ok: True``) or ``{"ok": False, "message": ...}``.
     """
-    query = args.get("query")
-    if not isinstance(query, str) or not query.strip():
-        return {
-            "ok": False,
-            "message": "Deep research needs a query — tell me what to look into.",
-        }
-    query = query.strip()
+    rounds_i = _clamp(rounds, 1, 5, 3)
+    wall = _clamp(wall_seconds, 30, 300, 120)
+    angles = _MAX_ANGLES if str(depth).strip().lower() == "heavy" else 1
 
-    rounds = _clamp(args.get("rounds", 3), 1, 5, 3)
-    wall = _clamp(args.get("wall_seconds", 120), 30, 300, 120)
-    mode = str(args.get("mode") or "iter").strip().lower()
-    if mode not in ("iter", "single"):
-        mode = "iter"
-    angles = _clamp(args.get("angles", 1), 1, _MAX_ANGLES, 1)
-    # ``heavy: true`` is an ergonomic alias for the default panel width.
-    if args.get("heavy") is True and angles < _MIN_HEAVY_ANGLES:
-        angles = _MAX_ANGLES
-    # The user's Settings selection (Track 5) is authoritative when the model does
-    # not pass an explicit backend arg. Defaults to native; Perplexity (opt-in,
-    # paid) is never auto-selected.
+    # The user's Settings selection (Track 5) is authoritative when the caller does
+    # not pass an explicit backend. Defaults to native; Perplexity (opt-in-per-run,
+    # paid) is never auto-selected — the Settings ContextVar only ever holds
+    # "perplexity" after the user explicitly opted in for the run.
     import config
 
-    backend = str(args.get("backend") or config.get_deep_research_backend() or "native")
-    backend = backend.strip().lower()
+    resolved_backend = (
+        str(backend or config.get_deep_research_backend() or "native").strip().lower()
+    )
 
-    if backend == "perplexity":
-        return await _run_perplexity(query, args.get("api_key"))
-    return await _run_native(query, rounds, wall, mode, angles)
-
-
-def register() -> None:
-    """Register the ``deep_research`` tool in the package registry."""
-    register_tool("deep_research", _deep_research)
+    if resolved_backend == "perplexity":
+        return await _run_perplexity(query, api_key)
+    return await _run_native(query, rounds_i, wall, angles)
 
 
-__all__ = ["_deep_research", "register"]
+__all__ = ["run_deep_brief"]
