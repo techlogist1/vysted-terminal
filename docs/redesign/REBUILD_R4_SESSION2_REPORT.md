@@ -14,14 +14,14 @@ Session 1's failure was deferral: it shipped the invisible foundation and the op
 the same app. **This session shipped the visible layer.** Open the app and you get six concrete,
 pixel-proven changes:
 
-| # | What changed | Before | After | Proof (real-app Quartz) |
-|---|---|---|---|---|
-| 1 | **Design language** — OKLCH cold-zinc neutrals, desaturated cool-indigo accent (`#818cf8`→`#7e88e8`), muted luminance-matched signals, **all neon glow removed**, type/spacing/motion scales | `before/cockpit-populated.png` | `after/cockpit-populated.png` | both 2560×1664, populated (SPY/QQQ/NVDA/BTC + news + P&L) |
-| 2 | **⌘K Raycast-grade palette** — grouped Ask-AI → Agents → Actions → Panels → Symbols; agents rank above symbols; symbols query-gated; free-text AI-ask routes to the agent | (basic header button) | `after/palette-groups.png`, `after/palette-query-askai.png` | Agents-first grouping + "Ask agent: \"nvda\"" row |
-| 3 | **Tiptap notes editor** — headless Tiptap v3, markdown canonical blob, slash menu, `[[wikilinks]]`, per-stock + general scoping, .md/PNG/PDF export, atomic Rust persistence | bare `<textarea>` | `after/notes-tiptap-editor.png` | editor mounts, editable, scope chips, export toolbar |
-| 4 | **Screener formula grammar** — nested AND/OR group editor + a mathjs-Web-Worker custom-formula leaf (sandboxed; `expr-eval` absent) + agent `write_screener_filters` host action | flat OR list only | `after/screener-formula-nested.png` | nested sub-group + "CUSTOM FORMULA … runs client-side" |
-| 5 | **Research collapsed to ONE entry** — the `/deep` + `/deep heavy` triggers and the "Deep research" composer toggle are gone; one `/research`, "go deeper" escalates in place, one deep loop | `/research` + `/deep` + `/deep heavy` + Deep-research toggle | `after/cockpit-research-collapsed.png` | composer toggle removed; single trigger |
-| 6 | **Screener performance** — Yahoo v7 batch + cookie/crumb + caching tiers + warm precompute + an **itemized skip ledger** | 205s / 178-of-506 silently skipped | warm **2.84s / 0 skips** (live) | see §"Screener perf numbers" |
+| #   | What changed                                                                                                                                                                                 | Before                                                       | After                                                       | Proof (real-app Quartz)                                   |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------- | --------------------------------------------------------- |
+| 1   | **Design language** — OKLCH cold-zinc neutrals, desaturated cool-indigo accent (`#818cf8`→`#7e88e8`), muted luminance-matched signals, **all neon glow removed**, type/spacing/motion scales | `before/cockpit-populated.png`                               | `after/cockpit-populated.png`                               | both 2560×1664, populated (SPY/QQQ/NVDA/BTC + news + P&L) |
+| 2   | **⌘K Raycast-grade palette** — grouped Ask-AI → Agents → Actions → Panels → Symbols; agents rank above symbols; symbols query-gated; free-text AI-ask routes to the agent                    | (basic header button)                                        | `after/palette-groups.png`, `after/palette-query-askai.png` | Agents-first grouping + "Ask agent: \"nvda\"" row         |
+| 3   | **Tiptap notes editor** — headless Tiptap v3, markdown canonical blob, slash menu, `[[wikilinks]]`, per-stock + general scoping, .md/PNG/PDF export, atomic Rust persistence                 | bare `<textarea>`                                            | `after/notes-tiptap-editor.png`                             | editor mounts, editable, scope chips, export toolbar      |
+| 4   | **Screener formula grammar** — nested AND/OR group editor + a mathjs-Web-Worker custom-formula leaf (sandboxed; `expr-eval` absent) + agent `write_screener_filters` host action             | flat OR list only                                            | `after/screener-formula-nested.png`                         | nested sub-group + "CUSTOM FORMULA … runs client-side"    |
+| 5   | **Research collapsed to ONE entry** — the `/deep` + `/deep heavy` triggers and the "Deep research" composer toggle are gone; one `/research`, "go deeper" escalates in place, one deep loop  | `/research` + `/deep` + `/deep heavy` + Deep-research toggle | `after/cockpit-research-collapsed.png`                      | composer toggle removed; single trigger                   |
+| 6   | **Screener performance** — Yahoo v7 batch + cookie/crumb + caching tiers + warm precompute + an **itemized skip ledger**                                                                     | 205s / 178-of-506 silently skipped                           | warm **2.84s / 0 skips** (live)                             | see §"Screener perf numbers"                              |
 
 ---
 
@@ -29,21 +29,21 @@ pixel-proven changes:
 
 ### ✅ VERIFIED (rendered-pixel or live-HTTP proof saved)
 
-| Track | Verdict | Evidence |
-|---|---|---|
-| **Design language** | OKLCH ramp/accent re-valued in the historical token names; live tokens read back `charcoal-950 #0a0a0c`, `amber-400 #7e88e8`, `--accent-rgb 126 136 232`, `positive #3fbf6f`; `--glow-coral` **removed**; warm-clay `rg`-clean. Contrast floors **measured**: body 16.44:1, secondary 11.99:1, accent-on-surface 5.65:1 (all pass). 3-place canvas lockstep done. **(Tool: real-app Quartz + computed-style read.)** | `after/cockpit-populated.png` vs `before/cockpit-populated.png` |
-| **⌘K palette** | cmdk grouped/scoped; Agents render **above** symbols; symbols **query-gated** (hidden on empty query, surface on match); Ask-AI row routes the live query to the agent; 83 items, no flood. **(Tool: real-app Quartz; opened via the real ⌘K listener.)** | `after/palette-groups.png`, `after/palette-query-askai.png` |
-| **Tiptap notes** | Editor **mounts, renders, edits** in the real webview (after the crash fix below); General + per-symbol scope chips; .md/PNG/PDF export toolbar; 20 unit tests incl markdown round-trip. **(Tool: real-app Quartz.)** | `after/notes-tiptap-editor.png` |
-| **Screener formula grammar** | Simple/Nested toggle; recursive nested group with its own AND/OR + Add Criterion/Group; criterion rows (P/E<20, Mkt cap>100B, Sector=Technology); **CUSTOM FORMULA leaf** ("filters the matched results · runs client-side"); mathjs sandboxed (import/createUnit/evaluate-injection blocked, tested); **`expr-eval` absent** from the tree. **(Tool: real-app Quartz + 47 unit tests.)** | `after/screener-formula-nested.png` |
-| **Research collapse** | Exactly **one** `/research` trigger (source-audited); `/deep`+`/deep heavy` removed; "Deep research" composer toggle + Telescope icon **gone**; mode/angles/backend internal; one deep loop (iter; `deep.py` demoted to internal helper); Perplexity opt-in-per-run only; catalog collapsed to one read-handler. **(Tool: real-app Quartz + source + 152 sidecar tests.)** | `after/cockpit-research-collapsed.png` |
-| **Screener perf — warm path + skip ledger** | Live full S&P 500: **warm 2.84s**, **0 skips itemized** (vs baseline 178 silently dropped). Caching tiers serve sub-3s warm. **(Tool: live HTTP on the freshly-rebuilt `--onefile` binary, smoke-green.)** | §"Screener perf numbers" |
-| **Agent-OS spine + §6.5 gate** | The proposed-changes gate applies host actions (open/close/arrange panels driven live through `proposedChanges.enqueue → accept → applyHostAction`); §6.5 audit 9/9. | (drove panels via the gate throughout verification) |
+| Track                                       | Verdict                                                                                                                                                                                                                                                                                                                                                                                                              | Evidence                                                        |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| **Design language**                         | OKLCH ramp/accent re-valued in the historical token names; live tokens read back `charcoal-950 #0a0a0c`, `amber-400 #7e88e8`, `--accent-rgb 126 136 232`, `positive #3fbf6f`; `--glow-coral` **removed**; warm-clay `rg`-clean. Contrast floors **measured**: body 16.44:1, secondary 11.99:1, accent-on-surface 5.65:1 (all pass). 3-place canvas lockstep done. **(Tool: real-app Quartz + computed-style read.)** | `after/cockpit-populated.png` vs `before/cockpit-populated.png` |
+| **⌘K palette**                              | cmdk grouped/scoped; Agents render **above** symbols; symbols **query-gated** (hidden on empty query, surface on match); Ask-AI row routes the live query to the agent; 83 items, no flood. **(Tool: real-app Quartz; opened via the real ⌘K listener.)**                                                                                                                                                            | `after/palette-groups.png`, `after/palette-query-askai.png`     |
+| **Tiptap notes**                            | Editor **mounts, renders, edits** in the real webview (after the crash fix below); General + per-symbol scope chips; .md/PNG/PDF export toolbar; 20 unit tests incl markdown round-trip. **(Tool: real-app Quartz.)**                                                                                                                                                                                                | `after/notes-tiptap-editor.png`                                 |
+| **Screener formula grammar**                | Simple/Nested toggle; recursive nested group with its own AND/OR + Add Criterion/Group; criterion rows (P/E<20, Mkt cap>100B, Sector=Technology); **CUSTOM FORMULA leaf** ("filters the matched results · runs client-side"); mathjs sandboxed (import/createUnit/evaluate-injection blocked, tested); **`expr-eval` absent** from the tree. **(Tool: real-app Quartz + 47 unit tests.)**                            | `after/screener-formula-nested.png`                             |
+| **Research collapse**                       | Exactly **one** `/research` trigger (source-audited); `/deep`+`/deep heavy` removed; "Deep research" composer toggle + Telescope icon **gone**; mode/angles/backend internal; one deep loop (iter; `deep.py` demoted to internal helper); Perplexity opt-in-per-run only; catalog collapsed to one read-handler. **(Tool: real-app Quartz + source + 152 sidecar tests.)**                                           | `after/cockpit-research-collapsed.png`                          |
+| **Screener perf — warm path + skip ledger** | Live full S&P 500: **warm 2.84s**, **0 skips itemized** (vs baseline 178 silently dropped). Caching tiers serve sub-3s warm. **(Tool: live HTTP on the freshly-rebuilt `--onefile` binary, smoke-green.)**                                                                                                                                                                                                           | §"Screener perf numbers"                                        |
+| **Agent-OS spine + §6.5 gate**              | The proposed-changes gate applies host actions (open/close/arrange panels driven live through `proposedChanges.enqueue → accept → applyHostAction`); §6.5 audit 9/9.                                                                                                                                                                                                                                                 | (drove panels via the gate throughout verification)             |
 
 ### 🔧 BUILT — flagged with the real defect named
 
-| Item | Status |
-|---|---|
-| **Screener perf — cold-batch timing** | The Yahoo v7 batch path returns **HTTP 429 (Too Many Requests)** from this IP, so the screener falls back to per-symbol (resolving all 506 with **0 silent drops**, but at 329s cold). **Confirmed an IP rate-limit, not a code/TLS issue: `system curl` (real browser TLS) also gets 429** on `query1/query2.finance.yahoo.com` — so `curl_cffi` (already installed) would not help. The 429 was induced by this session's own heavy test runs (≈1000 per-symbol fallback fetches) + the warm-precompute worker. The single-digit-second cold target needs a non-throttled network; the batch parsing/field-mapping/crumb logic itself is covered by 50 mocked-httpx unit tests. **Recommended hardening (diagnosed, not yet applied):** the warm-precompute worker (`sidecar/services/screener.py _warm_loop`) re-attempts the batch every 40s with no 429-backoff, which *sustains* the throttle and degrades all Yahoo data app-wide — add exponential backoff on a zero-warm cycle. |
+| Item                                  | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Screener perf — cold-batch timing** | The Yahoo v7 batch path returns **HTTP 429 (Too Many Requests)** from this IP, so the screener falls back to per-symbol (resolving all 506 with **0 silent drops**, but at 329s cold). **Confirmed an IP rate-limit, not a code/TLS issue: `system curl` (real browser TLS) also gets 429** on `query1/query2.finance.yahoo.com` — so `curl_cffi` (already installed) would not help. The 429 was induced by this session's own heavy test runs (≈1000 per-symbol fallback fetches) + the warm-precompute worker. The single-digit-second cold target needs a non-throttled network; the batch parsing/field-mapping/crumb logic itself is covered by 50 mocked-httpx unit tests. **Recommended hardening (diagnosed, not yet applied):** the warm-precompute worker (`sidecar/services/screener.py _warm_loop`) re-attempts the batch every 40s with no 429-backoff, which _sustains_ the throttle and degrades all Yahoo data app-wide — add exponential backoff on a zero-warm cycle. |
 
 ### ❌ BROKEN
 
@@ -62,11 +62,11 @@ not captured** this session (Yahoo data throttled — same root cause as the col
 
 ## Screener perf numbers (live, freshly-rebuilt `--onefile` binary)
 
-| Run | Wall clock | Evaluated | Matched | Skipped | Skip ledger |
-|---|---|---|---|---|---|
-| S&P 500 cold (#1, batch 429→fallback) | 329.8s | 506 | 506 | **0** | itemized, empty |
-| S&P 500 warm (#2, cache) | **2.84s** | 506 | 506 | **0** | itemized, empty |
-| nifty50 cold (batch 429→fallback) | 32.7s | 50 | 50 | **0** | itemized, empty |
+| Run                                   | Wall clock | Evaluated | Matched | Skipped | Skip ledger     |
+| ------------------------------------- | ---------- | --------- | ------- | ------- | --------------- |
+| S&P 500 cold (#1, batch 429→fallback) | 329.8s     | 506       | 506     | **0**   | itemized, empty |
+| S&P 500 warm (#2, cache)              | **2.84s**  | 506       | 506     | **0**   | itemized, empty |
+| nifty50 cold (batch 429→fallback)     | 32.7s      | 50        | 50      | **0**   | itemized, empty |
 
 Baseline (session 1): 205,518ms / **178-of-506 silently skipped**. Net: **skips 178→0 (the reliability
 win lands)**; **warm 2.84s lands**; **cold time is throttle-bound** (see the flag above).
@@ -75,21 +75,22 @@ win lands)**; **warm 2.84s lands**; **cold time is throttle-bound** (see the fla
 
 ## Per-track telemetry (parallel teammates)
 
-| Track | Model | Tokens | Tool-uses | Wall (s) | Branch / outcome |
-|---|---|---|---|---|---|
-| Grounding (11 agents) | mixed | 494,668 | 219 | 271 | mapped all 6 tracks |
-| Design language | Sonnet | 87,817 | 49 | 555 | `worktree-agent-design` → ported |
-| ⌘K palette | Sonnet | 102,281 | 84 | 682 | `worktree-agent-palette` → ported |
-| Tiptap notes | Sonnet | 132,365 | 141 | 1033 | `worktree-agent-notes` → ported + crash-fixed |
-| Screener formula | Opus | 196,425 | 115 | 1134 | `worktree-agent-formula` → cherry-picked clean |
-| Research collapse | Opus | 293,580 | 215 | 1606 | `worktree-agent-research` → cherry-picked + merged |
-| Screener perf (v1, stale base) | Opus | 182,577 | 79 | 916 | superseded |
-| Screener perf (v2, clean base) | Opus | 183,627 | 52 | 828 | `worktree-agent-screener-perf-v2` → cherry-picked clean |
+| Track                          | Model  | Tokens  | Tool-uses | Wall (s) | Branch / outcome                                        |
+| ------------------------------ | ------ | ------- | --------- | -------- | ------------------------------------------------------- |
+| Grounding (11 agents)          | mixed  | 494,668 | 219       | 271      | mapped all 6 tracks                                     |
+| Design language                | Sonnet | 87,817  | 49        | 555      | `worktree-agent-design` → ported                        |
+| ⌘K palette                     | Sonnet | 102,281 | 84        | 682      | `worktree-agent-palette` → ported                       |
+| Tiptap notes                   | Sonnet | 132,365 | 141       | 1033     | `worktree-agent-notes` → ported + crash-fixed           |
+| Screener formula               | Opus   | 196,425 | 115       | 1134     | `worktree-agent-formula` → cherry-picked clean          |
+| Research collapse              | Opus   | 293,580 | 215       | 1606     | `worktree-agent-research` → cherry-picked + merged      |
+| Screener perf (v1, stale base) | Opus   | 182,577 | 79        | 916      | superseded                                              |
+| Screener perf (v2, clean base) | Opus   | 183,627 | 52        | 828      | `worktree-agent-screener-perf-v2` → cherry-picked clean |
 
 **Parallelism:** all six tracks dispatched as isolated-worktree background teammates and built
 concurrently; the lead integrated + pixel-verified each.
 
 ### Coordination lesson (carry-forward)
+
 The Agent-tool worktree isolation branched **4 of 6 teammates from a stale pre-003-rebuild commit**
 (`cfcf5be`), not the current 004 HEAD — caught by auditing each branch's merge-base. Formula and
 research **self-detected and reset** their base; design/palette/notes/screener-perf did not. The lead
@@ -102,19 +103,19 @@ from HEAD or instruct every teammate to reset-to-base before building.**
 
 ## The floor (held at the final milestone)
 
-| Gate | Result |
-|---|---|
-| §6.5 safety audit (`test_safety_end_to_end.py`) | **9/9** |
-| Tier-1 LOCKED files byte-for-byte | **untouched** (`git diff --name-only 8f2fc21..HEAD` — zero locked files) |
-| TypeScript `typecheck` | **pass** |
-| ESLint | **pass** |
-| Prettier (changed files) | **clean** |
-| ruff format + check (sidecar, 300 files) | **clean** (ruff 0.15.12 = CI) |
-| vitest | **964 passed** (121 files) |
-| pytest (full sidecar) | **1367 passed, 1 skipped** |
-| cargo test | **pass** (exit 0; new `write_text_atomic` Rust command builds) |
-| sidecar `--onefile` rebuild + smoke-test | **green** (all 3 sidecars boot, MCP subprocesses survive, screener universe endpoint OK) |
-| Orders never auto-apply / brokers read-only / keyless-first | **intact** |
+| Gate                                                        | Result                                                                                   |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| §6.5 safety audit (`test_safety_end_to_end.py`)             | **9/9**                                                                                  |
+| Tier-1 LOCKED files byte-for-byte                           | **untouched** (`git diff --name-only 8f2fc21..HEAD` — zero locked files)                 |
+| TypeScript `typecheck`                                      | **pass**                                                                                 |
+| ESLint                                                      | **pass**                                                                                 |
+| Prettier (changed files)                                    | **clean**                                                                                |
+| ruff format + check (sidecar, 300 files)                    | **clean** (ruff 0.15.12 = CI)                                                            |
+| vitest                                                      | **964 passed** (121 files)                                                               |
+| pytest (full sidecar)                                       | **1367 passed, 1 skipped**                                                               |
+| cargo test                                                  | **pass** (exit 0; new `write_text_atomic` Rust command builds)                           |
+| sidecar `--onefile` rebuild + smoke-test                    | **green** (all 3 sidecars boot, MCP subprocesses survive, screener universe endpoint OK) |
+| Orders never auto-apply / brokers read-only / keyless-first | **intact**                                                                               |
 
 ---
 

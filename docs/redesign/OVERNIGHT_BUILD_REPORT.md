@@ -78,18 +78,18 @@ Integrated on `004` at `0ab48d5` (foundation→merges); wave-2 in flight. Integr
 fully green: **vitest 985/985 (122 files)**, **pytest 1393 passed / 1 skipped**, **typecheck
 clean**, **cargo check clean** (the new Rust command).
 
-| Phase | Track                               | Status | Evidence                                                    |
-| ----- | ----------------------------------- | ------ | ----------------------------------------------------------- |
-| 0     | Warm Graphite + amber + de-glow     | ✅     | `acde11f`; rg-clean of cold literals; typecheck green       |
+| Phase | Track                               | Status | Evidence                                                     |
+| ----- | ----------------------------------- | ------ | ------------------------------------------------------------ |
+| 0     | Warm Graphite + amber + de-glow     | ✅     | `acde11f`; rg-clean of cold literals; typecheck green        |
 | 2     | ⌘K ranking fix + palette sizing     | ✅     | `0bcb4fe`; 36 palette tests incl "notes" regression + sizing |
 | 2     | Notes export MD/PNG/PDF             | ✅     | `d664bda`; Rust write_bytes_atomic + cargo check green       |
 | 3     | Screener cold-path backoff          | ✅     | merged `a456ec7`; 35+39 sidecar tests, backoff+jitter        |
 | 4     | Company-overview narrative + verify | ✅     | merged `021be60`; 15 tests, numeric-redaction pass           |
 | 4     | Per-research-space memory           | ✅     | merged `36ef515`; typed field + durable memory, 40 tests     |
 | 5     | DESIGN_SYSTEM.md rewrite (S-2)      | ✅     | merged `0ab48d5`; grep-clean of retired-system terms         |
-| 1/4   | Composer/header sizing + chips      | ◐      | wave-2 `worktree-agent-composer` (building)                 |
+| 1/4   | Composer/header sizing + chips      | ◐      | wave-2 `worktree-agent-composer` (building)                  |
 | 2/4   | Brief export MD/PDF + depth         | ◐      | wave-2 `worktree-agent-brief` (building)                     |
-| 1/4   | Badges/pickers/EmptyState/session   | ◐      | wave-2 `worktree-agent-surfaces` (building)                 |
+| 1/4   | Badges/pickers/EmptyState/session   | ◐      | wave-2 `worktree-agent-surfaces` (building)                  |
 | 6     | Verification + safety floor         | ☐      | next: rebuild + rig screenshots + fresh design review        |
 
 Stale-register: S-1/S-2/S-3/S-5a ✅ done. S-6/S-7 (brief casing) in wave-2 brief track.
@@ -99,13 +99,13 @@ S-15/S-16/S-18 (dedup) optional polish, not yet scheduled.
 
 ## Telemetry (agents, tokens, tool-calls, wall-clock, files/lines)
 
-| Track                       | Model  | Tokens  | Tool-calls | Wall (s) | Branch / outcome                          |
-| --------------------------- | ------ | ------- | ---------- | -------- | ----------------------------------------- |
-| Recon (4 Explore agents)    | Opus   | —       | —          | ~120     | read-only map of 4 regions                |
-| Phase-0 foundation (lead)   | Opus   | —       | ~30        | —        | `acde11f` direct (5 files)                |
-| ⌘K ranking + palette (lead) | Opus   | —       | ~12        | —        | `0bcb4fe` direct (3 files)                |
-| Notes export + Rust (lead)  | Opus   | —       | ~18        | —        | `d664bda` direct (3 files)                |
-| Screener backoff            | Opus   | 102,920 | 55         | 466      | `worktree-agent-screener-backoff` merged  |
+| Track                       | Model  | Tokens  | Tool-calls | Wall (s) | Branch / outcome                           |
+| --------------------------- | ------ | ------- | ---------- | -------- | ------------------------------------------ |
+| Recon (4 Explore agents)    | Opus   | —       | —          | ~120     | read-only map of 4 regions                 |
+| Phase-0 foundation (lead)   | Opus   | —       | ~30        | —        | `acde11f` direct (5 files)                 |
+| ⌘K ranking + palette (lead) | Opus   | —       | ~12        | —        | `0bcb4fe` direct (3 files)                 |
+| Notes export + Rust (lead)  | Opus   | —       | ~18        | —        | `d664bda` direct (3 files)                 |
+| Screener backoff            | Opus   | 102,920 | 55         | 466      | `worktree-agent-screener-backoff` merged   |
 | Per-research-space memory   | Opus   | 180,925 | 111        | 939      | `worktree-agent-space-memory` merged       |
 | Company-overview narrative  | Opus   | 190,761 | 95         | 822      | `worktree-agent-overview-narrative` merged |
 | DESIGN_SYSTEM.md rewrite    | Sonnet | 76,354  | 28         | 281      | `worktree-agent-design-doc` merged         |

@@ -50,13 +50,13 @@ retired systems so the ~92 files that reference them as Tailwind classes re-skin
 zero edits. Only the **values** changed. The names are therefore historical and must
 not be read literally:
 
-| Token family    | Renders as                             |
-| --------------- | -------------------------------------- |
-| `charcoal-*`    | Warm Graphite neutral ramp             |
-| `amber-*`       | Muted amber accent (the only accent)   |
-| `brass-*`       | Warm-neutral secondaries (ramp-aligned)|
-| `sage-*`        | Warm-neutral secondaries (ramp-aligned)|
-| `lume`          | Warm near-white                        |
+| Token family | Renders as                              |
+| ------------ | --------------------------------------- |
+| `charcoal-*` | Warm Graphite neutral ramp              |
+| `amber-*`    | Muted amber accent (the only accent)    |
+| `brass-*`    | Warm-neutral secondaries (ramp-aligned) |
+| `sage-*`     | Warm-neutral secondaries (ramp-aligned) |
+| `lume`       | Warm near-white                         |
 
 Read the role column. A project-wide rename is a documented future cleanup item; it
 was not done here to avoid churning ~92 files.
@@ -70,35 +70,35 @@ was not done here to avoid churning ~92 files.
 OKLCH-derived, hue ~75, chroma <= 0.008, perceptually even steps. Every value is
 warm (R >= G >= B, small deltas). Source: `styles/tokens.css`.
 
-| Token            | Hex       | Role                                              |
-| ---------------- | --------- | ------------------------------------------------- |
-| `charcoal-950`   | `#0e0d0b` | App root well (deepest)                           |
-| `charcoal-925`   | `#131210` | Header fascia, tab strip                          |
-| `charcoal-900`   | `#1a1814` | Panel / card surface (the visual anchor)          |
-| `charcoal-875`   | `#211e19` | Popover / active tab / hover surface              |
-| `charcoal-850`   | `#29251f` | Raised inset — input fill, node background        |
-| `charcoal-800`   | `#312c25` | Muted / secondary surface                        |
-| `charcoal-700`   | `#39332b` | Borders / inputs / dividers                       |
-| `charcoal-600`   | `#4a443a` | Strong border / disabled foreground               |
-| `charcoal-500`   | `#79736a` | Tertiary text — faint label, kbd, process/meta    |
-| `charcoal-400`   | `#a8a095` | Secondary text — muted foreground                 |
-| `charcoal-300`   | `#d3cec5` | Secondary-bright text                             |
-| `charcoal-200`   | `#e9e4dc` | Bright secondary / chart axis text                |
-| `charcoal-100`   | `#f5f2ec` | Primary text / foreground (warm near-white)       |
-| `lume`           | `#f7f5f0` | Peak near-white — active-tab text, peak readouts  |
+| Token          | Hex       | Role                                             |
+| -------------- | --------- | ------------------------------------------------ |
+| `charcoal-950` | `#0e0d0b` | App root well (deepest)                          |
+| `charcoal-925` | `#131210` | Header fascia, tab strip                         |
+| `charcoal-900` | `#1a1814` | Panel / card surface (the visual anchor)         |
+| `charcoal-875` | `#211e19` | Popover / active tab / hover surface             |
+| `charcoal-850` | `#29251f` | Raised inset — input fill, node background       |
+| `charcoal-800` | `#312c25` | Muted / secondary surface                        |
+| `charcoal-700` | `#39332b` | Borders / inputs / dividers                      |
+| `charcoal-600` | `#4a443a` | Strong border / disabled foreground              |
+| `charcoal-500` | `#79736a` | Tertiary text — faint label, kbd, process/meta   |
+| `charcoal-400` | `#a8a095` | Secondary text — muted foreground                |
+| `charcoal-300` | `#d3cec5` | Secondary-bright text                            |
+| `charcoal-200` | `#e9e4dc` | Bright secondary / chart axis text               |
+| `charcoal-100` | `#f5f2ec` | Primary text / foreground (warm near-white)      |
+| `lume`         | `#f7f5f0` | Peak near-white — active-tab text, peak readouts |
 
 ### Muted amber accent (`amber-*`)
 
 OKLCH hue ~70 (amber/gold), restrained — earthy gold, not neon, not pure orange.
 Five states from faint tint to deep border. Source: `styles/tokens.css`.
 
-| Token        | Hex       | Role                                                    |
-| ------------ | --------- | ------------------------------------------------------- |
-| `amber-200`  | `#f0d8ac` | Faint tint / selection fill                             |
-| `amber-300`  | `#e9bd80` | Hover-bright / accent text on dark                      |
-| `amber-400`  | `#d89a4e` | **BRAND / primary / default accent**                    |
-| `amber-500`  | `#c0802f` | Pressed / active sash / selected                        |
-| `amber-600`  | `#875720` | Deep border / dense accent                              |
+| Token       | Hex       | Role                                 |
+| ----------- | --------- | ------------------------------------ |
+| `amber-200` | `#f0d8ac` | Faint tint / selection fill          |
+| `amber-300` | `#e9bd80` | Hover-bright / accent text on dark   |
+| `amber-400` | `#d89a4e` | **BRAND / primary / default accent** |
+| `amber-500` | `#c0802f` | Pressed / active sash / selected     |
+| `amber-600` | `#875720` | Deep border / dense accent           |
 
 The `--accent-rgb` in `globals.css` is `216 154 78` (the RGB decomposition of
 `#d89a4e`). All three files — `tokens.css`, `globals.css`, and `chart-theme.ts` —
@@ -136,11 +136,11 @@ real watchlist with prices alongside the active composer or focus ring.
 Hierarchy is expressed through font weight, opacity/tone, and size alone. No
 additional accent colors are introduced to signal importance.
 
-| Tier          | Token                    | Weight           | Use                                                      |
-| ------------- | ------------------------ | ---------------- | -------------------------------------------------------- |
-| **Primary**   | `charcoal-100` `#f5f2ec` | 400–510          | Content — prose, prices, answers, headings               |
-| **Secondary** | `charcoal-300/400`       | 400              | Supporting labels, table secondaries, descriptions       |
-| **Tertiary**  | `charcoal-500` `#79736a` | 400, often small | Process/meta — "Read …", "Thought …", timestamps, kbd    |
+| Tier          | Token                    | Weight           | Use                                                   |
+| ------------- | ------------------------ | ---------------- | ----------------------------------------------------- |
+| **Primary**   | `charcoal-100` `#f5f2ec` | 400–510          | Content — prose, prices, answers, headings            |
+| **Secondary** | `charcoal-300/400`       | 400              | Supporting labels, table secondaries, descriptions    |
+| **Tertiary**  | `charcoal-500` `#79736a` | 400, often small | Process/meta — "Read …", "Thought …", timestamps, kbd |
 
 Headings lead by size + weight (`--font-weight-heading` 590), not by color. Amber
 text (`amber-300`) is reserved for the active/selected affordance only, not for
@@ -154,15 +154,15 @@ R4 introduces a named type scale defined in `styles/tokens.css` as Tailwind 4
 `@theme` values and `@utility` classes. Components use `text-body` / `text-caption`
 / `text-panel-title` instead of ad-hoc `text-[11px]`.
 
-| Utility         | Size     | Line-height       | Weight | Use                             |
-| --------------- | -------- | ----------------- | ------ | ------------------------------- |
-| `text-micro`    | 11px     | heading (1.3)     | 510    | HUD label (uppercase, +0.10em)  |
-| `text-caption`  | 12px     | body (1.5)        | 400    | Caption, secondary, kbd chips   |
-| `text-body`     | 13px     | body (1.5)        | 400    | Body + table base               |
-| `text-panel-title` | 15px  | heading (1.3)     | 510    | Panel title                     |
-| `text-section`  | 18px     | heading (1.3)     | 590    | Section head                    |
-| `text-overview` | 22px     | display (1.25)    | 590    | Overview / brief head           |
-| `text-hero`     | 28px     | hero (1.2)        | 590    | Rare hero (first-run only)      |
+| Utility            | Size | Line-height    | Weight | Use                            |
+| ------------------ | ---- | -------------- | ------ | ------------------------------ |
+| `text-micro`       | 11px | heading (1.3)  | 510    | HUD label (uppercase, +0.10em) |
+| `text-caption`     | 12px | body (1.5)     | 400    | Caption, secondary, kbd chips  |
+| `text-body`        | 13px | body (1.5)     | 400    | Body + table base              |
+| `text-panel-title` | 15px | heading (1.3)  | 510    | Panel title                    |
+| `text-section`     | 18px | heading (1.3)  | 590    | Section head                   |
+| `text-overview`    | 22px | display (1.25) | 590    | Overview / brief head          |
+| `text-hero`        | 28px | hero (1.2)     | 590    | Rare hero (first-run only)     |
 
 Minimum interactive text is 12px; primary inputs are 14px; dense data tables stay
 at 13px. Source: `styles/tokens.css` type-scale block and `PRODUCT_DESIGN_DECISIONS.md` §5.
@@ -201,6 +201,7 @@ The body background is a **flat warm-graphite field** (`background-image: none` 
 shadows used as halos, and nothing named glow/bloom/halo/neon/ambient.
 
 **Allowed border treatments:**
+
 - A 1px hard amber border: `box-shadow: 0 0 0 1px var(--color-amber-400)`.
 - The inset active-tab tick: `box-shadow: inset 0 -2px 0 var(--color-amber-400)`.
 - The quiet 1px bezel: `--bezel-shadow: inset 0 1px 0 rgb(250 248 244 / 0.04), 0 1px 2px rgb(0 0 0 / 0.4)`.
@@ -252,23 +253,23 @@ historical and now carry the muted amber values — do not read them literally.
 
 **Current canvas palette (mirror of `src/lib/chart-theme.ts`):**
 
-| Export                | Value     | Token mirror     | Role                  |
-| --------------------- | --------- | ---------------- | --------------------- |
-| `CHART_SURFACE`       | `#1a1814` | `charcoal-900`   | Chart background      |
-| `CHART_TEXT`          | `#a8a095` | `charcoal-400`   | Axis / label text     |
-| `CHART_TEXT_MUTED`    | `#79736a` | `charcoal-500`   | Secondary labels      |
-| `CHART_GRID`          | `#312c25` | `charcoal-800`   | Gridlines             |
-| `CHART_BORDER`        | `#39332b` | `charcoal-700`   | Scale borders         |
-| `CHART_CROSSHAIR`     | `#4a443a` | `charcoal-600`   | Crosshair             |
-| `ACCENT_CORAL`        | `#d89a4e` | `amber-400`      | Brand / primary line  |
-| `ACCENT_CORAL_BRIGHT` | `#e9bd80` | `amber-300`      | Emphasis line         |
-| `ACCENT_CORAL_DEEP`   | `#875720` | `amber-600`      | Deep accent line      |
-| `ACCENT_CORAL_RGB`    | `"216, 154, 78"` | `--accent-rgb` | Alpha fills      |
-| `POSITIVE`            | `#3fbf6f` | signal-positive  | Gain lines            |
-| `NEGATIVE`            | `#e5544b` | signal-negative  | Loss lines            |
-| `WARNING`             | `#e0a13a` | signal-warning   | Caution               |
-| `NEUTRAL`             | `#a8a095` | `charcoal-400`   | Comparison series     |
-| `NEUTRAL_LIGHT`       | `#d3cec5` | `charcoal-300`   | Light neutral series  |
+| Export                | Value            | Token mirror    | Role                 |
+| --------------------- | ---------------- | --------------- | -------------------- |
+| `CHART_SURFACE`       | `#1a1814`        | `charcoal-900`  | Chart background     |
+| `CHART_TEXT`          | `#a8a095`        | `charcoal-400`  | Axis / label text    |
+| `CHART_TEXT_MUTED`    | `#79736a`        | `charcoal-500`  | Secondary labels     |
+| `CHART_GRID`          | `#312c25`        | `charcoal-800`  | Gridlines            |
+| `CHART_BORDER`        | `#39332b`        | `charcoal-700`  | Scale borders        |
+| `CHART_CROSSHAIR`     | `#4a443a`        | `charcoal-600`  | Crosshair            |
+| `ACCENT_CORAL`        | `#d89a4e`        | `amber-400`     | Brand / primary line |
+| `ACCENT_CORAL_BRIGHT` | `#e9bd80`        | `amber-300`     | Emphasis line        |
+| `ACCENT_CORAL_DEEP`   | `#875720`        | `amber-600`     | Deep accent line     |
+| `ACCENT_CORAL_RGB`    | `"216, 154, 78"` | `--accent-rgb`  | Alpha fills          |
+| `POSITIVE`            | `#3fbf6f`        | signal-positive | Gain lines           |
+| `NEGATIVE`            | `#e5544b`        | signal-negative | Loss lines           |
+| `WARNING`             | `#e0a13a`        | signal-warning  | Caution              |
+| `NEUTRAL`             | `#a8a095`        | `charcoal-400`  | Comparison series    |
+| `NEUTRAL_LIGHT`       | `#d3cec5`        | `charcoal-300`  | Light neutral series |
 
 ---
 
@@ -356,12 +357,12 @@ Key overrides sourced from `globals.css`:
 
 Unified motion vocabulary with four duration tiers, defined in `styles/tokens.css`:
 
-| Token                 | Value  | Use                                            |
-| --------------------- | ------ | ---------------------------------------------- |
-| `--duration-micro`    | 120ms  | Hover, toggle, button press, color/value flash |
-| `--duration-default`  | 180ms  | Dropdown, popover, tab switch, palette open    |
-| `--duration-entrance` | 240ms  | Panel mount, modal/sheet, sidebar slide        |
-| `--duration-exit`     | 160ms  | Exits ~30% faster than entrances               |
+| Token                 | Value | Use                                            |
+| --------------------- | ----- | ---------------------------------------------- |
+| `--duration-micro`    | 120ms | Hover, toggle, button press, color/value flash |
+| `--duration-default`  | 180ms | Dropdown, popover, tab switch, palette open    |
+| `--duration-entrance` | 240ms | Panel mount, modal/sheet, sidebar slide        |
+| `--duration-exit`     | 160ms | Exits ~30% faster than entrances               |
 
 Easing: `--ease-enter` for arriving elements; `--ease-exit` for departing;
 `--ease-shared` for elements that start and end on screen. Legacy aliases
