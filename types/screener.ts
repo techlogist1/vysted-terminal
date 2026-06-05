@@ -159,6 +159,31 @@ export interface ScreenerResultRow {
   matched_criteria: number[];
 }
 
+/**
+ * One itemized skip — a universe member that never reached evaluation.
+ *
+ * The R4 batch fast path (FR-126 / SC-034) replaced the old "silently drop
+ * 242/506" behaviour with a complete ledger: every symbol the screener could
+ * not evaluate is itemized here with a machine-readable ``reason`` so the UI can
+ * surface coverage honestly. ``skipped_count === skip_details.length`` always.
+ *
+ * Hand-mirrors ``SkipDetail`` in ``sidecar/models/screener.py``.
+ */
+export interface SkipDetail {
+  symbol: string;
+  /**
+   * Why the symbol was skipped:
+   *   - ``"timeout"`` — the upstream fetch timed out.
+   *   - ``"not_found"`` — Yahoo returned no row for the symbol.
+   *   - ``"no_data"`` — a row came back but carried no usable price / payload.
+   *   - ``"rate_limited"`` — the upstream throttled the request (HTTP 429).
+   *   - ``"correctness_gate"`` — the provider refused to fabricate a value.
+   *   - ``"missing_field:<field>"`` — a criterion referenced a field neither the
+   *     batch row nor the per-symbol enrichment could supply.
+   */
+  reason: string;
+}
+
 /** Response shape from ``POST /screener/run``. */
 export interface ScreenerResult {
   universe: ScreenerUniverseId;
@@ -166,6 +191,13 @@ export interface ScreenerResult {
   evaluated_count: number;
   /** Symbols dropped (timeout / provider error) before evaluation. */
   skipped_count: number;
+  /**
+   * Itemized skip ledger (R4 / FR-126 / SC-034) — one entry per dropped symbol
+   * with a machine-readable reason. ``skipped_count === skip_details.length``.
+   * Optional in the mirror (older blobs / fixtures may omit it) — absent reads
+   * as "no itemization available", an empty array as "nothing skipped".
+   */
+  skip_details?: SkipDetail[];
   /** Total rows returned (≤ ``limit``). */
   result_count: number;
   rows: ScreenerResultRow[];
