@@ -84,8 +84,17 @@ export interface BriefStep {
   status: BriefStepStatus;
 }
 
-/** The two research depths the pipeline runs in. */
+/** The two research depths the pipeline renders in the mode badge. */
 export type BriefMode = "FAST" | "DEEP";
+
+/**
+ * The true depth TIER a brief was produced at (FR-115). The ONE research model
+ * escalates in place across these three internal tiers; the brief carries the
+ * tier it reached so the panel's "Go deeper" affordance knows the NEXT tier (and
+ * hides itself at `heavy`). `quick` ≙ FAST mode; `deep`/`heavy` ≙ DEEP mode.
+ * Optional — older briefs omit it and the panel derives the tier from `mode`.
+ */
+export type BriefDepth = "quick" | "deep" | "heavy";
 
 /**
  * A complete research brief — the payload the BriefPanel renders and the
@@ -96,8 +105,13 @@ export interface ResearchBriefData {
   query: string;
   /** The primary ticker the brief is about, when the query resolved to one. */
   symbol?: string;
-  /** The depth the pipeline ran in. */
+  /** The depth the pipeline ran in (the mode badge: FAST | DEEP). */
   mode: BriefMode;
+  /**
+   * The true depth tier reached (`quick` | `deep` | `heavy`). Drives the in-place
+   * "Go deeper" escalation (FR-115). Optional — derived from `mode` when absent.
+   */
+  depth?: BriefDepth;
   /** The brief body, in markdown, with inline `[n]` citation markers. */
   markdown: string;
   /** The cited sources, indexed 1-based by the `[n]` markers in {@link markdown}. */

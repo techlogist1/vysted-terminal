@@ -266,65 +266,66 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
         _cap(
             "research",
             description=(
-                "FAST research bundle for a company: resolves the symbol and pulls "
-                "price, fundamentals, recent news, and filings in parallel plus one "
-                "web round — returns a provenance-tagged data bundle and a suggested "
-                "cockpit layout + indicators. Call this for 'research X' / 'set me up "
-                "to look at X', then arrange the research-cockpit, load the chart, and "
-                "write a cited brief into the brief panel with publish_brief."
-            ),
-            input_schema=_obj(
-                {"query": {"type": "string", "description": "Company name or ticker."}},
-                ["query"],
-            ),
-            domain="research",
-            read_only=True,
-            kind="read_handler",
-        ),
-        _cap(
-            "deep_research",
-            description=(
-                "DEEP research: a budget-bounded multi-round search→read→reflect loop "
-                "that returns a synthesized, cited brief. Use for '/deep' or 'go "
-                "deeper'. By default runs IterResearch (a central evolving report, "
-                "rebuilt each round so context never bloats). Pass angles=2-3 for "
-                "Heavy mode — an expert PANEL of parallel research angles synthesized "
-                "into one brief (use when the user wants the deepest, most thorough "
-                "answer, e.g. 'go all out' or '/deep heavy'). Bounded by rounds + "
-                "wall-clock; on the budget ceiling it synthesizes from what it has "
-                "(never times out into nothing). The Perplexity backend is opt-in — "
-                "never auto-selected."
+                "The ONE research capability — call it for 'research X' / 'set me up "
+                "to look at X' / 'go deeper on X'. Resolves the symbol, pulls price, "
+                "fundamentals, recent news, and filings, and (depth permitting) runs a "
+                "budget-bounded search→read→reflect loop, returning a provenance-tagged "
+                "bundle + a synthesized cited brief that auto-publishes into the brief "
+                "panel (you need NOT call publish_brief for a deep run). Depth "
+                "ESCALATES IN PLACE — start at 'quick', deepen only when the user asks "
+                "to 'go deeper':\n"
+                "- depth='quick' (default): one fast pass — price/fundamentals/news/"
+                "filings + one web round. Instant; use this for the first 'research X' "
+                "(then arrange the research-cockpit, load the chart, and write the "
+                "cited brief with publish_brief, mode='FAST').\n"
+                "- depth='deep': the IterResearch loop (a central evolving report, "
+                "rebuilt each round so context never bloats). Use when the user says "
+                "'go deeper' / wants a thorough multi-round answer — its brief "
+                "auto-publishes, so you need NOT call publish_brief.\n"
+                "- depth='heavy': the expert PANEL — several parallel research angles "
+                "synthesized into one brief. Use only for the deepest ask ('go all "
+                "out'). Higher cost.\n"
+                "Bounded by rounds + wall-clock; on the budget ceiling it synthesizes "
+                "from what it has (never times out into nothing). mode/angles are "
+                "INTERNAL — drive depth, not those. The Perplexity backend is "
+                "opt-in-per-run + paid and is NEVER auto-selected."
             ),
             input_schema=_obj(
                 {
-                    "query": {"type": "string", "description": "The research question."},
-                    "rounds": {"type": "integer", "default": 3, "description": "1-5."},
-                    "wall_seconds": {"type": "integer", "default": 120, "description": "30-300."},
-                    "mode": {
+                    "query": {
                         "type": "string",
-                        "enum": ["iter", "single"],
-                        "default": "iter",
+                        "description": "Company name, ticker, or research question.",
+                    },
+                    "depth": {
+                        "type": "string",
+                        "enum": ["quick", "deep", "heavy"],
+                        "default": "quick",
                         "description": (
-                            "'iter' (default): IterResearch evolving-report loop. "
-                            "'single': the legacy single-pass loop."
+                            "'quick' (default) = one fast pass. 'deep' = the "
+                            "IterResearch evolving-report loop (use on 'go deeper'). "
+                            "'heavy' = the expert panel of parallel angles (deepest, "
+                            "higher cost). Escalate in place — never start at heavy."
                         ),
                     },
-                    "angles": {
+                    "rounds": {
                         "type": "integer",
-                        "default": 1,
-                        "description": (
-                            "1 (default) = one agent. 2-3 = Heavy mode: that many "
-                            "parallel research angles synthesized into one brief "
-                            "(deeper, more thorough, higher cost)."
-                        ),
+                        "default": 3,
+                        "description": "1-5 (deep/heavy only).",
+                    },
+                    "wall_seconds": {
+                        "type": "integer",
+                        "default": 120,
+                        "description": "30-300 (deep/heavy only).",
                     },
                     "backend": {
                         "type": "string",
                         "enum": ["native", "perplexity"],
                         "default": "native",
                         "description": (
-                            "'perplexity' (opt-in, paid, needs a Perplexity key) — "
-                            "else the built-in 'native' loop."
+                            "INTERNAL. 'perplexity' (opt-in-per-run, paid, needs a "
+                            "Perplexity key) is NEVER auto-selected — only reachable on "
+                            "an explicit per-run opt-in. Otherwise the built-in "
+                            "'native' loop."
                         ),
                     },
                 },
@@ -932,7 +933,8 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 "Publish a synthesized research brief into the brief panel (the B+A "
                 "research output). Pass the markdown body (with inline [n] citation "
                 "markers), the sources, the mode (FAST|DEEP), and metadata. Use after "
-                "gathering data with research/deep_research. If web sources were "
+                "gathering data with research (a deep/heavy research run "
+                "auto-publishes, so you need not call this for it). If web sources were "
                 "unavailable, set web_available=false and say so in the brief — never "
                 "fabricate a source."
             ),

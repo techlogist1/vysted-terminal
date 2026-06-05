@@ -30,7 +30,13 @@ import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 
 import type { BrokerId, BrokerOrderProposal } from "../../types/broker";
-import type { BriefSource, BriefStep, BriefStructured, ResearchBriefData } from "../../types/brief";
+import type {
+  BriefDepth,
+  BriefSource,
+  BriefStep,
+  BriefStructured,
+  ResearchBriefData,
+} from "../../types/brief";
 import type { ProposedChangeKind } from "../../types/proposed-change";
 import type { CriterionGroup, ScreenerCriterion, ScreenerUniverseId } from "../../types/screener";
 
@@ -66,7 +72,23 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
       domain: typeof s.domain === "string" ? s.domain : undefined,
     }))
     .filter((s) => s.url);
-  const mode = str(input, "mode").toUpperCase() === "DEEP" ? "DEEP" : "FAST";
+  const rawMode = str(input, "mode").toLowerCase();
+  // The true depth TIER (FR-115): prefer the explicit `depth` the auto-publish
+  // sets; else derive it from the mode ("heavy"/"deep" → DEEP tier, else quick).
+  // Drives the brief panel's in-place "Go deeper" escalation.
+  const rawDepth = str(input, "depth").toLowerCase();
+  const depth: BriefDepth =
+    rawDepth === "heavy" || rawDepth === "deep" || rawDepth === "quick"
+      ? (rawDepth as BriefDepth)
+      : rawMode === "heavy"
+        ? "heavy"
+        : rawMode === "deep"
+          ? "deep"
+          : "quick";
+  // The mode BADGE collapses the three tiers to FAST|DEEP (quick → FAST, deep/
+  // heavy → DEEP) — also fixes the S-6 casing miss where a lowercase "deep"/
+  // "heavy" never matched the uppercase badge.
+  const mode = depth === "quick" ? "FAST" : "DEEP";
   const cost =
     typeof input.cost === "object" && input.cost !== null
       ? (input.cost as { tokens?: number; spendUsd?: number; spend_usd?: number })
@@ -105,6 +127,7 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
     query: str(input, "query"),
     symbol,
     mode,
+    depth,
     markdown: str(input, "markdown"),
     sources,
     sourceCount: sources.length,

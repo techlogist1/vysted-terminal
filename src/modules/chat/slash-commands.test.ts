@@ -165,15 +165,15 @@ describe("parseSlashInvocation", () => {
 });
 
 describe("SLASH_COMMANDS registry", () => {
-  it("contains all 12 curated commands", () => {
-    expect(SLASH_COMMANDS).toHaveLength(12);
+  it("contains all 10 curated commands", () => {
+    // FR-115 / SC-028: research collapsed to ONE entry — no `/deep`, no
+    // `/deep heavy` (depth is internal escalation, not a user-visible trigger).
+    expect(SLASH_COMMANDS).toHaveLength(10);
     expect(SLASH_COMMANDS.map((c) => c.trigger).sort()).toEqual(
       [
         "chart",
         "clear",
         "compare",
-        "deep",
-        "deep heavy",
         "export",
         "layout",
         "portfolio",
@@ -183,6 +183,16 @@ describe("SLASH_COMMANDS registry", () => {
         "watch",
       ].sort(),
     );
+  });
+
+  it("exposes exactly ONE user-visible research trigger (SC-028)", () => {
+    // The collapsed research model: a single `/research` entry; the old `/deep`
+    // and `/deep heavy` triggers are gone (depth escalates in place from the
+    // brief, never via a slash). 0 redundant user-visible research triggers.
+    const researchTriggers = SLASH_COMMANDS.filter(
+      (c) => c.trigger === "research" || c.trigger.startsWith("deep"),
+    );
+    expect(researchTriggers.map((c) => c.trigger)).toEqual(["research"]);
   });
 
   it("has unique triggers", () => {
@@ -195,7 +205,6 @@ describe("SLASH_COMMANDS registry", () => {
       SLASH_COMMANDS.find((c) => c.trigger === trigger)?.dispatch.kind;
     // Prompt-composing research verbs.
     expect(kindOf("research")).toBe("prompt");
-    expect(kindOf("deep")).toBe("prompt");
     expect(kindOf("compare")).toBe("prompt");
     expect(kindOf("screener")).toBe("prompt");
     // Direct frontend actions.
@@ -228,7 +237,6 @@ describe("SLASH_COMMANDS registry", () => {
       return dispatch?.kind === "prompt" ? dispatch.template : undefined;
     };
     expect(template("research")?.("AAPL moat")).toBe("research AAPL moat");
-    expect(template("deep")?.("NVDA supply chain")).toBe("/deep — go deeper on NVDA supply chain");
     expect(template("compare")?.("AAPL MSFT")).toBe("compare AAPL MSFT");
     expect(template("screener")?.("low PE high growth")).toBe("screen for low PE high growth");
   });

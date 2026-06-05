@@ -52,8 +52,8 @@ from services.llm.base import LLMStreamEvent
 from services.planner import classify_intent, decompose
 
 #: Host-action steps a plan may PRE-STAGE into the diff/accept gate (the planner
-#: vocabulary minus research/deep_research/answer, which execute inside the loop,
-#: and with NO order verb — so a plan never touches the §6.5 path).
+#: vocabulary minus research/answer, which execute inside the loop, and with NO
+#: order verb — so a plan never touches the §6.5 path).
 _STAGEABLE_PLAN_ACTIONS = frozenset(
     {"open_panel", "set_chart_symbol", "set_chart_indicators", "add_to_watchlist", "arrange_layout"}
 )
@@ -330,8 +330,10 @@ _MAX_TOOL_ROUNDS = 6
 #: cap-reached message instead of dispatching).
 _WEB_SEARCH_CAP = 5
 
-#: Research tools whose result the runtime auto-publishes to the brief panel.
-_RESEARCH_TOOLS = ("research", "deep_research")
+#: Research tool(s) whose result the runtime auto-publishes to the brief panel.
+#: After the R4 collapse (FR-115) there is ONE research tool; depth (quick/deep/
+#: heavy) is an internal arg on it, so every depth auto-publishes through here.
+_RESEARCH_TOOLS = ("research",)
 
 
 LocalToolHandler = Any  # async (dict) -> dict, bound per-invocation
@@ -417,7 +419,7 @@ async def _dispatch_tool_with_progress(
     """Dispatch a tool, streaming any live research steps it emits, then yield a
     terminal :class:`_ToolDone` carrying the JSON result string (Track A).
 
-    A long research tool (``deep_research`` / ``research``) pushes
+    A long research run (``research`` at depth=deep/heavy) pushes
     :class:`ResearchStep`s onto a queue via the per-dispatch step-sink
     (:func:`config.set_step_sink`, read inside the tool); this generator runs the
     tool as a task and drains the queue, yielding one ``research_step`` event per
@@ -509,12 +511,19 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
     web_available = payload.get("web_available")
     if web_available is None and web is not None:
         web_available = web.get("available")
+    # The true depth TIER the run reached (FR-115): the result's ``mode`` is "fast"
+    # (quick gather) / "deep" (iter loop) / "heavy" (panel). Map it to the brief's
+    # ``depth`` so the panel's "Go deeper" affordance knows the NEXT tier; the FAST
+    # bundle has no ``mode``, so a missing/"fast" value is the quick tier.
+    raw_mode = str(payload.get("mode") or "fast").strip().lower()
+    depth = raw_mode if raw_mode in ("deep", "heavy") else "quick"
     # Forward only the fields the publish_brief host-action consumes (snake_case,
     # exactly as the frontend's briefFromInput reads them).
     brief_input: dict[str, Any] = {
         "query": payload.get("query", ""),
         "symbol": payload.get("symbol", ""),
         "mode": payload.get("mode", "fast"),
+        "depth": depth,
         "markdown": markdown if isinstance(markdown, str) else "",
         "sources": sources,
         "structured": structured,
@@ -672,14 +681,14 @@ async def invoke_agent(
     messages = _compose_messages(spec, prompt, context_snapshot, history)
     adapter = get_provider(provider_id)
 
-    # Publish the active LLM creds for the run so an in-loop research tool
-    # (deep_research) can call the SAME model the user is talking to. Task-local
-    # (each request is its own asyncio task with a copied context), so it does
-    # not leak across requests; the key stays process-memory-only.
+    # Publish the active LLM creds for the run so the in-loop research tool's deep
+    # path can call the SAME model the user is talking to. Task-local (each request
+    # is its own asyncio task with a copied context), so it does not leak across
+    # requests; the key stays process-memory-only.
     config.set_request_llm_creds(provider_id, resolved_model, api_key)
 
-    # Publish the user's selected deep-research engine (Track 5) so the
-    # deep_research tool defaults to it without the model passing a tool arg.
+    # Publish the user's selected deep-research engine (Track 5) so the research
+    # tool's deep path defaults to it without the model passing a backend arg.
     # Task-local like the creds above.
     dr_backend = opts.pop("deepResearchBackend", None)
     config.set_request_deep_research(
@@ -791,7 +800,7 @@ async def invoke_agent(
                 )
             else:
                 # Stream any live research steps the tool emits WHILE it runs
-                # (Track A — a long deep_research round is no longer silent), then
+                # (Track A — a long deep research round is no longer silent), then
                 # take the JSON result string from the terminal _ToolDone.
                 result_str = ""
                 async for item in _dispatch_tool_with_progress(tool_call, local_tools):

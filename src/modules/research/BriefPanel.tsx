@@ -1,10 +1,18 @@
 "use client";
 
 import { useCallback, useRef, useState, type ReactNode } from "react";
-import { ChevronDown, ChevronRight, ExternalLink, FlaskConical, Globe } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  ExternalLink,
+  FlaskConical,
+  Globe,
+  Telescope,
+} from "lucide-react";
 
-import type { BriefSource, BriefStep, ResearchBriefData } from "../../../types/brief";
+import type { BriefDepth, BriefSource, BriefStep, ResearchBriefData } from "../../../types/brief";
 import { ProvenanceBadge, StalenessBadge } from "@/components/DataBadges";
+import { sendToAgent } from "@/store/agent-command";
 import { useBriefStore } from "@/store/brief";
 import { BriefBody } from "./brief-blocks";
 
@@ -54,6 +62,71 @@ function ModeBadge({ mode }: { mode: ResearchBriefData["mode"] }) {
   );
 }
 
+// --- "Go deeper" — in-place depth escalation (FR-115 / SC-028) -------------
+
+/** The depth tier a brief reached, derived from the explicit `depth` field with
+ *  a fallback to the mode badge for older briefs that predate the field. */
+function briefDepth(brief: ResearchBriefData): BriefDepth {
+  if (brief.depth === "quick" || brief.depth === "deep" || brief.depth === "heavy") {
+    return brief.depth;
+  }
+  return brief.mode === "DEEP" ? "deep" : "quick";
+}
+
+/** The next tier "Go deeper" escalates to, or `null` at the deepest tier. */
+function nextDepth(depth: BriefDepth): Exclude<BriefDepth, "quick"> | null {
+  if (depth === "quick") {
+    return "deep";
+  }
+  if (depth === "deep") {
+    return "heavy";
+  }
+  return null;
+}
+
+const NEXT_DEPTH_LABEL: Record<Exclude<BriefDepth, "quick">, string> = {
+  deep: "Go deeper",
+  heavy: "Go all out",
+};
+
+/**
+ * "Go deeper" — escalates the SAME research query to the next depth tier IN
+ * PLACE (FR-115). It does NOT spawn a parallel brief: it routes a depth-tagged
+ * re-run of the same query through the agent (the single send path via the
+ * agent-command bus), and the new run's auto-published brief REPLACES this one
+ * in the store. Hidden at the deepest (`heavy`) tier — there's nowhere deeper.
+ */
+function GoDeeper({ brief }: { brief: ResearchBriefData }) {
+  const current = briefDepth(brief);
+  const next = nextDepth(current);
+  if (!next) {
+    return (
+      <span
+        className="text-charcoal-500 ml-auto shrink-0 font-mono text-[10px]"
+        title="This is the deepest research tier."
+      >
+        deepest
+      </span>
+    );
+  }
+  const subject = brief.symbol || brief.query;
+  // A natural-language ask the agent maps to research(subject, depth=next). The
+  // explicit tier word ("go deeper"/"go all out") matches the agent's prompt
+  // guidance so it escalates rather than re-running the same tier.
+  const verb = next === "heavy" ? "go all out" : "go deeper";
+  const onGoDeeper = () => sendToAgent(`research ${subject} — ${verb}`);
+  return (
+    <button
+      type="button"
+      onClick={onGoDeeper}
+      title={`Re-run this research at the ${next} tier, in place`}
+      className="border-charcoal-700 text-charcoal-300 hover:text-lume ml-auto flex shrink-0 items-center gap-1 rounded-md border px-2 py-0.5 font-mono text-[10px] transition-colors hover:border-amber-500/50"
+    >
+      <Telescope className="size-3" /> {NEXT_DEPTH_LABEL[next]}
+    </button>
+  );
+}
+
 function MetaHeader({ brief }: { brief: ResearchBriefData }) {
   const tokens = brief.cost?.tokens;
   const spend = brief.cost?.spendUsd;
@@ -75,6 +148,9 @@ function MetaHeader({ brief }: { brief: ResearchBriefData }) {
         {typeof spend === "number" ? (
           <span className="text-charcoal-500 font-mono text-[10px]">· {formatSpend(spend)}</span>
         ) : null}
+        {/* In-place depth escalation — one research model, "go deeper" deepens the
+            SAME run rather than spawning a parallel brief (FR-115). */}
+        <GoDeeper brief={brief} />
       </div>
       {/* Provenance line: WHERE the brief drew from (web vs structured-data-only)
           and WHEN it was produced, so a cached/offline run is never mistaken for

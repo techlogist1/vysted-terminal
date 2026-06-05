@@ -220,7 +220,6 @@ PLAN_ACTIONS: tuple[str, ...] = (
     "add_to_watchlist",
     "arrange_layout",
     "research",
-    "deep_research",
     "answer",
 )
 
@@ -281,8 +280,8 @@ def _build_prompt(goal: str, context: dict[str, Any] | None) -> str:
         "- set_chart_symbol{symbol}; set_chart_indicators{indicators:[...]}\n"
         "- add_to_watchlist{symbol}; arrange_layout{pattern}: "
         "single-focus|research-cockpit|compare|macro-scan\n"
-        "- research{query} (fast) or deep_research{query} (thorough); "
-        "answer{} for a pure question\n"
+        "- research{query, depth} (depth='quick' fast | 'deep' thorough | "
+        "'heavy' deepest); answer{} for a pure question\n"
         f"{ctx}\n"
         f'Request: "{goal}"\n\n'
         'Reply with ONLY a JSON array, each item {"action","args","rationale"}. '

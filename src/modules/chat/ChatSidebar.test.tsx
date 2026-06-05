@@ -214,15 +214,12 @@ describe("ChatSidebar", () => {
     }
   });
 
-  it("exposes Deep Research as a composer toggle (a +/mode, not slash jargon)", () => {
+  it("has NO Deep Research depth toggle (FR-115 / SC-028 — one research model)", () => {
+    // Research collapsed to ONE model: depth is the agent's call + the brief's
+    // "Go deeper" escalation, never a user-visible knob. The old composer toggle
+    // is gone — 0 user-visible mode/angles/backend controls.
     render(<ChatSidebar />);
-    const deep = screen.getByRole("button", { name: /deep research/i });
-    expect(deep).toHaveAttribute("aria-pressed", "false");
-    fireEvent.click(deep);
-    expect(screen.getByRole("button", { name: /deep research/i })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+    expect(screen.queryByRole("button", { name: /deep research/i })).toBeNull();
   });
 
   it("renders an empty-state hint until a message is sent", () => {

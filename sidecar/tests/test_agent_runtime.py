@@ -541,3 +541,23 @@ def test_auto_publish_passes_through_deep_sources_and_honest_no_web() -> None:
     assert no_web_event is not None
     assert no_web_event.input["sources"] == []
     assert no_web_event.input["web_available"] is False
+
+
+def test_auto_publish_maps_depth_tier_from_result_mode() -> None:
+    """FR-115: the auto-publish carries the true depth TIER so the brief panel's
+    'Go deeper' affordance knows the next tier. A FAST bundle (no mode) → 'quick';
+    a deep run → 'deep'; a heavy run → 'heavy'."""
+    fast = {"ok": True, "query": "NVDA", "structured": {"price": {"ok": True}}}
+    fast_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(fast))
+    assert fast_event is not None
+    assert fast_event.input["depth"] == "quick"
+
+    deep = {"ok": True, "query": "NVDA", "markdown": "x", "mode": "deep"}
+    deep_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(deep))
+    assert deep_event is not None
+    assert deep_event.input["depth"] == "deep"
+
+    heavy = {"ok": True, "query": "NVDA", "markdown": "x", "mode": "heavy"}
+    heavy_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(heavy))
+    assert heavy_event is not None
+    assert heavy_event.input["depth"] == "heavy"
