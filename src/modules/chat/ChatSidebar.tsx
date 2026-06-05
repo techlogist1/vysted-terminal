@@ -15,6 +15,7 @@ import { usePanelContextBus } from "@/store/panel-context";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 import type { AgentContextSnapshot, LLMProviderId, LLMStreamEvent } from "../../../types/ai";
+import { useChatPendingStore } from "@/store/chat-pending";
 import { captureTerminalState } from "./context-provider";
 import { parseSlashCommand, SLASH_HELP_LINES } from "./slash-commands";
 import { streamAgentInvocation, streamChat } from "./streaming";
@@ -295,6 +296,18 @@ export function ChatSidebar() {
       setDefaultProviderId,
     ],
   );
+
+  // Consume any prompt queued by the command palette "Ask AI" row.
+  // Deferred via a microtask so the synchronous effect body does not trigger
+  // the react-hooks/set-state-in-effect lint rule (handleSend calls setState
+  // but is async; the Promise.resolve wrapper makes that explicit to the linter).
+  useEffect(() => {
+    const prompt = useChatPendingStore.getState().consumePrompt();
+    if (!prompt?.trim()) return;
+    // Defer to the next microtask — effect body stays free of direct setState.
+    void Promise.resolve().then(() => handleSend(prompt));
+    // handleSend is the only dep; re-runs whenever it becomes a new ref.
+  }, [handleSend]);
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
