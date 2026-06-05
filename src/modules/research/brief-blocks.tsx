@@ -22,10 +22,11 @@
  * chart-command channel — fit-aware, never spawns a panel per click). The
  * `[n]` citation markers stay interactive (scroll-to-source).
  *
- * Visual constitution (dark, minimal, Cursor-grade): two weights, tabular/mono
- * numerals, 1px hairline borders + elevation steps for hierarchy (NO gradients /
- * shadows / blur), exactly one accent (clay) + the green/red signal reserved for
- * data direction. Entrance stagger is reduced-motion aware.
+ * Visual constitution (dark, minimal, Cursor-grade): three contrast tiers via
+ * weight/opacity, tabular/mono numerals, 1px hairline borders + elevation steps
+ * for hierarchy (NO gradients / shadows / blur / glow), exactly one accent
+ * (amber) + the green/red signal reserved for data direction. Entrance stagger
+ * is reduced-motion aware.
  */
 
 import { Fragment, useMemo, type ReactNode } from "react";

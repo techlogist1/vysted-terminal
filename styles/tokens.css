@@ -1,22 +1,23 @@
-/* Vysted -- design tokens. R4 "Cold Instrument" design language.
+/* Vysted -- design tokens. R4 "Warm Graphite" design language.
  *
- * The aesthetic: a PERCEPTUALLY-EVEN cold-zinc OKLCH neutral ramp (barely-
- * perceptible cool cast, hue ~264, chroma <=0.006), a SINGLE cool-indigo
- * accent (~12-15% desaturated vs stock indigo-400, OKLCH hue ~268), and
- * muted luminance-matched green/red reserved entirely for P&L signals.
- * Chrome that disappears so the data dominates. NOT warm, NOT neon, NOT a
- * saturated SaaS gradient, NOT a 90s terminal.
+ * The aesthetic: a PERCEPTUALLY-EVEN warm-graphite OKLCH neutral ramp (a faint
+ * warm cast, hue ~75, chroma <=0.008, R>=G>=B at every step -- warm near-black,
+ * never blue), a SINGLE muted amber accent (OKLCH hue ~70, an earthy gold --
+ * restrained, not neon, not pure orange; modeled on the reference apps), and
+ * muted luminance-matched green/red reserved entirely for P&L signals. A flat
+ * warm field, no glow. The accent lights <=5% of pixels. Ground truth: the
+ * reference screenshots in docs/redesign/references/.
  *
  * NOTE ON NAMES: token NAMES are kept from the retired systems (charcoal,
  * amber, brass, sage, lume) so the ~92 files that reference them as
  * Tailwind classes re-skin with ZERO edits -- only the VALUES changed. Names
  * are historical, not literal:
- *   charcoal-N   = cold-zinc neutral ramp (OKLCH L 0.145..0.960, H 264)
- *   amber-N      = cool-indigo accent     (OKLCH H 268, ~12-15% desat)
- *   brass-N, sage-N = zinc neutral secondaries (aligned to new ramp)
- *   lume         = near-white (#f4f4f6)
+ *   charcoal-N   = warm-graphite neutral ramp (OKLCH L 0.13..0.96, H ~75)
+ *   amber-N      = muted amber accent (OKLCH H ~70 -- and now literally amber)
+ *   brass-N, sage-N = warm-neutral secondaries (aligned to the ramp)
+ *   lume         = warm near-white (#f7f5f0)
  * The canvas palette is mirrored in src/lib/chart-theme.ts -- change BOTH in
- * lockstep or the chart drifts (FR-030). See docs/DESIGN_SYSTEM.md.
+ * lockstep or the chart drifts (FR-030). See docs/redesign/PRODUCT_DESIGN_DECISIONS.md.
  *
  * Defined as a Tailwind 4 @theme block so every token is also a utility class
  * (bg-charcoal-900, text-amber-400, font-serif [Inter], ...).
@@ -24,50 +25,52 @@
  */
 
 @theme {
-  /* --- Cold-zinc neutral ramp (name: charcoal) -- OKLCH-derived, hue ~264,
-   * chroma <=0.006, perceptually even steps. 950 = deepest well,
-   * 925/900 = chrome + panel, 700 = borders, 100 = body text. -------------- */
-  --color-charcoal-950: #0a0a0c; /* OKLCH 0.145 0.004 264 -- app/root well */
-  --color-charcoal-925: #101013; /* OKLCH 0.170 0.004 264 -- header fascia, tab strip */
-  --color-charcoal-900: #161619; /* OKLCH 0.205 0.004 264 -- panel / card surface */
-  --color-charcoal-875: #1c1c20; /* OKLCH 0.235 0.005 264 -- popover / active tab */
-  --color-charcoal-850: #212126; /* OKLCH 0.265 0.005 264 -- raised inset (node bg) */
-  --color-charcoal-800: #27272b; /* OKLCH 0.300 0.005 264 -- muted / secondary surface */
-  --color-charcoal-700: #323237; /* OKLCH 0.360 0.005 264 -- borders / inputs / dividers */
-  --color-charcoal-600: #3f3f46; /* OKLCH 0.420 0.005 264 -- strong border / disabled fg */
-  --color-charcoal-500: #71717a; /* OKLCH 0.560 0.005 264 -- faint label / kbd chip text */
-  --color-charcoal-400: #a1a1aa; /* OKLCH 0.680 0.004 264 -- muted foreground */
-  --color-charcoal-300: #d2d2d7; /* OKLCH 0.800 0.003 264 -- secondary text */
-  --color-charcoal-200: #e6e6ea; /* OKLCH 0.880 0.002 264 -- bright secondary / chart text */
-  --color-charcoal-100: #f4f4f6; /* OKLCH 0.960 0.002 264 -- foreground / body text */
+  /* --- Warm-graphite neutral ramp (name: charcoal) -- OKLCH-derived, hue ~75,
+   * chroma <=0.008, R>=G>=B (warm near-black, no blue), perceptually even
+   * steps. 950 = deepest well, 925/900 = chrome + panel, 700 = borders,
+   * 500 = tertiary text, 400 = secondary, 100 = primary body text. -------- */
+  --color-charcoal-950: #0e0d0b; /* app/root well -- warm near-black */
+  --color-charcoal-925: #131210; /* header fascia, tab strip */
+  --color-charcoal-900: #1a1814; /* panel / card surface (the anchor) */
+  --color-charcoal-875: #211e19; /* popover / active tab / hover surface */
+  --color-charcoal-850: #29251f; /* raised inset -- input fill, node bg */
+  --color-charcoal-800: #312c25; /* muted / secondary surface */
+  --color-charcoal-700: #39332b; /* borders / inputs / dividers */
+  --color-charcoal-600: #4a443a; /* strong border / disabled fg */
+  --color-charcoal-500: #79736a; /* TERTIARY text -- faint label, kbd, process/meta */
+  --color-charcoal-400: #a8a095; /* SECONDARY text -- muted foreground */
+  --color-charcoal-300: #d3cec5; /* secondary-bright text */
+  --color-charcoal-200: #e9e4dc; /* bright secondary / chart text */
+  --color-charcoal-100: #f5f2ec; /* PRIMARY text / foreground -- warm near-white */
 
-  /* --- Cool-indigo accent (name: amber) -- the single accent. OKLCH hue ~268,
-   * ~12-15% desaturated vs stock indigo-400 so it reads precise, not neon.
-   * Five states light->dark: 200 faint tint, 300 hover-bright, 400 brand,
-   * 500 pressed/sash, 600 deep border. Used on <=~5% of pixels at any time. */
-  --color-amber-200: #cdd2f4; /* OKLCH 0.86 0.055 268 -- faint tint / selection fill */
-  --color-amber-300: #a8b0ef; /* OKLCH 0.74 0.105 268 -- hover-bright / accent text */
-  --color-amber-400: #7e88e8; /* OKLCH 0.66 0.150 268 -- BRAND / primary / default accent */
-  --color-amber-500: #5559d6; /* OKLCH 0.55 0.190 268 -- pressed / active-sash / selected */
-  --color-amber-600: #3a3aa0; /* OKLCH 0.43 0.150 268 -- deep border / dense accent */
+  /* --- Muted amber accent (name: amber) -- the single accent. OKLCH hue ~70,
+   * an earthy gold (restrained, not neon, not pure orange; modeled on the
+   * reference apps' #c08030). Five states light->dark: 200 faint tint,
+   * 300 hover-bright/accent text, 400 brand, 500 pressed/sash, 600 deep
+   * border. Used on <=~5% of pixels and <=2 elements at any time. */
+  --color-amber-200: #f0d8ac; /* faint tint / selection fill */
+  --color-amber-300: #e9bd80; /* hover-bright / accent text on dark */
+  --color-amber-400: #d89a4e; /* BRAND / primary / default accent */
+  --color-amber-500: #c0802f; /* pressed / active-sash / selected (ref fill) */
+  --color-amber-600: #875720; /* deep border / dense accent */
 
-  /* --- Zinc neutral (name: brass) -- quiet secondary neutrals aligned to the
-   * cold-zinc ramp. Stray legacy use, .hud-label legend, hairline source. --- */
-  --color-brass-200: #d2d2d7;
-  --color-brass-300: #a1a1aa; /* .hud-label legend text */
-  --color-brass-400: #3f3f46; /* hairline / scrollbar source tone */
-  --color-brass-500: #323237;
-  --color-brass-600: #27272b;
+  /* --- Warm neutral (name: brass) -- quiet secondary neutrals aligned to the
+   * warm-graphite ramp. Stray legacy use, .hud-label legend, hairline source. */
+  --color-brass-200: #d3cec5;
+  --color-brass-300: #a8a095; /* .hud-label legend text */
+  --color-brass-400: #4a443a; /* hairline / scrollbar source tone */
+  --color-brass-500: #39332b;
+  --color-brass-600: #312c25;
 
   /* --- Near-white (name: lume) -- active-tab text, peak readouts.
-   * Cold-zinc near-white. ---------------------------------------------- */
-  --color-lume: #f4f4f6;
+   * Warm near-white. ---------------------------------------------------- */
+  --color-lume: #f7f5f0;
 
-  /* --- Zinc neutral second (name: sage) -- secondary data series, never
-   * compete with the cool-indigo accent. Aligned to cold-zinc ramp. ------ */
-  --color-sage-300: #d2d2d7;
-  --color-sage-400: #a1a1aa;
-  --color-sage-500: #71717a;
+  /* --- Warm neutral second (name: sage) -- secondary data series, never
+   * compete with the amber accent. Aligned to the warm-graphite ramp. ----- */
+  --color-sage-300: #d3cec5;
+  --color-sage-400: #a8a095;
+  --color-sage-500: #79736a;
 
   /* --- Signal colors -- muted + luminance-matched so neither gain nor loss
    * reads louder than the other in a P&L column. The ONLY saturated colors.

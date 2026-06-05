@@ -5,28 +5,28 @@
  * Canvas elements render to a `<canvas>` bitmap and CANNOT read CSS custom
  * properties, so each chart/drawing file used to hard-code its own copy of the
  * palette -- which is exactly how values silently drifted off-palette. This
- * module mirrors `styles/tokens.css` (R4 "Cold Instrument" -- cold-zinc neutral
- * + cool-indigo accent) once; when a token changes, update both the CSS token
- * AND its constant here -- but only here, not in 12 files (FR-030: re-skin the
- * canvas + tokens in lockstep).
+ * module mirrors `styles/tokens.css` (R4 "Warm Graphite" -- warm-graphite
+ * neutral + muted amber accent) once; when a token changes, update both the CSS
+ * token AND its constant here -- but only here, not in 12 files (FR-030: re-skin
+ * the canvas + tokens in lockstep).
  *
  * NOTE: the export NAMES (`ACCENT_CORAL`, `coralFill`, ...) are historical and
- * kept so the 12 importing files don't churn -- they now carry the COOL-INDIGO
+ * kept so the 12 importing files don't churn -- they now carry the muted AMBER
  * accent, mirroring the `amber-*` token. Read the role, not the name.
  */
 
-// --- Cold-zinc surfaces (mirror charcoal-*) ----------------------------------
-export const CHART_SURFACE = "#161619"; // charcoal-900 -- chart background
-export const CHART_TEXT = "#a1a1aa"; // charcoal-400 -- axis / label text (muted)
-export const CHART_TEXT_MUTED = "#71717a"; // charcoal-500 -- secondary labels
-export const CHART_GRID = "#27272b"; // charcoal-800 -- gridlines
-export const CHART_BORDER = "#323237"; // charcoal-700 -- scale borders
-export const CHART_CROSSHAIR = "#3f3f46"; // charcoal-600 -- crosshair
+// --- Warm-graphite surfaces (mirror charcoal-*) ------------------------------
+export const CHART_SURFACE = "#1a1814"; // charcoal-900 -- chart background
+export const CHART_TEXT = "#a8a095"; // charcoal-400 -- axis / label text (muted)
+export const CHART_TEXT_MUTED = "#79736a"; // charcoal-500 -- secondary labels
+export const CHART_GRID = "#312c25"; // charcoal-800 -- gridlines
+export const CHART_BORDER = "#39332b"; // charcoal-700 -- scale borders
+export const CHART_CROSSHAIR = "#4a443a"; // charcoal-600 -- crosshair
 
-// --- Cool-indigo accent (mirror amber-* [indigo]) ----------------------------
-export const ACCENT_CORAL = "#7e88e8"; // amber-400 -- brand / default accent
-export const ACCENT_CORAL_BRIGHT = "#a8b0ef"; // amber-300 -- emphasis
-export const ACCENT_CORAL_DEEP = "#3a3aa0"; // amber-600 -- deep accent / line
+// --- Muted amber accent (mirror amber-*) -------------------------------------
+export const ACCENT_CORAL = "#d89a4e"; // amber-400 -- brand / default accent
+export const ACCENT_CORAL_BRIGHT = "#e9bd80"; // amber-300 -- emphasis
+export const ACCENT_CORAL_DEEP = "#875720"; // amber-600 -- deep accent / line
 
 // --- Semantic signal colors (the only saturated colors; never as fills) ------
 export const POSITIVE = "#3fbf6f"; // gains -- muted green, luminance-matched
@@ -36,11 +36,11 @@ export const NEGATIVE_BRIGHT = "#f87171";
 export const WARNING = "#e0a13a"; // caution -- stale/paper/warning
 
 // --- Neutral data series (mirror charcoal-400/-300) --------------------------
-export const NEUTRAL = "#a1a1aa"; // charcoal-400 -- comparison / secondary series
-export const NEUTRAL_LIGHT = "#d2d2d7"; // charcoal-300
+export const NEUTRAL = "#a8a095"; // charcoal-400 -- comparison / secondary series
+export const NEUTRAL_LIGHT = "#d3cec5"; // charcoal-300
 
 // --- RGB tuples for alpha fills (canvas wants rgba()) ------------------------
-export const ACCENT_CORAL_RGB = "126, 136, 232"; // #7e88e8 -- three-place lockstep
+export const ACCENT_CORAL_RGB = "216, 154, 78"; // #d89a4e -- three-place lockstep
 export const POSITIVE_RGB = "63, 191, 111";
 export const NEGATIVE_RGB = "229, 84, 75";
 
@@ -58,16 +58,16 @@ export function negativeFill(alpha: number): string {
 }
 
 /**
- * Distinct, on-brand indicator line palette -- indigo lead, zinc neutrals, and
+ * Distinct, on-brand indicator line palette -- amber lead, warm neutrals, and
  * a muted green. Order is chosen so the first few overlaid indicators read
- * clearly against the cold-zinc surface.
+ * clearly against the warm-graphite surface.
  */
 export const INDICATOR_PALETTE = [
-  ACCENT_CORAL, // cool-indigo
-  NEUTRAL, // zinc neutral
+  ACCENT_CORAL, // amber
+  NEUTRAL, // warm neutral
   POSITIVE, // muted green
-  ACCENT_CORAL_BRIGHT, // indigo-bright
-  NEUTRAL_LIGHT, // light zinc
+  ACCENT_CORAL_BRIGHT, // amber-bright
+  NEUTRAL_LIGHT, // light warm neutral
 ] as const;
 
 /**
