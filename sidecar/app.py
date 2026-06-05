@@ -45,6 +45,7 @@ from routers import (
     workspace,
 )
 from services import agent_tools, backtest_strategies, mcp_client, mcp_server
+from services import screener as screener_service
 from services.brokers import registry as brokers_registry
 from services.errors import ProviderError
 
@@ -98,9 +99,24 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
     """
     mcp_app = mcp_server.get_streamable_http_app()
     async with mcp_app.lifespan(mcp_app):
+        # Warm-universe precompute (FR-126): a detached background task re-warms
+        # the S&P 500 Yahoo v7 batch on an interval so warm screener runs are
+        # sub-second. Started AFTER the lifespan enters (never blocks the sidecar
+        # boot the Tauri core waits on) and cancelled below so it cannot leak.
+        try:
+            screener_service.start_warm_precompute()
+        except Exception as exc:  # noqa: BLE001 — a warm-worker start must not block boot
+            _log.debug("screener warm precompute did not start: %s", exc)
         try:
             yield
         finally:
+            # Cancel + await the warm-precompute task FIRST so its detached loop
+            # (and the batch httpx client it owns) tear down cleanly before the
+            # event loop closes — no leaked task / socket on shutdown (FR-126).
+            try:
+                await screener_service.stop_warm_precompute()
+            except Exception as exc:  # noqa: BLE001 — shutdown best-effort
+                _log.debug("screener.stop_warm_precompute raised on shutdown: %s", exc)
             # Guard the client close so an aclose() error (timeout / SSL /
             # cleanup failure on shutdown) cannot prevent the MCP-client cache
             # reset that follows — otherwise external MCP transports leak open

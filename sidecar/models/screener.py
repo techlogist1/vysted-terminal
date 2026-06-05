@@ -181,6 +181,31 @@ class ScreenerResultRow(BaseModel):
     matched_criteria: list[int] = []
 
 
+class SkipDetail(BaseModel):
+    """One itemized dropped symbol (FR-126 / SC-034 — zero silent drops).
+
+    The screener never silently drops a universe member: every symbol that does
+    not make it into the evaluation set is recorded here with a ``reason`` the UI
+    renders as a skip ledger. ``reason`` is one of a fixed vocabulary:
+
+      * ``timeout`` — the upstream fetch (batch chunk or per-symbol) timed out;
+      * ``not_found`` — the provider did not return the symbol (delisted /
+        unknown ticker / wrong suffix);
+      * ``no_data`` — the provider returned the symbol but with no usable data
+        (e.g. no positive price);
+      * ``rate_limited`` — the upstream throttled us (HTTP 429);
+      * ``correctness_gate`` — the per-symbol enrichment fetch errored / was
+        rejected;
+      * ``missing_field:<field>`` — a screened criterion needs a field the fast
+        path does not carry and per-symbol enrichment could not supply it.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    symbol: str
+    reason: str
+
+
 class ScreenerResult(BaseModel):
     """Response shape from ``POST /screener/run``."""
 
@@ -192,6 +217,11 @@ class ScreenerResult(BaseModel):
     # so a low evaluated_count no longer silently misrepresents coverage
     # (Phase 9.5). Defaulted for backward compatibility.
     skipped_count: int = 0
+    # Itemized skip ledger (FR-126 / SC-034): every dropped symbol with a reason,
+    # so a skip is never silent. ``len(skip_details) == skipped_count`` once the
+    # fast path is wired; defaulted to ``[]`` for backward compatibility with
+    # older serialized blobs / fixtures that predate the ledger.
+    skip_details: list[SkipDetail] = []
     result_count: int
     rows: list[ScreenerResultRow]
     duration_ms: float

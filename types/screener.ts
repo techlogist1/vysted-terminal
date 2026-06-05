@@ -108,6 +108,26 @@ export interface ScreenerResultRow {
   matched_criteria: number[];
 }
 
+/** A skip-ledger reason. Mirrors ``SkipDetail.reason`` in
+ * ``sidecar/models/screener.py``. ``missing_field:<field>`` is open-ended (the
+ * field name follows the colon), so the union keeps a templated arm. */
+export type ScreenerSkipReason =
+  | "timeout"
+  | "not_found"
+  | "no_data"
+  | "rate_limited"
+  | "correctness_gate"
+  | `missing_field:${string}`;
+
+/** One itemized dropped symbol (FR-126 / SC-034 — zero silent drops). The
+ * screener never silently drops a universe member; every skipped symbol is
+ * listed here with a reason the panel renders as a skip ledger. Mirrors
+ * ``SkipDetail`` in ``sidecar/models/screener.py``. */
+export interface ScreenerSkipDetail {
+  symbol: string;
+  reason: ScreenerSkipReason;
+}
+
 /** Response shape from ``POST /screener/run``. */
 export interface ScreenerResult {
   universe: ScreenerUniverseId;
@@ -115,6 +135,10 @@ export interface ScreenerResult {
   evaluated_count: number;
   /** Symbols dropped (timeout / provider error) before evaluation. */
   skipped_count: number;
+  /** Itemized skip ledger — every dropped symbol with a reason (SC-034). The
+   * panel renders this so a skip is never silent; ``length === skipped_count``.
+   * Optional in the TS mirror for older blobs that predate the ledger. */
+  skip_details?: ScreenerSkipDetail[];
   /** Total rows returned (≤ ``limit``). */
   result_count: number;
   rows: ScreenerResultRow[];

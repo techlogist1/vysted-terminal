@@ -30,7 +30,7 @@ from models.screener import (
     SetInCriterion,
     StringEqCriterion,
 )
-from services import data_cache, screener
+from services import data_cache, screener, yahoo_batch_provider
 from services.errors import ProviderError
 
 
@@ -40,6 +40,23 @@ def _isolated_cache(tmp_path: Path) -> None:
     data_cache.reset_for_tests(tmp_path / "screener_test_cache.db")
     yield
     data_cache.reset_for_tests(None)
+
+
+@pytest.fixture(autouse=True)
+def _stub_batch_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Force the per-symbol fallback in the legacy run_screener tests.
+
+    The R4 batch fast path (Yahoo v7) is the default for equity universes; these
+    tests assert the per-symbol ``provider_registry`` semantics, so we stub the
+    batch fetch to return NOTHING — every symbol then falls through to the
+    monkeypatched per-symbol path. Deterministic + no network round-trip. The
+    dedicated batch behaviour is covered in ``test_yahoo_batch_provider.py`` and
+    ``test_screener_batch.py``."""
+
+    async def _empty_batch(symbols: list[str]):
+        return {}, {}
+
+    monkeypatch.setattr(yahoo_batch_provider, "fetch_quotes_batch", _empty_batch)
 
 
 # ---------------------------------------------------------------------------
