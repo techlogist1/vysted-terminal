@@ -887,7 +887,7 @@ export function ChatSidebar() {
         {messages.length === 0 ? (
           <EmptyState activeAgentName={activeAgent?.name ?? null} mode={mode} />
         ) : (
-          <ul className="flex flex-col gap-3">
+          <ul className="flex flex-col gap-2">
             {messages.map((message) => (
               <motion.li
                 key={message.id}
@@ -896,7 +896,7 @@ export function ChatSidebar() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={tween(0.18)}
                 className={cn(
-                  "rounded-md border px-3 py-2 font-mono text-xs",
+                  "rounded-md border px-3 py-1.5 font-mono text-xs",
                   message.role === "user"
                     ? "border-charcoal-700 bg-charcoal-800 text-charcoal-100"
                     : "text-charcoal-100 border-amber-600/30 bg-amber-500/10",
@@ -1168,7 +1168,7 @@ function EmptyState({
     <div className="flex h-full flex-col items-center justify-center gap-3 px-6 py-8 text-center">
       <Sparkles className="text-charcoal-500 size-6" strokeWidth={1.5} aria-hidden />
       <div className="flex max-w-xs flex-col items-center gap-1">
-        <p className="text-charcoal-200 text-panel-title">
+        <p className="text-charcoal-200 text-sm font-medium">
           Ask anything about what you&rsquo;re viewing
         </p>
         <p className="text-charcoal-500 text-caption">
@@ -1415,7 +1415,7 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
           disabled={disabled || value.trim().length === 0}
           className="size-11 shrink-0 rounded-full [&_svg:not([class*='size-'])]:size-4"
         >
-          <Send />
+          <Send strokeWidth={2.5} />
         </Button>
       </form>
     </div>
