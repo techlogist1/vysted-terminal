@@ -13,6 +13,7 @@
  *                              propose→confirm path (the AI never places).
  */
 
+import { dedupeSources, normalizeBriefDepth, normalizeBriefMode } from "@/lib/brief-ingest";
 import {
   applyCustomLayout,
   fitLayoutTemplate,
@@ -33,6 +34,7 @@ import type { BrokerId, BrokerOrderProposal } from "../../types/broker";
 import type {
   BriefDepth,
   BriefSource,
+  BriefSourceType,
   BriefStep,
   BriefStructured,
   ResearchBriefData,
@@ -63,32 +65,31 @@ export const HOST_ACTION_NAMES = new Set([
  */
 function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
   const rawSources = Array.isArray(input.sources) ? input.sources : [];
-  const sources: BriefSource[] = rawSources
+  const mapped: BriefSource[] = rawSources
     .filter((s): s is Record<string, unknown> => typeof s === "object" && s !== null)
-    .map((s) => ({
-      url: typeof s.url === "string" ? s.url : "",
-      title: typeof s.title === "string" ? s.title : typeof s.url === "string" ? s.url : "",
-      excerpt: typeof s.excerpt === "string" ? s.excerpt : "",
-      domain: typeof s.domain === "string" ? s.domain : undefined,
-    }))
+    .map((s): BriefSource => {
+      const st: unknown = s.source_type ?? s.sourceType;
+      const sourceType: BriefSourceType | undefined =
+        st === "news" || st === "research" || st === "filing" || st === "web" ? st : undefined;
+      return {
+        url: typeof s.url === "string" ? s.url : "",
+        title: typeof s.title === "string" ? s.title : typeof s.url === "string" ? s.url : "",
+        excerpt: typeof s.excerpt === "string" ? s.excerpt : "",
+        domain: typeof s.domain === "string" ? s.domain : undefined,
+        sourceType,
+      };
+    })
     .filter((s) => s.url);
-  const rawMode = str(input, "mode").toLowerCase();
+  // De-duplicate by URL at the ingest boundary so a repeated citation never
+  // shows twice in the rail (the markdown's [n] markers point at the first).
+  const sources = dedupeSources(mapped);
   // The true depth TIER (FR-115): prefer the explicit `depth` the auto-publish
   // sets; else derive it from the mode ("heavy"/"deep" → DEEP tier, else quick).
-  // Drives the brief panel's in-place "Go deeper" escalation.
-  const rawDepth = str(input, "depth").toLowerCase();
-  const depth: BriefDepth =
-    rawDepth === "heavy" || rawDepth === "deep" || rawDepth === "quick"
-      ? (rawDepth as BriefDepth)
-      : rawMode === "heavy"
-        ? "heavy"
-        : rawMode === "deep"
-          ? "deep"
-          : "quick";
-  // The mode BADGE collapses the three tiers to FAST|DEEP (quick → FAST, deep/
-  // heavy → DEEP) — also fixes the S-6 casing miss where a lowercase "deep"/
-  // "heavy" never matched the uppercase badge.
-  const mode = depth === "quick" ? "FAST" : "DEEP";
+  // Drives the brief panel's in-place "Go deeper" escalation. The mode BADGE
+  // then collapses the three tiers to FAST|DEEP — also fixing the S-6 casing
+  // miss where a lowercase "deep"/"heavy" never matched the uppercase badge.
+  const depth: BriefDepth = normalizeBriefDepth(str(input, "depth"), str(input, "mode"));
+  const mode = normalizeBriefMode(depth === "quick" ? "fast" : "deep");
   const cost =
     typeof input.cost === "object" && input.cost !== null
       ? (input.cost as { tokens?: number; spendUsd?: number; spend_usd?: number })
@@ -473,7 +474,7 @@ export function describeHostAction(
     }
     case "publish_brief": {
       const sources = Array.isArray(input.sources) ? input.sources : [];
-      const mode = str(input, "mode").toUpperCase() === "DEEP" ? "DEEP" : "FAST";
+      const mode = normalizeBriefMode(str(input, "depth") || str(input, "mode"));
       const webOff = input.web_available === false;
       return {
         kind: "panel",

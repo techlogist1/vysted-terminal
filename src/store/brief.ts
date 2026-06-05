@@ -16,6 +16,7 @@
 
 import { create } from "zustand";
 
+import { isAcceptableBriefMode, normalizeBriefMode } from "@/lib/brief-ingest";
 import { autosaveLayout } from "@/lib/workspace";
 import type { ResearchBriefData } from "../../types/brief";
 
@@ -50,7 +51,9 @@ function persist(): void {
  * Validate a candidate bundle on the way in from a persisted blob. A hand-edited
  * or older export could carry a partial/garbled shape; we accept it only when it
  * has the load-bearing fields, otherwise treat it as "no brief" rather than
- * render a half-populated panel.
+ * render a half-populated panel. The `mode` check accepts a raw lowercase wire
+ * value (`fast`/`deep`/`heavy`) too — a brief persisted straight from the wire
+ * before the casing fix still restores (it is normalised to FAST|DEEP below).
  */
 function isBriefData(value: unknown): value is ResearchBriefData {
   if (value === null || typeof value !== "object") {
@@ -59,7 +62,7 @@ function isBriefData(value: unknown): value is ResearchBriefData {
   const v = value as Record<string, unknown>;
   return (
     typeof v.query === "string" &&
-    (v.mode === "FAST" || v.mode === "DEEP") &&
+    isAcceptableBriefMode(v.mode) &&
     typeof v.markdown === "string" &&
     Array.isArray(v.sources) &&
     typeof v.sourceCount === "number" &&
@@ -85,8 +88,12 @@ export const useBriefStore = create<BriefState>((set, get) => ({
 
   fromBundle: (bundle) => {
     // Accept only a well-formed brief; a garbled/partial blob restores to empty
-    // so the panel never renders a half-populated brief.
-    set({ brief: isBriefData(bundle) ? bundle : null });
+    // so the panel never renders a half-populated brief. Coerce the mode to the
+    // canonical uppercase FAST|DEEP so a brief persisted with a raw lowercase
+    // wire mode renders the badge correctly after restore (S-6).
+    set({
+      brief: isBriefData(bundle) ? { ...bundle, mode: normalizeBriefMode(bundle.mode) } : null,
+    });
     persist();
   },
 }));
