@@ -370,6 +370,88 @@ export function fitLayoutTemplate(
   return { applied: template, downgraded: false };
 }
 
+// --- macOS Window→Layout MENU modes (the finance cockpits) ------------------
+//
+// The native menu (`lib.rs` install_layout_menu) labels these Fundamental /
+// Technical / Macro / Compare / Reset and emits a payload id the menu-bridge maps
+// here. UNLIKE the agent's ADDITIVE `arrange_layout` (which reuses open panels and
+// is viewport-fit-downgraded), a menu mode is a DETERMINISTIC "switch to this
+// cockpit": it CLEARS the grid first, then tiles exactly the mode's panel set — so
+// a click always opens that mode's FULL multi-panel layout regardless of what was
+// open before, and never fit-downgrades to a single panel (Bug-4: "Fundamental"
+// was showing just the brief). The payload ids are historical fossils
+// (research-cockpit / single-focus / macro-scan / compare) — read the role, not
+// the literal id.
+
+/** Build a planned panel from an ARRANGEABLE id, optionally placed beside/below a ref. */
+function modePanel(key: string, position?: PlannedPanelPosition): PlannedPanel {
+  const p = ARRANGEABLE[key];
+  return { id: p.id, component: p.component, position };
+}
+
+const MODE_PLANS: Record<string, LayoutPlan> = {
+  // FUNDAMENTAL ANALYSIS — the single-company deep-dive: chart (price) anchors the
+  // left; the equity-overview (the fundamentals / ratios / financials panel) and
+  // the synthesised research brief stack on the right.
+  "research-cockpit": {
+    panels: [
+      modePanel("chart"),
+      modePanel("equity-overview", { referencePanel: "chart", direction: "right" }),
+      modePanel("brief", { referencePanel: "equity-overview", direction: "below" }),
+    ],
+    focus: "equity-overview",
+  },
+  // TECHNICAL ANALYSIS — chart-dominant (indicators ride the chart) with a
+  // watchlist to flip symbols and news for catalysts.
+  "single-focus": {
+    panels: [
+      modePanel("chart"),
+      modePanel("watchlist", { referencePanel: "chart", direction: "right" }),
+      modePanel("news", { referencePanel: "watchlist", direction: "below" }),
+    ],
+    focus: "chart",
+  },
+  // MACRO SCAN — the macro desk: macro anchor + chart + screener.
+  "macro-scan": {
+    panels: [
+      modePanel("macro"),
+      modePanel("chart", { referencePanel: "macro", direction: "right" }),
+      modePanel("screener", { referencePanel: "macro", direction: "below" }),
+    ],
+    focus: "macro",
+  },
+  // COMPARE — side-by-side: the chart (carrying the dual-symbol overlay pushed via
+  // the chart-command channel) beside the equity overview for the focused name.
+  compare: {
+    panels: [
+      modePanel("chart"),
+      modePanel("equity-overview", { referencePanel: "chart", direction: "right" }),
+    ],
+    focus: "chart",
+  },
+};
+
+/** Menu-mode payload ids `applyLayoutMode` handles (excludes "default", which the
+ *  bridge routes to `resetToDefaultLayout`). */
+export const LAYOUT_MODE_IDS: ReadonlySet<string> = new Set(Object.keys(MODE_PLANS));
+
+/**
+ * Apply a macOS Layout-MENU mode: CLEAR the cockpit, then tile exactly the mode's
+ * panel set (deterministic — the mode IS its panels, never layered onto the prior
+ * state and never fit-downgraded). Synchronous (no rAF — which throttles to a halt
+ * on an occluded WKWebView). Returns true if applied, false for an unknown id
+ * (e.g. "default", handled by the caller via `resetToDefaultLayout`).
+ */
+export function applyLayoutMode(api: DockviewApi, modeId: string): boolean {
+  const plan = MODE_PLANS[modeId];
+  if (!plan) {
+    return false;
+  }
+  api.clear();
+  applyPlan(api, plan);
+  return true;
+}
+
 // --- per-stock research SPACE (003 workspace OS) ----------------------------
 //
 // A "research space" is a dedicated, named workspace bundling ONE ticker's

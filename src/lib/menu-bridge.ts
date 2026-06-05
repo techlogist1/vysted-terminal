@@ -1,21 +1,16 @@
-import { fitLayoutTemplate, type LayoutTemplate } from "@/lib/layout-templates";
+import { applyLayoutMode } from "@/lib/layout-templates";
 import { useWorkspaceStore } from "@/store/workspace";
 
 /**
  * macOS menu-bar bridge (003) — the native Layout menu (built in `lib.rs`,
- * macOS-only) emits `vysted://menu-layout` with a layout-template id; this applies
- * it to the live dockview, viewport-fit-aware (the same path the agent's
- * arrange_layout uses). A user menu click is direct (no diff gate). Outside a
- * Tauri webview (static export / browser) it's a no-op — the dynamic import of the
- * Tauri event API simply fails and we swallow it.
+ * macOS-only) labels its items Fundamental / Technical / Macro / Compare / Reset
+ * and emits `vysted://menu-layout` with a layout-mode id. A menu mode is a
+ * DETERMINISTIC "switch to this cockpit": `applyLayoutMode` CLEARS the grid and
+ * tiles exactly that mode's panel set (NOT the agent's additive, fit-downgraded
+ * arrange — Bug-4: "Fundamental" was collapsing to a single brief panel). A user
+ * menu click is direct (no diff gate). Outside a Tauri webview (static export /
+ * browser) it's a no-op — the dynamic import of the Tauri event API simply fails.
  */
-const TEMPLATES: ReadonlySet<string> = new Set([
-  "research-cockpit",
-  "single-focus",
-  "macro-scan",
-  "compare",
-]);
-
 export function initMenuBridge(): () => void {
   let unlisten: (() => void) | null = null;
   let alive = true;
@@ -35,8 +30,10 @@ export function initMenuBridge(): () => void {
         }
         if (template === "default") {
           useWorkspaceStore.getState().resetToDefaultLayout();
-        } else if (TEMPLATES.has(template)) {
-          fitLayoutTemplate(api, template as LayoutTemplate);
+        } else if (applyLayoutMode(api, template)) {
+          console.info(`[menu-bridge] applied layout mode → ${template}`);
+        } else {
+          console.warn(`[menu-bridge] unknown layout payload → ${template}`);
         }
       });
       if (alive) {
