@@ -97,6 +97,9 @@ interface ScreenerState {
   setCustomSymbols: (raw: string) => void;
   setCombinator: (combinator: ScreenerCombinator) => void;
   setCriteria: (criteria: ScreenerCriterion[]) => void;
+  /** Restore the default starter criteria and clear the formula + nested group
+   *  (the "Reset filters" affordance on the no-results empty state). */
+  resetCriteria: () => void;
   addCriterion: (criterion: ScreenerCriterion) => void;
   removeCriterion: (index: number) => void;
   updateCriterion: (index: number, criterion: ScreenerCriterion) => void;
@@ -174,6 +177,8 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
   setCustomSymbols: (raw) => set({ customSymbols: raw }),
   setCombinator: (combinator) => set({ combinator }),
   setCriteria: (criteria) => set({ criteria }),
+  resetCriteria: () =>
+    set({ criteria: DEFAULT_CRITERIA, group: null, advanced: false, formula: "" }),
   addCriterion: (criterion) => set((state) => ({ criteria: [...state.criteria, criterion] })),
   removeCriterion: (index) =>
     set((state) => ({

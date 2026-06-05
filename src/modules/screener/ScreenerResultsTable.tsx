@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Download, SlidersHorizontal, Loader2 } from "lucide-react";
+import { Download, SlidersHorizontal, FilterX, Loader2 } from "lucide-react";
 
+import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { loadSymbolIntoChart, openCompanyOverview } from "@/lib/host-actions";
 import { useScreenerStore } from "@/store/screener";
@@ -193,6 +194,7 @@ export function ScreenerResultsTable() {
   const result = useScreenerStore((s) => s.lastResult);
   const status = useScreenerStore((s) => s.status);
   const runScreener = useScreenerStore((s) => s.runScreener);
+  const resetCriteria = useScreenerStore((s) => s.resetCriteria);
   const [sortKey, setSortKey] = useState<SortKey>("market_cap");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
@@ -274,16 +276,12 @@ export function ScreenerResultsTable() {
 
   if (!result) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-        <SlidersHorizontal className="text-muted-foreground size-6" />
-        <p className="text-foreground text-sm font-semibold">No results yet</p>
-        <p className="text-muted-foreground text-xs">
-          Set your criteria above and run the screener to find matching stocks.
-        </p>
-        <Button size="sm" variant="outline" onClick={() => void runScreener()}>
-          Run screener
-        </Button>
-      </div>
+      <EmptyState
+        icon={SlidersHorizontal}
+        headline="No results yet"
+        hint="Set your criteria above and run the screener to find matching stocks."
+        cta={{ label: "Run screener", onClick: () => void runScreener(), primary: true }}
+      />
     );
   }
 
@@ -342,11 +340,13 @@ export function ScreenerResultsTable() {
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td
-                  colSpan={COLUMNS.length}
-                  className="text-muted-foreground px-3 py-6 text-center text-sm"
-                >
-                  No rows matched the criteria.
+                <td colSpan={COLUMNS.length} className="px-3 py-6">
+                  <EmptyState
+                    icon={FilterX}
+                    headline="No rows matched the criteria"
+                    hint="No stocks in this universe passed every filter. Loosen a threshold or reset to the defaults."
+                    cta={{ label: "Reset filters", onClick: () => resetCriteria() }}
+                  />
                 </td>
               </tr>
             ) : (

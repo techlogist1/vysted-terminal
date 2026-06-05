@@ -16,7 +16,9 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { PlugZap } from "lucide-react";
 
+import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -153,9 +155,20 @@ export function BrokerConnectPanel() {
         <section>
           <h3 className="text-charcoal-400 mb-1 text-[10px] uppercase">Brokers</h3>
           {primary.length === 0 && (
-            <p className="text-charcoal-500 px-1 py-2">
-              {status === "loading" ? "Loading…" : "No brokers reported by sidecar."}
-            </p>
+            <EmptyState
+              icon={PlugZap}
+              headline={status === "loading" ? "Loading brokers…" : "No brokers available"}
+              hint={
+                status === "loading"
+                  ? "Reading the broker adapters reported by the sidecar."
+                  : "The sidecar reported no broker adapters yet. Retry once it has finished starting."
+              }
+              cta={
+                status === "loading"
+                  ? undefined
+                  : { label: "Connect broker", onClick: () => void refreshBrokers(), primary: true }
+              }
+            />
           )}
           <ul>
             {primary.map((state) => (

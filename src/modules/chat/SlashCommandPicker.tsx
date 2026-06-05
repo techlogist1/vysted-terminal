@@ -47,7 +47,7 @@ export function SlashCommandPicker({
                 onPick(cmd);
               }}
               className={cn(
-                "flex w-full items-baseline gap-2 px-2.5 py-1.5 text-left font-mono text-[0.7rem]",
+                "flex w-full items-baseline gap-2 px-3 py-2 text-left font-mono text-sm",
                 active ? "bg-charcoal-800" : "hover:bg-charcoal-900",
               )}
             >

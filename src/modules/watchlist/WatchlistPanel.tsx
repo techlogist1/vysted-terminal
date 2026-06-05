@@ -1,12 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUp, ChevronDown, Download, Plus, X } from "lucide-react";
+import { ChevronDown, Download, ListPlus, Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ProvenanceBadge, StalenessBadge } from "@/components/DataBadges";
+import { EmptyState } from "@/components/EmptyState";
 import { buildCsv, downloadCsv } from "@/lib/csv";
 import { openCompanyOverview } from "@/lib/host-actions";
+import { isLiveQuote, useMarketSession } from "@/lib/market-session";
 import { SidecarError } from "@/lib/sidecar-client";
 import { useTickFlash } from "@/lib/use-flash-value";
 import { cn } from "@/lib/utils";
@@ -66,7 +68,14 @@ function WatchlistQuoteRow({
   const { entry, quote } = row;
   const change = quote?.change_percent ?? 0;
   const positive = change >= 0;
-  const flash = useTickFlash(quote?.price ?? null);
+  // FR-118 stale guard: a value only reads as a live tick when freshness is
+  // exactly "live". A closed/weekend/EOD quote must NOT flash and its change %
+  // greys out, so a stale price is never mistaken for a live move.
+  const live = isLiveQuote(quote?.freshness);
+  const session = useMarketSession(quote?.market_state ?? null, quote?.freshness ?? null);
+  // Only feed the tick-flash a changing value while live; otherwise pin it to a
+  // constant so a poll over a stale quote never paints a green/red wash.
+  const flash = useTickFlash(live ? (quote?.price ?? null) : null);
   return (
     <tr
       onClick={onSelect}
@@ -79,11 +88,21 @@ function WatchlistQuoteRow({
         <div className="flex flex-col gap-0.5">
           <span className="text-charcoal-100 truncate font-mono text-sm">{entry.symbol}</span>
           {/* Provenance + calendar-aware freshness so a stale value is never shown
-              as a live tick (FR-041 / SC-019). */}
+              as a live tick (FR-041 / SC-019). The session label (FR-118)
+              humanizes the provider market_state so a closed/weekend/after-hours
+              price is plainly flagged as not-live. */}
           {quote !== null && (
             <span className="flex items-center gap-1 overflow-hidden">
               <ProvenanceBadge provider={quote.provider} />
               {quote.freshness != null && <StalenessBadge freshness={quote.freshness} />}
+            </span>
+          )}
+          {session.label !== null && session.tone === "muted" && (
+            <span
+              className="text-charcoal-500 truncate font-mono text-[10px] tracking-wide"
+              title={`Session: ${session.label}`}
+            >
+              {session.label}
             </span>
           )}
         </div>
@@ -99,8 +118,16 @@ function WatchlistQuoteRow({
       <td
         className={cn(
           "overflow-hidden px-2.5 py-2 text-right font-mono text-sm text-ellipsis whitespace-nowrap tabular-nums",
-          quote === null ? "text-charcoal-400" : positive ? "text-positive" : "text-negative",
+          // FR-118: only a LIVE quote carries the green/red sign colour. A stale
+          // or closed-session change % greys to the muted tier so it never reads
+          // as a live up/down move.
+          quote === null || !live
+            ? "text-charcoal-400"
+            : positive
+              ? "text-positive"
+              : "text-negative",
         )}
+        title={quote !== null && !live ? "Not a live tick — last known change" : undefined}
       >
         {quote !== null ? formatPercent(change) : "—"}
       </td>
@@ -329,13 +356,11 @@ export function WatchlistPanel() {
             </tbody>
           </table>
         ) : rows.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 p-6 text-center">
-            <span className="text-charcoal-400 font-mono text-xs">Your watchlist is empty</span>
-            <span className="text-charcoal-500 flex items-center gap-1 font-mono text-[0.65rem]">
-              <ArrowUp className="size-3" />
-              Type a ticker above to start tracking
-            </span>
-          </div>
+          <EmptyState
+            icon={ListPlus}
+            headline="Your watchlist is empty"
+            hint="Add a ticker in the field above to start tracking live quotes."
+          />
         ) : (
           <table
             className={cn("w-full table-fixed border-collapse", error !== null && "opacity-50")}
