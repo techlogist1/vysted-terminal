@@ -79,24 +79,24 @@ All tracks integrated on `004`. Final tree green: **vitest 1045/1045 (127 files)
 **§6.5 audit 9/9**, **Tier-1 byte-untouched**, **version 0.8.0** everywhere. Verified live on the
 running Tauri app (Quartz capture + computed-style + driven interactions).
 
-| Phase | Track                               | Status | Evidence                                                      |
-| ----- | ----------------------------------- | ------ | ------------------------------------------------------------- |
-| 0     | Warm Graphite + amber + de-glow     | ✅     | live: body `rgb(17,15,12)`, `--accent-rgb 216 154 78`, bg-image `none` |
-| 1     | Composer/header sizing + chips      | ✅     | `8012864`/`046340c`; composer min-h 68, header h-12, SuggestionChips live |
-| 1     | Badges/pickers/EmptyState rollout   | ✅     | `e15730f`; shared EmptyState in 5 dead-grey surfaces, sized pickers |
-| 1     | Sans chrome/prose + warmth pass     | ✅     | `8012864`; live body font "Inter", warmer ramp (fresh-reviewer driven) |
-| 2     | ⌘K ranking fix + palette sizing     | ✅     | `0bcb4fe`; live "notes"→Open Notes + Notes panel, zero agents; 36 tests |
-| 2     | Notes export MD/PNG/PDF             | ✅     | live files: `general.{md,png(600×1308),pdf(2pg)}`              |
-| 2     | Brief export MD/PDF                 | ✅     | live files: `route-ns.md`, `route-ns.pdf (6pg)`               |
-| 2     | Export data-dir fix (get_app_data_dir) | ✅  | `462def4`; Rust command — was the reason exports wrote nothing |
-| 3     | Screener cold-path backoff          | ✅     | merged `a456ec7`; LIVE log: throttle 1→2→3 backing off 76→136→271s |
-| 4     | Company-overview narrative + verify | ✅     | merged `021be60`; numeric-redaction pass, 15 tests            |
-| 4     | Per-research-space memory           | ✅     | merged `36ef515`; typed field + durable memory, 40 tests      |
-| 4     | Market-session awareness (FR-118)   | ✅     | `e15730f`; session label + stale-price guard on watchlist/chart |
-| 4     | Research presentation depth         | ✅     | `fdd4089`; dedup sources + type badges + asset-class metrics  |
-| 5     | DESIGN_SYSTEM.md rewrite (S-2)      | ✅     | merged `0ab48d5`; grep-clean of retired-system terms          |
-| 5     | S-1/S-3/S-5a/S-6/S-7 cleanup        | ✅     | warm-comment purge, tongyi `.pyc`, brief mode/step casing     |
-| 6     | Verification + safety floor + sheet | ✅     | side-by-side `verification/COMPARISON.html`; 2 fresh reviews; floor green |
+| Phase | Track                                  | Status | Evidence                                                                  |
+| ----- | -------------------------------------- | ------ | ------------------------------------------------------------------------- |
+| 0     | Warm Graphite + amber + de-glow        | ✅     | live: body `rgb(17,15,12)`, `--accent-rgb 216 154 78`, bg-image `none`    |
+| 1     | Composer/header sizing + chips         | ✅     | `8012864`/`046340c`; composer min-h 68, header h-12, SuggestionChips live |
+| 1     | Badges/pickers/EmptyState rollout      | ✅     | `e15730f`; shared EmptyState in 5 dead-grey surfaces, sized pickers       |
+| 1     | Sans chrome/prose + warmth pass        | ✅     | `8012864`; live body font "Inter", warmer ramp (fresh-reviewer driven)    |
+| 2     | ⌘K ranking fix + palette sizing        | ✅     | `0bcb4fe`; live "notes"→Open Notes + Notes panel, zero agents; 36 tests   |
+| 2     | Notes export MD/PNG/PDF                | ✅     | live files: `general.{md,png(600×1308),pdf(2pg)}`                         |
+| 2     | Brief export MD/PDF                    | ✅     | live files: `route-ns.md`, `route-ns.pdf (6pg)`                           |
+| 2     | Export data-dir fix (get_app_data_dir) | ✅     | `462def4`; Rust command — was the reason exports wrote nothing            |
+| 3     | Screener cold-path backoff             | ✅     | merged `a456ec7`; LIVE log: throttle 1→2→3 backing off 76→136→271s        |
+| 4     | Company-overview narrative + verify    | ✅     | merged `021be60`; numeric-redaction pass, 15 tests                        |
+| 4     | Per-research-space memory              | ✅     | merged `36ef515`; typed field + durable memory, 40 tests                  |
+| 4     | Market-session awareness (FR-118)      | ✅     | `e15730f`; session label + stale-price guard on watchlist/chart           |
+| 4     | Research presentation depth            | ✅     | `fdd4089`; dedup sources + type badges + asset-class metrics              |
+| 5     | DESIGN_SYSTEM.md rewrite (S-2)         | ✅     | merged `0ab48d5`; grep-clean of retired-system terms                      |
+| 5     | S-1/S-3/S-5a/S-6/S-7 cleanup           | ✅     | warm-comment purge, tongyi `.pyc`, brief mode/step casing                 |
+| 6     | Verification + safety floor + sheet    | ✅     | side-by-side `verification/COMPARISON.html`; 2 fresh reviews; floor green |
 
 Stale-register: S-1/S-2/S-3/S-5a/S-6/S-7/S-8/S-19 done. S-15/S-16/S-18 (mode/registry/`__terminal__`
 dedup) **not done** — optional coherence polish, no correctness impact; carried forward. §G CLAUDE.md
@@ -194,3 +194,55 @@ teammates `cd` into their worktree path before the first `git`.
   `__terminal__`-capture de-duplication) — coherence polish, no correctness impact.
 
 **No silently-deferred work.** Every brief requirement is either VERIFIED above or explicitly flagged.
+
+---
+
+## Session 3.1 addendum — dev-launch fix, HEAD guard, fresh rendering instance
+
+**Dev launch FIXED.** `pnpm tauri:mcp` white-screened because Next 16 **Turbopack** dev chunks use
+`%5Bturbopack%5D` URL-encoded names the WKWebView won't fetch (next-dev logged only `GET /`, zero
+`/_next/`). Fix (`fbb9550`): `"dev": "next dev --webpack"` — webpack's clean hashed names load. The
+rig launch now **renders** the warm-graphite app at `http://localhost:3000` (confirmed live: body
+font `Inter`, bg `rgb(17,15,12)`; cold start ~110s = sidecar PyInstaller rebuild + webpack first
+compile, white during compile then paints). Release builds (`tauri build` → static `tauri://`) were
+never affected.
+
+**Worktree-HEAD guard — structural, deterministic** (`8e8c21c`; `scripts/install-head-guard.sh`
+
+- `scripts/git-hooks/reference-transaction`). A `reference-transaction` hook ABORTS, in the MAIN
+  worktree only, any non-fast-forward move of `HEAD`/the protected branch (a teammate checkout/reset
+  that ran in the shared checkout). Verified: `git reset --hard main` was **aborted** by the hook and
+  HEAD stayed on `004`; a normal commit fast-forwards (allowed); linked teammate worktrees
+  (`git-dir != git-common-dir`) and fetches are untouched. NUANCE (documented): the hook blocks the
+  REF move; `git reset --hard` updates the worktree _before_ the transaction (git has no pre-reset
+  hook), so a stray reset still dirties files — but HEAD/the branch is protected (the stated goal),
+  and `git checkout` (the actual observed contamination) aborts atomically. Install on a new clone:
+  `sh scripts/install-head-guard.sh`.
+
+**Stale-register S-15/S-16/S-18 — assessed, not forced** (per "leave honestly flagged rather than
+forcing it"):
+
+- **S-16 (versioned registry): NOT removable.** `registry_v0_6_5` is an _intentional empty
+  forward-compat placeholder_ imported by `main.py`/`app.py` ("becomes non-empty"); `registry_v0_6_0`
+  is live across ~8 modules. Neither is dead. Left as-is.
+- **S-15 (mode systems): behavioral risk.** `src/store/agent-mode.ts` (the FR-003 four-mode spine)
+  and `planner.classify_intent` (intent inference) are _both_ live, at different layers — not a
+  clean removal. Left as-is.
+- **S-18 (`__terminal__` capture): already resolved.** Both send sites already call the shared
+  `captureTerminalState()` helper (no inline duplication remains).
+
+**Fresh rendering instance (the deliverable) — OPEN + populated.** Launched via the fixed
+`pnpm tauri:mcp` (webpack dev); fresh sidecar rebuilt this launch (`22:30`, `/health` 0.8.0 on
+:51907). Loaded **AAPL** (keyless): equity-overview shows full fundamentals + a numerically-verified
+**AI narrative** (live, operator's DeepSeek key — not faked), the chart shows AAPL candlesticks, and
+the **Notes** panel is open with a seeded note. Proof shots:
+`docs/redesign/verification/app-LIVE-equity-aapl.png`, `app-LIVE-chart-aapl.png`, `app-LIVE-notes.png`.
+App + sidecar left running.
+
+**Relaunch (exact):** `pnpm tauri:mcp` (= `tauri dev --features dev-tools`; first cold start ~110s —
+shows white during the webpack compile, then paints, so wait for it). Launch path used: **dev launch
+(webpack) — now fixed.**
+
+**Still NEEDS-MANUAL-CHECK:** agent tool-use via the local `qwen2.5:7b` (inconsistent — cloud keys
+reliable); the screener cold single-digit-second wall-clock (IP/network-bound — the self-throttle
+fix is proven, the absolute timing isn't re-measurable here).
