@@ -25,10 +25,25 @@ from typing import Any
 #: ``ResearchStep.kind`` values — the stages a research run emits. ``plan`` and
 #: ``reflect`` are LLM turns; ``tool`` / ``search`` are data pulls; ``compress``
 #: folds findings citation-preserving; ``distill`` rewrites the IterResearch
-#: central report; ``synthesize`` writes the final brief. (Informational only —
-#: ``ResearchStep`` does NOT validate ``kind`` against this, so a new kind such as
-#: ``engine`` or an explorer-tagged detail renders fine with no schema change.)
-STEP_KINDS = ("plan", "tool", "search", "compress", "distill", "reflect", "synthesize")
+#: central report; ``synthesize`` writes the final brief; ``engine`` carries the
+#: honest backend / fallback line. (Informational only — ``ResearchStep`` does
+#: NOT validate ``kind`` against this, so a new explorer-tagged detail renders
+#: fine with no schema change.) Mirrored by ``BriefStepKind`` in ``types/brief.ts``.
+STEP_KINDS = (
+    "plan",
+    "tool",
+    "search",
+    "compress",
+    "distill",
+    "reflect",
+    "synthesize",
+    "engine",
+)
+
+#: ``ResearchSource.source_type`` values — the category badge the sources rail
+#: shows. Mirrored by ``BriefSourceType`` in ``types/brief.ts``. Optional on the
+#: wire: when ``None`` the frontend derives it client-side from the domain.
+SOURCE_TYPES = ("news", "research", "filing", "web")
 
 #: ``ResearchBrief.mode`` values — the two research entry points.
 RESEARCH_MODES = ("fast", "deep")
@@ -48,6 +63,10 @@ class ResearchSource:
     title: str
     excerpt: str
     domain: str | None = None
+    #: One of :data:`SOURCE_TYPES` (news / research / filing / web), or ``None``
+    #: when the pipeline didn't classify it — the frontend then derives the
+    #: badge client-side from the domain.
+    source_type: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -55,6 +74,7 @@ class ResearchSource:
             "title": self.title,
             "excerpt": self.excerpt,
             "domain": self.domain,
+            "source_type": self.source_type,
         }
 
 
@@ -128,6 +148,7 @@ class ResearchBrief:
 
 __all__ = [
     "RESEARCH_MODES",
+    "SOURCE_TYPES",
     "STEP_KINDS",
     "ResearchBrief",
     "ResearchSource",
