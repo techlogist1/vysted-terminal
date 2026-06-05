@@ -1166,7 +1166,7 @@ function EmptyState({
   const meta = agentModeMeta(mode);
   return (
     <div className="text-charcoal-300 flex h-full flex-col items-center justify-center gap-5 px-6 text-center text-[0.95rem] leading-relaxed">
-      <Sparkles className="text-amber-400/80" size={28} aria-hidden />
+      <Sparkles className="text-amber-300/55" size={24} aria-hidden />
       <div className="flex max-w-md flex-col gap-2.5">
         <p className="text-charcoal-200 leading-relaxed">
           Ask me anything about what you&rsquo;re looking at — your portfolio, a chart, a screen. I
