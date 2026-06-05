@@ -21,6 +21,7 @@ import { validateProvider } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAgentCommandStore } from "@/store/agent-command";
+import { useChatPendingStore } from "@/store/chat-pending";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { useAgentSpacesStore } from "@/store/agent-spaces";
 import { type AgentRunBudget, useAgentRunsStore } from "@/store/agent-runs";
@@ -804,6 +805,15 @@ export function ChatSidebar() {
     lastAgentCmdSeq.current = agentCommand.seq;
     void handleSend(agentCommand.prompt);
   }, [agentCommand, streaming, handleSend]);
+
+  // Consume any prompt queued by the command palette "Ask AI" row (opens chat +
+  // routes the typed query to the agent). Deferred to a microtask so the effect
+  // body stays free of synchronous setState (handleSend is the only dep).
+  useEffect(() => {
+    const pending = useChatPendingStore.getState().consumePrompt();
+    if (!pending?.trim()) return;
+    void Promise.resolve().then(() => handleSend(pending));
+  }, [handleSend]);
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
