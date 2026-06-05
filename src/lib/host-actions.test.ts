@@ -14,7 +14,9 @@ import {
 import { useBrokersStore } from "@/store/brokers";
 import { useChartCommandStore } from "@/store/chart-command";
 import { useOrdersStore } from "@/store/orders";
+import { useScreenerStore } from "@/store/screener";
 import { useSymbolsStore } from "@/store/symbols";
+import { useWorkspaceStore } from "@/store/workspace";
 
 describe("host-actions", () => {
   beforeEach(() => {
@@ -40,6 +42,7 @@ describe("host-actions", () => {
         "publish_brief",
         "set_chart_indicators",
         "set_chart_symbol",
+        "write_screener_filters",
       ].sort(),
     );
     expect(isHostActionMutation("set_chart_symbol")).toBe(true);
@@ -83,6 +86,54 @@ describe("host-actions", () => {
   it("applyHostAction(add_to_watchlist) tracks the symbol", () => {
     applyHostAction("add_to_watchlist", { symbol: "tsla", asset_class: "equity" });
     expect(useSymbolsStore.getState().entries.map((e) => e.symbol)).toContain("TSLA");
+  });
+
+  it("write_screener_filters describes + writes a nested AND/OR tree into the panel", () => {
+    useScreenerStore.getState().__resetForTests();
+    const openPanel = vi.fn();
+    useWorkspaceStore.setState({ openPanel } as never);
+
+    const input = {
+      criteria: [{ field: "pe_ratio", operator: "lt", value: 15 }],
+      group: {
+        combinator: "or",
+        criteria: [
+          { field: "roe", operator: "gt", value: 0.2 },
+          {
+            combinator: "and",
+            criteria: [
+              { field: "dividend_yield", operator: "gt", value: 0.03 },
+              { field: "debt_to_equity", operator: "lt", value: 1 },
+            ],
+          },
+        ],
+      },
+      universe: "sp500",
+    };
+
+    const diff = describeHostAction("write_screener_filters", input);
+    expect(diff.kind).toBe("panel");
+    expect(diff.after).toMatch(/nested AND\/OR/);
+    expect(diff.after).toMatch(/sp500/);
+
+    const label = applyHostAction("write_screener_filters", input);
+    expect(label).toMatch(/screener criteria/i);
+    // The nested tree round-trips into the store + advanced mode flips on.
+    const s = useScreenerStore.getState();
+    expect(s.advanced).toBe(true);
+    expect(s.group?.combinator).toBe("or");
+    expect(s.group?.criteria).toHaveLength(2);
+    expect(s.universe).toBe("sp500");
+    // The panel is staged for the user to review + Run.
+    expect(openPanel).toHaveBeenCalledWith("screener");
+  });
+
+  it("write_screener_filters with no well-formed criteria can't apply (re-pends)", () => {
+    useScreenerStore.getState().__resetForTests();
+    // Malformed: missing value / unknown operator -> dropped -> nothing to write.
+    expect(
+      applyHostAction("write_screener_filters", { criteria: [{ field: "pe_ratio" }] }),
+    ).toBeNull();
   });
 
   it("set_chart_indicators describes + applies the indicator selection (B2)", () => {
