@@ -246,3 +246,36 @@ shows white during the webpack compile, then paints, so wait for it). Launch pat
 **Still NEEDS-MANUAL-CHECK:** agent tool-use via the local `qwen2.5:7b` (inconsistent — cloud keys
 reliable); the screener cold single-digit-second wall-clock (IP/network-bound — the self-throttle
 fix is proven, the absolute timing isn't re-measurable here).
+
+---
+
+## Session 3.2 addendum — surgical UI polish (three fixes)
+
+Focused polish pass (NOT a rebuild). Warm-graphite + single amber accent + no-glow unchanged.
+
+1. **Left dock width** — default `460 → 380` (`agent-dock.ts`); the existing workspace blob's
+   persisted width was migrated to 380 too, so the chart + equity-overview get more room. Chat
+   empty-state rebuilt to the **shared `EmptyState` density language** (neutral `charcoal-500` icon,
+   `text-sm`/medium headline, `text-caption` hints, `gap-3`) — intentional, not a barren void.
+2. **Send button** — outline `size-10` → a **filled circular amber** send (`size-11 rounded-full`,
+   the canonical `#d89a4e` accent = the single saturated element), bottom-aligned (`items-end`) so
+   composer + send read as one unit. Glyph `strokeWidth 2.5` for contrast on the fill.
+3. **Cross-panel continuity** — chat sans dropped from 15px to the data scale: composer `text-sm`,
+   empty-state headline `text-panel-title (15) → text-sm (14)`, message bubbles tightened
+   (`gap-3→2`, `py-2→1.5`) toward the equity-row pitch. The chat no longer reads as an airy
+   large-sans app beside dense mono data.
+
+**Fresh blind review (references + the three shots), after fixes:** Cohesion **3→4**, Proportions
+**4→5**, Send **4→5** — verdict **"cohesive / balanced … reads as one app."** Proof:
+`docs/redesign/verification/app-32-chat-empty.png`, `app-32-three-panels-aapl.png`,
+`app-32-composer-send.png`.
+
+**Not changed (out of scope / marginal, noted honestly):** chart toolbar type size (the chart is
+explicitly off-limits this pass); the composer's pre-existing agent-avatar sitting close to the
+placeholder (not one of the three fixes; touching it risks the agent-panel logic the brief fenced
+off); a ~1px chat-body↔equity-row size parity nudge the reviewer said is "the only thing keeping
+cohesion off a 5" (cohesion is already "cohesive"; deferred to avoid a new imbalance).
+
+**Files (3.2):** `src/store/agent-dock.ts`, `src/modules/chat/ChatSidebar.tsx`,
+`src/modules/chat/ChatSidebar.test.tsx`. Tier-1 byte-untouched; §6.5 9/9; version 0.8.0; on `004`,
+no merge. Relaunch unchanged: `pnpm tauri:mcp`.
