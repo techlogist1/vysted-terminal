@@ -56,7 +56,7 @@ export function MentionPicker({
                 onPick(mention);
               }}
               className={cn(
-                "flex w-full items-baseline gap-2 px-2.5 py-1.5 text-left font-mono text-[0.7rem]",
+                "flex w-full items-baseline gap-2 px-3 py-2 text-left font-mono text-sm",
                 active ? "bg-charcoal-800" : "hover:bg-charcoal-900",
               )}
             >
@@ -67,7 +67,7 @@ export function MentionPicker({
               {mention.description && (
                 <span className="text-charcoal-500 truncate">{mention.description}</span>
               )}
-              <span className={cn("ml-auto shrink-0 text-right text-[0.62rem]", badge.className)}>
+              <span className={cn("ml-auto shrink-0 text-right text-xs", badge.className)}>
                 {badge.label}
               </span>
             </button>

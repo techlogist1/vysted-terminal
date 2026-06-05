@@ -45,7 +45,7 @@ export function StatusChrome() {
   return (
     <div
       aria-label="Status"
-      className="text-charcoal-300 flex items-center gap-2.5 font-mono text-[11px] leading-none"
+      className="text-charcoal-500 flex items-center gap-3 font-mono text-[11px] leading-none"
     >
       <span className="flex items-center gap-1.5" title={`Sidecar: ${connLabel}`}>
         <span className={cn("size-1.5 rounded-full", dotClass)} aria-hidden />
