@@ -30,6 +30,7 @@ import { useKeybindingsStore } from "@/store/keybindings";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
+import { useResearchSpacesStore } from "@/store/research-spaces";
 import { type SearchSettingsBundle, useSearchSettingsStore } from "@/store/search-settings";
 import { type SettingsBundle, useSettingsStore } from "@/store/settings";
 import { type SymbolEntry, useSymbolsStore } from "@/store/symbols";
@@ -38,6 +39,7 @@ import { AUTOSAVE_LAYOUT_NAME, useWorkspaceStore } from "@/store/workspace";
 import type { LLMProviderId } from "../../types/ai";
 import { type AgentMode, coerceAgentMode } from "../../types/agent-modes";
 import type { WorkspaceDrawings } from "../../types/drawings";
+import type { WorkspaceResearchSpaces } from "../../types/research-space";
 
 /** The serialised form of a workspace, persisted as a `.vysted-workspace` file. */
 export interface SerializedWorkspace {
@@ -128,6 +130,21 @@ export interface SerializedWorkspace {
   /** In-app research notes (per-stock + general) — ride the blob like the brief
    * so they persist with a named workspace / per-stock research space (003). */
   notes?: NotesBundle;
+  /**
+   * TYPED research-space marker (S-19): the symbol this workspace researches,
+   * present iff the workspace IS a research space. Replaces the fragile
+   * `"Research: "` name-prefix detection — `isResearchSpace`/`researchSymbolOf`
+   * read this field first and fall back to the prefix only for OLD blobs that
+   * pre-date it. Absent on a non-research workspace.
+   */
+  researchSymbol?: string;
+  /**
+   * Per-research-space DURABLE agent memory (chat transcript + a short
+   * prior-research summary), keyed by research-space workspace name. Rides the
+   * blob so the copilot "remembers" what it researched in a space across a
+   * relaunch (`src/store/research-spaces.ts`). Optional for older blobs.
+   */
+  researchSpaces?: WorkspaceResearchSpaces;
   /** Open to future-phase additions; the sidecar stores the body opaquely. */
   [key: string]: unknown;
 }
@@ -162,6 +179,17 @@ function buildWorkspacePayload(name: string): SerializedWorkspace {
   if (!api) {
     throw new WorkspaceError("The panel layout is not ready yet.");
   }
+  // If the active workspace is a research space, fold the LIVE chat transcript
+  // into its durable per-space memory BEFORE snapshotting, so the saved blob
+  // captures the conversation the user has had in this space (S-19 / per-space
+  // memory). Keyed by the CANONICAL research-space name (`researchSpaceName`),
+  // not the file `name` — the autosave slot persists under `__autosave__` but a
+  // space's memory must converge on the same key as its explicit save. A non-
+  // research workspace leaves the memory map untouched.
+  const researchSymbol = useWorkspaceStore.getState().researchSymbol;
+  if (researchSymbol) {
+    useResearchSpacesStore.getState().saveSpace(researchSpaceName(researchSymbol), researchSymbol);
+  }
   return {
     name,
     layout: api.toJSON(),
@@ -186,6 +214,10 @@ function buildWorkspacePayload(name: string): SerializedWorkspace {
     searchSettings: useSearchSettingsStore.getState().toBundle(),
     brief: useBriefStore.getState().toBundle(),
     notes: useNotesStore.getState().toBundle(),
+    // TYPED research-space marker (only on a research space) + the durable
+    // per-space agent-memory archive (S-19).
+    ...(researchSymbol ? { researchSymbol } : {}),
+    researchSpaces: useResearchSpacesStore.getState().snapshot(),
   };
 }
 
@@ -210,6 +242,14 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
   if (!api) {
     throw new WorkspaceError("The panel layout is not ready yet.");
   }
+  // Capture the research space we're LEAVING before any store mutation below
+  // overwrites the active name/symbol (used to archive its transcript in the
+  // research-space swap at the end — S-19). Keyed by the CANONICAL space name so
+  // it converges with the autosave-slot save (which persists under `__autosave__`).
+  const prevSpace = (() => {
+    const symbol = useWorkspaceStore.getState().researchSymbol;
+    return symbol ? { name: researchSpaceName(symbol), symbol } : null;
+  })();
   // Restore the enabled map first so the panel components a layout references
   // resolve against the same module set that was active when it was saved.
   // Snapshot it so a throwing `fromJSON` (corrupt/truncated blob) rolls the
@@ -296,6 +336,29 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
   if ("notes" in workspace) {
     useNotesStore.getState().fromBundle((workspace.notes ?? null) as NotesBundle);
   }
+  // --- Research space: typed marker + durable per-space agent memory (S-19) ---
+  // 1. Rehydrate the per-space memory archive FIRST so a switch into a research
+  //    space below has the target's saved transcript available to restore.
+  if (workspace.researchSpaces && typeof workspace.researchSpaces === "object") {
+    useResearchSpacesStore
+      .getState()
+      .replaceAll(workspace.researchSpaces as WorkspaceResearchSpaces);
+  }
+  // 2. Resolve the new research symbol — TYPED field first, prefix fall-back for
+  //    OLD blobs that pre-date it. `null` when this is not a research space.
+  const nextSymbol = researchSymbolOf(workspace);
+  // 3. Swap the live chat transcript: archive the space we're leaving (captured
+  //    above before the name was overwritten — defends the in-session switch
+  //    path), restore the one we're entering. Keyed by the CANONICAL space name
+  //    so a renamed workspace file still resolves its archived memory.
+  useResearchSpacesStore
+    .getState()
+    .switchSpace(
+      prevSpace,
+      nextSymbol ? { name: researchSpaceName(nextSymbol), symbol: nextSymbol } : null,
+    );
+  // 4. Record the typed marker on the store (drives agent-context anchoring).
+  useWorkspaceStore.getState().setResearchSymbol(nextSymbol);
 }
 
 /** Build the sidecar `/workspace` URL, optionally for a single named workspace. */
@@ -466,6 +529,37 @@ export function researchSpaceName(symbol: string): string {
 }
 
 /**
+ * The symbol a workspace researches, or `null` when it is not a research space.
+ *
+ * TYPED-FIELD FIRST (S-19): a blob with the explicit {@link
+ * SerializedWorkspace.researchSymbol} field returns that symbol directly — robust
+ * against a rename of the workspace. BACK-COMPAT FALL-BACK: an OLD blob that
+ * pre-dates the field is still recognised by its `"Research: "` name prefix, and
+ * the symbol is recovered from the suffix. A blank suffix is treated as "not a
+ * research space" so a literal `"Research: "` can't masquerade as one.
+ */
+export function researchSymbolOf(
+  workspace: Pick<SerializedWorkspace, "name" | "researchSymbol">,
+): string | null {
+  const typed = workspace.researchSymbol;
+  if (typeof typed === "string" && typed.trim()) {
+    return typed.trim().toUpperCase();
+  }
+  if (typeof workspace.name === "string" && workspace.name.startsWith(RESEARCH_SPACE_PREFIX)) {
+    const suffix = workspace.name.slice(RESEARCH_SPACE_PREFIX.length).trim();
+    return suffix ? suffix.toUpperCase() : null;
+  }
+  return null;
+}
+
+/** True when a workspace is a research space (typed field, prefix fall-back). */
+export function isResearchSpace(
+  workspace: Pick<SerializedWorkspace, "name" | "researchSymbol">,
+): boolean {
+  return researchSymbolOf(workspace) !== null;
+}
+
+/**
  * Create a per-stock RESEARCH SPACE for `symbol` and persist it as a named
  * workspace ("Research: TICKER"). A research space is a dedicated cockpit that
  * bundles one ticker's research surface — the chart (symbol loaded), the equity
@@ -485,6 +579,17 @@ export async function createResearchSpace(rawSymbol: string): Promise<string> {
   if (!api) {
     throw new WorkspaceError("The panel layout is not ready yet.");
   }
+  const name = researchSpaceName(symbol);
+  // Archive the transcript of any space we're leaving, then start this new
+  // space with a clean transcript (S-19 per-space memory). Marking the store's
+  // typed research symbol BEFORE the save makes `buildWorkspacePayload` emit the
+  // `researchSymbol` field + initialise this space's memory entry.
+  const leaving = (() => {
+    const prevSymbol = useWorkspaceStore.getState().researchSymbol;
+    return prevSymbol ? { name: researchSpaceName(prevSymbol), symbol: prevSymbol } : null;
+  })();
+  useResearchSpacesStore.getState().switchSpace(leaving, { name, symbol });
+  useWorkspaceStore.getState().setResearchSymbol(symbol);
   // Clean, dedicated research layout (chart + overview + brief + notes).
   applyResearchSpaceLayout(api);
   // Load the symbol into the chart (always-consumed channel — the chart panel,
@@ -493,7 +598,6 @@ export async function createResearchSpace(rawSymbol: string): Promise<string> {
   useNotesStore.getState().setFocusSymbol(symbol);
   // Persist as a named workspace so it shows up in Load Workspace. `saveWorkspace`
   // serialises the live layout we just built and marks it active.
-  const name = researchSpaceName(symbol);
   await saveWorkspace(name);
   return name;
 }

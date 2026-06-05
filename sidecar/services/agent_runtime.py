@@ -212,6 +212,22 @@ def _render_terminal_preamble(ts: dict[str, Any]) -> str:
     """
     focused = ts.get("focusedSymbol")
     lines = ["## What the user is looking at"]
+    # Research-space anchor (S-19): when the user is inside a per-stock research
+    # space, lead with its symbol + the prior-research memory so the agent
+    # "remembers" what it investigated here last time and stays on-topic.
+    rs = ts.get("researchSpace")
+    if isinstance(rs, dict) and rs.get("symbol"):
+        sym = rs["symbol"]
+        prior = rs.get("priorTurns") or 0
+        lines.append(
+            f"Research space: dedicated to {sym}. Treat {sym} as the subject of "
+            "this conversation unless the user names another symbol."
+        )
+        memory = rs.get("memory")
+        if isinstance(memory, str) and memory.strip():
+            lines.append(f"Prior research memory: {memory.strip()}")
+        elif prior:
+            lines.append(f"This space has {prior} prior conversation turn(s) on {sym}.")
     charts = ts.get("charts") or []
     if charts:
         c = charts[0]

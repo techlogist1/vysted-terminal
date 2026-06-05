@@ -218,6 +218,33 @@ async def test_invoke_agent_composes_system_and_context(monkeypatch: pytest.Monk
     assert provider.captured_kwargs["api_key"] == "sk-test"
 
 
+def test_terminal_preamble_anchors_to_active_research_space() -> None:
+    """The terminal preamble leads with the research-space symbol + its prior-
+    research memory so the agent 'remembers' what it investigated there (S-19)."""
+    preamble = agent_runtime._render_terminal_preamble(
+        {
+            "focusedSymbol": "NVDA",
+            "charts": [{"symbol": "NVDA", "timeframe": "1D", "indicators": ["RSI"]}],
+            "researchSpace": {
+                "symbol": "NVDA",
+                "memory": "Prior research on NVDA (2 questions). Recent: is NVDA cheap?",
+                "priorTurns": 4,
+            },
+        }
+    )
+    assert "Research space: dedicated to NVDA" in preamble
+    assert "Prior research memory:" in preamble
+    assert "is NVDA cheap?" in preamble
+
+
+def test_terminal_preamble_omits_research_space_when_absent() -> None:
+    """A non-research cockpit renders no research-space anchor."""
+    preamble = agent_runtime._render_terminal_preamble(
+        {"focusedSymbol": "AAPL", "charts": [{"symbol": "AAPL", "timeframe": "1D"}]}
+    )
+    assert "Research space" not in preamble
+
+
 @pytest.mark.asyncio
 async def test_invoke_agent_emits_plan_for_compound_on_capable_model(
     monkeypatch: pytest.MonkeyPatch,
