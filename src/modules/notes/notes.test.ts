@@ -135,10 +135,7 @@ describe("Tiptap markdown round-trip", () => {
   }
 
   // Helper: set markdown content using the Markdown extension's contentType option.
-  function setMd(
-    editor: Awaited<ReturnType<typeof makeEditor>>,
-    markdown: string,
-  ): boolean {
+  function setMd(editor: Awaited<ReturnType<typeof makeEditor>>, markdown: string): boolean {
     return editor.commands.setContent(markdown, { contentType: "markdown" });
   }
 
@@ -234,5 +231,44 @@ describe("Tiptap markdown round-trip", () => {
     // Empty doc returns empty string or minimal whitespace — either is fine.
     expect(output.trim()).toBe("");
     editor.destroy();
+  });
+});
+
+// ── Editor mounts with the FULL NotesPanel extension set ───────────────────────
+// Regression guard: the slash-command and wikilink extensions both use
+// @tiptap/suggestion. Two Suggestion plugins without distinct pluginKeys collide
+// on the shared default key and throw during ProseMirror state creation, crashing
+// the editor mount (the round-trip tests above use only the core extensions and
+// missed this). This test constructs the editor with the exact NotesPanel set.
+describe("NotesPanel editor construction (suggestion-plugin keys)", () => {
+  it("constructs with StarterKit + tables + markdown + slash + wikilink without throwing", async () => {
+    const { Editor } = await import("@tiptap/core");
+    const { StarterKit } = await import("@tiptap/starter-kit");
+    const { Table } = await import("@tiptap/extension-table");
+    const { TableRow } = await import("@tiptap/extension-table-row");
+    const { TableCell } = await import("@tiptap/extension-table-cell");
+    const { TableHeader } = await import("@tiptap/extension-table-header");
+    const { Markdown } = await import("@tiptap/markdown");
+    const { SlashCommandExtension } = await import("./SlashCommandExtension");
+    const { WikiLinkExtension } = await import("./WikiLinkExtension");
+
+    let editor: InstanceType<typeof Editor> | null = null;
+    expect(() => {
+      editor = new Editor({
+        extensions: [
+          StarterKit,
+          Table.configure({ resizable: false }),
+          TableRow,
+          TableCell,
+          TableHeader,
+          Markdown,
+          SlashCommandExtension,
+          WikiLinkExtension.configure({ getSymbols: () => [] }),
+        ],
+        content: "",
+      });
+    }).not.toThrow();
+    expect(editor).not.toBeNull();
+    editor!.destroy();
   });
 });

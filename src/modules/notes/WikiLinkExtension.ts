@@ -15,6 +15,7 @@
  */
 
 import { Extension, type Range } from "@tiptap/core";
+import { PluginKey } from "@tiptap/pm/state";
 import { Suggestion } from "@tiptap/suggestion";
 
 export interface WikiLinkItem {
@@ -62,6 +63,9 @@ export const WikiLinkExtension = Extension.create<{
 
     return [
       Suggestion({
+        // Distinct plugin key — must differ from the slash-command Suggestion or
+        // the two collide on the shared default key and crash editor init.
+        pluginKey: new PluginKey("notesWikiLink"),
         editor: this.editor,
         char: "[[",
         command: ({ editor, range, props }) => {

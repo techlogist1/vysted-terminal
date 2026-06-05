@@ -9,6 +9,7 @@
  */
 
 import { Extension } from "@tiptap/core";
+import { PluginKey } from "@tiptap/pm/state";
 import { Suggestion } from "@tiptap/suggestion";
 
 import { SLASH_COMMANDS, type SlashCommandItem } from "./slash-commands";
@@ -32,6 +33,9 @@ export const SlashCommandExtension = Extension.create({
   addProseMirrorPlugins() {
     return [
       Suggestion({
+        // Distinct plugin key — two Suggestion plugins (slash + wikilink) on one
+        // editor collide on the shared default key and crash editor init.
+        pluginKey: new PluginKey("notesSlashCommand"),
         editor: this.editor,
         char: "/",
         startOfLine: false,
