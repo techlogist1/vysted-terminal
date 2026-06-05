@@ -30,7 +30,7 @@ export function BudgetConfig({
     step: number,
     value: number | undefined,
   ) => (
-    <label className="flex items-center gap-1">
+    <label className="flex items-center gap-1.5">
       <span className="text-charcoal-500">{label}</span>
       <input
         type="number"
@@ -42,14 +42,14 @@ export function BudgetConfig({
           const n = e.target.value === "" ? undefined : Number(e.target.value);
           onChange({ ...budget, [key]: Number.isFinite(n) ? n : undefined });
         }}
-        className="bg-charcoal-800 text-charcoal-100 h-5 w-16 rounded px-1 text-right text-[0.6rem] outline-none focus:ring-1 focus:ring-amber-400"
+        className="bg-charcoal-800 text-charcoal-100 h-7 w-16 rounded px-1.5 text-right text-xs outline-none focus:ring-1 focus:ring-amber-400"
       />
     </label>
   );
   return (
     <div
       aria-label="Delegate budget"
-      className="border-charcoal-700 text-charcoal-400 flex flex-wrap items-center gap-x-3 gap-y-1 border-b px-3 py-1 font-mono text-[0.6rem]"
+      className="border-charcoal-700 text-charcoal-400 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3 py-1.5 font-mono text-xs"
     >
       <span className="tracking-wide uppercase">Budget</span>
       {field("tokens", "maxTokens", 10_000, budget.maxTokens)}
