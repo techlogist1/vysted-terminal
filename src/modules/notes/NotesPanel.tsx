@@ -11,8 +11,9 @@
  * - Notes persist via two parallel paths:
  *   (a) workspace blob (existing sidecar autosave, always-written),
  *   (b) atomic `.md` file via Rust `write_text_atomic` (SC-032 crash-safe).
- * - Sharing: `.md` export, PNG via html-to-image (toPng x2, WebKit fix),
- *   PDF via `window.print()` + `@media print` stylesheet.
+ * - Sharing: `.md`, PNG (html-to-image), and PDF (html-to-image → paginated
+ *   jsPDF) all write real files via the Rust atomic-write commands through
+ *   `@/lib/export-artifact` — the WKWebView blocks browser downloads.
  *
  * Static-export safe: `'use client'` + `immediatelyRender: false`.
  */
@@ -31,9 +32,11 @@ import { cn } from "@/lib/utils";
 import { useNotesStore } from "@/store/notes";
 import { useSymbolsStore } from "@/store/symbols";
 
+import { saveTextArtifact, savePngArtifact, savePdfArtifact } from "@/lib/export-artifact";
+
 import { SlashCommandExtension, type SlashMenuDetail } from "./SlashCommandExtension";
 import { WikiLinkExtension, type WikiLinkItem, type WikiLinkMenuDetail } from "./WikiLinkExtension";
-import { persistNoteMd, exportNoteMd } from "./notes-persistence";
+import { persistNoteMd } from "./notes-persistence";
 
 // ── Debounce ──────────────────────────────────────────────────────────────────
 
@@ -64,35 +67,13 @@ function ScopeChip({
       className={cn(
         "rounded px-2 py-0.5 text-xs font-medium transition-colors",
         active
-          ? "bg-[var(--amber-500)] text-[var(--charcoal-950)]"
-          : "bg-[var(--charcoal-800)] text-[var(--charcoal-300)] hover:bg-[var(--charcoal-700)]",
+          ? "bg-[var(--color-amber-500)] text-[var(--color-charcoal-950)]"
+          : "bg-[var(--color-charcoal-800)] text-[var(--color-charcoal-300)] hover:bg-[var(--color-charcoal-700)]",
       )}
     >
       {label}
     </button>
   );
-}
-
-// ── PNG export ────────────────────────────────────────────────────────────────
-
-async function exportToPng(editorEl: HTMLElement): Promise<void> {
-  // Dynamic import — html-to-image is large; defer until first export.
-  const { toPng } = await import("html-to-image");
-  // WebKit font double-render fix: call toPng twice (first call embeds fonts).
-  await toPng(editorEl, { pixelRatio: 2 });
-  const dataUrl = await toPng(editorEl, { pixelRatio: 2 });
-  const link = document.createElement("a");
-  link.download = "note.png";
-  link.href = dataUrl;
-  link.click();
-}
-
-// ── PDF export ────────────────────────────────────────────────────────────────
-
-function exportToPdf(): void {
-  // Primary: window.print() with @media print stylesheet (paginated, selectable,
-  // oklch-safe — the browser handles colour conversion itself).
-  window.print();
 }
 
 // ── NotesPanel ────────────────────────────────────────────────────────────────
@@ -221,65 +202,65 @@ export function NotesPanel() {
   );
 
   // --- Export handlers ---
+  // Every export writes a real file via the Rust atomic-write commands (the
+  // WKWebView blocks browser downloads). A transient status line confirms the
+  // saved path so the user (and verification) can see it landed.
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
+  const flashStatus = useCallback((msg: string) => {
+    setExportStatus(msg);
+    window.setTimeout(() => setExportStatus(null), 4500);
+  }, []);
+
+  const exportBaseName = scope ? scope.toUpperCase().replace(/[/\\]/g, "_") : "general";
+
   const handleExportMd = useCallback(async () => {
     const md = (editor as unknown as { getMarkdown: () => string } | null)?.getMarkdown() ?? "";
-    const filename = scope ? `${scope.toUpperCase()}.md` : "general.md";
-    const path = await exportNoteMd(md, filename);
-    if (!path) {
-      // Fallback: trigger browser download.
-      const blob = new Blob([md], { type: "text/markdown" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
-      link.click();
-      URL.revokeObjectURL(url);
+    try {
+      const r = await saveTextArtifact("notes", `${exportBaseName}.md`, md);
+      flashStatus(r.path ? `Saved ${r.path}` : "Downloaded .md");
+    } catch (e) {
+      flashStatus(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
     }
-  }, [editor, scope]);
+  }, [editor, exportBaseName, flashStatus]);
 
   const handleExportPng = useCallback(async () => {
     const el = editorContainerRef.current;
     if (!el) return;
-    await exportToPng(el);
-  }, []);
+    try {
+      const r = await savePngArtifact("notes", `${exportBaseName}.png`, el);
+      flashStatus(r.path ? `Saved ${r.path}` : "Downloaded .png");
+    } catch (e) {
+      flashStatus(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }, [exportBaseName, flashStatus]);
 
-  const handleExportPdf = useCallback(() => {
-    exportToPdf();
-  }, []);
+  const handleExportPdf = useCallback(async () => {
+    const el = editorContainerRef.current;
+    if (!el) return;
+    try {
+      const r = await savePdfArtifact("notes", `${exportBaseName}.pdf`, el);
+      flashStatus(r.path ? `Saved ${r.path}` : "Downloaded .pdf");
+    } catch (e) {
+      flashStatus(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }, [exportBaseName, flashStatus]);
 
   // --- Render ---
   return (
     <>
-      {/* @media print: notes editor renders full-page, rest hidden. */}
-      <style>{`
-        @media print {
-          body > *:not(.notes-print-root) { display: none !important; }
-          .notes-print-root {
-            display: block !important;
-            width: 100%;
-            padding: 24px;
-            font-family: Georgia, serif;
-            color: #000;
-            background: #fff;
-          }
-          .notes-toolbar, .notes-scope-bar { display: none !important; }
-          .ProseMirror { padding: 0; min-height: unset; }
-        }
-      `}</style>
-
-      <div className="notes-print-root flex h-full flex-col bg-[var(--charcoal-950)]">
+      <div className="notes-print-root flex h-full flex-col bg-[var(--color-charcoal-950)]">
         {/* Toolbar */}
-        <div className="notes-toolbar flex items-center justify-between border-b border-[var(--charcoal-800)] px-3 py-2">
+        <div className="notes-toolbar flex items-center justify-between border-b border-[var(--color-charcoal-800)] px-3 py-2">
           <div className="flex items-center gap-1.5">
-            <Pencil size={13} className="text-[var(--charcoal-400)]" />
-            <span className="text-xs font-medium text-[var(--charcoal-300)]">Notes</span>
+            <Pencil size={13} className="text-[var(--color-charcoal-400)]" />
+            <span className="text-xs font-medium text-[var(--color-charcoal-300)]">Notes</span>
           </div>
           <div className="flex items-center gap-1">
             <button
               type="button"
               title="Export .md"
               onClick={handleExportMd}
-              className="rounded p-1 text-[var(--charcoal-400)] hover:bg-[var(--charcoal-800)] hover:text-[var(--charcoal-200)]"
+              className="rounded p-1 text-[var(--color-charcoal-400)] hover:bg-[var(--color-charcoal-800)] hover:text-[var(--color-charcoal-200)]"
             >
               <FileText size={13} />
             </button>
@@ -287,7 +268,7 @@ export function NotesPanel() {
               type="button"
               title="Export PNG"
               onClick={handleExportPng}
-              className="rounded p-1 text-[var(--charcoal-400)] hover:bg-[var(--charcoal-800)] hover:text-[var(--charcoal-200)]"
+              className="rounded p-1 text-[var(--color-charcoal-400)] hover:bg-[var(--color-charcoal-800)] hover:text-[var(--color-charcoal-200)]"
             >
               <FileImage size={13} />
             </button>
@@ -295,15 +276,25 @@ export function NotesPanel() {
               type="button"
               title="Export PDF"
               onClick={handleExportPdf}
-              className="rounded p-1 text-[var(--charcoal-400)] hover:bg-[var(--charcoal-800)] hover:text-[var(--charcoal-200)]"
+              className="rounded p-1 text-[var(--color-charcoal-400)] hover:bg-[var(--color-charcoal-800)] hover:text-[var(--color-charcoal-200)]"
             >
               <Printer size={13} />
             </button>
           </div>
         </div>
 
+        {/* Export status — confirms the saved path so the user sees it landed. */}
+        {exportStatus && (
+          <div
+            className="text-charcoal-400 border-charcoal-800 bg-charcoal-900 truncate border-b px-3 py-1.5 font-mono text-[11px]"
+            title={exportStatus}
+          >
+            {exportStatus}
+          </div>
+        )}
+
         {/* Scope chips */}
-        <div className="notes-scope-bar flex flex-wrap items-center gap-1.5 border-b border-[var(--charcoal-800)] px-3 py-1.5">
+        <div className="notes-scope-bar flex flex-wrap items-center gap-1.5 border-b border-[var(--color-charcoal-800)] px-3 py-1.5">
           <ScopeChip
             label="General"
             active={scope === ""}
@@ -338,7 +329,7 @@ export function NotesPanel() {
             minWidth: 220,
             maxHeight: 320,
           }}
-          className="overflow-y-auto rounded border border-[var(--charcoal-700)] bg-[var(--charcoal-900)] shadow-lg"
+          className="overflow-y-auto rounded border border-[var(--color-charcoal-700)] bg-[var(--color-charcoal-900)] shadow-lg"
         >
           {slashMenu.items.map((item, i) => (
             <button
@@ -347,8 +338,8 @@ export function NotesPanel() {
               className={cn(
                 "flex w-full flex-col items-start px-3 py-2 text-left text-xs transition-colors",
                 i === slashActiveIdx
-                  ? "bg-[var(--charcoal-800)] text-[var(--charcoal-100)]"
-                  : "text-[var(--charcoal-300)] hover:bg-[var(--charcoal-800)]",
+                  ? "bg-[var(--color-charcoal-800)] text-[var(--color-charcoal-100)]"
+                  : "text-[var(--color-charcoal-300)] hover:bg-[var(--color-charcoal-800)]",
               )}
               onMouseEnter={() => setSlashActiveIdx(i)}
               onClick={() => {
@@ -357,7 +348,9 @@ export function NotesPanel() {
               }}
             >
               <span className="font-medium">{item.title}</span>
-              <span className="text-[10px] text-[var(--charcoal-500)]">{item.description}</span>
+              <span className="text-[10px] text-[var(--color-charcoal-500)]">
+                {item.description}
+              </span>
             </button>
           ))}
         </div>
@@ -374,7 +367,7 @@ export function NotesPanel() {
             minWidth: 160,
             maxHeight: 240,
           }}
-          className="overflow-y-auto rounded border border-[var(--charcoal-700)] bg-[var(--charcoal-900)] shadow-lg"
+          className="overflow-y-auto rounded border border-[var(--color-charcoal-700)] bg-[var(--color-charcoal-900)] shadow-lg"
         >
           {wikiMenu.items.map((item, i) => (
             <button
@@ -383,8 +376,8 @@ export function NotesPanel() {
               className={cn(
                 "flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors",
                 i === wikiActiveIdx
-                  ? "bg-[var(--charcoal-800)] text-[var(--charcoal-100)]"
-                  : "text-[var(--charcoal-300)] hover:bg-[var(--charcoal-800)]",
+                  ? "bg-[var(--color-charcoal-800)] text-[var(--color-charcoal-100)]"
+                  : "text-[var(--color-charcoal-300)] hover:bg-[var(--color-charcoal-800)]",
               )}
               onMouseEnter={() => setWikiActiveIdx(i)}
               onClick={() => {
@@ -394,7 +387,7 @@ export function NotesPanel() {
             >
               <span className="font-medium">{item.symbol}</span>
               {item.hasNote && (
-                <span className="text-[10px] text-[var(--amber-400)]">has note</span>
+                <span className="text-[10px] text-[var(--color-amber-400)]">has note</span>
               )}
             </button>
           ))}
@@ -422,7 +415,7 @@ function SymbolChipInput({ onCommit }: { onCommit: (sym: string) => void }) {
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="rounded px-2 py-0.5 text-xs text-[var(--charcoal-500)] hover:text-[var(--charcoal-300)]"
+        className="rounded px-2 py-0.5 text-xs text-[var(--color-charcoal-500)] hover:text-[var(--color-charcoal-300)]"
       >
         + symbol
       </button>
@@ -443,7 +436,7 @@ function SymbolChipInput({ onCommit }: { onCommit: (sym: string) => void }) {
       }}
       onBlur={commit}
       placeholder="AAPL"
-      className="w-16 rounded border border-[var(--charcoal-700)] bg-[var(--charcoal-900)] px-2 py-0.5 text-xs text-[var(--charcoal-200)] outline-none placeholder:text-[var(--charcoal-600)]"
+      className="w-16 rounded border border-[var(--color-charcoal-700)] bg-[var(--color-charcoal-900)] px-2 py-0.5 text-xs text-[var(--color-charcoal-200)] outline-none placeholder:text-[var(--color-charcoal-600)]"
     />
   );
 }
