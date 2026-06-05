@@ -9,11 +9,16 @@
  *   4. Panels     — PanelSpec[] from `useModulesStore.enabledPanels()`
  *   5. Symbols    — SymbolEntry[] from `useSymbolsStore.entries` (query-gated, ≤50)
  *
- * Cross-group score offsets ensure the group ordering holds while cmdk's built-in
- * fuzzy filter still ranks within each group.  The filter returns a score in [0, 1]
- * where higher = better match.  We add a per-group offset so:
- *   agents  (offset 0.60) always outrank actions (0.40) outrank panels (0.20) outrank
- *   symbols (0.00) — and within a group the fuzzy delta (max 1.0) is preserved.
+ * Ranking model (FR-120): MATCH QUALITY DOMINATES; the group is only a gentle
+ * tiebreak. The scorer grades the query against each item's LABEL (and stable id
+ * slug) in quality tiers — exact > prefix > word-start > substring > (label-only)
+ * subsequence — plus a weaker tier for description substrings. A tiny per-group
+ * offset (≤0.024) breaks ties WITHIN a quality tier so, all else equal, agents
+ * edge out actions edge out panels edge out symbols. Because quality dominates,
+ * typing "notes" ranks the Notes panel/action at the very top — never a wall of
+ * agents whose long philosophy prose merely contains the letters n-o-t-e-s.
+ * (The prior model inverted this: a 0.60 group offset buried a perfect 0.29
+ * panel match under any weak 0.627 agent subsequence hit.)
  *
  * Recents: up to 8 item ids persisted in the store (no localStorage per CLAUDE.md;
  * in-memory within the session, re-ranks recent picks within their group).
@@ -53,13 +58,11 @@ export interface PaletteItem {
 // ---------------------------------------------------------------------------
 
 /**
- * Group offset added to the raw cmdk fuzzy score (0..1) to enforce the
- * group priority while preserving within-group ranking.
- *
- * Effective score = offset + rawScore * 0.1 (rawScore contributes only the
- * tiebreak within the group; the offset dominates).
- *
- * Order: agents > actions > panels > symbols
+ * Per-group tiebreak weight. Effective score = matchQuality + offset * 0.04, so
+ * the offset contributes at most 0.024 — far below the ≥0.08 gap between quality
+ * tiers. It therefore only re-orders items of EQUAL match quality (all else
+ * equal: agents > actions > panels > symbols). It can never override a better
+ * match in another group.
  */
 export const GROUP_SCORE_OFFSET: Record<PaletteItemKind, number> = {
   agent: 0.6,
@@ -67,6 +70,9 @@ export const GROUP_SCORE_OFFSET: Record<PaletteItemKind, number> = {
   panel: 0.2,
   symbol: 0.0,
 };
+
+/** Weight applied to the group offset so it stays a within-tier tiebreak only. */
+export const GROUP_TIEBREAK_WEIGHT = 0.04;
 
 /** Max symbols to include in the corpus (cmdk degrades past ~3 k items). */
 export const SYMBOL_CAP = 50;
@@ -189,73 +195,79 @@ export function buildPaletteCorpus(): PaletteItem[] {
   return items;
 }
 
+/** Does any whitespace/sep-delimited word in `haystack` start with `needle`? */
+function wordStartsWith(haystack: string, needle: string): boolean {
+  if (!haystack) return false;
+  for (const word of haystack.split(/[\s\-_/:.,]+/)) {
+    if (word.startsWith(needle)) return true;
+  }
+  return false;
+}
+
+/** Are all chars of `needle` present in `haystack` in order (fuzzy/acronym)? */
+function isSubsequence(needle: string, haystack: string): boolean {
+  if (!haystack) return false;
+  let pos = 0;
+  for (const ch of needle) {
+    const idx = haystack.indexOf(ch, pos);
+    if (idx === -1) return false;
+    pos = idx + 1;
+  }
+  return true;
+}
+
 /**
- * Custom cmdk `filter` function that applies cross-group score offsets so the
- * group order (agents > actions > panels > symbols) always holds while still
- * preserving within-group fuzzy ranking.
+ * Grade `needle` against an item's label, id-slug, and description, returning a
+ * match-quality score in (0, 1] (0 = no match). Tiers are spaced ≥0.08 apart so
+ * the tiny group tiebreak can never invert them. Subsequence (the weakest, most
+ * permissive tier) matches the LABEL/SLUG ONLY — never the long description —
+ * so an agent's philosophy prose can't subsequence-match arbitrary queries and
+ * flood the results.
+ */
+export function matchQuality(
+  needle: string,
+  label: string,
+  slug: string,
+  description: string,
+): number {
+  if (label === needle || slug === needle) return 1.0; // exact
+  if (label.startsWith(needle) || slug.startsWith(needle)) return 0.9; // prefix
+  if (wordStartsWith(label, needle) || wordStartsWith(slug, needle)) return 0.8; // word-start
+  if (label.includes(needle) || slug.includes(needle)) return 0.7; // label substring
+  if (description) {
+    if (description.startsWith(needle)) return 0.55;
+    if (wordStartsWith(description, needle)) return 0.48;
+    if (description.includes(needle)) return 0.4; // description substring
+  }
+  if (isSubsequence(needle, label) || isSubsequence(needle, slug)) return 0.25; // label-only fuzzy
+  return 0;
+}
+
+/**
+ * Custom cmdk `filter`: returns `matchQuality + group_offset * GROUP_TIEBREAK_WEIGHT`.
+ * Match quality dominates; the group offset only re-orders equal-quality items.
  *
- * cmdk calls this as: `filter(itemValue, searchQuery, keywords?): number`
- *
- * `itemValue` is the `value` prop on `Command.Item` — we set it to the item's
- * `id` (e.g. "agent:copilot", "action:chart.open", "panel:watchlist",
- * "symbol:SPY").
- *
- * The raw cmdk default filter (command-score) returns 0..1.  We can't call
- * it from user-land directly, so we implement a simple substring / initials
- * match that returns a 0..1 raw score, then add the group offset.
+ * cmdk calls this as `filter(itemValue, searchQuery, keywords?): number`, where
+ * `itemValue` is the `value` prop (e.g. "panel:notes") and `keywords` is
+ * `[label, description]` from the row.
  */
 export function paletteFilter(value: string, search: string, keywords?: string[]): number {
-  if (!search) {
-    // No query — show everything.  Return 1.0 (all items visible).
-    return 1;
-  }
+  const needle = search.trim().toLowerCase();
+  if (!needle) return 1; // no query — everything visible; render-order governs
 
-  const needle = search.toLowerCase();
-
-  // Determine group from the id prefix.
+  // Group from the id prefix (default to action for unprefixed values).
   let kind: PaletteItemKind = "action";
   if (value.startsWith("agent:")) kind = "agent";
-  else if (value.startsWith("action:")) kind = "action";
   else if (value.startsWith("panel:")) kind = "panel";
   else if (value.startsWith("symbol:")) kind = "symbol";
+  else if (value.startsWith("action:")) kind = "action";
 
-  const offset = GROUP_SCORE_OFFSET[kind];
+  const label = (keywords?.[0] ?? "").toLowerCase();
+  const description = (keywords?.[1] ?? "").toLowerCase();
+  const slug = (value.includes(":") ? value.slice(value.indexOf(":") + 1) : value).toLowerCase();
 
-  // Build the haystack from value + keywords (label, description).
-  const haystackParts = [value, ...(keywords ?? [])].map((s) => s.toLowerCase());
-  const haystack = haystackParts.join(" ");
+  const quality = matchQuality(needle, label, slug, description);
+  if (quality <= 0) return 0;
 
-  let rawScore = 0;
-
-  if (haystack.includes(needle)) {
-    // Direct substring match — high raw score.
-    rawScore = 0.9;
-    // Bonus if the needle appears at the start of the label segment.
-    const labelPart = (keywords?.[0] ?? "").toLowerCase();
-    if (labelPart.startsWith(needle)) {
-      rawScore = 1.0;
-    }
-  } else {
-    // Initials / acronym match: check if all needle chars appear in order.
-    let pos = 0;
-    for (const ch of needle) {
-      const idx = haystack.indexOf(ch, pos);
-      if (idx === -1) {
-        rawScore = 0;
-        break;
-      }
-      rawScore = 0.3;
-      pos = idx + 1;
-    }
-  }
-
-  if (rawScore === 0) {
-    return 0;
-  }
-
-  // Effective score = group_offset + raw_score * 0.09
-  // The 0.09 multiplier keeps the raw delta well below the 0.20 group gap,
-  // so a perfect symbol match (0.00 + 0.09 = 0.09) never outranks even a
-  // weak agent match (0.60 + 0.009 = 0.609).
-  return offset + rawScore * 0.09;
+  return quality + GROUP_SCORE_OFFSET[kind] * GROUP_TIEBREAK_WEIGHT;
 }

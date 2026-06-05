@@ -78,7 +78,7 @@ export function CommandPalette() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="border-charcoal-700 bg-charcoal-900 max-w-xl gap-0 overflow-hidden p-0 shadow-2xl"
+        className="border-charcoal-700 bg-charcoal-900 max-w-2xl gap-0 overflow-hidden p-0 shadow-2xl"
         showCloseButton={false}
       >
         <DialogHeader className="sr-only">
@@ -188,14 +188,14 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
       className="bg-charcoal-900 flex flex-col"
     >
       {/* Search input */}
-      <div className="border-charcoal-700 flex items-center gap-2 border-b px-4 py-3">
-        <Search className="text-charcoal-400 size-3.5 shrink-0" aria-hidden />
+      <div className="border-charcoal-700 flex items-center gap-2.5 border-b px-4 py-3.5">
+        <Search className="text-charcoal-400 size-4 shrink-0" aria-hidden />
         <Command.Input
           ref={inputRef}
           value={query}
           onValueChange={setQuery}
           placeholder="Ask anything, search agents, panels, symbols…"
-          className="text-charcoal-100 placeholder:text-charcoal-500 min-w-0 flex-1 bg-transparent font-mono text-sm outline-none"
+          className="text-charcoal-100 placeholder:text-charcoal-500 min-w-0 flex-1 bg-transparent font-mono text-[0.95rem] outline-none"
         />
         {query && (
           <button
@@ -210,7 +210,7 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
       </div>
 
       {/* Results list */}
-      <Command.List className="max-h-80 overflow-y-auto py-1">
+      <Command.List className="max-h-96 overflow-y-auto py-1.5">
         <Command.Empty className="text-charcoal-400 px-5 py-6 text-center font-mono text-sm">
           No results.
         </Command.Empty>
@@ -229,7 +229,7 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
                 item={item}
                 isRecent={recents.includes(item.id)}
                 onSelect={() => handleSelectItem(item)}
-                icon={<Bot className="size-3.5 shrink-0 text-amber-400" aria-hidden />}
+                icon={<Bot className="size-4 shrink-0 text-amber-400" aria-hidden />}
               />
             ))}
           </Command.Group>
@@ -244,7 +244,7 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
                 item={item}
                 isRecent={recents.includes(item.id)}
                 onSelect={() => handleSelectItem(item)}
-                icon={<CommandIcon className="text-charcoal-400 size-3.5 shrink-0" aria-hidden />}
+                icon={<CommandIcon className="text-charcoal-400 size-4 shrink-0" aria-hidden />}
               />
             ))}
           </Command.Group>
@@ -259,7 +259,7 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
                 item={item}
                 isRecent={recents.includes(item.id)}
                 onSelect={() => handleSelectItem(item)}
-                icon={<LayoutGrid className="text-charcoal-400 size-3.5 shrink-0" aria-hidden />}
+                icon={<LayoutGrid className="text-charcoal-400 size-4 shrink-0" aria-hidden />}
               />
             ))}
           </Command.Group>
@@ -277,7 +277,7 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
                 item={item}
                 isRecent={recents.includes(item.id)}
                 onSelect={() => handleSelectItem(item)}
-                icon={<TrendingUp className="text-charcoal-400 size-3.5 shrink-0" aria-hidden />}
+                icon={<TrendingUp className="text-charcoal-400 size-4 shrink-0" aria-hidden />}
               />
             ))}
           </Command.Group>
@@ -308,14 +308,14 @@ function AskAiItem({ query, onSelect }: AskAiItemProps) {
       forceMount
       className="aria-selected:bg-charcoal-800 flex cursor-pointer items-center gap-3 rounded-none px-4 py-2.5 transition-colors"
     >
-      <Sparkles className="size-3.5 shrink-0 text-amber-400" aria-hidden />
+      <Sparkles className="size-4 shrink-0 text-amber-400" aria-hidden />
       <div className="min-w-0 flex-1">
         <span className="text-charcoal-300 font-mono text-xs">Ask agent: </span>
         <span className="text-charcoal-100 font-mono text-sm font-medium">
           &ldquo;{trimmed}&rdquo;
         </span>
       </div>
-      <kbd className="border-charcoal-700 text-charcoal-500 rounded border px-1.5 py-0.5 font-mono text-[10px]">
+      <kbd className="border-charcoal-700 text-charcoal-500 rounded border px-1.5 py-0.5 font-mono text-[11px]">
         Enter
       </kbd>
     </Command.Item>
@@ -339,7 +339,7 @@ function PaletteItemRow({ item, isRecent, onSelect, icon }: PaletteItemRowProps)
       value={item.id}
       keywords={[item.label, item.description ?? ""].filter(Boolean)}
       onSelect={onSelect}
-      className="aria-selected:bg-charcoal-800 flex cursor-pointer items-center gap-3 rounded-none px-4 py-2 transition-colors"
+      className="aria-selected:bg-charcoal-800 flex cursor-pointer items-center gap-3 rounded-none px-4 py-2.5 transition-colors"
     >
       {icon}
       <div className="min-w-0 flex-1">

@@ -1,9 +1,12 @@
 /**
  * Tests for the cmdk-powered command palette store (FR-120 / SC-031).
  *
- * Covers:
- *   - Cross-group score offsets: agents > actions > panels > symbols
- *   - Within-group fuzzy ranking (better match = higher score within group)
+ * Ranking model (R4): MATCH QUALITY DOMINATES; the group offset is only a gentle
+ * within-tier tiebreak. Covers:
+ *   - Quality tiers: exact > prefix > word-start > substring > (label-only) subsequence
+ *   - The "notes" regression: a concrete panel/action match ranks above agents
+ *     whose long philosophy prose merely contains the query letters
+ *   - Group tiebreak: equal-quality items order agents > actions > panels > symbols
  *   - Symbol gating: symbols score 0 when query is empty via paletteFilter
  *   - buildPaletteCorpus: correct kinds, capping, ordering
  *   - Recency tracking: recordSelection bumps items to the front of recents
@@ -14,6 +17,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   buildPaletteCorpus,
   GROUP_SCORE_OFFSET,
+  GROUP_TIEBREAK_WEIGHT,
+  matchQuality,
   paletteFilter,
   SYMBOL_CAP,
   useCommandPalette,
@@ -50,6 +55,37 @@ function makeAgent(id: string): AgentSummary {
 }
 
 // ---------------------------------------------------------------------------
+// matchQuality — the quality tiers
+// ---------------------------------------------------------------------------
+
+describe("matchQuality tiers", () => {
+  it("ranks exact > prefix > word-start > substring", () => {
+    const exact = matchQuality("notes", "notes", "notes", "");
+    const prefix = matchQuality("not", "notes", "notes", "");
+    const wordStart = matchQuality("ed", "notes editor", "notes-editor", "");
+    const substr = matchQuality("ote", "notes", "notes", "");
+    expect(exact).toBeGreaterThan(prefix);
+    expect(prefix).toBeGreaterThan(wordStart);
+    expect(wordStart).toBeGreaterThan(substr);
+  });
+
+  it("matches subsequence on the label/slug but NOT the description (no prose flood)", () => {
+    // 'n','o','t','e','s' appear in order in the label -> weak subsequence hit
+    expect(matchQuality("notes", "no tabs evens", "x", "")).toBeGreaterThan(0);
+    // The same letters as a subsequence of long prose in the DESCRIPTION must NOT match
+    expect(matchQuality("notes", "Quant", "quant", "nuanced options trading expertise spans")).toBe(
+      0,
+    );
+  });
+
+  it("a description substring still scores (an agent literally about notes is allowed)", () => {
+    expect(
+      matchQuality("notes", "Scribe", "scribe", "takes notes during research"),
+    ).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // paletteFilter
 // ---------------------------------------------------------------------------
 
@@ -63,69 +99,101 @@ describe("paletteFilter", () => {
     });
   });
 
-  describe("cross-group offset enforcement", () => {
-    const query = "cop";
-
-    it("agent score is always above action score for the same fuzzy quality", () => {
-      // Both match "cop" (copilot vs copilot-action) — agent must win
-      const agentScore = paletteFilter("agent:copilot", query, ["Copilot"]);
-      const actionScore = paletteFilter("action:copilot-open", query, ["Copilot Open"]);
-      expect(agentScore).toBeGreaterThan(actionScore);
+  describe("the 'notes' regression — quality dominates the group", () => {
+    it("the Notes panel (exact label) outranks agents that only weakly match", () => {
+      const notesPanel = paletteFilter("panel:notes", "notes", ["Notes", "Markdown notes editor"]);
+      // agent whose philosophy prose merely contains the subsequence n-o-t-e-s
+      const agentSubseq = paletteFilter("agent:analyst", "notes", [
+        "Market Analyst",
+        "Nuanced options trading, earnings and footnotes synthesized into theses",
+      ]);
+      // agent whose description literally substring-contains "notes"
+      const agentSubstr = paletteFilter("agent:scribe", "notes", [
+        "Scribe",
+        "Takes notes during research",
+      ]);
+      expect(notesPanel).toBeGreaterThan(agentSubseq);
+      expect(notesPanel).toBeGreaterThan(agentSubstr);
     });
 
-    it("action score is always above panel score", () => {
-      const actionScore = paletteFilter("action:copilot.open", query, ["Copilot Open"]);
-      const panelScore = paletteFilter("panel:copilot", query, ["Copilot"]);
-      expect(actionScore).toBeGreaterThan(panelScore);
+    it("a Notes action also outranks weakly-matching agents", () => {
+      const notesAction = paletteFilter("action:notes.open", "notes", ["Open Notes"]);
+      const agentSubstr = paletteFilter("agent:scribe", "notes", [
+        "Scribe",
+        "Takes notes during research",
+      ]);
+      expect(notesAction).toBeGreaterThan(agentSubstr);
     });
 
-    it("panel score is always above symbol score", () => {
-      const panelScore = paletteFilter("panel:copper", query, ["Copper Panel"]);
-      const symbolScore = paletteFilter("symbol:COPPER", query, ["COPPER", "equity"]);
-      expect(panelScore).toBeGreaterThan(symbolScore);
+    it("agent philosophy prose does NOT subsequence-match an arbitrary query (no flood)", () => {
+      const agentProse = paletteFilter("agent:quant", "notes", [
+        "Quant",
+        "Nuanced options trading expertise spans",
+      ]);
+      expect(agentProse).toBe(0);
     });
 
-    it("agent score is always above symbol score when both match", () => {
-      const symbolScore = paletteFilter("symbol:SPY", "spy", ["SPY", "equity"]);
-      const agentScoreMatch = paletteFilter("agent:spy-analyst", "spy", ["SPY Analyst"]);
-      expect(agentScoreMatch).toBeGreaterThan(symbolScore);
+    it("a higher quality tier beats a lower tier regardless of group advantage", () => {
+      const panelPrefix = paletteFilter("panel:chart", "cha", ["Chart"]); // prefix 0.9
+      const agentWordStart = paletteFilter("agent:x", "cha", ["Big Chart Bot"]); // word-start 0.8
+      expect(panelPrefix).toBeGreaterThan(agentWordStart);
     });
   });
 
-  describe("within-group ranking", () => {
-    it("exact label start match outranks substring match in same group", () => {
-      const prefixScore = paletteFilter("action:chart.open", "chart", ["Chart Open"]);
-      const substringScore = paletteFilter("action:bar-chart", "chart", ["Bar Chart"]);
-      // "Chart Open" starts with "chart" → rawScore=1.0
-      // "Bar Chart" contains "chart" but not at start → rawScore=0.9
-      expect(prefixScore).toBeGreaterThan(substringScore);
+  describe("group tiebreak — equal quality orders agent > action > panel > symbol", () => {
+    const q = "cop";
+
+    it("agent edges out action at equal match quality", () => {
+      const agentScore = paletteFilter("agent:copilot", q, ["Copilot"]);
+      const actionScore = paletteFilter("action:copilot-open", q, ["Copilot Open"]);
+      expect(agentScore).toBeGreaterThan(actionScore);
     });
 
+    it("action edges out panel at equal match quality", () => {
+      const actionScore = paletteFilter("action:copilot.open", q, ["Copilot Open"]);
+      const panelScore = paletteFilter("panel:copilot", q, ["Copilot Panel"]);
+      expect(actionScore).toBeGreaterThan(panelScore);
+    });
+
+    it("panel edges out symbol at equal match quality", () => {
+      // Both are exact label matches for "copper" → same quality tier; the group
+      // tiebreak puts the panel ahead of the symbol.
+      const panelScore = paletteFilter("panel:copper", "copper", ["Copper"]);
+      const symbolScore = paletteFilter("symbol:COPPER", "copper", ["Copper", "equity"]);
+      expect(panelScore).toBeGreaterThan(symbolScore);
+    });
+
+    it("an exact symbol match beats a mere agent prefix (quality wins over group)", () => {
+      const symbolScore = paletteFilter("symbol:SPY", "spy", ["SPY", "equity"]); // exact 1.0
+      const agentScore = paletteFilter("agent:spy-analyst", "spy", ["SPY Analyst"]); // prefix 0.9
+      expect(symbolScore).toBeGreaterThan(agentScore);
+    });
+  });
+
+  describe("no-match", () => {
     it("zero score for no match in any group", () => {
       expect(paletteFilter("agent:copilot", "zzz", ["Copilot"])).toBe(0);
       expect(paletteFilter("symbol:SPY", "zzz", ["SPY"])).toBe(0);
     });
   });
 
-  describe("GROUP_SCORE_OFFSET values", () => {
+  describe("GROUP_SCORE_OFFSET / tiebreak weight", () => {
     it("has correct group ordering: agent > action > panel > symbol", () => {
       expect(GROUP_SCORE_OFFSET.agent).toBeGreaterThan(GROUP_SCORE_OFFSET.action);
       expect(GROUP_SCORE_OFFSET.action).toBeGreaterThan(GROUP_SCORE_OFFSET.panel);
       expect(GROUP_SCORE_OFFSET.panel).toBeGreaterThan(GROUP_SCORE_OFFSET.symbol);
     });
 
-    it("symbol offset is 0 so a non-matching symbol returns 0", () => {
-      expect(GROUP_SCORE_OFFSET.symbol).toBe(0);
-      // A symbol item that doesn't match the query must return 0 (no false positives).
-      expect(paletteFilter("symbol:AAPL", "xyz", ["AAPL", "equity"])).toBe(0);
+    it("the max tiebreak contribution is far below the gap between quality tiers", () => {
+      // Max group contribution (agent) must not be able to invert a one-tier gap.
+      const maxTiebreak = GROUP_SCORE_OFFSET.agent * GROUP_TIEBREAK_WEIGHT; // 0.024
+      const minTierGap = 0.8 - 0.7; // word-start vs substring = 0.1
+      expect(maxTiebreak).toBeLessThan(minTierGap);
     });
 
-    it("gap between groups exceeds the maximum within-group fuzzy contribution", () => {
-      // Max within-group contribution = 1.0 * 0.09 = 0.09
-      // Min gap between adjacent groups = action(0.40) - panel(0.20) = 0.20 > 0.09
-      const maxFuzzyContrib = 1.0 * 0.09;
-      const minGap = GROUP_SCORE_OFFSET.action - GROUP_SCORE_OFFSET.panel;
-      expect(minGap).toBeGreaterThan(maxFuzzyContrib);
+    it("symbol offset is 0 so a non-matching symbol returns 0", () => {
+      expect(GROUP_SCORE_OFFSET.symbol).toBe(0);
+      expect(paletteFilter("symbol:AAPL", "xyz", ["AAPL", "equity"])).toBe(0);
     });
   });
 });
@@ -255,7 +323,6 @@ describe("useCommandPalette recency", () => {
     useCommandPalette
       .getState()
       .setCommands([{ id: "x", trigger: "x", title: "X", opensPanel: "x" }]);
-    // commands field unchanged (no-op)
     expect(useCommandPalette.getState().commands).toEqual(before);
   });
 });
@@ -278,9 +345,8 @@ describe("symbol gating", () => {
     expect(paletteFilter("symbol:AAPL", "aapl", ["AAPL", "equity"])).toBeGreaterThan(0);
   });
 
-  it("matching symbol score is below matching panel score for identical label text", () => {
-    // Both have "aapl" in keywords / label.
-    const panelScore = paletteFilter("panel:aapl-chart", "aapl", ["AAPL Chart"]);
+  it("at equal (exact) quality a panel edges out a symbol via the tiebreak", () => {
+    const panelScore = paletteFilter("panel:aapl", "aapl", ["AAPL"]);
     const symbolScore = paletteFilter("symbol:AAPL", "aapl", ["AAPL", "equity"]);
     expect(panelScore).toBeGreaterThan(symbolScore);
   });
