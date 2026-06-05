@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { History } from "lucide-react";
+
+import { EmptyState } from "@/components/EmptyState";
 
 import type { RatingsHistoryEntry } from "../../../types/analyst";
 
@@ -58,9 +61,13 @@ export function RatingsHistoryTable({ history }: Props) {
 
   if (history.length === 0) {
     return (
-      <p className="text-charcoal-400 font-mono text-xs" data-testid="ratings-history-empty">
-        No ratings history available.
-      </p>
+      <div data-testid="ratings-history-empty">
+        <EmptyState
+          icon={History}
+          headline="No ratings history"
+          hint="Upgrades, downgrades, and initiations will list here as firms revise their calls."
+        />
+      </div>
     );
   }
 

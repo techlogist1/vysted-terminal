@@ -1,6 +1,8 @@
 "use client";
 
-import { Star } from "lucide-react";
+import { Star, Users } from "lucide-react";
+
+import { EmptyState } from "@/components/EmptyState";
 
 import type { IndividualAnalystForecast } from "../../../types/analyst";
 
@@ -60,9 +62,13 @@ interface Props {
 export function IndividualAnalystTable({ analysts }: Props) {
   if (analysts.length === 0) {
     return (
-      <p className="text-charcoal-400 font-mono text-xs" data-testid="individual-analyst-empty">
-        No per-firm forecasts available.
-      </p>
+      <div data-testid="individual-analyst-empty">
+        <EmptyState
+          icon={Users}
+          headline="No per-firm forecasts"
+          hint="Individual analyst targets and ratings will appear here once a covering firm publishes."
+        />
+      </div>
     );
   }
   return (
