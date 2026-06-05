@@ -9,8 +9,10 @@
  * this must JSON-serialise onto the wire.
  */
 
+import { researchSpaceName } from "@/lib/workspace";
 import type { Region } from "@/lib/region";
 import { usePanelContextBus } from "@/store/panel-context";
+import { useResearchSpacesStore } from "@/store/research-spaces";
 import { useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
@@ -43,6 +45,16 @@ export interface TerminalPortfolio {
   holdings: TerminalHolding[];
 }
 
+/** The active research space the user is working in, with prior-research memory. */
+export interface TerminalResearchSpace {
+  /** The symbol this research space investigates. */
+  symbol: string;
+  /** A short prior-research summary (what the agent looked at here before). */
+  memory?: string;
+  /** Count of prior conversation turns retained for this space. */
+  priorTurns: number;
+}
+
 /** Structured snapshot the copilot reasons over (serialisable). */
 export interface TerminalState {
   focusedPanel: string | null;
@@ -52,6 +64,9 @@ export interface TerminalState {
   watchlist: { symbols: string[]; selected: string | null };
   portfolio: TerminalPortfolio | null;
   openPanels: string[];
+  /** The active research space + its prior-research memory (S-19). Present iff
+   *  the active workspace is a research space. */
+  researchSpace?: TerminalResearchSpace;
   /** Cockpit viewport size (px) so the agent arranges a layout that FITS the
    *  screen (Track 4) — never 15 panels on a small display. Omitted before the
    *  dockview layout has measured. */
@@ -167,6 +182,19 @@ export function captureTerminalState(): TerminalState {
     // dockview not mounted — leave empty.
   }
 
+  // Active research space + its durable prior-research memory (S-19) — read off
+  // the TYPED workspace field, not the name prefix.
+  let researchSpace: TerminalResearchSpace | undefined;
+  const researchSymbol = useWorkspaceStore.getState().researchSymbol;
+  if (researchSymbol) {
+    const memory = useResearchSpacesStore.getState().getMemory(researchSpaceName(researchSymbol));
+    researchSpace = {
+      symbol: researchSymbol,
+      ...(memory?.summary ? { memory: memory.summary } : {}),
+      priorTurns: memory?.transcript.length ?? 0,
+    };
+  }
+
   return {
     focusedPanel,
     focusedSymbol,
@@ -174,6 +202,7 @@ export function captureTerminalState(): TerminalState {
     watchlist,
     portfolio,
     openPanels,
+    ...(researchSpace ? { researchSpace } : {}),
     ...(viewport ? { viewport } : {}),
     region: useSettingsStore.getState().region,
     capturedAt: bus.updatedAt || Date.now(),

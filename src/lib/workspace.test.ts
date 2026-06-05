@@ -11,6 +11,8 @@ import { resetKeybindingsStoreForTests, useKeybindingsStore } from "@/store/keyb
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { DEFAULT_MODEL_BY_PROVIDER, useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
+import { useChatHistoryStore } from "@/store/chat-history";
+import { useResearchSpacesStore } from "@/store/research-spaces";
 import { DEFAULT_SETTINGS, resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
@@ -25,8 +27,10 @@ vi.mock("@/lib/sidecar-client", () => ({
 import {
   createResearchSpace,
   deserializeWorkspace,
+  isResearchSpace,
   loadWorkspace,
   researchSpaceName,
+  researchSymbolOf,
   restoreLastSessionOrDefault,
   saveWorkspace,
   serializeWorkspace,
@@ -66,7 +70,7 @@ const LAYOUT_B = { grid: { root: "b" }, panels: { news: {} } } as unknown as Ser
 describe("workspace serialization", () => {
   beforeEach(() => {
     useModulesStore.setState({ modules: [], enabled: {} });
-    useWorkspaceStore.setState({ name: "default", dockviewApi: null });
+    useWorkspaceStore.setState({ name: "default", researchSymbol: null, dockviewApi: null });
     useChartDrawingsStore.setState({ byPanel: {} });
     useLLMProvidersStore.setState({ defaultProviderId: "anthropic" });
     useSymbolsStore.setState({ entries: [{ symbol: "AAPL", assetClass: "equity" }] });
@@ -74,6 +78,8 @@ describe("workspace serialization", () => {
     useAgentAutonomyStore.setState({ autonomy: "ask" });
     useAgentDockStore.setState({ collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH });
     useModelSelectionStore.setState({ overrides: {} });
+    useResearchSpacesStore.setState({ byName: {} });
+    useChatHistoryStore.getState().clear();
     resetKeybindingsStoreForTests();
     resetSettingsStoreForTests();
   });
@@ -110,6 +116,9 @@ describe("workspace serialization", () => {
       searchSettings: { tier: "native", searxngUrl: "" },
       brief: null,
       notes: { general: "", bySymbol: {}, focusSymbol: "" },
+      // A non-research workspace omits `researchSymbol` but always carries the
+      // (empty) per-space memory archive (S-19).
+      researchSpaces: { byName: {} },
     });
   });
 
@@ -429,6 +438,178 @@ describe("workspace serialization", () => {
     });
 
     expect(useChartDrawingsStore.getState().getDrawings("chart-x")).toHaveLength(0);
+  });
+});
+
+describe("research-space typed field + per-space memory (S-19)", () => {
+  beforeEach(() => {
+    useModulesStore.setState({ modules: [], enabled: {} });
+    useWorkspaceStore.setState({ name: "default", researchSymbol: null, dockviewApi: null });
+    useChartDrawingsStore.setState({ byPanel: {} });
+    useResearchSpacesStore.setState({ byName: {} });
+    useChatHistoryStore.getState().clear();
+    resetSettingsStoreForTests();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("detects a research space by the TYPED researchSymbol field, not the name", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+
+    deserializeWorkspace({
+      name: "Anything goes here", // NOT prefixed — detection rides the field
+      layout: LAYOUT_A,
+      enabledModules: {},
+      researchSymbol: "nvda",
+    });
+
+    // The store's typed marker is set + normalised to upper-case.
+    expect(useWorkspaceStore.getState().researchSymbol).toBe("NVDA");
+  });
+
+  it("BACK-COMPAT: an OLD prefix-only blob (no field) still resolves the symbol", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+
+    // An old blob saved before the typed field existed — only the "Research: "
+    // name prefix identifies it.
+    deserializeWorkspace({
+      name: researchSpaceName("MSFT"), // "Research: MSFT"
+      layout: LAYOUT_A,
+      enabledModules: {},
+      // no researchSymbol field
+    });
+
+    expect(useWorkspaceStore.getState().researchSymbol).toBe("MSFT");
+  });
+
+  it("a literal 'Research: ' with a blank suffix is NOT a research space", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+
+    deserializeWorkspace({ name: "Research: ", layout: LAYOUT_A, enabledModules: {} });
+    expect(useWorkspaceStore.getState().researchSymbol).toBeNull();
+
+    // A plain workspace clears the marker too.
+    deserializeWorkspace({ name: "my cockpit", layout: LAYOUT_A, enabledModules: {} });
+    expect(useWorkspaceStore.getState().researchSymbol).toBeNull();
+  });
+
+  it("isResearchSpace / researchSymbolOf prefer the field, fall back to the prefix", () => {
+    // Typed field wins even when the name is non-prefixed.
+    expect(researchSymbolOf({ name: "scratch", researchSymbol: "tsla" })).toBe("TSLA");
+    expect(isResearchSpace({ name: "scratch", researchSymbol: "tsla" })).toBe(true);
+    // Field absent → prefix fall-back recovers the symbol.
+    expect(researchSymbolOf({ name: "Research: AMD" })).toBe("AMD");
+    expect(isResearchSpace({ name: "Research: AMD" })).toBe(true);
+    // Neither → not a research space.
+    expect(researchSymbolOf({ name: "default" })).toBeNull();
+    expect(isResearchSpace({ name: "default" })).toBe(false);
+  });
+
+  it("serializeWorkspace emits the typed field while IN a research space", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never, researchSymbol: "NVDA" });
+
+    const saved = serializeWorkspace(researchSpaceName("NVDA"));
+    expect(saved.researchSymbol).toBe("NVDA");
+    // A plain workspace omits the field.
+    useWorkspaceStore.setState({ researchSymbol: null });
+    expect(serializeWorkspace("plain").researchSymbol).toBeUndefined();
+  });
+
+  it("AUTOSAVE path: memory keys by the canonical space name, not the file name", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never, researchSymbol: "NVDA" });
+    useChatHistoryStore
+      .getState()
+      .loadMessages([{ id: "m1", role: "user", content: "nvda?", createdAt: 1 }]);
+
+    // The autosave slot persists under "__autosave__" (not "Research: NVDA"), but
+    // the per-space memory must still key under the canonical research name so it
+    // converges with an explicit save / a typed-field reload.
+    const autosaved = serializeWorkspace("__autosave__");
+    expect(autosaved.researchSpaces?.byName[researchSpaceName("NVDA")]?.transcript).toHaveLength(1);
+    // Reload via the TYPED field even under the neutral "__autosave__" name — the
+    // archived transcript resolves and restores.
+    useChatHistoryStore.getState().clear();
+    useWorkspaceStore.setState({ researchSymbol: null });
+    deserializeWorkspace({ ...autosaved, name: "default", researchSymbol: "NVDA" });
+    expect(useChatHistoryStore.getState().messages.map((m) => m.content)).toEqual(["nvda?"]);
+    expect(useWorkspaceStore.getState().researchSymbol).toBe("NVDA");
+  });
+
+  it("persists a research space's chat transcript and restores it on re-entry", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never, researchSymbol: "NVDA" });
+
+    // Have a conversation in the NVDA research space.
+    useChatHistoryStore.getState().loadMessages([
+      { id: "m1", role: "user", content: "is NVDA overvalued?", createdAt: 1 },
+      { id: "m2", role: "assistant", content: "It trades at a premium…", createdAt: 2 },
+    ]);
+
+    // Saving the workspace folds the live transcript into the space's memory.
+    const saved = serializeWorkspace(researchSpaceName("NVDA"));
+    expect(saved.researchSpaces?.byName[researchSpaceName("NVDA")]?.transcript).toHaveLength(2);
+    expect(saved.researchSpaces?.byName[researchSpaceName("NVDA")]?.symbol).toBe("NVDA");
+
+    // Wander off to a plain workspace — the live chat clears.
+    deserializeWorkspace({ name: "scratch", layout: LAYOUT_B, enabledModules: {} });
+    expect(useChatHistoryStore.getState().messages).toHaveLength(0);
+    expect(useWorkspaceStore.getState().researchSymbol).toBeNull();
+
+    // Re-enter the NVDA research space from the saved blob — the transcript
+    // comes back, restoring the agent's per-space memory.
+    deserializeWorkspace(saved);
+    const restored = useChatHistoryStore.getState().messages;
+    expect(restored.map((m) => m.content)).toEqual([
+      "is NVDA overvalued?",
+      "It trades at a premium…",
+    ]);
+    expect(useWorkspaceStore.getState().researchSymbol).toBe("NVDA");
+  });
+
+  it("switching from one research space to another swaps their transcripts", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never, researchSymbol: "NVDA" });
+
+    // NVDA space transcript, saved.
+    useChatHistoryStore
+      .getState()
+      .loadMessages([{ id: "n1", role: "user", content: "nvda question", createdAt: 1 }]);
+    const nvda = serializeWorkspace(researchSpaceName("NVDA"));
+
+    // Enter a fresh MSFT space (empty), have a different conversation, save it.
+    deserializeWorkspace({
+      name: researchSpaceName("MSFT"),
+      layout: LAYOUT_B,
+      enabledModules: {},
+      researchSymbol: "MSFT",
+      researchSpaces: nvda.researchSpaces,
+    });
+    expect(useChatHistoryStore.getState().messages).toHaveLength(0); // MSFT is fresh
+    useChatHistoryStore
+      .getState()
+      .loadMessages([{ id: "s1", role: "user", content: "msft question", createdAt: 3 }]);
+    const msft = serializeWorkspace(researchSpaceName("MSFT"));
+
+    // Both transcripts are retained in the archive.
+    expect(msft.researchSpaces?.byName[researchSpaceName("NVDA")]?.transcript[0]?.content).toBe(
+      "nvda question",
+    );
+    expect(msft.researchSpaces?.byName[researchSpaceName("MSFT")]?.transcript[0]?.content).toBe(
+      "msft question",
+    );
+
+    // Switch back to NVDA — its (not MSFT's) transcript is live again.
+    deserializeWorkspace(nvda);
+    expect(useChatHistoryStore.getState().messages.map((m) => m.content)).toEqual([
+      "nvda question",
+    ]);
   });
 });
 

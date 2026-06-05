@@ -54,9 +54,19 @@ function mainGroupPosition(
 interface WorkspaceState {
   /** Name of the active workspace. */
   name: string;
+  /**
+   * The symbol of the active research space, or `null` when the active
+   * workspace is not a research space. The TYPED replacement for the fragile
+   * `"Research: "` name-prefix detection — set by `deserializeWorkspace` /
+   * `createResearchSpace` from `SerializedWorkspace.researchSymbol`, and keyed
+   * by the per-space agent-memory archive (`src/store/research-spaces.ts`).
+   */
+  researchSymbol: string | null;
   /** The dockview layout API, set by `PanelHost` once the layout mounts. */
   dockviewApi: DockviewApi | null;
   setName: (name: string) => void;
+  /** Set (or clear, with `null`) the active research space's symbol. */
+  setResearchSymbol: (symbol: string | null) => void;
   setDockviewApi: (api: DockviewApi | null) => void;
   /** Open a panel by its `PanelSpec` id, or focus it if already open. */
   openPanel: (panelId: string) => void;
@@ -74,8 +84,10 @@ interface WorkspaceState {
  */
 export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   name: "default",
+  researchSymbol: null,
   dockviewApi: null,
   setName: (name) => set({ name }),
+  setResearchSymbol: (researchSymbol) => set({ researchSymbol }),
   setDockviewApi: (dockviewApi) => set({ dockviewApi }),
   openPanel: (panelId) => {
     const api = get().dockviewApi;
@@ -147,6 +159,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         .map((panel) => panel.id),
     );
     applyDefaultLayout(api, enabledPanelIds);
-    set({ name: "default" });
+    set({ name: "default", researchSymbol: null });
   },
 }));
