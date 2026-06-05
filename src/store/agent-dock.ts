@@ -11,7 +11,7 @@ import { create } from "zustand";
 
 export const AGENT_DOCK_MIN_WIDTH = 320;
 export const AGENT_DOCK_MAX_WIDTH = 1200;
-export const AGENT_DOCK_DEFAULT_WIDTH = 460;
+export const AGENT_DOCK_DEFAULT_WIDTH = 380;
 
 interface AgentDockState {
   collapsed: boolean;

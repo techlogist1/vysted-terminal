@@ -1165,19 +1165,21 @@ function EmptyState({
 }) {
   const meta = agentModeMeta(mode);
   return (
-    <div className="text-charcoal-300 flex h-full flex-col items-center justify-center gap-5 px-6 text-center text-[0.95rem] leading-relaxed">
-      <Sparkles className="text-amber-300/55" size={24} aria-hidden />
-      <div className="flex max-w-md flex-col gap-2.5">
-        <p className="text-charcoal-200 leading-relaxed">
-          Ask me anything about what you&rsquo;re looking at — your portfolio, a chart, a screen. I
-          read the terminal and can drive it.
+    <div className="flex h-full flex-col items-center justify-center gap-3 px-6 py-8 text-center">
+      <Sparkles className="text-charcoal-500 size-6" strokeWidth={1.5} aria-hidden />
+      <div className="flex max-w-xs flex-col items-center gap-1">
+        <p className="text-charcoal-200 text-panel-title">
+          Ask anything about what you&rsquo;re viewing
         </p>
-        <p className="text-charcoal-400 text-xs">
-          Mode: <span className="text-charcoal-200">{meta.label}</span> — {meta.consequence}
+        <p className="text-charcoal-500 text-caption">
+          I read the terminal — your portfolio, a chart, a screen — and can drive it.
+        </p>
+        <p className="text-charcoal-500 text-caption">
+          Mode: <span className="text-charcoal-300">{meta.label}</span> — {meta.consequence}
         </p>
         {activeAgentName && (
-          <p className="text-charcoal-400 text-xs">
-            Lens: <span className="text-charcoal-200">{activeAgentName}</span>
+          <p className="text-charcoal-500 text-caption">
+            Lens: <span className="text-charcoal-300">{activeAgentName}</span>
           </p>
         )}
       </div>
@@ -1379,7 +1381,7 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
         </div>
       )}
       <form
-        className="border-charcoal-700 flex items-center gap-3 border-t p-3"
+        className="border-charcoal-700 flex items-end gap-2.5 border-t p-3"
         onSubmit={(event) => {
           event.preventDefault();
           if (value.trim()) {
@@ -1404,14 +1406,14 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
           disabled={disabled}
           autoComplete="off"
           spellCheck={false}
-          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 min-h-[68px] flex-1 rounded-lg px-4 py-3.5 font-sans text-[0.95rem] leading-relaxed outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
+          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 min-h-[64px] flex-1 rounded-lg px-3.5 py-3 font-sans text-sm leading-relaxed outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
         />
         <Button
           type="submit"
-          size="icon-lg"
-          variant="outline"
+          variant="default"
           aria-label="Send message"
           disabled={disabled || value.trim().length === 0}
+          className="size-11 shrink-0 rounded-full [&_svg:not([class*='size-'])]:size-4"
         >
           <Send />
         </Button>

@@ -224,7 +224,7 @@ describe("ChatSidebar", () => {
 
   it("renders an empty-state hint until a message is sent", () => {
     render(<ChatSidebar />);
-    expect(screen.getByText(/Ask me anything about what you/)).toBeInTheDocument();
+    expect(screen.getByText(/Ask anything about what you/)).toBeInTheDocument();
   });
 
   it("/ask <prompt> appends a user message and invokes streamChat with the keychain key", async () => {
