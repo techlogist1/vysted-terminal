@@ -240,6 +240,31 @@ class ScreenerResultRow(BaseModel):
     matched_criteria: list[int] = []
 
 
+class SkipDetail(BaseModel):
+    """One itemized skip — a universe member that never reached evaluation.
+
+    The R4 batch fast path (FR-126 / SC-034) replaced the old "silently drop
+    242/506" behaviour with a complete ledger: every symbol the screener could
+    not evaluate is itemized here with a machine-readable ``reason`` so the UI
+    can surface coverage honestly. ``skipped_count == len(skip_details)`` always.
+
+    ``reason`` is one of:
+      - ``"timeout"`` — the upstream fetch (batch chunk or per-symbol) timed out.
+      - ``"not_found"`` — Yahoo did not return a row for the symbol.
+      - ``"no_data"`` — a row came back but carried no usable price / payload.
+      - ``"rate_limited"`` — the upstream throttled the request (HTTP 429).
+      - ``"correctness_gate"`` — the provider raised a ``ProviderError`` (a
+        deliberate refusal to fabricate a value).
+      - ``"missing_field:<field>"`` — a criterion referenced a field neither the
+        batch row nor the per-symbol enrichment could supply for this symbol.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    symbol: str
+    reason: str
+
+
 class ScreenerResult(BaseModel):
     """Response shape from ``POST /screener/run``."""
 
@@ -251,6 +276,10 @@ class ScreenerResult(BaseModel):
     # so a low evaluated_count no longer silently misrepresents coverage
     # (Phase 9.5). Defaulted for backward compatibility.
     skipped_count: int = 0
+    # Itemized skip ledger (R4 / FR-126 / SC-034) — one entry per dropped symbol
+    # with a machine-readable reason. ``skipped_count == len(skip_details)``.
+    # Defaulted so older callers / fixtures that omit it still validate.
+    skip_details: list[SkipDetail] = Field(default_factory=list)
     result_count: int
     rows: list[ScreenerResultRow]
     duration_ms: float

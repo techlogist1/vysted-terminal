@@ -50,6 +50,7 @@ from routers import (
     workspace,
 )
 from services import agent_tools, backtest_strategies, mcp_client, mcp_server, run_manager
+from services import screener as screener_service
 from services.errors import ProviderError
 
 _ROUTERS = (
@@ -105,9 +106,21 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
     """
     mcp_app = mcp_server.get_streamable_http_app()
     async with mcp_app.lifespan(mcp_app):
+        # Kick off the screener's warm-universe precompute (R4 / FR-126). It spawns
+        # a DETACHED background task and returns immediately, so it never blocks the
+        # sidecar boot the Tauri core waits on; the loop pre-warms the S&P 500 batch
+        # so warm screens are sub-second. Cancelled + awaited in the finally below.
+        screener_service.start_warm_precompute()
         try:
             yield
         finally:
+            # Cancel + await the warm-precompute task and close the batch provider's
+            # shared httpx client FIRST so neither a detached task nor an open socket
+            # outlives the event loop.
+            try:
+                await screener_service.stop_warm_precompute()
+            except Exception as exc:  # noqa: BLE001 — shutdown best-effort
+                _log.debug("screener.stop_warm_precompute raised on shutdown: %s", exc)
             # Cancel any in-flight Delegate runs FIRST so their detached tasks
             # do not outlive the event loop (FR-027 durability is process-bound;
             # a clean shutdown tears the tasks down rather than orphaning them).

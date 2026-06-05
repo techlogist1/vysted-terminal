@@ -1,52 +1,61 @@
-"""Screener / scanner filter engine — Phase 6 (Teammate Sc).
+"""Screener / scanner filter engine — Phase 6 + R4 batch fast path (FR-126).
 
-A small fan-out service that resolves a universe of symbols, fetches each
-symbol's ``Fundamentals`` snapshot (plus latest ``Quote`` for price-derived
-fields) in parallel via :func:`asyncio.gather`, applies an AND-combined
-list of :class:`ScreenerCriterion` filters, and returns the matching
-rows sorted by ``market_cap`` desc.
+A fan-out service that resolves a universe of symbols, fetches each symbol's
+``Fundamentals`` snapshot (plus latest ``Quote`` for price-derived fields),
+applies an AND-combined list (or an AND/OR ``group`` tree) of
+:class:`ScreenerCriterion` filters, and returns the matching rows sorted by
+``market_cap`` desc.
 
-Public surface
-~~~~~~~~~~~~~~
+Two fetch paths
+~~~~~~~~~~~~~~~
 
-  - :func:`run_screener(req)` — top-level entry the router awaits.
-  - :func:`resolve_universe(id, custom_symbols)` — returns the
-    :class:`ScreenerUniverse` for the requested id. ``"sp500"``,
-    ``"nifty50"``, and ``"crypto-top50"`` are seeded from the shipped
-    JSON snapshots under :mod:`services.screener_universes`. The
-    ``"crypto-top50"`` path caches a refreshed list via
-    :mod:`services.data_cache` (24h TTL) — the seed is the offline
-    fallback when the cache is cold and ccxt is unreachable.
-  - :func:`apply_criteria(rows, criteria)` — pure filter; returns the
-    rows that match every criterion. Exposed so tests can exercise the
-    discriminated-union operator dispatch without an HTTP round-trip.
+  * **Batch fast path** (R4 / FR-126, the curated equity universes — ``sp500`` /
+    ``nifty50``) — the common screener fields (price, market cap, P/E, dividend
+    yield, 52-week, EPS, volume, currency, …) come from Yahoo's
+    ``/v7/finance/quote`` BATCH endpoint via :mod:`services.yahoo_batch_provider`:
+    ≤50 symbols/request, ~11 calls for the 506-name S&P 500, cookie+crumb reused,
+    ``Semaphore(8)`` + ``gather``. A full cold S&P 500 screen now returns in
+    single-digit seconds (was ~205 s), and every dropped symbol is itemized in
+    the skip ledger (SC-034 — zero silent drops). A criterion that references a
+    field v7 does not carry (sector/industry/peg/beta/margins/health/growth/
+    ownership) triggers a throttled per-symbol ``.info`` ENRICHMENT of only the
+    affected symbols.
+  * **Per-symbol path** (the graceful fallback + non-equity + custom universes) —
+    the original cache-first, semaphore-throttled :func:`provider_registry`
+    fan-out. Used when the batch endpoint fails entirely (degrade, never crash),
+    for any symbol the batch did not cover, and for ``custom`` / ``crypto-top50``
+    universes (no v7 batch equivalent / arbitrary symbols).
 
-Design notes
-~~~~~~~~~~~~
+Skip ledger
+~~~~~~~~~~~
 
-The criteria union is discriminated by ``operator``; each operator
-maps to a small comparator function. Missing field values (``None``
-on Fundamentals — market_cap is unknown for many crypto pairs, P/E is
-unknown for unprofitable names) **fail** any numeric criterion — a
-"market cap > 100B" criterion drops names whose market cap is unknown
-rather than masking them as matches.
+Every universe member that does not reach the evaluation set is itemized in
+``ScreenerResult.skip_details`` with a reason (``timeout`` / ``not_found`` /
+``no_data`` / ``rate_limited`` / ``correctness_gate`` / ``missing_field:<f>``)
+— ``skipped_count == len(skip_details)``. A batch-skip reason is PROVISIONAL: the
+symbol is retried on the per-symbol fallback before its reason sticks.
 
-Performance: with the v0.6.0 seeded universes (≤100 names), the
-asyncio.gather fan-out completes in O(longest provider latency) — the
-yfinance fallback path is sync-on-thread per symbol but the registry's
-openbb-mcp preference batches well. The :func:`run_screener` entry
-sets a per-symbol ``asyncio.timeout`` (30s) so a single hung upstream
-does not stall the screener.
+Caching tiers
+~~~~~~~~~~~~~
 
-Each result row records ``matched_criteria`` — the indices of the
-input criteria the row satisfied (which is always every index, since
-we filter on AND; the field is retained for parity with the
-``ScreenerResultRow`` TypeScript mirror and for future OR-grouping).
+Two separate cache tiers (spec §5.4): a SHORT-TTL quote cache (45 s — price moves
+intraday) and a LONG-TTL fundamentals/profile cache (6 h — valuation ratios,
+sector, peg, beta move daily at most). A re-run inside the quote window is
+sub-second and skips the batch call entirely.
+
+Warm precompute
+~~~~~~~~~~~~~~~
+
+:func:`start_warm_precompute` spawns a background task that re-warms the S&P 500
+batch on an interval so warm runs are sub-second. It is started from the FastAPI
+lifespan AFTER startup (never blocks the Tauri-awaited boot) and cancelled +
+awaited on shutdown (no leaked task / socket).
 """
 
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
 import time
@@ -67,9 +76,10 @@ from models.screener import (
     ScreenerUniverse,
     ScreenerUniverseId,
     SetInCriterion,
+    SkipDetail,
     StringEqCriterion,
 )
-from services import data_cache, provider_registry
+from services import data_cache, provider_registry, yahoo_batch_provider
 from services.errors import ProviderError
 
 logger = logging.getLogger(__name__)
@@ -104,23 +114,45 @@ def default_universe_for_region(region: str | None = None) -> ScreenerUniverseId
 #: day is the right balance between freshness and rate-limit politeness.
 _CRYPTO_TOP50_TTL_SECONDS = 24 * 60 * 60
 
-#: Per-symbol fan-out timeout. A single hung upstream does not stall the
-#: screener — symbols that time out get dropped from the result set.
+#: Per-symbol fan-out timeout (the fallback / enrichment path). A single hung
+#: upstream does not stall the screener — symbols that time out are itemized as
+#: ``timeout``.
 _SYMBOL_TIMEOUT_SECONDS = 30.0
 
 #: Hard upper bound on the request's ``limit`` field. v0.6.0 doesn't need
 #: pagination so the result table caps at 1000 rows.
 _MAX_LIMIT = 1000
 
-#: Batching layer (003 — the prerequisite for the full-500 universe). The screener
-#: fans out a per-symbol fundamentals+quote fetch; doing all ~500 at once would get
-#: yfinance to rate-limit/drop. A semaphore throttles concurrency, and a per-symbol
-#: cache makes re-runs (and overlapping universes) near-instant. 12 concurrent keeps
-#: the first cold run brisk without tripping rate limits.
+# --- Concurrency + caching tiers (R4 / FR-126) ---------------------------------
+
+#: Live concurrency cap on the per-symbol fallback / enrichment fan-out. The
+#: batch path is the bulk fetch; this only throttles the residual symbols the
+#: batch did not cover (and the enrichment of fields v7 omits), so it can be
+#: modest without hurting the cold-run target.
 _FETCH_CONCURRENCY = 12
-#: Per-symbol pair cache TTL — fundamentals move daily, quotes intraday; an hour is
-#: a sound research-screener freshness window and makes iterating criteria instant.
-_PAIR_CACHE_TTL_SECONDS = 3600.0
+
+#: QUOTE cache tier — short TTL (price moves intraday). 45 s sits inside the
+#: spec's 15–60 s window: a re-run within the window is sub-second and avoids a
+#: redundant batch call, but a price never goes stale enough to mislead.
+_QUOTE_CACHE_TTL_SECONDS = 45.0
+
+#: FUNDAMENTALS / profile cache tier — long TTL (valuation ratios, sector, peg,
+#: beta move daily at most). Six hours keeps a research session iterating
+#: criteria instantly without re-scraping ``.info``.
+_FUNDAMENTALS_CACHE_TTL_SECONDS = 6 * 60 * 60.0
+
+# --- Warm-universe precompute (R4 / FR-126) ------------------------------------
+
+#: Re-warm interval for the S&P 500 batch so warm runs stay sub-second. Slightly
+#: under the quote TTL so the cache rarely goes cold between warms.
+_WARM_INTERVAL_SECONDS = 40.0
+#: Universes the background worker pre-warms. Equity-only (the batch path).
+_WARM_UNIVERSES: tuple[ScreenerUniverseId, ...] = ("sp500",)
+
+#: Curated equity universes that take the v7 BATCH fast path. ``custom`` (arbitrary
+#: pasted tickers) and ``crypto-top50`` (no v7 batch equivalent) stay on the
+#: per-symbol path — this also keeps the custom-universe unit tests off the network.
+_BATCH_UNIVERSES: frozenset[ScreenerUniverseId] = frozenset({"sp500", "nifty50"})
 
 
 # ---------------------------------------------------------------------------
@@ -372,28 +404,122 @@ def apply_criteria(
 
 
 # ---------------------------------------------------------------------------
-# Top-level run
+# Criteria field introspection — what does THIS screen actually need?
 # ---------------------------------------------------------------------------
 
 
-async def _fetch_pair(symbol: str, asset_class: str) -> tuple[Fundamentals, Quote | None] | None:
-    """Fetch ``(Fundamentals, Quote | None)`` for one symbol.
+def _group_fields(group: CriterionGroup) -> set[str]:
+    """Every field referenced anywhere in an AND/OR group tree (recursive)."""
+    fields: set[str] = set()
+    for node in group.criteria:
+        if isinstance(node, CriterionGroup):
+            fields |= _group_fields(node)
+        else:
+            field = getattr(node, "field", None)
+            if field:
+                fields.add(field)
+    return fields
 
-    Wraps both calls in their own try/except so a single symbol's
-    failure does not poison the whole screener. Returns ``None`` for
-    skipped symbols; the caller filters those out.
+
+def _criteria_fields(criteria: list[ScreenerCriterion], group: CriterionGroup | None) -> set[str]:
+    """Every field referenced by the screen — the flat criteria AND the group tree.
+
+    The group SUPERSEDES the flat criteria at evaluation time, but for enrichment
+    we conservatively union both: if either path could reference an enrichment
+    field, that field must be fetched. (A field referenced only by the inactive
+    flat list costs at most one wasted enrichment, never a wrong result.)
+    """
+    fields: set[str] = set()
+    for criterion in criteria:
+        field = getattr(criterion, "field", None)
+        if field:
+            fields.add(field)
+    if group is not None:
+        fields |= _group_fields(group)
+    return fields
+
+
+def _enrichment_fields_needed(
+    criteria: list[ScreenerCriterion], group: CriterionGroup | None
+) -> set[str]:
+    """The screened fields the v7 batch row cannot supply (need ``.info``)."""
+    return {
+        f
+        for f in _criteria_fields(criteria, group)
+        if yahoo_batch_provider.field_needs_enrichment(f)
+    }
+
+
+# ---------------------------------------------------------------------------
+# Caching helpers — separate quote (short TTL) + fundamentals (long TTL) tiers.
+# ---------------------------------------------------------------------------
+
+
+def _quote_cache_key(symbol: str) -> str:
+    return f"screener:quote:{symbol.upper()}"
+
+
+def _fundamentals_cache_key(symbol: str) -> str:
+    return f"screener:fundamentals:{symbol.upper()}"
+
+
+async def _read_cached_quote(symbol: str) -> Quote | None:
+    cached = await data_cache.get(_quote_cache_key(symbol), _QUOTE_CACHE_TTL_SECONDS)
+    if isinstance(cached, dict):
+        with contextlib.suppress(Exception):
+            return Quote(**cached)
+    return None
+
+
+async def _read_cached_fundamentals(symbol: str) -> Fundamentals | None:
+    cached = await data_cache.get(_fundamentals_cache_key(symbol), _FUNDAMENTALS_CACHE_TTL_SECONDS)
+    if isinstance(cached, dict):
+        with contextlib.suppress(Exception):
+            return Fundamentals(**cached)
+    return None
+
+
+async def _write_cached_quote(quote: Quote) -> None:
+    with contextlib.suppress(Exception):
+        await data_cache.set(_quote_cache_key(quote.symbol), quote.model_dump(mode="json"))
+
+
+async def _write_cached_fundamentals(fundamentals: Fundamentals) -> None:
+    with contextlib.suppress(Exception):
+        await data_cache.set(
+            _fundamentals_cache_key(fundamentals.symbol),
+            fundamentals.model_dump(mode="json"),
+        )
+
+
+# ---------------------------------------------------------------------------
+# Per-symbol fallback fetch (the graceful-degrade + non-equity path)
+# ---------------------------------------------------------------------------
+
+
+async def _fetch_pair(
+    symbol: str, asset_class: str
+) -> tuple[tuple[Fundamentals, Quote | None] | None, str | None]:
+    """Fetch ``(Fundamentals, Quote | None)`` for one symbol via the registry.
+
+    Returns ``(pair, skip_reason)``. ``pair is None`` ⇒ the symbol is skipped
+    and ``skip_reason`` is a ledger reason. A fundamentals failure is fatal for
+    the symbol; a quote failure only drops the price-derived fields.
     """
     try:
         fundamentals = await asyncio.wait_for(
             provider_registry.get_fundamentals(symbol),
             timeout=_SYMBOL_TIMEOUT_SECONDS,
         )
-    except (ProviderError, TimeoutError) as exc:
+    except TimeoutError:
+        logger.debug("screener: fundamentals timed out for %s", symbol)
+        return None, "timeout"
+    except ProviderError as exc:
         logger.debug("screener: fundamentals failed for %s: %s", symbol, exc)
-        return None
+        return None, "correctness_gate"
     except Exception as exc:  # noqa: BLE001
         logger.warning("screener: unexpected fundamentals error for %s: %s", symbol, exc)
-        return None
+        return None, "no_data"
 
     quote: Quote | None = None
     try:
@@ -405,97 +531,336 @@ async def _fetch_pair(symbol: str, asset_class: str) -> tuple[Fundamentals, Quot
         )
     except (ProviderError, TimeoutError) as exc:
         logger.debug("screener: quote failed for %s: %s", symbol, exc)
-        # A missing quote drops the price-derived criteria but is not
-        # itself a hard failure — return the fundamentals-only pair.
         quote = None
     except Exception as exc:  # noqa: BLE001
         logger.warning("screener: unexpected quote error for %s: %s", symbol, exc)
         quote = None
 
-    return fundamentals, quote
+    return (fundamentals, quote), None
 
 
-async def _cached_pair(
+async def _cached_fallback_pair(
     symbol: str, asset_class: str, sem: asyncio.Semaphore
-) -> tuple[Fundamentals, Quote | None] | None:
-    """Cache-first, concurrency-throttled wrapper over :func:`_fetch_pair`.
-
-    A cache hit (within ``_PAIR_CACHE_TTL_SECONDS``) returns instantly with no
-    network call; a miss fetches UNDER the semaphore — throttling the cold fan-out
-    so a ~500-symbol universe doesn't trip yfinance rate limits — then caches the
-    serialised pair. This is the batching layer that makes the full S&P 500
-    universe viable (and re-runs / overlapping universes near-instant).
-    """
-    cache_key = f"screener:pair:{asset_class}:{symbol.upper()}"
-    cached = await data_cache.get(cache_key, _PAIR_CACHE_TTL_SECONDS)
-    if isinstance(cached, dict) and "fundamentals" in cached:
-        try:
-            fundamentals = Fundamentals(**cached["fundamentals"])
-            quote = Quote(**cached["quote"]) if cached.get("quote") else None
-            return fundamentals, quote
-        except Exception as exc:  # noqa: BLE001 - a stale/garbled cache row is just a miss
-            logger.debug("screener: bad cache row for %s: %s", symbol, exc)
-
+) -> tuple[str, tuple[Fundamentals, Quote | None] | None, str | None]:
+    """Cache-first per-symbol fetch under the semaphore. Returns
+    ``(symbol, pair, skip_reason)``. A fundamentals cache hit short-circuits the
+    network (re-runs near-instant); the quote rides its own short-TTL tier so a
+    fresh fundamentals hit still pairs with whatever quote is cached (possibly
+    ``None`` — the price-derived criteria then fail honestly)."""
+    cached_fund = await _read_cached_fundamentals(symbol)
+    if cached_fund is not None:
+        cached_quote = await _read_cached_quote(symbol)
+        return symbol, (cached_fund, cached_quote), None
     async with sem:
-        pair = await _fetch_pair(symbol, asset_class)
-    if pair is None:
-        return None
-    fundamentals, quote = pair
-    try:
-        await data_cache.set(
-            cache_key,
-            {
-                "fundamentals": fundamentals.model_dump(mode="json"),
-                "quote": quote.model_dump(mode="json") if quote is not None else None,
-            },
+        pair, reason = await _fetch_pair(symbol, asset_class)
+    if pair is not None:
+        await _write_cached_fundamentals(pair[0])
+        if pair[1] is not None:
+            await _write_cached_quote(pair[1])
+    return symbol, pair, reason
+
+
+# ---------------------------------------------------------------------------
+# Batch fast path (Yahoo v7) + per-symbol enrichment
+# ---------------------------------------------------------------------------
+
+
+def _merge_enrichment(base: Fundamentals, rich: Fundamentals, fields: set[str]) -> Fundamentals:
+    """Return a copy of ``base`` with the ``fields`` taken from ``rich``."""
+    overrides = {f: getattr(rich, f, None) for f in fields}
+    return base.model_copy(update=overrides)
+
+
+async def _enrich_one(
+    symbol: str,
+    base: Fundamentals,
+    needed: set[str],
+    sem: asyncio.Semaphore,
+) -> tuple[str, Fundamentals, str | None]:
+    """Per-symbol ``.info`` enrichment of the fields v7 omits.
+
+    Pulls the richer registry ``Fundamentals`` and copies ONLY the
+    ``needed`` (enrichment) fields onto the batch ``base`` so the criterion can
+    evaluate. Returns ``(symbol, merged, skip_reason)`` — ``skip_reason`` is
+    ``missing_field:<f>`` when the enrichment still cannot supply a needed
+    field, else ``None``."""
+    # Cache hit (long TTL) — reuse a prior enrichment if it carries every field.
+    cached = await _read_cached_fundamentals(symbol)
+    if cached is not None and all(getattr(cached, f, None) is not None for f in needed):
+        return symbol, _merge_enrichment(base, cached, needed), None
+    async with sem:
+        try:
+            rich = await asyncio.wait_for(
+                provider_registry.get_fundamentals(symbol),
+                timeout=_SYMBOL_TIMEOUT_SECONDS,
+            )
+        except TimeoutError:
+            return symbol, base, f"missing_field:{sorted(needed)[0]}"
+        except Exception as exc:  # noqa: BLE001 — any failure ⇒ field stays missing
+            logger.debug("screener: enrichment failed for %s: %s", symbol, exc)
+            return symbol, base, f"missing_field:{sorted(needed)[0]}"
+    await _write_cached_fundamentals(rich)
+    merged = _merge_enrichment(base, rich, needed)
+    # If a needed field is STILL None after enrichment, itemize it.
+    for field in sorted(needed):
+        if getattr(merged, field, None) is None:
+            return symbol, merged, f"missing_field:{field}"
+    return symbol, merged, None
+
+
+async def _batch_collect(
+    universe: ScreenerUniverse,
+    criteria: list[ScreenerCriterion],
+    group: CriterionGroup | None,
+) -> tuple[
+    dict[str, tuple[Fundamentals, Quote | None]],
+    dict[str, str],
+]:
+    """Run the batch fast path over a curated equity universe.
+
+    Returns ``(pairs_by_upper_symbol, provisional_skip_reasons)``. ``pairs`` are
+    the symbols the batch (or its cache) resolved; ``provisional_skip_reasons``
+    maps each UNRESOLVED symbol to the batch's reason (``not_found`` / ``timeout``
+    / ``rate_limited`` / ``no_data`` / ``missing_field:<f>``). The caller retries
+    every unresolved symbol on the per-symbol fallback — these reasons only stick
+    if the fallback ALSO fails. On a TOTAL batch wipeout (endpoint down) ``pairs``
+    is empty → full graceful degrade to the fallback path.
+    """
+    symbols = list(universe.symbols)
+    pairs: dict[str, tuple[Fundamentals, Quote | None]] = {}
+    skips: dict[str, str] = {}
+
+    # 1) Warm-cache pass: a fresh quote (short TTL) + fundamentals (long TTL)
+    #    avoids a network call entirely (sub-second warm runs).
+    miss: list[str] = []
+    for sym in symbols:
+        c_quote = await _read_cached_quote(sym)
+        c_fund = await _read_cached_fundamentals(sym)
+        if c_quote is not None and c_fund is not None:
+            pairs[sym.upper()] = (c_fund, c_quote)
+        else:
+            miss.append(sym)
+
+    # 2) Batch-fetch the cache misses.
+    if miss:
+        rows, failures = await yahoo_batch_provider.fetch_quotes_batch(miss)
+        for sym in miss:
+            row = rows.get(sym.upper())
+            if row is None:
+                # Itemize the batch failure reason (default not_found).
+                skips[sym.upper()] = failures.get(sym, "not_found")
+                continue
+            quote = yahoo_batch_provider.quote_from_v7(row)
+            if quote is None:
+                skips[sym.upper()] = "no_data"
+                continue
+            fundamentals = yahoo_batch_provider.fundamentals_from_v7(row)
+            pairs[sym.upper()] = (fundamentals, quote)
+            await _write_cached_quote(quote)
+            await _write_cached_fundamentals(fundamentals)
+
+    # 3) Enrichment — only when a criterion (flat OR group) needs a field v7 omits.
+    needed = _enrichment_fields_needed(criteria, group)
+    if needed and pairs:
+        sem = asyncio.Semaphore(_FETCH_CONCURRENCY)
+        to_enrich = [
+            (sym, fund)
+            for sym, (fund, _q) in pairs.items()
+            if any(getattr(fund, f, None) is None for f in needed)
+        ]
+        results = await asyncio.gather(
+            *(_enrich_one(sym, fund, needed, sem) for sym, fund in to_enrich)
         )
-    except Exception as exc:  # noqa: BLE001 - caching is best-effort, never fatal
-        logger.debug("screener: cache write failed for %s: %s", symbol, exc)
-    return pair
+        for sym, merged, reason in results:
+            quote = pairs[sym][1]
+            pairs[sym] = (merged, quote)
+            if reason is not None:
+                # A needed field is still missing → drop the symbol, itemized.
+                pairs.pop(sym, None)
+                skips[sym] = reason
+
+    return pairs, skips
+
+
+# ---------------------------------------------------------------------------
+# Top-level run
+# ---------------------------------------------------------------------------
 
 
 async def run_screener(req: ScreenerRequest) -> ScreenerResult:
-    """Resolve the universe, fan out (throttled + cached), filter, and return.
+    """Resolve the universe, fan out (batch fast path + fallback), filter, return.
 
     Filters by the request's ``group`` (AND/OR boolean tree) when present, else by
     the flat AND-combined ``criteria``. Returns up to ``req.limit`` rows sorted by
-    market cap desc.
+    market cap desc. Every dropped symbol is itemized in ``skip_details``
+    (SC-034); ``skipped_count == len(skip_details)``.
     """
     started_at = time.monotonic()
 
     # ``req.universe`` is always explicit (required on ScreenerRequest, no default)
-    # — region-default selection happens upstream where a default is chosen, via
-    # ``default_universe_for_region``; here we honour exactly what the caller sent.
+    # — region-default selection happens upstream via ``default_universe_for_region``;
+    # here we honour exactly what the caller sent.
     universe = await resolve_universe(req.universe, req.custom_symbols)
+    criteria = list(req.criteria)
+    group = req.group
 
-    # Throttled + cached fan-out (the batching layer). The semaphore caps live
-    # concurrency so a full-500 cold run doesn't trip rate limits; cache hits skip
-    # the network entirely. ``_cached_pair`` swallows per-symbol failures (returns
-    # None), so a raised exception here is a true bug.
-    sem = asyncio.Semaphore(_FETCH_CONCURRENCY)
-    pairs_raw = await asyncio.gather(
-        *(_cached_pair(sym, universe.asset_class, sem) for sym in universe.symbols)
-    )
-    pairs: list[tuple[Fundamentals, Quote | None]] = [
-        pair for pair in pairs_raw if pair is not None
-    ]
+    # Fields the screen references that the v7 batch row cannot supply. A symbol
+    # whose resolved fundamentals STILL lack one of these — whether it came off
+    # the batch enrichment or the per-symbol fallback — is itemized
+    # ``missing_field:<f>`` rather than silently failing the criterion. (For the
+    # per-symbol / fallback path the registry fundamentals usually carry every
+    # field, so this only bites when the upstream genuinely omits one.)
+    needed_fields = _enrichment_fields_needed(criteria, group)
 
-    matched = apply_criteria(pairs, list(req.criteria), group=req.group)
+    pairs_by_symbol: dict[str, tuple[Fundamentals, Quote | None]] = {}
+    skip_reasons: dict[str, str] = {}
+    fallback_symbols: list[str] = list(universe.symbols)
+
+    # --- Batch fast path — only the curated equity universes (sp500 / nifty50).
+    #     ``custom`` (arbitrary tickers) + ``crypto-top50`` stay on the per-symbol
+    #     path (no v7 batch equivalent). ---
+    if universe.id in _BATCH_UNIVERSES and universe.asset_class == "equity":
+        try:
+            batch_pairs, batch_skips = await _batch_collect(universe, criteria, group)
+        except Exception as exc:  # noqa: BLE001 — batch must never crash the screen
+            logger.warning("screener: batch path failed, degrading to per-symbol: %s", exc)
+            batch_pairs, batch_skips = {}, {}
+        pairs_by_symbol.update(batch_pairs)
+        # The batch's skip reasons are PROVISIONAL — every unresolved symbol is
+        # retried on the per-symbol fallback (it may fill a missing field or a
+        # symbol the batch endpoint truncated). The reason only sticks if the
+        # fallback ALSO cannot resolve it.
+        skip_reasons.update(batch_skips)
+        fallback_symbols = [s for s in universe.symbols if s.upper() not in pairs_by_symbol]
+
+    # --- Per-symbol fallback (residual symbols + non-batch universes). ---
+    if fallback_symbols:
+        sem = asyncio.Semaphore(_FETCH_CONCURRENCY)
+        fallback_results = await asyncio.gather(
+            *(_cached_fallback_pair(sym, universe.asset_class, sem) for sym in fallback_symbols)
+        )
+        for sym, pair, reason in fallback_results:
+            key = sym.upper()
+            if pair is not None:
+                fundamentals = pair[0]
+                # A criterion field the resolved fundamentals STILL lack is a
+                # missing-field skip, not a silent criterion-fail (SC-034). The
+                # batch enrichment already gates its own path; this catches the
+                # fallback path symmetrically so the accounting is authoritative.
+                absent = next(
+                    (f for f in sorted(needed_fields) if getattr(fundamentals, f, None) is None),
+                    None,
+                )
+                if absent is not None:
+                    skip_reasons[key] = f"missing_field:{absent}"
+                else:
+                    pairs_by_symbol[key] = pair
+                    skip_reasons.pop(key, None)
+            elif reason is not None:
+                # Fallback's reason supersedes the batch's provisional one.
+                skip_reasons[key] = reason
+
+    pairs = list(pairs_by_symbol.values())
+    matched = apply_criteria(pairs, criteria, group=group)
 
     # Apply limit. Clamp to ``_MAX_LIMIT`` so a malformed request body
     # cannot pull a 10k-row response.
     limit = max(1, min(int(req.limit), _MAX_LIMIT))
     rows = matched[:limit]
 
+    # Build the itemized skip ledger (SC-034 — zero silent drops). A symbol is
+    # skipped iff it produced no evaluable pair; reason defaults to no_data.
+    evaluated = set(pairs_by_symbol)
+    skip_details: list[SkipDetail] = []
+    for sym in universe.symbols:
+        key = sym.upper()
+        if key not in evaluated:
+            skip_details.append(SkipDetail(symbol=key, reason=skip_reasons.get(key, "no_data")))
+
     duration_ms = (time.monotonic() - started_at) * 1000.0
     return ScreenerResult(
         universe=req.universe,
         evaluated_count=len(pairs),
-        skipped_count=len(universe.symbols) - len(pairs),
+        skipped_count=len(skip_details),
+        skip_details=skip_details,
         result_count=len(rows),
         rows=rows,
         duration_ms=duration_ms,
     )
+
+
+# ---------------------------------------------------------------------------
+# Warm-universe precompute worker (R4 / FR-126)
+# ---------------------------------------------------------------------------
+
+_warm_task: asyncio.Task[None] | None = None
+
+
+async def _warm_once() -> None:
+    """Pre-warm one batch cycle over the warm universes (best-effort)."""
+    for universe_id in _WARM_UNIVERSES:
+        try:
+            universe = await resolve_universe(universe_id)
+        except ProviderError as exc:
+            logger.debug("screener warm: cannot resolve %s: %s", universe_id, exc)
+            continue
+        rows, _failures = await yahoo_batch_provider.fetch_quotes_batch(list(universe.symbols))
+        for _sym, row in rows.items():
+            quote = yahoo_batch_provider.quote_from_v7(row)
+            if quote is not None:
+                await _write_cached_quote(quote)
+                await _write_cached_fundamentals(yahoo_batch_provider.fundamentals_from_v7(row))
+
+
+async def _warm_loop(interval: float) -> None:
+    """Background loop: warm immediately, then re-warm every ``interval`` s.
+
+    Swallows every per-cycle error (a transient Yahoo blip must not kill the
+    worker) and exits cleanly on cancellation."""
+    try:
+        while True:
+            try:
+                await _warm_once()
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:  # noqa: BLE001 — a warm cycle is best-effort
+                logger.debug("screener warm cycle failed: %s", exc)
+            await asyncio.sleep(interval)
+    except asyncio.CancelledError:
+        logger.debug("screener warm loop cancelled")
+        raise
+
+
+def start_warm_precompute(interval: float = _WARM_INTERVAL_SECONDS) -> None:
+    """Start the warm-precompute background task (idempotent).
+
+    Spawned from the FastAPI lifespan AFTER startup so it never blocks the
+    sidecar boot the Tauri core waits on. The task is detached; the loop's first
+    iteration runs the initial warm. Re-calling while a task is live is a no-op."""
+    global _warm_task
+    if _warm_task is not None and not _warm_task.done():
+        return
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        # No running loop (e.g. called outside an async context) — skip; the
+        # lifespan is the real caller and always has a loop.
+        logger.debug("screener warm: no running loop; precompute not started")
+        return
+    _warm_task = loop.create_task(_warm_loop(interval))
+
+
+async def stop_warm_precompute() -> None:
+    """Cancel + await the warm-precompute task so it does not leak on shutdown,
+    then close the batch provider's shared client (no leaked socket)."""
+    global _warm_task
+    task = _warm_task
+    _warm_task = None
+    if task is not None:
+        task.cancel()
+        with contextlib.suppress(asyncio.CancelledError, Exception):
+            await task
+    await yahoo_batch_provider.aclose()
 
 
 __all__ = [
@@ -503,4 +868,6 @@ __all__ = [
     "default_universe_for_region",
     "resolve_universe",
     "run_screener",
+    "start_warm_precompute",
+    "stop_warm_precompute",
 ]
