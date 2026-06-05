@@ -25,12 +25,14 @@ import { useBrokersStore } from "@/store/brokers";
 import { useChartCommandStore } from "@/store/chart-command";
 import { useEquityCommandStore } from "@/store/equity-command";
 import { useOrdersStore } from "@/store/orders";
+import { useScreenerStore } from "@/store/screener";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 
 import type { BrokerId, BrokerOrderProposal } from "../../types/broker";
 import type { BriefSource, BriefStep, BriefStructured, ResearchBriefData } from "../../types/brief";
 import type { ProposedChangeKind } from "../../types/proposed-change";
+import type { CriterionGroup, ScreenerCriterion, ScreenerUniverseId } from "../../types/screener";
 
 /** The catalog host-action tool ids (`kind="host_action"`, `read_only=false`). */
 export const HOST_ACTION_NAMES = new Set([
@@ -43,6 +45,7 @@ export const HOST_ACTION_NAMES = new Set([
   "add_to_watchlist",
   "publish_brief",
   "propose_order",
+  "write_screener_filters",
 ]);
 
 /** Build a frontend ResearchBriefData from a publish_brief tool input.
@@ -200,6 +203,117 @@ function parseCustomPanels(input: Record<string, unknown>): CustomPanelSpec[] {
     }
   }
   return specs;
+}
+
+const _SCREENER_UNIVERSES: ReadonlySet<string> = new Set([
+  "sp500",
+  "nifty50",
+  "crypto-top50",
+  "custom",
+]);
+
+/**
+ * Coerce one loosely-typed object the agent emitted into a `ScreenerCriterion`.
+ * The agent JSON isn't a discriminated union, so we keep only well-formed leaves
+ * (a numeric `value` for thresholds / a {min,max} for between / a string for eq /
+ * a string[] for in). Returns null for anything malformed so a sloppy arg never
+ * crashes the apply.
+ */
+function parseScreenerCriterion(raw: unknown): ScreenerCriterion | null {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+  const o = raw as Record<string, unknown>;
+  const field = typeof o.field === "string" ? o.field : "";
+  const operator = typeof o.operator === "string" ? o.operator : "";
+  if (!field || !operator) {
+    return null;
+  }
+  if (operator === "gt" || operator === "lt" || operator === "gte" || operator === "lte") {
+    if (typeof o.value !== "number") {
+      return null;
+    }
+    return { field, operator, value: o.value } as ScreenerCriterion;
+  }
+  if (operator === "between") {
+    const v = o.value;
+    if (v && typeof v === "object") {
+      const vo = v as Record<string, unknown>;
+      if (typeof vo.min === "number" && typeof vo.max === "number") {
+        return {
+          field,
+          operator: "between",
+          value: { min: vo.min, max: vo.max },
+        } as ScreenerCriterion;
+      }
+    }
+    return null;
+  }
+  if (operator === "eq") {
+    if (typeof o.value !== "string") {
+      return null;
+    }
+    return { field, operator: "eq", value: o.value } as ScreenerCriterion;
+  }
+  if (operator === "in") {
+    const arr = Array.isArray(o.value)
+      ? o.value.filter((x): x is string => typeof x === "string")
+      : [];
+    if (arr.length === 0) {
+      return null;
+    }
+    return { field, operator: "in", value: arr } as ScreenerCriterion;
+  }
+  return null;
+}
+
+/** Parse a flat `criteria` array arg into well-formed leaves. */
+function parseScreenerCriteria(input: Record<string, unknown>): ScreenerCriterion[] {
+  const raw = input.criteria;
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  return raw.map(parseScreenerCriterion).filter((c): c is ScreenerCriterion => c !== null);
+}
+
+/**
+ * Parse a loosely-typed nested AND/OR `group` tree (the agent's JSON) into a
+ * `CriterionGroup`, dropping malformed children. Recurses on sub-groups. Returns
+ * null when absent or it collapses to nothing.
+ */
+function parseScreenerGroup(raw: unknown): CriterionGroup | null {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+  const o = raw as Record<string, unknown>;
+  const combinator = o.combinator === "or" ? "or" : "and";
+  const rawChildren = Array.isArray(o.criteria) ? o.criteria : [];
+  const criteria: (ScreenerCriterion | CriterionGroup)[] = [];
+  for (const child of rawChildren) {
+    if (child && typeof child === "object" && "combinator" in (child as object)) {
+      const sub = parseScreenerGroup(child);
+      if (sub) {
+        criteria.push(sub);
+      }
+    } else {
+      const leaf = parseScreenerCriterion(child);
+      if (leaf) {
+        criteria.push(leaf);
+      }
+    }
+  }
+  if (criteria.length === 0) {
+    return null;
+  }
+  return { combinator, criteria };
+}
+
+/** Count leaves in a (possibly nested) group tree — for the diff summary. */
+function countLeaves(node: ScreenerCriterion | CriterionGroup): number {
+  if ("combinator" in node) {
+    return node.criteria.reduce((acc, c) => acc + countLeaves(c), 0);
+  }
+  return 1;
 }
 
 /**
@@ -371,6 +485,24 @@ export function describeHostAction(
         after: `${side} ${qty} ${symbol} (${type}${typeof limit === "number" ? ` @ ${limit}` : ""}) — routes to the confirm-before-place dialog`,
       };
     }
+    case "write_screener_filters": {
+      const s = useScreenerStore.getState();
+      const currentCount = s.advanced && s.group ? countLeaves(s.group) : s.criteria.length;
+      const group = parseScreenerGroup(input.group);
+      const criteria = parseScreenerCriteria(input);
+      const proposedCount = group ? countLeaves(group) : criteria.length;
+      const nested =
+        group && group.criteria.some((c) => "combinator" in c) ? " (nested AND/OR)" : "";
+      const universe = typeof input.universe === "string" ? input.universe : "";
+      return {
+        kind: "panel",
+        title: "Write screener filters",
+        before: `Screener: ${currentCount} criteri${currentCount === 1 ? "on" : "a"}`,
+        after: `Screener: ${proposedCount} criteri${proposedCount === 1 ? "on" : "a"}${nested}${
+          universe && _SCREENER_UNIVERSES.has(universe) ? ` · ${universe}` : ""
+        } — review then Run`,
+      };
+    }
     default:
       return { kind: "panel", title: name.replace(/_/g, " "), before: "—", after: "—" };
   }
@@ -522,9 +654,42 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
         return `Added ${symbol} to your watchlist`;
       }
       return null;
+    case "write_screener_filters": {
+      const criteria = parseScreenerCriteria(input);
+      const group = parseScreenerGroup(input.group);
+      // Need at least one well-formed criterion (flat OR nested) to write.
+      if (criteria.length === 0 && !group) {
+        return null;
+      }
+      const universe =
+        typeof input.universe === "string" && _SCREENER_UNIVERSES.has(input.universe)
+          ? (input.universe as ScreenerUniverseId)
+          : undefined;
+      // When the agent gives only a nested group, mirror its leaves into the
+      // flat `criteria` too so older readers + the match-index column resolve.
+      const flat = criteria.length ? criteria : group ? flattenLeaves(group) : [];
+      useScreenerStore.getState().applyFilters({ criteria: flat, group, universe });
+      // Stage the panel so the proposed filters are on screen for the user to Run.
+      useWorkspaceStore.getState().openPanel("screener");
+      const count = group ? countLeaves(group) : criteria.length;
+      return `Wrote ${count} screener criteri${count === 1 ? "on" : "a"} — review and Run`;
+    }
     default:
       return null;
   }
+}
+
+/** Collect every leaf criterion from a (possibly nested) group, in order. */
+function flattenLeaves(group: CriterionGroup): ScreenerCriterion[] {
+  const out: ScreenerCriterion[] = [];
+  for (const child of group.criteria) {
+    if ("combinator" in child) {
+      out.push(...flattenLeaves(child));
+    } else {
+      out.push(child);
+    }
+  }
+  return out;
 }
 
 /**

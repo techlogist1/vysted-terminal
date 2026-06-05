@@ -975,6 +975,53 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=False,
             kind="host_action",
         ),
+        _cap(
+            "write_screener_filters",
+            description=(
+                "Write/configure the screener's filter criteria into the panel for the "
+                "user to REVIEW and run. This does NOT run the screener — it stages the "
+                "filters in the screener panel; the user reviews them and clicks Run. "
+                "Pass a flat `criteria` list (each: {field, operator, value} where "
+                "operator is gt|lt|gte|lte|between|eq|in; numeric fields like pe_ratio, "
+                "market_cap, roe, dividend_yield, debt_to_equity, price, volume — "
+                "fractions for ratios e.g. roe 0.2 = 20%). For OR / nested logic, pass a "
+                "`group` tree {combinator:'and'|'or', criteria:[... leaf or nested group]} "
+                "which supersedes the flat list. Optionally set `universe` "
+                "(sp500|nifty50|crypto-top50|custom) and `limit`. Use when the user asks "
+                "to screen/scan for stocks by fundamentals."
+            ),
+            input_schema=_obj(
+                {
+                    "criteria": {
+                        "type": "array",
+                        "items": {"type": "object"},
+                        "description": (
+                            "Flat AND-combined leaf criteria, each {field, operator, value}."
+                        ),
+                    },
+                    "group": {
+                        "type": "object",
+                        "description": (
+                            "Optional nested AND/OR tree {combinator, criteria:[...]} — "
+                            "supersedes the flat criteria. A child may itself be a group."
+                        ),
+                    },
+                    "universe": {
+                        "type": "string",
+                        "enum": ["sp500", "nifty50", "crypto-top50", "custom"],
+                        "description": "Optional universe to screen.",
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Optional max rows (default 200).",
+                    },
+                },
+                ["criteria"],
+            ),
+            domain="screener",
+            read_only=False,
+            kind="host_action",
+        ),
     ]
 )
 

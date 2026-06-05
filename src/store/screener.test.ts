@@ -162,6 +162,96 @@ describe("useScreenerStore", () => {
       expect(body.criteria).toHaveLength(3);
     });
 
+    it("advanced mode sends the NESTED group tree verbatim", async () => {
+      const fetchMock = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValue(new Response(JSON.stringify(RESULT_SAMPLE), { status: 200 }));
+      const s = useScreenerStore.getState();
+      s.setAdvanced(true);
+      s.setGroup({
+        combinator: "or",
+        criteria: [
+          { field: "dividend_yield", operator: "gt", value: 0.04 },
+          {
+            combinator: "and",
+            criteria: [
+              { field: "pe_ratio", operator: "lt", value: 15 },
+              { field: "roe", operator: "gt", value: 0.2 },
+            ],
+          },
+        ],
+      });
+      await useScreenerStore.getState().runScreener();
+      const [, init] = fetchMock.mock.calls[0]!;
+      const body = JSON.parse(String(init!.body));
+      expect(body.group.combinator).toBe("or");
+      expect(body.group.criteria).toHaveLength(2);
+      // The second child is itself a group (real nesting).
+      expect(body.group.criteria[1].combinator).toBe("and");
+      expect(body.group.criteria[1].criteria).toHaveLength(2);
+    });
+
+    it("advanced mode with NO nesting falls back to the flat path (no group)", async () => {
+      const fetchMock = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValue(new Response(JSON.stringify(RESULT_SAMPLE), { status: 200 }));
+      const s = useScreenerStore.getState();
+      s.setAdvanced(true);
+      // A flat group of leaves under AND — expressible without `group`.
+      s.setGroup({
+        combinator: "and",
+        criteria: [{ field: "pe_ratio", operator: "lt", value: 15 }],
+      });
+      await useScreenerStore.getState().runScreener();
+      const [, init] = fetchMock.mock.calls[0]!;
+      const body = JSON.parse(String(init!.body));
+      expect(body.group).toBeUndefined();
+    });
+
+    it("a custom formula post-filters the server-returned rows", async () => {
+      // RESULT_SAMPLE has AAPL (pe 31.2) and MSFT (pe 35). Formula pe < 33 keeps
+      // only AAPL — the server query is unchanged; this is a CLIENT-SIDE filter.
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(JSON.stringify(RESULT_SAMPLE), { status: 200 }),
+      );
+      useScreenerStore.getState().setFormula("pe < 33");
+      const result = await useScreenerStore.getState().runScreener();
+      expect(result!.rows.map((r) => r.symbol)).toEqual(["AAPL"]);
+      expect(result!.result_count).toBe(1);
+      // The pre-filter (server) count is surfaced for the "N of M" copy.
+      expect(useScreenerStore.getState().preFormulaCount).toBe(2);
+      expect(useScreenerStore.getState().formulaError).toBeNull();
+    });
+
+    it("a broken formula reports an error and drops no server rows", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(JSON.stringify(RESULT_SAMPLE), { status: 200 }),
+      );
+      useScreenerStore.getState().setFormula("pe <");
+      const result = await useScreenerStore.getState().runScreener();
+      expect(result!.rows).toHaveLength(2);
+      expect(useScreenerStore.getState().formulaError).toBeTruthy();
+    });
+
+    it("applyFilters writes a nested group + flips to advanced mode", () => {
+      useScreenerStore.getState().applyFilters({
+        criteria: [{ field: "pe_ratio", operator: "lt", value: 15 }],
+        group: {
+          combinator: "or",
+          criteria: [
+            { field: "roe", operator: "gt", value: 0.2 },
+            {
+              combinator: "and",
+              criteria: [{ field: "dividend_yield", operator: "gt", value: 0.03 }],
+            },
+          ],
+        },
+      });
+      expect(useScreenerStore.getState().advanced).toBe(true);
+      expect(useScreenerStore.getState().group?.combinator).toBe("or");
+      expect(useScreenerStore.getState().criteria).toHaveLength(1);
+    });
+
     it("captures errors and sets status=error", async () => {
       vi.spyOn(globalThis, "fetch").mockResolvedValue(
         new Response(JSON.stringify({ detail: "boom" }), { status: 500 }),
