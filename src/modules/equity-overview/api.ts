@@ -7,11 +7,21 @@
  * `null` for any section that failed and an `error` only if every call failed.
  */
 
-import { sidecarApi, sidecarGet } from "@/lib/sidecar-client";
+import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
+import {
+  extractSidecarDetail,
+  getSidecarBaseUrl,
+  SidecarError,
+  sidecarApi,
+  sidecarGet,
+} from "@/lib/sidecar-client";
+import { useLLMProvidersStore } from "@/store/llm-providers";
+import { modelForProvider } from "@/store/model-selection";
 import type {
   AnalystRating,
   BalanceSheet,
   CashFlowStatement,
+  CompanyNarrative,
   Fundamentals,
   IncomeStatement,
   Quote,
@@ -89,4 +99,56 @@ export async function loadEquityOverview(symbol: string): Promise<EquityOverview
     ratings: settled(ratings),
     allFailed,
   };
+}
+
+// --- AI narrative ---------------------------------------------------------
+
+/**
+ * Fetch the LLM-written, numerically-verified company narrative for `symbol`.
+ *
+ * Resolves the active BYOK provider + model + key the SAME way the chat sidebar
+ * does — the default provider from the LLM-providers store, its default model,
+ * and the OS-keychain key for that provider — and passes them in HEADERS (the
+ * established read-path BYOK convention; never the body, never logged). The
+ * sidecar always answers 200: a missing key or empty model output comes back as
+ * `summary === null` + a `reason`, so the panel shows a quiet unavailable state
+ * rather than throwing. A transport/5xx failure throws `SidecarError`.
+ */
+export async function loadCompanyNarrative(symbol: string): Promise<CompanyNarrative> {
+  // The default provider lives in the store (same source the chat sidebar uses).
+  const provider = useLLMProvidersStore.getState().defaultProviderId;
+
+  let apiKey: string | null = null;
+  try {
+    apiKey = await getSecret(KEYCHAIN_NAMESPACES.llmProvider(provider));
+  } catch {
+    // Outside the Tauri shell the keychain rejects — treat as no key. The
+    // sidecar then returns the graceful "no key" narrative.
+    apiKey = null;
+  }
+
+  const base = await getSidecarBaseUrl();
+  const url = new URL(`/fundamentals/${encodeURIComponent(symbol)}/narrative`, base);
+  const headers: Record<string, string> = {
+    "X-LLM-Provider": provider,
+    "X-LLM-Model": modelForProvider(provider),
+  };
+  // Only attach the key header when we actually have one — never an empty secret.
+  // No key for a key-requiring provider → no header → the sidecar returns a
+  // graceful null narrative with a "configure a key" reason.
+  if (apiKey) {
+    headers["X-LLM-Api-Key"] = apiKey;
+  }
+
+  const response = await fetch(url.toString(), { headers });
+  if (!response.ok) {
+    let detail = response.statusText;
+    try {
+      detail = extractSidecarDetail(await response.json(), response.statusText);
+    } catch {
+      // non-JSON body — keep the status text
+    }
+    throw new SidecarError(response.status, detail);
+  }
+  return (await response.json()) as CompanyNarrative;
 }

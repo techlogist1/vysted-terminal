@@ -137,6 +137,46 @@ export type BalanceSheet = FinancialStatement;
 /** Cash-flow statement excerpt. */
 export type CashFlowStatement = FinancialStatement;
 
+/**
+ * One numeric figure in the AI narrative that did NOT match the source data.
+ * Mirrors `sidecar/models/fundamentals.UnverifiedClaim`. The narrative service
+ * redacts these from the prose so a hallucinated figure never renders as fact.
+ */
+export interface UnverifiedClaim {
+  /** The literal numeric token as the model wrote it (e.g. `"$4.2T"`). */
+  text: string;
+  /** Why it failed verification. */
+  reason: string;
+}
+
+/**
+ * An LLM-written, numerically-verified company overview for one symbol. Mirrors
+ * `sidecar/models/fundamentals.CompanyNarrative` — keep in sync. Every number in
+ * `summary`/`insights` has been checked against the real fundamentals + quote;
+ * unverified figures are redacted from the prose and listed in
+ * `unverified_claims`. When no model/key/data is available the route still
+ * returns 200 with `summary === null` + a `reason` for a quiet empty state.
+ */
+export interface CompanyNarrative {
+  symbol: string;
+  /** 2-4 sentence narrative with unverified numbers redacted; null when none. */
+  summary: string | null;
+  /** 2-4 short key-insight bullets, verified the same way as `summary`. */
+  insights: string[];
+  /** True when a narrative ran AND every numeric claim matched a source value. */
+  verified: boolean;
+  /** Numeric claims that failed verification and were redacted from the prose. */
+  unverified_claims: UnverifiedClaim[];
+  /** The data provider the narrative is grounded in (the "verified against" label). */
+  source_provider: string | null;
+  /** The LLM model id that wrote the narrative, when one ran. */
+  model: string | null;
+  /** ISO-8601 UTC timestamp of generation, or null when no narrative ran. */
+  generated_at: string | null;
+  /** Human-readable explanation when `summary` is null (no key, no output, …). */
+  reason: string | null;
+}
+
 /** Aggregated analyst ratings and price targets for one symbol. */
 export interface AnalystRating {
   symbol: string;

@@ -1,16 +1,22 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Building2, Loader2, Search } from "lucide-react";
+import { Building2, Loader2, Search, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { SidecarError } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { useEquityCommandStore } from "@/store/equity-command";
 import { usePanelContextBus } from "@/store/panel-context";
-import type { FinancialStatement, Fundamentals, Quote } from "../../../types/data";
+import type {
+  CompanyNarrative,
+  FinancialStatement,
+  Fundamentals,
+  Quote,
+} from "../../../types/data";
 import {
   autocompleteSymbols,
+  loadCompanyNarrative,
   loadEquityOverview,
   type EquityOverview,
   type SymbolCandidate,
@@ -173,6 +179,126 @@ function ProvenanceBadge({
   );
 }
 
+/**
+ * Render narrative prose, surfacing the verifier's redaction marker. Any
+ * `[unverified]` token the numeric-verification pass left in place of a
+ * hallucinated figure is shown as a dimmed inline chip — so the reader sees a
+ * number was withheld rather than reading around a silent gap.
+ */
+function VerifiedProse({ text }: { text: string }) {
+  const parts = text.split(/(\[unverified\])/g);
+  return (
+    <>
+      {parts.map((part, i) =>
+        part === "[unverified]" ? (
+          <span
+            key={i}
+            className="text-charcoal-500 border-charcoal-700 mx-0.5 rounded border border-dashed px-1 align-baseline text-[0.85em]"
+            title="A figure here was removed because it did not match the source data."
+          >
+            redacted
+          </span>
+        ) : (
+          <span key={i}>{part}</span>
+        ),
+      )}
+    </>
+  );
+}
+
+/**
+ * AI narrative section — an LLM-written, numerically-verified company overview
+ * rendered above the field groups. Every number in it was checked against the
+ * real fundamentals/quote; the "AI · verified against {provider}" label states
+ * the grounding source and per-claim verification is surfaced inline (redacted
+ * figures) and as a footnote count. Loading is a designed skeleton; an
+ * unavailable narrative is a quiet icon + one calm line, never a dead void.
+ */
+function NarrativeSection({
+  loading,
+  narrative,
+}: {
+  loading: boolean;
+  narrative: CompanyNarrative | null;
+}) {
+  const headerLabel =
+    narrative?.source_provider != null ? (
+      <span className="text-charcoal-500 inline-flex items-center gap-1 font-mono text-[10px] tracking-wide uppercase">
+        <Sparkles className="size-3" />
+        AI · {narrative.verified ? "verified against" : "grounded in"} {narrative.source_provider}
+      </span>
+    ) : (
+      <span className="text-charcoal-500 inline-flex items-center gap-1 font-mono text-[10px] tracking-wide uppercase">
+        <Sparkles className="size-3" />
+        AI overview
+      </span>
+    );
+
+  return (
+    <section className="border-charcoal-700 rounded-md border">
+      <div className="border-charcoal-700 flex items-center justify-between gap-2 border-b px-3 py-2">
+        <h3 className="text-charcoal-200 font-mono text-xs uppercase">Overview</h3>
+        {headerLabel}
+      </div>
+
+      {loading ? (
+        // Designed skeleton — three prose lines + two insight rows.
+        <div className="flex animate-pulse flex-col gap-2.5 px-3 py-3">
+          <div className="bg-charcoal-800 h-3 w-full rounded" />
+          <div className="bg-charcoal-800 h-3 w-11/12 rounded" />
+          <div className="bg-charcoal-800 h-3 w-3/4 rounded" />
+          <div className="mt-1 flex flex-col gap-2">
+            <div className="bg-charcoal-800 h-2.5 w-2/3 rounded" />
+            <div className="bg-charcoal-800 h-2.5 w-1/2 rounded" />
+          </div>
+        </div>
+      ) : narrative?.summary != null ? (
+        <div className="flex flex-col gap-3 px-3 py-3">
+          {/* Primary tier — the narrative prose. */}
+          <p className="text-charcoal-100 text-[13px] leading-relaxed">
+            <VerifiedProse text={narrative.summary} />
+          </p>
+
+          {/* Tertiary tier — key insights. */}
+          {narrative.insights.length > 0 && (
+            <ul className="flex flex-col gap-1.5">
+              {narrative.insights.map((insight, i) => (
+                <li key={i} className="text-charcoal-300 flex gap-2 text-xs leading-relaxed">
+                  <span className="text-charcoal-600 mt-px select-none">—</span>
+                  <span className="min-w-0">
+                    <VerifiedProse text={insight} />
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Per-claim verification footnote — only when something was redacted. */}
+          {narrative.unverified_claims.length > 0 && (
+            <p
+              className="text-charcoal-500 font-mono text-[10px] leading-snug"
+              title={narrative.unverified_claims.map((c) => `${c.text} — ${c.reason}`).join("\n")}
+            >
+              {narrative.unverified_claims.length} figure
+              {narrative.unverified_claims.length === 1 ? "" : "s"} the model wrote did not match
+              the source data and {narrative.unverified_claims.length === 1 ? "was" : "were"}{" "}
+              redacted.
+            </p>
+          )}
+        </div>
+      ) : (
+        // Quiet unavailable state — icon + one calm line (the reason), never blank.
+        <div className="flex flex-col items-center gap-2 px-3 py-6 text-center">
+          <Sparkles className="text-charcoal-600 size-5" />
+          <p className="text-charcoal-500 max-w-xs text-xs leading-snug">
+            {narrative?.reason ?? "AI overview unavailable."}
+          </p>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function StatementTable({
   title,
   statement,
@@ -257,6 +383,14 @@ export function EquityOverviewPanel() {
   const [error, setError] = useState<string | null>(null);
   const submittedSymbolRef = useRef<string | null>(null);
 
+  // --- AI narrative ---------------------------------------------------------
+  // Fetched independently of the data fan-out: it depends on the BYOK LLM and is
+  // slower, so it must never block the fundamentals render. Keyed to the loaded
+  // symbol; a stale-symbol guard drops out-of-order responses.
+  const [narrative, setNarrative] = useState<CompanyNarrative | null>(null);
+  const [narrativeLoading, setNarrativeLoading] = useState(false);
+  const narrativeSeqRef = useRef(0);
+
   // --- autocomplete ---------------------------------------------------------
   const [candidates, setCandidates] = useState<SymbolCandidate[]>([]);
   const [acOpen, setAcOpen] = useState(false);
@@ -340,6 +474,8 @@ export function EquityOverviewPanel() {
     setLoading(true);
     setError(null);
     setData(null);
+    setNarrative(null);
+    setNarrativeLoading(false);
     setAcOpen(false);
     try {
       const overview = await loadEquityOverview(symbol);
@@ -348,12 +484,46 @@ export function EquityOverviewPanel() {
         setError(`No data available for ${symbol}`);
       } else {
         setData(overview);
+        void fetchNarrative(symbol);
       }
     } catch (err) {
       setData(null);
       setError(err instanceof SidecarError ? err.message : `Failed to load ${symbol}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch the AI narrative for a freshly-loaded symbol. Sequence-guarded so a
+  // slow narrative for a previous symbol never lands on the current one. Any
+  // transport failure resolves to a quiet "unavailable" narrative rather than a
+  // thrown error — the section degrades, the rest of the panel is unaffected.
+  const fetchNarrative = async (symbol: string) => {
+    const seq = ++narrativeSeqRef.current;
+    setNarrativeLoading(true);
+    try {
+      const result = await loadCompanyNarrative(symbol);
+      if (seq === narrativeSeqRef.current) {
+        setNarrative(result);
+      }
+    } catch {
+      if (seq === narrativeSeqRef.current) {
+        setNarrative({
+          symbol,
+          summary: null,
+          insights: [],
+          verified: false,
+          unverified_claims: [],
+          source_provider: null,
+          model: null,
+          generated_at: null,
+          reason: "AI overview unavailable — the data engine could not be reached.",
+        });
+      }
+    } finally {
+      if (seq === narrativeSeqRef.current) {
+        setNarrativeLoading(false);
+      }
     }
   };
 
@@ -589,6 +759,8 @@ export function EquityOverviewPanel() {
                   </span>
                 )}
             </header>
+
+            <NarrativeSection loading={narrativeLoading} narrative={narrative} />
 
             {fundamentals === null ? (
               <section className="border-charcoal-700 rounded-md border">

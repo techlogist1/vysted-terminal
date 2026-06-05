@@ -107,3 +107,58 @@ class AnalystRating(BaseModel):
     sell: int = Field(default=0, ge=0)
     strong_sell: int = Field(default=0, ge=0)
     provider: str
+
+
+class UnverifiedClaim(BaseModel):
+    """One numeric figure in the LLM narrative that did NOT match the source data.
+
+    The narrative service extracts every numeric claim from the model's output
+    and matches each against the real fundamentals/quote it was given. A claim
+    that matches no source value (a likely hallucination) is recorded here and
+    REDACTED from the prose before it reaches the UI — a fabricated figure must
+    never render as fact.
+    """
+
+    text: str
+    """The literal numeric token as the model wrote it (e.g. ``"$4.2T"``, ``"31.5"``)."""
+    reason: str
+    """Why it failed verification (no source field matched within tolerance)."""
+
+
+class CompanyNarrative(BaseModel):
+    """An LLM-written, numerically-verified company overview for one symbol.
+
+    Every number that survives into ``summary`` / ``insights`` has been matched
+    against the real :class:`Fundamentals` + :class:`~models.market.Quote` the
+    service fetched (the same source the panel renders). Unverified figures are
+    redacted from the prose and listed in ``unverified_claims`` for transparency.
+
+    When no model/key is available the route still returns ``200`` with
+    ``summary=None`` + ``insights=[]`` + a ``reason`` — the UI renders a quiet
+    "AI narrative unavailable" state, never an error.
+    """
+
+    symbol: str
+    summary: str | None = None
+    """The 2–4 sentence narrative, with any unverified number redacted. ``None``
+    when no narrative was produced (no key, empty model output, or all prose
+    redacted)."""
+    insights: list[str] = Field(default_factory=list)
+    """2–4 short key-insight bullets, each verified the same way as ``summary``."""
+    verified: bool = False
+    """``True`` when a narrative was produced AND every numeric claim in it
+    matched a source value. ``False`` when nothing was produced or at least one
+    claim was redacted."""
+    unverified_claims: list[UnverifiedClaim] = Field(default_factory=list)
+    """Numeric claims that failed verification and were redacted from the prose."""
+    source_provider: str | None = None
+    """The data provider that served the fundamentals/quote the narrative is
+    grounded in (e.g. ``"yfinance"``) — the UI's "verified against {provider}"
+    label."""
+    model: str | None = None
+    """The LLM model id that wrote the narrative, when one ran."""
+    generated_at: str | None = None
+    """ISO-8601 UTC timestamp of generation, or ``None`` when no narrative ran."""
+    reason: str | None = None
+    """Human-readable explanation when ``summary`` is ``None`` (no key, no model
+    output, no fundamentals) — surfaced verbatim in the quiet empty state."""

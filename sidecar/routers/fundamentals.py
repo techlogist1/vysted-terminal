@@ -14,8 +14,9 @@ endpoints — history / price-target-history / individual — backed by
 from __future__ import annotations
 
 import logging
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 
 from models.analyst_extended import (
     IndividualAnalystResponse,
@@ -26,10 +27,11 @@ from models.fundamentals import (
     AnalystRating,
     BalanceSheet,
     CashFlowStatement,
+    CompanyNarrative,
     Fundamentals,
     IncomeStatement,
 )
-from services import analyst_ratings_extended, data_cache, provider_registry
+from services import analyst_ratings_extended, company_narrative, data_cache, provider_registry
 from services.errors import ProviderError
 
 logger = logging.getLogger(__name__)
@@ -43,6 +45,63 @@ _TTL_RATINGS = 6 * 60 * 60  # 6 hours
 async def get_fundamentals(symbol: str) -> Fundamentals:
     """Return valuation ratios and a company profile for ``symbol``."""
     return await provider_registry.get_fundamentals(symbol)
+
+
+# ---------------------------------------------------------------------------
+# AI narrative — LLM-written, numerically-verified company overview
+# ---------------------------------------------------------------------------
+#
+# BYOK credentials arrive in HEADERS (read-only GET path, never the body):
+#   X-LLM-Provider   — one of the seven provider ids (anthropic, openai, …)
+#   X-LLM-Model      — provider-specific model id
+#   X-LLM-Api-Key    — the BYOK key, read from the OS keychain by the renderer
+#
+# The sidecar CANNOT read the keychain; the renderer forwards the secret per
+# request. It is held in memory for the call only — never logged, echoed, or
+# persisted. Loopback transport only. Missing credentials are NOT an error: the
+# service returns a 200 with summary=None + a reason so the panel renders a quiet
+# "AI narrative unavailable" state rather than a failure banner.
+
+LlmProviderHeader = Annotated[
+    str | None,
+    Header(alias="X-LLM-Provider", description="BYOK LLM provider id for the narrative."),
+]
+LlmModelHeader = Annotated[
+    str | None,
+    Header(alias="X-LLM-Model", description="Provider-specific model id."),
+]
+LlmApiKeyHeader = Annotated[
+    str | None,
+    Header(alias="X-LLM-Api-Key", description="BYOK key — held in memory for the call only."),
+]
+RegionHeader = Annotated[
+    str | None,
+    Header(alias="X-Vysted-Region", description="Optional market region hint for the quote."),
+]
+
+
+@router.get("/{symbol}/narrative")
+async def get_company_narrative(
+    symbol: str,
+    provider: LlmProviderHeader = None,
+    model: LlmModelHeader = None,
+    api_key: LlmApiKeyHeader = None,
+    region: RegionHeader = None,
+) -> CompanyNarrative:
+    """Return an LLM-written, numerically-verified narrative for ``symbol``.
+
+    Every number in the returned prose has been matched against the real
+    fundamentals/quote the panel renders; hallucinated figures are redacted and
+    listed in ``unverified_claims``. Always 200 — no key / no model / no data
+    yields ``summary=None`` + a ``reason`` for a graceful empty state.
+    """
+    return await company_narrative.generate_narrative(
+        symbol,
+        provider=provider,
+        model=model,
+        api_key=api_key,
+        region=region,
+    )
 
 
 @router.get("/{symbol}/income")
