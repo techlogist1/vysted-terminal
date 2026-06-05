@@ -15,7 +15,13 @@ vi.mock("./api", () => ({
 const { fetchWatchlistQuotes } = await import("./api");
 const mockFetch = vi.mocked(fetchWatchlistQuotes);
 
-function quote(symbol: string, price: number, changePercent: number): Quote {
+function quote(
+  symbol: string,
+  price: number,
+  changePercent: number,
+  freshness: Quote["freshness"] = "eod",
+  marketState: string | null = null,
+): Quote {
   return {
     symbol,
     price,
@@ -23,17 +29,21 @@ function quote(symbol: string, price: number, changePercent: number): Quote {
     change_percent: changePercent,
     volume: null,
     currency: "USD",
-    market_state: null,
+    market_state: marketState,
     timestamp: "2026-05-15T00:00:00Z",
     provider: "yfinance",
-    freshness: "eod",
+    freshness,
   };
 }
 
-function rowsFor(entries = DEFAULT_SYMBOLS): WatchlistRow[] {
+function rowsFor(
+  entries = DEFAULT_SYMBOLS,
+  freshness: Quote["freshness"] = "eod",
+  marketState: string | null = null,
+): WatchlistRow[] {
   return entries.map((entry) => ({
     entry,
-    quote: quote(entry.symbol, 100, entry.symbol === "AAPL" ? -1.5 : 2.5),
+    quote: quote(entry.symbol, 100, entry.symbol === "AAPL" ? -1.5 : 2.5, freshness, marketState),
   }));
 }
 
@@ -67,11 +77,32 @@ describe("WatchlistPanel", () => {
     expect(screen.getByText("-1.50%")).toBeInTheDocument();
   });
 
-  it("colours gains positive and losses negative", async () => {
+  it("colours gains positive and losses negative for a LIVE quote", async () => {
+    // FR-118: green/red sign colour is reserved for a live tick.
+    mockFetch.mockResolvedValue(rowsFor(DEFAULT_SYMBOLS, "live", "REGULAR"));
     render(<WatchlistPanel />);
     expect(await screen.findByText("-1.50%")).toBeInTheDocument();
     expect(screen.getByText("-1.50%").className).toContain("text-negative");
     expect(screen.getAllByText("+2.50%")[0].className).toContain("text-positive");
+  });
+
+  it("greys the change% for a NON-live (EOD) quote so it never reads as a live move", async () => {
+    // The default fixture is EOD — the stale guard must mute the sign colour.
+    render(<WatchlistPanel />);
+    expect(await screen.findByText("-1.50%")).toBeInTheDocument();
+    expect(screen.getByText("-1.50%").className).toContain("text-charcoal-400");
+    expect(screen.getByText("-1.50%").className).not.toContain("text-negative");
+  });
+
+  it("shows a humanized session label for a closed-session quote (FR-118)", async () => {
+    mockFetch.mockResolvedValue(rowsFor(DEFAULT_SYMBOLS, "eod", "CLOSED"));
+    render(<WatchlistPanel />);
+    await screen.findByText("AAPL");
+    // The raw provider token (CLOSED) is never echoed; a friendly label is shown
+    // ("Market closed" on a weekday, "Weekend" on Sat/Sun — both acceptable).
+    const labels = screen.getAllByText(/^(Market closed|Weekend)$/);
+    expect(labels.length).toBeGreaterThan(0);
+    expect(screen.queryByText("CLOSED")).toBeNull();
   });
 
   it("badges each quoted row with provenance + freshness (SC-019)", async () => {

@@ -32,6 +32,7 @@ import {
   NEUTRAL,
   POSITIVE,
 } from "@/lib/chart-theme";
+import { sessionLabelFromFreshness } from "@/lib/market-session";
 import { SidecarError, sidecarApi } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { useChartCommandStore } from "@/store/chart-command";
@@ -1108,6 +1109,17 @@ function ChartPanel(props: ChartPanelProps = {}) {
           {provider && priceState === "ready" ? <span>via {provider}</span> : null}
           {/* Calendar-aware freshness so a stale series is never read as current. */}
           {freshness && priceState === "ready" ? <StalenessBadge freshness={freshness} /> : null}
+          {/* FR-118 session hint — the OHLCV series carries freshness but no
+              provider market_state, so the chart derives a humanized closed /
+              stale label from freshness rather than presenting EOD bars as live. */}
+          {priceState === "ready" && sessionLabelFromFreshness(freshness) ? (
+            <span
+              className="text-charcoal-500 tracking-wide"
+              title={`Session: ${sessionLabelFromFreshness(freshness)}`}
+            >
+              {sessionLabelFromFreshness(freshness)}
+            </span>
+          ) : null}
         </div>
       </div>
 
