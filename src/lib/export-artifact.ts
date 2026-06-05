@@ -29,10 +29,24 @@ function inTauri(): boolean {
 
 let dataDirCache: string | null = null;
 
-/** Resolve the sidecar data dir (cached) from `GET /health` → `data_dir`. */
+/**
+ * Resolve the app data dir (cached). The Rust core OWNS this path (it passes it
+ * to the sidecar as `--data-dir`), so we ask the core directly via the
+ * `get_app_data_dir` command. The sidecar `/health` does NOT expose `data_dir`,
+ * so it is only a best-effort legacy fallback.
+ */
 async function resolveDataDir(): Promise<string | null> {
   if (dataDirCache !== null) return dataDirCache;
   if (!inTauri()) return null;
+  try {
+    const dir = await invoke<string>("get_app_data_dir");
+    if (dir) {
+      dataDirCache = dir;
+      return dir;
+    }
+  } catch {
+    // Fall through to the legacy /health probe.
+  }
   try {
     const { getSidecarBaseUrl } = await import("@/lib/sidecar-client");
     const base = await getSidecarBaseUrl();

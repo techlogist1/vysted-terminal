@@ -14,31 +14,29 @@ import { invoke } from "@tauri-apps/api/core";
 let appDataDirCache: string | null = null;
 
 /**
- * Resolve the notes directory path. We call `get_sidecar_port` once at
- * startup which also boots the sidecar, so the app-data dir path can be
- * inferred by the frontend from a convention: we store it in a module-level
- * cache on first successful call.
- *
- * Implementation: the Tauri `path` plugin exposes `appDataDir()` but is not
- * installed in this app. Instead the sidecar is passed `--data-dir` at boot,
- * which means the app-data dir is only known to Rust at runtime.
- *
- * To avoid adding the `tauri-plugin-path` dependency, we use the workaround
- * of calling a thin Rust command `get_app_data_dir` — but that would require
- * a new Rust command. Instead, we store the dir path the first time a note
- * is persisted by calling `write_text_atomic` with a sentinel read-back.
- *
- * Simpler approach: use the sidecar `/workspace` base URL to resolve it.
- * The sidecar knows its `--data-dir` and exposes it via `/health`.
- * We call `GET /health` and extract `data_dir`.
+ * Resolve the notes directory path (cached). The Rust core owns the app-data
+ * dir (it passes `--data-dir` to the sidecar at boot), so we ask it directly
+ * via the `get_app_data_dir` command — the authoritative source. The sidecar
+ * `/health` does NOT expose `data_dir`, so it is only a best-effort legacy
+ * fallback.
  */
 async function resolveNotesDir(): Promise<string | null> {
   if (appDataDirCache !== null) return appDataDirCache;
   if (typeof window === "undefined" || !("__TAURI_INTERNALS__" in window)) {
     return null;
   }
+  // The Rust core owns the data dir (it passes `--data-dir` to the sidecar), so
+  // ask it directly. `/health` does NOT expose `data_dir` — legacy fallback only.
   try {
-    // Import lazily to avoid SSR issues.
+    const dir = await invoke<string>("get_app_data_dir");
+    if (dir) {
+      appDataDirCache = dir;
+      return dir;
+    }
+  } catch {
+    // Fall through to the legacy /health probe.
+  }
+  try {
     const { getSidecarBaseUrl } = await import("@/lib/sidecar-client");
     const base = await getSidecarBaseUrl();
     const response = await fetch(`${base}/health`);

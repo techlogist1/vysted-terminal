@@ -138,6 +138,23 @@ fn resolve_data_dir(app: &tauri::App) -> String {
     dir.to_string_lossy().to_string()
 }
 
+/// Return the per-OS application data directory to the frontend — the
+/// authoritative source the Rust core also passes to the sidecar as
+/// `--data-dir`. Used by the export helpers (notes/brief MD/PNG/PDF) to resolve
+/// `{dataDir}/exports/...`; the sidecar `/health` does NOT expose this, so the
+/// renderer must ask the core directly. Mirrors `resolve_data_dir`'s resolution
+/// (app_data_dir with a temp-dir fallback).
+#[tauri::command]
+fn get_app_data_dir(app: tauri::AppHandle) -> String {
+    match app.path().app_data_dir() {
+        Ok(dir) => dir.to_string_lossy().to_string(),
+        Err(_) => std::env::temp_dir()
+            .join("vysted-terminal")
+            .to_string_lossy()
+            .to_string(),
+    }
+}
+
 /// The MCP protocol revision the sidecar's FastMCP transport speaks. Mirrors
 /// `_PROTOCOL_VERSION` in `sidecar/services/mcp_server.py` — keep both in sync.
 const MCP_PROTOCOL_VERSION: &str = "2025-06-18";
@@ -377,6 +394,7 @@ pub fn run() {
     let app = builder
         .invoke_handler(tauri::generate_handler![
             get_sidecar_port,
+            get_app_data_dir,
             write_text_atomic,
             write_bytes_atomic,
             keychain::keychain_set,
