@@ -16,12 +16,12 @@
  */
 
 // --- Warm-graphite surfaces (mirror charcoal-*) ------------------------------
-export const CHART_SURFACE = "#1a1814"; // charcoal-900 -- chart background
-export const CHART_TEXT = "#a8a095"; // charcoal-400 -- axis / label text (muted)
-export const CHART_TEXT_MUTED = "#79736a"; // charcoal-500 -- secondary labels
-export const CHART_GRID = "#312c25"; // charcoal-800 -- gridlines
-export const CHART_BORDER = "#39332b"; // charcoal-700 -- scale borders
-export const CHART_CROSSHAIR = "#4a443a"; // charcoal-600 -- crosshair
+export const CHART_SURFACE = "#1e1a15"; // charcoal-900 -- chart background
+export const CHART_TEXT = "#ada294"; // charcoal-400 -- axis / label text (muted)
+export const CHART_TEXT_MUTED = "#847b6d"; // charcoal-500 -- secondary labels
+export const CHART_GRID = "#352f26"; // charcoal-800 -- gridlines
+export const CHART_BORDER = "#3e372d"; // charcoal-700 -- scale borders
+export const CHART_CROSSHAIR = "#4d463b"; // charcoal-600 -- crosshair
 
 // --- Muted amber accent (mirror amber-*) -------------------------------------
 export const ACCENT_CORAL = "#d89a4e"; // amber-400 -- brand / default accent
@@ -36,8 +36,8 @@ export const NEGATIVE_BRIGHT = "#f87171";
 export const WARNING = "#e0a13a"; // caution -- stale/paper/warning
 
 // --- Neutral data series (mirror charcoal-400/-300) --------------------------
-export const NEUTRAL = "#a8a095"; // charcoal-400 -- comparison / secondary series
-export const NEUTRAL_LIGHT = "#d3cec5"; // charcoal-300
+export const NEUTRAL = "#ada294"; // charcoal-400 -- comparison / secondary series
+export const NEUTRAL_LIGHT = "#d6d0c4"; // charcoal-300
 
 // --- RGB tuples for alpha fills (canvas wants rgba()) ------------------------
 export const ACCENT_CORAL_RGB = "216, 154, 78"; // #d89a4e -- three-place lockstep

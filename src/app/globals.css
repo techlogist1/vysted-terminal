@@ -61,7 +61,11 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: var(--font-mono, ui-monospace, "SF Mono", monospace);
+    /* Proportional UI sans for chrome + prose (the reference apps read as clean
+       sans, not a code terminal). Numeric DATA surfaces opt back into mono with
+       an explicit `font-mono` (watchlist/screener/chart/equity tables, tickers,
+       prices); tabular-nums keeps columns aligned in BOTH faces. */
+    font-family: var(--font-serif, ui-sans-serif, system-ui, sans-serif);
     /* Instrument-readout numerics: tabular figures align like a gauge across
        every table, price, and stat in the app. */
     font-variant-numeric: tabular-nums;

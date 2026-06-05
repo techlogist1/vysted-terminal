@@ -1165,19 +1165,19 @@ function EmptyState({
 }) {
   const meta = agentModeMeta(mode);
   return (
-    <div className="text-charcoal-400 flex h-full flex-col items-center justify-center gap-4 px-6 text-center font-mono text-sm">
-      <Sparkles className="text-amber-400/70" size={26} aria-hidden />
-      <div className="flex max-w-md flex-col gap-2">
-        <p className="text-charcoal-300 leading-relaxed">
+    <div className="text-charcoal-300 flex h-full flex-col items-center justify-center gap-5 px-6 text-center text-[0.95rem] leading-relaxed">
+      <Sparkles className="text-amber-400/80" size={28} aria-hidden />
+      <div className="flex max-w-md flex-col gap-2.5">
+        <p className="text-charcoal-200 leading-relaxed">
           Ask me anything about what you&rsquo;re looking at — your portfolio, a chart, a screen. I
           read the terminal and can drive it.
         </p>
-        <p className="text-charcoal-500 text-xs">
-          Mode: <span className="text-charcoal-300">{meta.label}</span> — {meta.consequence}
+        <p className="text-charcoal-400 text-xs">
+          Mode: <span className="text-charcoal-200">{meta.label}</span> — {meta.consequence}
         </p>
         {activeAgentName && (
-          <p className="text-charcoal-500 text-xs">
-            Lens: <span className="text-charcoal-300">{activeAgentName}</span>
+          <p className="text-charcoal-400 text-xs">
+            Lens: <span className="text-charcoal-200">{activeAgentName}</span>
           </p>
         )}
       </div>
@@ -1404,7 +1404,7 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
           disabled={disabled}
           autoComplete="off"
           spellCheck={false}
-          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 min-h-[52px] flex-1 rounded-lg px-4 py-3 font-sans text-sm outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
+          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 min-h-[68px] flex-1 rounded-lg px-4 py-3.5 font-sans text-[0.95rem] leading-relaxed outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
         />
         <Button
           type="submit"

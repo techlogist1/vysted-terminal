@@ -211,7 +211,7 @@ export default function Page() {
             onClick={toggleAgent}
             aria-pressed={!agentCollapsed}
             className={cn(
-              "flex items-center gap-1.5 font-mono text-xs transition-colors",
+              "flex items-center gap-1.5 text-xs transition-colors",
               agentCollapsed
                 ? "text-charcoal-400 hover:text-lume"
                 : "text-amber-300 hover:text-amber-200",
@@ -229,7 +229,7 @@ export default function Page() {
           <button
             type="button"
             onClick={() => openPalette(true)}
-            className="text-charcoal-300 hover:text-lume flex items-center gap-1.5 font-mono text-xs transition-colors"
+            className="text-charcoal-300 hover:text-lume flex items-center gap-1.5 text-xs transition-colors"
             aria-label="Open command palette"
           >
             <LayoutGrid className="h-4 w-4" />
@@ -241,7 +241,7 @@ export default function Page() {
           <button
             type="button"
             onClick={openSaveLayout}
-            className="text-charcoal-300 hover:text-lume flex items-center gap-1.5 font-mono text-xs transition-colors"
+            className="text-charcoal-300 hover:text-lume flex items-center gap-1.5 text-xs transition-colors"
             aria-label="Save layout"
           >
             <Save className="h-4 w-4" />

@@ -29,19 +29,19 @@
    * chroma <=0.008, R>=G>=B (warm near-black, no blue), perceptually even
    * steps. 950 = deepest well, 925/900 = chrome + panel, 700 = borders,
    * 500 = tertiary text, 400 = secondary, 100 = primary body text. -------- */
-  --color-charcoal-950: #0e0d0b; /* app/root well -- warm near-black */
-  --color-charcoal-925: #131210; /* header fascia, tab strip */
-  --color-charcoal-900: #1a1814; /* panel / card surface (the anchor) */
-  --color-charcoal-875: #211e19; /* popover / active tab / hover surface */
-  --color-charcoal-850: #29251f; /* raised inset -- input fill, node bg */
-  --color-charcoal-800: #312c25; /* muted / secondary surface */
-  --color-charcoal-700: #39332b; /* borders / inputs / dividers */
-  --color-charcoal-600: #4a443a; /* strong border / disabled fg */
-  --color-charcoal-500: #79736a; /* TERTIARY text -- faint label, kbd, process/meta */
-  --color-charcoal-400: #a8a095; /* SECONDARY text -- muted foreground */
-  --color-charcoal-300: #d3cec5; /* secondary-bright text */
-  --color-charcoal-200: #e9e4dc; /* bright secondary / chart text */
-  --color-charcoal-100: #f5f2ec; /* PRIMARY text / foreground -- warm near-white */
+  --color-charcoal-950: #110f0c; /* app/root well -- warm near-black (R-B ~+5) */
+  --color-charcoal-925: #17140f; /* header fascia, tab strip */
+  --color-charcoal-900: #1e1a15; /* panel / card surface (the anchor) */
+  --color-charcoal-875: #25201a; /* popover / active tab / hover surface */
+  --color-charcoal-850: #2d2820; /* raised inset -- input fill, node bg */
+  --color-charcoal-800: #352f26; /* muted / secondary surface */
+  --color-charcoal-700: #3e372d; /* borders / inputs / dividers */
+  --color-charcoal-600: #4d463b; /* strong border / disabled fg */
+  --color-charcoal-500: #847b6d; /* TERTIARY text -- faint label, kbd, process/meta */
+  --color-charcoal-400: #ada294; /* SECONDARY text -- muted foreground */
+  --color-charcoal-300: #d6d0c4; /* secondary-bright text */
+  --color-charcoal-200: #ebe5db; /* bright secondary / chart text */
+  --color-charcoal-100: #f6f3eb; /* PRIMARY text / foreground -- warm near-white */
 
   /* --- Muted amber accent (name: amber) -- the single accent. OKLCH hue ~70,
    * an earthy gold (restrained, not neon, not pure orange; modeled on the
