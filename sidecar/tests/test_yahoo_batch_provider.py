@@ -225,22 +225,153 @@ async def test_fetch_quotes_batch_itemizes_not_found() -> None:
 
 
 @pytest.mark.asyncio
-async def test_fetch_quotes_batch_itemizes_rate_limited() -> None:
+async def test_fetch_quotes_batch_itemizes_rate_limited(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A SUSTAINED 429 (every attempt throttled) exhausts the bounded in-fetch
+    # retry and only THEN concedes ``rate_limited``. ``asyncio.sleep`` is stubbed
+    # so the retry backoff adds no real latency to the suite.
+    quote_calls = 0
+
     def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal quote_calls
         if "getcrumb" in request.url.path:
             return httpx.Response(200, text="c")
         if request.url.path.endswith("/v7/finance/quote"):
+            quote_calls += 1
             return httpx.Response(429, text="Too Many Requests")
         return httpx.Response(200, text="ok")
 
+    sleeps: list[float] = []
+
+    async def fake_sleep(secs: float) -> None:
+        sleeps.append(secs)
+
+    monkeypatch.setattr(yb.asyncio, "sleep", fake_sleep)
     yb.reset_for_tests(httpx.MockTransport(handler))
     try:
         out, failures = await yb.fetch_quotes_batch(["AAPL", "MSFT"])
         assert out == {}
         assert failures == {"AAPL": "rate_limited", "MSFT": "rate_limited"}
+        # One initial attempt + _RETRY_MAX_ATTEMPTS retries, then it gives up.
+        assert quote_calls == 1 + yb._RETRY_MAX_ATTEMPTS
+        assert len(sleeps) == yb._RETRY_MAX_ATTEMPTS
     finally:
         await yb.aclose()
         yb.reset_for_tests()
+
+
+@pytest.mark.asyncio
+async def test_fetch_quotes_batch_429_self_heals_on_retry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A SINGLE transient 429 then a 200 → the bounded retry self-heals; the chunk
+    # resolves with NO ``rate_limited`` failure (the blip never reaches the loop).
+    quote_calls = 0
+    rows = {"AAPL": _v7_row("AAPL"), "MSFT": _v7_row("MSFT")}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal quote_calls
+        if "getcrumb" in request.url.path:
+            return httpx.Response(200, text="c")
+        if request.url.path.endswith("/v7/finance/quote"):
+            quote_calls += 1
+            if quote_calls == 1:
+                return httpx.Response(429, text="Too Many Requests")
+            requested = (request.url.params.get("symbols") or "").split(",")
+            result = [rows[s] for s in requested if s in rows]
+            return httpx.Response(200, json={"quoteResponse": {"result": result}})
+        return httpx.Response(200, text="ok")
+
+    sleeps: list[float] = []
+
+    async def fake_sleep(secs: float) -> None:
+        sleeps.append(secs)
+
+    monkeypatch.setattr(yb.asyncio, "sleep", fake_sleep)
+    yb.reset_for_tests(httpx.MockTransport(handler))
+    try:
+        out, failures = await yb.fetch_quotes_batch(["AAPL", "MSFT"])
+        assert set(out) == {"AAPL", "MSFT"}
+        assert failures == {}
+        assert quote_calls == 2  # initial 429 + one successful retry
+        assert len(sleeps) == 1  # exactly one bounded backoff
+    finally:
+        await yb.aclose()
+        yb.reset_for_tests()
+
+
+@pytest.mark.asyncio
+async def test_fetch_quotes_batch_429_honours_retry_after(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A ``Retry-After: 2`` header drives the (clamped) backoff sleep on the retry.
+    quote_calls = 0
+    rows = {"AAPL": _v7_row("AAPL")}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal quote_calls
+        if "getcrumb" in request.url.path:
+            return httpx.Response(200, text="c")
+        if request.url.path.endswith("/v7/finance/quote"):
+            quote_calls += 1
+            if quote_calls == 1:
+                return httpx.Response(429, headers={"Retry-After": "2"}, text="slow down")
+            result = [
+                rows[s] for s in (request.url.params.get("symbols") or "").split(",") if s in rows
+            ]
+            return httpx.Response(200, json={"quoteResponse": {"result": result}})
+        return httpx.Response(200, text="ok")
+
+    sleeps: list[float] = []
+
+    async def fake_sleep(secs: float) -> None:
+        sleeps.append(secs)
+
+    monkeypatch.setattr(yb.asyncio, "sleep", fake_sleep)
+    yb.reset_for_tests(httpx.MockTransport(handler))
+    try:
+        out, failures = await yb.fetch_quotes_batch(["AAPL"])
+        assert set(out) == {"AAPL"}
+        assert failures == {}
+        # The one retry slept around Retry-After=2 (±20% jitter), never above cap.
+        assert len(sleeps) == 1
+        assert 1.6 <= sleeps[0] <= 2.4
+        assert sleeps[0] <= yb._RETRY_BACKOFF_CAP_SECONDS
+    finally:
+        await yb.aclose()
+        yb.reset_for_tests()
+
+
+def test_parse_retry_after_forms_and_clamp() -> None:
+    # Bare delta-seconds, clamped to the cap.
+    assert yb._parse_retry_after("2") == pytest.approx(2.0)
+    assert yb._parse_retry_after(str(int(yb._RETRY_BACKOFF_CAP_SECONDS + 100))) == pytest.approx(
+        yb._RETRY_BACKOFF_CAP_SECONDS
+    )
+    # Negative / absent / garbage → None or floored.
+    assert yb._parse_retry_after(None) is None
+    assert yb._parse_retry_after("") is None
+    assert yb._parse_retry_after("not-a-date") is None
+    # A past HTTP-date floors to 0.
+    assert yb._parse_retry_after("Wed, 21 Oct 2015 07:28:00 GMT") == 0.0
+
+
+def test_retry_sleep_seconds_grows_jittered_and_capped() -> None:
+    # Exponential growth (base × 2**(attempt-1)) within ±20% jitter, capped.
+    for attempt in (1, 2):
+        expected = yb._RETRY_BASE_SECONDS * (2 ** (attempt - 1))
+        for _ in range(50):
+            s = yb._retry_sleep_seconds(attempt)
+            assert (expected * 0.8) - 1e-9 <= s <= (expected * 1.2) + 1e-9
+    # A huge attempt is capped (±jitter around the cap).
+    for _ in range(50):
+        s = yb._retry_sleep_seconds(20)
+        assert s <= yb._RETRY_BACKOFF_CAP_SECONDS * 1.2 + 1e-9
+    # An explicit retry_after overrides the computed base.
+    for _ in range(50):
+        s = yb._retry_sleep_seconds(1, retry_after=3.0)
+        assert (3.0 * 0.8) - 1e-9 <= s <= (3.0 * 1.2) + 1e-9
 
 
 @pytest.mark.asyncio
