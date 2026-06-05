@@ -117,6 +117,40 @@ fn get_sidecar_port(port: tauri::State<'_, SidecarPort>) -> u16 {
     port.0
 }
 
+/// Atomically write `contents` to `path` by writing to a sibling temp file in
+/// the same directory and then renaming it over the destination. Because both
+/// the temp file and the final path live on the same filesystem, the kernel
+/// `rename(2)` is atomic (SC-032: "survives crash mid-save"). Used by the
+/// notes panel to persist each note as a canonical `.md` file.
+///
+/// The temp file is suffixed `.tmp.<pid>` to avoid collisions when multiple
+/// windows write concurrently.
+#[tauri::command]
+fn write_text_atomic(path: String, contents: String) -> Result<(), String> {
+    use std::io::Write as _;
+
+    let dest = std::path::Path::new(&path);
+    let parent = dest
+        .parent()
+        .ok_or_else(|| format!("no parent directory for path: {path}"))?;
+    std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+
+    let tmp_name = format!(
+        "{}.tmp.{}",
+        dest.file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("note"),
+        std::process::id(),
+    );
+    let tmp_path = parent.join(&tmp_name);
+    {
+        let mut f = std::fs::File::create(&tmp_path).map_err(|e| e.to_string())?;
+        f.write_all(contents.as_bytes()).map_err(|e| e.to_string())?;
+        f.flush().map_err(|e| e.to_string())?;
+    }
+    std::fs::rename(&tmp_path, dest).map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let app = tauri::Builder::default()
@@ -126,6 +160,7 @@ pub fn run() {
         .plugin(kill_switch::build_plugin())
         .invoke_handler(tauri::generate_handler![
             get_sidecar_port,
+            write_text_atomic,
             keychain::keychain_set,
             keychain::keychain_get,
             keychain::keychain_delete,

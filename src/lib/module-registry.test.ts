@@ -8,6 +8,7 @@ describe("module registry", () => {
     // Phase 6 (v0.6.0) added five frontend modules: macro, sec-filings,
     // quant, earnings, analyst-ratings. v0.6.1 lead-completion adds the
     // sixth — Teammate Sc's screener.
+    // R4 (v0.8.x) adds notes (FR-121 / SC-032 — Tiptap notes editor).
     expect([...vystedModules.map((module) => module.id)].sort()).toEqual([
       "agent-builder",
       "analyst-ratings",
@@ -20,6 +21,7 @@ describe("module registry", () => {
       "macro",
       "news",
       "node-editor",
+      "notes",
       "platform",
       "plugin-manager",
       "portfolio",

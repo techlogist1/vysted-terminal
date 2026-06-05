@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModulesStore } from "@/store/modules";
+import { useNotesStore } from "@/store/notes";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 import type { DrawingSpec } from "../../types/drawings";
@@ -52,6 +53,7 @@ describe("workspace serialization", () => {
     useChartDrawingsStore.setState({ byPanel: {} });
     useLLMProvidersStore.setState({ defaultProviderId: "anthropic" });
     useSymbolsStore.setState({ entries: [{ symbol: "AAPL", assetClass: "equity" }] });
+    useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: undefined });
   });
 
   afterEach(() => {
@@ -72,6 +74,7 @@ describe("workspace serialization", () => {
       chartDrawings: { byPanel: {} },
       defaultProviderId: "anthropic",
       watchlist: [{ symbol: "AAPL", assetClass: "equity" }],
+      notes: { general: "", bySymbol: {}, focusSymbol: undefined },
     });
   });
 

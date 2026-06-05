@@ -21,6 +21,7 @@ import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModulesStore } from "@/store/modules";
+import { type NotesBundle, useNotesStore } from "@/store/notes";
 import { type SymbolEntry, useSymbolsStore } from "@/store/symbols";
 import { AUTOSAVE_LAYOUT_NAME, useWorkspaceStore } from "@/store/workspace";
 import type { LLMProviderId } from "../../types/ai";
@@ -52,6 +53,12 @@ export interface SerializedWorkspace {
    * — Phase 10 customizability). Optional for workspaces saved before this.
    */
   watchlist?: SymbolEntry[];
+  /**
+   * Per-symbol + general markdown notes bundle (FR-121). Optional for
+   * workspaces saved before notes shipped; the notes store is initialised to
+   * empty strings in that case.
+   */
+  notes?: NotesBundle;
   /** Open to future-phase additions; the sidecar stores the body opaquely. */
   [key: string]: unknown;
 }
@@ -81,6 +88,7 @@ export function serializeWorkspace(name: string): SerializedWorkspace {
     chartDrawings: useChartDrawingsStore.getState().snapshot(),
     defaultProviderId: useLLMProvidersStore.getState().defaultProviderId,
     watchlist: useSymbolsStore.getState().entries,
+    notes: useNotesStore.getState().toBundle(),
   };
 }
 
@@ -122,6 +130,11 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
   // default set in that case).
   if (Array.isArray(workspace.watchlist) && workspace.watchlist.length > 0) {
     useSymbolsStore.getState().setEntries(workspace.watchlist);
+  }
+  // Restore the notes bundle (older workspaces lack it — the store already
+  // defaults to empty strings, so this is a no-op for pre-notes workspaces).
+  if (workspace.notes && typeof workspace.notes === "object") {
+    useNotesStore.getState().fromBundle(workspace.notes as NotesBundle);
   }
 }
 
@@ -279,6 +292,7 @@ export async function autosaveLayout(): Promise<void> {
       chartDrawings: useChartDrawingsStore.getState().snapshot(),
       defaultProviderId: useLLMProvidersStore.getState().defaultProviderId,
       watchlist: useSymbolsStore.getState().entries,
+      notes: useNotesStore.getState().toBundle(),
     };
     await fetch(await workspaceUrl(), {
       method: "POST",

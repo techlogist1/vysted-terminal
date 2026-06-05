@@ -8,6 +8,7 @@ import { chatModule } from "./chat";
 import { equityOverviewModule } from "./equity-overview";
 import { newsModule } from "./news";
 import { nodeEditorModule } from "./node-editor";
+import { notesModule } from "./notes"; // FR-121 / SC-032 — Tiptap notes editor
 import { platformModule } from "./platform";
 import { pluginManagerModule } from "./plugin-manager";
 import { portfolioModule } from "./portfolio";
@@ -66,6 +67,7 @@ export const vystedModules: VystedModule[] = [
   backtestModule,
   brokerConnectModule,
   safetyModule,
+  notesModule, // FR-121
   // Phase 6 (v0.6.0) — each teammate uncomments their entry at integration.
   // The line order matches the v0.6.0 plan's merge order (M → F → Q → E → Sc)
   // so audit drift is easy to spot.
