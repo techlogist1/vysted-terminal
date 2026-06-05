@@ -63,9 +63,9 @@ export function AgentHud({
   const { groups, selectedIsNoTools } = buildModelGroups(baseOptions, model);
 
   const selectClass =
-    "bg-charcoal-800 text-charcoal-200 border-charcoal-700 max-w-[10rem] truncate rounded border px-1 py-0.5 font-mono text-[0.6rem] outline-none focus:ring-1 focus:ring-amber-400";
+    "bg-charcoal-800 text-charcoal-200 border-charcoal-700 h-8 max-w-[12rem] truncate rounded-md border px-2.5 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400";
   return (
-    <div className="border-charcoal-700 text-charcoal-400 flex items-center gap-1.5 border-b px-3 py-1 font-mono text-[0.6rem]">
+    <div className="border-charcoal-700 text-charcoal-400 flex items-center gap-2 border-b px-3 py-1.5 font-mono text-xs">
       <span className="shrink-0 tracking-wide uppercase">Provider</span>
       <select
         aria-label="Active provider"
@@ -113,9 +113,9 @@ export function AgentHud({
           onClick={onRefreshModels}
           title={catalogNote ?? "Refresh model list"}
           aria-label="Refresh model list"
-          className="hover:text-charcoal-200 shrink-0 rounded p-0.5 transition-colors"
+          className="hover:text-charcoal-200 shrink-0 rounded p-1 transition-colors"
         >
-          <RefreshCw className={`size-3 ${catalogLoading ? "animate-spin" : ""}`} />
+          <RefreshCw className={`size-3.5 ${catalogLoading ? "animate-spin" : ""}`} />
         </button>
       )}
       {selectedIsNoTools && (

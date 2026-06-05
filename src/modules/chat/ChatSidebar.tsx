@@ -61,6 +61,7 @@ import {
 } from "./slash-commands";
 import { SlashCommandPicker } from "./SlashCommandPicker";
 import { streamAgentInvocation, streamChat } from "./streaming";
+import { SuggestionChips } from "./SuggestionChips";
 
 /**
  * Autonomy pill (compact, lives in the composer toolbar) — `ask` keeps every
@@ -81,7 +82,7 @@ function AutonomyToggle() {
           ? "Auto-apply: UI / layout / chart / watchlist changes apply without a per-action confirmation. Orders ALWAYS route through the confirm-before-place dialog."
           : "Ask: every proposed change waits for your accept in the diff gate."
       }
-      className="border-charcoal-700 flex shrink-0 overflow-hidden rounded border font-mono text-[0.6rem]"
+      className="border-charcoal-700 flex h-8 shrink-0 items-stretch overflow-hidden rounded-md border font-mono text-xs"
     >
       {(["ask", "auto"] as const).map((level) => (
         <button
@@ -91,7 +92,7 @@ function AutonomyToggle() {
           aria-checked={autonomy === level}
           onClick={() => setAutonomy(level)}
           className={cn(
-            "px-1.5 py-0.5 uppercase transition-colors",
+            "flex items-center px-3 uppercase transition-colors",
             autonomy === level
               ? "text-charcoal-950 bg-amber-400"
               : "text-charcoal-400 hover:text-lume",
@@ -978,7 +979,7 @@ export function ChatSidebar() {
             "Deep Research" toggle (FR-115 / SC-028): research is ONE model — ask
             naturally and the agent picks the depth, then "Go deeper" on the brief
             escalates the SAME run in place. Depth is never a user knob. */}
-        <div className="flex flex-wrap items-center gap-1.5 px-2 pt-1.5">
+        <div className="flex flex-wrap items-center gap-2 px-3 pt-2">
           <ModeSwitch mode={mode} onChange={setMode} />
           <PersonaSelect
             firstParty={firstPartyAgents}
@@ -1081,14 +1082,14 @@ function ModeSwitch({ mode, onChange }: { mode: AgentMode; onChange: (mode: Agen
             title={`${m.hint} (${m.hotkeyLabel})`}
             onClick={() => onChange(m.id)}
             className={cn(
-              "relative rounded px-2 py-0.5 font-mono text-[0.65rem] transition-colors",
+              "relative flex h-8 items-center rounded-md px-3 font-mono text-xs transition-colors",
               active ? "text-amber-300" : "text-charcoal-400 hover:text-lume",
             )}
           >
             {active && (
               <motion.span
                 layoutId="composer-mode-pill"
-                className="bg-charcoal-800 border-charcoal-700 absolute inset-0 -z-10 rounded border"
+                className="bg-charcoal-800 border-charcoal-700 absolute inset-0 -z-10 rounded-md border"
                 transition={SPRING_PILL}
               />
             )}
@@ -1114,14 +1115,14 @@ function PersonaSelect({ firstParty, custom, activeAgentId, onChange }: AgentPic
   return (
     <div
       aria-label="Persona roster"
-      className="text-charcoal-400 flex min-w-0 shrink items-center gap-1 font-mono text-[0.6rem]"
+      className="text-charcoal-400 flex min-w-0 shrink items-center gap-1.5 font-mono text-xs"
     >
       <span className="shrink-0 tracking-wide uppercase">Lens</span>
       <select
         aria-label="Active persona"
         value={activeAgentId ?? DEFAULT_AGENT_ID}
         onChange={(event) => onChange(event.target.value)}
-        className="bg-charcoal-800 text-charcoal-200 border-charcoal-700 max-w-[9rem] min-w-0 truncate rounded border px-1.5 py-0.5 font-mono text-[0.65rem] outline-none focus:ring-1 focus:ring-amber-400"
+        className="bg-charcoal-800 text-charcoal-200 border-charcoal-700 h-8 max-w-[9rem] min-w-0 truncate rounded-md border px-2.5 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
       >
         <optgroup label="First-party">
           {ordered.map((agent) => (
@@ -1148,7 +1149,7 @@ function ContextBadge({ text }: { text: string }) {
   return (
     <div
       aria-label="Panel context"
-      className="border-charcoal-700 text-charcoal-300 border-b px-3 py-1 font-mono text-[0.6rem] tracking-wide uppercase"
+      className="border-charcoal-700 text-charcoal-300 border-b px-3 py-1.5 font-mono text-xs tracking-wide uppercase"
     >
       {text}
     </div>
@@ -1164,20 +1165,23 @@ function EmptyState({
 }) {
   const meta = agentModeMeta(mode);
   return (
-    <div className="text-charcoal-400 flex h-full flex-col items-center justify-center gap-2 px-6 text-center font-mono text-xs">
-      <Sparkles className="text-amber-400/70" size={20} aria-hidden />
-      <p>
-        Ask me anything about what you&rsquo;re looking at — your portfolio, a chart, a screen. I
-        read the terminal and can drive it.
-      </p>
-      <p className="text-charcoal-500">
-        Mode: <span className="text-charcoal-300">{meta.label}</span> — {meta.consequence}
-      </p>
-      {activeAgentName && (
-        <p className="text-charcoal-500">
-          Lens: <span className="text-charcoal-300">{activeAgentName}</span>
+    <div className="text-charcoal-400 flex h-full flex-col items-center justify-center gap-4 px-6 text-center font-mono text-sm">
+      <Sparkles className="text-amber-400/70" size={26} aria-hidden />
+      <div className="flex max-w-md flex-col gap-2">
+        <p className="text-charcoal-300 leading-relaxed">
+          Ask me anything about what you&rsquo;re looking at — your portfolio, a chart, a screen. I
+          read the terminal and can drive it.
         </p>
-      )}
+        <p className="text-charcoal-500 text-xs">
+          Mode: <span className="text-charcoal-300">{meta.label}</span> — {meta.consequence}
+        </p>
+        {activeAgentName && (
+          <p className="text-charcoal-500 text-xs">
+            Lens: <span className="text-charcoal-300">{activeAgentName}</span>
+          </p>
+        )}
+      </div>
+      <SuggestionChips />
     </div>
   );
 }
@@ -1375,7 +1379,7 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
         </div>
       )}
       <form
-        className="border-charcoal-700 flex items-center gap-2 border-t p-2"
+        className="border-charcoal-700 flex items-center gap-3 border-t p-3"
         onSubmit={(event) => {
           event.preventDefault();
           if (value.trim()) {
@@ -1400,11 +1404,11 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
           disabled={disabled}
           autoComplete="off"
           spellCheck={false}
-          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 h-8 flex-1 rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
+          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 min-h-[52px] flex-1 rounded-lg px-4 py-3 font-sans text-sm outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
         />
         <Button
           type="submit"
-          size="icon-sm"
+          size="icon-lg"
           variant="outline"
           aria-label="Send message"
           disabled={disabled || value.trim().length === 0}

@@ -199,13 +199,13 @@ export default function Page() {
         {/* Header fascia. The agent toggle, palette, and save controls sit left;
           the live status chrome (sidecar / provider / running agents) and the
           settings entry sit right. */}
-        <header className="bg-charcoal-925 relative flex h-9 shrink-0 items-center gap-3 px-3">
+        <header className="bg-charcoal-925 relative flex h-12 shrink-0 items-center gap-4 px-4">
           {/* Mark-only brand — no text wordmark (Cursor/Linear-minimal). The
               accessible name lives on the mark; the document title carries "Vysted". */}
           <div className="flex items-center select-none" aria-label="Vysted" title="Vysted">
-            <span aria-hidden="true" className="size-2.5 rounded-[3px] bg-amber-400" />
+            <span aria-hidden="true" className="size-3 rounded-[3px] bg-amber-400" />
           </div>
-          <div className="bg-charcoal-700 mx-1 h-4 w-px" aria-hidden="true" />
+          <div className="bg-charcoal-700 mx-1 h-5 w-px" aria-hidden="true" />
           <button
             type="button"
             onClick={toggleAgent}
@@ -220,9 +220,9 @@ export default function Page() {
             title={agentCollapsed ? "Show agent panel (⌘B)" : "Hide agent panel (⌘B)"}
           >
             {agentCollapsed ? (
-              <PanelLeftOpen className="h-3.5 w-3.5" />
+              <PanelLeftOpen className="h-4 w-4" />
             ) : (
-              <PanelLeftClose className="h-3.5 w-3.5" />
+              <PanelLeftClose className="h-4 w-4" />
             )}
             Agent
           </button>
@@ -232,9 +232,9 @@ export default function Page() {
             className="text-charcoal-300 hover:text-lume flex items-center gap-1.5 font-mono text-xs transition-colors"
             aria-label="Open command palette"
           >
-            <LayoutGrid className="h-3.5 w-3.5" />
+            <LayoutGrid className="h-4 w-4" />
             Open panel
-            <kbd className="border-charcoal-700 text-charcoal-500 rounded border px-1 py-0.5 font-mono text-[10px]">
+            <kbd className="border-charcoal-700 text-charcoal-500 rounded border px-1.5 py-0.5 font-mono text-[11px]">
               ⌘K
             </kbd>
           </button>
@@ -244,7 +244,7 @@ export default function Page() {
             className="text-charcoal-300 hover:text-lume flex items-center gap-1.5 font-mono text-xs transition-colors"
             aria-label="Save layout"
           >
-            <Save className="h-3.5 w-3.5" />
+            <Save className="h-4 w-4" />
             Save layout
           </button>
           <div className="flex-1" />
@@ -252,7 +252,7 @@ export default function Page() {
           <button
             type="button"
             onClick={() => openPanel("settings")}
-            className="text-charcoal-400 hover:text-lume hover:bg-charcoal-800 flex size-6 items-center justify-center rounded-md transition-colors"
+            className="text-charcoal-400 hover:text-lume hover:bg-charcoal-800 flex size-8 items-center justify-center rounded-md transition-colors"
             aria-label="Open settings"
             title="Settings"
           >
