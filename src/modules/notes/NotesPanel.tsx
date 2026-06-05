@@ -215,9 +215,10 @@ export function NotesPanel() {
   // --- Scope chips ---
   const symbolsWithNotes = notesStore.symbolsWithNotes();
   // Show general + up to 5 symbols with notes in the chips row.
-  const chipSymbols = Array.from(
-    new Set([...symbolsWithNotes, ...(scope ? [scope] : [])]),
-  ).slice(0, 8);
+  const chipSymbols = Array.from(new Set([...symbolsWithNotes, ...(scope ? [scope] : [])])).slice(
+    0,
+    8,
+  );
 
   // --- Export handlers ---
   const handleExportMd = useCallback(async () => {
