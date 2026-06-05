@@ -1,182 +1,405 @@
-# Vysted Terminal — Design System ("warm instrument")
+# Vysted Terminal — Design System (R4 "Warm Graphite")
 
-The agent-native craft pass (Pass A). Replaces the cold "instrument" minimal-dark
-system (graphite `#0a0b0d` + a single ion-blue `#4f86f7` accent), which itself had
-replaced an earlier warm "Claude after dark" espresso/coral system. _Sub-sections
-further down may still reference those earlier iterations — the **authoritative
-values are always `styles/tokens.css` + `src/lib/chart-theme.ts`**, not this prose._
+R4 experience rebuild. Replaces every prior system — the retired "Claude after dark"
+espresso/coral system (#1a1512 base, #d97757 accent, Fraunces) and the interim
+warm-instrument clay variant — both of which are referenced in this file only to
+name what was retired. The authoritative values are **always** the live source files;
+this document is a faithful mirror, not a substitute.
 
-**Source of truth:** `styles/tokens.css` (the `@theme` token block) +
-`src/app/globals.css` (shadcn semantic mapping + chrome primitives + dockview
-theme). **Canvas mirror:** `src/lib/chart-theme.ts` — lightweight-charts and the
-drawing primitives render to `<canvas>` and cannot read CSS variables, so they
-import their palette from this one module (never re-declare hex per chart file).
-**Token NAMES are historical** (`charcoal`/`amber`/`brass`/`sage`/`lume`) so 80+
-consumer files re-skin with zero edits — read the role, not the name.
+**Primary sources of truth (read these first):**
+
+- `styles/tokens.css` — the Tailwind 4 `@theme` block; every token name and value.
+- `src/app/globals.css` — shadcn semantic mapping, `--accent-rgb`, chrome primitives,
+  dockview theme, NO-GLOW rule.
+- `src/lib/chart-theme.ts` — canvas palette lockstep (FR-030); the only file that
+  declares hex for chart/drawing surfaces.
+- `docs/redesign/PRODUCT_DESIGN_DECISIONS.md` — the taste authority; the pixel
+  measurements and acceptance criteria from the reference screenshots.
+
+---
 
 ## The concept
 
-A **warm-neutral graphite near-black** base (`#0b0a09` → cream `#e8e4dc`, R≥G≥B at
-every stop, a gentle warm undertone — aged graphite / worn brass, never cold-blue,
-never flat black, never warm-orange "toy retro") carrying a single **desaturated
-warm-clay accent** (`amber-400 = #a06b52`, ~30–40% saturation) that lights up only
-the active / agent-driven affordance. **Near-monochrome** — real color is reserved
-almost entirely for the P&L signals (gain `#38b25f` / loss `#ef5369`). A precise
-grotesque display (**Hanken Grotesk**, the `--font-serif` slot) over a data mono
-(**JetBrains Mono**) with tabular figures. Bloomberg density in Cursor's and
-Claude's restrained, warm, minimal language; the reference temperature is
-Anthropic's own warm neutrals (`#141413` dark / cream / clay) over Cursor's
-near-mono alpha-border structure.
+A **perceptually-even warm-graphite neutral ramp** (OKLCH hue ~75, chroma <= 0.008,
+R >= G >= B at every step — a faint warm cast, never blue, never flat black, never
+warm-orange) carrying a **single muted amber accent** (OKLCH hue ~70, an earthy gold
+modeled on the reference apps' dominant cluster at `#c08030`). The accent lights at
+most 5% of pixels and never more than two interactive elements at once. Everything
+else is warm neutral — the P&L signals (muted green / muted red) are the only other
+saturated colors, and they appear only in data columns.
 
-In one line: **a warm, aged, expensive-minimal instrument — near-monochrome warm
-graphite with one quiet clay accent, the data the only thing in full color.**
+In one line: **a flat warm-graphite field with one amber signal and luminance-only
+hierarchy — density without noise.**
 
 ## Deliberately NOT
 
-- **No cold / blue neutrals.** Every dark is a warm-neutral graphite, never slate /
-  zinc / blue-graphite, never flat black, never warm-orange.
-- **No cyan HUD cliché.** A cold teal (`#4ec9a3`) had drifted into the earnings
-  chart; it is gone.
-- **No purple/blue gradients. No Inter/Roboto.** Humanist serif display + a
-  precise data mono only.
-- **Not skeuomorphic.** Retired from INSTRUMENT: amber phosphor accent, brass
-  bezels / gauge ticks, sage as a second accent, CRT bloom, heavy film grain,
-  beveled "watch-dial" panel edges. Kept: density, warmth, tabular numerics.
+- **No cold neutrals.** Every dark is warm (R >= G >= B). No slate, no zinc, no blue.
+- **No glow, no bloom, no ambient gradient.** The body is a flat field. Elevation is
+  expressed as a luminance step + a 1px border, nothing else.
+- **No second accent.** The retired sage-green accent is gone. Amber is the only hue
+  in chrome. Signal colors (green/red) are data, not chrome.
+- **No skeuomorphic chrome.** Retired with the INSTRUMENT system: brass bezels, gauge
+  ticks, phosphor bloom, CRT grain, beveled panel edges.
 
-## Token naming caveat (read this before touching colors)
+---
 
-To re-skin 80+ files with **zero edits**, the token **names** were kept from the
-retired system and only the **values** changed. The names are therefore
-historical, not literal:
+## Token naming caveat — read before touching colors
 
-| Token family | Renders as            |
-| ------------ | --------------------- |
-| `charcoal-*` | espresso near-blacks  |
-| `amber-*`    | the coral/clay accent |
-| `brass-*`    | warm neutral (taupe)  |
-| `sage-*`     | muted clay neutral    |
-| `lume`       | warm cream            |
+The token **names** (`charcoal`, `amber`, `brass`, `sage`, `lume`) are kept from
+retired systems so the ~92 files that reference them as Tailwind classes re-skin with
+zero edits. Only the **values** changed. The names are therefore historical and must
+not be read literally:
 
-Read the role, not the name. (A project-wide rename to `espresso-*` / `coral-*`
-is an optional future cleanup; not done here to avoid an 80-file churn.)
+| Token family    | Renders as                             |
+| --------------- | -------------------------------------- |
+| `charcoal-*`    | Warm Graphite neutral ramp             |
+| `amber-*`       | Muted amber accent (the only accent)   |
+| `brass-*`       | Warm-neutral secondaries (ramp-aligned)|
+| `sage-*`        | Warm-neutral secondaries (ramp-aligned)|
+| `lume`          | Warm near-white                        |
+
+Read the role column. A project-wide rename is a documented future cleanup item; it
+was not done here to avoid churning ~92 files.
+
+---
 
 ## Tokens
 
-### Espresso base (`charcoal-*`) — warm near-blacks, 950 deepest → 100 body text
+### Warm Graphite neutral ramp (`charcoal-*`)
 
-`950 #1a1512` (root bg) · `925 #1f1916` (header/tabs) · `900 #241d19` (panel) ·
-`875 #29211d` (popover/active tab) · `850 #2e2521` · `800 #352a25` (muted) ·
-`700 #473a33` (borders) · `600 #5c4d44` · `500 #796759` · `400 #998778` (muted
-fg) · `300 #b8a698` · `200 #d6c8bb` (chart text) · `100 #ece3d9` (body text).
-Hue ~38–40° (red-brown), low chroma on the darks so the base reads warm-neutral.
+OKLCH-derived, hue ~75, chroma <= 0.008, perceptually even steps. Every value is
+warm (R >= G >= B, small deltas). Source: `styles/tokens.css`.
 
-### Coral accent (`amber-*`) — one hue family (~33°), states 200→600
+| Token            | Hex       | Role                                              |
+| ---------------- | --------- | ------------------------------------------------- |
+| `charcoal-950`   | `#0e0d0b` | App root well (deepest)                           |
+| `charcoal-925`   | `#131210` | Header fascia, tab strip                          |
+| `charcoal-900`   | `#1a1814` | Panel / card surface (the visual anchor)          |
+| `charcoal-875`   | `#211e19` | Popover / active tab / hover surface              |
+| `charcoal-850`   | `#29251f` | Raised inset — input fill, node background        |
+| `charcoal-800`   | `#312c25` | Muted / secondary surface                        |
+| `charcoal-700`   | `#39332b` | Borders / inputs / dividers                       |
+| `charcoal-600`   | `#4a443a` | Strong border / disabled foreground               |
+| `charcoal-500`   | `#79736a` | Tertiary text — faint label, kbd, process/meta    |
+| `charcoal-400`   | `#a8a095` | Secondary text — muted foreground                 |
+| `charcoal-300`   | `#d3cec5` | Secondary-bright text                             |
+| `charcoal-200`   | `#e9e4dc` | Bright secondary / chart axis text                |
+| `charcoal-100`   | `#f5f2ec` | Primary text / foreground (warm near-white)       |
+| `lume`           | `#f7f5f0` | Peak near-white — active-tab text, peak readouts  |
 
-`200 #f0c4b4` (faint glow / selection tint) · `300 #e69e84` (hover) ·
-**`400 #d97757` (brand / default)** · `500 #c2603f` (pressed / active-sash) ·
-`600 #a44a30` (deep border). The only accent in the system.
+### Muted amber accent (`amber-*`)
 
-### Warm neutral (`brass-*`) + muted clay (`sage-*`)
+OKLCH hue ~70 (amber/gold), restrained — earthy gold, not neon, not pure orange.
+Five states from faint tint to deep border. Source: `styles/tokens.css`.
 
-No metal, no second accent. `brass-300 #a8917f` is the `.hud-label` legend tone;
-`brass-400 #85705f` is the scrollbar rail tone. `sage-*` is a desaturated clay
-for secondary/comparison data series so they never compete with coral.
+| Token        | Hex       | Role                                                    |
+| ------------ | --------- | ------------------------------------------------------- |
+| `amber-200`  | `#f0d8ac` | Faint tint / selection fill                             |
+| `amber-300`  | `#e9bd80` | Hover-bright / accent text on dark                      |
+| `amber-400`  | `#d89a4e` | **BRAND / primary / default accent**                    |
+| `amber-500`  | `#c0802f` | Pressed / active sash / selected                        |
+| `amber-600`  | `#875720` | Deep border / dense accent                              |
 
-### Cream (`lume`) `#f5f1ea`
+The `--accent-rgb` in `globals.css` is `216 154 78` (the RGB decomposition of
+`#d89a4e`). All three files — `tokens.css`, `globals.css`, and `chart-theme.ts` —
+must be updated in lockstep whenever the accent changes (see FR-030 below).
 
-Active-tab text, peak readouts, selection text. Warm paper-white (faintly
-pink-warm, never green).
+### Warm-neutral secondaries (`brass-*`, `sage-*`)
 
-### Semantic — three distinguishable warm hues
+Ramp-aligned warm neutrals. No metal, no second accent. `brass-300` (`#a8a095`) is
+the `.hud-label` legend tone. `sage-*` values are aligned to the same warm-graphite
+ramp and used for secondary comparison data series so they never compete with the
+amber accent.
 
-- `--color-positive #7fa96a` (warm moss green, hue 135°) + `-bright #9fc97f`.
-- `--color-negative #cf5b48` (brick red, hue 28°) + `-bright #e3705a`.
-- `--color-warning #e0a458` (amber-gold, hue 70°) — **the one new token.**
-  Caution states (kill-switch armed, paper-vs-live, stale data, static-IP
-  banner) need a third semantic that is neither good (green), bad/loss (red),
-  nor brand (coral).
+### Signal colors
 
-> **Coral-vs-loss separation (the #1 palette risk).** Coral (brand, 33°) and
-> negative (loss-red, 28°) sit close in hue. They are separated on **two axes**:
-> negative is darker (L 0.60 vs 0.66) and redder + more saturated (C 0.16 vs
-> 0.13). Verify a populated red/green table (Watchlist/Portfolio P&L) against a
-> coral button in the same frame; pre-approved fallback negative is `#d6493a`.
+The only other saturated colors in the system. Never used as background fills;
+reserved for P&L data columns and caution badges.
 
-### Radii / motion
+- `--color-positive` `#3fbf6f` — gains / muted green, luminance-matched to loss.
+- `--color-positive-bright` `#4ade80` — gain flash peak.
+- `--color-negative` `#e5544b` — losses / muted red, luminance-matched to gain.
+- `--color-negative-bright` `#f87171` — loss flash peak.
+- `--color-warning` `#e0a13a` — caution badge (stale data, paper-vs-live, kill-switch
+  armed). Yellower than the brand amber and only ever appears as a labelled badge, so
+  it does not read as the accent.
 
-`--radius-panel 0.5rem`, `--radius-control 0.375rem` (crisp but warm).
-`--radius` (shadcn) tracks `--radius-panel`. Motion: calm ease-out
-(`--ease-instrument`), gentle settle (`--ease-detent`, overshoot softened).
+**Amber-vs-loss separation note.** The amber brand accent (hue ~70) and the negative
+loss color (hue ~8, a muted red) are separated on two axes — different hue family and
+different luminance — and do not risk merging in a populated P&L table. Verify on a
+real watchlist with prices alongside the active composer or focus ring.
 
-## Type
+---
 
-- **Fraunces** (display) — headings (`h1–h3`) + the wordmark,
-  `font-optical-sizing: auto` so it uses display optics at large sizes. Variable
-  `opsz` + `SOFT` axes via `next/font/google` in `layout.tsx` (`--font-fraunces`).
-- **JetBrains Mono** (data) — everything else; the app's default body font with
-  global `tabular-nums` (the density tell). Unchanged.
+## Three contrast tiers — weight and opacity, never color
 
-| Role                  | Face     | Size  | Weight  | Tracking  |
-| --------------------- | -------- | ----- | ------- | --------- |
-| Wordmark "VYSTED"     | Fraunces | 17px  | 600     | `+0.01em` |
-| Panel heading (h1–h3) | Fraunces | 14–20 | 500–600 | `-0.01em` |
-| HUD label / legend    | Mono     | 10px  | 400     | `0.12em`  |
-| Body / control / data | Mono     | 11–12 | 400     | `0`       |
+Hierarchy is expressed through font weight, opacity/tone, and size alone. No
+additional accent colors are introduced to signal importance.
 
-## Wordmark
+| Tier          | Token                    | Weight           | Use                                                      |
+| ------------- | ------------------------ | ---------------- | -------------------------------------------------------- |
+| **Primary**   | `charcoal-100` `#f5f2ec` | 400–510          | Content — prose, prices, answers, headings               |
+| **Secondary** | `charcoal-300/400`       | 400              | Supporting labels, table secondaries, descriptions       |
+| **Tertiary**  | `charcoal-500` `#79736a` | 400, often small | Process/meta — "Read …", "Thought …", timestamps, kbd    |
 
-A confident coral-on-espresso lockup (the old Newsreader-14px-at-0.18em mark read
-as a caption): a single **coral brand pip** (8×8 rounded square) + **"VYSTED"** in
-Fraunces 17px/600 warm cream + a subordinate mono **"Terminal"** descriptor.
-Serif name + mono descriptor, an intentional lockup. See `src/app/page.tsx`.
+Headings lead by size + weight (`--font-weight-heading` 590), not by color. Amber
+text (`amber-300`) is reserved for the active/selected affordance only, not for
+general emphasis. Source: `docs/redesign/PRODUCT_DESIGN_DECISIONS.md` §4.
 
-## Chrome primitives (`globals.css`)
+---
 
-- Coral hairlines (`--hairline` coral @ 18%, `--hairline-strong` @ 32%).
-- Flat panel edge (`--bezel-shadow`) — a whisper of warm depth, no metal bevel.
-- `.tick-rule` is now a single flat 1px coral hairline (was a gauge-tick row).
-- `--glow-coral` for active controls (`.hud-active`).
-- Quiet warm atmosphere: a faint coral ambient top + soft vignette; 2% warm grain
-  (down from 3.5%) to prevent gradient banding on the espresso base.
-- Coral selection + coral focus ring. Warm-neutral scrollbars that light coral on
-  grab (a coral rail everywhere would be too loud).
-- dockview theme (`.dockview-theme-vysted`): espresso surfaces, coral active-tab
-  underline + active outline + drag-over, `.dv-view` painted so over-scroll never
-  reveals the WKWebView backdrop.
+## Type scale
 
-## Application strategy
+R4 introduces a named type scale defined in `styles/tokens.css` as Tailwind 4
+`@theme` values and `@utility` classes. Components use `text-body` / `text-caption`
+/ `text-panel-title` instead of ad-hoc `text-[11px]`.
 
-- **Keep-names re-value** carries ~95% of pixels: 40 `amber-*`, 41 `charcoal-*`,
-  2 `sage-*`, 1 `lume` consumer files re-skin with **zero edits**.
-- **Tier 1 (4 files):** `styles/tokens.css`, `src/app/globals.css`,
-  `src/app/layout.tsx` (Fraunces), `src/app/page.tsx` (wordmark + dropped bezel).
-- **Canvas (12 files):** all import `src/lib/chart-theme.ts` — the single source
-  for chart surfaces, coral accent, semantic colors, fill helpers, and the
-  indicator palette. This is also why three values had silently drifted
-  (`#e8b441`, `#c39a3e`, the cyan `#4ec9a3`) — six independent copies; now one.
-- shadcn dialog overlay → espresso (`bg-charcoal-950/70`); ReactFlow node-editor
-  `Background` dots pinned to the espresso palette (it isn't CSS-themed).
+| Utility         | Size     | Line-height       | Weight | Use                             |
+| --------------- | -------- | ----------------- | ------ | ------------------------------- |
+| `text-micro`    | 11px     | heading (1.3)     | 510    | HUD label (uppercase, +0.10em)  |
+| `text-caption`  | 12px     | body (1.5)        | 400    | Caption, secondary, kbd chips   |
+| `text-body`     | 13px     | body (1.5)        | 400    | Body + table base               |
+| `text-panel-title` | 15px  | heading (1.3)     | 510    | Panel title                     |
+| `text-section`  | 18px     | heading (1.3)     | 590    | Section head                    |
+| `text-overview` | 22px     | display (1.25)    | 590    | Overview / brief head           |
+| `text-hero`     | 28px     | hero (1.2)        | 590    | Rare hero (first-run only)      |
 
-## Known deviations (deliberate)
+Minimum interactive text is 12px; primary inputs are 14px; dense data tables stay
+at 13px. Source: `styles/tokens.css` type-scale block and `PRODUCT_DESIGN_DECISIONS.md` §5.
 
-- The **destructive button** keeps `text-white` (not warm cream) — a danger
-  control where max legibility on the brick-red beats palette purity (cream on
-  `#cf5b48` is ~3.1:1; white ~4:1). Low-frequency, high-stakes; legibility wins.
-- The node-editor SAR uptrend dot and the indicator overlay palette shifted tone
-  slightly (sage→clay-neutral, and the indicator order is now the curated
-  `chart-theme` palette) — intentional consequence of single-sourcing.
+**Font faces.** The `--font-serif` slot name is historical. It now carries the
+**Inter-class UI sans** (loaded via `next/font` into `--font-display`), not a serif.
+`--font-mono` carries **JetBrains Mono** for data/code with global `tabular-nums` +
+slashed-zero. The `h1–h3` rule in `globals.css` resolves `--font-serif` → the UI
+sans, so headings and body share the same grotesque face at different weights.
 
-## Customizable
+---
 
-Re-tuning one token in `tokens.css` (+ its `chart-theme.ts` mirror) re-skins the
-app. A light theme slots in via the same `@theme inline` mapping (light theme is
-a documented future item — dark only ships now).
+## Spacing and radius rhythm
 
-## Verification
+### Spacing (source: `styles/tokens.css`)
 
-The agent harness cannot drive the GUI; populated-state visual sign-off is the
-operator's, per the CLAUDE.md visual protocol (AAPL anchor + 5-panel cockpit +
-both 1920×1080 and 2560×1440). Named gates: (1) the **coral-vs-loss** eyeball on a
-populated Watchlist/Portfolio against a coral button; (2) the **destructive-button
-contrast** check; (3) confirm **Fraunces** actually loads (not the Georgia
-fallback) in the wordmark + headings.
+4px base, 8px rhythm. Component padding from {6, 8, 12}px; section gaps from
+{16, 24, 32}px. Raw off-scale values (`px-[7px]`, `gap-2.5`) are forbidden in
+new or changed code.
+
+Named spacing tokens: `--spacing-1` (2px) through `--spacing-32` (64px), following
+a 2/4/6/8/12/16/24/32/48/64px progression.
+
+### Radius (source: `styles/tokens.css`)
+
+`--radius-control: 0.25rem` for small controls. `--radius-panel: 0.375rem` for
+cards and panels. The composer and command palette may use `rounded-lg` (0.5rem) to
+match the reference generosity. The shadcn `--radius` token tracks `--radius-panel`.
+
+---
+
+## NO-GLOW rule (mandatory, non-negotiable)
+
+The body background is a **flat warm-graphite field** (`background-image: none` in
+`globals.css`). There are no ambient radial gradients, no bloom, no blurred drop
+shadows used as halos, and nothing named glow/bloom/halo/neon/ambient.
+
+**Allowed border treatments:**
+- A 1px hard amber border: `box-shadow: 0 0 0 1px var(--color-amber-400)`.
+- The inset active-tab tick: `box-shadow: inset 0 -2px 0 var(--color-amber-400)`.
+- The quiet 1px bezel: `--bezel-shadow: inset 0 1px 0 rgb(250 248 244 / 0.04), 0 1px 2px rgb(0 0 0 / 0.4)`.
+
+These are borders expressed as `box-shadow`, not glow. The blur radius is 0px or 2px
+max (the 2px shadow in `--bezel-shadow` is a drop shadow for depth, not a halo).
+
+**Forbidden:** any `box-shadow` / `filter` / `drop-shadow` with a blur radius > 2px
+used as a halo or bloom; any radial/linear/conic gradient as an ambient fill on
+chrome, cards, or the canvas.
+
+**Elevation model:** a popover sits on `charcoal-875` with a `charcoal-700` border —
+that is the complete elevation system. Luminance step + 1px border; no blurred shadow.
+
+Source: `globals.css` `:root` block (no `--glow-*` primitive defined) and
+`PRODUCT_DESIGN_DECISIONS.md` §3.
+
+---
+
+## Empty-state pattern
+
+Dead-text empty panels ("No data.") are forbidden. Every empty state is a composed
+placeholder, centered in its panel:
+
+```
+        (quiet icon, charcoal-500/600, ~22–26px)
+  <headline>            (text-panel-title, charcoal-200, weight 510)
+  <one calm line>       (text-caption, charcoal-500)
+  [ optional single CTA ]   (ghost/outline button, amber only if primary action)
+```
+
+Implemented as a shared `<EmptyState icon headline hint cta? />` component.
+Source: `PRODUCT_DESIGN_DECISIONS.md` §8.
+
+---
+
+## Canvas-tokens lockstep rule (FR-030)
+
+Canvas elements (`<canvas>`) cannot read CSS custom properties. The canvas palette
+is mirrored once in `src/lib/chart-theme.ts`. When any token changes:
+
+1. Update `styles/tokens.css` — the `--color-*` value.
+2. Update `src/app/globals.css` — `--accent-rgb` (if the amber accent changed).
+3. Update `src/lib/chart-theme.ts` — the matching exported constant.
+
+Updating fewer than all three in one commit causes the canvas to drift off-palette.
+The export names in `chart-theme.ts` (`ACCENT_CORAL`, `coralFill`, etc.) are
+historical and now carry the muted amber values — do not read them literally.
+
+**Current canvas palette (mirror of `src/lib/chart-theme.ts`):**
+
+| Export                | Value     | Token mirror     | Role                  |
+| --------------------- | --------- | ---------------- | --------------------- |
+| `CHART_SURFACE`       | `#1a1814` | `charcoal-900`   | Chart background      |
+| `CHART_TEXT`          | `#a8a095` | `charcoal-400`   | Axis / label text     |
+| `CHART_TEXT_MUTED`    | `#79736a` | `charcoal-500`   | Secondary labels      |
+| `CHART_GRID`          | `#312c25` | `charcoal-800`   | Gridlines             |
+| `CHART_BORDER`        | `#39332b` | `charcoal-700`   | Scale borders         |
+| `CHART_CROSSHAIR`     | `#4a443a` | `charcoal-600`   | Crosshair             |
+| `ACCENT_CORAL`        | `#d89a4e` | `amber-400`      | Brand / primary line  |
+| `ACCENT_CORAL_BRIGHT` | `#e9bd80` | `amber-300`      | Emphasis line         |
+| `ACCENT_CORAL_DEEP`   | `#875720` | `amber-600`      | Deep accent line      |
+| `ACCENT_CORAL_RGB`    | `"216, 154, 78"` | `--accent-rgb` | Alpha fills      |
+| `POSITIVE`            | `#3fbf6f` | signal-positive  | Gain lines            |
+| `NEGATIVE`            | `#e5544b` | signal-negative  | Loss lines            |
+| `WARNING`             | `#e0a13a` | signal-warning   | Caution               |
+| `NEUTRAL`             | `#a8a095` | `charcoal-400`   | Comparison series     |
+| `NEUTRAL_LIGHT`       | `#d3cec5` | `charcoal-300`   | Light neutral series  |
+
+---
+
+## Chrome primitives (`src/app/globals.css`)
+
+### shadcn semantic mapping (`@theme inline`)
+
+The Vysted primitives map onto shadcn/ui semantic names so every shadcn component
+inherits the Warm Graphite palette without overrides:
+
+- `--color-background` → `charcoal-950` (`#0e0d0b`)
+- `--color-foreground` → `charcoal-100` (`#f5f2ec`)
+- `--color-card` → `charcoal-900` (`#1a1814`)
+- `--color-popover` → `charcoal-875` (`#211e19`)
+- `--color-primary` / `--color-accent` / `--color-ring` → `amber-400` (`#d89a4e`)
+- `--color-border` / `--color-input` → `charcoal-700` (`#39332b`)
+- `--color-muted-foreground` → `charcoal-400` (`#a8a095`)
+- `--color-destructive` → signal-negative (`#e5544b`)
+
+### Composite chrome vars (`:root`)
+
+- `--accent-rgb: 216 154 78` — RGB decomposition of `amber-400`; drives
+  `rgb(var(--accent-rgb) / <alpha>)` throughout globals and dockview rules.
+- `--hairline: rgb(122 116 106 / 0.14)` — warm neutral at 14%; quiet fine divider.
+- `--hairline-strong: rgb(122 116 106 / 0.24)` — warm neutral at 24%; panel seams.
+- `--bezel-shadow` — 1px inset light lip + 1px drop shadow; flat depth, no blur halo.
+- No `--glow-*` primitive. Active state is `0 0 0 1px var(--color-amber-400)`.
+
+### Utility classes
+
+- `.hud-label` — uppercase, 0.12em tracking, `charcoal-400` (`#a8a095`).
+- `.instrument-bezel` — applies `--bezel-shadow`.
+- `.tick-rule` — a single flat 1px warm hairline divider.
+- `.hud-active` — 1px amber border + `charcoal-875` background. No blur.
+- `.node-active` — 1px amber border + `charcoal-875` background (node-editor variant).
+- `.stream-cursor` — 2px amber bar that blinks while tokens arrive; feedback, not glow.
+
+### Body background
+
+`background-image: none` — a single flat warm near-black (`charcoal-950`). No
+ambient gradient, no grain, no vignette. The body is also `position: fixed; inset: 0`
+to pin the viewport and prevent whole-app micro-scroll from dockview focus events.
+
+### Selection and focus
+
+- `::selection` — amber @ 30% background, `lume` text.
+- `:focus-visible` — 1px solid `amber-400`, offset 1px.
+
+### Scrollbars
+
+Quiet warm-neutral rail (`charcoal-400` @ 40%); thumb lifts to amber accent @ 55%
+on hover. Resting state is deliberately subdued.
+
+---
+
+## Dockview theming (`.dockview-theme-vysted`)
+
+Applied as `dockview-theme-dark dockview-theme-vysted` on the panel host. The dark
+base supplies defaults; the Vysted rule overrides all visible surfaces. Also targets
+`.dockview-theme-vysted .dv-shell` to override dockview 4.x's nested shell class
+(otherwise the cold navy default bleeds through).
+
+Key overrides sourced from `globals.css`:
+
+- Group view background: `charcoal-900` (`#1a1814`)
+- Tab strip background: `charcoal-925` (`#131210`)
+- Active tab bg: `charcoal-875` (`#211e19`); active tab text: `lume` (`#f7f5f0`)
+- Inactive active-group tab text: `charcoal-400` (`#a8a095`)
+- Inactive group tab text: `charcoal-300` / `charcoal-600`
+- Panel seam separators: `--hairline-strong` (24% warm neutral)
+- Active outline / drag-over border: `amber-400` (`#d89a4e`)
+- Active sash: `amber-500` (`#c0802f`)
+- Drag-over background: amber @ 14%
+- Tab font size: 12px
+- Active tab underline tick: `inset 0 -2px 0 amber-400` (non-layout, no-ops if the
+  class name drifts in a future dockview version)
+- `.dv-view` background: `charcoal-900` so over-scroll never reveals the WKWebView
+  default backdrop
+- `.dv-split-view-container .dv-view-container .dv-view`: `overflow: hidden` to
+  prevent the double-scroll-bar bug (the panel owns the single scroller)
+
+---
+
+## Motion
+
+Unified motion vocabulary with four duration tiers, defined in `styles/tokens.css`:
+
+| Token                 | Value  | Use                                            |
+| --------------------- | ------ | ---------------------------------------------- |
+| `--duration-micro`    | 120ms  | Hover, toggle, button press, color/value flash |
+| `--duration-default`  | 180ms  | Dropdown, popover, tab switch, palette open    |
+| `--duration-entrance` | 240ms  | Panel mount, modal/sheet, sidebar slide        |
+| `--duration-exit`     | 160ms  | Exits ~30% faster than entrances               |
+
+Easing: `--ease-enter` for arriving elements; `--ease-exit` for departing;
+`--ease-shared` for elements that start and end on screen. Legacy aliases
+(`--ease-instrument`, `--ease-detent`, etc.) are kept for existing references.
+
+`prefers-reduced-motion` collapses all animation/transition to 0.01ms via a
+`globals.css` media query, and is additionally honoured by the Framer Motion tree
+via `<MotionConfig reducedMotion="user">`.
+
+---
+
+## Verification gates
+
+Visual sign-off is the operator's, per the `CLAUDE.md` visual protocol (populated
+panels, AAPL anchor, 1920x1080 and 2560x1440). Named gates:
+
+1. **Warmth check** — background reads warm (R > B), not blue, at every surface level.
+2. **Accent budget** — amber appears on 0–2 elements at once; never a background wash.
+3. **No-glow check** — no blurred bloom on any control, card, or chrome element.
+4. **Three tiers visible** — primary/secondary/tertiary text contrast is legible side
+   by side in a populated panel (watchlist or brief).
+5. **Canvas lockstep** — a populated chart's axis text, gridlines, and accent line
+   match the token values listed in the canvas table above; no cold-blue or cyan drift.
+6. **Destructive button** — keeps maximum legibility on the loss-red surface.
+
+---
+
+## Retired systems (historical reference only)
+
+The following palettes were used in prior phases and are **not the current system**:
+
+- **"Claude after dark" (Phase 10):** espresso base `#1a1512`, coral accent `#d97757`,
+  Fraunces display serif. Retired in the R4 rebuild.
+- **Warm-instrument clay:** `amber-400 = #a06b52`, Hanken Grotesk display face,
+  `charcoal-950 = #0b0a09`. Retired before R4 shipped.
+- **Cold-instrument / cold-zinc:** graphite `#0a0b0d`, ion-blue `#4f86f7` accent.
+  Entirely superseded.
+
+All three are gone. If you find a hex from these systems in live code, it is a
+regression. The grep gate for the R4 build forbids the tokens and hexes associated
+with these retired systems in new or changed code.
