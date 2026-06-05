@@ -44,6 +44,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import random
 from datetime import UTC, datetime
 from typing import Any
 
@@ -69,6 +70,26 @@ _BATCH_CONCURRENCY = 8
 #: serialised into minutes).
 _READ_TIMEOUT_SECONDS = 15.0
 _CONNECT_TIMEOUT_SECONDS = 10.0
+
+# --- In-fetch 429 self-heal (bounded short retry) ------------------------------
+#
+# A SINGLE transient 429 on a chunk is far more common than a sustained block —
+# Yahoo throttles a burst, then serves again seconds later. Rather than
+# immediately itemizing the whole chunk ``rate_limited`` (which lets a one-off
+# blip masquerade as a hard block and push the screen onto the slow per-symbol
+# fallback), the chunk retries a SMALL bounded number of times with a short
+# jittered sleep. A ``Retry-After`` header (seconds, or an HTTP-date) is honoured
+# but clamped so a hostile/large value can never stall the screen. Total added
+# latency is bounded by ``_RETRY_MAX_ATTEMPTS × _RETRY_BACKOFF_CAP_SECONDS`` in
+# the worst case; the warm-loop's own exponential backoff (see ``screener.py``)
+# handles a SUSTAINED block on a longer timescale.
+_RETRY_MAX_ATTEMPTS = 2
+#: Base sleep for the first in-fetch retry; doubles each subsequent attempt.
+_RETRY_BASE_SECONDS = 0.5
+#: Hard ceiling on a single in-fetch retry sleep (also clamps ``Retry-After``).
+_RETRY_BACKOFF_CAP_SECONDS = 4.0
+#: ± fraction of jitter applied to each in-fetch retry sleep.
+_RETRY_JITTER_FRACTION = 0.2
 
 #: A real desktop UA — Yahoo serves an empty / non-ok payload to obvious bots.
 _USER_AGENT = (
@@ -188,6 +209,50 @@ def _chunk(symbols: list[str], size: int = _CHUNK_SIZE) -> list[list[str]]:
     return [symbols[i : i + size] for i in range(0, len(symbols), size)]
 
 
+def _parse_retry_after(value: str | None) -> float | None:
+    """Parse a ``Retry-After`` header to seconds, clamped to the retry cap.
+
+    Honours the two HTTP forms — a bare delta-seconds integer (the common case)
+    and an HTTP-date — and clamps the result into ``[0, _RETRY_BACKOFF_CAP_SECONDS]``
+    so a hostile or absurd value can never stall the screen. Returns ``None`` when
+    the header is absent or unparseable (the caller falls back to computed
+    backoff)."""
+    if not value:
+        return None
+    text = value.strip()
+    try:
+        secs = float(text)
+    except ValueError:
+        # HTTP-date form — compute the delta from now, floored at 0.
+        try:
+            from email.utils import parsedate_to_datetime
+
+            when = parsedate_to_datetime(text)
+        except (TypeError, ValueError, IndexError):
+            return None
+        if when is None:
+            return None
+        if when.tzinfo is None:
+            when = when.replace(tzinfo=UTC)
+        secs = (when - datetime.now(tz=UTC)).total_seconds()
+    if secs < 0:
+        secs = 0.0
+    return min(secs, _RETRY_BACKOFF_CAP_SECONDS)
+
+
+def _retry_sleep_seconds(attempt: int, retry_after: float | None = None) -> float:
+    """Jittered backoff for in-fetch 429 retry ``attempt`` (1-indexed).
+
+    Honours ``retry_after`` (already clamped) when present; otherwise uses
+    exponential ``_RETRY_BASE_SECONDS × 2**(attempt-1)`` capped at
+    ``_RETRY_BACKOFF_CAP_SECONDS``. Applies ±``_RETRY_JITTER_FRACTION`` jitter
+    and floors the result at 0 so the sleep is always non-negative."""
+    base = retry_after if retry_after is not None else _RETRY_BASE_SECONDS * (2 ** (attempt - 1))
+    base = min(base, _RETRY_BACKOFF_CAP_SECONDS)
+    jitter = base * _RETRY_JITTER_FRACTION
+    return max(0.0, base + random.uniform(-jitter, jitter))
+
+
 async def _fetch_chunk(
     chunk: list[str],
     sem: asyncio.Semaphore,
@@ -204,6 +269,7 @@ async def _fetch_chunk(
     async with sem:
         client = await _session.client()
         attempted_refresh = False
+        retry_429 = 0
         while True:
             crumb = await _session.ensure_crumb()
             params: dict[str, str] = {"symbols": ",".join(chunk)}
@@ -226,6 +292,21 @@ async def _fetch_chunk(
                 attempted_refresh = True
                 continue
             if resp.status_code == 429:
+                # A transient burst-throttle self-heals: retry a small bounded
+                # number of times with a short jittered sleep (honouring
+                # ``Retry-After`` when present) before conceding ``rate_limited``.
+                if retry_429 < _RETRY_MAX_ATTEMPTS:
+                    retry_429 += 1
+                    retry_after = _parse_retry_after(resp.headers.get("Retry-After"))
+                    sleep_s = _retry_sleep_seconds(retry_429, retry_after)
+                    logger.debug(
+                        "yahoo batch: chunk 429 (attempt %d/%d), retrying in %.2fs",
+                        retry_429,
+                        _RETRY_MAX_ATTEMPTS,
+                        sleep_s,
+                    )
+                    await asyncio.sleep(sleep_s)
+                    continue
                 for sym in chunk:
                     failures[sym] = "rate_limited"
                 return results, failures

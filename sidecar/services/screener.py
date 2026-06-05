@@ -58,6 +58,7 @@ import asyncio
 import contextlib
 import json
 import logging
+import random
 import time
 from importlib import resources
 from typing import Any
@@ -144,10 +145,41 @@ _FUNDAMENTALS_CACHE_TTL_SECONDS = 6 * 60 * 60.0
 # --- Warm-universe precompute (R4 / FR-126) ------------------------------------
 
 #: Re-warm interval for the S&P 500 batch so warm runs stay sub-second. Slightly
-#: under the quote TTL so the cache rarely goes cold between warms.
+#: under the quote TTL so the cache rarely goes cold between warms. This is the
+#: warm-loop's BASE sleep; a throttled cycle backs the next sleep off
+#: exponentially (see below) so the worker stops self-inflicting a 429 storm.
 _WARM_INTERVAL_SECONDS = 40.0
 #: Universes the background worker pre-warms. Equity-only (the batch path).
 _WARM_UNIVERSES: tuple[ScreenerUniverseId, ...] = ("sp500",)
+
+# --- Warm-loop exponential backoff (self-throttle fix) -------------------------
+#
+# The warm worker re-hits the Yahoo v7 batch every ``_WARM_INTERVAL_SECONDS``.
+# With no backoff, a 429 returns the whole universe ``rate_limited`` and the loop
+# retries ~40 s later — SUSTAINING the rate-limit and degrading Yahoo data
+# app-wide. So a cycle that comes back rate-limited grows the next sleep
+# geometrically: ``min(cap, base × factor**n)`` over ``n`` consecutive throttled
+# cycles, plus ±jitter so a fleet of clients never re-synchronises into a
+# thundering herd. The FIRST clean cycle resets straight back to ``base`` (the
+# block lifted — resume tight warming). State is module-level + logged so the
+# backoff is observable.
+_WARM_BACKOFF_FACTOR = 1.8
+#: Ceiling on the backed-off warm sleep (~10 min). Long enough to let a sustained
+#: Yahoo block clear; short enough that warming resumes promptly once it lifts.
+_WARM_BACKOFF_CAP_SECONDS = 600.0
+#: ± fraction of jitter applied to the (post-backoff) warm sleep.
+_WARM_BACKOFF_JITTER_FRACTION = 0.2
+#: A cycle is "throttled" when at least this fraction of the warmed symbols come
+#: back ``rate_limited`` — a stray single-chunk 429 should not trip the backoff,
+#: but a near-total block must. The fetch's own bounded retry has already tried
+#: to self-heal a transient blip before we ever see these failures.
+_WARM_THROTTLE_RATIO = 0.5
+
+#: Observable backoff state: count of consecutive throttled warm cycles. Zero
+#: while warming cleanly; each throttled cycle increments it (driving a larger
+#: next sleep); the first clean cycle resets it to zero. Module-level so a test
+#: or an operator probe can read the current backoff posture.
+_warm_consecutive_throttles = 0
 
 #: Curated equity universes that take the v7 BATCH fast path. ``custom`` (arbitrary
 #: pasted tickers) and ``crypto-top50`` (no v7 batch equivalent) stay on the
@@ -796,36 +828,98 @@ async def run_screener(req: ScreenerRequest) -> ScreenerResult:
 _warm_task: asyncio.Task[None] | None = None
 
 
-async def _warm_once() -> None:
-    """Pre-warm one batch cycle over the warm universes (best-effort)."""
+async def _warm_once() -> bool:
+    """Pre-warm one batch cycle over the warm universes (best-effort).
+
+    Returns ``True`` when the cycle was RATE-LIMITED — at least
+    ``_WARM_THROTTLE_RATIO`` of the warmed symbols came back ``rate_limited``
+    (a near-total block, the warm loop's signal to back off) — and ``False`` on a
+    clean (or merely partial / empty) cycle. The fetch path's own bounded 429
+    retry has already tried to self-heal a transient blip before any failure
+    surfaces here, so a throttle reaching this point is a genuine sustained
+    block, not a one-off burst."""
+    requested = 0
+    rate_limited = 0
     for universe_id in _WARM_UNIVERSES:
         try:
             universe = await resolve_universe(universe_id)
         except ProviderError as exc:
             logger.debug("screener warm: cannot resolve %s: %s", universe_id, exc)
             continue
-        rows, _failures = await yahoo_batch_provider.fetch_quotes_batch(list(universe.symbols))
+        symbols = list(universe.symbols)
+        requested += len(symbols)
+        rows, failures = await yahoo_batch_provider.fetch_quotes_batch(symbols)
+        rate_limited += sum(1 for reason in failures.values() if reason == "rate_limited")
         for _sym, row in rows.items():
             quote = yahoo_batch_provider.quote_from_v7(row)
             if quote is not None:
                 await _write_cached_quote(quote)
                 await _write_cached_fundamentals(yahoo_batch_provider.fundamentals_from_v7(row))
+    # A cycle that resolved no universe (requested == 0) is not a throttle.
+    return requested > 0 and rate_limited >= requested * _WARM_THROTTLE_RATIO
+
+
+def _warm_sleep_seconds(base: float, consecutive_throttles: int) -> float:
+    """Jittered next-cycle sleep for the warm loop given the throttle streak.
+
+    ``consecutive_throttles == 0`` → ``base`` (+jitter): warm cleanly. Each
+    additional consecutive throttled cycle multiplies the sleep by
+    ``_WARM_BACKOFF_FACTOR`` (capped at ``_WARM_BACKOFF_CAP_SECONDS``) so the
+    worker stops re-hitting a rate-limited endpoint every ``base`` seconds. The
+    ±``_WARM_BACKOFF_JITTER_FRACTION`` jitter keeps a fleet of clients from
+    re-synchronising into a thundering herd."""
+    target = min(
+        _WARM_BACKOFF_CAP_SECONDS,
+        base * (_WARM_BACKOFF_FACTOR**consecutive_throttles),
+    )
+    jitter = target * _WARM_BACKOFF_JITTER_FRACTION
+    return max(0.0, target + random.uniform(-jitter, jitter))
 
 
 async def _warm_loop(interval: float) -> None:
-    """Background loop: warm immediately, then re-warm every ``interval`` s.
+    """Background loop: warm immediately, then re-warm with adaptive backoff.
 
-    Swallows every per-cycle error (a transient Yahoo blip must not kill the
-    worker) and exits cleanly on cancellation."""
+    A clean cycle re-warms every ``interval`` s. A RATE-LIMITED cycle (the batch
+    came back near-totally ``rate_limited``) backs the next sleep off
+    exponentially with jitter — so the worker stops self-inflicting a 429 storm —
+    and the FIRST clean cycle resets straight back to ``interval``. Swallows every
+    per-cycle error (a transient Yahoo blip must not kill the worker) and exits
+    cleanly on cancellation."""
+    global _warm_consecutive_throttles
+    _warm_consecutive_throttles = 0
     try:
         while True:
             try:
-                await _warm_once()
+                throttled = await _warm_once()
             except asyncio.CancelledError:
                 raise
             except Exception as exc:  # noqa: BLE001 — a warm cycle is best-effort
                 logger.debug("screener warm cycle failed: %s", exc)
-            await asyncio.sleep(interval)
+                throttled = False
+
+            if throttled:
+                _warm_consecutive_throttles += 1
+                sleep_s = _warm_sleep_seconds(interval, _warm_consecutive_throttles)
+                logger.warning(
+                    "screener warm: rate-limited (consecutive throttled cycles=%d); "
+                    "backing off %.0fs before the next warm (base=%.0fs, cap=%.0fs)",
+                    _warm_consecutive_throttles,
+                    sleep_s,
+                    interval,
+                    _WARM_BACKOFF_CAP_SECONDS,
+                )
+            else:
+                if _warm_consecutive_throttles > 0:
+                    logger.info(
+                        "screener warm: clean cycle after %d throttled; "
+                        "backoff reset to base (%.0fs)",
+                        _warm_consecutive_throttles,
+                        interval,
+                    )
+                _warm_consecutive_throttles = 0
+                sleep_s = _warm_sleep_seconds(interval, 0)
+
+            await asyncio.sleep(sleep_s)
     except asyncio.CancelledError:
         logger.debug("screener warm loop cancelled")
         raise

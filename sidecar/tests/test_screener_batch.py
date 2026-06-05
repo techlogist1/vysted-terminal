@@ -18,6 +18,7 @@ per-symbol fallback / enrichment provider is monkeypatched.
 
 from __future__ import annotations
 
+import asyncio
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -341,3 +342,146 @@ async def test_group_field_drives_enrichment(monkeypatch: pytest.MonkeyPatch) ->
     result = await screener.run_screener(request)
     assert {r.symbol for r in result.rows} == {"AAA"}
     assert result.skipped_count == 0
+
+
+# ---------------------------------------------------------------------------
+# Warm-loop exponential backoff (self-inflicted-429 fix)
+# ---------------------------------------------------------------------------
+
+
+def test_warm_sleep_seconds_grows_geometrically_and_caps() -> None:
+    """Consecutive throttled cycles grow the warm sleep, capped at the ceiling."""
+    base = screener._WARM_INTERVAL_SECONDS
+    factor = screener._WARM_BACKOFF_FACTOR
+    cap = screener._WARM_BACKOFF_CAP_SECONDS
+    jit = screener._WARM_BACKOFF_JITTER_FRACTION
+
+    # The (pre-jitter) target per consecutive-throttle count.
+    def target(n: int) -> float:
+        return min(cap, base * (factor**n))
+
+    # n == 0 → base; each step strictly larger until the cap is hit. Sample many
+    # draws so the jittered value always stays inside ±jit of the target.
+    prev_target = -1.0
+    for n in range(0, 20):
+        t = target(n)
+        for _ in range(40):
+            s = screener._warm_sleep_seconds(base, n)
+            assert (t * (1 - jit)) - 1e-9 <= s <= (t * (1 + jit)) + 1e-9
+        if t > prev_target:
+            # Still climbing — strictly larger target than the last step.
+            assert t > prev_target
+        prev_target = t
+
+    # A large streak is pinned at the cap (±jitter), never unbounded.
+    big = target(50)
+    assert big == cap
+    for _ in range(40):
+        s = screener._warm_sleep_seconds(base, 50)
+        assert (cap * (1 - jit)) - 1e-9 <= s <= (cap * (1 + jit)) + 1e-9
+
+
+def test_warm_sleep_seconds_zero_streak_is_base() -> None:
+    """A clean cycle (streak 0) sleeps around base, never backed off."""
+    base = screener._WARM_INTERVAL_SECONDS
+    jit = screener._WARM_BACKOFF_JITTER_FRACTION
+    for _ in range(100):
+        s = screener._warm_sleep_seconds(base, 0)
+        assert (base * (1 - jit)) - 1e-9 <= s <= (base * (1 + jit)) + 1e-9
+
+
+@pytest.mark.asyncio
+async def test_warm_once_flags_rate_limited_cycle(monkeypatch: pytest.MonkeyPatch) -> None:
+    """_warm_once returns True iff the cycle came back near-totally rate_limited."""
+    symbols = ["AAA", "BBB", "CCC", "DDD"]
+    monkeypatch.setattr(screener, "resolve_universe", _fake_sp500(symbols))
+
+    # All four symbols 429 → throttled cycle. asyncio.sleep stubbed so the
+    # in-fetch retry adds no latency.
+    async def _no_sleep(_secs: float) -> None:
+        return None
+
+    monkeypatch.setattr(yb.asyncio, "sleep", _no_sleep)
+
+    def all_429(request: httpx.Request) -> httpx.Response:
+        if "getcrumb" in request.url.path:
+            return httpx.Response(200, text="crumb")
+        if request.url.path.endswith("/v7/finance/quote"):
+            return httpx.Response(429, text="Too Many Requests")
+        return httpx.Response(200, text="ok")
+
+    yb.reset_for_tests(httpx.MockTransport(all_429))
+    assert await screener._warm_once() is True
+
+    # All four resolve cleanly → not a throttle.
+    _install_v7({s: _v7_row(s) for s in symbols})
+    assert await screener._warm_once() is False
+
+
+@pytest.mark.asyncio
+async def test_warm_loop_backs_off_then_resets(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A throttled streak grows the loop's sleep; the first clean cycle resets it.
+
+    Drives ``_warm_loop`` with a scripted ``_warm_once`` (throttled ×3, then a
+    clean cycle) and a stubbed ``asyncio.sleep`` that records each requested
+    duration and cancels the loop once the script is exhausted — so no real time
+    passes and cancellation still stops the loop cleanly."""
+    # Throttle, throttle, throttle, clean — then stop.
+    script = iter([True, True, True, False])
+    sleeps: list[float] = []
+    cycle = {"n": 0}
+
+    async def fake_warm_once() -> bool:
+        cycle["n"] += 1
+        return next(script)
+
+    async def fake_sleep(secs: float) -> None:
+        sleeps.append(secs)
+        if cycle["n"] >= 4:
+            # Script exhausted (the clean cycle ran) — stop the loop the way a
+            # real shutdown would, proving CancelledError still propagates.
+            raise asyncio.CancelledError
+
+    monkeypatch.setattr(screener, "_warm_once", fake_warm_once)
+    monkeypatch.setattr(screener.asyncio, "sleep", fake_sleep)
+
+    base = 10.0
+    jit = screener._WARM_BACKOFF_JITTER_FRACTION
+    factor = screener._WARM_BACKOFF_FACTOR
+
+    with pytest.raises(asyncio.CancelledError):
+        await screener._warm_loop(base)
+
+    # Four cycles ran, four sleeps recorded.
+    assert cycle["n"] == 4
+    assert len(sleeps) == 4
+
+    # Sleep n corresponds to a streak of (1, 2, 3, 0) consecutive throttles.
+    def within(value: float, streak: int) -> bool:
+        target = min(screener._WARM_BACKOFF_CAP_SECONDS, base * (factor**streak))
+        return (target * (1 - jit)) - 1e-9 <= value <= (target * (1 + jit)) + 1e-9
+
+    assert within(sleeps[0], 1)
+    assert within(sleeps[1], 2)
+    assert within(sleeps[2], 3)
+    # The clean cycle reset the streak to 0 → back to base.
+    assert within(sleeps[3], 0)
+    # Monotonic growth across the throttled run (jitter can't reorder these gaps).
+    assert sleeps[0] < sleeps[1] < sleeps[2]
+    # And the reset genuinely dropped below the backed-off sleeps.
+    assert sleeps[3] < sleeps[2]
+    # Backoff state is observable and was reset to 0 on the clean cycle.
+    assert screener._warm_consecutive_throttles == 0
+
+
+@pytest.mark.asyncio
+async def test_warm_loop_cancellation_stops_cleanly(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A CancelledError raised inside the warm cycle propagates and stops the loop."""
+
+    async def fake_warm_once() -> bool:
+        raise asyncio.CancelledError
+
+    monkeypatch.setattr(screener, "_warm_once", fake_warm_once)
+
+    with pytest.raises(asyncio.CancelledError):
+        await screener._warm_loop(screener._WARM_INTERVAL_SECONDS)
