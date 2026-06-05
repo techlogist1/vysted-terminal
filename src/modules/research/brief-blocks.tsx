@@ -34,6 +34,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { ProvenanceBadge, StalenessBadge, type Freshness } from "@/components/DataBadges";
+import { deriveAssetClass, type BriefAssetClass } from "@/lib/brief-ingest";
 import { loadSymbolIntoChart } from "@/lib/host-actions";
 import { staggerChild, staggerParent } from "@/lib/motion";
 import { useSymbolsStore } from "@/store/symbols";
@@ -103,6 +104,8 @@ interface MetricsModel {
   change?: number;
   changePercent?: number;
   currency?: string;
+  /** The metric family the card set was branched on (equity / crypto / etf / fx). */
+  assetClass: BriefAssetClass;
   items: MetricItem[];
 }
 
@@ -112,30 +115,34 @@ function isLeg(
   return typeof value === "object" && value !== null;
 }
 
-/**
- * Build a metric model from the structured bundle. Returns `null` when there is
- * no usable price OR fundamentals leg — the brief then renders prose-only (no
- * empty/fake card). Reads each numeric field defensively (most are nullable).
- */
-export function deriveMetrics(structured: BriefStructured | undefined): MetricsModel | null {
-  if (!structured) {
-    return null;
-  }
-  const priceLeg = isLeg(structured.price) && structured.price.ok ? structured.price : null;
-  const fundLeg =
-    isLeg(structured.fundamentals) && structured.fundamentals.ok ? structured.fundamentals : null;
-  const quote = (priceLeg?.data ?? undefined) as Quote | undefined;
-  const fund = (fundLeg?.data ?? undefined) as Fundamentals | undefined;
-  if (!quote && !fund) {
-    return null;
-  }
-
+/** A `(label,value)` collector that drops any "—" value so an absent field
+ *  renders NO card rather than a fabricated one (Constitution VI). */
+function makeItems(): { items: MetricItem[]; push: (label: string, value: string) => void } {
   const items: MetricItem[] = [];
   const push = (label: string, value: string) => {
     if (value !== "—") {
       items.push({ label, value });
     }
   };
+  return { items, push };
+}
+
+/** The 52-week range card, shared across classes (renders only when both ends
+ *  are real numbers). */
+function pushRange(
+  push: (label: string, value: string) => void,
+  fund: Fundamentals | undefined,
+): void {
+  const lo = fund?.fifty_two_week_low;
+  const hi = fund?.fifty_two_week_high;
+  if (typeof lo === "number" && typeof hi === "number") {
+    push("52w range", `${formatNumber(lo, 0)}–${formatNumber(hi, 0)}`);
+  }
+}
+
+/** Equity / single-name metric set — the full valuation + quality + growth grid. */
+function equityItems(fund: Fundamentals | undefined, quote: Quote | undefined): MetricItem[] {
+  const { items, push } = makeItems();
   if (fund) {
     push("Market cap", formatLarge(fund.market_cap));
     push("P/E", formatNumber(fund.pe_ratio));
@@ -150,22 +157,99 @@ export function deriveMetrics(structured: BriefStructured | undefined): MetricsM
     }
     push("EPS", formatNumber(fund.eps));
     push("Beta", formatNumber(fund.beta));
-    // Screener-grade quality + growth cards (from the expanded fundamentals).
-    // push() skips a "—" value, so absent fields render no card — never a fake one.
     push("ROE", formatFractionPct(fund.roe));
     push("Net margin", formatFractionPct(fund.profit_margin));
     push("Debt/Equity", formatNumber(fund.debt_to_equity));
     push("Rev growth", formatFractionPct(fund.revenue_growth));
     push("Revenue", formatLarge(fund.revenue_ttm));
-    const lo = fund.fifty_two_week_low;
-    const hi = fund.fifty_two_week_high;
-    if (typeof lo === "number" && typeof hi === "number") {
-      push("52w range", `${formatNumber(lo, 0)}–${formatNumber(hi, 0)}`);
-    }
+    pushRange(push, fund);
   }
   if (quote && typeof quote.volume === "number") {
     push("Volume", formatLarge(quote.volume));
   }
+  return items;
+}
+
+/** Crypto metric set — no earnings/valuation ratios (meaningless for a coin);
+ *  lead on market cap, 24h volume, range, and beta when present. */
+function cryptoItems(fund: Fundamentals | undefined, quote: Quote | undefined): MetricItem[] {
+  const { items, push } = makeItems();
+  if (fund) {
+    push("Market cap", formatLarge(fund.market_cap));
+  }
+  if (quote && typeof quote.volume === "number") {
+    push("24h volume", formatLarge(quote.volume));
+  }
+  if (fund) {
+    pushRange(push, fund);
+    push("Beta", formatNumber(fund.beta));
+  }
+  return items;
+}
+
+/** ETF / fund metric set — AUM (market cap), expense proxy via yield, beta,
+ *  range, volume; no single-company quality ratios. */
+function etfItems(fund: Fundamentals | undefined, quote: Quote | undefined): MetricItem[] {
+  const { items, push } = makeItems();
+  if (fund) {
+    push("Net assets", formatLarge(fund.market_cap));
+    if (typeof fund.dividend_yield === "number" && fund.dividend_yield * 100 < 25) {
+      push("Yield", formatFractionPct(fund.dividend_yield));
+    }
+    push("Beta", formatNumber(fund.beta));
+    push("P/E", formatNumber(fund.pe_ratio));
+    pushRange(push, fund);
+  }
+  if (quote && typeof quote.volume === "number") {
+    push("Volume", formatLarge(quote.volume));
+  }
+  return items;
+}
+
+/** FX metric set — a currency pair has no fundamentals; price action + range. */
+function fxItems(fund: Fundamentals | undefined, quote: Quote | undefined): MetricItem[] {
+  const { items, push } = makeItems();
+  if (fund) {
+    pushRange(push, fund);
+    push("Beta", formatNumber(fund.beta));
+  }
+  if (quote && typeof quote.volume === "number") {
+    push("Volume", formatLarge(quote.volume));
+  }
+  return items;
+}
+
+/**
+ * Build a metric model from the structured bundle. Returns `null` when there is
+ * no usable price OR fundamentals leg — the brief then renders prose-only (no
+ * empty/fake card). The metric SET branches on the resolved instrument's asset
+ * class (equity / crypto / etf / fx) so a coin never shows a meaningless P/E and
+ * a pair never shows a non-existent market cap. Reads each numeric field
+ * defensively (most are nullable); an absent field renders no card, never a
+ * fabricated value (Constitution VI).
+ */
+export function deriveMetrics(structured: BriefStructured | undefined): MetricsModel | null {
+  if (!structured) {
+    return null;
+  }
+  const priceLeg = isLeg(structured.price) && structured.price.ok ? structured.price : null;
+  const fundLeg =
+    isLeg(structured.fundamentals) && structured.fundamentals.ok ? structured.fundamentals : null;
+  const quote = (priceLeg?.data ?? undefined) as Quote | undefined;
+  const fund = (fundLeg?.data ?? undefined) as Fundamentals | undefined;
+  if (!quote && !fund) {
+    return null;
+  }
+
+  const assetClass = deriveAssetClass(structured);
+  const items =
+    assetClass === "crypto"
+      ? cryptoItems(fund, quote)
+      : assetClass === "etf"
+        ? etfItems(fund, quote)
+        : assetClass === "fx"
+          ? fxItems(fund, quote)
+          : equityItems(fund, quote);
 
   const freshness: Freshness | undefined =
     quote?.freshness === "live" || quote?.freshness === "stale" || quote?.freshness === "eod"
@@ -180,6 +264,7 @@ export function deriveMetrics(structured: BriefStructured | undefined): MetricsM
     change: typeof quote?.change === "number" ? quote.change : undefined,
     changePercent: typeof quote?.change_percent === "number" ? quote.change_percent : undefined,
     currency: quote?.currency,
+    assetClass,
     items,
   };
 }

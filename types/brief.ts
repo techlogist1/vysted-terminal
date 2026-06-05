@@ -51,6 +51,13 @@ export interface BriefStructured {
   filings?: BriefStructuredLeg;
 }
 
+/**
+ * The category of a cited source, used for the quiet source-type badge in the
+ * sources rail (news / research / filing / web). The pipeline may emit it
+ * directly; when absent the panel derives it from the source's domain.
+ */
+export type BriefSourceType = "news" | "research" | "filing" | "web";
+
 /** One cited source behind an inline `[n]` chip in the brief body. */
 export interface BriefSource {
   /** Canonical URL of the source. */
@@ -64,10 +71,29 @@ export interface BriefSource {
    * Optional — when absent the panel derives it from {@link url}.
    */
   domain?: string;
+  /**
+   * The source's category (news / research / filing / web), shown as a small
+   * quiet badge in the sources rail. Optional — when absent the panel derives
+   * it client-side from {@link domain}/{@link url} (SEC → filing, known news
+   * domains → news, etc.).
+   */
+  sourceType?: BriefSourceType;
 }
 
-/** The kind of a single step in the research pipeline's trace. */
-export type BriefStepKind = "plan" | "tool" | "search" | "compress" | "reflect" | "synthesize";
+/**
+ * The kind of a single step in the research pipeline's trace. `distill`
+ * (IterResearch central-report rewrite) and `engine` (the honest backend /
+ * fallback line) are emitted by the sidecar and rendered by ResearchActivity.
+ */
+export type BriefStepKind =
+  | "plan"
+  | "tool"
+  | "search"
+  | "compress"
+  | "distill"
+  | "reflect"
+  | "synthesize"
+  | "engine";
 
 /** The terminal status of a single research step. */
 export type BriefStepStatus = "ok" | "error" | "skipped";

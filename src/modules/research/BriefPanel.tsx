@@ -1,17 +1,32 @@
 "use client";
 
-import { useCallback, useRef, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ChevronDown,
   ChevronRight,
   ExternalLink,
+  FileText,
   FlaskConical,
   Globe,
+  Printer,
   Telescope,
 } from "lucide-react";
 
-import type { BriefDepth, BriefSource, BriefStep, ResearchBriefData } from "../../../types/brief";
+import type {
+  BriefDepth,
+  BriefSource,
+  BriefSourceType,
+  BriefStep,
+  ResearchBriefData,
+} from "../../../types/brief";
 import { ProvenanceBadge, StalenessBadge } from "@/components/DataBadges";
+import {
+  briefSlug,
+  composeBriefMarkdown,
+  dedupeSources,
+  deriveSourceType,
+} from "@/lib/brief-ingest";
+import { saveTextArtifact, savePdfArtifact } from "@/lib/export-artifact";
 import { sendToAgent } from "@/store/agent-command";
 import { useBriefStore } from "@/store/brief";
 import { BriefBody } from "./brief-blocks";
@@ -194,6 +209,27 @@ function FaviconDot({ domain }: { domain: string }) {
   );
 }
 
+/** Per-type label for the quiet source-type badge. */
+const SOURCE_TYPE_LABEL: Record<BriefSourceType, string> = {
+  news: "news",
+  research: "research",
+  filing: "filing",
+  web: "web",
+};
+
+/**
+ * A small, quiet source-category badge (news / research / filing / web). Stays
+ * tertiary by design — same warm-neutral surface as the domain chip, no accent
+ * fill — so it reads as metadata, never as the one accent affordance.
+ */
+function SourceTypeBadge({ type }: { type: BriefSourceType }) {
+  return (
+    <span className="border-charcoal-700 text-charcoal-400 bg-charcoal-850 shrink-0 rounded-sm border px-1.5 py-0.5 font-mono text-[11px] tracking-wide uppercase">
+      {SOURCE_TYPE_LABEL[type]}
+    </span>
+  );
+}
+
 function SourceRow({
   index,
   source,
@@ -204,6 +240,7 @@ function SourceRow({
   registerRef: (n: number, el: HTMLLIElement | null) => void;
 }) {
   const domain = domainOf(source);
+  const sourceType = deriveSourceType(source);
   return (
     <li
       ref={(el) => registerRef(index, el)}
@@ -224,9 +261,12 @@ function SourceRow({
           <span className="min-w-0">{source.title || source.url}</span>
           <ExternalLink className="text-charcoal-600 mt-0.5 size-3 shrink-0 group-hover:text-amber-400" />
         </a>
-        <span className="text-charcoal-500 bg-charcoal-850 w-fit max-w-full truncate rounded-sm px-1 py-px font-mono text-[10px]">
-          {domain}
-        </span>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <SourceTypeBadge type={sourceType} />
+          <span className="text-charcoal-500 bg-charcoal-850 max-w-full truncate rounded-sm px-1 py-px font-mono text-[10px]">
+            {domain}
+          </span>
+        </div>
         {source.excerpt ? (
           <p className="text-charcoal-400 line-clamp-3 text-[11px] leading-relaxed">
             {source.excerpt}
@@ -336,6 +376,42 @@ export function BriefPanel() {
   const sourceRefs = useRef(new Map<number, HTMLLIElement>());
   const [sourcesOpenNonce, setSourcesOpenNonce] = useState(0);
 
+  // The rendered brief body — the PDF/PNG raster target (the WKWebView blocks
+  // browser downloads, so every export writes a real file via the Rust atomic
+  // commands; a transient status line confirms the saved path).
+  const briefBodyRef = useRef<HTMLDivElement>(null);
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
+  const flashStatus = useCallback((msg: string) => {
+    setExportStatus(msg);
+    window.setTimeout(() => setExportStatus(null), 4500);
+  }, []);
+
+  const handleExportMd = useCallback(async () => {
+    if (!brief) return;
+    try {
+      const md = composeBriefMarkdown(brief);
+      const r = await saveTextArtifact("research", `${briefSlug(brief)}.md`, md);
+      flashStatus(r.path ? `Saved ${r.path}` : "Downloaded .md");
+    } catch (e) {
+      flashStatus(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }, [brief, flashStatus]);
+
+  const handleExportPdf = useCallback(async () => {
+    const el = briefBodyRef.current;
+    if (!brief || !el) return;
+    try {
+      const r = await savePdfArtifact("research", `${briefSlug(brief)}.pdf`, el);
+      flashStatus(r.path ? `Saved ${r.path}` : "Downloaded .pdf");
+    } catch (e) {
+      flashStatus(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }, [brief, flashStatus]);
+
+  // De-duplicate the cited sources by URL before rendering the rail — a repeat
+  // citation shows once. (The markdown's [n] markers point at the first.)
+  const sources = useMemo(() => (brief ? dedupeSources(brief.sources) : []), [brief]);
+
   const registerSourceRef = useCallback((n: number, el: HTMLLIElement | null) => {
     if (el) {
       sourceRefs.current.set(n, el);
@@ -368,58 +444,94 @@ export function BriefPanel() {
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
-      <MetaHeader brief={brief} />
-
-      <div className="flex-1 overflow-y-auto">
-        {/* Honest no-web state: NOT an error, NOT empty — a prominent banner that
-            the brief is structured-data-only, with the pipeline's note. */}
-        {noWeb ? (
-          <div className="m-3 flex items-start gap-2.5 rounded-md border border-amber-600/40 bg-amber-600/10 px-3 py-2.5">
-            <Globe className="mt-0.5 size-4 shrink-0 text-amber-300" />
-            <div className="flex flex-col gap-0.5">
-              <p className="text-[12px] font-medium text-amber-200">Structured-data-only brief</p>
-              <p className="text-charcoal-300 text-[11px] leading-relaxed">
-                {brief.note ??
-                  "No web-search backend configured — this brief is built from structured data only."}
-              </p>
-            </div>
-          </div>
-        ) : brief.note ? (
-          <p className="text-charcoal-400 border-charcoal-800 mx-4 mt-3 border-l-2 pl-3 text-[11px] leading-relaxed italic">
-            {brief.note}
-          </p>
-        ) : null}
-
-        <BriefBody brief={brief} onCite={scrollToSource} />
+      {/* Export toolbar — MD composes the brief + a Sources appendix; PDF
+          rasterises the rendered body. Both write a real file via the Rust
+          atomic-write commands (the WKWebView blocks browser downloads). */}
+      <div className="border-charcoal-700 flex items-center justify-end gap-1 border-b px-3 py-1.5">
+        <button
+          type="button"
+          title="Export Markdown"
+          onClick={handleExportMd}
+          className="text-charcoal-400 hover:bg-charcoal-800 hover:text-charcoal-100 flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors"
+        >
+          <FileText className="size-3.5" /> MD
+        </button>
+        <button
+          type="button"
+          title="Export PDF"
+          onClick={handleExportPdf}
+          className="text-charcoal-400 hover:bg-charcoal-800 hover:text-charcoal-100 flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors"
+        >
+          <Printer className="size-3.5" /> PDF
+        </button>
       </div>
 
-      {brief.sources.length > 0 ? (
-        <Tray
-          key={`sources-${sourcesOpenNonce}`}
-          title="Sources"
-          count={brief.sources.length}
-          defaultOpen={sourcesOpenNonce > 0}
+      {/* Transient export status — confirms the saved path so the user sees it
+          landed (the same affordance pattern as the Notes panel). */}
+      {exportStatus ? (
+        <div
+          className="text-charcoal-400 border-charcoal-800 bg-charcoal-925 truncate border-b px-3 py-1.5 font-mono text-[11px]"
+          title={exportStatus}
         >
-          <ul className="max-h-64 overflow-y-auto">
-            {brief.sources.map((source, i) => (
-              <SourceRow
-                key={`${i}-${source.url}`}
-                index={i + 1}
-                source={source}
-                registerRef={registerSourceRef}
-              />
-            ))}
-          </ul>
-        </Tray>
+          {exportStatus}
+        </div>
       ) : null}
 
-      {hasSteps ? (
-        <Tray title="Step log · dev" count={brief.steps!.length}>
-          <div className="max-h-48 overflow-y-auto">
-            <StepLog steps={brief.steps!} />
-          </div>
-        </Tray>
-      ) : null}
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        {/* The export raster target — the meta header + the brief body. */}
+        <div ref={briefBodyRef} className="bg-charcoal-900 flex flex-col">
+          <MetaHeader brief={brief} />
+
+          {/* Honest no-web state: NOT an error, NOT empty — a prominent banner that
+              the brief is structured-data-only, with the pipeline's note. */}
+          {noWeb ? (
+            <div className="m-3 flex items-start gap-2.5 rounded-md border border-amber-600/40 bg-amber-600/10 px-3 py-2.5">
+              <Globe className="mt-0.5 size-4 shrink-0 text-amber-300" />
+              <div className="flex flex-col gap-0.5">
+                <p className="text-[12px] font-medium text-amber-200">Structured-data-only brief</p>
+                <p className="text-charcoal-300 text-[11px] leading-relaxed">
+                  {brief.note ??
+                    "No web-search backend configured — this brief is built from structured data only."}
+                </p>
+              </div>
+            </div>
+          ) : brief.note ? (
+            <p className="text-charcoal-400 border-charcoal-800 mx-4 mt-3 border-l-2 pl-3 text-[11px] leading-relaxed italic">
+              {brief.note}
+            </p>
+          ) : null}
+
+          <BriefBody brief={brief} onCite={scrollToSource} />
+        </div>
+
+        {sources.length > 0 ? (
+          <Tray
+            key={`sources-${sourcesOpenNonce}`}
+            title="Sources"
+            count={sources.length}
+            defaultOpen={sourcesOpenNonce > 0}
+          >
+            <ul className="max-h-64 overflow-y-auto">
+              {sources.map((source, i) => (
+                <SourceRow
+                  key={`${i}-${source.url}`}
+                  index={i + 1}
+                  source={source}
+                  registerRef={registerSourceRef}
+                />
+              ))}
+            </ul>
+          </Tray>
+        ) : null}
+
+        {hasSteps ? (
+          <Tray title="Step log · dev" count={brief.steps!.length}>
+            <div className="max-h-48 overflow-y-auto">
+              <StepLog steps={brief.steps!} />
+            </div>
+          </Tray>
+        ) : null}
+      </div>
     </div>
   );
 }
