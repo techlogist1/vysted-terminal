@@ -35,3 +35,8 @@ sidecar/services/resolver_masters/*.json
 
 # Playwright MCP transient artifacts
 .playwright-mcp/
+
+# R5 verification artifacts — generated side-by-side comparison sheets (HTML)
+# assembled by the verification step, not hand-edited source. The PNG proof shots
+# alongside them are binary and not prettier-checked anyway.
+docs/redesign/verification/*.html

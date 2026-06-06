@@ -55,13 +55,13 @@ They cannot be scripted fully non-interactively without storing the password in 
 
 Open Keychain Access → Certificate Assistant → Create a Certificate:
 
-| Field | Value |
-|---|---|
-| Name | `Vysted Terminal Dev Signing` |
-| Identity Type | Self Signed Root |
-| Certificate Type | Code Signing |
-| Let me override defaults | checked |
-| Validity period | 1825 days (5 years) |
+| Field                    | Value                         |
+| ------------------------ | ----------------------------- |
+| Name                     | `Vysted Terminal Dev Signing` |
+| Identity Type            | Self Signed Root              |
+| Certificate Type         | Code Signing                  |
+| Let me override defaults | checked                       |
+| Validity period          | 1825 days (5 years)           |
 
 Leave all other fields at defaults. Click Create. The cert and private key are added to your
 login keychain.
@@ -163,6 +163,7 @@ pnpm tauri:dev
 ```
 
 On Darwin, the script:
+
 1. Starts `tauri dev --features dev-tools` in the foreground (which recompiles on source
    changes).
 2. Launches a background loop that watches `src-tauri/target/debug/vysted-terminal` for
@@ -223,12 +224,12 @@ signing** subsection) in `CLAUDE.md`. The lead should apply this after reviewing
 
 ## Summary: Automated vs Operator-Attended
 
-| Step | Who | Why |
-|---|---|---|
-| Create self-signed cert | **OPERATOR-ATTENDED** | Requires Keychain Access UI or interactive shell with output inspection |
-| Trust cert in Keychain Access | **OPERATOR-ATTENDED** | GUI-only trust dialog |
-| `security set-key-partition-list` | **OPERATOR-ATTENDED** | Requires login keychain password — cannot be stored/scripted without plaintext creds |
-| First "Always Allow" keychain click | **OPERATOR-ATTENDED** | One-time per keychain item on a given machine |
-| `scripts/macos-dev-setup.sh` | **AUTOMATED** (idempotent) | Verify cert exists, print instructions if missing |
-| `pnpm tauri:dev` re-sign watcher | **AUTOMATED** | Runs on every dev session, no interaction needed |
-| `pnpm tauri:dev` fallback on Linux/Windows | **AUTOMATED** | Platform guard in package.json |
+| Step                                       | Who                        | Why                                                                                  |
+| ------------------------------------------ | -------------------------- | ------------------------------------------------------------------------------------ |
+| Create self-signed cert                    | **OPERATOR-ATTENDED**      | Requires Keychain Access UI or interactive shell with output inspection              |
+| Trust cert in Keychain Access              | **OPERATOR-ATTENDED**      | GUI-only trust dialog                                                                |
+| `security set-key-partition-list`          | **OPERATOR-ATTENDED**      | Requires login keychain password — cannot be stored/scripted without plaintext creds |
+| First "Always Allow" keychain click        | **OPERATOR-ATTENDED**      | One-time per keychain item on a given machine                                        |
+| `scripts/macos-dev-setup.sh`               | **AUTOMATED** (idempotent) | Verify cert exists, print instructions if missing                                    |
+| `pnpm tauri:dev` re-sign watcher           | **AUTOMATED**              | Runs on every dev session, no interaction needed                                     |
+| `pnpm tauri:dev` fallback on Linux/Windows | **AUTOMATED**              | Platform guard in package.json                                                       |
