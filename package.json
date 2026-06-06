@@ -19,7 +19,8 @@
     "sidecars:build": "node scripts/ensure-all-sidecars.mjs --force",
     "ci-local": "pnpm install --frozen-lockfile && node scripts/ensure-all-sidecars.mjs && pnpm lint && pnpm format:check && pnpm typecheck && cargo fmt --manifest-path src-tauri/Cargo.toml --check && cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings && python -m pip install ruff==0.15.12 && ruff check sidecar && ruff format --check sidecar && pnpm test && cargo test --manifest-path src-tauri/Cargo.toml && cd sidecar && python -m pip install -r requirements-dev.txt && pytest",
     "tauri": "tauri",
-    "tauri:mcp": "tauri dev --features dev-tools"
+    "tauri:mcp": "tauri dev --features dev-tools",
+    "tauri:dev": "node -e \"if(process.platform==='darwin'){const {execSync,spawn}=require('child_process');const id='Vysted Terminal Dev Signing';const bin='src-tauri/target/debug/vysted-terminal';const sign=()=>{try{execSync('codesign --force --sign \"'+id+'\" --identifier com.vysted.terminal '+bin,{stdio:'ignore'})}catch(_){}};let mt=0;const watch=()=>{try{const s=require('fs').statSync(bin);if(s.mtimeMs>mt){mt=s.mtimeMs;sign()}}catch(_){}};const child=spawn('pnpm',['tauri:mcp'],{stdio:'inherit',env:{...process.env,APPLE_SIGNING_IDENTITY:id}});setInterval(watch,1500);child.on('exit',code=>process.exit(code??0))}else{const {spawn}=require('child_process');const c=spawn('pnpm',['tauri:mcp'],{stdio:'inherit'});c.on('exit',code=>process.exit(code??0))}\""
   },
   "dependencies": {
     "@tauri-apps/api": "2.11.0",
