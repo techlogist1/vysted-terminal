@@ -21,8 +21,7 @@
 import { cn } from "@/lib/utils";
 
 /** Shared chip shell — keeps the two badges visually consistent. */
-const CHIP =
-  "inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 font-mono text-[11px] tracking-wide uppercase";
+const CHIP = "inline-flex items-center gap-1 rounded-sm px-2 py-1 font-mono text-micro";
 
 /**
  * Provider-origin badge. Reads `<provider>` normally; a `synthetic` value is

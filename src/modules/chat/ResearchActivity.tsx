@@ -93,7 +93,7 @@ export function ResearchActivity({ steps, active, startedAt }: ResearchActivityP
       aria-label="Research activity"
       aria-live="polite"
     >
-      <div className="flex items-center gap-1.5 px-2 py-1.5">
+      <div className="flex items-center gap-2 px-2 py-2">
         {active ? (
           <motion.span
             animate={{ rotate: 360 }}
@@ -106,10 +106,10 @@ export function ResearchActivity({ steps, active, startedAt }: ResearchActivityP
         ) : (
           <Check size={12} className="text-positive" aria-hidden />
         )}
-        <span className="text-charcoal-200 text-[0.62rem] font-semibold tracking-wide uppercase">
+        <span className="text-micro text-charcoal-200">
           {active ? "Researching" : "Researched"}
         </span>
-        <span className="text-charcoal-500 ml-auto text-[0.6rem] tabular-nums">
+        <span className="text-micro text-charcoal-500 ml-auto tabular-nums">
           {active && startedAt ? (
             <ElapsedTimer startedAt={startedAt} />
           ) : (
@@ -121,7 +121,7 @@ export function ResearchActivity({ steps, active, startedAt }: ResearchActivityP
         </span>
       </div>
 
-      <ul className="flex flex-col gap-0.5 px-2 pb-1.5">
+      <ul className="flex flex-col gap-1 px-2 pb-2">
         <AnimatePresence initial={false}>
           {steps.map((step, i) => {
             const { icon: Icon, label } = metaFor(step.stepKind);
@@ -138,10 +138,7 @@ export function ResearchActivity({ steps, active, startedAt }: ResearchActivityP
                 initial={{ opacity: 0, x: -4 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={tween(0.16)}
-                className={cn(
-                  "flex gap-1.5 text-[0.62rem]",
-                  isEngine ? "items-start" : "items-center",
-                )}
+                className={cn("text-caption flex gap-2", isEngine ? "items-start" : "items-center")}
               >
                 <span
                   className={cn(

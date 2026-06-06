@@ -59,8 +59,8 @@ export function PlanView({ plan, active }: { plan: AgentPlanView; active: boolea
     return null;
   }
   return (
-    <div className="border-charcoal-700 bg-charcoal-800/40 mb-1.5 rounded-md border px-2.5 py-2">
-      <div className="text-charcoal-300 mb-1.5 flex items-center gap-1.5 text-[0.6rem] tracking-wide uppercase">
+    <div className="border-charcoal-700 bg-charcoal-800/40 mb-2 rounded-md border px-3 py-2">
+      <div className="text-micro text-charcoal-300 mb-2 flex items-center gap-2">
         <ListChecks className={`size-3 text-amber-400 ${active ? "animate-pulse" : ""}`} />
         <span>Plan</span>
         <span className="text-charcoal-500">· {plan.steps.length} steps</span>
@@ -77,22 +77,20 @@ export function PlanView({ plan, active }: { plan: AgentPlanView; active: boolea
             <motion.li
               key={`${index}-${step.action}`}
               variants={reduce ? undefined : staggerChild}
-              className="flex items-start gap-2 text-[0.68rem] leading-snug"
+              className="text-caption flex items-start gap-2 leading-snug"
             >
               <span className="text-charcoal-500 mt-px tabular-nums">{index + 1}.</span>
               <span className="text-charcoal-200 flex-1">
                 {stepText(step.action, step.args, step.rationale)}
               </span>
-              <span className={`shrink-0 rounded border px-1 py-px text-[0.55rem] ${badge.tone}`}>
+              <span className={`text-micro shrink-0 rounded border px-2 py-1 ${badge.tone}`}>
                 {badge.label}
               </span>
             </motion.li>
           );
         })}
       </motion.ol>
-      {plan.note && (
-        <div className="text-charcoal-500 mt-1.5 text-[0.6rem] italic">{plan.note}</div>
-      )}
+      {plan.note && <div className="text-micro text-charcoal-500 mt-2 italic">{plan.note}</div>}
     </div>
   );
 }

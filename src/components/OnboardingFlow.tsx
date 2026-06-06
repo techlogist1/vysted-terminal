@@ -231,10 +231,10 @@ function WelcomeStep({
   onSkip: () => void;
 }) {
   return (
-    <div className="flex flex-col gap-5 px-7 py-7">
+    <div className="flex flex-col gap-4 px-6 py-6">
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <span aria-hidden="true" className="size-2 rounded-[2px] bg-amber-400" />
+          <span aria-hidden="true" className="size-2 rounded bg-amber-400" />
           <span className="hud-label leading-none">Welcome</span>
         </div>
         <h2 className="text-lume font-serif text-2xl leading-tight font-semibold">
@@ -246,8 +246,8 @@ function WelcomeStep({
         </p>
       </div>
 
-      <div className="border-positive/25 bg-positive/5 flex items-start gap-2.5 rounded-md border px-3.5 py-2.5">
-        <Check className="text-positive mt-0.5 size-4 shrink-0" aria-hidden="true" />
+      <div className="border-positive/25 bg-positive/5 flex items-start gap-3 rounded-md border px-4 py-3">
+        <Check className="text-positive mt-1 size-4 shrink-0" aria-hidden="true" />
         <p className="text-charcoal-200 font-mono text-xs leading-relaxed">
           <span className="text-positive font-medium">It already works — no key, no account.</span>{" "}
           Live quotes, charts, news, screeners and web research run right now. Pick a path below to
@@ -283,7 +283,7 @@ function WelcomeStep({
         >
           Skip — I&apos;ll explore first →
         </button>
-        <span className="text-charcoal-500 font-mono text-[10px]">
+        <span className="text-charcoal-500 text-caption font-mono">
           You can change this anytime in Settings
         </span>
       </div>
@@ -311,16 +311,14 @@ function PathCard({
   return (
     <div
       className={cn(
-        "flex flex-col gap-2.5 rounded-lg border p-4 transition-colors",
+        "flex flex-col gap-3 rounded-lg border p-4 transition-colors",
         primary ? "border-amber-500/40 bg-amber-500/[0.04]" : "border-charcoal-700 bg-charcoal-900",
       )}
     >
       <div className="flex items-center gap-2">
         {icon}
         <span className="text-charcoal-100 font-mono text-sm font-medium">{title}</span>
-        <span className="text-charcoal-500 ml-auto font-mono text-[10px] tracking-wide uppercase">
-          {tag}
-        </span>
+        <span className="text-micro text-charcoal-500 ml-auto font-mono">{tag}</span>
       </div>
       <p className="text-charcoal-400 min-h-[5.5rem] font-mono text-xs leading-relaxed">{body}</p>
       <Button
@@ -365,7 +363,7 @@ function CloudStep({ onBack, onDone }: { onBack: () => void; onDone: () => void 
   }
 
   return (
-    <div className="flex flex-col gap-4 px-7 py-7">
+    <div className="flex flex-col gap-4 px-6 py-6">
       <StepHeader
         icon={<KeyRound className="size-4 text-amber-400" aria-hidden="true" />}
         title="Connect OpenRouter"
@@ -418,7 +416,7 @@ function CloudStep({ onBack, onDone }: { onBack: () => void; onDone: () => void 
           </p>
         )}
         <div className="flex items-center justify-between pt-1">
-          <span className="text-charcoal-500 font-mono text-[10px]">
+          <span className="text-charcoal-500 text-caption font-mono">
             Stored in your OS keychain — never written to disk by Vysted.
           </span>
           <Button type="submit" size="sm" disabled={status === "validating" || !key.trim()}>
@@ -508,7 +506,7 @@ function LocalStep({
   }
 
   return (
-    <div className="flex flex-col gap-4 px-7 py-7">
+    <div className="flex flex-col gap-4 px-6 py-6">
       <StepHeader
         icon={<Cpu className="size-4 text-amber-400" aria-hidden="true" />}
         title="Run a local model"
@@ -523,7 +521,7 @@ function LocalStep({
 
       {!loading && rec && (
         <>
-          <div className="border-charcoal-700 bg-charcoal-900 flex items-center gap-3 rounded-md border px-3.5 py-2.5">
+          <div className="border-charcoal-700 bg-charcoal-900 flex items-center gap-3 rounded-md border px-4 py-3">
             <Cpu className="text-charcoal-400 size-4 shrink-0" aria-hidden="true" />
             <p className="text-charcoal-300 font-mono text-xs">
               <span className="text-charcoal-100">{rec.device.chip}</span> · {rec.device.ramGib} GB
@@ -532,7 +530,7 @@ function LocalStep({
           </div>
 
           {!model && (
-            <div className="border-warning/30 bg-warning/5 flex flex-col gap-2 rounded-md border px-3.5 py-3">
+            <div className="border-warning/30 bg-warning/5 flex flex-col gap-2 rounded-md border px-4 py-3">
               <p className="text-charcoal-200 font-mono text-xs leading-relaxed">
                 Your machine is tight on memory for a capable local model. The one-key cloud path
                 will feel much better here — and the terminal already works keyless meanwhile.
@@ -545,12 +543,12 @@ function LocalStep({
 
           {model && (
             <div className="flex flex-col gap-3">
-              <div className="border-charcoal-700 bg-charcoal-900 flex items-center justify-between rounded-md border px-3.5 py-3">
-                <div className="flex flex-col gap-0.5">
+              <div className="border-charcoal-700 bg-charcoal-900 flex items-center justify-between rounded-md border px-4 py-3">
+                <div className="flex flex-col gap-1">
                   <span className="text-charcoal-100 font-mono text-sm">{model}</span>
                   <span
                     className={cn(
-                      "font-mono text-[11px]",
+                      "text-caption font-mono",
                       verdictMeta(rec.recommended!.verdict).className,
                     )}
                   >
@@ -558,7 +556,7 @@ function LocalStep({
                     {rec.recommended!.demandGib ? ` · ~${rec.recommended!.demandGib} GB` : ""}
                   </span>
                 </div>
-                <span className="text-charcoal-500 max-w-[14rem] text-right font-mono text-[10px] leading-snug">
+                <span className="text-charcoal-500 text-caption max-w-[14rem] text-right font-mono leading-snug">
                   {rec.recommended!.reason}
                 </span>
               </div>
@@ -566,7 +564,7 @@ function LocalStep({
               {/* State machine: not-installed daemon → install guidance; running
                   + present → use; running + absent → download with progress. */}
               {ollama && !ollama.running && (
-                <div className="border-charcoal-700 bg-charcoal-900 flex flex-col gap-2.5 rounded-md border px-3.5 py-3">
+                <div className="border-charcoal-700 bg-charcoal-900 flex flex-col gap-3 rounded-md border px-4 py-3">
                   <p className="text-charcoal-300 font-mono text-xs leading-relaxed">
                     Local models run through <span className="text-charcoal-100">Ollama</span>, a
                     free open-source runner. Install it, start it, then come back:
@@ -574,12 +572,12 @@ function LocalStep({
                   <button
                     type="button"
                     onClick={() => void openExternal(OLLAMA_DOWNLOAD_URL)}
-                    className="border-charcoal-700 bg-charcoal-800 text-charcoal-200 flex items-center gap-2 self-start rounded-md border px-3 py-1.5 font-mono text-xs transition-colors hover:border-amber-500/40 hover:text-amber-300"
+                    className="border-charcoal-700 bg-charcoal-800 text-charcoal-200 flex items-center gap-2 self-start rounded-md border px-3 py-2 font-mono text-xs transition-colors hover:border-amber-500/40 hover:text-amber-300"
                   >
                     <ExternalLink className="size-3.5" aria-hidden="true" />
                     Download Ollama — ollama.com/download
                   </button>
-                  <code className="text-charcoal-400 bg-charcoal-950 border-charcoal-800 rounded border px-2 py-1 font-mono text-[11px]">
+                  <code className="text-charcoal-400 bg-charcoal-950 border-charcoal-800 text-caption rounded border px-2 py-1 font-mono">
                     or: brew install ollama
                   </code>
                   <Button
@@ -606,8 +604,8 @@ function LocalStep({
               )}
 
               {pulling && progress && (
-                <div className="flex flex-col gap-1.5">
-                  <div className="bg-charcoal-800 h-1.5 w-full overflow-hidden rounded-full">
+                <div className="flex flex-col gap-2">
+                  <div className="bg-charcoal-800 h-2 w-full overflow-hidden rounded-full">
                     <div
                       className="h-full rounded-full bg-amber-400 transition-all"
                       style={{
@@ -618,7 +616,7 @@ function LocalStep({
                       }}
                     />
                   </div>
-                  <p className="text-charcoal-400 font-mono text-[11px]">
+                  <p className="text-charcoal-400 text-caption font-mono">
                     {progress.status}
                     {progress.total && progress.completed
                       ? ` · ${formatBytes(progress.completed)} / ${formatBytes(progress.total)}`
@@ -668,11 +666,11 @@ function DoneStep({
   }, [onMarkSeen]);
 
   return (
-    <div className="flex flex-col items-center gap-4 px-7 py-10 text-center">
+    <div className="flex flex-col items-center gap-4 px-6 py-8 text-center">
       <div className="border-positive/30 bg-positive/10 flex size-12 items-center justify-center rounded-full border">
         <Check className="text-positive size-6" aria-hidden="true" />
       </div>
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-2">
         <h2 className="text-lume font-serif text-xl font-semibold">You&apos;re set</h2>
         <p className="text-charcoal-300 max-w-sm font-mono text-xs leading-relaxed">
           {choice === "cloud"

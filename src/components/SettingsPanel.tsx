@@ -166,7 +166,7 @@ function ProvidersSection() {
         title="AI Providers"
         hint="Paste an API key to enable an AI provider. Keys are stored in your OS keychain — never on disk or sent anywhere but the provider you call."
       />
-      <ul className="flex flex-col gap-1.5">
+      <ul className="flex flex-col gap-2">
         {providers.map((provider) => {
           const keyState = status[provider.id] ?? "missing";
           const configured = keyState === "configured";
@@ -181,12 +181,12 @@ function ProvidersSection() {
                 <span className="text-charcoal-100 flex min-w-0 items-center gap-2 font-mono text-sm">
                   <span className="truncate">{provider.label}</span>
                   {isDefault && (
-                    <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 font-mono text-[10px] tracking-wide text-amber-400 uppercase">
+                    <span className="text-micro shrink-0 rounded bg-amber-500/15 px-2 py-1">
                       default
                     </span>
                   )}
                 </span>
-                <span className="text-charcoal-400 mt-0.5 flex min-w-0 items-center gap-1.5 font-mono text-xs">
+                <span className="text-charcoal-400 mt-1 flex min-w-0 items-center gap-2 font-mono text-xs">
                   {!needsKey ? (
                     <span className="truncate">No key required (local)</span>
                   ) : configured ? (
@@ -199,7 +199,7 @@ function ProvidersSection() {
                   )}
                 </span>
               </div>
-              <div className="flex shrink-0 items-center gap-1.5">
+              <div className="flex shrink-0 items-center gap-2">
                 {/* Picking a default is a free preference (no key precondition),
                     so it shows on every non-default row — not just the one
                     provider that happens to need no key (regression-95 BUG-3). */}
@@ -212,7 +212,7 @@ function ProvidersSection() {
                       // choice survives relaunch even without a layout change.
                       void autosaveLayout();
                     }}
-                    className="text-charcoal-400 hover:text-charcoal-100 font-mono text-[11px] uppercase"
+                    className="text-micro text-charcoal-400 hover:text-charcoal-100 font-mono"
                   >
                     Set default
                   </button>
@@ -232,7 +232,7 @@ function ProvidersSection() {
                         type="button"
                         aria-label={`Remove ${provider.label} key`}
                         onClick={() => void handleRemove(provider.id)}
-                        className="text-charcoal-400 hover:text-negative rounded p-1.5"
+                        className="text-charcoal-400 hover:text-negative rounded p-2"
                       >
                         <Trash2 className="size-3.5" aria-hidden="true" />
                       </button>
@@ -362,7 +362,7 @@ function WebSearchSection() {
 
         {/* Active-tier status: a one-line confirmation of where searches route,
             so the selected tier's effect is never ambiguous. */}
-        <p className="text-charcoal-400 -mt-2 font-mono text-[11px]">
+        <p className="text-charcoal-400 text-caption -mt-2 font-mono">
           {tier === "native"
             ? "Searches run on your active model's own web search — no extra key needed."
             : tier === "byok-exa"
@@ -378,7 +378,7 @@ function WebSearchSection() {
             <KeyRound className="size-3.5 text-amber-400" aria-hidden="true" />
             Exa API key (BYOK)
           </p>
-          <p className="text-charcoal-400 mt-0.5 mb-2 font-mono text-[11px]">
+          <p className="text-charcoal-400 text-caption mt-1 mb-2 font-mono">
             Optional. Stored in your OS keychain — never on disk or sent anywhere but Exa. Powers
             the BYOK search tier.
           </p>
@@ -408,7 +408,7 @@ function WebSearchSection() {
                   can't actually run — say so plainly rather than silently falling
                   back. */}
               {tier === "byok-exa" ? (
-                <p className="text-warning mb-2 font-mono text-[11px]">
+                <p className="text-warning text-caption mb-2 font-mono">
                   The BYOK search tier is selected but needs an Exa key to work — add one below.
                 </p>
               ) : null}
@@ -437,7 +437,7 @@ function WebSearchSection() {
                 </Button>
               </form>
               {exaError && (
-                <p className="text-negative mt-2 font-mono text-[11px]" role="alert">
+                <p className="text-negative text-caption mt-2 font-mono" role="alert">
                   {exaError}
                 </p>
               )}
@@ -463,15 +463,15 @@ function WebSearchSection() {
             JSON output is OFF by default in SearXNG, so the setup must enable it. */}
         {tier === "local-searxng" && (
           <div className="border-charcoal-700 bg-charcoal-850 rounded-md border px-4 py-3">
-            <p className="text-charcoal-200 font-mono text-[11px]">
+            <p className="text-charcoal-200 text-caption font-mono">
               No instance yet? Run one locally (keyless, ~200 MB):
             </p>
-            <pre className="text-charcoal-300 bg-charcoal-900 mt-1.5 overflow-x-auto rounded p-2 font-mono text-[10px] leading-relaxed">
+            <pre className="text-charcoal-300 bg-charcoal-900 text-caption mt-2 overflow-x-auto rounded p-2 font-mono leading-relaxed">
               {
                 "docker run -d -p 8080:8080 \\\n  -e SEARXNG_SETTINGS_PATH=/etc/searxng/settings.yml \\\n  searxng/searxng"
               }
             </pre>
-            <p className="text-charcoal-400 mt-1.5 font-mono text-[11px]">
+            <p className="text-charcoal-400 text-caption mt-2 font-mono">
               Then enable JSON output: add <code className="text-amber-400">json</code> to{" "}
               <code className="text-amber-400">search.formats</code> and set{" "}
               <code className="text-amber-400">server.limiter: false</code> in settings.yml. The
@@ -606,14 +606,14 @@ function LayoutsSection() {
               <span className="text-charcoal-100 truncate font-mono text-xs">
                 {name}
                 {name === activeName && (
-                  <span className="text-charcoal-500 ml-2 text-[10px] uppercase">active</span>
+                  <span className="text-micro text-charcoal-500 ml-2">active</span>
                 )}
               </span>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => void withBusy(() => loadWorkspace(name))}
-                  className="text-charcoal-300 font-mono text-[11px] uppercase hover:text-amber-400"
+                  className="text-micro text-charcoal-300 font-mono hover:text-amber-400"
                 >
                   Load
                 </button>
@@ -635,7 +635,7 @@ function LayoutsSection() {
           ))}
         </ul>
       )}
-      <p className="text-charcoal-500 mt-2 font-mono text-[10px]">
+      <p className="text-charcoal-500 text-caption mt-2 font-mono">
         Autosave slot: {AUTOSAVE_LAYOUT_NAME} (hidden; restored on launch)
       </p>
     </section>
@@ -659,7 +659,7 @@ function ModulesSection() {
         title="Modules"
         hint="Disabled modules contribute no panels or ⌘K commands."
       />
-      <ul className="flex flex-col gap-1.5">
+      <ul className="flex flex-col gap-2">
         {modules.map((module) => {
           const isPlatform = module.id === PLATFORM_MODULE_ID;
           const isEnabled = enabled[module.id] !== false;
@@ -730,9 +730,9 @@ function FitRow({ model }: { model: ScoredModel }) {
     <li className="flex items-baseline justify-between gap-3 py-1">
       <div className="min-w-0">
         <div className="text-charcoal-200 truncate font-mono text-xs">{model.name}</div>
-        <div className="text-charcoal-500 truncate font-mono text-[0.65rem]">{model.reason}</div>
+        <div className="text-charcoal-500 text-caption truncate font-mono">{model.reason}</div>
       </div>
-      <span className={cn("shrink-0 font-mono text-[0.65rem] font-semibold", meta.className)}>
+      <span className={cn("text-caption shrink-0 font-mono font-semibold", meta.className)}>
         {meta.label}
       </span>
     </li>
@@ -780,7 +780,7 @@ function HardwareSection() {
         <div className="flex flex-col gap-3">
           <div className="border-charcoal-700 bg-charcoal-900 rounded-md border p-3">
             <div className="text-charcoal-100 font-mono text-xs">{report.device.chip}</div>
-            <div className="text-charcoal-400 mt-1 font-mono text-[0.65rem]">
+            <div className="text-charcoal-400 text-caption mt-1 font-mono">
               {report.device.ramGib} GiB RAM · {report.device.gpuBudgetGib} GiB GPU budget ·{" "}
               {report.device.perfCores}P/{report.device.totalCores} cores · {report.device.osName}{" "}
               {report.device.osVersion}
@@ -788,7 +788,7 @@ function HardwareSection() {
           </div>
           {report.ollama.models.length > 0 && (
             <div>
-              <div className="text-charcoal-400 mb-1 font-mono text-[0.65rem] uppercase">
+              <div className="text-charcoal-400 text-caption mb-1 font-mono uppercase">
                 Installed local models (Ollama)
               </div>
               <ul className="divide-charcoal-800 divide-y">
@@ -799,7 +799,7 @@ function HardwareSection() {
             </div>
           )}
           <div>
-            <div className="text-charcoal-400 mb-1 font-mono text-[0.65rem] uppercase">
+            <div className="text-charcoal-400 text-caption mb-1 font-mono uppercase">
               Frontier deep-research models
             </div>
             <ul className="divide-charcoal-800 divide-y">
@@ -834,7 +834,7 @@ function DeepResearchSection() {
         title="Deep research"
         hint="How /deep and 'go deeper' work."
       />
-      <p className="text-charcoal-400 px-1 font-mono text-[0.7rem] leading-relaxed">
+      <p className="text-charcoal-400 text-caption px-2 font-mono leading-relaxed">
         Deep research runs Vysted&rsquo;s own bounded{" "}
         <span className="text-charcoal-200">IterResearch</span> loop on your configured model — a
         multi-round search → read → reflect → synthesize pass that returns a cited brief. Always
@@ -1015,7 +1015,7 @@ function PreferencesSection() {
         {/* Provider preference order */}
         <div className="border-charcoal-700 bg-charcoal-850 rounded-md border px-4 py-3">
           <p className="text-charcoal-200 font-mono text-xs">Provider preference order</p>
-          <p className="text-charcoal-400 mt-0.5 mb-2 font-mono text-[11px]">
+          <p className="text-charcoal-400 text-caption mt-1 mb-2 font-mono">
             The order providers are offered in pickers. Reorder to surface the ones you reach for
             first.
           </p>
@@ -1023,13 +1023,13 @@ function PreferencesSection() {
             {orderedProviderIds.map((id, idx) => (
               <li
                 key={id}
-                className="border-charcoal-700 bg-charcoal-900 flex items-center justify-between gap-2 rounded border px-3 py-1.5"
+                className="border-charcoal-700 bg-charcoal-900 flex items-center justify-between gap-2 rounded border px-3 py-2"
               >
                 <span className="text-charcoal-100 flex items-center gap-2 font-mono text-xs">
                   <span className="text-charcoal-500 w-4 text-right tabular-nums">{idx + 1}</span>
                   {providerLabel(id)}
                 </span>
-                <span className="flex items-center gap-0.5">
+                <span className="flex items-center gap-1">
                   <button
                     type="button"
                     aria-label={`Move ${providerLabel(id)} up`}
@@ -1072,7 +1072,7 @@ function PreferencesSection() {
         {/* Starter-cockpit composition (FR-032) */}
         <div className="border-charcoal-700 bg-charcoal-850 rounded-md border px-4 py-3">
           <p className="text-charcoal-200 font-mono text-xs">Starter cockpit</p>
-          <p className="text-charcoal-400 mt-0.5 mb-2 font-mono text-[11px]">
+          <p className="text-charcoal-400 text-caption mt-1 mb-2 font-mono">
             The panels that open on first run, before you save your own layout.
           </p>
           <div className="grid grid-cols-2 gap-x-4 gap-y-1">
@@ -1104,7 +1104,7 @@ function PreferencesSection() {
             <Palette className="size-3.5 text-amber-400" aria-hidden="true" />
             Appearance
           </p>
-          <p className="text-charcoal-400 mt-0.5 mb-2 font-mono text-[11px]">
+          <p className="text-charcoal-400 text-caption mt-1 mb-2 font-mono">
             Vysted is dark-only by design. These tune the dark language.
           </p>
           <div className="flex flex-col gap-2">
@@ -1238,11 +1238,11 @@ function KeybindingsSection() {
           role="alert"
           className="border-warning/40 bg-warning/10 text-warning mb-3 flex items-start gap-2 rounded-md border px-3 py-2 font-mono text-xs"
         >
-          <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+          <AlertTriangle className="mt-1 size-3.5 shrink-0" aria-hidden="true" />
           <div>
             <p className="font-medium">Conflicting bindings detected</p>
             {conflictList.map((c) => (
-              <p key={c.keys} className="text-warning/90 mt-0.5">
+              <p key={c.keys} className="text-warning/90 mt-1">
                 <span className="font-mono">{formatBinding(c.keys)}</span> is bound to{" "}
                 {c.actionIds.map((id) => DEFAULT_KEYBINDINGS[id]?.label ?? id).join(" and ")}.
               </p>
@@ -1259,9 +1259,7 @@ function KeybindingsSection() {
           }
           return (
             <div key={category}>
-              <h3 className="text-charcoal-400 mb-1.5 font-mono text-[10px] tracking-wider uppercase">
-                {label}
-              </h3>
+              <h3 className="text-micro text-charcoal-400 mb-2 font-mono">{label}</h3>
               <ul className="flex flex-col gap-1">
                 {group.map(({ actionId, def, combo }) => {
                   const isRecording = recording === actionId;
@@ -1277,7 +1275,7 @@ function KeybindingsSection() {
                     >
                       <div className="flex min-w-0 flex-col">
                         <span className="text-charcoal-100 font-mono text-xs">{def.label}</span>
-                        <span className="text-charcoal-400 truncate font-mono text-[11px]">
+                        <span className="text-charcoal-400 text-caption truncate font-mono">
                           {def.description}
                         </span>
                       </div>
@@ -1285,7 +1283,7 @@ function KeybindingsSection() {
                         <kbd
                           aria-label={`${def.label} binding`}
                           className={cn(
-                            "border-charcoal-700 bg-charcoal-900 rounded border px-2 py-0.5 font-mono text-xs",
+                            "border-charcoal-700 bg-charcoal-900 rounded border px-2 py-1 font-mono text-xs",
                             conflicted ? "text-warning" : "text-charcoal-100",
                           )}
                         >
@@ -1302,7 +1300,7 @@ function KeybindingsSection() {
                             if (isRecording) setRecording(null);
                           }}
                           className={cn(
-                            "rounded px-2 py-1 font-mono text-[11px] uppercase",
+                            "text-micro rounded px-2 py-1 font-mono",
                             isRecording
                               ? "bg-amber-500/20 text-amber-400"
                               : "text-charcoal-400 hover:text-charcoal-100",
@@ -1427,7 +1425,7 @@ function ExportImportSection() {
             }}
           />
         </div>
-        <p className="text-charcoal-500 font-mono text-[11px]">
+        <p className="text-charcoal-500 text-caption font-mono">
           The export bundles your keybinding remaps and preferences (default agent, provider order,
           palette behaviour, starter cockpit, theme). API keys and broker credentials stay in your
           OS keychain and are never written to the file.
@@ -1435,7 +1433,7 @@ function ExportImportSection() {
         {status && (
           <p
             className={cn(
-              "font-mono text-[11px]",
+              "text-caption font-mono",
               status.kind === "ok" ? "text-positive" : "text-negative",
             )}
           >
@@ -1459,7 +1457,7 @@ function AboutSection() {
         icon={<Info className="size-4 text-amber-400" aria-hidden="true" />}
         title="About"
       />
-      <div className="border-charcoal-700 bg-charcoal-850 text-charcoal-300 flex flex-col gap-1.5 rounded-md border px-4 py-3 font-mono text-xs">
+      <div className="border-charcoal-700 bg-charcoal-850 text-charcoal-300 flex flex-col gap-2 rounded-md border px-4 py-3 font-mono text-xs">
         <p>
           Vysted <span className="text-charcoal-500">v{HOST_VERSION}</span> — an open-source,
           AI-native finance terminal.
@@ -1502,10 +1500,10 @@ function SectionHeader({
 /**
  * Shared `<select>` styling for the preferences controls. `appearance-none`
  * strips the cold WKWebView OS-default chrome (so the warm chevron below shows
- * through); `pr-7` reserves room for that chevron.
+ * through); `pr-6` reserves room for that chevron.
  */
 const selectClass =
-  "border-charcoal-700 bg-charcoal-900 text-charcoal-100 h-8 min-w-[12rem] appearance-none rounded-md border pr-7 pl-2 font-mono text-xs outline-none focus:border-amber-400";
+  "border-charcoal-700 bg-charcoal-900 text-charcoal-100 h-8 min-w-[12rem] appearance-none rounded-md border pr-6 pl-2 font-mono text-xs outline-none focus:border-amber-400";
 
 /**
  * A `<select>` wrapped in a `relative` container with a warm chevron overlay —
@@ -1544,7 +1542,7 @@ function PrefRow({
           {icon}
           {label}
         </span>
-        {hint && <span className="text-charcoal-400 mt-0.5 font-mono text-[11px]">{hint}</span>}
+        {hint && <span className="text-charcoal-400 text-caption mt-1 font-mono">{hint}</span>}
       </div>
       <div className="shrink-0">{children}</div>
     </div>
