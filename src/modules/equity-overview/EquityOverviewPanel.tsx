@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Building2, Loader2, Search, Sparkles } from "lucide-react";
 
-import { DataTable, type DataColumn, type DataSection } from "@/components/DataTable";
+import { cn, DataTable, type DataColumn, type DataSection } from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
 import {
   formatCompactMoney,
@@ -12,7 +12,6 @@ import {
   formatUnit,
 } from "@/lib/format";
 import { SidecarError } from "@/lib/sidecar-client";
-import { cn } from "@/lib/utils";
 import { useEquityCommandStore } from "@/store/equity-command";
 import { usePanelContextBus } from "@/store/panel-context";
 import type {

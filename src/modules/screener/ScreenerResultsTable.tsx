@@ -3,11 +3,10 @@
 import { useMemo, useState } from "react";
 import { Download, SlidersHorizontal, FilterX, Loader2 } from "lucide-react";
 
-import { DataTable, type DataColumn, type DataTableSort } from "@/components/DataTable";
+import { cn, DataTable, type DataColumn, type DataTableSort } from "@/components/DataTable";
 import { EmptyState } from "@/components/EmptyState";
 import { formatCompactMoney, formatPercent, formatPrice, formatUnit } from "@/lib/format";
 import { loadSymbolIntoChart, openCompanyOverview } from "@/lib/host-actions";
-import { cn } from "@/lib/utils";
 import { useScreenerStore } from "@/store/screener";
 
 import type { ScreenerResultRow } from "../../../types/screener";
