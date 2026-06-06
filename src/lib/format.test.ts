@@ -5,7 +5,9 @@ import {
   formatCompactNumber,
   formatMoney,
   formatPercent,
+  formatPrice,
   formatSignedMoney,
+  formatUnit,
 } from "./format";
 
 describe("formatMoney", () => {
@@ -68,5 +70,47 @@ describe("formatCompactNumber", () => {
   it("abbreviates large counts", () => {
     expect(formatCompactNumber(1_200_000)).toBe("1.20M");
     expect(formatCompactNumber(500)).toBe("500");
+  });
+});
+
+describe("formatUnit", () => {
+  it("abbreviates at K/M/B/T/Q boundaries (the missing-B class)", () => {
+    // The 14.698 shares-out bug: a raw count must read with a unit.
+    expect(formatUnit(14_698_000_000)).toBe("14.70B");
+    expect(formatUnit(1_500)).toBe("1.50K");
+    expect(formatUnit(2_300_000)).toBe("2.30M");
+    expect(formatUnit(4.2e12)).toBe("4.20T");
+    expect(formatUnit(6.217e15)).toBe("6.22Q");
+  });
+  it("drops the mantissa decimals once it reads >= 100", () => {
+    expect(formatUnit(622_000_000_000_000_000)).toBe("622Q");
+    expect(formatUnit(150_000_000)).toBe("150M");
+  });
+  it("locale-groups below the K tier and keeps a sign", () => {
+    expect(formatUnit(999)).toBe("999");
+    expect(formatUnit(-2_500_000)).toBe("-2.50M");
+  });
+  it("degrades non-finite to em-dash", () => {
+    expect(formatUnit(NaN)).toBe("—");
+    expect(formatUnit(Infinity)).toBe("—");
+  });
+  it("honours an explicit decimal precision", () => {
+    expect(formatUnit(1_234_000, 1)).toBe("1.2M");
+  });
+});
+
+describe("formatPrice", () => {
+  it("renders >= 1 at 2dp by default", () => {
+    expect(formatPrice(35.927)).toBe("35.93");
+    expect(formatPrice(1)).toBe("1.00");
+  });
+  it("keeps significant digits for sub-unit magnitudes", () => {
+    expect(formatPrice(0.000021)).toBe("0.000021");
+  });
+  it("respects a custom decimal count", () => {
+    expect(formatPrice(35.927, 3)).toBe("35.927");
+  });
+  it("degrades non-finite", () => {
+    expect(formatPrice(NaN)).toBe("—");
   });
 });
