@@ -24,6 +24,7 @@ export function EmptyState({
   headline,
   hint,
   cta,
+  dense = false,
   className,
 }: {
   /** The lucide icon for this surface (sized + tinted by the component). */
@@ -34,25 +35,36 @@ export function EmptyState({
   hint?: string;
   /** Optional single call-to-action. `primary` lifts it to the amber outline. */
   cta?: { label: string; onClick: () => void; primary?: boolean };
+  /** Compact variant for inline/secondary panels (palette no-results, sparse
+   *  tables): smaller icon + caption headline, tighter rhythm. (§13.) */
+  dense?: boolean;
   className?: string;
 }) {
   return (
     <div
       data-testid="empty-state"
+      data-dense={dense || undefined}
       className={cn(
-        "flex h-full w-full flex-col items-center justify-center gap-3 px-6 py-8 text-center",
+        "flex h-full w-full flex-col items-center justify-center text-center",
+        dense ? "gap-2 px-4 py-6" : "gap-3 px-6 py-8",
         className,
       )}
     >
       <Icon
         aria-hidden
         strokeWidth={1.5}
-        className="text-charcoal-500 size-6"
+        className={cn("text-charcoal-500", dense ? "size-5" : "size-6")}
         data-testid="empty-state-icon"
       />
-      <div className="flex flex-col items-center gap-1">
+      <div className={cn("flex flex-col items-center", dense ? "gap-0.5" : "gap-1")}>
         {/* `text-panel-title` already carries the 510 label weight (design §4/§7). */}
-        <p data-testid="empty-state-headline" className="text-charcoal-200 text-panel-title">
+        <p
+          data-testid="empty-state-headline"
+          className={cn(
+            "text-charcoal-200",
+            dense ? "text-caption font-medium" : "text-panel-title",
+          )}
+        >
           {headline}
         </p>
         {hint && (

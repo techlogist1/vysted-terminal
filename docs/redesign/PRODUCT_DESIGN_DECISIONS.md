@@ -221,3 +221,103 @@ A surface passes when, placed beside its reference at the same zoom: (a) the bac
 visibly **three** text tiers; (d) accent appears on **0–2** elements, amber, never neon;
 (e) **no glow** anywhere; (f) empty states look intentional. A fresh reviewer who has seen
 only the references and the app screenshots should place them in the same family.
+
+---
+
+# R5 addendum — the ENFORCED component patterns (§11–§16)
+
+> R5 finding: §1–§10 are correct but were **not enforced** — components rolled their own tables,
+> editor, palette, and empty states with off-scale values. §11–§16 turn the recurring surfaces into
+> ONE shared, enforced pattern each. When a surface and its pattern below disagree, the pattern wins.
+> Build the primitive once (`Phase 0`), consume it everywhere.
+
+## 11. The table pattern — ONE `DataTable`, no hand-rolled grids
+
+Every tabular/numeric surface (equity-overview statements, screener, analyst, earnings, SEC, portfolio,
+watchlist) renders through `src/components/DataTable.tsx`. No more per-panel `<table>` markup.
+
+- **Numbers are right-aligned, `tabular-nums`, single-formatter.** All numeric cells use
+  `text-right whitespace-nowrap` + tabular figures (already global). Every value runs through the single
+  `src/lib/format.ts` suite (`formatMoney`, `formatCompactMoney`, `formatPercent`, `formatPrice`,
+  `formatUnit` K/M/B/T) — **never** a per-panel formatter, **never** an unsuffixed raw number.
+- **Header row:** `text-micro` (11px) · weight-510 · `charcoal-400` · uppercase · `px-3 py-1.5`. Numeric
+  headers are `text-right` too. Sortable headers add an `aria-sort` + a quiet caret; the active sort key
+  is the **only** amber affordance in the table.
+- **Body row:** `text-body` (13px) · weight-400 · `px-3 py-1.5` (one rhythm for every dense table). Primary
+  values `charcoal-100`; supporting/secondary values `charcoal-400`; subtotals/meta `charcoal-500`.
+- **Period / column headers** are first-class: financial statements show explicit period columns
+  (`TTM`, `FY2025`, `FY2024`…), right-aligned to their numeric column.
+- **Grouped sections** (Valuation / Profitability / Financial Health / …) via a section-header row
+  (`text-micro` `charcoal-500`), not ad-hoc spacing.
+- **Missing values** render `—` (`charcoal-600`); a row/section that is wholly null collapses to a single
+  muted note (`text-caption charcoal-500`), never a wall of dashes.
+- **Never** expose snake_case — labels come from a curated map (e.g. `FIELD_GROUPS`).
+
+## 12. The editor pattern — Notes is a real editor with a visible toolbar
+
+Notes uses the **already-installed Tiptap v3** (no editor swap). The chrome is the work.
+
+- A **visible formatting toolbar** (`h-12`, groups separated by `gap-4`): Headings (H1/H2/H3) · Inline
+  (bold, italic, code) · Lists (bullet, numbered, task) · Blocks (blockquote, link) · `[[wikilink]]`.
+  Each button: `editor.isActive(x)` drives an **amber** active state (text/tick, not a fill); the action is
+  `editor.chain().focus().toggleX().run()`. Icons lucide, 16–18px, tertiary default → primary on hover.
+- **Live markdown** renders in a `.notes-prose` block locked to the system scale (h2 = `text-section` 18px,
+  body = `text-body` 13px, code = mono) — never Tailwind's default 16px prose.
+- Popovers (slash, wikilink) use a **1px `charcoal-700` border, no `shadow-lg`** (no-glow). Menu rows `h-9`,
+  `text-caption` title + `text-micro` hint.
+- Preserve: MD/PNG/PDF export, atomic persistence, wikilinks, slash commands.
+
+## 13. The empty-state pattern — `EmptyState`, fills its container
+
+Use the existing `src/components/EmptyState.tsx` (don't rebuild). Two jobs:
+
+- **Generic dead surfaces** (palette no-results, sparse tables, disconnected panels): the §8 stack
+  (quiet icon `charcoal-500` ~22px → `text-panel-title` headline `charcoal-200/510` → one `text-caption`
+  `charcoal-500` line → optional single ghost CTA, amber only if primary). A dense `secondary` variant
+  (smaller icon, `text-caption`) for inline/secondary panels.
+- **Hero empty states** (chat dock, first-run composer) **fill the column** — centered identity block, then
+  a **distributed** suggestion set (teach-the-agent chips) that occupies the remaining height. **No
+  `justify-center` floating a small block in a tall column** (the R4 dead-void failure). Measure: <20%
+  unused vertical space vs the Perplexity reference.
+
+## 14. The composer pattern — input + send are ONE unit
+
+- Input `min-h-[52px]` · `text-sm` (14px) · `rounded-lg` · form `p-4`, `gap-3`. Send `size-10` (40px),
+  `rounded-full`, amber fill with `charcoal-950` glyph (the one primary CTA). The pair reads balanced
+  (≈1 : N where the send visually anchors the right edge), never "big rectangle + tiny arrow."
+- The input reserves a **left inset** (`pl-11`) so a persona/agent indicator never overlaps the placeholder.
+  Placeholder is `charcoal-500` (tertiary).
+- The control toolbar (mode / lens / provider / model) lifts to `h-9`, `gap-2`; labels are tertiary
+  (`charcoal-500`), values secondary. Chrome stays dense (mono `text-xs` ok for data selectors) but on-scale.
+
+## 15. The palette pattern — grouped, truncating, useful-when-empty
+
+- Group headers use the now-defined `.group-heading-style` (`text-micro` · `charcoal-500` · uppercase ·
+  0.1em). Groups: Recent · Suggested (empty query) → Agents · Actions · Panels · Symbols (with query).
+- Rows: `icon · title (truncate min-w-0) · muted description (truncate) · right kbd/group`. Text **always**
+  truncates with ellipsis inside the row; it **never** hard-clips past the panel edge, at any width.
+  Palette `max-w-2xl`, input `text-body` sans (not mono), rows `py-2.5`.
+- Empty query → `EmptyState`-style recent + suggested actions, **not** an agent dump. Keep the fixed-query
+  symbol filter.
+
+## 16. Enforcement — the binary off-scale audit (the gate for "one system")
+
+**The scale is law. New/changed code uses named utilities + tokens only.**
+
+- **Type scale (the only sizes):** `text-micro` 11 · `text-caption` 12 · `text-body` 13 · `text-panel-title`
+  15 · `text-section` 18 · `text-overview` 22 · `text-hero` 28. Weights: body 400 · label 510 · heading 590.
+  **Minimum interactive text = 12px.** Dense data tables = `text-body` 13.
+- **Spacing scale (the only steps):** 2 · 4 · 6 · 8 · 12 · 16 · 24 · 32 · 48 · 64 (`--spacing-*`). Component
+  padding from {6, 8, 12}; section gaps from {16, 24, 32}.
+- **Control heights:** `sm` 32 · `md` 36–40 · `lg` 48. Send `size-10`. No `h-7`/`h-8` chrome buttons in
+  changed code (data selectors may stay dense but on-scale).
+- **Radius:** `radius-control` 4px · `radius-panel` 6px · composer/palette may use `rounded-lg` 8px.
+- **Binary audit (must be zero in every changed file):**
+  - `rg -n 'text-\[' <file>` → **0** (use a named util).
+  - `rg -n '\b(gap|p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr)-(2\.5|3\.5|1\.5|0\.5|5|7|9|10|11)\b' <file>`
+    reviewed → only values that map to a scale step survive; off-grid (2.5/3.5/7/10…) → **0**.
+  - `rg -n 'rounded-\[' <file>` → **0**.
+  - `rg -n '#[0-9a-fA-F]{3,6}' <file>` in components → **0** (tokens only).
+  - `rg -n 'shadow-(md|lg|xl|2xl)|drop-shadow|blur-' <file>` → **0** (no-glow).
+- An undefined utility class (e.g. the old `.group-heading-style`) is a **defect** — Tailwind won't warn,
+  so grep for referenced-but-undefined classes when a header/label looks unstyled.
