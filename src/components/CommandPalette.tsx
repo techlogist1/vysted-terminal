@@ -10,6 +10,9 @@
  *   4. Panels   — PanelSpec[] from enabled modules.
  *   5. Symbols  — watchlist + resolved; query-gated (hidden when empty query) + capped ≤50.
  *
+ * Empty-query state: shows "Recent" (last-used commands) + "Suggested" (curated
+ * shortcuts) instead of the full corpus dump.
+ *
  * Cross-group ranking: a custom `paletteFilter` adds per-group score offsets so
  * agents always outrank actions which outrank panels which outrank symbols,
  * while cmdk fuzzy-ranks within each group normally.
@@ -42,11 +45,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { EmptyState } from "@/components/EmptyState";
 import { executeCommand } from "@/lib/commands";
 import { useChatPendingStore } from "@/store/chat-pending";
 import {
   buildPaletteCorpus,
   paletteFilter,
+  SUGGESTED_ITEMS,
   SYMBOL_CAP,
   useCommandPalette,
   type PaletteItem,
@@ -78,7 +83,7 @@ export function CommandPalette() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="border-charcoal-700 bg-charcoal-900 max-w-2xl gap-0 overflow-hidden p-0 shadow-2xl"
+        className="border-charcoal-700 bg-charcoal-900 max-w-2xl gap-0 overflow-hidden p-0"
         showCloseButton={false}
       >
         <DialogHeader className="sr-only">
@@ -119,8 +124,18 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
   const panels = useMemo(() => corpus.filter((i) => i.kind === "panel"), [corpus]);
   const symbols = useMemo(() => corpus.filter((i) => i.kind === "symbol"), [corpus]);
 
+  // Recent items resolved to full PaletteItems (most-recent first, up to 5).
+  const recentItems = useMemo(() => {
+    const byId = new Map(corpus.map((item) => [item.id, item]));
+    return recents
+      .map((id) => byId.get(id))
+      .filter((item): item is PaletteItem => item !== undefined)
+      .slice(0, 5);
+  }, [corpus, recents]);
+
   // Whether the symbol group should be visible (only when there's a query).
-  const showSymbols = query.trim().length > 0;
+  const hasQuery = query.trim().length > 0;
+  const showSymbols = hasQuery;
 
   // Auto-focus the input when the body mounts (palette just opened).
   useEffect(() => {
@@ -176,6 +191,27 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
     [recordSelection, openPanel, setChartSymbol, onClose],
   );
 
+  // Handler for suggested static items (resolved against the live corpus).
+  const handleSelectSuggested = useCallback(
+    (suggestion: (typeof SUGGESTED_ITEMS)[number]) => {
+      recordSelection(suggestion.id);
+
+      // Try to find the item in the corpus and dispatch normally.
+      const found = corpus.find((i) => i.id === suggestion.corpusId);
+      if (found) {
+        handleSelectItem(found);
+        return;
+      }
+
+      // Fallback: open by panel id directly.
+      if (suggestion.panelId) {
+        openPanel(suggestion.panelId);
+      }
+      onClose();
+    },
+    [recordSelection, corpus, handleSelectItem, openPanel, onClose],
+  );
+
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
@@ -188,20 +224,20 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
       className="bg-charcoal-900 flex flex-col"
     >
       {/* Search input */}
-      <div className="border-charcoal-700 flex items-center gap-2.5 border-b px-4 py-3.5">
+      <div className="border-charcoal-700 flex items-center gap-3 border-b px-4 py-3">
         <Search className="text-charcoal-400 size-4 shrink-0" aria-hidden />
         <Command.Input
           ref={inputRef}
           value={query}
           onValueChange={setQuery}
           placeholder="Ask anything, search agents, panels, symbols…"
-          className="text-charcoal-100 placeholder:text-charcoal-500 min-w-0 flex-1 bg-transparent font-mono text-[0.95rem] outline-none"
+          className="text-charcoal-100 placeholder:text-charcoal-500 text-body min-w-0 flex-1 bg-transparent outline-none"
         />
         {query && (
           <button
             type="button"
             onClick={() => setQuery("")}
-            className="text-charcoal-500 hover:text-charcoal-300 font-mono text-xs transition-colors"
+            className="text-charcoal-500 hover:text-charcoal-300 text-caption transition-colors"
             aria-label="Clear search"
           >
             esc
@@ -210,13 +246,66 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
       </div>
 
       {/* Results list */}
-      <Command.List className="max-h-96 overflow-y-auto py-1.5">
-        <Command.Empty className="text-charcoal-400 px-5 py-6 text-center font-mono text-sm">
-          No results.
+      <Command.List className="max-h-96 overflow-y-auto py-2">
+        {/* Empty state — shown when query returns no matches */}
+        <Command.Empty>
+          <EmptyState
+            dense
+            icon={Search}
+            headline="No matches"
+            hint="Try a panel, action, agent, or ticker."
+          />
         </Command.Empty>
 
+        {/* ── Empty-query state: Recent + Suggested ─────────────────────── */}
+        {!hasQuery && (
+          <>
+            {recentItems.length > 0 && (
+              <Command.Group
+                heading="Recent"
+                className="[&_[cmdk-group-heading]]:group-heading-style"
+              >
+                {recentItems.map((item) => (
+                  <PaletteItemRow
+                    key={item.id}
+                    item={item}
+                    isRecent={false}
+                    onSelect={() => handleSelectItem(item)}
+                    icon={<KindIcon kind={item.kind} />}
+                  />
+                ))}
+              </Command.Group>
+            )}
+
+            <Command.Group
+              heading="Suggested"
+              className="[&_[cmdk-group-heading]]:group-heading-style"
+            >
+              {SUGGESTED_ITEMS.map((suggestion) => (
+                <Command.Item
+                  key={suggestion.id}
+                  value={suggestion.id}
+                  keywords={[suggestion.label, suggestion.description ?? ""]}
+                  onSelect={() => handleSelectSuggested(suggestion)}
+                  className="aria-selected:bg-charcoal-800 flex cursor-pointer items-center gap-3 rounded-none px-4 py-2 transition-colors"
+                >
+                  <suggestion.Icon className="text-charcoal-400 size-4 shrink-0" aria-hidden />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-charcoal-100 text-body truncate">{suggestion.label}</div>
+                    {suggestion.description && (
+                      <div className="text-charcoal-500 text-caption truncate">
+                        {suggestion.description}
+                      </div>
+                    )}
+                  </div>
+                </Command.Item>
+              ))}
+            </Command.Group>
+          </>
+        )}
+
         {/* ── Group 1: Ask AI ───────────────────────────────────────────── */}
-        <Command.Group value="ask-ai" forceMount className={query.trim() ? undefined : "hidden"}>
+        <Command.Group value="ask-ai" forceMount className={hasQuery ? undefined : "hidden"}>
           <AskAiItem query={query} onSelect={handleSelectAskAi} />
         </Command.Group>
 
@@ -288,6 +377,23 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
 }
 
 // ---------------------------------------------------------------------------
+// Kind icon helper (used in Recent rows where kind is dynamic)
+// ---------------------------------------------------------------------------
+
+function KindIcon({ kind }: { kind: PaletteItem["kind"] }) {
+  switch (kind) {
+    case "agent":
+      return <Bot className="size-4 shrink-0 text-amber-400" aria-hidden />;
+    case "action":
+      return <CommandIcon className="text-charcoal-400 size-4 shrink-0" aria-hidden />;
+    case "panel":
+      return <LayoutGrid className="text-charcoal-400 size-4 shrink-0" aria-hidden />;
+    case "symbol":
+      return <TrendingUp className="text-charcoal-400 size-4 shrink-0" aria-hidden />;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Ask AI row
 // ---------------------------------------------------------------------------
 
@@ -306,16 +412,14 @@ function AskAiItem({ query, onSelect }: AskAiItemProps) {
       keywords={["ask", "ai", "agent", "query", trimmed]}
       onSelect={onSelect}
       forceMount
-      className="aria-selected:bg-charcoal-800 flex cursor-pointer items-center gap-3 rounded-none px-4 py-2.5 transition-colors"
+      className="aria-selected:bg-charcoal-800 flex cursor-pointer items-center gap-3 rounded-none px-4 py-2 transition-colors"
     >
       <Sparkles className="size-4 shrink-0 text-amber-400" aria-hidden />
       <div className="min-w-0 flex-1">
-        <span className="text-charcoal-300 font-mono text-xs">Ask agent: </span>
-        <span className="text-charcoal-100 font-mono text-sm font-medium">
-          &ldquo;{trimmed}&rdquo;
-        </span>
+        <span className="text-charcoal-300 text-caption">Ask agent: </span>
+        <span className="text-charcoal-100 text-body font-medium">&ldquo;{trimmed}&rdquo;</span>
       </div>
-      <kbd className="border-charcoal-700 text-charcoal-500 rounded border px-1.5 py-0.5 font-mono text-[11px]">
+      <kbd className="border-charcoal-700 text-charcoal-500 text-micro rounded border px-1.5 py-0.5">
         Enter
       </kbd>
     </Command.Item>
@@ -339,16 +443,16 @@ function PaletteItemRow({ item, isRecent, onSelect, icon }: PaletteItemRowProps)
       value={item.id}
       keywords={[item.label, item.description ?? ""].filter(Boolean)}
       onSelect={onSelect}
-      className="aria-selected:bg-charcoal-800 flex cursor-pointer items-center gap-3 rounded-none px-4 py-2.5 transition-colors"
+      className="aria-selected:bg-charcoal-800 flex cursor-pointer items-center gap-3 rounded-none px-4 py-2 transition-colors"
     >
       {icon}
       <div className="min-w-0 flex-1">
-        <div className="text-charcoal-100 truncate font-mono text-sm">{item.label}</div>
+        <div className="text-charcoal-100 text-body truncate">{item.label}</div>
         {item.description && (
-          <div className="text-charcoal-500 truncate font-mono text-xs">{item.description}</div>
+          <div className="text-charcoal-500 text-caption truncate">{item.description}</div>
         )}
       </div>
-      {isRecent && <span className="text-charcoal-600 shrink-0 font-mono text-[10px]">recent</span>}
+      {isRecent && <span className="text-charcoal-600 text-caption shrink-0">recent</span>}
     </Command.Item>
   );
 }
