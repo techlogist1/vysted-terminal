@@ -1,34 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { extendTailwindMerge } from "tailwind-merge";
-import { clsx, type ClassValue } from "clsx";
 
-/**
- * A class-merge that KNOWS the R5 custom font-size utilities (`text-micro`,
- * `text-body`, …). The stock `cn` (`@/lib/utils`) uses an unconfigured
- * `tailwind-merge` that mis-classifies these custom `text-*` size utilities as
- * conflicting with `text-<color>` and silently drops the size — so a header that
- * is `cn("text-micro text-charcoal-400")` would render at the inherited size, not
- * 11px. Registering them as their own `font-size` group lets a size and a colour
- * coexist while two competing sizes still collapse. Used for every className in
- * this file (and exported for the data panels) so the type scale never vanishes.
- */
-const twMergeScaleAware = extendTailwindMerge({
-  extend: {
-    classGroups: {
-      "font-size": [
-        { text: ["micro", "caption", "body", "panel-title", "section", "overview", "hero"] },
-      ],
-    },
-  },
-});
+import { cn } from "@/lib/utils";
 
-/** Scale-aware {@link cn} for the data panels — merges custom text-size utilities
- *  correctly alongside text-colour utilities (see {@link twMergeScaleAware}). */
-export function cn(...inputs: ClassValue[]): string {
-  return twMergeScaleAware(clsx(inputs));
-}
+// The shared `cn` (`@/lib/utils`) is now scale-aware — it registers the R5 custom
+// font-size utilities so a size + a colour coexist instead of the size being
+// dropped. Re-exported here so the data panels can pull `cn` alongside the table
+// types from one module; there is ONE class-merge config, no local copy to drift.
+export { cn };
 
 /**
  * The ONE table primitive (PRODUCT_DESIGN_DECISIONS §11). Every tabular / numeric
