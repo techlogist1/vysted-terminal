@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vysted R5 — Component Redesign: Before / After / Reference</title>
+    <style>
+      :root {
+        --bg: #110f0c;
+        --panel: #1e1a15;
+        --line: #3e372d;
+        --fg: #f6f3eb;
+        --mut: #ada294;
+        --ter: #847b6d;
+        --amber: #d89a4e;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font: 14px/1.6 ui-sans-serif, system-ui, -apple-system, sans-serif;
+        padding: 32px clamp(16px, 4vw, 64px) 96px;
+      }
+      h1 { font-size: 28px; letter-spacing: -0.012em; margin: 0 0 4px; }
+      .sub { color: var(--mut); margin: 0 0 4px; }
+      .gate { color: var(--ter); font-size: 12px; margin: 0 0 32px; }
+      section { margin: 0 0 48px; border-top: 1px solid var(--line); padding-top: 24px; }
+      h2 { font-size: 18px; margin: 0 0 2px; }
+      h2 .num {
+        display: inline-block;
+        min-width: 26px;
+        color: var(--bg);
+        background: var(--amber);
+        border-radius: 4px;
+        text-align: center;
+        margin-right: 10px;
+        font-size: 13px;
+        padding: 1px 6px;
+      }
+      .verdict { color: #3fbf6f; font-size: 12px; font-weight: 600; margin: 0 0 16px; }
+      .what { color: var(--mut); font-size: 13px; margin: 0 0 16px; max-width: 90ch; }
+      .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+      .grid.two { grid-template-columns: repeat(2, 1fr); }
+      figure {
+        margin: 0;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      figcaption {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--ter);
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      figcaption.after { color: var(--amber); }
+      img { width: 100%; display: block; background: #000; }
+      @media (max-width: 980px) { .grid, .grid.two { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <h1>Vysted R5 — Experience-Layer Redesign</h1>
+    <p class="sub">Component &amp; information-design rebuild. Before (R4 state) → After (R5, live AAPL) → Reference (taste authority).</p>
+    <p class="gate">
+      Warm-graphite palette + single amber accent unchanged. Each "after" is a real-app Quartz capture at
+      2560×1664. The binary craft checklist is the gate (docs/redesign/R5_CRAFT_CHECKLIST.md).
+    </p>
+
+    <section>
+      <h2><span class="num">1</span>Financial data panels — Equity Overview</h2>
+      <p class="verdict">PASS — Bloomberg-grade statement on the shared DataTable.</p>
+      <p class="what">
+        Was a 3-column key-value dump (left-aligned, flat tier, missing-unit bugs like "Free cash flow
+        101.098"). Now: a grouped FUNDAMENTALS table (Valuation / Profitability / …) with a right-aligned
+        VALUE column, plus real period-column statements (Income / Balance / Cash flow across five fiscal
+        years), every figure unit+sign formatted ($4.51T, $101.09B), three text tiers, graceful "—", and
+        zero snake_case (raw provider keys humanized).
+      </p>
+      <div class="grid">
+        <figure><figcaption>Before — key-value dump</figcaption><img src="./equity-overview-aapl-fixed-LIVE.png" alt="before equity overview" /></figure>
+        <figure><figcaption class="after">After — fundamentals table</figcaption><img src="./r5/r5-02-equity-aapl.png" alt="after equity fundamentals" /></figure>
+        <figure><figcaption class="after">After — period-column statements</figcaption><img src="./r5/r5-06-equity-statements.png" alt="after equity statements" /></figure>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="num">2</span>Notes — markdown editor</h2>
+      <p class="verdict">PASS — visible formatting toolbar + live markdown.</p>
+      <p class="what">
+        Was a bare textarea with three export icons and hidden "/" shortcuts. Now a real editor toolbar —
+        H1/H2/H3 · bold/italic/code · bullet/numbered lists · blockquote/code-block · link · [[wikilink]] —
+        with live markdown rendering locked to the system type scale (.notes-prose). Export, atomic
+        persistence, wikilinks and slash commands preserved (20/20 tests).
+      </p>
+      <div class="grid">
+        <figure><figcaption>Before — bare textarea</figcaption><img src="./app-LIVE-notes.png" alt="before notes" /></figure>
+        <figure><figcaption class="after">After — toolbar + live H1/prose</figcaption><img src="./r5/r5-05-notes.png" alt="after notes" /></figure>
+        <figure><figcaption>Reference — Cursor plan doc</figcaption><img src="../references/cursor-plan.png" alt="cursor reference" /></figure>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="num">3</span>⌘K command palette</h2>
+      <p class="verdict">PASS — grouped, truncating, useful empty state.</p>
+      <p class="what">
+        Group headers were invisible (the className referenced an undefined utility — the "wall of agents").
+        Now headers render (Suggested / Agents / Actions / Panels); the empty-query state leads with curated
+        Suggested actions (Open Notes / New Research Space / Open Chart / Search a Ticker), not an agent dump;
+        row descriptions truncate with an ellipsis inside the row ("held fore…"), never hard-clipping; the
+        input is sans (not mono). The fixed-query filter ("notes" → Notes) is preserved.
+      </p>
+      <div class="grid">
+        <figure><figcaption>Before — unstyled groups</figcaption><img src="./app-02-cmdk-notes.png" alt="before palette" /></figure>
+        <figure><figcaption class="after">After — grouped + truncated</figcaption><img src="./r5/r5-03-cmdk-palette.png" alt="after palette" /></figure>
+        <figure><figcaption>Reference — Perplexity</figcaption><img src="../references/perplexity-home.png" alt="perplexity reference" /></figure>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="num">4</span>Composer — input + send as one unit</h2>
+      <p class="verdict">PASS — balanced pair; no avatar/placeholder overlap.</p>
+      <p class="what">
+        Was an oversized empty rectangle with a small-feeling send and an indicator colliding with the
+        placeholder. Now the input (min-h 52px, rounded-lg, pl-11 glyph gutter) and the circular amber send
+        (size-10) read as one deliberate pair; the mode glyph lives in the reserved left gutter, outside the
+        text flow, so it never overlaps the placeholder. (The corner "N" in dev builds is the Next.js dev
+        overlay, not app code.)
+      </p>
+      <div class="grid">
+        <figure><figcaption>Before — rectangle + tiny send</figcaption><img src="./r3-composer-inline-LIVE.png" alt="before composer" /></figure>
+        <figure><figcaption class="after">After — one unit (bottom-left)</figcaption><img src="./r5/r5-05-notes.png" alt="after composer" /></figure>
+        <figure><figcaption>Reference — Perplexity composer</figcaption><img src="../references/perplexity-home.png" alt="perplexity reference" /></figure>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="num">5</span>Left agent/chat dock + three-pane balance</h2>
+      <p class="verdict">PASS — hero empty state fills the column; dock right-sized.</p>
+      <p class="what">
+        Was a small blurb floating mid-column with ~50% dead space, in an oversized 380px dock. Now the
+        empty state fills the column (centered identity → "TRY THIS" → distributed suggestion chips), the
+        dock is 310px (Cursor-parity), and the chart fraction lifts to 0.60 so chart + equity-overview get
+        room.
+      </p>
+      <div class="grid">
+        <figure><figcaption>Before — dead vertical void</figcaption><img src="./app-32-chat-empty.png" alt="before dock" /></figure>
+        <figure><figcaption class="after">After — filled, three-pane</figcaption><img src="./r5/r5-07-cockpit-overview.png" alt="after dock" /></figure>
+        <figure><figcaption>Reference — Cursor agent dock</figcaption><img src="../references/cursor-agent.png" alt="cursor reference" /></figure>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="num">6</span>One type scale + one spacing scale</h2>
+      <p class="verdict">PASS — enforced via the scale-aware cn + off-scale sweep.</p>
+      <p class="what">
+        Root cause found in verification: the shared cn() used an unconfigured tailwind-merge that
+        mis-classified the custom font-size utilities as colours and silently dropped the size across ~90
+        files. Fixed (extendTailwindMerge registers the seven font sizes). Plus an off-scale sweep removed
+        56+ arbitrary text-[…] and off-grid spacing across the changed surfaces. Proof: grep shows zero
+        text-[…] / rounded-[…] / off-grid in every changed file. (Code-grep gate, no single screenshot.)
+      </p>
+    </section>
+
+    <section>
+      <h2><span class="num">7</span>Keychain re-prompt (macOS dev)</h2>
+      <p class="verdict">NEEDS-MANUAL-CHECK — fix shipped, operator one-time cert required.</p>
+      <p class="what">
+        Root cause: tauri dev never signs → unstable signature each rebuild → keychain ACL invalidates →
+        re-prompt. Fix (outside Tier-1 tauri.conf.json): pnpm tauri:dev re-signs the debug binary with a
+        stable self-signed identity on each hot-reload; scripts/macos-dev-setup.sh sets the partition list.
+        The operator must run the one-time cert creation (docs/redesign/KEYCHAIN_DEV_SIGNING.md) and click
+        "Always Allow" once, then confirm no re-prompt across a rebuild.
+      </p>
+    </section>
+  </body>
+</html>
