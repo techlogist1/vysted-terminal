@@ -3,9 +3,12 @@
 import { useMemo, useState } from "react";
 import { Download, SlidersHorizontal, FilterX, Loader2 } from "lucide-react";
 
+import { DataTable, type DataColumn, type DataTableSort } from "@/components/DataTable";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
+import { formatCompactMoney, formatPercent, formatPrice, formatUnit } from "@/lib/format";
 import { loadSymbolIntoChart, openCompanyOverview } from "@/lib/host-actions";
+import { cn } from "@/lib/utils";
 import { useScreenerStore } from "@/store/screener";
 
 import type { ScreenerResultRow } from "../../../types/screener";
@@ -27,47 +30,14 @@ type SortKey =
 
 type SortDirection = "asc" | "desc";
 
-const COLUMNS: { key: SortKey; label: string; numeric: boolean }[] = [
-  { key: "symbol", label: "Symbol", numeric: false },
-  { key: "name", label: "Name", numeric: false },
-  { key: "sector", label: "Sector", numeric: false },
-  { key: "market_cap", label: "Market cap", numeric: true },
-  { key: "pe_ratio", label: "P/E", numeric: true },
-  { key: "forward_pe", label: "Fwd P/E", numeric: true },
-  { key: "roe", label: "ROE", numeric: true },
-  { key: "debt_to_equity", label: "D/E", numeric: true },
-  { key: "dividend_yield", label: "Div", numeric: true },
-  { key: "price", label: "Price", numeric: true },
-  { key: "change_percent_1d", label: "1d %", numeric: true },
-  { key: "volume", label: "Volume", numeric: true },
-];
-
-function fmtMarketCap(value: number | null | undefined): string {
-  if (value == null) return "—";
-  if (value >= 1_000_000_000_000) return `${(value / 1_000_000_000_000).toFixed(2)}T`;
-  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(2)}B`;
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
-  return value.toLocaleString("en-US");
+/** Format a fraction (0.21) as a percent ("21.0%") with one decimal. */
+function fmtFractionPct(value: number | null | undefined): string | null {
+  return value == null || Number.isNaN(value) ? null : formatPercent(value * 100).replace("+", "");
 }
 
-function fmtNumber(value: number | null | undefined, digits = 2): string {
-  if (value == null) return "—";
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
-}
-
-function fmtVolume(value: number | null | undefined): string {
-  if (value == null) return "—";
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
-  return value.toLocaleString("en-US");
-}
-
-/** Format a fraction (0.21) as a percent ("21.0%"). */
-function fmtPct(value: number | null | undefined): string {
-  return value == null || Number.isNaN(value) ? "—" : `${(value * 100).toFixed(1)}%`;
+/** A bare price/ratio (P/E, D/E, price) — 2dp, graceful null. */
+function fmtNumber(value: number | null | undefined): string | null {
+  return value == null || Number.isNaN(value) ? null : formatPrice(value, 2);
 }
 
 /** Display label for a routed symbol — strips the Yahoo `.NS`/`.BO` suffix so the
@@ -77,28 +47,140 @@ function displaySymbol(symbol: string): string {
   return symbol.replace(/\.(NS|BO)$/i, "");
 }
 
+// The screener columns, expressed once for both the table and the CSV. Numeric
+// columns right-align + tabular via DataTable; every value runs through format.ts.
+const COLUMNS: DataColumn<ScreenerResultRow, SortKey>[] = [
+  {
+    key: "symbol",
+    header: "Symbol",
+    sortable: true,
+    truncate: true,
+    width: "104px",
+    cell: (r) => <span className="font-medium text-amber-300">{displaySymbol(r.symbol)}</span>,
+    title: (r) => r.symbol,
+  },
+  {
+    key: "name",
+    header: "Name",
+    sortable: true,
+    truncate: true,
+    width: "22%",
+    format: (r) => r.name ?? null,
+  },
+  {
+    key: "sector",
+    header: "Sector",
+    sortable: true,
+    tier: "secondary",
+    truncate: true,
+    width: "13%",
+    format: (r) => r.sector ?? null,
+  },
+  {
+    key: "market_cap",
+    header: "Market cap",
+    numeric: true,
+    sortable: true,
+    width: "116px",
+    format: (r) => (r.market_cap == null ? null : formatCompactMoney(r.market_cap)),
+  },
+  {
+    key: "pe_ratio",
+    header: "P/E",
+    numeric: true,
+    sortable: true,
+    width: "56px",
+    format: (r) => fmtNumber(r.pe_ratio),
+  },
+  {
+    key: "forward_pe",
+    header: "Fwd P/E",
+    numeric: true,
+    sortable: true,
+    width: "78px",
+    format: (r) => fmtNumber(r.forward_pe),
+  },
+  {
+    key: "roe",
+    header: "ROE",
+    numeric: true,
+    sortable: true,
+    width: "56px",
+    format: (r) => fmtFractionPct(r.roe),
+  },
+  {
+    key: "debt_to_equity",
+    header: "D/E",
+    numeric: true,
+    sortable: true,
+    width: "52px",
+    format: (r) => fmtNumber(r.debt_to_equity),
+  },
+  {
+    key: "dividend_yield",
+    header: "Div",
+    numeric: true,
+    sortable: true,
+    width: "52px",
+    format: (r) => fmtFractionPct(r.dividend_yield),
+  },
+  {
+    key: "price",
+    header: "Price",
+    numeric: true,
+    sortable: true,
+    width: "72px",
+    format: (r) => fmtNumber(r.price),
+  },
+  {
+    key: "change_percent_1d",
+    header: "1d %",
+    numeric: true,
+    sortable: true,
+    width: "64px",
+    // The one signed/coloured column — green/red by direction, never the accent.
+    cell: (r) =>
+      r.change_percent_1d === null ? null : (
+        <span className={r.change_percent_1d >= 0 ? "text-positive" : "text-negative"}>
+          {`${r.change_percent_1d >= 0 ? "+" : ""}${r.change_percent_1d.toFixed(2)}%`}
+        </span>
+      ),
+  },
+  {
+    key: "volume",
+    header: "Volume",
+    numeric: true,
+    sortable: true,
+    width: "78px",
+    format: (r) => (r.volume == null ? null : formatUnit(r.volume, 1)),
+  },
+];
+
+// CSV header order mirrors the on-wire fields (incl. Industry, which is exported
+// but not shown). Kept independent of COLUMNS so the export shape never drifts.
+const CSV_HEADERS = [
+  "Symbol",
+  "Name",
+  "Sector",
+  "Industry",
+  "Market cap",
+  "P/E",
+  "Fwd P/E",
+  "ROE",
+  "D/E",
+  "Div yield",
+  "Price",
+  "1d %",
+  "Volume",
+];
+
 /** Serialise the current result rows to CSV (RFC-4180 quoting) for Excel/Sheets. */
 function rowsToCsv(rows: ScreenerResultRow[]): string {
-  const headers = [
-    "Symbol",
-    "Name",
-    "Sector",
-    "Industry",
-    "Market cap",
-    "P/E",
-    "Fwd P/E",
-    "ROE",
-    "D/E",
-    "Div yield",
-    "Price",
-    "1d %",
-    "Volume",
-  ];
   const esc = (v: unknown): string => {
     const s = v === null || v === undefined ? "" : String(v);
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
-  const lines = [headers.join(",")];
+  const lines = [CSV_HEADERS.join(",")];
   for (const r of rows) {
     lines.push(
       [
@@ -136,11 +218,8 @@ function downloadScreenerCsv(rows: ScreenerResultRow[], universe: string): void 
 }
 
 // Direction-aware comparator that always pins null/unknown values LAST, in both
-// directions. The previous code sorted ascending then `.reverse()`d the whole
-// array, which flipped the null partition to the TOP on the default desc sort —
-// so unknown-market-cap rows (common for crypto) floated above real results
-// (hunt-state-logic). Applying the direction factor only to the value
-// comparison keeps nulls sinking regardless of direction.
+// directions. Applying the direction factor only to the value comparison keeps
+// nulls sinking regardless of direction (crypto with unknown market cap, etc.).
 function compareValue(
   a: ScreenerResultRow,
   b: ScreenerResultRow,
@@ -159,35 +238,8 @@ function compareValue(
   return base * dir;
 }
 
-// Column widths are sized so each header label (uppercase) PLUS its sort arrow
-// fits without clipping; every cell (incl. <th>) also truncates so nothing can
-// ever bleed into a neighbour (Bug-1: the "SECTOMARKET CAP" header collision).
-// The numeric columns are wide enough for their headers — "MARKET CAP ▼" and
-// "FWD P/E" were the two that overran their old 80/64px cells. The table carries
-// a min-width so a narrow dockview split HORIZONTAL-SCROLLS rather than crushing
-// columns together (the parent is overflow-auto).
-const TABLE_HEADER_COLS = (
-  <colgroup>
-    {/* Symbol: wide enough for a 10-char NSE ticker (BHARTIARTL, ADANIPORTS) in
-        mono; the cell itself also truncates so it can NEVER bleed into Name. */}
-    <col style={{ width: "104px" }} />
-    <col style={{ width: "22%" }} />
-    <col style={{ width: "13%" }} />
-    <col style={{ width: "116px" }} />
-    <col style={{ width: "56px" }} />
-    <col style={{ width: "78px" }} />
-    <col style={{ width: "56px" }} />
-    <col style={{ width: "52px" }} />
-    <col style={{ width: "52px" }} />
-    <col style={{ width: "72px" }} />
-    <col style={{ width: "64px" }} />
-    <col style={{ width: "78px" }} />
-  </colgroup>
-);
-
-// Sum of the fixed-px columns (104+116+56+78+56+52+52+72+64+78 = 728) plus a
-// sensible floor for the two percentage text columns. Below this the panel
-// scrolls horizontally; above it the % columns absorb the slack.
+// Sum of the fixed-px columns plus a floor for the percentage text columns. Below
+// this the panel scrolls horizontally; above it the % columns absorb the slack.
 const TABLE_MIN_WIDTH = "min-w-[920px]";
 
 export function ScreenerResultsTable() {
@@ -204,6 +256,8 @@ export function ScreenerResultsTable() {
     return [...result.rows].sort((a, b) => compareValue(a, b, sortKey, dir));
   }, [result, sortKey, sortDirection]);
 
+  const sort: DataTableSort<SortKey> = { key: sortKey, direction: sortDirection };
+
   function onHeaderClick(key: SortKey) {
     if (sortKey === key) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -216,31 +270,39 @@ export function ScreenerResultsTable() {
   if (status === "loading") {
     return (
       <div className="flex h-full flex-col gap-2">
-        <div className="border-border min-h-0 flex-1 overflow-auto rounded-md border">
-          <table className="w-full text-sm">
-            {TABLE_HEADER_COLS}
-            <thead className="bg-muted/40">
-              <tr>
+        <div className="border-charcoal-700 min-h-0 flex-1 overflow-auto rounded-md border">
+          <table className={cn("w-full table-fixed", TABLE_MIN_WIDTH)}>
+            <colgroup>
+              {COLUMNS.map((col) => (
+                <col key={col.key} style={col.width ? { width: col.width } : undefined} />
+              ))}
+            </colgroup>
+            <thead className="bg-charcoal-900">
+              <tr className="border-charcoal-800 border-b">
                 {COLUMNS.map((col) => (
                   <th
                     key={col.key}
                     scope="col"
-                    className={`border-border border-b px-3 py-2 text-xs tracking-wide uppercase ${
-                      col.numeric ? "text-right" : "text-left"
-                    }`}
+                    className={cn(
+                      "text-micro text-charcoal-400 px-3 py-1.5",
+                      col.numeric ? "text-right" : "text-left",
+                    )}
                   >
-                    {col.label}
+                    {col.header}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {Array.from({ length: 8 }).map((_, i) => (
-                <tr key={i} className="border-border/60 border-b">
+                <tr key={i} className="border-charcoal-800 border-b">
                   {COLUMNS.map((col) => (
-                    <td key={col.key} className="px-3 py-2">
+                    <td key={col.key} className="px-3 py-1.5">
                       <div
-                        className={`bg-muted/20 h-4 animate-pulse rounded ${col.numeric ? "ml-auto" : ""}`}
+                        className={cn(
+                          "bg-charcoal-800 h-4 animate-pulse rounded",
+                          col.numeric && "ml-auto",
+                        )}
                         style={{
                           width: col.numeric
                             ? "60%"
@@ -254,7 +316,7 @@ export function ScreenerResultsTable() {
             </tbody>
           </table>
         </div>
-        <div className="text-muted-foreground flex items-center gap-2 text-xs">
+        <div className="text-charcoal-400 text-caption flex items-center gap-2">
           <Loader2 className="size-3 animate-spin" />
           Running screener…
         </div>
@@ -264,13 +326,12 @@ export function ScreenerResultsTable() {
 
   if (status === "error" && !result) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-        <SlidersHorizontal className="text-muted-foreground size-6" />
-        <p className="text-destructive text-sm">Could not load results.</p>
-        <Button size="sm" variant="outline" onClick={() => void runScreener()}>
-          Retry
-        </Button>
-      </div>
+      <EmptyState
+        icon={SlidersHorizontal}
+        headline="Could not load results"
+        hint="The screener run failed. Retry — if it persists, loosen a criterion or check the data engine."
+        cta={{ label: "Retry", onClick: () => void runScreener(), primary: true }}
+      />
     );
   }
 
@@ -287,139 +348,57 @@ export function ScreenerResultsTable() {
 
   return (
     <div className="flex h-full flex-col gap-2">
-      <div className="text-muted-foreground flex shrink-0 items-center justify-between text-xs">
+      <div className="text-charcoal-400 text-caption flex shrink-0 items-center justify-between">
         <span>
-          <span className="text-foreground font-semibold">{result.result_count}</span> rows (
-          <span className="font-mono">{result.evaluated_count}</span> evaluated
+          <span className="text-charcoal-100 font-medium">{result.result_count}</span> rows (
+          <span className="tabular-nums">{result.evaluated_count}</span> evaluated
           {result.skipped_count > 0 && (
             <>
-              , <span className="text-warning font-mono">{result.skipped_count} skipped</span>
+              , <span className="text-warning tabular-nums">{result.skipped_count} skipped</span>
             </>
           )}
-          ,<span className="font-mono"> {result.duration_ms.toFixed(0)} ms</span>)
+          ,<span className="tabular-nums"> {result.duration_ms.toFixed(0)} ms</span>)
         </span>
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => downloadScreenerCsv(rows, result.universe)}
             disabled={rows.length === 0}
-            className="text-charcoal-300 flex items-center gap-1 font-mono text-xs transition-colors hover:text-amber-300 disabled:opacity-40"
+            className="text-charcoal-300 text-caption flex items-center gap-1 transition-colors hover:text-amber-300 disabled:opacity-40"
             title="Export results to CSV (open in Excel / Sheets)"
           >
             <Download className="size-3" /> Export CSV
           </button>
-          <span className="font-mono tracking-wide uppercase">{result.universe}</span>
+          <span className="text-micro">{result.universe}</span>
         </div>
       </div>
-      <div className="border-border min-h-0 flex-1 overflow-auto rounded-md border">
-        <table className={`w-full table-fixed text-sm ${TABLE_MIN_WIDTH}`}>
-          {TABLE_HEADER_COLS}
-          <thead className="bg-muted/40">
-            <tr>
-              {COLUMNS.map((col) => (
-                <th
-                  key={col.key}
-                  scope="col"
-                  title={col.label}
-                  className={`border-border cursor-pointer overflow-hidden border-b px-2 py-2 text-xs tracking-wide overflow-ellipsis whitespace-nowrap uppercase select-none ${
-                    col.numeric ? "text-right" : "text-left"
-                  }`}
-                  onClick={() => onHeaderClick(col.key)}
-                  data-testid={`column-${col.key}`}
-                >
-                  {col.label}
-                  {sortKey === col.key && (
-                    <span aria-hidden className="ml-1">
-                      {sortDirection === "asc" ? "▲" : "▼"}
-                    </span>
-                  )}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 ? (
-              <tr>
-                <td colSpan={COLUMNS.length} className="px-3 py-6">
-                  <EmptyState
-                    icon={FilterX}
-                    headline="No rows matched the criteria"
-                    hint="No stocks in this universe passed every filter. Loosen a threshold or reset to the defaults."
-                    cta={{ label: "Reset filters", onClick: () => resetCriteria() }}
-                  />
-                </td>
-              </tr>
-            ) : (
-              rows.map((row) => (
-                <tr
-                  key={row.symbol}
-                  className="border-border/60 hover:bg-muted/30 cursor-pointer border-b"
-                  onClick={() => {
-                    // Row click → the full company overview (the operator's
-                    // "click any company → one overview page") AND the chart, so
-                    // the cockpit drills to the row in one click.
-                    openCompanyOverview(row.symbol);
-                    loadSymbolIntoChart(row.symbol);
-                  }}
-                  title={`Open ${displaySymbol(row.symbol)} — overview + chart`}
-                >
-                  <td
-                    className="max-w-0 truncate overflow-hidden px-3 py-2 font-mono font-semibold text-amber-300"
-                    title={row.symbol}
-                  >
-                    {displaySymbol(row.symbol)}
-                  </td>
-                  <td className="max-w-0 truncate overflow-hidden px-3 py-2" title={row.name ?? ""}>
-                    {row.name ?? "—"}
-                  </td>
-                  <td
-                    className="text-muted-foreground max-w-0 truncate overflow-hidden px-3 py-2"
-                    title={row.sector ?? ""}
-                  >
-                    {row.sector ?? "—"}
-                  </td>
-                  <td className="px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums">
-                    {fmtMarketCap(row.market_cap)}
-                  </td>
-                  <td className="px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums">
-                    {fmtNumber(row.pe_ratio)}
-                  </td>
-                  <td className="px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums">
-                    {fmtNumber(row.forward_pe)}
-                  </td>
-                  <td className="px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums">
-                    {fmtPct(row.roe)}
-                  </td>
-                  <td className="px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums">
-                    {fmtNumber(row.debt_to_equity)}
-                  </td>
-                  <td className="px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums">
-                    {fmtPct(row.dividend_yield)}
-                  </td>
-                  <td className="px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums">
-                    {fmtNumber(row.price)}
-                  </td>
-                  <td
-                    className={`px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums ${
-                      row.change_percent_1d === null
-                        ? "text-muted-foreground"
-                        : row.change_percent_1d >= 0
-                          ? "text-positive"
-                          : "text-negative"
-                    }`}
-                  >
-                    {row.change_percent_1d === null
-                      ? "—"
-                      : `${row.change_percent_1d >= 0 ? "+" : ""}${row.change_percent_1d.toFixed(2)}%`}
-                  </td>
-                  <td className="px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums">
-                    {fmtVolume(row.volume)}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      <div className="border-charcoal-700 min-h-0 flex-1 overflow-auto rounded-md border">
+        {rows.length === 0 ? (
+          <EmptyState
+            icon={FilterX}
+            headline="No rows matched the criteria"
+            hint="No stocks in this universe passed every filter. Loosen a threshold or reset to the defaults."
+            cta={{ label: "Reset filters", onClick: () => resetCriteria() }}
+          />
+        ) : (
+          <DataTable
+            columns={COLUMNS}
+            rows={rows}
+            rowKey={(r) => r.symbol}
+            sort={sort}
+            onSort={onHeaderClick}
+            stickyHeader
+            minWidth={TABLE_MIN_WIDTH}
+            onRowClick={(r) => {
+              // Row click → the full company overview (the operator's "click any
+              // company → one overview page") AND the chart, so the cockpit drills
+              // to the row in one click.
+              openCompanyOverview(r.symbol);
+              loadSymbolIntoChart(r.symbol);
+            }}
+            data-testid="screener-results-table"
+          />
+        )}
       </div>
     </div>
   );

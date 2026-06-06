@@ -230,6 +230,7 @@ export function DataTable<R, K extends string = string>({
               <th
                 key={col.key}
                 scope="col"
+                data-testid={`column-${col.key}`}
                 title={typeof col.header === "string" ? col.header : undefined}
                 aria-sort={
                   col.sortable
