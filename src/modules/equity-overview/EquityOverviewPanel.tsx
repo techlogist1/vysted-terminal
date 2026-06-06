@@ -331,6 +331,42 @@ function NarrativeSection({
   );
 }
 
+/** Finance acronyms that read wrong in sentence case — uppercased whole. */
+const STATEMENT_ACRONYMS = new Set([
+  "ebitda",
+  "ebit",
+  "eps",
+  "da",
+  "sga",
+  "fcf",
+  "ppe",
+  "roe",
+  "roa",
+  "rnd",
+]);
+
+/**
+ * Humanize a raw statement line key (the provider returns snake_case keys like
+ * `free_cash_flow` / `repurchase_of_common_equity`) into a clean sentence-case
+ * label — "Free cash flow", "Repurchase of common equity", "EBITDA". A label that
+ * already contains whitespace is assumed human and passes through untouched.
+ * Keeps the statements snake_case-free (no raw DB keys ever surface — checklist #1).
+ */
+function humanizeLineLabel(raw: string): string {
+  if (/\s/.test(raw)) return raw;
+  const words = raw.replace(/_/g, " ").trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return raw;
+  return words
+    .map((w, i) =>
+      STATEMENT_ACRONYMS.has(w.toLowerCase())
+        ? w.toUpperCase()
+        : i === 0
+          ? w.charAt(0).toUpperCase() + w.slice(1)
+          : w,
+    )
+    .join(" ");
+}
+
 /** A statement line, projected to a row whose period values are pre-formatted
  *  through formatUnit so a column never overflows with a bare magnitude. */
 interface StatementRow {
@@ -378,7 +414,7 @@ function StatementTable({
   const rows = useMemo<StatementRow[]>(() => {
     if (statement === null) return [];
     return statement.lines.map((line) => ({
-      label: line.label,
+      label: humanizeLineLabel(line.label),
       values: Object.fromEntries(
         statement.periods.map((period) => {
           const raw = line.values[period] ?? null;
