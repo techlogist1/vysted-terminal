@@ -164,7 +164,7 @@ export function OnboardingFlow() {
         onEscapeKeyDown={(e) => e.preventDefault()}
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
-        className="border-charcoal-700 bg-charcoal-950 max-w-2xl gap-0 overflow-hidden p-0 shadow-2xl"
+        className="border-charcoal-700 bg-charcoal-950 max-w-2xl gap-0 overflow-hidden p-0"
       >
         <DialogTitle className="sr-only">Welcome to Vysted</DialogTitle>
         <DialogDescription className="sr-only">
