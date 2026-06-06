@@ -3,10 +3,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Briefcase, Check, Download, FolderPlus, Pencil, Plus, Trash2, X } from "lucide-react";
 
+import { DataTable, type DataColumn } from "@/components/DataTable";
+import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { buildCsv, downloadCsv } from "@/lib/csv";
-import { formatCompactMoney, formatMoney, formatPercent, formatSignedMoney } from "@/lib/format";
-import { cn } from "@/lib/utils";
+import {
+  formatCompactMoney,
+  formatMoney,
+  formatPercent,
+  formatSignedMoney,
+  formatUnit,
+} from "@/lib/format";
 import { usePanelContextBus } from "@/store/panel-context";
 import {
   type AssetClass,
@@ -16,7 +23,20 @@ import {
 } from "@/store/portfolios";
 import type { Position, Quote } from "../../../types/data";
 import { fetchPositionQuotes } from "./api";
-import { buildPortfolioSummary } from "./metrics";
+import { buildPortfolioSummary, type PositionRow } from "./metrics";
+
+/** A holdings-table row — the computed position metrics joined to its source
+ *  {@link Holding} (for edit/delete) by order. */
+interface PortfolioTableRow extends PositionRow {
+  holding: Holding | undefined;
+}
+
+/** Format a holding quantity — a precise count that still reads with a unit at
+ *  scale (so a 12,000,000-share lot isn't a bare integer), full precision below. */
+function fmtQuantity(quantity: number): string {
+  if (Math.abs(quantity) >= 1000) return formatUnit(quantity);
+  return quantity.toLocaleString("en-US", { maximumFractionDigits: 8 });
+}
 
 interface FormState {
   symbol: string;
@@ -248,6 +268,115 @@ export function PortfolioPanel() {
     removeHolding(active.id, id);
   };
 
+  // Join each computed metrics row to its source holding (by order) so the
+  // action column can edit/delete; rebuilt only when the metrics or holdings move.
+  const tableRows = useMemo<PortfolioTableRow[]>(
+    () => summary.rows.map((row, i) => ({ ...row, holding: holdings[i] })),
+    [summary.rows, holdings],
+  );
+
+  // The 8-column holdings table on the shared DataTable. The P&L column is the
+  // one signed/coloured value (green/red, never the accent); the trailing column
+  // is a DataTable action column (edit/delete, outside truncation). All money
+  // runs through format.ts; the quantity reads with a unit at scale.
+  const holdingColumns = useMemo<DataColumn<PortfolioTableRow>[]>(
+    () => [
+      {
+        key: "symbol",
+        header: "Symbol",
+        truncate: true,
+        width: "18%",
+        format: (r) => r.position.symbol,
+      },
+      {
+        key: "quantity",
+        header: "Qty",
+        numeric: true,
+        tier: "secondary",
+        width: "10%",
+        format: (r) => fmtQuantity(r.position.quantity),
+      },
+      {
+        key: "cost",
+        header: "Cost",
+        numeric: true,
+        tier: "secondary",
+        width: "12%",
+        format: (r) => formatMoney(r.position.cost_basis),
+      },
+      {
+        key: "price",
+        header: "Price",
+        numeric: true,
+        tier: "secondary",
+        width: "12%",
+        format: (r) => (r.quote !== null ? formatMoney(r.quote.price) : null),
+      },
+      {
+        key: "marketValue",
+        header: "Mkt val",
+        numeric: true,
+        width: "13%",
+        format: (r) => (r.marketValue !== null ? formatCompactMoney(r.marketValue) : null),
+      },
+      {
+        key: "pnl",
+        header: "P&L",
+        numeric: true,
+        width: "20%",
+        cell: (r) =>
+          r.pnl === null ? null : (
+            <span
+              className={
+                r.pnl > 0 ? "text-positive" : r.pnl < 0 ? "text-negative" : "text-charcoal-200"
+              }
+            >
+              {`${formatSignedMoney(r.pnl, true)} (${r.pnlPercent !== null ? formatPercent(r.pnlPercent) : "—"})`}
+            </span>
+          ),
+      },
+      {
+        key: "weight",
+        header: "Wt",
+        numeric: true,
+        tier: "secondary",
+        width: "8%",
+        format: (r) => (r.weight !== null ? `${(r.weight * 100).toFixed(1)}%` : null),
+      },
+      {
+        key: "actions",
+        action: true,
+        width: "7%",
+        cell: (r) => (
+          <>
+            <Button
+              type="button"
+              size="icon-xs"
+              variant="ghost"
+              aria-label={`Edit ${r.position.symbol}`}
+              onClick={() => r.holding && handleEdit(r.holding)}
+            >
+              <Pencil />
+            </Button>
+            <Button
+              type="button"
+              size="icon-xs"
+              variant="ghost"
+              aria-label={`Delete ${r.position.symbol}`}
+              onClick={() => r.holding && handleDelete(r.holding.id)}
+            >
+              <Trash2 />
+            </Button>
+          </>
+        ),
+      },
+    ],
+    // handleEdit/handleDelete are stable enough across renders; the table only
+    // needs to rebuild when nothing data-bearing changes here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   const submitPfName = () => {
     const name = pfName.trim();
     if (name === "") {
@@ -331,7 +460,7 @@ export function PortfolioPanel() {
               }}
               placeholder={pfAction === "create" ? "New portfolio name" : "Rename portfolio"}
               aria-label={pfAction === "create" ? "New portfolio name" : "Rename portfolio"}
-              className="bg-charcoal-800 text-charcoal-100 h-7 min-w-0 flex-1 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+              className="bg-charcoal-800 text-charcoal-100 text-body h-9 min-w-0 flex-1 rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
             />
             <Button
               type="button"
@@ -359,7 +488,7 @@ export function PortfolioPanel() {
               aria-label="Active portfolio"
               value={active.id}
               onChange={(event) => setActive(event.target.value)}
-              className="bg-charcoal-800 text-charcoal-100 h-7 min-w-0 flex-1 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+              className="bg-charcoal-800 text-charcoal-100 text-body h-9 min-w-0 flex-1 rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
             >
               {portfolios.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -425,37 +554,37 @@ export function PortfolioPanel() {
         className="border-charcoal-700 flex flex-wrap items-end gap-2 border-b p-3"
       >
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-400 font-mono text-[0.6rem] uppercase">Symbol</span>
+          <span className="text-charcoal-400 text-micro">Symbol</span>
           <input
             ref={symbolInputRef}
             aria-label="Symbol"
             value={form.symbol}
             onChange={(event) => setForm((prev) => ({ ...prev, symbol: event.target.value }))}
-            className="bg-charcoal-800 text-charcoal-100 h-8 w-24 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 text-body h-9 w-24 rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-400 font-mono text-[0.6rem] uppercase">Quantity</span>
+          <span className="text-charcoal-400 text-micro">Quantity</span>
           <input
             aria-label="Quantity"
             inputMode="decimal"
             value={form.quantity}
             onChange={(event) => setForm((prev) => ({ ...prev, quantity: event.target.value }))}
-            className="bg-charcoal-800 text-charcoal-100 h-8 w-24 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 text-body h-9 w-24 rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-400 font-mono text-[0.6rem] uppercase">Cost basis</span>
+          <span className="text-charcoal-400 text-micro">Cost basis</span>
           <input
             aria-label="Cost basis"
             inputMode="decimal"
             value={form.costBasis}
             onChange={(event) => setForm((prev) => ({ ...prev, costBasis: event.target.value }))}
-            className="bg-charcoal-800 text-charcoal-100 h-8 w-24 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 text-body h-9 w-24 rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-400 font-mono text-[0.6rem] uppercase">Class</span>
+          <span className="text-charcoal-400 text-micro">Class</span>
           <select
             aria-label="Asset class"
             value={form.assetClass}
@@ -465,19 +594,19 @@ export function PortfolioPanel() {
                 assetClass: event.target.value === "crypto" ? "crypto" : "equity",
               }))
             }
-            className="bg-charcoal-800 text-charcoal-200 h-8 rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-200 text-caption h-9 rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
           >
             <option value="equity">Equity</option>
             <option value="crypto">Crypto</option>
           </select>
         </label>
         <label className="flex flex-1 flex-col gap-1">
-          <span className="text-charcoal-400 font-mono text-[0.6rem] uppercase">Note</span>
+          <span className="text-charcoal-400 text-micro">Note</span>
           <input
             aria-label="Note"
             value={form.note}
             onChange={(event) => setForm((prev) => ({ ...prev, note: event.target.value }))}
-            className="bg-charcoal-800 text-charcoal-100 h-8 min-w-24 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 text-body h-9 min-w-24 rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
           />
         </label>
         <Button type="submit" size="sm" variant="outline">
@@ -499,7 +628,7 @@ export function PortfolioPanel() {
 
       {error !== null && (
         <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
-          <p className="text-negative font-mono text-xs">{error}</p>
+          <p className="text-negative text-caption">{error}</p>
           <button
             type="button"
             onClick={() => setError(null)}
@@ -512,7 +641,7 @@ export function PortfolioPanel() {
       )}
 
       {summary.rows.length > 0 && (
-        <div className="border-charcoal-700 text-charcoal-200 flex flex-wrap items-center gap-x-3 gap-y-1 border-b px-3 py-2 font-mono text-xs">
+        <div className="border-charcoal-700 text-charcoal-200 text-caption flex flex-wrap items-center gap-x-3 gap-y-1 border-b px-3 py-2 tabular-nums">
           <span className="whitespace-nowrap">
             Market value:{" "}
             <span className="text-charcoal-100">
@@ -558,13 +687,13 @@ export function PortfolioPanel() {
 
       {quotesError && holdings.length > 0 && (
         <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
-          <span className="text-warning font-mono text-[0.7rem]">
+          <span className="text-warning text-caption">
             Couldn&apos;t refresh live quotes — values shown without market data.
           </span>
           <button
             type="button"
             onClick={() => setQuotesNonce((n) => n + 1)}
-            className="font-mono text-[0.7rem] text-amber-400 transition-colors hover:text-amber-300"
+            className="text-caption text-amber-300 transition-colors hover:text-amber-200"
           >
             Retry
           </button>
@@ -573,136 +702,24 @@ export function PortfolioPanel() {
 
       <div className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto">
         {holdings.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
-            <Briefcase className="text-charcoal-600 size-8" aria-hidden="true" />
-            <p className="text-charcoal-300 font-mono text-sm">This portfolio is empty</p>
-            <p className="text-charcoal-500 max-w-xs font-mono text-xs">
-              Manually add a stock or crypto holding to track P&amp;L, weight, and concentration —
-              or create another portfolio above. No broker connection required.
-            </p>
-            <button
-              type="button"
-              onClick={() => symbolInputRef.current?.focus()}
-              className="border-charcoal-700 bg-charcoal-800 text-charcoal-300 rounded-md border px-3 py-1.5 font-mono text-xs transition-colors hover:border-amber-500 hover:text-amber-300"
-            >
-              Add your first holding
-            </button>
-          </div>
+          <EmptyState
+            icon={Briefcase}
+            headline="This portfolio is empty"
+            hint="Manually add a stock or crypto holding to track P&L, weight, and concentration — no broker connection required."
+            cta={{
+              label: "Add your first holding",
+              primary: true,
+              onClick: () => symbolInputRef.current?.focus(),
+            }}
+          />
         ) : (
-          <table className="w-full table-fixed border-collapse">
-            {/* Explicit column widths so the 8-column table holds at the enforced
-                minimum panel width without cells colliding. Symbol gives way
-                first (truncates); numeric columns hold. */}
-            <colgroup>
-              <col style={{ width: "18%" }} />
-              <col style={{ width: "8%" }} />
-              <col style={{ width: "12%" }} />
-              <col style={{ width: "12%" }} />
-              <col style={{ width: "12%" }} />
-              <col style={{ width: "22%" }} />
-              <col style={{ width: "9%" }} />
-              <col style={{ width: "7%" }} />
-            </colgroup>
-            <thead>
-              <tr className="text-charcoal-400 border-charcoal-700 border-b text-left font-mono text-[0.65rem] uppercase">
-                <th className="px-3 py-2 font-medium">Symbol</th>
-                <th className="px-3 py-2 text-right font-medium">Qty</th>
-                <th className="px-3 py-2 text-right font-medium">Cost</th>
-                <th className="px-3 py-2 text-right font-medium">Price</th>
-                <th className="px-3 py-2 text-right font-medium">Mkt val</th>
-                <th className="px-3 py-2 text-right font-medium">P&amp;L</th>
-                <th className="px-3 py-2 text-right font-medium">Wt</th>
-                <th className="px-3 py-2" />
-              </tr>
-            </thead>
-            <tbody>
-              {summary.rows.map(({ position, quote, marketValue, pnl, pnlPercent, weight }, i) => {
-                const holding = holdings[i];
-                const pnlColor =
-                  pnl === null
-                    ? "text-charcoal-400"
-                    : pnl > 0
-                      ? "text-positive"
-                      : pnl < 0
-                        ? "text-negative"
-                        : "text-charcoal-200";
-                const qtyText =
-                  typeof position.quantity === "number"
-                    ? position.quantity.toLocaleString("en-US", { maximumFractionDigits: 8 })
-                    : String(position.quantity);
-                return (
-                  <tr
-                    key={holding?.id ?? position.symbol}
-                    className="border-charcoal-800 hover:bg-charcoal-800/50 border-b font-mono text-sm"
-                  >
-                    <td className="text-charcoal-100 overflow-hidden px-3 py-2">
-                      <span className="block truncate" title={position.symbol}>
-                        {position.symbol}
-                      </span>
-                    </td>
-                    <td className="text-charcoal-200 overflow-hidden px-3 py-2 text-right whitespace-nowrap tabular-nums">
-                      <span className="block truncate" title={qtyText}>
-                        {qtyText}
-                      </span>
-                    </td>
-                    <td className="text-charcoal-200 overflow-hidden px-3 py-2 text-right whitespace-nowrap tabular-nums">
-                      <span className="block truncate" title={formatMoney(position.cost_basis)}>
-                        {formatMoney(position.cost_basis)}
-                      </span>
-                    </td>
-                    <td className="text-charcoal-200 overflow-hidden px-3 py-2 text-right whitespace-nowrap tabular-nums">
-                      <span
-                        className="block truncate"
-                        title={quote !== null ? formatMoney(quote.price) : undefined}
-                      >
-                        {quote !== null ? formatMoney(quote.price) : "—"}
-                      </span>
-                    </td>
-                    <td className="text-charcoal-200 overflow-hidden px-3 py-2 text-right whitespace-nowrap tabular-nums">
-                      <span
-                        className="block truncate"
-                        title={marketValue !== null ? formatMoney(marketValue) : undefined}
-                      >
-                        {marketValue !== null ? formatCompactMoney(marketValue) : "—"}
-                      </span>
-                    </td>
-                    <td className={cn("max-w-0 overflow-hidden px-3 py-2 text-right", pnlColor)}>
-                      <span className="block truncate whitespace-nowrap">
-                        {pnl !== null
-                          ? `${formatSignedMoney(pnl, true)} (${pnlPercent !== null ? formatPercent(pnlPercent) : "—"})`
-                          : "—"}
-                      </span>
-                    </td>
-                    <td className="text-charcoal-200 overflow-hidden px-3 py-2 text-right whitespace-nowrap tabular-nums">
-                      <span className="block truncate">
-                        {weight !== null ? `${(weight * 100).toFixed(1)}%` : "—"}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-right whitespace-nowrap">
-                      <Button
-                        type="button"
-                        size="icon-xs"
-                        variant="ghost"
-                        aria-label={`Edit ${position.symbol}`}
-                        onClick={() => holding && handleEdit(holding)}
-                      >
-                        <Pencil />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="icon-xs"
-                        variant="ghost"
-                        aria-label={`Delete ${position.symbol}`}
-                        onClick={() => holding && handleDelete(holding.id)}
-                      >
-                        <Trash2 />
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <DataTable
+            columns={holdingColumns}
+            rows={tableRows}
+            rowKey={(row) => row.holding?.id ?? row.position.symbol}
+            minWidth="min-w-[680px]"
+            data-testid="portfolio-holdings-table"
+          />
         )}
       </div>
     </div>

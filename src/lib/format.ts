@@ -123,3 +123,77 @@ export function formatCompactNumber(value: number): string {
   if (abbr !== null) return `${value < 0 ? "-" : ""}${abbr}`;
   return value.toLocaleString(activeLocale(), { maximumFractionDigits: 2 });
 }
+
+/**
+ * A bare price / ratio readout (no currency symbol). Sub-unit magnitudes keep
+ * significant digits so a micro-cap crypto at 0.000021 doesn't collapse to
+ * "0.00"; values >= 1 render at `dp` decimals (default 2). Non-finite -> "—".
+ * This is the single price formatter — the watchlist's old local `formatPrice`
+ * (sig-digit small / 2dp large) folds into it byte-identically.
+ */
+export function formatPrice(value: number, dp = 2): string {
+  if (!Number.isFinite(value)) return "—";
+  if (value !== 0 && Math.abs(value) < 1) {
+    return value.toLocaleString(activeLocale(), { maximumSignificantDigits: 6 });
+  }
+  return value.toLocaleString(activeLocale(), {
+    minimumFractionDigits: dp,
+    maximumFractionDigits: dp,
+  });
+}
+
+/** Unit tiers for {@link formatUnit} — extends {@link MONEY_UNITS} down to the K
+ *  tier so counts / volumes always carry a suffix. */
+const UNIT_TIERS: readonly { value: number; suffix: string }[] = [
+  { value: 1e15, suffix: "Q" },
+  { value: 1e12, suffix: "T" },
+  { value: 1e9, suffix: "B" },
+  { value: 1e6, suffix: "M" },
+  { value: 1e3, suffix: "K" },
+];
+
+/**
+ * A magnitude with a K/M/B/T/Q suffix and NO currency symbol — the single
+ * formatter for share counts, volumes, and any large unsuffixed count that must
+ * never render as a bare overflow ("Shares out. 14.698" → "14.70B"). Abbreviates
+ * at >= 1e3 (K) and up; below 1K it locale-groups at `dp` decimals. `dp` controls
+ * the abbreviated-mantissa precision (default 2), dropping to 0 once the mantissa
+ * reads >= 100 so a unit never shows four significant figures. Non-finite -> "—".
+ *
+ * Differs from {@link formatCompactNumber} only by abbreviating the K tier too,
+ * so the share-count / volume class always reads with a unit.
+ */
+export function formatUnit(value: number, dp = 2): string {
+  if (!Number.isFinite(value)) return "—";
+  const abs = Math.abs(value);
+  const sign = value < 0 ? "-" : "";
+  for (const { value: threshold, suffix } of UNIT_TIERS) {
+    if (abs >= threshold) {
+      const m = abs / threshold;
+      const digits = m >= 100 ? 0 : dp;
+      return `${sign}${m.toFixed(digits)}${suffix}`;
+    }
+  }
+  return `${sign}${abs.toLocaleString(activeLocale(), { maximumFractionDigits: dp })}`;
+}
+
+/**
+ * Group the digits of an ARBITRARY-PRECISION numeric STRING with thousands
+ * separators WITHOUT parsing to a (lossy) JS number — XBRL / SEC share counts and
+ * dollar values overflow `Number.MAX_SAFE_INTEGER`, so they ride the wire as
+ * strings and must never round-trip through `Number`. A non-numeric string passes
+ * through unchanged; an empty string degrades to "—". This is the single
+ * precision-safe string grouper (formerly the SEC table's local `formatBigInt`).
+ */
+export function groupDigits(raw: string | null | undefined): string {
+  if (raw === null || raw === undefined) return "—";
+  const trimmed = raw.trim();
+  if (trimmed === "") return "—";
+  if (!/^-?\d+(\.\d+)?$/.test(trimmed)) return trimmed;
+  const negative = trimmed.startsWith("-");
+  const unsigned = negative ? trimmed.slice(1) : trimmed;
+  const [intPart, frac] = unsigned.split(".");
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const grouped = frac ? `${withCommas}.${frac}` : withCommas;
+  return negative ? `-${grouped}` : grouped;
+}

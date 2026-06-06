@@ -84,9 +84,9 @@ describe("ScreenerResultsTable", () => {
     expect(screen.getByText("AAPL")).toBeInTheDocument();
     expect(screen.getByText("MSFT")).toBeInTheDocument();
     expect(screen.getByText("GOOGL")).toBeInTheDocument();
-    // Formatted market cap
-    expect(screen.getByText("3.20T")).toBeInTheDocument();
-    expect(screen.getByText("3.00T")).toBeInTheDocument();
+    // Formatted market cap — currency-prefixed + unit-suffixed (single formatter).
+    expect(screen.getByText("$3.20T")).toBeInTheDocument();
+    expect(screen.getByText("$3.00T")).toBeInTheDocument();
   });
 
   it("clicking a column header toggles sort direction", () => {

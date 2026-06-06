@@ -154,6 +154,21 @@ describe("EquityOverviewPanel", () => {
     expect(screen.getAllByText("Total Revenue").length).toBeGreaterThan(0);
   });
 
+  it("formats every magnitude with a unit (checklist #1: the missing-B fix)", async () => {
+    mockLoad.mockResolvedValue(overview());
+    render(<EquityOverviewPanel />);
+    await loadSymbol();
+
+    // Currency magnitudes carry a unit suffix — never a bare overflow.
+    expect(screen.getByText("$3.00T")).toBeInTheDocument(); // market cap
+    expect(screen.getByText("$400B")).toBeInTheDocument(); // revenue (TTM)
+    expect(screen.getByText("$95.0B")).toBeInTheDocument(); // free cash flow
+    // Bare share count is B-suffixed (the "14.698" bug), not a raw integer.
+    expect(screen.getByText("15.50B")).toBeInTheDocument();
+    // Curated labels — no snake_case ever renders.
+    expect(screen.queryByText(/free_cash_flow|shares_outstanding/)).toBeNull();
+  });
+
   it("degrades gracefully when a section is missing", async () => {
     mockLoad.mockResolvedValue(overview({ ratings: null }));
     render(<EquityOverviewPanel />);

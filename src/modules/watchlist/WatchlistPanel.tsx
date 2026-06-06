@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Download, ListPlus, Plus, X } from "lucide-react";
 
+import { DataTable, type DataColumn } from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
 import { ProvenanceBadge, StalenessBadge } from "@/components/DataBadges";
 import { EmptyState } from "@/components/EmptyState";
 import { buildCsv, downloadCsv } from "@/lib/csv";
+import { formatPercent, formatPrice } from "@/lib/format";
 import { openCompanyOverview } from "@/lib/host-actions";
 import { isLiveQuote, useMarketSession } from "@/lib/market-session";
 import { SidecarError } from "@/lib/sidecar-client";
@@ -19,25 +21,9 @@ import { useSymbolsStore as useWatchlistStore } from "@/store/symbols";
 /** Poll interval for quote refreshes — a few seconds keeps it near-real-time. */
 const POLL_INTERVAL_MS = 5_000;
 
-function formatPrice(value: number): string {
-  // Sub-dollar assets (e.g. micro-cap crypto at 0.000021) would collapse to
-  // "0.00" at a fixed 2-digit precision — switch to significant-digit mode so
-  // small magnitudes keep their meaningful figures. Prices >= 1 stay at the
-  // conventional 2 decimal places.
-  if (Math.abs(value) < 1 && value !== 0) {
-    return value.toLocaleString("en-US", {
-      maximumSignificantDigits: 6,
-    });
-  }
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
-
-function formatPercent(value: number): string {
-  const sign = value > 0 ? "+" : "";
-  return `${sign}${value.toFixed(2)}%`;
+/** A signed percent ("+1.31%") — the watchlist change column. */
+function fmtChange(value: number): string {
+  return formatPercent(value);
 }
 
 /** A brief green/red wash on the cell when its number ticks (reduced-motion
@@ -49,103 +35,73 @@ function flashClass(dir: "up" | "down" | null): string {
 }
 
 /**
- * One watchlist row — its own component so each owns a `useTickFlash` hook (a
- * price change paints a transient up/down wash, the Bloomberg "it moved" signal
- * a polled terminal otherwise lacks). The sign colour on Change still carries
- * the direction under reduced motion; the flash is purely additive signal.
+ * The Symbol cell — the ticker plus its provenance / freshness badges and the
+ * humanized session label, so a closed/weekend/after-hours price is plainly
+ * flagged as not-live (FR-041 / FR-118 / SC-019).
  */
-function WatchlistQuoteRow({
-  row,
-  isSelected,
-  onSelect,
-  onRemove,
-}: {
-  row: WatchlistRow;
-  isSelected: boolean;
-  onSelect: () => void;
-  onRemove: () => void;
-}) {
+function SymbolCell({ row }: { row: WatchlistRow }) {
   const { entry, quote } = row;
-  const change = quote?.change_percent ?? 0;
-  const positive = change >= 0;
-  // FR-118 stale guard: a value only reads as a live tick when freshness is
-  // exactly "live". A closed/weekend/EOD quote must NOT flash and its change %
-  // greys out, so a stale price is never mistaken for a live move.
-  const live = isLiveQuote(quote?.freshness);
   const session = useMarketSession(quote?.market_state ?? null, quote?.freshness ?? null);
-  // Only feed the tick-flash a changing value while live; otherwise pin it to a
-  // constant so a poll over a stale quote never paints a green/red wash.
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-charcoal-100 text-body truncate">{entry.symbol}</span>
+      {quote !== null && (
+        <span className="flex items-center gap-1 overflow-hidden">
+          <ProvenanceBadge provider={quote.provider} />
+          {quote.freshness != null && <StalenessBadge freshness={quote.freshness} />}
+        </span>
+      )}
+      {session.label !== null && session.tone === "muted" && (
+        <span className="text-charcoal-500 text-micro truncate" title={`Session: ${session.label}`}>
+          {session.label}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The Price cell — owns its own `useTickFlash` hook so a live tick paints a
+ * transient up/down wash (the Bloomberg "it moved" signal a polled terminal
+ * otherwise lacks). A stale / closed-session quote never flashes.
+ */
+function PriceCell({ row }: { row: WatchlistRow }) {
+  const { quote } = row;
+  const live = isLiveQuote(quote?.freshness);
   const flash = useTickFlash(live ? (quote?.price ?? null) : null);
   return (
-    <tr
-      onClick={onSelect}
+    <span
       className={cn(
-        "border-charcoal-800 hover:bg-charcoal-800/50 cursor-pointer border-b",
-        isSelected && "bg-charcoal-800/40",
+        "text-charcoal-200 block rounded-sm text-right tabular-nums transition-colors duration-700",
+        flashClass(flash),
       )}
     >
-      <td className="px-2.5 py-2">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-charcoal-100 truncate font-mono text-sm">{entry.symbol}</span>
-          {/* Provenance + calendar-aware freshness so a stale value is never shown
-              as a live tick (FR-041 / SC-019). The session label (FR-118)
-              humanizes the provider market_state so a closed/weekend/after-hours
-              price is plainly flagged as not-live. */}
-          {quote !== null && (
-            <span className="flex items-center gap-1 overflow-hidden">
-              <ProvenanceBadge provider={quote.provider} />
-              {quote.freshness != null && <StalenessBadge freshness={quote.freshness} />}
-            </span>
-          )}
-          {session.label !== null && session.tone === "muted" && (
-            <span
-              className="text-charcoal-500 truncate font-mono text-[10px] tracking-wide"
-              title={`Session: ${session.label}`}
-            >
-              {session.label}
-            </span>
-          )}
-        </div>
-      </td>
-      <td
-        className={cn(
-          "text-charcoal-200 overflow-hidden rounded-sm px-2.5 py-2 text-right font-mono text-sm text-ellipsis whitespace-nowrap tabular-nums transition-colors duration-700",
-          flashClass(flash),
-        )}
-      >
-        {quote !== null ? formatPrice(quote.price) : "—"}
-      </td>
-      <td
-        className={cn(
-          "overflow-hidden px-2.5 py-2 text-right font-mono text-sm text-ellipsis whitespace-nowrap tabular-nums",
-          // FR-118: only a LIVE quote carries the green/red sign colour. A stale
-          // or closed-session change % greys to the muted tier so it never reads
-          // as a live up/down move.
-          quote === null || !live
-            ? "text-charcoal-400"
-            : positive
-              ? "text-positive"
-              : "text-negative",
-        )}
-        title={quote !== null && !live ? "Not a live tick — last known change" : undefined}
-      >
-        {quote !== null ? formatPercent(change) : "—"}
-      </td>
-      <td className="px-1 py-2 text-right">
-        <Button
-          type="button"
-          size="icon-xs"
-          variant="ghost"
-          aria-label={`Remove ${entry.symbol}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove();
-          }}
-        >
-          <X />
-        </Button>
-      </td>
-    </tr>
+      {quote !== null ? formatPrice(quote.price) : "—"}
+    </span>
+  );
+}
+
+/** The Change cell — only a LIVE quote carries the green/red sign colour; a stale
+ *  or closed-session change greys to the muted tier so it never reads as a move. */
+function ChangeCell({ row }: { row: WatchlistRow }) {
+  const { quote } = row;
+  const change = quote?.change_percent ?? 0;
+  const positive = change >= 0;
+  const live = isLiveQuote(quote?.freshness);
+  return (
+    <span
+      className={cn(
+        "block text-right tabular-nums",
+        quote === null || !live
+          ? "text-charcoal-400"
+          : positive
+            ? "text-positive"
+            : "text-negative",
+      )}
+      title={quote !== null && !live ? "Not a live tick — last known change" : undefined}
+    >
+      {quote !== null ? fmtChange(change) : "—"}
+    </span>
   );
 }
 
@@ -181,9 +137,7 @@ export function WatchlistPanel() {
 
   // Project the entry list into a primitive-friendly tuple of symbol strings
   // so the effect's deps array stays referentially stable across re-renders
-  // that don't actually change the symbol list. The snapshot is re-memoised
-  // off `symbolsKey` (a primitive string) so a re-rendered identical list
-  // does not mint a fresh array.
+  // that don't actually change the symbol list.
   const symbolsKey = useMemo(() => entries.map((e) => e.symbol).join(","), [entries]);
   const symbolsSnapshot = useMemo(
     () => (symbolsKey === "" ? [] : symbolsKey.split(",")),
@@ -250,8 +204,7 @@ export function WatchlistPanel() {
   };
 
   // Export the watchlist to CSV — uses the live quotes when they've loaded, else
-  // falls back to the tracked symbols alone (so an export never blocks on a
-  // pending refresh). No-op on an empty watchlist.
+  // falls back to the tracked symbols alone. No-op on an empty watchlist.
   const handleExport = () => {
     const source: { entry: (typeof entries)[number]; quote: WatchlistRow["quote"] }[] =
       rows ?? entries.map((entry) => ({ entry, quote: null }));
@@ -271,6 +224,46 @@ export function WatchlistPanel() {
     downloadCsv("vysted-watchlist.csv", csv);
   };
 
+  const columns = useMemo<DataColumn<WatchlistRow>[]>(
+    () => [
+      { key: "symbol", header: "Symbol", width: "36%", cell: (row) => <SymbolCell row={row} /> },
+      {
+        key: "price",
+        header: "Price",
+        numeric: true,
+        width: "32%",
+        cell: (row) => <PriceCell row={row} />,
+      },
+      {
+        key: "change",
+        header: "Change",
+        numeric: true,
+        width: "22%",
+        cell: (row) => <ChangeCell row={row} />,
+      },
+      {
+        key: "remove",
+        action: true,
+        width: "10%",
+        cell: (row) => (
+          <Button
+            type="button"
+            size="icon-xs"
+            variant="ghost"
+            aria-label={`Remove ${row.entry.symbol}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              removeSymbol(row.entry.symbol);
+            }}
+          >
+            <X />
+          </Button>
+        ),
+      },
+    ],
+    [removeSymbol],
+  );
+
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
       <form
@@ -282,7 +275,7 @@ export function WatchlistPanel() {
           placeholder="Add symbol"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
-          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 h-8 flex-1 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 text-body h-9 flex-1 rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
         />
         <div className="relative">
           <select
@@ -291,7 +284,7 @@ export function WatchlistPanel() {
             onChange={(event) =>
               setDraftAssetClass(event.target.value === "crypto" ? "crypto" : "equity")
             }
-            className="bg-charcoal-800 text-charcoal-200 h-8 appearance-none rounded-md px-2 pr-6 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-200 text-caption h-9 appearance-none rounded-md px-3 pr-6 outline-none focus:ring-1 focus:ring-amber-400"
           >
             <option value="equity">Equity</option>
             <option value="crypto">Crypto</option>
@@ -316,7 +309,7 @@ export function WatchlistPanel() {
 
       {error !== null && (
         <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
-          <span className="text-negative font-mono text-xs">Could not refresh quotes</span>
+          <span className="text-negative text-caption">Could not refresh quotes</span>
           <Button
             type="button"
             size="sm"
@@ -341,16 +334,16 @@ export function WatchlistPanel() {
             <tbody>
               {Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-charcoal-800 border-b">
-                  <td className="px-2.5 py-2">
-                    <div className="bg-charcoal-800 h-3 w-3/4 animate-pulse rounded" />
+                  <td className="px-3 py-1.5">
+                    <div className="bg-charcoal-800 h-3 w-3/4 animate-pulse rounded-sm" />
                   </td>
-                  <td className="px-2.5 py-2">
-                    <div className="bg-charcoal-800 ml-auto h-3 w-full animate-pulse rounded" />
+                  <td className="px-3 py-1.5">
+                    <div className="bg-charcoal-800 ml-auto h-3 w-full animate-pulse rounded-sm" />
                   </td>
-                  <td className="px-2.5 py-2">
-                    <div className="bg-charcoal-800 ml-auto h-3 w-full animate-pulse rounded" />
+                  <td className="px-3 py-1.5">
+                    <div className="bg-charcoal-800 ml-auto h-3 w-full animate-pulse rounded-sm" />
                   </td>
-                  <td className="px-1 py-2" />
+                  <td className="px-1 py-1.5" />
                 </tr>
               ))}
             </tbody>
@@ -362,42 +355,18 @@ export function WatchlistPanel() {
             hint="Add a ticker in the field above to start tracking live quotes."
           />
         ) : (
-          <table
-            className={cn("w-full table-fixed border-collapse", error !== null && "opacity-50")}
-          >
-            {/* Explicit column widths so a squeezed panel never lets Price and
-                Change collide (the host-side min-width is the first guard; this
-                colgroup + per-cell clip is the second). Symbol gives way first
-                (it truncates); the numeric columns hold their room. */}
-            <colgroup>
-              <col className="w-[36%]" />
-              <col className="w-[32%]" />
-              <col className="w-[22%]" />
-              <col className="w-[10%]" />
-            </colgroup>
-            <thead>
-              <tr className="text-charcoal-400 border-charcoal-700 border-b text-left font-mono text-[0.65rem] uppercase">
-                <th className="px-2.5 py-2 font-medium">Symbol</th>
-                <th className="px-2.5 py-2 text-right font-medium">Price</th>
-                <th className="px-2.5 py-2 text-right font-medium">Change</th>
-                <th className="px-1 py-2" />
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <WatchlistQuoteRow
-                  key={row.entry.symbol}
-                  row={row}
-                  isSelected={selectedSymbol === row.entry.symbol}
-                  onSelect={() => {
-                    setSelectedSymbol(row.entry.symbol);
-                    openCompanyOverview(row.entry.symbol);
-                  }}
-                  onRemove={() => removeSymbol(row.entry.symbol)}
-                />
-              ))}
-            </tbody>
-          </table>
+          <DataTable
+            columns={columns}
+            rows={rows}
+            rowKey={(row) => row.entry.symbol}
+            isRowSelected={(row) => selectedSymbol === row.entry.symbol}
+            onRowClick={(row) => {
+              setSelectedSymbol(row.entry.symbol);
+              openCompanyOverview(row.entry.symbol);
+            }}
+            className={cn(error !== null && "opacity-50")}
+            data-testid="watchlist-table"
+          />
         )}
       </div>
     </div>
