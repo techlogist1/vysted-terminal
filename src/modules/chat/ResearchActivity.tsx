@@ -85,7 +85,7 @@ export function ResearchActivity({ steps, active, startedAt }: ResearchActivityP
   return (
     <div
       className={cn(
-        "mb-2 overflow-hidden rounded-md border font-mono",
+        "mb-2 overflow-hidden rounded-none border",
         active
           ? "border-amber-500/40 bg-amber-500/[0.07]"
           : "border-charcoal-700 bg-charcoal-800/40",
@@ -142,7 +142,7 @@ export function ResearchActivity({ steps, active, startedAt }: ResearchActivityP
               >
                 <span
                   className={cn(
-                    "flex h-3.5 w-3.5 shrink-0 items-center justify-center",
+                    "flex h-4 w-4 shrink-0 items-center justify-center",
                     errored ? "text-negative" : isCurrent ? "text-amber-400" : "text-charcoal-400",
                   )}
                   aria-hidden

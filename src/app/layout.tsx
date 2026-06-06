@@ -1,21 +1,15 @@
 import type { Metadata } from "next";
-import { Inter, Geist_Mono } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-// Inter — the Geist-class UI sans for the wordmark, headings, and dense chrome:
-// tall x-height, tabular figures, the reference data-terminal face. Exposed as
-// --font-display, which the `--font-serif` token slot now references.
-const display = Inter({
-  subsets: ["latin"],
-  variable: "--font-display",
-  display: "swap",
-});
-
-// Geist Mono — the data/terminal workhorse: every price, label, and chrome
-// element. Contemporary, compressed, and pairs with Inter's geometry.
-const jetbrainsMono = Geist_Mono({
+// JetBrains Mono — the SINGLE family across every text role (VYSTED_DESIGN.md).
+// Hierarchy is built from size + weight alone (400 / 500 / 700); there is no
+// second face anywhere in the chrome. Exposed as --font-jetbrains-mono, which
+// the --font-sans / --font-serif / --font-mono token slots all reference.
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains-mono",
+  weight: ["400", "500", "700"],
   display: "swap",
 });
 
@@ -26,7 +20,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`dark ${display.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`dark ${jetbrainsMono.variable}`}>
       <body>{children}</body>
     </html>
   );

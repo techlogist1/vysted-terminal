@@ -37,7 +37,7 @@
   --color-charcoal-800: #352f26; /* muted / secondary surface */
   --color-charcoal-700: #3e372d; /* borders / inputs / dividers */
   --color-charcoal-600: #4d463b; /* strong border / disabled fg */
-  --color-charcoal-500: #847b6d; /* TERTIARY text -- faint label, kbd, process/meta */
+  --color-charcoal-500: #968c7d; /* TERTIARY text -- faint label, kbd, meta (lightened from #847b6d to clear WCAG AA on dark) */
   --color-charcoal-400: #ada294; /* SECONDARY text -- muted foreground */
   --color-charcoal-300: #d6d0c4; /* secondary-bright text */
   --color-charcoal-200: #ebe5db; /* bright secondary / chart text */
@@ -81,29 +81,31 @@
   --color-negative-bright: #f87171; /* loss flash peak */
   --color-warning: #e0a13a; /* stale / paper / caution badge */
 
-  /* --- Typography -- a Geist-class UI sans (Inter) over a Geist Mono data face.
-   * The --font-* inner vars are supplied by next/font in src/app/layout.tsx
-   * (display -> --font-display [Inter], mono -> --font-jetbrains-mono).
-   * The `--font-serif` slot name is historical -- it renders the UI sans.
-   * Numerics use tabular figures + slashed zero (set in globals.css). */
-  --font-serif: var(--font-display), ui-sans-serif, system-ui, sans-serif;
-  --font-mono:
-    var(--font-jetbrains-mono), ui-monospace, "Geist Mono", "SF Mono", "Cascadia Mono", monospace;
+  /* --- Typography -- ONE monospace family (JetBrains Mono) across EVERY text
+   * role (VYSTED_DESIGN.md). next/font supplies --font-jetbrains-mono in
+   * src/app/layout.tsx. ALL THREE family slots resolve to it, so even a stray
+   * `font-sans`/`font-serif` utility renders mono -- there is no second face.
+   * The slot NAMES (serif/sans) are historical. Numerics use tabular figures +
+   * slashed zero (set in globals.css). */
+  --font-sans: var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace;
+  --font-serif: var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace;
 
   /* --- Type scale (R4, NEW -- ~1.20 modular, snapped to even px, doc sec3)
    * Named utilities so components use text-body / text-panel-title / etc.
    * instead of ad-hoc text-[11px]. Tailwind 4 reads @theme. -------------- */
   --text-micro: 0.6875rem; /* 11px -- hud-label (uppercase, +0.10em tracking) */
   --text-caption: 0.75rem; /* 12px -- caption, secondary, kbd chips */
-  --text-body: 0.8125rem; /* 13px -- body + table base */
+  --text-body: 0.8125rem; /* 13px -- body + table/data base */
+  --text-prose: 1rem; /* 16px -- AI narratives / briefs / notes reading size (leading 1.6) */
   --text-panel-title: 0.9375rem; /* 15px -- panel title */
   --text-section: 1.125rem; /* 18px -- section head */
   --text-overview: 1.375rem; /* 22px -- overview / brief head */
   --text-hero: 1.75rem; /* 28px -- rare hero (first-run only) */
 
   --font-weight-body: 400;
-  --font-weight-label: 510; /* emphasis / labels -- medium, not bold (Linear) */
-  --font-weight-heading: 590; /* section + overview heads */
+  --font-weight-label: 500; /* emphasis / labels / panel-title / micro -- mono medium */
+  --font-weight-heading: 700; /* section + overview + hero heads -- mono bold */
 
   --leading-dense: 1.35; /* table rows, code */
   --leading-body: 1.5; /* body / captions */
@@ -126,9 +128,10 @@
   --spacing-24: 3rem; /* 48px */
   --spacing-32: 4rem; /* 64px */
 
-  /* --- Radius rhythm -- tight + precise for the low-chrome instrument look. */
-  --radius-panel: 0.375rem;
-  --radius-control: 0.25rem;
+  /* --- Radius -- containers are SHARP rectangles (0px); only interactive
+   * elements soften to 4px (VYSTED_DESIGN.md). */
+  --radius-panel: 0; /* every container: panel, card, table, header, section */
+  --radius-control: 0.25rem; /* 4px -- button, input, toggle, pill, chip, popover, row */
 
   /* --- Motion -- unified tiers (R4 sec5). DUR in motion.ts mirrors these in
    * seconds; exits run ~30% faster than entrances. One vocabulary. --------- */
@@ -167,6 +170,14 @@
 @utility text-body {
   font-size: var(--text-body);
   line-height: var(--leading-body);
+  font-weight: var(--font-weight-body);
+}
+
+/* Reading size for AI narratives, research briefs, and notes prose. The only
+   role at 16px; everything denser stays on text-body (13px) and below. */
+@utility text-prose {
+  font-size: var(--text-prose);
+  line-height: var(--leading-prose);
   font-weight: var(--font-weight-body);
 }
 

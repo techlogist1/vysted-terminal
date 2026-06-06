@@ -34,10 +34,10 @@ export function ScreenerFormulaLeaf() {
     <div className="space-y-1.5">
       <div className="flex items-center gap-2">
         <FunctionSquare className="text-muted-foreground size-4" />
-        <h3 className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
+        <h3 className="text-muted-foreground text-caption font-semibold tracking-wide uppercase">
           Custom formula
         </h3>
-        <span className="text-muted-foreground text-[10px]">
+        <span className="text-muted-foreground text-micro">
           Filters the matched results · runs client-side
         </span>
       </div>
@@ -50,27 +50,27 @@ export function ScreenerFormulaLeaf() {
         onChange={(e) => setFormula(e.target.value)}
         placeholder="e.g. pe < 15 and roe > 0.2   ·   market_cap / volume > 1e6"
         className={
-          "border-border bg-background w-full rounded-md border px-2 py-1.5 font-mono text-sm " +
+          "border-border bg-charcoal-850 rounded-control text-body h-8 w-full border px-2 font-mono " +
           (parseError ? "border-destructive/60" : "")
         }
       />
       {parseError ? (
-        <div className="text-destructive flex items-center gap-1.5 text-[11px]">
+        <div className="text-destructive text-micro flex items-center gap-1.5">
           <AlertCircle className="size-3 shrink-0" />
           <span>{parseError}</span>
         </div>
       ) : runError ? (
-        <div className="text-warning flex items-center gap-1.5 text-[11px]">
+        <div className="text-warning text-micro flex items-center gap-1.5">
           <AlertCircle className="size-3 shrink-0" />
           <span>{runError} — rows missing that field were dropped.</span>
         </div>
       ) : formula.trim() && preFormulaCount !== null && lastResult ? (
-        <p className="text-muted-foreground text-[11px]">
+        <p className="text-muted-foreground text-micro">
           Formula kept {lastResult.result_count} of {preFormulaCount} matched row
           {preFormulaCount === 1 ? "" : "s"}.
         </p>
       ) : formula.trim() ? (
-        <p className="text-muted-foreground text-[11px]">
+        <p className="text-muted-foreground text-micro">
           Available: pe, pe_ratio, marketCap, market_cap, roe, dividend_yield, price, volume, … —
           run the screener to apply.
         </p>

@@ -33,8 +33,8 @@ export const PluginManagerPanel: FunctionComponent = () => {
   return (
     <div className="bg-charcoal-900 h-full w-full overflow-y-auto p-6">
       <header className="mb-4">
-        <h2 className="text-charcoal-100 font-serif text-xl">Plugins</h2>
-        <p className="text-charcoal-400 mt-1 font-mono text-xs">
+        <h2 className="text-charcoal-100 text-section">Plugins</h2>
+        <p className="text-charcoal-400 text-caption mt-1 font-mono">
           {plugins.length > 0
             ? `${enabledCount} active of ${plugins.length} loaded · ${dataSources.length} data sources · ${agents.length} agents · ${nodes.length} nodes`
             : null}
@@ -44,18 +44,21 @@ export const PluginManagerPanel: FunctionComponent = () => {
         // Runtime not attached yet — show skeleton rows
         <ul className="flex flex-col gap-2">
           {[...Array(3)].map((_, i) => (
-            <li key={i} className="border-charcoal-700 bg-charcoal-850 rounded-md border px-4 py-3">
-              <div className="bg-charcoal-700 h-3 w-2/3 animate-pulse rounded" />
-              <div className="bg-charcoal-700 mt-2 h-2 w-1/3 animate-pulse rounded" />
+            <li
+              key={i}
+              className="border-charcoal-700 bg-charcoal-850 rounded-none border px-4 py-3"
+            >
+              <div className="bg-charcoal-700 h-3 w-2/3 animate-pulse rounded-none" />
+              <div className="bg-charcoal-700 mt-2 h-2 w-1/3 animate-pulse rounded-none" />
             </li>
           ))}
-          <p className="text-charcoal-500 mt-2 font-mono text-xs">Loading plugin runtime…</p>
+          <p className="text-charcoal-500 text-caption mt-2 font-mono">Loading plugin runtime…</p>
         </ul>
       ) : plugins.length === 0 ? (
         // Runtime attached but no plugins loaded
         <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-          <h3 className="text-charcoal-200 font-serif text-base">Plugin Manager</h3>
-          <p className="text-charcoal-400 max-w-xs font-mono text-xs">
+          <h3 className="text-charcoal-200 text-body">Plugin Manager</h3>
+          <p className="text-charcoal-400 text-caption max-w-xs font-mono break-words">
             No plugins are loaded. Open Marketplace to install extensions.
           </p>
           <Button size="sm" variant="outline" onClick={() => openPanel("marketplace-panel")}>
@@ -131,28 +134,28 @@ function PluginRow({ plugin, runtimeReady }: PluginRowProps) {
   return (
     <li
       data-testid={`plugin-row-${plugin.manifest.id}`}
-      className="border-charcoal-700 bg-charcoal-850 flex flex-col gap-2 rounded-md border px-4 py-3"
+      className="border-charcoal-700 bg-charcoal-850 flex flex-col gap-2 rounded-none border px-4 py-3"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col">
           <div className="flex items-center gap-2">
-            <span className="text-charcoal-100 truncate font-mono text-sm font-medium">
+            <span className="text-charcoal-100 text-body truncate font-mono font-medium">
               {plugin.manifest.name}
             </span>
             <span
               data-testid={`plugin-state-${plugin.manifest.id}`}
-              className={`rounded px-1.5 py-0.5 font-mono text-[10px] tracking-wide uppercase ${STATE_TONE[plugin.state]}`}
+              className={`rounded-control text-micro px-1.5 py-0.5 font-mono tracking-wide uppercase ${STATE_TONE[plugin.state]}`}
             >
               {stateLabel}
             </span>
           </div>
-          <span className="text-charcoal-400 font-mono text-xs">
+          <span className="text-charcoal-400 text-caption font-mono">
             v{plugin.manifest.version}
             {plugin.manifest.author ? ` · ${plugin.manifest.author}` : ""} · id{" "}
             <code className="text-charcoal-300">{plugin.manifest.id}</code>
           </span>
           {plugin.manifest.description ? (
-            <p className="text-charcoal-400 mt-1 font-mono text-xs">
+            <p className="text-charcoal-400 text-caption mt-1 font-mono">
               {plugin.manifest.description}
             </p>
           ) : null}
@@ -178,9 +181,9 @@ function PluginRow({ plugin, runtimeReady }: PluginRowProps) {
       {plugin.errorMessage ? (
         <div
           data-testid={`plugin-error-${plugin.manifest.id}`}
-          className="border-negative/30 bg-negative/10 flex items-start justify-between gap-2 rounded-sm border px-2 py-1"
+          className="border-negative/30 bg-negative/10 flex items-start justify-between gap-2 rounded-none border px-2 py-1"
         >
-          <p className="text-negative font-mono text-xs">{plugin.errorMessage}</p>
+          <p className="text-negative text-caption font-mono">{plugin.errorMessage}</p>
           <Button
             size="xs"
             variant="outline"
@@ -195,7 +198,7 @@ function PluginRow({ plugin, runtimeReady }: PluginRowProps) {
 
       <div className="flex items-center justify-between gap-3">
         <HealthHistory history={plugin.healthHistory} />
-        <span className="text-charcoal-500 font-mono text-[10px]">
+        <span className="text-charcoal-500 text-micro font-mono">
           {latestHealth ? formatRelativeTime(latestHealth.recordedAt) : "no health samples yet"}
         </span>
       </div>
@@ -216,7 +219,7 @@ const HEALTH_TONE: Record<string, string> = {
 function HealthHistory({ history }: HealthHistoryProps) {
   if (history.length === 0) {
     return (
-      <span className="text-charcoal-500 font-mono text-[10px]">awaiting first health check</span>
+      <span className="text-charcoal-500 text-micro font-mono">awaiting first health check</span>
     );
   }
   return (
@@ -228,7 +231,7 @@ function HealthHistory({ history }: HealthHistoryProps) {
       {history.map((sample, index) => (
         <span
           key={`${sample.recordedAt}-${index}`}
-          className={`block h-3 w-1.5 rounded-sm ${HEALTH_TONE[sample.status] ?? "bg-charcoal-600"}`}
+          className={`block h-3 w-1.5 rounded-none ${HEALTH_TONE[sample.status] ?? "bg-charcoal-600"}`}
           title={`${sample.status}${sample.message ? ` — ${sample.message}` : ""}`}
         />
       ))}

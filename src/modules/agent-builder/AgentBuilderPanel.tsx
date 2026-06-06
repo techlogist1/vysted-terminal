@@ -235,10 +235,10 @@ export function AgentBuilderPanel() {
       {/* --- form column --- */}
       <form onSubmit={handleSubmit} className="flex min-h-0 flex-col gap-3 overflow-y-auto p-4">
         <header className="flex items-baseline justify-between">
-          <h2 className="text-charcoal-100 font-mono text-sm tracking-wide uppercase">
+          <h2 className="text-charcoal-100 text-panel-title font-mono tracking-wide uppercase">
             {isEditing ? "Edit custom agent" : "New custom agent"}
           </h2>
-          <span className="text-charcoal-500 font-mono text-[10px] uppercase">
+          <span className="text-charcoal-500 text-micro font-mono uppercase">
             module 36 · BLUEPRINT
           </span>
         </header>
@@ -246,9 +246,9 @@ export function AgentBuilderPanel() {
         {/* Identity row */}
         <fieldset className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="flex flex-col gap-1">
-            <span className="text-charcoal-400 font-mono text-[10px] uppercase">ID</span>
+            <span className="text-charcoal-400 text-micro font-mono uppercase">ID</span>
             <div className="flex items-stretch">
-              <span className="bg-charcoal-850 text-charcoal-400 border-charcoal-700 inline-flex items-center rounded-l-md border border-r-0 px-2 font-mono text-xs">
+              <span className="bg-charcoal-850 text-charcoal-400 border-charcoal-700 rounded-l-control text-caption inline-flex items-center border border-r-0 px-2 font-mono">
                 {CUSTOM_AGENT_ID_PREFIX}
               </span>
               <input
@@ -257,64 +257,64 @@ export function AgentBuilderPanel() {
                 onChange={(e) => setField("idBody", e.target.value)}
                 placeholder="macro-quant"
                 spellCheck={false}
-                className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 h-8 flex-1 rounded-r-md border px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+                className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-r-control text-body h-8 flex-1 border px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
                 disabled={isEditing}
               />
             </div>
             {errors.idBody !== undefined && (
-              <p className="text-negative font-mono text-[10px]">{errors.idBody}</p>
+              <p className="text-negative text-micro font-mono">{errors.idBody}</p>
             )}
           </label>
 
           <label className="flex flex-col gap-1">
-            <span className="text-charcoal-400 font-mono text-[10px] uppercase">Name</span>
+            <span className="text-charcoal-400 text-micro font-mono uppercase">Name</span>
             <input
               aria-label="Agent name"
               value={state.name}
               onChange={(e) => setField("name", e.target.value)}
               placeholder="Macro Quant"
-              className="bg-charcoal-800 text-charcoal-100 h-8 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+              className="bg-charcoal-800 text-charcoal-100 rounded-control text-body h-8 px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
             />
             {errors.name !== undefined && (
-              <p className="text-negative font-mono text-[10px]">{errors.name}</p>
+              <p className="text-negative text-micro font-mono">{errors.name}</p>
             )}
           </label>
         </fieldset>
 
         {/* Philosophy */}
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-400 font-mono text-[10px] uppercase">Philosophy</span>
+          <span className="text-charcoal-400 text-micro font-mono uppercase">Philosophy</span>
           <input
             aria-label="Philosophy"
             value={state.philosophy}
             onChange={(e) => setField("philosophy", e.target.value)}
             placeholder="One-line lens (e.g. 'Mean reversion across macro asset classes.')"
-            className="bg-charcoal-800 text-charcoal-100 h-8 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 rounded-control text-body h-8 px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
           />
           {errors.philosophy !== undefined && (
-            <p className="text-negative font-mono text-[10px]">{errors.philosophy}</p>
+            <p className="text-negative text-micro font-mono">{errors.philosophy}</p>
           )}
         </label>
 
         {/* System prompt */}
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-400 font-mono text-[10px] uppercase">System prompt</span>
+          <span className="text-charcoal-400 text-micro font-mono uppercase">System prompt</span>
           <textarea
             aria-label="System prompt"
             value={state.systemPrompt}
             onChange={(e) => setField("systemPrompt", e.target.value)}
             placeholder="You are a macro quant analyst. Reason from regime first; cite drawdown statistics when answering."
             rows={8}
-            className="bg-charcoal-800 text-charcoal-100 min-h-[8rem] resize-y rounded-md p-2 font-mono text-xs leading-relaxed outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption min-h-[8rem] resize-y p-2 font-mono leading-relaxed outline-none focus:ring-1 focus:ring-amber-400"
           />
           {errors.systemPrompt !== undefined && (
-            <p className="text-negative font-mono text-[10px]">{errors.systemPrompt}</p>
+            <p className="text-negative text-micro font-mono">{errors.systemPrompt}</p>
           )}
         </label>
 
         {/* Tools */}
         <div className="flex flex-col gap-1">
-          <span className="text-charcoal-400 font-mono text-[10px] uppercase">Tools</span>
+          <span className="text-charcoal-400 text-micro font-mono uppercase">Tools</span>
           <div className="flex flex-wrap gap-1">
             {KNOWN_TOOL_IDS.map((tool) => {
               const active = state.tools.has(tool);
@@ -325,7 +325,7 @@ export function AgentBuilderPanel() {
                   onClick={() => toggleTool(tool as KnownToolId)}
                   aria-pressed={active}
                   className={cn(
-                    "rounded-control border px-2 py-1 font-mono text-[10px] transition-colors",
+                    "rounded-control text-micro border px-2 py-1 font-mono transition-colors",
                     active
                       ? "border-amber-500 bg-amber-500/15 text-amber-300"
                       : "border-charcoal-700 text-charcoal-400 hover:border-charcoal-600 hover:text-charcoal-200",
@@ -341,7 +341,7 @@ export function AgentBuilderPanel() {
         {/* Provider + model */}
         <fieldset className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="flex flex-col gap-1">
-            <span className="text-charcoal-400 font-mono text-[10px] uppercase">
+            <span className="text-charcoal-400 text-micro font-mono uppercase">
               Default provider
             </span>
             <select
@@ -350,7 +350,7 @@ export function AgentBuilderPanel() {
               onChange={(e) =>
                 setField("defaultProvider", e.target.value as (typeof KNOWN_PROVIDER_IDS)[number])
               }
-              className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 h-8 rounded-md border px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+              className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
             >
               {KNOWN_PROVIDER_IDS.map((id) => (
                 <option key={id} value={id}>
@@ -361,7 +361,7 @@ export function AgentBuilderPanel() {
           </label>
 
           <label className="flex flex-col gap-1">
-            <span className="text-charcoal-400 font-mono text-[10px] uppercase">
+            <span className="text-charcoal-400 text-micro font-mono uppercase">
               Default model (optional)
             </span>
             <input
@@ -369,14 +369,14 @@ export function AgentBuilderPanel() {
               value={state.defaultModel}
               onChange={(e) => setField("defaultModel", e.target.value)}
               placeholder="e.g. claude-opus-4-8"
-              className="bg-charcoal-800 text-charcoal-100 h-8 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+              className="bg-charcoal-800 text-charcoal-100 rounded-control text-body h-8 px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
             />
           </label>
         </fieldset>
 
         {/* Icon */}
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-400 font-mono text-[10px] uppercase">
+          <span className="text-charcoal-400 text-micro font-mono uppercase">
             Icon (Lucide name, optional)
           </span>
           <input
@@ -384,7 +384,7 @@ export function AgentBuilderPanel() {
             value={state.icon}
             onChange={(e) => setField("icon", e.target.value)}
             placeholder="e.g. brain"
-            className="bg-charcoal-800 text-charcoal-100 h-8 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 rounded-control text-body h-8 px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
           />
         </label>
 
@@ -406,17 +406,17 @@ export function AgentBuilderPanel() {
               </Button>
             )}
             {saveStatus === "saved" && saveMessage !== null && (
-              <span className="text-positive font-mono text-xs">{saveMessage}</span>
+              <span className="text-positive text-caption font-mono">{saveMessage}</span>
             )}
           </div>
           {saveStatus === "error" && saveMessage !== null && (
             <div className="flex items-center gap-2">
-              <span className="text-negative overflow-hidden font-mono text-xs text-ellipsis">
+              <span className="text-negative text-caption overflow-hidden font-mono text-ellipsis">
                 {saveMessage}
               </span>
               <button
                 type="submit"
-                className="shrink-0 font-mono text-xs text-amber-400 underline hover:text-amber-300"
+                className="text-caption shrink-0 font-mono text-amber-400 underline hover:text-amber-300"
               >
                 Try again
               </button>
@@ -428,8 +428,8 @@ export function AgentBuilderPanel() {
       {/* --- list column --- */}
       <aside className="border-charcoal-700 flex min-h-0 flex-col border-t lg:border-t-0 lg:border-l">
         <header className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
-          <span className="text-charcoal-200 font-mono text-xs uppercase">Your agents</span>
-          <span className="text-charcoal-500 font-mono text-[10px] uppercase">
+          <span className="text-charcoal-200 text-caption font-mono uppercase">Your agents</span>
+          <span className="text-charcoal-500 text-micro font-mono uppercase">
             {customAgents.length}
           </span>
         </header>
@@ -437,19 +437,19 @@ export function AgentBuilderPanel() {
           {customStatus === "loading" && (
             <div className="flex flex-col gap-2 px-3 py-3">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="bg-charcoal-800 h-8 animate-pulse rounded" />
+                <div key={i} className="bg-charcoal-800 h-8 animate-pulse rounded-none" />
               ))}
             </div>
           )}
           {customStatus === "error" && (
             <div className="flex flex-col gap-1 px-3 py-3">
-              <p className="text-negative font-mono text-[10px]">
+              <p className="text-negative text-micro font-mono">
                 {customError ?? "Failed to load agents."}
               </p>
               <button
                 type="button"
                 onClick={() => void refreshCustom()}
-                className="text-left font-mono text-[10px] text-amber-400 underline hover:text-amber-300"
+                className="text-micro text-left font-mono text-amber-400 underline hover:text-amber-300"
               >
                 Retry
               </button>
@@ -457,8 +457,8 @@ export function AgentBuilderPanel() {
           )}
           {customStatus === "ready" && customAgents.length === 0 && (
             <div className="flex flex-col items-start gap-1 px-3 py-3">
-              <p className="text-charcoal-400 font-mono text-xs">No custom agents yet.</p>
-              <p className="text-charcoal-500 font-mono text-[10px]">
+              <p className="text-charcoal-400 text-caption font-mono">No custom agents yet.</p>
+              <p className="text-charcoal-500 text-micro font-mono">
                 Fill the form to create your first.
               </p>
             </div>
@@ -477,8 +477,8 @@ export function AgentBuilderPanel() {
                   onClick={() => handleEdit(agent)}
                   className="flex w-full min-w-0 flex-1 flex-col items-start gap-0.5 text-left"
                 >
-                  <span className="text-charcoal-100 font-mono text-xs">{agent.name}</span>
-                  <span className="text-charcoal-400 w-full truncate font-mono text-[10px]">
+                  <span className="text-charcoal-100 text-caption font-mono">{agent.name}</span>
+                  <span className="text-charcoal-400 text-micro w-full truncate font-mono">
                     {agent.id}
                   </span>
                 </button>
@@ -486,7 +486,7 @@ export function AgentBuilderPanel() {
                   type="button"
                   aria-label={`Delete ${agent.name}`}
                   onClick={() => handleDelete(agent.id)}
-                  className="text-charcoal-400 hover:text-negative font-mono text-[10px]"
+                  className="text-charcoal-400 hover:text-negative text-micro font-mono"
                 >
                   ×
                 </button>

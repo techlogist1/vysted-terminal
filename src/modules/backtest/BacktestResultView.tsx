@@ -220,7 +220,7 @@ function TradeTable({ trades }: TradeTableProps) {
   );
 
   if (trades.length === 0) {
-    return <p className="text-charcoal-400 px-3 py-2 font-mono text-xs">No trades yet.</p>;
+    return <p className="text-charcoal-400 text-caption px-3 py-2 font-mono">No trades yet.</p>;
   }
 
   return (
@@ -231,13 +231,13 @@ function TradeTable({ trades }: TradeTableProps) {
           <col style={{ width: "36px" }} />
           <col style={{ width: "74px" }} />
           <col style={{ width: "74px" }} />
-          <col style={{ width: "68px" }} />
-          <col style={{ width: "68px" }} />
-          <col style={{ width: "44px" }} />
+          <col style={{ width: "80px" }} />
+          <col style={{ width: "80px" }} />
+          <col style={{ width: "60px" }} />
           <col />
         </colgroup>
         <thead className="bg-charcoal-900 sticky top-0">
-          <tr className="text-charcoal-400 border-charcoal-700 border-b text-left font-mono text-[0.6rem] uppercase">
+          <tr className="text-charcoal-400 border-charcoal-700 text-micro border-b text-left font-mono uppercase">
             <th
               className={cn(
                 "cursor-pointer px-3 py-1.5 font-medium",
@@ -306,7 +306,7 @@ function TradeTable({ trades }: TradeTableProps) {
             return (
               <tr
                 key={trade.id}
-                className="border-charcoal-800 hover:bg-charcoal-800/40 border-b font-mono text-xs"
+                className="border-charcoal-800 hover:bg-charcoal-800/40 text-caption border-b font-mono"
               >
                 <td className="text-charcoal-100 max-w-0 overflow-hidden px-3 py-1.5 text-ellipsis whitespace-nowrap">
                   {trade.symbol}
@@ -314,24 +314,24 @@ function TradeTable({ trades }: TradeTableProps) {
                 <td className="text-charcoal-300 max-w-0 overflow-hidden px-3 py-1.5 text-ellipsis whitespace-nowrap">
                   {trade.side}
                 </td>
-                <td className="text-charcoal-300 max-w-0 overflow-hidden px-3 py-1.5 text-ellipsis whitespace-nowrap">
+                <td className="text-charcoal-300 px-3 py-1.5 whitespace-nowrap tabular-nums">
                   {trade.enteredAt.slice(0, 10)}
                 </td>
-                <td className="text-charcoal-300 max-w-0 overflow-hidden px-3 py-1.5 text-ellipsis whitespace-nowrap">
+                <td className="text-charcoal-300 px-3 py-1.5 whitespace-nowrap tabular-nums">
                   {trade.exitedAt ? trade.exitedAt.slice(0, 10) : "—"}
                 </td>
-                <td className="text-charcoal-300 max-w-0 overflow-hidden px-3 py-1.5 text-right whitespace-nowrap tabular-nums">
+                <td className="text-charcoal-300 px-3 py-1.5 text-right whitespace-nowrap tabular-nums">
                   {trade.entryPrice.toFixed(2)}
                 </td>
-                <td className="text-charcoal-300 max-w-0 overflow-hidden px-3 py-1.5 text-right whitespace-nowrap tabular-nums">
+                <td className="text-charcoal-300 px-3 py-1.5 text-right whitespace-nowrap tabular-nums">
                   {trade.exitPrice ? trade.exitPrice.toFixed(2) : "—"}
                 </td>
-                <td className="text-charcoal-300 max-w-0 overflow-hidden px-3 py-1.5 text-right whitespace-nowrap tabular-nums">
+                <td className="text-charcoal-300 px-3 py-1.5 text-right whitespace-nowrap tabular-nums">
                   {trade.quantity}
                 </td>
                 <td
                   className={cn(
-                    "max-w-0 overflow-hidden px-3 py-1.5 text-right whitespace-nowrap tabular-nums",
+                    "px-3 py-1.5 text-right whitespace-nowrap tabular-nums",
                     pnl === null
                       ? "text-charcoal-400"
                       : positive
@@ -364,7 +364,7 @@ function WalkForwardStrip({ slices }: WalkForwardStripProps) {
   }
   return (
     <div className="border-charcoal-700 flex items-center gap-2 overflow-x-auto border-t px-3 py-2">
-      <span className="text-charcoal-500 mr-1 font-mono text-[10px] tracking-widest uppercase">
+      <span className="text-charcoal-500 text-micro mr-1 font-mono tracking-widest uppercase">
         Walk-fwd
       </span>
       {slices.map((slice) => {
@@ -373,7 +373,7 @@ function WalkForwardStrip({ slices }: WalkForwardStripProps) {
           <div
             key={slice.index}
             className={cn(
-              "rounded-control min-w-32 border px-2 py-1 font-mono text-[10px]",
+              "rounded-control text-micro min-w-32 border px-2 py-1 font-mono",
               positive ? "border-positive/60" : "border-negative/60",
             )}
             title={`${slice.startDate} → ${slice.endDate}`}
@@ -442,8 +442,8 @@ export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewPr
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
         <FlaskConical className="text-charcoal-600 size-8" />
-        <p className="text-charcoal-200 font-mono text-sm font-medium">Run your first backtest</p>
-        <p className="text-charcoal-400 max-w-xs font-mono text-xs">
+        <p className="text-charcoal-200 text-body font-mono font-medium">Run your first backtest</p>
+        <p className="text-charcoal-400 text-caption max-w-xs font-mono">
           Select a strategy on the left, set your date range, then click Run.
         </p>
       </div>
@@ -457,7 +457,7 @@ export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewPr
   return (
     <div className="flex h-full min-h-0 flex-col" data-run-id={run.runId}>
       {/* Header — status + metrics */}
-      <div className="border-charcoal-700 border-b px-3 py-2 font-mono text-xs">
+      <div className="border-charcoal-700 text-caption border-b px-3 py-2 font-mono">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <span className="text-charcoal-200">
             {run.request.strategyId} · {run.request.symbols.join(", ")}
@@ -528,13 +528,13 @@ export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewPr
         <EquityChart equityCurve={run.result.equityCurve} />
       ) : run.status === "error" ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-          <p className="text-negative font-mono text-xs">{run.error}</p>
+          <p className="text-negative text-caption font-mono">{run.error}</p>
           <Button size="sm" variant="outline" onClick={() => void startRun(run.request)}>
             Retry
           </Button>
         </div>
       ) : (
-        <div className="text-charcoal-400 flex flex-1 items-center justify-center font-mono text-xs">
+        <div className="text-charcoal-400 text-caption flex flex-1 items-center justify-center font-mono">
           computing equity curve…
         </div>
       )}
@@ -544,7 +544,7 @@ export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewPr
 
       {/* Trade log */}
       <div className="border-charcoal-700 border-t">
-        <div className="text-charcoal-500 px-3 pt-2 font-mono text-[10px] tracking-widest uppercase">
+        <div className="text-charcoal-500 text-micro px-3 pt-2 font-mono tracking-widest uppercase">
           Trades ({run.trades.length})
         </div>
         <TradeTable trades={run.trades} />

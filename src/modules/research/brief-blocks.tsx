@@ -393,7 +393,7 @@ function TickerChip({ symbol }: { symbol: string }) {
       type="button"
       onClick={() => loadSymbolIntoChart(symbol)}
       title={`Load ${symbol} into the chart`}
-      className="mx-px inline-flex translate-y-[-1px] items-center rounded-[3px] border border-amber-600/40 bg-amber-600/10 px-1 align-baseline font-mono text-[11px] font-medium text-amber-200 transition-colors hover:border-amber-500/70 hover:bg-amber-600/25 hover:text-amber-100 focus-visible:ring-1 focus-visible:ring-amber-400/70 focus-visible:outline-none"
+      className="rounded-control text-micro mx-px inline-flex translate-y-[-1px] items-center border border-amber-600/40 bg-amber-600/10 px-1 align-baseline font-mono font-medium text-amber-200 transition-colors hover:border-amber-500/70 hover:bg-amber-600/25 hover:text-amber-100 focus-visible:ring-1 focus-visible:ring-amber-400/70 focus-visible:outline-none"
     >
       {symbol}
     </button>
@@ -407,7 +407,7 @@ function CiteChip({ n, onCite }: { n: number; onCite: (n: number) => void }) {
       type="button"
       onClick={() => onCite(n)}
       aria-label={`Jump to source ${n}`}
-      className="mx-px inline-flex translate-y-[-2px] items-center rounded-[3px] bg-amber-600/20 px-1 align-baseline font-mono text-[9px] leading-tight text-amber-300 transition-colors hover:bg-amber-600/30 hover:text-amber-200 focus-visible:ring-1 focus-visible:ring-amber-400/60 focus-visible:outline-none"
+      className="rounded-control text-micro mx-px inline-flex translate-y-[-2px] items-center bg-amber-600/20 px-1 align-baseline font-mono leading-tight text-amber-300 transition-colors hover:bg-amber-600/30 hover:text-amber-200 focus-visible:ring-1 focus-visible:ring-amber-400/60 focus-visible:outline-none"
     >
       {n}
     </button>
@@ -488,7 +488,7 @@ function renderInline(text: string, ctx: InlineCtx): ReactNode[] {
       nodes.push(
         <code
           key={key++}
-          className="bg-charcoal-800 rounded-[3px] px-1 py-px font-mono text-[12px] text-amber-200"
+          className="bg-charcoal-800 rounded-control text-caption px-1 py-px font-mono text-amber-200"
         >
           {token.slice(1, -1)}
         </code>,
@@ -507,19 +507,21 @@ function MetricsBlock({ model }: { model: MetricsModel }) {
   const Caret = up ? ChevronUp : ChevronDown;
   const tone = up ? "text-positive" : "text-negative";
   return (
-    <section className="border-charcoal-700 bg-charcoal-925 overflow-hidden rounded-md border">
+    <section className="border-charcoal-700 bg-charcoal-925 overflow-hidden rounded-none border">
       {/* Price line — symbol chip, the live price, the signed change/percent. */}
       {(model.price !== undefined || model.symbol) && (
-        <div className="border-charcoal-800 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b px-3.5 py-2.5">
+        <div className="border-charcoal-800 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b px-3 py-3">
           {model.symbol ? <TickerChip symbol={model.symbol} /> : null}
           {model.price !== undefined ? (
-            <span className="text-lume font-mono text-xl leading-none font-medium">
+            <span className="text-lume text-overview font-mono leading-none font-medium whitespace-nowrap tabular-nums">
               {model.currency && model.currency !== "USD" ? `${model.currency} ` : ""}
               {formatNumber(model.price)}
             </span>
           ) : null}
           {model.changePercent !== undefined ? (
-            <span className={`inline-flex items-center gap-0.5 font-mono text-[13px] ${tone}`}>
+            <span
+              className={`text-body inline-flex items-center gap-0.5 font-mono whitespace-nowrap tabular-nums ${tone}`}
+            >
               <Caret className="size-3.5" />
               {formatSigned(model.change)} ({formatSignedPct(model.changePercent)})
             </span>
@@ -534,9 +536,15 @@ function MetricsBlock({ model }: { model: MetricsModel }) {
       {model.items.length > 0 ? (
         <div className="bg-charcoal-700 grid grid-cols-2 gap-px sm:grid-cols-4">
           {model.items.map((item) => (
-            <div key={item.label} className="bg-charcoal-925 flex flex-col gap-0.5 px-3.5 py-2">
+            <div
+              key={item.label}
+              className="bg-charcoal-925 flex min-w-0 flex-col gap-0.5 px-3 py-2"
+            >
               <span className="hud-label">{item.label}</span>
-              <span className="text-charcoal-100 font-mono text-[13px] tabular-nums">
+              <span
+                className="text-charcoal-100 text-body truncate font-mono tabular-nums"
+                title={item.value}
+              >
                 {item.value}
               </span>
             </div>
@@ -548,25 +556,23 @@ function MetricsBlock({ model }: { model: MetricsModel }) {
 }
 
 function HeadingBlock({ level, text, ctx }: { level: number; text: string; ctx: InlineCtx }) {
-  const sizes = ["text-base", "text-sm", "text-[13px]", "text-xs"];
+  const sizes = ["text-overview", "text-section", "text-prose", "text-prose"];
   return (
-    <p
-      className={`text-lume mt-1 mb-0.5 font-serif font-semibold ${sizes[level - 1] ?? "text-xs"}`}
-    >
+    <p className={`text-lume mt-1 mb-0.5 font-semibold ${sizes[level - 1] ?? "text-prose"}`}>
       {renderInline(text, ctx)}
     </p>
   );
 }
 
 function ParagraphBlock({ text, ctx }: { text: string; ctx: InlineCtx }) {
-  return <p className="text-charcoal-200 text-[13px] leading-relaxed">{renderInline(text, ctx)}</p>;
+  return <p className="text-charcoal-200 text-prose leading-relaxed">{renderInline(text, ctx)}</p>;
 }
 
 function ListBlock({ ordered, items, ctx }: { ordered: boolean; items: string[]; ctx: InlineCtx }) {
   const Tag = ordered ? "ol" : "ul";
   return (
     <Tag
-      className={`text-charcoal-200 ml-5 flex flex-col gap-1 text-[13px] leading-relaxed ${
+      className={`text-charcoal-200 text-prose ml-4 flex flex-col gap-1 leading-relaxed ${
         ordered ? "list-decimal" : "list-disc"
       }`}
     >
@@ -593,8 +599,8 @@ function TableBlock({
   const alignClass = (i: number) =>
     aligns[i] === "right" ? "text-right" : aligns[i] === "center" ? "text-center" : "text-left";
   return (
-    <div className="border-charcoal-700 overflow-x-auto rounded-md border">
-      <table className="w-full border-collapse font-mono text-[12px]">
+    <div className="border-charcoal-700 overflow-x-auto rounded-none border">
+      <table className="text-caption w-full border-collapse font-mono">
         <thead>
           <tr className="border-charcoal-700 bg-charcoal-925 border-b">
             {headers.map((h, i) => (
@@ -685,7 +691,7 @@ export function BriefBody({
   const childProps = reduced ? {} : { variants: staggerChild };
 
   return (
-    <motion.div className="flex flex-col gap-2.5 px-3.5 pt-3 pb-4 font-sans" {...parentProps}>
+    <motion.div className="flex flex-col gap-3 px-3 pt-3 pb-4" {...parentProps}>
       {metrics ? (
         <motion.div {...childProps}>
           <MetricsBlock model={metrics} />

@@ -136,24 +136,26 @@ export function BrokerConnectPanel() {
   return (
     <div
       data-testid="broker-connect-panel"
-      className="bg-charcoal-900 text-charcoal-100 flex h-full w-full flex-col font-mono text-xs"
+      className="bg-charcoal-900 text-charcoal-100 text-caption flex h-full w-full flex-col font-mono"
     >
       <header className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
-        <h2 className="text-charcoal-100 text-sm tracking-wide uppercase">Broker Connections</h2>
-        <span className="text-charcoal-500 text-[10px]">
+        <h2 className="text-charcoal-100 text-panel-title tracking-wide uppercase">
+          Broker Connections
+        </h2>
+        <span className="text-charcoal-500 text-micro">
           {primary.length + crypto.length} brokers
         </span>
       </header>
 
       {!firstLaunchTosAcked && (
-        <div className="border-warning/60 bg-warning/10 text-warning m-3 rounded-md border px-3 py-2 text-xs">
+        <div className="border-warning/60 bg-warning/10 text-warning text-caption m-3 rounded-none border px-3 py-2">
           Accept the Terms of Service to connect a broker.
         </div>
       )}
 
       <div className="flex-1 overflow-y-auto px-3 py-2">
         <section>
-          <h3 className="text-charcoal-400 mb-1 text-[10px] uppercase">Brokers</h3>
+          <h3 className="text-charcoal-400 text-micro mb-1 uppercase">Brokers</h3>
           {primary.length === 0 && (
             <EmptyState
               icon={PlugZap}
@@ -179,7 +181,7 @@ export function BrokerConnectPanel() {
 
         {crypto.length > 0 && (
           <section className="mt-4">
-            <h3 className="text-charcoal-400 mb-1 text-[10px] uppercase">Crypto (ccxt)</h3>
+            <h3 className="text-charcoal-400 text-micro mb-1 uppercase">Crypto (ccxt)</h3>
             <ul>
               {crypto.map((state) => (
                 <BrokerRow key={state.broker} state={state} disabled={!firstLaunchTosAcked} />
@@ -256,7 +258,7 @@ function BrokerRow({ state, disabled }: BrokerRowProps) {
       className="border-charcoal-800 flex items-center justify-between gap-2 border-b py-2"
     >
       <div className="flex flex-1 flex-col gap-0.5">
-        <span className="text-charcoal-100 text-sm">{brokerLabel(state.broker)}</span>
+        <span className="text-charcoal-100 text-body">{brokerLabel(state.broker)}</span>
         <div className="flex flex-wrap gap-1">
           <StatusBadge status={state.status} />
           <ModeBadge mode={state.mode} />
@@ -325,7 +327,7 @@ function StatusBadge({ status }: { status: BrokerState["status"] }) {
   return (
     <span
       data-testid="broker-status-badge"
-      className={cn("rounded px-1.5 py-[1px] text-[10px] uppercase", color)}
+      className={cn("rounded-control text-micro px-1.5 py-[1px] uppercase", color)}
     >
       {status}
     </span>
@@ -337,7 +339,7 @@ function ModeBadge({ mode }: { mode: BrokerMode }) {
     <span
       data-testid="broker-mode-badge"
       className={cn(
-        "rounded px-1.5 py-[1px] text-[10px] uppercase",
+        "rounded-control text-micro px-1.5 py-[1px] uppercase",
         mode === "paper" ? "bg-warning/15 text-warning" : "bg-negative/15 text-negative",
       )}
     >
@@ -350,7 +352,7 @@ function ReadOnlyBadge() {
   return (
     <span
       data-testid="broker-readonly-badge"
-      className="bg-warning/20 text-warning rounded px-1.5 py-[1px] text-[10px] uppercase"
+      className="bg-warning/20 text-warning rounded-control text-micro px-1.5 py-[1px] uppercase"
     >
       read-only
     </span>
@@ -412,8 +414,8 @@ function CredentialsDialog({ broker, open, onClose, onSubmit }: CredentialsDialo
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-2">
           {fields.map((field) => (
-            <label key={field.key} className="flex flex-col gap-1 text-xs">
-              <span className="text-charcoal-400 text-[10px] uppercase">{field.label}</span>
+            <label key={field.key} className="text-caption flex flex-col gap-1">
+              <span className="text-charcoal-400 text-micro uppercase">{field.label}</span>
               <input
                 type={
                   field.key.includes("token") || field.key.includes("secret") || field.key === "pin"
@@ -422,12 +424,12 @@ function CredentialsDialog({ broker, open, onClose, onSubmit }: CredentialsDialo
                 }
                 value={values[field.key] ?? ""}
                 onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                className="bg-charcoal-800 text-charcoal-100 h-8 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+                className="bg-charcoal-800 text-charcoal-100 rounded-control text-body h-8 px-2 font-mono outline-none focus-visible:border-amber-500"
                 data-testid={`cred-${broker}-${field.key}`}
               />
             </label>
           ))}
-          {error !== null && <p className="text-negative text-xs">{error}</p>}
+          {error !== null && <p className="text-negative text-caption">{error}</p>}
           <DialogFooter>
             <Button variant="ghost" type="button" onClick={onClose}>
               Cancel

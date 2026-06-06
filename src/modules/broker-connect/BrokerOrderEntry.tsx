@@ -140,16 +140,16 @@ export function BrokerOrderEntry() {
     <form
       onSubmit={handleSubmit}
       data-testid="broker-order-entry"
-      className="text-charcoal-100 flex flex-col gap-2 p-3 font-mono text-xs"
+      className="text-charcoal-100 text-caption flex flex-col gap-2 p-3 font-mono"
     >
       <label className="flex flex-col gap-1">
-        <span className="text-charcoal-400 text-[10px] uppercase">Broker</span>
+        <span className="text-charcoal-400 text-micro uppercase">Broker</span>
         <select
           value={form.broker ?? ""}
           onChange={(e) =>
             setForm((prev) => ({ ...prev, broker: (e.target.value || null) as BrokerId | null }))
           }
-          className="bg-charcoal-800 text-charcoal-100 h-8 rounded-md px-2 text-xs outline-none"
+          className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption h-8 px-2 outline-none"
         >
           <option value="">Choose a broker</option>
           {connectedBrokers.map((b) => (
@@ -162,36 +162,36 @@ export function BrokerOrderEntry() {
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="text-charcoal-400 text-[10px] uppercase">Symbol</span>
+        <span className="text-charcoal-400 text-micro uppercase">Symbol</span>
         <input
           value={form.symbol}
           onChange={(e) => setForm((prev) => ({ ...prev, symbol: e.target.value.toUpperCase() }))}
-          className="bg-charcoal-800 text-charcoal-100 h-8 rounded-md px-2 text-sm outline-none focus:ring-1 focus:ring-amber-400"
+          className="bg-charcoal-800 text-charcoal-100 rounded-control text-body h-8 px-2 outline-none focus-visible:border-amber-500"
         />
       </label>
 
       <div className="grid grid-cols-2 gap-2">
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-400 text-[10px] uppercase">Side</span>
+          <span className="text-charcoal-400 text-micro uppercase">Side</span>
           <select
             value={form.side}
             onChange={(e) =>
               setForm((prev) => ({ ...prev, side: e.target.value as BrokerOrderSide }))
             }
-            className="bg-charcoal-800 text-charcoal-100 h-8 rounded-md px-2 text-xs outline-none"
+            className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption h-8 px-2 outline-none"
           >
             <option value="buy">Buy</option>
             <option value="sell">Sell</option>
           </select>
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-400 text-[10px] uppercase">Type</span>
+          <span className="text-charcoal-400 text-micro uppercase">Type</span>
           <select
             value={form.type}
             onChange={(e) =>
               setForm((prev) => ({ ...prev, type: e.target.value as BrokerOrderType }))
             }
-            className="bg-charcoal-800 text-charcoal-100 h-8 rounded-md px-2 text-xs outline-none"
+            className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption h-8 px-2 outline-none"
           >
             <option value="market">Market</option>
             <option value="limit">Limit</option>
@@ -203,42 +203,42 @@ export function BrokerOrderEntry() {
 
       <div className="grid grid-cols-3 gap-2">
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-400 text-[10px] uppercase">Quantity</span>
+          <span className="text-charcoal-400 text-micro uppercase">Quantity</span>
           <input
             value={form.quantity}
             onChange={(e) => setForm((prev) => ({ ...prev, quantity: e.target.value }))}
             type="number"
             inputMode="decimal"
-            className="bg-charcoal-800 text-charcoal-100 h-8 rounded-md px-2 text-sm outline-none"
+            className="bg-charcoal-800 text-charcoal-100 rounded-control text-body h-8 px-2 outline-none"
           />
         </label>
         {(form.type === "limit" || form.type === "stop-limit") && (
           <label className="flex flex-col gap-1">
-            <span className="text-charcoal-400 text-[10px] uppercase">Limit</span>
+            <span className="text-charcoal-400 text-micro uppercase">Limit</span>
             <input
               value={form.limitPrice}
               onChange={(e) => setForm((prev) => ({ ...prev, limitPrice: e.target.value }))}
               type="number"
               inputMode="decimal"
-              className="bg-charcoal-800 text-charcoal-100 h-8 rounded-md px-2 text-sm outline-none"
+              className="bg-charcoal-800 text-charcoal-100 rounded-control text-body h-8 px-2 outline-none"
             />
           </label>
         )}
         {(form.type === "stop" || form.type === "stop-limit") && (
           <label className="flex flex-col gap-1">
-            <span className="text-charcoal-400 text-[10px] uppercase">Stop</span>
+            <span className="text-charcoal-400 text-micro uppercase">Stop</span>
             <input
               value={form.stopPrice}
               onChange={(e) => setForm((prev) => ({ ...prev, stopPrice: e.target.value }))}
               type="number"
               inputMode="decimal"
-              className="bg-charcoal-800 text-charcoal-100 h-8 rounded-md px-2 text-sm outline-none"
+              className="bg-charcoal-800 text-charcoal-100 rounded-control text-body h-8 px-2 outline-none"
             />
           </label>
         )}
       </div>
 
-      {error !== null && <p className="text-negative text-xs">{error}</p>}
+      {error !== null && <p className="text-negative text-caption">{error}</p>}
 
       <Button type="submit" variant="outline" disabled={busy} data-testid="propose-order">
         {busy ? "Proposing…" : "Propose order"}

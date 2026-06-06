@@ -97,7 +97,7 @@ export function AuditLogViewer() {
   return (
     <div
       data-testid="audit-log-viewer"
-      className="bg-charcoal-900 text-charcoal-100 flex h-full w-full flex-col font-mono text-xs"
+      className="bg-charcoal-900 text-charcoal-100 text-caption flex h-full w-full flex-col font-mono"
     >
       <header className="border-charcoal-700 flex flex-wrap items-end gap-2 border-b px-3 py-2">
         <FilterSelect
@@ -129,7 +129,7 @@ export function AuditLogViewer() {
           Reset
         </Button>
         <span className="ml-auto flex items-center gap-2">
-          <span className="text-charcoal-400 text-[10px]">{entries.length} entries</span>
+          <span className="text-charcoal-400 text-micro">{entries.length} entries</span>
           <Button size="xs" variant="outline" onClick={exportCsv} data-testid="audit-export-csv">
             Export CSV
           </Button>
@@ -143,7 +143,7 @@ export function AuditLogViewer() {
         {status === "ready" && entries.length === 0 && (
           <p className="text-charcoal-400 px-3 py-2">No audit entries match the filter.</p>
         )}
-        <table className="w-full table-fixed text-[11px]">
+        <table className="text-micro w-full table-fixed">
           <colgroup>
             <col className="w-[10ch]" />
             <col className="w-[18ch]" />
@@ -153,7 +153,7 @@ export function AuditLogViewer() {
             <col className="w-[10ch]" />
             <col className="w-[16ch]" />
           </colgroup>
-          <thead className="text-charcoal-400 bg-charcoal-900 sticky top-0 text-left text-[10px] uppercase">
+          <thead className="text-charcoal-400 bg-charcoal-900 text-micro sticky top-0 text-left uppercase">
             <tr>
               <th className="px-2 py-1">ID</th>
               <th className="px-2 py-1">Time</th>
@@ -214,13 +214,13 @@ interface FilterSelectProps {
 function FilterSelect({ label, value, options, onChange, dataTestId }: FilterSelectProps) {
   return (
     <label className="flex flex-col gap-0.5">
-      <span className="text-charcoal-400 text-[10px] uppercase">{label}</span>
+      <span className="text-charcoal-400 text-micro uppercase">{label}</span>
       <div className="relative">
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
           data-testid={dataTestId}
-          className="bg-charcoal-800 text-charcoal-100 h-7 w-full appearance-none rounded-md pr-6 pl-2 text-xs outline-none focus:ring-1 focus:ring-amber-400"
+          className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption h-8 w-full appearance-none border border-transparent pr-6 pl-2 outline-none focus:border-amber-400"
         >
           {options.map((option) => (
             <option key={option.value} value={option.value}>
@@ -247,23 +247,23 @@ function DateRangeFilter({ startMs, endMs, onChange }: DateRangeFilterProps) {
   return (
     <div className="flex items-end gap-1">
       <label className="flex flex-col gap-0.5">
-        <span className="text-charcoal-400 text-[10px] uppercase">From</span>
+        <span className="text-charcoal-400 text-micro uppercase">From</span>
         <input
           type="datetime-local"
           data-testid="audit-filter-start"
           value={startMs !== null ? toLocalInputValue(startMs) : ""}
           onChange={(e) => onChange(fromLocalInputValue(e.target.value), endMs)}
-          className="bg-charcoal-800 text-charcoal-100 h-7 rounded-md px-2 text-[11px] outline-none focus:ring-1 focus:ring-amber-400"
+          className="bg-charcoal-800 text-charcoal-100 rounded-control text-micro h-8 border border-transparent px-2 outline-none focus:border-amber-400"
         />
       </label>
       <label className="flex flex-col gap-0.5">
-        <span className="text-charcoal-400 text-[10px] uppercase">To</span>
+        <span className="text-charcoal-400 text-micro uppercase">To</span>
         <input
           type="datetime-local"
           data-testid="audit-filter-end"
           value={endMs !== null ? toLocalInputValue(endMs) : ""}
           onChange={(e) => onChange(startMs, fromLocalInputValue(e.target.value))}
-          className="bg-charcoal-800 text-charcoal-100 h-7 rounded-md px-2 text-[11px] outline-none focus:ring-1 focus:ring-amber-400"
+          className="bg-charcoal-800 text-charcoal-100 rounded-control text-micro h-8 border border-transparent px-2 outline-none focus:border-amber-400"
         />
       </label>
     </div>

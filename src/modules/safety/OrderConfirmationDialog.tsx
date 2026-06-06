@@ -196,13 +196,13 @@ function OrderConfirmationDialogContent({
         {meta.banner !== null && (
           <div
             data-testid="ai-agent-banner"
-            className="border-warning/60 bg-warning/10 text-warning rounded-md border px-3 py-2 text-xs"
+            className="border-warning/60 bg-warning/10 text-warning text-caption rounded-none border px-3 py-2"
           >
             {meta.banner}
           </div>
         )}
 
-        <dl className="grid grid-cols-2 gap-x-3 gap-y-1 font-mono text-xs">
+        <dl className="text-caption grid grid-cols-2 gap-x-3 gap-y-1 font-mono">
           <Field label="Broker" value={proposal.broker} />
           <Field label="Account" value={proposal.accountId} />
           <Field label="Symbol" value={proposal.symbol} />
@@ -223,7 +223,7 @@ function OrderConfirmationDialogContent({
         {meta.variant === "ai" && (
           <label
             data-testid="ai-review-checkbox-label"
-            className="mt-2 flex items-center gap-2 text-xs"
+            className="text-caption mt-2 flex items-center gap-2"
           >
             <input
               type="checkbox"
@@ -239,7 +239,7 @@ function OrderConfirmationDialogContent({
         {liveAckPrompt && (
           <div
             data-testid="live-order-ack-prompt"
-            className="border-warning/60 bg-warning/10 text-warning mt-2 rounded-md border px-3 py-2 text-xs"
+            className="border-warning/60 bg-warning/10 text-warning text-caption mt-2 rounded-none border px-3 py-2"
           >
             <p className="mb-2">
               You are about to place your first <strong>live</strong> order at {proposal.broker}{" "}
@@ -258,8 +258,8 @@ function OrderConfirmationDialogContent({
         )}
 
         {error !== null && (
-          <div className="border-negative/40 bg-negative/10 text-negative flex items-start gap-2 rounded-md border px-3 py-2 text-xs">
-            <AlertCircle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+          <div className="border-negative/40 bg-negative/10 text-negative text-caption flex items-start gap-2 rounded-none border px-3 py-2">
+            <AlertCircle className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
             <div>
               <p>{error}</p>
               <Button

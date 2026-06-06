@@ -49,7 +49,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
 
   if (!accession) {
     return (
-      <div className="text-charcoal-400 flex h-full items-center justify-center text-sm">
+      <div className="text-charcoal-400 text-body flex h-full items-center justify-center">
         Select a filing to view its sections.
       </div>
     );
@@ -61,19 +61,19 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
         <Button size="xs" variant="ghost" onClick={onClose} data-testid="filing-viewer-close">
           ← Back
         </Button>
-        <span className="text-charcoal-100 text-sm font-semibold">
+        <span className="text-charcoal-100 text-panel-title font-semibold">
           {detail?.filing.form_type ?? ""}
         </span>
         <span
-          className="text-charcoal-400 max-w-[28ch] truncate text-xs"
+          className="text-charcoal-400 text-caption max-w-[28ch] truncate"
           title={detail?.filing.company_name ?? ""}
         >
           {detail?.filing.company_name ?? ""}
         </span>
         {detail?.filing.filed_date && (
-          <span className="text-charcoal-500 text-xs">· filed {detail.filing.filed_date}</span>
+          <span className="text-charcoal-500 text-caption">· filed {detail.filing.filed_date}</span>
         )}
-        <span className="text-charcoal-500 ml-auto font-mono text-[10px]">{accession}</span>
+        <span className="text-charcoal-500 text-micro ml-auto font-mono">{accession}</span>
         {detail?.filing.edgar_url && (
           <Button
             size="xs"
@@ -93,8 +93,8 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
             className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center"
             data-testid="filing-viewer-error"
           >
-            <p className="text-negative font-mono text-xs">Could not load this filing.</p>
-            <p className="text-charcoal-500 font-mono text-[10px]">{error}</p>
+            <p className="text-negative text-caption font-mono">Could not load this filing.</p>
+            <p className="text-charcoal-500 text-micro font-mono">{error}</p>
             <div className="flex gap-2">
               <Button
                 size="xs"
@@ -118,7 +118,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
           className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2"
           data-testid="filing-viewer-error"
         >
-          <span className="text-negative font-mono text-[11px]">{error}</span>
+          <span className="text-negative text-micro font-mono">{error}</span>
           <Button
             size="xs"
             variant="ghost"
@@ -136,18 +136,18 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
             {[70, 50, 80, 60, 45, 65, 55].map((w, i) => (
               <div
                 key={i}
-                className="bg-charcoal-700 mb-2 h-3 animate-pulse rounded"
+                className="bg-charcoal-700 mb-2 h-3 animate-pulse rounded-none"
                 style={{ width: `${w}%` }}
               />
             ))}
           </div>
           {/* Article skeleton */}
           <div className="flex-1 overflow-y-auto px-4 py-3">
-            <div className="bg-charcoal-700 mb-4 h-4 w-1/3 animate-pulse rounded" />
+            <div className="bg-charcoal-700 mb-4 h-4 w-1/3 animate-pulse rounded-none" />
             {[100, 90, 75, 95, 60, 85, 70, 80, 50, 65].map((w, i) => (
               <div
                 key={i}
-                className="bg-charcoal-800 mb-2 h-3 animate-pulse rounded"
+                className="bg-charcoal-800 mb-2 h-3 animate-pulse rounded-none"
                 style={{ width: `${w}%` }}
               />
             ))}
@@ -168,7 +168,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
                     type="button"
                     onClick={() => setActiveSectionId(section.id)}
                     className={cn(
-                      "hover:bg-charcoal-800 w-full px-3 py-1.5 text-left text-[11px]",
+                      "hover:bg-charcoal-800 text-micro w-full px-3 py-1.5 text-left",
                       (activeSectionId ?? detail.sections[0]?.id) === section.id
                         ? "bg-charcoal-800 text-charcoal-100 border-l-2 border-l-amber-400"
                         : "text-charcoal-300",
@@ -176,9 +176,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
                     data-testid={`filing-section-${section.id}`}
                   >
                     <span className="block truncate">{section.title}</span>
-                    <span className="text-charcoal-500 text-[10px]">
-                      {section.word_count} words
-                    </span>
+                    <span className="text-charcoal-500 text-micro">{section.word_count} words</span>
                   </button>
                 </li>
               ))}
@@ -188,15 +186,15 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
           <article className="flex-1 overflow-y-auto px-4 py-3" data-testid="filing-viewer-body">
             {activeSection ? (
               <>
-                <h3 className="text-charcoal-100 mb-2 text-sm font-semibold">
+                <h3 className="text-charcoal-100 text-panel-title mb-2 font-semibold">
                   {activeSection.title}
                 </h3>
-                <pre className="text-charcoal-200 max-w-full text-[12px] leading-relaxed whitespace-pre-wrap">
+                <pre className="text-charcoal-200 text-prose max-w-full leading-relaxed whitespace-pre-wrap">
                   {activeSection.text}
                 </pre>
               </>
             ) : (
-              <p className="text-charcoal-400 text-sm">No section selected.</p>
+              <p className="text-charcoal-400 text-body">No section selected.</p>
             )}
           </article>
         </div>

@@ -39,7 +39,7 @@ export function ProposedChangesReview() {
           transition={tween(0.24)}
         >
           <header className="flex items-center justify-between gap-2">
-            <span className="text-charcoal-200 font-mono text-[0.65rem] tracking-wide uppercase">
+            <span className="text-charcoal-200 text-micro tracking-wide uppercase">
               {pending.length} proposed change{pending.length === 1 ? "" : "s"} — review before they
               apply
             </span>
@@ -47,7 +47,7 @@ export function ProposedChangesReview() {
               <button
                 type="button"
                 onClick={() => void acceptAll()}
-                className="border-positive/40 text-positive hover:bg-positive/10 rounded border px-2 py-0.5 font-mono text-[0.6rem]"
+                className="border-positive/40 text-positive hover:bg-positive/10 text-micro rounded-control border px-2 py-0.5"
                 title="Accept all (⌘↵)"
               >
                 Accept all
@@ -55,7 +55,7 @@ export function ProposedChangesReview() {
               <button
                 type="button"
                 onClick={() => rejectAll()}
-                className="border-charcoal-700 text-charcoal-400 hover:text-negative rounded border px-2 py-0.5 font-mono text-[0.6rem]"
+                className="border-charcoal-700 text-charcoal-400 hover:text-negative text-micro rounded-control border px-2 py-0.5"
                 title="Reject all (⌘⌫)"
               >
                 Reject all
@@ -95,7 +95,7 @@ function ProposedChangeCard({
     <motion.li
       layout
       data-kind={change.kind}
-      className="border-charcoal-700 bg-charcoal-900 rounded-md border px-2.5 py-1.5"
+      className="border-charcoal-700 bg-charcoal-900 rounded-none border px-2 py-1.5"
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 8, height: 0, marginBottom: 0 }}
@@ -103,18 +103,18 @@ function ProposedChangeCard({
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-charcoal-100 font-mono text-[0.7rem]">{change.title}</div>
-          <div className="mt-0.5 overflow-hidden font-mono text-[0.6rem] leading-relaxed">
+          <div className="text-charcoal-100 text-micro">{change.title}</div>
+          <div className="text-micro mt-0.5 overflow-hidden leading-relaxed">
             <span className="text-negative/80 block break-all">− {change.before}</span>
             <span className="text-positive/90 block break-all">+ {change.after}</span>
           </div>
           {change.kind === "order" && (
-            <div className="text-warning mt-0.5 font-mono text-[0.55rem]">
+            <div className="text-warning text-micro mt-0.5">
               Accept opens the confirm-before-place dialog — nothing is placed automatically.
             </div>
           )}
           {change.detail && (
-            <div className="text-negative mt-0.5 font-mono text-[0.55rem]">
+            <div className="text-negative text-micro mt-0.5">
               Couldn&rsquo;t apply: {change.detail} — try again.
             </div>
           )}
@@ -125,7 +125,7 @@ function ProposedChangeCard({
             aria-label={`Accept: ${change.title}`}
             onClick={onAccept}
             className={cn(
-              "border-positive/40 text-positive hover:bg-positive/10 rounded border p-1",
+              "border-positive/40 text-positive hover:bg-positive/10 rounded-control border p-1",
             )}
           >
             <Check size={12} aria-hidden />
@@ -134,7 +134,7 @@ function ProposedChangeCard({
             type="button"
             aria-label={`Reject: ${change.title}`}
             onClick={onReject}
-            className="border-charcoal-700 text-charcoal-400 hover:text-negative hover:border-negative/40 rounded border p-1"
+            className="border-charcoal-700 text-charcoal-400 hover:text-negative hover:border-negative/40 rounded-control border p-1"
           >
             <X size={12} aria-hidden />
           </button>

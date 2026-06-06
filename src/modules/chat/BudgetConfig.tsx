@@ -42,14 +42,14 @@ export function BudgetConfig({
           const n = e.target.value === "" ? undefined : Number(e.target.value);
           onChange({ ...budget, [key]: Number.isFinite(n) ? n : undefined });
         }}
-        className="bg-charcoal-800 text-charcoal-100 h-7 w-16 rounded px-1.5 text-right text-xs outline-none focus:ring-1 focus:ring-amber-400"
+        className="bg-charcoal-850 text-charcoal-100 text-caption rounded-control h-8 w-16 px-1.5 text-right outline-none focus:ring-1 focus:ring-amber-400"
       />
     </label>
   );
   return (
     <div
       aria-label="Delegate budget"
-      className="border-charcoal-700 text-charcoal-400 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3 py-1.5 font-mono text-xs"
+      className="border-charcoal-700 text-charcoal-400 text-caption flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3 py-1.5"
     >
       <span className="tracking-wide uppercase">Budget</span>
       {field("tokens", "maxTokens", 10_000, budget.maxTokens)}

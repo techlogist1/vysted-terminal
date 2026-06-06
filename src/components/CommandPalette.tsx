@@ -83,7 +83,7 @@ export function CommandPalette() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="border-charcoal-700 bg-charcoal-900 max-w-2xl gap-0 overflow-hidden p-0"
+        className="border-charcoal-700 bg-charcoal-875 max-w-2xl gap-0 overflow-hidden p-0"
         showCloseButton={false}
       >
         <DialogHeader className="sr-only">
@@ -221,7 +221,7 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
       label="Command palette"
       filter={paletteFilter}
       loop
-      className="bg-charcoal-900 flex flex-col"
+      className="bg-charcoal-875 flex flex-col"
     >
       {/* Search input */}
       <div className="border-charcoal-700 flex items-center gap-3 border-b px-4 py-3">
@@ -419,7 +419,7 @@ function AskAiItem({ query, onSelect }: AskAiItemProps) {
         <span className="text-charcoal-300 text-caption">Ask agent: </span>
         <span className="text-charcoal-100 text-body font-medium">&ldquo;{trimmed}&rdquo;</span>
       </div>
-      <kbd className="border-charcoal-700 text-charcoal-500 text-micro rounded border px-1.5 py-0.5">
+      <kbd className="border-charcoal-700 text-charcoal-500 text-micro rounded-control border px-1.5 py-0.5">
         Enter
       </kbd>
     </Command.Item>

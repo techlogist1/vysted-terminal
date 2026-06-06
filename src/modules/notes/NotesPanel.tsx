@@ -67,7 +67,7 @@ function ScopeChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "text-caption rounded px-2 py-1 font-medium transition-colors",
+        "text-caption rounded-control px-2 py-1 font-medium transition-colors",
         active
           ? "text-charcoal-950 bg-amber-500"
           : "bg-charcoal-800 text-charcoal-300 hover:bg-charcoal-700",
@@ -124,7 +124,7 @@ export function NotesPanel() {
     content: "",
     editorProps: {
       attributes: {
-        class: "notes-prose max-w-none min-h-[200px] p-3 outline-none focus:outline-none",
+        class: "notes-prose max-w-none min-h-48 p-3 outline-none focus:outline-none",
       },
     },
     onUpdate({ editor: e }) {
@@ -339,19 +339,20 @@ export function NotesPanel() {
           style={{
             position: "fixed",
             top: slashMenu.rect.bottom + 4,
-            left: slashMenu.rect.left,
+            left: Math.min(slashMenu.rect.left, window.innerWidth - 280),
             zIndex: 9999,
             minWidth: 220,
+            maxWidth: 280,
             maxHeight: 320,
           }}
-          className="border-charcoal-700 bg-charcoal-900 overflow-y-auto rounded-md border"
+          className="border-charcoal-700 bg-charcoal-900 overflow-y-auto rounded-none border"
         >
           {slashMenu.items.map((item, i) => (
             <button
               key={item.title}
               type="button"
               className={cn(
-                "flex h-9 w-full flex-col items-start justify-center px-3 text-left transition-colors",
+                "flex h-8 w-full flex-col items-start justify-center px-3 text-left transition-colors",
                 i === slashActiveIdx
                   ? "bg-charcoal-800 text-charcoal-100"
                   : "text-charcoal-300 hover:bg-charcoal-800",
@@ -375,19 +376,20 @@ export function NotesPanel() {
           style={{
             position: "fixed",
             top: wikiMenu.rect.bottom + 4,
-            left: wikiMenu.rect.left,
+            left: Math.min(wikiMenu.rect.left, window.innerWidth - 220),
             zIndex: 9999,
             minWidth: 160,
+            maxWidth: 220,
             maxHeight: 240,
           }}
-          className="border-charcoal-700 bg-charcoal-900 overflow-y-auto rounded-md border"
+          className="border-charcoal-700 bg-charcoal-900 overflow-y-auto rounded-none border"
         >
           {wikiMenu.items.map((item, i) => (
             <button
               key={item.symbol}
               type="button"
               className={cn(
-                "flex h-9 w-full items-center gap-2 px-3 text-left transition-colors",
+                "flex h-8 w-full items-center gap-2 px-3 text-left transition-colors",
                 i === wikiActiveIdx
                   ? "bg-charcoal-800 text-charcoal-100"
                   : "text-charcoal-300 hover:bg-charcoal-800",
@@ -426,7 +428,7 @@ function SymbolChipInput({ onCommit }: { onCommit: (sym: string) => void }) {
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="text-caption text-charcoal-500 hover:text-charcoal-300 rounded px-2 py-1"
+        className="text-caption text-charcoal-500 hover:text-charcoal-300 rounded-control px-2 py-1"
       >
         + symbol
       </button>
@@ -447,7 +449,7 @@ function SymbolChipInput({ onCommit }: { onCommit: (sym: string) => void }) {
       }}
       onBlur={commit}
       placeholder="AAPL"
-      className="text-caption border-charcoal-700 bg-charcoal-900 text-charcoal-200 placeholder:text-charcoal-600 w-16 rounded border px-2 py-1 outline-none"
+      className="text-caption border-charcoal-700 bg-charcoal-900 text-charcoal-200 placeholder:text-charcoal-600 rounded-control w-16 border px-2 py-1 outline-none"
     />
   );
 }

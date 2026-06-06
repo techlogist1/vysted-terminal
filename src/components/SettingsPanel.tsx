@@ -107,11 +107,11 @@ export const SettingsPanel: FunctionComponent = () => {
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex max-w-2xl flex-col gap-8 p-6">
           <header>
-            <h1 className="text-charcoal-100 flex items-center gap-2 font-serif text-2xl">
+            <h1 className="text-charcoal-100 text-overview flex items-center gap-2">
               <Sliders className="size-5 text-amber-400" aria-hidden="true" />
               Settings
             </h1>
-            <p className="text-charcoal-400 mt-1 font-mono text-xs">
+            <p className="text-charcoal-400 text-caption mt-1 font-mono">
               Local-first &amp; bring-your-own-keys. Nothing leaves this machine except calls you
               make to providers you configure.
             </p>
@@ -175,18 +175,18 @@ function ProvidersSection() {
           return (
             <li
               key={provider.id}
-              className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between gap-3 rounded-md border px-4 py-3"
+              className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between gap-3 rounded-none border px-4 py-3"
             >
               <div className="flex min-w-0 flex-col">
-                <span className="text-charcoal-100 flex min-w-0 items-center gap-2 font-mono text-sm">
+                <span className="text-charcoal-100 text-body flex min-w-0 items-center gap-2 font-mono">
                   <span className="truncate">{provider.label}</span>
                   {isDefault && (
-                    <span className="text-micro shrink-0 rounded bg-amber-500/15 px-2 py-1">
+                    <span className="text-micro rounded-control shrink-0 bg-amber-500/15 px-2 py-1">
                       default
                     </span>
                   )}
                 </span>
-                <span className="text-charcoal-400 mt-1 flex min-w-0 items-center gap-2 font-mono text-xs">
+                <span className="text-charcoal-400 text-caption mt-1 flex min-w-0 items-center gap-2 font-mono">
                   {!needsKey ? (
                     <span className="truncate">No key required (local)</span>
                   ) : configured ? (
@@ -232,7 +232,7 @@ function ProvidersSection() {
                         type="button"
                         aria-label={`Remove ${provider.label} key`}
                         onClick={() => void handleRemove(provider.id)}
-                        className="text-charcoal-400 hover:text-negative rounded p-2"
+                        className="text-charcoal-400 hover:text-negative rounded-control p-2"
                       >
                         <Trash2 className="size-3.5" aria-hidden="true" />
                       </button>
@@ -373,8 +373,8 @@ function WebSearchSection() {
         </p>
 
         {/* Exa API key (BYOK, keychain) */}
-        <div className="border-charcoal-700 bg-charcoal-850 rounded-md border px-4 py-3">
-          <p className="text-charcoal-200 flex items-center gap-2 font-mono text-xs">
+        <div className="border-charcoal-700 bg-charcoal-850 rounded-none border px-4 py-3">
+          <p className="text-charcoal-200 text-caption flex items-center gap-2 font-mono">
             <KeyRound className="size-3.5 text-amber-400" aria-hidden="true" />
             Exa API key (BYOK)
           </p>
@@ -386,10 +386,10 @@ function WebSearchSection() {
             // Keychain read in flight — show a quiet checking state instead of
             // briefly flashing the "needs a key" form (which is misleading if a
             // key IS stored).
-            <span className="text-charcoal-400 font-mono text-xs">Checking…</span>
+            <span className="text-charcoal-400 text-caption font-mono">Checking…</span>
           ) : exaConfigured ? (
             <div className="flex items-center justify-between gap-2">
-              <span className="text-positive flex items-center gap-1 font-mono text-xs">
+              <span className="text-positive text-caption flex items-center gap-1 font-mono">
                 <Check className="size-3" aria-hidden="true" /> Key configured
               </span>
               <Button
@@ -425,7 +425,7 @@ function WebSearchSection() {
                   onChange={(e) => setExaInput(e.target.value)}
                   placeholder="exa_..."
                   aria-label="Exa API key"
-                  className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-400 h-8 flex-1 rounded-md border px-3 font-mono text-xs outline-none focus:border-amber-400"
+                  className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-caption h-8 flex-1 border px-3 font-mono outline-none focus:border-amber-400"
                 />
                 <Button
                   type="submit"
@@ -456,17 +456,17 @@ function WebSearchSection() {
             onChange={(e) => setSearxngUrl(e.target.value)}
             placeholder="http://localhost:8080"
             aria-label="SearXNG URL"
-            className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-400 h-8 min-w-[12rem] rounded-md border px-3 font-mono text-xs outline-none focus:border-amber-400"
+            className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-caption h-8 min-w-[12rem] border px-3 font-mono outline-none focus:border-amber-400"
           />
         </PrefRow>
         {/* Run-a-local-instance hint — keyless private search in one command.
             JSON output is OFF by default in SearXNG, so the setup must enable it. */}
         {tier === "local-searxng" && (
-          <div className="border-charcoal-700 bg-charcoal-850 rounded-md border px-4 py-3">
+          <div className="border-charcoal-700 bg-charcoal-850 rounded-none border px-4 py-3">
             <p className="text-charcoal-200 text-caption font-mono">
               No instance yet? Run one locally (keyless, ~200 MB):
             </p>
-            <pre className="text-charcoal-300 bg-charcoal-900 text-caption mt-2 overflow-x-auto rounded p-2 font-mono leading-relaxed">
+            <pre className="text-charcoal-300 bg-charcoal-900 text-caption mt-2 overflow-x-auto rounded-none p-2 font-mono leading-relaxed">
               {
                 "docker run -d -p 8080:8080 \\\n  -e SEARXNG_SETTINGS_PATH=/etc/searxng/settings.yml \\\n  searxng/searxng"
               }
@@ -499,8 +499,8 @@ function IntegrationsSection() {
         title="Integrations"
         hint="Connect a broker for read-only positions, holdings & P&L the copilot can analyse over your real account."
       />
-      <div className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between gap-3 rounded-md border px-4 py-3">
-        <span className="text-charcoal-400 font-mono text-xs">
+      <div className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between gap-3 rounded-none border px-4 py-3">
+        <span className="text-charcoal-400 text-caption font-mono">
           Broker connections are managed in the Marketplace.
         </span>
         <Button size="sm" variant="outline" onClick={() => openPanel("marketplace-panel")}>
@@ -580,7 +580,7 @@ function LayoutsSection() {
           onChange={(e) => setNewName(e.target.value)}
           placeholder="Save current layout as…"
           aria-label="New layout name"
-          className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 h-8 flex-1 rounded-md border px-3 font-mono text-xs outline-none focus:border-amber-400"
+          className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-caption h-8 flex-1 border px-3 font-mono outline-none focus:border-amber-400"
         />
         <Button type="submit" size="sm" variant="outline" disabled={busy || newName.trim() === ""}>
           Save
@@ -589,11 +589,11 @@ function LayoutsSection() {
           Reset to default
         </Button>
       </form>
-      {error && <p className="text-negative mb-2 font-mono text-xs">{error}</p>}
+      {error && <p className="text-negative text-caption mb-2 font-mono">{error}</p>}
       {names === null ? (
-        <p className="text-charcoal-400 font-mono text-xs">Loading layouts…</p>
+        <p className="text-charcoal-400 text-caption font-mono">Loading layouts…</p>
       ) : names.length === 0 ? (
-        <p className="text-charcoal-400 font-mono text-xs">
+        <p className="text-charcoal-400 text-caption font-mono">
           No saved layouts yet — arrange your panels and save above.
         </p>
       ) : (
@@ -601,9 +601,9 @@ function LayoutsSection() {
           {names.map((name) => (
             <li
               key={name}
-              className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between rounded-md border px-3 py-2"
+              className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between rounded-none border px-3 py-2"
             >
-              <span className="text-charcoal-100 truncate font-mono text-xs">
+              <span className="text-charcoal-100 text-caption truncate font-mono">
                 {name}
                 {name === activeName && (
                   <span className="text-micro text-charcoal-500 ml-2">active</span>
@@ -626,7 +626,7 @@ function LayoutsSection() {
                       await reload();
                     })
                   }
-                  className="text-charcoal-400 hover:text-negative rounded p-1"
+                  className="text-charcoal-400 hover:text-negative rounded-control p-1"
                 >
                   <X className="size-3.5" aria-hidden="true" />
                 </button>
@@ -666,11 +666,11 @@ function ModulesSection() {
           return (
             <li
               key={module.id}
-              className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between rounded-md border px-4 py-3"
+              className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between rounded-none border px-4 py-3"
             >
               <div className="flex flex-col">
-                <span className="text-charcoal-100 font-mono text-sm">{module.title}</span>
-                <span className="text-charcoal-400 font-mono text-xs">
+                <span className="text-charcoal-100 text-body font-mono">{module.title}</span>
+                <span className="text-charcoal-400 text-caption font-mono">
                   {module.panels.length} panel{module.panels.length === 1 ? "" : "s"} ·{" "}
                   {module.commands.length} command{module.commands.length === 1 ? "" : "s"}
                   {isPlatform ? " · always on" : ""}
@@ -729,7 +729,7 @@ function FitRow({ model }: { model: ScoredModel }) {
   return (
     <li className="flex items-baseline justify-between gap-3 py-1">
       <div className="min-w-0">
-        <div className="text-charcoal-200 truncate font-mono text-xs">{model.name}</div>
+        <div className="text-charcoal-200 text-caption truncate font-mono">{model.name}</div>
         <div className="text-charcoal-500 text-caption truncate font-mono">{model.reason}</div>
       </div>
       <span className={cn("text-caption shrink-0 font-mono font-semibold", meta.className)}>
@@ -769,17 +769,17 @@ function HardwareSection() {
         hint="What this machine can run on-device. Heavy local paths (local deep-research, large local LLMs) enable only where the hardware earns it; everything else uses the keyless-remote path."
       />
       {report === "loading" && (
-        <p className="text-charcoal-500 font-mono text-xs">Detecting device…</p>
+        <p className="text-charcoal-500 text-caption font-mono">Detecting device…</p>
       )}
       {report === null && (
-        <p className="text-charcoal-500 font-mono text-xs">
+        <p className="text-charcoal-500 text-caption font-mono">
           Hardware detection unavailable (sidecar not connected).
         </p>
       )}
       {report && report !== "loading" && (
         <div className="flex flex-col gap-3">
-          <div className="border-charcoal-700 bg-charcoal-900 rounded-md border p-3">
-            <div className="text-charcoal-100 font-mono text-xs">{report.device.chip}</div>
+          <div className="border-charcoal-700 bg-charcoal-900 rounded-none border p-3">
+            <div className="text-charcoal-100 text-caption font-mono">{report.device.chip}</div>
             <div className="text-charcoal-400 text-caption mt-1 font-mono">
               {report.device.ramGib} GiB RAM · {report.device.gpuBudgetGib} GiB GPU budget ·{" "}
               {report.device.perfCores}P/{report.device.totalCores} cores · {report.device.osName}{" "}
@@ -1013,8 +1013,8 @@ function PreferencesSection() {
         </PrefRow>
 
         {/* Provider preference order */}
-        <div className="border-charcoal-700 bg-charcoal-850 rounded-md border px-4 py-3">
-          <p className="text-charcoal-200 font-mono text-xs">Provider preference order</p>
+        <div className="border-charcoal-700 bg-charcoal-850 rounded-none border px-4 py-3">
+          <p className="text-charcoal-200 text-caption font-mono">Provider preference order</p>
           <p className="text-charcoal-400 text-caption mt-1 mb-2 font-mono">
             The order providers are offered in pickers. Reorder to surface the ones you reach for
             first.
@@ -1023,9 +1023,9 @@ function PreferencesSection() {
             {orderedProviderIds.map((id, idx) => (
               <li
                 key={id}
-                className="border-charcoal-700 bg-charcoal-900 flex items-center justify-between gap-2 rounded border px-3 py-2"
+                className="border-charcoal-700 bg-charcoal-900 flex items-center justify-between gap-2 rounded-none border px-3 py-2"
               >
-                <span className="text-charcoal-100 flex items-center gap-2 font-mono text-xs">
+                <span className="text-charcoal-100 text-caption flex items-center gap-2 font-mono">
                   <span className="text-charcoal-500 w-4 text-right tabular-nums">{idx + 1}</span>
                   {providerLabel(id)}
                 </span>
@@ -1035,7 +1035,7 @@ function PreferencesSection() {
                     aria-label={`Move ${providerLabel(id)} up`}
                     disabled={idx === 0}
                     onClick={() => moveProviderPreference(id, "up")}
-                    className="text-charcoal-400 rounded p-1 hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-30"
+                    className="text-charcoal-400 rounded-control p-1 hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-30"
                   >
                     <ArrowUp className="size-3.5" aria-hidden="true" />
                   </button>
@@ -1044,7 +1044,7 @@ function PreferencesSection() {
                     aria-label={`Move ${providerLabel(id)} down`}
                     disabled={idx === orderedProviderIds.length - 1}
                     onClick={() => moveProviderPreference(id, "down")}
-                    className="text-charcoal-400 rounded p-1 hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-30"
+                    className="text-charcoal-400 rounded-control p-1 hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-30"
                   >
                     <ArrowDown className="size-3.5" aria-hidden="true" />
                   </button>
@@ -1055,8 +1055,8 @@ function PreferencesSection() {
         </div>
 
         {/* Command-palette behaviour */}
-        <div className="border-charcoal-700 bg-charcoal-850 rounded-md border px-4 py-3">
-          <p className="text-charcoal-200 mb-2 font-mono text-xs">Command palette</p>
+        <div className="border-charcoal-700 bg-charcoal-850 rounded-none border px-4 py-3">
+          <p className="text-charcoal-200 text-caption mb-2 font-mono">Command palette</p>
           <ToggleRow
             label="Show recent commands"
             checked={paletteRecentsEnabled}
@@ -1070,8 +1070,8 @@ function PreferencesSection() {
         </div>
 
         {/* Starter-cockpit composition (FR-032) */}
-        <div className="border-charcoal-700 bg-charcoal-850 rounded-md border px-4 py-3">
-          <p className="text-charcoal-200 font-mono text-xs">Starter cockpit</p>
+        <div className="border-charcoal-700 bg-charcoal-850 rounded-none border px-4 py-3">
+          <p className="text-charcoal-200 text-caption font-mono">Starter cockpit</p>
           <p className="text-charcoal-400 text-caption mt-1 mb-2 font-mono">
             The panels that open on first run, before you save your own layout.
           </p>
@@ -1082,7 +1082,7 @@ function PreferencesSection() {
                 <label
                   key={panelId}
                   title={label}
-                  className="text-charcoal-200 flex min-w-0 items-center gap-2 font-mono text-xs"
+                  className="text-charcoal-200 text-caption flex min-w-0 items-center gap-2 font-mono"
                 >
                   <input
                     type="checkbox"
@@ -1099,8 +1099,8 @@ function PreferencesSection() {
         </div>
 
         {/* Theme knobs (dark-only) */}
-        <div className="border-charcoal-700 bg-charcoal-850 rounded-md border px-4 py-3">
-          <p className="text-charcoal-200 flex items-center gap-2 font-mono text-xs">
+        <div className="border-charcoal-700 bg-charcoal-850 rounded-none border px-4 py-3">
+          <p className="text-charcoal-200 text-caption flex items-center gap-2 font-mono">
             <Palette className="size-3.5 text-amber-400" aria-hidden="true" />
             Appearance
           </p>
@@ -1236,7 +1236,7 @@ function KeybindingsSection() {
       {conflictList.length > 0 && (
         <div
           role="alert"
-          className="border-warning/40 bg-warning/10 text-warning mb-3 flex items-start gap-2 rounded-md border px-3 py-2 font-mono text-xs"
+          className="border-warning/40 bg-warning/10 text-warning text-caption mb-3 flex items-start gap-2 rounded-none border px-3 py-2 font-mono"
         >
           <AlertTriangle className="mt-1 size-3.5 shrink-0" aria-hidden="true" />
           <div>
@@ -1269,12 +1269,14 @@ function KeybindingsSection() {
                     <li
                       key={actionId}
                       className={cn(
-                        "border-charcoal-700 bg-charcoal-850 flex items-center justify-between gap-3 rounded-md border px-4 py-3",
+                        "border-charcoal-700 bg-charcoal-850 flex items-center justify-between gap-3 rounded-none border px-4 py-3",
                         conflicted && "border-warning/50",
                       )}
                     >
                       <div className="flex min-w-0 flex-col">
-                        <span className="text-charcoal-100 font-mono text-xs">{def.label}</span>
+                        <span className="text-charcoal-100 text-caption font-mono">
+                          {def.label}
+                        </span>
                         <span className="text-charcoal-400 text-caption truncate font-mono">
                           {def.description}
                         </span>
@@ -1283,7 +1285,7 @@ function KeybindingsSection() {
                         <kbd
                           aria-label={`${def.label} binding`}
                           className={cn(
-                            "border-charcoal-700 bg-charcoal-900 rounded border px-2 py-1 font-mono text-xs",
+                            "border-charcoal-700 bg-charcoal-900 rounded-control text-caption border px-2 py-1 font-mono",
                             conflicted ? "text-warning" : "text-charcoal-100",
                           )}
                         >
@@ -1300,7 +1302,7 @@ function KeybindingsSection() {
                             if (isRecording) setRecording(null);
                           }}
                           className={cn(
-                            "text-micro rounded px-2 py-1 font-mono",
+                            "text-micro rounded-control px-2 py-1 font-mono",
                             isRecording
                               ? "bg-amber-500/20 text-amber-400"
                               : "text-charcoal-400 hover:text-charcoal-100",
@@ -1313,7 +1315,7 @@ function KeybindingsSection() {
                           aria-label={`Reset binding for ${def.label}`}
                           disabled={!isOverridden}
                           onClick={() => resetBinding(actionId)}
-                          className="text-charcoal-400 rounded p-1 hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-30"
+                          className="text-charcoal-400 rounded-control p-1 hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-30"
                         >
                           <RotateCcw className="size-3.5" aria-hidden="true" />
                         </button>
@@ -1400,7 +1402,7 @@ function ExportImportSection() {
         title="Export / Import"
         hint="Carry your keybindings and preferences to another machine. Secrets are NEVER exported — re-enter your API keys via the keychain on the new machine."
       />
-      <div className="border-charcoal-700 bg-charcoal-850 flex flex-col gap-3 rounded-md border px-4 py-3">
+      <div className="border-charcoal-700 bg-charcoal-850 flex flex-col gap-3 rounded-none border px-4 py-3">
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline" onClick={handleExport}>
             <Download className="size-3.5" aria-hidden="true" />
@@ -1457,7 +1459,7 @@ function AboutSection() {
         icon={<Info className="size-4 text-amber-400" aria-hidden="true" />}
         title="About"
       />
-      <div className="border-charcoal-700 bg-charcoal-850 text-charcoal-300 flex flex-col gap-2 rounded-md border px-4 py-3 font-mono text-xs">
+      <div className="border-charcoal-700 bg-charcoal-850 text-charcoal-300 text-caption flex flex-col gap-2 rounded-none border px-4 py-3 font-mono">
         <p>
           Vysted <span className="text-charcoal-500">v{HOST_VERSION}</span> — an open-source,
           AI-native finance terminal.
@@ -1488,11 +1490,11 @@ function SectionHeader({
 }) {
   return (
     <header className="mb-3">
-      <h2 id={id} className="text-charcoal-100 flex items-center gap-2 font-serif text-lg">
+      <h2 id={id} className="text-charcoal-100 text-section flex items-center gap-2">
         {icon}
         {title}
       </h2>
-      {hint && <p className="text-charcoal-400 mt-1 font-mono text-xs">{hint}</p>}
+      {hint && <p className="text-charcoal-400 text-caption mt-1 font-mono">{hint}</p>}
     </header>
   );
 }
@@ -1503,7 +1505,7 @@ function SectionHeader({
  * through); `pr-6` reserves room for that chevron.
  */
 const selectClass =
-  "border-charcoal-700 bg-charcoal-900 text-charcoal-100 h-8 min-w-[12rem] appearance-none rounded-md border pr-6 pl-2 font-mono text-xs outline-none focus:border-amber-400";
+  "border-charcoal-700 bg-charcoal-900 text-charcoal-100 h-8 min-w-[12rem] appearance-none rounded-control border pr-6 pl-2 font-mono text-caption outline-none focus:border-amber-400";
 
 /**
  * A `<select>` wrapped in a `relative` container with a warm chevron overlay —
@@ -1536,9 +1538,9 @@ function PrefRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between gap-3 rounded-md border px-4 py-3">
+    <div className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between gap-3 rounded-none border px-4 py-3">
       <div className="flex min-w-0 flex-col">
-        <span className="text-charcoal-100 flex items-center gap-2 font-mono text-xs">
+        <span className="text-charcoal-100 text-caption flex items-center gap-2 font-mono">
           {icon}
           {label}
         </span>
@@ -1560,7 +1562,7 @@ function ToggleRow({
   onChange: (next: boolean) => void;
 }) {
   return (
-    <label className="text-charcoal-200 flex items-center justify-between gap-3 py-1 font-mono text-xs">
+    <label className="text-charcoal-200 text-caption flex items-center justify-between gap-3 py-1 font-mono">
       {label}
       <input
         type="checkbox"

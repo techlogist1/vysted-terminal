@@ -32,7 +32,7 @@ export function SlashCommandPicker({
     <ul
       role="listbox"
       aria-label="Slash commands"
-      className="border-charcoal-700 bg-charcoal-925 flex max-h-60 flex-col overflow-y-auto rounded-md border py-1 shadow-lg"
+      className="border-charcoal-700 bg-charcoal-875 rounded-control flex max-h-60 flex-col overflow-y-auto border py-1"
     >
       {matches.map((cmd, index) => {
         const active = index === activeIndex;
@@ -47,7 +47,7 @@ export function SlashCommandPicker({
                 onPick(cmd);
               }}
               className={cn(
-                "flex w-full items-baseline gap-2 px-3 py-2 text-left font-mono text-sm",
+                "text-body flex w-full items-baseline gap-2 px-3 py-2 text-left",
                 active ? "bg-charcoal-800" : "hover:bg-charcoal-900",
               )}
             >

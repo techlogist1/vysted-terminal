@@ -84,7 +84,7 @@ function RunRow({
   return (
     <motion.div
       layout
-      className="flex flex-col gap-1 font-mono text-[0.6rem]"
+      className="text-micro flex flex-col gap-1"
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, height: 0 }}
@@ -129,9 +129,9 @@ function RunRow({
         </span>
       </div>
       {frac !== null && (
-        <div className="bg-charcoal-800 h-0.5 w-full overflow-hidden rounded-full" aria-hidden>
+        <div className="bg-charcoal-800 h-0.5 w-full overflow-hidden" aria-hidden>
           <div
-            className={cn("h-full rounded-full", frac >= 1 ? "bg-warning" : "bg-amber-500")}
+            className={cn("h-full", frac >= 1 ? "bg-warning" : "bg-amber-500")}
             style={{ width: `${Math.round(frac * 100)}%` }}
           />
         </div>
@@ -165,7 +165,7 @@ function RunRow({
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               disabled={answerBusy}
-              className="bg-charcoal-800 text-charcoal-100 h-5 flex-1 rounded px-1.5 text-[0.6rem] outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
+              className="bg-charcoal-850 text-charcoal-100 text-micro rounded-control h-6 flex-1 px-1.5 outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
             />
             <button
               type="submit"
@@ -177,7 +177,7 @@ function RunRow({
             </button>
           </form>
           {answerError && (
-            <span className="text-negative mt-0.5 block text-[0.55rem]" role="alert">
+            <span className="text-negative text-micro mt-0.5 block" role="alert">
               {answerError}
             </span>
           )}

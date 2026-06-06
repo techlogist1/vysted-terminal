@@ -47,9 +47,9 @@
   --accent-rgb: 216 154 78; /* rgb of amber-400 #d89a4e -- three-place lockstep */
   --hairline: rgb(122 116 106 / 0.14); /* warm neutral @ 14% -- quiet fine divider */
   --hairline-strong: rgb(122 116 106 / 0.24); /* warm neutral @ 24% */
-  --bezel-shadow: inset 0 1px 0 rgb(250 248 244 / 0.04), 0 1px 2px rgb(0 0 0 / 0.4);
-  /* No glow primitive. Elevation = 1px accent border + a luminance step.
-     See docs/redesign/PRODUCT_DESIGN_DECISIONS.md sec3+6. */
+  /* No shadow/glow primitive of ANY kind (VYSTED_DESIGN.md §Elevation).
+     Depth = the surface ladder (canvas->chrome->panel->raised->inset) + a 1px
+     hairline; a floating element climbs exactly one rung. */
 }
 
 /* --- Named @utilities consumed via Tailwind variants -----------------------
@@ -78,11 +78,11 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    /* Proportional UI sans for chrome + prose (the reference apps read as clean
-       sans, not a code terminal). Numeric DATA surfaces opt back into mono with
-       an explicit `font-mono` (watchlist/screener/chart/equity tables, tickers,
-       prices); tabular-nums keeps columns aligned in BOTH faces. */
-    font-family: var(--font-serif, ui-sans-serif, system-ui, sans-serif);
+    /* ONE monospace family across the whole app (VYSTED_DESIGN.md). The
+       --font-serif slot resolves to JetBrains Mono, as do --font-sans/--font-mono,
+       so every text role -- chrome, prose, and data -- is the same face.
+       tabular-nums keeps numeric columns aligned like a gauge. */
+    font-family: var(--font-serif, ui-monospace, "SF Mono", monospace);
     /* Instrument-readout numerics: tabular figures align like a gauge across
        every table, price, and stat in the app. */
     font-variant-numeric: tabular-nums;
@@ -149,19 +149,13 @@
 
 /* --- Instrument utility classes (opt-in chrome) --------------------------- */
 @layer components {
-  /* Uppercase, tracked, neutral section label. */
+  /* Uppercase, tracked, neutral section label (micro role -- 11px floor). */
   .hud-label {
     font-family: var(--font-mono, ui-monospace, monospace);
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    font-size: var(--text-micro, 0.6875rem);
     color: var(--color-brass-300, #a8a095);
-  }
-
-  /* Flat panel edge -- a whisper of depth, no metal bevel. */
-  .instrument-bezel {
-    box-shadow: var(--bezel-shadow);
-    border-top: 1px solid rgb(250 248 244 / 0.04);
   }
 
   /* A single flat warm hairline (e.g. under the header). */

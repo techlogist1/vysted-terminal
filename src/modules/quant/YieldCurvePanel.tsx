@@ -141,22 +141,22 @@ export function YieldCurvePanel() {
         data-testid="yield-curve-form"
       >
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-300 font-mono text-[10px]">Valuation date</span>
+          <span className="text-charcoal-300 text-micro font-mono">Valuation date</span>
           <input
             type="date"
             value={valuationDate}
             onChange={(e) => setValuationDate(e.target.value)}
             disabled={isRunning}
             data-testid="field-valuation-date"
-            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
+            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
           />
         </label>
 
         <div className="flex flex-col gap-1.5">
-          <span className="text-charcoal-500 font-mono text-[10px] tracking-widest uppercase">
+          <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
             Instruments
           </span>
-          <div className="text-charcoal-500 grid grid-cols-12 gap-1 font-mono text-[9px] uppercase">
+          <div className="text-charcoal-500 text-micro grid grid-cols-12 gap-1 font-mono uppercase">
             <span className="col-span-3">Type</span>
             <span className="col-span-3">Tenor</span>
             <span className="col-span-2">Unit</span>
@@ -172,7 +172,7 @@ export function YieldCurvePanel() {
                 value={row.type}
                 onChange={(e) => updateRow(idx, { type: e.target.value as "deposit" | "swap" })}
                 disabled={isRunning}
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control col-span-3 h-7 border px-1 font-mono text-[10px] outline-none focus-visible:border-amber-500"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-micro col-span-3 h-8 border px-1 font-mono outline-none focus-visible:border-amber-500"
               >
                 <option value="deposit">depo</option>
                 <option value="swap">swap</option>
@@ -183,7 +183,7 @@ export function YieldCurvePanel() {
                 value={row.tenor}
                 onChange={(e) => updateRow(idx, { tenor: Number(e.target.value) || 1 })}
                 disabled={isRunning}
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control col-span-3 h-7 border px-1 font-mono text-[10px] outline-none focus-visible:border-amber-500"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-micro col-span-3 h-8 border px-1 font-mono outline-none focus-visible:border-amber-500"
               />
               <select
                 value={row.tenor_unit}
@@ -191,7 +191,7 @@ export function YieldCurvePanel() {
                   updateRow(idx, { tenor_unit: e.target.value as "months" | "years" })
                 }
                 disabled={isRunning}
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control col-span-2 h-7 border px-1 font-mono text-[10px] outline-none focus-visible:border-amber-500"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-micro col-span-2 h-8 border px-1 font-mono outline-none focus-visible:border-amber-500"
               >
                 <option value="months">mo</option>
                 <option value="years">yr</option>
@@ -202,14 +202,14 @@ export function YieldCurvePanel() {
                 value={row.rate}
                 onChange={(e) => updateRow(idx, { rate: Number(e.target.value) || 0 })}
                 disabled={isRunning}
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control col-span-4 h-7 border px-1 font-mono text-[10px] outline-none focus-visible:border-amber-500"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-micro col-span-4 h-8 border px-1 font-mono outline-none focus-visible:border-amber-500"
               />
             </div>
           ))}
         </div>
 
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-300 font-mono text-[10px]">Sample points</span>
+          <span className="text-charcoal-300 text-micro font-mono">Sample points</span>
           <input
             type="number"
             min={3}
@@ -218,7 +218,7 @@ export function YieldCurvePanel() {
             onChange={(e) => setSampleCount(e.target.value)}
             disabled={isRunning}
             data-testid="field-sample-count"
-            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
+            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
           />
         </label>
 
@@ -239,7 +239,7 @@ export function YieldCurvePanel() {
       <section className="flex min-h-0 flex-1 flex-col p-4">
         {error && (
           <p
-            className="text-negative bg-negative/10 border-negative/30 rounded-control mb-3 border p-2 font-mono text-xs"
+            className="text-negative bg-negative/10 border-negative/30 text-caption mb-3 rounded-none border p-2 font-mono"
             role="alert"
             data-testid="yield-curve-error"
           >
@@ -247,8 +247,8 @@ export function YieldCurvePanel() {
           </p>
         )}
 
-        <div className="border-charcoal-700 bg-charcoal-850 rounded-control mb-3 border p-2">
-          <div className="text-charcoal-500 mb-1 font-mono text-[10px] tracking-widest uppercase">
+        <div className="border-charcoal-700 bg-charcoal-850 mb-3 rounded-none border p-2">
+          <div className="text-charcoal-500 text-micro mb-1 font-mono tracking-widest uppercase">
             Zero curve (continuously compounded, %)
           </div>
           <div ref={containerRef} className="h-72 w-full" data-testid="yield-curve-chart" />
@@ -256,36 +256,36 @@ export function YieldCurvePanel() {
 
         {lastResult && lastResult.curve.length > 0 && (
           <div
-            className="border-charcoal-700 bg-charcoal-850 rounded-control border p-3"
+            className="border-charcoal-700 bg-charcoal-850 rounded-none border p-3"
             data-testid="yield-curve-table"
           >
-            <div className="text-charcoal-500 mb-2 font-mono text-[10px] tracking-widest uppercase">
+            <div className="text-charcoal-500 text-micro mb-2 font-mono tracking-widest uppercase">
               Sampled curve · {lastResult.curve.length} points · computed in{" "}
               {lastResult.duration_ms.toFixed(1)} ms
             </div>
-            <div className="text-charcoal-300 grid max-h-72 grid-cols-4 gap-x-2 overflow-y-auto font-mono text-[10px]">
-              <span className="text-charcoal-500 border-charcoal-700 bg-charcoal-850 sticky top-0 border-b pb-1">
+            <div className="text-charcoal-300 text-micro grid max-h-72 grid-cols-4 gap-x-2 overflow-y-auto font-mono tabular-nums">
+              <span className="text-charcoal-500 border-charcoal-700 bg-charcoal-850 sticky top-0 border-b pb-1 text-right">
                 Tenor (y)
               </span>
               <span className="text-charcoal-500 border-charcoal-700 bg-charcoal-850 sticky top-0 border-b pb-1">
                 Date
               </span>
-              <span className="text-charcoal-500 border-charcoal-700 bg-charcoal-850 sticky top-0 border-b pb-1">
+              <span className="text-charcoal-500 border-charcoal-700 bg-charcoal-850 sticky top-0 border-b pb-1 text-right">
                 Zero rate
               </span>
-              <span className="text-charcoal-500 border-charcoal-700 bg-charcoal-850 sticky top-0 border-b pb-1">
+              <span className="text-charcoal-500 border-charcoal-700 bg-charcoal-850 sticky top-0 border-b pb-1 text-right">
                 DF
               </span>
               {lastResult.curve.map((p, idx) => (
                 <Fragment key={`pt-${idx}-${p.date}`}>
-                  <span className="border-charcoal-800 border-b py-0.5">
+                  <span className="border-charcoal-800 border-b py-0.5 text-right">
                     {p.tenor_years.toFixed(3)}
                   </span>
                   <span className="border-charcoal-800 border-b py-0.5">{p.date}</span>
-                  <span className="border-charcoal-800 border-b py-0.5 text-amber-200">
+                  <span className="border-charcoal-800 border-b py-0.5 text-right text-amber-200">
                     {(p.zero_rate * 100).toFixed(3)}%
                   </span>
-                  <span className="border-charcoal-800 border-b py-0.5">
+                  <span className="border-charcoal-800 border-b py-0.5 text-right">
                     {p.discount_factor.toFixed(5)}
                   </span>
                 </Fragment>

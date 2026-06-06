@@ -108,7 +108,7 @@ export function PriceTargetTimeline({ history }: Props) {
       <div ref={containerRef} className="h-full w-full" />
       {history.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <p className="text-charcoal-400 font-mono text-xs">
+          <p className="text-charcoal-400 text-caption">
             No price-target history available for this symbol.
           </p>
         </div>

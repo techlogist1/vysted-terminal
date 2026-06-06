@@ -40,7 +40,7 @@ export function MentionPicker({
     <ul
       role="listbox"
       aria-label="Mentions"
-      className="border-charcoal-700 bg-charcoal-925 flex max-h-60 flex-col overflow-y-auto rounded-md border py-1 shadow-lg"
+      className="border-charcoal-700 bg-charcoal-875 rounded-control flex max-h-60 flex-col overflow-y-auto border py-1"
     >
       {matches.map((mention, index) => {
         const active = index === activeIndex;
@@ -56,7 +56,7 @@ export function MentionPicker({
                 onPick(mention);
               }}
               className={cn(
-                "flex w-full items-baseline gap-2 px-3 py-2 text-left font-mono text-sm",
+                "text-body flex w-full items-baseline gap-2 px-3 py-2 text-left",
                 active ? "bg-charcoal-800" : "hover:bg-charcoal-900",
               )}
             >
@@ -67,7 +67,7 @@ export function MentionPicker({
               {mention.description && (
                 <span className="text-charcoal-500 truncate">{mention.description}</span>
               )}
-              <span className={cn("ml-auto shrink-0 text-right text-xs", badge.className)}>
+              <span className={cn("text-caption ml-auto shrink-0 text-right", badge.className)}>
                 {badge.label}
               </span>
             </button>

@@ -412,7 +412,7 @@ function NodeEditorPanelInner() {
       {/* Toolbar */}
       <header className="border-charcoal-700 flex items-center justify-between gap-2 border-b px-3 py-2">
         <div className="flex min-w-0 flex-1 items-baseline gap-3">
-          <h2 className="text-charcoal-100 font-mono text-sm tracking-wide uppercase">
+          <h2 className="text-charcoal-100 text-panel-title font-mono tracking-wide uppercase">
             Node Editor
           </h2>
           <input
@@ -422,10 +422,10 @@ function NodeEditorPanelInner() {
               setWorkflowName(event.target.value);
               setIsDirty(true);
             }}
-            className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 h-7 max-w-xs flex-1 rounded-md border px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 max-w-xs flex-1 border px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
           />
           {isDirty && (
-            <span className="text-charcoal-400 font-mono text-[10px] uppercase">unsaved</span>
+            <span className="text-charcoal-400 text-micro font-mono uppercase">unsaved</span>
           )}
         </div>
         <div className="flex shrink-0 items-center gap-1">
@@ -482,8 +482,8 @@ function NodeEditorPanelInner() {
           </ReactFlow>
           {nodes.length === 0 && (
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2">
-              <span className="text-charcoal-500 font-mono text-xs">Empty workflow</span>
-              <span className="text-charcoal-600 font-mono text-[10px]">
+              <span className="text-charcoal-500 text-caption font-mono">Empty workflow</span>
+              <span className="text-charcoal-600 text-micro font-mono">
                 Drag a node from the palette to start
               </span>
             </div>
@@ -493,7 +493,7 @@ function NodeEditorPanelInner() {
               consuming a third flex rail — three rails would starve the canvas
               below the panel's min width. */}
           {runState.status !== "idle" && (
-            <div className="absolute top-0 right-0 z-10 h-full">
+            <div className="absolute top-2 right-2 bottom-2 z-10">
               <WorkflowRunOverlay
                 state={runState}
                 onClose={handleCloseOverlay}
@@ -562,11 +562,11 @@ function PropertiesPanel({ node, onPatch, onDelete }: PropertiesPanelProps) {
       className="border-charcoal-700 bg-charcoal-900 flex h-full w-64 min-w-64 flex-col border-l"
     >
       <header className="border-charcoal-700 flex items-baseline justify-between border-b px-3 py-2">
-        <span className="text-charcoal-200 font-mono text-xs uppercase">Properties</span>
+        <span className="text-charcoal-200 text-caption font-mono uppercase">Properties</span>
       </header>
       <div className="flex-1 overflow-y-auto p-3">
         {node === null ? (
-          <p className="text-charcoal-500 font-mono text-xs">
+          <p className="text-charcoal-500 text-caption font-mono">
             Select a node on the canvas to edit its configuration.
           </p>
         ) : (
@@ -589,12 +589,12 @@ function PropertiesForm({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
-        <span className="text-charcoal-400 font-mono text-[10px] uppercase">Type</span>
-        <span className="text-charcoal-100 font-mono text-xs">{nodeTypeId}</span>
+        <span className="text-charcoal-400 text-micro font-mono uppercase">Type</span>
+        <span className="text-charcoal-100 text-caption font-mono">{nodeTypeId}</span>
       </div>
       <div className="flex flex-col gap-1">
-        <span className="text-charcoal-400 font-mono text-[10px] uppercase">ID</span>
-        <span className="text-charcoal-200 truncate font-mono text-[10px]">{node.id}</span>
+        <span className="text-charcoal-400 text-micro font-mono uppercase">ID</span>
+        <span className="text-charcoal-200 text-micro truncate font-mono">{node.id}</span>
       </div>
       {fields !== undefined && fields.length > 0 ? (
         fields.map((field) => (
@@ -606,7 +606,7 @@ function PropertiesForm({
           />
         ))
       ) : fields !== undefined ? (
-        <p className="text-charcoal-500 font-mono text-[10px]">No configuration for this node.</p>
+        <p className="text-charcoal-500 text-micro font-mono">No configuration for this node.</p>
       ) : (
         <FreeFormConfigEditor config={node.data.config} onReplace={onPatch} />
       )}
@@ -641,7 +641,7 @@ function ConfigFieldEditor({
         aria-label={field.label}
         value={rawValue}
         onChange={(event) => onChange(event.target.value)}
-        className="bg-charcoal-800 text-charcoal-100 h-7 w-full rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+        className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption h-8 w-full px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
       >
         <option value="">—</option>
         {field.options.map((opt) => (
@@ -659,7 +659,7 @@ function ConfigFieldEditor({
         onChange={(event) => onChange(event.target.value)}
         rows={4}
         placeholder={field.placeholder}
-        className="bg-charcoal-800 text-charcoal-100 min-h-[4rem] resize-y rounded-md p-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+        className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption min-h-[4rem] resize-y p-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
       />
     );
   } else if (field.kind === "boolean") {
@@ -668,7 +668,7 @@ function ConfigFieldEditor({
         aria-label={field.label}
         value={rawValue || "false"}
         onChange={(event) => onChange(coerceConfigValue("boolean", event.target.value, value))}
-        className="bg-charcoal-800 text-charcoal-100 h-7 w-full rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+        className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption h-8 w-full px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
       >
         <option value="false">false</option>
         <option value="true">true</option>
@@ -682,13 +682,13 @@ function ConfigFieldEditor({
         value={rawValue}
         onChange={(event) => onChange(coerceConfigValue(field.kind, event.target.value, value))}
         placeholder={field.placeholder}
-        className="bg-charcoal-800 text-charcoal-100 h-7 rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+        className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption h-8 px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
       />
     );
   }
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-charcoal-400 font-mono text-[10px] uppercase">{field.label}</span>
+      <span className="text-charcoal-400 text-micro font-mono uppercase">{field.label}</span>
       {control}
     </label>
   );
@@ -722,15 +722,15 @@ function FreeFormConfigEditor({
 
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-charcoal-400 font-mono text-[10px] uppercase">Config (JSON)</span>
+      <span className="text-charcoal-400 text-micro font-mono uppercase">Config (JSON)</span>
       <textarea
         aria-label="Config JSON"
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
         rows={6}
-        className="bg-charcoal-800 text-charcoal-100 min-h-[6rem] resize-y rounded-md p-2 font-mono text-[10px] outline-none"
+        className="bg-charcoal-800 text-charcoal-100 rounded-control text-micro min-h-[6rem] resize-y p-2 font-mono outline-none"
       />
-      {error !== null && <span className="text-negative font-mono text-[10px]">{error}</span>}
+      {error !== null && <span className="text-negative text-micro font-mono">{error}</span>}
       <Button size="sm" variant="outline" onClick={apply}>
         Apply
       </Button>
@@ -774,12 +774,12 @@ function LoadDialog({ summaries, loadingList, error, onClose, onPick }: LoadDial
     >
       <div
         onClick={(event) => event.stopPropagation()}
-        className="bg-charcoal-900 border-charcoal-700 flex w-[460px] flex-col gap-3 rounded-md border p-4"
+        className="bg-charcoal-900 border-charcoal-700 flex w-[460px] flex-col gap-3 rounded-none border p-4"
       >
         <header className="flex items-baseline justify-between">
           <h2
             id="workflow-load-dialog-title"
-            className="text-charcoal-100 font-mono text-sm tracking-wide uppercase"
+            className="text-charcoal-100 text-panel-title font-mono tracking-wide uppercase"
           >
             Load workflow
           </h2>
@@ -787,16 +787,18 @@ function LoadDialog({ summaries, loadingList, error, onClose, onPick }: LoadDial
             type="button"
             onClick={onClose}
             aria-label="Close load dialog"
-            className="text-charcoal-400 font-mono text-sm hover:text-amber-400"
+            className="text-charcoal-400 text-body font-mono hover:text-amber-400"
           >
             ×
           </button>
         </header>
-        {error !== null && <p className="text-negative font-mono text-[10px]">{error}</p>}
+        {error !== null && <p className="text-negative text-micro font-mono">{error}</p>}
         {loadingList ? (
-          <p className="text-charcoal-400 animate-pulse font-mono text-xs">Fetching workflows…</p>
+          <p className="text-charcoal-400 text-caption animate-pulse font-mono">
+            Fetching workflows…
+          </p>
         ) : summaries.length === 0 ? (
-          <p className="text-charcoal-400 font-mono text-xs">No saved workflows yet.</p>
+          <p className="text-charcoal-400 text-caption font-mono">No saved workflows yet.</p>
         ) : (
           <ul className="flex max-h-72 flex-col gap-1 overflow-y-auto">
             {summaries.map((s) => (
@@ -806,12 +808,12 @@ function LoadDialog({ summaries, loadingList, error, onClose, onPick }: LoadDial
                   onClick={() => onPick(s.id)}
                   className={cn(
                     "border-charcoal-700 hover:border-amber-500 hover:bg-amber-500/5",
-                    "w-full rounded-md border px-2 py-1.5 text-left font-mono text-xs",
+                    "rounded-control text-caption w-full border px-2 py-1.5 text-left font-mono",
                   )}
                 >
                   <div className="text-charcoal-100">{s.name}</div>
                   {s.description !== undefined && s.description !== "" && (
-                    <div className="text-charcoal-400 truncate text-[10px]">{s.description}</div>
+                    <div className="text-charcoal-400 text-micro truncate">{s.description}</div>
                   )}
                 </button>
               </li>

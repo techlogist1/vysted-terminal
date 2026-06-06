@@ -203,7 +203,7 @@ export default function Page() {
           {/* Mark-only brand — no text wordmark (Cursor/Linear-minimal). The
               accessible name lives on the mark; the document title carries "Vysted". */}
           <div className="flex items-center select-none" aria-label="Vysted" title="Vysted">
-            <span aria-hidden="true" className="size-3 rounded-[3px] bg-amber-400" />
+            <span aria-hidden="true" className="rounded-control size-3 bg-amber-400" />
           </div>
           <div className="bg-charcoal-700 mx-1 h-5 w-px" aria-hidden="true" />
           <button
@@ -211,7 +211,7 @@ export default function Page() {
             onClick={toggleAgent}
             aria-pressed={!agentCollapsed}
             className={cn(
-              "flex items-center gap-1.5 text-xs transition-colors",
+              "text-caption flex items-center gap-1.5 transition-colors",
               agentCollapsed
                 ? "text-charcoal-400 hover:text-lume"
                 : "text-amber-300 hover:text-amber-200",
@@ -229,19 +229,19 @@ export default function Page() {
           <button
             type="button"
             onClick={() => openPalette(true)}
-            className="text-charcoal-300 hover:text-lume flex items-center gap-1.5 text-xs transition-colors"
+            className="text-charcoal-300 hover:text-lume text-caption flex items-center gap-1.5 transition-colors"
             aria-label="Open command palette"
           >
             <LayoutGrid className="h-4 w-4" />
             Open panel
-            <kbd className="border-charcoal-700 text-charcoal-500 rounded border px-1.5 py-0.5 font-mono text-[11px]">
+            <kbd className="border-charcoal-700 text-charcoal-500 rounded-control text-micro border px-1.5 py-0.5">
               ⌘K
             </kbd>
           </button>
           <button
             type="button"
             onClick={openSaveLayout}
-            className="text-charcoal-300 hover:text-lume flex items-center gap-1.5 text-xs transition-colors"
+            className="text-charcoal-300 hover:text-lume text-caption flex items-center gap-1.5 transition-colors"
             aria-label="Save layout"
           >
             <Save className="h-4 w-4" />
@@ -252,7 +252,7 @@ export default function Page() {
           <button
             type="button"
             onClick={() => openPanel("settings")}
-            className="text-charcoal-400 hover:text-lume hover:bg-charcoal-800 flex size-8 items-center justify-center rounded-md transition-colors"
+            className="text-charcoal-400 hover:text-lume hover:bg-charcoal-800 rounded-control flex size-8 items-center justify-center transition-colors"
             aria-label="Open settings"
             title="Settings"
           >

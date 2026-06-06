@@ -150,7 +150,7 @@ export function BacktestPanel() {
           />
           {catalogueStatus === "error" && (
             <div className="flex flex-col gap-1.5">
-              <p className="text-negative font-mono text-xs">
+              <p className="text-negative text-caption font-mono">
                 {catalogueError ?? "Failed to load strategies"}
               </p>
               <Button size="sm" variant="outline" onClick={() => void refreshStrategies()}>
@@ -169,23 +169,23 @@ export function BacktestPanel() {
           )}
 
           <div className="flex flex-col gap-1.5">
-            <span className="text-charcoal-500 font-mono text-[10px] tracking-widest uppercase">
+            <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
               Universe
             </span>
             <label className="flex flex-col gap-1">
-              <span className="text-charcoal-300 font-mono text-[10px]">Symbols (comma-sep)</span>
+              <span className="text-charcoal-300 text-micro font-mono">Symbols (comma-sep)</span>
               <input
                 value={symbols}
                 onChange={(e) => setSymbols(e.target.value)}
                 disabled={isRunning}
                 spellCheck={false}
                 aria-label="Symbols"
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs uppercase outline-none focus-visible:border-amber-500 disabled:opacity-50"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono uppercase outline-none focus-visible:border-amber-500 disabled:opacity-50"
               />
             </label>
             <div className="grid grid-cols-2 gap-2">
               <label className="flex flex-col gap-1">
-                <span className="text-charcoal-300 font-mono text-[10px]">Start</span>
+                <span className="text-charcoal-300 text-micro font-mono">Start</span>
                 <input
                   type="date"
                   value={startDate}
@@ -193,11 +193,11 @@ export function BacktestPanel() {
                   disabled={isRunning}
                   aria-label="Start date"
                   style={{ colorScheme: "dark" }}
-                  className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
+                  className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
                 />
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-charcoal-300 font-mono text-[10px]">End</span>
+                <span className="text-charcoal-300 text-micro font-mono">End</span>
                 <input
                   type="date"
                   value={endDate}
@@ -205,23 +205,23 @@ export function BacktestPanel() {
                   disabled={isRunning}
                   aria-label="End date"
                   style={{ colorScheme: "dark" }}
-                  className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
+                  className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
                 />
               </label>
             </div>
             <label className="flex flex-col gap-1">
-              <span className="text-charcoal-300 font-mono text-[10px]">Initial capital</span>
+              <span className="text-charcoal-300 text-micro font-mono">Initial capital</span>
               <input
                 type="number"
                 value={capital}
                 onChange={(e) => setCapital(Number(e.target.value))}
                 disabled={isRunning}
                 aria-label="Initial capital"
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
               />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-charcoal-300 font-mono text-[10px]">Walk-forward slices</span>
+              <span className="text-charcoal-300 text-micro font-mono">Walk-forward slices</span>
               <input
                 type="number"
                 min={1}
@@ -232,7 +232,7 @@ export function BacktestPanel() {
                 }
                 disabled={isRunning}
                 aria-label="Walk-forward slices"
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
               />
             </label>
           </div>

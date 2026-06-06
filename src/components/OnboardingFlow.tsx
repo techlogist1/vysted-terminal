@@ -237,18 +237,18 @@ function WelcomeStep({
           <span aria-hidden="true" className="size-2 rounded bg-amber-400" />
           <span className="hud-label leading-none">Welcome</span>
         </div>
-        <h2 className="text-lume font-serif text-2xl leading-tight font-semibold">
+        <h2 className="text-lume text-overview leading-tight font-semibold">
           An agent-native finance terminal
         </h2>
-        <p className="text-charcoal-300 font-mono text-xs leading-relaxed">
+        <p className="text-charcoal-300 text-caption font-mono leading-relaxed">
           Local-first, bring-your-own-keys, your machine. Nothing leaves this computer except the
           model calls you authorize.
         </p>
       </div>
 
-      <div className="border-positive/25 bg-positive/5 flex items-start gap-3 rounded-md border px-4 py-3">
+      <div className="border-positive/25 bg-positive/5 flex items-start gap-3 rounded-none border px-4 py-3">
         <Check className="text-positive mt-1 size-4 shrink-0" aria-hidden="true" />
-        <p className="text-charcoal-200 font-mono text-xs leading-relaxed">
+        <p className="text-charcoal-200 text-caption font-mono leading-relaxed">
           <span className="text-positive font-medium">It already works — no key, no account.</span>{" "}
           Live quotes, charts, news, screeners and web research run right now. Pick a path below to
           turn on the AI agent, or explore first.
@@ -279,7 +279,7 @@ function WelcomeStep({
         <button
           type="button"
           onClick={onSkip}
-          className="text-charcoal-400 hover:text-charcoal-200 font-mono text-xs transition-colors"
+          className="text-charcoal-400 hover:text-charcoal-200 text-caption font-mono transition-colors"
         >
           Skip — I&apos;ll explore first →
         </button>
@@ -311,16 +311,18 @@ function PathCard({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 rounded-lg border p-4 transition-colors",
+        "flex flex-col gap-3 rounded-none border p-4 transition-colors",
         primary ? "border-amber-500/40 bg-amber-500/[0.04]" : "border-charcoal-700 bg-charcoal-900",
       )}
     >
       <div className="flex items-center gap-2">
         {icon}
-        <span className="text-charcoal-100 font-mono text-sm font-medium">{title}</span>
+        <span className="text-charcoal-100 text-body font-mono font-medium">{title}</span>
         <span className="text-micro text-charcoal-500 ml-auto font-mono">{tag}</span>
       </div>
-      <p className="text-charcoal-400 min-h-[5.5rem] font-mono text-xs leading-relaxed">{body}</p>
+      <p className="text-charcoal-400 text-caption min-h-[5.5rem] font-mono leading-relaxed">
+        {body}
+      </p>
       <Button
         size="sm"
         variant={primary ? "default" : "outline"}
@@ -369,7 +371,7 @@ function CloudStep({ onBack, onDone }: { onBack: () => void; onDone: () => void 
         title="Connect OpenRouter"
         onBack={onBack}
       />
-      <p className="text-charcoal-300 font-mono text-xs leading-relaxed">
+      <p className="text-charcoal-300 text-caption font-mono leading-relaxed">
         <span className="text-charcoal-100">OpenRouter is one key for every model</span> — Claude,
         GPT, Gemini, DeepSeek, Kimi and more. Create a key, add a few dollars of credit, and the
         agent + deep research light up. A typical research run costs only a few cents.
@@ -378,7 +380,7 @@ function CloudStep({ onBack, onDone }: { onBack: () => void; onDone: () => void 
       <button
         type="button"
         onClick={() => void openExternal(OPENROUTER_KEYS_URL)}
-        className="border-charcoal-700 bg-charcoal-900 text-charcoal-200 flex items-center gap-2 rounded-md border px-3 py-2 font-mono text-xs transition-colors hover:border-amber-500/40 hover:text-amber-300"
+        className="border-charcoal-700 bg-charcoal-900 text-charcoal-200 rounded-control text-caption flex items-center gap-2 border px-3 py-2 font-mono transition-colors hover:border-amber-500/40 hover:text-amber-300"
       >
         <ExternalLink className="size-3.5" aria-hidden="true" />
         Get a key — openrouter.ai/keys
@@ -403,15 +405,15 @@ function CloudStep({ onBack, onDone }: { onBack: () => void; onDone: () => void 
           }}
           placeholder="sk-or-..."
           aria-label="OpenRouter API key"
-          className="border-charcoal-700 bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 h-9 rounded-md border px-3 font-mono text-sm outline-none focus:border-amber-400"
+          className="border-charcoal-700 bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 rounded-control text-body h-8 border px-3 font-mono outline-none focus:border-amber-400"
         />
         {status === "invalid" && (
-          <p className="text-negative font-mono text-xs">
+          <p className="text-negative text-caption font-mono">
             That key wasn&apos;t accepted by OpenRouter. Check it and try again.
           </p>
         )}
         {status === "error" && (
-          <p className="text-negative font-mono text-xs">
+          <p className="text-negative text-caption font-mono">
             Couldn&apos;t save the key — check your OS keychain permissions.
           </p>
         )}
@@ -514,24 +516,24 @@ function LocalStep({
       />
 
       {loading && (
-        <div className="text-charcoal-400 flex items-center gap-2 py-6 font-mono text-xs">
+        <div className="text-charcoal-400 text-caption flex items-center gap-2 py-6 font-mono">
           <Loader2 className="size-3.5 animate-spin" aria-hidden="true" /> Detecting your hardware…
         </div>
       )}
 
       {!loading && rec && (
         <>
-          <div className="border-charcoal-700 bg-charcoal-900 flex items-center gap-3 rounded-md border px-4 py-3">
+          <div className="border-charcoal-700 bg-charcoal-900 flex items-center gap-3 rounded-none border px-4 py-3">
             <Cpu className="text-charcoal-400 size-4 shrink-0" aria-hidden="true" />
-            <p className="text-charcoal-300 font-mono text-xs">
+            <p className="text-charcoal-300 text-caption font-mono">
               <span className="text-charcoal-100">{rec.device.chip}</span> · {rec.device.ramGib} GB
               RAM · {rec.device.isAppleSilicon ? "Apple Silicon" : rec.device.arch}
             </p>
           </div>
 
           {!model && (
-            <div className="border-warning/30 bg-warning/5 flex flex-col gap-2 rounded-md border px-4 py-3">
-              <p className="text-charcoal-200 font-mono text-xs leading-relaxed">
+            <div className="border-warning/30 bg-warning/5 flex flex-col gap-2 rounded-none border px-4 py-3">
+              <p className="text-charcoal-200 text-caption font-mono leading-relaxed">
                 Your machine is tight on memory for a capable local model. The one-key cloud path
                 will feel much better here — and the terminal already works keyless meanwhile.
               </p>
@@ -543,9 +545,9 @@ function LocalStep({
 
           {model && (
             <div className="flex flex-col gap-3">
-              <div className="border-charcoal-700 bg-charcoal-900 flex items-center justify-between rounded-md border px-4 py-3">
+              <div className="border-charcoal-700 bg-charcoal-900 flex items-center justify-between rounded-none border px-4 py-3">
                 <div className="flex flex-col gap-1">
-                  <span className="text-charcoal-100 font-mono text-sm">{model}</span>
+                  <span className="text-charcoal-100 text-body font-mono">{model}</span>
                   <span
                     className={cn(
                       "text-caption font-mono",
@@ -564,20 +566,20 @@ function LocalStep({
               {/* State machine: not-installed daemon → install guidance; running
                   + present → use; running + absent → download with progress. */}
               {ollama && !ollama.running && (
-                <div className="border-charcoal-700 bg-charcoal-900 flex flex-col gap-3 rounded-md border px-4 py-3">
-                  <p className="text-charcoal-300 font-mono text-xs leading-relaxed">
+                <div className="border-charcoal-700 bg-charcoal-900 flex flex-col gap-3 rounded-none border px-4 py-3">
+                  <p className="text-charcoal-300 text-caption font-mono leading-relaxed">
                     Local models run through <span className="text-charcoal-100">Ollama</span>, a
                     free open-source runner. Install it, start it, then come back:
                   </p>
                   <button
                     type="button"
                     onClick={() => void openExternal(OLLAMA_DOWNLOAD_URL)}
-                    className="border-charcoal-700 bg-charcoal-800 text-charcoal-200 flex items-center gap-2 self-start rounded-md border px-3 py-2 font-mono text-xs transition-colors hover:border-amber-500/40 hover:text-amber-300"
+                    className="border-charcoal-700 bg-charcoal-800 text-charcoal-200 rounded-control text-caption flex items-center gap-2 self-start border px-3 py-2 font-mono transition-colors hover:border-amber-500/40 hover:text-amber-300"
                   >
                     <ExternalLink className="size-3.5" aria-hidden="true" />
                     Download Ollama — ollama.com/download
                   </button>
-                  <code className="text-charcoal-400 bg-charcoal-950 border-charcoal-800 text-caption rounded border px-2 py-1 font-mono">
+                  <code className="text-charcoal-400 bg-charcoal-950 border-charcoal-800 text-caption rounded-control border px-2 py-1 font-mono">
                     or: brew install ollama
                   </code>
                   <Button
@@ -605,9 +607,9 @@ function LocalStep({
 
               {pulling && progress && (
                 <div className="flex flex-col gap-2">
-                  <div className="bg-charcoal-800 h-2 w-full overflow-hidden rounded-full">
+                  <div className="bg-charcoal-800 rounded-control h-2 w-full overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-amber-400 transition-all"
+                      className="rounded-control h-full bg-amber-400 transition-all"
                       style={{
                         width:
                           progress.total && progress.completed
@@ -626,7 +628,7 @@ function LocalStep({
               )}
 
               {pullError && (
-                <p className="text-negative font-mono text-xs">Download failed: {pullError}</p>
+                <p className="text-negative text-caption font-mono">Download failed: {pullError}</p>
               )}
             </div>
           )}
@@ -634,7 +636,7 @@ function LocalStep({
       )}
 
       {!loading && !rec && (
-        <p className="text-charcoal-400 font-mono text-xs">
+        <p className="text-charcoal-400 text-caption font-mono">
           Couldn&apos;t reach the local engine to check your hardware. The cloud key path works
           regardless, and the terminal is usable keyless meanwhile.
         </p>
@@ -671,8 +673,8 @@ function DoneStep({
         <Check className="text-positive size-6" aria-hidden="true" />
       </div>
       <div className="flex flex-col gap-2">
-        <h2 className="text-lume font-serif text-xl font-semibold">You&apos;re set</h2>
-        <p className="text-charcoal-300 max-w-sm font-mono text-xs leading-relaxed">
+        <h2 className="text-lume text-section font-semibold">You&apos;re set</h2>
+        <p className="text-charcoal-300 text-caption max-w-sm font-mono leading-relaxed">
           {choice === "cloud"
             ? "OpenRouter is connected — the agent and deep research are live. Ask the agent to “research NVDA” to see a visual brief land in the cockpit."
             : choice === "local"
@@ -704,12 +706,12 @@ function StepHeader({
         type="button"
         onClick={onBack}
         aria-label="Back"
-        className="text-charcoal-400 hover:text-charcoal-100 -ml-1 rounded p-1 transition-colors"
+        className="text-charcoal-400 hover:text-charcoal-100 rounded-control -ml-1 p-1 transition-colors"
       >
         <ArrowLeft className="size-4" aria-hidden="true" />
       </button>
       {icon}
-      <h2 className="text-charcoal-100 font-serif text-lg font-semibold">{title}</h2>
+      <h2 className="text-charcoal-100 text-section font-semibold">{title}</h2>
     </div>
   );
 }

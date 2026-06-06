@@ -116,17 +116,17 @@ export function MacroSeriesPicker({ provider, onProviderChange, onSelect }: Prop
         placeholder={`Search ${provider} series… (or browse Featured)`}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-500 rounded-md border px-2.5 py-1.5 font-mono text-[12px] focus:border-amber-600 focus:outline-none"
+        className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-500 rounded-control text-caption h-8 border px-2 font-mono focus:border-amber-600 focus:outline-none"
         data-testid="macro-search-input"
       />
 
       <div
-        className="border-charcoal-800 bg-charcoal-950 flex max-h-48 flex-col overflow-y-auto rounded-md border md:max-h-72"
+        className="border-charcoal-800 bg-charcoal-950 flex max-h-48 flex-col overflow-y-auto rounded-none border md:max-h-72"
         role="listbox"
         aria-label="Macro series results"
       >
         {visibleRows.length === 0 ? (
-          <div className="text-charcoal-500 px-3 py-2 text-[11px]">
+          <div className="text-charcoal-500 text-micro px-3 py-2">
             {query.trim() ? (
               `No results for "${query.trim()}" on ${provider}.`
             ) : catalogError ? (
@@ -162,8 +162,8 @@ export function MacroSeriesPicker({ provider, onProviderChange, onSelect }: Prop
               className="border-charcoal-900 hover:bg-charcoal-800 border-b px-3 py-1.5 text-left"
               data-testid={`macro-result-${row.series_id}`}
             >
-              <div className="text-charcoal-100 font-mono text-[12px]">{row.title}</div>
-              <div className="text-charcoal-500 font-mono text-[10px]">
+              <div className="text-charcoal-100 text-caption font-mono">{row.title}</div>
+              <div className="text-charcoal-500 text-micro font-mono">
                 {row.series_id}
                 {row.sub ? ` — ${row.sub}` : ""}
               </div>

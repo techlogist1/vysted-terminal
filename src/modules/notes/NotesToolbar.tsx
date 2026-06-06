@@ -96,7 +96,7 @@ function ToolbarButton({
       onMouseDown={(e) => e.preventDefault()} // keep editor selection on click
       onClick={onClick}
       className={cn(
-        "flex size-8 items-center justify-center rounded-md transition-colors",
+        "rounded-control flex size-8 items-center justify-center transition-colors",
         "disabled:pointer-events-none disabled:opacity-40",
         active
           ? "text-amber-300"

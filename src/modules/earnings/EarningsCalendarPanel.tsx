@@ -166,7 +166,7 @@ export function EarningsCalendarPanel() {
             max={60}
             value={daysDraft}
             onChange={(e) => setDaysDraft(e.target.value)}
-            className="bg-charcoal-800 text-charcoal-100 text-body ml-2 h-9 w-16 rounded-md px-3 tabular-nums outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 text-body rounded-control ml-2 h-8 w-16 px-3 tabular-nums outline-none focus:ring-1 focus:ring-amber-400"
             aria-label="Window in days"
           />
         </label>
@@ -177,7 +177,7 @@ export function EarningsCalendarPanel() {
             value={watchlistDraft}
             onChange={(e) => setWatchlistDraft(e.target.value)}
             placeholder="AAPL, MSFT, NVDA"
-            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 text-body ml-2 h-9 w-full max-w-xs rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 text-body rounded-control ml-2 h-8 w-full max-w-xs px-3 outline-none focus:ring-1 focus:ring-amber-400"
             aria-label="Watchlist"
           />
         </label>

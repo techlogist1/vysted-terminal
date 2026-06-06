@@ -66,7 +66,7 @@ export function ScreenerPanel() {
         <div className="flex flex-col gap-1">
           <label
             htmlFor="screener-universe"
-            className="text-muted-foreground text-xs tracking-wide uppercase"
+            className="text-muted-foreground text-caption tracking-wide uppercase"
           >
             Universe
           </label>
@@ -75,7 +75,7 @@ export function ScreenerPanel() {
             aria-label="universe"
             value={universe}
             onChange={(e) => setUniverse(e.target.value as ScreenerUniverseId)}
-            className="border-border bg-background rounded-md border px-2 py-1.5 text-sm"
+            className="border-border bg-charcoal-850 rounded-control text-body h-8 border px-2"
           >
             {(Object.keys(UNIVERSE_LABELS) as ScreenerUniverseId[]).map((id) => (
               <option key={id} value={id}>
@@ -85,13 +85,13 @@ export function ScreenerPanel() {
           </select>
           {universe !== "custom" &&
             (universeStatus[universe] === "loading" ? (
-              <span className="text-muted-foreground animate-pulse text-[10px]">
+              <span className="text-muted-foreground text-micro animate-pulse">
                 Loading universe…
               </span>
             ) : universeStatus[universe] === "error" ? (
-              <span className="text-destructive text-[10px]">Failed to load universe</span>
+              <span className="text-destructive text-micro">Failed to load universe</span>
             ) : universeInfo ? (
-              <span className="text-muted-foreground text-[10px]">
+              <span className="text-muted-foreground text-micro">
                 {universeInfo.symbols.length} tickers · {universeInfo.asset_class}
               </span>
             ) : null)}
@@ -100,7 +100,7 @@ export function ScreenerPanel() {
           <div className="flex min-w-[16rem] flex-1 flex-col gap-1">
             <label
               htmlFor="screener-custom-symbols"
-              className="text-muted-foreground text-xs tracking-wide uppercase"
+              className="text-muted-foreground text-caption tracking-wide uppercase"
             >
               Symbols (comma or space)
             </label>
@@ -110,14 +110,12 @@ export function ScreenerPanel() {
               value={customSymbols}
               onChange={(e) => setCustomSymbols(e.target.value)}
               placeholder="AAPL MSFT NVDA"
-              className="border-border bg-background rounded-md border px-2 py-1.5 text-sm"
+              className="border-border bg-charcoal-850 rounded-control text-body h-8 border px-2"
             />
           </div>
         )}
         {universe === "custom" && customSymbols.trim() === "" && (
-          <span className="text-warning font-mono text-[10px]">
-            Enter at least one ticker to screen.
-          </span>
+          <span className="text-warning text-micro">Enter at least one ticker to screen.</span>
         )}
         <div className="ml-auto">
           <Button
@@ -134,7 +132,7 @@ export function ScreenerPanel() {
       </div>
 
       {error && (
-        <div className="border-destructive/40 bg-destructive/10 text-destructive flex items-center gap-2 rounded-md border px-3 py-2 text-sm">
+        <div className="border-destructive/40 bg-destructive/10 text-destructive text-body flex items-center gap-2 rounded-none border px-3 py-2">
           <AlertCircle className="size-4 shrink-0" />
           <span className="flex-1">
             {error.startsWith("POST /screener/run failed")
@@ -144,7 +142,7 @@ export function ScreenerPanel() {
           </span>
           <button
             type="button"
-            className="ml-auto shrink-0 text-xs underline"
+            className="text-caption ml-auto shrink-0 underline"
             onClick={() => void runScreener()}
           >
             Retry

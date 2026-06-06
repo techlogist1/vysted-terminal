@@ -18,7 +18,7 @@
 // --- Warm-graphite surfaces (mirror charcoal-*) ------------------------------
 export const CHART_SURFACE = "#1e1a15"; // charcoal-900 -- chart background
 export const CHART_TEXT = "#ada294"; // charcoal-400 -- axis / label text (muted)
-export const CHART_TEXT_MUTED = "#847b6d"; // charcoal-500 -- secondary labels
+export const CHART_TEXT_MUTED = "#968c7d"; // charcoal-500 -- secondary labels (lightened for WCAG AA)
 export const CHART_GRID = "#352f26"; // charcoal-800 -- gridlines
 export const CHART_BORDER = "#3e372d"; // charcoal-700 -- scale borders
 export const CHART_CROSSHAIR = "#4d463b"; // charcoal-600 -- crosshair

@@ -268,7 +268,7 @@ export function ScreenerResultsTable() {
   if (status === "loading") {
     return (
       <div className="flex h-full flex-col gap-2">
-        <div className="border-charcoal-700 min-h-0 flex-1 overflow-auto rounded-md border">
+        <div className="border-charcoal-700 min-h-0 flex-1 overflow-auto rounded-none border">
           <table className={cn("w-full table-fixed", TABLE_MIN_WIDTH)}>
             <colgroup>
               {COLUMNS.map((col) => (
@@ -298,7 +298,7 @@ export function ScreenerResultsTable() {
                     <td key={col.key} className="px-3 py-1.5">
                       <div
                         className={cn(
-                          "bg-charcoal-800 h-4 animate-pulse rounded",
+                          "bg-charcoal-800 h-4 animate-pulse rounded-none",
                           col.numeric && "ml-auto",
                         )}
                         style={{
@@ -346,7 +346,7 @@ export function ScreenerResultsTable() {
 
   return (
     <div className="flex h-full flex-col gap-2">
-      <div className="text-charcoal-400 text-caption flex shrink-0 items-center justify-between">
+      <div className="text-charcoal-400 text-caption flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <span>
           <span className="text-charcoal-100 font-medium">{result.result_count}</span> rows (
           <span className="tabular-nums">{result.evaluated_count}</span> evaluated
@@ -370,7 +370,7 @@ export function ScreenerResultsTable() {
           <span className="text-micro">{result.universe}</span>
         </div>
       </div>
-      <div className="border-charcoal-700 min-h-0 flex-1 overflow-auto rounded-md border">
+      <div className="border-charcoal-700 min-h-0 flex-1 overflow-auto rounded-none border">
         {rows.length === 0 ? (
           <EmptyState
             icon={FilterX}

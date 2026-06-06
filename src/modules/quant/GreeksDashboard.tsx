@@ -31,7 +31,7 @@ interface FieldProps {
 function Field({ label, value, onChange, type = "number", step, disabled, testId }: FieldProps) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-charcoal-300 font-mono text-[10px]">{label}</span>
+      <span className="text-charcoal-300 text-micro font-mono">{label}</span>
       <input
         type={type}
         step={step}
@@ -39,7 +39,7 @@ function Field({ label, value, onChange, type = "number", step, disabled, testId
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         data-testid={testId}
-        className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
+        className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
       />
     </label>
   );
@@ -87,7 +87,7 @@ export function GreeksDashboard() {
         data-testid="greeks-form"
       >
         <div className="flex flex-col gap-1.5">
-          <span className="text-charcoal-500 font-mono text-[10px] tracking-widest uppercase">
+          <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
             Payoff
           </span>
           <div role="radiogroup" aria-label="Payoff" className="grid grid-cols-2 gap-1">
@@ -101,8 +101,8 @@ export function GreeksDashboard() {
                 disabled={isRunning}
                 className={
                   payoff === p
-                    ? "rounded-control h-7 border border-amber-500 bg-amber-500/20 font-mono text-[10px] text-amber-200"
-                    : "rounded-control border-charcoal-700 bg-charcoal-850 text-charcoal-300 hover:bg-charcoal-800 h-7 border font-mono text-[10px]"
+                    ? "rounded-control text-micro h-8 border border-amber-500 bg-amber-500/20 font-mono text-amber-200"
+                    : "rounded-control border-charcoal-700 bg-charcoal-850 text-charcoal-300 hover:bg-charcoal-800 text-micro h-8 border font-mono"
                 }
                 data-testid={`greeks-payoff-${p}`}
               >
@@ -172,7 +172,7 @@ export function GreeksDashboard() {
       <section className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
         {error && (
           <p
-            className="text-negative bg-negative/10 border-negative/30 rounded-control mb-3 border p-2 font-mono text-xs"
+            className="text-negative bg-negative/10 border-negative/30 text-caption mb-3 rounded-none border p-2 font-mono"
             role="alert"
             data-testid="greeks-error"
           >
@@ -181,18 +181,18 @@ export function GreeksDashboard() {
         )}
 
         {!lastResult && !isRunning && (
-          <div className="text-charcoal-500 flex h-full items-center justify-center font-mono text-xs">
+          <div className="text-charcoal-500 text-caption flex h-full items-center justify-center font-mono">
             Fill in the BSM inputs and click Compute Greeks.
           </div>
         )}
 
         {lastResult && (
           <div className="grid gap-4" data-testid="greeks-result">
-            <div className="border-charcoal-700 bg-charcoal-850 rounded-control border p-4">
-              <div className="text-charcoal-500 mb-2 font-mono text-[10px] tracking-widest uppercase">
+            <div className="border-charcoal-700 bg-charcoal-850 rounded-none border p-4">
+              <div className="text-charcoal-500 text-micro mb-2 font-mono tracking-widest uppercase">
                 Black-Scholes price
               </div>
-              <span className="font-mono text-2xl text-amber-300" data-testid="greeks-price">
+              <span className="text-overview font-mono text-amber-300" data-testid="greeks-price">
                 ${lastResult.price.toFixed(4)}
               </span>
             </div>
@@ -203,7 +203,7 @@ export function GreeksDashboard() {
               <BigGreek label="Θ Theta" value={lastResult.greeks.theta} testId="greek-theta" />
               <BigGreek label="ρ Rho" value={lastResult.greeks.rho} testId="greek-rho" />
             </div>
-            <div className="text-charcoal-500 font-mono text-[10px]">
+            <div className="text-charcoal-500 text-micro font-mono">
               computed in {lastResult.duration_ms.toFixed(1)} ms · analytic engine
             </div>
           </div>
@@ -216,11 +216,11 @@ export function GreeksDashboard() {
 function BigGreek({ label, value, testId }: { label: string; value: number; testId: string }) {
   return (
     <div
-      className="border-charcoal-700 bg-charcoal-850 rounded-control flex flex-col gap-1 border p-3"
+      className="border-charcoal-700 bg-charcoal-850 flex flex-col gap-1 rounded-none border p-3"
       data-testid={testId}
     >
-      <span className="text-charcoal-400 font-mono text-[10px]">{label}</span>
-      <span className="text-charcoal-100 font-mono text-lg">{value.toFixed(4)}</span>
+      <span className="text-charcoal-400 text-micro font-mono">{label}</span>
+      <span className="text-charcoal-100 text-body font-mono">{value.toFixed(4)}</span>
     </div>
   );
 }

@@ -123,14 +123,14 @@ export function MacroChart({ series, defaultLogScale = false }: Props) {
     <div className="flex h-full flex-col" data-testid="macro-chart">
       <div className="border-charcoal-800 flex items-center justify-between gap-2 border-b px-3 py-1.5">
         <div className="flex min-w-0 flex-col">
-          <span className="text-charcoal-100 truncate font-mono text-[12px]">{series.title}</span>
-          <span className="text-charcoal-500 truncate font-mono text-[10px]">
+          <span className="text-charcoal-100 text-caption truncate font-mono">{series.title}</span>
+          <span className="text-charcoal-500 text-micro truncate font-mono">
             {series.series_id} • {series.provider}
             {series.units ? ` • ${series.units}` : ""}
             {series.frequency ? ` • ${series.frequency}` : ""}
           </span>
         </div>
-        <label className="text-charcoal-400 flex items-center gap-1.5 font-mono text-[11px]">
+        <label className="text-charcoal-400 text-micro flex items-center gap-1.5 font-mono">
           <input
             type="checkbox"
             checked={logScale}
@@ -141,7 +141,7 @@ export function MacroChart({ series, defaultLogScale = false }: Props) {
         </label>
       </div>
       <div ref={containerRef} className="flex-1" data-testid="macro-chart-canvas" />
-      <div className="border-charcoal-800 text-charcoal-500 border-t px-3 py-1 font-mono text-[10px]">
+      <div className="border-charcoal-800 text-charcoal-500 text-micro border-t px-3 py-1 font-mono">
         {lineData.length} observations
         {series.last_updated ? ` • updated ${formatDate(series.last_updated)}` : ""}
         {series.source_url ? (

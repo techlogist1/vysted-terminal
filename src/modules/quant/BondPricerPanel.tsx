@@ -30,7 +30,7 @@ interface FieldProps {
 function Field({ label, value, onChange, type = "number", step, disabled, testId }: FieldProps) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-charcoal-300 font-mono text-[10px]">{label}</span>
+      <span className="text-charcoal-300 text-micro font-mono">{label}</span>
       <input
         type={type}
         step={step}
@@ -38,7 +38,7 @@ function Field({ label, value, onChange, type = "number", step, disabled, testId
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         data-testid={testId}
-        className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
+        className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
       />
     </label>
   );
@@ -112,13 +112,13 @@ export function BondPricerPanel() {
         </div>
 
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-300 font-mono text-[10px]">Coupons per year</span>
+          <span className="text-charcoal-300 text-micro font-mono">Coupons per year</span>
           <select
             value={couponsPerYear}
             onChange={(e) => setCouponsPerYear(e.target.value as "1" | "2" | "4")}
             disabled={isRunning}
             data-testid="field-coupons-per-year"
-            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
+            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
           >
             <option value="1">1 — annual</option>
             <option value="2">2 — semi-annual</option>
@@ -176,7 +176,7 @@ export function BondPricerPanel() {
       <section className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
         {error && (
           <p
-            className="text-negative bg-negative/10 border-negative/30 rounded-control mb-3 border p-2 font-mono text-xs"
+            className="text-negative bg-negative/10 border-negative/30 text-caption mb-3 rounded-none border p-2 font-mono"
             role="alert"
             data-testid="bond-pricing-error"
           >
@@ -185,15 +185,15 @@ export function BondPricerPanel() {
         )}
 
         {!lastResult && !isRunning && (
-          <div className="text-charcoal-500 flex h-full items-center justify-center font-mono text-xs">
+          <div className="text-charcoal-500 text-caption flex h-full items-center justify-center font-mono">
             Fill in the inputs on the left and click Price.
           </div>
         )}
 
         {lastResult && (
           <div className="grid gap-3" data-testid="bond-pricing-result">
-            <div className="border-charcoal-700 bg-charcoal-850 rounded-control border p-4">
-              <div className="text-charcoal-500 mb-2 font-mono text-[10px] tracking-widest uppercase">
+            <div className="border-charcoal-700 bg-charcoal-850 rounded-none border p-4">
+              <div className="text-charcoal-500 text-micro mb-2 font-mono tracking-widest uppercase">
                 Prices
               </div>
               <div className="grid grid-cols-3 gap-2">
@@ -206,8 +206,8 @@ export function BondPricerPanel() {
                 <BondCell label="Accrued" value={`$${lastResult.accrued_interest.toFixed(2)}`} />
               </div>
             </div>
-            <div className="border-charcoal-700 bg-charcoal-850 rounded-control border p-4">
-              <div className="text-charcoal-500 mb-2 font-mono text-[10px] tracking-widest uppercase">
+            <div className="border-charcoal-700 bg-charcoal-850 rounded-none border p-4">
+              <div className="text-charcoal-500 text-micro mb-2 font-mono tracking-widest uppercase">
                 Risk metrics
               </div>
               <div className="grid grid-cols-3 gap-2">
@@ -220,7 +220,7 @@ export function BondPricerPanel() {
                 <BondCell label="Convexity" value={lastResult.convexity.toFixed(4)} />
               </div>
             </div>
-            <div className="text-charcoal-500 font-mono text-[10px]">
+            <div className="text-charcoal-500 text-micro font-mono">
               computed in {lastResult.duration_ms.toFixed(1)} ms
             </div>
           </div>
@@ -233,11 +233,11 @@ export function BondPricerPanel() {
 function BondCell({ label, value, testId }: { label: string; value: string; testId?: string }) {
   return (
     <div
-      className="border-charcoal-700 bg-charcoal-900 rounded-control flex flex-col gap-1 border p-2"
+      className="border-charcoal-700 bg-charcoal-900 flex flex-col gap-1 rounded-none border p-2"
       data-testid={testId}
     >
-      <span className="text-charcoal-400 font-mono text-[10px]">{label}</span>
-      <span className="text-charcoal-100 font-mono text-sm">{value}</span>
+      <span className="text-charcoal-400 text-micro font-mono">{label}</span>
+      <span className="text-charcoal-100 text-body font-mono">{value}</span>
     </div>
   );
 }

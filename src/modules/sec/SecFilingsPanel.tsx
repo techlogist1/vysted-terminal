@@ -117,32 +117,32 @@ export function SecFilingsPanel() {
   return (
     <div
       data-testid="sec-filings-panel"
-      className="bg-charcoal-900 text-charcoal-100 flex h-full w-full flex-col text-xs"
+      className="bg-charcoal-900 text-charcoal-100 text-caption flex h-full w-full flex-col"
     >
       <header className="border-charcoal-700 flex flex-wrap items-end gap-2 border-b px-3 py-2">
         <form onSubmit={submitSymbol} className="flex items-end gap-2">
           <label className="flex flex-col gap-0.5">
-            <span className="text-charcoal-400 text-[10px] uppercase">Symbol / CIK</span>
+            <span className="text-charcoal-400 text-micro uppercase">Symbol / CIK</span>
             <input
               type="text"
               value={draftSymbol}
               onChange={(e) => setDraftSymbol(e.target.value)}
-              className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 w-32 rounded-md border px-2 py-1 font-mono text-xs uppercase"
+              className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 w-32 border px-2 font-mono uppercase"
               placeholder="AAPL"
               data-testid="sec-symbol-input"
             />
           </label>
-          <Button size="xs" variant="outline" type="submit" data-testid="sec-symbol-submit">
+          <Button size="sm" variant="outline" type="submit" data-testid="sec-symbol-submit">
             Load
           </Button>
         </form>
 
         <label className="flex flex-col gap-0.5">
-          <span className="text-charcoal-400 text-[10px] uppercase">Form</span>
+          <span className="text-charcoal-400 text-micro uppercase">Form</span>
           <select
             value={formFilter}
             onChange={(e) => onPickForm(e.target.value as FilingFormType | "all")}
-            className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-md border px-2 py-1 text-xs"
+            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2"
             data-testid="sec-form-filter"
           >
             {FORM_FILTER_OPTIONS.map((opt) => (
@@ -162,7 +162,7 @@ export function SecFilingsPanel() {
           </TabButton>
         </nav>
 
-        <span className="text-charcoal-400 ml-2 text-[10px]">
+        <span className="text-charcoal-400 text-micro ml-2">
           {filings.company_name || activeIdentifier || ""}
           {filings.filings.length > 0 && <> · {filings.filings.length} filings</>}
         </span>
@@ -173,7 +173,7 @@ export function SecFilingsPanel() {
           className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2"
           data-testid="sec-filings-error"
         >
-          <span className="text-negative font-mono text-[11px]">
+          <span className="text-negative text-micro font-mono">
             Could not load filings — {filingsError}
           </span>
           <Button
@@ -191,7 +191,7 @@ export function SecFilingsPanel() {
         </div>
       )}
       {filingsStatus === "loading" && filings.filings.length === 0 && (
-        <p className="text-charcoal-400 px-3 py-2 text-xs">Loading filings…</p>
+        <p className="text-charcoal-400 text-caption px-3 py-2">Loading filings…</p>
       )}
 
       <div className="min-h-0 flex-1">
@@ -232,7 +232,7 @@ function TabButton({ value, active, onClick, children }: TabButtonProps) {
       data-testid={`sec-tab-${value}`}
       onClick={onClick}
       className={cn(
-        "rounded-md px-2 py-1 text-xs",
+        "rounded-control text-caption px-2 py-1",
         active ? "bg-charcoal-700 text-lume" : "text-charcoal-300 hover:bg-charcoal-800",
       )}
     >

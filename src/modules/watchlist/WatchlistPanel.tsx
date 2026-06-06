@@ -72,7 +72,7 @@ function PriceCell({ row }: { row: WatchlistRow }) {
   return (
     <span
       className={cn(
-        "text-charcoal-200 block rounded-sm text-right tabular-nums transition-colors duration-700",
+        "text-charcoal-200 block text-right tabular-nums transition-colors duration-700",
         flashClass(flash),
       )}
     >
@@ -275,7 +275,7 @@ export function WatchlistPanel() {
           placeholder="Add symbol"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
-          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 text-body h-9 flex-1 rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
+          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 text-body rounded-control h-8 flex-1 px-3 outline-none focus:ring-1 focus:ring-amber-400"
         />
         <div className="relative">
           <select
@@ -284,19 +284,19 @@ export function WatchlistPanel() {
             onChange={(event) =>
               setDraftAssetClass(event.target.value === "crypto" ? "crypto" : "equity")
             }
-            className="bg-charcoal-800 text-charcoal-200 text-caption h-9 appearance-none rounded-md px-3 pr-6 outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-200 text-caption rounded-control h-8 appearance-none px-3 pr-6 outline-none focus:ring-1 focus:ring-amber-400"
           >
             <option value="equity">Equity</option>
             <option value="crypto">Crypto</option>
           </select>
           <ChevronDown className="text-charcoal-400 pointer-events-none absolute top-1/2 right-1.5 size-3 -translate-y-1/2" />
         </div>
-        <Button type="submit" size="icon-sm" variant="outline" aria-label="Add to watchlist">
+        <Button type="submit" size="icon-xs" variant="outline" aria-label="Add to watchlist">
           <Plus />
         </Button>
         <Button
           type="button"
-          size="icon-sm"
+          size="icon-xs"
           variant="ghost"
           aria-label="Export watchlist to CSV"
           title="Export watchlist to CSV"
@@ -335,13 +335,13 @@ export function WatchlistPanel() {
               {Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-charcoal-800 border-b">
                   <td className="px-3 py-1.5">
-                    <div className="bg-charcoal-800 h-3 w-3/4 animate-pulse rounded-sm" />
+                    <div className="bg-charcoal-800 h-3 w-3/4 animate-pulse rounded-none" />
                   </td>
                   <td className="px-3 py-1.5">
-                    <div className="bg-charcoal-800 ml-auto h-3 w-full animate-pulse rounded-sm" />
+                    <div className="bg-charcoal-800 ml-auto h-3 w-full animate-pulse rounded-none" />
                   </td>
                   <td className="px-3 py-1.5">
-                    <div className="bg-charcoal-800 ml-auto h-3 w-full animate-pulse rounded-sm" />
+                    <div className="bg-charcoal-800 ml-auto h-3 w-full animate-pulse rounded-none" />
                   </td>
                   <td className="px-1 py-1.5" />
                 </tr>

@@ -32,17 +32,17 @@ export function StrategyPicker({
 
   return (
     <div className="flex flex-col gap-1.5" data-testid="strategy-picker">
-      <span className="text-charcoal-500 font-mono text-[10px] tracking-widest uppercase">
+      <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
         Strategy
       </span>
       {loading ? (
         <div className="flex flex-col gap-1">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-charcoal-800 rounded-control h-10 w-full animate-pulse" />
+            <div key={i} className="bg-charcoal-800 rounded-control h-12 w-full animate-pulse" />
           ))}
         </div>
       ) : empty ? (
-        <p className="text-charcoal-400 font-mono text-xs">
+        <p className="text-charcoal-400 text-caption font-mono">
           No strategies registered. The sidecar must be running.
         </p>
       ) : (
@@ -64,8 +64,8 @@ export function StrategyPicker({
                     disabled && "cursor-not-allowed opacity-50",
                   )}
                 >
-                  <div className="font-mono text-xs font-medium">{spec.name}</div>
-                  <div className="text-charcoal-400 mt-0.5 font-mono text-[10px] leading-snug">
+                  <div className="text-caption font-mono font-medium">{spec.name}</div>
+                  <div className="text-charcoal-400 text-micro mt-0.5 font-mono leading-snug">
                     {spec.description}
                   </div>
                 </button>
@@ -126,7 +126,7 @@ export function ParamsForm({ schema, values, onChange, disabled }: ParamsFormPro
   }
   return (
     <div className="flex flex-col gap-1.5" data-testid="params-form">
-      <span className="text-charcoal-500 font-mono text-[10px] tracking-widest uppercase">
+      <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
         Params
       </span>
       <div className="grid grid-cols-2 gap-2">
@@ -136,7 +136,7 @@ export function ParamsForm({ schema, values, onChange, disabled }: ParamsFormPro
             current === undefined ? (field.defaultValue ?? "") : (current as string | number);
           return (
             <label key={field.key} className="flex flex-col gap-1">
-              <span className="text-charcoal-300 font-mono text-[10px]" title={field.description}>
+              <span className="text-charcoal-300 text-micro font-mono" title={field.description}>
                 {field.key}
               </span>
               <input
@@ -157,7 +157,7 @@ export function ParamsForm({ schema, values, onChange, disabled }: ParamsFormPro
                   onChange({ ...values, [field.key]: next });
                 }}
                 disabled={disabled}
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
               />
             </label>
           );

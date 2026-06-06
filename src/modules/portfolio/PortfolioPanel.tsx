@@ -460,7 +460,7 @@ export function PortfolioPanel() {
               }}
               placeholder={pfAction === "create" ? "New portfolio name" : "Rename portfolio"}
               aria-label={pfAction === "create" ? "New portfolio name" : "Rename portfolio"}
-              className="bg-charcoal-800 text-charcoal-100 text-body h-9 min-w-0 flex-1 rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
+              className="bg-charcoal-800 text-charcoal-100 text-body rounded-control h-8 min-w-0 flex-1 px-3 outline-none focus:ring-1 focus:ring-amber-400"
             />
             <Button
               type="button"
@@ -488,7 +488,7 @@ export function PortfolioPanel() {
               aria-label="Active portfolio"
               value={active.id}
               onChange={(event) => setActive(event.target.value)}
-              className="bg-charcoal-800 text-charcoal-100 text-body h-9 min-w-0 flex-1 rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
+              className="bg-charcoal-800 text-charcoal-100 text-body rounded-control h-8 min-w-0 flex-1 px-3 outline-none focus:ring-1 focus:ring-amber-400"
             >
               {portfolios.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -560,7 +560,7 @@ export function PortfolioPanel() {
             aria-label="Symbol"
             value={form.symbol}
             onChange={(event) => setForm((prev) => ({ ...prev, symbol: event.target.value }))}
-            className="bg-charcoal-800 text-charcoal-100 text-body h-9 w-24 rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 text-body rounded-control h-8 w-24 px-3 outline-none focus:ring-1 focus:ring-amber-400"
           />
         </label>
         <label className="flex flex-col gap-1">
@@ -570,7 +570,7 @@ export function PortfolioPanel() {
             inputMode="decimal"
             value={form.quantity}
             onChange={(event) => setForm((prev) => ({ ...prev, quantity: event.target.value }))}
-            className="bg-charcoal-800 text-charcoal-100 text-body h-9 w-24 rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 text-body rounded-control h-8 w-24 px-3 outline-none focus:ring-1 focus:ring-amber-400"
           />
         </label>
         <label className="flex flex-col gap-1">
@@ -580,7 +580,7 @@ export function PortfolioPanel() {
             inputMode="decimal"
             value={form.costBasis}
             onChange={(event) => setForm((prev) => ({ ...prev, costBasis: event.target.value }))}
-            className="bg-charcoal-800 text-charcoal-100 text-body h-9 w-24 rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 text-body rounded-control h-8 w-24 px-3 outline-none focus:ring-1 focus:ring-amber-400"
           />
         </label>
         <label className="flex flex-col gap-1">
@@ -594,7 +594,7 @@ export function PortfolioPanel() {
                 assetClass: event.target.value === "crypto" ? "crypto" : "equity",
               }))
             }
-            className="bg-charcoal-800 text-charcoal-200 text-caption h-9 rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-200 text-caption rounded-control h-8 px-3 outline-none focus:ring-1 focus:ring-amber-400"
           >
             <option value="equity">Equity</option>
             <option value="crypto">Crypto</option>
@@ -606,7 +606,7 @@ export function PortfolioPanel() {
             aria-label="Note"
             value={form.note}
             onChange={(event) => setForm((prev) => ({ ...prev, note: event.target.value }))}
-            className="bg-charcoal-800 text-charcoal-100 text-body h-9 min-w-24 rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 text-body rounded-control h-8 min-w-24 px-3 outline-none focus:ring-1 focus:ring-amber-400"
           />
         </label>
         <Button type="submit" size="sm" variant="outline">

@@ -92,7 +92,7 @@ export function AnalystRatingsPanel() {
           placeholder="Symbol (e.g. AAPL)"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
-          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 h-8 flex-1 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 text-body rounded-control h-8 flex-1 px-2 outline-none focus:ring-1 focus:ring-amber-400"
         />
         <Button type="submit" size="sm" variant="outline">
           <Search />
@@ -101,7 +101,7 @@ export function AnalystRatingsPanel() {
       </form>
 
       {symbol === null ? (
-        <p className="text-charcoal-400 p-3 font-mono text-xs">
+        <p className="text-charcoal-400 text-caption p-3">
           Enter a symbol to load rating history, price targets, and individual analyst tracks.
         </p>
       ) : (
@@ -128,15 +128,15 @@ export function AnalystRatingsPanel() {
           </nav>
 
           {tabError && (
-            <p className="text-negative border-charcoal-700 border-b px-3 py-2 font-mono text-xs">
+            <p className="text-negative border-charcoal-700 text-caption border-b px-3 py-2">
               {tabError}
             </p>
           )}
 
           <div className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto p-3">
-            <header className="text-charcoal-100 mb-3 font-mono text-sm">
+            <header className="text-charcoal-100 text-body mb-3">
               {symbol}
-              <span className="text-charcoal-500 ml-2 text-xs">
+              <span className="text-charcoal-500 text-caption ml-2">
                 {!tabLoading &&
                   tab === "history" &&
                   history !== null &&
@@ -153,7 +153,7 @@ export function AnalystRatingsPanel() {
             </header>
 
             {tabLoading ? (
-              <p className="text-charcoal-400 animate-pulse font-mono text-xs">Loading {symbol}…</p>
+              <p className="text-charcoal-400 text-caption animate-pulse">Loading {symbol}…</p>
             ) : (
               <>
                 {tab === "history" && <RatingsHistoryTable history={history ?? []} />}
@@ -182,7 +182,7 @@ function TabButton({
       type="button"
       onClick={onSelect}
       className={cn(
-        "rounded-t-md px-3 py-1 font-mono text-xs",
+        "text-caption rounded-control px-3 py-1",
         active
           ? "bg-charcoal-800 border-charcoal-700 -mb-px border-x border-t text-amber-400"
           : "text-charcoal-400 hover:text-charcoal-200",

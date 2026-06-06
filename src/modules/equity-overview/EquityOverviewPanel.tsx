@@ -200,7 +200,7 @@ function ProvenanceBadge({
   return (
     <span
       className={cn(
-        "border-charcoal-700 text-charcoal-400 text-micro inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5",
+        "border-charcoal-700 text-charcoal-400 text-micro rounded-control inline-flex items-center gap-1 border px-1.5 py-0.5",
         stale && "border-warning/40 text-warning",
       )}
       title={`Source: ${provider}${freshness ? ` · ${freshness}` : ""}`}
@@ -225,7 +225,7 @@ function VerifiedProse({ text }: { text: string }) {
         part === "[unverified]" ? (
           <span
             key={i}
-            className="text-charcoal-500 border-charcoal-700 mx-0.5 rounded-sm border border-dashed px-1 align-baseline"
+            className="text-charcoal-500 border-charcoal-700 rounded-control mx-0.5 border border-dashed px-1 align-baseline"
             title="A figure here was removed because it did not match the source data."
           >
             redacted
@@ -267,7 +267,7 @@ function NarrativeSection({
     );
 
   return (
-    <section className="border-charcoal-700 rounded-md border">
+    <section className="border-charcoal-700 rounded-none border">
       <div className="border-charcoal-700 flex items-center justify-between gap-2 border-b px-3 py-2">
         <h3 className="text-charcoal-200 text-micro">Overview</h3>
         {headerLabel}
@@ -276,18 +276,18 @@ function NarrativeSection({
       {loading ? (
         // Designed skeleton — three prose lines + two insight rows.
         <div className="flex animate-pulse flex-col gap-3 px-3 py-3">
-          <div className="bg-charcoal-800 h-3 w-full rounded-sm" />
-          <div className="bg-charcoal-800 h-3 w-11/12 rounded-sm" />
-          <div className="bg-charcoal-800 h-3 w-3/4 rounded-sm" />
+          <div className="bg-charcoal-800 h-3 w-full rounded-none" />
+          <div className="bg-charcoal-800 h-3 w-11/12 rounded-none" />
+          <div className="bg-charcoal-800 h-3 w-3/4 rounded-none" />
           <div className="mt-1 flex flex-col gap-2">
-            <div className="bg-charcoal-800 h-3 w-2/3 rounded-sm" />
-            <div className="bg-charcoal-800 h-3 w-1/2 rounded-sm" />
+            <div className="bg-charcoal-800 h-3 w-2/3 rounded-none" />
+            <div className="bg-charcoal-800 h-3 w-1/2 rounded-none" />
           </div>
         </div>
       ) : narrative?.summary != null ? (
         <div className="flex flex-col gap-3 px-3 py-3">
           {/* Primary tier — the narrative prose. */}
-          <p className="text-charcoal-100 text-body leading-relaxed">
+          <p className="text-charcoal-100 text-prose leading-relaxed">
             <VerifiedProse text={narrative.summary} />
           </p>
 
@@ -321,7 +321,7 @@ function NarrativeSection({
       ) : (
         // Quiet unavailable state — icon + one calm line (the reason), never blank.
         <div className="flex flex-col items-center gap-2 px-3 py-6 text-center">
-          <Sparkles className="text-charcoal-600 size-5" />
+          <Sparkles className="text-charcoal-600 size-4" />
           <p className="text-charcoal-500 text-caption max-w-xs leading-snug">
             {narrative?.reason ?? "AI overview unavailable."}
           </p>
@@ -425,7 +425,7 @@ function StatementTable({
   }, [statement]);
 
   return (
-    <section className="border-charcoal-700 rounded-md border">
+    <section className="border-charcoal-700 rounded-none border">
       <h3 className="text-charcoal-200 border-charcoal-700 text-micro border-b px-3 py-2">
         {title}
       </h3>
@@ -702,10 +702,10 @@ export function EquityOverviewPanel() {
             onFocus={() => candidates.length > 0 && setAcOpen(true)}
             onBlur={() => setTimeout(() => setAcOpen(false), 120)}
             autoComplete="off"
-            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 text-body h-9 w-full rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 text-body rounded-control h-8 w-full px-3 outline-none focus:ring-1 focus:ring-amber-400"
           />
           {acOpen && candidates.length > 0 && (
-            <ul className="border-charcoal-700 bg-charcoal-875 absolute top-full right-0 left-0 z-20 mt-1 max-h-64 overflow-y-auto rounded-md border py-1">
+            <ul className="border-charcoal-700 bg-charcoal-875 absolute top-full right-0 left-0 z-20 mt-1 max-h-64 overflow-y-auto rounded-none border py-1">
               {candidates.map((candidate, idx) => (
                 <li key={`${candidate.symbol}:${candidate.exchange}`}>
                   <button
@@ -739,11 +739,7 @@ export function EquityOverviewPanel() {
           )}
         </div>
         <Button type="submit" size="sm" variant="outline" disabled={loading}>
-          {loading ? (
-            <Loader2 className="size-3.5 animate-spin" />
-          ) : (
-            <Search className="size-3.5" />
-          )}
+          {loading ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
           {loading ? "Loading" : "Load"}
         </Button>
       </form>
@@ -761,20 +757,20 @@ export function EquityOverviewPanel() {
         {loading ? (
           <div className="flex animate-pulse flex-col gap-4">
             <div className="flex flex-wrap gap-3">
-              <div className="bg-charcoal-800 h-7 w-20 rounded-sm" />
-              <div className="bg-charcoal-800 h-5 w-32 self-end rounded-sm" />
-              <div className="bg-charcoal-800 h-6 w-24 self-end rounded-sm" />
+              <div className="bg-charcoal-800 h-7 w-20 rounded-none" />
+              <div className="bg-charcoal-800 h-5 w-32 self-end rounded-none" />
+              <div className="bg-charcoal-800 h-6 w-24 self-end rounded-none" />
             </div>
             {Array.from({ length: 2 }).map((_, s) => (
-              <div key={s} className="border-charcoal-700 rounded-md border">
+              <div key={s} className="border-charcoal-700 rounded-none border">
                 <div className="border-charcoal-700 border-b px-3 py-2">
-                  <div className="bg-charcoal-800 h-3 w-28 rounded-sm" />
+                  <div className="bg-charcoal-800 h-3 w-28 rounded-none" />
                 </div>
                 <div className="flex flex-col gap-2 px-3 py-2">
                   {Array.from({ length: 6 }).map((_, i) => (
                     <div key={i} className="flex justify-between gap-2">
-                      <div className="bg-charcoal-800 h-3 w-20 rounded-sm" />
-                      <div className="bg-charcoal-800 h-3 w-12 rounded-sm" />
+                      <div className="bg-charcoal-800 h-3 w-20 rounded-none" />
+                      <div className="bg-charcoal-800 h-3 w-12 rounded-none" />
                     </div>
                   ))}
                 </div>
@@ -793,7 +789,7 @@ export function EquityOverviewPanel() {
                   key={t}
                   type="button"
                   onClick={() => void quickLoad(t)}
-                  className="border-charcoal-700 bg-charcoal-800 text-charcoal-300 text-caption rounded-md border px-3 py-1.5 transition-colors hover:border-amber-500 hover:text-amber-300"
+                  className="border-charcoal-700 bg-charcoal-800 text-charcoal-300 text-caption rounded-control border px-3 py-1.5 transition-colors hover:border-amber-500 hover:text-amber-300"
                 >
                   {t}
                 </button>
@@ -802,13 +798,13 @@ export function EquityOverviewPanel() {
           </div>
         ) : (
           <div className="flex flex-col gap-4">
-            <header className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+            <header className="flex flex-wrap items-center gap-2">
               <h2 className="text-charcoal-100 text-overview">{data.symbol}</h2>
               {fundamentals?.name != null && (
                 <span className="text-charcoal-400 text-body">{fundamentals.name}</span>
               )}
               {quote !== null && (
-                <span className="text-charcoal-100 text-panel-title tabular-nums">
+                <span className="text-charcoal-100 text-overview tabular-nums">
                   {formatPrice(quote.price)} {quote.currency}
                 </span>
               )}
@@ -844,14 +840,14 @@ export function EquityOverviewPanel() {
             <NarrativeSection loading={narrativeLoading} narrative={narrative} />
 
             {fundamentals === null ? (
-              <section className="border-charcoal-700 rounded-md border">
+              <section className="border-charcoal-700 rounded-none border">
                 <h3 className="text-charcoal-200 border-charcoal-700 text-micro border-b px-3 py-2">
                   Fundamentals
                 </h3>
                 <p className="text-charcoal-500 text-caption px-3 py-2">Unavailable.</p>
               </section>
             ) : fundamentalSections.length === 0 ? (
-              <section className="border-charcoal-700 rounded-md border">
+              <section className="border-charcoal-700 rounded-none border">
                 <h3 className="text-charcoal-200 border-charcoal-700 text-micro border-b px-3 py-2">
                   Fundamentals
                 </h3>
@@ -861,7 +857,7 @@ export function EquityOverviewPanel() {
                 </p>
               </section>
             ) : (
-              <section className="border-charcoal-700 rounded-md border">
+              <section className="border-charcoal-700 rounded-none border">
                 <h3 className="text-charcoal-200 border-charcoal-700 text-micro border-b px-3 py-2">
                   Fundamentals
                 </h3>
@@ -874,7 +870,7 @@ export function EquityOverviewPanel() {
               </section>
             )}
 
-            <section className="border-charcoal-700 rounded-md border">
+            <section className="border-charcoal-700 rounded-none border">
               <h3 className="text-charcoal-200 border-charcoal-700 text-micro border-b px-3 py-2">
                 Analyst ratings
               </h3>

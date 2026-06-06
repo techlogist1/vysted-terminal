@@ -133,11 +133,11 @@ function LeafEditor({ index, criterion, onChange, onRemove }: LeafEditorProps) {
   return (
     <div
       data-testid={`leaf-row-${index}`}
-      className="border-border bg-background/60 grid grid-cols-[7rem_9rem_6rem_1fr_auto] items-center gap-2 rounded-md border p-2"
+      className="border-border bg-charcoal-900 grid grid-cols-[7rem_9rem_6rem_1fr_auto] items-center gap-2 rounded-none border p-2"
     >
       <select
         aria-label="criterion category"
-        className="border-border bg-background rounded-md border px-2 py-1 text-sm"
+        className="border-border bg-charcoal-850 rounded-control text-body h-8 min-w-0 truncate border px-2"
         value={category}
         onChange={(e) => onCategoryChange(e.target.value as "numeric" | "string" | "in")}
       >
@@ -150,7 +150,7 @@ function LeafEditor({ index, criterion, onChange, onRemove }: LeafEditorProps) {
         <>
           <select
             aria-label="numeric field"
-            className="border-border bg-background rounded-md border px-2 py-1 text-sm"
+            className="border-border bg-charcoal-850 rounded-control text-body h-8 min-w-0 truncate border px-2"
             value={criterion.field}
             onChange={(e) =>
               onChange({ ...criterion, field: e.target.value as ScreenerNumericField })
@@ -164,7 +164,7 @@ function LeafEditor({ index, criterion, onChange, onRemove }: LeafEditorProps) {
           </select>
           <select
             aria-label="numeric operator"
-            className="border-border bg-background rounded-md border px-2 py-1 text-sm"
+            className="border-border bg-charcoal-850 rounded-control text-body h-8 min-w-0 truncate border px-2"
             value={criterion.operator}
             onChange={(e) => {
               const op = e.target.value as "gt" | "lt" | "gte" | "lte" | "between";
@@ -190,7 +190,7 @@ function LeafEditor({ index, criterion, onChange, onRemove }: LeafEditorProps) {
               <input
                 aria-label="numeric min"
                 type="number"
-                className="border-border bg-background w-full rounded-md border px-2 py-1 text-sm"
+                className="border-border bg-charcoal-850 rounded-control text-body h-8 w-full border px-2"
                 value={criterion.value.min}
                 onChange={(e) =>
                   onChange({
@@ -199,11 +199,11 @@ function LeafEditor({ index, criterion, onChange, onRemove }: LeafEditorProps) {
                   })
                 }
               />
-              <span className="text-muted-foreground text-xs">to</span>
+              <span className="text-muted-foreground text-caption">to</span>
               <input
                 aria-label="numeric max"
                 type="number"
-                className="border-border bg-background w-full rounded-md border px-2 py-1 text-sm"
+                className="border-border bg-charcoal-850 rounded-control text-body h-8 w-full border px-2"
                 value={criterion.value.max}
                 onChange={(e) =>
                   onChange({
@@ -217,7 +217,7 @@ function LeafEditor({ index, criterion, onChange, onRemove }: LeafEditorProps) {
             <input
               aria-label="numeric value"
               type="number"
-              className="border-border bg-background w-full rounded-md border px-2 py-1 text-sm"
+              className="border-border bg-charcoal-850 rounded-control text-body h-8 w-full border px-2"
               value={criterion.value}
               onChange={(e) => onChange({ ...criterion, value: Number(e.target.value) })}
             />
@@ -227,7 +227,7 @@ function LeafEditor({ index, criterion, onChange, onRemove }: LeafEditorProps) {
         <>
           <select
             aria-label="string field"
-            className="border-border bg-background rounded-md border px-2 py-1 text-sm"
+            className="border-border bg-charcoal-850 rounded-control text-body h-8 min-w-0 truncate border px-2"
             value={criterion.field}
             onChange={(e) =>
               onChange({
@@ -243,11 +243,11 @@ function LeafEditor({ index, criterion, onChange, onRemove }: LeafEditorProps) {
               </option>
             ))}
           </select>
-          <span className="text-muted-foreground text-xs tracking-wide uppercase">equals</span>
+          <span className="text-muted-foreground text-micro tracking-wide uppercase">equals</span>
           <input
             aria-label="string value"
             type="text"
-            className="border-border bg-background w-full rounded-md border px-2 py-1 text-sm"
+            className="border-border bg-charcoal-850 rounded-control text-body h-8 w-full border px-2"
             value={criterion.value}
             onChange={(e) => onChange({ ...criterion, value: e.target.value })}
           />
@@ -256,7 +256,7 @@ function LeafEditor({ index, criterion, onChange, onRemove }: LeafEditorProps) {
         <>
           <select
             aria-label="set field"
-            className="border-border bg-background rounded-md border px-2 py-1 text-sm"
+            className="border-border bg-charcoal-850 rounded-control text-body h-8 min-w-0 truncate border px-2"
             value={criterion.field}
             onChange={(e) =>
               onChange({
@@ -270,12 +270,12 @@ function LeafEditor({ index, criterion, onChange, onRemove }: LeafEditorProps) {
             <option value="sector">Sector</option>
             <option value="industry">Industry</option>
           </select>
-          <span className="text-muted-foreground text-xs tracking-wide uppercase">in</span>
+          <span className="text-muted-foreground text-micro tracking-wide uppercase">in</span>
           <input
             aria-label="set values"
             type="text"
             placeholder="comma or space separated"
-            className="border-border bg-background w-full rounded-md border px-2 py-1 text-sm"
+            className="border-border bg-charcoal-850 rounded-control text-body h-8 w-full border px-2"
             value={criterion.value.join(", ")}
             onChange={(e) =>
               onChange({
@@ -335,7 +335,7 @@ export function CriterionGroupEditor({
       data-testid={`group-editor-${depth}`}
       className={
         depth > 0
-          ? "border-border/80 bg-background/30 space-y-1.5 rounded-md border border-dashed p-2"
+          ? "border-border/80 bg-charcoal-875 space-y-1.5 rounded-none border border-dashed p-2"
           : "space-y-1.5"
       }
     >
@@ -343,7 +343,7 @@ export function CriterionGroupEditor({
         <div
           role="radiogroup"
           aria-label="group combinator"
-          className="border-border bg-background/60 flex items-center rounded-md border p-0.5 text-xs"
+          className="border-border bg-charcoal-850 rounded-control text-caption flex items-center border p-0.5"
         >
           {(
             [
@@ -360,8 +360,8 @@ export function CriterionGroupEditor({
               onClick={() => setCombinator(opt.value)}
               className={
                 group.combinator === opt.value
-                  ? "text-background bg-foreground rounded px-2 py-0.5 font-medium transition-colors"
-                  : "text-muted-foreground hover:text-foreground rounded px-2 py-0.5 transition-colors"
+                  ? "text-background bg-foreground rounded-control px-2 py-0.5 font-medium transition-colors"
+                  : "text-muted-foreground hover:text-foreground rounded-control px-2 py-0.5 transition-colors"
               }
             >
               {opt.label}
@@ -388,7 +388,7 @@ export function CriterionGroupEditor({
       </div>
 
       {group.criteria.length === 0 ? (
-        <p className="border-border text-muted-foreground rounded-md border border-dashed p-3 text-center text-sm">
+        <p className="border-border text-muted-foreground text-body rounded-none border border-dashed p-3 text-center">
           Empty group — every universe member will match. Add a criterion or group.
         </p>
       ) : (
@@ -396,7 +396,7 @@ export function CriterionGroupEditor({
           {group.criteria.map((child, i) => (
             <div key={i} className="space-y-1.5">
               {i > 0 ? (
-                <div className="text-muted-foreground pl-2 font-mono text-[10px] tracking-widest uppercase">
+                <div className="text-muted-foreground text-micro pl-2 tracking-widest uppercase">
                   {group.combinator}
                 </div>
               ) : null}

@@ -71,7 +71,7 @@ export function BrokerReadsSection({ broker }: { broker: BrokerId }) {
       <button
         type="button"
         onClick={handleToggle}
-        className="text-charcoal-400 hover:text-charcoal-100 flex items-center gap-1 text-[10px] uppercase"
+        className="text-charcoal-400 hover:text-charcoal-100 text-micro flex items-center gap-1 uppercase"
         aria-expanded={open}
         data-testid={`broker-reads-toggle-${broker}`}
       >
@@ -82,9 +82,9 @@ export function BrokerReadsSection({ broker }: { broker: BrokerId }) {
       {open && (
         <div className="border-charcoal-800 mt-1 flex flex-col gap-2 border-l pl-2">
           {loading && reads.positions === undefined && (
-            <p className="text-charcoal-500 text-[10px]">Reading account…</p>
+            <p className="text-charcoal-500 text-micro">Reading account…</p>
           )}
-          {error !== null && <p className="text-negative text-[10px]">{error}</p>}
+          {error !== null && <p className="text-negative text-micro">{error}</p>}
 
           {reads.positions !== undefined && <PositionsBlock result={reads.positions} />}
           {reads.holdings !== undefined && <HoldingsBlock result={reads.holdings} />}
@@ -94,7 +94,7 @@ export function BrokerReadsSection({ broker }: { broker: BrokerId }) {
             <button
               type="button"
               onClick={() => void load()}
-              className="text-charcoal-500 self-start text-[10px] hover:text-amber-300"
+              className="text-charcoal-500 text-micro self-start hover:text-amber-300"
             >
               Refresh
             </button>
@@ -119,7 +119,7 @@ function ProvenanceBadge({
     <span
       data-testid="broker-read-provenance"
       className={cn(
-        "rounded px-1 py-[1px] text-[9px] uppercase",
+        "rounded-control text-micro px-1 py-[1px] uppercase",
         synthetic ? "bg-warning/20 text-warning" : "bg-positive/15 text-positive",
       )}
       title={synthetic ? "Paper-mode synthetic placeholder — not a real broker read" : provider}
@@ -132,7 +132,7 @@ function ProvenanceBadge({
 function BlockHeader({ label, right }: { label: string; right?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-charcoal-300 text-[10px] uppercase">{label}</span>
+      <span className="text-charcoal-300 text-micro uppercase">{label}</span>
       {right}
     </div>
   );
@@ -140,7 +140,7 @@ function BlockHeader({ label, right }: { label: string; right?: React.ReactNode 
 
 function FallbackNote() {
   return (
-    <p className="text-charcoal-500 text-[10px]">
+    <p className="text-charcoal-500 text-micro">
       This broker exposes no granular read; falling back to the account summary.
     </p>
   );
@@ -178,13 +178,13 @@ function PositionsBlock({ result }: { result: BrokerPositionsResult | AccountSum
         }
       />
       {legs.length === 0 ? (
-        <p className="text-charcoal-500 text-[10px]">No open positions.</p>
+        <p className="text-charcoal-500 text-micro">No open positions.</p>
       ) : (
         <ul className="mt-0.5 flex flex-col gap-0.5">
           {legs.map((leg, i) => (
             <li
               key={`${leg.symbol}-${i}`}
-              className="text-charcoal-200 flex items-center justify-between gap-2 text-[10px]"
+              className="text-charcoal-200 text-micro flex items-center justify-between gap-2"
             >
               <span className="truncate">
                 {leg.symbol} {leg.product ? `· ${leg.product}` : ""}
@@ -230,13 +230,13 @@ function HoldingsBlock({ result }: { result: BrokerHoldingsResult | AccountSumma
         }
       />
       {result.holdings.length === 0 ? (
-        <p className="text-charcoal-500 text-[10px]">No settled holdings.</p>
+        <p className="text-charcoal-500 text-micro">No settled holdings.</p>
       ) : (
         <ul className="mt-0.5 flex flex-col gap-0.5">
           {result.holdings.map((h, i) => (
             <li
               key={`${h.symbol}-${i}`}
-              className="text-charcoal-200 flex items-center justify-between gap-2 text-[10px]"
+              className="text-charcoal-200 text-micro flex items-center justify-between gap-2"
             >
               <span className="truncate">{h.symbol}</span>
               <span className="text-charcoal-400 shrink-0">
@@ -280,13 +280,13 @@ function MarginsBlock({ result }: { result: BrokerMarginsResult | AccountSummary
         }
       />
       {result.segments.length === 0 ? (
-        <p className="text-charcoal-500 text-[10px]">No margin segments reported.</p>
+        <p className="text-charcoal-500 text-micro">No margin segments reported.</p>
       ) : (
         <ul className="mt-0.5 flex flex-col gap-0.5">
           {result.segments.map((seg, i) => (
             <li
               key={`${seg.segment}-${i}`}
-              className="text-charcoal-200 flex items-center justify-between gap-2 text-[10px]"
+              className="text-charcoal-200 text-micro flex items-center justify-between gap-2"
             >
               <span className="truncate">
                 {seg.segment} ({seg.currency})

@@ -49,8 +49,8 @@ export function NodePalette({ registry }: NodePaletteProps) {
       className="border-charcoal-700 bg-charcoal-900 flex h-full w-56 min-w-56 flex-col border-r"
     >
       <header className="border-charcoal-700 flex items-baseline justify-between border-b px-3 py-2">
-        <span className="text-charcoal-200 font-mono text-xs uppercase">Nodes</span>
-        <span className="text-charcoal-500 font-mono text-[10px] uppercase">{registry.length}</span>
+        <span className="text-charcoal-200 text-caption font-mono uppercase">Nodes</span>
+        <span className="text-charcoal-500 text-micro font-mono uppercase">{registry.length}</span>
       </header>
       <div className="flex-1 overflow-y-auto py-2">
         {CATEGORY_ORDER.map((category) => {
@@ -64,7 +64,7 @@ export function NodePalette({ registry }: NodePaletteProps) {
               data-testid={`palette-category-${category}`}
               className="mb-3 px-2"
             >
-              <h3 className="text-charcoal-400 mb-1 px-1 font-mono text-[10px] uppercase">
+              <h3 className="text-charcoal-400 text-micro mb-1 px-1 font-mono uppercase">
                 {CATEGORY_LABELS[category]}
               </h3>
               <ul className="flex flex-col gap-1">
@@ -97,18 +97,18 @@ function PaletteCard({ entry }: PaletteCardProps) {
       data-testid={`palette-card-${spec.id}`}
       onDragStart={handleDragStart}
       className={cn(
-        "border-charcoal-700 bg-charcoal-850 cursor-grab rounded-md border px-2 py-1.5 font-mono text-xs select-none",
+        "border-charcoal-700 bg-charcoal-850 rounded-control text-caption cursor-grab border px-2 py-1.5 font-mono select-none",
         "hover:border-amber-500 hover:bg-amber-500/5 active:cursor-grabbing",
       )}
     >
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-charcoal-100">{spec.label}</span>
         {source === "plugin" && (
-          <span className="font-mono text-[9px] text-amber-400 uppercase">plugin</span>
+          <span className="text-micro font-mono text-amber-400 uppercase">plugin</span>
         )}
       </div>
       {spec.description !== undefined && (
-        <p className="text-charcoal-400 mt-0.5 truncate text-[10px]">{spec.description}</p>
+        <p className="text-charcoal-400 text-micro mt-0.5 truncate">{spec.description}</p>
       )}
     </li>
   );

@@ -20,32 +20,32 @@ description: |
 
 colors:
   # --- Surface ladder (depth comes from these, never from shadow) -----------
-  canvas: "#110f0c"          # L0 — app root well, deepest warm near-black (rgb 17,15,12)
-  chrome: "#17140f"          # L1 — header fascia, tab strip, status bar
-  panel: "#1e1a15"           # L2 — panel / card surface (the anchor surface)
-  raised: "#25201a"          # L3 — popover, command palette, active tab, hover
-  inset: "#2d2820"           # L4 — input fill, node body, recessed well
+  canvas: "#110f0c" # L0 — app root well, deepest warm near-black (rgb 17,15,12)
+  chrome: "#17140f" # L1 — header fascia, tab strip, status bar
+  panel: "#1e1a15" # L2 — panel / card surface (the anchor surface)
+  raised: "#25201a" # L3 — popover, command palette, active tab, hover
+  inset: "#2d2820" # L4 — input fill, node body, recessed well
   # --- Borders & hairlines ---------------------------------------------------
-  border: "#3e372d"          # control / input / table border (1px)
-  border-strong: "#4d463b"   # emphasized divider, disabled foreground
-  hairline: "rgba(122,116,106,0.14)"        # quiet 1px section divider
+  border: "#3e372d" # control / input / table border (1px)
+  border-strong: "#4d463b" # emphasized divider, disabled foreground
+  hairline: "rgba(122,116,106,0.14)" # quiet 1px section divider
   hairline-strong: "rgba(122,116,106,0.24)" # tab-strip rule, stronger divider
   # --- Text ramp -------------------------------------------------------------
-  text-primary: "#f6f3eb"    # body, headings, primary values — warm near-white
-  text-secondary: "#ada294"  # muted foreground, secondary labels, group headers
-  text-tertiary: "#968c7d"   # faint meta / captions — lightened to clear WCAG AA on dark surfaces
-  text-bright: "#f7f5f0"     # peak readout, active-tab label
+  text-primary: "#f6f3eb" # body, headings, primary values — warm near-white
+  text-secondary: "#ada294" # muted foreground, secondary labels, group headers
+  text-tertiary: "#968c7d" # faint meta / captions — lightened to clear WCAG AA on dark surfaces
+  text-bright: "#f7f5f0" # peak readout, active-tab label
   # --- The single accent (muted amber) — scarce, <=5% of pixels --------------
-  primary: "#d89a4e"         # brand primary = the amber accent (same hex; names the FILL role)
-  accent: "#d89a4e"          # the amber accent — names the EDGE / focus / active-state role
-  accent-bright: "#e9bd80"   # hover, accent text on dark
-  accent-pressed: "#c0802f"  # pressed, active sash, selected fill
-  accent-tint: "#f0d8ac"     # faint selection tint
-  accent-deep: "#875720"     # deep accent border
+  primary: "#d89a4e" # brand primary = the amber accent (same hex; names the FILL role)
+  accent: "#d89a4e" # the amber accent — names the EDGE / focus / active-state role
+  accent-bright: "#e9bd80" # hover, accent text on dark
+  accent-pressed: "#c0802f" # pressed, active sash, selected fill
+  accent-tint: "#f0d8ac" # faint selection tint
+  accent-deep: "#875720" # deep accent border
   # --- Signal (P&L only — the only other saturated colors, never as fills) ---
-  positive: "#3fbf6f"        # gains — muted green, luminance-matched
-  negative: "#e5544b"        # losses — muted red, luminance-matched
-  warning: "#e0a13a"         # stale / paper / caution
+  positive: "#3fbf6f" # gains — muted green, luminance-matched
+  negative: "#e5544b" # losses — muted red, luminance-matched
+  warning: "#e0a13a" # stale / paper / caution
 
 typography:
   hero:
@@ -98,19 +98,19 @@ typography:
     letterSpacing: 0.1em
 
 rounded:
-  none: 0px      # every container: panel, card, table, header, status bar, section
-  control: 4px   # every interactive element: button, input, toggle, pill, chip, popover, row
-  full: 9999px   # avatar dots only
+  none: 0px # every container: panel, card, table, header, status bar, section
+  control: 4px # every interactive element: button, input, toggle, pill, chip, popover, row
+  full: 9999px # avatar dots only
 
 spacing:
-  xxs: 2px    # hairline inset, icon-to-label nudge
-  xs: 4px     # tight inline gap
-  sm: 6px     # control inner gap
-  md: 8px     # default control padding, list-row vertical
-  lg: 12px    # panel inner padding, comfortable gap
-  xl: 16px    # block gap, section internal padding
-  xxl: 24px   # section gap
-  section: 32px  # major section rhythm
+  xxs: 2px # hairline inset, icon-to-label nudge
+  xs: 4px # tight inline gap
+  sm: 6px # control inner gap
+  md: 8px # default control padding, list-row vertical
+  lg: 12px # panel inner padding, comfortable gap
+  xl: 16px # block gap, section internal padding
+  xxl: 24px # section gap
+  section: 32px # major section rhythm
 
 components:
   # --- Buttons --------------------------------------------------------------
@@ -391,6 +391,7 @@ most two elements lit at once. The only other saturated colors are
 P&L and status signals and never used as background fills.
 
 **Key characteristics**
+
 - 100% JetBrains Mono across every text role — no second face anywhere in the chrome.
 - Warm-graphite `{colors.canvas}` (`#110f0c`) as the deepest surface; a five-rung
   ladder carries all depth — no shadows, no gradients, no vignette.
@@ -407,13 +408,13 @@ P&L and status signals and never used as background fills.
 
 ### Surface ladder (depth without shadow)
 
-| Rung | Token | Value | Use |
-|---|---|---|---|
-| L0 | `{colors.canvas}` | `#110f0c` | App root well; the deepest field behind every panel |
-| L1 | `{colors.chrome}` | `#17140f` | Header fascia, tab strip, status bar, table header row |
-| L2 | `{colors.panel}` | `#1e1a15` | Panel / card body — the anchor surface most content sits on |
-| L3 | `{colors.raised}` | `#25201a` | Popover, command palette, active tab, hover surface |
-| L4 | `{colors.inset}` | `#2d2820` | Input fill, node body, recessed wells inside a panel |
+| Rung | Token             | Value     | Use                                                         |
+| ---- | ----------------- | --------- | ----------------------------------------------------------- |
+| L0   | `{colors.canvas}` | `#110f0c` | App root well; the deepest field behind every panel         |
+| L1   | `{colors.chrome}` | `#17140f` | Header fascia, tab strip, status bar, table header row      |
+| L2   | `{colors.panel}`  | `#1e1a15` | Panel / card body — the anchor surface most content sits on |
+| L3   | `{colors.raised}` | `#25201a` | Popover, command palette, active tab, hover surface         |
+| L4   | `{colors.inset}`  | `#2d2820` | Input fill, node body, recessed wells inside a panel        |
 
 Elevation is **monotonic**: a floating element sits exactly one rung above the surface
 behind it and carries a 1px `{colors.hairline-strong}` border — never a shadow. The
@@ -460,16 +461,16 @@ identity.
 
 ### Scale
 
-| Role | Size | Weight | Line height | Use |
-|---|---|---|---|---|
-| `{typography.hero}` | 28px | 700 | 1.2 | First-run splash; the single biggest moment in the app |
-| `{typography.overview}` | 22px | 700 | 1.25 | Brief headline, equity ticker headline, hero stat number |
-| `{typography.section}` | 18px | 700 | 1.3 | Section heads inside a panel |
-| `{typography.title}` | 15px | 500 | 1.3 | Panel title bar |
-| `{typography.prose}` | 16px | 400 | 1.6 | AI narratives, research briefs, notes prose — the reading size |
-| `{typography.body}` | 13px | 400 | 1.5 | Default UI text, list rows, table cells, control labels |
-| `{typography.caption}` | 12px | 400 | 1.5 | Captions, secondary meta, tab labels |
-| `{typography.micro}` | 11px | 500 | 1.3 (+0.1em, uppercase) | HUD labels, group headers, badges, status ticks |
+| Role                    | Size | Weight | Line height             | Use                                                            |
+| ----------------------- | ---- | ------ | ----------------------- | -------------------------------------------------------------- |
+| `{typography.hero}`     | 28px | 700    | 1.2                     | First-run splash; the single biggest moment in the app         |
+| `{typography.overview}` | 22px | 700    | 1.25                    | Brief headline, equity ticker headline, hero stat number       |
+| `{typography.section}`  | 18px | 700    | 1.3                     | Section heads inside a panel                                   |
+| `{typography.title}`    | 15px | 500    | 1.3                     | Panel title bar                                                |
+| `{typography.prose}`    | 16px | 400    | 1.6                     | AI narratives, research briefs, notes prose — the reading size |
+| `{typography.body}`     | 13px | 400    | 1.5                     | Default UI text, list rows, table cells, control labels        |
+| `{typography.caption}`  | 12px | 400    | 1.5                     | Captions, secondary meta, tab labels                           |
+| `{typography.micro}`    | 11px | 500    | 1.3 (+0.1em, uppercase) | HUD labels, group headers, badges, status ticks                |
 
 ### Principles
 
@@ -495,11 +496,11 @@ forbidden in new and changed code — each maps to a token: `{spacing.xxs}` (2px
 
 ### Radius
 
-| Token | Value | Use |
-|---|---|---|
-| `{rounded.none}` | 0px | Every container — panel, card, table, header, status bar, section block, dialog body |
-| `{rounded.control}` | 4px | Every interactive element — button, input, toggle, pill, chip, badge, kbd, command row, popover |
-| `{rounded.full}` | 9999px | Avatar dots only |
+| Token               | Value  | Use                                                                                             |
+| ------------------- | ------ | ----------------------------------------------------------------------------------------------- |
+| `{rounded.none}`    | 0px    | Every container — panel, card, table, header, status bar, section block, dialog body            |
+| `{rounded.control}` | 4px    | Every interactive element — button, input, toggle, pill, chip, badge, kbd, command row, popover |
+| `{rounded.full}`    | 9999px | Avatar dots only                                                                                |
 
 The radius vocabulary is two values. A container is a sharp rectangle; the moment an
 element is clickable/typeable it softens to 4px. The floating command palette and
@@ -512,16 +513,17 @@ There are **no drop shadows and no glow** in the system. The legacy `--bezel-sha
 and any `shadow-*` / `drop-shadow` / blurred-glow utility is removed. Depth is the
 surface ladder plus a single 1px border:
 
-| Level | Treatment | Use |
-|---|---|---|
-| 0 — Flat | No border | Body text blocks, list rows, in-panel content |
-| 1 — Hairline | 1px `{colors.hairline}` | Section dividers, row separators, panel seams |
-| 2 — Hairline strong | 1px `{colors.hairline-strong}` | Tab-strip rule, floating-overlay border |
-| 3 — Accent edge | 1px `{colors.accent}` (`.hud-active`) | The one agent-live / primary control, focus ring |
+| Level               | Treatment                             | Use                                              |
+| ------------------- | ------------------------------------- | ------------------------------------------------ |
+| 0 — Flat            | No border                             | Body text blocks, list rows, in-panel content    |
+| 1 — Hairline        | 1px `{colors.hairline}`               | Section dividers, row separators, panel seams    |
+| 2 — Hairline strong | 1px `{colors.hairline-strong}`        | Tab-strip rule, floating-overlay border          |
+| 3 — Accent edge     | 1px `{colors.accent}` (`.hud-active`) | The one agent-live / primary control, focus ring |
 
 ## Iconography
 
 The brand's iconography is ASCII and keycaps, not decorative SVG:
+
 - **Bracket markers** — `[+]` `[-]` `[x]` `>` lead list rows, section labels, and
   toggles. They are text, not separate icon nodes.
 - **Keycap chips** — `{components.kbd}` renders `⌘K` `↵` `↑↓` `esc` as bordered
@@ -647,6 +649,7 @@ control sizes, never an oversized outlier.
 
 The `⌘K` palette is a `{components.command-palette}` floating on `{colors.raised}` with
 a 1px `{colors.hairline-strong}` border (no shadow). Structure:
+
 - **Input row:** `{typography.body}` (sans-free — mono like everything), a `>` bracket
   prompt glyph at the left.
 - **Group headers:** `{components.command-group-header}` — `{typography.micro}` uppercase
@@ -671,6 +674,7 @@ prose at `{typography.prose}`. The equity-overview ticker headline is
 ## Do's and Don'ts
 
 ### Do
+
 - Render every text role in JetBrains Mono. The single-font decision is the identity.
 - Carry all depth with the surface ladder + 1px hairline; climb exactly one rung to float.
 - Keep `{rounded.none}` on containers and `{rounded.control}` on interactive elements.
@@ -679,6 +683,7 @@ prose at `{typography.prose}`. The equity-overview ticker headline is
 - Resolve every text node to a named `{typography.*}` role and every gap to a `{spacing.*}` token.
 
 ### Don't
+
 - Don't introduce a sans-serif body, a display face, or an italic style.
 - Don't add a drop shadow, glow, gradient, or `shadow-*` utility anywhere.
 - Don't use a second accent color; the amber is alone besides P&L green/red.

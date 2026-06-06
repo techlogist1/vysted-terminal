@@ -55,7 +55,7 @@ interface FieldProps {
 function Field({ label, value, onChange, type = "number", step, disabled, testId }: FieldProps) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-charcoal-300 font-mono text-[10px]">{label}</span>
+      <span className="text-charcoal-300 text-micro font-mono">{label}</span>
       <input
         type={type}
         step={step}
@@ -63,7 +63,7 @@ function Field({ label, value, onChange, type = "number", step, disabled, testId
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         data-testid={testId}
-        className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
+        className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
       />
     </label>
   );
@@ -146,7 +146,7 @@ export function OptionPricerPanel() {
         data-testid="option-pricer-form"
       >
         <div className="flex flex-col gap-1.5">
-          <span className="text-charcoal-500 font-mono text-[10px] tracking-widest uppercase">
+          <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
             Method
           </span>
           <div role="radiogroup" aria-label="Pricing method" className="grid grid-cols-3 gap-1">
@@ -159,7 +159,7 @@ export function OptionPricerPanel() {
                 onClick={() => setMethod(m.id)}
                 disabled={isRunning}
                 className={cn(
-                  "rounded-control h-7 border font-mono text-[10px]",
+                  "rounded-control text-micro h-8 border font-mono",
                   method === m.id
                     ? "border-amber-500 bg-amber-500/20 text-amber-200"
                     : "border-charcoal-700 bg-charcoal-850 text-charcoal-300 hover:bg-charcoal-800",
@@ -173,7 +173,7 @@ export function OptionPricerPanel() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <span className="text-charcoal-500 font-mono text-[10px] tracking-widest uppercase">
+          <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
             Payoff / Exercise
           </span>
           <div className="grid grid-cols-2 gap-2">
@@ -187,7 +187,7 @@ export function OptionPricerPanel() {
                   onClick={() => setPayoff(p.id)}
                   disabled={isRunning}
                   className={cn(
-                    "rounded-control h-7 border font-mono text-[10px]",
+                    "rounded-control text-micro h-8 border font-mono",
                     payoff === p.id
                       ? "border-amber-500 bg-amber-500/20 text-amber-200"
                       : "border-charcoal-700 bg-charcoal-850 text-charcoal-300 hover:bg-charcoal-800",
@@ -207,7 +207,7 @@ export function OptionPricerPanel() {
                   onClick={() => setExercise(e.id)}
                   disabled={isRunning}
                   className={cn(
-                    "rounded-control h-7 border font-mono text-[10px]",
+                    "rounded-control text-micro h-8 border font-mono",
                     exercise === e.id
                       ? "border-amber-500 bg-amber-500/20 text-amber-200"
                       : "border-charcoal-700 bg-charcoal-850 text-charcoal-300 hover:bg-charcoal-800",
@@ -306,7 +306,7 @@ export function OptionPricerPanel() {
         )}
 
         {incompatible && (
-          <p className="font-mono text-[10px] text-amber-300" role="alert">
+          <p className="text-micro font-mono text-amber-300" role="alert">
             {incompatibleAmericanBs
               ? "Black-Scholes only supports European exercise. Switch to Binomial for American."
               : "Monte Carlo only supports European exercise in v0.6.0. Use Binomial for American."}
@@ -331,7 +331,7 @@ export function OptionPricerPanel() {
       <section className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
         {error && (
           <p
-            className="text-negative bg-negative/10 border-negative/30 rounded-control mb-3 border p-2 font-mono text-xs"
+            className="text-negative bg-negative/10 border-negative/30 text-caption mb-3 rounded-none border p-2 font-mono"
             role="alert"
             data-testid="option-pricing-error"
           >
@@ -340,38 +340,38 @@ export function OptionPricerPanel() {
         )}
 
         {!lastResult && !isRunning && (
-          <div className="text-charcoal-500 flex h-full items-center justify-center font-mono text-xs">
+          <div className="text-charcoal-500 text-caption flex h-full items-center justify-center font-mono">
             Fill in the inputs on the left and click Price.
           </div>
         )}
 
         {lastResult && (
           <div className="grid gap-4" data-testid="option-pricing-result">
-            <div className="border-charcoal-700 bg-charcoal-850 rounded-control border p-4">
-              <div className="text-charcoal-500 mb-2 font-mono text-[10px] tracking-widest uppercase">
+            <div className="border-charcoal-700 bg-charcoal-850 rounded-none border p-4">
+              <div className="text-charcoal-500 text-micro mb-2 font-mono tracking-widest uppercase">
                 Result · {lastResult.method}
               </div>
               <div className="flex items-baseline gap-3">
-                <span className="font-mono text-3xl text-amber-300" data-testid="option-price">
+                <span className="text-hero font-mono text-amber-300" data-testid="option-price">
                   ${lastResult.price.toFixed(4)}
                 </span>
                 {lastResult.monte_carlo_std_error !== null && (
                   <span
-                    className="text-charcoal-400 font-mono text-xs"
+                    className="text-charcoal-400 text-caption font-mono"
                     data-testid="option-mc-error"
                   >
                     ± {lastResult.monte_carlo_std_error.toFixed(4)} (1 SE)
                   </span>
                 )}
               </div>
-              <div className="text-charcoal-500 mt-2 font-mono text-[10px]">
+              <div className="text-charcoal-500 text-micro mt-2 font-mono">
                 computed in {lastResult.duration_ms.toFixed(1)} ms
               </div>
             </div>
 
             {lastResult.greeks && (
-              <div className="border-charcoal-700 bg-charcoal-850 rounded-control border p-4">
-                <div className="text-charcoal-500 mb-2 font-mono text-[10px] tracking-widest uppercase">
+              <div className="border-charcoal-700 bg-charcoal-850 rounded-none border p-4">
+                <div className="text-charcoal-500 text-micro mb-2 font-mono tracking-widest uppercase">
                   Greeks
                 </div>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
@@ -392,9 +392,9 @@ export function OptionPricerPanel() {
 
 function GreekCell({ label, value }: { label: string; value: number }) {
   return (
-    <div className="border-charcoal-700 bg-charcoal-900 rounded-control flex flex-col gap-1 border p-2">
-      <span className="text-charcoal-400 font-mono text-[10px]">{label}</span>
-      <span className="text-charcoal-100 font-mono text-sm">{value.toFixed(4)}</span>
+    <div className="border-charcoal-700 bg-charcoal-900 flex flex-col gap-1 rounded-none border p-2">
+      <span className="text-charcoal-400 text-micro font-mono">{label}</span>
+      <span className="text-charcoal-100 text-body font-mono">{value.toFixed(4)}</span>
     </div>
   );
 }

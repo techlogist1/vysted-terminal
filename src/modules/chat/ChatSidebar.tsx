@@ -82,7 +82,7 @@ function AutonomyToggle() {
           ? "Auto-apply: UI / layout / chart / watchlist changes apply without a per-action confirmation. Orders ALWAYS route through the confirm-before-place dialog."
           : "Ask: every proposed change waits for your accept in the diff gate."
       }
-      className="border-charcoal-700 flex h-9 shrink-0 items-stretch overflow-hidden rounded-md border font-mono text-xs"
+      className="border-charcoal-700 divide-charcoal-700 rounded-control text-caption flex h-8 shrink-0 items-stretch divide-x overflow-hidden border font-mono"
     >
       {(["ask", "auto"] as const).map((level) => (
         <button
@@ -827,7 +827,7 @@ export function ChatSidebar() {
             <div
               key={s.id}
               className={cn(
-                "text-caption flex shrink-0 items-center rounded font-mono",
+                "text-caption rounded-control flex shrink-0 items-center font-mono",
                 active ? "bg-charcoal-800 text-charcoal-100" : "text-charcoal-400",
               )}
             >
@@ -859,7 +859,7 @@ export function ChatSidebar() {
           onClick={newSpace}
           aria-label="New chat space"
           title="New chat space"
-          className="text-charcoal-400 shrink-0 rounded px-2 py-1 transition-colors hover:text-amber-300"
+          className="text-charcoal-400 rounded-control shrink-0 px-2 py-1 transition-colors hover:text-amber-300"
         >
           <Plus className="size-3" />
         </button>
@@ -896,7 +896,7 @@ export function ChatSidebar() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={tween(0.18)}
                 className={cn(
-                  "rounded-md border px-3 py-1.5 font-mono text-xs",
+                  "text-body rounded-none border px-3 py-1.5 font-mono",
                   message.role === "user"
                     ? "border-charcoal-700 bg-charcoal-800 text-charcoal-100"
                     : "text-charcoal-100 border-amber-600/30 bg-amber-500/10",
@@ -1082,14 +1082,14 @@ function ModeSwitch({ mode, onChange }: { mode: AgentMode; onChange: (mode: Agen
             title={`${m.hint} (${m.hotkeyLabel})`}
             onClick={() => onChange(m.id)}
             className={cn(
-              "relative flex h-9 items-center rounded-md px-3 font-mono text-xs transition-colors",
+              "rounded-control text-caption relative flex h-8 items-center px-3 font-mono transition-colors",
               active ? "text-amber-300" : "text-charcoal-400 hover:text-lume",
             )}
           >
             {active && (
               <motion.span
                 layoutId="composer-mode-pill"
-                className="bg-charcoal-800 border-charcoal-700 absolute inset-0 -z-10 rounded-md border"
+                className="bg-charcoal-800 border-charcoal-700 rounded-control absolute inset-0 -z-10 border"
                 transition={SPRING_PILL}
               />
             )}
@@ -1115,14 +1115,14 @@ function PersonaSelect({ firstParty, custom, activeAgentId, onChange }: AgentPic
   return (
     <div
       aria-label="Persona roster"
-      className="text-charcoal-500 flex min-w-0 shrink items-center gap-2 font-mono text-xs"
+      className="text-charcoal-500 text-caption flex min-w-0 shrink items-center gap-2 font-mono"
     >
       <span className="shrink-0 tracking-wide uppercase">Lens</span>
       <select
         aria-label="Active persona"
         value={activeAgentId ?? DEFAULT_AGENT_ID}
         onChange={(event) => onChange(event.target.value)}
-        className="bg-charcoal-800 text-charcoal-200 border-charcoal-700 h-9 max-w-[9rem] min-w-0 truncate rounded-md border px-3 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+        className="bg-charcoal-800 text-charcoal-200 border-charcoal-700 rounded-control text-caption h-8 max-w-[9rem] min-w-0 truncate border px-3 font-mono outline-none focus:ring-1 focus:ring-amber-400"
       >
         <optgroup label="First-party">
           {ordered.map((agent) => (
@@ -1149,7 +1149,7 @@ function ContextBadge({ text }: { text: string }) {
   return (
     <div
       aria-label="Panel context"
-      className="border-charcoal-700 text-charcoal-300 border-b px-3 py-1.5 font-mono text-xs tracking-wide uppercase"
+      className="border-charcoal-700 text-charcoal-300 text-caption border-b px-3 py-1.5 font-mono tracking-wide uppercase"
     >
       {text}
     </div>
@@ -1391,7 +1391,7 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
         </div>
       )}
       <form
-        className="border-charcoal-700 flex items-end gap-3 border-t p-4"
+        className="border-charcoal-700 border-t p-3"
         onSubmit={(event) => {
           event.preventDefault();
           if (value.trim()) {
@@ -1399,15 +1399,16 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
           }
         }}
       >
-        {/* Input + send read as ONE unit (§14). The input reserves a left inset
-            (pl-11) for the mode indicator below so a persona/agent glyph never
-            overlaps the placeholder; the glyph lives in that gutter, OUTSIDE the
-            text flow. */}
-        <div className="relative min-w-0 flex-1">
+        {/* Field + inset glyph + send read as ONE bordered unit (§14): the input is
+            borderless inside the rounded-control shell, the leading glyph sits in a
+            left gutter (OUTSIDE the text flow), and the send anchors bottom-right
+            inside the field — vertically aligned, 32px square, amber. The field
+            grows from a single-line baseline rather than reserving a tall empty box. */}
+        <div className="bg-charcoal-800 border-charcoal-700 rounded-control relative flex min-h-9 items-end border focus-within:ring-1 focus-within:ring-amber-400">
           <Sparkles
             aria-hidden
             strokeWidth={1.75}
-            className="text-charcoal-500 pointer-events-none absolute top-4 left-4 size-4"
+            className="text-charcoal-500 pointer-events-none absolute top-2 left-3 size-4"
           />
           <input
             ref={inputRef}
@@ -1426,18 +1427,19 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
             disabled={disabled}
             autoComplete="off"
             spellCheck={false}
-            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 min-h-[52px] w-full rounded-lg py-3 pr-4 pl-11 font-sans text-sm leading-relaxed outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
+            className="text-charcoal-100 placeholder:text-charcoal-500 text-body min-w-0 flex-1 bg-transparent py-1.5 pr-12 pl-12 font-mono leading-relaxed outline-none disabled:opacity-50"
           />
+          <Button
+            type="submit"
+            variant="default"
+            size="icon"
+            aria-label="Send message"
+            disabled={disabled || value.trim().length === 0}
+            className="absolute right-1 bottom-1"
+          >
+            <Send strokeWidth={2.5} />
+          </Button>
         </div>
-        <Button
-          type="submit"
-          variant="default"
-          aria-label="Send message"
-          disabled={disabled || value.trim().length === 0}
-          className="size-10 shrink-0 rounded-full [&_svg:not([class*='size-'])]:size-4"
-        >
-          <Send strokeWidth={2.5} />
-        </Button>
       </form>
     </div>
   );

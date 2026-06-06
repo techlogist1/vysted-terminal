@@ -78,8 +78,8 @@ function SaveWorkspaceForm({ onDone }: ModeProps) {
   return (
     <form onSubmit={handleSubmit}>
       <DialogHeader>
-        <DialogTitle className="text-charcoal-100 font-serif">Save Workspace</DialogTitle>
-        <DialogDescription className="text-charcoal-400 font-mono text-xs">
+        <DialogTitle className="text-charcoal-100">Save Workspace</DialogTitle>
+        <DialogDescription className="text-charcoal-400 text-caption font-mono">
           Saves the current panel layout and the enabled modules.
         </DialogDescription>
       </DialogHeader>
@@ -89,9 +89,9 @@ function SaveWorkspaceForm({ onDone }: ModeProps) {
         onChange={(event) => setName(event.target.value)}
         placeholder="Workspace name"
         aria-label="Workspace name"
-        className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 mt-4 w-full rounded-md border px-3 py-2 font-mono text-sm outline-none focus:border-amber-400"
+        className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-body mt-4 w-full border px-3 py-2 font-mono outline-none focus:border-amber-400"
       />
-      {error ? <p className="text-negative mt-2 font-mono text-xs">{error}</p> : null}
+      {error ? <p className="text-negative text-caption mt-2 font-mono">{error}</p> : null}
       <div className="mt-4 flex justify-end gap-2">
         <Button type="button" variant="ghost" size="sm" onClick={onDone} disabled={busy}>
           Cancel
@@ -128,8 +128,8 @@ function ResearchSpaceForm({ onDone }: ModeProps) {
   return (
     <form onSubmit={handleSubmit}>
       <DialogHeader>
-        <DialogTitle className="text-charcoal-100 font-serif">New Research Space</DialogTitle>
-        <DialogDescription className="text-charcoal-400 font-mono text-xs">
+        <DialogTitle className="text-charcoal-100">New Research Space</DialogTitle>
+        <DialogDescription className="text-charcoal-400 text-caption font-mono">
           Spins up a dedicated cockpit for one ticker — chart, equity overview, the research brief,
           and notes scoped to it — saved as a workspace you can return to.
         </DialogDescription>
@@ -140,9 +140,9 @@ function ResearchSpaceForm({ onDone }: ModeProps) {
         onChange={(event) => setSymbol(event.target.value.toUpperCase())}
         placeholder="Ticker, e.g. NVDA or RELIANCE"
         aria-label="Research space ticker"
-        className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 mt-4 w-full rounded-md border px-3 py-2 font-mono text-sm outline-none focus:border-amber-400"
+        className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-body mt-4 w-full border px-3 py-2 font-mono outline-none focus:border-amber-400"
       />
-      {error ? <p className="text-negative mt-2 font-mono text-xs">{error}</p> : null}
+      {error ? <p className="text-negative text-caption mt-2 font-mono">{error}</p> : null}
       <div className="mt-4 flex justify-end gap-2">
         <Button type="button" variant="ghost" size="sm" onClick={onDone} disabled={busy}>
           Cancel
@@ -224,14 +224,14 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
   return (
     <div>
       <DialogHeader>
-        <DialogTitle className="text-charcoal-100 font-serif">Load Workspace</DialogTitle>
-        <DialogDescription className="text-charcoal-400 font-mono text-xs">
+        <DialogTitle className="text-charcoal-100">Load Workspace</DialogTitle>
+        <DialogDescription className="text-charcoal-400 text-caption font-mono">
           Restores a saved panel layout and its enabled modules.
         </DialogDescription>
       </DialogHeader>
       {error ? (
         <div className="mt-3 flex items-center justify-between gap-2">
-          <p className="text-negative font-mono text-xs">{error}</p>
+          <p className="text-negative text-caption font-mono">{error}</p>
           {fetchFailed && (
             <Button
               type="button"
@@ -247,10 +247,10 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
       ) : null}
       <div className="mt-4 flex max-h-72 flex-col gap-1.5 overflow-y-auto">
         {names === null ? (
-          <p className="text-charcoal-400 py-4 text-center font-mono text-xs">Loading…</p>
+          <p className="text-charcoal-400 text-caption py-4 text-center font-mono">Loading…</p>
         ) : names.length === 0 && !fetchFailed ? (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
-            <p className="text-charcoal-400 font-mono text-xs">
+            <p className="text-charcoal-400 text-caption font-mono">
               No saved workspaces yet. Save your current layout first.
             </p>
             <Button
@@ -261,7 +261,7 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
                 onDone();
                 openSave();
               }}
-              className="text-charcoal-400 hover:text-charcoal-200 font-mono text-xs"
+              className="text-charcoal-400 hover:text-charcoal-200 text-caption font-mono"
             >
               Save current workspace
             </Button>
@@ -270,13 +270,13 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
           names.map((name) => (
             <div
               key={name}
-              className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between rounded-md border px-3 py-2"
+              className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between rounded-none border px-3 py-2"
             >
               <button
                 type="button"
                 onClick={() => handleLoad(name)}
                 disabled={busy}
-                className="text-charcoal-100 flex-1 text-left font-mono text-sm disabled:opacity-50"
+                className="text-charcoal-100 text-body flex-1 text-left font-mono disabled:opacity-50"
               >
                 {name}
               </button>

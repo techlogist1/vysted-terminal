@@ -215,7 +215,7 @@ export function PanelHost() {
   if (modules.length === 0) {
     return (
       <div className="bg-charcoal-950 flex h-full w-full items-center justify-center">
-        <p className="text-charcoal-400 font-mono text-xs">Loading modules…</p>
+        <p className="text-charcoal-400 text-caption">Loading modules…</p>
       </div>
     );
   }

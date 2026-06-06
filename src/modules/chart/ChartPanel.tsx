@@ -1020,7 +1020,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
         onClick={() => toggleIndicator(indicator.key)}
         aria-pressed={active}
         className={cn(
-          "rounded-control border px-2 py-1 text-left font-mono text-xs transition-colors",
+          "rounded-control text-caption border px-2 py-1 text-left font-mono transition-colors",
           active
             ? "border-amber-500 bg-amber-500/15 text-amber-300"
             : "border-charcoal-700 text-charcoal-400 hover:border-charcoal-600 hover:text-charcoal-200",
@@ -1048,7 +1048,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
             aria-label="Symbol"
             placeholder="Symbol"
             spellCheck={false}
-            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control w-24 border px-2 py-1 font-mono text-sm uppercase outline-none focus-visible:border-amber-500"
+            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-body w-24 border px-2 py-1 font-mono uppercase outline-none focus-visible:border-amber-500"
           />
           <Button type="submit" size="sm" variant="outline">
             Load
@@ -1063,7 +1063,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
               onClick={() => setTimeframe(option)}
               aria-pressed={timeframe === option}
               className={cn(
-                "rounded-control px-2 py-1 font-mono text-xs transition-colors",
+                "rounded-control text-caption px-2 py-1 font-mono transition-colors",
                 timeframe === option
                   ? "bg-amber-500/20 text-amber-300"
                   : "text-charcoal-400 hover:text-charcoal-100",
@@ -1076,7 +1076,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
 
         {/* Sync toggles — three independent flavors */}
         <div className="flex items-center gap-1" role="group" aria-label="Sync">
-          <span className="text-charcoal-500 mr-1 font-mono text-[10px] tracking-widest uppercase">
+          <span className="text-charcoal-500 text-micro mr-1 font-mono tracking-widest uppercase">
             Sync
           </span>
           {(
@@ -1093,7 +1093,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
               aria-pressed={syncSubscriptions[flavor]}
               aria-label={`Sync ${flavor}`}
               className={cn(
-                "rounded-control px-2 py-1 font-mono text-[10px] transition-colors",
+                "rounded-control text-micro px-2 py-1 font-mono transition-colors",
                 syncSubscriptions[flavor]
                   ? "bg-amber-500/20 text-amber-300"
                   : "text-charcoal-400 hover:text-charcoal-100",
@@ -1104,7 +1104,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
           ))}
         </div>
 
-        <div className="text-charcoal-400 ml-auto flex items-center gap-2 font-mono text-xs">
+        <div className="text-charcoal-400 text-caption ml-auto flex items-center gap-2 font-mono">
           <span className="text-charcoal-200">{symbol}</span>
           {provider && priceState === "ready" ? <span>via {provider}</span> : null}
           {/* Calendar-aware freshness so a stale series is never read as current. */}
@@ -1126,7 +1126,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
       {/* Drawing toolbar + comparison overlay row */}
       <div className="border-charcoal-700 flex flex-wrap items-center gap-2 border-b px-3 py-1.5">
         <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Drawings">
-          <span className="text-charcoal-500 mr-1 font-mono text-[10px] tracking-widest uppercase">
+          <span className="text-charcoal-500 text-micro mr-1 font-mono tracking-widest uppercase">
             Draw
           </span>
           {DRAWING_TOOLS.map((tool) => {
@@ -1138,7 +1138,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
                 onClick={() => onToolToggle(tool.kind)}
                 aria-pressed={active}
                 className={cn(
-                  "rounded-control px-2 py-1 font-mono text-[10px] transition-colors",
+                  "rounded-control text-micro px-2 py-1 font-mono transition-colors",
                   active
                     ? "bg-amber-500/20 text-amber-300"
                     : "text-charcoal-400 hover:text-charcoal-100",
@@ -1152,13 +1152,13 @@ function ChartPanel(props: ChartPanelProps = {}) {
             <button
               type="button"
               onClick={onClearAllDrawings}
-              className="text-charcoal-400 hover:text-charcoal-100 ml-1 font-mono text-[10px] underline-offset-2 hover:underline"
+              className="text-charcoal-400 hover:text-charcoal-100 text-micro ml-1 font-mono underline-offset-2 hover:underline"
             >
               clear ({drawings.length})
             </button>
           ) : null}
           {activeTool ? (
-            <span className="text-charcoal-400 ml-1 font-mono text-[10px]">
+            <span className="text-charcoal-400 text-micro ml-1 font-mono">
               click chart {pointsRequired(activeTool) - draftPoints.length} more time(s)
             </span>
           ) : null}
@@ -1171,7 +1171,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
             submitComparison();
           }}
         >
-          <span className="text-charcoal-500 mr-1 font-mono text-[10px] tracking-widest uppercase">
+          <span className="text-charcoal-500 text-micro mr-1 font-mono tracking-widest uppercase">
             Compare
           </span>
           <input
@@ -1180,7 +1180,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
             aria-label="Compare symbol"
             placeholder="Symbol"
             spellCheck={false}
-            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control w-20 border px-2 py-1 font-mono text-xs uppercase outline-none focus-visible:border-amber-500"
+            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-caption w-20 border px-2 py-1 font-mono uppercase outline-none focus-visible:border-amber-500"
           />
           <Button type="submit" size="sm" variant="outline">
             Add
@@ -1189,7 +1189,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
             <>
               <span
                 className={cn(
-                  "flex items-center gap-0.5 px-1 font-mono text-[10px]",
+                  "text-micro flex items-center gap-0.5 px-1 font-mono",
                   compareState === "error" ? "text-charcoal-500" : "text-amber-300",
                 )}
                 title={
@@ -1211,7 +1211,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
                 aria-pressed={compareNormalize}
                 aria-label="Normalize comparison"
                 className={cn(
-                  "rounded-control px-2 py-1 font-mono text-[10px] transition-colors",
+                  "rounded-control text-micro px-2 py-1 font-mono transition-colors",
                   compareNormalize
                     ? "bg-amber-500/20 text-amber-300"
                     : "text-charcoal-400 hover:text-charcoal-100",
@@ -1222,7 +1222,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
               <button
                 type="button"
                 onClick={clearComparison}
-                className="text-charcoal-400 hover:text-charcoal-100 font-mono text-[10px]"
+                className="text-charcoal-400 hover:text-charcoal-100 text-micro font-mono"
                 aria-label="Remove comparison overlay"
               >
                 ×
@@ -1236,7 +1236,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
       <div className="relative min-h-0 flex-1">
         <div ref={containerRef} className="absolute inset-0" data-testid="chart-container" />
         {priceState === "loading" ? (
-          <div className="text-charcoal-400 bg-charcoal-950/80 absolute inset-0 z-10 flex items-center justify-center font-mono text-sm">
+          <div className="text-charcoal-400 bg-charcoal-950/80 text-body absolute inset-0 z-10 flex items-center justify-center font-mono">
             Loading {symbol}…
           </div>
         ) : null}
@@ -1246,7 +1246,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
           // occluded by the (now-cleared) chart (Bug-2 — the chart must visibly show
           // "No price data", not a blank grid the user can't read text over).
           <div className="bg-charcoal-950/92 absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 p-6 text-center">
-            <p className="text-negative font-mono text-sm">{priceError}</p>
+            <p className="text-negative text-body font-mono">{priceError}</p>
             <Button size="sm" variant="outline" onClick={() => setRetryNonce((n) => n + 1)}>
               Retry
             </Button>
@@ -1258,7 +1258,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
       {drawings.length > 0 ? (
         <div className="border-charcoal-700 max-h-24 overflow-y-auto border-t px-3 py-1.5">
           <div className="mb-1 flex items-center gap-2">
-            <span className="text-charcoal-500 font-mono text-[10px] tracking-widest uppercase">
+            <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
               Drawings
             </span>
           </div>
@@ -1269,7 +1269,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
                 <span
                   key={drawing.id}
                   className={cn(
-                    "rounded-control flex items-center gap-1 border px-1.5 py-0.5 font-mono text-[10px]",
+                    "rounded-control text-micro flex items-center gap-1 border px-1.5 py-0.5 font-mono",
                     active
                       ? "border-amber-500 bg-amber-500/15 text-amber-300"
                       : "border-charcoal-700 text-charcoal-400",
@@ -1315,19 +1315,19 @@ function ChartPanel(props: ChartPanelProps = {}) {
       {/* Indicator selector — grouped by category so 50 entries stay scannable */}
       <div className="border-charcoal-700 max-h-56 overflow-y-auto border-t px-3 py-2">
         <div className="mb-1.5 flex items-center gap-2">
-          <span className="text-charcoal-200 font-mono text-xs tracking-wide uppercase">
+          <span className="text-charcoal-200 text-caption font-mono tracking-wide uppercase">
             Indicators
           </span>
           {indicatorState === "loading" ? (
-            <span className="text-charcoal-400 font-mono text-xs">computing…</span>
+            <span className="text-charcoal-400 text-caption font-mono">computing…</span>
           ) : null}
           {indicatorState === "error" ? (
             <>
-              <span className="text-negative font-mono text-xs">{indicatorError}</span>
+              <span className="text-negative text-caption font-mono">{indicatorError}</span>
               <button
                 type="button"
                 onClick={() => setIndicatorRetryNonce((n) => n + 1)}
-                className="text-charcoal-400 font-mono text-xs transition-colors hover:text-amber-300"
+                className="text-charcoal-400 text-caption font-mono transition-colors hover:text-amber-300"
               >
                 Retry
               </button>
@@ -1337,7 +1337,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
             <button
               type="button"
               onClick={() => setSelected(new Set())}
-              className="text-charcoal-400 hover:text-charcoal-100 ml-auto font-mono text-xs underline-offset-2 hover:underline"
+              className="text-charcoal-400 hover:text-charcoal-100 text-caption ml-auto font-mono underline-offset-2 hover:underline"
             >
               Clear ({selected.size})
             </button>
@@ -1346,7 +1346,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
         <div className="space-y-2">
           {indicatorsByCategory().map((group) => (
             <div key={group.category}>
-              <div className="text-charcoal-500 mb-1 font-mono text-[10px] tracking-widest uppercase">
+              <div className="text-charcoal-500 text-micro mb-1 font-mono tracking-widest uppercase">
                 {group.label}
               </div>
               <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">

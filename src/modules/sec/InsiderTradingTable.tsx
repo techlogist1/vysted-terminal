@@ -141,7 +141,7 @@ export function InsiderTradingTable({ identifier }: InsiderTradingTableProps) {
           <select
             value={form}
             onChange={(e) => setForm(e.target.value as FormFilter)}
-            className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 text-caption rounded-md border px-1.5 py-0.5"
+            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 text-caption rounded-control h-6 border px-1.5"
             data-testid="insider-form-filter"
           >
             <option value="all">All</option>

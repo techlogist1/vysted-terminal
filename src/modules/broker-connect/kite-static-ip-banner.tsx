@@ -136,7 +136,7 @@ export function KiteStaticIpBanner({
         data-testid="kite-static-ip-banner"
         data-variant="loading"
         className={cn(
-          "border-border bg-muted/40 text-muted-foreground flex items-center gap-2 rounded-md border px-3 py-2 text-xs",
+          "border-border bg-muted/40 text-muted-foreground text-caption flex items-center gap-2 rounded-none border px-3 py-2",
           className,
         )}
       >
@@ -153,7 +153,7 @@ export function KiteStaticIpBanner({
         data-testid="kite-static-ip-banner"
         data-variant="error"
         className={cn(
-          "border-warning/40 bg-warning/10 text-warning flex items-start gap-2 rounded-md border px-3 py-2 text-xs",
+          "border-warning/40 bg-warning/10 text-warning text-caption flex items-start gap-2 rounded-none border px-3 py-2",
           className,
         )}
       >
@@ -178,7 +178,7 @@ export function KiteStaticIpBanner({
         data-testid="kite-static-ip-banner"
         data-variant="ok"
         className={cn(
-          "border-positive/30 bg-positive/10 text-positive flex items-start gap-2 rounded-md border px-3 py-2 text-xs",
+          "border-positive/30 bg-positive/10 text-positive text-caption flex items-start gap-2 rounded-none border px-3 py-2",
           className,
         )}
       >
@@ -199,7 +199,7 @@ export function KiteStaticIpBanner({
       data-testid="kite-static-ip-banner"
       data-variant="mismatch"
       className={cn(
-        "border-negative/30 bg-negative/10 text-negative flex items-start gap-2 rounded-md border px-3 py-2 text-xs",
+        "border-negative/30 bg-negative/10 text-negative text-caption flex items-start gap-2 rounded-none border px-3 py-2",
         className,
       )}
     >

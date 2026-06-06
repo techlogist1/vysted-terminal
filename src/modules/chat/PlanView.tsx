@@ -59,7 +59,7 @@ export function PlanView({ plan, active }: { plan: AgentPlanView; active: boolea
     return null;
   }
   return (
-    <div className="border-charcoal-700 bg-charcoal-800/40 mb-2 rounded-md border px-3 py-2">
+    <div className="border-charcoal-700 bg-charcoal-800/40 mb-2 rounded-none border px-3 py-2">
       <div className="text-micro text-charcoal-300 mb-2 flex items-center gap-2">
         <ListChecks className={`size-3 text-amber-400 ${active ? "animate-pulse" : ""}`} />
         <span>Plan</span>
@@ -83,7 +83,9 @@ export function PlanView({ plan, active }: { plan: AgentPlanView; active: boolea
               <span className="text-charcoal-200 flex-1">
                 {stepText(step.action, step.args, step.rationale)}
               </span>
-              <span className={`text-micro shrink-0 rounded border px-2 py-1 ${badge.tone}`}>
+              <span
+                className={`text-micro rounded-control shrink-0 border px-2 py-1 ${badge.tone}`}
+              >
                 {badge.label}
               </span>
             </motion.li>

@@ -35,16 +35,13 @@ interface Props {
 export function EpsEstimateGrid({ estimate }: Props) {
   if (!estimate) {
     return (
-      <p className="text-charcoal-400 font-mono text-xs" data-testid="eps-estimate-grid-empty">
+      <p className="text-charcoal-400 text-caption" data-testid="eps-estimate-grid-empty">
         Estimate detail unavailable.
       </p>
     );
   }
   return (
-    <div
-      className="grid grid-cols-3 gap-x-6 gap-y-2 font-mono text-xs"
-      data-testid="eps-estimate-grid"
-    >
+    <div className="text-body grid grid-cols-3 gap-x-6 gap-y-2" data-testid="eps-estimate-grid">
       <Cell label="EPS mean" value={fmt(estimate.eps_estimate_mean)} />
       <Cell label="EPS median" value={fmt(estimate.eps_estimate_median)} />
       <Cell label="EPS high" value={fmt(estimate.eps_estimate_high)} />

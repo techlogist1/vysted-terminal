@@ -91,18 +91,18 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
   if (provider?.requiresKey === false) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="border-charcoal-700 bg-charcoal-900 max-w-md gap-0 p-0 shadow-2xl">
-          <DialogHeader className="border-charcoal-700 border-b px-5 py-3">
-            <DialogTitle className="text-charcoal-200 flex items-center gap-2 font-mono text-sm font-medium">
+        <DialogContent className="border-charcoal-700 bg-charcoal-900 max-w-md gap-0 p-0">
+          <DialogHeader className="border-charcoal-700 border-b px-6 py-3">
+            <DialogTitle className="text-charcoal-200 text-body flex items-center gap-2 font-mono font-medium">
               <KeyRound className="size-3.5 text-amber-400" aria-hidden="true" />
               {provider.label}
             </DialogTitle>
-            <DialogDescription className="text-charcoal-400 mt-1 font-mono text-xs">
+            <DialogDescription className="text-charcoal-400 text-caption mt-1 font-mono">
               No API key required for this provider.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col gap-3 px-5 py-4">
-            <p className="text-charcoal-300 font-mono text-sm">
+          <div className="flex flex-col gap-3 px-6 py-4">
+            <p className="text-charcoal-300 text-body font-mono">
               This provider does not require an API key — it is ready to use.
             </p>
             <div className="flex justify-end pt-1">
@@ -118,18 +118,18 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-charcoal-700 bg-charcoal-900 max-w-md gap-0 p-0 shadow-2xl">
-        <DialogHeader className="border-charcoal-700 border-b px-5 py-3">
-          <DialogTitle className="text-charcoal-200 flex items-center gap-2 font-mono text-sm font-medium">
+      <DialogContent className="border-charcoal-700 bg-charcoal-900 max-w-md gap-0 p-0">
+        <DialogHeader className="border-charcoal-700 border-b px-6 py-3">
+          <DialogTitle className="text-charcoal-200 text-body flex items-center gap-2 font-mono font-medium">
             <KeyRound className="size-3.5 text-amber-400" aria-hidden="true" />
             {provider ? `${provider.label} API key` : "Provider API key"}
           </DialogTitle>
-          <DialogDescription className="text-charcoal-400 mt-1 font-mono text-xs">
+          <DialogDescription className="text-charcoal-400 text-caption mt-1 font-mono">
             Stored in the OS keychain; never written to disk by Vysted.
           </DialogDescription>
         </DialogHeader>
         <form
-          className="flex flex-col gap-3 px-5 py-4"
+          className="flex flex-col gap-3 px-6 py-4"
           onSubmit={(event) => {
             event.preventDefault();
             void handleSave();
@@ -143,15 +143,15 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
             placeholder="sk-..."
             disabled={!provider}
             aria-label="API key"
-            className="border-charcoal-700 bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 h-9 rounded-md border px-3 font-mono text-sm outline-none focus:border-amber-400 disabled:opacity-50"
+            className="border-charcoal-700 bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-body h-8 border px-3 font-mono outline-none focus:border-amber-400 disabled:opacity-50"
           />
           {status === "invalid" && (
-            <p className="text-negative font-mono text-xs">{errorDetail ?? "Invalid key."}</p>
+            <p className="text-negative text-caption font-mono">{errorDetail ?? "Invalid key."}</p>
           )}
           {status === "save-error" && (
-            <p className="text-negative font-mono text-xs">{errorDetail}</p>
+            <p className="text-negative text-caption font-mono">{errorDetail}</p>
           )}
-          {status === "valid" && <p className="text-positive font-mono text-xs">Saved.</p>}
+          {status === "valid" && <p className="text-positive text-caption font-mono">Saved.</p>}
           <div className="flex justify-end gap-2 pt-1">
             <Button
               type="button"

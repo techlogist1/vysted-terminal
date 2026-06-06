@@ -63,7 +63,7 @@ function SentimentBadge({ item }: { item: NewsItem }) {
   const scored = item.sentiment_label !== null;
   return (
     <span
-      className={`flex items-center gap-1.5 font-mono text-[11px] ${color}`}
+      className={`text-micro flex items-center gap-1.5 ${color}`}
       title={score !== null ? `Sentiment score ${score.toFixed(2)}` : "No sentiment score"}
       data-testid="sentiment-badge"
     >
@@ -117,9 +117,9 @@ function NewsRow({
         onFocus={() => onFocus(item.id)}
         className="hover:bg-charcoal-850 flex flex-col gap-1.5 px-4 py-3 transition-colors"
       >
-        <p className="text-charcoal-100 font-serif text-sm leading-snug">{item.title}</p>
+        <p className="text-charcoal-100 text-body leading-snug">{item.title}</p>
         <div className="flex items-center justify-between gap-3">
-          <span className="text-charcoal-400 min-w-0 truncate font-mono text-[11px]">
+          <span className="text-charcoal-400 text-micro min-w-0 truncate font-mono">
             {item.source}
             <span className="text-charcoal-600 mx-1.5">·</span>
             {relativeTime(item.published_at)}
@@ -133,7 +133,7 @@ function NewsRow({
             {item.symbols.map((symbol) => (
               <span
                 key={symbol}
-                className="bg-charcoal-800 rounded-sm px-1.5 py-0.5 font-mono text-[10px] text-amber-400"
+                className="bg-charcoal-800 rounded-control text-micro px-1.5 py-0.5 font-mono text-amber-400"
               >
                 {symbol}
               </span>
@@ -255,15 +255,15 @@ export function NewsFeedPanel() {
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
-      <header className="border-charcoal-700 flex items-center justify-between border-b px-4 py-2.5">
-        <h2 className="text-charcoal-200 font-mono text-xs font-medium tracking-wide uppercase">
+      <header className="border-charcoal-700 flex items-center justify-between border-b px-4 py-2">
+        <h2 className="text-charcoal-200 text-caption font-mono font-medium tracking-wide uppercase">
           News Feed
         </h2>
         <button
           type="button"
           onClick={refresh}
           disabled={state.status === "loading"}
-          className="text-charcoal-400 font-mono text-[11px] transition-colors hover:text-amber-400 disabled:pointer-events-none disabled:opacity-40"
+          className="text-charcoal-400 text-micro font-mono transition-colors hover:text-amber-400 disabled:pointer-events-none disabled:opacity-40"
         >
           {state.status === "loading" ? "Loading…" : "Refresh"}
         </button>
@@ -276,10 +276,10 @@ export function NewsFeedPanel() {
               key={i}
               className="border-charcoal-800 flex animate-pulse flex-col gap-1.5 border-b px-4 py-3"
             >
-              <div className="bg-charcoal-800 h-3.5 w-3/4 rounded" />
+              <div className="bg-charcoal-800 h-3.5 w-3/4 rounded-none" />
               <div className="flex gap-3">
-                <div className="bg-charcoal-800 h-2.5 w-1/3 rounded" />
-                <div className="bg-charcoal-800 ml-auto h-2.5 w-1/5 rounded" />
+                <div className="bg-charcoal-800 h-2.5 w-1/3 rounded-none" />
+                <div className="bg-charcoal-800 ml-auto h-2.5 w-1/5 rounded-none" />
               </div>
             </li>
           ))}
@@ -288,11 +288,11 @@ export function NewsFeedPanel() {
 
       {state.status === "error" ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center">
-          <p className="text-negative font-mono text-xs">{state.message}</p>
+          <p className="text-negative text-caption font-mono">{state.message}</p>
           <button
             type="button"
             onClick={refresh}
-            className="font-mono text-[11px] text-amber-400 transition-colors hover:text-amber-300"
+            className="text-micro font-mono text-amber-400 transition-colors hover:text-amber-300"
           >
             Retry
           </button>
@@ -303,15 +303,17 @@ export function NewsFeedPanel() {
         state.items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
             <Newspaper className="text-charcoal-600 size-8" />
-            <p className="text-charcoal-300 font-mono text-xs">No headlines for your watchlist.</p>
-            <p className="text-charcoal-500 font-mono text-[11px]">
+            <p className="text-charcoal-300 text-caption font-mono">
+              No headlines for your watchlist.
+            </p>
+            <p className="text-charcoal-500 text-micro font-mono">
               Add a NewsAPI key in Settings to pull live articles, or add more symbols to your
               watchlist.
             </p>
             <button
               type="button"
               onClick={refresh}
-              className="font-mono text-[11px] text-amber-400 transition-colors hover:text-amber-300"
+              className="text-micro font-mono text-amber-400 transition-colors hover:text-amber-300"
             >
               Refresh feed
             </button>

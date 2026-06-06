@@ -67,7 +67,7 @@ function ModeBadge({ mode }: { mode: ResearchBriefData["mode"] }) {
   const deep = mode === "DEEP";
   return (
     <span
-      className={`rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-medium tracking-wide uppercase ${
+      className={`rounded-control text-micro px-1.5 py-0.5 font-mono font-medium tracking-wide uppercase ${
         deep ? "bg-amber-600/25 text-amber-200" : "bg-charcoal-800 text-charcoal-300"
       }`}
       title={deep ? "Deep research run" : "Fast research run"}
@@ -117,7 +117,7 @@ function GoDeeper({ brief }: { brief: ResearchBriefData }) {
   if (!next) {
     return (
       <span
-        className="text-charcoal-500 ml-auto shrink-0 font-mono text-[10px]"
+        className="text-charcoal-500 text-micro ml-auto shrink-0 font-mono"
         title="This is the deepest research tier."
       >
         deepest
@@ -135,7 +135,7 @@ function GoDeeper({ brief }: { brief: ResearchBriefData }) {
       type="button"
       onClick={onGoDeeper}
       title={`Re-run this research at the ${next} tier, in place`}
-      className="border-charcoal-700 text-charcoal-300 hover:text-lume ml-auto flex shrink-0 items-center gap-1 rounded-md border px-2 py-0.5 font-mono text-[10px] transition-colors hover:border-amber-500/50"
+      className="border-charcoal-700 text-charcoal-300 hover:text-lume rounded-control text-micro ml-auto flex shrink-0 items-center gap-1 border px-2 py-0.5 font-mono transition-colors hover:border-amber-500/50"
     >
       <Telescope className="size-3" /> {NEXT_DEPTH_LABEL[next]}
     </button>
@@ -146,22 +146,22 @@ function MetaHeader({ brief }: { brief: ResearchBriefData }) {
   const tokens = brief.cost?.tokens;
   const spend = brief.cost?.spendUsd;
   return (
-    <header className="border-charcoal-700 flex flex-col gap-1.5 border-b px-4 py-2.5">
+    <header className="border-charcoal-700 flex flex-col gap-1.5 border-b px-4 py-3">
       <div className="flex items-center gap-2">
         <ModeBadge mode={brief.mode} />
         {brief.symbol ? (
-          <span className="font-mono text-[11px] font-medium text-amber-400">{brief.symbol}</span>
+          <span className="text-micro font-mono font-medium text-amber-400">{brief.symbol}</span>
         ) : null}
-        <span className="text-charcoal-500 font-mono text-[10px]">
+        <span className="text-charcoal-500 text-micro font-mono">
           {brief.sourceCount} source{brief.sourceCount === 1 ? "" : "s"}
         </span>
         {typeof tokens === "number" ? (
-          <span className="text-charcoal-500 font-mono text-[10px]" title={`${tokens} tokens`}>
+          <span className="text-charcoal-500 text-micro font-mono" title={`${tokens} tokens`}>
             · {formatTokens(tokens)} tok
           </span>
         ) : null}
         {typeof spend === "number" ? (
-          <span className="text-charcoal-500 font-mono text-[10px]">· {formatSpend(spend)}</span>
+          <span className="text-charcoal-500 text-micro font-mono">· {formatSpend(spend)}</span>
         ) : null}
         {/* In-place depth escalation — one research model, "go deeper" deepens the
             SAME run rather than spawning a parallel brief (FR-115). */}
@@ -178,7 +178,7 @@ function MetaHeader({ brief }: { brief: ResearchBriefData }) {
           <StalenessBadge freshness="eod" asOf={brief.createdAt} />
         ) : null}
       </div>
-      <h2 className="text-charcoal-100 font-serif text-sm leading-snug">{brief.query}</h2>
+      <h2 className="text-charcoal-100 text-panel-title leading-snug">{brief.query}</h2>
     </header>
   );
 }
@@ -204,7 +204,7 @@ function FaviconDot({ domain }: { domain: string }) {
       height={12}
       referrerPolicy="no-referrer"
       onError={() => setErrored(true)}
-      className="mt-1 size-3 shrink-0 rounded-[2px]"
+      className="rounded-control mt-1 size-3 shrink-0"
     />
   );
 }
@@ -224,7 +224,7 @@ const SOURCE_TYPE_LABEL: Record<BriefSourceType, string> = {
  */
 function SourceTypeBadge({ type }: { type: BriefSourceType }) {
   return (
-    <span className="border-charcoal-700 text-charcoal-400 bg-charcoal-850 shrink-0 rounded-sm border px-1.5 py-0.5 font-mono text-[11px] tracking-wide uppercase">
+    <span className="border-charcoal-700 text-charcoal-400 bg-charcoal-850 rounded-control text-micro shrink-0 border px-1.5 py-0.5 font-mono tracking-wide uppercase">
       {SOURCE_TYPE_LABEL[type]}
     </span>
   );
@@ -244,10 +244,10 @@ function SourceRow({
   return (
     <li
       ref={(el) => registerRef(index, el)}
-      className="border-charcoal-800 flex gap-2.5 border-b px-4 py-2.5 last:border-b-0 target:bg-amber-600/5"
+      className="border-charcoal-800 flex gap-2 border-b px-4 py-3 last:border-b-0 target:bg-amber-600/5"
       data-source-index={index}
     >
-      <span className="text-charcoal-500 w-4 shrink-0 pt-0.5 text-right font-mono text-[10px]">
+      <span className="text-charcoal-500 text-micro w-4 shrink-0 pt-0.5 text-right font-mono">
         {index}
       </span>
       <FaviconDot domain={domain} />
@@ -256,19 +256,19 @@ function SourceRow({
           href={source.url}
           target="_blank"
           rel="noreferrer"
-          className="text-charcoal-100 group inline-flex items-start gap-1 text-[12px] leading-snug transition-colors hover:text-amber-300"
+          className="text-charcoal-100 group text-caption inline-flex items-start gap-1 leading-snug transition-colors hover:text-amber-300"
         >
           <span className="min-w-0">{source.title || source.url}</span>
           <ExternalLink className="text-charcoal-600 mt-0.5 size-3 shrink-0 group-hover:text-amber-400" />
         </a>
         <div className="flex flex-wrap items-center gap-1.5">
           <SourceTypeBadge type={sourceType} />
-          <span className="text-charcoal-500 bg-charcoal-850 max-w-full truncate rounded-sm px-1 py-px font-mono text-[10px]">
+          <span className="text-charcoal-500 bg-charcoal-850 rounded-control text-micro max-w-full truncate px-1 py-px font-mono">
             {domain}
           </span>
         </div>
         {source.excerpt ? (
-          <p className="text-charcoal-400 line-clamp-3 text-[11px] leading-relaxed">
+          <p className="text-charcoal-400 text-micro line-clamp-3 leading-relaxed">
             {source.excerpt}
           </p>
         ) : null}
@@ -291,7 +291,7 @@ function StepLog({ steps }: { steps: BriefStep[] }) {
       {steps.map((step, i) => (
         <li
           key={i}
-          className="border-charcoal-850 flex items-center gap-2 border-b px-4 py-1.5 font-mono text-[10px] last:border-b-0"
+          className="border-charcoal-850 text-micro flex items-center gap-2 border-b px-4 py-1.5 font-mono last:border-b-0"
         >
           <span className={`shrink-0 ${STEP_STATUS_COLOR[step.status]}`} aria-hidden="true">
             ●
@@ -331,7 +331,7 @@ function Tray({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="text-charcoal-300 hover:text-charcoal-100 flex w-full items-center gap-1.5 px-4 py-2 font-mono text-[11px] tracking-wide uppercase transition-colors"
+        className="text-charcoal-300 hover:text-charcoal-100 text-micro flex w-full items-center gap-1.5 px-4 py-2 font-mono tracking-wide uppercase transition-colors"
       >
         {open ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
         {title}
@@ -350,8 +350,8 @@ function EmptyState() {
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col items-center justify-center gap-3 px-8 text-center">
       <FlaskConical className="text-charcoal-600 size-8" />
-      <p className="text-charcoal-300 font-mono text-xs">Ask JARVIS to research a company</p>
-      <p className="text-charcoal-500 max-w-xs font-mono text-[11px] leading-relaxed">
+      <p className="text-charcoal-300 text-caption font-mono">Ask JARVIS to research a company</p>
+      <p className="text-charcoal-500 text-micro max-w-xs font-mono leading-relaxed">
         Run a research query in the agent dock and the brief — with cited sources and a cost readout
         — lands here.
       </p>
@@ -452,7 +452,7 @@ export function BriefPanel() {
           type="button"
           title="Export Markdown"
           onClick={handleExportMd}
-          className="text-charcoal-400 hover:bg-charcoal-800 hover:text-charcoal-100 flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors"
+          className="text-charcoal-400 hover:bg-charcoal-800 hover:text-charcoal-100 rounded-control text-caption flex items-center gap-1.5 px-2 py-1 transition-colors"
         >
           <FileText className="size-3.5" /> MD
         </button>
@@ -460,7 +460,7 @@ export function BriefPanel() {
           type="button"
           title="Export PDF"
           onClick={handleExportPdf}
-          className="text-charcoal-400 hover:bg-charcoal-800 hover:text-charcoal-100 flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors"
+          className="text-charcoal-400 hover:bg-charcoal-800 hover:text-charcoal-100 rounded-control text-caption flex items-center gap-1.5 px-2 py-1 transition-colors"
         >
           <Printer className="size-3.5" /> PDF
         </button>
@@ -470,7 +470,7 @@ export function BriefPanel() {
           landed (the same affordance pattern as the Notes panel). */}
       {exportStatus ? (
         <div
-          className="text-charcoal-400 border-charcoal-800 bg-charcoal-925 truncate border-b px-3 py-1.5 font-mono text-[11px]"
+          className="text-charcoal-400 border-charcoal-800 bg-charcoal-925 text-micro truncate border-b px-3 py-1.5 font-mono"
           title={exportStatus}
         >
           {exportStatus}
@@ -485,18 +485,20 @@ export function BriefPanel() {
           {/* Honest no-web state: NOT an error, NOT empty — a prominent banner that
               the brief is structured-data-only, with the pipeline's note. */}
           {noWeb ? (
-            <div className="m-3 flex items-start gap-2.5 rounded-md border border-amber-600/40 bg-amber-600/10 px-3 py-2.5">
+            <div className="m-3 flex items-start gap-2 rounded-none border border-amber-600/40 bg-amber-600/10 px-3 py-3">
               <Globe className="mt-0.5 size-4 shrink-0 text-amber-300" />
               <div className="flex flex-col gap-0.5">
-                <p className="text-[12px] font-medium text-amber-200">Structured-data-only brief</p>
-                <p className="text-charcoal-300 text-[11px] leading-relaxed">
+                <p className="text-caption font-medium text-amber-200">
+                  Structured-data-only brief
+                </p>
+                <p className="text-charcoal-300 text-micro leading-relaxed">
                   {brief.note ??
                     "No web-search backend configured — this brief is built from structured data only."}
                 </p>
               </div>
             </div>
           ) : brief.note ? (
-            <p className="text-charcoal-400 border-charcoal-800 mx-4 mt-3 border-l-2 pl-3 text-[11px] leading-relaxed italic">
+            <p className="text-charcoal-400 border-charcoal-800 text-micro mx-4 mt-3 border-l-2 pl-3 leading-relaxed italic">
               {brief.note}
             </p>
           ) : null}

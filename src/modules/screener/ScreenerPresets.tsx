@@ -135,7 +135,7 @@ export function ScreenerPresets() {
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      <span className="text-muted-foreground inline-flex shrink-0 items-center gap-1 text-[10px] tracking-wide uppercase">
+      <span className="text-muted-foreground text-micro inline-flex shrink-0 items-center gap-1 tracking-wide uppercase">
         <Sparkles className="size-3 text-amber-400" /> Screens
       </span>
       {PRESETS.map((preset) => (
@@ -144,7 +144,7 @@ export function ScreenerPresets() {
           type="button"
           onClick={() => apply(preset)}
           title={preset.description}
-          className="border-border bg-background text-muted-foreground rounded-full border px-2.5 py-0.5 font-mono text-[11px] transition-colors hover:border-amber-500 hover:text-amber-300"
+          className="border-border bg-charcoal-850 text-muted-foreground rounded-control text-micro border px-2 py-0.5 transition-colors hover:border-amber-500 hover:text-amber-300"
         >
           {preset.label}
         </button>
