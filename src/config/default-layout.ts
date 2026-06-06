@@ -16,7 +16,7 @@ import type { DockviewApi, IDockviewPanel } from "dockview";
  * `panel.api.setSize`, which is the reliable pixel-precise resize path —
  * dockview's `addPanel({initialWidth,…})` redistributes proportionally as later
  * panels are added, so the final ratios don't match the per-panel initial
- * requests. We size the chart group to ~55% of the host width and the
+ * requests. We size the chart group to ~60% of the host width and the
  * right-column stack splits the remaining width. Users can drag freely after.
  */
 
@@ -58,7 +58,7 @@ const DEFAULT_PANELS: PlacedPanel[] = [
 ];
 
 /** Chart-group share of the cockpit width (chart-dominant; agent is the shell column). */
-const CHART_WIDTH_FRACTION = 0.55;
+const CHART_WIDTH_FRACTION = 0.6;
 /** Right-column panel share of the total host height (one-third per panel). */
 const RIGHT_COLUMN_PANEL_HEIGHT_FRACTION = 1 / 3;
 
