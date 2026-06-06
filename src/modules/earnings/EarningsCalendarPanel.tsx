@@ -5,6 +5,8 @@ import React from "react";
 import { Calendar, ChevronDown, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/EmptyState";
+import { formatPrice } from "@/lib/format";
 import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
 import { useEarningsStore } from "@/store/earnings";
 
@@ -28,12 +30,10 @@ const TIME_OF_DAY_LABEL: Record<string, string> = {
   unknown: "—",
 };
 
+/** A bare EPS / dispersion figure — routed through the single price formatter. */
 function fmt(value: number | null, digits = 2): string {
   if (value === null) return "—";
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
+  return formatPrice(value, digits);
 }
 
 function fmtDate(iso: string): string {
@@ -158,7 +158,7 @@ export function EarningsCalendarPanel() {
         onSubmit={handleApply}
         className="border-charcoal-700 flex flex-wrap items-center gap-2 border-b p-3"
       >
-        <label className="text-charcoal-300 font-mono text-xs">
+        <label className="text-charcoal-300 text-caption">
           Window (days)
           <input
             type="number"
@@ -166,18 +166,18 @@ export function EarningsCalendarPanel() {
             max={60}
             value={daysDraft}
             onChange={(e) => setDaysDraft(e.target.value)}
-            className="bg-charcoal-800 text-charcoal-100 ml-2 h-7 w-16 rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 text-body ml-2 h-9 w-16 rounded-md px-3 tabular-nums outline-none focus:ring-1 focus:ring-amber-400"
             aria-label="Window in days"
           />
         </label>
-        <label className="text-charcoal-300 flex-1 font-mono text-xs">
+        <label className="text-charcoal-300 text-caption flex-1">
           Watchlist (comma-separated)
           <input
             type="text"
             value={watchlistDraft}
             onChange={(e) => setWatchlistDraft(e.target.value)}
             placeholder="AAPL, MSFT, NVDA"
-            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 ml-2 h-7 w-full max-w-xs rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 text-body ml-2 h-9 w-full max-w-xs rounded-md px-3 outline-none focus:ring-1 focus:ring-amber-400"
             aria-label="Watchlist"
           />
         </label>
@@ -189,7 +189,7 @@ export function EarningsCalendarPanel() {
 
       {upcomingError !== null && (
         <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
-          <span className="text-negative font-mono text-xs">{upcomingError}</span>
+          <span className="text-negative text-caption">{upcomingError}</span>
           <Button
             type="button"
             size="sm"
@@ -249,28 +249,25 @@ export function EarningsCalendarPanel() {
             </tbody>
           </table>
         ) : upcomingStatus === "error" ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-            <p className="text-negative font-mono text-xs">Could not load earnings calendar.</p>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              className="text-amber-300 hover:text-amber-200"
-              onClick={() => {
+          <EmptyState
+            icon={Calendar}
+            headline="Could not load earnings calendar"
+            hint="The calendar fetch failed. Retry — if it persists, narrow the window or check the data engine."
+            cta={{
+              label: "Retry",
+              primary: true,
+              onClick: () => {
                 userInteractedRef.current = true;
                 void loadUpcoming(lastDays, lastWatchlist);
-              }}
-            >
-              Retry
-            </Button>
-          </div>
+              },
+            }}
+          />
         ) : sortedEvents.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-            <Calendar className="text-charcoal-600 size-8" />
-            <p className="text-charcoal-400 font-mono text-xs">
-              No upcoming earnings in this window.
-            </p>
-          </div>
+          <EmptyState
+            icon={Calendar}
+            headline="No upcoming earnings"
+            hint="No companies report in this window. Widen the day range or clear the watchlist filter."
+          />
         ) : (
           <table className="w-full table-fixed border-collapse">
             <colgroup>
@@ -283,7 +280,7 @@ export function EarningsCalendarPanel() {
               <col style={{ width: "12%" }} />
             </colgroup>
             <thead>
-              <tr className="text-charcoal-400 border-charcoal-800 border-b text-left font-mono text-[0.6rem] uppercase">
+              <tr className="border-charcoal-800 border-b text-left">
                 <th aria-hidden className="px-1 py-1.5" />
                 <SortableHeader
                   label="Symbol"
@@ -331,7 +328,7 @@ export function EarningsCalendarPanel() {
                           current === event.symbol ? null : event.symbol,
                         )
                       }
-                      className="border-charcoal-800 hover:bg-charcoal-800 cursor-pointer border-b font-mono text-xs"
+                      className="border-charcoal-800 hover:bg-charcoal-800/50 text-body cursor-pointer border-b"
                       data-testid={`earnings-row-${event.symbol}`}
                     >
                       <td className="text-charcoal-400 px-1 py-1.5">
@@ -341,7 +338,7 @@ export function EarningsCalendarPanel() {
                           <ChevronRight className="size-3" />
                         )}
                       </td>
-                      <td className="px-3 py-1.5 font-semibold text-amber-400">{event.symbol}</td>
+                      <td className="px-3 py-1.5 font-medium text-amber-300">{event.symbol}</td>
                       <td className="text-charcoal-100 px-3 py-1.5">
                         {fmtDate(event.scheduled_date)}
                       </td>
@@ -354,10 +351,10 @@ export function EarningsCalendarPanel() {
                       <td className="text-charcoal-200 px-3 py-1.5">
                         {TIME_OF_DAY_LABEL[event.time_of_day] ?? event.time_of_day}
                       </td>
-                      <td className="text-charcoal-100 px-3 py-1.5 text-right">
+                      <td className="text-charcoal-100 px-3 py-1.5 text-right tabular-nums">
                         {fmt(event.eps_estimate_mean)}
                       </td>
-                      <td className="text-charcoal-200 px-3 py-1.5 text-right">
+                      <td className="text-charcoal-200 px-3 py-1.5 text-right tabular-nums">
                         {fmt(event.eps_estimate_stddev, 3)} / {event.estimate_analyst_count}
                       </td>
                     </tr>
@@ -366,17 +363,17 @@ export function EarningsCalendarPanel() {
                         <td colSpan={7} className="bg-charcoal-950 px-4 py-3">
                           <div className="flex flex-col gap-3">
                             <div className="flex flex-col gap-1">
-                              <h4 className="text-charcoal-200 font-mono text-xs uppercase">
+                              <h4 className="text-charcoal-200 text-micro">
                                 {event.symbol} — Last quarters&apos; surprises
                               </h4>
                               {surpriseErrors[event.symbol] ? (
                                 <div className="flex items-center gap-2">
-                                  <span className="text-negative font-mono text-xs">
+                                  <span className="text-negative text-caption">
                                     {surpriseErrors[event.symbol]}
                                   </span>
                                   <button
                                     type="button"
-                                    className="font-mono text-xs text-amber-400 underline"
+                                    className="text-caption text-amber-300 underline"
                                     onClick={() => void getSurprises(event.symbol)}
                                   >
                                     Retry
@@ -398,17 +395,17 @@ export function EarningsCalendarPanel() {
                               )}
                             </div>
                             <div className="flex flex-col gap-1">
-                              <h4 className="text-charcoal-200 font-mono text-xs uppercase">
+                              <h4 className="text-charcoal-200 text-micro">
                                 Next-quarter estimate detail
                               </h4>
                               {estimateErrors[event.symbol] ? (
                                 <div className="flex items-center gap-2">
-                                  <span className="text-negative font-mono text-xs">
+                                  <span className="text-negative text-caption">
                                     {estimateErrors[event.symbol]}
                                   </span>
                                   <button
                                     type="button"
-                                    className="font-mono text-xs text-amber-400 underline"
+                                    className="text-caption text-amber-300 underline"
                                     onClick={() => void getEstimates(event.symbol)}
                                   >
                                     Retry
@@ -428,7 +425,7 @@ export function EarningsCalendarPanel() {
                               )}
                             </div>
                             {histories[event.symbol] !== undefined && (
-                              <p className="text-charcoal-500 font-mono text-[0.65rem]">
+                              <p className="text-charcoal-500 text-micro">
                                 History rows cached: {histories[event.symbol]?.history.length ?? 0}
                               </p>
                             )}
@@ -464,9 +461,9 @@ function SortableHeader({
 }) {
   return (
     <th
-      className={`px-3 py-1.5 font-medium ${align === "right" ? "text-right" : "text-left"} ${
-        disabled ? "cursor-default" : "cursor-pointer"
-      }`}
+      className={`text-micro text-charcoal-400 px-3 py-1.5 ${
+        align === "right" ? "text-right" : "text-left"
+      } ${disabled ? "cursor-default" : "hover:text-charcoal-200 cursor-pointer select-none"}`}
       onClick={disabled ? undefined : onSort}
       aria-sort={active ? (direction === "asc" ? "ascending" : "descending") : "none"}
     >
