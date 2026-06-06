@@ -263,6 +263,13 @@ exchange_request_token` via `kiteconnect.generate_session` → `POST /brokers/ki
   ABC change); every result carries the FR-041 provenance label (`synthetic`/`mode`/`provider`)
   so paper/synthetic values are badged. Adding granular reads to an adapter = add the `*_info`
   method only; the route + frontend `BrokerReadsSection` pick it up by duck-type.
+- **macOS keychain re-prompts on every `tauri dev` rebuild** because `tauri dev` never invokes
+  the signing step — the dev binary is unsigned/ad-hoc each time, so the keychain ACL (which
+  trusts one designated requirement) invalidates. Fix (outside Tier-1 `tauri.conf.json`): create
+  a 5-yr self-signed cert "Vysted Terminal Dev Signing", run `scripts/macos-dev-setup.sh` once
+  (sets the partition list), then launch via `pnpm tauri:dev` which re-signs the debug binary on
+  each hot-reload with that stable identity. One "Always Allow" then persists. Secrets stay
+  keychain-only. Runbook: `docs/redesign/KEYCHAIN_DEV_SIGNING.md`.
 
 ### Versioning & process
 

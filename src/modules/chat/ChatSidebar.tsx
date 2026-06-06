@@ -178,7 +178,7 @@ function MessageBody({
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="text-charcoal-400 ml-1.5 align-baseline text-[0.65rem] underline transition-colors hover:text-amber-300"
+          className="text-charcoal-400 text-caption ml-1.5 align-baseline underline transition-colors hover:text-amber-300"
         >
           {collapsed ? "show full analysis" : "show less"}
         </button>
@@ -902,7 +902,7 @@ export function ChatSidebar() {
                     : "text-charcoal-100 border-amber-600/30 bg-amber-500/10",
                 )}
               >
-                <div className="text-charcoal-400 mb-1 text-[0.6rem] tracking-wide uppercase">
+                <div className="text-charcoal-400 text-micro mb-1">
                   {message.role === "user"
                     ? "You"
                     : message.agentId
@@ -922,7 +922,7 @@ export function ChatSidebar() {
                     {message.toolSteps.map((step, i) => (
                       <li
                         key={i}
-                        className="text-charcoal-400 flex items-center gap-1 text-[0.6rem]"
+                        className="text-charcoal-400 text-caption flex items-center gap-1"
                       >
                         <span className="text-amber-400">→</span> {step}
                       </li>
@@ -935,7 +935,7 @@ export function ChatSidebar() {
                   briefPublished={message.briefPublished}
                 />
                 {message.error && (
-                  <div className="mt-1 flex items-center gap-2 text-[0.65rem]">
+                  <div className="text-caption mt-1 flex items-center gap-2">
                     <span className="text-negative">Something went wrong — {message.error}</span>
                     {lastPrompt && (
                       <button
@@ -964,7 +964,7 @@ export function ChatSidebar() {
             exit={{ height: 0, opacity: 0 }}
             style={{ overflow: "hidden" }}
             transition={tween(0.16)}
-            className="border-charcoal-700 text-charcoal-300 border-t px-3 py-1 font-mono text-[0.65rem] whitespace-pre-line"
+            className="border-charcoal-700 text-charcoal-300 text-caption border-t px-3 py-1 font-mono whitespace-pre-line"
           >
             {statusLine}
           </motion.div>
