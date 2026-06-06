@@ -8,6 +8,7 @@ import {
   formatPrice,
   formatSignedMoney,
   formatUnit,
+  groupDigits,
 } from "./format";
 
 describe("formatMoney", () => {
@@ -96,6 +97,22 @@ describe("formatUnit", () => {
   });
   it("honours an explicit decimal precision", () => {
     expect(formatUnit(1_234_000, 1)).toBe("1.2M");
+  });
+});
+
+describe("groupDigits", () => {
+  it("groups a precision-string without parsing to a (lossy) number", () => {
+    // Larger than Number.MAX_SAFE_INTEGER — must NOT round-trip through Number.
+    expect(groupDigits("90071992547409910")).toBe("90,071,992,547,409,910");
+    expect(groupDigits("1500")).toBe("1,500");
+    expect(groupDigits("-2500000")).toBe("-2,500,000");
+    expect(groupDigits("1234.56")).toBe("1,234.56");
+  });
+  it("passes a non-numeric string through and degrades empty/null to em-dash", () => {
+    expect(groupDigits("n/a")).toBe("n/a");
+    expect(groupDigits("")).toBe("—");
+    expect(groupDigits(null)).toBe("—");
+    expect(groupDigits(undefined)).toBe("—");
   });
 });
 

@@ -1,17 +1,21 @@
 "use client";
 
 /**
- * InsiderTradingTable — Forms 3/4/5 transactions for an issuer.
+ * InsiderTradingTable — Forms 3/4/5 transactions for an issuer, on the shared
+ * DataTable.
  *
- * Reads from `useSecStore.insiderByIdentifier`. XBRL-precise numeric
- * fields (shares / price / value) are typed as strings to preserve
- * precision; this table renders them as the strings the wire carries
- * with light grouping for readability.
+ * Reads from `useSecStore.insiderByIdentifier`. XBRL-precise numeric fields
+ * (shares / price / value) are typed as strings to preserve precision; this table
+ * groups their digits via `groupDigits` (never parsing to a lossy Number).
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { Users2 } from "lucide-react";
 
+import { DataTable, type DataColumn } from "@/components/DataTable";
+import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
+import { groupDigits } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { selectInsider, useSecStore } from "@/store/sec";
 
@@ -22,6 +26,73 @@ interface InsiderTradingTableProps {
 }
 
 type FormFilter = "all" | "3" | "4" | "5";
+
+const COLUMNS: DataColumn<InsiderTransaction>[] = [
+  {
+    key: "transaction_date",
+    header: "Date",
+    tier: "secondary",
+    width: "10ch",
+    format: (t) => t.transaction_date,
+  },
+  {
+    key: "reporter_name",
+    header: "Reporter",
+    truncate: true,
+    width: "14ch",
+    format: (t) => t.reporter_name,
+  },
+  {
+    key: "reporter_title",
+    header: "Title",
+    tier: "secondary",
+    truncate: true,
+    width: "10ch",
+    format: (t) => t.reporter_title ?? null,
+  },
+  { key: "form_type", header: "Form", tier: "secondary", width: "4ch", format: (t) => t.form_type },
+  {
+    key: "transaction_code",
+    header: "Code",
+    tier: "secondary",
+    width: "4ch",
+    format: (t) => t.transaction_code || null,
+  },
+  {
+    key: "direction",
+    header: "Direction",
+    width: "8ch",
+    cell: (t) => (
+      <span
+        className={cn("capitalize", t.direction === "disposed" ? "text-negative" : "text-positive")}
+      >
+        {t.direction}
+      </span>
+    ),
+  },
+  {
+    key: "shares",
+    header: "Shares",
+    numeric: true,
+    width: "10ch",
+    format: (t) => groupDigits(t.shares),
+  },
+  {
+    key: "price_per_share",
+    header: "Price",
+    numeric: true,
+    tier: "secondary",
+    width: "8ch",
+    format: (t) => (t.price_per_share ? groupDigits(t.price_per_share) : null),
+  },
+  {
+    key: "transaction_value",
+    header: "Value",
+    numeric: true,
+    width: "12ch",
+    format: (t) => (t.transaction_value ? groupDigits(t.transaction_value) : null),
+  },
+];
 
 export function InsiderTradingTable({ identifier }: InsiderTradingTableProps) {
   const [form, setForm] = useState<FormFilter>("4");
@@ -52,9 +123,12 @@ export function InsiderTradingTable({ identifier }: InsiderTradingTableProps) {
   if (!identifier) {
     return (
       <div className="flex h-full flex-col" data-testid="insider-trading-table">
-        <div className="text-charcoal-400 flex flex-1 items-center justify-center px-6 text-center font-mono text-xs">
-          Enter a ticker in the Symbol field above to load insider transactions.
-        </div>
+        <EmptyState
+          icon={Users2}
+          headline="No issuer selected"
+          hint="Enter a ticker in the Symbol field above to load insider transactions."
+          dense
+        />
       </div>
     );
   }
@@ -62,12 +136,12 @@ export function InsiderTradingTable({ identifier }: InsiderTradingTableProps) {
   return (
     <div className="flex h-full flex-col" data-testid="insider-trading-table">
       <header className="border-charcoal-700 flex items-center gap-3 border-b px-3 py-2">
-        <label className="flex items-center gap-1.5 text-[10px] uppercase">
+        <label className="text-micro flex items-center gap-1.5">
           <span className="text-charcoal-400">Form</span>
           <select
             value={form}
             onChange={(e) => setForm(e.target.value as FormFilter)}
-            className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-md border px-1.5 py-0.5 text-xs"
+            className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 text-caption rounded-md border px-1.5 py-0.5"
             data-testid="insider-form-filter"
           >
             <option value="all">All</option>
@@ -76,10 +150,10 @@ export function InsiderTradingTable({ identifier }: InsiderTradingTableProps) {
             <option value="5">5 — deferred</option>
           </select>
         </label>
-        <span className="text-charcoal-400 text-[10px]">
+        <span className="text-charcoal-400 text-micro tabular-nums">
           {response.transactions.length} transactions
         </span>
-        {status === "loading" && <span className="text-charcoal-400 text-[10px]">Loading…</span>}
+        {status === "loading" && <span className="text-charcoal-400 text-micro">Loading…</span>}
       </header>
 
       <div
@@ -93,7 +167,7 @@ export function InsiderTradingTable({ identifier }: InsiderTradingTableProps) {
             className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2"
             data-testid="insider-error"
           >
-            <span className="text-negative font-mono text-[11px]">
+            <span className="text-negative text-caption">
               Could not load insider data — {error}
             </span>
             <Button
@@ -106,85 +180,14 @@ export function InsiderTradingTable({ identifier }: InsiderTradingTableProps) {
             </Button>
           </div>
         )}
-        <table className="w-full table-fixed text-[11px]">
-          <colgroup>
-            <col className="w-[10ch]" />
-            <col className="w-[14ch]" />
-            <col className="w-[10ch]" />
-            <col className="w-[4ch]" />
-            <col className="w-[4ch]" />
-            <col className="w-[8ch]" />
-            <col className="w-[10ch]" />
-            <col className="w-[8ch]" />
-            <col className="w-[12ch]" />
-          </colgroup>
-          <thead className="text-charcoal-400 bg-charcoal-900 sticky top-0 text-left text-[10px] uppercase">
-            <tr>
-              <th className="px-2 py-1">Date</th>
-              <th className="px-2 py-1">Reporter</th>
-              <th className="px-2 py-1">Title</th>
-              <th className="px-2 py-1">Form</th>
-              <th className="px-2 py-1">Code</th>
-              <th className="px-2 py-1">Direction</th>
-              <th className="px-2 py-1 text-right">Shares</th>
-              <th className="px-2 py-1 text-right">Price</th>
-              <th className="px-2 py-1 text-right">Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            {response.transactions.map((txn) => (
-              <InsiderRow
-                key={`${txn.accession}-${txn.reporter_cik}-${txn.transaction_date}`}
-                txn={txn}
-              />
-            ))}
-          </tbody>
-        </table>
+        <DataTable
+          columns={COLUMNS}
+          rows={response.transactions}
+          rowKey={(t) => `${t.accession}-${t.reporter_cik}-${t.transaction_date}`}
+          rowTestId={(t) => `insider-row-${t.accession}-${t.reporter_cik}`}
+          stickyHeader
+        />
       </div>
     </div>
   );
-}
-
-interface InsiderRowProps {
-  txn: InsiderTransaction;
-}
-
-function InsiderRow({ txn }: InsiderRowProps) {
-  const directionColor = txn.direction === "disposed" ? "text-negative" : "text-positive";
-  return (
-    <tr
-      data-testid={`insider-row-${txn.accession}-${txn.reporter_cik}`}
-      className="border-charcoal-800 border-b"
-    >
-      <td className="text-charcoal-200 px-2 py-1">{txn.transaction_date}</td>
-      <td className="text-charcoal-100 truncate px-2 py-1" title={txn.reporter_name}>
-        {txn.reporter_name}
-      </td>
-      <td className="text-charcoal-300 truncate px-2 py-1" title={txn.reporter_title ?? ""}>
-        {txn.reporter_title ?? "—"}
-      </td>
-      <td className="text-charcoal-200 px-2 py-1">{txn.form_type}</td>
-      <td className="text-charcoal-400 px-2 py-1 font-mono">{txn.transaction_code || "—"}</td>
-      <td className={cn("px-2 py-1 capitalize", directionColor)}>{txn.direction}</td>
-      <td className="text-charcoal-100 px-2 py-1 text-right font-mono">
-        {formatBigInt(txn.shares)}
-      </td>
-      <td className="text-charcoal-200 px-2 py-1 text-right font-mono">
-        {txn.price_per_share ?? "—"}
-      </td>
-      <td className="text-charcoal-100 px-2 py-1 text-right font-mono">
-        {txn.transaction_value ? formatBigInt(txn.transaction_value) : "—"}
-      </td>
-    </tr>
-  );
-}
-
-/** Light-touch big-int formatter — adds thousands separators if safe. */
-function formatBigInt(raw: string): string {
-  if (!raw) return "—";
-  const trimmed = raw.trim();
-  if (!/^-?\d+(\.\d+)?$/.test(trimmed)) return trimmed;
-  const [intPart, frac] = trimmed.split(".");
-  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return frac ? `${withCommas}.${frac}` : withCommas;
 }

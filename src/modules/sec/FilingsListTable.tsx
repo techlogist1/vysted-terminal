@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * FilingsListTable — sortable table of filings.
+ * FilingsListTable — sortable table of filings on the shared DataTable.
  *
  * Clicking a row asks the parent to open the FilingViewer (passes the
  * accession + the current identifier). Form-type column is colour-coded
@@ -9,12 +9,16 @@
  */
 
 import { useMemo, useState } from "react";
+import { FileText } from "lucide-react";
 
+import { DataTable, type DataColumn, type DataTableSort } from "@/components/DataTable";
+import { EmptyState } from "@/components/EmptyState";
 import { cn } from "@/lib/utils";
 
 import type { Filing } from "../../../types/sec";
 
 type SortKey = "filed_date" | "form_type" | "period_of_report";
+type ColumnKey = SortKey | "company_name" | "accession";
 type SortDir = "asc" | "desc";
 
 const FORM_COLOR: Record<string, string> = {
@@ -26,6 +30,50 @@ const FORM_COLOR: Record<string, string> = {
   "4": "text-charcoal-300",
   "5": "text-charcoal-300",
 };
+
+const COLUMNS: DataColumn<Filing, ColumnKey>[] = [
+  {
+    key: "form_type",
+    header: "Form",
+    sortable: true,
+    width: "10ch",
+    cell: (f) => (
+      <span className={cn("font-medium", FORM_COLOR[f.form_type] ?? "text-charcoal-100")}>
+        {f.form_type}
+      </span>
+    ),
+  },
+  {
+    key: "filed_date",
+    header: "Filed",
+    sortable: true,
+    tier: "secondary",
+    width: "12ch",
+    format: (f) => f.filed_date,
+  },
+  {
+    key: "period_of_report",
+    header: "Period",
+    sortable: true,
+    tier: "secondary",
+    width: "14ch",
+    format: (f) => f.period_of_report ?? null,
+  },
+  {
+    key: "company_name",
+    header: "Company",
+    truncate: true,
+    format: (f) => f.company_name,
+  },
+  {
+    key: "accession",
+    header: "Accession",
+    tier: "tertiary",
+    truncate: true,
+    width: "26ch",
+    format: (f) => f.accession,
+  },
+];
 
 interface FilingsListTableProps {
   filings: ReadonlyArray<Filing>;
@@ -49,7 +97,9 @@ export function FilingsListTable({ filings, selectedAccession, onSelect }: Filin
     return copy;
   }, [filings, sortKey, sortDir]);
 
-  function toggleSort(key: SortKey) {
+  // Company / Accession are display-only — a click on them is a no-op.
+  function toggleSort(key: ColumnKey) {
+    if (key !== "filed_date" && key !== "form_type" && key !== "period_of_report") return;
     if (sortKey === key) {
       setSortDir(sortDir === "asc" ? "desc" : "asc");
     } else {
@@ -58,110 +108,30 @@ export function FilingsListTable({ filings, selectedAccession, onSelect }: Filin
     }
   }
 
+  const sort: DataTableSort<ColumnKey> = { key: sortKey, direction: sortDir };
+
   return (
     <div className="h-full overflow-y-auto" data-testid="filings-list-table">
-      <table className="w-full table-fixed text-[11px]">
-        <colgroup>
-          <col className="w-[10ch]" />
-          <col className="w-[12ch]" />
-          <col className="w-[14ch]" />
-          <col />
-          <col className="w-[26ch]" />
-        </colgroup>
-        <thead className="text-charcoal-400 bg-charcoal-900 sticky top-0 text-left text-[10px] uppercase">
-          <tr>
-            <th className="px-2 py-1">
-              <SortableHeader
-                label="Form"
-                active={sortKey === "form_type"}
-                dir={sortDir}
-                onClick={() => toggleSort("form_type")}
-              />
-            </th>
-            <th className="px-2 py-1">
-              <SortableHeader
-                label="Filed"
-                active={sortKey === "filed_date"}
-                dir={sortDir}
-                onClick={() => toggleSort("filed_date")}
-              />
-            </th>
-            <th className="px-2 py-1">
-              <SortableHeader
-                label="Period"
-                active={sortKey === "period_of_report"}
-                dir={sortDir}
-                onClick={() => toggleSort("period_of_report")}
-              />
-            </th>
-            <th className="px-2 py-1">Company</th>
-            <th className="px-2 py-1">Accession</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.length === 0 && (
-            <tr>
-              <td colSpan={5} className="text-charcoal-400 px-3 py-6 text-center font-mono text-xs">
-                No filings match this filter. Try &ldquo;All forms&rdquo; or a different symbol.
-              </td>
-            </tr>
-          )}
-          {sorted.map((filing) => (
-            <tr
-              key={filing.accession}
-              data-testid={`filings-row-${filing.accession}`}
-              className={cn(
-                "border-charcoal-800 hover:bg-charcoal-800 cursor-pointer border-b",
-                selectedAccession === filing.accession && "bg-charcoal-800",
-              )}
-              onClick={() => onSelect(filing)}
-            >
-              <td
-                className={cn(
-                  "px-2 py-1 font-semibold",
-                  FORM_COLOR[filing.form_type] ?? "text-charcoal-100",
-                )}
-              >
-                {filing.form_type}
-              </td>
-              <td className="text-charcoal-200 px-2 py-1">{filing.filed_date}</td>
-              <td className="text-charcoal-300 px-2 py-1">{filing.period_of_report ?? "—"}</td>
-              <td className="text-charcoal-100 truncate px-2 py-1" title={filing.company_name}>
-                {filing.company_name}
-              </td>
-              <td
-                className="text-charcoal-500 truncate px-2 py-1 font-mono"
-                title={filing.accession}
-              >
-                {filing.accession}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-interface SortableHeaderProps {
-  label: string;
-  active: boolean;
-  dir: SortDir;
-  onClick: () => void;
-}
-
-function SortableHeader({ label, active, dir, onClick }: SortableHeaderProps) {
-  return (
-    <button
-      type="button"
-      className={cn(
-        "hover:text-charcoal-200 flex items-center gap-1",
-        active ? "text-charcoal-200" : "text-charcoal-400",
+      {sorted.length === 0 ? (
+        <EmptyState
+          icon={FileText}
+          headline="No filings match"
+          hint='Try "All forms" or a different symbol to widen the search.'
+          dense
+        />
+      ) : (
+        <DataTable
+          columns={COLUMNS}
+          rows={sorted}
+          rowKey={(f) => f.accession}
+          sort={sort}
+          onSort={toggleSort}
+          stickyHeader
+          onRowClick={onSelect}
+          isRowSelected={(f) => f.accession === selectedAccession}
+          rowTestId={(f) => `filings-row-${f.accession}`}
+        />
       )}
-      onClick={onClick}
-    >
-      <span>{label}</span>
-      {active && <span aria-hidden>{dir === "asc" ? "▲" : "▼"}</span>}
-    </button>
+    </div>
   );
 }

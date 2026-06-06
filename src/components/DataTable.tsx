@@ -104,6 +104,8 @@ interface DataTableProps<R, K extends string> {
   isRowSelected?: (row: R) => boolean;
   /** Extra per-row className (tick-flash, hover overrides). */
   rowClassName?: (row: R) => string | undefined;
+  /** Per-row `data-testid` (e.g. `filings-row-<accession>`) for targeted tests. */
+  rowTestId?: (row: R) => string | undefined;
   /** Current sort + the setter (clicking a sortable header). */
   sort?: DataTableSort<K>;
   onSort?: (key: K) => void;
@@ -178,6 +180,7 @@ export function DataTable<R, K extends string = string>({
   onRowClick,
   isRowSelected,
   rowClassName,
+  rowTestId,
   sort,
   onSort,
   stickyHeader = false,
@@ -194,6 +197,7 @@ export function DataTable<R, K extends string = string>({
     return (
       <tr
         key={rowKey(row, index)}
+        data-testid={rowTestId?.(row)}
         onClick={onRowClick ? () => onRowClick(row) : undefined}
         className={cn(
           "border-charcoal-800 border-b",

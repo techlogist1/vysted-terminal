@@ -176,3 +176,24 @@ export function formatUnit(value: number, dp = 2): string {
   }
   return `${sign}${abs.toLocaleString(activeLocale(), { maximumFractionDigits: dp })}`;
 }
+
+/**
+ * Group the digits of an ARBITRARY-PRECISION numeric STRING with thousands
+ * separators WITHOUT parsing to a (lossy) JS number — XBRL / SEC share counts and
+ * dollar values overflow `Number.MAX_SAFE_INTEGER`, so they ride the wire as
+ * strings and must never round-trip through `Number`. A non-numeric string passes
+ * through unchanged; an empty string degrades to "—". This is the single
+ * precision-safe string grouper (formerly the SEC table's local `formatBigInt`).
+ */
+export function groupDigits(raw: string | null | undefined): string {
+  if (raw === null || raw === undefined) return "—";
+  const trimmed = raw.trim();
+  if (trimmed === "") return "—";
+  if (!/^-?\d+(\.\d+)?$/.test(trimmed)) return trimmed;
+  const negative = trimmed.startsWith("-");
+  const unsigned = negative ? trimmed.slice(1) : trimmed;
+  const [intPart, frac] = unsigned.split(".");
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const grouped = frac ? `${withCommas}.${frac}` : withCommas;
+  return negative ? `-${grouped}` : grouped;
+}
