@@ -99,7 +99,7 @@ export function SuggestionChips() {
   return (
     <div
       aria-label="Suggested prompts"
-      className="flex flex-wrap items-center justify-center gap-2"
+      className="flex w-full max-w-xs flex-col items-stretch gap-2"
     >
       {suggestions.map((s) => (
         <button
@@ -109,7 +109,7 @@ export function SuggestionChips() {
           title={s.prompt}
           className={cn(
             "border-charcoal-700 bg-charcoal-850 text-charcoal-300",
-            "rounded-md border px-3 py-2 text-left text-sm transition-colors",
+            "text-body w-full rounded-md border px-3 py-2 text-left transition-colors",
             "hover:border-charcoal-600 hover:text-charcoal-100 hover:bg-charcoal-800",
             "focus-visible:ring-1 focus-visible:ring-amber-400 focus-visible:outline-none",
           )}

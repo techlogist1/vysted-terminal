@@ -82,7 +82,7 @@ function AutonomyToggle() {
           ? "Auto-apply: UI / layout / chart / watchlist changes apply without a per-action confirmation. Orders ALWAYS route through the confirm-before-place dialog."
           : "Ask: every proposed change waits for your accept in the diff gate."
       }
-      className="border-charcoal-700 flex h-8 shrink-0 items-stretch overflow-hidden rounded-md border font-mono text-xs"
+      className="border-charcoal-700 flex h-9 shrink-0 items-stretch overflow-hidden rounded-md border font-mono text-xs"
     >
       {(["ask", "auto"] as const).map((level) => (
         <button
@@ -827,14 +827,14 @@ export function ChatSidebar() {
             <div
               key={s.id}
               className={cn(
-                "flex shrink-0 items-center rounded font-mono text-[0.65rem]",
+                "text-caption flex shrink-0 items-center rounded font-mono",
                 active ? "bg-charcoal-800 text-charcoal-100" : "text-charcoal-400",
               )}
             >
               <button
                 type="button"
                 onClick={() => switchSpace(s.id)}
-                className={cn("max-w-[10rem] truncate px-2 py-0.5 transition-colors", {
+                className={cn("max-w-[10rem] truncate px-2 py-1 transition-colors", {
                   "hover:text-lume": !active,
                 })}
                 title={s.title}
@@ -846,7 +846,7 @@ export function ChatSidebar() {
                   type="button"
                   onClick={() => closeSpace(s.id)}
                   aria-label={`Close ${s.title}`}
-                  className="text-charcoal-500 hover:text-negative px-1 transition-colors"
+                  className="text-charcoal-500 hover:text-negative px-1 py-1 transition-colors"
                 >
                   ×
                 </button>
@@ -859,7 +859,7 @@ export function ChatSidebar() {
           onClick={newSpace}
           aria-label="New chat space"
           title="New chat space"
-          className="text-charcoal-400 shrink-0 rounded px-1.5 py-0.5 transition-colors hover:text-amber-300"
+          className="text-charcoal-400 shrink-0 rounded px-2 py-1 transition-colors hover:text-amber-300"
         >
           <Plus className="size-3" />
         </button>
@@ -1070,7 +1070,7 @@ interface AgentPickerProps {
  *  carries a shared-layout pill so switching animates between the two. */
 function ModeSwitch({ mode, onChange }: { mode: AgentMode; onChange: (mode: AgentMode) => void }) {
   return (
-    <div role="tablist" aria-label="Agent mode" className="flex shrink-0 items-center gap-0.5">
+    <div role="tablist" aria-label="Agent mode" className="flex shrink-0 items-center gap-2">
       {AGENT_MODES.map((m) => {
         const active = m.id === mode;
         return (
@@ -1082,7 +1082,7 @@ function ModeSwitch({ mode, onChange }: { mode: AgentMode; onChange: (mode: Agen
             title={`${m.hint} (${m.hotkeyLabel})`}
             onClick={() => onChange(m.id)}
             className={cn(
-              "relative flex h-8 items-center rounded-md px-3 font-mono text-xs transition-colors",
+              "relative flex h-9 items-center rounded-md px-3 font-mono text-xs transition-colors",
               active ? "text-amber-300" : "text-charcoal-400 hover:text-lume",
             )}
           >
@@ -1115,14 +1115,14 @@ function PersonaSelect({ firstParty, custom, activeAgentId, onChange }: AgentPic
   return (
     <div
       aria-label="Persona roster"
-      className="text-charcoal-400 flex min-w-0 shrink items-center gap-1.5 font-mono text-xs"
+      className="text-charcoal-500 flex min-w-0 shrink items-center gap-2 font-mono text-xs"
     >
       <span className="shrink-0 tracking-wide uppercase">Lens</span>
       <select
         aria-label="Active persona"
         value={activeAgentId ?? DEFAULT_AGENT_ID}
         onChange={(event) => onChange(event.target.value)}
-        className="bg-charcoal-800 text-charcoal-200 border-charcoal-700 h-8 max-w-[9rem] min-w-0 truncate rounded-md border px-2.5 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+        className="bg-charcoal-800 text-charcoal-200 border-charcoal-700 h-9 max-w-[9rem] min-w-0 truncate rounded-md border px-3 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
       >
         <optgroup label="First-party">
           {ordered.map((agent) => (
@@ -1164,26 +1164,36 @@ function EmptyState({
   mode: AgentMode;
 }) {
   const meta = agentModeMeta(mode);
+  // Hero empty state (§13): FILL the dock column — a centered identity block, then
+  // a distributed suggestion set occupying the remaining height. No `justify-center`
+  // floating a small block in a tall column (the R4 dead-void failure). The identity
+  // block sits in the upper-middle (`mt-auto`/`mb-auto` distribute the slack), and the
+  // chips anchor toward the composer so the column reads intentional top-to-bottom.
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 px-6 py-8 text-center">
-      <Sparkles className="text-charcoal-500 size-6" strokeWidth={1.5} aria-hidden />
-      <div className="flex max-w-xs flex-col items-center gap-1">
-        <p className="text-charcoal-200 text-sm font-medium">
-          Ask anything about what you&rsquo;re viewing
-        </p>
-        <p className="text-charcoal-500 text-caption">
-          I read the terminal — your portfolio, a chart, a screen — and can drive it.
-        </p>
-        <p className="text-charcoal-500 text-caption">
-          Mode: <span className="text-charcoal-300">{meta.label}</span> — {meta.consequence}
-        </p>
-        {activeAgentName && (
-          <p className="text-charcoal-500 text-caption">
-            Lens: <span className="text-charcoal-300">{activeAgentName}</span>
+    <div className="flex h-full flex-col gap-6 px-6 py-8 text-center">
+      <div className="mt-auto flex flex-col items-center gap-3">
+        <Sparkles className="text-charcoal-500 size-6" strokeWidth={1.5} aria-hidden />
+        <div className="flex max-w-xs flex-col items-center gap-1">
+          <p className="text-charcoal-200 text-panel-title">
+            Ask anything about what you&rsquo;re viewing
           </p>
-        )}
+          <p className="text-charcoal-500 text-caption">
+            I read the terminal — your portfolio, a chart, a screen — and can drive it.
+          </p>
+        </div>
       </div>
-      <SuggestionChips />
+      <div className="mb-auto flex flex-col items-center gap-3">
+        <p className="text-charcoal-500 text-micro tracking-wide uppercase">Try this</p>
+        <SuggestionChips />
+        <p className="text-charcoal-500 text-caption max-w-xs">
+          Mode <span className="text-charcoal-300">{meta.label}</span>
+          {activeAgentName && (
+            <>
+              {" · "}lens <span className="text-charcoal-300">{activeAgentName}</span>
+            </>
+          )}
+        </p>
+      </div>
     </div>
   );
 }
@@ -1381,7 +1391,7 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
         </div>
       )}
       <form
-        className="border-charcoal-700 flex items-end gap-2.5 border-t p-3"
+        className="border-charcoal-700 flex items-end gap-3 border-t p-4"
         onSubmit={(event) => {
           event.preventDefault();
           if (value.trim()) {
@@ -1389,31 +1399,42 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
           }
         }}
       >
-        <input
-          ref={inputRef}
-          aria-label="Chat input"
-          value={value}
-          onChange={(event) => {
-            onChange(event.target.value);
-            setDismissedAt(null);
-            syncCaret(event.target);
-          }}
-          onKeyDown={onKeyDown}
-          onKeyUp={(event) => syncCaret(event.currentTarget)}
-          onClick={(event) => syncCaret(event.currentTarget)}
-          onSelect={(event) => syncCaret(event.currentTarget)}
-          placeholder={`${meta.label} — ${meta.hint}`}
-          disabled={disabled}
-          autoComplete="off"
-          spellCheck={false}
-          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 min-h-[64px] flex-1 rounded-lg px-3.5 py-3 font-sans text-sm leading-relaxed outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
-        />
+        {/* Input + send read as ONE unit (§14). The input reserves a left inset
+            (pl-11) for the mode indicator below so a persona/agent glyph never
+            overlaps the placeholder; the glyph lives in that gutter, OUTSIDE the
+            text flow. */}
+        <div className="relative min-w-0 flex-1">
+          <Sparkles
+            aria-hidden
+            strokeWidth={1.75}
+            className="text-charcoal-500 pointer-events-none absolute top-4 left-4 size-4"
+          />
+          <input
+            ref={inputRef}
+            aria-label="Chat input"
+            value={value}
+            onChange={(event) => {
+              onChange(event.target.value);
+              setDismissedAt(null);
+              syncCaret(event.target);
+            }}
+            onKeyDown={onKeyDown}
+            onKeyUp={(event) => syncCaret(event.currentTarget)}
+            onClick={(event) => syncCaret(event.currentTarget)}
+            onSelect={(event) => syncCaret(event.currentTarget)}
+            placeholder={`${meta.label} — ${meta.hint}`}
+            disabled={disabled}
+            autoComplete="off"
+            spellCheck={false}
+            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 min-h-[52px] w-full rounded-lg py-3 pr-4 pl-11 font-sans text-sm leading-relaxed outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
+          />
+        </div>
         <Button
           type="submit"
           variant="default"
           aria-label="Send message"
           disabled={disabled || value.trim().length === 0}
-          className="size-11 shrink-0 rounded-full [&_svg:not([class*='size-'])]:size-4"
+          className="size-10 shrink-0 rounded-full [&_svg:not([class*='size-'])]:size-4"
         >
           <Send strokeWidth={2.5} />
         </Button>

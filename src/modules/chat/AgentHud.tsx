@@ -63,9 +63,9 @@ export function AgentHud({
   const { groups, selectedIsNoTools } = buildModelGroups(baseOptions, model);
 
   const selectClass =
-    "bg-charcoal-800 text-charcoal-200 border-charcoal-700 h-8 max-w-[12rem] truncate rounded-md border px-2.5 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400";
+    "bg-charcoal-800 text-charcoal-200 border-charcoal-700 h-9 max-w-[12rem] truncate rounded-md border px-3 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400";
   return (
-    <div className="border-charcoal-700 text-charcoal-400 flex items-center gap-2 border-b px-3 py-1.5 font-mono text-xs">
+    <div className="border-charcoal-700 text-charcoal-500 flex items-center gap-2 border-b px-3 py-2 font-mono text-xs">
       <span className="shrink-0 tracking-wide uppercase">Provider</span>
       <select
         aria-label="Active provider"
