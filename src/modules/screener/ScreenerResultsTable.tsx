@@ -5,7 +5,6 @@ import { Download, SlidersHorizontal, FilterX, Loader2 } from "lucide-react";
 
 import { DataTable, type DataColumn, type DataTableSort } from "@/components/DataTable";
 import { EmptyState } from "@/components/EmptyState";
-import { Button } from "@/components/ui/button";
 import { formatCompactMoney, formatPercent, formatPrice, formatUnit } from "@/lib/format";
 import { loadSymbolIntoChart, openCompanyOverview } from "@/lib/host-actions";
 import { cn } from "@/lib/utils";

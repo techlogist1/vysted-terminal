@@ -14,7 +14,6 @@ import {
   formatSignedMoney,
   formatUnit,
 } from "@/lib/format";
-import { cn } from "@/lib/utils";
 import { usePanelContextBus } from "@/store/panel-context";
 import {
   type AssetClass,
