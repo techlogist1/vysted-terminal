@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>R6 — Computer-Use Verification (OpenCode-dark design system)</title>
+    <style>
+      :root {
+        --canvas: #110f0c;
+        --chrome: #17140f;
+        --panel: #1e1a15;
+        --line: rgba(122, 116, 106, 0.24);
+        --text: #f6f3eb;
+        --mut: #ada294;
+        --ter: #968c7d;
+        --amber: #d89a4e;
+        --pos: #3fbf6f;
+        --neg: #e5544b;
+        --warn: #e0a13a;
+        --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--canvas);
+        color: var(--text);
+        font-family: var(--mono);
+        font-size: 13px;
+        line-height: 1.5;
+        padding: 32px;
+      }
+      h1 {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0 0 4px;
+      }
+      h2 {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 32px 0 12px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 6px;
+      }
+      .sub {
+        color: var(--mut);
+        font-size: 16px;
+        line-height: 1.6;
+        max-width: 80ch;
+      }
+      .meta {
+        color: var(--ter);
+        font-size: 12px;
+        margin-top: 8px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+      figure {
+        margin: 0;
+        background: var(--panel);
+        border: 1px solid var(--line);
+      }
+      figure img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-bottom: 1px solid var(--line);
+      }
+      figcaption {
+        padding: 12px;
+      }
+      .cap-title {
+        font-weight: 700;
+        font-size: 15px;
+      }
+      ul {
+        margin: 6px 0 0;
+        padding-left: 18px;
+      }
+      li {
+        margin: 2px 0;
+      }
+      .micro {
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--mut);
+      }
+      .badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+      }
+      .ok {
+        color: var(--pos);
+        border-color: color-mix(in srgb, var(--pos) 40%, transparent);
+      }
+      .check {
+        color: var(--warn);
+        border-color: color-mix(in srgb, var(--warn) 40%, transparent);
+      }
+      .bk {
+        color: var(--neg);
+        border-color: color-mix(in srgb, var(--neg) 40%, transparent);
+      }
+      .cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 12px;
+      }
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 6px 10px;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        color: var(--mut);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-weight: 500;
+      }
+      code {
+        color: var(--amber);
+      }
+      a {
+        color: #e9bd80;
+      }
+      @media (max-width: 900px) {
+        .cols {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>R6 — Computer-Use Verification</h1>
+    <div class="sub">
+      Real-pixel verification of the R6 “one design system” rebuild (OpenCode-dark, adapted to
+      warm-graphite + single amber) against
+      <a href="../VYSTED_DESIGN.md">VYSTED_DESIGN.md</a>. Every screenshot below is the
+      <strong>actual rendered Tauri window</strong> captured from the macOS window server
+      (Quartz <code>CGWindowListCreateImage</code> / <code>screencapture</code>) — the same
+      pixels the user sees. <strong>No DOM/MCP read was used for verification</strong> (the
+      tauri-mcp bridge was deliberately avoided for inspection, per the brief).
+    </div>
+    <div class="meta">
+      App: vysted-terminal 0.8.0 dev (Tauri + next dev --webpack) · sidecar fresh (port
+      56106) · branch 004-r4-experience-rebuild · captured 2026-06-07.
+    </div>
+
+    <h2>Method &amp; honest scope</h2>
+    <div class="sub">
+      Capture worked: the macOS Screen-Recording path renders the real window. <strong>Driving
+      did not</strong>: the controlling process lacks macOS <em>Accessibility</em> permission,
+      so synthetic input (<code>osascript</code> System Events → error −1719;
+      <code>cliclick</code> → “Accessibility privileges not enabled”) is dropped, and the
+      tauri-mcp bridge wedges while the WKWebView is occluded. Result: I verified every panel
+      that <strong>restores on boot</strong> (the default cockpit) on real pixels, but could
+      not autonomously drive to AAPL-loaded / ⌘K / other-panel states. Those are
+      <span class="badge check">needs-manual-check</span> below, with the one-step unblock.
+    </div>
+
+    <h2>Captures</h2>
+    <div class="grid">
+      <figure>
+        <img src="r6/R6_cockpit_full.png" alt="Full Vysted cockpit, real window" />
+        <figcaption>
+          <div class="cap-title">Full cockpit — real window <span class="badge ok">verified</span></div>
+          <ul>
+            <li><strong>One mono family everywhere</strong> — brand, tabs, panel titles, data, prose all JetBrains Mono. No second face anywhere.</li>
+            <li><strong>Warm-graphite + single amber</strong> — near-black canvas, amber only on the active-tab tick and accent glyphs. No second accent, <strong>no glow, no drop shadow</strong>.</li>
+            <li><strong>Sharp containers</strong> (0px) with hairline seams; surface-ladder depth (chrome → panel → raised).</li>
+            <li>Panels populated: Watchlist (SPY/QQQ/BTC live), AI Assistant composer, News (with sentiment), Portfolio ($3.79M, +104.55%).</li>
+          </ul>
+        </figcaption>
+      </figure>
+
+      <div class="cols">
+        <figure>
+          <img src="r6/R6_composer_detail.png" alt="AI Assistant composer detail" />
+          <figcaption>
+            <div class="cap-title">Composer (named fix #2) <span class="badge ok">verified</span></div>
+            <ul>
+              <li>Reads as <strong>one bordered unit</strong>: mono input (was <code>font-sans</code>) + an aligned, equal-height inset send — the old detached <code>size-10 rounded-full</code> 40px send is gone.</li>
+              <li>Active tab carries the single amber underline tick.</li>
+              <li><code>No agent (raw chat)</code> select = 4px control; <span class="micro" style="display:inline">context: 5 panels active</span> micro label; mono prose empty-state with amber <code>/ask /agent /help</code>.</li>
+            </ul>
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="r6/R6_watchlist_detail.png" alt="Watchlist data-table detail" />
+          <figcaption>
+            <div class="cap-title">Data table (named fix #1 family) <span class="badge ok">verified</span></div>
+            <ul>
+              <li><strong>Numerics right-aligned, tabular</strong>: 737.55 / 705.06 / 60,770.52 — decimals line up, <strong>no collision, no mid-number truncation</strong>.</li>
+              <li>CHANGE right-aligned, negative red; SYMBOL ellipsis-truncates (“BTC/US…”), never hard-clips.</li>
+              <li>Headers <span class="micro" style="display:inline">symbol · price · change</span> = micro uppercase secondary. Load / Add-symbol controls share one 32px height + 4px radius.</li>
+            </ul>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <h2>Defect hunt — result on the real screen</h2>
+    <table>
+      <thead>
+        <tr><th>Class</th><th>Looked for</th><th>Result on captured pixels</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Numeric collision / mid-number truncation</td><td>watchlist + portfolio columns</td><td class="ok">None — right-aligned tabular, decimals aligned</td></tr>
+        <tr><td>Control-row misalignment</td><td>Load+search, composer controls, selects</td><td class="ok">None — controls share the 32px height baseline</td></tr>
+        <tr><td>Label / description clipping</td><td>tabs, headers, empty states</td><td class="ok">None — ellipsis where needed, no hard clip</td></tr>
+        <tr><td>Off-scale type</td><td>every visible text node</td><td class="ok">None — all on the named mono scale</td></tr>
+        <tr><td>Shadow / glow</td><td>panels, tabs, composer, selects</td><td class="ok">None — flat surface-ladder + hairlines</td></tr>
+        <tr><td>Cross-panel inconsistency</td><td>5 cockpit panels side by side</td><td class="ok">Consistent mono / radius / spacing / accent</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Buckets</h2>
+    <div class="cols">
+      <div>
+        <p><span class="badge ok">verified (real pixels)</span></p>
+        <ul>
+          <li>Cockpit shell + header + tab strip</li>
+          <li>Watchlist data table (alignment, truncation, headers)</li>
+          <li>AI Assistant composer (one-unit, mono, inset send)</li>
+          <li>News feed (sentiment badges, ticker chips)</li>
+          <li>Portfolio (P&amp;L, summary line)</li>
+          <li>Equity-overview chrome (empty state, Load+search aligned)</li>
+          <li>Mono-everywhere · single amber · no glow · sharp containers</li>
+        </ul>
+        <p><span class="badge ok">verified (code level)</span></p>
+        <ul>
+          <li>typecheck clean · eslint 0 errors · <strong>vitest 1062/1062</strong> · prettier clean</li>
+          <li>spec lints clean (<code>@google/design.md</code> → 0/0)</li>
+          <li>residual sweep: 0 <code>text-[</code> / 0 <code>shadow-</code> / 0 stray container radius / 0 <code>font-sans</code></li>
+        </ul>
+      </div>
+      <div>
+        <p><span class="badge bk">broken</span></p>
+        <ul>
+          <li>None found on the captured pixels.</li>
+        </ul>
+        <p><span class="badge check">needs-manual-check (driving blocked)</span></p>
+        <ul>
+          <li><strong>AAPL-loaded equity-overview statements table</strong> (the worst-offender rebuild) — needs typing AAPL + Load.</li>
+          <li><strong>⌘K command palette</strong> (group headers, ellipsis descriptions).</li>
+          <li>Notes editor, research brief, and the other ~15 non-cockpit panels.</li>
+        </ul>
+        <p class="meta">
+          Unblock: System Settings → Privacy &amp; Security → Accessibility → enable the
+          controlling terminal (Cursor/Terminal). Then the OS-native Computer-Use drive-through
+          (⌘K, load AAPL, open every panel) + per-panel real-pixel capture can run to completion.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
