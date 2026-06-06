@@ -63,7 +63,9 @@ const PANEL_MIN_SIZE: Record<string, { minimumWidth: number; minimumHeight: numb
   // --- Rail / narrow companion panels ---
   // chat-sidebar is a narrow companion; the generic 300px default snaps it 56%
   // wider than its declared defaultSize, so give it a tighter, usable floor.
-  "chat-sidebar": { minimumWidth: 200, minimumHeight: 160 },
+  // 280px matches the new AGENT_DOCK_MIN_WIDTH so the composer never gets squeezed
+  // when the dock is dragged to its minimum.
+  "chat-sidebar": { minimumWidth: 280, minimumHeight: 160 },
   "broker-connect-panel": { minimumWidth: 320, minimumHeight: 200 },
   "broker-order-entry": { minimumWidth: 280, minimumHeight: 200 },
 };
