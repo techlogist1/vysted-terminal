@@ -29,11 +29,13 @@ import { TableHeader } from "@tiptap/extension-table-header";
 import { Markdown } from "@tiptap/markdown";
 
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { useNotesStore } from "@/store/notes";
 import { useSymbolsStore } from "@/store/symbols";
 
 import { saveTextArtifact, savePngArtifact, savePdfArtifact } from "@/lib/export-artifact";
 
+import { NotesToolbar } from "./NotesToolbar";
 import { SlashCommandExtension, type SlashMenuDetail } from "./SlashCommandExtension";
 import { WikiLinkExtension, type WikiLinkItem, type WikiLinkMenuDetail } from "./WikiLinkExtension";
 import { persistNoteMd } from "./notes-persistence";
@@ -65,10 +67,10 @@ function ScopeChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded px-2 py-0.5 text-xs font-medium transition-colors",
+        "text-caption rounded px-2 py-1 font-medium transition-colors",
         active
-          ? "bg-[var(--color-amber-500)] text-[var(--color-charcoal-950)]"
-          : "bg-[var(--color-charcoal-800)] text-[var(--color-charcoal-300)] hover:bg-[var(--color-charcoal-700)]",
+          ? "text-charcoal-950 bg-amber-500"
+          : "bg-charcoal-800 text-charcoal-300 hover:bg-charcoal-700",
       )}
     >
       {label}
@@ -108,7 +110,9 @@ export function NotesPanel() {
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit,
+      // StarterKit v3 bundles Link/Underline/lists; disable click-to-navigate so
+      // the toolbar Link button governs the mark (markdown round-trip preserved).
+      StarterKit.configure({ link: { openOnClick: false } }),
       Table.configure({ resizable: false }),
       TableRow,
       TableCell,
@@ -120,8 +124,7 @@ export function NotesPanel() {
     content: "",
     editorProps: {
       attributes: {
-        class:
-          "prose prose-invert prose-sm max-w-none min-h-[120px] p-3 outline-none focus:outline-none",
+        class: "notes-prose max-w-none min-h-[200px] p-3 outline-none focus:outline-none",
       },
     },
     onUpdate({ editor: e }) {
@@ -248,45 +251,54 @@ export function NotesPanel() {
   // --- Render ---
   return (
     <>
-      <div className="notes-print-root flex h-full flex-col bg-[var(--color-charcoal-950)]">
-        {/* Toolbar */}
-        <div className="notes-toolbar flex items-center justify-between border-b border-[var(--color-charcoal-800)] px-3 py-2">
-          <div className="flex items-center gap-1.5">
-            <Pencil size={13} className="text-[var(--color-charcoal-400)]" />
-            <span className="text-xs font-medium text-[var(--color-charcoal-300)]">Notes</span>
+      <div className="notes-print-root bg-charcoal-950 flex h-full flex-col">
+        {/* Panel header — identity + exports */}
+        <div className="notes-toolbar border-charcoal-800 flex h-12 items-center justify-between border-b px-3">
+          <div className="flex items-center gap-2">
+            <Pencil size={16} className="text-charcoal-400" />
+            <span className="text-panel-title text-charcoal-200">Notes</span>
           </div>
           <div className="flex items-center gap-1">
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-sm"
               title="Export .md"
+              aria-label="Export .md"
               onClick={handleExportMd}
-              className="rounded p-1 text-[var(--color-charcoal-400)] hover:bg-[var(--color-charcoal-800)] hover:text-[var(--color-charcoal-200)]"
+              className="text-charcoal-400 hover:text-charcoal-100"
             >
-              <FileText size={13} />
-            </button>
-            <button
+              <FileText size={16} />
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-sm"
               title="Export PNG"
+              aria-label="Export PNG"
               onClick={handleExportPng}
-              className="rounded p-1 text-[var(--color-charcoal-400)] hover:bg-[var(--color-charcoal-800)] hover:text-[var(--color-charcoal-200)]"
+              className="text-charcoal-400 hover:text-charcoal-100"
             >
-              <FileImage size={13} />
-            </button>
-            <button
+              <FileImage size={16} />
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-sm"
               title="Export PDF"
+              aria-label="Export PDF"
               onClick={handleExportPdf}
-              className="rounded p-1 text-[var(--color-charcoal-400)] hover:bg-[var(--color-charcoal-800)] hover:text-[var(--color-charcoal-200)]"
+              className="text-charcoal-400 hover:text-charcoal-100"
             >
-              <Printer size={13} />
-            </button>
+              <Printer size={16} />
+            </Button>
           </div>
         </div>
 
         {/* Export status — confirms the saved path so the user sees it landed. */}
         {exportStatus && (
           <div
-            className="text-charcoal-400 border-charcoal-800 bg-charcoal-900 truncate border-b px-3 py-1.5 font-mono text-[11px]"
+            className="text-caption text-charcoal-500 border-charcoal-800 bg-charcoal-900 truncate border-b px-3 py-1 font-mono"
             title={exportStatus}
           >
             {exportStatus}
@@ -294,7 +306,7 @@ export function NotesPanel() {
         )}
 
         {/* Scope chips */}
-        <div className="notes-scope-bar flex flex-wrap items-center gap-1.5 border-b border-[var(--color-charcoal-800)] px-3 py-1.5">
+        <div className="notes-scope-bar border-charcoal-800 flex flex-wrap items-center gap-3 border-b px-3 py-1">
           <ScopeChip
             label="General"
             active={scope === ""}
@@ -311,6 +323,9 @@ export function NotesPanel() {
           {/* Add-symbol input for switching to an arbitrary symbol. */}
           <SymbolChipInput onCommit={(sym) => notesStore.setFocusSymbol(sym)} />
         </div>
+
+        {/* Formatting toolbar — H1/H2/H3 · inline · lists · blocks · link · [[wikilink]] */}
+        <NotesToolbar editor={editor} />
 
         {/* Editor area */}
         <div ref={editorContainerRef} className="notes-editor-root flex-1 overflow-y-auto">
@@ -329,17 +344,17 @@ export function NotesPanel() {
             minWidth: 220,
             maxHeight: 320,
           }}
-          className="overflow-y-auto rounded border border-[var(--color-charcoal-700)] bg-[var(--color-charcoal-900)] shadow-lg"
+          className="border-charcoal-700 bg-charcoal-900 overflow-y-auto rounded-md border"
         >
           {slashMenu.items.map((item, i) => (
             <button
               key={item.title}
               type="button"
               className={cn(
-                "flex w-full flex-col items-start px-3 py-2 text-left text-xs transition-colors",
+                "flex h-9 w-full flex-col items-start justify-center px-3 text-left transition-colors",
                 i === slashActiveIdx
-                  ? "bg-[var(--color-charcoal-800)] text-[var(--color-charcoal-100)]"
-                  : "text-[var(--color-charcoal-300)] hover:bg-[var(--color-charcoal-800)]",
+                  ? "bg-charcoal-800 text-charcoal-100"
+                  : "text-charcoal-300 hover:bg-charcoal-800",
               )}
               onMouseEnter={() => setSlashActiveIdx(i)}
               onClick={() => {
@@ -347,10 +362,8 @@ export function NotesPanel() {
                 setSlashMenu(null);
               }}
             >
-              <span className="font-medium">{item.title}</span>
-              <span className="text-[10px] text-[var(--color-charcoal-500)]">
-                {item.description}
-              </span>
+              <span className="text-caption font-medium">{item.title}</span>
+              <span className="text-caption text-charcoal-500">{item.description}</span>
             </button>
           ))}
         </div>
@@ -367,17 +380,17 @@ export function NotesPanel() {
             minWidth: 160,
             maxHeight: 240,
           }}
-          className="overflow-y-auto rounded border border-[var(--color-charcoal-700)] bg-[var(--color-charcoal-900)] shadow-lg"
+          className="border-charcoal-700 bg-charcoal-900 overflow-y-auto rounded-md border"
         >
           {wikiMenu.items.map((item, i) => (
             <button
               key={item.symbol}
               type="button"
               className={cn(
-                "flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors",
+                "flex h-9 w-full items-center gap-2 px-3 text-left transition-colors",
                 i === wikiActiveIdx
-                  ? "bg-[var(--color-charcoal-800)] text-[var(--color-charcoal-100)]"
-                  : "text-[var(--color-charcoal-300)] hover:bg-[var(--color-charcoal-800)]",
+                  ? "bg-charcoal-800 text-charcoal-100"
+                  : "text-charcoal-300 hover:bg-charcoal-800",
               )}
               onMouseEnter={() => setWikiActiveIdx(i)}
               onClick={() => {
@@ -385,10 +398,8 @@ export function NotesPanel() {
                 setWikiMenu(null);
               }}
             >
-              <span className="font-medium">{item.symbol}</span>
-              {item.hasNote && (
-                <span className="text-[10px] text-[var(--color-amber-400)]">has note</span>
-              )}
+              <span className="text-caption font-medium">{item.symbol}</span>
+              {item.hasNote && <span className="text-caption text-amber-300">has note</span>}
             </button>
           ))}
         </div>
@@ -415,7 +426,7 @@ function SymbolChipInput({ onCommit }: { onCommit: (sym: string) => void }) {
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="rounded px-2 py-0.5 text-xs text-[var(--color-charcoal-500)] hover:text-[var(--color-charcoal-300)]"
+        className="text-caption text-charcoal-500 hover:text-charcoal-300 rounded px-2 py-1"
       >
         + symbol
       </button>
@@ -436,7 +447,7 @@ function SymbolChipInput({ onCommit }: { onCommit: (sym: string) => void }) {
       }}
       onBlur={commit}
       placeholder="AAPL"
-      className="w-16 rounded border border-[var(--color-charcoal-700)] bg-[var(--color-charcoal-900)] px-2 py-0.5 text-xs text-[var(--color-charcoal-200)] outline-none placeholder:text-[var(--color-charcoal-600)]"
+      className="text-caption border-charcoal-700 bg-charcoal-900 text-charcoal-200 placeholder:text-charcoal-600 w-16 rounded border px-2 py-1 outline-none"
     />
   );
 }
