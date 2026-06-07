@@ -770,7 +770,7 @@ function LoadDialog({ summaries, loadingList, error, onClose, onPick }: LoadDial
       aria-modal="true"
       aria-labelledby="workflow-load-dialog-title"
       onClick={onClose}
-      className="bg-charcoal-950/60 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
+      className="bg-charcoal-950/60 fixed inset-0 z-50 flex items-center justify-center"
     >
       <div
         onClick={(event) => event.stopPropagation()}

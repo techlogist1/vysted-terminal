@@ -56,7 +56,7 @@ export const PluginManagerPanel: FunctionComponent = () => {
         </ul>
       ) : plugins.length === 0 ? (
         // Runtime attached but no plugins loaded
-        <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+        <div className="flex flex-col items-center justify-start gap-3 py-12 pt-8 text-center">
           <h3 className="text-charcoal-200 text-body">Plugin Manager</h3>
           <p className="text-charcoal-400 text-caption max-w-xs font-mono break-words">
             No plugins are loaded. Open Marketplace to install extensions.
@@ -80,11 +80,11 @@ PluginManagerPanel.displayName = "PluginManagerPanel";
 
 const STATE_TONE: Record<LoadedPluginState, string> = {
   discovered: "bg-charcoal-700 text-charcoal-200",
-  initializing: "bg-warning/15 text-warning",
-  active: "bg-positive/15 text-positive",
-  stopping: "bg-warning/15 text-warning",
+  initializing: "bg-charcoal-850 text-warning",
+  active: "bg-charcoal-850 text-positive",
+  stopping: "bg-charcoal-850 text-warning",
   stopped: "bg-charcoal-700 text-charcoal-300",
-  error: "bg-negative/15 text-negative",
+  error: "bg-charcoal-850 text-negative",
 };
 
 interface PluginRowProps {

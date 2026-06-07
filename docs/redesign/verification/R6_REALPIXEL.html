@@ -3,136 +3,224 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>R6 — Real-Pixel: the NEW build now renders (proof)</title>
+    <title>R6 — Real-Pixel Verification (OpenCode-dark)</title>
     <style>
       :root {
-        --canvas: #110f0c; --panel: #1e1a15; --line: rgba(122,116,106,0.24);
-        --text: #f6f3eb; --mut: #ada294; --ter: #968c7d; --amber: #d89a4e;
-        --pos: #3fbf6f; --neg: #e5544b; --warn: #e0a13a;
-        --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+        --canvas: #110f0c;
+        --chrome: #17140f;
+        --panel: #1e1a15;
+        --raised: #25201a;
+        --inset: #2d2820;
+        --border: #3e372d;
+        --hairline: rgba(122, 116, 106, 0.18);
+        --text: #f6f3eb;
+        --text-2: #ada294;
+        --text-3: #968c7d;
+        --accent: #d89a4e;
+        --accent-bright: #e9bd80;
+        --pos: #3fbf6f;
+        --neg: #e5544b;
+        --warn: #e0a13a;
+        --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Mono", monospace;
       }
       * { box-sizing: border-box; }
-      body { margin: 0; background: var(--canvas); color: var(--text); font-family: var(--mono);
-        font-size: 13px; line-height: 1.5; padding: 32px; }
-      h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
-      h2 { font-size: 18px; font-weight: 700; margin: 28px 0 10px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
-      .sub { color: var(--mut); font-size: 16px; line-height: 1.6; max-width: 86ch; }
-      .meta { color: var(--ter); font-size: 12px; margin-top: 8px; }
-      figure { margin: 0 0 20px; background: var(--panel); border: 1px solid var(--line); }
-      figure img { display: block; width: 100%; height: auto; border-bottom: 1px solid var(--line); }
-      figcaption { padding: 12px; }
-      .cap-title { font-weight: 700; font-size: 15px; }
-      ul { margin: 6px 0 0; padding-left: 18px; } li { margin: 2px 0; }
-      .badge { display: inline-block; font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase;
-        padding: 2px 6px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); }
-      .ok { color: var(--pos); border-color: color-mix(in srgb, var(--pos) 40%, transparent); }
-      .check { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
-      .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-      code { color: var(--amber); }
-      table { border-collapse: collapse; width: 100%; font-size: 12px; }
-      th, td { border-bottom: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
-      th { color: var(--mut); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 500; }
-      @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+      body {
+        margin: 0;
+        background: var(--canvas);
+        color: var(--text);
+        font-family: var(--mono);
+        font-size: 13px;
+        line-height: 1.5;
+        padding: 32px 24px 80px;
+      }
+      .wrap { max-width: 1180px; margin: 0 auto; }
+      h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.005em; }
+      h2 { font-size: 18px; font-weight: 700; margin: 40px 0 4px; }
+      .sub { color: var(--text-2); font-size: 12px; margin: 0 0 24px; }
+      .micro { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2); }
+      a { color: var(--accent-bright); }
+      code { color: var(--accent-bright); background: var(--inset); padding: 1px 5px; border-radius: 4px; }
+      .rule { height: 1px; background: var(--hairline); border: 0; margin: 24px 0; }
+
+      .lede { background: var(--panel); border: 1px solid var(--border); padding: 16px 18px; margin: 16px 0 8px; }
+      .lede p { margin: 6px 0; color: var(--text-2); }
+      .lede b { color: var(--text); }
+
+      table.buckets { width: 100%; border-collapse: collapse; margin: 16px 0; }
+      table.buckets th, table.buckets td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+      table.buckets th { background: var(--chrome); color: var(--text-2); font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; }
+      .tag { display: inline-block; font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; background: var(--inset); }
+      .tag.ok { color: var(--pos); }
+      .tag.broken { color: var(--neg); }
+      .tag.manual { color: var(--warn); }
+
+      .grid { display: grid; grid-template-columns: 1fr; gap: 0; }
+      .card { border: 1px solid var(--border); background: var(--panel); margin: 18px 0; }
+      .card .hd { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 10px 14px; background: var(--chrome); border-bottom: 1px solid var(--hairline); }
+      .card .hd .name { font-size: 15px; font-weight: 500; }
+      .card figure { margin: 0; }
+      .card img { width: 100%; display: block; border-bottom: 1px solid var(--hairline); }
+      .card .notes { padding: 12px 14px; }
+      .card .notes ul { margin: 6px 0 0; padding-left: 18px; }
+      .card .notes li { margin: 3px 0; color: var(--text-2); }
+      .card .notes li b { color: var(--text); }
+      .pos { color: var(--pos); }
+      .neg { color: var(--neg); }
+      .amber { color: var(--accent-bright); }
+      .checks li::marker { content: "[+] "; color: var(--pos); }
+      .checks li { list-style: none; }
+      .checks { padding-left: 22px; }
+      .footer { color: var(--text-3); font-size: 11px; margin-top: 40px; }
     </style>
   </head>
   <body>
-    <h1>R6 — Real-Pixel: the NEW build now renders</h1>
-    <div class="sub">
-      A prior session claimed the cockpit was "verified on real pixels." That was wrong — it had
-      captured a <strong>stale artifact</strong> and the new design was never confirmed rendering.
-      This sheet corrects the record with reliable evidence: every image below is captured from the
-      <strong>Tauri window buffer</strong> (Quartz <code>CGWindowListCreateImage</code>, occlusion-
-      independent — not <code>screencapture -R</code>, which grabs whatever is on top), of a
-      <strong>fresh production <code>.app</code></strong> that embeds the current source.
-    </div>
-    <div class="meta">vysted-terminal 0.8.0 · branch 004-r4-experience-rebuild · captured 2026-06-07.</div>
+    <div class="wrap">
+      <h1>R6 &mdash; Real-Pixel Verification &middot; OpenCode-dark</h1>
+      <p class="sub">
+        Branch <code>004-r4-experience-rebuild</code> &middot; captured on the
+        live <code>pnpm tauri:dev</code> window via macOS Quartz
+        (<code>screencapture</code> of the real WKWebView, not the DOM) &middot; AAPL loaded.
+        Images: <code>docs/redesign/verification/r6real2/</code>.
+      </p>
 
-    <h2>Ground truth that was running</h2>
-    <table>
-      <thead><tr><th>Artifact</th><th>Loads</th><th>Showed</th></tr></thead>
-      <tbody>
-        <tr><td><code>target/debug/bundle/macos/Vysted&nbsp;Terminal.app</code> (a prior <code>tauri build</code>)</td>
-          <td>embedded static export <code>out/</code> dated <strong>Jun&nbsp;5</strong> (pre-rebuild)</td>
-          <td>the <strong>OLD</strong> interface (R5 was already dark warm-graphite — which is how the prior session was fooled)</td></tr>
-        <tr><td><code>tauri dev</code> raw binary</td><td><code>localhost:3000</code> (new code)</td>
-          <td>the <strong>blank WHITE</strong> window (never isolated/painted; both windows were 1280×832 at the same origin)</td></tr>
-      </tbody>
-    </table>
-    <div class="sub" style="margin-top:10px">
-      So the committed OpenCode rebuild existed only in source + the dev server; no <em>built</em>
-      artifact carried it. After a full clean slate (all windows/sidecars/dev-servers/caffeinate
-      killed; <code>out/</code>, <code>.next/</code>, stale <code>.app</code> deleted), the new code
-      was rebuilt and proven below.
-    </div>
-
-    <h2>Root cause of the white render — and the fix</h2>
-    <div class="sub">
-      Next&nbsp;16 defaults <code>next&nbsp;build</code> to <strong>Turbopack</strong>, whose
-      URL-encoded chunk filenames the Tauri WKWebView asset loader cannot fetch → blank. The dev
-      script already opted out (<code>next dev --webpack</code>); the build script did not.
-      <strong>Fix (committed <code>dd08807</code>):</strong> <code>"build": "next build --webpack"</code>
-      so the static export emits plain-hash chunks the webview can load.
-      (<code>tauri.conf.json</code> untouched — the change is in the package.json build script only.)
-      Confirmed first in real Chromium, then in the <code>.app</code> on real window-buffer pixels.
-    </div>
-
-    <h2>Proof — captured from the real Tauri .app window buffer</h2>
-    <figure>
-      <img src="r6real/R6_cockpit_populated.png" alt="Full new-design cockpit, real window buffer, live data" />
-      <figcaption>
-        <div class="cap-title">Full cockpit — the NEW design <span class="badge ok">proven</span></div>
-        <ul>
-          <li><strong>Monospace across every role</strong> — headlines, panel titles, prose, data (JetBrains Mono), not Inter-sans, not serif.</li>
-          <li><strong>Sharp 0px containers</strong>; warm-graphite <code>#110f0c</code>; <strong>single muted amber</strong>; no glow/shadow; no cool/blue tint.</li>
-          <li>"CONNECTED · OLLAMA (LOCAL)" — sidecar live; watchlist populated (SPY 737.55 −2.25%, QQQ −4.12%, BTC/USDT 62,415.00 +2.73%, ETH/USDT +4.46%, NVDA −5.18%).</li>
-        </ul>
-      </figcaption>
-    </figure>
-    <div class="cols">
-      <figure>
-        <img src="r6real/R6_mono_proof.png" alt="Equity-overview zoom: mono + sharp" />
-        <figcaption><div class="cap-title">Mono / sharp zoom <span class="badge ok">proven</span></div>
-          <ul><li>"Chart" / "Equity Overview" tabs, search field, "Screener-grade fundamentals… US, NSE, or BSE", AAPL/RELIANCE/NVDA chips — all JetBrains Mono.</li>
-          <li>Containers sharp; interactive chips 4px (rounded-control).</li></ul></figcaption>
-      </figure>
-      <figure>
-        <img src="r6real/R6_header_proof.png" alt="Header zoom: mono chrome, amber, keycap ⌘K" />
-        <figcaption><div class="cap-title">Header zoom <span class="badge ok">proven</span></div>
-          <ul><li>App header all mono: amber "Agent", keycap <code>⌘K</code> chip, "Save layout"; mark-only amber brand dot.</li>
-          <li>The only sans text is the native macOS titlebar (OS chrome, unavoidable).</li></ul></figcaption>
-      </figure>
-    </div>
-    <figure>
-      <img src="r6real/R6_watchlist_detail.png" alt="Watchlist data-table detail" />
-      <figcaption><div class="cap-title">Watchlist data table <span class="badge ok">verified</span></div>
-        <ul><li>PRICE right-aligned tabular; CHANGE right-aligned (red loss / green gain); source-badge chips; "MARKET …" ellipsis — no collision, no mid-number truncation.</li></ul></figcaption>
-    </figure>
-
-    <h2>Status</h2>
-    <div class="cols">
-      <div>
-        <p><span class="badge ok">done</span></p>
-        <ul>
-          <li>Ground truth established; clean slate; stale artifacts deleted.</li>
-          <li>Render fixed (turbopack→webpack) and committed.</li>
-          <li>NEW design <strong>proven rendering on real pixels</strong> from the production <code>.app</code>.</li>
-          <li>Visible cockpit panels spot-checked clean (mono/sharp/aligned).</li>
+      <div class="lede">
+        <p><b>What this pass did.</b> Tightened the already-rendering OpenCode-dark
+          foundation to faithful fidelity &mdash; surgical <em>className/token</em> edits only,
+          no rebuild &mdash; then drove the reachable surfaces on real pixels and verified each.</p>
+        <p><b>Fixes applied &amp; gate-green</b> (typecheck / lint / prettier / vitest all pass):</p>
+        <ul style="margin:6px 0 0;color:var(--text-2)">
+          <li><b>Amber scarcity restored</b> &mdash; removed amber-as-fill active states (chart
+            toolbar, quant Method/Payoff/Exercise segments, backtest selected strategy) and
+            amber data-column tints (screener &amp; earnings symbol columns, yield-curve
+            zero-rate column, brief ticker/cite chips); amber is again a &le;2-element spotlight.</li>
+          <li><b>No glow / gradient / blur</b> &mdash; killed the ResearchActivity amber gradient
+            scanline, the OnboardingBanner amber gradient, and <code>backdrop-blur</code> on
+            the node-editor Load/Save dialogs.</li>
+          <li><b>No cool/blue tint</b> &mdash; MentionPicker (<code>sky/emerald</code>) and PlanView
+            (<code>sky</code>) badges neutralized.</li>
+          <li><b>Signal colors are text-only</b> &mdash; DataBadges &amp; PluginManager state badges
+            no longer use <code>bg-positive/warning/negative</code> fills.</li>
+          <li><b>Containers sharp</b> &mdash; OnboardingFlow <code>rounded-full</code> status block
+            &rarr; <code>rounded-none</code>; dropped <code>font-semibold</code> that was
+            downgrading 700-weight headings.</li>
+          <li><b>Empty states top-anchored</b> (EmptyState primitive, BriefPanel,
+            PluginManager) &middot; <b>no italics</b> in briefs.</li>
+          <li><b>Backtest trade table</b> &mdash; removed <code>max-w-0 overflow-hidden</code>
+            that clipped prices mid-number.</li>
+          <li><b>⌘K command rows</b> &rarr; <code>rounded-control</code> + fixed 36px height;
+            description-truncation attempted (see NEEDS-MANUAL below).</li>
         </ul>
       </div>
-      <div>
-        <p><span class="badge check">deferred to a fresh window (per operator)</span></p>
-        <ul>
-          <li>Full drive-through: load AAPL, ⌘K, open + click <em>every</em> panel (Notes, brief, screener, analyst, sec, quant, macro, backtest, settings…).</li>
-          <li>Per-surface real-pixel defect hunt + fixes.</li>
-          <li>Blocked here only by OS input automation: Accessibility is denied for Cursor (osascript −1719 / cliclick), and the production <code>.app</code> has no MCP bridge.</li>
-        </ul>
+
+      <h2>Verification buckets</h2>
+      <table class="buckets">
+        <thead>
+          <tr><th style="width:22%">Surface</th><th style="width:14%">Status</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Cockpit shell (OpenCode-dark)</td><td><span class="tag ok">Verified</span></td><td>Full JetBrains Mono, warm-graphite <code>#110f0c</code>, sharp 0px, single amber accent, no glow/blue.</td></tr>
+          <tr><td>Equity Overview (AAPL)</td><td><span class="tag ok">Verified</span></td><td>Mono headline + AI narrative at prose 16/1.6; fundamentals are a real statement table, values right-aligned tabular; loss in restrained red.</td></tr>
+          <tr><td>Chart toolbar</td><td><span class="tag ok">Verified</span></td><td>Active timeframe is now a raised surface, <b>not</b> an amber-fill pill; warm candle theme, no blue/glow.</td></tr>
+          <tr><td>News feed</td><td><span class="tag ok">Verified</span></td><td>Clean headlines + source/time; sentiment is colored <em>text</em> (<span class="pos">POSITIVE +0.94</span>), not a fill; symbol badges.</td></tr>
+          <tr><td>Notes (chrome + toolbar)</td><td><span class="tag ok">Verified</span></td><td>Visible formatting toolbar present: H1/H2/H3, bold, italic, code, list, quote, link, wikilink as ghost icons.</td></tr>
+          <tr><td>Watchlist</td><td><span class="tag ok">Verified</span></td><td>Tabular right-aligned prices, neutral source badges, restrained red/green change column.</td></tr>
+          <tr><td>Research Brief</td><td><span class="tag manual">Needs-manual</span></td><td>Empty-state placeholder verified (top-anchored, composed). Metric cards + de-filled ticker/cite chips are code-fixed but need a live research run to render (typing blocked, see below).</td></tr>
+          <tr><td>⌘K command palette</td><td><span class="tag broken">Partial</span></td><td>Group headers visible &amp; rows are mono + structured (primary spec met). Long agent descriptions still hard-clip instead of ellipsis-truncating &mdash; see NEEDS-MANUAL.</td></tr>
+          <tr><td>Screener / Quant / Macro / SEC / Analyst / Earnings / Backtest / Agent-builder / Node-editor / Marketplace / Broker / Plugin-manager / Settings</td><td><span class="tag manual">Needs-manual</span></td><td>Code-fixed (amber/glow/tint/table fixes applied + gate-green) but <b>not real-pixel-verified</b>: these panels are only reachable by <em>typing</em> a search in ⌘K, which the environment's input tier blocked. See constraint note.</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Surfaces (real-pixel captures, AAPL loaded)</h2>
+
+      <div class="grid">
+        <div class="card">
+          <div class="hd"><span class="name">Cockpit &middot; AAPL loaded</span><span class="micro">07_cockpit_AAPL_final</span></div>
+          <figure><img src="r6real2/07_cockpit_AAPL_final.png" alt="Cockpit with AAPL" /></figure>
+          <div class="notes"><ul class="checks">
+            <li>One mono family, warm-graphite canvas, sharp rectangles, amber on &le;2 loci.</li>
+            <li>Equity statement table + watchlist + news + dual agent docks all on one ladder.</li>
+          </ul></div>
+        </div>
+
+        <div class="card">
+          <div class="hd"><span class="name">Equity Overview &middot; AAPL (with AI narrative)</span><span class="micro">01_equity_overview_AAPL</span></div>
+          <figure><img src="r6real2/01_equity_overview_AAPL.png" alt="Equity overview AAPL" /></figure>
+          <div class="notes"><ul class="checks">
+            <li>Headline <code>AAPL Apple Inc. 307.34 USD</code> with the loss in restrained red.</li>
+            <li>AI overview renders as prose (16/1.6); <code>METRIC | VALUE</code> is a real table &mdash; values right-aligned tabular (<code>$4.51T</code>, <code>37.16</code>), no collisions or mid-number clip.</li>
+          </ul></div>
+        </div>
+
+        <div class="card">
+          <div class="hd"><span class="name">Chart &middot; toolbar de-ambered</span><span class="micro">02_chart_SPY</span></div>
+          <figure><img src="r6real2/02_chart_SPY.png" alt="Chart panel" /></figure>
+          <div class="notes"><ul class="checks">
+            <li>Active timeframe is a calm raised box, not an amber-fill pill (fix verified).</li>
+            <li>Warm candle theme; no blue tint or glow on the canvas chrome.</li>
+          </ul></div>
+        </div>
+
+        <div class="card">
+          <div class="hd"><span class="name">Notes toolbar + News feed</span><span class="micro">04_notes_and_news</span></div>
+          <figure><img src="r6real2/04_notes_and_news.png" alt="Notes and news" /></figure>
+          <div class="notes"><ul class="checks">
+            <li>Notes: visible H1/H2/H3 · B · I · code · list · quote · link · wikilink ghost-icon toolbar.</li>
+            <li>News: sentiment as colored <em>text</em> (<span class="pos">POSITIVE +0.94</span> / NEUTRAL 0.00), symbol badges, mono throughout.</li>
+          </ul></div>
+        </div>
+
+        <div class="card">
+          <div class="hd"><span class="name">News feed (focused)</span><span class="micro">03_news</span></div>
+          <figure><img src="r6real2/03_news.png" alt="News feed" /></figure>
+          <div class="notes"><ul class="checks">
+            <li>Headline / source / age / sentiment / cashtag rows, no signal-color fills.</li>
+          </ul></div>
+        </div>
+
+        <div class="card">
+          <div class="hd"><span class="name">Research Brief &middot; empty state</span><span class="micro">05_research_brief</span></div>
+          <figure><img src="r6real2/05_research_brief.png" alt="Research brief empty state" /></figure>
+          <div class="notes"><ul>
+            <li>Composed placeholder (ASCII glyph + guidance), top-anchored &mdash; not a bare "No results".</li>
+            <li><b>Needs-manual:</b> metric cards + de-filled chips require a live research run to render.</li>
+          </ul></div>
+        </div>
+
+        <div class="card">
+          <div class="hd"><span class="name">⌘K command palette</span><span class="micro">06_command_palette</span></div>
+          <figure><img src="r6real2/06_command_palette.png" alt="Command palette" /></figure>
+          <div class="notes"><ul>
+            <li><b class="pos">Verified:</b> group headers (SUGGESTED / AGENTS / ACTIONS / PANELS) are visible micro-uppercase; rows mono with leading glyph + label + description.</li>
+            <li><b class="neg">Partial:</b> long agent descriptions still hard-clip at the dialog edge instead of ellipsis-truncating. Code fixes applied (<code>min-w-0</code> down the cmdk tree, <code>grid-cols-1</code> on the grid DialogContent, a <code>[cmdk-list-sizer]</code> width rule, and a wider <code>max-w-3xl</code>); all are in the served JS+CSS but the dialog still measures ~512px in the WKWebView &mdash; a residual tailwind-merge/cascade interaction that needs a devtools computed-style check to close.</li>
+          </ul></div>
+        </div>
       </div>
+
+      <hr class="rule" />
+      <h2>Environment constraint (why some surfaces are Needs-manual)</h2>
+      <div class="lede">
+        <p>The macOS input layer classified the app as a "terminal/IDE" (its name contains
+          <b>Terminal</b>) and granted it at the restricted <b>click-only</b> tier: the window
+          is visible and left-clickable, but <b>typing, key-presses (so no ⌘K key), right-click
+          and drag are blocked</b>, and the tier can't be relaxed without editing the Tier-1-locked
+          <code>tauri.conf.json</code>. Everything reachable by clicking (quick-load buttons,
+          watchlist rows, the "Open panel" launcher, dock controls, the curated palette actions)
+          was driven and verified on real pixels. Panels reachable <em>only by typing a ⌘K search</em>
+          (screener, quant, macro, sec, analyst, earnings, backtest, builders, marketplace, broker,
+          plugin-manager, settings) could not be opened, so their fixes are <b>code-applied and
+          gate-green but not pixel-verified</b>.</p>
+      </div>
+
+      <h2>Constraints honored</h2>
+      <ul style="color:var(--text-2)">
+        <li>Single amber accent kept; restrained red/green only as P&amp;L data colors, never chrome. No cool/blue, no second accent, no glow.</li>
+        <li>Tier-1 locked files byte-untouched (types, safety/broker models, <code>tauri.conf.json</code>, CI). Safety/broker edits were className/markup only &mdash; no §6.5, audit, kill-switch, or ABC logic touched.</li>
+        <li>Version frozen 0.8.0 (no bump). All work on <code>004-r4-experience-rebuild</code>; not merged to <code>main</code>. <code>CLAUDE.md</code> untouched.</li>
+        <li>typecheck / lint / prettier / vitest green after fixes.</li>
+      </ul>
+
+      <p class="footer">Relaunch: <code>pnpm tauri:dev</code> from the repo root (webpack dev,
+        hot-reload, re-signs the debug binary on macOS).</p>
     </div>
-    <p class="meta">
-      Relaunch (fresh window): build → <code>pnpm build</code> (now webpack) then <code>pnpm tauri build --debug</code>,
-      and <code>open "src-tauri/target/debug/bundle/macos/Vysted Terminal.app"</code>. For an
-      autonomous real-pixel drive-through next session, enable <strong>Cursor</strong> in
-      System Settings → Privacy &amp; Security → Accessibility first.
-    </p>
   </body>
 </html>

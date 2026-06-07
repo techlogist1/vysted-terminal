@@ -1022,7 +1022,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
         className={cn(
           "rounded-control text-caption border px-2 py-1 text-left font-mono transition-colors",
           active
-            ? "border-amber-500 bg-amber-500/15 text-amber-300"
+            ? "bg-charcoal-875 border border-amber-500/50 text-amber-300"
             : "border-charcoal-700 text-charcoal-400 hover:border-charcoal-600 hover:text-charcoal-200",
         )}
       >
@@ -1065,7 +1065,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
               className={cn(
                 "rounded-control text-caption px-2 py-1 font-mono transition-colors",
                 timeframe === option
-                  ? "bg-amber-500/20 text-amber-300"
+                  ? "bg-charcoal-875 text-charcoal-100"
                   : "text-charcoal-400 hover:text-charcoal-100",
               )}
             >
@@ -1095,7 +1095,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
               className={cn(
                 "rounded-control text-micro px-2 py-1 font-mono transition-colors",
                 syncSubscriptions[flavor]
-                  ? "bg-amber-500/20 text-amber-300"
+                  ? "bg-charcoal-875 text-charcoal-100"
                   : "text-charcoal-400 hover:text-charcoal-100",
               )}
             >
@@ -1140,7 +1140,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
                 className={cn(
                   "rounded-control text-micro px-2 py-1 font-mono transition-colors",
                   active
-                    ? "bg-amber-500/20 text-amber-300"
+                    ? "bg-charcoal-875 text-charcoal-100"
                     : "text-charcoal-400 hover:text-charcoal-100",
                 )}
               >
@@ -1213,7 +1213,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
                 className={cn(
                   "rounded-control text-micro px-2 py-1 font-mono transition-colors",
                   compareNormalize
-                    ? "bg-amber-500/20 text-amber-300"
+                    ? "bg-charcoal-875 text-charcoal-100"
                     : "text-charcoal-400 hover:text-charcoal-100",
                 )}
               >
@@ -1271,7 +1271,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
                   className={cn(
                     "rounded-control text-micro flex items-center gap-1 border px-1.5 py-0.5 font-mono",
                     active
-                      ? "border-amber-500 bg-amber-500/15 text-amber-300"
+                      ? "bg-charcoal-875 border border-amber-500/50 text-amber-300"
                       : "border-charcoal-700 text-charcoal-400",
                   )}
                 >

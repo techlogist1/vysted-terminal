@@ -69,6 +69,23 @@
   padding: var(--spacing-4, 0.5rem) var(--spacing-6, 0.75rem) var(--spacing-2, 0.25rem); /* 8 12 4 */
 }
 
+/* --- ⌘K palette row truncation -------------------------------------------
+ * cmdk wraps rows in [cmdk-list-sizer] / [cmdk-group-items] divs that carry a
+ * min-content floor inside the grid-based DialogContent, so a long command-row
+ * description overflows the dialog and HARD-CLIPS (no ellipsis) instead of
+ * truncating. Force min-width:0 down the cmdk tree so the flex-1 row text can
+ * shrink and the row's `truncate` engages, keeping the description inside the
+ * row (VYSTED_DESIGN.md command-palette rule). */
+[cmdk-list-sizer],
+[cmdk-group],
+[cmdk-group-items],
+[cmdk-item] {
+  min-width: 0;
+}
+[cmdk-list-sizer] {
+  width: 100%;
+}
+
 @layer base {
   * {
     border-color: var(--color-border);

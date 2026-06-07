@@ -59,7 +59,7 @@ export function StrategyPicker({
                   className={cn(
                     "rounded-control w-full border px-2 py-1.5 text-left transition-colors",
                     active
-                      ? "border-amber-500 bg-amber-500/15 text-amber-300"
+                      ? "bg-charcoal-875 text-charcoal-100 border border-amber-400"
                       : "border-charcoal-700 text-charcoal-200 hover:border-charcoal-600",
                     disabled && "cursor-not-allowed opacity-50",
                   )}

@@ -54,7 +54,7 @@ const COLUMNS: DataColumn<ScreenerResultRow, SortKey>[] = [
     sortable: true,
     truncate: true,
     width: "104px",
-    cell: (r) => <span className="font-medium text-amber-300">{displaySymbol(r.symbol)}</span>,
+    cell: (r) => <span className="text-charcoal-100 font-medium">{displaySymbol(r.symbol)}</span>,
     title: (r) => r.symbol,
   },
   {

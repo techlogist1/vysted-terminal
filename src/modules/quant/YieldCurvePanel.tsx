@@ -282,7 +282,7 @@ export function YieldCurvePanel() {
                     {p.tenor_years.toFixed(3)}
                   </span>
                   <span className="border-charcoal-800 border-b py-0.5">{p.date}</span>
-                  <span className="border-charcoal-800 border-b py-0.5 text-right text-amber-200">
+                  <span className="border-charcoal-800 text-charcoal-100 border-b py-0.5 text-right">
                     {(p.zero_rate * 100).toFixed(3)}%
                   </span>
                   <span className="border-charcoal-800 border-b py-0.5 text-right">

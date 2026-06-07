@@ -308,12 +308,8 @@ function TradeTable({ trades }: TradeTableProps) {
                 key={trade.id}
                 className="border-charcoal-800 hover:bg-charcoal-800/40 text-caption border-b font-mono"
               >
-                <td className="text-charcoal-100 max-w-0 overflow-hidden px-3 py-1.5 text-ellipsis whitespace-nowrap">
-                  {trade.symbol}
-                </td>
-                <td className="text-charcoal-300 max-w-0 overflow-hidden px-3 py-1.5 text-ellipsis whitespace-nowrap">
-                  {trade.side}
-                </td>
+                <td className="text-charcoal-100 px-3 py-1.5 whitespace-nowrap">{trade.symbol}</td>
+                <td className="text-charcoal-300 px-3 py-1.5 whitespace-nowrap">{trade.side}</td>
                 <td className="text-charcoal-300 px-3 py-1.5 whitespace-nowrap tabular-nums">
                   {trade.enteredAt.slice(0, 10)}
                 </td>

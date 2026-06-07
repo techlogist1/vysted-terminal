@@ -161,7 +161,7 @@ export function OptionPricerPanel() {
                 className={cn(
                   "rounded-control text-micro h-8 border font-mono",
                   method === m.id
-                    ? "border-amber-500 bg-amber-500/20 text-amber-200"
+                    ? "border-charcoal-600 bg-charcoal-875 text-charcoal-100 border"
                     : "border-charcoal-700 bg-charcoal-850 text-charcoal-300 hover:bg-charcoal-800",
                 )}
                 data-testid={`method-${m.id}`}
@@ -189,7 +189,7 @@ export function OptionPricerPanel() {
                   className={cn(
                     "rounded-control text-micro h-8 border font-mono",
                     payoff === p.id
-                      ? "border-amber-500 bg-amber-500/20 text-amber-200"
+                      ? "border-charcoal-600 bg-charcoal-875 text-charcoal-100 border"
                       : "border-charcoal-700 bg-charcoal-850 text-charcoal-300 hover:bg-charcoal-800",
                   )}
                 >
@@ -209,7 +209,7 @@ export function OptionPricerPanel() {
                   className={cn(
                     "rounded-control text-micro h-8 border font-mono",
                     exercise === e.id
-                      ? "border-amber-500 bg-amber-500/20 text-amber-200"
+                      ? "border-charcoal-600 bg-charcoal-875 text-charcoal-100 border"
                       : "border-charcoal-700 bg-charcoal-850 text-charcoal-300 hover:bg-charcoal-800",
                   )}
                 >

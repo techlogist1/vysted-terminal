@@ -6,8 +6,8 @@ import type { MentionDef, MentionKind } from "./mentions";
 
 /** Per-layer badge label + tint (token-driven dark palette). */
 const KIND_BADGE: Record<MentionKind, { label: string; className: string }> = {
-  surface: { label: "surface", className: "text-sky-300/80" },
-  scope: { label: "scope", className: "text-emerald-300/80" },
+  surface: { label: "surface", className: "text-charcoal-400" },
+  scope: { label: "scope", className: "text-charcoal-400" },
   agent: { label: "agent", className: "text-amber-300/80" },
   instrument: { label: "ticker", className: "text-charcoal-300" },
 };

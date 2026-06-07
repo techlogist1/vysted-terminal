@@ -83,7 +83,7 @@ export function CommandPalette() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="border-charcoal-700 bg-charcoal-875 max-w-2xl gap-0 overflow-hidden p-0"
+        className="border-charcoal-700 bg-charcoal-875 max-w-3xl grid-cols-1 gap-0 overflow-hidden p-0 sm:max-w-3xl"
         showCloseButton={false}
       >
         <DialogHeader className="sr-only">
@@ -221,7 +221,7 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
       label="Command palette"
       filter={paletteFilter}
       loop
-      className="bg-charcoal-875 flex flex-col"
+      className="bg-charcoal-875 flex min-w-0 flex-col"
     >
       {/* Search input */}
       <div className="border-charcoal-700 flex items-center gap-3 border-b px-4 py-3">
@@ -246,7 +246,7 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
       </div>
 
       {/* Results list */}
-      <Command.List className="max-h-96 overflow-y-auto py-2">
+      <Command.List className="max-h-96 w-full min-w-0 overflow-y-auto py-2">
         {/* Empty state — shown when query returns no matches */}
         <Command.Empty>
           <EmptyState
@@ -287,7 +287,7 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
                   value={suggestion.id}
                   keywords={[suggestion.label, suggestion.description ?? ""]}
                   onSelect={() => handleSelectSuggested(suggestion)}
-                  className="aria-selected:bg-charcoal-800 flex cursor-pointer items-center gap-3 rounded-none px-4 py-2 transition-colors"
+                  className="aria-selected:bg-charcoal-800 rounded-control flex min-h-9 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
                 >
                   <suggestion.Icon className="text-charcoal-400 size-4 shrink-0" aria-hidden />
                   <div className="min-w-0 flex-1">
@@ -412,7 +412,7 @@ function AskAiItem({ query, onSelect }: AskAiItemProps) {
       keywords={["ask", "ai", "agent", "query", trimmed]}
       onSelect={onSelect}
       forceMount
-      className="aria-selected:bg-charcoal-800 flex cursor-pointer items-center gap-3 rounded-none px-4 py-2 transition-colors"
+      className="aria-selected:bg-charcoal-800 rounded-control flex min-h-9 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
     >
       <Sparkles className="size-4 shrink-0 text-amber-400" aria-hidden />
       <div className="min-w-0 flex-1">
@@ -443,7 +443,7 @@ function PaletteItemRow({ item, isRecent, onSelect, icon }: PaletteItemRowProps)
       value={item.id}
       keywords={[item.label, item.description ?? ""].filter(Boolean)}
       onSelect={onSelect}
-      className="aria-selected:bg-charcoal-800 flex cursor-pointer items-center gap-3 rounded-none px-4 py-2 transition-colors"
+      className="aria-selected:bg-charcoal-800 rounded-control flex min-h-9 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
     >
       {icon}
       <div className="min-w-0 flex-1">

@@ -338,7 +338,7 @@ export function EarningsCalendarPanel() {
                           <ChevronRight className="size-3" />
                         )}
                       </td>
-                      <td className="px-3 py-1.5 font-medium text-amber-300">{event.symbol}</td>
+                      <td className="text-charcoal-100 px-3 py-1.5 font-medium">{event.symbol}</td>
                       <td className="text-charcoal-100 px-3 py-1.5">
                         {fmtDate(event.scheduled_date)}
                       </td>

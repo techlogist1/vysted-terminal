@@ -49,7 +49,7 @@ export function ProvenanceBadge({
       data-testid="provenance-badge"
       className={cn(
         CHIP,
-        synthetic ? "bg-warning/20 text-warning" : "bg-charcoal-800 text-charcoal-300",
+        synthetic ? "bg-charcoal-850 text-warning" : "bg-charcoal-800 text-charcoal-300",
         className,
       )}
       title={synthetic ? "Synthetic / placeholder value — not a live read" : `Source: ${provider}`}
@@ -91,9 +91,9 @@ export function StalenessBadge({
   const date = typeof asOf === "number" ? asOfDate(asOf) : "";
   const tone =
     freshness === "live"
-      ? "bg-positive/15 text-positive"
+      ? "bg-charcoal-850 text-positive"
       : freshness === "stale"
-        ? "bg-warning/20 text-warning"
+        ? "bg-charcoal-850 text-warning"
         : "bg-charcoal-800 text-charcoal-300";
   const text =
     freshness === "live"

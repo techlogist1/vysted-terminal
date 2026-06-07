@@ -93,7 +93,7 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="border-charcoal-700 bg-charcoal-900 max-w-md gap-0 p-0">
           <DialogHeader className="border-charcoal-700 border-b px-6 py-3">
-            <DialogTitle className="text-charcoal-200 text-body flex items-center gap-2 font-mono font-medium">
+            <DialogTitle className="text-charcoal-200 text-panel-title flex items-center gap-2 font-mono">
               <KeyRound className="size-3.5 text-amber-400" aria-hidden="true" />
               {provider.label}
             </DialogTitle>
@@ -120,7 +120,7 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="border-charcoal-700 bg-charcoal-900 max-w-md gap-0 p-0">
         <DialogHeader className="border-charcoal-700 border-b px-6 py-3">
-          <DialogTitle className="text-charcoal-200 text-body flex items-center gap-2 font-mono font-medium">
+          <DialogTitle className="text-charcoal-200 text-panel-title flex items-center gap-2 font-mono">
             <KeyRound className="size-3.5 text-amber-400" aria-hidden="true" />
             {provider ? `${provider.label} API key` : "Provider API key"}
           </DialogTitle>

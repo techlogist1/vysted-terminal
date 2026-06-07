@@ -45,7 +45,7 @@ export function EmptyState({
       data-testid="empty-state"
       data-dense={dense || undefined}
       className={cn(
-        "flex h-full w-full flex-col items-center justify-center text-center",
+        "flex w-full flex-col items-center justify-start pt-16 text-center",
         dense ? "gap-2 px-4 py-6" : "gap-3 px-6 py-8",
         className,
       )}

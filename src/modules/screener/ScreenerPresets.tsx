@@ -136,7 +136,7 @@ export function ScreenerPresets() {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       <span className="text-muted-foreground text-micro inline-flex shrink-0 items-center gap-1 tracking-wide uppercase">
-        <Sparkles className="size-3 text-amber-400" /> Screens
+        <Sparkles className="text-charcoal-400 size-3" /> Screens
       </span>
       {PRESETS.map((preset) => (
         <button

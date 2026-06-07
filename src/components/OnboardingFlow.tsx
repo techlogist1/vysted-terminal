@@ -234,12 +234,10 @@ function WelcomeStep({
     <div className="flex flex-col gap-4 px-6 py-6">
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <span aria-hidden="true" className="size-2 rounded bg-amber-400" />
+          <span aria-hidden="true" className="size-2 rounded-none bg-amber-400" />
           <span className="hud-label leading-none">Welcome</span>
         </div>
-        <h2 className="text-lume text-overview leading-tight font-semibold">
-          An agent-native finance terminal
-        </h2>
+        <h2 className="text-lume text-overview">An agent-native finance terminal</h2>
         <p className="text-charcoal-300 text-caption font-mono leading-relaxed">
           Local-first, bring-your-own-keys, your machine. Nothing leaves this computer except the
           model calls you authorize.
@@ -669,11 +667,11 @@ function DoneStep({
 
   return (
     <div className="flex flex-col items-center gap-4 px-6 py-8 text-center">
-      <div className="border-positive/30 bg-positive/10 flex size-12 items-center justify-center rounded-full border">
+      <div className="border-positive/30 bg-positive/10 flex size-12 items-center justify-center rounded-none border">
         <Check className="text-positive size-6" aria-hidden="true" />
       </div>
       <div className="flex flex-col gap-2">
-        <h2 className="text-lume text-section font-semibold">You&apos;re set</h2>
+        <h2 className="text-lume text-section">You&apos;re set</h2>
         <p className="text-charcoal-300 text-caption max-w-sm font-mono leading-relaxed">
           {choice === "cloud"
             ? "OpenRouter is connected — the agent and deep research are live. Ask the agent to “research NVDA” to see a visual brief land in the cockpit."
@@ -711,7 +709,7 @@ function StepHeader({
         <ArrowLeft className="size-4" aria-hidden="true" />
       </button>
       {icon}
-      <h2 className="text-charcoal-100 text-section font-semibold">{title}</h2>
+      <h2 className="text-charcoal-100 text-section">{title}</h2>
     </div>
   );
 }

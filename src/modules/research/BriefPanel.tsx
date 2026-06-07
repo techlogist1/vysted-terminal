@@ -68,7 +68,7 @@ function ModeBadge({ mode }: { mode: ResearchBriefData["mode"] }) {
   return (
     <span
       className={`rounded-control text-micro px-1.5 py-0.5 font-mono font-medium tracking-wide uppercase ${
-        deep ? "bg-amber-600/25 text-amber-200" : "bg-charcoal-800 text-charcoal-300"
+        deep ? "bg-charcoal-850 text-amber-300" : "bg-charcoal-800 text-charcoal-300"
       }`}
       title={deep ? "Deep research run" : "Fast research run"}
     >
@@ -150,7 +150,7 @@ function MetaHeader({ brief }: { brief: ResearchBriefData }) {
       <div className="flex items-center gap-2">
         <ModeBadge mode={brief.mode} />
         {brief.symbol ? (
-          <span className="text-micro font-mono font-medium text-amber-400">{brief.symbol}</span>
+          <span className="text-micro text-charcoal-100 font-mono font-medium">{brief.symbol}</span>
         ) : null}
         <span className="text-charcoal-500 text-micro font-mono">
           {brief.sourceCount} source{brief.sourceCount === 1 ? "" : "s"}
@@ -244,7 +244,7 @@ function SourceRow({
   return (
     <li
       ref={(el) => registerRef(index, el)}
-      className="border-charcoal-800 flex gap-2 border-b px-4 py-3 last:border-b-0 target:bg-amber-600/5"
+      className="border-charcoal-800 target:bg-charcoal-875 flex gap-2 border-b px-4 py-3 last:border-b-0"
       data-source-index={index}
     >
       <span className="text-charcoal-500 text-micro w-4 shrink-0 pt-0.5 text-right font-mono">
@@ -348,7 +348,7 @@ function Tray({
 
 function EmptyState() {
   return (
-    <div className="bg-charcoal-900 flex h-full w-full flex-col items-center justify-center gap-3 px-8 text-center">
+    <div className="bg-charcoal-900 flex h-full w-full flex-col items-center justify-start gap-3 px-8 pt-16 text-center">
       <FlaskConical className="text-charcoal-600 size-8" />
       <p className="text-charcoal-300 text-caption font-mono">Ask JARVIS to research a company</p>
       <p className="text-charcoal-500 text-micro max-w-xs font-mono leading-relaxed">
@@ -431,8 +431,8 @@ export function BriefPanel() {
       return;
     }
     el.scrollIntoView({ behavior: "smooth", block: "center" });
-    el.classList.add("bg-amber-600/10");
-    window.setTimeout(() => el.classList.remove("bg-amber-600/10"), 1200);
+    el.classList.add("bg-charcoal-875");
+    window.setTimeout(() => el.classList.remove("bg-charcoal-875"), 1200);
   }, []);
 
   if (!brief) {
@@ -485,12 +485,10 @@ export function BriefPanel() {
           {/* Honest no-web state: NOT an error, NOT empty — a prominent banner that
               the brief is structured-data-only, with the pipeline's note. */}
           {noWeb ? (
-            <div className="m-3 flex items-start gap-2 rounded-none border border-amber-600/40 bg-amber-600/10 px-3 py-3">
-              <Globe className="mt-0.5 size-4 shrink-0 text-amber-300" />
+            <div className="border-warning/40 bg-charcoal-900 m-3 flex items-start gap-2 rounded-none border px-3 py-3">
+              <Globe className="text-warning mt-0.5 size-4 shrink-0" />
               <div className="flex flex-col gap-0.5">
-                <p className="text-caption font-medium text-amber-200">
-                  Structured-data-only brief
-                </p>
+                <p className="text-caption text-warning font-medium">Structured-data-only brief</p>
                 <p className="text-charcoal-300 text-micro leading-relaxed">
                   {brief.note ??
                     "No web-search backend configured — this brief is built from structured data only."}
@@ -498,7 +496,7 @@ export function BriefPanel() {
               </div>
             </div>
           ) : brief.note ? (
-            <p className="text-charcoal-400 border-charcoal-800 text-micro mx-4 mt-3 border-l-2 pl-3 leading-relaxed italic">
+            <p className="text-charcoal-400 border-charcoal-800 text-micro mx-4 mt-3 border-l-2 pl-3 leading-relaxed">
               {brief.note}
             </p>
           ) : null}

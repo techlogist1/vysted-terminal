@@ -184,7 +184,7 @@ export function ResearchActivity({ steps, active, startedAt }: ResearchActivityP
       {active && (
         <div className="relative h-0.5 w-full overflow-hidden bg-amber-500/10" aria-hidden>
           <motion.div
-            className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-amber-400/70 to-transparent"
+            className="absolute inset-y-0 w-1/3 bg-amber-500"
             animate={{ x: ["-100%", "300%"] }}
             transition={{ repeat: Infinity, ease: "easeInOut", duration: 1.6 }}
           />

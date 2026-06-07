@@ -24,7 +24,7 @@ function stepBadge(action: string, staged: boolean): { label: string; tone: stri
     return { label: "review", tone: "text-amber-300/90 border-amber-500/40" };
   }
   if (action === "research" || action === "deep_research") {
-    return { label: "research", tone: "text-sky-300/90 border-sky-500/40" };
+    return { label: "research", tone: "text-charcoal-300 border-charcoal-600" };
   }
   return { label: "answer", tone: "text-charcoal-400 border-charcoal-600" };
 }

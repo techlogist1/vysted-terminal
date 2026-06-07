@@ -79,7 +79,7 @@ function WorkflowSaveDialogBody({
       aria-modal="true"
       aria-labelledby="workflow-save-dialog-title"
       onClick={onClose}
-      className="bg-charcoal-950/60 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
+      className="bg-charcoal-950/60 fixed inset-0 z-50 flex items-center justify-center"
     >
       <form
         onClick={(event) => event.stopPropagation()}

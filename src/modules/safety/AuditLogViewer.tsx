@@ -153,7 +153,7 @@ export function AuditLogViewer() {
             <col className="w-[10ch]" />
             <col className="w-[16ch]" />
           </colgroup>
-          <thead className="text-charcoal-400 bg-charcoal-900 text-micro sticky top-0 text-left uppercase">
+          <thead className="text-charcoal-400 bg-charcoal-925 text-micro sticky top-0 text-left uppercase">
             <tr>
               <th className="px-2 py-1">ID</th>
               <th className="px-2 py-1">Time</th>

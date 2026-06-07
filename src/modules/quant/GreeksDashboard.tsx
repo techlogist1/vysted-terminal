@@ -101,7 +101,7 @@ export function GreeksDashboard() {
                 disabled={isRunning}
                 className={
                   payoff === p
-                    ? "rounded-control text-micro h-8 border border-amber-500 bg-amber-500/20 font-mono text-amber-200"
+                    ? "rounded-control text-micro border-charcoal-600 bg-charcoal-875 text-charcoal-100 h-8 border font-mono"
                     : "rounded-control border-charcoal-700 bg-charcoal-850 text-charcoal-300 hover:bg-charcoal-800 text-micro h-8 border font-mono"
                 }
                 data-testid={`greeks-payoff-${p}`}
