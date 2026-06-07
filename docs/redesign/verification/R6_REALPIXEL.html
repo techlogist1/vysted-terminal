@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>R6 — Real-Pixel: the NEW build now renders (proof)</title>
+    <style>
+      :root {
+        --canvas: #110f0c; --panel: #1e1a15; --line: rgba(122,116,106,0.24);
+        --text: #f6f3eb; --mut: #ada294; --ter: #968c7d; --amber: #d89a4e;
+        --pos: #3fbf6f; --neg: #e5544b; --warn: #e0a13a;
+        --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--canvas); color: var(--text); font-family: var(--mono);
+        font-size: 13px; line-height: 1.5; padding: 32px; }
+      h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+      h2 { font-size: 18px; font-weight: 700; margin: 28px 0 10px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+      .sub { color: var(--mut); font-size: 16px; line-height: 1.6; max-width: 86ch; }
+      .meta { color: var(--ter); font-size: 12px; margin-top: 8px; }
+      figure { margin: 0 0 20px; background: var(--panel); border: 1px solid var(--line); }
+      figure img { display: block; width: 100%; height: auto; border-bottom: 1px solid var(--line); }
+      figcaption { padding: 12px; }
+      .cap-title { font-weight: 700; font-size: 15px; }
+      ul { margin: 6px 0 0; padding-left: 18px; } li { margin: 2px 0; }
+      .badge { display: inline-block; font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase;
+        padding: 2px 6px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); }
+      .ok { color: var(--pos); border-color: color-mix(in srgb, var(--pos) 40%, transparent); }
+      .check { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
+      .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+      code { color: var(--amber); }
+      table { border-collapse: collapse; width: 100%; font-size: 12px; }
+      th, td { border-bottom: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+      th { color: var(--mut); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 500; }
+      @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <h1>R6 — Real-Pixel: the NEW build now renders</h1>
+    <div class="sub">
+      A prior session claimed the cockpit was "verified on real pixels." That was wrong — it had
+      captured a <strong>stale artifact</strong> and the new design was never confirmed rendering.
+      This sheet corrects the record with reliable evidence: every image below is captured from the
+      <strong>Tauri window buffer</strong> (Quartz <code>CGWindowListCreateImage</code>, occlusion-
+      independent — not <code>screencapture -R</code>, which grabs whatever is on top), of a
+      <strong>fresh production <code>.app</code></strong> that embeds the current source.
+    </div>
+    <div class="meta">vysted-terminal 0.8.0 · branch 004-r4-experience-rebuild · captured 2026-06-07.</div>
+
+    <h2>Ground truth that was running</h2>
+    <table>
+      <thead><tr><th>Artifact</th><th>Loads</th><th>Showed</th></tr></thead>
+      <tbody>
+        <tr><td><code>target/debug/bundle/macos/Vysted&nbsp;Terminal.app</code> (a prior <code>tauri build</code>)</td>
+          <td>embedded static export <code>out/</code> dated <strong>Jun&nbsp;5</strong> (pre-rebuild)</td>
+          <td>the <strong>OLD</strong> interface (R5 was already dark warm-graphite — which is how the prior session was fooled)</td></tr>
+        <tr><td><code>tauri dev</code> raw binary</td><td><code>localhost:3000</code> (new code)</td>
+          <td>the <strong>blank WHITE</strong> window (never isolated/painted; both windows were 1280×832 at the same origin)</td></tr>
+      </tbody>
+    </table>
+    <div class="sub" style="margin-top:10px">
+      So the committed OpenCode rebuild existed only in source + the dev server; no <em>built</em>
+      artifact carried it. After a full clean slate (all windows/sidecars/dev-servers/caffeinate
+      killed; <code>out/</code>, <code>.next/</code>, stale <code>.app</code> deleted), the new code
+      was rebuilt and proven below.
+    </div>
+
+    <h2>Root cause of the white render — and the fix</h2>
+    <div class="sub">
+      Next&nbsp;16 defaults <code>next&nbsp;build</code> to <strong>Turbopack</strong>, whose
+      URL-encoded chunk filenames the Tauri WKWebView asset loader cannot fetch → blank. The dev
+      script already opted out (<code>next dev --webpack</code>); the build script did not.
+      <strong>Fix (committed <code>dd08807</code>):</strong> <code>"build": "next build --webpack"</code>
+      so the static export emits plain-hash chunks the webview can load.
+      (<code>tauri.conf.json</code> untouched — the change is in the package.json build script only.)
+      Confirmed first in real Chromium, then in the <code>.app</code> on real window-buffer pixels.
+    </div>
+
+    <h2>Proof — captured from the real Tauri .app window buffer</h2>
+    <figure>
+      <img src="r6real/R6_cockpit_populated.png" alt="Full new-design cockpit, real window buffer, live data" />
+      <figcaption>
+        <div class="cap-title">Full cockpit — the NEW design <span class="badge ok">proven</span></div>
+        <ul>
+          <li><strong>Monospace across every role</strong> — headlines, panel titles, prose, data (JetBrains Mono), not Inter-sans, not serif.</li>
+          <li><strong>Sharp 0px containers</strong>; warm-graphite <code>#110f0c</code>; <strong>single muted amber</strong>; no glow/shadow; no cool/blue tint.</li>
+          <li>"CONNECTED · OLLAMA (LOCAL)" — sidecar live; watchlist populated (SPY 737.55 −2.25%, QQQ −4.12%, BTC/USDT 62,415.00 +2.73%, ETH/USDT +4.46%, NVDA −5.18%).</li>
+        </ul>
+      </figcaption>
+    </figure>
+    <div class="cols">
+      <figure>
+        <img src="r6real/R6_mono_proof.png" alt="Equity-overview zoom: mono + sharp" />
+        <figcaption><div class="cap-title">Mono / sharp zoom <span class="badge ok">proven</span></div>
+          <ul><li>"Chart" / "Equity Overview" tabs, search field, "Screener-grade fundamentals… US, NSE, or BSE", AAPL/RELIANCE/NVDA chips — all JetBrains Mono.</li>
+          <li>Containers sharp; interactive chips 4px (rounded-control).</li></ul></figcaption>
+      </figure>
+      <figure>
+        <img src="r6real/R6_header_proof.png" alt="Header zoom: mono chrome, amber, keycap ⌘K" />
+        <figcaption><div class="cap-title">Header zoom <span class="badge ok">proven</span></div>
+          <ul><li>App header all mono: amber "Agent", keycap <code>⌘K</code> chip, "Save layout"; mark-only amber brand dot.</li>
+          <li>The only sans text is the native macOS titlebar (OS chrome, unavoidable).</li></ul></figcaption>
+      </figure>
+    </div>
+    <figure>
+      <img src="r6real/R6_watchlist_detail.png" alt="Watchlist data-table detail" />
+      <figcaption><div class="cap-title">Watchlist data table <span class="badge ok">verified</span></div>
+        <ul><li>PRICE right-aligned tabular; CHANGE right-aligned (red loss / green gain); source-badge chips; "MARKET …" ellipsis — no collision, no mid-number truncation.</li></ul></figcaption>
+    </figure>
+
+    <h2>Status</h2>
+    <div class="cols">
+      <div>
+        <p><span class="badge ok">done</span></p>
+        <ul>
+          <li>Ground truth established; clean slate; stale artifacts deleted.</li>
+          <li>Render fixed (turbopack→webpack) and committed.</li>
+          <li>NEW design <strong>proven rendering on real pixels</strong> from the production <code>.app</code>.</li>
+          <li>Visible cockpit panels spot-checked clean (mono/sharp/aligned).</li>
+        </ul>
+      </div>
+      <div>
+        <p><span class="badge check">deferred to a fresh window (per operator)</span></p>
+        <ul>
+          <li>Full drive-through: load AAPL, ⌘K, open + click <em>every</em> panel (Notes, brief, screener, analyst, sec, quant, macro, backtest, settings…).</li>
+          <li>Per-surface real-pixel defect hunt + fixes.</li>
+          <li>Blocked here only by OS input automation: Accessibility is denied for Cursor (osascript −1719 / cliclick), and the production <code>.app</code> has no MCP bridge.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="meta">
+      Relaunch (fresh window): build → <code>pnpm build</code> (now webpack) then <code>pnpm tauri build --debug</code>,
+      and <code>open "src-tauri/target/debug/bundle/macos/Vysted Terminal.app"</code>. For an
+      autonomous real-pixel drive-through next session, enable <strong>Cursor</strong> in
+      System Settings → Privacy &amp; Security → Accessibility first.
+    </p>
+  </body>
+</html>
