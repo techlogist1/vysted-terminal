@@ -20,7 +20,14 @@ import pytest
 from pydantic import ValidationError
 
 from models.agent import AgentContextSnapshot, AgentInvocationRequest
-from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMMessage, LLMUsage
+from models.llm import (
+    LLMDeltaEvent,
+    LLMDoneEvent,
+    LLMMessage,
+    LLMThinkingEvent,
+    LLMToolUseEvent,
+    LLMUsage,
+)
 from services import agent_runtime
 
 
@@ -865,3 +872,130 @@ def test_auto_publish_maps_depth_tier_from_result_mode() -> None:
     heavy_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(heavy))
     assert heavy_event is not None
     assert heavy_event.input["depth"] == "heavy"
+
+
+# ---------------------------------------------------------------------------
+# WS8 — DeepSeek/OpenRouter tool-loop resilience (runtime side)
+# ---------------------------------------------------------------------------
+
+
+class _ToolThenAnswerProvider:
+    """Two-round provider: round 1 streams reasoning + a tool call, round 2
+    streams the final text. Records the messages handed to EACH round so a test
+    can inspect the reconstructed assistant tool-use turn appended between them.
+    """
+
+    def __init__(self, *, reasoning: str) -> None:
+        self._reasoning = reasoning
+        self._round = 0
+        self.round_messages: list[list[LLMMessage]] = []
+
+    async def stream_chat(
+        self,
+        messages: list[LLMMessage],
+        model: str,
+        api_key: str | None = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[Any]:
+        # Snapshot the messages for this round (a shallow copy is enough — the
+        # runtime mutates the list in place between rounds).
+        self.round_messages.append(list(messages))
+        if self._round == 0:
+            self._round += 1
+            if self._reasoning:
+                yield LLMThinkingEvent(text=self._reasoning)
+            yield LLMToolUseEvent(
+                tool_call_id="call-1", name="price_data", input={"symbol": "AAPL"}
+            )
+            yield LLMDoneEvent(usage=LLMUsage(input_tokens=5, output_tokens=1))
+            return
+        yield LLMDeltaEvent(text="AAPL looks fine.")
+        yield LLMDoneEvent(usage=LLMUsage(input_tokens=3, output_tokens=2))
+
+
+def _stub_tool_dispatch(monkeypatch: pytest.MonkeyPatch, result: str = '{"ok": true}') -> None:
+    """Replace the live tool dispatch with a canned result so no real tool runs."""
+
+    async def _fake_dispatch(tool_call: Any, local_tools: Any = None) -> AsyncIterator[Any]:
+        yield agent_runtime._ToolDone(result)
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool_with_progress", _fake_dispatch)
+
+
+def _reconstructed_assistant_turn(messages: list[LLMMessage]) -> LLMMessage | None:
+    """Find the reconstructed assistant tool-use turn (carries tool_calls meta)."""
+    for msg in messages:
+        if msg.role == "assistant" and msg.metadata and msg.metadata.get("tool_calls"):
+            return msg
+    return None
+
+
+@pytest.mark.asyncio
+async def test_deepseek_reasoner_echoes_reasoning_on_reconstructed_turn(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """WS8 Step 4 (echo default): for a *reasoner* model the reconstructed
+    assistant tool-use turn carries the round's reasoning_content (not content="")
+    so a multi-round reasoner turn is well-formed."""
+    agent_runtime.reload()
+    provider = _ToolThenAnswerProvider(reasoning="Let me check the price first.")
+    _patch_provider(monkeypatch, provider)
+    _stub_tool_dispatch(monkeypatch)
+    async for _ in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="is AAPL ok?",
+        provider="deepseek",
+        model="deepseek-reasoner",
+        api_key="sk-test",
+        mode="agent",
+    ):
+        pass
+    # The SECOND round's message list contains the reconstructed assistant turn.
+    assert len(provider.round_messages) == 2
+    turn = _reconstructed_assistant_turn(provider.round_messages[1])
+    assert turn is not None
+    assert turn.content == "Let me check the price first."
+
+
+@pytest.mark.asyncio
+async def test_non_reasoner_reconstructed_turn_stays_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """WS8 Step 4 must NOT regress non-reasoner behaviour: the same two-round
+    flow on a non-reasoner model keeps content="" on the reconstructed turn even
+    if a (spurious) thinking event was streamed."""
+    agent_runtime.reload()
+    provider = _ToolThenAnswerProvider(reasoning="should be ignored for non-reasoner")
+    _patch_provider(monkeypatch, provider)
+    _stub_tool_dispatch(monkeypatch)
+    async for _ in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="is AAPL ok?",
+        provider="deepseek",
+        model="deepseek-chat",
+        api_key="sk-test",
+        mode="agent",
+    ):
+        pass
+    assert len(provider.round_messages) == 2
+    turn = _reconstructed_assistant_turn(provider.round_messages[1])
+    assert turn is not None
+    assert turn.content == ""
+
+
+@pytest.mark.asyncio
+async def test_invalid_args_sentinel_dispatches_graceful_error_not_empty() -> None:
+    """WS8 Step 1: a tool call the adapter could not repair carries the
+    INVALID_ARGS_SENTINEL; _dispatch_tool surfaces the structured error keyed on
+    the call id and NEVER dispatches the tool with coerced-to-{} args."""
+    from services.llm.openai import INVALID_ARGS_SENTINEL
+
+    event = LLMToolUseEvent(
+        tool_call_id="call-9",
+        name="price_data",
+        input={INVALID_ARGS_SENTINEL: "invalid arguments for price_data: 'symbol' is required"},
+    )
+    result_str = await agent_runtime._dispatch_tool(event)
+    result = json.loads(result_str)
+    assert result["ok"] is False
+    assert "invalid arguments for price_data" in result["error"]

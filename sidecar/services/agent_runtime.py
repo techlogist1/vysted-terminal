@@ -43,6 +43,7 @@ from models.llm import (
     LLMMessage,
     LLMProviderId,
     LLMResearchStepEvent,
+    LLMThinkingEvent,
     LLMToolUseEvent,
     LLMUsage,
 )
@@ -50,6 +51,7 @@ from services import agent_tools, model_registry
 from services.agent_tools import catalog
 from services.llm import get_provider, native_search, oneshot
 from services.llm.base import LLMStreamEvent
+from services.llm.openai import INVALID_ARGS_SENTINEL
 from services.planner import classify_intent, decompose
 
 #: Host-action steps a plan may PRE-STAGE into the diff/accept gate (the planner
@@ -424,6 +426,16 @@ async def _dispatch_tool(
     recovers gracefully on the next turn rather than crashing the stream.
     """
     name = event.name
+    # WS8 Step 1: the adapter could not parse/validate/repair this call's
+    # arguments. Surface the structured error keyed on the call id (mirrors the
+    # "tool not found" convention) so the model self-corrects next round —
+    # NEVER dispatch with coerced-to-{} args.
+    if isinstance(event.input, dict) and INVALID_ARGS_SENTINEL in event.input:
+        payload = {"ok": False, "error": str(event.input[INVALID_ARGS_SENTINEL])}
+        try:
+            return json.dumps(payload, default=str)
+        except (TypeError, ValueError):  # pragma: no cover — defensive
+            return str(payload)
     try:
         if local_tools and name in local_tools:
             payload: dict[str, Any] = await local_tools[name](event.input)
@@ -858,6 +870,11 @@ async def invoke_agent(
     web_search_calls = 0  # per-run cap on the BYOK/local web_search tool (FR-081)
     while True:
         pending_tools: list[LLMToolUseEvent] = []
+        # WS8 Step 4: accumulate this round's reasoning_content (DeepSeek-reasoner
+        # streams its chain-of-thought as thinking events) so it can be echoed on
+        # the reconstructed assistant tool-use turn for a well-formed multi-round
+        # reasoner. Empty for non-reasoner providers (no thinking events).
+        round_reasoning_parts: list[str] = []
         seen_done = False
         async for event in adapter.stream_chat(
             messages=messages,
@@ -866,6 +883,10 @@ async def invoke_agent(
             tool_ids=tool_ids,
             **opts,
         ):
+            if isinstance(event, LLMThinkingEvent):
+                round_reasoning_parts.append(event.text)
+                yield event
+                continue
             if isinstance(event, LLMToolUseEvent):
                 pending_tools.append(event)
                 yield event
@@ -899,10 +920,25 @@ async def invoke_agent(
         # tool_use block to precede the tool_result; OpenAI requires the
         # assistant `tool_calls` array. Carried in `metadata` (no contract
         # change to LLMMessage); each adapter rebuilds its native shape.
+        #
+        # WS8 Step 4 (deepseek-reasoner guard — LOW-RISK ECHO default):
+        # deepseek-reasoner returns its chain-of-thought in a separate
+        # ``reasoning_content`` field, and a multi-round tool turn is better
+        # formed when the assistant turn that issued the tool call carries that
+        # reasoning rather than empty content. We ECHO the round's reasoning back
+        # on the reconstructed turn for reasoner models ONLY; non-reasoner
+        # providers stream no thinking events so this stays content="" and their
+        # behaviour is unchanged. NEEDS-MANUAL-CHECK: the echo-vs-steer-to-
+        # deepseek-chat choice is UNVERIFIED here — it needs a live
+        # deepseek-reasoner MULTI-ROUND repro (cannot run in this environment).
+        # Echo is the conservative default (additive, reasoner-gated).
+        reconstructed_content = ""
+        if "reasoner" in resolved_model.lower() and round_reasoning_parts:
+            reconstructed_content = "".join(round_reasoning_parts)
         messages.append(
             LLMMessage(
                 role="assistant",
-                content="",
+                content=reconstructed_content,
                 metadata={
                     "tool_calls": [
                         {"id": tc.tool_call_id, "name": tc.name, "input": tc.input}
