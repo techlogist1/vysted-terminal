@@ -226,12 +226,19 @@ def _tool_ids_for(monkeypatch, prompt: str) -> list[str]:
 
 
 def test_agent_mode_infers_read_intent_and_gates_to_read_only(monkeypatch) -> None:
-    """Track B: the collapsed 'agent' mode infers a READ intent from the prompt and
-    strips the host-action mutators server-side — the old 'Ask' safety line, with
-    no picker."""
+    """Track B + Decision 4: the collapsed 'agent' mode infers a READ intent and
+    strips ORDER + write mutators server-side, but RETAINS a read-safe panel
+    allow-list so a read question can still ground itself by pulling up the
+    relevant chart/index. ``propose_order`` STAYS stripped on a read intent
+    (§6.5 — the AI has no path to place an order); every retained panel action
+    still rides the frontend diff/accept gate (auto-apply excludes orders)."""
     tids = _tool_ids_for(monkeypatch, "what is a P/E ratio?")
-    for mutator in ("set_chart_symbol", "open_panel", "add_to_watchlist", "propose_order"):
-        assert mutator not in tids
+    # §6.5: an order can never survive a read intent, in any mode.
+    assert "propose_order" not in tids
+    # Decision 4: the read-safe panel actions are retained so the agent can ground
+    # a read answer in the cockpit (e.g. "how's the market" -> set_chart_symbol SPY).
+    for panel_action in ("set_chart_symbol", "open_panel", "add_to_watchlist"):
+        assert panel_action in tids
     assert "price_data" in tids  # read tools survive
 
 
