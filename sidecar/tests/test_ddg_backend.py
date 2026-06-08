@@ -7,12 +7,13 @@ import asyncio
 import httpx
 import pytest
 
+from services.search import ddg as ddg_module
 from services.search.base import (
     SEARCH_REASON_RATE_LIMITED,
     SEARCH_REASON_UNREACHABLE,
     SearchError,
 )
-from services.search.ddg import BACKEND_ID, DdgSearchBackend
+from services.search.ddg import BACKEND_ID, DdgSearchBackend, _TokenBucket
 
 # A trimmed DuckDuckGo HTML results page: a uddg-redirect link, a direct link, and
 # a protocol-relative link — covering the three href shapes the parser handles.
@@ -160,3 +161,105 @@ def test_lite_fallback_when_html_empty() -> None:
     # The HTML endpoint was tried first, then Lite.
     assert any("html.duckduckgo.com" in u for u in client.calls)
     assert any("lite.duckduckgo.com" in u for u in client.calls)
+
+
+# --- WS7: proactive token-bucket rate-limiter ------------------------------
+#
+# These tests drive the bucket LOGIC with an INJECTED clock — no real-time
+# sleeps — so they are deterministic, never wall-clock-flaky. Token accounting
+# (refill maths + "how long must we wait") is asserted directly; we never block
+# on a real `asyncio.sleep`.
+
+
+class _FakeClock:
+    """A monotonic clock whose value is advanced explicitly by the test."""
+
+    def __init__(self, start: float = 1000.0) -> None:
+        self.now = start
+
+    def __call__(self) -> float:
+        return self.now
+
+    def advance(self, secs: float) -> None:
+        self.now += secs
+
+
+def test_token_bucket_first_request_is_immediate() -> None:
+    """A fresh bucket starts FULL, so the very first acquire never sleeps."""
+    clock = _FakeClock()
+    bucket = _TokenBucket(rate_per_sec=0.4, capacity=5, clock=clock)
+
+    # No token deficit at the start → zero wait, and the awaitable returns 0.0
+    # WITHOUT a real-time sleep (the immediate path takes no asyncio.sleep).
+    assert bucket.time_until_available() == 0.0
+    assert _run(bucket.acquire()) == 0.0
+    # ... and a single call must not have advanced wall-clock at all.
+    assert clock.now == 1000.0
+
+
+def test_token_bucket_paces_a_sustained_burst() -> None:
+    """Once the initial tokens drain, the bucket reports a per-request WAIT —
+    asserted via the pure `time_until_available` accounting, NOT by sleeping."""
+    clock = _FakeClock()
+    # capacity 3, refill 0.5 tok/sec → one new token every 2.0s.
+    bucket = _TokenBucket(rate_per_sec=0.5, capacity=3, clock=clock)
+
+    # Drain the full bucket: 3 immediate (zero-wait) acquires (no time elapses).
+    assert _run(bucket.acquire()) == 0.0
+    assert _run(bucket.acquire()) == 0.0
+    assert _run(bucket.acquire()) == 0.0
+
+    # Empty now (no time elapsed): the next request must wait a full refill
+    # interval (2.0s). Asserted on the PURE accounting — no real sleep.
+    assert bucket.time_until_available() == pytest.approx(2.0)
+    # Halfway to a token (advance 1.0s at 0.5 tok/s = 0.5 token) → ~1.0s left.
+    clock.advance(1.0)
+    assert bucket.time_until_available() == pytest.approx(1.0)
+
+
+def test_token_bucket_refills_over_time() -> None:
+    """Tokens accrue with elapsed (injected) time and re-enable immediate
+    acquires; refill saturates at capacity (no unbounded build-up). All asserted
+    on the pure `time_until_available` accounting — deterministic, no real sleep."""
+    clock = _FakeClock()
+    bucket = _TokenBucket(rate_per_sec=1.0, capacity=2, clock=clock)
+
+    # Drain both tokens (immediate).
+    assert _run(bucket.acquire()) == 0.0
+    assert _run(bucket.acquire()) == 0.0
+    # Empty now: a request would wait 1.0s.
+    assert bucket.time_until_available() == pytest.approx(1.0)
+
+    # Advance 1s → exactly one token refilled → no wait.
+    clock.advance(1.0)
+    assert bucket.time_until_available() == 0.0
+    assert _run(bucket.acquire()) == 0.0  # consume the refilled token
+
+    # Advance well past capacity → bucket saturates at `capacity`, not beyond:
+    # two tokens available (two immediate acquires), then a wait reappears.
+    clock.advance(100.0)
+    assert _run(bucket.acquire()) == 0.0
+    assert _run(bucket.acquire()) == 0.0
+    assert bucket.time_until_available() == pytest.approx(1.0)
+
+
+def test_module_bucket_is_lazy_and_process_global() -> None:
+    """The DDG floor's bucket is a module-level singleton, lazily built on first
+    use (never an asyncio primitive at import time)."""
+    # Reset any state a prior test left, to assert the lazy-init path.
+    ddg_module._BUCKET = None
+    first = ddg_module._get_bucket()
+    second = ddg_module._get_bucket()
+    assert first is second  # process-global singleton
+    assert isinstance(first, _TokenBucket)
+
+
+def test_limiter_does_not_delay_a_single_search() -> None:
+    """End-to-end: the limiter sits in front of the fetch but the FIRST search
+    passes immediately (full bucket) — existing single-call tests stay fast."""
+    # Fresh bucket → full → no pacing wait on the one request.
+    ddg_module._BUCKET = None
+    client = _FakeClient(_FakeResp(_FIXTURE))
+    backend = DdgSearchBackend(region="US", client=client)
+    resp = _run(backend.search("nvda"))
+    assert len(resp.results) == 2

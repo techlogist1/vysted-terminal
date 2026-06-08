@@ -21,6 +21,8 @@ from __future__ import annotations
 import asyncio
 import html
 import re
+import time
+from collections.abc import Callable
 from urllib.parse import parse_qs, unquote, urlparse
 
 import httpx
@@ -57,6 +59,18 @@ _RATE_LIMIT_STATUSES = frozenset({202, 429})
 #: long stall.
 _MAX_ATTEMPTS = 2
 _BACKOFF_SECS = 0.3
+
+#: PROACTIVE pacing rate for the keyless DDG floor. ~20/min keeps us comfortably
+#: under DuckDuckGo's soft burst threshold: the ``html.`` host trips its 202
+#: "anomaly" challenge on an over-eager burst, so spacing requests to roughly one
+#: every ~3s dodges the throttle BEFORE it fires (the reactive 202/429 retry below
+#: is the safety net for the rare miss, not the first line of defence). Token-bucket
+#: idea ported from nickclyde/duckduckgo-mcp-server (MIT-licensed).
+_RATE_PER_MIN = 20
+_RATE_PER_SEC = _RATE_PER_MIN / 60.0
+#: Burst capacity == per-minute rate: the bucket starts FULL so the first request
+#: (and a small burst) goes through immediately; only a SUSTAINED burst is paced.
+_BUCKET_CAPACITY = _RATE_PER_MIN
 
 #: A desktop User-Agent — the bare httpx UA gets a thinner/blocked response.
 _USER_AGENT = (
@@ -210,6 +224,91 @@ async def _fetch(http: httpx.AsyncClient, endpoint: str, data: dict[str, str]) -
     raise SearchError(unreachable)  # pragma: no cover — loop always returns/raises
 
 
+class _TokenBucket:
+    """An async token-bucket that PACES requests to a steady refill rate.
+
+    The bucket starts FULL (``capacity`` tokens), so the first request — and a
+    short burst up to ``capacity`` — passes with zero wait; only a SUSTAINED burst
+    is throttled, each over-budget acquire waiting just long enough for one token
+    to refill. Tokens accrue continuously at ``rate_per_sec`` and saturate at
+    ``capacity`` (no unbounded build-up while idle).
+
+    ``acquire`` is serialised by an :class:`asyncio.Lock` so concurrent awaits
+    can't race the token count, and returns the wall-clock seconds it slept (``0.0``
+    when immediate) — handy for deterministic, injected-clock testing.
+
+    ``clock`` is injectable purely so tests can advance time without real sleeps;
+    production uses :func:`time.monotonic`. Idea ported from
+    nickclyde/duckduckgo-mcp-server (MIT).
+    """
+
+    def __init__(
+        self,
+        *,
+        rate_per_sec: float,
+        capacity: float,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        self._rate = rate_per_sec
+        self._capacity = capacity
+        self._clock = clock
+        self._tokens = float(capacity)  # start FULL → first request is immediate
+        self._updated = clock()
+        self._lock = asyncio.Lock()
+
+    def _refill(self) -> None:
+        now = self._clock()
+        elapsed = now - self._updated
+        if elapsed > 0:
+            self._tokens = min(self._capacity, self._tokens + elapsed * self._rate)
+            self._updated = now
+
+    def time_until_available(self) -> float:
+        """Seconds until a token is available (``0.0`` if one is ready now).
+
+        Refills against the current clock first, then reports the deficit. Pure
+        accounting — no sleep, no mutation beyond the refill — so a deterministic
+        test can drive the pacing/refill maths directly with an injected clock,
+        never a real-time sleep. :meth:`acquire` is the awaitable wrapper that
+        sleeps this long and then consumes the token.
+        """
+        self._refill()
+        if self._tokens >= 1.0:
+            return 0.0
+        return (1.0 - self._tokens) / self._rate
+
+    async def acquire(self) -> float:
+        """Consume one token, sleeping if the bucket is empty. Returns seconds slept.
+
+        Refill → if a token is ready, take it immediately (zero wait); else sleep
+        the deficit and re-refill against the clock (which has advanced by ~``wait``
+        in production) before consuming. The lock serialises concurrent awaits so
+        the token count can't be raced.
+        """
+        async with self._lock:
+            wait = self.time_until_available()  # refills, then reports the deficit
+            if wait > 0:
+                await asyncio.sleep(wait)
+                self._refill()  # the monotonic clock advanced ~wait during the sleep
+            self._tokens -= 1.0  # take the (now-available) token
+            return wait
+
+
+#: Process-global limiter for the keyless DDG floor — lazily built on first use so
+#: no asyncio primitive (the bucket's Lock) is created at import time before an
+#: event loop exists. Shared across all DdgSearchBackend instances so the pacing is
+#: per-process, not per-search.
+_BUCKET: _TokenBucket | None = None
+
+
+def _get_bucket() -> _TokenBucket:
+    """Return the process-global DDG rate-limiter, building it lazily on first call."""
+    global _BUCKET
+    if _BUCKET is None:
+        _BUCKET = _TokenBucket(rate_per_sec=_RATE_PER_SEC, capacity=_BUCKET_CAPACITY)
+    return _BUCKET
+
+
 class DdgSearchBackend(SearchBackend):
     """Keyless DuckDuckGo metasearch — the always-available search floor."""
 
@@ -246,12 +345,18 @@ class DdgSearchBackend(SearchBackend):
         self, http: httpx.AsyncClient, data: dict[str, str], limit: int
     ) -> list[SearchResult]:
         """Query the HTML endpoint; on zero rows, fall back to DDG Lite."""
+        # PROACTIVE pacing: take a token BEFORE each outbound DDG hit so an
+        # over-eager burst is spaced out and dodges the 202 "anomaly" challenge
+        # before it fires (the reactive 202/429 retry in _fetch is the net for the
+        # rare miss). The bucket starts full → the first request is never delayed.
+        await _get_bucket().acquire()
         results = _parse(await _fetch(http, _ENDPOINT, data), limit=limit)
         if results:
             return results
         # Zero rows from HTML (markup drift or a soft block) → try the simpler,
         # more stable Lite page. A Lite failure leaves the empty HTML result —
         # never worse than before this fallback existed.
+        await _get_bucket().acquire()
         try:
             lite_text = await _fetch(http, _LITE_ENDPOINT, data)
         except SearchError:
