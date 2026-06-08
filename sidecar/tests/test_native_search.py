@@ -28,12 +28,14 @@ from services.llm.anthropic import AnthropicProvider
 from services.llm.gemini import GeminiProvider
 from services.llm.native_search import (
     ANTHROPIC_WEB_SEARCH_TYPE,
+    PROVIDER_LEVEL_NATIVE_SEARCH,
     SUPPORTS_NATIVE_SEARCH,
     anthropic_web_search_tool,
     normalize_anthropic,
     normalize_gemini,
     normalize_openai,
     normalize_xai,
+    openrouter_web_search_tool,
 )
 from services.llm.openai import OpenAIProvider
 
@@ -43,10 +45,26 @@ from services.llm.openai import OpenAIProvider
 
 
 def test_supports_native_search_set() -> None:
-    assert SUPPORTS_NATIVE_SEARCH == {"anthropic", "openai", "gemini", "groq", "xai"}
-    # DeepSeek + Ollama explicitly excluded (no native search).
+    # Five provider-level native-search providers plus OpenRouter (WS5), whose
+    # native search is gated PER-MODEL by the runtime, not by mere membership.
+    assert SUPPORTS_NATIVE_SEARCH == {
+        "anthropic",
+        "openai",
+        "gemini",
+        "groq",
+        "xai",
+        "openrouter",
+    }
+    # DeepSeek + Ollama explicitly excluded (no native search at all).
     assert "deepseek" not in SUPPORTS_NATIVE_SEARCH
     assert "ollama" not in SUPPORTS_NATIVE_SEARCH
+
+
+def test_provider_level_native_search_excludes_openrouter() -> None:
+    # OpenRouter is a broker: native search is per-MODEL, so it is NOT in the
+    # provider-level set the runtime uses to keep the existing five unchanged.
+    assert PROVIDER_LEVEL_NATIVE_SEARCH == {"anthropic", "openai", "gemini", "groq", "xai"}
+    assert "openrouter" not in PROVIDER_LEVEL_NATIVE_SEARCH
 
 
 # ---------------------------------------------------------------------------
@@ -387,8 +405,40 @@ async def test_deepseek_web_search_noops(monkeypatch: pytest.MonkeyPatch) -> Non
     )
     last_kwargs = state["last"].chat.completions.last_kwargs
     assert "tools" not in last_kwargs
+    # DeepSeek still gets no web-search tool; extra_body may be absent entirely
+    # (no OpenRouter provider routing for deepseek).
     assert "extra_body" not in last_kwargs
     # No leaked kwargs either.
+    assert "web_search" not in last_kwargs
+    assert "web_search_max_uses" not in last_kwargs
+
+
+def test_openrouter_web_search_tool_shape() -> None:
+    # WS5: OpenRouter rides its own tool type so the upstream model's native
+    # server-side search fires (citations come back as OpenAI url_citation
+    # annotations → normalize_openai handles them unchanged).
+    assert openrouter_web_search_tool() == {"type": "openrouter:web_search"}
+
+
+@pytest.mark.asyncio
+async def test_openrouter_injects_web_search_tool(monkeypatch: pytest.MonkeyPatch) -> None:
+    state = _patch_openai(monkeypatch)
+    # OpenRouter rides OpenAIProvider with provider_id="openrouter".
+    provider = OpenAIProvider(base_url="https://openrouter.ai/api/v1", provider_id="openrouter")
+    await _drain(
+        provider.stream_chat(
+            messages=[LLMMessage(role="user", content="news")],
+            model="anthropic/claude-opus-4-8",
+            api_key="sk-test",
+            web_search=True,
+        )
+    )
+    last_kwargs = state["last"].chat.completions.last_kwargs
+    # The OpenRouter-specific tool type rides the SAME tools array, NOT a
+    # search_parameters block (that is xAI's shape).
+    assert {"type": "openrouter:web_search"} in last_kwargs["tools"]
+    assert "search_parameters" not in last_kwargs.get("extra_body", {})
+    # The kwarg must be consumed, never forwarded to the SDK.
     assert "web_search" not in last_kwargs
     assert "web_search_max_uses" not in last_kwargs
 

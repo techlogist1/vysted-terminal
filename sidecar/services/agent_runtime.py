@@ -377,6 +377,31 @@ _MAX_TOOL_ROUNDS = 6
 #: cap-reached message instead of dispatching).
 _WEB_SEARCH_CAP = 5
 
+
+def _native_search_enabled(provider_id: str, model_web_search: str | None) -> bool:
+    """Decide whether THIS turn rides the provider's native server-side search.
+
+    WS5 makes the native-search gate per-MODEL, not per-provider:
+
+    * The five PROVIDER-level providers (anthropic/openai/gemini/groq/xai) keep
+      their existing behaviour — every routable model rides the provider's own
+      search, so the gate is simply "is the tier native + is this a provider-level
+      native-search provider".
+    * OpenRouter is a broker, so native search is a per-MODEL property carried by
+      the resolved model's :attr:`LLMModelOption.web_search` flag (threaded through
+      the invoke ``options`` from the frontend's public catalog — keyless-first, no
+      network on the hot path). ``"native"`` → ride it; ``"plugin"`` → keep the
+      local search tool (OpenRouter's billed plugin is not auto-enabled here, so we
+      never silently bill the user); ``"none"``/unknown → keep the local tool (the
+      FR-082 fallback, which never fabricates).
+    """
+    if provider_id in native_search.PROVIDER_LEVEL_NATIVE_SEARCH:
+        return True
+    if provider_id == "openrouter":
+        return model_web_search == "native"
+    return False
+
+
 #: Research tool(s) whose result the runtime auto-publishes to the brief panel.
 #: After the R4 collapse (FR-115) there is ONE research tool; depth (quick/deep/
 #: heavy) is an internal arg on it, so every depth auto-publishes through here.
@@ -758,17 +783,26 @@ async def invoke_agent(
             or (keep_panel_actions and t in _READ_SAFE_PANEL_ACTIONS)
         ]
 
-    # Web-search tier dispatch (FR-080/081). On the NATIVE tier with a
-    # native-capable provider, ride the model's own server-side search (the
-    # adapter injects it via the `web_search` kwarg, capped at _WEB_SEARCH_CAP)
-    # and WITHHOLD the BYOK/local `web_search` tool so search isn't double-run.
-    # Otherwise (BYOK/local tier, or a native-incapable provider) keep the
-    # `web_search` tool — it routes to Exa/SearXNG, or returns an honest
-    # "unavailable" when nothing is configured (FR-082; never fabricates).
+    # Web-search tier dispatch (FR-080/081/WS5). On the NATIVE tier, ride the
+    # model's own server-side search when THIS model supports it (the adapter
+    # injects it via the `web_search` kwarg, capped at _WEB_SEARCH_CAP) and
+    # WITHHOLD the BYOK/local `web_search` tool so search isn't double-run.
+    # The five provider-level native providers (anthropic/openai/gemini/groq/xai)
+    # always qualify; OpenRouter is gated PER-MODEL on the resolved model's
+    # `web_search` capability ("native"), threaded from the frontend catalog as
+    # `modelWebSearch` (keyless — no network on the hot path). Otherwise (BYOK/
+    # local tier, a non-native provider, or an OpenRouter model that is plugin-/
+    # none-capable) keep the `web_search` tool — it routes to Exa/SearXNG, or
+    # returns an honest "unavailable" when nothing is configured (FR-082; never
+    # fabricates).
+    model_web_search = opts.pop("modelWebSearch", None)
+    if isinstance(model_web_search, str):
+        model_web_search = model_web_search.strip().lower() or None
+    else:
+        model_web_search = None
     search_tier = config.get_search_tier()
-    if (
-        search_tier == config.SEARCH_TIER_NATIVE
-        and provider_id in native_search.SUPPORTS_NATIVE_SEARCH
+    if search_tier == config.SEARCH_TIER_NATIVE and _native_search_enabled(
+        provider_id, model_web_search
     ):
         opts["web_search"] = True
         opts["web_search_max_uses"] = _WEB_SEARCH_CAP

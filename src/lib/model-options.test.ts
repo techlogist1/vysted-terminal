@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildModelGroups, modelOptionLabel } from "@/lib/model-options";
+import { buildModelGroups, modelOptionLabel, modelSearchPip } from "@/lib/model-options";
 import type { LLMModelOption } from "../../types/ai";
 
 const opt = (id: string, supportsTools?: boolean | null): LLMModelOption => ({
@@ -8,6 +8,12 @@ const opt = (id: string, supportsTools?: boolean | null): LLMModelOption => ({
   label: id,
   supportsTools,
 });
+
+const optWithSearch = (
+  id: string,
+  webSearch: LLMModelOption["webSearch"],
+  supportsTools?: boolean | null,
+): LLMModelOption => ({ id, label: id, supportsTools, webSearch });
 
 describe("buildModelGroups", () => {
   it("groups tool-capable, unknown, and no-tool models when capability is known", () => {
@@ -49,5 +55,33 @@ describe("modelOptionLabel", () => {
   it("leaves tool-capable and unknown models unmarked", () => {
     expect(modelOptionLabel(opt("x/tool", true))).toBe("x/tool");
     expect(modelOptionLabel(opt("x/unknown", null))).toBe("x/unknown");
+  });
+
+  it("appends a filled search pip for native web-search models (WS5)", () => {
+    expect(modelOptionLabel(optWithSearch("x/native", "native", true))).toBe("x/native · ⌕");
+  });
+
+  it("appends an outline search pip for plugin-available models (WS5)", () => {
+    expect(modelOptionLabel(optWithSearch("x/plugin", "plugin", true))).toBe("x/plugin · ⌕?");
+  });
+
+  it("omits the search pip for none/unknown models", () => {
+    expect(modelOptionLabel(optWithSearch("x/none", "none", true))).toBe("x/none");
+    expect(modelOptionLabel(opt("x/unset", true))).toBe("x/unset");
+  });
+
+  it("combines the no-tools marker with the search pip", () => {
+    expect(modelOptionLabel(optWithSearch("x/both", "native", false))).toBe(
+      "x/both · no tools · ⌕",
+    );
+  });
+});
+
+describe("modelSearchPip", () => {
+  it("maps each capability to its glyph", () => {
+    expect(modelSearchPip(optWithSearch("a", "native"))).toBe(" · ⌕");
+    expect(modelSearchPip(optWithSearch("a", "plugin"))).toBe(" · ⌕?");
+    expect(modelSearchPip(optWithSearch("a", "none"))).toBe("");
+    expect(modelSearchPip(optWithSearch("a", null))).toBe("");
   });
 });

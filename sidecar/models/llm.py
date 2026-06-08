@@ -69,6 +69,25 @@ class LLMModelOption(BaseModel):
     supports_tools: bool | None = None
     #: Short human price hint (e.g. ``"$0.30 / $1.20 per 1M"``), when available.
     pricing: str | None = None
+    #: Native web-search capability of THIS model, derived per-model from the
+    #: OpenRouter catalog (WS5):
+    #:   ``"native"`` — the model exposes its own server-side web search
+    #:     (``web_search_options`` in ``supported_parameters``); ride it and
+    #:     withhold the local search tool.
+    #:   ``"plugin"`` — no per-model native search, but OpenRouter can run its
+    #:     billed ``web`` plugin in front of the model (``pricing.web_search``).
+    #:   ``"none"`` — neither; the agent keeps the local/BYOK search tool
+    #:     (the FR-082 fallback, which never fabricates).
+    #: ``None`` means the catalog did not say (every non-OpenRouter provider).
+    web_search: Literal["native", "plugin", "none"] | None = None
+    #: ``True``/``False`` when the OpenRouter catalog reports structured-output
+    #: support (``response_format``/``structured_outputs`` in ``supported_parameters``);
+    #: ``None`` when unknown. Best-effort metadata, not a gate.
+    supports_structured_outputs: bool | None = None
+    #: ``True``/``False`` when the OpenRouter catalog reports reasoning support
+    #: (``reasoning``/``include_reasoning`` in ``supported_parameters``); ``None``
+    #: when unknown. Best-effort metadata, not a gate.
+    supports_reasoning: bool | None = None
 
 
 class LLMModelCatalog(BaseModel):

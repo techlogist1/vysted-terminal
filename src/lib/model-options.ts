@@ -51,7 +51,26 @@ export function buildModelGroups(
   return { groups, selectedIsNoTools };
 }
 
-/** Option display label — marks a non-tool-capable model so the choice is honest. */
+/** A subtle search-capability pip appended to a model's option label (WS5).
+ *
+ * Reuses the same `<option>`-text convention as the `· no tools` marker (an HTML
+ * `<option>` renders text only — no chrome — so a glyph suffix is the honest,
+ * dependency-free pip). The `⌕` magnifier reads as "search":
+ *   - `native`  → ` · ⌕` (filled): the model runs its OWN server-side search.
+ *   - `plugin`  → ` · ⌕?` (outline): no native search, but a billed plugin is
+ *     available; searches still fall back to the app's search tool here.
+ *   - `none`/unknown → absent: the app's own search tool handles it (the
+ *     non-OpenRouter providers leave this unset, so they never grow a pip).
+ */
+export function modelSearchPip(option: LLMModelOption): string {
+  if (option.webSearch === "native") return " · ⌕";
+  if (option.webSearch === "plugin") return " · ⌕?";
+  return "";
+}
+
+/** Option display label — marks a non-tool-capable model so the choice is honest,
+ *  plus a subtle native-search pip (WS5). */
 export function modelOptionLabel(option: LLMModelOption): string {
-  return option.supportsTools === false ? `${option.label} · no tools` : option.label;
+  const base = option.supportsTools === false ? `${option.label} · no tools` : option.label;
+  return `${base}${modelSearchPip(option)}`;
 }

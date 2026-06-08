@@ -32,7 +32,11 @@ from models.llm import (
 )
 
 from .base import LLMProvider, LLMStreamEvent, is_chat_model
-from .native_search import openai_web_search_tool, xai_search_parameters
+from .native_search import (
+    openai_web_search_tool,
+    openrouter_web_search_tool,
+    xai_search_parameters,
+)
 
 #: OpenRouter provider slugs Vysted never routes through. Amazon Bedrock is
 #: excluded on every OpenRouter request so the terminal runs clean on OpenRouter's
@@ -171,17 +175,21 @@ class OpenAIProvider(LLMProvider):
 
             tools.extend(openai_tools(tool_ids))
         # Native server-side web search (FR-081), opt-in via ``web_search``.
-        # OpenAI takes a ``{"type": "web_search"}`` tools entry; xAI (dispatched
-        # through this adapter via the x.ai base_url) speaks Live Search through
-        # a top-level ``search_parameters`` block instead of a tool — gate on the
-        # provider id. DeepSeek has no native search, so it is left untouched
-        # (graceful no-op; the runtime falls back to a BYOK search plugin).
+        # OpenAI takes a ``{"type": "web_search"}`` tools entry; OpenRouter (WS5)
+        # takes its own ``{"type": "openrouter:web_search"}`` tools entry to ride
+        # the upstream model's native search; xAI (dispatched through this adapter
+        # via the x.ai base_url) speaks Live Search through a top-level
+        # ``search_parameters`` block instead of a tool — gate on the provider id.
+        # DeepSeek has no native search, so it is left untouched (graceful no-op;
+        # the runtime falls back to a BYOK search plugin).
         if web_search:
             if self._provider_id == "xai":
                 request_kwargs["extra_body"] = {
                     **request_kwargs.get("extra_body", {}),
                     "search_parameters": xai_search_parameters(),
                 }
+            elif self._provider_id == "openrouter":
+                tools.append(openrouter_web_search_tool())
             elif self._provider_id == "openai":
                 tools.append(openai_web_search_tool())
         if tools:

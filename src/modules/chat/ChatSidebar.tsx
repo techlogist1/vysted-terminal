@@ -689,7 +689,18 @@ export function ChatSidebar() {
       // /deep routes to the chosen backend without depending on the model. Read at
       // call time.
       const deepResearchBackend = useSettingsStore.getState().deepResearchBackend;
-      const deepResearchOptions = { deepResearchBackend };
+      // WS5: thread the RESOLVED model's native-search capability so the sidecar can
+      // gate OpenRouter per-MODEL (the live catalog lives here on the frontend —
+      // keyless-first, no extra network on the sidecar hot path). The five
+      // provider-level native providers ignore this hint; non-OpenRouter models
+      // simply leave it undefined.
+      const modelWebSearch =
+        useModelCatalogStore.getState().byProvider[provider]?.models.find((m) => m.id === model)
+          ?.webSearch ?? undefined;
+      const deepResearchOptions = {
+        deepResearchBackend,
+        ...(modelWebSearch ? { modelWebSearch } : {}),
+      };
 
       // Delegate launches a DURABLE, budget-guarded background run (US9) instead
       // of a foreground stream — it survives this turn and appears in the agents
@@ -717,9 +728,9 @@ export function ChatSidebar() {
           model,
           apiKey: apiKey ?? undefined,
           budget: delegateBudget,
-          // Carry only the non-secret backend choice into a DURABLE run (its state
-          // is persisted; secrets stay off disk).
-          options: { history, deepResearchBackend },
+          // Carry only the non-secret backend choice + per-model search capability
+          // into a DURABLE run (its state is persisted; secrets stay off disk).
+          options: { history, ...deepResearchOptions },
         });
         return;
       }

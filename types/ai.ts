@@ -89,6 +89,22 @@ export interface LLMModelOption {
   supportsTools?: boolean | null;
   /** Short price hint, e.g. `"$0.30 / $1.20 per 1M"`. */
   pricing?: string | null;
+  /** Native web-search capability of THIS model, derived per-model from the
+   *  OpenRouter catalog (WS5):
+   *   - `"native"` — the model has its own server-side web search; the agent
+   *     rides it and withholds the local search tool.
+   *   - `"plugin"` — no per-model native search, but OpenRouter can run its
+   *     billed `web` plugin in front of the model.
+   *   - `"none"` — neither; the agent keeps the local/BYOK search tool (the
+   *     FR-082 fallback that never fabricates).
+   *  `null`/`undefined` = the catalog did not say (every non-OpenRouter provider). */
+  webSearch?: "native" | "plugin" | "none" | null;
+  /** `true`/`false` when the catalog reports structured-output support; `null`/
+   *  `undefined` when silent. Best-effort metadata, not a gate. */
+  supportsStructuredOutputs?: boolean | null;
+  /** `true`/`false` when the catalog reports reasoning support; `null`/
+   *  `undefined` when silent. Best-effort metadata, not a gate. */
+  supportsReasoning?: boolean | null;
 }
 
 /** `GET /llm/models` payload — a provider's live (or fallback) model list.

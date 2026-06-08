@@ -260,6 +260,54 @@ function ProvidersSection() {
 // Web search (three tiers — FR-080/083/084)
 // ---------------------------------------------------------------------------
 
+/** Providers whose native web search is a PROVIDER-level guarantee (every routable
+ *  model rides the provider's own search). Mirrors
+ *  `native_search.PROVIDER_LEVEL_NATIVE_SEARCH` on the sidecar. OpenRouter is
+ *  deliberately absent — it is gated per-MODEL on the catalog `webSearch` flag. */
+const PROVIDER_LEVEL_NATIVE_SEARCH: ReadonlySet<LLMProviderId> = new Set([
+  "anthropic",
+  "openai",
+  "gemini",
+  "groq",
+  "xai",
+]);
+
+/** OpenRouter's documented per-search web-plugin price.
+ *
+ *  DOCUMENTED ESTIMATE — sourced from OpenRouter's web-search docs
+ *  (https://openrouter.ai/docs/features/web-search), NOT from any code or live
+ *  pricing feed, so it CAN DRIFT. Docs quote ~$0.005 for a search returning up to
+ *  10 results, plus ~$0.001 per extra result. We surface only the typical
+ *  (<=10-result) figure, always prefixed with "~" and labelled an estimate — it
+ *  is NEVER presented as an authoritative charge. */
+const OPENROUTER_WEB_SEARCH_EST_USD = 0.005;
+
+/** Honest, model/provider-aware native-tier status copy (WS5). The OpenRouter
+ *  plugin price is a DOCUMENTED ESTIMATE that may drift (OPENROUTER_WEB_SEARCH_
+ *  EST_USD) — rendered as an estimate, never an authoritative quote. Exported so
+ *  the honesty guarantee across the provider/model matrix is locked by tests. */
+export function nativeSearchStatus(
+  provider: LLMProviderId,
+  modelWebSearch: LLMModelOption["webSearch"],
+): string {
+  if (PROVIDER_LEVEL_NATIVE_SEARCH.has(provider)) {
+    return "Searches run on your active model's own web search — billed to your provider key, no extra key needed.";
+  }
+  if (provider === "openrouter") {
+    if (modelWebSearch === "native") {
+      // OpenRouter routes the search to the model's own native search — billed by
+      // the upstream, not the priced plugin; no separate per-search estimate.
+      return "Searches run on this OpenRouter model's own native web search — billed through your OpenRouter credits.";
+    }
+    if (modelWebSearch === "plugin") {
+      return `This OpenRouter model has no native web search, so searches fall back to the app's search tool. (OpenRouter can run a billed web plugin — est. ~$${OPENROUTER_WEB_SEARCH_EST_USD.toFixed(3)} per search, a documented price that may drift — but the terminal doesn't auto-enable it.)`;
+    }
+    return "This OpenRouter model has no native web search, so searches use the app's own search tool (Exa/SearXNG/keyless floor).";
+  }
+  // DeepSeek / Ollama and anything else: no native search rung — the app's tool runs.
+  return "This model has no native web search, so searches use the app's own search tool (Exa/SearXNG/keyless floor).";
+}
+
 /**
  * Web search — the three-tier search control (FR-080/083/084).
  *
@@ -275,6 +323,17 @@ function WebSearchSection() {
   const setTier = useSearchSettingsStore((s) => s.setTier);
   const searxngUrl = useSearchSettingsStore((s) => s.searxngUrl);
   const setSearxngUrl = useSearchSettingsStore((s) => s.setSearxngUrl);
+
+  // The active provider + model decide whether the NATIVE tier actually fires on
+  // THIS model (WS5). The five provider-level native providers always do; an
+  // OpenRouter model only fires native search when its catalog flag is "native"
+  // (else searches fall back to the app's own search tool). Read the resolved
+  // model's capability from the live catalog so the copy is honest per model.
+  const activeProvider = useLLMProvidersStore((s) => s.defaultProviderId);
+  const activeModel = useModelSelectionStore((s) => s.modelFor(activeProvider));
+  const { entry: activeCatalog } = useModelCatalog(activeProvider);
+  const activeModelOption = activeCatalog?.models.find((m) => m.id === activeModel);
+  const nativeStatus = nativeSearchStatus(activeProvider, activeModelOption?.webSearch ?? null);
 
   // Exa key status is read straight from the keychain (BYOK; never in a store).
   const [exaConfigured, setExaConfigured] = useState<boolean | null>(null);
@@ -339,7 +398,7 @@ function WebSearchSection() {
         id="settings-search"
         icon={<Search className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Web search"
-        hint="Pick how the copilot searches the web. Native rides your model's own search; BYOK adds an Exa key for finance-grade retrieval; local routes through a private SearXNG so nothing leaves your machine."
+        hint="Pick how the copilot searches the web. Native rides your model's own search when the active model supports it (else it falls back to the app's search tool); BYOK adds an Exa key for finance-grade retrieval; local routes through a private SearXNG so nothing leaves your machine."
       />
       <div className="flex flex-col gap-4">
         {/* Tier picker */}
@@ -364,7 +423,7 @@ function WebSearchSection() {
             so the selected tier's effect is never ambiguous. */}
         <p className="text-charcoal-400 text-caption -mt-2 font-mono">
           {tier === "native"
-            ? "Searches run on your active model's own web search — no extra key needed."
+            ? nativeStatus
             : tier === "byok-exa"
               ? exaConfigured
                 ? "Searches route through Exa using your stored key."

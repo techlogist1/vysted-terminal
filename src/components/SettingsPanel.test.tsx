@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { SettingsPanel } from "@/components/SettingsPanel";
+import { SettingsPanel, nativeSearchStatus } from "@/components/SettingsPanel";
 import { vystedModules } from "@/modules";
 import { PLATFORM_MODULE_ID } from "@/modules/platform";
 import { resetKeybindingsStoreForTests, useKeybindingsStore } from "@/store/keybindings";
@@ -12,6 +12,39 @@ import { resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
 vi.mock("@/lib/workspace", async (importActual) => {
   const actual = await importActual<typeof import("@/lib/workspace")>();
   return { ...actual, autosaveLayout: vi.fn(() => Promise.resolve()) };
+});
+
+// WS5: the native-tier status copy must be honest for EVERY provider/model combo
+// — it must never claim a model has its own web search when it doesn't (the bug
+// that prompted this: OpenRouter/DeepSeek defaults claimed native search that
+// never fired). This locks the matrix so the copy can't silently rot.
+describe("nativeSearchStatus (WS5 honest native-tier copy)", () => {
+  it("provider-level providers claim the active model's own web search", () => {
+    for (const p of ["anthropic", "openai", "gemini", "groq", "xai"] as const) {
+      expect(nativeSearchStatus(p, null)).toMatch(/your active model's own web search/);
+    }
+  });
+  it("an OpenRouter native-capable model claims OpenRouter-credit native search", () => {
+    expect(nativeSearchStatus("openrouter", "native")).toMatch(
+      /native web search.*OpenRouter credits/,
+    );
+  });
+  it("an OpenRouter plugin model discloses the app fallback + a may-drift estimate, not auto-enabled", () => {
+    const copy = nativeSearchStatus("openrouter", "plugin");
+    expect(copy).toMatch(/fall back to the app's search tool/);
+    expect(copy).toMatch(/may drift/);
+    expect(copy).toMatch(/doesn't auto-enable/i);
+  });
+  it("OpenRouter-none and DeepSeek fall back to the app tool and never claim native", () => {
+    for (const [provider, ws] of [
+      ["openrouter", "none"],
+      ["deepseek", null],
+    ] as const) {
+      const copy = nativeSearchStatus(provider, ws);
+      expect(copy).toMatch(/app's own search tool/);
+      expect(copy).not.toMatch(/your active model's own/);
+    }
+  });
 });
 
 describe("SettingsPanel", () => {

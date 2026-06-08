@@ -341,6 +341,112 @@ async def test_invoke_agent_omits_context_when_none(monkeypatch: pytest.MonkeyPa
     assert "Current date:" in msgs[1].content
 
 
+# ---------------------------------------------------------------------------
+# Native web-search gate (WS5) — per-MODEL, not per-provider
+# ---------------------------------------------------------------------------
+
+
+def test_native_search_enabled_provider_level() -> None:
+    # The five provider-level native providers always qualify (any model rides
+    # the provider's own search), regardless of the per-model hint.
+    for prov in ("anthropic", "openai", "gemini", "groq", "xai"):
+        assert agent_runtime._native_search_enabled(prov, None) is True
+        assert agent_runtime._native_search_enabled(prov, "none") is True
+
+
+def test_native_search_enabled_openrouter_is_per_model() -> None:
+    # OpenRouter is gated on the resolved model's web_search capability.
+    assert agent_runtime._native_search_enabled("openrouter", "native") is True
+    assert agent_runtime._native_search_enabled("openrouter", "plugin") is False
+    assert agent_runtime._native_search_enabled("openrouter", "none") is False
+    assert agent_runtime._native_search_enabled("openrouter", None) is False
+
+
+def test_native_search_enabled_unknown_provider() -> None:
+    # deepseek/ollama have no native search rung at all.
+    assert agent_runtime._native_search_enabled("deepseek", "native") is False
+    assert agent_runtime._native_search_enabled("ollama", None) is False
+
+
+@pytest.mark.asyncio
+async def test_invoke_openrouter_native_model_rides_native_search(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # An OpenRouter model marked web_search=="native" enables the provider's
+    # server-side search AND withholds the local web_search tool (no double-run).
+    agent_runtime.reload()
+    provider = _FakeProvider()
+    _patch_provider(monkeypatch, provider)
+    async for _ in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="what is the latest market news?",
+        provider="openrouter",
+        model="anthropic/claude-opus-4-8",
+        api_key="sk-test",
+        mode="ask",
+        options={"modelWebSearch": "native"},
+    ):
+        pass
+    kwargs = provider.captured_kwargs
+    assert kwargs is not None
+    assert kwargs.get("web_search") is True
+    assert kwargs.get("web_search_max_uses") == agent_runtime._WEB_SEARCH_CAP
+    # The local web_search tool is withheld so search isn't double-run.
+    assert "web_search" not in (kwargs.get("tool_ids") or [])
+    # The per-model hint is consumed, never forwarded to the adapter.
+    assert "modelWebSearch" not in kwargs
+
+
+@pytest.mark.asyncio
+async def test_invoke_openrouter_none_model_keeps_local_tool(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # An OpenRouter model with no native search keeps the local web_search tool
+    # (the FR-082 fallback) and does NOT enable native search.
+    agent_runtime.reload()
+    provider = _FakeProvider()
+    _patch_provider(monkeypatch, provider)
+    async for _ in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="what is the latest market news?",
+        provider="openrouter",
+        model="some/cheap-model",
+        api_key="sk-test",
+        mode="ask",
+        options={"modelWebSearch": "none"},
+    ):
+        pass
+    kwargs = provider.captured_kwargs
+    assert kwargs is not None
+    assert "web_search" not in kwargs  # native search NOT enabled
+    assert "web_search" in (kwargs.get("tool_ids") or [])  # local tool retained
+    assert "modelWebSearch" not in kwargs
+
+
+@pytest.mark.asyncio
+async def test_invoke_openai_provider_level_native_search(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A provider-level native provider (openai) rides native search with no
+    # per-model hint at all — the existing five must not regress.
+    agent_runtime.reload()
+    provider = _FakeProvider()
+    _patch_provider(monkeypatch, provider)
+    async for _ in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="what is the latest market news?",
+        provider="openai",
+        model="gpt-4.1-mini",
+        api_key="sk-test",
+        mode="ask",
+    ):
+        pass
+    kwargs = provider.captured_kwargs
+    assert kwargs is not None
+    assert kwargs.get("web_search") is True
+    assert "web_search" not in (kwargs.get("tool_ids") or [])
+
+
 @pytest.mark.asyncio
 async def test_invoke_agent_emits_error_for_unknown(monkeypatch: pytest.MonkeyPatch) -> None:
     agent_runtime.reload()

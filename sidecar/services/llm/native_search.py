@@ -44,9 +44,20 @@ except Exception:  # ImportError today; broaden so a half-built module can't cra
         excerpt: str
 
 
-#: Providers with native server-side web search billed to the user's own key.
-#: The agent runtime consults this to decide native-tier vs BYOK/local fallback.
-SUPPORTS_NATIVE_SEARCH: set[str] = {"anthropic", "openai", "gemini", "groq", "xai"}
+#: Providers that CAN serve native server-side web search billed to the user's
+#: own key. Five expose it at the PROVIDER level (every routable model supports
+#: it). ``openrouter`` is added in WS5 but is a special case: it is a broker, so
+#: native search is a PER-MODEL property — the agent runtime gates OpenRouter on
+#: the resolved model's :attr:`LLMModelOption.web_search` flag, not on mere
+#: membership here. Membership only means "this provider has a native-search
+#: rung at all"; the runtime gate is ``agent_runtime._native_search_enabled``.
+SUPPORTS_NATIVE_SEARCH: set[str] = {"anthropic", "openai", "gemini", "groq", "xai", "openrouter"}
+
+#: The five providers whose native search is a PROVIDER-level guarantee (any model
+#: routes the provider's own search). OpenRouter is deliberately excluded — it is
+#: per-model. The runtime uses this to keep the existing five working unchanged
+#: while gating OpenRouter on the resolved model's capability.
+PROVIDER_LEVEL_NATIVE_SEARCH: set[str] = {"anthropic", "openai", "gemini", "groq", "xai"}
 
 #: Anthropic's server-side web-search tool type (dated tool version).
 ANTHROPIC_WEB_SEARCH_TYPE = "web_search_20250305"
@@ -83,6 +94,20 @@ def openai_web_search_tool() -> dict[str, Any]:
     so the agent runtime enforces a loop-level search counter (PASS_B_RESEARCH §C.1).
     """
     return {"type": "web_search"}
+
+
+def openrouter_web_search_tool() -> dict[str, Any]:
+    """The OpenRouter ``tools`` entry enabling its native web search (WS5).
+
+    OpenRouter rides the OpenAI-shaped adapter but takes its own tool type —
+    ``{"type": "openrouter:web_search"}`` — to enable the upstream model's native
+    server-side search (or, on a model OpenRouter prices a plugin for, its billed
+    ``web`` plugin). Citations come back as OpenAI-style ``url_citation``
+    annotations, so :func:`normalize_openai` parses them unchanged. Injected under
+    the SAME ``web_search`` kwarg the other providers use; the runtime only sets
+    that kwarg for OpenRouter when the resolved model is native-search capable.
+    """
+    return {"type": "openrouter:web_search"}
 
 
 def xai_search_parameters() -> dict[str, Any]:
@@ -256,6 +281,7 @@ def normalize_xai(citations: Any) -> list[dict[str, str]]:
 __all__ = [
     "ANTHROPIC_WEB_SEARCH_TYPE",
     "DEFAULT_WEB_SEARCH_MAX_USES",
+    "PROVIDER_LEVEL_NATIVE_SEARCH",
     "SUPPORTS_NATIVE_SEARCH",
     "Citation",
     "anthropic_web_search_tool",
@@ -265,6 +291,7 @@ __all__ = [
     "normalize_openai",
     "normalize_xai",
     "openai_web_search_tool",
+    "openrouter_web_search_tool",
     "provider_supports_native_search",
     "xai_search_parameters",
 ]

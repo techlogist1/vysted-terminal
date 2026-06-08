@@ -25,16 +25,30 @@ _FULL = [
     {
         "id": "a/with-tools",
         "name": "A With Tools",
+        # Native server-side web search + structured outputs + reasoning all
+        # advertised → web_search == "native" and both metadata flags True.
         "context_length": 128000,
-        "supported_parameters": ["tools", "tool_choice"],
+        "supported_parameters": [
+            "tools",
+            "tool_choice",
+            "web_search_options",
+            "structured_outputs",
+            "reasoning",
+        ],
         "pricing": {"prompt": "0", "completion": "0"},
     },
     {
         "id": "m/mid-tools",
         "name": "M Mid",
+        # No native search param, but OpenRouter prices a web plugin for it →
+        # web_search == "plugin". No structured/reasoning params → both False.
         "context_length": 32000,
         "supported_parameters": ["tools"],
-        "pricing": {"prompt": "0.0000005", "completion": "0.0000015"},
+        "pricing": {
+            "prompt": "0.0000005",
+            "completion": "0.0000015",
+            "web_search": "0.004",
+        },
     },
 ]
 _TOOL_SUBSET = [row for row in _FULL if "tools" in row["supported_parameters"]]
@@ -119,6 +133,83 @@ async def test_total_failure_returns_empty_for_fallback(monkeypatch: pytest.Monk
     options = await openrouter_catalog.fetch_openrouter_catalog(None, None)
     # Empty → the router serves the registry known_models fallback.
     assert options == []
+
+
+@pytest.mark.asyncio
+async def test_per_model_capability_flags_derived(monkeypatch: pytest.MonkeyPatch) -> None:
+    # WS5: derive web_search (native/plugin/none) + structured-output + reasoning
+    # flags per model from supported_parameters / pricing.
+    def _handler(request: httpx.Request) -> httpx.Response:
+        tools_only = request.url.params.get("supported_parameters") == "tools"
+        return httpx.Response(200, json={"data": _TOOL_SUBSET if tools_only else _FULL})
+
+    _install(monkeypatch, _handler)
+    options = await openrouter_catalog.fetch_openrouter_catalog(None, None)
+    by_id = {o.id: o for o in options}
+
+    # web_search_options advertised → native; structured_outputs + reasoning True.
+    native = by_id["a/with-tools"]
+    assert native.web_search == "native"
+    assert native.supports_structured_outputs is True
+    assert native.supports_reasoning is True
+
+    # No native search param but a priced web plugin → plugin; no structured/
+    # reasoning params → both False.
+    plugin = by_id["m/mid-tools"]
+    assert plugin.web_search == "plugin"
+    assert plugin.supports_structured_outputs is False
+    assert plugin.supports_reasoning is False
+
+    # Neither native param nor priced plugin → none.
+    none_model = by_id["z/no-tools"]
+    assert none_model.web_search == "none"
+    assert none_model.supports_structured_outputs is False
+    assert none_model.supports_reasoning is False
+
+
+def test_derive_web_search_zero_priced_plugin_is_not_plugin() -> None:
+    # A `web_search` price of the string "0" is truthy but is NOT a real billed
+    # plugin — it must classify as "none", not "plugin" (parity with the numeric
+    # _format_pricing parse). A native param still wins regardless of pricing.
+    assert openrouter_catalog._derive_web_search(frozenset(), {"web_search": "0"}) == "none"
+    assert openrouter_catalog._derive_web_search(frozenset(), {"web_search": 0}) == "none"
+    assert openrouter_catalog._derive_web_search(frozenset(), {"web_search": "0.004"}) == "plugin"
+    assert openrouter_catalog._derive_web_search(frozenset(), {}) == "none"
+    # A bare `web_search` supported-parameters token (not just web_search_options)
+    # is native — OpenRouter's param naming is inconsistent.
+    assert openrouter_catalog._derive_web_search(frozenset({"web_search"}), {}) == "native"
+
+
+@pytest.mark.asyncio
+async def test_missing_supported_parameters_leaves_metadata_unknown(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A model with no supported_parameters array: metadata flags stay None
+    # (unknown), but web_search still resolves ("none" without a priced plugin,
+    # "plugin" when pricing carries a web_search row).
+    rows = [
+        {"id": "x/bare", "name": "Bare", "pricing": {"prompt": "0", "completion": "0"}},
+        {
+            "id": "y/bare-plugin",
+            "name": "Bare Plugin",
+            "pricing": {"prompt": "0", "completion": "0", "web_search": "0.004"},
+        },
+    ]
+
+    def _handler(request: httpx.Request) -> httpx.Response:
+        # Tool filter returns nothing so supports_tools also exercises the None path.
+        tools_only = request.url.params.get("supported_parameters") == "tools"
+        return httpx.Response(200, json={"data": [] if tools_only else rows})
+
+    _install(monkeypatch, _handler)
+    options = await openrouter_catalog.fetch_openrouter_catalog(None, None)
+    by_id = {o.id: o for o in options}
+
+    bare = by_id["x/bare"]
+    assert bare.web_search == "none"
+    assert bare.supports_structured_outputs is None
+    assert bare.supports_reasoning is None
+    assert by_id["y/bare-plugin"].web_search == "plugin"
 
 
 @pytest.mark.asyncio

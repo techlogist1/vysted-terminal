@@ -43,6 +43,9 @@ interface SidecarCatalogRow {
     context_length?: number | null;
     supports_tools?: boolean | null;
     pricing?: string | null;
+    web_search?: "native" | "plugin" | "none" | null;
+    supports_structured_outputs?: boolean | null;
+    supports_reasoning?: boolean | null;
   }[];
   source: "live" | "fallback";
   note?: string | null;
@@ -100,6 +103,9 @@ export const useModelCatalogStore = create<ModelCatalogState>((set, get) => ({
         contextLength: m.context_length ?? null,
         supportsTools: m.supports_tools ?? null,
         pricing: m.pricing ?? null,
+        webSearch: m.web_search ?? null,
+        supportsStructuredOutputs: m.supports_structured_outputs ?? null,
+        supportsReasoning: m.supports_reasoning ?? null,
       }));
       set((state) => ({
         byProvider: {

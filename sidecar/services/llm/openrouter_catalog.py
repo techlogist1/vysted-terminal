@@ -39,6 +39,41 @@ _TIMEOUT_SECS = 12.0
 _ATTRIBUTION = {"HTTP-Referer": "https://vysted.app", "X-Title": "Vysted Terminal"}
 
 
+#: ``supported_parameters`` tokens that mean a model exposes its OWN server-side
+#: web search (OpenRouter forwards these to the upstream's native search). Any one
+#: present → ``web_search == "native"``.
+_NATIVE_SEARCH_PARAMS = frozenset({"web_search_options", "web_search"})
+#: ``supported_parameters`` tokens that mean the model can emit structured output.
+_STRUCTURED_OUTPUT_PARAMS = frozenset({"structured_outputs", "response_format"})
+#: ``supported_parameters`` tokens that mean the model exposes reasoning/thinking.
+_REASONING_PARAMS = frozenset({"reasoning", "include_reasoning"})
+
+
+def _params_set(model: dict[str, Any]) -> frozenset[str]:
+    """The model's ``supported_parameters`` as a lower-cased string set."""
+    params = model.get("supported_parameters") or []
+    if not isinstance(params, (list, tuple)):
+        return frozenset()
+    return frozenset(str(p).lower() for p in params)
+
+
+def _derive_web_search(params: frozenset[str], pricing: Any) -> str:
+    """Per-model web-search capability (WS5): native > plugin > none.
+
+    ``native`` — the model advertises its own server-side search param. ``plugin``
+    — no native param, but OpenRouter prices a ``web_search`` plugin row for it (it
+    can run the billed ``web`` plugin in front of any model). ``none`` — neither,
+    so the agent keeps the local/BYOK search tool (FR-082 fallback).
+    """
+    if params & _NATIVE_SEARCH_PARAMS:
+        return "native"
+    # Match _format_pricing's numeric parse — a "0" string is truthy but is not a
+    # real billed plugin, so coerce-and-compare rather than raw truthiness.
+    if isinstance(pricing, dict) and float(pricing.get("web_search") or 0) > 0:
+        return "plugin"
+    return "none"
+
+
 def _format_pricing(pricing: Any) -> str | None:
     """Render OpenRouter's per-token USD pricing as a compact ``per 1M`` hint."""
     if not isinstance(pricing, dict):
@@ -121,18 +156,30 @@ async def fetch_openrouter_catalog(
         model_id = model.get("id")
         if not model_id:
             continue
+        params = _params_set(model)
+        # Tool support: the authoritative server-side filter when it answered,
+        # else the model's advertised supported_parameters array.
         if tool_ids is not None:
             supports_tools: bool | None = model_id in tool_ids
         else:
-            params = model.get("supported_parameters") or []
             supports_tools = "tools" in params if params else None
+        pricing_raw = model.get("pricing")
         options.append(
             LLMModelOption(
                 id=str(model_id),
                 label=str(model.get("name") or model_id),
                 context_length=model.get("context_length"),
                 supports_tools=supports_tools,
-                pricing=_format_pricing(model.get("pricing")),
+                pricing=_format_pricing(pricing_raw),
+                # Per-model capability flags (WS5). Absent supported_parameters →
+                # leave the metadata flags None (unknown), but web_search still
+                # resolves (a missing array means no native param and, unless the
+                # pricing carries a web_search row, "none").
+                web_search=_derive_web_search(params, pricing_raw),
+                supports_structured_outputs=(
+                    bool(params & _STRUCTURED_OUTPUT_PARAMS) if params else None
+                ),
+                supports_reasoning=(bool(params & _REASONING_PARAMS) if params else None),
             )
         )
 
