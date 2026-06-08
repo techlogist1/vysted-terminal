@@ -69,6 +69,8 @@ All candidate repos were cloned into a scratch dir and read at the source level 
 ### 1.2 FLAGGED DECISIONS — operator must choose (defaults in **bold**)
 
 > These are surfaced, not baked in. The build will use the **bold** default unless you say otherwise.
+>
+> **Operator decisions locked (2026-06-09):** #3 BSE → **reimplement under AGPL**; #4 read-gate → **allow read-safe panel actions**; #5 → **add `market_overview` read_handler tool**; #7 export → **replace with Copy-markdown**. Decisions #1, #2, #6, #8, #9, #10 stand at their bold defaults unless changed.
 
 1. **OpenRouter `web_search` cost.** Enabling the default-route search rung bills the user's **existing** OpenRouter key ($0.005/≤10 results + $0.001/extra). No new credential, but it is per-search spend. **Default: enable it and surface the per-search cost in the existing cost-preview UI before a search fires.** (Pricing/`:online`-deprecated taken from OpenRouter docs, not source — could drift; the build will re-confirm at implementation.)
 2. **`curl_cffi` (TLS-impersonation) for the DDG floor.** Beats the one DDG failure mode `httpx` can't (403/Cloudflare TLS fingerprint), but is a new sidecar binary dep that ships a bundled libcurl → must pass the PyInstaller `--onefile` ≤120 MB audit + smoke-test. **Default: ship the proactive token-bucket rate-limiter only (no new lib); defer `curl_cffi`.**
