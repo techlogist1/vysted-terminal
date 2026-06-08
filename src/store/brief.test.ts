@@ -123,4 +123,27 @@ describe("brief store", () => {
     expect(round?.note).toBe("No web-search backend configured.");
     expect(round).toEqual(brief);
   });
+
+  it("round-trips the transient webReason so the banner picks honest copy (WS3)", () => {
+    // A transient throttle: webAvailable false BUT the reason is rate_limited, so
+    // the panel shows "rate-limited, retrying" — never the false "no backend".
+    const brief = sampleBrief({
+      webAvailable: false,
+      webReason: "rate_limited",
+      note: "Web search was rate-limited — retry in a moment",
+      sources: [],
+      sourceCount: 0,
+      cost: undefined,
+    });
+    useBriefStore.getState().setBrief(brief);
+
+    const round = briefBundle();
+    expect(round?.webReason).toBe("rate_limited");
+    expect(round?.webAvailable).toBe(false);
+    expect(round).toEqual(brief);
+
+    // Survives a full serialize → restore cycle (rides the workspace blob).
+    useBriefStore.getState().fromBundle(round);
+    expect(useBriefStore.getState().brief?.webReason).toBe("rate_limited");
+  });
 });

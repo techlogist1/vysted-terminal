@@ -681,6 +681,64 @@ def test_auto_publish_passes_through_deep_sources_and_honest_no_web() -> None:
     assert no_web_event is not None
     assert no_web_event.input["sources"] == []
     assert no_web_event.input["web_available"] is False
+    # WS3: the nested web.note is forwarded onto the brief so the banner states WHY
+    # (previously web.note was stranded — never read by the auto-publish).
+    assert no_web_event.input["note"] == "structured only"
+
+
+def test_auto_publish_forwards_transient_rate_limit_reason() -> None:
+    """WS3 symptom #2: a FAST bundle whose web round was a TRANSIENT throttle must
+    forward web.note AND the typed web.reason onto the brief, so the panel shows
+    "rate-limited, retrying" — not the false "no backend configured" banner."""
+    throttled = {
+        "ok": True,
+        "query": "AAPL",
+        "structured": {"price": {"ok": True}},
+        "web": {
+            "available": False,
+            "citations": [],
+            "reason": "rate_limited",
+            "note": "Web search was rate-limited — retry in a moment",
+            "detail": "keyless web search is rate-limiting right now",
+        },
+    }
+    event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(throttled))
+    assert event is not None
+    assert event.input["web_available"] is False  # zero sources → honest no-web
+    assert event.input["web_reason"] == "rate_limited"
+    assert event.input["note"] == "Web search was rate-limited — retry in a moment"
+    assert "no backend" not in event.input["note"].lower()
+
+
+def test_auto_publish_reconciles_web_available_with_sources() -> None:
+    """WS3 symptom #2 core: a bundle that surfaced sources but carries
+    web_available False (structured citations, no web round) must be reconciled to
+    True — a brief that cites N sources can NOT also claim the web was unavailable.
+    A truly sourceless bundle keeps the honest False."""
+    sourced_but_flagged_no_web = {
+        "ok": True,
+        "query": "AAPL",
+        "markdown": "## Brief\nText [1].",
+        "sources": [{"url": "https://sec.gov/x", "title": "10-K", "domain": "sec"}],
+        "web_available": False,
+    }
+    event = agent_runtime._auto_publish_event(
+        _StubToolCall(), json.dumps(sourced_but_flagged_no_web)
+    )
+    assert event is not None
+    assert len(event.input["sources"]) == 1
+    assert event.input["web_available"] is True  # reconciled — never contradictory
+
+    sourceless = {
+        "ok": True,
+        "query": "AAPL",
+        "structured": {"price": {"ok": True}},
+        "web": {"available": False, "citations": []},
+    }
+    sourceless_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(sourceless))
+    assert sourceless_event is not None
+    assert sourceless_event.input["sources"] == []
+    assert sourceless_event.input["web_available"] is False  # honest no-web survives
 
 
 def test_auto_publish_maps_depth_tier_from_result_mode() -> None:

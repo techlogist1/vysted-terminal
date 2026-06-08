@@ -339,6 +339,7 @@ def _synthesize_brief(
 ) -> ResearchBrief:
     """Assemble the final :class:`ResearchBrief` from accumulated state."""
     sources = findings.all_sources()
+    source_count = len(sources)
     return ResearchBrief(
         query=query,
         symbol=symbol,
@@ -347,9 +348,15 @@ def _synthesize_brief(
         sources=sources,
         structured=structured,
         steps=steps,
-        source_count=len(sources),
+        source_count=source_count,
         cost=budget.cost(),
-        web_available=bool(findings.web_sources),
+        # web_available reflects ALL gathered web evidence, RECONCILED with the
+        # source count: a brief that cites N sources must NOT also claim the web
+        # was unavailable (symptom #2 — "N sources" + a "web unavailable" banner
+        # firing together). True when real web citations were folded in, OR when
+        # the run produced any cited source at all (structured provenance counts).
+        # The honest structured-only banner survives only when source_count == 0.
+        web_available=bool(findings.web_sources) or source_count > 0,
         note=note,
     )
 
@@ -362,6 +369,14 @@ async def _final_synthesis(
     The numbered source list is handed to the model so its ``[n]`` markers line
     up with :meth:`_Findings.all_sources`. On an empty/failed completion a terse
     deterministic fallback is returned (never an empty brief).
+
+    PROVENANCE GUARANTEE (WS3): the system prompt forces every numeric/dated claim
+    to carry a ``[n]`` citation to a real gathered source. Combined with WS1's date
+    directive (which forces the live tool call), live-data sections (macro / prices
+    / news) therefore come from a live call or are honestly flagged as a gap —
+    NEVER from the model's parametric memory. The metric-card layer composes with
+    this: ``deriveMetrics`` returns ``null`` (no card) when there is no real leg, so
+    a number with no source can never reach the rendered brief.
     """
     sources = findings.all_sources()
     numbered = "\n".join(f"[{i + 1}] {s.title} — {s.url}" for i, s in enumerate(sources))
@@ -373,7 +388,12 @@ async def _final_synthesis(
                 "content": (
                     "Write a concise research brief in markdown. Use inline [n] "
                     "citation markers that reference the numbered sources. Do not "
-                    "fabricate sources or facts beyond the findings."
+                    "fabricate sources or facts beyond the findings. PROVENANCE "
+                    "GUARANTEE: every numeric or dated claim (a price, a ratio, a "
+                    "percentage, a date, a quarter) MUST carry a [n] citation to a "
+                    "real numbered source above — never state a live figure from "
+                    "memory. If a needed figure was not gathered, say so plainly "
+                    "('not available in this run') rather than guessing it."
                 ),
             },
             {

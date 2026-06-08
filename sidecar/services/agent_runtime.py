@@ -553,11 +553,28 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
             if isinstance(row, dict) and row.get("url")
         ]
     sources = sources or []
-    # web_available: the top-level flag (DEEP) or ``web.available`` (FAST). The
-    # honest "structured-data-only" banner survives when no web round answered.
+    # web_available: the top-level flag (DEEP) or ``web.available`` (FAST),
+    # RECONCILED with the source count. A brief that surfaced ANY source (web OR
+    # structured provenance) must NOT also claim the web was unavailable — that is
+    # symptom #2 ("N sources" + a "web unavailable" banner firing together). The
+    # honest structured-only banner survives only when ZERO sources were gathered.
     web_available = payload.get("web_available")
     if web_available is None and web is not None:
         web_available = web.get("available")
+    if not web_available and sources:
+        web_available = True
+    # Forward the FAST web round's honest note/detail/reason onto the brief: the
+    # top-level ``note`` carries a DEEP run's breach reason, but a FAST bundle
+    # strands its web-search status under ``web.{note,detail,reason}`` (e.g. a
+    # transient DDG rate-limit vs a genuine no-backend). Carry the nested note when
+    # there is no top-level note so the banner states WHY honestly instead of a
+    # blanket "no backend". ``web_reason`` lets the frontend pick the banner copy.
+    note = payload.get("note")
+    web_reason = None
+    if web is not None:
+        web_reason = web.get("reason")
+        if not note:
+            note = web.get("note") or web.get("detail")
     # The true depth TIER the run reached (FR-115): the result's ``mode`` is "fast"
     # (quick gather) / "deep" (iter loop) / "heavy" (panel). Map it to the brief's
     # ``depth`` so the panel's "Go deeper" affordance knows the NEXT tier; the FAST
@@ -576,7 +593,8 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
         "structured": structured,
         "cost": payload.get("cost"),
         "web_available": bool(web_available),
-        "note": payload.get("note"),
+        "note": note,
+        "web_reason": web_reason,
     }
     return LLMToolUseEvent(
         tool_call_id=f"{tool_call.tool_call_id}__autobrief",

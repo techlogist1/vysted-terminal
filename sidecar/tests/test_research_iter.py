@@ -223,6 +223,11 @@ def test_heavy_spawns_angles_and_synthesizes_merged_sources() -> None:
     web_urls = [s.url for s in brief.sources if s.url == "https://ex.com/a"]
     assert len(web_urls) == 1
     assert brief.markdown.strip()
+    # WS3: the heavy/panel path reconciles web_available with the merged source
+    # count (= any(angle.web_available) or bool(merged_sources)). A panel brief
+    # that cites N merged sources must report web_available True so it never fires
+    # the "web unavailable" banner alongside its sources (symptom #2).
+    assert brief.web_available is True
 
 
 def test_heavy_emits_angle_tagged_steps() -> None:

@@ -169,10 +169,18 @@ function MetaHeader({ brief }: { brief: ResearchBriefData }) {
       </div>
       {/* Provenance line: WHERE the brief drew from (web vs structured-data-only)
           and WHEN it was produced, so a cached/offline run is never mistaken for
-          a fresh web pull. Subtle by design — it sits under the mode/cost row. */}
+          a fresh web pull. Subtle by design — it sits under the mode/cost row.
+          NB: this badge keys off REAL web sources (http(s) URLs), NOT the
+          reconciled `webAvailable` flag — that flag is true whenever ANY source
+          (incl. synthetic `vysted://` structured-provenance legs) was cited, so
+          using it here would falsely claim "web" for a structured-only run. */}
       <div className="flex flex-wrap items-center gap-1.5">
         <ProvenanceBadge
-          provider={brief.webAvailable ? "web + structured data" : "structured data"}
+          provider={
+            (brief.sources ?? []).some((s) => /^https?:\/\//i.test(s.url))
+              ? "web + structured data"
+              : "structured data"
+          }
         />
         {typeof brief.createdAt === "number" ? (
           <StalenessBadge freshness="eod" asOf={brief.createdAt} />
@@ -439,7 +447,13 @@ export function BriefPanel() {
     return <EmptyState />;
   }
 
+  // `noWeb` is the honest no-web state, already reconciled in briefFromInput with
+  // the source count — so a brief that cited sources can never land here (the
+  // symptom-#2 fix). When it DOES fire, `webRateLimited` picks the transient
+  // "rate-limited, retrying" copy over the false global "no backend" claim.
   const noWeb = brief.webAvailable === false;
+  const webRateLimited = brief.webReason === "rate_limited";
+  const forSymbol = brief.symbol ? ` for ${brief.symbol}` : "";
   const hasSteps = IS_DEV && Array.isArray(brief.steps) && brief.steps.length > 0;
 
   return (
@@ -482,16 +496,27 @@ export function BriefPanel() {
         <div ref={briefBodyRef} className="bg-charcoal-900 flex flex-col">
           <MetaHeader brief={brief} />
 
-          {/* Honest no-web state: NOT an error, NOT empty — a prominent banner that
-              the brief is structured-data-only, with the pipeline's note. */}
+          {/* Honest no-web state: NOT an error, NOT empty — a prominent banner.
+              `noWeb` is already reconciled with the source count (a sourced brief
+              never reaches here — symptom #2 fix), so this fires ONLY when the run
+              gathered zero sources. The copy states WHY per-symbol/per-run:
+                - a TRANSIENT throttle (`webReason === "rate_limited"`) ⇒
+                  "rate-limited, retrying" — NEVER the false "no backend" claim;
+                - otherwise ⇒ honest "structured data only for {symbol}".
+              The honest structured-only affordance is preserved; only the false /
+              contradictory banner is killed. */}
           {noWeb ? (
             <div className="border-warning/40 bg-charcoal-900 m-3 flex items-start gap-2 rounded-none border px-3 py-3">
               <Globe className="text-warning mt-0.5 size-4 shrink-0" />
               <div className="flex flex-col gap-0.5">
-                <p className="text-caption text-warning font-medium">Structured-data-only brief</p>
+                <p className="text-caption text-warning font-medium">
+                  {webRateLimited ? "Web search was rate-limited" : "Structured-data-only brief"}
+                </p>
                 <p className="text-charcoal-300 text-micro leading-relaxed">
                   {brief.note ??
-                    "No web-search backend configured — this brief is built from structured data only."}
+                    (webRateLimited
+                      ? "Web search was rate-limited for this run — retry in a moment for live web sources."
+                      : `Structured data only — no web sources found${forSymbol}.`)}
                 </p>
               </div>
             </div>

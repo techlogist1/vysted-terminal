@@ -11,6 +11,7 @@ import {
   isHostActionMutation,
   routeOrderProposal,
 } from "@/lib/host-actions";
+import { useBriefStore } from "@/store/brief";
 import { useBrokersStore } from "@/store/brokers";
 import { useChartCommandStore } from "@/store/chart-command";
 import { useOrdersStore } from "@/store/orders";
@@ -186,6 +187,99 @@ describe("host-actions", () => {
     } as never);
     applyHostAction("set_chart_symbol", { symbol: "RELIANCE" });
     expect(openPanel).not.toHaveBeenCalled();
+  });
+
+  // --- WS3: honest web banner — briefFromInput reconciliation ----------------
+
+  it("publish_brief never default-trues a true outage (web_available:false, no sources)", () => {
+    useBriefStore.getState().clearBrief();
+    // A genuine outage: explicit web_available false AND zero sources → the honest
+    // structured-only state survives (webAvailable false). This is the legitimate
+    // affordance WS3 must preserve, not delete.
+    applyHostAction("publish_brief", {
+      query: "Apple outlook",
+      symbol: "AAPL",
+      mode: "fast",
+      markdown: "## Brief\nStructured only.",
+      sources: [],
+      web_available: false,
+    });
+    const brief = useBriefStore.getState().brief;
+    expect(brief?.webAvailable).toBe(false);
+    expect(brief?.sourceCount).toBe(0);
+  });
+
+  it("publish_brief never false-flags a sourced brief (symptom #2 fix)", () => {
+    useBriefStore.getState().clearBrief();
+    // The bug: a brief cites sources yet web_available is false → "N sources" AND
+    // a "web unavailable" banner fire together. Reconciliation: any cited source
+    // forces webAvailable true regardless of the (stale/omitted) flag.
+    applyHostAction("publish_brief", {
+      query: "Apple outlook",
+      symbol: "AAPL",
+      mode: "deep",
+      markdown: "## Brief\nText [1].",
+      sources: [{ url: "https://sec.gov/x", title: "10-K", domain: "sec.gov" }],
+      web_available: false,
+    });
+    const brief = useBriefStore.getState().brief;
+    expect(brief?.sourceCount).toBe(1);
+    expect(brief?.webAvailable).toBe(true); // reconciled — never contradictory
+  });
+
+  it("publish_brief: omitted web_available does not default-true a sourceless run", () => {
+    useBriefStore.getState().clearBrief();
+    // The model omits the flag AND there are no sources → derive FALSE from the
+    // (lack of) evidence rather than implying the web ran. (Old code default-trued.)
+    applyHostAction("publish_brief", {
+      query: "Apple outlook",
+      symbol: "AAPL",
+      mode: "fast",
+      markdown: "## Brief\nStructured only.",
+      sources: [],
+    });
+    const brief = useBriefStore.getState().brief;
+    expect(brief?.sourceCount).toBe(0);
+    expect(brief?.webAvailable).toBe(false);
+  });
+
+  it("publish_brief forwards web_reason for the honest transient banner copy", () => {
+    useBriefStore.getState().clearBrief();
+    applyHostAction("publish_brief", {
+      query: "Apple outlook",
+      symbol: "AAPL",
+      mode: "fast",
+      markdown: "## Brief\nStructured only.",
+      sources: [],
+      web_available: false,
+      web_reason: "rate_limited",
+      note: "Web search was rate-limited — retry in a moment",
+    });
+    const brief = useBriefStore.getState().brief;
+    expect(brief?.webAvailable).toBe(false);
+    expect(brief?.webReason).toBe("rate_limited");
+    expect(brief?.note).toMatch(/rate-limited/i);
+  });
+
+  it("describeHostAction(publish_brief) only tags structured-only with zero sources", () => {
+    // A sourced brief is never labelled "structured-data-only" even if the model
+    // omitted/zeroed the web flag — no contradictory "N sources · structured-only".
+    const sourced = describeHostAction("publish_brief", {
+      symbol: "AAPL",
+      mode: "deep",
+      sources: [{ url: "https://sec.gov/x", title: "10-K" }],
+      web_available: false,
+    });
+    expect(sourced.after).not.toMatch(/structured-data-only/);
+    expect(sourced.after).toMatch(/1 cited source/);
+
+    const structuredOnly = describeHostAction("publish_brief", {
+      symbol: "AAPL",
+      mode: "fast",
+      sources: [],
+      web_available: false,
+    });
+    expect(structuredOnly.after).toMatch(/structured-data-only/);
   });
 
   it("applyHostAction does NOT place an order (orders never apply directly)", () => {

@@ -199,10 +199,10 @@ def test_deep_zero_wall_budget_aborts_on_first_breach() -> None:
 def test_deep_coverage_floor_blocks_premature_complete() -> None:
     """Even when reflect SAYS complete, a missing web source blocks the break.
 
-    With ``web_ok=False`` the web dimension never gets a source, so the coverage
-    floor is never met. The loop therefore can't finish cleanly — it runs until
-    the step budget aborts it. The brief still ships (abort→synthesize) and the
-    web dimension was indeed never covered.
+    With ``web_ok=False`` the web COVERAGE dimension never gets a web source, so
+    the coverage floor is never met. The loop therefore can't finish cleanly — it
+    runs until the step budget aborts it. The brief still ships (abort→synthesize)
+    and the web coverage dimension was indeed never covered.
     """
     llm = _FakeLLM(reflect_complete=True)  # model claims done every round
     tools = _FakeToolCall(web_ok=False)  # but web never yields a source
@@ -222,6 +222,50 @@ def test_deep_coverage_floor_blocks_premature_complete() -> None:
     # The floor was never met -> the run was cut by the budget, not a clean break.
     assert brief.note is not None
     assert "ceiling" in brief.note
+    # WS3: web COVERAGE was never met, but the structured legs still produced
+    # cited sources — so web_available is reconciled to True (a brief that cites N
+    # sources must NOT also claim the web was unavailable / symptom #2). The honest
+    # "structured data only" banner is reserved for a brief with ZERO sources.
+    assert brief.source_count > 0
+    assert brief.web_available is True
+
+
+def test_deep_zero_sources_keeps_honest_structured_only_flag() -> None:
+    """WS3: the honest structured-only flag is PRESERVED when truly zero sources.
+
+    Every leg (structured + web) misses, so ``all_sources()`` is empty and
+    ``source_count == 0``. Then — and only then — ``web_available`` stays False so
+    the panel can fire the honest "no web sources found" banner. This is the
+    legitimate affordance the WS3 reconciliation must NOT delete.
+    """
+
+    class _AllLegsMiss(_FakeToolCall):
+        async def __call__(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+            self.calls.append(name)
+            await asyncio.sleep(0)
+            if name == "resolve_symbol":
+                return await super().__call__(name, args)
+            # Every gather leg (structured + web) is a clean miss → no source.
+            return {"ok": False, "error": f"{name} unavailable"}
+
+    llm = _FakeLLM(reflect_complete=True)
+    tools = _AllLegsMiss(web_ok=False)
+    budget = BudgetGuard(max_steps=3)
+
+    brief = asyncio.run(
+        run_deep_research(
+            "Apple",
+            region="US",
+            tool_call=tools,
+            llm_call=llm,
+            budget=budget,
+        )
+    )
+
+    assert isinstance(brief, ResearchBrief)
+    assert brief.source_count == 0
+    assert not brief.sources
+    # Honest structured-only state survives: zero sources => web_available False.
     assert brief.web_available is False
 
 

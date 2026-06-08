@@ -87,9 +87,22 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
     try:
         response = await backend.search(query, options=options)
     except SearchError as exc:
-        return {"ok": False, "query": query, "message": str(exc)}
+        # Surface the TYPED reason ("rate_limited" vs "unreachable") so a transient
+        # throttle is reported honestly as "rate-limited, retrying" rather than the
+        # false global "no backend configured" (FR-082 honesty).
+        return {
+            "ok": False,
+            "query": query,
+            "message": str(exc),
+            "reason": getattr(exc, "reason", "unreachable"),
+        }
     except Exception as exc:  # noqa: BLE001 - any backend failure is a human message
-        return {"ok": False, "query": query, "message": f"web search failed: {exc}"}
+        return {
+            "ok": False,
+            "query": query,
+            "message": f"web search failed: {exc}",
+            "reason": "unreachable",
+        }
 
     return {
         "ok": True,

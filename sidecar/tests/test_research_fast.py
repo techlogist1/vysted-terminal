@@ -43,10 +43,14 @@ class _FakeToolCall:
         asset_class: str = "equity",
         web_ok: bool = True,
         resolve_ok: bool = True,
+        web_reason: str | None = None,
     ) -> None:
         self.asset_class = asset_class
         self.web_ok = web_ok
         self.resolve_ok = resolve_ok
+        # When set, a failed web_search reports this TYPED reason (e.g.
+        # "rate_limited") so the bundle picks the transient note over "no backend".
+        self.web_reason = web_reason
         self.calls: list[str] = []
         self._active = 0
         self.max_concurrent = 0
@@ -101,11 +105,14 @@ class _FakeToolCall:
             }
         if name == "web_search":
             if not self.web_ok:
-                return {
+                failed: dict[str, Any] = {
                     "ok": False,
                     "query": args.get("query"),
                     "message": "No web-search backend is configured. Add an Exa key.",
                 }
+                if self.web_reason is not None:
+                    failed["reason"] = self.web_reason
+                return failed
             return {
                 "ok": True,
                 "backend": "exa",
@@ -176,9 +183,26 @@ def test_fast_web_unavailable_is_honest() -> None:
     assert web["available"] is False
     assert web["citations"] == []
     assert web["results"] == []
-    # The honest fallback note — never an empty/fabricated web section.
+    # The honest fallback note — never an empty/fabricated web section. A genuine
+    # no-backend miss (no typed reason) keeps the "no backend configured" copy.
     assert web["note"] == "No web-search backend configured — structured data only"
     assert "detail" in web  # the tool's "how to unlock it" message is surfaced
+
+
+def test_fast_web_rate_limited_is_transient_not_no_backend() -> None:
+    """WS3: a TRANSIENT throttle (typed reason "rate_limited") yields the honest
+    "rate-limited, retry" note — NOT the false "no backend configured" claim. The
+    backend exists; it was merely throttled this run."""
+    fake = _FakeToolCall(asset_class="equity", web_ok=False, web_reason="rate_limited")
+    bundle = asyncio.run(gather_fast("Apple", region="US", tool_call=fake))
+
+    web = bundle["web"]
+    assert web["available"] is False
+    assert web["reason"] == "rate_limited"
+    # The transient note, NOT the false global "no backend configured".
+    assert web["note"] == "Web search was rate-limited — retry in a moment"
+    assert "no backend" not in web["note"].lower()
+    assert "no web-search backend" not in web["note"].lower()
 
 
 def test_fast_resolution_failure_short_circuits() -> None:

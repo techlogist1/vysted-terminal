@@ -26,6 +26,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 import httpx
 
 from .base import (
+    SEARCH_REASON_RATE_LIMITED,
     SearchBackend,
     SearchError,
     SearchResponse,
@@ -188,9 +189,13 @@ async def _fetch(http: httpx.AsyncClient, endpoint: str, data: dict[str, str]) -
             continue
         if resp.status_code in _RATE_LIMIT_STATUSES:
             if last:
+                # TRANSIENT throttle (202 anomaly / 429), NOT a missing backend:
+                # tag it so the brief surfaces "rate-limited, retrying" instead of
+                # the false global "no web-search backend configured".
                 raise SearchError(
                     "keyless web search (DuckDuckGo) is rate-limiting right now — wait a "
-                    "moment and retry, or add an Exa key / local SearXNG for a dedicated route"
+                    "moment and retry, or add an Exa key / local SearXNG for a dedicated route",
+                    reason=SEARCH_REASON_RATE_LIMITED,
                 )
             await asyncio.sleep(_BACKOFF_SECS)
             continue

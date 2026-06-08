@@ -7,7 +7,11 @@ import asyncio
 import httpx
 import pytest
 
-from services.search.base import SearchError
+from services.search.base import (
+    SEARCH_REASON_RATE_LIMITED,
+    SEARCH_REASON_UNREACHABLE,
+    SearchError,
+)
 from services.search.ddg import BACKEND_ID, DdgSearchBackend
 
 # A trimmed DuckDuckGo HTML results page: a uddg-redirect link, a direct link, and
@@ -86,8 +90,11 @@ def test_empty_page_is_not_an_error() -> None:
 
 def test_transport_failure_raises_search_error() -> None:
     client = _FakeClient(_FakeResp("", status=503))
-    with pytest.raises(SearchError):
+    with pytest.raises(SearchError) as excinfo:
         _run(DdgSearchBackend(client=client).search("q"))
+    # WS3: a transport/unreachable failure carries the "unreachable" typed reason
+    # so the brief reports a genuine no-backend miss, NOT a transient throttle.
+    assert excinfo.value.reason == SEARCH_REASON_UNREACHABLE
 
 
 # --- Track 3 keyless hardening ---------------------------------------------
@@ -122,8 +129,19 @@ def test_rate_limit_status_raises_honest_error() -> None:
     """A 202 anomaly/soft-block surfaces a clear rate-limit SearchError (not a
     silent empty result the loop would read as 'no web data')."""
     client = _FakeClient(_FakeResp("<html>anomaly</html>", status=202))
-    with pytest.raises(SearchError, match="rate-limit"):
+    with pytest.raises(SearchError, match="rate-limit") as excinfo:
         _run(DdgSearchBackend(client=client).search("q"))
+    # WS3: a transient throttle carries the typed "rate_limited" reason so the
+    # brief banner says "rate-limited, retrying" — NOT the false "no backend".
+    assert excinfo.value.reason == SEARCH_REASON_RATE_LIMITED
+
+
+def test_rate_limit_429_also_tagged_transient() -> None:
+    """429 (the other rate-limit status) is also tagged transient, not no-backend."""
+    client = _FakeClient(_FakeResp("<html>too many</html>", status=429))
+    with pytest.raises(SearchError) as excinfo:
+        _run(DdgSearchBackend(client=client).search("q"))
+    assert excinfo.value.reason == SEARCH_REASON_RATE_LIMITED
 
 
 def test_lite_fallback_when_html_empty() -> None:

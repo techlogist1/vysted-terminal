@@ -127,6 +127,37 @@ def test_search_error_becomes_human_message(monkeypatch: pytest.MonkeyPatch) -> 
     finally:
         config._search_tier_ctx.reset(token)
     assert out["ok"] is False and "401" in out["message"]
+    # WS3: a plain SearchError (no typed reason) defaults to "unreachable" so the
+    # brief reports an honest no-backend miss rather than a transient throttle.
+    assert out["reason"] == "unreachable"
+
+
+def test_search_error_forwards_typed_rate_limit_reason(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """WS3: a SearchError tagged ``reason="rate_limited"`` (a transient throttle)
+    is surfaced on the failed dict so the brief shows "rate-limited, retrying"
+    instead of the false "no backend configured" banner."""
+    from services.search import registry
+    from services.search.base import SEARCH_REASON_RATE_LIMITED
+
+    class _Throttled:
+        backend = "ddg"
+
+        async def search(self, query, *, options=None):  # noqa: ANN001, ANN201
+            raise SearchError(
+                "keyless web search is rate-limiting right now — retry shortly",
+                reason=SEARCH_REASON_RATE_LIMITED,
+            )
+
+    token = config._search_tier_ctx.set("byok-exa")
+    try:
+        monkeypatch.setattr(registry, "resolve", lambda *a, **k: _Throttled())
+        out = _run(_web_search({"query": "x"}))
+    finally:
+        config._search_tier_ctx.reset(token)
+    assert out["ok"] is False
+    assert out["reason"] == "rate_limited"
 
 
 def test_web_search_in_catalog_and_registered() -> None:

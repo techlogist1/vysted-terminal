@@ -58,8 +58,15 @@ def _ms(start: float) -> int:
 
 #: Honest fallback line when no web backend answered (web_search ok==False). Kept
 #: short + actionable; the longer "how to unlock it" message rides the tool's own
-#: ``message`` field, surfaced in ``web.note`` when present.
+#: ``message`` field, surfaced in ``web.detail`` when present. Used ONLY for a
+#: genuine no-backend / unreachable failure — a TRANSIENT throttle gets the
+#: rate-limit note below so the brief never falsely claims "no backend".
 _NO_WEB_NOTE = "No web-search backend configured — structured data only"
+
+#: Honest note for a TRANSIENT throttle (DDG 202/429): the backend IS configured,
+#: it just rate-limited this run. Distinct from ``_NO_WEB_NOTE`` so the brief never
+#: tells a keyless user "no backend" when the floor was merely throttled.
+_RATE_LIMITED_NOTE = "Web search was rate-limited — retry in a moment"
 
 #: Per-asset-class indicator presets the research-cockpit layout opens with.
 #: Equities get trend + momentum (MA/RSI/MACD); ETFs drop MACD (basket, less
@@ -270,10 +277,16 @@ async def gather_fast(
         "results": web_res.get("results", []) if web_ok else [],
     }
     if not web_ok:
-        # Honest fallback — surface the canonical short note plus the tool's own
-        # "how to unlock it" message when it gave one. NEVER an empty section
-        # pretending to be "no news".
-        web["note"] = _NO_WEB_NOTE
+        # Honest fallback — surface a note plus the tool's own "how to unlock it"
+        # message when it gave one. NEVER an empty section pretending to be "no
+        # news". Distinguish a TRANSIENT throttle (the backend exists, it was just
+        # rate-limited this run) from a genuine no-backend/unreachable miss: the
+        # former must NOT claim "no backend configured" (that would be a false
+        # banner — symptom #2). The reason is the typed discriminator the
+        # web_search tool surfaced from the search backend's SearchError.
+        reason = web_res.get("reason")
+        web["reason"] = reason
+        web["note"] = _RATE_LIMITED_NOTE if reason == "rate_limited" else _NO_WEB_NOTE
         detail = web_res.get("message") or web_res.get("error")
         if detail:
             web["detail"] = detail

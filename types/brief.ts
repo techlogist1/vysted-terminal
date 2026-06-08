@@ -157,9 +157,18 @@ export interface ResearchBriefData {
   /**
    * Whether a web-search backend was available for this run. When `false` the
    * brief was built from structured data only — the panel says so honestly
-   * (NOT an error, NOT an empty state).
+   * (NOT an error, NOT an empty state). Reconciled with {@link sourceCount}: a
+   * brief that cited sources is never marked web-unavailable.
    */
   webAvailable: boolean;
+  /**
+   * Why the web round did not answer, when it didn't (`webAvailable === false`):
+   * `"rate_limited"` ⇒ a TRANSIENT throttle (the backend exists — the banner says
+   * "rate-limited, retrying"), anything else / absent ⇒ a genuine no-backend miss
+   * (the banner stays "structured data only"). NEVER a "no backend" claim for a
+   * transient throttle. Optional — older briefs omit it.
+   */
+  webReason?: string;
   /**
    * A free-form honest note from the pipeline (e.g. why web search was skipped).
    * Surfaced prominently when {@link webAvailable} is `false`.

@@ -66,8 +66,28 @@ class SearchResponse:
     query: str
 
 
+#: Typed reasons a :class:`SearchError` can carry, so a caller can distinguish a
+#: TRANSIENT throttle (retry later — the backend exists) from a backend that is
+#: genuinely unreachable/missing. ``"rate_limited"`` ⇒ the brief banner says
+#: "rate-limited, retrying"; ``"unreachable"`` (the default) ⇒ "no backend".
+SEARCH_REASON_RATE_LIMITED = "rate_limited"
+SEARCH_REASON_UNREACHABLE = "unreachable"
+
+
 class SearchError(Exception):
-    """Raised when a search backend cannot satisfy a request."""
+    """Raised when a search backend cannot satisfy a request.
+
+    Carries a TYPED :attr:`reason` so the caller can tell a transient throttle
+    (``"rate_limited"`` — the backend is up, just throttling; the honest brief
+    note becomes "rate-limited, retrying") apart from a backend that is missing
+    or unreachable (``"unreachable"`` — the default; the brief stays honestly
+    "structured data only / no backend"). The human ``str(exc)`` message is
+    unchanged; ``reason`` is the machine-readable discriminator layered on top.
+    """
+
+    def __init__(self, message: str, *, reason: str = SEARCH_REASON_UNREACHABLE) -> None:
+        super().__init__(message)
+        self.reason = reason
 
 
 @runtime_checkable
@@ -151,6 +171,8 @@ __all__ = [
     "IN_DOMAINS",
     "REGION_IN",
     "REGION_US",
+    "SEARCH_REASON_RATE_LIMITED",
+    "SEARCH_REASON_UNREACHABLE",
     "SearchBackend",
     "SearchError",
     "SearchResponse",

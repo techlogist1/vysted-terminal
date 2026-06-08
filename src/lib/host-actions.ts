@@ -59,9 +59,11 @@ export const HOST_ACTION_NAMES = new Set([
 /** Build a frontend ResearchBriefData from a publish_brief tool input.
  *
  * Normalises the mode to the frontend's uppercase FAST|DEEP (the sidecar
- * research models emit lowercase) and never trusts the agent for the honest web
- * flag — `web_available === false` flows through so the brief shows the honest
- * "structured data only" banner rather than implying web sources exist.
+ * research models emit lowercase) and reconciles the honest web flag with the
+ * ACTUAL source count (WS3): a brief that cited sources is never marked
+ * web-unavailable, an explicit `web_available: false` with zero sources still
+ * shows the honest "structured data only" banner, and a model that omits the
+ * flag does not default-true a sourceless run into implying web ran.
  */
 function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
   const rawSources = Array.isArray(input.sources) ? input.sources : [];
@@ -124,6 +126,19 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
       structured = prev.structured;
     }
   }
+  // webAvailable, reconciled with the ACTUAL evidence (WS3 — kills symptom #2,
+  // the "N sources" + "web unavailable" banner firing together):
+  //  - any cited source (web OR native-search / publish_brief url_citation that
+  //    folded into `sources`) ⇒ TRUE. A sourced brief is NEVER false-flagged,
+  //    and when WS5 lands a successful native search clears the banner for free.
+  //  - explicit `web_available: false` with ZERO sources ⇒ FALSE (a real outage
+  //    is honoured — the honest "structured data only" affordance survives).
+  //  - the model OMITTING the flag does NOT default-true: with no sources it
+  //    derives FALSE from the (lack of) evidence rather than implying web ran.
+  // TRUE iff a source was cited (web OR structured/native) OR the pipeline
+  // explicitly affirmed web; an omitted flag with zero sources stays FALSE (no
+  // default-true), an explicit false with zero sources stays FALSE (real outage).
+  const webAvailable = sources.length > 0 || input.web_available === true;
   return {
     query: str(input, "query"),
     symbol,
@@ -133,7 +148,8 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
     sources,
     sourceCount: sources.length,
     cost: cost ? { tokens: cost.tokens, spendUsd: cost.spendUsd ?? cost.spend_usd } : undefined,
-    webAvailable: input.web_available !== false,
+    webAvailable,
+    webReason: str(input, "web_reason") || undefined,
     note: str(input, "note") || undefined,
     steps,
     structured,
@@ -475,7 +491,10 @@ export function describeHostAction(
     case "publish_brief": {
       const sources = Array.isArray(input.sources) ? input.sources : [];
       const mode = normalizeBriefMode(str(input, "depth") || str(input, "mode"));
-      const webOff = input.web_available === false;
+      // structured-data-only is honest ONLY with zero cited sources: a sourced
+      // brief is never tagged structured-only even if the model omitted/zeroed the
+      // web flag (WS3 — no contradictory "N sources · structured-data-only").
+      const webOff = input.web_available === false && sources.length === 0;
       return {
         kind: "panel",
         title: `Publish the ${mode} research brief${symbol ? ` on ${symbol}` : ""}`,

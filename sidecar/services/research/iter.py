@@ -160,7 +160,11 @@ async def _synthesis_from_report(
                     "Write a concise research brief in markdown from the working "
                     "report. Use inline [n] citation markers that reference the "
                     "numbered sources. Do not fabricate sources or facts beyond the "
-                    "report."
+                    "report. PROVENANCE GUARANTEE: every numeric or dated claim (a "
+                    "price, a ratio, a percentage, a date, a quarter) MUST carry a "
+                    "[n] citation to a real numbered source — never a live figure "
+                    "from memory. If a figure was not gathered, say 'not available "
+                    "in this run' rather than guessing."
                 ),
             },
             {
@@ -552,7 +556,10 @@ async def run_heavy_research(
                     "overlapping claims, surface and resolve any disagreement "
                     "explicitly, and RENUMBER inline [n] citation markers against the "
                     "merged source list below. Output a tight, well-structured "
-                    "markdown brief."
+                    "markdown brief. PROVENANCE GUARANTEE: every numeric or dated "
+                    "claim must carry a [n] citation to a real merged source — never "
+                    "a live figure from memory; flag a missing figure as 'not "
+                    "available in this run' rather than inventing it."
                 ),
             },
             {
@@ -591,7 +598,12 @@ async def run_heavy_research(
         steps=steps + [s for b in good for s in b.steps],
         source_count=len(merged_sources),
         cost=budget.cost(),
-        web_available=any(b.web_available for b in good),
+        # web_available RECONCILED with the merged source count: a panel brief that
+        # cites N merged sources must not also fire the "web unavailable" banner
+        # (symptom #2). True when any angle saw the web, OR when the merged panel
+        # produced any cited source at all. The honest structured-only banner
+        # survives only when the panel gathered ZERO sources.
+        web_available=any(b.web_available for b in good) or bool(merged_sources),
         note=note,
     )
 
