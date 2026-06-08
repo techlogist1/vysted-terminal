@@ -109,8 +109,15 @@ def _num(value: Any) -> float | None:
 
 
 def get_quote(symbol: str) -> Quote:
-    """Return the latest quote for ``symbol``."""
-    normalized = _normalize_symbol(symbol)
+    """Return the latest quote for ``symbol``.
+
+    Routes through :func:`_yahoo_symbol` (NOT the US-only ``_normalize_symbol``) so
+    a ``.NS``/``.BO`` Indian symbol passes through unchanged and a bare NSE ticker
+    in an IN context resolves to the ``.NS`` listing — the same region-aware mapper
+    fundamentals/statements already use (the dot→dash US quirk still applies). The
+    old path turned ``RELIANCE.NS`` into ``RELIANCE-NS``, which Yahoo 502s on.
+    """
+    normalized = _yahoo_symbol(symbol)
     try:
         fast = yf.Ticker(normalized).fast_info
         price = float(fast.last_price)
@@ -135,8 +142,12 @@ def get_quote(symbol: str) -> Quote:
 
 
 def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCVSeries:
-    """Return an OHLCV series for ``symbol`` at ``timeframe``."""
-    normalized = _normalize_symbol(symbol)
+    """Return an OHLCV series for ``symbol`` at ``timeframe``.
+
+    Routes through :func:`_yahoo_symbol` so ``RELIANCE.NS`` / ``532837.BO`` pass
+    through unchanged instead of being mangled to the all-dashes form Yahoo 502s on.
+    """
+    normalized = _yahoo_symbol(symbol)
     interval, default_period = _TIMEFRAME_MAP.get(timeframe, ("1d", "1y"))
     period = range_ or default_period
     try:

@@ -173,3 +173,26 @@ def test_aapl_unchanged(recording_ticker: type[_RecordingTicker]) -> None:
     """Sanity: dotless symbols are not transformed."""
     yfinance_provider.get_quote("AAPL")
     assert recording_ticker.instances == ["AAPL"]
+
+
+def test_get_quote_passes_nse_suffix_through(recording_ticker: type[_RecordingTicker]) -> None:
+    """An ``.NS`` suffix is already a Yahoo India symbol — get_quote must pass it
+    through, NOT mangle it to ``RELIANCE-NS`` (the all-dashes form Yahoo 502s on).
+    This is the WS6 fix: quote/history now use the region-aware ``_yahoo_symbol``."""
+    quote = yfinance_provider.get_quote("RELIANCE.NS")
+    assert recording_ticker.instances == ["RELIANCE.NS"]
+    assert quote.symbol == "RELIANCE.NS"
+
+
+def test_get_quote_passes_bse_suffix_through(recording_ticker: type[_RecordingTicker]) -> None:
+    """A ``.BO`` (BSE) suffix — including a numeric scrip code — passes through."""
+    quote = yfinance_provider.get_quote("532837.BO")
+    assert recording_ticker.instances == ["532837.BO"]
+    assert quote.symbol == "532837.BO"
+
+
+def test_get_history_passes_bse_suffix_through(recording_ticker: type[_RecordingTicker]) -> None:
+    """get_history routes through ``_yahoo_symbol`` too, so ``.BO`` is unchanged."""
+    series = yfinance_provider.get_history("532837.BO", "1d")
+    assert recording_ticker.instances == ["532837.BO"]
+    assert series.symbol == "532837.BO"
