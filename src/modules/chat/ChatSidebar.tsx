@@ -9,9 +9,8 @@ import {
   useState,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus, Send, Sparkles } from "lucide-react";
+import { ArrowUp, Plus, Sparkles } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
 import { launchDelegateRun } from "@/lib/delegate-runs";
 import { isHostActionMutation } from "@/lib/host-actions";
@@ -1219,7 +1218,6 @@ interface ComposerProps {
  * race-guarded by a sequence token so a slow lookup never overwrites a newer one.
  */
 function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerProps) {
-  const meta = agentModeMeta(mode);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [caret, setCaret] = useState(0);
   // The composer value at the moment Esc was pressed — keeps the picker dismissed
@@ -1399,17 +1397,11 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
           }
         }}
       >
-        {/* Field + inset glyph + send read as ONE bordered unit (§14): the input is
-            borderless inside the rounded-control shell, the leading glyph sits in a
-            left gutter (OUTSIDE the text flow), and the send anchors bottom-right
-            inside the field — vertically aligned, 32px square, neutral. The field
-            grows from a single-line baseline rather than reserving a tall empty box. */}
-        <div className="bg-charcoal-800 border-charcoal-700 rounded-control focus-within:ring-charcoal-500 relative flex min-h-9 items-end border focus-within:ring-1">
-          <Sparkles
-            aria-hidden
-            strokeWidth={1.75}
-            className="text-charcoal-500 pointer-events-none absolute top-2 left-3 size-4"
-          />
+        {/* The composer is ONE clean bordered unit (§14): a single-line input with
+            the send pinned inside the field's right edge — a small up-arrow that
+            lights to an inverted neutral chip once there's text. Minimal, monochrome
+            (the peach accent is reserved for live agent activity, never the send). */}
+        <div className="bg-charcoal-850 border-charcoal-700 rounded-control focus-within:ring-charcoal-500 flex items-center gap-1 border px-1 focus-within:ring-1">
           <input
             ref={inputRef}
             aria-label="Chat input"
@@ -1423,22 +1415,25 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
             onKeyUp={(event) => syncCaret(event.currentTarget)}
             onClick={(event) => syncCaret(event.currentTarget)}
             onSelect={(event) => syncCaret(event.currentTarget)}
-            placeholder={`${meta.label} — ${meta.hint}`}
+            placeholder={mode === "delegate" ? "Delegate a task…" : "Ask anything…"}
             disabled={disabled}
             autoComplete="off"
             spellCheck={false}
-            className="text-charcoal-100 placeholder:text-charcoal-500 text-body min-w-0 flex-1 bg-transparent py-1.5 pr-12 pl-12 font-mono leading-relaxed outline-none disabled:opacity-50"
+            className="text-charcoal-100 placeholder:text-charcoal-500 text-body min-w-0 flex-1 bg-transparent px-2 py-2 font-mono outline-none disabled:opacity-50"
           />
-          <Button
+          <button
             type="submit"
-            variant="default"
-            size="icon"
             aria-label="Send message"
             disabled={disabled || value.trim().length === 0}
-            className="absolute right-1 bottom-1"
+            className={cn(
+              "flex size-6 shrink-0 items-center justify-center rounded-control transition-colors",
+              !disabled && value.trim().length > 0
+                ? "bg-charcoal-200 text-charcoal-950 hover:bg-lume"
+                : "text-charcoal-600",
+            )}
           >
-            <Send strokeWidth={2.5} />
-          </Button>
+            <ArrowUp className="size-3.5" strokeWidth={2.25} />
+          </button>
         </div>
       </form>
     </div>
