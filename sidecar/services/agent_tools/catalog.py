@@ -978,6 +978,16 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                         "description": "Cited sources, in [n] order.",
                     },
                     "mode": {"type": "string", "enum": ["FAST", "DEEP"], "default": "FAST"},
+                    "depth": {
+                        "type": "string",
+                        "enum": ["quick", "deep", "heavy"],
+                        "description": (
+                            "The true depth TIER reached (quick < deep < heavy). Sets the "
+                            "brief's in-place 'Go deeper' escalation: omit it on a re-publish "
+                            "of the same run and the prior tier is preserved (a heavy run is "
+                            "never clobbered back to quick); set it explicitly to deepen."
+                        ),
+                    },
                     "query": {"type": "string"},
                     "symbol": {"type": "string"},
                     "web_available": {"type": "boolean", "default": True},

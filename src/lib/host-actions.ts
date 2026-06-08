@@ -13,7 +13,12 @@
  *                              propose→confirm path (the AI never places).
  */
 
-import { dedupeSources, normalizeBriefDepth, normalizeBriefMode } from "@/lib/brief-ingest";
+import {
+  briefDepthTier,
+  dedupeSources,
+  normalizeBriefDepth,
+  normalizeBriefMode,
+} from "@/lib/brief-ingest";
 import {
   applyCustomLayout,
   fitLayoutTemplate,
@@ -56,6 +61,52 @@ export const HOST_ACTION_NAMES = new Set([
   "write_screener_filters",
 ]);
 
+/** Tier order for {@link BriefDepth}: quick < deep < heavy. Drives the MAX-tier
+ *  pick when a re-publish carries an explicit depth, and the "is there an explicit
+ *  signal?" check (a model that only writes prose omits both depth + a deep mode). */
+const DEPTH_RANK: Record<BriefDepth, number> = { quick: 0, deep: 1, heavy: 2 };
+
+/**
+ * Resolve the brief's depth TIER, carrying the prior run's tier across a
+ * depth-less re-publish — the exact mirror of the structured-bundle carry-over
+ * below (same 20s/same-symbol recency guard). The bug it fixes (#5): the runtime
+ * auto-publish stamps the real tier (e.g. `heavy`), then the model issues its own
+ * `publish_brief` carrying only prose — no `depth`, no deep `mode` — which used
+ * to normalise back to `quick` and clobber the tier, so the brief's "Go all out"
+ * affordance reappeared after a heavy run. Now:
+ *   - the model gives an EXPLICIT signal (a `depth` arg or a `deep`/`heavy` mode)
+ *     → take the MAX of it and the prior same-symbol tier (an escalation can only
+ *     deepen, never shallow, and an explicit re-run at the same tier is a no-op);
+ *   - the model OMITS depth (re-publish of the same turn) → keep the prior tier.
+ * The recency/same-symbol guard is identical to the structured carry so the two
+ * never disagree about whether this is the same research turn.
+ */
+function carryBriefDepth(input: Record<string, unknown>, symbol: string | undefined): BriefDepth {
+  const own = normalizeBriefDepth(str(input, "depth"), str(input, "mode"));
+  // An explicit signal is a `depth` arg OR a `deep`/`heavy` mode — anything that
+  // resolves above `quick`. (`quick` is also the no-signal default, so a bare
+  // re-publish is indistinguishable from an explicit `quick` here — and we never
+  // want a re-publish to SHALLOW a deeper prior run regardless, so both branches
+  // below treat `quick` as "no escalation" and prefer the carried tier.)
+  const prev = useBriefStore.getState().brief;
+  // Same tier-derivation rule as the chat control + brief mirror (one source of
+  // truth — briefDepthTier reads the explicit `depth` with a mode-badge fallback).
+  const prevDepth: BriefDepth | undefined = prev ? briefDepthTier(prev) : undefined;
+  if (prevDepth === undefined) {
+    return own;
+  }
+  const sameSymbol =
+    !!prev?.symbol && !!symbol && prev.symbol.toUpperCase() === symbol.toUpperCase();
+  const recent = typeof prev?.createdAt === "number" && Date.now() - prev.createdAt < 20_000;
+  // Same research turn? (Same symbol, or the model omitted the symbol on a brief
+  // published moments ago — the auto-publish always seeds the CURRENT symbol.)
+  if (!(sameSymbol || (!symbol && recent))) {
+    return own;
+  }
+  // Same turn: never shallow the prior tier — take the deeper of the two.
+  return DEPTH_RANK[own] >= DEPTH_RANK[prevDepth] ? own : prevDepth;
+}
+
 /** Build a frontend ResearchBriefData from a publish_brief tool input.
  *
  * Normalises the mode to the frontend's uppercase FAST|DEEP (the sidecar
@@ -85,12 +136,17 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
   // De-duplicate by URL at the ingest boundary so a repeated citation never
   // shows twice in the rail (the markdown's [n] markers point at the first).
   const sources = dedupeSources(mapped);
+  const symbol = str(input, "symbol") || undefined;
   // The true depth TIER (FR-115): prefer the explicit `depth` the auto-publish
   // sets; else derive it from the mode ("heavy"/"deep" → DEEP tier, else quick).
   // Drives the brief panel's in-place "Go deeper" escalation. The mode BADGE
   // then collapses the three tiers to FAST|DEEP — also fixing the S-6 casing
   // miss where a lowercase "deep"/"heavy" never matched the uppercase badge.
-  const depth: BriefDepth = normalizeBriefDepth(str(input, "depth"), str(input, "mode"));
+  // `carryBriefDepth` MIRRORS the structured carry-over below: a depth-less
+  // model re-publish keeps the prior run's tier (so a heavy run isn't clobbered
+  // back to quick — fixing the "Go all out reappears after a deep report" bug),
+  // and an explicit re-publish takes the MAX tier for the same symbol.
+  const depth: BriefDepth = carryBriefDepth(input, symbol);
   const mode = normalizeBriefMode(depth === "quick" ? "fast" : "deep");
   const cost =
     typeof input.cost === "object" && input.cost !== null
@@ -101,7 +157,6 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
   // backs the native metric cards. Passed through verbatim when present — it is
   // non-secret research data, the same shape the sidecar's ResearchBrief emits.
   // Absent on older briefs / structured-only runs → the panel renders no cards.
-  const symbol = str(input, "symbol") || undefined;
   let structured =
     typeof input.structured === "object" && input.structured !== null
       ? (input.structured as BriefStructured)
@@ -360,8 +415,9 @@ function countLeaves(node: ScreenerCriterion | CriterionGroup): number {
  * Ensure a chart panel is open so a chart command (symbol / indicators) has a
  * consumer. A bare `set_chart_symbol` on an empty cockpit otherwise lands in the
  * chart-command channel with no chart panel reading it — the symbol "doesn't
- * take" (the AUTO-mode "no panels open yet" failure). Checks by COMPONENT so it
- * is robust to the chart's generated panel ids (`chart-<id>`, singleton:false).
+ * take" (the AUTO-mode "no panels open yet" failure). Checks by COMPONENT, so it
+ * detects the chart whether it carries the literal `chart` id (singleton) or a
+ * legacy generated `chart-<id>` from a pre-singleton workspace blob.
  */
 function ensureChartOpen(): void {
   const ws = useWorkspaceStore.getState();

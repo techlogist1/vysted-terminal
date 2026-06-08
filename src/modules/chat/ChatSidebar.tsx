@@ -9,10 +9,11 @@ import {
   useState,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUp, Plus, Sparkles } from "lucide-react";
+import { ArrowUp, Loader2, Plus, Sparkles, Telescope } from "lucide-react";
 
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
 import { launchDelegateRun } from "@/lib/delegate-runs";
+import { briefDepthTier, nextBriefDepth } from "@/lib/brief-ingest";
 import { isHostActionMutation } from "@/lib/host-actions";
 import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
 import { completeIncomplete, hasIncompleteCodeFence } from "@/lib/markdown-stream";
@@ -20,7 +21,8 @@ import { SPRING_PILL, tween } from "@/lib/motion";
 import { validateProvider } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
-import { useAgentCommandStore } from "@/store/agent-command";
+import { escalateResearchDepth, useAgentCommandStore } from "@/store/agent-command";
+import { useBriefStore } from "@/store/brief";
 import { useChatPendingStore } from "@/store/chat-pending";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { useAgentSpacesStore } from "@/store/agent-spaces";
@@ -104,6 +106,67 @@ function AutonomyToggle() {
         </button>
       ))}
     </div>
+  );
+}
+
+const DEPTH_LABEL: Record<"quick" | "deep" | "heavy", string> = {
+  quick: "FAST",
+  deep: "DEEP",
+  heavy: "HEAVY",
+};
+
+/**
+ * Research depth control — the ONE actionable depth escalation (FR-115), moved
+ * from the brief panel into the chat surface so there is a single source of
+ * truth (the brief panel now only mirrors the tier, read-only). Shows the CURRENT
+ * tier of the latest brief and a single "Go deeper" / "Go all out" action that
+ * escalates the SAME research subject in place. At `heavy` it is DISABLED with a
+ * "deepest" label. While a run streams it shows a RUNNING spinner (derived from
+ * the live stream state, never a guess). Escalation is DETERMINISTIC: it sends a
+ * structured `at depth=<next>` directive through the chat's one send path (the
+ * agent-command bus → `handleSend`), so the §6.5 gate stays in the loop and the
+ * re-run never depends on the model parsing a fuzzy prose phrase.
+ *
+ * Renders nothing until a brief exists — there is no subject to deepen before the
+ * first research run lands.
+ */
+function ResearchDepthControl({ streaming }: { streaming: boolean }) {
+  const brief = useBriefStore((s) => s.brief);
+  if (!brief) {
+    return null;
+  }
+  const current = briefDepthTier(brief);
+  const next = nextBriefDepth(current);
+  const subject = brief.symbol || brief.query;
+  const label = next === "heavy" ? "Go all out" : "Go deeper";
+  // At heavy there is nowhere deeper; while a run streams the escalation is busy.
+  const disabled = !next || streaming;
+  const onClick = () => {
+    if (next && !streaming) {
+      escalateResearchDepth(subject, next);
+    }
+  };
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={
+        next ? `Re-run this research at the ${next} tier` : "This is the deepest research tier"
+      }
+      title={
+        streaming
+          ? "A research pass is running…"
+          : next
+            ? `Depth ${DEPTH_LABEL[current]} — re-run at the ${next} tier in place`
+            : "This is the deepest research tier."
+      }
+      className="border-charcoal-700 text-charcoal-300 rounded-control text-micro hover:border-charcoal-500/50 hover:text-lume disabled:hover:border-charcoal-700 disabled:hover:text-charcoal-300 flex h-8 shrink-0 items-center gap-1 border px-2 font-mono transition-colors disabled:cursor-default disabled:opacity-60"
+    >
+      {streaming ? <Loader2 className="size-3 animate-spin" /> : <Telescope className="size-3" />}
+      <span className="text-charcoal-400">{DEPTH_LABEL[current]}</span>
+      {next ? <span>· {label}</span> : <span className="text-charcoal-500">· deepest</span>}
+    </button>
   );
 }
 
@@ -1021,6 +1084,11 @@ export function ChatSidebar() {
             }}
           />
           <div className="min-w-0 flex-1" />
+          {/* The ONE actionable depth escalation (FR-115): current tier + a single
+              Go-deeper/Go-all-out, disabled+"deepest" at heavy, RUNNING while a
+              pass streams. The brief panel only mirrors the tier (read-only) — no
+              second escalation control that could race this one. */}
+          <ResearchDepthControl streaming={streaming} />
           <AutonomyToggle />
         </div>
         {/* Control row 2: provider / model HUD (always visible — keyboard-driven) */}

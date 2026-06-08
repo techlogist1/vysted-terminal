@@ -4,11 +4,10 @@ import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ChevronDown,
   ChevronRight,
+  ClipboardCopy,
   ExternalLink,
-  FileText,
   FlaskConical,
   Globe,
-  Printer,
   Telescope,
 } from "lucide-react";
 
@@ -21,13 +20,12 @@ import type {
 } from "../../../types/brief";
 import { ProvenanceBadge, StalenessBadge } from "@/components/DataBadges";
 import {
-  briefSlug,
+  briefDepthTier,
   composeBriefMarkdown,
   dedupeSources,
   deriveSourceType,
+  nextBriefDepth,
 } from "@/lib/brief-ingest";
-import { saveTextArtifact, savePdfArtifact } from "@/lib/export-artifact";
-import { sendToAgent } from "@/store/agent-command";
 import { useBriefStore } from "@/store/brief";
 import { BriefBody } from "./brief-blocks";
 
@@ -77,68 +75,37 @@ function ModeBadge({ mode }: { mode: ResearchBriefData["mode"] }) {
   );
 }
 
-// --- "Go deeper" — in-place depth escalation (FR-115 / SC-028) -------------
+// --- depth mirror — a THIN, READ-ONLY echo of the current tier (FR-115) -----
 
-/** The depth tier a brief reached, derived from the explicit `depth` field with
- *  a fallback to the mode badge for older briefs that predate the field. */
-function briefDepth(brief: ResearchBriefData): BriefDepth {
-  if (brief.depth === "quick" || brief.depth === "deep" || brief.depth === "heavy") {
-    return brief.depth;
-  }
-  return brief.mode === "DEEP" ? "deep" : "quick";
-}
-
-/** The next tier "Go deeper" escalates to, or `null` at the deepest tier. */
-function nextDepth(depth: BriefDepth): Exclude<BriefDepth, "quick"> | null {
-  if (depth === "quick") {
-    return "deep";
-  }
-  if (depth === "deep") {
-    return "heavy";
-  }
-  return null;
-}
-
-const NEXT_DEPTH_LABEL: Record<Exclude<BriefDepth, "quick">, string> = {
-  deep: "Go deeper",
-  heavy: "Go all out",
+const DEPTH_LABEL: Record<BriefDepth, string> = {
+  quick: "FAST",
+  deep: "DEEP",
+  heavy: "HEAVY",
 };
 
 /**
- * "Go deeper" — escalates the SAME research query to the next depth tier IN
- * PLACE (FR-115). It does NOT spawn a parallel brief: it routes a depth-tagged
- * re-run of the same query through the agent (the single send path via the
- * agent-command bus), and the new run's auto-published brief REPLACES this one
- * in the store. Hidden at the deepest (`heavy`) tier — there's nowhere deeper.
+ * Depth mirror — a READ-ONLY echo of the tier this brief reached. The single
+ * actionable "Go deeper" escalation lives in the CHAT surface (one source of
+ * truth, FR-115); this panel only REFLECTS the current depth so the brief and
+ * the chat never carry two independently-actionable controls that can race. The
+ * Telescope glyph + the chat control share the same idiom (border-charcoal-700 /
+ * text-micro / rounded-control) so the mirror reads as the same concept.
  */
-function GoDeeper({ brief }: { brief: ResearchBriefData }) {
-  const current = briefDepth(brief);
-  const next = nextDepth(current);
-  if (!next) {
-    return (
-      <span
-        className="text-charcoal-500 text-micro ml-auto shrink-0 font-mono"
-        title="This is the deepest research tier."
-      >
-        deepest
-      </span>
-    );
-  }
-  const subject = brief.symbol || brief.query;
-  // A natural-language ask the agent maps to research(subject, depth=next). The
-  // explicit tier word ("go deeper"/"go all out") matches the agent's prompt
-  // guidance so it escalates rather than re-running the same tier.
-  const verb = next === "heavy" ? "go all out" : "go deeper";
-  const onGoDeeper = () => sendToAgent(`research ${subject} — ${verb}`);
+function DepthMirror({ brief }: { brief: ResearchBriefData }) {
+  const current = briefDepthTier(brief);
+  const next = nextBriefDepth(current);
   return (
-    <button
-      type="button"
-      onClick={onGoDeeper}
-      title={`Re-run this research at the ${next} tier, in place`}
-      className="border-charcoal-700 text-charcoal-300 hover:text-lume rounded-control text-micro hover:border-charcoal-500/50 ml-auto flex shrink-0 items-center gap-1 border px-2 py-0.5 font-mono transition-colors"
+    <span
+      title={
+        next
+          ? `Depth ${DEPTH_LABEL[current]} — go deeper from the chat depth control.`
+          : "This is the deepest research tier."
+      }
+      className="border-charcoal-700 text-charcoal-400 rounded-control text-micro ml-auto flex shrink-0 items-center gap-1 border px-2 py-0.5 font-mono"
     >
-      <Telescope className="size-3" /> {NEXT_DEPTH_LABEL[next]}
-    </button>
+      <Telescope className="size-3" /> {DEPTH_LABEL[current]}
+      {!next ? <span className="text-charcoal-500">· deepest</span> : null}
+    </span>
   );
 }
 
@@ -163,9 +130,10 @@ function MetaHeader({ brief }: { brief: ResearchBriefData }) {
         {typeof spend === "number" ? (
           <span className="text-charcoal-500 text-micro font-mono">· {formatSpend(spend)}</span>
         ) : null}
-        {/* In-place depth escalation — one research model, "go deeper" deepens the
-            SAME run rather than spawning a parallel brief (FR-115). */}
-        <GoDeeper brief={brief} />
+        {/* Read-only depth mirror — the actionable "Go deeper" escalation lives
+            in the chat surface (one source of truth); this only reflects the
+            tier this brief reached (FR-115). */}
+        <DepthMirror brief={brief} />
       </div>
       {/* Provenance line: WHERE the brief drew from (web vs structured-data-only)
           and WHEN it was produced, so a cached/offline run is never mistaken for
@@ -384,35 +352,32 @@ export function BriefPanel() {
   const sourceRefs = useRef(new Map<number, HTMLLIElement>());
   const [sourcesOpenNonce, setSourcesOpenNonce] = useState(0);
 
-  // The rendered brief body — the PDF/PNG raster target (the WKWebView blocks
-  // browser downloads, so every export writes a real file via the Rust atomic
-  // commands; a transient status line confirms the saved path).
-  const briefBodyRef = useRef<HTMLDivElement>(null);
+  // Export is Copy-markdown (Decision 7 default): `composeBriefMarkdown` is pure +
+  // reliable (it includes the "## Sources" appendix) and the clipboard write needs
+  // no Rust round-trip, no raster, no path to surface — it just copies, and a
+  // transient "Copied" flash confirms it.
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const flashStatus = useCallback((msg: string) => {
     setExportStatus(msg);
     window.setTimeout(() => setExportStatus(null), 4500);
   }, []);
 
-  const handleExportMd = useCallback(async () => {
+  const handleCopyMarkdown = useCallback(async () => {
     if (!brief) return;
-    try {
-      const md = composeBriefMarkdown(brief);
-      const r = await saveTextArtifact("research", `${briefSlug(brief)}.md`, md);
-      flashStatus(r.path ? `Saved ${r.path}` : "Downloaded .md");
-    } catch (e) {
-      flashStatus(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
+    const md = composeBriefMarkdown(brief);
+    // `navigator.clipboard` is undefined outside a secure context — the Tauri
+    // webview is secure, but guard it defensively so a non-secure context flashes
+    // a useful message instead of throwing.
+    const clip = typeof navigator !== "undefined" ? navigator.clipboard : undefined;
+    if (!clip?.writeText) {
+      flashStatus("Clipboard unavailable in this context");
+      return;
     }
-  }, [brief, flashStatus]);
-
-  const handleExportPdf = useCallback(async () => {
-    const el = briefBodyRef.current;
-    if (!brief || !el) return;
     try {
-      const r = await savePdfArtifact("research", `${briefSlug(brief)}.pdf`, el);
-      flashStatus(r.path ? `Saved ${r.path}` : "Downloaded .pdf");
+      await clip.writeText(md);
+      flashStatus("Copied");
     } catch (e) {
-      flashStatus(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
+      flashStatus(`Copy failed: ${e instanceof Error ? e.message : String(e)}`);
     }
   }, [brief, flashStatus]);
 
@@ -458,30 +423,23 @@ export function BriefPanel() {
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
-      {/* Export toolbar — MD composes the brief + a Sources appendix; PDF
-          rasterises the rendered body. Both write a real file via the Rust
-          atomic-write commands (the WKWebView blocks browser downloads). */}
+      {/* Export toolbar — one "Copy markdown" button (Decision 7 default).
+          `composeBriefMarkdown` is pure + reliable and already appends the
+          "## Sources" appendix, so the copy needs no raster, no Rust round-trip,
+          no path to surface — it just writes the markdown to the clipboard. */}
       <div className="border-charcoal-700 flex items-center justify-end gap-1 border-b px-3 py-1.5">
         <button
           type="button"
-          title="Export Markdown"
-          onClick={handleExportMd}
+          title="Copy the brief as Markdown (with a Sources appendix)"
+          onClick={handleCopyMarkdown}
           className="text-charcoal-400 hover:bg-charcoal-800 hover:text-charcoal-100 rounded-control text-caption flex items-center gap-1.5 px-2 py-1 transition-colors"
         >
-          <FileText className="size-3.5" /> MD
-        </button>
-        <button
-          type="button"
-          title="Export PDF"
-          onClick={handleExportPdf}
-          className="text-charcoal-400 hover:bg-charcoal-800 hover:text-charcoal-100 rounded-control text-caption flex items-center gap-1.5 px-2 py-1 transition-colors"
-        >
-          <Printer className="size-3.5" /> PDF
+          <ClipboardCopy className="size-3.5" /> Copy markdown
         </button>
       </div>
 
-      {/* Transient export status — confirms the saved path so the user sees it
-          landed (the same affordance pattern as the Notes panel). */}
+      {/* Transient copy status — flashes "Copied" so the user sees it landed
+          (the same affordance pattern as the Notes panel). */}
       {exportStatus ? (
         <div
           className="text-charcoal-400 border-charcoal-800 bg-charcoal-925 text-micro truncate border-b px-3 py-1.5 font-mono"
@@ -492,8 +450,7 @@ export function BriefPanel() {
       ) : null}
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-        {/* The export raster target — the meta header + the brief body. */}
-        <div ref={briefBodyRef} className="bg-charcoal-900 flex flex-col">
+        <div className="bg-charcoal-900 flex flex-col">
           <MetaHeader brief={brief} />
 
           {/* Honest no-web state: NOT an error, NOT empty — a prominent banner.

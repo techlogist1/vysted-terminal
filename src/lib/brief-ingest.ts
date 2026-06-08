@@ -62,6 +62,31 @@ export function normalizeBriefDepth(rawDepth: unknown, rawMode?: unknown): Brief
 }
 
 /**
+ * The depth TIER a brief reached, read from its explicit `depth` field with a
+ * fallback to the mode badge for older briefs that predate the field. Shared by
+ * the chat surface's depth control AND the brief panel's read-only mirror so the
+ * two never disagree about the current tier (one source of truth, FR-115).
+ */
+export function briefDepthTier(brief: { depth?: BriefDepth; mode: BriefMode }): BriefDepth {
+  if (brief.depth === "quick" || brief.depth === "deep" || brief.depth === "heavy") {
+    return brief.depth;
+  }
+  return brief.mode === "DEEP" ? "deep" : "quick";
+}
+
+/** The next tier "Go deeper" escalates to (`quick`→`deep`→`heavy`), or `null` at
+ *  the deepest (`heavy`) tier — there is nowhere deeper to go. */
+export function nextBriefDepth(depth: BriefDepth): Exclude<BriefDepth, "quick"> | null {
+  if (depth === "quick") {
+    return "deep";
+  }
+  if (depth === "deep") {
+    return "heavy";
+  }
+  return null;
+}
+
+/**
  * Restore-validation accepts either the canonical uppercase mode OR a raw
  * lowercase wire value (a brief persisted before the casing fix, or one written
  * straight from the wire). Used by the brief store's `isBriefData` guard.

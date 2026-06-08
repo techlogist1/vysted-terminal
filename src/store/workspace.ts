@@ -128,8 +128,10 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       );
       return;
     }
-    // Non-singleton (Phase 2 chart): mint a unique panel id so multiple
-    // instances can coexist and dockview's id-uniqueness invariant holds.
+    // Non-singleton panel: mint a unique panel id so multiple instances can
+    // coexist and dockview's id-uniqueness invariant holds. (Currently no
+    // registered spec opts in — the chart abandoned its Phase-2 multi-instance
+    // flag and is singleton again — but the branch stays for future multi-panels.)
     const uniqueId = `${spec.id}-${Date.now().toString(36)}-${Math.random()
       .toString(36)
       .slice(2, 6)}`;

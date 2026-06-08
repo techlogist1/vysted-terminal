@@ -11,6 +11,7 @@ import {
   isHostActionMutation,
   routeOrderProposal,
 } from "@/lib/host-actions";
+import { composeBriefMarkdown } from "@/lib/brief-ingest";
 import { useBriefStore } from "@/store/brief";
 import { useBrokersStore } from "@/store/brokers";
 import { useChartCommandStore } from "@/store/chart-command";
@@ -280,6 +281,125 @@ describe("host-actions", () => {
       web_available: false,
     });
     expect(structuredOnly.after).toMatch(/structured-data-only/);
+  });
+
+  // --- WS4: depth carries forward across a re-publish (fixes #5) --------------
+
+  it("a depth-less re-publish preserves the prior run's depth tier (fixes #5)", () => {
+    useBriefStore.getState().clearBrief();
+    // The runtime auto-publish stamps the real tier (heavy) for this run.
+    applyHostAction("publish_brief", {
+      query: "NVDA deep dive",
+      symbol: "NVDA",
+      depth: "heavy",
+      markdown: "## Brief\nFull report [1].",
+      sources: [{ url: "https://sec.gov/nvda", title: "10-K", domain: "sec.gov" }],
+    });
+    expect(useBriefStore.getState().brief?.depth).toBe("heavy");
+
+    // The model then re-publishes the SAME run with prose only — no depth, no deep
+    // mode. The tier must NOT clobber back to quick (the "Go all out reappears
+    // after a heavy run" bug): the prior heavy tier carries forward.
+    applyHostAction("publish_brief", {
+      query: "NVDA deep dive",
+      symbol: "NVDA",
+      markdown: "## Brief\nFull report, refined [1].",
+      sources: [{ url: "https://sec.gov/nvda", title: "10-K", domain: "sec.gov" }],
+    });
+    expect(useBriefStore.getState().brief?.depth).toBe("heavy");
+  });
+
+  it("heavy survives a mode='DEEP' re-publish (MAX tier, never shallowed)", () => {
+    useBriefStore.getState().clearBrief();
+    applyHostAction("publish_brief", {
+      query: "AAPL outlook",
+      symbol: "AAPL",
+      depth: "heavy",
+      markdown: "## Brief\nDeepest run.",
+      sources: [],
+      web_available: false,
+    });
+    expect(useBriefStore.getState().brief?.depth).toBe("heavy");
+
+    // A re-publish carrying only a shallower `mode='DEEP'` (tier deep) must not
+    // shallow the heavy tier — the MAX of {own, prior} for the same symbol wins.
+    applyHostAction("publish_brief", {
+      query: "AAPL outlook",
+      symbol: "AAPL",
+      mode: "DEEP",
+      markdown: "## Brief\nDeep run.",
+      sources: [],
+      web_available: false,
+    });
+    expect(useBriefStore.getState().brief?.depth).toBe("heavy");
+    // The mode badge still collapses heavy → DEEP.
+    expect(useBriefStore.getState().brief?.mode).toBe("DEEP");
+  });
+
+  it("an explicit deeper re-publish on the SAME symbol escalates the tier", () => {
+    useBriefStore.getState().clearBrief();
+    applyHostAction("publish_brief", {
+      query: "MSFT",
+      symbol: "MSFT",
+      depth: "quick",
+      markdown: "## Brief\nFast pass.",
+      sources: [],
+      web_available: false,
+    });
+    expect(useBriefStore.getState().brief?.depth).toBe("quick");
+
+    applyHostAction("publish_brief", {
+      query: "MSFT",
+      symbol: "MSFT",
+      depth: "deep",
+      markdown: "## Brief\nDeeper.",
+      sources: [],
+      web_available: false,
+    });
+    expect(useBriefStore.getState().brief?.depth).toBe("deep");
+  });
+
+  it("a DIFFERENT symbol does not inherit the prior brief's depth", () => {
+    useBriefStore.getState().clearBrief();
+    applyHostAction("publish_brief", {
+      query: "NVDA",
+      symbol: "NVDA",
+      depth: "heavy",
+      markdown: "## Brief\nHeavy NVDA.",
+      sources: [],
+      web_available: false,
+    });
+    // A fresh quick run on a DIFFERENT symbol must start at quick, not inherit
+    // NVDA's heavy tier (the recency/same-symbol guard rules out contamination).
+    applyHostAction("publish_brief", {
+      query: "TSLA",
+      symbol: "TSLA",
+      markdown: "## Brief\nQuick TSLA.",
+      sources: [],
+      web_available: false,
+    });
+    expect(useBriefStore.getState().brief?.depth).toBe("quick");
+  });
+
+  // --- WS4: Copy-markdown uses the pure composer (incl. ## Sources) -----------
+
+  it("Copy-markdown is composeBriefMarkdown output including the ## Sources appendix", () => {
+    useBriefStore.getState().clearBrief();
+    applyHostAction("publish_brief", {
+      query: "Apple moat",
+      symbol: "AAPL",
+      mode: "deep",
+      markdown: "Apple's moat is its ecosystem [1].",
+      sources: [{ url: "https://sec.gov/aapl", title: "10-K", domain: "sec.gov" }],
+    });
+    const brief = useBriefStore.getState().brief!;
+    // The "Copy markdown" button writes exactly composeBriefMarkdown(brief) to the
+    // clipboard — a pure transform that always appends the Sources appendix.
+    const md = composeBriefMarkdown(brief);
+    expect(md).toContain("# Apple moat");
+    expect(md).toContain("Apple's moat is its ecosystem [1].");
+    expect(md).toContain("## Sources");
+    expect(md).toContain("[1] 10-K — https://sec.gov/aapl");
   });
 
   it("applyHostAction does NOT place an order (orders never apply directly)", () => {
