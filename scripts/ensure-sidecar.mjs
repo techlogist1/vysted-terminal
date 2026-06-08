@@ -166,7 +166,8 @@ const addDataSep = isWin ? ";" : ":";
 //
 // `services/resolver_masters/` holds the bundled instrument masters
 // (us_instruments.json — SEC company_tickers snapshot; nse_instruments.json —
-// NSE EQUITY_L + ETF list) loaded at runtime via importlib.resources from the
+// NSE EQUITY_L + ETF list; bse_instruments.json — BSE scrip seed incl. the
+// micro-cap groups, WS6) loaded at runtime via importlib.resources from the
 // `services.resolver_masters` package (services/symbol_resolver.py). Same case
 // as screener_universes: the package has an __init__.py but --onefile collects
 // only .py modules, not the JSON data — without this --add-data the symbol

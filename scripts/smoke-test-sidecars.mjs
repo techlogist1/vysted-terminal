@@ -199,6 +199,45 @@ async function _httpGetOk(url, timeoutMs = 1500) {
   }
 }
 
+/**
+ * No-SLA probe of the BSE EOD BhavCopy endpoint (WS6). The keyless BSE provider
+ * (`sidecar/services/bse_provider.py`) assembles EOD history from this daily
+ * full-universe dump. This is a LIVE reachability check ONLY: BSE rate-limits,
+ * geo-fences, and does not publish a file on a weekend/holiday/not-yet-closed
+ * day, and CI/sandbox often has no outbound network — so a miss WARNS and never
+ * fails the smoke run. It exists purely to flag a URL-shape regression early.
+ */
+async function _probeBseBhavcopyNoSla() {
+  // Yesterday in IST (UTC+5:30) — a plausibly-published recent trading day.
+  const istNow = new Date(Date.now() + 5.5 * 3600 * 1000);
+  istNow.setUTCDate(istNow.getUTCDate() - 1);
+  const ymd =
+    `${istNow.getUTCFullYear()}` +
+    `${String(istNow.getUTCMonth() + 1).padStart(2, "0")}` +
+    `${String(istNow.getUTCDate()).padStart(2, "0")}`;
+  const url =
+    `https://www.bseindia.com/download/BhavCopy/Equity/` +
+    `BhavCopy_BSE_CM_0_0_0_${ymd}_F_0000.CSV`;
+  console.log(`[smoke] BSE bhavcopy probe (no-SLA): GET ${url} ...`);
+  try {
+    const ok = await _httpGetOk(url, 4000);
+    if (ok) {
+      console.log("[smoke] BSE bhavcopy probe OK (endpoint reachable).");
+    } else {
+      console.warn(
+        `[smoke] WARN: BSE bhavcopy probe did not return 200 (no-SLA — not a failure). ` +
+          `Common + benign: weekend/holiday/not-yet-published day, geo-fence, or no ` +
+          `outbound network in CI. Only investigate if the URL SHAPE changed.`,
+      );
+    }
+  } catch (err) {
+    console.warn(
+      `[smoke] WARN: BSE bhavcopy probe errored (no-SLA — not a failure): ` +
+        `${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+}
+
 /** Single TCP-connect probe to 127.0.0.1:port — true if something is listening. */
 function _tcpConnectOk(port, timeoutMs = 1000) {
   return new Promise((resolveP) => {
@@ -495,6 +534,9 @@ async function main() {
       failures.push(err instanceof Error ? err.message : String(err));
     }
   }
+
+  // No-SLA external probe — runs regardless of sidecar results, never fails.
+  await _probeBseBhavcopyNoSla();
 
   if (failures.length > 0) {
     console.error("\n[smoke] FAILURES:");

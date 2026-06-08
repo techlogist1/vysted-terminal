@@ -50,6 +50,45 @@ def test_get_history_empty_series_returns_clean_200(client: TestClient, monkeypa
     assert body["provider"] == "none"
 
 
+def test_empty_series_in_symbol_carries_eod_only_reason(client: TestClient, monkeypatch) -> None:
+    """WS6 Step 4: an IN symbol producing an all-empty series carries a typed
+    `reason=="in_eod_only"` through the /history route so ChartPanel can show the
+    region-aware "EOD only — add a BYOK broker" message instead of the generic
+    "No price data". Guards the chain region_hint → _empty_series_reason → the
+    serialized model field against silent regression."""
+    from services import provider_registry
+    from services.correctness_gate import EmptySeriesError
+
+    def _all_empty(symbol: str, timeframe: str, range_, asset_class: str):
+        raise EmptySeriesError(f"correctness gate: empty series for {symbol!r} from 'bse'")
+
+    monkeypatch.setattr(provider_registry, "get_history", _all_empty)
+
+    # A bare BSE-only ticker resolves to IN → the typed reason.
+    body = client.get("/history/TIRUPATI", params={"timeframe": "1d"}).json()
+    assert body["bars"] == []
+    assert body["provider"] == "none"
+    assert body["reason"] == "in_eod_only"
+
+    # A .BO-suffixed symbol is decisively IN → same typed reason.
+    body_bo = client.get("/history/RELIANCE.BO", params={"timeframe": "1d"}).json()
+    assert body_bo["reason"] == "in_eod_only"
+
+    # A US symbol carries no IN reason (the generic message stays correct).
+    body_us = client.get("/history/AAPL", params={"timeframe": "1d"}).json()
+    assert body_us["bars"] == []
+    assert body_us.get("reason") is None
+
+
+def test_empty_series_reason_unit() -> None:
+    """Direct unit guard on the typed-reason helper (no route)."""
+    from routers.history import _empty_series_reason
+
+    assert _empty_series_reason("TIRUPATI") == "in_eod_only"
+    assert _empty_series_reason("RELIANCE.BO") == "in_eod_only"
+    assert _empty_series_reason("AAPL") is None
+
+
 def test_get_history_integrity_failure_still_502(client: TestClient, monkeypatch) -> None:
     """A genuine data-integrity failure (a non-empty CorrectnessError — non-positive
     close / symbol mismatch) still surfaces as 502; only the empty-series case is

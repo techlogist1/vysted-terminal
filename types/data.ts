@@ -36,6 +36,14 @@ export interface OHLCVBar {
   volume: number;
 }
 
+/**
+ * Typed reason for an EMPTY series (no bars). Set by the history router when
+ * every provider returned no data so the chart can show a region-aware message
+ * (WS6 Step 4). `in_eod_only` = an IN symbol where BSE/NSE serve EOD only and
+ * intraday/realtime needs a BYOK broker; absent for a populated series.
+ */
+export type SeriesReason = "in_eod_only";
+
 /** An ordered series of OHLCV bars for one symbol and timeframe. */
 export interface OHLCVSeries {
   symbol: string;
@@ -44,6 +52,8 @@ export interface OHLCVSeries {
   provider: string;
   /** Staleness of the LAST bar, set by the history router (FR-041 / SC-019). */
   freshness?: Freshness | null;
+  /** Typed reason for an empty series, set by the history router (WS6 Step 4). */
+  reason?: SeriesReason | null;
 }
 
 /** One dated observation within a macro series. */

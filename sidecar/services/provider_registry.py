@@ -42,6 +42,7 @@ from models.fundamentals import (
 )
 from models.market import MacroSeries, OHLCVSeries, Quote
 from services import (
+    bse_provider,
     ccxt_provider,
     correctness_gate,
     india_provider,
@@ -151,6 +152,25 @@ _PROVIDERS: tuple[ProviderDeclaration, ...] = (
         serves={
             "quote": lambda symbol: india_provider.get_quote(symbol),
             "ohlcv": lambda symbol, timeframe, range_=None: india_provider.get_history(
+                symbol, timeframe, range_
+            ),
+        },
+    ),
+    # bse — the keyless India MICRO-CAP EOD default (the B/X/XT/T/Z groups NSE
+    # never listed), region-scoped to IN and ranked BETWEEN nse (20) and yfinance
+    # (50): a bare BSE-only ticker (or a `.BO` request) resolves to IN and is
+    # served EOD from the daily BhavCopy cache, not documented-unreliable yfinance
+    # (#2612/#2055). Serves quote + ohlcv only (mirrors nse); IN fundamentals fall
+    # through to yfinance. nse still wins for a dual-listed name (lower rank).
+    ProviderDeclaration(
+        id="bse",
+        rank=25,
+        requires=lambda: bse_provider.is_available(),
+        asset_classes=frozenset({"equity"}),
+        region=frozenset({"IN"}),
+        serves={
+            "quote": lambda symbol: bse_provider.get_quote(symbol),
+            "ohlcv": lambda symbol, timeframe, range_=None: bse_provider.get_history(
                 symbol, timeframe, range_
             ),
         },

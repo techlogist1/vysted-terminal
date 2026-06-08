@@ -101,6 +101,27 @@ def _nse_master() -> dict[str, tuple[str, str]]:
 
 
 @lru_cache(maxsize=1)
+def _bse_master() -> dict[str, tuple[str, str, str]]:
+    """``{SYMBOL: (name, group, scrip_code)}`` for BSE equities.
+
+    Rows in ``bse_instruments.json`` are ``[SCRIP_CODE, SYMBOL, NAME, GROUP,
+    ISIN]``. The micro-cap tail (groups B/X/XT/T/Z) is the coverage NSE never
+    listed — keyed by the bare ticker for ``is_bse_symbol``/``region_hint`` and
+    carrying the numeric scrip code the BSE quote header endpoint needs.
+    """
+    raw = _load_master("bse_instruments.json")
+    out: dict[str, tuple[str, str, str]] = {}
+    for row in raw.get("instruments", []):
+        code = str(row[0]).strip() if len(row) > 0 else ""
+        sym = str(row[1]).strip().upper() if len(row) > 1 else ""
+        name = str(row[2]).strip() if len(row) > 2 else ""
+        group = str(row[3]).strip().upper() if len(row) > 3 else ""
+        if sym:
+            out[sym] = (name, group, code)
+    return out
+
+
+@lru_cache(maxsize=1)
 def _us_master() -> dict[str, str]:
     """``{TICKER: name}`` for US-listed companies (SEC snapshot)."""
     raw = _load_master("us_instruments.json")
@@ -129,6 +150,7 @@ def _load_master(filename: str) -> dict:
 def reset_caches_for_tests() -> None:
     """Drop the in-process master caches (test helper)."""
     _nse_master.cache_clear()
+    _bse_master.cache_clear()
     _us_master.cache_clear()
 
 
@@ -147,24 +169,37 @@ def is_us_symbol(symbol: str) -> bool:
     return strip_exchange_suffix(symbol).upper() in _us_master()
 
 
+def is_bse_symbol(symbol: str) -> bool:
+    """True if the bare form of ``symbol`` is a known BSE equity (incl. micro-caps)."""
+    return strip_exchange_suffix(symbol) in _bse_master()
+
+
+def bse_scrip_code(symbol: str) -> str | None:
+    """Return the numeric BSE scrip code for ``symbol`` (the header endpoint key)."""
+    entry = _bse_master().get(strip_exchange_suffix(symbol))
+    return entry[2] if entry and entry[2] else None
+
+
 def region_hint(symbol: str) -> str | None:
     """Infer a symbol's intrinsic region, or ``None`` if it is ambiguous.
 
     A ``.NS``/``.BO`` suffix is decisive (IN). For a bare ticker, an
-    *unambiguous* master membership decides — GOLDBEES is NSE-only → IN; AAPL is
-    US-only → US; a ticker present in BOTH masters (e.g. an ADR) returns ``None``
-    so the user's active locale breaks the tie. Used by the provider registry to
-    route a quote/history request to the right region's provider.
+    *unambiguous* India membership decides — GOLDBEES is NSE-only → IN, a
+    BSE-only micro-cap (present in the BSE master, absent from US) → IN; AAPL is
+    US-only → US; a ticker present in BOTH an India master AND the US master
+    (e.g. an ADR) returns ``None`` so the user's active locale breaks the tie.
+    Used by the provider registry to route a quote/history request to the right
+    region's provider.
     """
     suffix_region = region_for_suffix(symbol)
     if suffix_region:
         return suffix_region
     bare = strip_exchange_suffix(symbol)
-    in_nse = bare in _nse_master()
+    in_india = bare in _nse_master() or bare in _bse_master()
     in_us = bare in _us_master()
-    if in_nse and not in_us:
+    if in_india and not in_us:
         return REGION_IN
-    if in_us and not in_nse:
+    if in_us and not in_india:
         return REGION_US
     return None
 
@@ -379,6 +414,8 @@ __all__ = [
     "Instrument",
     "Resolution",
     "autocomplete",
+    "bse_scrip_code",
+    "is_bse_symbol",
     "is_nse_symbol",
     "is_us_symbol",
     "region_hint",

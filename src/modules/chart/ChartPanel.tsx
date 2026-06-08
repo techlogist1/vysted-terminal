@@ -341,7 +341,11 @@ function ChartPanel(props: ChartPanelProps = {}) {
           candleDataRef.current = [];
           setProvider(series.provider);
           setFreshness(series.freshness ?? null);
-          setPriceError("No price data for this symbol");
+          setPriceError(
+            series.reason === "in_eod_only"
+              ? "No EOD data for this symbol. BSE/NSE serve end-of-day only — intraday/realtime needs a BYOK broker (Kite/Upstox/Dhan)."
+              : "No price data for this symbol",
+          );
           setPriceState("error");
           return;
         }

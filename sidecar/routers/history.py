@@ -6,11 +6,26 @@ from fastapi import APIRouter, Query
 
 import config
 from models.market import OHLCVSeries
-from services import provider_registry
+from services import provider_registry, symbol_resolver
 from services.correctness_gate import EmptySeriesError
-from services.locale import freshness_for
+from services.locale import REGION_IN, freshness_for
 
 router = APIRouter(prefix="/history", tags=["history"])
+
+
+def _empty_series_reason(symbol: str) -> str | None:
+    """A typed reason for an empty IN series so the chart can be region-aware.
+
+    When an IN symbol (a `.NS`/`.BO` suffix, a BSE/NSE master member, or an IN
+    active locale) has no EOD data from any provider, the honest cause is that
+    keyless BSE/NSE serve **EOD only** — intraday/realtime needs a BYOK broker.
+    The chart surfaces that instead of the generic "No price data" (WS6 Step 4).
+    Returns ``None`` for a non-IN symbol (the generic message stays correct).
+    """
+    region = symbol_resolver.region_hint(symbol)
+    if region is None:
+        region = config.get_region()
+    return "in_eod_only" if region == REGION_IN else None
 
 
 def _label_series_freshness(series: OHLCVSeries, asset_class: str, timeframe: str) -> OHLCVSeries:
@@ -56,5 +71,11 @@ def get_history(
     try:
         series = provider_registry.get_history(symbol, timeframe, range_, asset_class)
     except EmptySeriesError:
-        return OHLCVSeries(symbol=symbol, timeframe=timeframe, bars=[], provider="none")
+        return OHLCVSeries(
+            symbol=symbol,
+            timeframe=timeframe,
+            bars=[],
+            provider="none",
+            reason=_empty_series_reason(symbol),
+        )
     return _label_series_freshness(series, asset_class, timeframe)

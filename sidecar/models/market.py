@@ -51,6 +51,12 @@ class OHLCVSeries(BaseModel):
     # the history router so the chart never shows a stale series as current
     # (FR-041 / SC-019). Optional + additive.
     freshness: str | None = None
+    # A typed reason for an EMPTY series, set by the history router when every
+    # provider returned no data, so the chart shows a region-aware honest message
+    # instead of the generic "No price data" (WS6 Step 4). "in_eod_only" =
+    # BSE/NSE serve EOD only and intraday/realtime needs a BYOK broker; None for a
+    # populated series or a non-region-specific empty.
+    reason: str | None = None
 
 
 class MacroObservation(BaseModel):
