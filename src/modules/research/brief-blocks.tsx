@@ -277,7 +277,8 @@ type BodyBlock =
   | { kind: "heading"; level: number; text: string }
   | { kind: "paragraph"; text: string }
   | { kind: "list"; ordered: boolean; items: string[] }
-  | { kind: "table"; headers: string[]; aligns: Align[]; rows: string[][] };
+  | { kind: "table"; headers: string[]; aligns: Align[]; rows: string[][] }
+  | { kind: "code"; lang: string; text: string };
 
 /** Split a markdown table row "| a | b |" into trimmed cells. */
 function splitRow(line: string): string[] {
@@ -324,6 +325,35 @@ export function parseBodyBlocks(source: string): BodyBlock[] {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trimEnd();
+
+    // Fenced code block: a "```"/"~~~" opener buffers raw lines (no inline
+    // parse) until the matching close fence; the info string after the opener
+    // is the language hint (may be empty). Checked first so a pipe inside code
+    // can't be mistaken for a table row.
+    const fence = /^ {0,3}(```+|~~~+)(.*)$/.exec(line);
+    if (fence) {
+      flushList();
+      const marker = fence[1];
+      const fenceChar = marker[0];
+      const lang = fence[2].trim();
+      // Close fence: same marker char, >= opener length (CommonMark). Hoisted out
+      // of the buffer loop — fenceChar/marker.length are loop-invariant. The {0,3}
+      // leading-space tolerance matches markdown-stream's completer so an indented
+      // streaming fence doesn't flicker a literal ``` into the live view.
+      const close = new RegExp(`^${fenceChar === "`" ? "`" : "~"}{${marker.length},}\\s*$`);
+      const buf: string[] = [];
+      let j = i + 1;
+      for (; j < lines.length; j++) {
+        const raw = lines[j];
+        if (close.test(raw.trim())) {
+          break;
+        }
+        buf.push(raw);
+      }
+      out.push({ kind: "code", lang, text: buf.join("\n") });
+      i = j; // skip the close fence (or run to EOF on an unterminated block)
+      continue;
+    }
 
     // GFM pipe table: a "| … |" header line immediately followed by a separator.
     if (line.includes("|") && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
@@ -632,6 +662,67 @@ function TableBlock({
   );
 }
 
+/** Fenced code block — raw monospace, no syntax highlighting (Shiki is deferred).
+ *  Reuses the inline-code surface tokens so it sits in the same charcoal family. */
+function CodeBlock({ text }: { lang: string; text: string }) {
+  return (
+    <pre className="bg-charcoal-800 rounded-control text-caption text-charcoal-100 overflow-x-auto px-3 py-2 font-mono leading-relaxed">
+      <code className="font-mono">{text}</code>
+    </pre>
+  );
+}
+
+// --- the shared body renderer ------------------------------------------------
+
+/**
+ * Render a markdown source as the shared typed-block document body: the same
+ * heading / paragraph / list / table / code switch the brief uses, with live
+ * ticker chips (`$CASHTAG` + the `known` set) and interactive `[n]` cite chips.
+ * Used by both the research brief (below) and the chat assistant reply, so the
+ * two surfaces never diverge. No metric grid here — that is brief-only.
+ *
+ * `known` defaults to empty (chat may have no known set); `onCite` defaults to a
+ * no-op (chat has no source rail, so cite chips render inert but un-broken).
+ */
+export function MarkdownBody({
+  source,
+  known,
+  onCite,
+}: {
+  source: string;
+  known?: Set<string>;
+  onCite?: (n: number) => void;
+}) {
+  const reduced = useReducedMotion();
+  const blocks = useMemo(() => parseBodyBlocks(source), [source]);
+  const ctx = useMemo<InlineCtx>(
+    () => ({ onCite: onCite ?? (() => {}), known: known ?? new Set<string>() }),
+    [onCite, known],
+  );
+
+  const childProps = reduced ? {} : { variants: staggerChild };
+
+  return (
+    <>
+      {blocks.map((block, i) => (
+        <motion.div key={i} {...childProps}>
+          {block.kind === "heading" ? (
+            <HeadingBlock level={block.level} text={block.text} ctx={ctx} />
+          ) : block.kind === "paragraph" ? (
+            <ParagraphBlock text={block.text} ctx={ctx} />
+          ) : block.kind === "list" ? (
+            <ListBlock ordered={block.ordered} items={block.items} ctx={ctx} />
+          ) : block.kind === "code" ? (
+            <CodeBlock lang={block.lang} text={block.text} />
+          ) : (
+            <TableBlock headers={block.headers} aligns={block.aligns} rows={block.rows} ctx={ctx} />
+          )}
+        </motion.div>
+      ))}
+    </>
+  );
+}
+
 // --- the document ------------------------------------------------------------
 
 /** Collect the high-confidence ticker set: resolved symbol + watchlist + structured. */
@@ -673,16 +764,13 @@ export function BriefBody({
   const reduced = useReducedMotion();
 
   const metrics = useMemo(() => deriveMetrics(brief.structured), [brief.structured]);
-  const blocks = useMemo(() => parseBodyBlocks(brief.markdown), [brief.markdown]);
-  const ctx = useMemo<InlineCtx>(
-    () => ({
-      onCite,
-      known: knownTickersOf(
+  const known = useMemo(
+    () =>
+      knownTickersOf(
         brief,
         watchlist.map((e) => e.symbol),
       ),
-    }),
-    [brief, watchlist, onCite],
+    [brief, watchlist],
   );
 
   const parentProps = reduced
@@ -697,19 +785,7 @@ export function BriefBody({
           <MetricsBlock model={metrics} />
         </motion.div>
       ) : null}
-      {blocks.map((block, i) => (
-        <motion.div key={i} {...childProps}>
-          {block.kind === "heading" ? (
-            <HeadingBlock level={block.level} text={block.text} ctx={ctx} />
-          ) : block.kind === "paragraph" ? (
-            <ParagraphBlock text={block.text} ctx={ctx} />
-          ) : block.kind === "list" ? (
-            <ListBlock ordered={block.ordered} items={block.items} ctx={ctx} />
-          ) : (
-            <TableBlock headers={block.headers} aligns={block.aligns} rows={block.rows} ctx={ctx} />
-          )}
-        </motion.div>
-      ))}
+      <MarkdownBody source={brief.markdown} known={known} onCite={onCite} />
     </motion.div>
   );
 }

@@ -15,6 +15,7 @@ import { KeyEntryDialog } from "@/components/KeyEntryDialog";
 import { launchDelegateRun } from "@/lib/delegate-runs";
 import { isHostActionMutation } from "@/lib/host-actions";
 import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
+import { completeIncomplete, hasIncompleteCodeFence } from "@/lib/markdown-stream";
 import { SPRING_PILL, tween } from "@/lib/motion";
 import { validateProvider } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
@@ -38,6 +39,8 @@ import { useProposedChangesStore } from "@/store/proposed-changes";
 import { useOnboardingStore } from "@/store/onboarding";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import { useSettingsStore } from "@/store/settings";
+import { useSymbolsStore } from "@/store/symbols";
+import { MarkdownBody } from "@/modules/research/brief-blocks";
 import type { Region } from "@/lib/region";
 import type { AgentContextSnapshot, LLMProviderId, LLMStreamEvent } from "../../../types/ai";
 import { type AgentMode, AGENT_MODES, agentModeMeta } from "../../../types/agent-modes";
@@ -144,6 +147,11 @@ function firstSentences(text: string, max = 2, maxChars = 220): string {
   return out;
 }
 
+/** Stable no-op cite handler — chat has no source rail, so [n] chips render inert.
+ *  A module-level reference keeps MarkdownBody's `ctx` useMemo from recomputing on
+ *  every render (a fresh `() => {}` would defeat it). */
+const NOOP_CITE = () => {};
+
 /**
  * Assistant reply body. When this turn published a research brief (Track 3), the
  * depth lives in the rendered brief — so a long reply collapses to its first
@@ -161,15 +169,30 @@ function MessageBody({
   briefPublished?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
+  // The chat's known-ticker set is the user's watchlist (precision over recall:
+  // a chip fires only on $CASHTAG or one of these symbols, never a bare word).
+  const watchlist = useSymbolsStore((s) => s.entries);
+  const chatKnownSet = useMemo(
+    () => new Set(watchlist.map((e) => e.symbol.toUpperCase())),
+    [watchlist],
+  );
+
   const isLong = content.trim().length > 200;
   const collapsible = Boolean(briefPublished) && !pending && isLong;
   const collapsed = collapsible && !expanded;
   const shown = collapsed ? firstSentences(content) : content;
+
+  // While streaming, repair the trailing in-flight token so the live markdown
+  // doesn't flicker between broken/fixed on every delta. The pulsing caret is
+  // suppressed inside an open code fence (where it would render as literal text).
+  const source = pending ? completeIncomplete(shown) : shown;
+  const caret = pending && !hasIncompleteCodeFence(shown);
+
   return (
-    <div className="whitespace-pre-wrap">
-      {shown}
-      {pending && (
-        <span className="text-charcoal-400 animate-pulse" aria-hidden>
+    <div className="flex flex-col gap-3">
+      <MarkdownBody source={source} known={chatKnownSet} onCite={NOOP_CITE} />
+      {caret && (
+        <span className="text-charcoal-400 -mt-3 animate-pulse" aria-hidden>
           ▋
         </span>
       )}
@@ -177,7 +200,7 @@ function MessageBody({
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="text-charcoal-400 text-caption hover:text-charcoal-100 ml-1.5 align-baseline underline transition-colors"
+          className="text-charcoal-400 text-caption hover:text-charcoal-100 -mt-2 self-start align-baseline underline transition-colors"
         >
           {collapsed ? "show full analysis" : "show less"}
         </button>
@@ -701,8 +724,7 @@ export function ChatSidebar() {
               // so an order always stages — never narrate it as "Applied", in any
               // mode, or the transcript would lie about an unconfirmed order.
               const auto =
-                useAgentAutonomyStore.getState().autonomy === "auto" &&
-                change?.kind !== "order";
+                useAgentAutonomyStore.getState().autonomy === "auto" && change?.kind !== "order";
               const title = change?.title ?? name;
               appendToolStep(
                 assistantId,
@@ -1435,7 +1457,7 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
             aria-label="Send message"
             disabled={disabled || value.trim().length === 0}
             className={cn(
-              "flex size-6 shrink-0 items-center justify-center rounded-control transition-colors",
+              "rounded-control flex size-6 shrink-0 items-center justify-center transition-colors",
               !disabled && value.trim().length > 0
                 ? "bg-charcoal-200 text-charcoal-950 hover:bg-lume"
                 : "text-charcoal-600",

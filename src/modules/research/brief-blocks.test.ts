@@ -1,8 +1,15 @@
+import { renderToStaticMarkup } from "react-dom/server";
+import { createElement } from "react";
 import { describe, expect, it } from "vitest";
 
-import { deriveMetrics } from "@/modules/research/brief-blocks";
+import { deriveMetrics, MarkdownBody } from "@/modules/research/brief-blocks";
 import type { BriefStructured } from "../../../types/brief";
 import type { Fundamentals, Quote } from "../../../types/data";
+
+/** Render MarkdownBody to static HTML for content assertions (no DOM needed). */
+function renderBody(source: string, known?: Set<string>): string {
+  return renderToStaticMarkup(createElement(MarkdownBody, { source, known }));
+}
 
 function quote(overrides: Partial<Quote> = {}): Quote {
   return {
@@ -140,5 +147,62 @@ describe("deriveMetrics — asset-class branching", () => {
       fundamentals: { ok: true, provider: "yfinance", data: fundamentals({ pe_ratio: null }) },
     });
     expect(labels(s)).not.toContain("P/E");
+  });
+
+  it("deriveMetrics(undefined) is null so the chat path renders no metric grid", () => {
+    expect(deriveMetrics(undefined)).toBeNull();
+  });
+});
+
+describe("MarkdownBody — the shared typed-block renderer", () => {
+  it("renders headings, paragraphs, and lists", () => {
+    const html = renderBody("## Title\n\nA paragraph.\n\n- one\n- two\n\n1. first\n2. second");
+    expect(html).toContain("Title");
+    expect(html).toContain("A paragraph.");
+    expect(html).toContain("<ul");
+    expect(html).toContain("<ol");
+    expect(html).toContain("one");
+    expect(html).toContain("first");
+  });
+
+  it("renders a GFM pipe table into a real <table>", () => {
+    const html = renderBody("| Sym | Px |\n| --- | --: |\n| AAPL | 100 |\n| MSFT | 200 |");
+    expect(html).toContain("<table");
+    expect(html).toContain("<thead");
+    expect(html).toContain("<tbody");
+    expect(html).toContain("AAPL");
+    expect(html).toContain("200");
+  });
+
+  it("renders a fenced code block into <pre><code> with no inline parse", () => {
+    const html = renderBody("```ts\nconst x = **not bold**;\n```");
+    expect(html).toContain("<pre");
+    expect(html).toContain("<code");
+    // Code is literal — the ** must survive, NOT become a <strong>.
+    expect(html).toContain("const x = **not bold**;");
+    expect(html).not.toContain("<strong");
+  });
+
+  it("renders an unterminated fenced block (streaming) without dropping content", () => {
+    const html = renderBody("```python\nprint(1)");
+    expect(html).toContain("<pre");
+    expect(html).toContain("print(1)");
+  });
+
+  it("chips a $CASHTAG and a known symbol, never a bare uppercase word", () => {
+    const html = renderBody("Buy $AAPL and NVDA but not the GPU.", new Set(["NVDA"]));
+    // Both the cashtag and the known symbol become ticker <button> chips…
+    const buttons = html.match(/<button/g) ?? [];
+    expect(buttons.length).toBe(2);
+    // …a bare uppercase word (not in the known set, no $) stays plain text.
+    expect(html).toContain("GPU");
+    expect(html).toContain("AAPL");
+    expect(html).toContain("NVDA");
+  });
+
+  it("renders [n] cite chips inert (no onCite) without throwing", () => {
+    const html = renderBody("A claim [1] and another [2].");
+    expect(html).toContain("Jump to source 1");
+    expect(html).toContain("Jump to source 2");
   });
 });
