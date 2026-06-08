@@ -8,7 +8,7 @@ import type { MentionDef, MentionKind } from "./mentions";
 const KIND_BADGE: Record<MentionKind, { label: string; className: string }> = {
   surface: { label: "surface", className: "text-charcoal-400" },
   scope: { label: "scope", className: "text-charcoal-400" },
-  agent: { label: "agent", className: "text-amber-300/80" },
+  agent: { label: "agent", className: "text-charcoal-300/80" },
   instrument: { label: "ticker", className: "text-charcoal-300" },
 };
 
@@ -60,7 +60,7 @@ export function MentionPicker({
                 active ? "bg-charcoal-800" : "hover:bg-charcoal-900",
               )}
             >
-              <span className={cn("shrink-0", active ? "text-amber-300" : "text-amber-400")}>
+              <span className={cn("shrink-0", active ? "text-charcoal-300" : "text-charcoal-300")}>
                 {mention.token}
               </span>
               <span className="text-charcoal-200 truncate">{mention.label}</span>

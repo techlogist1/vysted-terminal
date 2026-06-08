@@ -46,7 +46,7 @@ function VystedNodeImpl({ data, selected }: NodeProps<Node<FlowNodeData>>) {
       style={{ minHeight }}
       className={cn(
         "border-charcoal-700 bg-charcoal-850 rounded-control min-w-[140px] border px-3 py-2 font-mono",
-        selected && "border-amber-500",
+        selected && "border-charcoal-600",
       )}
     >
       {/* Input handles on the left */}
@@ -57,7 +57,7 @@ function VystedNodeImpl({ data, selected }: NodeProps<Node<FlowNodeData>>) {
           position={Position.Left}
           id={port.id}
           style={{ top: 24 + idx * 16 }}
-          className="!h-2 !w-2 !border-amber-400 !bg-amber-400"
+          className="!border-charcoal-600 !bg-charcoal-400 !h-2 !w-2"
         />
       ))}
       <div className="text-charcoal-100 text-caption">{data.label}</div>
@@ -70,7 +70,7 @@ function VystedNodeImpl({ data, selected }: NodeProps<Node<FlowNodeData>>) {
           position={Position.Right}
           id={port.id}
           style={{ top: 24 + idx * 16 }}
-          className="!h-2 !w-2 !border-amber-400 !bg-amber-400"
+          className="!border-charcoal-600 !bg-charcoal-400 !h-2 !w-2"
         />
       ))}
     </div>

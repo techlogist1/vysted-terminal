@@ -68,7 +68,7 @@ function ModeBadge({ mode }: { mode: ResearchBriefData["mode"] }) {
   return (
     <span
       className={`rounded-control text-micro px-1.5 py-0.5 font-mono font-medium tracking-wide uppercase ${
-        deep ? "bg-charcoal-850 text-amber-300" : "bg-charcoal-800 text-charcoal-300"
+        deep ? "bg-charcoal-850 text-charcoal-300" : "bg-charcoal-800 text-charcoal-300"
       }`}
       title={deep ? "Deep research run" : "Fast research run"}
     >
@@ -135,7 +135,7 @@ function GoDeeper({ brief }: { brief: ResearchBriefData }) {
       type="button"
       onClick={onGoDeeper}
       title={`Re-run this research at the ${next} tier, in place`}
-      className="border-charcoal-700 text-charcoal-300 hover:text-lume rounded-control text-micro ml-auto flex shrink-0 items-center gap-1 border px-2 py-0.5 font-mono transition-colors hover:border-amber-500/50"
+      className="border-charcoal-700 text-charcoal-300 hover:text-lume rounded-control text-micro hover:border-charcoal-500/50 ml-auto flex shrink-0 items-center gap-1 border px-2 py-0.5 font-mono transition-colors"
     >
       <Telescope className="size-3" /> {NEXT_DEPTH_LABEL[next]}
     </button>
@@ -256,10 +256,10 @@ function SourceRow({
           href={source.url}
           target="_blank"
           rel="noreferrer"
-          className="text-charcoal-100 group text-caption inline-flex items-start gap-1 leading-snug transition-colors hover:text-amber-300"
+          className="text-charcoal-100 group text-caption hover:text-charcoal-100 inline-flex items-start gap-1 leading-snug transition-colors"
         >
           <span className="min-w-0">{source.title || source.url}</span>
-          <ExternalLink className="text-charcoal-600 mt-0.5 size-3 shrink-0 group-hover:text-amber-400" />
+          <ExternalLink className="text-charcoal-600 group-hover:text-charcoal-100 mt-0.5 size-3 shrink-0" />
         </a>
         <div className="flex flex-wrap items-center gap-1.5">
           <SourceTypeBadge type={sourceType} />

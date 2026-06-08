@@ -257,7 +257,7 @@ export function AgentBuilderPanel() {
                 onChange={(e) => setField("idBody", e.target.value)}
                 placeholder="macro-quant"
                 spellCheck={false}
-                className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-r-control text-body h-8 flex-1 border px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
+                className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-r-control text-body focus:ring-charcoal-500 h-8 flex-1 border px-2 font-mono outline-none focus:ring-1"
                 disabled={isEditing}
               />
             </div>
@@ -273,7 +273,7 @@ export function AgentBuilderPanel() {
               value={state.name}
               onChange={(e) => setField("name", e.target.value)}
               placeholder="Macro Quant"
-              className="bg-charcoal-800 text-charcoal-100 rounded-control text-body h-8 px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
+              className="bg-charcoal-800 text-charcoal-100 rounded-control text-body focus:ring-charcoal-500 h-8 px-2 font-mono outline-none focus:ring-1"
             />
             {errors.name !== undefined && (
               <p className="text-negative text-micro font-mono">{errors.name}</p>
@@ -289,7 +289,7 @@ export function AgentBuilderPanel() {
             value={state.philosophy}
             onChange={(e) => setField("philosophy", e.target.value)}
             placeholder="One-line lens (e.g. 'Mean reversion across macro asset classes.')"
-            className="bg-charcoal-800 text-charcoal-100 rounded-control text-body h-8 px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 rounded-control text-body focus:ring-charcoal-500 h-8 px-2 font-mono outline-none focus:ring-1"
           />
           {errors.philosophy !== undefined && (
             <p className="text-negative text-micro font-mono">{errors.philosophy}</p>
@@ -305,7 +305,7 @@ export function AgentBuilderPanel() {
             onChange={(e) => setField("systemPrompt", e.target.value)}
             placeholder="You are a macro quant analyst. Reason from regime first; cite drawdown statistics when answering."
             rows={8}
-            className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption min-h-[8rem] resize-y p-2 font-mono leading-relaxed outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 min-h-[8rem] resize-y p-2 font-mono leading-relaxed outline-none focus:ring-1"
           />
           {errors.systemPrompt !== undefined && (
             <p className="text-negative text-micro font-mono">{errors.systemPrompt}</p>
@@ -327,7 +327,7 @@ export function AgentBuilderPanel() {
                   className={cn(
                     "rounded-control text-micro border px-2 py-1 font-mono transition-colors",
                     active
-                      ? "border-amber-500 bg-amber-500/15 text-amber-300"
+                      ? "border-charcoal-600 bg-charcoal-700/15 text-charcoal-300"
                       : "border-charcoal-700 text-charcoal-400 hover:border-charcoal-600 hover:text-charcoal-200",
                   )}
                 >
@@ -350,7 +350,7 @@ export function AgentBuilderPanel() {
               onChange={(e) =>
                 setField("defaultProvider", e.target.value as (typeof KNOWN_PROVIDER_IDS)[number])
               }
-              className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
+              className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus:ring-charcoal-500 h-8 border px-2 font-mono outline-none focus:ring-1"
             >
               {KNOWN_PROVIDER_IDS.map((id) => (
                 <option key={id} value={id}>
@@ -369,7 +369,7 @@ export function AgentBuilderPanel() {
               value={state.defaultModel}
               onChange={(e) => setField("defaultModel", e.target.value)}
               placeholder="e.g. claude-opus-4-8"
-              className="bg-charcoal-800 text-charcoal-100 rounded-control text-body h-8 px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
+              className="bg-charcoal-800 text-charcoal-100 rounded-control text-body focus:ring-charcoal-500 h-8 px-2 font-mono outline-none focus:ring-1"
             />
           </label>
         </fieldset>
@@ -384,7 +384,7 @@ export function AgentBuilderPanel() {
             value={state.icon}
             onChange={(e) => setField("icon", e.target.value)}
             placeholder="e.g. brain"
-            className="bg-charcoal-800 text-charcoal-100 rounded-control text-body h-8 px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 rounded-control text-body focus:ring-charcoal-500 h-8 px-2 font-mono outline-none focus:ring-1"
           />
         </label>
 
@@ -416,7 +416,7 @@ export function AgentBuilderPanel() {
               </span>
               <button
                 type="submit"
-                className="text-caption shrink-0 font-mono text-amber-400 underline hover:text-amber-300"
+                className="text-caption text-charcoal-300 hover:text-charcoal-100 shrink-0 font-mono underline"
               >
                 Try again
               </button>
@@ -449,7 +449,7 @@ export function AgentBuilderPanel() {
               <button
                 type="button"
                 onClick={() => void refreshCustom()}
-                className="text-micro text-left font-mono text-amber-400 underline hover:text-amber-300"
+                className="text-micro text-charcoal-300 hover:text-charcoal-100 text-left font-mono underline"
               >
                 Retry
               </button>

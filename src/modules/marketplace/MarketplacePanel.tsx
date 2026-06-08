@@ -273,7 +273,7 @@ function CredentialForm({ entry, onDone }: { entry: MarketplaceEntry; onDone: ()
           href={entry.website}
           target="_blank"
           rel="noreferrer"
-          className="text-micro font-mono text-amber-300 hover:underline"
+          className="text-micro text-charcoal-300 font-mono hover:underline"
         >
           Where to get credentials →
         </a>
@@ -297,7 +297,7 @@ function CredentialForm({ entry, onDone }: { entry: MarketplaceEntry; onDone: ()
               setValidationError(null);
               setValues((v) => ({ ...v, [field.key]: e.target.value }));
             }}
-            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 rounded-control text-body h-8 px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 rounded-control text-body focus:ring-charcoal-500 h-8 px-2 font-mono outline-none focus:ring-1"
           />
         </label>
       ))}

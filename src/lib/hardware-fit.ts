@@ -171,7 +171,7 @@ export function verdictMeta(verdict: FitVerdict): { label: string; className: st
     case "green":
       return { label: "runs locally", className: "text-positive" };
     case "marginal":
-      return { label: "tight", className: "text-amber-400" };
+      return { label: "tight", className: "text-charcoal-300" };
     default:
       return { label: "too large — remote", className: "text-negative" };
   }

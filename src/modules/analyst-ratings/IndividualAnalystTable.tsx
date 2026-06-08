@@ -36,7 +36,7 @@ function StarRow({ rating }: { rating: number | null }) {
   }
   const stars = Math.round(rating);
   return (
-    <span aria-label={`${stars} stars`} className="inline-flex items-center text-amber-400">
+    <span aria-label={`${stars} stars`} className="text-charcoal-300 inline-flex items-center">
       {Array.from({ length: 5 }).map((_, idx) => (
         <Star
           key={idx}

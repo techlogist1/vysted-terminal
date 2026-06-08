@@ -39,7 +39,7 @@ function Field({ label, value, onChange, type = "number", step, disabled, testId
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         data-testid={testId}
-        className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
+        className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
       />
     </label>
   );
@@ -192,7 +192,10 @@ export function GreeksDashboard() {
               <div className="text-charcoal-500 text-micro mb-2 font-mono tracking-widest uppercase">
                 Black-Scholes price
               </div>
-              <span className="text-overview font-mono text-amber-300" data-testid="greeks-price">
+              <span
+                className="text-overview text-charcoal-300 font-mono"
+                data-testid="greeks-price"
+              >
                 ${lastResult.price.toFixed(4)}
               </span>
             </div>

@@ -99,7 +99,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
               <Button
                 size="xs"
                 variant="ghost"
-                className="text-amber-300 hover:text-amber-200"
+                className="text-charcoal-300 hover:text-charcoal-100"
                 onClick={() =>
                   accession && identifier && void loadFilingDetail(accession, identifier)
                 }
@@ -122,7 +122,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
           <Button
             size="xs"
             variant="ghost"
-            className="text-amber-300 hover:text-amber-200"
+            className="text-charcoal-300 hover:text-charcoal-100"
             onClick={() => accession && identifier && void loadFilingDetail(accession, identifier)}
           >
             Retry
@@ -170,7 +170,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
                     className={cn(
                       "hover:bg-charcoal-800 text-micro w-full px-3 py-1.5 text-left",
                       (activeSectionId ?? detail.sections[0]?.id) === section.id
-                        ? "bg-charcoal-800 text-charcoal-100 border-l-2 border-l-amber-400"
+                        ? "bg-charcoal-800 text-charcoal-100 border-l-charcoal-500 border-l-2"
                         : "text-charcoal-300",
                     )}
                     data-testid={`filing-section-${section.id}`}

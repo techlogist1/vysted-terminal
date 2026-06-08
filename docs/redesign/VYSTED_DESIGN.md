@@ -5,43 +5,44 @@ description: |
   The single source of truth for the Vysted Terminal UI. A terminal-native finance
   workspace rendered entirely in ONE monospace family (JetBrains Mono) across every
   text role — hierarchy is built from size and weight alone, never from a second face.
-  The canvas is a settled warm-graphite near-black (`#110f0c`, ~rgb 17,15,12) with a
-  five-rung surface ladder for depth and hairline 1px borders — there are NO drop
-  shadows and no glow anywhere in the system. Containers are sharp rectangles (0px
-  radius); only interactive elements soften to 4px. A SINGLE muted amber accent
-  (`#d89a4e`) lights at most ~5% of pixels and at most two elements at once; the only
-  other saturated colors are the luminance-matched green/red reserved for P&L. ASCII
-  bracket markers (`[+]` `[-]` `[x]`) and bordered keycap chips are the iconography
+  The canvas is a PURE NEUTRAL near-black (`#0a0a0a`, rgb 10,10,10 — R=G=B, zero warm
+  cast, zero blue) with a five-rung neutral surface ladder for depth and hairline 1px
+  borders — there are NO drop shadows and no glow anywhere in the system. Containers are
+  sharp rectangles (0px radius); only interactive elements soften to 4px. The UI is
+  essentially MONOCHROME: a single scarce peach accent (`#fab283`, OpenCode's dark
+  primary) is reserved for at most ONE rare spotlight role — LIVE agent activity — and
+  the only other saturated colors are the luminance-matched green/red reserved for P&L.
+  ASCII bracket markers (`[+]` `[-]` `[x]`) and bordered keycap chips are the iconography
   where they fit — especially the command palette. AI narratives, briefs, and notes
   render at a comfortable 16px / 1.6 prose size; dense data tables drop to 13px tabular.
   This file is the binding contract: every component in the app must resolve to a token
-  defined here. It adapts OpenCode's monospace marketing system to a dark, dense,
-  multi-panel desktop terminal — same discipline, warm-graphite canvas instead of cream.
+  defined here. It is modeled directly on OpenCode's default DARK theme (a pure-neutral
+  Radix 12-step grayscale) — clean black, monochrome chrome, accent near-zero.
 
 colors:
-  # --- Surface ladder (depth comes from these, never from shadow) -----------
-  canvas: "#110f0c" # L0 — app root well, deepest warm near-black (rgb 17,15,12)
-  chrome: "#17140f" # L1 — header fascia, tab strip, status bar
-  panel: "#1e1a15" # L2 — panel / card surface (the anchor surface)
-  raised: "#25201a" # L3 — popover, command palette, active tab, hover
-  inset: "#2d2820" # L4 — input fill, node body, recessed well
-  # --- Borders & hairlines ---------------------------------------------------
-  border: "#3e372d" # control / input / table border (1px)
-  border-strong: "#4d463b" # emphasized divider, disabled foreground
-  hairline: "rgba(122,116,106,0.14)" # quiet 1px section divider
-  hairline-strong: "rgba(122,116,106,0.24)" # tab-strip rule, stronger divider
-  # --- Text ramp -------------------------------------------------------------
-  text-primary: "#f6f3eb" # body, headings, primary values — warm near-white
-  text-secondary: "#ada294" # muted foreground, secondary labels, group headers
-  text-tertiary: "#968c7d" # faint meta / captions — lightened to clear WCAG AA on dark surfaces
-  text-bright: "#f7f5f0" # peak readout, active-tab label
-  # --- The single accent (muted amber) — scarce, <=5% of pixels --------------
-  primary: "#d89a4e" # brand primary = the amber accent (same hex; names the FILL role)
-  accent: "#d89a4e" # the amber accent — names the EDGE / focus / active-state role
-  accent-bright: "#e9bd80" # hover, accent text on dark
-  accent-pressed: "#c0802f" # pressed, active sash, selected fill
-  accent-tint: "#f0d8ac" # faint selection tint
-  accent-deep: "#875720" # deep accent border
+  # --- Surface ladder (depth comes from these, never from shadow; all R=G=B) -
+  canvas: "#0a0a0a" # L0 — app root well, deepest pure-neutral near-black (rgb 10,10,10)
+  chrome: "#101010" # L1 — header fascia, tab strip, status bar
+  panel: "#161616" # L2 — panel / card surface (the anchor surface)
+  raised: "#1d1d1d" # L3 — popover, command palette, active tab, hover
+  inset: "#242424" # L4 — input fill, node body, recessed well
+  # --- Borders & hairlines (neutral) -----------------------------------------
+  border: "#353535" # control / input / table border (1px)
+  border-strong: "#484848" # emphasized divider, disabled foreground
+  hairline: "rgba(115,115,115,0.14)" # quiet 1px section divider
+  hairline-strong: "rgba(115,115,115,0.24)" # tab-strip rule, stronger divider
+  # --- Text ramp (neutral gray, R=G=B) ---------------------------------------
+  text-primary: "#ededed" # body, headings, primary values — neutral near-white
+  text-secondary: "#a8a8a8" # muted foreground, secondary labels, group headers
+  text-tertiary: "#8a8a8a" # faint meta / captions — neutral gray, clears WCAG AA on #0a0a0a
+  text-bright: "#f7f7f7" # peak readout, active-tab label
+  # --- The single scarce accent (peach) — reserved for LIVE agent activity ONLY
+  primary: "#fab283" # the peach accent (OpenCode dark primary) — names the FILL role
+  accent: "#fab283" # the peach accent — names the EDGE / focus / live-state role
+  accent-bright: "#fcc9a6" # hover, accent text on dark
+  accent-pressed: "#e89a68" # pressed, active fill
+  accent-tint: "#fddcc4" # faint selection tint
+  accent-deep: "#b9744a" # deep accent border
   # --- Signal (P&L only — the only other saturated colors, never as fills) ---
   positive: "#3fbf6f" # gains — muted green, luminance-matched
   negative: "#e5544b" # losses — muted red, luminance-matched
@@ -115,15 +116,15 @@ spacing:
 components:
   # --- Buttons --------------------------------------------------------------
   button-primary:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.canvas}"
+    backgroundColor: "{colors.inset}" # NEUTRAL control surface (not the accent)
+    textColor: "{colors.text-primary}"
     typography: "{typography.body}"
     rounded: "{rounded.control}"
     padding: 6px 14px
     height: 32px
   button-primary-pressed:
-    backgroundColor: "{colors.accent-pressed}"
-    textColor: "{colors.canvas}"
+    backgroundColor: "{colors.raised}" # neutral pressed step
+    textColor: "{colors.text-primary}"
     typography: "{typography.body}"
     rounded: "{rounded.control}"
     height: 32px
@@ -298,8 +299,8 @@ components:
     rounded: "{rounded.control}"
     padding: 10px 12px
   send-button:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.canvas}"
+    backgroundColor: "{colors.inset}" # NEUTRAL control surface (not the accent)
+    textColor: "{colors.text-primary}"
     typography: "{typography.body}"
     rounded: "{rounded.control}"
     height: 32px
@@ -342,19 +343,19 @@ components:
     height: 1px
   # --- Inline state ----------------------------------------------------------
   tab-tick:
-    backgroundColor: "{colors.accent}"
+    backgroundColor: "{colors.text-secondary}" # NEUTRAL active-tab underline
     rounded: "{rounded.none}"
     height: 2px
   focus-ring:
-    backgroundColor: "{colors.accent-deep}"
+    backgroundColor: "{colors.border-strong}" # NEUTRAL focus ring (no amber)
     rounded: "{rounded.control}"
     height: 1px
   selection:
-    backgroundColor: "{colors.accent-tint}"
+    backgroundColor: "{colors.border-strong}" # NEUTRAL selection wash
     rounded: "{rounded.none}"
   link:
     backgroundColor: "{colors.panel}"
-    textColor: "{colors.accent-bright}"
+    textColor: "{colors.text-primary}" # NEUTRAL link (underline carries the affordance)
     typography: "{typography.body}"
     rounded: "{rounded.none}"
   caption-meta:
@@ -376,27 +377,30 @@ one family** — `{typography.hero}` and `{typography.section}` share weight 700
 differ only in size; `{typography.body}` and `{typography.prose}` share weight 400 and
 differ only in size and the role they serve.
 
-The chrome is a settled warm-graphite near-black. Depth is a **five-rung surface
-ladder** — `{colors.canvas}` (the L0 well) → `{colors.chrome}` (L1 fascia) →
+The chrome is a pure neutral near-black (faithful OpenCode dark). Depth is a **five-rung
+surface ladder** — `{colors.canvas}` (the L0 well) → `{colors.chrome}` (L1 fascia) →
 `{colors.panel}` (L2 anchor) → `{colors.raised}` (L3 floats) → `{colors.inset}` (L4
-fills) — separated by 1px `{colors.hairline}` rules. **There are no drop shadows and
-no glow in the system.** Nothing floats on a blur; an element registers as "above"
-only by climbing one rung of the ladder and carrying a hairline border.
+fills) — separated by 1px `{colors.hairline}` rules. Every rung is R=G=B neutral, with
+**no warm or brown cast** anywhere. **There are no drop shadows and no glow in the
+system.** Nothing floats on a blur; an element registers as "above" only by climbing one
+rung of the ladder and carrying a hairline border.
 
 Containers are sharp rectangles at `{rounded.none}` (0px); only interactive elements
-soften to `{rounded.control}` (4px). The brand's only "color" is a **single muted
-amber** (`{colors.accent}` — `#d89a4e`), used scarcely: at most ~5% of pixels and at
-most two elements lit at once. The only other saturated colors are
-`{colors.positive}` / `{colors.negative}` / `{colors.warning}`, reserved entirely for
-P&L and status signals and never used as background fills.
+soften to `{rounded.control}` (4px). The UI is essentially **monochrome**: the only
+"color" is a **single scarce peach accent** (`{colors.accent}` — `#fab283`, OpenCode's
+dark primary), reserved for at most ONE rare spotlight role — **live agent activity**
+(the streaming cursor, the running-run indicator, the agent-live surface). Idle chrome
+is fully monochrome. The only other saturated colors are `{colors.positive}` /
+`{colors.negative}` / `{colors.warning}`, reserved entirely for P&L and status signals
+and never used as background fills.
 
 **Key characteristics**
 
 - 100% JetBrains Mono across every text role — no second face anywhere in the chrome.
-- Warm-graphite `{colors.canvas}` (`#110f0c`) as the deepest surface; a five-rung
-  ladder carries all depth — no shadows, no gradients, no vignette.
-- A single amber accent on `<=2` elements at any moment; P&L green/red the only other
-  saturated color.
+- Pure-neutral `{colors.canvas}` (`#0a0a0a`, R=G=B) as the deepest surface; a five-rung
+  neutral ladder carries all depth — no shadows, no gradients, no vignette, no warm cast.
+- A single peach accent reserved for live-agent activity only (rare); the dominant
+  impression is monochrome. P&L green/red are the only other saturated colors.
 - `{rounded.none}` (0px) on every container; `{rounded.control}` (4px) on every
   interactive element; `{rounded.full}` only on avatar dots.
 - ASCII bracket markers (`[+]` `[-]` `[x]`) and bordered `{components.kbd}` keycap
@@ -410,11 +414,11 @@ P&L and status signals and never used as background fills.
 
 | Rung | Token             | Value     | Use                                                         |
 | ---- | ----------------- | --------- | ----------------------------------------------------------- |
-| L0   | `{colors.canvas}` | `#110f0c` | App root well; the deepest field behind every panel         |
-| L1   | `{colors.chrome}` | `#17140f` | Header fascia, tab strip, status bar, table header row      |
-| L2   | `{colors.panel}`  | `#1e1a15` | Panel / card body — the anchor surface most content sits on |
-| L3   | `{colors.raised}` | `#25201a` | Popover, command palette, active tab, hover surface         |
-| L4   | `{colors.inset}`  | `#2d2820` | Input fill, node body, recessed wells inside a panel        |
+| L0   | `{colors.canvas}` | `#0a0a0a` | App root well; the deepest field behind every panel         |
+| L1   | `{colors.chrome}` | `#101010` | Header fascia, tab strip, status bar, table header row      |
+| L2   | `{colors.panel}`  | `#161616` | Panel / card body — the anchor surface most content sits on |
+| L3   | `{colors.raised}` | `#1d1d1d` | Popover, command palette, active tab, hover surface         |
+| L4   | `{colors.inset}`  | `#242424` | Input fill, node body, recessed wells inside a panel        |
 
 Elevation is **monotonic**: a floating element sits exactly one rung above the surface
 behind it and carries a 1px `{colors.hairline-strong}` border — never a shadow. The
@@ -423,23 +427,28 @@ command palette (`{colors.raised}`) floats over panels (`{colors.panel}`); an in
 
 ### The single accent
 
-`{colors.accent}` (`#d89a4e`) is the only brand color. It marks the one primary
-action, the active/agent-live state, the focus ring, and the selected sash — and
-nothing else. States: `{colors.accent-bright}` (hover / accent text), `{colors.accent}`
-(default), `{colors.accent-pressed}` (pressed / selected fill), `{colors.accent-tint}`
-(faint selection wash), `{colors.accent-deep}` (dense border). If two amber elements
-are already lit in a view, a third must resolve to a neutral. The accent is a spotlight,
-not a paint.
+`{colors.accent}` (`#fab283` — OpenCode's dark primary peach) is the only brand color,
+and it is **near-zero by mandate**. It is reserved for exactly ONE spotlight role —
+**live agent activity**: the streaming cursor, the running-run indicator (the header
+active-run count + its pulsing dot, the agents-rail running dot/progress, the
+workflow "running" badge), and the `.hud-active` / `.node-active` agent-live surface
+border. It marks nothing else. Crucially, chrome that USED to be amber is now neutral:
+focus rings, selection, the active-tab tick, the active-pane outline, default buttons,
+toggles, data chips, dropdowns, and "try this" rows are all monochrome gray. States:
+`{colors.accent-bright}` (hover / accent text), `{colors.accent}` (default),
+`{colors.accent-pressed}` (pressed), `{colors.accent-tint}` (faint tint),
+`{colors.accent-deep}` (dense border). The accent is a transient spotlight on live
+work — when nothing is running, the app is fully monochrome.
 
 ### Text ramp
 
-`{colors.text-primary}` (`#f6f3eb`) carries body and headings; `{colors.text-secondary}`
-(`#ada294`) carries muted labels, secondary values, and **group headers**;
-`{colors.text-tertiary}` (`#968c7d`) is the faintest meta tone — lightened from the legacy
-`#847b6d` to clear WCAG AA on every surface, so even decorative captions stay legible;
-`{colors.text-bright}` (`#f7f5f0`) marks the active tab and
-peak readouts. Numerics everywhere use tabular figures + slashed zero so columns align
-like a gauge.
+`{colors.text-primary}` (`#ededed`) carries body and headings; `{colors.text-secondary}`
+(`#a8a8a8`) carries muted labels, secondary values, and **group headers**;
+`{colors.text-tertiary}` (`#8a8a8a`) is the faintest meta tone — a neutral gray that
+clears WCAG AA on the `#0a0a0a` well, so even decorative captions stay legible;
+`{colors.text-bright}` (`#f7f7f7`) marks the active tab and peak readouts. Every step is
+R=G=B neutral — no warm cast. Numerics everywhere use tabular figures + slashed zero so
+columns align like a gauge.
 
 ### Signal colors
 
@@ -513,12 +522,12 @@ There are **no drop shadows and no glow** in the system. The legacy `--bezel-sha
 and any `shadow-*` / `drop-shadow` / blurred-glow utility is removed. Depth is the
 surface ladder plus a single 1px border:
 
-| Level               | Treatment                             | Use                                              |
-| ------------------- | ------------------------------------- | ------------------------------------------------ |
-| 0 — Flat            | No border                             | Body text blocks, list rows, in-panel content    |
-| 1 — Hairline        | 1px `{colors.hairline}`               | Section dividers, row separators, panel seams    |
-| 2 — Hairline strong | 1px `{colors.hairline-strong}`        | Tab-strip rule, floating-overlay border          |
-| 3 — Accent edge     | 1px `{colors.accent}` (`.hud-active`) | The one agent-live / primary control, focus ring |
+| Level               | Treatment                             | Use                                                             |
+| ------------------- | ------------------------------------- | --------------------------------------------------------------- |
+| 0 — Flat            | No border                             | Body text blocks, list rows, in-panel content                   |
+| 1 — Hairline        | 1px `{colors.hairline}`               | Section dividers, row separators, panel seams                   |
+| 2 — Hairline strong | 1px `{colors.hairline-strong}`        | Tab-strip rule, floating-overlay border                         |
+| 3 — Accent edge     | 1px `{colors.accent}` (`.hud-active`) | The agent-live surface ONLY (live activity); never focus/chrome |
 
 ## Iconography
 
@@ -539,9 +548,10 @@ The brand's iconography is ASCII and keycaps, not decorative SVG:
 
 ### Buttons
 
-`{components.button-primary}` is the one amber action per view — background
-`{colors.accent}`, text `{colors.canvas}`, `{rounded.control}`, 28px tall.
-`{components.button-secondary}` is the neutral default — `{colors.inset}` fill,
+`{components.button-primary}` is a quiet NEUTRAL control — a neutral surface fill with
+`{colors.text-primary}` text, `{rounded.control}`. It is **not** the accent: the peach is
+reserved for live-agent activity, never for buttons, so every button reads monochrome.
+`{components.button-secondary}` is the lower-emphasis default — `{colors.inset}` fill,
 `{colors.text-primary}` text. `{components.button-ghost}` is transparent with
 `{colors.text-secondary}` text for tertiary actions. All three are 32px tall, padded
 `6px 14px` (ghost `6px 10px`), and share `{typography.body}`.
@@ -563,7 +573,7 @@ them — one unit, not two floating pills.
 
 `{components.text-input}` is a `{colors.inset}` fill with a 1px `{colors.border}`,
 `{typography.body}`, 32px tall. `{components.text-input-focused}` keeps the fill and
-swaps the border to 1px `{colors.accent}` (the flat focus signal — no halo).
+swaps the border to 1px `{colors.border-strong}` (the flat NEUTRAL focus signal — no halo, no amber).
 `{components.textarea}` uses `{typography.prose}` for multi-line authored text.
 
 ### Tabs
@@ -571,8 +581,8 @@ swaps the border to 1px `{colors.accent}` (the flat focus signal — no halo).
 `{components.tab}` (`{colors.chrome}`, `{colors.text-secondary}`) and
 `{components.tab-active}` (`{colors.raised}`, `{colors.text-bright}`) are sharp
 `{rounded.none}` cells, 32px tall, `{typography.caption}`. The active tab carries a 2px
-`{colors.accent}` bottom tick (inset box-shadow, non-layout) — the only amber in the
-tab strip.
+NEUTRAL bottom tick (inset box-shadow, non-layout) plus brighter text — monochrome, no
+amber in the tab strip.
 
 ### Badges & keycaps
 
@@ -638,8 +648,9 @@ anchor the block to the top third with `{spacing.xxl}` breathing room.
 The chat composer is **one unit**: a `{components.composer}` field (`{colors.inset}`,
 `{typography.prose}`, 1px `{colors.border}`, `{rounded.control}`) with the agent avatar
 and persona/ASK-AUTO controls inset on the left and the `{components.send-button}`
-aligned inside the field's right edge — vertically centered, 32px, amber. The send is
-never a large detached square next to a huge rectangle; the field height grows from a
+aligned inside the field's right edge — vertically centered, 32px, NEUTRAL (the send is
+a quiet control, not the accent). The send is never a large detached square next to a
+huge rectangle; the field height grows from a
 single-line baseline and the send stays pinned to the bottom-right corner as one
 composed control. The `{components.load-pill}` (symbol loader) is a 24px
 `{colors.inset}` pill on the same baseline as the other controls — derived from the same
@@ -678,7 +689,7 @@ prose at `{typography.prose}`. The equity-overview ticker headline is
 - Render every text role in JetBrains Mono. The single-font decision is the identity.
 - Carry all depth with the surface ladder + 1px hairline; climb exactly one rung to float.
 - Keep `{rounded.none}` on containers and `{rounded.control}` on interactive elements.
-- Reserve `{colors.accent}` for one primary/agent-live element at a time (`<=2` per view).
+- Reserve `{colors.accent}` for live-agent activity ONLY — idle chrome is fully monochrome.
 - Right-align every numeric column with `tabular-nums`; route all units through `formatUnit`.
 - Resolve every text node to a named `{typography.*}` role and every gap to a `{spacing.*}` token.
 
@@ -686,7 +697,8 @@ prose at `{typography.prose}`. The equity-overview ticker headline is
 
 - Don't introduce a sans-serif body, a display face, or an italic style.
 - Don't add a drop shadow, glow, gradient, or `shadow-*` utility anywhere.
-- Don't use a second accent color; the amber is alone besides P&L green/red.
+- Don't use a second accent color; the peach is alone besides P&L green/red — and it is
+  reserved for live-agent activity only (idle chrome is fully monochrome).
 - Don't render fundamentals as a `grid grid-cols-2` key-value dump.
 - Don't hard-clip a command-row description, hide a group header, or strand an empty state.
 - Don't ship an arbitrary `text-[…]`, off-grid spacing, or a `rounded-md/lg/xl/2xl` container.

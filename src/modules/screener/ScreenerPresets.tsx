@@ -144,7 +144,7 @@ export function ScreenerPresets() {
           type="button"
           onClick={() => apply(preset)}
           title={preset.description}
-          className="border-border bg-charcoal-850 text-muted-foreground rounded-control text-micro border px-2 py-0.5 transition-colors hover:border-amber-500 hover:text-amber-300"
+          className="border-border bg-charcoal-850 text-muted-foreground rounded-control text-micro hover:border-charcoal-500 hover:text-charcoal-100 border px-2 py-0.5 transition-colors"
         >
           {preset.label}
         </button>

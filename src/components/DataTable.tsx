@@ -260,7 +260,7 @@ export function DataTable<R, K extends string = string>({
               >
                 {col.header}
                 {col.sortable && active && (
-                  <span aria-hidden className="ml-1 text-amber-400">
+                  <span aria-hidden className="text-charcoal-300 ml-1">
                     {sort?.direction === "asc" ? "▲" : "▼"}
                   </span>
                 )}

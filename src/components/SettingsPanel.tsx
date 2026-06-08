@@ -108,7 +108,7 @@ export const SettingsPanel: FunctionComponent = () => {
         <div className="mx-auto flex max-w-2xl flex-col gap-8 p-6">
           <header>
             <h1 className="text-charcoal-100 text-overview flex items-center gap-2">
-              <Sliders className="size-5 text-amber-400" aria-hidden="true" />
+              <Sliders className="text-charcoal-300 size-5" aria-hidden="true" />
               Settings
             </h1>
             <p className="text-charcoal-400 text-caption mt-1 font-mono">
@@ -162,7 +162,7 @@ function ProvidersSection() {
     <section aria-labelledby="settings-providers">
       <SectionHeader
         id="settings-providers"
-        icon={<Plug className="size-4 text-amber-400" aria-hidden="true" />}
+        icon={<Plug className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="AI Providers"
         hint="Paste an API key to enable an AI provider. Keys are stored in your OS keychain — never on disk or sent anywhere but the provider you call."
       />
@@ -181,7 +181,7 @@ function ProvidersSection() {
                 <span className="text-charcoal-100 text-body flex min-w-0 items-center gap-2 font-mono">
                   <span className="truncate">{provider.label}</span>
                   {isDefault && (
-                    <span className="text-micro rounded-control shrink-0 bg-amber-500/15 px-2 py-1">
+                    <span className="text-micro rounded-control bg-charcoal-700/15 shrink-0 px-2 py-1">
                       default
                     </span>
                   )}
@@ -337,7 +337,7 @@ function WebSearchSection() {
     <section aria-labelledby="settings-search">
       <SectionHeader
         id="settings-search"
-        icon={<Search className="size-4 text-amber-400" aria-hidden="true" />}
+        icon={<Search className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Web search"
         hint="Pick how the copilot searches the web. Native rides your model's own search; BYOK adds an Exa key for finance-grade retrieval; local routes through a private SearXNG so nothing leaves your machine."
       />
@@ -375,7 +375,7 @@ function WebSearchSection() {
         {/* Exa API key (BYOK, keychain) */}
         <div className="border-charcoal-700 bg-charcoal-850 rounded-none border px-4 py-3">
           <p className="text-charcoal-200 text-caption flex items-center gap-2 font-mono">
-            <KeyRound className="size-3.5 text-amber-400" aria-hidden="true" />
+            <KeyRound className="text-charcoal-300 size-3.5" aria-hidden="true" />
             Exa API key (BYOK)
           </p>
           <p className="text-charcoal-400 text-caption mt-1 mb-2 font-mono">
@@ -425,7 +425,7 @@ function WebSearchSection() {
                   onChange={(e) => setExaInput(e.target.value)}
                   placeholder="exa_..."
                   aria-label="Exa API key"
-                  className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-caption h-8 flex-1 border px-3 font-mono outline-none focus:border-amber-400"
+                  className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-caption focus:border-charcoal-500 h-8 flex-1 border px-3 font-mono outline-none"
                 />
                 <Button
                   type="submit"
@@ -456,7 +456,7 @@ function WebSearchSection() {
             onChange={(e) => setSearxngUrl(e.target.value)}
             placeholder="http://localhost:8080"
             aria-label="SearXNG URL"
-            className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-caption h-8 min-w-[12rem] border px-3 font-mono outline-none focus:border-amber-400"
+            className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-caption focus:border-charcoal-500 h-8 min-w-[12rem] border px-3 font-mono outline-none"
           />
         </PrefRow>
         {/* Run-a-local-instance hint — keyless private search in one command.
@@ -472,9 +472,9 @@ function WebSearchSection() {
               }
             </pre>
             <p className="text-charcoal-400 text-caption mt-2 font-mono">
-              Then enable JSON output: add <code className="text-amber-400">json</code> to{" "}
-              <code className="text-amber-400">search.formats</code> and set{" "}
-              <code className="text-amber-400">server.limiter: false</code> in settings.yml. The
+              Then enable JSON output: add <code className="text-charcoal-300">json</code> to{" "}
+              <code className="text-charcoal-300">search.formats</code> and set{" "}
+              <code className="text-charcoal-300">server.limiter: false</code> in settings.yml. The
               terminal autodetects it on the next research run.
             </p>
           </div>
@@ -495,7 +495,7 @@ function IntegrationsSection() {
     <section aria-labelledby="settings-integrations">
       <SectionHeader
         id="settings-integrations"
-        icon={<Network className="size-4 text-amber-400" aria-hidden="true" />}
+        icon={<Network className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Integrations"
         hint="Connect a broker for read-only positions, holdings & P&L the copilot can analyse over your real account."
       />
@@ -558,7 +558,7 @@ function LayoutsSection() {
     <section aria-labelledby="settings-layouts">
       <SectionHeader
         id="settings-layouts"
-        icon={<Package className="size-4 text-amber-400" aria-hidden="true" />}
+        icon={<Package className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Layouts"
         hint="Drag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch."
       />
@@ -580,7 +580,7 @@ function LayoutsSection() {
           onChange={(e) => setNewName(e.target.value)}
           placeholder="Save current layout as…"
           aria-label="New layout name"
-          className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-caption h-8 flex-1 border px-3 font-mono outline-none focus:border-amber-400"
+          className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-caption focus:border-charcoal-500 h-8 flex-1 border px-3 font-mono outline-none"
         />
         <Button type="submit" size="sm" variant="outline" disabled={busy || newName.trim() === ""}>
           Save
@@ -613,7 +613,7 @@ function LayoutsSection() {
                 <button
                   type="button"
                   onClick={() => void withBusy(() => loadWorkspace(name))}
-                  className="text-micro text-charcoal-300 font-mono hover:text-amber-400"
+                  className="text-micro text-charcoal-300 hover:text-charcoal-100 font-mono"
                 >
                   Load
                 </button>
@@ -655,7 +655,7 @@ function ModulesSection() {
     <section aria-labelledby="settings-modules">
       <SectionHeader
         id="settings-modules"
-        icon={<Package className="size-4 text-amber-400" aria-hidden="true" />}
+        icon={<Package className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Modules"
         hint="Disabled modules contribute no panels or ⌘K commands."
       />
@@ -690,7 +690,7 @@ function ModulesSection() {
                     if (isPlatform) return;
                     setModuleEnabled(module.id, event.target.checked);
                   }}
-                  className="size-4 accent-amber-400 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="accent-charcoal-300 size-4 disabled:cursor-not-allowed disabled:opacity-40"
                 />
               </label>
             </li>
@@ -764,7 +764,7 @@ function HardwareSection() {
     <section aria-labelledby="settings-hardware">
       <SectionHeader
         id="settings-hardware"
-        icon={<Cpu className="size-4 text-amber-400" aria-hidden="true" />}
+        icon={<Cpu className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Hardware & local models"
         hint="What this machine can run on-device. Heavy local paths (local deep-research, large local LLMs) enable only where the hardware earns it; everything else uses the keyless-remote path."
       />
@@ -830,7 +830,7 @@ function DeepResearchSection() {
     <section aria-labelledby="settings-deepresearch">
       <SectionHeader
         id="settings-deepresearch"
-        icon={<FlaskConical className="size-4 text-amber-400" aria-hidden="true" />}
+        icon={<FlaskConical className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Deep research"
         hint="How /deep and 'go deeper' work."
       />
@@ -905,7 +905,7 @@ function PreferencesSection() {
     <section aria-labelledby="settings-preferences">
       <SectionHeader
         id="settings-preferences"
-        icon={<Sliders className="size-4 text-amber-400" aria-hidden="true" />}
+        icon={<Sliders className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Preferences"
         hint="How the copilot, the command palette, and your first-run cockpit behave. These travel with Export / Import below."
       />
@@ -914,7 +914,7 @@ function PreferencesSection() {
         <PrefRow
           label="Default agent"
           hint="The persona the copilot starts with each session."
-          icon={<Bot className="size-3.5 text-amber-400" aria-hidden="true" />}
+          icon={<Bot className="text-charcoal-300 size-3.5" aria-hidden="true" />}
         >
           <Select
             aria-label="Default agent"
@@ -1035,7 +1035,7 @@ function PreferencesSection() {
                     aria-label={`Move ${providerLabel(id)} up`}
                     disabled={idx === 0}
                     onClick={() => moveProviderPreference(id, "up")}
-                    className="text-charcoal-400 rounded-control p-1 hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-30"
+                    className="text-charcoal-400 rounded-control hover:text-charcoal-100 p-1 disabled:cursor-not-allowed disabled:opacity-30"
                   >
                     <ArrowUp className="size-3.5" aria-hidden="true" />
                   </button>
@@ -1044,7 +1044,7 @@ function PreferencesSection() {
                     aria-label={`Move ${providerLabel(id)} down`}
                     disabled={idx === orderedProviderIds.length - 1}
                     onClick={() => moveProviderPreference(id, "down")}
-                    className="text-charcoal-400 rounded-control p-1 hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-30"
+                    className="text-charcoal-400 rounded-control hover:text-charcoal-100 p-1 disabled:cursor-not-allowed disabled:opacity-30"
                   >
                     <ArrowDown className="size-3.5" aria-hidden="true" />
                   </button>
@@ -1089,7 +1089,7 @@ function PreferencesSection() {
                     aria-label={`Starter cockpit: ${label}`}
                     checked={checked}
                     onChange={(e) => toggleStarterCockpitPanel(panelId, e.target.checked)}
-                    className="size-4 shrink-0 accent-amber-400"
+                    className="accent-charcoal-300 size-4 shrink-0"
                   />
                   <span className="truncate">{label}</span>
                 </label>
@@ -1101,7 +1101,7 @@ function PreferencesSection() {
         {/* Theme knobs (dark-only) */}
         <div className="border-charcoal-700 bg-charcoal-850 rounded-none border px-4 py-3">
           <p className="text-charcoal-200 text-caption flex items-center gap-2 font-mono">
-            <Palette className="size-3.5 text-amber-400" aria-hidden="true" />
+            <Palette className="text-charcoal-300 size-3.5" aria-hidden="true" />
             Appearance
           </p>
           <p className="text-charcoal-400 text-caption mt-1 mb-2 font-mono">
@@ -1228,7 +1228,7 @@ function KeybindingsSection() {
     <section aria-labelledby="settings-keybindings">
       <SectionHeader
         id="settings-keybindings"
-        icon={<Keyboard className="size-4 text-amber-400" aria-hidden="true" />}
+        icon={<Keyboard className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Keybindings"
         hint="Remap any shortcut. Press Record, then the new combination. Conflicts are flagged below — two actions on one combo both fire."
       />
@@ -1304,7 +1304,7 @@ function KeybindingsSection() {
                           className={cn(
                             "text-micro rounded-control px-2 py-1 font-mono",
                             isRecording
-                              ? "bg-amber-500/20 text-amber-400"
+                              ? "bg-charcoal-700/20 text-charcoal-300"
                               : "text-charcoal-400 hover:text-charcoal-100",
                           )}
                         >
@@ -1315,7 +1315,7 @@ function KeybindingsSection() {
                           aria-label={`Reset binding for ${def.label}`}
                           disabled={!isOverridden}
                           onClick={() => resetBinding(actionId)}
-                          className="text-charcoal-400 rounded-control p-1 hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-30"
+                          className="text-charcoal-400 rounded-control hover:text-charcoal-100 p-1 disabled:cursor-not-allowed disabled:opacity-30"
                         >
                           <RotateCcw className="size-3.5" aria-hidden="true" />
                         </button>
@@ -1398,7 +1398,7 @@ function ExportImportSection() {
     <section aria-labelledby="settings-export">
       <SectionHeader
         id="settings-export"
-        icon={<Download className="size-4 text-amber-400" aria-hidden="true" />}
+        icon={<Download className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Export / Import"
         hint="Carry your keybindings and preferences to another machine. Secrets are NEVER exported — re-enter your API keys via the keychain on the new machine."
       />
@@ -1456,7 +1456,7 @@ function AboutSection() {
     <section aria-labelledby="settings-about" className="pb-4">
       <SectionHeader
         id="settings-about"
-        icon={<Info className="size-4 text-amber-400" aria-hidden="true" />}
+        icon={<Info className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="About"
       />
       <div className="border-charcoal-700 bg-charcoal-850 text-charcoal-300 text-caption flex flex-col gap-2 rounded-none border px-4 py-3 font-mono">
@@ -1505,7 +1505,7 @@ function SectionHeader({
  * through); `pr-6` reserves room for that chevron.
  */
 const selectClass =
-  "border-charcoal-700 bg-charcoal-900 text-charcoal-100 h-8 min-w-[12rem] appearance-none rounded-control border pr-6 pl-2 font-mono text-caption outline-none focus:border-amber-400";
+  "border-charcoal-700 bg-charcoal-900 text-charcoal-100 h-8 min-w-[12rem] appearance-none rounded-control border pr-6 pl-2 font-mono text-caption outline-none focus:border-charcoal-500";
 
 /**
  * A `<select>` wrapped in a `relative` container with a warm chevron overlay —
@@ -1570,7 +1570,7 @@ function ToggleRow({
         aria-label={label}
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="size-4 accent-amber-400"
+        className="accent-charcoal-300 size-4"
       />
     </label>
   );

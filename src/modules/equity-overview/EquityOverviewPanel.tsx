@@ -702,7 +702,7 @@ export function EquityOverviewPanel() {
             onFocus={() => candidates.length > 0 && setAcOpen(true)}
             onBlur={() => setTimeout(() => setAcOpen(false), 120)}
             autoComplete="off"
-            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 text-body rounded-control h-8 w-full px-3 outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 text-body rounded-control focus:ring-charcoal-500 h-8 w-full px-3 outline-none focus:ring-1"
           />
           {acOpen && candidates.length > 0 && (
             <ul className="border-charcoal-700 bg-charcoal-875 absolute top-full right-0 left-0 z-20 mt-1 max-h-64 overflow-y-auto rounded-none border py-1">
@@ -789,7 +789,7 @@ export function EquityOverviewPanel() {
                   key={t}
                   type="button"
                   onClick={() => void quickLoad(t)}
-                  className="border-charcoal-700 bg-charcoal-800 text-charcoal-300 text-caption rounded-control border px-3 py-1.5 transition-colors hover:border-amber-500 hover:text-amber-300"
+                  className="border-charcoal-700 bg-charcoal-800 text-charcoal-300 text-caption rounded-control hover:border-charcoal-500 hover:text-charcoal-100 border px-3 py-1.5 transition-colors"
                 >
                   {t}
                 </button>
@@ -879,7 +879,7 @@ export function EquityOverviewPanel() {
               ) : (
                 <div className="text-caption flex flex-wrap gap-x-6 gap-y-1 px-3 py-2">
                   <span className="text-charcoal-200">
-                    Consensus: <span className="text-amber-400">{ratings.consensus ?? "—"}</span>
+                    Consensus: <span className="text-charcoal-300">{ratings.consensus ?? "—"}</span>
                   </span>
                   <span className="text-charcoal-200">
                     Target mean:{" "}

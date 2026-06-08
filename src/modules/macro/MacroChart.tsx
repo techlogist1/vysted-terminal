@@ -37,7 +37,7 @@ const CHART_THEME = {
   crosshair: { vertLine: { color: CHART_CROSSHAIR }, horzLine: { color: CHART_CROSSHAIR } },
 } as const;
 
-const LINE_COLOR = ACCENT_CORAL; // amber-400 — 4.14:1 contrast on chart surface
+const LINE_COLOR = ACCENT_CORAL; // neutral charcoal-300 — monochrome chart line
 
 interface Props {
   series: MacroSeriesExtended;
@@ -151,7 +151,7 @@ export function MacroChart({ series, defaultLogScale = false }: Props) {
               href={series.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-amber-300 hover:underline"
+              className="text-charcoal-300 hover:underline"
             >
               source
             </a>

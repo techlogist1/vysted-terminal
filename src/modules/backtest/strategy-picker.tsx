@@ -59,7 +59,7 @@ export function StrategyPicker({
                   className={cn(
                     "rounded-control w-full border px-2 py-1.5 text-left transition-colors",
                     active
-                      ? "bg-charcoal-875 text-charcoal-100 border border-amber-400"
+                      ? "bg-charcoal-875 text-charcoal-100 border-charcoal-600 border"
                       : "border-charcoal-700 text-charcoal-200 hover:border-charcoal-600",
                     disabled && "cursor-not-allowed opacity-50",
                   )}
@@ -157,7 +157,7 @@ export function ParamsForm({ schema, values, onChange, disabled }: ParamsFormPro
                   onChange({ ...values, [field.key]: next });
                 }}
                 disabled={disabled}
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
               />
             </label>
           );

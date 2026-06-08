@@ -98,13 +98,13 @@ function PaletteCard({ entry }: PaletteCardProps) {
       onDragStart={handleDragStart}
       className={cn(
         "border-charcoal-700 bg-charcoal-850 rounded-control text-caption cursor-grab border px-2 py-1.5 font-mono select-none",
-        "hover:border-amber-500 hover:bg-amber-500/5 active:cursor-grabbing",
+        "hover:border-charcoal-500 hover:bg-charcoal-700/5 active:cursor-grabbing",
       )}
     >
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-charcoal-100">{spec.label}</span>
         {source === "plugin" && (
-          <span className="text-micro font-mono text-amber-400 uppercase">plugin</span>
+          <span className="text-micro text-charcoal-300 font-mono uppercase">plugin</span>
         )}
       </div>
       {spec.description !== undefined && (

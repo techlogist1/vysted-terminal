@@ -234,7 +234,7 @@ function WelcomeStep({
     <div className="flex flex-col gap-4 px-6 py-6">
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <span aria-hidden="true" className="size-2 rounded-none bg-amber-400" />
+          <span aria-hidden="true" className="bg-charcoal-400 size-2 rounded-none" />
           <span className="hud-label leading-none">Welcome</span>
         </div>
         <h2 className="text-lume text-overview">An agent-native finance terminal</h2>
@@ -255,7 +255,7 @@ function WelcomeStep({
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <PathCard
-          icon={<Zap className="size-4 text-amber-400" aria-hidden="true" />}
+          icon={<Zap className="text-charcoal-300 size-4" aria-hidden="true" />}
           title="Connect a model"
           tag="most power"
           body="Paste one OpenRouter key to unlock every top model (Claude, GPT, Gemini, DeepSeek, Kimi…) for the agent and deep research. Pay-as-you-go — a research run costs cents."
@@ -264,7 +264,7 @@ function WelcomeStep({
           primary
         />
         <PathCard
-          icon={<Lock className="size-4 text-amber-400" aria-hidden="true" />}
+          icon={<Lock className="text-charcoal-300 size-4" aria-hidden="true" />}
           title="Run it locally"
           tag="private & free"
           body="No key, no cost, fully private — set up a model that runs entirely on your machine. Slower and less powerful than the cloud, but it's yours and offline."
@@ -310,7 +310,9 @@ function PathCard({
     <div
       className={cn(
         "flex flex-col gap-3 rounded-none border p-4 transition-colors",
-        primary ? "border-amber-500/40 bg-amber-500/[0.04]" : "border-charcoal-700 bg-charcoal-900",
+        primary
+          ? "border-charcoal-600/40 bg-charcoal-700/[0.04]"
+          : "border-charcoal-700 bg-charcoal-900",
       )}
     >
       <div className="flex items-center gap-2">
@@ -365,7 +367,7 @@ function CloudStep({ onBack, onDone }: { onBack: () => void; onDone: () => void 
   return (
     <div className="flex flex-col gap-4 px-6 py-6">
       <StepHeader
-        icon={<KeyRound className="size-4 text-amber-400" aria-hidden="true" />}
+        icon={<KeyRound className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Connect OpenRouter"
         onBack={onBack}
       />
@@ -378,7 +380,7 @@ function CloudStep({ onBack, onDone }: { onBack: () => void; onDone: () => void 
       <button
         type="button"
         onClick={() => void openExternal(OPENROUTER_KEYS_URL)}
-        className="border-charcoal-700 bg-charcoal-900 text-charcoal-200 rounded-control text-caption flex items-center gap-2 border px-3 py-2 font-mono transition-colors hover:border-amber-500/40 hover:text-amber-300"
+        className="border-charcoal-700 bg-charcoal-900 text-charcoal-200 rounded-control text-caption hover:border-charcoal-500/40 hover:text-charcoal-100 flex items-center gap-2 border px-3 py-2 font-mono transition-colors"
       >
         <ExternalLink className="size-3.5" aria-hidden="true" />
         Get a key — openrouter.ai/keys
@@ -403,7 +405,7 @@ function CloudStep({ onBack, onDone }: { onBack: () => void; onDone: () => void 
           }}
           placeholder="sk-or-..."
           aria-label="OpenRouter API key"
-          className="border-charcoal-700 bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 rounded-control text-body h-8 border px-3 font-mono outline-none focus:border-amber-400"
+          className="border-charcoal-700 bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 rounded-control text-body focus:border-charcoal-500 h-8 border px-3 font-mono outline-none"
         />
         {status === "invalid" && (
           <p className="text-negative text-caption font-mono">
@@ -508,7 +510,7 @@ function LocalStep({
   return (
     <div className="flex flex-col gap-4 px-6 py-6">
       <StepHeader
-        icon={<Cpu className="size-4 text-amber-400" aria-hidden="true" />}
+        icon={<Cpu className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Run a local model"
         onBack={onBack}
       />
@@ -572,7 +574,7 @@ function LocalStep({
                   <button
                     type="button"
                     onClick={() => void openExternal(OLLAMA_DOWNLOAD_URL)}
-                    className="border-charcoal-700 bg-charcoal-800 text-charcoal-200 rounded-control text-caption flex items-center gap-2 self-start border px-3 py-2 font-mono transition-colors hover:border-amber-500/40 hover:text-amber-300"
+                    className="border-charcoal-700 bg-charcoal-800 text-charcoal-200 rounded-control text-caption hover:border-charcoal-500/40 hover:text-charcoal-100 flex items-center gap-2 self-start border px-3 py-2 font-mono transition-colors"
                   >
                     <ExternalLink className="size-3.5" aria-hidden="true" />
                     Download Ollama — ollama.com/download
@@ -607,7 +609,7 @@ function LocalStep({
                 <div className="flex flex-col gap-2">
                   <div className="bg-charcoal-800 rounded-control h-2 w-full overflow-hidden">
                     <div
-                      className="rounded-control h-full bg-amber-400 transition-all"
+                      className="rounded-control bg-charcoal-400 h-full transition-all"
                       style={{
                         width:
                           progress.total && progress.completed

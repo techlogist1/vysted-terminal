@@ -16,8 +16,8 @@ import { cn } from "@/lib/utils";
  *  - icon    → tertiary (`charcoal-500`), ~24px, stroke 1.5
  *  - headline→ secondary-bright (`charcoal-200`), weight 510, `text-panel-title`
  *  - hint    → tertiary (`charcoal-500`), `text-caption`
- *  - cta     → a single quiet button; amber `outline` only when it is a primary
- *              action, otherwise a calm `ghost`.
+ *  - cta     → a single quiet button; a brighter neutral `outline` only when it
+ *              is a primary action, otherwise a calm `ghost` (monochrome).
  */
 export function EmptyState({
   icon: Icon,
@@ -33,7 +33,7 @@ export function EmptyState({
   headline: string;
   /** One calm supporting line — what the surface is / what to do next. */
   hint?: string;
-  /** Optional single call-to-action. `primary` lifts it to the amber outline. */
+  /** Optional single call-to-action. `primary` lifts it to a brighter neutral outline. */
   cta?: { label: string; onClick: () => void; primary?: boolean };
   /** Compact variant for inline/secondary panels (palette no-results, sparse
    *  tables): smaller icon + caption headline, tighter rhythm. (§13.) */
@@ -80,7 +80,7 @@ export function EmptyState({
           variant={cta.primary ? "outline" : "ghost"}
           onClick={cta.onClick}
           data-testid="empty-state-cta"
-          className={cn("mt-1", cta.primary && "border-amber-500/60 text-amber-300")}
+          className={cn("mt-1", cta.primary && "border-charcoal-500 text-charcoal-100")}
         >
           {cta.label}
         </Button>

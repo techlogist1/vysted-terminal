@@ -94,7 +94,7 @@ export function BrokerReadsSection({ broker }: { broker: BrokerId }) {
             <button
               type="button"
               onClick={() => void load()}
-              className="text-charcoal-500 text-micro self-start hover:text-amber-300"
+              className="text-charcoal-500 text-micro hover:text-charcoal-100 self-start"
             >
               Refresh
             </button>

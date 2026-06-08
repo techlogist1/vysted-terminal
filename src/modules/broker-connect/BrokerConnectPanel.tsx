@@ -424,7 +424,7 @@ function CredentialsDialog({ broker, open, onClose, onSubmit }: CredentialsDialo
                 }
                 value={values[field.key] ?? ""}
                 onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                className="bg-charcoal-800 text-charcoal-100 rounded-control text-body h-8 px-2 font-mono outline-none focus-visible:border-amber-500"
+                className="bg-charcoal-800 text-charcoal-100 rounded-control text-body focus-visible:border-charcoal-500 h-8 px-2 font-mono outline-none"
                 data-testid={`cred-${broker}-${field.key}`}
               />
             </label>

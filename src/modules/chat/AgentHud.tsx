@@ -63,7 +63,7 @@ export function AgentHud({
   const { groups, selectedIsNoTools } = buildModelGroups(baseOptions, model);
 
   const selectClass =
-    "bg-charcoal-800 text-charcoal-200 border-charcoal-700 h-8 max-w-[12rem] truncate rounded-control border px-3 font-mono text-caption outline-none focus:ring-1 focus:ring-amber-400";
+    "bg-charcoal-800 text-charcoal-200 border-charcoal-700 h-8 max-w-[12rem] truncate rounded-control border px-3 font-mono text-caption outline-none focus:ring-1 focus:ring-charcoal-500";
   return (
     <div className="border-charcoal-700 text-charcoal-500 text-caption flex items-center gap-2 border-b px-3 py-2 font-mono">
       <span className="shrink-0 tracking-wide uppercase">Provider</span>
@@ -131,7 +131,7 @@ export function AgentHud({
           type="button"
           onClick={() => onKeyRequired?.(provider)}
           title="No BYOK key configured for this provider — click to add"
-          className="text-warning rounded-control px-1 transition-colors hover:text-amber-300"
+          className="text-warning rounded-control hover:text-charcoal-100 px-1 transition-colors"
         >
           no key
         </button>

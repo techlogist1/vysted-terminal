@@ -422,7 +422,7 @@ function NodeEditorPanelInner() {
               setWorkflowName(event.target.value);
               setIsDirty(true);
             }}
-            className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 max-w-xs flex-1 border px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus:ring-charcoal-500 h-8 max-w-xs flex-1 border px-2 font-mono outline-none focus:ring-1"
           />
           {isDirty && (
             <span className="text-charcoal-400 text-micro font-mono uppercase">unsaved</span>
@@ -641,7 +641,7 @@ function ConfigFieldEditor({
         aria-label={field.label}
         value={rawValue}
         onChange={(event) => onChange(event.target.value)}
-        className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption h-8 w-full px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
+        className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 h-8 w-full px-2 font-mono outline-none focus:ring-1"
       >
         <option value="">—</option>
         {field.options.map((opt) => (
@@ -659,7 +659,7 @@ function ConfigFieldEditor({
         onChange={(event) => onChange(event.target.value)}
         rows={4}
         placeholder={field.placeholder}
-        className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption min-h-[4rem] resize-y p-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
+        className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 min-h-[4rem] resize-y p-2 font-mono outline-none focus:ring-1"
       />
     );
   } else if (field.kind === "boolean") {
@@ -668,7 +668,7 @@ function ConfigFieldEditor({
         aria-label={field.label}
         value={rawValue || "false"}
         onChange={(event) => onChange(coerceConfigValue("boolean", event.target.value, value))}
-        className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption h-8 w-full px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
+        className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 h-8 w-full px-2 font-mono outline-none focus:ring-1"
       >
         <option value="false">false</option>
         <option value="true">true</option>
@@ -682,7 +682,7 @@ function ConfigFieldEditor({
         value={rawValue}
         onChange={(event) => onChange(coerceConfigValue(field.kind, event.target.value, value))}
         placeholder={field.placeholder}
-        className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption h-8 px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
+        className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 h-8 px-2 font-mono outline-none focus:ring-1"
       />
     );
   }
@@ -787,7 +787,7 @@ function LoadDialog({ summaries, loadingList, error, onClose, onPick }: LoadDial
             type="button"
             onClick={onClose}
             aria-label="Close load dialog"
-            className="text-charcoal-400 text-body font-mono hover:text-amber-400"
+            className="text-charcoal-400 text-body hover:text-charcoal-100 font-mono"
           >
             ×
           </button>
@@ -807,7 +807,7 @@ function LoadDialog({ summaries, loadingList, error, onClose, onPick }: LoadDial
                   type="button"
                   onClick={() => onPick(s.id)}
                   className={cn(
-                    "border-charcoal-700 hover:border-amber-500 hover:bg-amber-500/5",
+                    "border-charcoal-700 hover:border-charcoal-500 hover:bg-charcoal-700/5",
                     "rounded-control text-caption w-full border px-2 py-1.5 text-left font-mono",
                   )}
                 >

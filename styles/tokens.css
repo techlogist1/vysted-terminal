@@ -1,21 +1,22 @@
-/* Vysted -- design tokens. R4 "Warm Graphite" design language.
+/* Vysted -- design tokens. R6 "Pure Black" design language (faithful OpenCode dark).
  *
- * The aesthetic: a PERCEPTUALLY-EVEN warm-graphite OKLCH neutral ramp (a faint
- * warm cast, hue ~75, chroma <=0.008, R>=G>=B at every step -- warm near-black,
- * never blue), a SINGLE muted amber accent (OKLCH hue ~70, an earthy gold --
- * restrained, not neon, not pure orange; modeled on the reference apps), and
- * muted luminance-matched green/red reserved entirely for P&L signals. A flat
- * warm field, no glow. The accent lights <=5% of pixels. Ground truth: the
- * reference screenshots in docs/redesign/references/.
+ * The aesthetic: a PURE NEUTRAL grayscale ramp (R=G=B at every step -- a clean
+ * near-black, ZERO warm/brown cast, zero blue), modeled directly on OpenCode's
+ * default dark theme (a Radix-style 12-step neutral scale: #0a0a0a well ->
+ * #ededed text). The UI is essentially MONOCHROME: a single scarce accent
+ * (OpenCode's warm peach `#fab283`) is reserved for at most ONE rare spotlight
+ * role -- live agent activity -- and the only other saturated colors are the
+ * luminance-matched green/red kept strictly for P&L signal (data, never chrome).
+ * A flat field, no glow. Ground truth: docs/redesign/references/ + OpenCode dark.
  *
  * NOTE ON NAMES: token NAMES are kept from the retired systems (charcoal,
  * amber, brass, sage, lume) so the ~92 files that reference them as
  * Tailwind classes re-skin with ZERO edits -- only the VALUES changed. Names
  * are historical, not literal:
- *   charcoal-N   = warm-graphite neutral ramp (OKLCH L 0.13..0.96, H ~75)
- *   amber-N      = muted amber accent (OKLCH H ~70 -- and now literally amber)
- *   brass-N, sage-N = warm-neutral secondaries (aligned to the ramp)
- *   lume         = warm near-white (#f7f5f0)
+ *   charcoal-N   = PURE NEUTRAL gray ramp (R=G=B, #0a0a0a..#ededed)
+ *   amber-N      = the single scarce accent (OpenCode peach #fab283)
+ *   brass-N, sage-N = neutral-gray secondaries (aligned to the ramp)
+ *   lume         = neutral near-white (#f7f7f7)
  * The canvas palette is mirrored in src/lib/chart-theme.ts -- change BOTH in
  * lockstep or the chart drifts (FR-030). See docs/redesign/PRODUCT_DESIGN_DECISIONS.md.
  *
@@ -25,52 +26,52 @@
  */
 
 @theme {
-  /* --- Warm-graphite neutral ramp (name: charcoal) -- OKLCH-derived, hue ~75,
-   * chroma <=0.008, R>=G>=B (warm near-black, no blue), perceptually even
-   * steps. 950 = deepest well, 925/900 = chrome + panel, 700 = borders,
+  /* --- Pure neutral ramp (name: charcoal) -- R=G=B at every step (NO warm/brown
+   * cast, no blue), modeled on OpenCode's default dark theme 12-step scale.
+   * 950 = deepest well, 925/900 = chrome + panel, 700 = borders,
    * 500 = tertiary text, 400 = secondary, 100 = primary body text. -------- */
-  --color-charcoal-950: #110f0c; /* app/root well -- warm near-black (R-B ~+5) */
-  --color-charcoal-925: #17140f; /* header fascia, tab strip */
-  --color-charcoal-900: #1e1a15; /* panel / card surface (the anchor) */
-  --color-charcoal-875: #25201a; /* popover / active tab / hover surface */
-  --color-charcoal-850: #2d2820; /* raised inset -- input fill, node bg */
-  --color-charcoal-800: #352f26; /* muted / secondary surface */
-  --color-charcoal-700: #3e372d; /* borders / inputs / dividers */
-  --color-charcoal-600: #4d463b; /* strong border / disabled fg */
-  --color-charcoal-500: #968c7d; /* TERTIARY text -- faint label, kbd, meta (lightened from #847b6d to clear WCAG AA on dark) */
-  --color-charcoal-400: #ada294; /* SECONDARY text -- muted foreground */
-  --color-charcoal-300: #d6d0c4; /* secondary-bright text */
-  --color-charcoal-200: #ebe5db; /* bright secondary / chart text */
-  --color-charcoal-100: #f6f3eb; /* PRIMARY text / foreground -- warm near-white */
+  --color-charcoal-950: #0a0a0a; /* app/root well -- pure neutral near-black */
+  --color-charcoal-925: #101010; /* header fascia, tab strip */
+  --color-charcoal-900: #161616; /* panel / card surface (the anchor) */
+  --color-charcoal-875: #1d1d1d; /* popover / active tab / hover surface */
+  --color-charcoal-850: #242424; /* raised inset -- input fill, node bg */
+  --color-charcoal-800: #2b2b2b; /* muted / secondary surface */
+  --color-charcoal-700: #353535; /* borders / inputs / dividers */
+  --color-charcoal-600: #484848; /* strong border / disabled fg */
+  --color-charcoal-500: #8a8a8a; /* TERTIARY text -- faint label, kbd, meta (neutral gray, clears WCAG AA on #0a0a0a) */
+  --color-charcoal-400: #a8a8a8; /* SECONDARY text -- muted foreground */
+  --color-charcoal-300: #cccccc; /* secondary-bright text */
+  --color-charcoal-200: #e2e2e2; /* bright secondary / chart text */
+  --color-charcoal-100: #ededed; /* PRIMARY text / foreground -- neutral near-white */
 
-  /* --- Muted amber accent (name: amber) -- the single accent. OKLCH hue ~70,
-   * an earthy gold (restrained, not neon, not pure orange; modeled on the
-   * reference apps' #c08030). Five states light->dark: 200 faint tint,
-   * 300 hover-bright/accent text, 400 brand, 500 pressed/sash, 600 deep
-   * border. Used on <=~5% of pixels and <=2 elements at any time. */
-  --color-amber-200: #f0d8ac; /* faint tint / selection fill */
-  --color-amber-300: #e9bd80; /* hover-bright / accent text on dark */
-  --color-amber-400: #d89a4e; /* BRAND / primary / default accent */
-  --color-amber-500: #c0802f; /* pressed / active-sash / selected (ref fill) */
-  --color-amber-600: #875720; /* deep border / dense accent */
+  /* --- The single scarce accent (name: amber) -- OpenCode's warm peach. Reserved
+   * for ONE rare spotlight role only: LIVE agent activity (stream cursor, running
+   * dot/bar, hud-active border, active-run counter). It is NOT chrome -- the
+   * dominant impression is monochrome. Five states light->dark: 200 faint tint,
+   * 300 hover-bright/accent text, 400 brand, 500 pressed, 600 deep border. */
+  --color-amber-200: #fddcc4; /* faint tint / selection fill */
+  --color-amber-300: #fcc9a6; /* hover-bright / accent text on dark */
+  --color-amber-400: #fab283; /* BRAND -- OpenCode dark primary accent (#fab283) */
+  --color-amber-500: #e89a68; /* pressed / active */
+  --color-amber-600: #b9744a; /* deep border / dense accent */
 
-  /* --- Warm neutral (name: brass) -- quiet secondary neutrals aligned to the
-   * warm-graphite ramp. Stray legacy use, .hud-label legend, hairline source. */
-  --color-brass-200: #d3cec5;
-  --color-brass-300: #a8a095; /* .hud-label legend text */
-  --color-brass-400: #4a443a; /* hairline / scrollbar source tone */
-  --color-brass-500: #39332b;
-  --color-brass-600: #312c25;
+  /* --- Neutral gray (name: brass) -- quiet secondary neutrals aligned to the
+   * neutral ramp. Stray legacy use, .hud-label legend, hairline source. */
+  --color-brass-200: #cfcfcf;
+  --color-brass-300: #a0a0a0; /* .hud-label legend text */
+  --color-brass-400: #454545; /* hairline / scrollbar source tone */
+  --color-brass-500: #363636;
+  --color-brass-600: #2e2e2e;
 
   /* --- Near-white (name: lume) -- active-tab text, peak readouts.
-   * Warm near-white. ---------------------------------------------------- */
-  --color-lume: #f7f5f0;
+   * Neutral near-white. -------------------------------------------------- */
+  --color-lume: #f7f7f7;
 
-  /* --- Warm neutral second (name: sage) -- secondary data series, never
-   * compete with the amber accent. Aligned to the warm-graphite ramp. ----- */
-  --color-sage-300: #d3cec5;
-  --color-sage-400: #a8a095;
-  --color-sage-500: #79736a;
+  /* --- Neutral gray second (name: sage) -- secondary data series, never
+   * compete with the accent. Aligned to the neutral ramp. ----------------- */
+  --color-sage-300: #cfcfcf;
+  --color-sage-400: #a0a0a0;
+  --color-sage-500: #767676;
 
   /* --- Signal colors -- muted + luminance-matched so neither gain nor loss
    * reads louder than the other in a P&L column. The ONLY saturated colors.

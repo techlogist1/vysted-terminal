@@ -40,7 +40,7 @@ describe("EmptyState", () => {
     expect(onClick).toHaveBeenCalledOnce();
   });
 
-  it("lifts a primary CTA to the amber outline", () => {
+  it("lifts a primary CTA to the brighter neutral outline", () => {
     render(
       <EmptyState
         icon={Inbox}
@@ -49,6 +49,6 @@ describe("EmptyState", () => {
       />,
     );
     const cta = screen.getByTestId("empty-state-cta");
-    expect(cta.className).toContain("text-amber-300");
+    expect(cta.className).toContain("text-charcoal-100");
   });
 });

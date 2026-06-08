@@ -94,7 +94,7 @@ function AutonomyToggle() {
           className={cn(
             "flex items-center px-3 uppercase transition-colors",
             autonomy === level
-              ? "text-charcoal-950 bg-amber-400"
+              ? "bg-charcoal-700 text-charcoal-100"
               : "text-charcoal-400 hover:text-lume",
           )}
         >
@@ -178,7 +178,7 @@ function MessageBody({
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="text-charcoal-400 text-caption ml-1.5 align-baseline underline transition-colors hover:text-amber-300"
+          className="text-charcoal-400 text-caption hover:text-charcoal-100 ml-1.5 align-baseline underline transition-colors"
         >
           {collapsed ? "show full analysis" : "show less"}
         </button>
@@ -859,7 +859,7 @@ export function ChatSidebar() {
           onClick={newSpace}
           aria-label="New chat space"
           title="New chat space"
-          className="text-charcoal-400 rounded-control shrink-0 px-2 py-1 transition-colors hover:text-amber-300"
+          className="text-charcoal-400 rounded-control hover:text-charcoal-100 shrink-0 px-2 py-1 transition-colors"
         >
           <Plus className="size-3" />
         </button>
@@ -899,7 +899,7 @@ export function ChatSidebar() {
                   "text-body rounded-none border px-3 py-1.5 font-mono",
                   message.role === "user"
                     ? "border-charcoal-700 bg-charcoal-800 text-charcoal-100"
-                    : "text-charcoal-100 border-amber-600/30 bg-amber-500/10",
+                    : "border-charcoal-700 bg-charcoal-875 text-charcoal-100",
                 )}
               >
                 <div className="text-charcoal-400 text-micro mb-1">
@@ -924,7 +924,7 @@ export function ChatSidebar() {
                         key={i}
                         className="text-charcoal-400 text-caption flex items-center gap-1"
                       >
-                        <span className="text-amber-400">→</span> {step}
+                        <span className="text-charcoal-500">→</span> {step}
                       </li>
                     ))}
                   </ul>
@@ -943,7 +943,7 @@ export function ChatSidebar() {
                         onClick={() => {
                           void handleSend(lastPrompt);
                         }}
-                        className="shrink-0 text-amber-400 underline transition-colors hover:text-amber-300"
+                        className="text-charcoal-300 hover:text-lume shrink-0 underline transition-colors"
                       >
                         Retry
                       </button>
@@ -979,7 +979,7 @@ export function ChatSidebar() {
             "Deep Research" toggle (FR-115 / SC-028): research is ONE model — ask
             naturally and the agent picks the depth, then "Go deeper" on the brief
             escalates the SAME run in place. Depth is never a user knob. */}
-        <div className="flex flex-wrap items-center gap-2 px-3 pt-2">
+        <div className="border-charcoal-700 flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-3 py-2">
           <ModeSwitch mode={mode} onChange={setMode} />
           <PersonaSelect
             firstParty={firstPartyAgents}
@@ -1083,7 +1083,7 @@ function ModeSwitch({ mode, onChange }: { mode: AgentMode; onChange: (mode: Agen
             onClick={() => onChange(m.id)}
             className={cn(
               "rounded-control text-caption relative flex h-8 items-center px-3 font-mono transition-colors",
-              active ? "text-amber-300" : "text-charcoal-400 hover:text-lume",
+              active ? "text-charcoal-100" : "text-charcoal-400 hover:text-lume",
             )}
           >
             {active && (
@@ -1122,7 +1122,7 @@ function PersonaSelect({ firstParty, custom, activeAgentId, onChange }: AgentPic
         aria-label="Active persona"
         value={activeAgentId ?? DEFAULT_AGENT_ID}
         onChange={(event) => onChange(event.target.value)}
-        className="bg-charcoal-800 text-charcoal-200 border-charcoal-700 rounded-control text-caption h-8 max-w-[9rem] min-w-0 truncate border px-3 font-mono outline-none focus:ring-1 focus:ring-amber-400"
+        className="bg-charcoal-800 text-charcoal-200 border-charcoal-700 rounded-control text-caption focus:ring-charcoal-500 h-8 max-w-[9rem] min-w-0 truncate border px-3 font-mono outline-none focus:ring-1"
       >
         <optgroup label="First-party">
           {ordered.map((agent) => (
@@ -1402,9 +1402,9 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
         {/* Field + inset glyph + send read as ONE bordered unit (§14): the input is
             borderless inside the rounded-control shell, the leading glyph sits in a
             left gutter (OUTSIDE the text flow), and the send anchors bottom-right
-            inside the field — vertically aligned, 32px square, amber. The field
+            inside the field — vertically aligned, 32px square, neutral. The field
             grows from a single-line baseline rather than reserving a tall empty box. */}
-        <div className="bg-charcoal-800 border-charcoal-700 rounded-control relative flex min-h-9 items-end border focus-within:ring-1 focus-within:ring-amber-400">
+        <div className="bg-charcoal-800 border-charcoal-700 rounded-control focus-within:ring-charcoal-500 relative flex min-h-9 items-end border focus-within:ring-1">
           <Sparkles
             aria-hidden
             strokeWidth={1.75}

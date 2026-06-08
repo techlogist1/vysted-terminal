@@ -166,7 +166,7 @@ export function BrokerOrderEntry() {
         <input
           value={form.symbol}
           onChange={(e) => setForm((prev) => ({ ...prev, symbol: e.target.value.toUpperCase() }))}
-          className="bg-charcoal-800 text-charcoal-100 rounded-control text-body h-8 px-2 outline-none focus-visible:border-amber-500"
+          className="bg-charcoal-800 text-charcoal-100 rounded-control text-body focus-visible:border-charcoal-500 h-8 px-2 outline-none"
         />
       </label>
 

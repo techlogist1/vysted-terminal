@@ -51,7 +51,7 @@ export function SlashCommandPicker({
                 active ? "bg-charcoal-800" : "hover:bg-charcoal-900",
               )}
             >
-              <span className={cn("shrink-0", active ? "text-amber-300" : "text-amber-400")}>
+              <span className={cn("shrink-0", active ? "text-charcoal-300" : "text-charcoal-300")}>
                 /{cmd.trigger}
               </span>
               {cmd.argHint && <span className="text-charcoal-500 shrink-0">{cmd.argHint}</span>}

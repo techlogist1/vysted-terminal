@@ -64,7 +64,10 @@ export function StatusChrome() {
       )}
       {activeRunCount > 0 && (
         <span
-          className="text-primary flex items-center gap-1"
+          /* The ONE reserved spotlight: the peach accent marks LIVE agent activity
+             only (idle chrome is fully monochrome). The pulsing dot rides
+             bg-current so it inherits this accent. */
+          className="flex items-center gap-1 text-amber-400"
           title={`${activeRunCount} agent run${activeRunCount === 1 ? "" : "s"} in progress`}
         >
           <span className="size-1.5 animate-pulse rounded-full bg-current" aria-hidden />

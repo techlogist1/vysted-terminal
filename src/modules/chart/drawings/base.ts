@@ -28,7 +28,7 @@ import type { DrawingPoint, DrawingSpec, DrawingStyle } from "../../../../types/
 /** The renderer target type — pulled structurally from `IPrimitivePaneRenderer.draw`. */
 export type DrawTarget = Parameters<IPrimitivePaneRenderer["draw"]>[0];
 
-/** Default per-kind colour (amber-400) — overridable per drawing in `style.color`. */
+/** Default per-kind colour (neutral charcoal-300) — overridable per drawing in `style.color`. */
 export const DEFAULT_DRAWING_COLOR = ACCENT_CORAL;
 
 /** Convert a `DrawingStyle.lineStyle` to a canvas `setLineDash` pattern. */

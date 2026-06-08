@@ -173,7 +173,7 @@ function PluginRow({ plugin, runtimeReady }: PluginRowProps) {
             onChange={(event) => {
               void handleToggle(event.target.checked);
             }}
-            className="size-4 accent-amber-400 disabled:cursor-not-allowed disabled:opacity-40"
+            className="accent-charcoal-300 size-4 disabled:cursor-not-allowed disabled:opacity-40"
           />
         </label>
       </div>

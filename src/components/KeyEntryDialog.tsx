@@ -94,7 +94,7 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
         <DialogContent className="border-charcoal-700 bg-charcoal-900 max-w-md gap-0 p-0">
           <DialogHeader className="border-charcoal-700 border-b px-6 py-3">
             <DialogTitle className="text-charcoal-200 text-panel-title flex items-center gap-2 font-mono">
-              <KeyRound className="size-3.5 text-amber-400" aria-hidden="true" />
+              <KeyRound className="text-charcoal-300 size-3.5" aria-hidden="true" />
               {provider.label}
             </DialogTitle>
             <DialogDescription className="text-charcoal-400 text-caption mt-1 font-mono">
@@ -121,7 +121,7 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
       <DialogContent className="border-charcoal-700 bg-charcoal-900 max-w-md gap-0 p-0">
         <DialogHeader className="border-charcoal-700 border-b px-6 py-3">
           <DialogTitle className="text-charcoal-200 text-panel-title flex items-center gap-2 font-mono">
-            <KeyRound className="size-3.5 text-amber-400" aria-hidden="true" />
+            <KeyRound className="text-charcoal-300 size-3.5" aria-hidden="true" />
             {provider ? `${provider.label} API key` : "Provider API key"}
           </DialogTitle>
           <DialogDescription className="text-charcoal-400 text-caption mt-1 font-mono">
@@ -143,7 +143,7 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
             placeholder="sk-..."
             disabled={!provider}
             aria-label="API key"
-            className="border-charcoal-700 bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-body h-8 border px-3 font-mono outline-none focus:border-amber-400 disabled:opacity-50"
+            className="border-charcoal-700 bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-body focus:border-charcoal-500 h-8 border px-3 font-mono outline-none disabled:opacity-50"
           />
           {status === "invalid" && (
             <p className="text-negative text-caption font-mono">{errorDetail ?? "Invalid key."}</p>

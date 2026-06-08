@@ -113,7 +113,7 @@ function RunRow({
               type="button"
               aria-label={`Bring ${run.agentName} to the foreground`}
               onClick={() => onForeground(run)}
-              className="text-charcoal-500 hover:text-amber-300"
+              className="text-charcoal-500 hover:text-charcoal-100"
             >
               <Maximize2 size={11} aria-hidden />
             </button>
@@ -165,13 +165,13 @@ function RunRow({
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               disabled={answerBusy}
-              className="bg-charcoal-850 text-charcoal-100 text-micro rounded-control h-6 flex-1 px-1.5 outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
+              className="bg-charcoal-850 text-charcoal-100 text-micro rounded-control focus:ring-charcoal-500 h-6 flex-1 px-1.5 outline-none focus:ring-1 disabled:opacity-50"
             />
             <button
               type="submit"
               aria-label="Submit answer"
               disabled={!answer.trim() || answerBusy}
-              className="text-charcoal-500 hover:text-amber-300 disabled:opacity-30"
+              className="text-charcoal-500 hover:text-charcoal-100 disabled:opacity-30"
             >
               <Send size={10} aria-hidden />
             </button>

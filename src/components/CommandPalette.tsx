@@ -21,10 +21,10 @@
  * `palette.open` binding — falls back to `meta+k` / `ctrl+k` directly if the
  * keybindings store is unavailable.
  *
- * AI-ask routing: selecting the Ask AI row calls
- *   useWorkspaceStore.getState().openPanel("chat")
- * then writes the query to `useChatPendingStore` so `ChatSidebar` auto-submits
- * it on next render.
+ * AI-ask routing: selecting the Ask AI row reveals the agent dock (the single
+ * agent surface — FR-001) and pushes the query onto the agent-command bus, which
+ * the always-mounted `ChatSidebar` consumes and routes through its normal send
+ * path. The agent surface is NOT a dockview panel (no second chat surface).
  */
 
 import { Command } from "cmdk";
@@ -47,7 +47,8 @@ import {
 } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/EmptyState";
 import { executeCommand } from "@/lib/commands";
-import { useChatPendingStore } from "@/store/chat-pending";
+import { sendToAgent } from "@/store/agent-command";
+import { useAgentDockStore } from "@/store/agent-dock";
 import {
   buildPaletteCorpus,
   paletteFilter,
@@ -152,11 +153,13 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
   const handleSelectAskAi = useCallback(() => {
     const q = query.trim();
     if (!q) return;
-    // Open chat panel then queue the prompt for auto-submit.
-    openPanel("chat");
-    useChatPendingStore.getState().queuePrompt(q);
+    // Reveal the agent dock (the single agent surface) and push the query onto
+    // the agent-command bus — the always-mounted ChatSidebar routes it through
+    // its normal send path (works whether the dock was open or just revealed).
+    useAgentDockStore.getState().setCollapsed(false);
+    sendToAgent(q);
     onClose();
-  }, [query, openPanel, onClose]);
+  }, [query, onClose]);
 
   const handleSelectItem = useCallback(
     (item: PaletteItem) => {
@@ -164,10 +167,9 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
 
       switch (item.kind) {
         case "agent":
-          // Open chat focused — the panel is already the chat sidebar,
-          // so opening it surfaces the correct context.  The agent picker
-          // within ChatSidebar is state-local; we just surface the panel.
-          openPanel("chat");
+          // Surface the agent dock (the single agent surface). The agent picker
+          // within ChatSidebar is state-local; we just reveal the column.
+          useAgentDockStore.getState().setCollapsed(false);
           break;
         case "action":
           if (item.commandSpec) {
@@ -318,7 +320,7 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
                 item={item}
                 isRecent={recents.includes(item.id)}
                 onSelect={() => handleSelectItem(item)}
-                icon={<Bot className="size-4 shrink-0 text-amber-400" aria-hidden />}
+                icon={<Bot className="text-charcoal-300 size-4 shrink-0" aria-hidden />}
               />
             ))}
           </Command.Group>
@@ -383,7 +385,7 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
 function KindIcon({ kind }: { kind: PaletteItem["kind"] }) {
   switch (kind) {
     case "agent":
-      return <Bot className="size-4 shrink-0 text-amber-400" aria-hidden />;
+      return <Bot className="text-charcoal-300 size-4 shrink-0" aria-hidden />;
     case "action":
       return <CommandIcon className="text-charcoal-400 size-4 shrink-0" aria-hidden />;
     case "panel":
@@ -414,7 +416,7 @@ function AskAiItem({ query, onSelect }: AskAiItemProps) {
       forceMount
       className="aria-selected:bg-charcoal-800 rounded-control flex min-h-9 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
     >
-      <Sparkles className="size-4 shrink-0 text-amber-400" aria-hidden />
+      <Sparkles className="text-charcoal-300 size-4 shrink-0" aria-hidden />
       <div className="min-w-0 flex-1">
         <span className="text-charcoal-300 text-caption">Ask agent: </span>
         <span className="text-charcoal-100 text-body font-medium">&ldquo;{trimmed}&rdquo;</span>

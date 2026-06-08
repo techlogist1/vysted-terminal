@@ -362,7 +362,7 @@ export function ScreenerResultsTable() {
             type="button"
             onClick={() => downloadScreenerCsv(rows, result.universe)}
             disabled={rows.length === 0}
-            className="text-charcoal-300 text-caption flex items-center gap-1 transition-colors hover:text-amber-300 disabled:opacity-40"
+            className="text-charcoal-300 text-caption hover:text-charcoal-100 flex items-center gap-1 transition-colors disabled:opacity-40"
             title="Export results to CSV (open in Excel / Sheets)"
           >
             <Download className="size-3" /> Export CSV

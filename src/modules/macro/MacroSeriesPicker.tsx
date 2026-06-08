@@ -116,7 +116,7 @@ export function MacroSeriesPicker({ provider, onProviderChange, onSelect }: Prop
         placeholder={`Search ${provider} series… (or browse Featured)`}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-500 rounded-control text-caption h-8 border px-2 font-mono focus:border-amber-600 focus:outline-none"
+        className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-500 rounded-control text-caption focus:border-charcoal-600 h-8 border px-2 font-mono focus:outline-none"
         data-testid="macro-search-input"
       />
 
@@ -134,7 +134,7 @@ export function MacroSeriesPicker({ provider, onProviderChange, onSelect }: Prop
                 Could not load featured series.{" "}
                 <button
                   type="button"
-                  className="text-amber-400 underline"
+                  className="text-charcoal-300 underline"
                   onClick={() => {
                     setCatalogError(null);
                     loadCatalog(provider).catch((err: unknown) => {

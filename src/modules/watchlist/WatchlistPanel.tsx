@@ -275,7 +275,7 @@ export function WatchlistPanel() {
           placeholder="Add symbol"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
-          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 text-body rounded-control h-8 flex-1 px-3 outline-none focus:ring-1 focus:ring-amber-400"
+          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 text-body rounded-control focus:ring-charcoal-500 h-8 flex-1 px-3 outline-none focus:ring-1"
         />
         <div className="relative">
           <select
@@ -284,7 +284,7 @@ export function WatchlistPanel() {
             onChange={(event) =>
               setDraftAssetClass(event.target.value === "crypto" ? "crypto" : "equity")
             }
-            className="bg-charcoal-800 text-charcoal-200 text-caption rounded-control h-8 appearance-none px-3 pr-6 outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-200 text-caption rounded-control focus:ring-charcoal-500 h-8 appearance-none px-3 pr-6 outline-none focus:ring-1"
           >
             <option value="equity">Equity</option>
             <option value="crypto">Crypto</option>

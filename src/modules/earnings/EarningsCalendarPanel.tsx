@@ -166,7 +166,7 @@ export function EarningsCalendarPanel() {
             max={60}
             value={daysDraft}
             onChange={(e) => setDaysDraft(e.target.value)}
-            className="bg-charcoal-800 text-charcoal-100 text-body rounded-control ml-2 h-8 w-16 px-3 tabular-nums outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 text-body rounded-control focus:ring-charcoal-500 ml-2 h-8 w-16 px-3 tabular-nums outline-none focus:ring-1"
             aria-label="Window in days"
           />
         </label>
@@ -177,7 +177,7 @@ export function EarningsCalendarPanel() {
             value={watchlistDraft}
             onChange={(e) => setWatchlistDraft(e.target.value)}
             placeholder="AAPL, MSFT, NVDA"
-            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 text-body rounded-control ml-2 h-8 w-full max-w-xs px-3 outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 text-body rounded-control focus:ring-charcoal-500 ml-2 h-8 w-full max-w-xs px-3 outline-none focus:ring-1"
             aria-label="Watchlist"
           />
         </label>
@@ -194,7 +194,7 @@ export function EarningsCalendarPanel() {
             type="button"
             size="sm"
             variant="ghost"
-            className="shrink-0 text-amber-300 hover:text-amber-200"
+            className="text-charcoal-300 hover:text-charcoal-100 shrink-0"
             onClick={() => {
               userInteractedRef.current = true;
               void loadUpcoming(lastDays, lastWatchlist);
@@ -373,7 +373,7 @@ export function EarningsCalendarPanel() {
                                   </span>
                                   <button
                                     type="button"
-                                    className="text-caption text-amber-300 underline"
+                                    className="text-caption text-charcoal-300 underline"
                                     onClick={() => void getSurprises(event.symbol)}
                                   >
                                     Retry
@@ -405,7 +405,7 @@ export function EarningsCalendarPanel() {
                                   </span>
                                   <button
                                     type="button"
-                                    className="text-caption text-amber-300 underline"
+                                    className="text-caption text-charcoal-300 underline"
                                     onClick={() => void getEstimates(event.symbol)}
                                   >
                                     Retry
@@ -468,7 +468,7 @@ function SortableHeader({
       aria-sort={active ? (direction === "asc" ? "ascending" : "descending") : "none"}
     >
       {label}
-      {active && <span className="text-amber-400"> {direction === "asc" ? "▲" : "▼"}</span>}
+      {active && <span className="text-charcoal-300"> {direction === "asc" ? "▲" : "▼"}</span>}
     </th>
   );
 }

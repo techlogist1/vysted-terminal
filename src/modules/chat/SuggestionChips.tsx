@@ -111,7 +111,7 @@ export function SuggestionChips() {
             "border-charcoal-700 bg-charcoal-850 text-charcoal-300",
             "text-body rounded-control w-full border px-3 py-2 text-left transition-colors",
             "hover:border-charcoal-600 hover:text-charcoal-100 hover:bg-charcoal-800",
-            "focus-visible:ring-1 focus-visible:ring-amber-400 focus-visible:outline-none",
+            "focus-visible:ring-charcoal-500 focus-visible:ring-1 focus-visible:outline-none",
           )}
         >
           {s.label}

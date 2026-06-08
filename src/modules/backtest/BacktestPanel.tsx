@@ -180,7 +180,7 @@ export function BacktestPanel() {
                 disabled={isRunning}
                 spellCheck={false}
                 aria-label="Symbols"
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono uppercase outline-none focus-visible:border-amber-500 disabled:opacity-50"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono uppercase outline-none disabled:opacity-50"
               />
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -193,7 +193,7 @@ export function BacktestPanel() {
                   disabled={isRunning}
                   aria-label="Start date"
                   style={{ colorScheme: "dark" }}
-                  className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
+                  className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
                 />
               </label>
               <label className="flex flex-col gap-1">
@@ -205,7 +205,7 @@ export function BacktestPanel() {
                   disabled={isRunning}
                   aria-label="End date"
                   style={{ colorScheme: "dark" }}
-                  className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
+                  className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
                 />
               </label>
             </div>
@@ -217,7 +217,7 @@ export function BacktestPanel() {
                 onChange={(e) => setCapital(Number(e.target.value))}
                 disabled={isRunning}
                 aria-label="Initial capital"
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
               />
             </label>
             <label className="flex flex-col gap-1">
@@ -232,7 +232,7 @@ export function BacktestPanel() {
                 }
                 disabled={isRunning}
                 aria-label="Walk-forward slices"
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
               />
             </label>
           </div>

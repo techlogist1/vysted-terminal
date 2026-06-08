@@ -122,8 +122,8 @@ export function AgentDock({ children }: { children: React.ReactNode }) {
             // with no dark seam falling through to the charcoal-950 root.
             "bg-charcoal-900 relative w-3 shrink-0 cursor-col-resize",
             "before:absolute before:inset-y-0 before:left-1/2 before:w-0.5 before:-translate-x-1/2",
-            "before:bg-charcoal-700/0 before:transition-colors before:hover:bg-amber-500/40",
-            dragging && "before:bg-amber-500/70",
+            "before:bg-charcoal-700/0 before:hover:bg-charcoal-500/60 before:transition-colors",
+            dragging && "before:bg-charcoal-400/80",
           )}
         />
       )}

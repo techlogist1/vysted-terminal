@@ -459,11 +459,11 @@ export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewPr
             {run.request.strategyId} · {run.request.symbols.join(", ")}
           </span>
           {run.status === "streaming" && (
-            <span className="text-amber-300" data-testid="streaming-progress">
+            <span className="text-charcoal-300" data-testid="streaming-progress">
               running… {run.barsProcessed}/{run.totalBars} ({progressPct}%)
             </span>
           )}
-          {run.status === "pending" && <span className="text-amber-300">starting…</span>}
+          {run.status === "pending" && <span className="text-charcoal-300">starting…</span>}
           {run.status === "error" && (
             <span className="text-negative" data-testid="run-error">
               error: {run.error}

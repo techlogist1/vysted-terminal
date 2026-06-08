@@ -393,7 +393,7 @@ function TickerChip({ symbol }: { symbol: string }) {
       type="button"
       onClick={() => loadSymbolIntoChart(symbol)}
       title={`Load ${symbol} into the chart`}
-      className="rounded-control text-micro bg-charcoal-850 mx-px inline-flex translate-y-[-1px] items-center px-1 align-baseline font-mono font-medium text-amber-300 transition-colors hover:text-amber-100 focus-visible:ring-1 focus-visible:ring-amber-400/70 focus-visible:outline-none"
+      className="rounded-control text-micro bg-charcoal-850 text-charcoal-300 hover:text-charcoal-100 focus-visible:ring-charcoal-500/70 mx-px inline-flex translate-y-[-1px] items-center px-1 align-baseline font-mono font-medium transition-colors focus-visible:ring-1 focus-visible:outline-none"
     >
       {symbol}
     </button>
@@ -407,7 +407,7 @@ function CiteChip({ n, onCite }: { n: number; onCite: (n: number) => void }) {
       type="button"
       onClick={() => onCite(n)}
       aria-label={`Jump to source ${n}`}
-      className="rounded-control text-micro bg-charcoal-850 mx-px inline-flex translate-y-[-2px] items-center px-1 align-baseline font-mono leading-tight text-amber-300 transition-colors hover:text-amber-200 focus-visible:ring-1 focus-visible:ring-amber-400/60 focus-visible:outline-none"
+      className="rounded-control text-micro bg-charcoal-850 text-charcoal-300 hover:text-charcoal-100 focus-visible:ring-charcoal-500/60 mx-px inline-flex translate-y-[-2px] items-center px-1 align-baseline font-mono leading-tight transition-colors focus-visible:ring-1 focus-visible:outline-none"
     >
       {n}
     </button>

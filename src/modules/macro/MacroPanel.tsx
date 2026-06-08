@@ -61,7 +61,7 @@ export function MacroPanel() {
         {status?.status === "loading" ? (
           <div className="text-charcoal-400 text-caption flex h-full items-center justify-center font-mono">
             <div className="flex items-center gap-2">
-              <div className="border-charcoal-600 size-3 animate-spin rounded-full border-2 border-t-amber-400" />
+              <div className="border-charcoal-600 border-t-charcoal-500 size-3 animate-spin rounded-full border-2" />
               Loading {seriesId}…
             </div>
           </div>
@@ -75,7 +75,7 @@ export function MacroPanel() {
             <Button
               size="xs"
               variant="ghost"
-              className="mt-3 text-amber-300 hover:text-amber-200"
+              className="text-charcoal-300 hover:text-charcoal-100 mt-3"
               onClick={() => void loadSeries(provider, seriesId)}
               data-testid="macro-retry"
             >

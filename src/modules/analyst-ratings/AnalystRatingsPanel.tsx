@@ -92,7 +92,7 @@ export function AnalystRatingsPanel() {
           placeholder="Symbol (e.g. AAPL)"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
-          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 text-body rounded-control h-8 flex-1 px-2 outline-none focus:ring-1 focus:ring-amber-400"
+          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 text-body rounded-control focus:ring-charcoal-500 h-8 flex-1 px-2 outline-none focus:ring-1"
         />
         <Button type="submit" size="sm" variant="outline">
           <Search />
@@ -184,7 +184,7 @@ function TabButton({
       className={cn(
         "text-caption rounded-control px-3 py-1",
         active
-          ? "bg-charcoal-800 border-charcoal-700 -mb-px border-x border-t text-amber-400"
+          ? "bg-charcoal-800 border-charcoal-700 text-charcoal-300 -mb-px border-x border-t"
           : "text-charcoal-400 hover:text-charcoal-200",
       )}
       aria-pressed={active}

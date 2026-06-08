@@ -42,7 +42,7 @@ export function BudgetConfig({
           const n = e.target.value === "" ? undefined : Number(e.target.value);
           onChange({ ...budget, [key]: Number.isFinite(n) ? n : undefined });
         }}
-        className="bg-charcoal-850 text-charcoal-100 text-caption rounded-control h-8 w-16 px-1.5 text-right outline-none focus:ring-1 focus:ring-amber-400"
+        className="bg-charcoal-850 text-charcoal-100 text-caption rounded-control focus:ring-charcoal-500 h-8 w-16 px-1.5 text-right outline-none focus:ring-1"
       />
     </label>
   );

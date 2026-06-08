@@ -220,7 +220,7 @@ function FilterSelect({ label, value, options, onChange, dataTestId }: FilterSel
           value={value}
           onChange={(e) => onChange(e.target.value)}
           data-testid={dataTestId}
-          className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption h-8 w-full appearance-none border border-transparent pr-6 pl-2 outline-none focus:border-amber-400"
+          className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:border-charcoal-500 h-8 w-full appearance-none border border-transparent pr-6 pl-2 outline-none"
         >
           {options.map((option) => (
             <option key={option.value} value={option.value}>
@@ -253,7 +253,7 @@ function DateRangeFilter({ startMs, endMs, onChange }: DateRangeFilterProps) {
           data-testid="audit-filter-start"
           value={startMs !== null ? toLocalInputValue(startMs) : ""}
           onChange={(e) => onChange(fromLocalInputValue(e.target.value), endMs)}
-          className="bg-charcoal-800 text-charcoal-100 rounded-control text-micro h-8 border border-transparent px-2 outline-none focus:border-amber-400"
+          className="bg-charcoal-800 text-charcoal-100 rounded-control text-micro focus:border-charcoal-500 h-8 border border-transparent px-2 outline-none"
         />
       </label>
       <label className="flex flex-col gap-0.5">
@@ -263,7 +263,7 @@ function DateRangeFilter({ startMs, endMs, onChange }: DateRangeFilterProps) {
           data-testid="audit-filter-end"
           value={endMs !== null ? toLocalInputValue(endMs) : ""}
           onChange={(e) => onChange(startMs, fromLocalInputValue(e.target.value))}
-          className="bg-charcoal-800 text-charcoal-100 rounded-control text-micro h-8 border border-transparent px-2 outline-none focus:border-amber-400"
+          className="bg-charcoal-800 text-charcoal-100 rounded-control text-micro focus:border-charcoal-500 h-8 border border-transparent px-2 outline-none"
         />
       </label>
     </div>

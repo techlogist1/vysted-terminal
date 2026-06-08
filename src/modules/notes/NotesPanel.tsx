@@ -69,7 +69,7 @@ function ScopeChip({
       className={cn(
         "text-caption rounded-control px-2 py-1 font-medium transition-colors",
         active
-          ? "text-charcoal-950 bg-amber-500"
+          ? "text-charcoal-950 bg-charcoal-200"
           : "bg-charcoal-800 text-charcoal-300 hover:bg-charcoal-700",
       )}
     >
@@ -401,7 +401,7 @@ export function NotesPanel() {
               }}
             >
               <span className="text-caption font-medium">{item.symbol}</span>
-              {item.hasNote && <span className="text-caption text-amber-300">has note</span>}
+              {item.hasNote && <span className="text-caption text-charcoal-300">has note</span>}
             </button>
           ))}
         </div>

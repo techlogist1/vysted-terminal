@@ -38,7 +38,7 @@ function Field({ label, value, onChange, type = "number", step, disabled, testId
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         data-testid={testId}
-        className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
+        className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
       />
     </label>
   );
@@ -118,7 +118,7 @@ export function BondPricerPanel() {
             onChange={(e) => setCouponsPerYear(e.target.value as "1" | "2" | "4")}
             disabled={isRunning}
             data-testid="field-coupons-per-year"
-            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
+            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
           >
             <option value="1">1 — annual</option>
             <option value="2">2 — semi-annual</option>

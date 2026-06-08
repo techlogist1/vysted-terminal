@@ -133,7 +133,7 @@ function NewsRow({
             {item.symbols.map((symbol) => (
               <span
                 key={symbol}
-                className="bg-charcoal-800 rounded-control text-micro px-1.5 py-0.5 font-mono text-amber-400"
+                className="bg-charcoal-800 rounded-control text-micro text-charcoal-300 px-1.5 py-0.5 font-mono"
               >
                 {symbol}
               </span>
@@ -263,7 +263,7 @@ export function NewsFeedPanel() {
           type="button"
           onClick={refresh}
           disabled={state.status === "loading"}
-          className="text-charcoal-400 text-micro font-mono transition-colors hover:text-amber-400 disabled:pointer-events-none disabled:opacity-40"
+          className="text-charcoal-400 text-micro hover:text-charcoal-100 font-mono transition-colors disabled:pointer-events-none disabled:opacity-40"
         >
           {state.status === "loading" ? "Loading…" : "Refresh"}
         </button>
@@ -292,7 +292,7 @@ export function NewsFeedPanel() {
           <button
             type="button"
             onClick={refresh}
-            className="text-micro font-mono text-amber-400 transition-colors hover:text-amber-300"
+            className="text-micro text-charcoal-300 hover:text-charcoal-100 font-mono transition-colors"
           >
             Retry
           </button>
@@ -313,7 +313,7 @@ export function NewsFeedPanel() {
             <button
               type="button"
               onClick={refresh}
-              className="text-micro font-mono text-amber-400 transition-colors hover:text-amber-300"
+              className="text-micro text-charcoal-300 hover:text-charcoal-100 font-mono transition-colors"
             >
               Refresh feed
             </button>

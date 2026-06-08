@@ -167,7 +167,7 @@ export function WorkflowRunOverlay({ state, onClose, onRerun }: WorkflowRunOverl
           type="button"
           onClick={onClose}
           aria-label="Close run overlay"
-          className="text-charcoal-400 text-body font-mono hover:text-amber-400"
+          className="text-charcoal-400 text-body hover:text-charcoal-100 font-mono"
         >
           ×
         </button>

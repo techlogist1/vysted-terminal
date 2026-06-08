@@ -148,7 +148,7 @@ export function YieldCurvePanel() {
             onChange={(e) => setValuationDate(e.target.value)}
             disabled={isRunning}
             data-testid="field-valuation-date"
-            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
+            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
           />
         </label>
 
@@ -172,7 +172,7 @@ export function YieldCurvePanel() {
                 value={row.type}
                 onChange={(e) => updateRow(idx, { type: e.target.value as "deposit" | "swap" })}
                 disabled={isRunning}
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-micro col-span-3 h-8 border px-1 font-mono outline-none focus-visible:border-amber-500"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-micro focus-visible:border-charcoal-500 col-span-3 h-8 border px-1 font-mono outline-none"
               >
                 <option value="deposit">depo</option>
                 <option value="swap">swap</option>
@@ -183,7 +183,7 @@ export function YieldCurvePanel() {
                 value={row.tenor}
                 onChange={(e) => updateRow(idx, { tenor: Number(e.target.value) || 1 })}
                 disabled={isRunning}
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-micro col-span-3 h-8 border px-1 font-mono outline-none focus-visible:border-amber-500"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-micro focus-visible:border-charcoal-500 col-span-3 h-8 border px-1 font-mono outline-none"
               />
               <select
                 value={row.tenor_unit}
@@ -191,7 +191,7 @@ export function YieldCurvePanel() {
                   updateRow(idx, { tenor_unit: e.target.value as "months" | "years" })
                 }
                 disabled={isRunning}
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-micro col-span-2 h-8 border px-1 font-mono outline-none focus-visible:border-amber-500"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-micro focus-visible:border-charcoal-500 col-span-2 h-8 border px-1 font-mono outline-none"
               >
                 <option value="months">mo</option>
                 <option value="years">yr</option>
@@ -202,7 +202,7 @@ export function YieldCurvePanel() {
                 value={row.rate}
                 onChange={(e) => updateRow(idx, { rate: Number(e.target.value) || 0 })}
                 disabled={isRunning}
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-micro col-span-4 h-8 border px-1 font-mono outline-none focus-visible:border-amber-500"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-micro focus-visible:border-charcoal-500 col-span-4 h-8 border px-1 font-mono outline-none"
               />
             </div>
           ))}
@@ -218,7 +218,7 @@ export function YieldCurvePanel() {
             onChange={(e) => setSampleCount(e.target.value)}
             disabled={isRunning}
             data-testid="field-sample-count"
-            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
+            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
           />
         </label>
 

@@ -101,7 +101,7 @@ function WorkflowSaveDialogBody({
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="text-charcoal-400 text-body font-mono hover:text-amber-400"
+            className="text-charcoal-400 text-body hover:text-charcoal-100 font-mono"
           >
             ×
           </button>
@@ -114,7 +114,7 @@ function WorkflowSaveDialogBody({
             onChange={(event) => setName(event.target.value)}
             placeholder="Research: AAPL daily"
             autoFocus
-            className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-control text-body h-8 border px-2 font-mono outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-control text-body focus:ring-charcoal-500 h-8 border px-2 font-mono outline-none focus:ring-1"
           />
         </label>
         <label className="flex flex-col gap-1">
@@ -127,7 +127,7 @@ function WorkflowSaveDialogBody({
             onChange={(event) => setDescription(event.target.value)}
             placeholder="Fetch quote + history; compute RSI; run researcher; log."
             rows={3}
-            className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption min-h-[3rem] resize-y p-2 font-mono leading-relaxed outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 min-h-[3rem] resize-y p-2 font-mono leading-relaxed outline-none focus:ring-1"
           />
         </label>
         {error !== null && error !== undefined && (

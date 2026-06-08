@@ -1022,7 +1022,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
         className={cn(
           "rounded-control text-caption border px-2 py-1 text-left font-mono transition-colors",
           active
-            ? "bg-charcoal-875 border border-amber-500/50 text-amber-300"
+            ? "bg-charcoal-875 border-charcoal-600/50 text-charcoal-300 border"
             : "border-charcoal-700 text-charcoal-400 hover:border-charcoal-600 hover:text-charcoal-200",
         )}
       >
@@ -1048,7 +1048,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
             aria-label="Symbol"
             placeholder="Symbol"
             spellCheck={false}
-            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-body w-24 border px-2 py-1 font-mono uppercase outline-none focus-visible:border-amber-500"
+            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-body focus-visible:border-charcoal-500 w-24 border px-2 py-1 font-mono uppercase outline-none"
           />
           <Button type="submit" size="sm" variant="outline">
             Load
@@ -1180,7 +1180,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
             aria-label="Compare symbol"
             placeholder="Symbol"
             spellCheck={false}
-            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-caption w-20 border px-2 py-1 font-mono uppercase outline-none focus-visible:border-amber-500"
+            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-caption focus-visible:border-charcoal-500 w-20 border px-2 py-1 font-mono uppercase outline-none"
           />
           <Button type="submit" size="sm" variant="outline">
             Add
@@ -1190,7 +1190,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
               <span
                 className={cn(
                   "text-micro flex items-center gap-0.5 px-1 font-mono",
-                  compareState === "error" ? "text-charcoal-500" : "text-amber-300",
+                  compareState === "error" ? "text-charcoal-500" : "text-charcoal-300",
                 )}
                 title={
                   compareState === "error"
@@ -1271,7 +1271,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
                   className={cn(
                     "rounded-control text-micro flex items-center gap-1 border px-1.5 py-0.5 font-mono",
                     active
-                      ? "bg-charcoal-875 border border-amber-500/50 text-amber-300"
+                      ? "bg-charcoal-875 border-charcoal-600/50 text-charcoal-300 border"
                       : "border-charcoal-700 text-charcoal-400",
                   )}
                 >
@@ -1289,7 +1289,10 @@ function ChartPanel(props: ChartPanelProps = {}) {
                     onClick={() => onToggleLock(drawing.id, !drawing.locked)}
                     aria-pressed={!!drawing.locked}
                     aria-label={drawing.locked ? "Unlock drawing" : "Lock drawing"}
-                    className={cn("px-1 hover:text-amber-300", drawing.locked && "text-amber-300")}
+                    className={cn(
+                      "hover:text-charcoal-100 px-1",
+                      drawing.locked && "text-charcoal-300",
+                    )}
                   >
                     {drawing.locked ? (
                       <Lock className="size-2.5" />
@@ -1327,7 +1330,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
               <button
                 type="button"
                 onClick={() => setIndicatorRetryNonce((n) => n + 1)}
-                className="text-charcoal-400 text-caption font-mono transition-colors hover:text-amber-300"
+                className="text-charcoal-400 text-caption hover:text-charcoal-100 font-mono transition-colors"
               >
                 Retry
               </button>

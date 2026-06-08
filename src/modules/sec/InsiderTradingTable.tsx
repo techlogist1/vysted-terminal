@@ -173,7 +173,7 @@ export function InsiderTradingTable({ identifier }: InsiderTradingTableProps) {
             <Button
               size="xs"
               variant="ghost"
-              className="shrink-0 text-amber-300 hover:text-amber-200"
+              className="text-charcoal-300 hover:text-charcoal-100 shrink-0"
               onClick={() => void loadInsider(identifier, form === "all" ? undefined : form)}
             >
               Retry

@@ -89,7 +89,7 @@ function SaveWorkspaceForm({ onDone }: ModeProps) {
         onChange={(event) => setName(event.target.value)}
         placeholder="Workspace name"
         aria-label="Workspace name"
-        className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-body mt-4 w-full border px-3 py-2 font-mono outline-none focus:border-amber-400"
+        className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-body focus:border-charcoal-500 mt-4 w-full border px-3 py-2 font-mono outline-none"
       />
       {error ? <p className="text-negative text-caption mt-2 font-mono">{error}</p> : null}
       <div className="mt-4 flex justify-end gap-2">
@@ -140,7 +140,7 @@ function ResearchSpaceForm({ onDone }: ModeProps) {
         onChange={(event) => setSymbol(event.target.value.toUpperCase())}
         placeholder="Ticker, e.g. NVDA or RELIANCE"
         aria-label="Research space ticker"
-        className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-body mt-4 w-full border px-3 py-2 font-mono outline-none focus:border-amber-400"
+        className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-body focus:border-charcoal-500 mt-4 w-full border px-3 py-2 font-mono outline-none"
       />
       {error ? <p className="text-negative text-caption mt-2 font-mono">{error}</p> : null}
       <div className="mt-4 flex justify-end gap-2">

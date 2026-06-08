@@ -63,7 +63,7 @@ function Field({ label, value, onChange, type = "number", step, disabled, testId
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         data-testid={testId}
-        className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2 font-mono outline-none focus-visible:border-amber-500 disabled:opacity-50"
+        className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
       />
     </label>
   );
@@ -306,7 +306,7 @@ export function OptionPricerPanel() {
         )}
 
         {incompatible && (
-          <p className="text-micro font-mono text-amber-300" role="alert">
+          <p className="text-micro text-charcoal-300 font-mono" role="alert">
             {incompatibleAmericanBs
               ? "Black-Scholes only supports European exercise. Switch to Binomial for American."
               : "Monte Carlo only supports European exercise in v0.6.0. Use Binomial for American."}
@@ -352,7 +352,7 @@ export function OptionPricerPanel() {
                 Result · {lastResult.method}
               </div>
               <div className="flex items-baseline gap-3">
-                <span className="text-hero font-mono text-amber-300" data-testid="option-price">
+                <span className="text-hero text-charcoal-300 font-mono" data-testid="option-price">
                   ${lastResult.price.toFixed(4)}
                 </span>
                 {lastResult.monte_carlo_std_error !== null && (

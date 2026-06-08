@@ -5,28 +5,30 @@
  * Canvas elements render to a `<canvas>` bitmap and CANNOT read CSS custom
  * properties, so each chart/drawing file used to hard-code its own copy of the
  * palette -- which is exactly how values silently drifted off-palette. This
- * module mirrors `styles/tokens.css` (R4 "Warm Graphite" -- warm-graphite
- * neutral + muted amber accent) once; when a token changes, update both the CSS
- * token AND its constant here -- but only here, not in 12 files (FR-030: re-skin
- * the canvas + tokens in lockstep).
+ * module mirrors `styles/tokens.css` (R6 "Pure Black" -- pure neutral grayscale,
+ * faithful OpenCode dark) once; when a token changes, update both the CSS token
+ * AND its constant here -- but only here, not in 12 files (FR-030: re-skin the
+ * canvas + tokens in lockstep).
  *
  * NOTE: the export NAMES (`ACCENT_CORAL`, `coralFill`, ...) are historical and
- * kept so the 12 importing files don't churn -- they now carry the muted AMBER
- * accent, mirroring the `amber-*` token. Read the role, not the name.
+ * kept so the 12 importing files don't churn -- the chart is now MONOCHROME, so
+ * they carry NEUTRAL grays (distinct lightness for overlaid indicators), not a
+ * hue. P&L green/red are the only saturated colors (data, never chrome). Read
+ * the role, not the name.
  */
 
-// --- Warm-graphite surfaces (mirror charcoal-*) ------------------------------
-export const CHART_SURFACE = "#1e1a15"; // charcoal-900 -- chart background
-export const CHART_TEXT = "#ada294"; // charcoal-400 -- axis / label text (muted)
-export const CHART_TEXT_MUTED = "#968c7d"; // charcoal-500 -- secondary labels (lightened for WCAG AA)
-export const CHART_GRID = "#352f26"; // charcoal-800 -- gridlines
-export const CHART_BORDER = "#3e372d"; // charcoal-700 -- scale borders
-export const CHART_CROSSHAIR = "#4d463b"; // charcoal-600 -- crosshair
+// --- Neutral surfaces (mirror charcoal-*) ------------------------------------
+export const CHART_SURFACE = "#161616"; // charcoal-900 -- chart background
+export const CHART_TEXT = "#a8a8a8"; // charcoal-400 -- axis / label text (muted)
+export const CHART_TEXT_MUTED = "#8a8a8a"; // charcoal-500 -- secondary labels
+export const CHART_GRID = "#2b2b2b"; // charcoal-800 -- gridlines
+export const CHART_BORDER = "#353535"; // charcoal-700 -- scale borders
+export const CHART_CROSSHAIR = "#484848"; // charcoal-600 -- crosshair
 
-// --- Muted amber accent (mirror amber-*) -------------------------------------
-export const ACCENT_CORAL = "#d89a4e"; // amber-400 -- brand / default accent
-export const ACCENT_CORAL_BRIGHT = "#e9bd80"; // amber-300 -- emphasis
-export const ACCENT_CORAL_DEEP = "#875720"; // amber-600 -- deep accent / line
+// --- Monochrome chart accent (neutral grays — charts read monochrome) --------
+export const ACCENT_CORAL = "#cccccc"; // charcoal-300 -- primary series line
+export const ACCENT_CORAL_BRIGHT = "#ededed"; // charcoal-100 -- emphasis / lead
+export const ACCENT_CORAL_DEEP = "#767676"; // mid-gray -- deep line
 
 // --- Semantic signal colors (the only saturated colors; never as fills) ------
 export const POSITIVE = "#3fbf6f"; // gains -- muted green, luminance-matched
@@ -35,16 +37,16 @@ export const NEGATIVE = "#e5544b"; // losses -- muted red, luminance-matched
 export const NEGATIVE_BRIGHT = "#f87171";
 export const WARNING = "#e0a13a"; // caution -- stale/paper/warning
 
-// --- Neutral data series (mirror charcoal-400/-300) --------------------------
-export const NEUTRAL = "#ada294"; // charcoal-400 -- comparison / secondary series
-export const NEUTRAL_LIGHT = "#d6d0c4"; // charcoal-300
+// --- Neutral data series (distinct grays for overlaid indicators) ------------
+export const NEUTRAL = "#a8a8a8"; // charcoal-400 -- comparison / secondary series
+export const NEUTRAL_LIGHT = "#8f8f8f"; // distinct mid-gray (historical name)
 
 // --- RGB tuples for alpha fills (canvas wants rgba()) ------------------------
-export const ACCENT_CORAL_RGB = "216, 154, 78"; // #d89a4e -- three-place lockstep
+export const ACCENT_CORAL_RGB = "204, 204, 204"; // #cccccc -- three-place lockstep
 export const POSITIVE_RGB = "63, 191, 111";
 export const NEGATIVE_RGB = "229, 84, 75";
 
-/** `rgba()` fill from the indigo accent at the given alpha (0-1). */
+/** `rgba()` fill from the neutral chart accent at the given alpha (0-1). */
 export function coralFill(alpha: number): string {
   return `rgba(${ACCENT_CORAL_RGB}, ${alpha})`;
 }
@@ -58,16 +60,16 @@ export function negativeFill(alpha: number): string {
 }
 
 /**
- * Distinct, on-brand indicator line palette -- amber lead, warm neutrals, and
- * a muted green. Order is chosen so the first few overlaid indicators read
- * clearly against the warm-graphite surface.
+ * Distinct, MONOCHROME indicator line palette -- five neutral grays at clearly
+ * separated lightness so the first few overlaid indicators read apart against
+ * the near-black surface without introducing any hue (faithful OpenCode dark).
  */
 export const INDICATOR_PALETTE = [
-  ACCENT_CORAL, // amber
-  NEUTRAL, // warm neutral
-  POSITIVE, // muted green
-  ACCENT_CORAL_BRIGHT, // amber-bright
-  NEUTRAL_LIGHT, // light warm neutral
+  ACCENT_CORAL_BRIGHT, // #ededed -- brightest lead
+  NEUTRAL, // #a8a8a8
+  ACCENT_CORAL, // #cccccc
+  ACCENT_CORAL_DEEP, // #767676
+  NEUTRAL_LIGHT, // #8f8f8f
 ] as const;
 
 /**

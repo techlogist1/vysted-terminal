@@ -43,9 +43,9 @@ export function OnboardingBanner() {
         >
           <div
             role="status"
-            className="bg-charcoal-925 flex shrink-0 items-center gap-3 border-b border-amber-500/20 px-4 py-2"
+            className="bg-charcoal-925 border-charcoal-600/20 flex shrink-0 items-center gap-3 border-b px-4 py-2"
           >
-            <Sparkles className="size-4 shrink-0 text-amber-400" aria-hidden="true" />
+            <Sparkles className="text-charcoal-300 size-4 shrink-0" aria-hidden="true" />
             <p className="text-charcoal-200 text-caption min-w-0 flex-1 font-mono leading-snug">
               Add a cloud provider key — or run a local model (Ollama) — to unlock the assistant,
               agents, and research tools. Keys stay in your OS keychain; nothing leaves this
@@ -54,7 +54,7 @@ export function OnboardingBanner() {
             <button
               type="button"
               onClick={() => openPanel("settings")}
-              className="rounded-control text-caption shrink-0 border border-amber-500/40 bg-amber-500/10 px-3 py-1 font-mono text-amber-300 hover:bg-amber-500/20"
+              className="rounded-control text-caption border-charcoal-600/40 bg-charcoal-700/10 text-charcoal-300 hover:bg-charcoal-700/20 shrink-0 border px-3 py-1 font-mono"
             >
               Set up a provider →
             </button>

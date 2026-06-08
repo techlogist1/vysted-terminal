@@ -99,7 +99,7 @@ function ToolbarButton({
         "rounded-control flex size-8 items-center justify-center transition-colors",
         "disabled:pointer-events-none disabled:opacity-40",
         active
-          ? "text-amber-300"
+          ? "text-charcoal-300"
           : "text-charcoal-400 hover:bg-charcoal-800 hover:text-charcoal-100",
       )}
     >

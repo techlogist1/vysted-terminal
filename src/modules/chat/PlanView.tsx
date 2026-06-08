@@ -21,7 +21,7 @@ import type { AgentPlanView } from "@/store/chat-history";
 /** A short, human label + pill tone for a plan step's action. */
 function stepBadge(action: string, staged: boolean): { label: string; tone: string } {
   if (staged) {
-    return { label: "review", tone: "text-amber-300/90 border-amber-500/40" };
+    return { label: "review", tone: "text-charcoal-300/90 border-charcoal-600/40" };
   }
   if (action === "research" || action === "deep_research") {
     return { label: "research", tone: "text-charcoal-300 border-charcoal-600" };
@@ -61,7 +61,7 @@ export function PlanView({ plan, active }: { plan: AgentPlanView; active: boolea
   return (
     <div className="border-charcoal-700 bg-charcoal-800/40 mb-2 rounded-none border px-3 py-2">
       <div className="text-micro text-charcoal-300 mb-2 flex items-center gap-2">
-        <ListChecks className={`size-3 text-amber-400 ${active ? "animate-pulse" : ""}`} />
+        <ListChecks className={`text-charcoal-300 size-3 ${active ? "animate-pulse" : ""}`} />
         <span>Plan</span>
         <span className="text-charcoal-500">· {plan.steps.length} steps</span>
       </div>

@@ -5,8 +5,8 @@ import { Slot } from "radix-ui";
 import { cn } from "@/lib/utils";
 
 // VYSTED_DESIGN.md: rounded-control (4px) on every button; text-body (13px);
-// NO shadow; hovers are a neutral luminance step (amber stays scarce); a 1px
-// accent focus ring, never a halo. Control-size ladder is exactly TWO heights:
+// NO shadow; hovers are a neutral luminance step (monochrome — no amber); a 1px
+// neutral focus ring, never a halo. Control-size ladder is exactly TWO heights:
 // 32px standard (default / sm / lg / icon / icon-sm / icon-lg) and 24px compact
 // (xs / icon-xs), so sibling controls never misalign.
 const buttonVariants = cva(
@@ -14,12 +14,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-amber-300",
+        default: "bg-primary text-primary-foreground hover:bg-charcoal-600",
         destructive: "border border-destructive text-destructive hover:bg-destructive/10",
         outline: "border border-border bg-transparent text-foreground hover:bg-secondary",
         secondary: "bg-secondary text-secondary-foreground hover:bg-charcoal-700",
         ghost: "text-muted-foreground hover:bg-secondary hover:text-foreground",
-        link: "text-amber-300 underline-offset-4 hover:underline",
+        link: "text-charcoal-200 underline-offset-4 hover:underline",
       },
       size: {
         default: "h-8 px-3 has-[>svg]:px-2",

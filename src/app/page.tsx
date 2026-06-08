@@ -203,7 +203,7 @@ export default function Page() {
           {/* Mark-only brand — no text wordmark (Cursor/Linear-minimal). The
               accessible name lives on the mark; the document title carries "Vysted". */}
           <div className="flex items-center select-none" aria-label="Vysted" title="Vysted">
-            <span aria-hidden="true" className="rounded-control size-3 bg-amber-400" />
+            <span aria-hidden="true" className="rounded-control bg-charcoal-200 size-3" />
           </div>
           <div className="bg-charcoal-700 mx-1 h-5 w-px" aria-hidden="true" />
           <button
@@ -214,7 +214,7 @@ export default function Page() {
               "text-caption flex items-center gap-1.5 transition-colors",
               agentCollapsed
                 ? "text-charcoal-400 hover:text-lume"
-                : "text-amber-300 hover:text-amber-200",
+                : "text-charcoal-100 hover:text-lume",
             )}
             aria-label={agentCollapsed ? "Show agent panel" : "Hide agent panel"}
             title={agentCollapsed ? "Show agent panel (⌘B)" : "Hide agent panel (⌘B)"}

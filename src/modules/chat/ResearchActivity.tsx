@@ -87,7 +87,7 @@ export function ResearchActivity({ steps, active, startedAt }: ResearchActivityP
       className={cn(
         "mb-2 overflow-hidden rounded-none border",
         active
-          ? "border-amber-500/40 bg-amber-500/[0.07]"
+          ? "border-charcoal-600/40 bg-charcoal-700/[0.07]"
           : "border-charcoal-700 bg-charcoal-800/40",
       )}
       aria-label="Research activity"
@@ -98,7 +98,7 @@ export function ResearchActivity({ steps, active, startedAt }: ResearchActivityP
           <motion.span
             animate={{ rotate: 360 }}
             transition={{ repeat: Infinity, ease: "linear", duration: 2.4 }}
-            className="text-amber-400"
+            className="text-charcoal-300"
             aria-hidden
           >
             <Radar size={12} />
@@ -143,7 +143,11 @@ export function ResearchActivity({ steps, active, startedAt }: ResearchActivityP
                 <span
                   className={cn(
                     "flex h-4 w-4 shrink-0 items-center justify-center",
-                    errored ? "text-negative" : isCurrent ? "text-amber-400" : "text-charcoal-400",
+                    errored
+                      ? "text-negative"
+                      : isCurrent
+                        ? "text-charcoal-300"
+                        : "text-charcoal-400",
                   )}
                   aria-hidden
                 >
@@ -152,7 +156,7 @@ export function ResearchActivity({ steps, active, startedAt }: ResearchActivityP
                 <span
                   className={cn(
                     "shrink-0 font-medium",
-                    isCurrent ? "text-amber-300" : "text-charcoal-300",
+                    isCurrent ? "text-charcoal-300" : "text-charcoal-300",
                   )}
                 >
                   {label}
@@ -182,9 +186,9 @@ export function ResearchActivity({ steps, active, startedAt }: ResearchActivityP
       </ul>
 
       {active && (
-        <div className="relative h-0.5 w-full overflow-hidden bg-amber-500/10" aria-hidden>
+        <div className="bg-charcoal-700/10 relative h-0.5 w-full overflow-hidden" aria-hidden>
           <motion.div
-            className="absolute inset-y-0 w-1/3 bg-amber-500"
+            className="bg-charcoal-700 absolute inset-y-0 w-1/3"
             animate={{ x: ["-100%", "300%"] }}
             transition={{ repeat: Infinity, ease: "easeInOut", duration: 1.6 }}
           />
