@@ -210,10 +210,12 @@ async def test_invoke_agent_composes_system_and_context(monkeypatch: pytest.Monk
     assert [e.kind for e in events] == ["delta", "done"]
     msgs = provider.captured_messages
     assert msgs is not None
-    # 1 system (agent prompt) + 1 system (context preamble) + 1 user.
-    assert [m.role for m in msgs] == ["system", "system", "user"]
-    assert "AAPL" in msgs[1].content  # context preamble carries the symbol
-    assert msgs[2].content == "is AAPL cheap?"
+    # 1 system (agent prompt) + 1 system (session/date preamble) + 1 system
+    # (context preamble) + 1 user.
+    assert [m.role for m in msgs] == ["system", "system", "system", "user"]
+    assert "Current date:" in msgs[1].content  # session preamble anchors the clock
+    assert "AAPL" in msgs[2].content  # context preamble carries the symbol
+    assert msgs[3].content == "is AAPL cheap?"
     assert provider.captured_kwargs is not None
     assert provider.captured_kwargs["api_key"] == "sk-test"
 
@@ -333,8 +335,10 @@ async def test_invoke_agent_omits_context_when_none(monkeypatch: pytest.MonkeyPa
         pass
     msgs = provider.captured_messages
     assert msgs is not None
-    # Just system + user when no context is supplied.
-    assert [m.role for m in msgs] == ["system", "user"]
+    # System (agent prompt) + system (session/date preamble) + user when no panel
+    # context is supplied — the session preamble always rides every turn.
+    assert [m.role for m in msgs] == ["system", "system", "user"]
+    assert "Current date:" in msgs[1].content
 
 
 @pytest.mark.asyncio
@@ -406,9 +410,10 @@ async def _capture_tool_ids(monkeypatch: pytest.MonkeyPatch, **invoke_kwargs: An
     agent_runtime.reload()
     provider = _FakeProvider()
     _patch_provider(monkeypatch, provider)
+    prompt = invoke_kwargs.pop("prompt", "x")
     async for _ in agent_runtime.invoke_agent(
         agent_id="copilot",
-        prompt="x",
+        prompt=prompt,
         api_key="sk-test",
         **invoke_kwargs,
     ):
@@ -460,6 +465,31 @@ async def test_action_modes_keep_full_tool_set(monkeypatch: pytest.MonkeyPatch, 
     assert _COPILOT_MUTATORS.issubset(set(tool_ids))
 
 
+@pytest.mark.asyncio
+async def test_read_intent_retains_panel_allowlist_but_not_propose_order(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A READ intent (inferred under mode='agent') keeps the read-safe panel
+    host-actions so it can still ground the index chart — but propose_order STAYS
+    stripped (Decision 4 loosening; §6.5 read-gate intact)."""
+    tool_ids = await _capture_tool_ids(monkeypatch, prompt="how is the market today?", mode="agent")
+    selected = set(tool_ids)
+    # The 5 read-safe panel actions survive a read intent.
+    for action in (
+        "open_panel",
+        "set_chart_symbol",
+        "set_chart_indicators",
+        "arrange_layout",
+        "add_to_watchlist",
+    ):
+        assert action in selected, f"read-safe panel action {action} stripped on a read intent"
+    # The §6.5 broker mutation is STILL stripped on a read intent.
+    assert "propose_order" not in selected
+    # Data/search read tools were never stripped.
+    assert "price_data" in selected
+    assert "market_overview" in selected
+
+
 def test_invocation_request_round_trips_mode() -> None:
     """``AgentInvocationRequest`` accepts and round-trips ``mode``; it defaults to
     Ask when omitted, and ``extra='forbid'`` still rejects unknown fields."""
@@ -473,6 +503,89 @@ def test_invocation_request_round_trips_mode() -> None:
     # Invalid value rejected.
     with pytest.raises(ValidationError):
         AgentInvocationRequest(prompt="hi", mode="god")
+
+
+def test_invocation_request_round_trips_autonomy() -> None:
+    """``AgentInvocationRequest`` accepts an optional ``autonomy`` axis; it
+    defaults to None, round-trips ask/auto, and rejects an unknown value."""
+    assert AgentInvocationRequest(prompt="hi").autonomy is None
+    for a in ("ask", "auto"):
+        req = AgentInvocationRequest(prompt="hi", autonomy=a)
+        assert req.autonomy == a
+        assert req.model_dump()["autonomy"] == a
+    with pytest.raises(ValidationError):
+        AgentInvocationRequest(prompt="hi", autonomy="yolo")
+
+
+# ---------------------------------------------------------------------------
+# Truthful host-action narration (WS1 — autonomy-aware, orders exempt)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_auto_autonomy_applies_non_order_host_action() -> None:
+    """With autonomy='auto' a NON-ORDER host-action reports it APPLIED (the
+    frontend auto-applies it) so the model narrates it in past tense."""
+    local = agent_runtime._build_local_tools(None, autonomy="auto")
+    result = await local["set_chart_symbol"]({"symbol": "SPY"})
+    assert result["ok"] is True
+    assert result["status"] == "applied"
+    assert result["applied"] is True
+    assert result["host_action"] == {"type": "set_chart_symbol", "args": {"symbol": "SPY"}}
+
+
+@pytest.mark.asyncio
+async def test_ask_autonomy_stages_non_order_host_action() -> None:
+    """With autonomy='ask' (or omitted) a non-order host-action stays STAGED for
+    the user's review — the model must not claim it is done."""
+    for autonomy in ("ask", None):
+        local = agent_runtime._build_local_tools(None, autonomy=autonomy)
+        result = await local["open_panel"]({"panel": "news"})
+        assert result["status"] == "awaiting_user_review"
+        assert result["staged_for_review"] is True
+
+
+@pytest.mark.asyncio
+async def test_propose_order_always_awaits_review_even_in_auto() -> None:
+    """SAFETY (§6.5): propose_order returns awaiting_user_review in EVERY autonomy
+    mode — the AI has NO path to auto-apply an order."""
+    for autonomy in ("auto", "ask", None):
+        local = agent_runtime._build_local_tools(None, autonomy=autonomy)
+        result = await local["propose_order"]({"symbol": "AAPL", "side": "buy", "quantity": 1})
+        assert result["status"] == "awaiting_user_review", (
+            f"propose_order auto-applied under autonomy={autonomy!r} — §6.5 VIOLATION"
+        )
+        assert result.get("applied") is not True
+        assert result.get("status") != "applied"
+
+
+def test_session_preamble_anchors_the_server_clock() -> None:
+    """The session preamble leads with the live server date + the stale-data
+    directive so a time-sensitive turn must fetch live data, not recall it."""
+    preamble = agent_runtime._render_session_preamble()
+    assert "Current date:" in preamble
+    assert "training data is STALE" in preamble
+    assert "MUST call a tool" in preamble
+
+
+@pytest.mark.asyncio
+async def test_composed_messages_carry_the_session_date_line(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The composed message list handed to the adapter contains a 'Current date:'
+    system line on every turn (the grounding fix for symptom #1)."""
+    agent_runtime.reload()
+    provider = _FakeProvider()
+    _patch_provider(monkeypatch, provider)
+    async for _ in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="hello",
+        api_key="sk-test",
+    ):
+        pass
+    msgs = provider.captured_messages
+    assert msgs is not None
+    assert any("Current date:" in m.content for m in msgs if m.role == "system")
 
 
 def test_get_agent_resolves_a_custom_agent(

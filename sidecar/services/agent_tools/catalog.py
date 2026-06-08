@@ -235,6 +235,30 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
         ),
+        _cap(
+            "market_overview",
+            description=(
+                "Locale-aware market-state snapshot in ONE call — call this FIRST "
+                "for a broad market question ('how's the market today', 'what "
+                "moved'). Resolves the user's benchmark indices (US: S&P 500 / "
+                "Nasdaq / Dow + SPY/QQQ; IN: Nifty 50 / Sensex), fetches a live "
+                "quote for each, and pulls recent market headlines. Returns "
+                "{region, indices:[...], headlines:[...]}. Synthesize from it — "
+                "never answer market state from memory."
+            ),
+            input_schema=_obj(
+                {
+                    "region": {
+                        "type": "string",
+                        "enum": ["US", "IN", "GLOBAL"],
+                        "description": ("Optional locale override; defaults to the active region."),
+                    }
+                }
+            ),
+            domain="news",
+            read_only=True,
+            kind="read_handler",
+        ),
         # --- web search (Pass B / Pillar C) ----------------------------------
         _cap(
             "web_search",

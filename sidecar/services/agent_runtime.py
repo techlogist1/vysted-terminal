@@ -25,6 +25,7 @@ import asyncio
 import json
 import logging
 from collections.abc import AsyncIterator, Callable
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -56,6 +57,14 @@ from services.planner import classify_intent, decompose
 #: order verb — so a plan never touches the §6.5 path).
 _STAGEABLE_PLAN_ACTIONS = frozenset(
     {"open_panel", "set_chart_symbol", "set_chart_indicators", "add_to_watchlist", "arrange_layout"}
+)
+
+#: Read-safe panel host-actions RETAINED on a READ intent (locked Decision 4): a
+#: read question may still ground itself by pulling up the relevant chart / index /
+#: layout. These mutate only the cockpit view, never the broker — ``propose_order``
+#: is DELIBERATELY absent, so a read turn can never reach the §6.5 order path.
+_READ_SAFE_PANEL_ACTIONS = frozenset(
+    {"open_panel", "set_chart_symbol", "set_chart_indicators", "arrange_layout", "add_to_watchlist"}
 )
 
 #: Providers reliable enough at instruction-following for the visible planner. The
@@ -303,6 +312,27 @@ def _coerce_history(raw: Any) -> list[LLMMessage]:
     return out[-10:]  # cap at ~10 turns to bound tokens
 
 
+def _render_session_preamble() -> str:
+    """Anchor the turn in the SERVER clock + the user's locale and forbid answering
+    a time-sensitive question from (stale) training memory.
+
+    The model's training data is frozen at a cutoff; "today"/"now"/"latest"/a
+    price/market-state must be fetched live, never recalled. This line-group is
+    prepended as a system message so it leads every turn — the highest-leverage
+    fix for the "answers from memory" failure (symptom #1)."""
+    now = datetime.now(UTC)
+    today = now.strftime("%Y-%m-%d")
+    weekday = now.strftime("%A")
+    region = config.get_region()
+    return (
+        f"Current date: {today} ({weekday}). Session locale: {region}.\n"
+        'Your training data is STALE. For anything time-sensitive ("today", "now", '
+        '"latest", "current", "this week", a price, market state, or breaking news) '
+        "you MUST call a tool to fetch live data before answering — never answer from "
+        "memory. If you cannot fetch it, say so plainly; do not invent specifics."
+    )
+
+
 def _compose_messages(
     spec: AgentSpec,
     prompt: str,
@@ -311,6 +341,7 @@ def _compose_messages(
 ) -> list[LLMMessage]:
     """Build the system + context + history + user message list for the call."""
     messages: list[LLMMessage] = [LLMMessage(role="system", content=spec.system_prompt)]
+    messages.append(LLMMessage(role="system", content=_render_session_preamble()))
     preamble = _build_context_preamble(context)
     if preamble:
         messages.append(LLMMessage(role="system", content=preamble))
@@ -556,18 +587,23 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
 
 def _build_local_tools(
     snapshot: AgentContextSnapshot | None,
+    autonomy: str | None = None,
 ) -> dict[str, LocalToolHandler]:
     """Per-invocation tool handlers that need request scope or drive the host.
 
     ``get_terminal_state`` / ``get_portfolio`` return state passed in the request
     (the sidecar can't read the frontend's stores). The host-action tools return
-    a synthetic result carrying a ``host_action`` directive — but the action is
-    STAGED for the user's review (the diff/accept trust gate, FR-010), NOT applied
-    immediately. So every host action reports ``awaiting_user_review`` (not
-    ``applied``): the model must tell the user it *proposed* the change for review,
-    never that it already happened. ``propose_order`` is the same shape (§6.5 — the
-    AI has no path to ``confirm_and_place``). The frontend stages the directive in
-    the proposed-changes queue and applies it only on the user's accept.
+    a synthetic result carrying a ``host_action`` directive whose narration tracks
+    the user's autonomy: with ``autonomy="auto"`` a NON-ORDER action is applied
+    immediately (the frontend's auto-apply lands it), so the result says
+    ``applied`` and the model narrates it in PAST tense; otherwise (``ask`` /
+    unknown) the action is STAGED in the diff/accept trust gate (FR-010), reports
+    ``awaiting_user_review``, and the model must say it *proposed* the change, not
+    that it happened. ``propose_order`` is EXEMPT from the auto path (§6.5): it
+    always returns ``awaiting_user_review`` in EVERY mode — the AI has no path to
+    ``confirm_and_place``. The frontend honours the same split (orders are excluded
+    from the auto-apply branch in proposed-changes), so this narration matches what
+    actually lands.
     """
     from services.agent_tools.schemas import HOST_ACTION_TOOLS
 
@@ -591,13 +627,26 @@ def _build_local_tools(
     def _make_host_action(tool_id: str) -> LocalToolHandler:
         async def _handler(args: dict[str, Any]) -> dict[str, Any]:
             if tool_id == "propose_order":
+                # UNCHANGED — orders always staged, every mode (§6.5). The AI has
+                # no path to auto-apply an order, regardless of autonomy.
                 return {
                     "ok": True,
                     "proposal_created": True,
                     "status": "awaiting_user_review",
                     "host_action": {"type": tool_id, "args": args},
                 }
-            return {
+            if autonomy == "auto":
+                # NON-ORDER action with auto-apply on: the frontend lands it
+                # immediately. Narrate it in past tense.
+                return {
+                    "ok": True,
+                    "status": "applied",
+                    "applied": True,
+                    "note": "Applied immediately (auto-apply is on). "
+                    "Tell the user it is done, in past tense.",
+                    "host_action": {"type": tool_id, "args": args},
+                }
+            return {  # ask / unknown -> current behavior
                 "ok": True,
                 "status": "awaiting_user_review",
                 "staged_for_review": True,
@@ -622,6 +671,7 @@ async def invoke_agent(
     model: str | None = None,
     options: dict[str, Any] | None = None,
     mode: str = "ask",
+    autonomy: str | None = None,
     on_round_usage: Callable[[LLMUsage, str], None] | None = None,
 ) -> AsyncIterator[LLMStreamEvent]:
     """Invoke a registered agent and stream its response.
@@ -671,11 +721,24 @@ async def invoke_agent(
         read_only = mode == "ask"
     if read_only:
         # Strip every mutating capability SERVER-SIDE so a read turn can never drive
-        # the host or propose an order — drops the host-action mutators (open_panel,
-        # set_chart_symbol, add_to_watchlist) + propose_order (all read_only=False),
-        # keeping read tools + the per-invocation get_terminal_state/get_portfolio.
-        # Enforced here, not in the adapter, so an external MCP client can't bypass it.
-        tool_ids = [t for t in tool_ids if catalog.is_read_only(t) is True]
+        # the host or propose an order — enforced here, not in the adapter, so an
+        # external MCP client can't bypass it.
+        #
+        # Decision 4 (pre-approved): on an INFERRED read intent under the collapsed
+        # "agent" mode, RETAIN a small read-safe panel allow-list (open_panel /
+        # set_chart_symbol / set_chart_indicators / arrange_layout / add_to_watchlist)
+        # so a read question can still GROUND itself by pulling up the relevant chart
+        # / index (e.g. "how's the market" -> set_chart_symbol on SPY). propose_order
+        # STAYS stripped on a read intent (§6.5); data/search read tools were never
+        # stripped (read_only=True). The legacy "ask" mode keeps the STRICT gate
+        # (full strip) for back-compat — only the inferred-read path is loosened.
+        keep_panel_actions = inferred_intent == "read"
+        tool_ids = [
+            t
+            for t in tool_ids
+            if catalog.is_read_only(t) is True
+            or (keep_panel_actions and t in _READ_SAFE_PANEL_ACTIONS)
+        ]
 
     # Web-search tier dispatch (FR-080/081). On the NATIVE tier with a
     # native-capable provider, ride the model's own server-side search (the
@@ -693,7 +756,7 @@ async def invoke_agent(
         opts["web_search_max_uses"] = _WEB_SEARCH_CAP
         tool_ids = [t for t in tool_ids if t != "web_search"]
 
-    local_tools = _build_local_tools(context_snapshot)
+    local_tools = _build_local_tools(context_snapshot, autonomy)
     messages = _compose_messages(spec, prompt, context_snapshot, history)
     adapter = get_provider(provider_id)
 

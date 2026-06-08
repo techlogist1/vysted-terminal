@@ -59,6 +59,14 @@ def register_v0_6_0_tools() -> None:
     news_tool.register()
     registered.append("news")
 
+    # Market overview — locale-aware market-state snapshot (indices + headlines)
+    # for a broad "how's the market today" question. Read-only; reuses the
+    # provider_registry quote path + the news provider (no new data fetching).
+    from services.agent_tools import market_overview
+
+    market_overview.register()
+    registered.append("market_overview")
+
     # Pass B (B1) — locale-aware symbol resolution (name/ticker -> instrument).
     from services.agent_tools import resolve_symbol
 

@@ -696,8 +696,13 @@ export function ChatSidebar() {
               markBriefPublished(assistantId);
             } else {
               // Reflect the ACTUAL autonomy: AUTO auto-applied (no "review below"
-              // phantom), ASK queued it for the diff gate below.
-              const auto = useAgentAutonomyStore.getState().autonomy === "auto";
+              // phantom), ASK queued it for the diff gate below. ORDERS are EXEMPT
+              // from auto-apply (§6.5; proposed-changes excludes kind === "order"),
+              // so an order always stages — never narrate it as "Applied", in any
+              // mode, or the transcript would lie about an unconfirmed order.
+              const auto =
+                useAgentAutonomyStore.getState().autonomy === "auto" &&
+                change?.kind !== "order";
               const title = change?.title ?? name;
               appendToolStep(
                 assistantId,
@@ -736,6 +741,10 @@ export function ChatSidebar() {
             provider,
             model,
             mode,
+            // Autonomy rides the request so the sidecar narrates host-actions
+            // truthfully (auto = applied/past-tense, ask = staged for review).
+            // Orders always need confirmation regardless (§6.5).
+            autonomy: useAgentAutonomyStore.getState().autonomy,
             apiKey: apiKey ?? undefined,
             options: { history, ...deepResearchOptions },
           },

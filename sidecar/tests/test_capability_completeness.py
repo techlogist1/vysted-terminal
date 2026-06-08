@@ -23,6 +23,7 @@ OBVIOUS_ACTIONS: tuple[str, ...] = (
     "price_data",
     "fundamentals",
     "news",
+    "market_overview",
     "sec_filings_list",
     "compare_symbols",
     "set_chart_indicators",
@@ -111,3 +112,23 @@ def test_copilot_grants_b2_actions() -> None:
     tools = _copilot_tools()
     assert "set_chart_indicators" in tools
     assert "compare_symbols" in tools
+
+
+def test_copilot_grants_market_overview_and_roster_count() -> None:
+    """WS1: market_overview is wired into the copilot's tool roster, which now
+    totals 34 tools (33 + market_overview)."""
+    tools = _copilot_tools()
+    assert "market_overview" in tools, (
+        "copilot.json 'tools' is missing 'market_overview' — the copilot cannot reach it"
+    )
+    assert len(tools) == 34, f"copilot tool roster expected 34, got {len(tools)}"
+
+
+def test_market_overview_is_a_read_handler() -> None:
+    """market_overview is a SAFE-auto read_handler (read_only=True), auto-projected
+    to the model schema + allow-list + MCP surface by the catalog."""
+    cap = CAPABILITY_CATALOG["market_overview"]
+    assert cap.kind == "read_handler"
+    assert cap.read_only is True
+    assert cap.internal is True
+    assert cap.mcp is True  # read_handler (not in _MCP_INTERNAL_ONLY) → exposed on MCP

@@ -89,6 +89,11 @@ class AgentInvocationRequest(BaseModel):
     #: ``build`` values are accepted for back-compat: ``ask`` is read-only, the
     #: others pass the full tool set (§6.5 still governs ``propose_order``).
     mode: Literal["agent", "ask", "edit", "build", "delegate"] = "ask"
+    #: Autonomy axis (Claude-Code-style), ORTHOGONAL to ``mode``: ``auto`` means
+    #: non-order host-actions apply immediately (the agent narrates them in past
+    #: tense); ``ask`` (or omitted) means they stage in the review queue. NEVER a
+    #: path around §6.5 — ``propose_order`` always stages, in every autonomy mode.
+    autonomy: Literal["ask", "auto"] | None = None
 
 
 class AgentInvocationResult(BaseModel):
