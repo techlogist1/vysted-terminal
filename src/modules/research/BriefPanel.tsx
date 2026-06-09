@@ -172,7 +172,6 @@ function FaviconDot({ domain }: { domain: string }) {
     // Favicon is best-effort: Google's S2 service, falling back to a neutral
     // dot if it 404s or the user is offline. `referrerPolicy=no-referrer` keeps
     // the brief query out of the request.
-    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`}
       alt=""

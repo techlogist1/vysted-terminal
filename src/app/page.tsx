@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect } from "react";
 import { MotionConfig } from "framer-motion";
 import { LayoutGrid, PanelLeftClose, PanelLeftOpen, Save, Settings2 } from "lucide-react";

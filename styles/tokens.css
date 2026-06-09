@@ -83,11 +83,14 @@
   --color-warning: #e0a13a; /* stale / paper / caution badge */
 
   /* --- Typography -- ONE monospace family (JetBrains Mono) across EVERY text
-   * role (VYSTED_DESIGN.md). next/font supplies --font-jetbrains-mono in
-   * src/app/layout.tsx. ALL THREE family slots resolve to it, so even a stray
-   * `font-sans`/`font-serif` utility renders mono -- there is no second face.
-   * The slot NAMES (serif/sans) are historical. Numerics use tabular figures +
-   * slashed zero (set in globals.css). */
+   * role (VYSTED_DESIGN.md). @fontsource/jetbrains-mono self-hosts the face
+   * (imported in src/main.tsx); --font-jetbrains-mono is defined HERE so the
+   * three family slots plus every canvas component reading it via
+   * getComputedStyle resolve without a framework font loader. ALL THREE slots
+   * resolve to it, so even a stray `font-sans`/`font-serif` utility renders
+   * mono -- there is no second face. The slot NAMES (serif/sans) are
+   * historical. Numerics use tabular figures + slashed zero (globals.css). */
+  --font-jetbrains-mono: "JetBrains Mono";
   --font-sans: var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace;
   --font-serif: var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace;

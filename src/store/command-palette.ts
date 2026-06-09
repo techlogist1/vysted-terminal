@@ -175,7 +175,6 @@ export const useCommandPalette = create<CommandPaletteState>((set) => ({
   recents: [],
   // legacy compat
   commands: [],
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   setCommands: (_c) => {
     // no-op — corpus is now built on-demand from live stores
   },

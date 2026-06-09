@@ -126,6 +126,12 @@
     overscroll-behavior: none;
   }
 
+  /* Vite mounts the app inside #root (Next rendered children directly under
+     body) -- continue the fixed-viewport height chain through it. */
+  #root {
+    height: 100%;
+  }
+
   /* Flat pure-neutral field. No ambient glow, no grain, no vignette, no
      gradient -- a single flat neutral near-black (#0a0a0a). The peach accent
      (live-agent activity only) and the content hierarchy carry the eye. */
