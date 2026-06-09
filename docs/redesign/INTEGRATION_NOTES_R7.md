@@ -78,3 +78,29 @@ states what the lead must wire (or verify needs no wiring) when merging.
   attachments resolve under
   `https://www.bseindia.com/xml-data/corpfiling/AttachLive/<ATTACHMENTNAME>`
   (verified 200 `application/pdf`; `AttachHis` 404s for current filings).
+
+## Component 4 — deterministic symbol resolution (`services/symbol_resolver.py`)
+
+- **No router/app wiring needed.** The change is internal to
+  `symbol_resolver.py` (BSE master joins resolve/autocomplete; live-lookup
+  `.BO`→BSE contradiction fixed) — the already-registered `/resolve` and
+  `/history` routers pick it up with no signature/wire-shape change.
+- **`types/data.ts` unchanged** — no sidecar model was added or modified
+  (the `Instrument` dataclass gained no fields; the wire payload is identical,
+  only the values are now consistent).
+- **Wire-visible behaviour changes** the frontend may rely on:
+  - `GET /resolve?q=ICONIKSPEV&region=IN` → `exchange:"BSE"`,
+    `yahoo_symbol:"ICONIKSPEV.BO"`, `confidence:1.0` (was the NSE/.BO
+    contradiction at 0.6 via live lookup).
+  - A dual-listed bare ticker (e.g. RELIANCE) resolves best=NSE with the BSE
+    row riding `candidates` — pickers that render candidates will now show
+    both exchanges, NSE first.
+  - An explicit `.BO` query pins the BSE identity (previously rewritten to
+    the NSE row for dual-listed names).
+  - `/resolve/autocomplete` now surfaces BSE-only micro-caps (exchange
+    `"BSE"`); dual-listed names stay single-row (NSE canonical).
+- **smoke-test**: `scripts/smoke-test-sidecars.mjs` gained a HARD ICONIKSPEV
+  resolve check against the spawned binary (fails the run if the regenerated
+  BSE master is not bundled or resolution regresses) and a no-SLA
+  `/history/ICONIKSPEV` live-bars probe (warn-only). If the lead's track
+  changes `ensure-sidecar.mjs` --add-data, this probe is the canary.

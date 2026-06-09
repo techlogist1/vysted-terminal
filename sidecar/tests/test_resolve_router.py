@@ -124,3 +124,55 @@ def test_resolve_normalizes_bad_region_to_us(client: TestClient) -> None:
 def test_resolve_is_read_only_get(client: TestClient) -> None:
     # The mention surface is read-only: the route accepts GET and rejects POST.
     assert client.post("/resolve", params={"q": "AAPL"}).status_code == 405
+
+
+def test_resolve_iconikspev_consistent_bse_identity(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R7 Component 4 acceptance — the live defect was exchange 'NSE' with
+    yahoo_symbol 'ICONIKSPEV.BO' at confidence 0.6 (a live-lookup contradiction).
+    With the regenerated BSE master the route answers deterministically: a
+    consistent BSE identity at confidence 1.0, masters-only (no network)."""
+    monkeypatch.setattr(
+        symbol_resolver,
+        "_live_lookup",
+        lambda *_a, **_k: pytest.fail("live lookup fired for a bundled-master symbol"),
+    )
+    resp = client.get("/resolve", params={"q": "ICONIKSPEV", "region": "IN"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["ok"] is True
+    resolved = body["resolved"]
+    assert resolved["symbol"] == "ICONIKSPEV"
+    assert resolved["exchange"] == "BSE"
+    assert resolved["region"] == "IN"
+    assert resolved["yahoo_symbol"] == "ICONIKSPEV.BO"
+    assert resolved["confidence"] == 1.0
+    assert body["needs_disambiguation"] is False
+    # Wire-level hygiene: every candidate's exchange agrees with its suffix.
+    for c in body["candidates"]:
+        suffix = {"NSE": ".NS", "BSE": ".BO", "US": ""}[c["exchange"]]
+        assert c["yahoo_symbol"] == c["symbol"] + suffix
+
+
+def test_resolve_dual_listed_carries_both_exchanges(client: TestClient) -> None:
+    """A dual-listed name resolves NSE-first but the BSE row rides the candidate
+    list (retained for BSE-only fundamentals/announcements)."""
+    resp = client.get("/resolve", params={"q": "RELIANCE", "region": "IN"})
+    body = resp.json()
+    assert body["ok"] is True
+    assert body["resolved"]["exchange"] == "NSE"
+    assert body["resolved"]["yahoo_symbol"] == "RELIANCE.NS"
+    exchanges = [c["exchange"] for c in body["candidates"]]
+    assert "NSE" in exchanges and "BSE" in exchanges
+    assert exchanges.index("NSE") < exchanges.index("BSE")
+
+
+def test_autocomplete_route_mobile_first_hit_is_route(client: TestClient) -> None:
+    """Autocomplete acceptance: 'Route Mobile' still → ROUTE (NSE canonical row)
+    with the full BSE master in the masters-only scan."""
+    resp = client.get("/resolve/autocomplete", params={"q": "Route Mobile", "region": "IN"})
+    assert resp.status_code == 200
+    cands = resp.json()["candidates"]
+    assert cands and cands[0]["symbol"] == "ROUTE"
+    assert cands[0]["exchange"] == "NSE"

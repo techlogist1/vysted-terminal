@@ -199,6 +199,21 @@ async function _httpGetOk(url, timeoutMs = 1500) {
   }
 }
 
+/** GET a JSON endpoint with a single timeout; null on any failure. */
+async function _httpGetJson(url, timeoutMs = 5000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const resp = await fetch(url, { signal: ctrl.signal });
+    if (!resp.ok) return null;
+    return await resp.json();
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 /**
  * No-SLA probe of the BSE EOD BhavCopy endpoint (WS6). The keyless BSE provider
  * (`sidecar/services/bse_provider.py`) assembles EOD history from this daily
@@ -465,6 +480,48 @@ async function _smokeTestMainSidecar(triple) {
   const universeUrl = `http://127.0.0.1:${port}/screener/universe?id=sp500`;
   console.log(`[smoke] vysted-sidecar: probing screener universe endpoint ...`);
   const universeOk = await _httpGetOk(universeUrl, 5000);
+
+  // ICONIKSPEV resolve check (R7 Component 4, HARD) — verifies the regenerated
+  // BSE scrip master under services/resolver_masters/ rides the frozen binary
+  // AND that resolution is deterministic + internally consistent. ICONIKSPEV is
+  // a BSE-only group-X micro-cap: the bundled-master path answers offline with
+  // a CONSISTENT BSE identity (exchange "BSE" ↔ yahoo_symbol ".BO", confidence
+  // 1.0). The historic defect — exchange "NSE" with yahoo "ICONIKSPEV.BO" at
+  // 0.6 — meant the live fallback fired because the seeded master was a 2-row
+  // placeholder; any regression to that state fails the smoke run here.
+  const resolveUrl = `http://127.0.0.1:${port}/resolve?q=ICONIKSPEV&region=IN`;
+  console.log(`[smoke] vysted-sidecar: probing ICONIKSPEV resolution (masters-only) ...`);
+  const resolveBody = await _httpGetJson(resolveUrl, 5000);
+  const resolved = resolveBody && resolveBody.ok === true ? resolveBody.resolved : null;
+  const resolveOk =
+    resolved !== null &&
+    resolved.symbol === "ICONIKSPEV" &&
+    resolved.exchange === "BSE" &&
+    resolved.yahoo_symbol === "ICONIKSPEV.BO" &&
+    resolved.region === "IN" &&
+    resolved.confidence === 1.0;
+
+  // /history/ICONIKSPEV probe (no-SLA) — the full bhavcopy lane needs live BSE
+  // (rate-limited, geo-fenced, holiday-gapped, often no outbound net in CI), so
+  // real EOD bars are a bonus signal, never a gate. The offline equivalent is
+  // pinned by sidecar/tests/test_history.py::
+  // test_history_iconikspev_serves_real_bars_from_bhavcopy.
+  const historyUrl = `http://127.0.0.1:${port}/history/ICONIKSPEV?timeframe=1d&range=1mo`;
+  console.log(`[smoke] vysted-sidecar: probing /history/ICONIKSPEV (no-SLA, live BSE) ...`);
+  const historyBody = await _httpGetJson(historyUrl, 30000);
+  if (historyBody && Array.isArray(historyBody.bars) && historyBody.bars.length > 0) {
+    console.log(
+      `[smoke] /history/ICONIKSPEV OK (${historyBody.bars.length} EOD bars, ` +
+        `provider=${historyBody.provider}).`,
+    );
+  } else {
+    console.warn(
+      `[smoke] WARN: /history/ICONIKSPEV returned no bars (no-SLA — not a failure). ` +
+        `Benign when BSE is unreachable from this network; reason=` +
+        `${historyBody ? JSON.stringify(historyBody.reason) : "<no response>"}.`,
+    );
+  }
+
   await _teardown(child);
   await rm(dataDir, { recursive: true, force: true });
   if (!universeOk) {
@@ -480,6 +537,19 @@ async function _smokeTestMainSidecar(triple) {
     );
   }
   console.log(`[smoke] vysted-sidecar screener universe OK.`);
+  if (!resolveOk) {
+    throw new Error(
+      `[smoke] vysted-sidecar FAILED ICONIKSPEV resolve probe: ` +
+        `GET ${resolveUrl} → ${JSON.stringify(resolved)}. ` +
+        `Expected the deterministic BSE identity {symbol:"ICONIKSPEV", exchange:"BSE", ` +
+        `yahoo_symbol:"ICONIKSPEV.BO", region:"IN", confidence:1}. Root cause is one of: ` +
+        `(a) services/resolver_masters/bse_instruments.json not bundled (--add-data gap ` +
+        `in scripts/ensure-sidecar.mjs), (b) the master regressed to the 2-row placeholder ` +
+        `(rerun sidecar/services/resolver_masters/regenerate_bse_master.py), or (c) the ` +
+        `resolver lost its BSE exact-ticker stage (services/symbol_resolver.py).`,
+    );
+  }
+  console.log(`[smoke] vysted-sidecar ICONIKSPEV resolution OK (deterministic BSE identity).`);
 }
 
 /**

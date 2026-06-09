@@ -237,6 +237,111 @@ Full sidecar pytest after the change: `1508 passed, 1 skipped in 31.42s`
   tunings — revisit if real charts need >2y exchange-direct (jugaad currently
   serves those ranges).
 
-## Components 3–4
+## Component 3 — corporate disclosures (shipped)
 
-Not yet in this run's completed scope. See `R7_TRACK_DATA_BRIEF.md`.
+Shipped in commit `d005a6d` (`services/corporate_disclosures.py`,
+`routers/disclosures.py`, `models/announcements.py` + the `types/data.ts`
+mirror, catalog capabilities `corporate_announcements` / `shareholding_pattern`,
+copilot + researcher allow-lists). Lead wiring + live caveats are recorded in
+`INTEGRATION_NOTES_R7.md` (Component 3 entry); fixtures under
+`sidecar/tests/fixtures/{bse,nse}/` are verbatim trims of live captures.
+
+## Component 4 — deterministic symbol resolution (master hygiene)
+
+### What shipped
+
+- `sidecar/services/symbol_resolver.py` — the BSE master joined resolution as a
+  first-class stage, with the hygiene invariants documented in the module
+  docstring (confidence model + "one canonical row per instrument"):
+  - `_instrument_bse` (line 277) — the third instrument builder; exchange
+    `"BSE"` ↔ `yahoo_symbol "<SYM>.BO"` **by construction**, so the exchange
+    field can never disagree with the suffix again.
+  - `_suffix_exchange` (line 248) — finer-grained than
+    `locale.region_for_suffix`: `.NS` pins NSE, `.BO` pins BSE. The old code
+    mapped both suffixes to "IN" and answered a `.BO` query with the NSE row.
+  - `resolve` exact stage (line 347) — a bare dual-listed ticker now carries
+    BOTH exchanges (NSE appended first; the stable sort keeps NSE preferred on
+    the tied 1.0 score, BSE retained as a candidate for BSE-only
+    fundamentals/announcements). `RELIANCE.BO` resolves to the BSE identity,
+    never silently rewritten to `.NS`.
+  - `resolve` fuzzy stage (line 368) + `autocomplete` (line 455) — scan the
+    BSE master for **BSE-only** names (the 2,481 micro-caps NSE never listed);
+    dual-listed symbols are skipped so the canonical NSE row is the only row
+    for that instrument (no duplicate listings in the picker).
+  - `_live_lookup` (line 472) — the CONTRADICTION fix at the source: a `.BO`
+    search hit now maps to exchange `"BSE"` via `_suffix_exchange` (it used to
+    hardcode `"NSE"` for any India suffix — the exact live defect:
+    `exchange:"NSE", yahoo_symbol:"ICONIKSPEV.BO", confidence:0.6`).
+  - `region_hint` (line 219, logic unchanged) now covers the FULL regenerated
+    masters because the BSE master is real: a bare BSE-only ticker → `IN`,
+    which is what makes the `/history` route's `in_eod_only` honest reason fire
+    (`routers/history.py:25-28`).
+- `sidecar/services/agent_tools/resolve_symbol.py` — honest-miss message names
+  the BSE master too (line 62).
+- `scripts/smoke-test-sidecars.mjs` — two new probes against the SPAWNED
+  binary: a **HARD** ICONIKSPEV resolve check (line 484; deterministic,
+  masters-bundled — catches both a `--add-data` bundling regression and a
+  master/resolver regression) and a **no-SLA** `/history/ICONIKSPEV` live-bars
+  probe (line 504). `_httpGetJson` helper at line 203.
+- Tests:
+  - `sidecar/tests/test_symbol_resolver.py` — ICONIKSPEV deterministic-BSE
+    acceptance (live lookup monkeypatched to FAIL, proving masters-only),
+    dual-listed both-exchanges/NSE-preferred, `.BO`-pins-BSE, BSE-only fuzzy
+    name, the `.BO`-live-lookup regression, the exchange↔suffix invariant
+    scanned over EVERY row of all three masters, `region_hint` full-master
+    coverage scan, one-canonical-row dedupe, "Route Mobile" → ROUTE, BSE
+    micro-cap autocomplete, and a 25-query keystroke-speed budget.
+  - `sidecar/tests/test_resolve_router.py` — wire-level ICONIKSPEV consistency
+    (confidence 1.0 + per-candidate exchange↔suffix hygiene), dual-listing on
+    the wire, autocomplete acceptance.
+  - `sidecar/tests/test_history.py::test_history_iconikspev_serves_real_bars_from_bhavcopy`
+    — the offline end-to-end acceptance: route → registry → NSE lanes
+    fast-fail → `bse_provider` serves real bars from a fixture bhavcopy row by
+    scrip code; `provider:"bse"`, `reason:null`.
+
+### Verification (offline)
+
+```
+pytest tests/test_symbol_resolver.py tests/test_resolve_router.py
+       tests/test_history.py tests/test_bse_provider.py
+       tests/test_resolve_symbol_tool.py tests/test_data_depth.py
+       tests/test_india_provider.py tests/test_nse_provider.py
+       tests/test_provider_registry_region.py
+       tests/test_regenerate_bse_master.py tests/test_region_middleware.py -q
+121 passed in 3.44s
+```
+
+Full sidecar pytest after the change: `1551 passed, 1 skipped in 33.22s`
+(exit 0). Ruff format + check clean; the smoke script is prettier-clean and
+`node --check` clean.
+
+### Live probe (2026-06-10 IST, scratch run from this worktree)
+
+```
+resolve ICONIKSPEV: Instrument(symbol='ICONIKSPEV', name='Iconik Sports And
+  Events Ltd', exchange='BSE', region='IN', asset_class='equity',
+  yahoo_symbol='ICONIKSPEV.BO', score=1.0)
+scrip code: 511260 | region_hint: IN
+resolve RELIANCE best: NSE RELIANCE.NS
+RELIANCE candidates: [('NSE', 'RELIANCE.NS'), ('BSE', 'RELIANCE.BO')]
+autocomplete Route Mobile: [('ROUTE', 'NSE', 0.98)]
+LIVE history provider: bse bars: 8
+   2026-06-05 O 44.2 H 45.68 L 44.2 C 45.1 V 1327.0
+   2026-06-08 O 44.2 H 45.5 L 42.85 C 44.44 V 18221.0
+   2026-06-09 O 44.99 H 44.99 L 42.31 C 43.09 V 5757.0
+```
+
+The resolve lane is fully deterministic/offline (bundled masters); the history
+lane downloaded live bhavcopies and located ICONIKSPEV's rows by
+`FinInstrmId == 511260` — both defects from the brief's catalogue are closed.
+
+### NEEDS-MANUAL-CHECK
+
+- 72 tickers collide between the BSE and US masters (ADR-style spellings);
+  `region_hint` honestly returns `None` for those and the user locale breaks
+  the tie — same policy as the long-standing NSE/US INFY case. No action unless
+  a real user hit shows a wrong default.
+- The smoke-script ICONIKSPEV resolve check is HARD; if a future master
+  regeneration ever drops the scrip (delisting), the probe message names the
+  three possible root causes — swap the acceptance symbol for another BSE-only
+  group-X name in the same commit that refreshes the master.
