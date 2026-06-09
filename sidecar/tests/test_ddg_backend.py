@@ -163,6 +163,42 @@ def test_lite_fallback_when_html_empty() -> None:
     assert any("lite.duckduckgo.com" in u for u in client.calls)
 
 
+def test_403_falls_back_to_impersonated_transport(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R7 T1 hardening: a DDG 403 (TLS-fingerprint block) gets ONE retry over
+    the curl_cffi Chrome-impersonation lane before counting as a failure."""
+    from services.search import transport as transport_module
+    from services.search.transport import FetchResult
+
+    impersonated_calls: list[str] = []
+
+    async def _fake_impersonated(url, *, params=None, data=None, headers=None, **kw):  # noqa: ANN001, ANN202
+        impersonated_calls.append(url)
+        return FetchResult(status_code=200, text=_FIXTURE, url=url)
+
+    monkeypatch.setattr(transport_module, "impersonated_fetch", _fake_impersonated)
+    client = _FakeClient(_FakeResp("denied", status=403))
+    resp = _run(DdgSearchBackend(client=client).search("nvda"))
+    assert len(resp.results) == 2
+    assert resp.results[0].url == "https://example.com/nvda"
+    assert impersonated_calls and "duckduckgo.com" in impersonated_calls[0]
+
+
+def test_403_with_failed_impersonation_raises_unreachable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services.search import transport as transport_module
+    from services.search.transport import FetchResult
+
+    async def _still_blocked(url, *, params=None, data=None, headers=None, **kw):  # noqa: ANN001, ANN202
+        return FetchResult(status_code=403, text="denied", url=url)
+
+    monkeypatch.setattr(transport_module, "impersonated_fetch", _still_blocked)
+    client = _FakeClient(_FakeResp("denied", status=403))
+    with pytest.raises(SearchError) as excinfo:
+        _run(DdgSearchBackend(client=client).search("nvda"))
+    assert excinfo.value.reason == SEARCH_REASON_UNREACHABLE
+
+
 # --- WS7: proactive token-bucket rate-limiter ------------------------------
 #
 # These tests drive the bucket LOGIC with an INJECTED clock — no real-time
