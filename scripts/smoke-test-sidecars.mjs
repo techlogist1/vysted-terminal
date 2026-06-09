@@ -199,6 +199,21 @@ async function _httpGetOk(url, timeoutMs = 1500) {
   }
 }
 
+/** GET a JSON endpoint with a single timeout; null on any failure. */
+async function _httpGetJson(url, timeoutMs = 5000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const resp = await fetch(url, { signal: ctrl.signal });
+    if (!resp.ok) return null;
+    return await resp.json();
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 /**
  * No-SLA probe of the BSE EOD BhavCopy endpoint (WS6). The keyless BSE provider
  * (`sidecar/services/bse_provider.py`) assembles EOD history from this daily
@@ -233,6 +248,78 @@ async function _probeBseBhavcopyNoSla() {
   } catch (err) {
     console.warn(
       `[smoke] WARN: BSE bhavcopy probe errored (no-SLA — not a failure): ` +
+        `${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+}
+
+/**
+ * No-SLA probe of the NSE exchange-direct lane (R7 Component 2). The
+ * `sidecar/services/nse_provider.py` lane talks to www.nseindia.com through a
+ * curl_cffi Chrome-impersonated session with the cookie dance (warm-up on `/`,
+ * then `api/historicalOR/cm/equity`). Node's fetch has the wrong TLS
+ * fingerprint for NSE's Akamai edge, so this probe shells out to the sidecar
+ * venv's python + curl_cffi — the EXACT transport the provider uses. LIVE
+ * reachability check ONLY: NSE geo-fences, rate-limits, and blocks datacenter
+ * IPs, and CI/sandbox often has no outbound network — a miss WARNS and never
+ * fails the smoke run. It exists to flag an endpoint-SHAPE regression early
+ * (the legacy api/historical/cm/equity path already died with a 503 once).
+ */
+async function _probeNseDirectNoSla() {
+  const venvPy = join(
+    SIDECAR_DIR,
+    ".venv",
+    ...(isWin ? ["Scripts", "python.exe"] : ["bin", "python"]),
+  );
+  if (!existsSync(venvPy)) {
+    console.warn(
+      "[smoke] WARN: NSE direct probe skipped (no-SLA): sidecar venv python not found " +
+        `at ${venvPy} — the probe needs curl_cffi for NSE's TLS fingerprint check.`,
+    );
+    return;
+  }
+  const code = [
+    "import sys, time",
+    "try:",
+    "    from curl_cffi import requests",
+    "except Exception as exc:",
+    "    print('SKIP curl_cffi unavailable:', exc); sys.exit(0)",
+    "from datetime import date, timedelta",
+    "s = requests.Session(impersonate='chrome')",
+    "r = s.get('https://www.nseindia.com/', timeout=15)",
+    "print('WARMUP', r.status_code)",
+    "time.sleep(1.2)",
+    "to = date.today(); frm = to - timedelta(days=10)",
+    "r = s.get('https://www.nseindia.com/api/historicalOR/cm/equity',",
+    "          params={'symbol': 'RELIANCE', 'series': '[\"EQ\"]',",
+    "                  'from': frm.strftime('%d-%m-%Y'), 'to': to.strftime('%d-%m-%Y')},",
+    "          headers={'Accept': '*/*',",
+    "                   'Referer': 'https://www.nseindia.com/get-quotes/equity?symbol=RELIANCE'},",
+    "          timeout=15)",
+    "print('STATUS', r.status_code)",
+    "if r.status_code == 200:",
+    "    rows = (r.json() or {}).get('data') or []",
+    "    print('ROWS', len(rows))",
+  ].join("\n");
+  console.log("[smoke] NSE direct probe (no-SLA): historicalOR/cm/equity via curl_cffi ...");
+  try {
+    const out = execFileSync(venvPy, ["-c", code], { encoding: "utf8", timeout: 60_000 });
+    const status = /STATUS (\d+)/.exec(out)?.[1];
+    const rows = /ROWS (\d+)/.exec(out)?.[1];
+    if (status === "200" && Number(rows) > 0) {
+      console.log(`[smoke] NSE direct probe OK (HTTP 200, ${rows} EOD rows).`);
+    } else if (out.includes("SKIP")) {
+      console.warn(`[smoke] WARN: NSE direct probe skipped (no-SLA): ${out.trim()}`);
+    } else {
+      console.warn(
+        `[smoke] WARN: NSE direct probe did not return rows (no-SLA — not a failure). ` +
+          `Common + benign: geo-fence/edge ACL, holiday, or no outbound network. ` +
+          `Only investigate if the URL SHAPE changed. Output:\n${out.trim()}`,
+      );
+    }
+  } catch (err) {
+    console.warn(
+      `[smoke] WARN: NSE direct probe errored (no-SLA — not a failure): ` +
         `${err instanceof Error ? err.message : String(err)}`,
     );
   }
@@ -393,6 +480,48 @@ async function _smokeTestMainSidecar(triple) {
   const universeUrl = `http://127.0.0.1:${port}/screener/universe?id=sp500`;
   console.log(`[smoke] vysted-sidecar: probing screener universe endpoint ...`);
   const universeOk = await _httpGetOk(universeUrl, 5000);
+
+  // ICONIKSPEV resolve check (R7 Component 4, HARD) — verifies the regenerated
+  // BSE scrip master under services/resolver_masters/ rides the frozen binary
+  // AND that resolution is deterministic + internally consistent. ICONIKSPEV is
+  // a BSE-only group-X micro-cap: the bundled-master path answers offline with
+  // a CONSISTENT BSE identity (exchange "BSE" ↔ yahoo_symbol ".BO", confidence
+  // 1.0). The historic defect — exchange "NSE" with yahoo "ICONIKSPEV.BO" at
+  // 0.6 — meant the live fallback fired because the seeded master was a 2-row
+  // placeholder; any regression to that state fails the smoke run here.
+  const resolveUrl = `http://127.0.0.1:${port}/resolve?q=ICONIKSPEV&region=IN`;
+  console.log(`[smoke] vysted-sidecar: probing ICONIKSPEV resolution (masters-only) ...`);
+  const resolveBody = await _httpGetJson(resolveUrl, 5000);
+  const resolved = resolveBody && resolveBody.ok === true ? resolveBody.resolved : null;
+  const resolveOk =
+    resolved !== null &&
+    resolved.symbol === "ICONIKSPEV" &&
+    resolved.exchange === "BSE" &&
+    resolved.yahoo_symbol === "ICONIKSPEV.BO" &&
+    resolved.region === "IN" &&
+    resolved.confidence === 1.0;
+
+  // /history/ICONIKSPEV probe (no-SLA) — the full bhavcopy lane needs live BSE
+  // (rate-limited, geo-fenced, holiday-gapped, often no outbound net in CI), so
+  // real EOD bars are a bonus signal, never a gate. The offline equivalent is
+  // pinned by sidecar/tests/test_history.py::
+  // test_history_iconikspev_serves_real_bars_from_bhavcopy.
+  const historyUrl = `http://127.0.0.1:${port}/history/ICONIKSPEV?timeframe=1d&range=1mo`;
+  console.log(`[smoke] vysted-sidecar: probing /history/ICONIKSPEV (no-SLA, live BSE) ...`);
+  const historyBody = await _httpGetJson(historyUrl, 30000);
+  if (historyBody && Array.isArray(historyBody.bars) && historyBody.bars.length > 0) {
+    console.log(
+      `[smoke] /history/ICONIKSPEV OK (${historyBody.bars.length} EOD bars, ` +
+        `provider=${historyBody.provider}).`,
+    );
+  } else {
+    console.warn(
+      `[smoke] WARN: /history/ICONIKSPEV returned no bars (no-SLA — not a failure). ` +
+        `Benign when BSE is unreachable from this network; reason=` +
+        `${historyBody ? JSON.stringify(historyBody.reason) : "<no response>"}.`,
+    );
+  }
+
   await _teardown(child);
   await rm(dataDir, { recursive: true, force: true });
   if (!universeOk) {
@@ -408,6 +537,19 @@ async function _smokeTestMainSidecar(triple) {
     );
   }
   console.log(`[smoke] vysted-sidecar screener universe OK.`);
+  if (!resolveOk) {
+    throw new Error(
+      `[smoke] vysted-sidecar FAILED ICONIKSPEV resolve probe: ` +
+        `GET ${resolveUrl} → ${JSON.stringify(resolved)}. ` +
+        `Expected the deterministic BSE identity {symbol:"ICONIKSPEV", exchange:"BSE", ` +
+        `yahoo_symbol:"ICONIKSPEV.BO", region:"IN", confidence:1}. Root cause is one of: ` +
+        `(a) services/resolver_masters/bse_instruments.json not bundled (--add-data gap ` +
+        `in scripts/ensure-sidecar.mjs), (b) the master regressed to the 2-row placeholder ` +
+        `(rerun sidecar/services/resolver_masters/regenerate_bse_master.py), or (c) the ` +
+        `resolver lost its BSE exact-ticker stage (services/symbol_resolver.py).`,
+    );
+  }
+  console.log(`[smoke] vysted-sidecar ICONIKSPEV resolution OK (deterministic BSE identity).`);
 }
 
 /**
@@ -535,8 +677,9 @@ async function main() {
     }
   }
 
-  // No-SLA external probe — runs regardless of sidecar results, never fails.
+  // No-SLA external probes — run regardless of sidecar results, never fail.
   await _probeBseBhavcopyNoSla();
+  await _probeNseDirectNoSla();
 
   if (failures.length > 0) {
     console.error("\n[smoke] FAILURES:");

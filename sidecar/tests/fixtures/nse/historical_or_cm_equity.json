@@ -1,0 +1,90 @@
+{
+  "data": [
+    {
+      "CH_SYMBOL": "RELIANCE",
+      "CH_SERIES": "EQ",
+      "CH_TIMESTAMP": "2026-06-09",
+      "TIMESTAMP": "2026-06-08T18:30:00.000Z",
+      "mTIMESTAMP": "09-Jun-2026",
+      "CH_PREVIOUS_CLS_PRICE": 1263.3,
+      "CH_OPENING_PRICE": 1269,
+      "CH_TRADE_HIGH_PRICE": 1274.2,
+      "CH_TRADE_LOW_PRICE": 1257.5,
+      "CH_LAST_TRADED_PRICE": 1272.3,
+      "CH_CLOSING_PRICE": 1269.2,
+      "VWAP": 1264.75,
+      "CH_TOT_TRADED_QTY": 23620214,
+      "CH_TOT_TRADED_VAL": 29873731086.3,
+      "CH_TOTAL_TRADES": 273651,
+      "CH_52WEEK_HIGH_PRICE": 1611.8,
+      "CH_52WEEK_LOW_PRICE": 1257.5,
+      "SLBMH_TOT_VAL": null
+    },
+    {
+      "CH_SYMBOL": "RELIANCE",
+      "CH_SERIES": "EQ",
+      "CH_TIMESTAMP": "2026-06-08",
+      "TIMESTAMP": "2026-06-07T18:30:00.000Z",
+      "mTIMESTAMP": "08-Jun-2026",
+      "CH_PREVIOUS_CLS_PRICE": 1291,
+      "CH_OPENING_PRICE": 1277,
+      "CH_TRADE_HIGH_PRICE": 1282.6,
+      "CH_TRADE_LOW_PRICE": 1259.2,
+      "CH_LAST_TRADED_PRICE": 1262.8,
+      "CH_CLOSING_PRICE": 1263.3,
+      "VWAP": 1271.9,
+      "CH_TOT_TRADED_QTY": 16494759,
+      "CH_TOT_TRADED_VAL": 20979689703.1,
+      "CH_TOTAL_TRADES": 303591,
+      "CH_52WEEK_HIGH_PRICE": 1611.8,
+      "CH_52WEEK_LOW_PRICE": 1259.2,
+      "SLBMH_TOT_VAL": null
+    },
+    {
+      "CH_SYMBOL": "RELIANCE",
+      "CH_SERIES": "EQ",
+      "CH_TIMESTAMP": "2026-06-05",
+      "TIMESTAMP": "2026-06-04T18:30:00.000Z",
+      "mTIMESTAMP": "05-Jun-2026",
+      "CH_PREVIOUS_CLS_PRICE": 1303.7,
+      "CH_OPENING_PRICE": 1304.5,
+      "CH_TRADE_HIGH_PRICE": 1306,
+      "CH_TRADE_LOW_PRICE": 1288,
+      "CH_LAST_TRADED_PRICE": 1291.4,
+      "CH_CLOSING_PRICE": 1291,
+      "VWAP": 1294.8,
+      "CH_TOT_TRADED_QTY": 17785223,
+      "CH_TOT_TRADED_VAL": 23028393410,
+      "CH_TOTAL_TRADES": 356802,
+      "CH_52WEEK_HIGH_PRICE": 1611.8,
+      "CH_52WEEK_LOW_PRICE": 1288,
+      "SLBMH_TOT_VAL": null,
+      "CA": [
+        {
+          "bcEndDate": "-",
+          "bcStartDate": "-",
+          "caBroadcastDate": null,
+          "comp": "Reliance Industries Limited",
+          "exDate": "05-Jun-2026",
+          "faceVal": "10",
+          "ind": "-",
+          "isin": "INE002A01018",
+          "ndEndDate": "-",
+          "ndStartDate": "-",
+          "recDate": "05-Jun-2026",
+          "series": "EQ",
+          "subject": "Dividend - Rs 6 Per Share",
+          "symbol": "RELIANCE"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "series": [
+      "EQ"
+    ],
+    "fromDate": "11-05-2026",
+    "toDate": "10-06-2026",
+    "symbol": "RELIANCE"
+  }
+}

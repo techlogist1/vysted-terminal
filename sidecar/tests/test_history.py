@@ -65,7 +65,7 @@ def test_empty_series_in_symbol_carries_eod_only_reason(client: TestClient, monk
     monkeypatch.setattr(provider_registry, "get_history", _all_empty)
 
     # A bare BSE-only ticker resolves to IN → the typed reason.
-    body = client.get("/history/TIRUPATI", params={"timeframe": "1d"}).json()
+    body = client.get("/history/ICONIKSPEV", params={"timeframe": "1d"}).json()
     assert body["bars"] == []
     assert body["provider"] == "none"
     assert body["reason"] == "in_eod_only"
@@ -84,9 +84,47 @@ def test_empty_series_reason_unit() -> None:
     """Direct unit guard on the typed-reason helper (no route)."""
     from routers.history import _empty_series_reason
 
-    assert _empty_series_reason("TIRUPATI") == "in_eod_only"
+    assert _empty_series_reason("ICONIKSPEV") == "in_eod_only"
     assert _empty_series_reason("RELIANCE.BO") == "in_eod_only"
     assert _empty_series_reason("AAPL") is None
+
+
+def test_history_iconikspev_serves_real_bars_from_bhavcopy(
+    client: TestClient, monkeypatch, tmp_path
+) -> None:
+    """R7 Component 4 acceptance — /history/ICONIKSPEV returns REAL EOD bars
+    assembled from the (fixture) BSE bhavcopy via scrip-code routing, end to end
+    through the route → registry → bse_provider chain. The NSE lanes fast-fail
+    (ICONIKSPEV is BSE-only, not in the NSE master) without a network call; the
+    bhavcopy HTTP seam is mocked with the observed 2026-06-09 row, so the test
+    is fully offline. Before the master regeneration this returned
+    ``bars:[], provider:"none", reason:null`` — the live defect."""
+    import httpx
+
+    from services import bse_provider
+
+    bhav_csv = (
+        "TradDt,BizDt,Sgmt,Src,FinInstrmTp,FinInstrmId,ISIN,TckrSymb,SctySrs,XpryDt,"
+        "FininstrmActlXpryDt,StrkPric,OptnTp,FinInstrmNm,OpnPric,HghPric,LwPric,ClsPric,"
+        "LastPric,PrvsClsgPric,UndrlygPric,SttlmPric,OpnIntrst,ChngInOpnIntrst,TtlTradgVol,"
+        "TtlTrfVal,TtlNbOfTxsExctd,SsnId,NewBrdLotQty,Rmks,Rsvd1,Rsvd2,Rsvd3,Rsvd4\n"
+        "2026-06-09,2026-06-09,CM,BSE,STK,511260,INE088P01015,ICONIKSPEV,X,,,,,"
+        "ICONIK SPORTS AND EVENTS LIMIT,44.99,44.99,42.31,43.09,43.48,44.44,,43.09,,,"
+        "5757,251369.00,88,F1,1,,,,,\n"
+    )
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(
+        bse_provider, "_http_get", lambda url: httpx.Response(200, content=bhav_csv.encode())
+    )
+
+    resp = client.get("/history/ICONIKSPEV", params={"timeframe": "1d", "range": "1mo"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["symbol"] == "ICONIKSPEV"
+    assert body["provider"] == "bse"
+    assert body["bars"], "expected real EOD bars from the fixture bhavcopy"
+    assert all(b["close"] == 43.09 for b in body["bars"])
+    assert body.get("reason") is None  # bars present → no empty-series reason
 
 
 def test_get_history_integrity_failure_still_502(client: TestClient, monkeypatch) -> None:

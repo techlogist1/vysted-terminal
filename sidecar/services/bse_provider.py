@@ -8,9 +8,12 @@ pivoting around BSE's once-daily **BhavCopy** (the official end-of-day dump of
 EVERY scrip) rather than per-symbol scraping:
 
   * ``get_history`` — EOD OHLCV assembled from the cached daily bhavcopies in the
-    requested range. A cold cache downloads only the *recent* missing trading days
-    (bounded — we never backfill years on a cold start; we serve what is cached +
-    recent). Daily for ``1d``; weekly/monthly resampled from daily.
+    requested range, with each day's row located by the **numeric scrip code**
+    (``FinInstrmId``) resolved from the bundled master (ticker → code), falling
+    back to the ticker string only when the master carries no code. A cold cache
+    downloads only the *recent* missing trading days (bounded — we never backfill
+    years on a cold start; we serve what is cached + recent). Daily for ``1d``;
+    weekly/monthly resampled from daily.
   * ``get_quote`` — the latest EOD close + the official prior close (→ change/%)
     from BSE's ``getScripHeaderData`` endpoint. INR, IST, ``provider="bse"``,
     EOD-labelled.
@@ -371,11 +374,16 @@ def _scrip_code(symbol: str) -> str | None:
 def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCVSeries:
     """Return an EOD OHLCV series for a BSE instrument.
 
-    Assembled from the daily bhavcopies in the requested range: every cached day
-    is read, and up to :data:`_MAX_COLD_DOWNLOADS` recent missing trading days are
-    downloaded (so a cold cache serves recent EOD immediately and deep history
-    fills in across sessions). Daily for ``1d``; weekly/monthly resampled.
-    Intraday timeframes raise (keyless BSE is EOD-only).
+    Routed by SCRIP CODE: the bare ticker is looked up in the bundled master
+    (ticker → numeric code) and each bhavcopy day's row is located by
+    ``FinInstrmId`` — deterministic even when a scrip's printed ticker drifts
+    from the master spelling (renames, SME migrations); the ticker string is
+    only the fallback when the master carries no code. Assembled from the daily
+    bhavcopies in the requested range: every cached day is read, and up to
+    :data:`_MAX_COLD_DOWNLOADS` recent missing trading days are downloaded (so a
+    cold cache serves recent EOD immediately and deep history fills in across
+    sessions). Daily for ``1d``; weekly/monthly resampled. Intraday timeframes
+    raise (keyless BSE is EOD-only).
     """
     if timeframe not in _EOD_TIMEFRAMES:
         raise ProviderError(
@@ -383,23 +391,40 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
             "add a BYOK broker (Kite / Upstox / Dhan) for BSE intraday"
         )
     bare = _require_bse(symbol)
+    code = _scrip_code(bare)
     days = _RANGE_DAYS.get(range_ or "", _DEFAULT_RANGE_DAYS)
     today = datetime.now(tz=UTC).astimezone(locale.market_timezone(locale.REGION_IN)).date()
     start = today - timedelta(days=days)
 
-    daily = _assemble_history(bare, start, today)
+    daily = _assemble_history(bare, code, start, today)
     if not daily:
         raise ProviderError(f"bse: no EOD data for {bare!r}")
     bars = _resample(daily, timeframe) if timeframe in {"1wk", "1mo"} else daily
     return OHLCVSeries(symbol=bare, timeframe=timeframe, bars=bars, provider=PROVIDER)
 
 
-def _assemble_history(ticker: str, start: date, end: date) -> list[OHLCVBar]:
-    """Walk trading days in ``[start, end]``, collecting this ticker's daily bar.
+def _match_scrip(frame: pd.DataFrame, ticker: str, code: str | None) -> pd.DataFrame:
+    """Rows for this instrument in one bhavcopy frame — scrip code first.
+
+    The numeric ``FinInstrmId`` from the master is the deterministic key (ticker
+    spellings drift across renames; codes never do). The ticker match is the
+    fallback for a master row without a code — and for a code that misses the
+    day's file (e.g. a bhavcopy older than a re-coding).
+    """
+    if code:
+        match = frame[frame["code"] == code]
+        if not match.empty:
+            return match
+    return frame[frame["ticker"] == ticker]
+
+
+def _assemble_history(ticker: str, code: str | None, start: date, end: date) -> list[OHLCVBar]:
+    """Walk trading days in ``[start, end]``, collecting this scrip's daily bar.
 
     Cached bhavcopies are read for the whole range; missing *recent* trading days
     are downloaded up to the cold-download budget (newest-first) so a cold cache
-    still serves recent EOD without a multi-year backfill burst.
+    still serves recent EOD without a multi-year backfill burst. Rows are located
+    by scrip code (ticker fallback) via :func:`_match_scrip`.
     """
     trading_days = [
         d
@@ -416,7 +441,7 @@ def _assemble_history(ticker: str, start: date, end: date) -> list[OHLCVBar]:
             downloads_left -= 1
         if frame is None or frame.empty:
             continue
-        match = frame[frame["ticker"] == ticker]
+        match = _match_scrip(frame, ticker, code)
         if match.empty:
             continue
         row = _pick_equity_row(match)
@@ -437,16 +462,18 @@ def _assemble_history(ticker: str, start: date, end: date) -> list[OHLCVBar]:
 def get_quote(symbol: str) -> Quote:
     """Return the latest EOD quote for a BSE instrument (INR, T+1 EOD).
 
-    Primary path: BSE's ``getScripHeaderData`` (latest close + official prior
+    Routed by SCRIP CODE from the master (ticker → code). Primary path: BSE's
+    ``getScripHeaderData`` keyed by the code (latest close + official prior
     close → change/%). If the header endpoint is unavailable, falls back to the
-    two most-recent bhavcopy closes so a quote is still served keyless.
+    two most-recent bhavcopy closes — also code-routed — so a quote is still
+    served keyless.
     """
     bare = _require_bse(symbol)
     code = _scrip_code(bare)
     header = _fetch_scrip_header(bare, code) if code else None
     if header is not None:
         return header
-    return _quote_from_bhavcopy(bare)
+    return _quote_from_bhavcopy(bare, code)
 
 
 def _fetch_scrip_header(bare: str, code: str) -> Quote | None:
@@ -507,10 +534,10 @@ def _quote_from_header(bare: str, payload: dict) -> Quote | None:
     )
 
 
-def _quote_from_bhavcopy(bare: str) -> Quote:
+def _quote_from_bhavcopy(bare: str, code: str | None) -> Quote:
     """Fallback quote — the two most-recent bhavcopy closes for ``bare``."""
     today = datetime.now(tz=UTC).astimezone(locale.market_timezone(locale.REGION_IN)).date()
-    bars = _assemble_history(bare, today - timedelta(days=14), today)
+    bars = _assemble_history(bare, code, today - timedelta(days=14), today)
     if not bars:
         raise ProviderError(f"bse: no EOD data for {bare!r}")
     last = bars[-1]

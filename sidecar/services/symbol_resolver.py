@@ -7,18 +7,50 @@ keyless-first, locale-ranked, with disambiguation when confidence is low —
 Design (research §A.3 — keep resolution and data-fetch separate):
 
   * **Stage 1 — bundled masters (offline, deterministic):** the SEC
-    ``company_tickers`` snapshot (US) + the NSE ``EQUITY_L`` + ETF list, shipped
-    under :mod:`services.resolver_masters`. An exact ticker hit is instant; a
+    ``company_tickers`` snapshot (US) + the NSE ``EQUITY_L`` + ETF list + the
+    full regenerated BSE scrip master, shipped under
+    :mod:`services.resolver_masters`. An exact ticker hit is instant; a
     name query is fuzzy-matched and locale-ranked.
   * **Stage 2 — live keyless fallback (best-effort):** only when the masters
     miss, a guarded ``yfinance.Search`` lookup catches names/tickers not in the
     bundle. Network-guarded so it never blocks (and tests of bundled symbols
     never touch the network).
 
-Two cheap, hot-path helpers — :func:`is_nse_symbol` and :func:`region_hint` —
-back the provider registry's region routing and the India provider's
-self-gating; they are pure dict lookups over the masters (no fuzzy match, no
-network).
+Master hygiene (R7 Component 4)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  * **One canonical row per instrument.** A name listed on BOTH NSE and BSE
+    (~2,400 dual-listings) is canonically the **NSE** instrument for trading
+    data — the fuzzy-name and autocomplete scans skip the BSE row for a
+    dual-listed symbol so one instrument never appears twice. The BSE identity
+    is retained: an exact-ticker resolve of a dual-listed name carries the BSE
+    row as a secondary candidate (BSE-only fundamentals/announcements live
+    there), and an explicit ``.BO`` suffix pins the BSE identity outright.
+  * **The exchange field always agrees with the yahoo_symbol suffix.** NSE ↔
+    ``.NS``, BSE ↔ ``.BO``, US ↔ no suffix — enforced by construction in the
+    three instrument builders (the only places an :class:`Instrument` is made)
+    and by the suffix mapping in the live fallback.
+
+Confidence model (the ``score`` carried on every candidate):
+
+  * ``1.0``  — exact ticker hit in a bundled master (deterministic).
+  * ``0.97`` — query equals the company's first word ("apple" → "Apple Inc.").
+  * ``0.92`` — name prefix match;  ``0.8`` — name substring match.
+  * ``< 0.8``— ``SequenceMatcher`` ratio, floored at ``_MIN_NAME_SCORE`` (0.6).
+  * ``0.6``  — live ``yfinance.Search`` fallback (never master-deterministic).
+
+  A small same-locale bonus (+0.08) breaks ties before reporting; reported
+  scores are clamped to ``[0, 1]``. Anything below
+  :data:`DISAMBIGUATION_THRESHOLD` (0.72) asks the agent to disambiguate
+  rather than act.
+
+Cheap, hot-path helpers — :func:`is_nse_symbol`, :func:`is_bse_symbol`,
+:func:`bse_scrip_code` and :func:`region_hint` — back the provider registry's
+region routing and the India providers' self-gating; they are pure dict lookups
+over the masters (no fuzzy match, no network). :func:`region_hint` covers the
+FULL regenerated BSE+NSE masters: a bare BSE-only micro-cap ticker is decisively
+``IN``, which is what makes the ``/history`` route's honest ``in_eod_only``
+reason fire for thin BSE listings.
 """
 
 from __future__ import annotations
@@ -53,14 +85,18 @@ _MAX_CANDIDATES = 6
 
 @dataclass(frozen=True)
 class Instrument:
-    """One resolved instrument candidate."""
+    """One resolved instrument candidate.
 
-    symbol: str  # bare exchange symbol — GOLDBEES, AAPL, TATASTEEL
+    Invariant (master hygiene): ``exchange`` always agrees with the
+    ``yahoo_symbol`` suffix — NSE ↔ ``.NS``, BSE ↔ ``.BO``, US ↔ no suffix.
+    """
+
+    symbol: str  # bare exchange symbol — GOLDBEES, AAPL, ICONIKSPEV
     name: str
-    exchange: str  # NSE | US
+    exchange: str  # NSE | BSE | US
     region: str  # IN | US
     asset_class: str  # equity | etf
-    yahoo_symbol: str  # GOLDBEES.NS, AAPL — the .NS/.BO form for yfinance
+    yahoo_symbol: str  # GOLDBEES.NS, ICONIKSPEV.BO, AAPL
     score: float = 1.0
 
 
@@ -209,6 +245,21 @@ def region_hint(symbol: str) -> str | None:
 # ---------------------------------------------------------------------------
 
 
+def _suffix_exchange(symbol: str) -> str | None:
+    """The exchange a Yahoo-style suffix pins ``symbol`` to, or ``None``.
+
+    Finer-grained than :func:`services.locale.region_for_suffix` (which maps
+    both ``.NS`` and ``.BO`` to ``IN``): an explicit ``.BO`` must pin the BSE
+    identity, never silently rewrite to the NSE listing.
+    """
+    upper = symbol.strip().upper()
+    if upper.endswith(".NS"):
+        return "NSE"
+    if upper.endswith(".BO"):
+        return "BSE"
+    return None
+
+
 def _instrument_nse(symbol: str, score: float) -> Instrument:
     name, typ = _nse_master()[symbol]
     asset_class = "etf" if typ == "ETF" else "equity"
@@ -219,6 +270,19 @@ def _instrument_nse(symbol: str, score: float) -> Instrument:
         region=REGION_IN,
         asset_class=asset_class,
         yahoo_symbol=f"{symbol}.NS",
+        score=score,
+    )
+
+
+def _instrument_bse(symbol: str, score: float) -> Instrument:
+    name, _group, _code = _bse_master()[symbol]
+    return Instrument(
+        symbol=symbol,
+        name=name,
+        exchange="BSE",
+        region=REGION_IN,
+        asset_class="equity",
+        yahoo_symbol=f"{symbol}.BO",
         score=score,
     )
 
@@ -276,14 +340,20 @@ def resolve(query: str, region: str | None = None) -> Resolution:
         return Resolution(query=query, best=None, candidates=[])
 
     upper = strip_exchange_suffix(cleaned)
-    suffix_region = region_for_suffix(cleaned)
+    suffix_exchange = _suffix_exchange(cleaned)
 
     candidates: list[Instrument] = []
 
-    # 1. Exact ticker hits (decisive). A .NS/.BO suffix pins it to NSE.
-    if upper in _nse_master() and (suffix_region in (None, REGION_IN)):
+    # 1. Exact ticker hits (decisive). A .NS suffix pins the NSE identity, a
+    #    .BO suffix pins BSE. A bare dual-listed ticker carries BOTH exchanges —
+    #    NSE appended first, so the stable sort keeps it preferred on the tied
+    #    score (trading data routes NSE; the BSE row is retained for BSE-only
+    #    fundamentals/announcements).
+    if upper in _nse_master() and suffix_exchange in (None, "NSE"):
         candidates.append(_instrument_nse(upper, 1.0 + _locale_bonus(region, REGION_IN)))
-    if upper in _us_master() and suffix_region is None:
+    if upper in _bse_master() and suffix_exchange in (None, "BSE"):
+        candidates.append(_instrument_bse(upper, 1.0 + _locale_bonus(region, REGION_IN)))
+    if upper in _us_master() and suffix_exchange is None:
         candidates.append(_instrument_us(upper, 1.0 + _locale_bonus(region, REGION_US)))
 
     if candidates:
@@ -295,13 +365,23 @@ def resolve(query: str, region: str | None = None) -> Resolution:
             candidates=[_clamp(c) for c in candidates[:_MAX_CANDIDATES]],
         )
 
-    # 2. Fuzzy name match across both masters (locale-ranked).
+    # 2. Fuzzy name match across the masters (locale-ranked). One canonical row
+    #    per instrument: a dual-listed symbol is represented by its NSE row only
+    #    (the BSE scan skips symbols the NSE master already carries), so a name
+    #    never surfaces twice with two spellings of the same company.
     query_lc = cleaned.lower()
     scored: list[Instrument] = []
-    for sym, (name, _typ) in _nse_master().items():
+    nse_symbols = _nse_master()
+    for sym, (name, _typ) in nse_symbols.items():
         s = _name_score(query_lc, name.lower())
         if s >= _MIN_NAME_SCORE:
             scored.append(_instrument_nse(sym, s + _locale_bonus(region, REGION_IN)))
+    for sym, (name, _group, _code) in _bse_master().items():
+        if sym in nse_symbols:
+            continue  # canonical row is the NSE instrument (dual-listed)
+        s = _name_score(query_lc, name.lower())
+        if s >= _MIN_NAME_SCORE:
+            scored.append(_instrument_bse(sym, s + _locale_bonus(region, REGION_IN)))
     for sym, name in _us_master().items():
         s = _name_score(query_lc, name.lower())
         if s >= _MIN_NAME_SCORE:
@@ -367,10 +447,20 @@ def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[
         return None
 
     out: list[Instrument] = []
-    for sym, (name, _typ) in _nse_master().items():
+    nse_symbols = _nse_master()
+    for sym, (name, _typ) in nse_symbols.items():
         s = _score(sym, name)
         if s is not None:
             out.append(_instrument_nse(sym, s + _locale_bonus(region, REGION_IN)))
+    # BSE-only names (the micro-cap tail) — dual-listed symbols are skipped so
+    # the canonical NSE row is the one (and only) candidate for that instrument,
+    # keeping the list deduplicated and NSE-preferred without a second pass.
+    for sym, (name, _group, _code) in _bse_master().items():
+        if sym in nse_symbols:
+            continue
+        s = _score(sym, name)
+        if s is not None:
+            out.append(_instrument_bse(sym, s + _locale_bonus(region, REGION_IN)))
     for sym, name in _us_master().items():
         s = _score(sym, name)
         if s is not None:
@@ -400,9 +490,13 @@ def _live_lookup(query: str, region: str) -> Instrument | None:
         if not sym:
             continue
         name = str(q.get("shortname") or q.get("longname") or sym)
-        if sym.endswith((".NS", ".BO")):
+        # The exchange must agree with the suffix (master hygiene): a .BO hit is
+        # a BSE identity, never relabelled NSE — the historic contradiction
+        # ("NSE" + ICONIKSPEV.BO) broke scrip-code routing downstream.
+        exchange = _suffix_exchange(sym)
+        if exchange:
             bare = strip_exchange_suffix(sym)
-            return Instrument(bare, name, "NSE", REGION_IN, "equity", sym, 0.6)
+            return Instrument(bare, name, exchange, REGION_IN, "equity", sym, 0.6)
         exch = str(q.get("exchange", "")).upper()
         if exch in {"NMS", "NYQ", "NGM", "ASE", "PCX", "BATS"}:
             return Instrument(sym, name, "US", REGION_US, "equity", sym, 0.6)

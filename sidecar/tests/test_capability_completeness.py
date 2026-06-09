@@ -116,12 +116,28 @@ def test_copilot_grants_b2_actions() -> None:
 
 def test_copilot_grants_market_overview_and_roster_count() -> None:
     """WS1: market_overview is wired into the copilot's tool roster, which now
-    totals 34 tools (33 + market_overview)."""
+    totals 36 tools (34 + the R7 corporate_announcements/shareholding_pattern)."""
     tools = _copilot_tools()
     assert "market_overview" in tools, (
         "copilot.json 'tools' is missing 'market_overview' — the copilot cannot reach it"
     )
-    assert len(tools) == 34, f"copilot tool roster expected 34, got {len(tools)}"
+    assert len(tools) == 36, f"copilot tool roster expected 36, got {len(tools)}"
+
+
+def test_copilot_and_researcher_grant_disclosure_tools() -> None:
+    """R7 Component 3: the copilot + AI Researcher can pull Indian filings."""
+    copilot_tools = _copilot_tools()
+    researcher_tools = json.loads(
+        (_COPILOT_JSON.parent / "researcher.json").read_text(encoding="utf-8")
+    )["tools"]
+    for tool_id in ("corporate_announcements", "shareholding_pattern"):
+        assert tool_id in copilot_tools, f"copilot.json 'tools' is missing {tool_id!r}"
+        assert tool_id in researcher_tools, f"researcher.json 'tools' is missing {tool_id!r}"
+        cap = CAPABILITY_CATALOG[tool_id]
+        assert cap.kind == "read_handler"
+        assert cap.read_only is True
+        assert cap.internal is True
+        assert cap.mcp is True  # read_handler (not internal-only) → projected to MCP
 
 
 def test_market_overview_is_a_read_handler() -> None:

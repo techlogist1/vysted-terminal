@@ -586,6 +586,59 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
         ),
+        # --- India corporate disclosures (NSE+BSE) ----------------------------
+        _cap(
+            "corporate_announcements",
+            description=(
+                "Recent corporate announcements an Indian (NSE/BSE) listed company "
+                "filed with its exchanges — results notices, board meetings, investor "
+                "presentations, pledges, regulatory disclosures. Merged from BOTH "
+                "exchange feeds and deduplicated, newest first; each item carries the "
+                "exchange, category, attachment (PDF) URL, and timestamp. Use for "
+                "'what has the company itself disclosed lately' on Indian names — the "
+                "India counterpart of sec_filings_list."
+            ),
+            input_schema=_obj(
+                {
+                    "symbol": {
+                        "type": "string",
+                        "description": "NSE/BSE ticker, e.g. RELIANCE or TATASTEEL.",
+                    },
+                    "exchange": {
+                        "type": "string",
+                        "enum": ["NSE", "BSE"],
+                        "description": "Optional single-exchange filter; omit to merge both.",
+                    },
+                    "limit": {"type": "integer", "default": 20},
+                },
+                ["symbol"],
+            ),
+            domain="filings",
+            read_only=True,
+            kind="read_handler",
+        ),
+        _cap(
+            "shareholding_pattern",
+            description=(
+                "Quarterly shareholding pattern for an NSE-listed Indian company — "
+                "promoter(+group), public, and employee-trust percentages per quarter, "
+                "newest first, with each quarter's XBRL filing link (which carries the "
+                "full FII/DII split). Use to check promoter-stake trends and ownership "
+                "shifts on Indian names."
+            ),
+            input_schema=_obj(
+                {
+                    "symbol": {
+                        "type": "string",
+                        "description": "NSE ticker, e.g. RELIANCE.",
+                    }
+                },
+                ["symbol"],
+            ),
+            domain="filings",
+            read_only=True,
+            kind="read_handler",
+        ),
         # --- quant (QuantLib pricing) ---------------------------------------
         _cap(
             "price_option",

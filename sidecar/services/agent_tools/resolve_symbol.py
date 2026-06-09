@@ -6,8 +6,8 @@ confidence is low (FR-061). This is the agent's first move for a "research X" /
 "look at Y" request: it turns "Tata Steel" into ``TATASTEEL`` on NSE before any
 data is pulled, so JARVIS never dead-ends on a name it could have resolved.
 
-Read-only, keyless: backed by :mod:`services.symbol_resolver` (bundled SEC + NSE
-masters + a best-effort live fallback). Registered via :func:`register`.
+Read-only, keyless: backed by :mod:`services.symbol_resolver` (bundled SEC +
+NSE + BSE masters + a best-effort live fallback). Registered via :func:`register`.
 """
 
 from __future__ import annotations
@@ -59,8 +59,8 @@ async def _resolve_symbol(args: dict[str, Any]) -> dict[str, Any]:
             "query": query,
             "message": (
                 f"Could not resolve {query!r} to a known instrument in the bundled "
-                f"US/NSE masters or a live lookup. Check the spelling, or add a data "
-                f"source that covers it."
+                f"US/NSE/BSE masters or a live lookup. Check the spelling, or add a "
+                f"data source that covers it."
             ),
             "candidates": [],
         }
