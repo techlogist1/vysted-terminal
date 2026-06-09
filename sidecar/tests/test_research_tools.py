@@ -82,6 +82,7 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
         on_step=None,  # noqa: ANN001
         max_researchers=3,  # noqa: ANN001
         visit=None,  # noqa: ANN001
+        **knobs,  # noqa: ANN003 — R7 depth knobs (min_web_domains / site_bias)
     ):
         # The single-pass loop is the NAMED internal fallback only — it should NOT
         # be reached on the normal deep path (iter never raises). A test asserts so.
@@ -98,6 +99,7 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
         on_step=None,  # noqa: ANN001
         max_researchers=3,  # noqa: ANN001
         visit=None,  # noqa: ANN001
+        **knobs,  # noqa: ANN003 — R7 depth knobs (report cap / coverage / bias)
     ):
         calls["run_iter_research"] = {
             "query": query,
@@ -107,6 +109,7 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
             "budget": budget,
             "on_step": on_step,
             "max_researchers": max_researchers,
+            "knobs": knobs,
         }
         if on_step is not None:
             on_step("plan")
@@ -125,6 +128,7 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
         on_step=None,  # noqa: ANN001
         max_researchers=3,  # noqa: ANN001
         visit=None,  # noqa: ANN001
+        **knobs,  # noqa: ANN003 — R7 depth knobs (report cap / coverage / bias)
     ):
         calls["run_heavy_research"] = {
             "query": query,
@@ -132,14 +136,21 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
             "budget": budget,
             "on_step": on_step,
             "max_researchers": max_researchers,
+            "knobs": knobs,
         }
         return _FakeBrief({"summary": "heavy brief", "citations": [{"url": "https://x"}]})
+
+    async def _cross_check(brief, **kwargs):  # noqa: ANN001, ANN003
+        calls["cross_check"] = {"brief": brief, **kwargs}
+        return brief
 
     fast_mod.gather_fast = _gather_fast  # type: ignore[attr-defined]
     deep_mod.run_deep_research = _run_deep_research  # type: ignore[attr-defined]
     deep_mod.ResearchBrief = _FakeBrief  # type: ignore[attr-defined]
     iter_mod.run_iter_research = _run_iter_research  # type: ignore[attr-defined]
     iter_mod.run_heavy_research = _run_heavy_research  # type: ignore[attr-defined]
+    verify_mod = types.ModuleType("services.research.verify")
+    verify_mod.cross_check = _cross_check  # type: ignore[attr-defined]
 
     # Perplexity fake — default: NOT configured (no key).
     perplexity_state: dict[str, Any] = {"configured": False, "research_query": None}
@@ -162,9 +173,11 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
     perplexity_mod.estimate_cost_usd = _estimate_cost_usd  # type: ignore[attr-defined]
     perplexity_mod.PerplexityDeepBackend = _PerplexityDeepBackend  # type: ignore[attr-defined]
 
-    # Keep the REAL ``services.research.models`` reachable under the shadowed
-    # parent — the deep engine's honest "engine" step (``_emit_backend_step``)
-    # imports ``ResearchStep`` from it, and it carries no heavy deps.
+    # Keep the REAL ``services.research.models`` AND ``services.research.depth``
+    # reachable under the shadowed parent — the deep engine's honest "engine"
+    # step imports ``ResearchStep``, and the R7 depth router (the ONE knob
+    # table) is dependency-light and load-bearing for the dispatch under test.
+    from services.research import depth as depth_mod
     from services.research import models as models_mod
 
     monkeypatch.setitem(sys.modules, "services.research", parent)
@@ -173,12 +186,16 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setitem(sys.modules, "services.research.iter", iter_mod)
     monkeypatch.setitem(sys.modules, "services.research.perplexity", perplexity_mod)
     monkeypatch.setitem(sys.modules, "services.research.models", models_mod)
+    monkeypatch.setitem(sys.modules, "services.research.depth", depth_mod)
+    monkeypatch.setitem(sys.modules, "services.research.verify", verify_mod)
     # Make the submodules reachable as attributes of the parent (belt + braces).
     parent.fast = fast_mod  # type: ignore[attr-defined]
     parent.deep = deep_mod  # type: ignore[attr-defined]
     parent.iter = iter_mod  # type: ignore[attr-defined]
     parent.perplexity = perplexity_mod  # type: ignore[attr-defined]
     parent.models = models_mod  # type: ignore[attr-defined]
+    parent.depth = depth_mod  # type: ignore[attr-defined]
+    parent.verify = verify_mod  # type: ignore[attr-defined]
 
     return types.SimpleNamespace(calls=calls, perplexity_state=perplexity_state)
 
@@ -322,6 +339,84 @@ def test_research_heavy_runs_the_panel(research_modules, monkeypatch: pytest.Mon
     call = research_modules.calls["run_heavy_research"]
     assert call["query"] == "thesis"
     assert call["angles"] == 3
+
+
+# ---------------------------------------------------------------------------
+# research handler — the R7 depth router (normal / deep / ultra)
+# ---------------------------------------------------------------------------
+
+
+def test_research_ultra_runs_panel_with_scaled_knobs_and_cross_check(
+    research_modules, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """depth='ultra' = the panel at the ULTRA profile knobs + the cross-check round."""
+    monkeypatch.setattr(config, "get_llm_creds", lambda: ("anthropic", "claude-x", "sk-test"))
+    monkeypatch.setattr(config, "get_deep_research_backend", lambda: None)
+    out = _run(_research({"query": "thesis", "depth": "ultra"}))
+    assert out["ok"] is True
+    assert out["mode"] == "heavy"  # legacy loop naming for the brief contract
+    assert out["depth"] == "ultra"  # the R7 surface naming
+    call = research_modules.calls["run_heavy_research"]
+    assert call["angles"] == 3
+    # The ULTRA knob set comes from the ONE profile table — wider report cap,
+    # stricter coverage (>=2 independent web domains), the finance site: bias.
+    assert call["knobs"] == {"report_char_cap": 9000, "min_web_domains": 2, "site_bias": True}
+    # The numeric cross-check verification round ran over the panel brief.
+    check = research_modules.calls["cross_check"]
+    assert check["min_domains"] == 2
+    assert callable(check["llm_call"])
+
+
+def test_research_legacy_heavy_maps_to_ultra_with_cross_check(
+    research_modules, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The legacy 'heavy' spelling (the current catalog enum) IS ultra now."""
+    monkeypatch.setattr(config, "get_llm_creds", lambda: ("anthropic", "claude-x", "sk-test"))
+    monkeypatch.setattr(config, "get_deep_research_backend", lambda: None)
+    out = _run(_research({"query": "thesis", "depth": "heavy"}))
+    assert out["ok"] is True
+    assert out["depth"] == "ultra"
+    assert "cross_check" in research_modules.calls
+
+
+def test_research_deep_knobs_follow_profile_no_cross_check(
+    research_modules, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """DEEP runs iter at the profile knobs; the cross-check is ULTRA-only."""
+    monkeypatch.setattr(config, "get_llm_creds", lambda: ("anthropic", "claude-x", "sk-test"))
+    monkeypatch.setattr(config, "get_deep_research_backend", lambda: None)
+    out = _run(_research({"query": "rate cuts", "depth": "deep"}))
+    assert out["ok"] is True
+    assert out["depth"] == "deep"
+    call = research_modules.calls["run_iter_research"]
+    assert call["knobs"] == {"report_char_cap": 6000, "min_web_domains": 1, "site_bias": True}
+    assert "cross_check" not in research_modules.calls
+    assert "run_heavy_research" not in research_modules.calls
+
+
+def test_research_normal_is_the_fast_pass(
+    research_modules, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """depth='normal' (the R7 default naming) = the fast gather, no deep loop."""
+    monkeypatch.setattr(config, "get_region", lambda: "US")
+    out = _run(_research({"query": "nvda", "depth": "normal"}))
+    assert out["ok"] is True
+    assert out["depth"] == "normal"
+    assert "gather_fast" in research_modules.calls
+    assert "run_iter_research" not in research_modules.calls
+    assert "run_heavy_research" not in research_modules.calls
+
+
+def test_research_unknown_depth_floors_to_normal_never_paid_up(
+    research_modules, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A malformed depth floors to the cheap NORMAL pass — never a silent escalation."""
+    monkeypatch.setattr(config, "get_region", lambda: "US")
+    out = _run(_research({"query": "nvda", "depth": "bananas"}))
+    assert out["ok"] is True
+    assert out["depth"] == "normal"
+    assert "gather_fast" in research_modules.calls
+    assert "run_heavy_research" not in research_modules.calls
 
 
 def test_research_deep_llm_call_proxies_oneshot(

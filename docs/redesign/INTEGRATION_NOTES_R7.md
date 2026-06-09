@@ -60,3 +60,36 @@ sidecar request. The deep-research Settings picker may now also offer
   (firecrawl + exa) to confirm the annotation shape end-to-end.
 - One live `backend="sonar"` run to confirm OpenRouter passes the top-level
   `citations[]` array through alongside annotations.
+
+## Component 4 (depth router N/D/U + finance tuning) — 2026-06-10
+
+### Shared files deliberately left untouched
+
+- **`sidecar/services/agent_tools/catalog.py`** (owned by another track): the
+  `research` capability's `depth` enum still reads `["quick", "deep", "heavy"]`.
+  The handler accepts BOTH namings — `services/research/depth.py` is the one
+  source of truth and maps `quick`→`normal`, `heavy`→`ultra` forever — so the
+  current schema keeps working unchanged. Suggested catalog update when the
+  lead touches it: enum `["normal", "deep", "ultra"]` (legacy spellings stay
+  accepted by the handler), and the `rounds`/`wall_seconds` descriptions can
+  note the new per-depth defaults (deep 3/120s, ultra 4/240s — an explicit arg
+  still wins, clamped to [1,5]/[30,300]).
+- **`sidecar/services/agent_runtime.py` auto-publish** maps the brief panel's
+  `depth` from the result `mode` (`fast|deep|heavy` → `quick|deep|heavy`) —
+  unchanged and still correct. The engine result now ALSO carries a top-level
+  `depth: "normal"|"deep"|"ultra"` for the new surface naming; when the
+  frontend renames its "Go deeper" tiers, read that field instead of `mode`.
+
+### Frontend wiring needed
+
+- Depth is per-query and orthogonal to the search tier: the agent passes
+  `depth` on the `research` tool call (no new headers). If a UI depth picker
+  ships, send `normal|deep|ultra` — the sidecar normalizes any spelling.
+- ULTRA briefs may carry `structured.cross_check` (`{claims:[{claim, verdict:
+  agree|disagree|unverified, detail, domains}], disagreements, min_domains}` or
+  `{skipped, reason}`) plus a `## Cross-check` markdown section; a disagreement
+  count is appended to `note`. The brief panel can badge disagreements from
+  `structured.cross_check.disagreements` without parsing markdown.
+- Web-only floor: when no structured price/fundamentals provider covers an
+  instrument, a clean DEEP/ULTRA brief states it in markdown ("Coverage note:
+  … web sources alone") — no new field; `web_available` semantics unchanged.
