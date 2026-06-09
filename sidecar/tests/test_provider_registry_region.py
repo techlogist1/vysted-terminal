@@ -17,22 +17,46 @@ def _quote(provider: str, symbol: str) -> Quote:
         price=100.0,
         change=0.0,
         change_percent=0.0,
-        currency="INR" if provider == "nse" else "USD",
+        currency="INR" if provider.startswith("nse") else "USD",
         timestamp=datetime.now(tz=UTC),
         provider=provider,
     )
+
+
+def _direct_down(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Stub the exchange-direct lane to fail (no network) so the tests below
+    exercise the jugaad-and-down portion of the IN chain unchanged."""
+    from services import nse_provider
+
+    def boom(symbol: str) -> Quote:
+        raise ProviderError("nse_direct down")
+
+    monkeypatch.setattr(nse_provider, "get_quote", boom)
 
 
 def test_candidate_region_routing() -> None:
     in_ids = [p.id for p in provider_registry._candidates("quote", "equity", "IN")]
     us_ids = [p.id for p in provider_registry._candidates("quote", "equity", "US")]
     crypto_ids = [p.id for p in provider_registry._candidates("quote", "crypto", "US")]
-    # nse (20) → bse (25) → yfinance (50): the IN preference order. bse is the
-    # micro-cap layer between the NSE default and the gated yfinance fallback.
-    assert in_ids == ["nse", "bse", "yfinance"]
-    assert us_ids == ["yfinance"]  # neither India provider serves US
+    # nse_direct (15) → nse/jugaad (20) → bse (25) → yfinance (50): the IN
+    # preference order (R7 Component 2). The exchange-direct lane fronts jugaad;
+    # bse is the micro-cap layer between them and the gated yfinance fallback.
+    assert in_ids == ["nse_direct", "nse", "bse", "yfinance"]
+    assert us_ids == ["yfinance"]  # no India provider serves US
     assert "bse" not in us_ids
+    assert "nse_direct" not in us_ids
     assert crypto_ids == ["ccxt"]
+
+
+def test_in_quote_prefers_nse_direct(monkeypatch: pytest.MonkeyPatch) -> None:
+    from services import india_provider, nse_provider
+
+    monkeypatch.setattr(nse_provider, "get_quote", lambda s: _quote("nse_direct", s))
+    monkeypatch.setattr(
+        india_provider, "get_quote", lambda s: pytest.fail("jugaad must not pre-empt nse_direct")
+    )
+    q = provider_registry.get_quote("GOLDBEES", region="IN")
+    assert q.provider == "nse_direct"
 
 
 def test_effective_region_precedence() -> None:
@@ -43,8 +67,11 @@ def test_effective_region_precedence() -> None:
 
 
 def test_in_quote_prefers_nse(monkeypatch: pytest.MonkeyPatch) -> None:
+    # With the direct lane down, jugaad (nse) is the next preference and
+    # yfinance is never reached.
     from services import india_provider, yfinance_provider
 
+    _direct_down(monkeypatch)
     monkeypatch.setattr(india_provider, "get_quote", lambda s: _quote("nse", s))
     monkeypatch.setattr(
         yfinance_provider, "get_quote", lambda s: pytest.fail("yfinance must not be reached")
@@ -67,6 +94,7 @@ def test_in_quote_falls_through_to_yfinance_when_nse_fails(
     def bse_boom(symbol: str) -> Quote:
         raise ProviderError("bse down")
 
+    _direct_down(monkeypatch)
     monkeypatch.setattr(india_provider, "get_quote", nse_boom)
     monkeypatch.setattr(bse_provider, "get_quote", bse_boom)
     monkeypatch.setattr(yfinance_provider, "get_quote", lambda s: _quote("yfinance", s))
@@ -75,9 +103,11 @@ def test_in_quote_falls_through_to_yfinance_when_nse_fails(
 
 
 def test_correctness_gate_drives_fallthrough(monkeypatch: pytest.MonkeyPatch) -> None:
-    from services import india_provider, yfinance_provider
+    from services import india_provider, nse_provider, yfinance_provider
 
-    # nse returns a wrong-symbol quote → the gate rejects → fall through to yfinance.
+    # Both NSE lanes return wrong-symbol quotes → the gate rejects each → fall
+    # through to yfinance.
+    monkeypatch.setattr(nse_provider, "get_quote", lambda s: _quote("nse_direct", "WRONGSYM"))
     monkeypatch.setattr(india_provider, "get_quote", lambda s: _quote("nse", "WRONGSYM"))
     monkeypatch.setattr(yfinance_provider, "get_quote", lambda s: _quote("yfinance", s))
     q = provider_registry.get_quote("GOLDBEES", region="IN")
@@ -87,6 +117,7 @@ def test_correctness_gate_drives_fallthrough(monkeypatch: pytest.MonkeyPatch) ->
 def test_all_providers_fail_raises_honest_error(monkeypatch: pytest.MonkeyPatch) -> None:
     from services import india_provider, yfinance_provider
 
+    _direct_down(monkeypatch)
     monkeypatch.setattr(india_provider, "get_quote", lambda s: _quote("nse", "WRONG"))
     monkeypatch.setattr(yfinance_provider, "get_quote", lambda s: _quote("yfinance", "ALSOWRONG"))
     with pytest.raises(ProviderError):
@@ -94,8 +125,13 @@ def test_all_providers_fail_raises_honest_error(monkeypatch: pytest.MonkeyPatch)
 
 
 def test_us_request_never_routes_to_nse(monkeypatch: pytest.MonkeyPatch) -> None:
-    from services import india_provider, yfinance_provider
+    from services import india_provider, nse_provider, yfinance_provider
 
+    monkeypatch.setattr(
+        nse_provider,
+        "get_quote",
+        lambda s: pytest.fail("nse_direct must not serve a US request"),
+    )
     monkeypatch.setattr(
         india_provider, "get_quote", lambda s: pytest.fail("nse must not serve a US request")
     )
@@ -131,13 +167,14 @@ def test_bo_suffix_resolves_to_in_and_includes_bse() -> None:
 def test_bse_serves_micro_cap_when_nse_has_no_listing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # A BSE-only micro-cap: NSE has no listing (raises), bse serves it, yfinance
-    # is never reached.
-    from services import bse_provider, india_provider, yfinance_provider
+    # A BSE-only micro-cap: neither NSE lane has a listing (both raise), bse
+    # serves it, yfinance is never reached.
+    from services import bse_provider, india_provider, nse_provider, yfinance_provider
 
     def nse_no_listing(symbol: str) -> Quote:
         raise ProviderError("nse: not a known NSE instrument")
 
+    monkeypatch.setattr(nse_provider, "get_quote", nse_no_listing)
     monkeypatch.setattr(india_provider, "get_quote", nse_no_listing)
     monkeypatch.setattr(bse_provider, "get_quote", lambda s: _quote("bse", s))
     monkeypatch.setattr(
@@ -148,9 +185,11 @@ def test_bse_serves_micro_cap_when_nse_has_no_listing(
 
 
 def test_nse_still_wins_over_bse_for_dual_listed(monkeypatch: pytest.MonkeyPatch) -> None:
-    # RELIANCE is listed on both; nse (rank 20) outranks bse (rank 25).
+    # RELIANCE is listed on both; with the direct lane down, jugaad (rank 20)
+    # still outranks bse (rank 25).
     from services import bse_provider, india_provider
 
+    _direct_down(monkeypatch)
     monkeypatch.setattr(india_provider, "get_quote", lambda s: _quote("nse", s))
     monkeypatch.setattr(
         bse_provider, "get_quote", lambda s: pytest.fail("bse must not pre-empt nse")
@@ -162,12 +201,14 @@ def test_nse_still_wins_over_bse_for_dual_listed(monkeypatch: pytest.MonkeyPatch
 def test_in_quote_falls_through_nse_then_bse_then_yfinance(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # Full IN fallthrough: nse fails → bse fails → yfinance (gated last resort).
+    # Full IN fallthrough: nse_direct fails → nse fails → bse fails → yfinance
+    # (gated last resort).
     from services import bse_provider, india_provider, yfinance_provider
 
     def boom(symbol: str) -> Quote:
         raise ProviderError("down")
 
+    _direct_down(monkeypatch)
     monkeypatch.setattr(india_provider, "get_quote", boom)
     monkeypatch.setattr(bse_provider, "get_quote", boom)
     monkeypatch.setattr(yfinance_provider, "get_quote", lambda s: _quote("yfinance", s))

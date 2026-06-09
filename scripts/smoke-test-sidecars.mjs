@@ -238,6 +238,78 @@ async function _probeBseBhavcopyNoSla() {
   }
 }
 
+/**
+ * No-SLA probe of the NSE exchange-direct lane (R7 Component 2). The
+ * `sidecar/services/nse_provider.py` lane talks to www.nseindia.com through a
+ * curl_cffi Chrome-impersonated session with the cookie dance (warm-up on `/`,
+ * then `api/historicalOR/cm/equity`). Node's fetch has the wrong TLS
+ * fingerprint for NSE's Akamai edge, so this probe shells out to the sidecar
+ * venv's python + curl_cffi — the EXACT transport the provider uses. LIVE
+ * reachability check ONLY: NSE geo-fences, rate-limits, and blocks datacenter
+ * IPs, and CI/sandbox often has no outbound network — a miss WARNS and never
+ * fails the smoke run. It exists to flag an endpoint-SHAPE regression early
+ * (the legacy api/historical/cm/equity path already died with a 503 once).
+ */
+async function _probeNseDirectNoSla() {
+  const venvPy = join(
+    SIDECAR_DIR,
+    ".venv",
+    ...(isWin ? ["Scripts", "python.exe"] : ["bin", "python"]),
+  );
+  if (!existsSync(venvPy)) {
+    console.warn(
+      "[smoke] WARN: NSE direct probe skipped (no-SLA): sidecar venv python not found " +
+        `at ${venvPy} — the probe needs curl_cffi for NSE's TLS fingerprint check.`,
+    );
+    return;
+  }
+  const code = [
+    "import sys, time",
+    "try:",
+    "    from curl_cffi import requests",
+    "except Exception as exc:",
+    "    print('SKIP curl_cffi unavailable:', exc); sys.exit(0)",
+    "from datetime import date, timedelta",
+    "s = requests.Session(impersonate='chrome')",
+    "r = s.get('https://www.nseindia.com/', timeout=15)",
+    "print('WARMUP', r.status_code)",
+    "time.sleep(1.2)",
+    "to = date.today(); frm = to - timedelta(days=10)",
+    "r = s.get('https://www.nseindia.com/api/historicalOR/cm/equity',",
+    "          params={'symbol': 'RELIANCE', 'series': '[\"EQ\"]',",
+    "                  'from': frm.strftime('%d-%m-%Y'), 'to': to.strftime('%d-%m-%Y')},",
+    "          headers={'Accept': '*/*',",
+    "                   'Referer': 'https://www.nseindia.com/get-quotes/equity?symbol=RELIANCE'},",
+    "          timeout=15)",
+    "print('STATUS', r.status_code)",
+    "if r.status_code == 200:",
+    "    rows = (r.json() or {}).get('data') or []",
+    "    print('ROWS', len(rows))",
+  ].join("\n");
+  console.log("[smoke] NSE direct probe (no-SLA): historicalOR/cm/equity via curl_cffi ...");
+  try {
+    const out = execFileSync(venvPy, ["-c", code], { encoding: "utf8", timeout: 60_000 });
+    const status = /STATUS (\d+)/.exec(out)?.[1];
+    const rows = /ROWS (\d+)/.exec(out)?.[1];
+    if (status === "200" && Number(rows) > 0) {
+      console.log(`[smoke] NSE direct probe OK (HTTP 200, ${rows} EOD rows).`);
+    } else if (out.includes("SKIP")) {
+      console.warn(`[smoke] WARN: NSE direct probe skipped (no-SLA): ${out.trim()}`);
+    } else {
+      console.warn(
+        `[smoke] WARN: NSE direct probe did not return rows (no-SLA — not a failure). ` +
+          `Common + benign: geo-fence/edge ACL, holiday, or no outbound network. ` +
+          `Only investigate if the URL SHAPE changed. Output:\n${out.trim()}`,
+      );
+    }
+  } catch (err) {
+    console.warn(
+      `[smoke] WARN: NSE direct probe errored (no-SLA — not a failure): ` +
+        `${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+}
+
 /** Single TCP-connect probe to 127.0.0.1:port — true if something is listening. */
 function _tcpConnectOk(port, timeoutMs = 1000) {
   return new Promise((resolveP) => {
@@ -535,8 +607,9 @@ async function main() {
     }
   }
 
-  // No-SLA external probe — runs regardless of sidecar results, never fails.
+  // No-SLA external probes — run regardless of sidecar results, never fail.
   await _probeBseBhavcopyNoSla();
+  await _probeNseDirectNoSla();
 
   if (failures.length > 0) {
     console.error("\n[smoke] FAILURES:");

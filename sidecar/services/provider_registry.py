@@ -46,6 +46,7 @@ from services import (
     ccxt_provider,
     correctness_gate,
     india_provider,
+    nse_provider,
     openbb_mcp_provider,
     symbol_resolver,
     yfinance_provider,
@@ -136,6 +137,24 @@ _PROVIDERS: tuple[ProviderDeclaration, ...] = (
             "analyst_rating": lambda symbol: openbb_mcp_provider.get_analyst_rating(symbol),
             "macro_series": lambda series_id, provider=None: openbb_mcp_provider.get_macro_series(
                 series_id, provider=provider
+            ),
+        },
+    ),
+    # nse_direct — the exchange-direct anti-bot lane (curl_cffi cookie dance,
+    # R7 Component 2), region-scoped to IN and ranked ABOVE the jugaad lane
+    # (nse, 20): when www.nseindia.com serves us directly we prefer the
+    # first-party EOD rows; any block/throttle/circuit-open falls through to
+    # jugaad → bse → gated yfinance. Serves quote + ohlcv only.
+    ProviderDeclaration(
+        id="nse_direct",
+        rank=15,
+        requires=lambda: nse_provider.is_available(),
+        asset_classes=frozenset({"equity"}),
+        region=frozenset({"IN"}),
+        serves={
+            "quote": lambda symbol: nse_provider.get_quote(symbol),
+            "ohlcv": lambda symbol, timeframe, range_=None: nse_provider.get_history(
+                symbol, timeframe, range_
             ),
         },
     ),
