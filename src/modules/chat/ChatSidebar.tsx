@@ -29,6 +29,7 @@ import { type AgentRunBudget, useAgentRunsStore } from "@/store/agent-runs";
 import { selectCustomAgents, selectFirstPartyAgents, useAgentsStore } from "@/store/agents";
 import {
   type AgentPlanView,
+  type ChatMessage,
   type ResearchStepView,
   useChatHistoryStore,
 } from "@/store/chat-history";
@@ -53,7 +54,7 @@ import { applyMentionPrefixes, type MentionDef, matchMention, resolveMention } f
 import { MentionPicker } from "./MentionPicker";
 import { PlanView } from "./PlanView";
 import { ProposedChangesReview } from "./ProposedChangesReview";
-import { ResearchActivity } from "./ResearchActivity";
+import { formatElapsed, ResearchActivity } from "./ResearchActivity";
 import {
   parseSlashCommand,
   parseSlashInvocation,
@@ -190,6 +191,76 @@ function readToolLabel(name: string): string {
     default:
       return `Using ${name.replace(/_/g, " ")}`;
   }
+}
+
+/**
+ * The step trace for one assistant turn — language first, telemetry behind a
+ * disclosure (R7 Track C). WHILE STREAMING the live activity renders as before
+ * (visible plan → animated research trace → tool-step lines: the one place the
+ * peach accent belongs) so the work is visibly underway. Once the run finishes
+ * the whole trace collapses into ONE quiet line above the prose —
+ * `▸ Worked for 12s · 7 steps` — that expands on demand to the full
+ * ResearchActivity-style detail. Expanded state is per-message; the default is
+ * collapsed, so the transcript reads as prose, not telemetry.
+ */
+function ActivityTrace({ message }: { message: ChatMessage }) {
+  const [expanded, setExpanded] = useState(false);
+  const researchSteps = message.researchSteps ?? [];
+  const toolSteps = message.toolSteps ?? [];
+  const stepCount = researchSteps.length + toolSteps.length;
+  if (stepCount === 0 && !message.plan) {
+    return null;
+  }
+
+  const detail = (active: boolean) => (
+    <>
+      {message.plan && <PlanView plan={message.plan} active={active} />}
+      {researchSteps.length > 0 && (
+        <ResearchActivity
+          steps={researchSteps}
+          active={active}
+          startedAt={message.researchStartedAt}
+        />
+      )}
+      {toolSteps.length > 0 && (
+        <ul className="mb-1.5 flex flex-col gap-0.5">
+          {toolSteps.map((step, i) => (
+            <li key={i} className="text-charcoal-400 text-caption flex items-center gap-1">
+              <span className="text-charcoal-500">→</span> {step}
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+
+  if (message.pending) {
+    return detail(true);
+  }
+
+  // Honest duration: the sum of measured step latencies (the same number the
+  // expanded trace footer shows) — never a fabricated wall-clock guess.
+  const totalLatency = researchSteps.reduce((sum, s) => sum + (s.latencyMs ?? 0), 0);
+  const label =
+    stepCount > 0
+      ? `Worked${totalLatency > 0 ? ` for ${formatElapsed(totalLatency)}` : ""} · ${stepCount} step${stepCount === 1 ? "" : "s"}`
+      : "Planned";
+
+  return (
+    <div className="mb-1.5">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+        aria-label={`${expanded ? "Collapse" : "Expand"} step trace — ${label}`}
+        className="text-charcoal-500 text-micro hover:text-charcoal-300 flex items-center gap-1.5 transition-colors"
+      >
+        <span aria-hidden>{expanded ? "▾" : "▸"}</span>
+        <span className="tabular-nums">{label}</span>
+      </button>
+      {expanded && <div className="mt-1.5">{detail(false)}</div>}
+    </div>
+  );
 }
 
 /**
@@ -983,26 +1054,7 @@ export function ChatSidebar() {
                       ? (agentNameById[message.agentId] ?? message.agentId)
                       : "Assistant"}
                 </div>
-                {message.plan && <PlanView plan={message.plan} active={!!message.pending} />}
-                {message.researchSteps && message.researchSteps.length > 0 && (
-                  <ResearchActivity
-                    steps={message.researchSteps}
-                    active={!!message.pending}
-                    startedAt={message.researchStartedAt}
-                  />
-                )}
-                {message.toolSteps && message.toolSteps.length > 0 && (
-                  <ul className="mb-1.5 flex flex-col gap-0.5">
-                    {message.toolSteps.map((step, i) => (
-                      <li
-                        key={i}
-                        className="text-charcoal-400 text-caption flex items-center gap-1"
-                      >
-                        <span className="text-charcoal-500">→</span> {step}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <ActivityTrace message={message} />
                 <MessageBody
                   content={message.content}
                   pending={message.pending}

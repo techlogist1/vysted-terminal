@@ -349,6 +349,78 @@ describe("ChatSidebar", () => {
     expect(screen.getByText("stopped")).toBeInTheDocument();
   });
 
+  it("collapses a finished run's step trace into one disclosure line, expandable on demand", () => {
+    useChatHistoryStore.setState({
+      messages: [
+        {
+          id: "a1",
+          role: "assistant",
+          content: "Momentum looks stretched here.",
+          pending: false,
+          toolSteps: ["Reading your portfolio"],
+          researchSteps: [
+            { stepKind: "plan", detail: "decomposed the question", status: "ok", index: 1 },
+            {
+              stepKind: "search",
+              detail: "searched filings",
+              status: "ok",
+              index: 2,
+              latencyMs: 8000,
+            },
+            {
+              stepKind: "synthesize",
+              detail: "wrote the brief",
+              status: "ok",
+              index: 3,
+              latencyMs: 4000,
+            },
+          ],
+          createdAt: 0,
+        },
+      ],
+      streamingMessageId: null,
+    });
+    render(<ChatSidebar />);
+    // Prose first; the telemetry collapses to ONE quiet line — `▸ Worked for 12s · 4 steps`.
+    expect(screen.getByText("Momentum looks stretched here.")).toBeInTheDocument();
+    const disclosure = screen.getByRole("button", { name: /expand step trace/i });
+    expect(disclosure.textContent).toContain("Worked for 12s · 4 steps");
+    expect(screen.queryByText("Reading your portfolio")).toBeNull();
+    expect(screen.queryByText("searched filings")).toBeNull();
+    // Expanding reveals the ResearchActivity-style detail + humanized tool steps.
+    fireEvent.click(disclosure);
+    expect(screen.getByText("Reading your portfolio")).toBeInTheDocument();
+    expect(screen.getByText("searched filings")).toBeInTheDocument();
+    expect(screen.getByLabelText("Research activity")).toBeInTheDocument();
+    // …and collapses back.
+    fireEvent.click(screen.getByRole("button", { name: /collapse step trace/i }));
+    expect(screen.queryByText("searched filings")).toBeNull();
+  });
+
+  it("keeps the live activity visible (no disclosure) while the run streams", () => {
+    useChatHistoryStore.setState({
+      messages: [
+        {
+          id: "a2",
+          role: "assistant",
+          content: "Digging in",
+          pending: true,
+          researchSteps: [
+            { stepKind: "search", detail: "scanning the wire", status: "ok", index: 1 },
+          ],
+          researchStartedAt: Date.now(),
+          createdAt: 0,
+        },
+      ],
+      streamingMessageId: "a2",
+    });
+    render(<ChatSidebar />);
+    // The animated trace renders as today — visible, never behind a disclosure.
+    expect(screen.getByText("Researching")).toBeInTheDocument();
+    expect(screen.getByText("scanning the wire")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /step trace/i })).toBeNull();
+  });
+
   it("renders an empty-state hint until a message is sent", () => {
     render(<ChatSidebar />);
     expect(screen.getByText(/Ask anything about what you/)).toBeInTheDocument();

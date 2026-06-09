@@ -68,6 +68,13 @@ export interface ChatMessage {
    *  short summary (with a "show full analysis" toggle) instead of a wall of
    *  markdown. */
   briefPublished?: boolean;
+  /** Joined-rounds guard (R7 Track C): set when a non-delta event (tool step,
+   *  research step, plan, brief publish) lands on a message that already has
+   *  prose — the model's next round is a NEW paragraph, but the wire deltas
+   *  arrive without a separator ("…look.Set SPY…"). The next ``appendAssistantDelta``
+   *  consumes the flag and prepends a paragraph break when the existing content
+   *  doesn't already end with whitespace. UI-internal, never persisted. */
+  roundBoundaryPending?: boolean;
   createdAt: number;
 }
 
@@ -101,6 +108,14 @@ interface ChatHistoryState {
   clear: () => void;
   /** Replace the whole transcript (used to swap between agent spaces/threads). */
   loadMessages: (messages: ChatMessage[]) => void;
+}
+
+/** Mark the round boundary on a message that already streamed prose — any
+ *  non-delta event between model rounds means the next delta starts a new
+ *  paragraph (the joined-rounds fix). A message with no content yet (the
+ *  trace arrived before any prose) needs no break. */
+function _markRoundBoundary(message: ChatMessage): ChatMessage {
+  return message.content.length > 0 ? { ...message, roundBoundaryPending: true } : message;
 }
 
 function _uuid(): string {
@@ -145,15 +160,29 @@ export const useChatHistoryStore = create<ChatHistoryState>((set) => ({
   },
   appendAssistantDelta: (id, text) =>
     set((state) => ({
-      messages: state.messages.map((message) =>
-        message.id === id ? { ...message, content: message.content + text } : message,
-      ),
+      messages: state.messages.map((message) => {
+        if (message.id !== id) {
+          return message;
+        }
+        // Joined-rounds fix: a non-delta event landed since the last prose, so
+        // this delta opens a NEW model round — insert the paragraph break the
+        // wire omits, unless the prose already ends with whitespace.
+        const needsBreak =
+          message.roundBoundaryPending === true &&
+          message.content.length > 0 &&
+          !/\s$/.test(message.content);
+        return {
+          ...message,
+          content: message.content + (needsBreak ? "\n\n" : "") + text,
+          roundBoundaryPending: false,
+        };
+      }),
     })),
   appendToolStep: (id, step) =>
     set((state) => ({
       messages: state.messages.map((message) =>
         message.id === id
-          ? { ...message, toolSteps: [...(message.toolSteps ?? []), step] }
+          ? { ..._markRoundBoundary(message), toolSteps: [...(message.toolSteps ?? []), step] }
           : message,
       ),
     })),
@@ -162,7 +191,7 @@ export const useChatHistoryStore = create<ChatHistoryState>((set) => ({
       messages: state.messages.map((message) =>
         message.id === id
           ? {
-              ...message,
+              ..._markRoundBoundary(message),
               researchSteps: [...(message.researchSteps ?? []), step],
               researchStartedAt: message.researchStartedAt ?? Date.now(),
             }
@@ -172,13 +201,13 @@ export const useChatHistoryStore = create<ChatHistoryState>((set) => ({
   setPlan: (id, plan) =>
     set((state) => ({
       messages: state.messages.map((message) =>
-        message.id === id ? { ...message, plan } : message,
+        message.id === id ? { ..._markRoundBoundary(message), plan } : message,
       ),
     })),
   markBriefPublished: (id) =>
     set((state) => ({
       messages: state.messages.map((message) =>
-        message.id === id ? { ...message, briefPublished: true } : message,
+        message.id === id ? { ..._markRoundBoundary(message), briefPublished: true } : message,
       ),
     })),
   finalizeAssistantMessage: (id, usage) =>
