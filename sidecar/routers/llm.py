@@ -118,13 +118,23 @@ async def chat_stream(payload: LLMChatRequest) -> StreamingResponse:
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+    # Frontend CONTROL keys ride `options` but are not adapter kwargs — an
+    # OpenAI-shaped client raises TypeError on unknown kwargs (live repro:
+    # `research_depth` killed a DeepSeek stream). Strip them here; the agent
+    # path consumes them in agent_runtime.
+    adapter_options = {
+        k: v
+        for k, v in payload.options.items()
+        if k not in {"research_depth", "deepResearchBackend", "modelWebSearch", "history"}
+    }
+
     async def _generator() -> AsyncIterator[bytes]:
         try:
             async for event in adapter.stream_chat(
                 messages=payload.messages,
                 model=payload.model,
                 api_key=payload.api_key,
-                **payload.options,
+                **adapter_options,
             ):
                 yield _encode_event(event)
         except Exception as exc:  # noqa: BLE001 — last-resort guard
