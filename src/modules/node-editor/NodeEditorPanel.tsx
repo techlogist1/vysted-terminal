@@ -371,6 +371,14 @@ function NodeEditorPanelInner() {
     const startedMark = performance.now();
     const outputsByNode = new Map<string, Record<string, unknown>>();
     const failedServerIds: string[] = [];
+    // The engine validates BEFORE emitting run-start (`_validate_spec` is
+    // the first statement of `run_workflow`) and routers/workflow.py
+    // swallows the exception, so a rejected spec — unregistered plugin node
+    // type, dangling edge ref — closes the SSE stream with ZERO frames.
+    // Track whether a terminal frame ever arrived; its absence is a run
+    // failure, never a green "ok" over a board of pending rows.
+    let serverTerminalSeen = false;
+    let serverErrorMessage: string | null = null;
     let runId = generateId("local");
     try {
       if (partition.server.nodes.length > 0) {
@@ -405,9 +413,16 @@ function NodeEditorPanelInner() {
               failedServerIds.push(event.nodeId);
               break;
             case "run-complete":
-            case "run-error":
               // Held — the run isn't over until the code nodes evaluated;
               // server-side failures are folded into the final event below.
+              serverTerminalSeen = true;
+              return;
+            case "run-error":
+              // Held like run-complete, but keep the engine's message so an
+              // engine-level failure that produced no node-error frames
+              // still surfaces instead of folding into a fake success.
+              serverTerminalSeen = true;
+              serverErrorMessage = event.message;
               return;
             default:
               break;
@@ -416,6 +431,13 @@ function NodeEditorPanelInner() {
         });
         if (controller.signal.aborted) {
           return;
+        }
+        if (!serverTerminalSeen) {
+          throw new Error(
+            "workflow stream ended without a terminal frame — the sidecar " +
+              "rejected the spec before starting (e.g. a node type with no " +
+              "server-side handler) or crashed mid-run",
+          );
         }
       } else {
         // Pure-code workflow — no sidecar round-trip at all.
@@ -430,16 +452,15 @@ function NodeEditorPanelInner() {
       );
       const durationMs = performance.now() - startedMark;
       const allFailed = [...failedServerIds, ...failedNodeIds];
+      const failureMessage =
+        allFailed.length > 0
+          ? `failures in nodes: ${JSON.stringify([...allFailed].sort())}`
+          : serverErrorMessage;
       setRunState((prev) =>
         applyEvent(
           prev,
-          allFailed.length > 0
-            ? {
-                kind: "run-error",
-                runId,
-                message: `failures in nodes: ${JSON.stringify([...allFailed].sort())}`,
-                durationMs,
-              }
+          failureMessage !== null
+            ? { kind: "run-error", runId, message: failureMessage, durationMs }
             : { kind: "run-complete", runId, durationMs },
         ),
       );

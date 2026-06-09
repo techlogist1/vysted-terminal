@@ -97,6 +97,58 @@ describe("partitionWorkflow", () => {
     });
     expect(partitionWorkflow(s).error).toMatch(/cycle/);
   });
+
+  it("rejects a cycle among SERVER nodes — the engine raises pre-run-start on those", () => {
+    // Without the full-graph Kahn pass this spec went to the sidecar, where
+    // `_validate_spec` raised before emitting a single frame and the SSE
+    // stream closed empty — the panel then reported a false "ok".
+    const s = spec({
+      nodes: [
+        { id: "n1", type: "data.fetch_quote" },
+        { id: "n2", type: "action.log" },
+      ],
+      edges: [
+        { id: "e1", from: "n1", fromPort: "quote", to: "n2", toPort: "value" },
+        { id: "e2", from: "n2", fromPort: "value", to: "n1", toPort: "symbol" },
+      ],
+    });
+    expect(partitionWorkflow(s).error).toMatch(/cycle/);
+  });
+
+  it("rejects a mixed server cycle in a spec that also has valid code nodes", () => {
+    const s = spec({
+      nodes: [
+        { id: "n1", type: "data.fetch_quote" },
+        { id: "n2", type: "action.log" },
+        { id: "c1", type: "transform.code", config: codeConfig("1 + 1", []) },
+      ],
+      edges: [
+        { id: "e1", from: "n1", fromPort: "quote", to: "n2", toPort: "value" },
+        { id: "e2", from: "n2", fromPort: "value", to: "n1", toPort: "symbol" },
+      ],
+    });
+    const partition = partitionWorkflow(s);
+    expect(partition.error).toMatch(/cycle/);
+    expect(partition.codeOrder).toEqual([]);
+  });
+
+  it("still orders code nodes when acyclic server nodes coexist", () => {
+    const s = spec({
+      nodes: [
+        { id: "n1", type: "data.fetch_quote" },
+        { id: "c2", type: "transform.code", config: codeConfig("x * 2", ["x"]) },
+        { id: "c1", type: "transform.code", config: codeConfig("q.price", ["q"]) },
+      ],
+      edges: [
+        { id: "e1", from: "n1", fromPort: "quote", to: "c1", toPort: "q" },
+        { id: "e2", from: "c1", fromPort: "value", to: "c2", toPort: "x" },
+      ],
+    });
+    const partition = partitionWorkflow(s);
+    expect(partition.error).toBeUndefined();
+    expect(partition.codeOrder).toEqual(["c1", "c2"]);
+    expect(partition.server.nodes.map((n) => n.id)).toEqual(["n1"]);
+  });
 });
 
 describe("evaluateCodeNodes", () => {

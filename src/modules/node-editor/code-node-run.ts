@@ -23,11 +23,14 @@
  *      evaluates each expression in the mathjs sandbox, emitting the same
  *      `WorkflowRunEvent` shapes into the overlay reducer.
  *
- * Constraint enforced honestly: an edge FROM a code node INTO a
- * server-executed node is rejected before the run starts — the sidecar
- * cannot see client-side outputs mid-run. Code → code chains are fine
- * (local topological evaluation); server → code is the designed direction.
- * Failed upstreams propagate as "upstream node failed", mirroring
+ * Constraints enforced honestly, before the run starts: an edge FROM a
+ * code node INTO a server-executed node is rejected — the sidecar cannot
+ * see client-side outputs mid-run — and a cycle ANYWHERE in the spec
+ * (server-only cycles included) is rejected, because the engine raises in
+ * `_validate_spec` before emitting a single frame and the stream would
+ * otherwise close empty. Code → code chains are fine (local topological
+ * evaluation); server → code is the designed direction. Failed upstreams
+ * propagate as "upstream node failed", mirroring
  * `workflow_engine.run_workflow` semantics.
  */
 
@@ -70,12 +73,19 @@ export function partitionWorkflow(spec: WorkflowSpec): WorkflowPartition {
     }
   }
 
-  const order = topoOrderCodeNodes(spec, codeIds);
-  if (order === null) {
+  // Cycle check over the FULL graph, not just the code subgraph. A cycle
+  // among server nodes makes the engine raise in `_validate_spec` BEFORE
+  // it emits run-start; routers/workflow.py swallows the exception, so the
+  // SSE stream closes with zero frames — reject honestly here instead of
+  // letting the run start at all. The full topological order restricted to
+  // the code ids is still a valid topological order of the code subgraph,
+  // so it doubles as the local evaluation plan.
+  const fullOrder = topoOrder(new Set(spec.nodes.map((n) => n.id)), spec.edges);
+  if (fullOrder === null) {
     return {
       server: spec,
       codeOrder: [],
-      error: "code nodes form a cycle — break the loop before running",
+      error: "workflow contains a cycle — break the loop before running",
     };
   }
 
@@ -84,24 +94,27 @@ export function partitionWorkflow(spec: WorkflowSpec): WorkflowPartition {
     nodes: spec.nodes.filter((n) => !codeIds.has(n.id)),
     edges: spec.edges.filter((e) => !codeIds.has(e.sourceNode) && !codeIds.has(e.targetNode)),
   };
-  return { server, codeOrder: order };
+  return { server, codeOrder: fullOrder.filter((id) => codeIds.has(id)) };
 }
 
-/** Kahn's algorithm over the code → code subgraph; null on a cycle. */
-function topoOrderCodeNodes(spec: WorkflowSpec, codeIds: ReadonlySet<string>): string[] | null {
+/**
+ * Kahn's algorithm over the subgraph induced by `ids` (edges with an
+ * endpoint outside the set are ignored); null on a cycle.
+ */
+function topoOrder(ids: ReadonlySet<string>, edges: WorkflowSpec["edges"]): string[] | null {
   const inDegree = new Map<string, number>();
   const children = new Map<string, string[]>();
-  for (const id of codeIds) {
+  for (const id of ids) {
     inDegree.set(id, 0);
     children.set(id, []);
   }
-  for (const edge of spec.edges) {
-    if (codeIds.has(edge.sourceNode) && codeIds.has(edge.targetNode)) {
+  for (const edge of edges) {
+    if (ids.has(edge.sourceNode) && ids.has(edge.targetNode)) {
       inDegree.set(edge.targetNode, (inDegree.get(edge.targetNode) ?? 0) + 1);
       children.get(edge.sourceNode)!.push(edge.targetNode);
     }
   }
-  const ready = [...codeIds].filter((id) => inDegree.get(id) === 0).sort();
+  const ready = [...ids].filter((id) => inDegree.get(id) === 0).sort();
   const order: string[] = [];
   while (ready.length > 0) {
     const id = ready.shift()!;
@@ -115,7 +128,7 @@ function topoOrderCodeNodes(spec: WorkflowSpec, codeIds: ReadonlySet<string>): s
     }
     ready.sort();
   }
-  return order.length === codeIds.size ? order : null;
+  return order.length === ids.size ? order : null;
 }
 
 // ---------------------------------------------------------------------------
