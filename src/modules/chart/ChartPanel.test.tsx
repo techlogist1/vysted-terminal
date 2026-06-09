@@ -113,6 +113,8 @@ import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useChartSyncBus } from "@/store/chart-sync";
 
 import ChartPanel from "./ChartPanel";
+import { CATEGORY_LABELS, INDICATOR_CATALOG } from "./indicators";
+import { DRAW_TOOLS } from "./toolbar";
 
 // --- fixtures ---------------------------------------------------------------
 function makeSeries(symbol: string): OHLCVSeries {
@@ -164,6 +166,30 @@ function makeIndicatorResponse(): IndicatorResponse {
   };
 }
 
+// --- popover helpers ---------------------------------------------------------
+// Trigger accessible names start with the visible label; an active count may
+// follow ("Indicators 2"), so the lookups are prefix regexes.
+function openDraw() {
+  fireEvent.click(screen.getByRole("button", { name: /^Draw\b/ }));
+}
+function openIndicators() {
+  fireEvent.click(screen.getByRole("button", { name: /^Indicators\b/ }));
+}
+function openCompare() {
+  fireEvent.click(screen.getByRole("button", { name: /^Compare\b/ }));
+}
+function openSync() {
+  fireEvent.click(screen.getByRole("button", { name: /^Sync\b/ }));
+}
+
+/** Open the Indicators popover and toggle one indicator by its full name. */
+function toggleIndicatorByName(menuLabel: string) {
+  openIndicators();
+  fireEvent.click(screen.getByRole("button", { name: menuLabel }));
+  // Close the popover so follow-up queries see only the idle surface.
+  fireEvent.keyDown(document, { key: "Escape" });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   historyMock.mockResolvedValue(makeSeries("SPY"));
@@ -196,23 +222,29 @@ describe("ChartPanel", () => {
     expect(fetchIndicatorsMock).not.toHaveBeenCalled();
   });
 
-  it("fetches an indicator server-side when toggled on", async () => {
+  it("fetches an indicator server-side when toggled on in the popover", async () => {
     render(<ChartPanel />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
 
-    fireEvent.click(screen.getByRole("button", { name: "RSI", pressed: false }));
+    openIndicators();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Relative Strength Index", pressed: false }),
+    );
 
     await waitFor(() => {
       expect(fetchIndicatorsMock).toHaveBeenCalledWith("SPY", ["rsi"], "1d");
     });
-    expect(screen.getByRole("button", { name: "RSI", pressed: true })).toBeInTheDocument();
+    // The popover stays open for multi-select; the row reflects the toggle.
+    expect(
+      screen.getByRole("button", { name: "Relative Strength Index", pressed: true }),
+    ).toBeInTheDocument();
   });
 
   it("re-requests history and indicators when the timeframe changes", async () => {
     render(<ChartPanel />);
     await waitFor(() => expect(historyMock).toHaveBeenCalledTimes(1));
 
-    fireEvent.click(screen.getByRole("button", { name: "RSI", pressed: false }));
+    toggleIndicatorByName("Relative Strength Index");
     await waitFor(() => expect(fetchIndicatorsMock).toHaveBeenCalledTimes(1));
 
     fireEvent.click(screen.getByRole("button", { name: "1h", pressed: false }));
@@ -243,56 +275,193 @@ describe("ChartPanel", () => {
     expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
   });
 
-  it("surfaces a SidecarError from the indicator call", async () => {
+  it("surfaces a SidecarError from the indicator call on the chip row", async () => {
     fetchIndicatorsMock.mockRejectedValueOnce(new SidecarError(400, "bad indicator"));
     render(<ChartPanel />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
 
-    fireEvent.click(screen.getByRole("button", { name: "MACD", pressed: false }));
+    toggleIndicatorByName("Moving Average Convergence Divergence");
 
     expect(await screen.findByText(/bad indicator \(400\)/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retry indicators" })).toBeInTheDocument();
   });
 
-  it("clears all selected indicators with the Clear control", async () => {
+  it("clears all selected indicators from the chip row's Clear all control", async () => {
     render(<ChartPanel />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
 
-    fireEvent.click(screen.getByRole("button", { name: "RSI", pressed: false }));
+    toggleIndicatorByName("Relative Strength Index");
     await waitFor(() => expect(fetchIndicatorsMock).toHaveBeenCalled());
 
-    fireEvent.click(screen.getByRole("button", { name: /Clear \(1\)/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Clear all \(1\)/ }));
 
-    expect(screen.getByRole("button", { name: "RSI", pressed: false })).toBeInTheDocument();
+    expect(screen.queryByTestId("indicator-chip-row")).toBeNull();
   });
 
-  it("renders the full 50-indicator catalog grouped by category", async () => {
+  // --------------------------------------------------------------------------
+  // R7 — disclosure toolbar: the indicator wall is gone, popovers carry the
+  // full catalog, active selections are chips.
+  // --------------------------------------------------------------------------
+
+  it("renders no always-on indicator wall — the catalog only exists inside the popover", async () => {
     render(<ChartPanel />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
-    // Spot-check at least one indicator from every category — the grouped
-    // selector renders six section headers and 50 toggles.
-    const labels = [
-      "Hull MA", // moving-average — Phase 2
-      "Awesome Osc", // momentum — Phase 2
-      "Bollinger Bandwidth", // volatility — Phase 2
-      "CMF", // volume — Phase 2
-      "Aroon", // trend — Phase 2
-      "Linear Regression", // statistical — Phase 2
-      // Phase 1 carry-overs:
-      "RSI",
-      "MACD",
-      "VWAP",
-      "Volume Profile",
-      "Parabolic SAR",
-      "ROC",
-    ];
-    for (const label of labels) {
-      expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
+
+    // No indicator toggle is rendered while the popover is closed.
+    for (const def of INDICATOR_CATALOG) {
+      expect(screen.queryByRole("button", { name: def.menuLabel })).toBeNull();
     }
-    // Section labels render uppercase, with letter-spacing — distinguishable
-    // from the button labels by class. Six categories are present.
-    const sectionHeaders = screen.getAllByText(/Moving Averages|Volatility|Statistical/);
-    expect(sectionHeaders.length).toBeGreaterThanOrEqual(3);
+    // No category group headers idle below the chart.
+    for (const label of Object.values(CATEGORY_LABELS)) {
+      expect(screen.queryByText(label)).toBeNull();
+    }
+    // No earned chip row without an active indicator.
+    expect(screen.queryByTestId("indicator-chip-row")).toBeNull();
   });
+
+  it("lists the entire 50-indicator catalog, grouped and spelled out, in the popover", async () => {
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+
+    openIndicators();
+
+    expect(INDICATOR_CATALOG.length).toBe(50);
+    for (const def of INDICATOR_CATALOG) {
+      expect(screen.getByRole("button", { name: def.menuLabel })).toBeInTheDocument();
+    }
+    // getAllByText: "Volume" the group header also exact-matches the "Volume"
+    // indicator row's name span, so each label asserts ≥1 match.
+    for (const label of Object.values(CATEGORY_LABELS)) {
+      expect(screen.getAllByText(label).length).toBeGreaterThan(0);
+    }
+  });
+
+  it("filters the indicator popover by search query", async () => {
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+
+    openIndicators();
+    fireEvent.change(screen.getByLabelText("Search indicators"), {
+      target: { value: "bollinger" },
+    });
+
+    expect(screen.getByRole("button", { name: "Bollinger Bands" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Bollinger Bandwidth" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Relative Strength Index" })).toBeNull();
+
+    // The search also matches terse codes, so "RSI" finds the spelled-out row.
+    fireEvent.change(screen.getByLabelText("Search indicators"), { target: { value: "rsi" } });
+    expect(screen.getByRole("button", { name: "Relative Strength Index" })).toBeInTheDocument();
+  });
+
+  it("renders active indicators as removable chips and prunes the fetch on remove", async () => {
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+
+    openIndicators();
+    fireEvent.click(screen.getByRole("button", { name: "Relative Strength Index" }));
+    fireEvent.click(screen.getByRole("button", { name: "Moving Average Convergence Divergence" }));
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    await waitFor(() => {
+      expect(fetchIndicatorsMock).toHaveBeenCalledWith("SPY", ["macd", "rsi"], "1d");
+    });
+    const chipRow = screen.getByTestId("indicator-chip-row");
+    expect(chipRow).toHaveTextContent("RSI");
+    expect(chipRow).toHaveTextContent("MACD");
+
+    fireEvent.click(screen.getByRole("button", { name: "Remove RSI" }));
+
+    await waitFor(() => {
+      expect(fetchIndicatorsMock).toHaveBeenCalledWith("SPY", ["macd"], "1d");
+    });
+    expect(screen.queryByRole("button", { name: "Remove RSI" })).toBeNull();
+  });
+
+  it("dismisses a popover on Escape without disturbing the armed drawing tool", async () => {
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+
+    openDraw();
+    fireEvent.click(screen.getByRole("button", { name: "Trendline" }));
+    expect(screen.getByTestId("active-tool-chip")).toBeInTheDocument();
+
+    openIndicators();
+    expect(screen.getByLabelText("Search indicators")).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    expect(screen.queryByLabelText("Search indicators")).toBeNull();
+    // The popover's Escape must not bubble into the chart's disarm handler.
+    expect(screen.getByTestId("active-tool-chip")).toBeInTheDocument();
+  });
+
+  it("dismisses a popover on outside click", async () => {
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+
+    openIndicators();
+    expect(screen.getByLabelText("Search indicators")).toBeInTheDocument();
+
+    fireEvent.mouseDown(document.body);
+
+    expect(screen.queryByLabelText("Search indicators")).toBeNull();
+  });
+
+  it("proves functionality parity: every old toolbar control has a new home", async () => {
+    render(<ChartPanel api={{ id: "chart-parity" }} />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+
+    // Old row 1 — symbol + Load + 8 timeframes stay directly on the toolbar.
+    expect(screen.getByLabelText("Symbol")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Load" })).toBeInTheDocument();
+    for (const timeframe of ["1m", "5m", "15m", "30m", "1h", "1d", "1wk", "1mo"]) {
+      expect(screen.getByRole("button", { name: timeframe })).toBeInTheDocument();
+    }
+
+    // Old row 2 — the ten DRAW codes live in the Draw popover, spelled out.
+    const oldDrawToNew: Record<string, string> = {
+      Trend: "Trendline",
+      "H-Line": "Horizontal line",
+      "V-Line": "Vertical line",
+      Ray: "Ray",
+      Rect: "Rectangle",
+      Ellipse: "Ellipse",
+      "Fib Retr": "Fibonacci retracement",
+      "Fib Ext": "Fibonacci extension",
+      Channel: "Parallel channel",
+      Text: "Text label",
+    };
+    openDraw();
+    expect(DRAW_TOOLS.length).toBe(10);
+    for (const tool of DRAW_TOOLS) {
+      expect(oldDrawToNew[tool.chipLabel]).toBe(tool.name);
+      expect(screen.getByRole("button", { name: tool.name })).toBeInTheDocument();
+    }
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    // Old indicator wall — all 50 toggles live in the Indicators popover.
+    openIndicators();
+    for (const def of INDICATOR_CATALOG) {
+      expect(screen.getByRole("button", { name: def.menuLabel })).toBeInTheDocument();
+    }
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    // Old row 3 — COMPARE symbol + Add live in the Compare popover.
+    openCompare();
+    expect(screen.getByLabelText("Compare symbol")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add" })).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    // Old SYNC CX/ZM/SY codes — spelled-out toggles in the Sync popover.
+    openSync();
+    expect(screen.getByRole("button", { name: "Sync crosshair" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sync visibleRange" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sync symbol" })).toBeInTheDocument();
+  });
+
+  // --------------------------------------------------------------------------
+  // Indicator data wiring (unchanged contracts, new click path)
+  // --------------------------------------------------------------------------
 
   it("attaches a Volume Profile primitive when the indicator is toggled on", async () => {
     fetchIndicatorsMock.mockResolvedValueOnce({
@@ -310,7 +479,7 @@ describe("ChartPanel", () => {
     render(<ChartPanel />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
 
-    fireEvent.click(screen.getByRole("button", { name: "Volume Profile", pressed: false }));
+    toggleIndicatorByName("Volume Profile");
 
     await waitFor(() => {
       expect(volumeProfileCtor).toHaveBeenCalled();
@@ -350,7 +519,7 @@ describe("ChartPanel", () => {
     render(<ChartPanel />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
 
-    fireEvent.click(screen.getByRole("button", { name: "Parabolic SAR", pressed: false }));
+    toggleIndicatorByName("Parabolic SAR");
 
     await waitFor(() => expect(createSeriesMarkersMock).toHaveBeenCalled());
     // The candle series — not a new LineSeries — is the markers' host.
@@ -366,7 +535,7 @@ describe("ChartPanel", () => {
     expect(lineCalls).toHaveLength(0);
   });
 
-  it("detaches Parabolic SAR markers when the indicator is cleared", async () => {
+  it("detaches Parabolic SAR markers when the indicator chip is removed", async () => {
     fetchIndicatorsMock.mockResolvedValueOnce({
       symbol: "SPY",
       timeframe: "1d",
@@ -389,15 +558,15 @@ describe("ChartPanel", () => {
     render(<ChartPanel />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
 
-    fireEvent.click(screen.getByRole("button", { name: "Parabolic SAR", pressed: false }));
+    toggleIndicatorByName("Parabolic SAR");
     await waitFor(() => expect(createSeriesMarkersMock).toHaveBeenCalled());
 
-    fireEvent.click(screen.getByRole("button", { name: /Clear \(1\)/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove Parabolic SAR" }));
 
     await waitFor(() => expect(sarMarkersHandle.detach).toHaveBeenCalled());
   });
 
-  it("detaches the Volume Profile primitive when the indicator is cleared", async () => {
+  it("detaches the Volume Profile primitive when the indicator chip is removed", async () => {
     fetchIndicatorsMock.mockResolvedValueOnce({
       symbol: "SPY",
       timeframe: "1d",
@@ -408,10 +577,10 @@ describe("ChartPanel", () => {
     render(<ChartPanel />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
 
-    fireEvent.click(screen.getByRole("button", { name: "Volume Profile", pressed: false }));
+    toggleIndicatorByName("Volume Profile");
     await waitFor(() => expect(candleSeries.attachPrimitive).toHaveBeenCalled());
 
-    fireEvent.click(screen.getByRole("button", { name: /Clear \(1\)/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove Volume Profile" }));
 
     await waitFor(() => {
       expect(candleSeries.detachPrimitive).toHaveBeenCalled();
@@ -442,7 +611,7 @@ describe("ChartPanel", () => {
     render(<ChartPanel />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
 
-    fireEvent.click(screen.getByRole("button", { name: "Ichimoku Cloud", pressed: false }));
+    toggleIndicatorByName("Ichimoku Cloud");
 
     await waitFor(() => expect(ichimokuCloudCtor).toHaveBeenCalled());
     expect(candleSeries.attachPrimitive).toHaveBeenCalled();
@@ -453,35 +622,44 @@ describe("ChartPanel", () => {
   });
 
   // ------------------------------------------------------------------------
-  // Phase 2 — drawing toolbar, sync bus, comparison overlay
+  // Drawing tools, sync bus, comparison overlay (popover click paths)
   // ------------------------------------------------------------------------
 
-  it("renders the ten drawing tool buttons in the toolbar", async () => {
+  it("lists the ten drawing tools with full names and points-required meta", async () => {
     render(<ChartPanel api={{ id: "chart-A" }} />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
-    for (const label of [
-      "Trend",
-      "H-Line",
-      "V-Line",
-      "Ray",
-      "Rect",
-      "Ellipse",
-      "Fib Retr",
-      "Fib Ext",
-      "Channel",
-      "Text",
-    ]) {
-      expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
+
+    openDraw();
+    for (const tool of DRAW_TOOLS) {
+      expect(screen.getByRole("button", { name: tool.name })).toBeInTheDocument();
     }
   });
 
-  it("activates a drawing tool on toolbar click and shows a points-remaining hint", async () => {
+  it("arms a drawing tool from the popover and shows the active-tool chip", async () => {
     render(<ChartPanel api={{ id: "chart-A" }} />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
 
-    fireEvent.click(screen.getByRole("button", { name: "Trend" }));
-    expect(screen.getByRole("button", { name: "Trend", pressed: true })).toBeInTheDocument();
-    expect(screen.getByText(/click chart 2 more time\(s\)/)).toBeInTheDocument();
+    openDraw();
+    fireEvent.click(screen.getByRole("button", { name: "Trendline" }));
+
+    // Arming closes the popover (one-shot pick, not a multi-select).
+    expect(screen.queryByRole("button", { name: "Horizontal line" })).toBeNull();
+    const chip = screen.getByTestId("active-tool-chip");
+    expect(chip).toHaveTextContent("Trend");
+    expect(chip).toHaveTextContent("2 points left");
+  });
+
+  it("disarms the active tool from the chip's [x]", async () => {
+    render(<ChartPanel api={{ id: "chart-A" }} />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+
+    openDraw();
+    fireEvent.click(screen.getByRole("button", { name: "Horizontal line" }));
+    expect(screen.getByTestId("active-tool-chip")).toHaveTextContent("1 point left");
+
+    fireEvent.click(screen.getByRole("button", { name: "Disarm drawing tool" }));
+
+    expect(screen.queryByTestId("active-tool-chip")).toBeNull();
   });
 
   it("renders existing drawings from the store on mount and exposes a delete control", async () => {
@@ -505,10 +683,31 @@ describe("ChartPanel", () => {
     expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(0);
   });
 
-  it("toggles sync subscriptions through the toolbar group", async () => {
+  it("clears every drawing through the inspector's Clear drawings control", async () => {
+    useChartDrawingsStore.getState().addDrawing("chart-A", {
+      id: "draw-1",
+      panelId: "chart-A",
+      kind: "trendline",
+      points: [
+        { time: 1, price: 100 },
+        { time: 2, price: 110 },
+      ],
+      style: { color: "#e9a94d", lineWidth: 1 },
+      createdAt: 0,
+    });
     render(<ChartPanel api={{ id: "chart-A" }} />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
 
+    fireEvent.click(screen.getByRole("button", { name: /Clear drawings \(1\)/ }));
+
+    expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(0);
+  });
+
+  it("toggles sync subscriptions through the Sync popover", async () => {
+    render(<ChartPanel api={{ id: "chart-A" }} />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+
+    openSync();
     fireEvent.click(screen.getByRole("button", { name: "Sync crosshair" }));
 
     const subs = useChartSyncBus.getState().subscriptions["chart-A"];
@@ -516,16 +715,20 @@ describe("ChartPanel", () => {
     expect(subs?.symbol).toBe(false);
   });
 
-  it("submits a comparison-overlay symbol and toggles its normalization", async () => {
+  it("submits a comparison-overlay symbol from the popover and toggles its normalization chip", async () => {
     render(<ChartPanel api={{ id: "chart-A" }} />);
     await waitFor(() => expect(historyMock).toHaveBeenCalledTimes(1));
 
+    openCompare();
     fireEvent.change(screen.getByLabelText("Compare symbol"), { target: { value: "qqq" } });
     fireEvent.click(screen.getByRole("button", { name: "Add" }));
 
     await waitFor(() => {
       expect(historyMock).toHaveBeenCalledWith("QQQ", "1d");
     });
+    // Submitting closes the popover; the overlay lives on as a toolbar chip.
+    expect(screen.queryByRole("button", { name: "Add" })).toBeNull();
+    expect(screen.getByTestId("compare-chip")).toHaveTextContent("QQQ");
     expect(
       screen.getByRole("button", { name: "Normalize comparison", pressed: true }),
     ).toBeInTheDocument();
@@ -534,6 +737,9 @@ describe("ChartPanel", () => {
     expect(
       screen.getByRole("button", { name: "Normalize comparison", pressed: false }),
     ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Remove comparison overlay" }));
+    expect(screen.queryByTestId("compare-chip")).toBeNull();
   });
 
   it("uses a stable per-instance panelId from dockview's panel api when present", async () => {
