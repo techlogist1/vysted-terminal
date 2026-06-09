@@ -59,6 +59,7 @@ export const HOST_ACTION_NAMES = new Set([
   "publish_brief",
   "propose_order",
   "write_screener_filters",
+  "open_company_overview",
 ]);
 
 /** Tier order for {@link BriefDepth}: quick < deep < heavy. Drives the MAX-tier
@@ -234,7 +235,7 @@ export function loadSymbolIntoChart(symbol: string, timeframe?: string): void {
  * pick. Opens the (singleton) panel first so the command has a consumer, then
  * commands it. Reuses the keyless yfinance overview endpoints — no key required.
  */
-export function openCompanyOverview(symbol: string): void {
+export function openCompanyOverview(symbol: string, highlightMetric?: string): void {
   if (!symbol) {
     return;
   }
@@ -244,7 +245,7 @@ export function openCompanyOverview(symbol: string): void {
   if (!hasPanel) {
     ws.openPanel("equity-overview");
   }
-  useEquityCommandStore.getState().loadSymbol(symbol);
+  useEquityCommandStore.getState().loadSymbol(symbol, highlightMetric);
 }
 
 /** The named arrange_layout templates (beyond the legacy default/focus patterns). */
@@ -544,6 +545,18 @@ export function describeHostAction(
         after: "Layout: the default cockpit (clears layout customisations)",
       };
     }
+    case "open_company_overview": {
+      const sym = str(input, "symbol");
+      const metric = str(input, "highlight");
+      return {
+        kind: "panel",
+        title: metric
+          ? `Show ${sym || "the company"}'s ${metric.replace(/_/g, " ")} in the overview`
+          : `Open ${sym || "the company"}'s overview`,
+        before: "Equity Overview: previous company (if any)",
+        after: `Equity Overview: ${sym || "the company"}${metric ? ` · ${metric.replace(/_/g, " ")} spotlighted` : ""}`,
+      };
+    }
     case "publish_brief": {
       const sources = Array.isArray(input.sources) ? input.sources : [];
       const mode = normalizeBriefMode(str(input, "depth") || str(input, "mode"));
@@ -733,6 +746,17 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
       }
       ws.resetToDefaultLayout();
       return "Reset to the default layout";
+    }
+    case "open_company_overview": {
+      const sym = str(input, "symbol");
+      if (!sym) {
+        return null;
+      }
+      const metric = str(input, "highlight");
+      openCompanyOverview(sym, metric || undefined);
+      return metric
+        ? `Opened ${sym}'s overview — spotlighting ${metric.replace(/_/g, " ")}`
+        : `Opened ${sym}'s overview`;
     }
     case "publish_brief": {
       const brief = briefFromInput(input);

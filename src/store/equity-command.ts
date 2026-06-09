@@ -17,16 +17,21 @@ import { create } from "zustand";
 
 interface EquityCommandState {
   /** Most recent "open this company" command from the host. `seq` bumps on every
-   *  issue so an equal symbol still re-triggers the panel's consumer effect. */
-  command: { symbol: string; seq: number } | null;
+   *  issue so an equal symbol still re-triggers the panel's consumer effect.
+   *  `highlightMetric` (R7, the learner flow) names a fundamentals metric the
+   *  panel should scroll to and pulse once loaded — e.g. "pe_ratio" when the
+   *  agent answers "what is a P/E ratio? show me on Tata Steel". */
+  command: { symbol: string; seq: number; highlightMetric?: string } | null;
   /** Host → Equity Overview: load (and surface) a company's overview. */
-  loadSymbol: (symbol: string) => void;
+  loadSymbol: (symbol: string, highlightMetric?: string) => void;
 }
 
 export const useEquityCommandStore = create<EquityCommandState>((set) => ({
   command: null,
-  loadSymbol: (symbol) =>
-    set((state) => ({ command: { symbol, seq: (state.command?.seq ?? 0) + 1 } })),
+  loadSymbol: (symbol, highlightMetric) =>
+    set((state) => ({
+      command: { symbol, seq: (state.command?.seq ?? 0) + 1, highlightMetric },
+    })),
 }));
 
 /** Test helper: reset the equity-command store. */
