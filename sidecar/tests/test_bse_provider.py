@@ -1,10 +1,14 @@
 """WS6 — the keyless BSE micro-cap provider (bhavcopy + getScripHeaderData).
 
 The network seam (``bse_provider._http_get``) is monkeypatched so NO test hits
-the live BSE; these assert the bhavcopy PARSE (from a mocked CSV string), the
-history assembly from cached/downloaded bhavcopies, the quote shape (header
-endpoint + bhavcopy fallback), EOD-only timeframes, the non-BSE fast-fail, and
-the cache-dir-race retry.
+the live BSE; these assert the bhavcopy PARSE (from a fixture CSV captured from
+the REAL 2026-06-09 ``BhavCopy_BSE_CM_…_F_0000.CSV`` shape), the history
+assembly routed by SCRIP CODE from the regenerated master (ticker fallback when
+the master has no code), the quote shape (header endpoint + bhavcopy fallback),
+EOD-only timeframes, the non-BSE fast-fail, and the cache-dir-race retry.
+
+ICONIKSPEV is the acceptance instrument: a real BSE-only group-X micro-cap
+(scrip code 511260) present in the regenerated full master.
 """
 
 from __future__ import annotations
@@ -17,12 +21,30 @@ import pytest
 from services import bse_provider, symbol_resolver
 from services.errors import ProviderError
 
-# A modern BSE BhavCopy CSV (ISO-style headers). TIRUPATI is the seeded micro-cap.
-_BHAVCOPY_CSV = (
-    "TradDt,TckrSymb,FinInstrmId,SctySrs,OpnPric,HghPric,LwPric,ClsPric,TtlTradgVol\n"
-    "2026-06-08,TIRUPATI,530419,EQ,100.0,104.0,99.5,103.0,12000\n"
-    "2026-06-08,RELIANCE,500325,EQ,2900.0,2950.0,2890.0,2940.0,500000\n"
+# The REAL modern bhavcopy header (observed live 2026-06-09) + the observed
+# ICONIKSPEV row and a RELIANCE row. parse_bhavcopy must tolerate the full
+# 34-column shape (option/expiry columns blank for cash-market rows).
+_BHAV_HEADER = (
+    "TradDt,BizDt,Sgmt,Src,FinInstrmTp,FinInstrmId,ISIN,TckrSymb,SctySrs,XpryDt,"
+    "FininstrmActlXpryDt,StrkPric,OptnTp,FinInstrmNm,OpnPric,HghPric,LwPric,ClsPric,"
+    "LastPric,PrvsClsgPric,UndrlygPric,SttlmPric,OpnIntrst,ChngInOpnIntrst,TtlTradgVol,"
+    "TtlTrfVal,TtlNbOfTxsExctd,SsnId,NewBrdLotQty,Rmks,Rsvd1,Rsvd2,Rsvd3,Rsvd4\n"
 )
+_ICONIK_ROW = (
+    "2026-06-09,2026-06-09,CM,BSE,STK,511260,INE088P01015,ICONIKSPEV,X,,,,,"
+    "ICONIK SPORTS AND EVENTS LIMIT,44.99,44.99,42.31,43.09,43.48,44.44,,43.09,,,"
+    "5757,251369.00,88,F1,1,,,,,\n"
+)
+_RELIANCE_ROW = (
+    "2026-06-09,2026-06-09,CM,BSE,STK,500325,INE002A01018,RELIANCE,A,,,,,"
+    "Reliance Industries Ltd,2900.00,2950.00,2890.00,2940.00,2939.00,2910.00,,2940.00,,,"
+    "500000,1467000000.00,25000,F1,1,,,,,\n"
+)
+_BHAVCOPY_CSV = _BHAV_HEADER + _ICONIK_ROW + _RELIANCE_ROW
+
+# The same ICONIKSPEV scrip (FinInstrmId 511260) printed under a DRIFTED ticker
+# spelling — the rename/SME-migration case scrip-code routing must survive.
+_BHAVCOPY_CSV_RENAMED = _BHAV_HEADER + _ICONIK_ROW.replace(",ICONIKSPEV,", ",ICONIKOLD,")
 
 
 def _csv_response(body: str) -> httpx.Response:
@@ -34,25 +56,27 @@ def _reset_resolver() -> None:
     symbol_resolver.reset_caches_for_tests()
 
 
-# --- bhavcopy PARSE (mocked CSV string — no network) ------------------------
+# --- bhavcopy PARSE (fixture CSV from the observed live shape — no network) --
 
 
 def test_parse_bhavcopy_extracts_normalised_rows() -> None:
     frame = bse_provider.parse_bhavcopy(_BHAVCOPY_CSV)
-    assert set(frame["ticker"]) == {"TIRUPATI", "RELIANCE"}
-    row = frame[frame["ticker"] == "TIRUPATI"].iloc[0]
-    assert row["code"] == "530419"
-    assert row["open"] == 100.0
-    assert row["high"] == 104.0
-    assert row["low"] == 99.5
-    assert row["close"] == 103.0
-    assert row["volume"] == 12000.0
+    assert set(frame["ticker"]) == {"ICONIKSPEV", "RELIANCE"}
+    row = frame[frame["ticker"] == "ICONIKSPEV"].iloc[0]
+    assert row["code"] == "511260"
+    assert row["series"] == "X"
+    assert row["open"] == 44.99
+    assert row["high"] == 44.99
+    assert row["low"] == 42.31
+    assert row["close"] == 43.09
+    assert row["volume"] == 5757.0
+    assert row["date"] == "2026-06-09"
 
 
 def test_parse_bhavcopy_empty_body_is_empty_frame() -> None:
     assert bse_provider.parse_bhavcopy("").empty
     # A header-only body (no data rows) is also empty.
-    assert bse_provider.parse_bhavcopy("TradDt,TckrSymb,ClsPric\n").empty
+    assert bse_provider.parse_bhavcopy(_BHAV_HEADER).empty
 
 
 def test_pick_equity_row_prefers_eq_series() -> None:
@@ -84,22 +108,47 @@ def test_get_history_assembles_from_bhavcopy(tmp_path, monkeypatch: pytest.Monke
 
     monkeypatch.setattr(bse_provider, "_http_get", fake_get)
 
-    series = bse_provider.get_history("TIRUPATI", "1d", "1mo")
+    series = bse_provider.get_history("ICONIKSPEV", "1d", "1mo")
     assert series.provider == "bse"
-    assert series.symbol == "TIRUPATI"
+    assert series.symbol == "ICONIKSPEV"
     assert series.bars
-    # Every bar carries TIRUPATI's close from the mocked bhavcopy.
-    assert all(b.close == 103.0 for b in series.bars)
+    # Every bar carries ICONIKSPEV's close from the fixture bhavcopy row.
+    assert all(b.close == 43.09 for b in series.bars)
     # Bars are UTC-midnight dated and sorted ascending.
     ts = [b.timestamp for b in series.bars]
     assert ts == sorted(ts)
     assert all(b.timestamp.hour == 0 and b.timestamp.tzinfo is not None for b in series.bars)
 
 
+def test_get_history_routes_by_scrip_code(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    # The bhavcopy prints the scrip under a DRIFTED ticker but the SAME numeric
+    # FinInstrmId (511260). Scrip-code routing (master ticker → code) must still
+    # find the row — a ticker-string match alone would return nothing.
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(bse_provider, "_http_get", lambda url: _csv_response(_BHAVCOPY_CSV_RENAMED))
+    series = bse_provider.get_history("ICONIKSPEV", "1d", "1mo")
+    assert series.symbol == "ICONIKSPEV"  # the REQUESTED ticker, not the drifted print
+    assert series.bars
+    assert all(b.close == 43.09 for b in series.bars)
+
+
+def test_get_history_ticker_fallback_without_code(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A master row without a scrip code (defensive: a future master gap) must
+    # still serve via the ticker-string fallback.
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(bse_provider, "_http_get", lambda url: _csv_response(_BHAVCOPY_CSV))
+    monkeypatch.setattr(bse_provider, "_scrip_code", lambda symbol: None)
+    series = bse_provider.get_history("ICONIKSPEV", "1d", "1mo")
+    assert series.bars
+    assert all(b.close == 43.09 for b in series.bars)
+
+
 def test_get_history_resamples_weekly(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
     monkeypatch.setattr(bse_provider, "_http_get", lambda url: _csv_response(_BHAVCOPY_CSV))
-    series = bse_provider.get_history("TIRUPATI", "1wk", "1mo")
+    series = bse_provider.get_history("ICONIKSPEV", "1wk", "1mo")
     assert series.timeframe == "1wk"
     assert series.bars
     assert all(b.close > 0 for b in series.bars)
@@ -107,7 +156,7 @@ def test_get_history_resamples_weekly(tmp_path, monkeypatch: pytest.MonkeyPatch)
 
 def test_get_history_intraday_rejected() -> None:
     with pytest.raises(ProviderError, match="intraday"):
-        bse_provider.get_history("TIRUPATI", "1h")
+        bse_provider.get_history("ICONIKSPEV", "1h")
 
 
 def test_get_history_no_data_raises(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -116,7 +165,7 @@ def test_get_history_no_data_raises(tmp_path, monkeypatch: pytest.MonkeyPatch) -
     monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
     monkeypatch.setattr(bse_provider, "_http_get", lambda url: httpx.Response(404))
     with pytest.raises(ProviderError, match="no EOD data"):
-        bse_provider.get_history("TIRUPATI", "1d")
+        bse_provider.get_history("ICONIKSPEV", "1d")
 
 
 # --- non-BSE symbol fast-fails without a network call -----------------------
@@ -139,34 +188,33 @@ def test_get_quote_from_scrip_header(monkeypatch: pytest.MonkeyPatch) -> None:
     # (which compares the requested ticker vs Quote.symbol) rejects every quote.
     def fake_get(url: str) -> httpx.Response:
         assert "getScripHeaderData" in url
-        assert "scripcode=530419" in url  # the seeded TIRUPATI scrip code
+        assert "scripcode=511260" in url  # ICONIKSPEV's code from the regenerated master
         return httpx.Response(
-            200, json={"Header": [{"Scrip_Cd": "530419", "LTP": "103.0", "PrevClose": "100.5"}]}
+            200, json={"Header": [{"Scrip_Cd": "511260", "LTP": "43.09", "PrevClose": "44.44"}]}
         )
 
     monkeypatch.setattr(bse_provider, "_http_get", fake_get)
-    q = bse_provider.get_quote("TIRUPATI")
+    q = bse_provider.get_quote("ICONIKSPEV")
     assert q.provider == "bse"
     # Quote.symbol is the requested bare ticker, NEVER the numeric scrip code.
-    assert q.symbol == "TIRUPATI"
-    assert q.symbol != "530419"
+    assert q.symbol == "ICONIKSPEV"
+    assert q.symbol != "511260"
     assert q.currency == "INR"
-    assert q.price == 103.0
-    assert round(q.change, 2) == round(103.0 - 100.5, 2)
-    assert round(q.change_percent, 4) == round((103.0 - 100.5) / 100.5 * 100.0, 4)
+    assert q.price == 43.09
+    assert round(q.change, 2) == round(43.09 - 44.44, 2)
+    assert round(q.change_percent, 4) == round((43.09 - 44.44) / 44.44 * 100.0, 4)
 
 
 def test_quote_from_header_stamps_bare_not_scrip_code() -> None:
     # A realistic payload that lacks any ticker field (only the numeric scrip
     # code) must still produce Quote.symbol == the requested bare ticker so the
-    # registry's _match_key symbol-match gate accepts it (the bug masked by the
-    # old test's hardcoded 'Ticker').
-    payload = {"Header": [{"Scrip_Cd": "530419", "LTP": "103.0", "PrevClose": "100.5"}]}
-    q = bse_provider._quote_from_header("TIRUPATI", payload)
+    # registry's _match_key symbol-match gate accepts it.
+    payload = {"Header": [{"Scrip_Cd": "511260", "LTP": "43.09", "PrevClose": "44.44"}]}
+    q = bse_provider._quote_from_header("ICONIKSPEV", payload)
     assert q is not None
-    assert q.symbol == "TIRUPATI"
+    assert q.symbol == "ICONIKSPEV"
     assert q.provider == "bse"
-    assert q.price == 103.0
+    assert q.price == 43.09
 
 
 def test_get_quote_falls_back_to_bhavcopy(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -178,11 +226,11 @@ def test_get_quote_falls_back_to_bhavcopy(tmp_path, monkeypatch: pytest.MonkeyPa
         return _csv_response(_BHAVCOPY_CSV)
 
     monkeypatch.setattr(bse_provider, "_http_get", fake_get)
-    q = bse_provider.get_quote("TIRUPATI")
+    q = bse_provider.get_quote("ICONIKSPEV")
     assert q.provider == "bse"
-    assert q.symbol == "TIRUPATI"
+    assert q.symbol == "ICONIKSPEV"
     assert q.currency == "INR"
-    assert q.price == 103.0
+    assert q.price == 43.09
 
 
 # --- cache-dir race retry (mirrors india_provider) --------------------------
@@ -218,7 +266,7 @@ def test_decode_handles_zip_wrapped_csv() -> None:
     resp = httpx.Response(200, content=buf.getvalue())
     text = bse_provider._decode_bhavcopy_body(resp)
     frame = bse_provider.parse_bhavcopy(text)
-    assert "TIRUPATI" in set(frame["ticker"])
+    assert "ICONIKSPEV" in set(frame["ticker"])
 
 
 # --- token bucket (the mthrottle replacement) -------------------------------

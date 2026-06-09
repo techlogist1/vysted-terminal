@@ -113,11 +113,12 @@ def test_bare_bse_only_ticker_resolves_to_in() -> None:
     from services import symbol_resolver
 
     symbol_resolver.reset_caches_for_tests()
-    # TIRUPATI is a seeded BSE-only micro-cap (not in the NSE/US masters).
-    assert symbol_resolver.is_bse_symbol("TIRUPATI") is True
-    assert symbol_resolver.region_hint("TIRUPATI") == "IN"
+    # ICONIKSPEV is a real BSE-only group-X micro-cap in the regenerated full
+    # master (scrip 511260), absent from the NSE/US masters.
+    assert symbol_resolver.is_bse_symbol("ICONIKSPEV") is True
+    assert symbol_resolver.region_hint("ICONIKSPEV") == "IN"
     # The registry routes it to the IN equity providers (bse included), not US.
-    assert provider_registry._effective_region("TIRUPATI", None) == "IN"
+    assert provider_registry._effective_region("ICONIKSPEV", None) == "IN"
 
 
 def test_bo_suffix_resolves_to_in_and_includes_bse() -> None:
@@ -142,7 +143,7 @@ def test_bse_serves_micro_cap_when_nse_has_no_listing(
     monkeypatch.setattr(
         yfinance_provider, "get_quote", lambda s: pytest.fail("yfinance must not be reached")
     )
-    q = provider_registry.get_quote("TIRUPATI", region="IN")
+    q = provider_registry.get_quote("ICONIKSPEV", region="IN")
     assert q.provider == "bse"
 
 

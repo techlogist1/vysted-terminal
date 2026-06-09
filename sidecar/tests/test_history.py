@@ -65,7 +65,7 @@ def test_empty_series_in_symbol_carries_eod_only_reason(client: TestClient, monk
     monkeypatch.setattr(provider_registry, "get_history", _all_empty)
 
     # A bare BSE-only ticker resolves to IN → the typed reason.
-    body = client.get("/history/TIRUPATI", params={"timeframe": "1d"}).json()
+    body = client.get("/history/ICONIKSPEV", params={"timeframe": "1d"}).json()
     assert body["bars"] == []
     assert body["provider"] == "none"
     assert body["reason"] == "in_eod_only"
@@ -84,7 +84,7 @@ def test_empty_series_reason_unit() -> None:
     """Direct unit guard on the typed-reason helper (no route)."""
     from routers.history import _empty_series_reason
 
-    assert _empty_series_reason("TIRUPATI") == "in_eod_only"
+    assert _empty_series_reason("ICONIKSPEV") == "in_eod_only"
     assert _empty_series_reason("RELIANCE.BO") == "in_eod_only"
     assert _empty_series_reason("AAPL") is None
 
