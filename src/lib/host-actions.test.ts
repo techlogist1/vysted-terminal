@@ -128,7 +128,7 @@ describe("host-actions", () => {
     expect(s.group?.criteria).toHaveLength(2);
     expect(s.universe).toBe("sp500");
     // The panel is staged for the user to review + Run.
-    expect(openPanel).toHaveBeenCalledWith("screener");
+    expect(openPanel).toHaveBeenCalledWith("screener-panel");
   });
 
   it("write_screener_filters with no well-formed criteria can't apply (re-pends)", () => {

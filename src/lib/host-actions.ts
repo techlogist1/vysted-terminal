@@ -793,7 +793,9 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
       const flat = criteria.length ? criteria : group ? flattenLeaves(group) : [];
       useScreenerStore.getState().applyFilters({ criteria: flat, group, universe });
       // Stage the panel so the proposed filters are on screen for the user to Run.
-      useWorkspaceStore.getState().openPanel("screener");
+      // The screener module REGISTERS id "screener-panel" — the bare "screener"
+      // id silently no-opped here (same drift class as the arrange map).
+      useWorkspaceStore.getState().openPanel("screener-panel");
       const count = group ? countLeaves(group) : criteria.length;
       return `Wrote ${count} screener criteri${count === 1 ? "on" : "a"} — review and Run`;
     }

@@ -322,8 +322,8 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                     },
                     "depth": {
                         "type": "string",
-                        "enum": ["quick", "deep", "heavy"],
-                        "default": "quick",
+                        "enum": ["normal", "deep", "ultra", "quick", "heavy"],
+                        "default": "normal",
                         "description": (
                             "'quick' (default) = one fast pass. 'deep' = the "
                             "IterResearch evolving-report loop (use on 'go deeper'). "

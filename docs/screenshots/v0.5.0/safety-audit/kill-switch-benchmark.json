@@ -1,22 +1,22 @@
 {
   "subscriber_count": 12,
-  "p50_ack_ms": 1.398271,
-  "p95_ack_ms": 10.947548099999999,
-  "max_ack_ms": 10.96375,
+  "p50_ack_ms": 1.3057085,
+  "p95_ack_ms": 10.94505215,
+  "max_ack_ms": 10.958916,
   "budget_ms": 2000.0,
   "result": "PASS",
   "per_subscriber_ack_ms": {
-    "dhan": 1.76625,
-    "angelone": 1.024208,
-    "kite": 0.93375,
-    "alpaca": 1.030292,
-    "ib": 1.011,
-    "oanda": 0.890125,
-    "ccxt-bybit": 0.970625,
-    "proposal:0": 6.314333,
-    "proposal:1": 6.316584,
-    "workflow:0": 10.96375,
-    "workflow:1": 10.934292,
-    "workflow:2": 10.928
+    "dhan": 1.614167,
+    "angelone": 0.945875,
+    "kite": 0.907208,
+    "alpaca": 0.857041,
+    "ib": 0.873583,
+    "oanda": 0.99725,
+    "ccxt-bybit": 0.98975,
+    "proposal:0": 6.2795,
+    "proposal:1": 6.277333,
+    "workflow:0": 10.958916,
+    "workflow:1": 10.933709,
+    "workflow:2": 10.931042
   }
 }

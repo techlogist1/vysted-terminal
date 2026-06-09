@@ -20,3 +20,4 @@ Consulted before each phase; appended as the run learns.
 - The computer-use screenshot/click filter binds to the app BUNDLE PATH — a dev binary outside the granted bundle renders black and rejects clicks. Eyes = `screencapture -x -R<win>`, hands = tauri-plugin-mcp socket (/tmp/r7rig.js: evaluate_script/fill/click/press_key/console+network logs). press_key cmd+k does NOT trigger the palette (synthetic keydown lacks trusted meta) — click the "⊞ Open panel" toolbar button instead.
 - The smoke-test pre-flight kills on ANY running vysted processes — stop the dev app before running it.
 - macOS bash 3.2: no ${var,,} lowercasing in scripts.
+- The tauri-plugin-mcp socket bridge WEDGES (requests hang, not refuse) after Vite HMR re-runs the bridge init ("Bridge already initialized" warn) — restart the whole dev stack after ANY frontend change before driving the rig; never interleave merges with rig-driven verification.
