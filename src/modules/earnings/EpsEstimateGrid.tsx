@@ -1,26 +1,33 @@
 "use client";
 
+import { ListX } from "lucide-react";
+
+import { DataTable, type DataColumn } from "@/components/DataTable";
+import { EmptyState } from "@/components/EmptyState";
+import { formatPrice, formatUnit } from "@/lib/format";
+
 import type { EarningsEstimateDetail } from "../../../types/earnings";
 
-function fmt(value: number | null, digits = 2): string {
-  if (value === null) {
-    return "—";
-  }
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
+interface EstimateRow {
+  /** Stable row id (labels repeat across the EPS / Revenue sections). */
+  id: string;
+  label: string;
+  value: string | null;
 }
 
-function fmtLargeMoney(value: number | null): string {
-  if (value === null) {
-    return "—";
-  }
-  const abs = Math.abs(value);
-  if (abs >= 1e12) return `${(value / 1e12).toFixed(2)}T`;
-  if (abs >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
-  if (abs >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
-  return value.toLocaleString("en-US");
+/** Statement-table columns — label left, estimate right-aligned in its own
+ *  numeric column (design law: never a key-value dump grid). */
+const COLUMNS: DataColumn<EstimateRow>[] = [
+  { key: "label", header: "Metric", tier: "secondary", width: "60%", format: (r) => r.label },
+  { key: "value", header: "Estimate", numeric: true, width: "40%", format: (r) => r.value },
+];
+
+function eps(value: number | null, digits = 2): string | null {
+  return value === null ? null : formatPrice(value, digits);
+}
+
+function revenue(value: number | null): string | null {
+  return value === null ? null : formatUnit(value);
 }
 
 interface Props {
@@ -28,38 +35,55 @@ interface Props {
 }
 
 /**
- * Six-cell mean / median / high / low / stddev / analyst-count grid for
- * the next upcoming earnings event. Renders an em-dash placeholder when
- * the upstream did not surface a value.
+ * Next-quarter estimate detail as a two-section statement table (EPS /
+ * Revenue) on the shared DataTable — label left, value right-aligned tabular.
+ * Missing upstream values render the shared null glyph; a missing detail
+ * altogether renders the composed dense empty state.
  */
 export function EpsEstimateGrid({ estimate }: Props) {
   if (!estimate) {
     return (
-      <p className="text-charcoal-400 text-caption" data-testid="eps-estimate-grid-empty">
-        Estimate detail unavailable.
-      </p>
+      <div data-testid="eps-estimate-grid-empty">
+        <EmptyState
+          dense
+          icon={ListX}
+          headline="No estimate detail"
+          hint="The provider surfaced no consensus detail for this event."
+        />
+      </div>
     );
   }
   return (
-    <div className="text-body grid grid-cols-3 gap-x-6 gap-y-2" data-testid="eps-estimate-grid">
-      <Cell label="EPS mean" value={fmt(estimate.eps_estimate_mean)} />
-      <Cell label="EPS median" value={fmt(estimate.eps_estimate_median)} />
-      <Cell label="EPS high" value={fmt(estimate.eps_estimate_high)} />
-      <Cell label="EPS low" value={fmt(estimate.eps_estimate_low)} />
-      <Cell label="EPS stddev" value={fmt(estimate.eps_estimate_stddev, 3)} />
-      <Cell label="# analysts" value={String(estimate.estimate_analyst_count)} />
-      <Cell label="Rev mean" value={fmtLargeMoney(estimate.revenue_estimate_mean)} />
-      <Cell label="Rev high" value={fmtLargeMoney(estimate.revenue_estimate_high)} />
-      <Cell label="Rev low" value={fmtLargeMoney(estimate.revenue_estimate_low)} />
-    </div>
-  );
-}
-
-function Cell({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between gap-2">
-      <dt className="text-charcoal-400">{label}</dt>
-      <dd className="text-charcoal-100">{value}</dd>
+    <div data-testid="eps-estimate-grid">
+      <DataTable
+        columns={COLUMNS}
+        sections={[
+          {
+            label: "EPS",
+            rows: [
+              { id: "eps-mean", label: "Mean", value: eps(estimate.eps_estimate_mean) },
+              { id: "eps-median", label: "Median", value: eps(estimate.eps_estimate_median) },
+              { id: "eps-high", label: "High", value: eps(estimate.eps_estimate_high) },
+              { id: "eps-low", label: "Low", value: eps(estimate.eps_estimate_low) },
+              { id: "eps-stddev", label: "Std. dev.", value: eps(estimate.eps_estimate_stddev, 3) },
+              {
+                id: "eps-analysts",
+                label: "Analysts",
+                value: String(estimate.estimate_analyst_count),
+              },
+            ],
+          },
+          {
+            label: "Revenue",
+            rows: [
+              { id: "rev-mean", label: "Mean", value: revenue(estimate.revenue_estimate_mean) },
+              { id: "rev-high", label: "High", value: revenue(estimate.revenue_estimate_high) },
+              { id: "rev-low", label: "Low", value: revenue(estimate.revenue_estimate_low) },
+            ],
+          },
+        ]}
+        rowKey={(row) => row.id}
+      />
     </div>
   );
 }

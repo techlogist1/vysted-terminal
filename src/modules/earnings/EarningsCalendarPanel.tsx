@@ -154,30 +154,32 @@ export function EarningsCalendarPanel() {
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
+      {/* Filter row — micro labels over 32px-ladder inputs, button on the same
+          baseline (items-end) so the control row never staggers. */}
       <form
         onSubmit={handleApply}
-        className="border-charcoal-700 flex flex-wrap items-center gap-2 border-b p-3"
+        className="border-charcoal-700 flex flex-wrap items-end gap-3 border-b p-3"
       >
-        <label className="text-charcoal-300 text-caption">
-          Window (days)
+        <label className="flex flex-col gap-1">
+          <span className="text-charcoal-500 text-micro">Window (days)</span>
           <input
             type="number"
             min={1}
             max={60}
             value={daysDraft}
             onChange={(e) => setDaysDraft(e.target.value)}
-            className="bg-charcoal-800 text-charcoal-100 text-body rounded-control focus:ring-charcoal-500 ml-2 h-8 w-16 px-3 tabular-nums outline-none focus:ring-1"
+            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 w-20 border px-3 tabular-nums outline-none"
             aria-label="Window in days"
           />
         </label>
-        <label className="text-charcoal-300 text-caption flex-1">
-          Watchlist (comma-separated)
+        <label className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="text-charcoal-500 text-micro">Watchlist (comma-separated)</span>
           <input
             type="text"
             value={watchlistDraft}
             onChange={(e) => setWatchlistDraft(e.target.value)}
             placeholder="AAPL, MSFT, NVDA"
-            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 text-body rounded-control focus:ring-charcoal-500 ml-2 h-8 w-full max-w-xs px-3 outline-none focus:ring-1"
+            className="bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-500 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 w-full max-w-xs border px-3 outline-none"
             aria-label="Watchlist"
           />
         </label>
@@ -221,28 +223,28 @@ export function EarningsCalendarPanel() {
               {Array.from({ length: 6 }).map((_, i) => (
                 <tr key={i} className="border-charcoal-800 border-b">
                   <td className="px-1 py-2">
-                    <div className="bg-charcoal-800 h-3 w-3 animate-pulse rounded" />
+                    <div className="bg-charcoal-800 h-3 w-3 animate-pulse rounded-none" />
                   </td>
                   <td className="px-3 py-2">
                     <div
-                      className="bg-charcoal-800 h-3 animate-pulse rounded"
+                      className="bg-charcoal-800 h-3 animate-pulse rounded-none"
                       style={{ width: `${60 + (i % 3) * 15}%` }}
                     />
                   </td>
                   <td className="px-3 py-2">
-                    <div className="bg-charcoal-800 h-3 w-4/5 animate-pulse rounded" />
+                    <div className="bg-charcoal-800 h-3 w-4/5 animate-pulse rounded-none" />
                   </td>
                   <td className="px-3 py-2">
-                    <div className="bg-charcoal-800 h-3 w-3/4 animate-pulse rounded" />
+                    <div className="bg-charcoal-800 h-3 w-3/4 animate-pulse rounded-none" />
                   </td>
                   <td className="px-3 py-2">
-                    <div className="bg-charcoal-800 h-3 w-2/3 animate-pulse rounded" />
+                    <div className="bg-charcoal-800 h-3 w-2/3 animate-pulse rounded-none" />
                   </td>
                   <td className="px-3 py-2">
-                    <div className="bg-charcoal-800 ml-auto h-3 w-1/2 animate-pulse rounded" />
+                    <div className="bg-charcoal-800 ml-auto h-3 w-1/2 animate-pulse rounded-none" />
                   </td>
                   <td className="px-3 py-2">
-                    <div className="bg-charcoal-800 ml-auto h-3 w-2/3 animate-pulse rounded" />
+                    <div className="bg-charcoal-800 ml-auto h-3 w-2/3 animate-pulse rounded-none" />
                   </td>
                 </tr>
               ))}
@@ -384,7 +386,7 @@ export function EarningsCalendarPanel() {
                                   {Array.from({ length: 4 }).map((_, i) => (
                                     <div
                                       key={i}
-                                      className="bg-charcoal-800 h-16 w-8 animate-pulse rounded"
+                                      className="bg-charcoal-800 h-16 w-8 animate-pulse rounded-none"
                                     />
                                   ))}
                                 </div>
@@ -416,7 +418,7 @@ export function EarningsCalendarPanel() {
                                   {Array.from({ length: 6 }).map((_, i) => (
                                     <div
                                       key={i}
-                                      className="bg-charcoal-800 h-3 animate-pulse rounded"
+                                      className="bg-charcoal-800 h-3 animate-pulse rounded-none"
                                     />
                                   ))}
                                 </div>
