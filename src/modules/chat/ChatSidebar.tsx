@@ -9,21 +9,20 @@ import {
   useState,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUp, Loader2, Plus, Sparkles, Telescope } from "lucide-react";
+import { ArrowUp, Plus, Sparkles, Square } from "lucide-react";
 
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
 import { launchDelegateRun } from "@/lib/delegate-runs";
-import { briefDepthTier, nextBriefDepth } from "@/lib/brief-ingest";
 import { isHostActionMutation } from "@/lib/host-actions";
 import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
 import { completeIncomplete, hasIncompleteCodeFence } from "@/lib/markdown-stream";
-import { SPRING_PILL, tween } from "@/lib/motion";
+import { tween } from "@/lib/motion";
 import { validateProvider } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
-import { escalateResearchDepth, useAgentCommandStore } from "@/store/agent-command";
-import { useBriefStore } from "@/store/brief";
+import { useAgentCommandStore } from "@/store/agent-command";
 import { useChatPendingStore } from "@/store/chat-pending";
+import { type ResearchDepth, useResearchDepthStore } from "@/store/research-depth";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { useAgentSpacesStore } from "@/store/agent-spaces";
 import { type AgentRunBudget, useAgentRunsStore } from "@/store/agent-runs";
@@ -46,9 +45,9 @@ import { MarkdownBody } from "@/modules/research/brief-blocks";
 import type { Region } from "@/lib/region";
 import type { AgentContextSnapshot, LLMProviderId, LLMStreamEvent } from "../../../types/ai";
 import { type AgentMode, AGENT_MODES, agentModeMeta } from "../../../types/agent-modes";
-import { AgentHud } from "./AgentHud";
 import { AgentsRail } from "./AgentsRail";
 import { BudgetConfig, DEFAULT_DELEGATE_BUDGET } from "./BudgetConfig";
+import { ComposerMetaRow } from "./ComposerMetaRow";
 import { captureTerminalState } from "./context-provider";
 import { applyMentionPrefixes, type MentionDef, matchMention, resolveMention } from "./mentions";
 import { MentionPicker } from "./MentionPicker";
@@ -66,109 +65,6 @@ import {
 import { SlashCommandPicker } from "./SlashCommandPicker";
 import { streamAgentInvocation, streamChat } from "./streaming";
 import { SuggestionChips } from "./SuggestionChips";
-
-/**
- * Autonomy pill (compact, lives in the composer toolbar) — `ask` keeps every
- * change in the diff gate; `auto` applies UI/layout/chart/watchlist changes
- * without a per-action confirmation. Orders are NEVER auto-applied in either mode
- * (enforced in `proposed-changes`, not here). The label is unambiguous so the
- * AUTO-vs-ASK state is never in doubt.
- */
-function AutonomyToggle() {
-  const autonomy = useAgentAutonomyStore((state) => state.autonomy);
-  const setAutonomy = useAgentAutonomyStore((state) => state.setAutonomy);
-  return (
-    <div
-      role="radiogroup"
-      aria-label="Agent autonomy"
-      title={
-        autonomy === "auto"
-          ? "Auto-apply: UI / layout / chart / watchlist changes apply without a per-action confirmation. Orders ALWAYS route through the confirm-before-place dialog."
-          : "Ask: every proposed change waits for your accept in the diff gate."
-      }
-      className="border-charcoal-700 divide-charcoal-700 rounded-control text-caption flex h-8 shrink-0 items-stretch divide-x overflow-hidden border font-mono"
-    >
-      {(["ask", "auto"] as const).map((level) => (
-        <button
-          key={level}
-          type="button"
-          role="radio"
-          aria-checked={autonomy === level}
-          onClick={() => setAutonomy(level)}
-          className={cn(
-            "flex items-center px-3 uppercase transition-colors",
-            autonomy === level
-              ? "bg-charcoal-700 text-charcoal-100"
-              : "text-charcoal-400 hover:text-lume",
-          )}
-        >
-          {level}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-const DEPTH_LABEL: Record<"quick" | "deep" | "heavy", string> = {
-  quick: "FAST",
-  deep: "DEEP",
-  heavy: "HEAVY",
-};
-
-/**
- * Research depth control — the ONE actionable depth escalation (FR-115), moved
- * from the brief panel into the chat surface so there is a single source of
- * truth (the brief panel now only mirrors the tier, read-only). Shows the CURRENT
- * tier of the latest brief and a single "Go deeper" / "Go all out" action that
- * escalates the SAME research subject in place. At `heavy` it is DISABLED with a
- * "deepest" label. While a run streams it shows a RUNNING spinner (derived from
- * the live stream state, never a guess). Escalation is DETERMINISTIC: it sends a
- * structured `at depth=<next>` directive through the chat's one send path (the
- * agent-command bus → `handleSend`), so the §6.5 gate stays in the loop and the
- * re-run never depends on the model parsing a fuzzy prose phrase.
- *
- * Renders nothing until a brief exists — there is no subject to deepen before the
- * first research run lands.
- */
-function ResearchDepthControl({ streaming }: { streaming: boolean }) {
-  const brief = useBriefStore((s) => s.brief);
-  if (!brief) {
-    return null;
-  }
-  const current = briefDepthTier(brief);
-  const next = nextBriefDepth(current);
-  const subject = brief.symbol || brief.query;
-  const label = next === "heavy" ? "Go all out" : "Go deeper";
-  // At heavy there is nowhere deeper; while a run streams the escalation is busy.
-  const disabled = !next || streaming;
-  const onClick = () => {
-    if (next && !streaming) {
-      escalateResearchDepth(subject, next);
-    }
-  };
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={
-        next ? `Re-run this research at the ${next} tier` : "This is the deepest research tier"
-      }
-      title={
-        streaming
-          ? "A research pass is running…"
-          : next
-            ? `Depth ${DEPTH_LABEL[current]} — re-run at the ${next} tier in place`
-            : "This is the deepest research tier."
-      }
-      className="border-charcoal-700 text-charcoal-300 rounded-control text-micro hover:border-charcoal-500/50 hover:text-lume disabled:hover:border-charcoal-700 disabled:hover:text-charcoal-300 flex h-8 shrink-0 items-center gap-1 border px-2 font-mono transition-colors disabled:cursor-default disabled:opacity-60"
-    >
-      {streaming ? <Loader2 className="size-3 animate-spin" /> : <Telescope className="size-3" />}
-      <span className="text-charcoal-400">{DEPTH_LABEL[current]}</span>
-      {next ? <span>· {label}</span> : <span className="text-charcoal-500">· deepest</span>}
-    </button>
-  );
-}
 
 /** The default agent: the terminal-aware router/concierge. Bare text routes here. */
 const DEFAULT_AGENT_ID = "copilot";
@@ -191,6 +87,17 @@ function agentProviderPreference(
     return undefined;
   }
   return agent.defaultProvider as LLMProviderId | undefined;
+}
+
+/** Title-case fallback for an agent id the roster hasn't resolved yet — the lens
+ *  chip must NEVER show a raw id ("warren" → "Warren", "portfolio_advisor" →
+ *  "Portfolio Advisor"). The roster display name always wins when present. */
+function humanizeAgentId(id: string): string {
+  return id
+    .split(/[_-]+/)
+    .filter(Boolean)
+    .map((word) => word[0].toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 /** A short lead for the collapsed "short chat" view (Track 3): the first couple
@@ -309,9 +216,19 @@ export function ChatSidebar() {
   const setPlan = useChatHistoryStore((state) => state.setPlan);
   const markBriefPublished = useChatHistoryStore((state) => state.markBriefPublished);
   const finalize = useChatHistoryStore((state) => state.finalizeAssistantMessage);
+  const stopMessage = useChatHistoryStore((state) => state.stopAssistantMessage);
   const fail = useChatHistoryStore((state) => state.failAssistantMessage);
   const clearHistory = useChatHistoryStore((state) => state.clear);
   const streaming = useChatHistoryStore((state) => state.streamingMessageId !== null);
+  // A research run is LIVE when the streaming message has research steps — the
+  // ONE place the peach accent belongs (the depth slider's live stop).
+  const researchLive = useChatHistoryStore((state) => {
+    if (!state.streamingMessageId) {
+      return false;
+    }
+    const live = state.messages.find((m) => m.id === state.streamingMessageId);
+    return !!live && (live.researchSteps?.length ?? 0) > 0;
+  });
 
   const firstPartyAgents = useAgentsStore(selectFirstPartyAgents);
   const customAgents = useAgentsStore(selectCustomAgents);
@@ -374,6 +291,14 @@ export function ChatSidebar() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   // Tracks the last successfully dispatched prompt so the Retry button can re-send.
   const [lastPrompt, setLastPrompt] = useState<string | null>(null);
+  // The in-flight stream's AbortController, lifted to a ref so the composer's
+  // stop square can reach it (R7 Track C).
+  const abortRef = useRef<AbortController | null>(null);
+  // Three-stop research depth (the meta-row slider) + the depth the LIVE run
+  // was sent at — the slider accents its active stop only while that run lives.
+  const researchDepth = useResearchDepthStore((s) => s.depth);
+  const setResearchDepth = useResearchDepthStore((s) => s.setDepth);
+  const [lastSentDepth, setLastSentDepth] = useState<ResearchDepth | null>(null);
 
   useEffect(() => {
     void refreshAgents();
@@ -697,8 +622,15 @@ export function ChatSidebar() {
       const modelWebSearch =
         useModelCatalogStore.getState().byProvider[provider]?.models.find((m) => m.id === model)
           ?.webSearch ?? undefined;
+      // The meta-row depth slider (R7): read at call time, threaded into the
+      // invocation options (streaming.ts puts it on the wire as snake_case
+      // `research_depth`). Remember what THIS send carried so the slider can
+      // accent its live stop honestly.
+      const depthForSend = useResearchDepthStore.getState().depth;
+      setLastSentDepth(depthForSend);
       const deepResearchOptions = {
         deepResearchBackend,
+        researchDepth: depthForSend,
         ...(modelWebSearch ? { modelWebSearch } : {}),
       };
 
@@ -744,8 +676,10 @@ export function ChatSidebar() {
         : "Direct chat";
 
       // Track the run in the agents rail (FR-027 / US3 AS3) with a cancel that
-      // aborts the stream. P3 deepens this into durable, budget-guarded runs.
+      // aborts the stream. The controller is lifted to `abortRef` so the
+      // composer's stop square aborts the SAME in-flight run.
       const controller = new AbortController();
+      abortRef.current = controller;
       const runId = startRun({
         agentId: agentForCall,
         agentName,
@@ -756,8 +690,13 @@ export function ChatSidebar() {
       const handlers = makeHandlers({
         onDelta: (text) => appendDelta(assistantId, text),
         onError: (message) => {
+          if (abortRef.current === controller) {
+            abortRef.current = null;
+          }
           if (controller.signal.aborted) {
-            finalize(assistantId, null);
+            // User-stopped (the composer's stop square / rail cancel): the
+            // partial message stands, quietly marked "stopped" — not an error.
+            stopMessage(assistantId);
             endRun(runId, "cancelled");
           } else {
             fail(assistantId, message);
@@ -765,6 +704,9 @@ export function ChatSidebar() {
           }
         },
         onDone: (usage) => {
+          if (abortRef.current === controller) {
+            abortRef.current = null;
+          }
           finalize(assistantId, usage);
           if (usage) {
             updateRun(runId, {
@@ -882,12 +824,14 @@ export function ChatSidebar() {
       enqueueChange,
       fail,
       finalize,
+      stopMessage,
       firstPartyAgents,
       mode,
       providerOverride,
       providers,
       setDefaultProviderId,
       setLastPrompt,
+      setLastSentDepth,
       startRun,
       updateRun,
     ],
@@ -911,14 +855,40 @@ export function ChatSidebar() {
     void handleSend(agentCommand.prompt);
   }, [agentCommand, streaming, handleSend]);
 
-  // Consume any prompt queued by the command palette "Ask AI" row (opens chat +
-  // routes the typed query to the agent). Deferred to a microtask so the effect
-  // body stays free of synchronous setState (handleSend is the only dep).
+  // Drain the FIFO prompt queue (R7 Track C): prompts typed while a stream was
+  // in flight (and the palette's one-shot "Ask AI" handoff) send IN ORDER, one
+  // at a time, through the SAME handleSend the moment nothing is streaming.
+  // `handleSend` resolves only when its stream finishes, so awaiting it serial-
+  // izes the drain; the ref guards the effect re-running mid-drain (each send
+  // flips `streaming`, re-firing this effect).
+  const queueLength = useChatPendingStore((s) => s.queue.length);
+  const drainingRef = useRef(false);
   useEffect(() => {
-    const pending = useChatPendingStore.getState().consumePrompt();
-    if (!pending?.trim()) return;
-    void Promise.resolve().then(() => handleSend(pending));
-  }, [handleSend]);
+    if (streaming || drainingRef.current || queueLength === 0) {
+      return;
+    }
+    drainingRef.current = true;
+    void (async () => {
+      try {
+        for (;;) {
+          // Re-check between sends — another path (agent-command) may have
+          // started a stream while we awaited.
+          if (useChatHistoryStore.getState().streamingMessageId !== null) {
+            break;
+          }
+          const next = useChatPendingStore.getState().consumePrompt();
+          if (next === null) {
+            break;
+          }
+          if (next.trim()) {
+            await handleSend(next);
+          }
+        }
+      } finally {
+        drainingRef.current = false;
+      }
+    })();
+  }, [streaming, queueLength, handleSend]);
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
@@ -1038,6 +1008,9 @@ export function ChatSidebar() {
                   pending={message.pending}
                   briefPublished={message.briefPublished}
                 />
+                {message.stopped && (
+                  <div className="text-charcoal-500 text-caption mt-1">stopped</div>
+                )}
                 {message.error && (
                   <div className="text-caption mt-1 flex items-center gap-2">
                     <span className="text-negative">Something went wrong — {message.error}</span>
@@ -1074,36 +1047,50 @@ export function ChatSidebar() {
           </motion.div>
         )}
       </AnimatePresence>
-      {/* ── Composer dock — ONE clean surface. Mode / Lens / Provider+Model /
-          Autonomy / Deep Research are ALL inline and ALWAYS VISIBLE. No disclosure
-          gear, no hidden control stack (the Round-2 "hide it and call it a rebuild"
-          anti-pattern is gone). Deep Research is a visible toggle, not jargon. ── */}
+      {/* ── Composer dock — ONE unit (R7 Track C, Cursor-grade): queued-prompt
+          chips → the bordered auto-growing field with send/stop INSIDE → one
+          quiet 24px meta row (mode · lens · depth ··· autonomy · model) whose
+          chips open anchored popovers. The standing select rows are gone. ── */}
       <div className="border-charcoal-700 border-t">
-        {/* Control row 1: mode · persona (lens) · spacer · autonomy. There is NO
-            "Deep Research" toggle (FR-115 / SC-028): research is ONE model — ask
-            naturally and the agent picks the depth, then "Go deeper" on the brief
-            escalates the SAME run in place. Depth is never a user knob. */}
-        <div className="border-charcoal-700 flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-3 py-2">
-          <ModeSwitch mode={mode} onChange={setMode} />
-          <PersonaSelect
-            firstParty={firstPartyAgents}
-            custom={customAgents}
-            activeAgentId={activeAgentId}
-            onChange={(id) => {
-              setActiveAgentId(id);
-              setProviderOverride(null);
-            }}
-          />
-          <div className="min-w-0 flex-1" />
-          {/* The ONE actionable depth escalation (FR-115): current tier + a single
-              Go-deeper/Go-all-out, disabled+"deepest" at heavy, RUNNING while a
-              pass streams. The brief panel only mirrors the tier (read-only) — no
-              second escalation control that could race this one. */}
-          <ResearchDepthControl streaming={streaming} />
-          <AutonomyToggle />
-        </div>
-        {/* Control row 2: provider / model HUD (always visible — keyboard-driven) */}
-        <AgentHud
+        {/* Delegate-only: the BudgetGuard ceiling for the durable background run. */}
+        {mode === "delegate" && (
+          <BudgetConfig budget={delegateBudget} onChange={setDelegateBudget} />
+        )}
+        <QueuedPrompts />
+        <Composer
+          value={composer}
+          onChange={setComposer}
+          onSend={(text) => {
+            setComposer("");
+            // While a stream is in flight the prompt queues (visible chips
+            // above the field) and drains in order when the stream ends; the
+            // input itself is sent verbatim — depth rides `options`, never
+            // prepended prose.
+            if (useChatHistoryStore.getState().streamingMessageId !== null) {
+              useChatPendingStore.getState().queuePrompt(text);
+            } else {
+              void handleSend(text);
+            }
+          }}
+          onStop={() => abortRef.current?.abort()}
+          streaming={streaming}
+          mode={mode}
+          region={region}
+        />
+        <ComposerMetaRow
+          mode={mode}
+          onModeChange={setMode}
+          lensLabel={activeAgent?.name ?? humanizeAgentId(activeAgentId ?? DEFAULT_AGENT_ID)}
+          firstParty={firstPartyAgents}
+          custom={customAgents}
+          activeAgentId={activeAgentId ?? DEFAULT_AGENT_ID}
+          onLensChange={(id) => {
+            setActiveAgentId(id);
+            setProviderOverride(null);
+          }}
+          depth={researchDepth}
+          onDepthChange={setResearchDepth}
+          liveDepth={researchLive ? lastSentDepth : null}
           providers={providers}
           provider={effectiveProvider}
           model={effectiveModel}
@@ -1112,7 +1099,7 @@ export function ChatSidebar() {
           catalogNote={modelCatalog?.note}
           catalogLoading={modelCatalog?.loading}
           onProviderChange={(p) => {
-            // The HUD pick wins this session AND becomes the persisted default
+            // The pick wins this session AND becomes the persisted default
             // (rides the page.tsx autosave), so it survives a relaunch.
             setProviderOverride(p);
             setDefaultProviderId(p);
@@ -1120,27 +1107,6 @@ export function ChatSidebar() {
           onModelChange={(m) => setModelOverride(effectiveProvider, m)}
           onKeyRequired={(p) => setKeyDialogProvider(p)}
           onRefreshModels={refreshModelCatalog}
-        />
-        {/* Delegate-only: the BudgetGuard ceiling for the durable background run. */}
-        {mode === "delegate" && (
-          <BudgetConfig budget={delegateBudget} onChange={setDelegateBudget} />
-        )}
-
-        <Composer
-          value={composer}
-          onChange={setComposer}
-          onSend={(text) => {
-            setComposer("");
-            // ONE research model (FR-115): the input is sent verbatim. There is no
-            // depth knob to prepend — the agent infers the depth from the ask and
-            // "Go deeper" on the brief escalates in place via the agent-command bus.
-            void handleSend(text);
-          }}
-          // Delegate runs are background (US3 AS3): keep the composer live so the
-          // user can keep working the cockpit while the run streams in the rail.
-          disabled={streaming && mode !== "delegate"}
-          mode={mode}
-          region={region}
         />
       </div>
       <KeyEntryDialog
@@ -1167,90 +1133,36 @@ export function ChatSidebar() {
 // Subcomponents
 // ---------------------------------------------------------------------------
 
-interface AgentPickerProps {
-  firstParty: readonly { id: string; name: string }[];
-  custom: readonly { id: string; name: string }[];
-  activeAgentId: string | null;
-  onChange: (id: string | null) => void;
-}
-
-/** Compact, always-visible mode selector (Agent / Delegate) — the two-mode spine
- *  on ⌥1–⌥2, inline in the composer (never behind a disclosure). The active tab
- *  carries a shared-layout pill so switching animates between the two. */
-function ModeSwitch({ mode, onChange }: { mode: AgentMode; onChange: (mode: AgentMode) => void }) {
-  return (
-    <div role="tablist" aria-label="Agent mode" className="flex shrink-0 items-center gap-2">
-      {AGENT_MODES.map((m) => {
-        const active = m.id === mode;
-        return (
-          <button
-            key={m.id}
-            role="tab"
-            type="button"
-            aria-selected={active}
-            title={`${m.hint} (${m.hotkeyLabel})`}
-            onClick={() => onChange(m.id)}
-            className={cn(
-              "rounded-control text-caption relative flex h-8 items-center px-3 font-mono transition-colors",
-              active ? "text-charcoal-100" : "text-charcoal-400 hover:text-lume",
-            )}
-          >
-            {active && (
-              <motion.span
-                layoutId="composer-mode-pill"
-                className="bg-charcoal-800 border-charcoal-700 rounded-control absolute inset-0 -z-10 border"
-                transition={SPRING_PILL}
-              />
-            )}
-            {m.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-/** The active persona ("lens") — one compact picker, always visible in the
- *  composer (no disclosure). The copilot router is pinned first as the default;
- *  the full roster (12 investor personas + any custom agents) lives one click away
- *  in the dropdown. Matches the AgentHud native-select pattern. */
-function PersonaSelect({ firstParty, custom, activeAgentId, onChange }: AgentPickerProps) {
-  const ordered = [...firstParty].sort((a, b) =>
-    a.id === DEFAULT_AGENT_ID ? -1 : b.id === DEFAULT_AGENT_ID ? 1 : 0,
-  );
-  if (ordered.length === 0 && custom.length === 0) {
+/** The visible FIFO of prompts queued while a stream is in flight — quiet,
+ *  removable chips directly above the composer field. Renders nothing when the
+ *  queue is empty; the drain order is the chip order (oldest first). */
+function QueuedPrompts() {
+  const queue = useChatPendingStore((s) => s.queue);
+  const removePrompt = useChatPendingStore((s) => s.removePrompt);
+  if (queue.length === 0) {
     return null;
   }
   return (
-    <div
-      aria-label="Persona roster"
-      className="text-charcoal-500 text-caption flex min-w-0 shrink items-center gap-2 font-mono"
-    >
-      <span className="shrink-0 tracking-wide uppercase">Lens</span>
-      <select
-        aria-label="Active persona"
-        value={activeAgentId ?? DEFAULT_AGENT_ID}
-        onChange={(event) => onChange(event.target.value)}
-        className="bg-charcoal-800 text-charcoal-200 border-charcoal-700 rounded-control text-caption focus:ring-charcoal-500 h-8 max-w-[9rem] min-w-0 truncate border px-3 font-mono outline-none focus:ring-1"
-      >
-        <optgroup label="First-party">
-          {ordered.map((agent) => (
-            <option key={agent.id} value={agent.id}>
-              {agent.name}
-            </option>
-          ))}
-        </optgroup>
-        {custom.length > 0 && (
-          <optgroup label="Custom">
-            {custom.map((agent) => (
-              <option key={agent.id} value={agent.id}>
-                {agent.name}
-              </option>
-            ))}
-          </optgroup>
-        )}
-      </select>
-    </div>
+    <ul aria-label="Queued prompts" className="flex flex-wrap gap-1 px-3 pt-2">
+      {queue.map((prompt, index) => (
+        <li
+          key={`${index}-${prompt}`}
+          className="border-charcoal-700 bg-charcoal-850 text-micro text-charcoal-400 rounded-control flex h-6 max-w-[14rem] items-center gap-1 border px-2 font-mono"
+        >
+          <span className="truncate" title={prompt}>
+            {prompt}
+          </span>
+          <button
+            type="button"
+            aria-label={`Remove queued prompt: ${prompt}`}
+            onClick={() => removePrompt(index)}
+            className="text-charcoal-500 hover:text-charcoal-200 shrink-0 transition-colors"
+          >
+            ×
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -1310,25 +1222,33 @@ function EmptyState({
 interface ComposerProps {
   value: string;
   onChange: (value: string) => void;
+  /** Submit the text — the parent sends it, or queues it while streaming. */
   onSend: (text: string) => void;
-  disabled: boolean;
+  /** Abort the in-flight stream (the send square morphs into stop). */
+  onStop: () => void;
+  /** True while a foreground stream is live — Enter queues, the button stops. */
+  streaming: boolean;
   mode: AgentMode;
   region: Region;
 }
 
+/** Max field height before the textarea scrolls — ~6 lines of text-body
+ *  (13px × 1.5 ≈ 19.5px each) plus the field's vertical padding. */
+const COMPOSER_MAX_HEIGHT_PX = 144;
+
 /**
- * The chat composer with inline `/`-command and `@`-mention pickers (FR-100/101,
- * SC-023). Both pickers are keyboard-first: ``/`` or ``@`` opens the relevant
- * list, ↑/↓ moves the highlight, ↵ or ⇥ accepts, Esc dismisses. A `/cmd @entity`
- * composition works because the two matchers key off different parse states —
- * `matchSlash` fires only while typing the leading command name (no space yet),
- * `matchMention` fires on the `@` token under the caret anywhere in the line. The
- * pickers themselves are presentational; this owns the open/active/resolve state
- * and the text splicing. Mention resolution is async + locale-aware (`/resolve`),
- * race-guarded by a sequence token so a slow lookup never overwrites a newer one.
+ * The chat composer — ONE bordered unit (R7 Track C): an auto-growing textarea
+ * (one line min, ~6 lines max) with the send/stop square pinned INSIDE the
+ * field's bottom-right. While a stream is live the square morphs into STOP and
+ * Enter queues the typed prompt instead of sending (the visible FIFO above the
+ * field); Shift+Enter inserts a newline. The inline `/`-command and `@`-mention
+ * pickers (FR-100/101, SC-023) are unchanged: keyboard-first, ↑/↓ moves, ↵/⇥
+ * accepts, Esc dismisses; `matchSlash` fires only while typing the leading
+ * command name, `matchMention` on the `@` token under the caret. Mention
+ * resolution stays async + locale-aware, race-guarded by a sequence token.
  */
-function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerProps) {
-  const inputRef = useRef<HTMLInputElement | null>(null);
+function Composer({ value, onChange, onSend, onStop, streaming, mode, region }: ComposerProps) {
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const [caret, setCaret] = useState(0);
   // The composer value at the moment Esc was pressed — keeps the picker dismissed
   // until the text changes again (so Esc closes without losing what was typed).
@@ -1390,9 +1310,21 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
     setActive({ index: nextIndex, sig: pickerSig });
   }
 
-  function syncCaret(el: HTMLInputElement) {
+  function syncCaret(el: HTMLTextAreaElement) {
     setCaret(el.selectionStart ?? el.value.length);
   }
+
+  // Auto-grow: one-line baseline, expands with content, capped at ~6 lines
+  // (then the textarea scrolls). Height math runs off the real scrollHeight so
+  // wrapped lines count too.
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) {
+      return;
+    }
+    el.style.height = "0px";
+    el.style.height = `${Math.min(el.scrollHeight, COMPOSER_MAX_HEIGHT_PX)}px`;
+  }, [value]);
 
   function pickSlash(cmd: SlashCommandDef) {
     // Insert `/trigger ` — the trailing space closes the slash picker (matchSlash
@@ -1443,7 +1375,7 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
     }
   }
 
-  function onKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
+  function onKeyDown(event: ReactKeyboardEvent<HTMLTextAreaElement>) {
     if (pickerOpen) {
       if (event.key === "ArrowDown") {
         event.preventDefault();
@@ -1467,13 +1399,12 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
       }
       return;
     }
-    // No picker open: submit on Enter EXPLICITLY. Don't rely on the form's default
-    // Enter-submit — with a React-controlled input + the picker state machine it
-    // was unreliable (the enter-to-send bug). Shift+Enter is reserved (no submit)
-    // for a future multi-line composer.
+    // No picker open: submit on Enter EXPLICITLY (a textarea never form-submits
+    // on Enter). While a stream is live the parent QUEUES the prompt instead of
+    // sending — typing stays enabled throughout. Shift+Enter inserts a newline.
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      if (!disabled && value.trim()) {
+      if (value.trim()) {
         onSend(value);
       }
     }
@@ -1499,7 +1430,7 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
         </div>
       )}
       <form
-        className="border-charcoal-700 border-t p-3"
+        className="px-3 pt-2 pb-2"
         onSubmit={(event) => {
           event.preventDefault();
           if (value.trim()) {
@@ -1507,13 +1438,13 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
           }
         }}
       >
-        {/* The composer is ONE clean bordered unit (§14): a single-line input with
-            the send pinned inside the field's right edge — a small up-arrow that
-            lights to an inverted neutral chip once there's text. Minimal, monochrome
-            (the peach accent is reserved for live agent activity, never the send). */}
-        <div className="bg-charcoal-850 border-charcoal-700 rounded-control focus-within:ring-charcoal-500 flex items-center gap-1 border px-1 focus-within:ring-1">
-          <input
+        {/* ONE bordered unit (§14): the auto-growing textarea with the send/stop
+            square pinned INSIDE the field's bottom-right. Minimal, monochrome —
+            the peach accent is reserved for live agent activity, never the send. */}
+        <div className="bg-charcoal-850 border-charcoal-700 focus-within:border-charcoal-600 rounded-control relative border transition-colors">
+          <textarea
             ref={inputRef}
+            rows={1}
             aria-label="Chat input"
             value={value}
             onChange={(event) => {
@@ -1525,25 +1456,42 @@ function Composer({ value, onChange, onSend, disabled, mode, region }: ComposerP
             onKeyUp={(event) => syncCaret(event.currentTarget)}
             onClick={(event) => syncCaret(event.currentTarget)}
             onSelect={(event) => syncCaret(event.currentTarget)}
-            placeholder={mode === "delegate" ? "Delegate a task…" : "Ask anything…"}
-            disabled={disabled}
+            placeholder={
+              streaming
+                ? "Queue the next prompt…"
+                : mode === "delegate"
+                  ? "Delegate a task…"
+                  : "Ask anything…"
+            }
             autoComplete="off"
             spellCheck={false}
-            className="text-charcoal-100 placeholder:text-charcoal-500 text-body min-w-0 flex-1 bg-transparent px-2 py-2 font-mono outline-none disabled:opacity-50"
+            className="text-charcoal-100 placeholder:text-charcoal-500 text-body block w-full resize-none bg-transparent py-2 pr-10 pl-3 font-mono outline-none"
           />
-          <button
-            type="submit"
-            aria-label="Send message"
-            disabled={disabled || value.trim().length === 0}
-            className={cn(
-              "rounded-control flex size-6 shrink-0 items-center justify-center transition-colors",
-              !disabled && value.trim().length > 0
-                ? "bg-charcoal-200 text-charcoal-950 hover:bg-lume"
-                : "text-charcoal-600",
-            )}
-          >
-            <ArrowUp className="size-3.5" strokeWidth={2.25} />
-          </button>
+          {streaming ? (
+            <button
+              type="button"
+              aria-label="Stop the in-flight run"
+              title="Stop — the partial answer stands"
+              onClick={onStop}
+              className="rounded-control bg-charcoal-200 text-charcoal-950 hover:bg-lume absolute right-2 bottom-2 flex size-6 shrink-0 items-center justify-center transition-colors"
+            >
+              <Square className="size-2.5" fill="currentColor" strokeWidth={0} />
+            </button>
+          ) : (
+            <button
+              type="submit"
+              aria-label="Send message"
+              disabled={value.trim().length === 0}
+              className={cn(
+                "rounded-control absolute right-2 bottom-2 flex size-6 shrink-0 items-center justify-center transition-colors",
+                value.trim().length > 0
+                  ? "bg-charcoal-200 text-charcoal-950 hover:bg-lume"
+                  : "text-charcoal-600",
+              )}
+            >
+              <ArrowUp className="size-3.5" strokeWidth={2.25} />
+            </button>
+          )}
         </div>
       </form>
     </div>

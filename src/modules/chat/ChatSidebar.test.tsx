@@ -6,10 +6,12 @@ import { useAgentModeStore } from "@/store/agent-mode";
 import { useAgentsStore, type AgentSummary } from "@/store/agents";
 import { useChartSyncBus } from "@/store/chart-sync";
 import { useChatHistoryStore } from "@/store/chat-history";
+import { useChatPendingStore } from "@/store/chat-pending";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useOnboardingStore } from "@/store/onboarding";
 import { usePanelContextBus } from "@/store/panel-context";
 import { useProposedChangesStore } from "@/store/proposed-changes";
+import { resetResearchDepthStoreForTests, useResearchDepthStore } from "@/store/research-depth";
 
 // ---- Mocks ----
 
@@ -23,7 +25,11 @@ const streamAgentInvocationMock = vi.hoisted(() =>
     (
       agentId: string,
       payload: unknown,
-      handlers: { onEvent: (event: unknown) => void },
+      handlers: {
+        onEvent: (event: unknown) => void;
+        onError?: (err: Error) => void;
+        signal?: AbortSignal;
+      },
     ) => Promise<void>
   >(async () => undefined),
 );
@@ -186,6 +192,8 @@ function seedStores() {
   useAgentModeStore.setState({ mode: "agent" });
   useProposedChangesStore.setState({ changes: [] });
   useChartSyncBus.setState({ symbol: null });
+  useChatPendingStore.setState({ queue: [] });
+  resetResearchDepthStoreForTests();
 }
 
 describe("ChatSidebar", () => {
@@ -201,25 +209,144 @@ describe("ChatSidebar", () => {
     cleanup();
   });
 
-  it("offers every first-party agent as a persona (lens) the user can pick", () => {
+  it("offers every first-party agent (by display name) in the lens chip's popover", () => {
     render(<ChatSidebar />);
-    // The persona/provider controls are ALWAYS visible inline (no disclosure) — the
-    // from-scratch composer rebuild surfaces the roster without any click.
-    const roster = screen.getByLabelText("Persona roster");
-    expect(roster).toBeInTheDocument();
-    const picker = screen.getByRole("combobox", { name: "Active persona" });
-    expect(picker).toBeInTheDocument();
+    // R7: the standing persona select row is gone — the lens chip in the 24px
+    // meta row opens ONE anchored popover holding the full roster.
+    fireEvent.click(screen.getByRole("button", { name: /active lens/i }));
     for (const agent of FIRST_PARTY_AGENTS) {
       expect(screen.getByRole("option", { name: agent.name })).toBeInTheDocument();
     }
   });
 
-  it("has NO Deep Research depth toggle (FR-115 / SC-028 — one research model)", () => {
-    // Research collapsed to ONE model: depth is the agent's call + the brief's
-    // "Go deeper" escalation, never a user-visible knob. The old composer toggle
-    // is gone — 0 user-visible mode/angles/backend controls.
+  it("the lens chip always shows the display name, never a raw agent id", () => {
     render(<ChatSidebar />);
-    expect(screen.queryByRole("button", { name: /deep research/i })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /active lens/i }));
+    fireEvent.click(screen.getByRole("option", { name: "Warren Buffett" }));
+    const chip = screen.getByRole("button", { name: /active lens/i });
+    expect(chip.textContent).toContain("Warren Buffett");
+    expect(chip.textContent).not.toBe("buffett");
+  });
+
+  it("replaces the old depth escalation with the three-stop slider (no toggle button)", () => {
+    render(<ChatSidebar />);
+    // The "+DEEP · GO ALL OUT" control and any Deep-Research toggle are gone…
+    expect(
+      screen.queryByRole("button", { name: /deep research|go deeper|go all out/i }),
+    ).toBeNull();
+    // …replaced by the segmented three-stop slider in the meta row.
+    expect(screen.getByRole("radiogroup", { name: "Research depth" })).toBeInTheDocument();
+    for (const label of ["Normal", "Deep", "Ultra"]) {
+      expect(screen.getByRole("radio", { name: `${label} research depth` })).toBeInTheDocument();
+    }
+  });
+
+  it("the depth slider sets the store and the depth rides the invocation options", async () => {
+    render(<ChatSidebar />);
+    fireEvent.click(screen.getByRole("radio", { name: "Deep research depth" }));
+    expect(useResearchDepthStore.getState().depth).toBe("deep");
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "look at SPY" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(streamAgentInvocationMock).toHaveBeenCalledTimes(1));
+    const payload = (streamAgentInvocationMock.mock.calls[0] as unknown[])[1] as {
+      options?: Record<string, unknown>;
+    };
+    expect(payload.options?.researchDepth).toBe("deep");
+  });
+
+  it("the mode chip switches Agent ↔ Delegate through its popover", () => {
+    render(<ChatSidebar />);
+    fireEvent.click(screen.getByRole("button", { name: /agent mode/i }));
+    fireEvent.click(screen.getByRole("option", { name: /delegate/i }));
+    expect(useAgentModeStore.getState().mode).toBe("delegate");
+  });
+
+  it("the model chip opens the provider/model popover with the refresh affordance", () => {
+    render(<ChatSidebar />);
+    fireEvent.click(screen.getByRole("button", { name: /^model — /i }));
+    expect(screen.getByRole("option", { name: "OpenAI" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Refresh model list" })).toBeInTheDocument();
+  });
+
+  it("queues a prompt typed while streaming and drains it in order when the stream ends", async () => {
+    let release!: () => void;
+    streamAgentInvocationMock.mockImplementationOnce(
+      (_id, _payload, handlers) =>
+        new Promise<void>((resolve) => {
+          release = () => {
+            handlers.onEvent({ kind: "done" });
+            resolve();
+          };
+        }),
+    );
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "first question" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(streamAgentInvocationMock).toHaveBeenCalledTimes(1));
+    // The stream is live — typing stays enabled and Enter queues a visible chip.
+    fireEvent.change(input, { target: { value: "second question" } });
+    fireEvent.submit(input.closest("form")!);
+    expect(useChatPendingStore.getState().queue).toEqual(["second question"]);
+    expect(screen.getByText("second question")).toBeInTheDocument();
+    release();
+    await waitFor(() => expect(streamAgentInvocationMock).toHaveBeenCalledTimes(2));
+    const second = (streamAgentInvocationMock.mock.calls[1] as unknown[])[1] as {
+      prompt: string;
+    };
+    expect(second.prompt).toBe("second question");
+    await waitFor(() => expect(useChatPendingStore.getState().queue).toEqual([]));
+  });
+
+  it("a queued chip's [x] removes it before it sends", async () => {
+    let release!: () => void;
+    streamAgentInvocationMock.mockImplementationOnce(
+      (_id, _payload, handlers) =>
+        new Promise<void>((resolve) => {
+          release = () => {
+            handlers.onEvent({ kind: "done" });
+            resolve();
+          };
+        }),
+    );
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "keep streaming" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(streamAgentInvocationMock).toHaveBeenCalledTimes(1));
+    fireEvent.change(input, { target: { value: "never send this" } });
+    fireEvent.submit(input.closest("form")!);
+    fireEvent.click(screen.getByRole("button", { name: "Remove queued prompt: never send this" }));
+    expect(useChatPendingStore.getState().queue).toEqual([]);
+    release();
+    // The stream ends with an empty queue — nothing else fires.
+    await waitFor(() => expect(useChatHistoryStore.getState().streamingMessageId).toBeNull());
+    expect(streamAgentInvocationMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("the stop square aborts the in-flight stream and marks the message stopped", async () => {
+    streamAgentInvocationMock.mockImplementationOnce(
+      (_id, _payload, handlers) =>
+        new Promise<void>((resolve) => {
+          handlers.signal?.addEventListener("abort", () => {
+            handlers.onError?.(new Error("aborted"));
+            resolve();
+          });
+        }),
+    );
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "a long research question" } });
+    fireEvent.submit(input.closest("form")!);
+    const stop = await screen.findByRole("button", { name: /stop/i });
+    fireEvent.click(stop);
+    await waitFor(() => expect(useChatHistoryStore.getState().streamingMessageId).toBeNull());
+    const assistant = useChatHistoryStore.getState().messages.find((m) => m.role === "assistant");
+    expect(assistant?.stopped).toBe(true);
+    expect(assistant?.error).toBeFalsy();
+    // The transcript marks it quietly — a tertiary caption, not an error row.
+    expect(screen.getByText("stopped")).toBeInTheDocument();
   });
 
   it("renders an empty-state hint until a message is sent", () => {
