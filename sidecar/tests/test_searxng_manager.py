@@ -374,6 +374,80 @@ async def test_begin_setup_is_idempotent_while_in_flight(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
+async def test_error_from_background_setup_survives_the_status_poll(tmp_path) -> None:
+    """Regression: error(reason) must be observable through refresh(), the poll surface.
+
+    begin_setup runs setup as a background task, so the UI only ever sees the
+    polled status. refresh() used to re-derive unconditionally once the task was
+    done — the very first poll after a failed pull returned
+    docker_present_not_setup with reason=None and state=error was unreachable
+    through the wire contract.
+    """
+    fake = _fresh_setup_fake()
+    fake.set("pull", 1, "", "Error response from daemon: pull access denied")
+    mgr = _manager(fake, tmp_path)
+
+    mgr.begin_setup()
+    assert mgr._task is not None
+    await mgr._task  # background setup fails on the pull
+
+    polled = await mgr.refresh()
+    assert polled["state"] == STATE_ERROR
+    assert "pull access denied" in str(polled["reason"])
+
+    # Sticky: subsequent polls keep showing the error, not a silent re-derive.
+    again = await mgr.refresh()
+    assert again["state"] == STATE_ERROR
+    assert "pull access denied" in str(again["reason"])
+    assert mgr.ready_base_url() is None
+
+
+@pytest.mark.asyncio
+async def test_retry_setup_clears_a_sticky_error_and_can_reach_ready(tmp_path) -> None:
+    fake = _fresh_setup_fake()
+    fake.set("pull", 1, "", "Error response from daemon: pull access denied")
+    mgr = _manager(fake, tmp_path)
+    mgr.begin_setup()
+    assert mgr._task is not None
+    await mgr._task
+    assert (await mgr.refresh())["state"] == STATE_ERROR
+
+    # The user fixes the world (e.g. logs into the registry) and retries.
+    fake.set("pull", 0, "Status: Downloaded newer image\n")
+    immediate = mgr.begin_setup()
+    assert immediate["state"] == STATE_PULLING  # the retry cleared the error
+    assert mgr._task is not None
+    final = await mgr._task
+    assert final["state"] == STATE_READY
+
+    # The poll surface follows: with the container now live, refresh re-derives
+    # READY instead of replaying the stale error.
+    fake.set("inspect", 0, "running\n")
+    fake.set("port", 0, f"127.0.0.1:{DEFAULT_HOST_PORT}\n")
+    polled = await mgr.refresh()
+    assert polled["state"] == STATE_READY
+    assert polled["reason"] is None
+
+
+@pytest.mark.asyncio
+async def test_teardown_clears_a_sticky_error(tmp_path) -> None:
+    fake = _fresh_setup_fake()
+    fake.set("pull", 1, "", "Error response from daemon: pull access denied")
+    fake.set("stop", 0, f"{CONTAINER_NAME}\n")
+    fake.set("rm", 0, f"{CONTAINER_NAME}\n")
+    mgr = _manager(fake, tmp_path)
+    mgr.begin_setup()
+    assert mgr._task is not None
+    await mgr._task
+    assert (await mgr.refresh())["state"] == STATE_ERROR
+
+    status = await mgr.teardown()
+
+    assert status["state"] == STATE_DOCKER_PRESENT_NOT_SETUP
+    assert status["reason"] is None
+
+
+@pytest.mark.asyncio
 async def test_shutdown_cancels_an_in_flight_setup(tmp_path) -> None:
     fake = _fresh_setup_fake()
     hung = asyncio.Event()

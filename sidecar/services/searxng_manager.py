@@ -24,6 +24,11 @@ The manager is a small state machine — the CONTRACT for the UI's guided
   ``ready``                       ``/search?q=…&format=json`` answers — the
                                   research engine routes SearXNG searches here.
   ``error``                       a setup/start step failed; ``reason`` says why.
+                                  STICKY through the status poll: the polled
+                                  surface is the only one the UI has (setup runs
+                                  as a background task), so :meth:`refresh` must
+                                  not re-derive over it — only the next
+                                  ``setup()``/``teardown()`` clears it.
 
 Every docker CLI invocation goes through ONE asyncio-subprocess seam
 (:func:`_run_docker`) and every health check through one probe seam
@@ -374,8 +379,17 @@ class SearxngManager:
         is authoritative and returned untouched; otherwise docker + container +
         health are re-probed so the status endpoint never lies about a container
         the user removed behind our back.
+
+        Exception: a settled ``error`` is STICKY. Setup runs as a background
+        task, so the status poll is the only surface that can ever deliver
+        ``error(reason)`` to the UI — re-deriving here would overwrite a failed
+        pull/run with ``docker_present_not_setup`` on the very first poll and
+        the reason would never be observable. The error survives until the next
+        :meth:`setup`/:meth:`begin_setup` (retry) or :meth:`teardown` clears it.
         """
         if self._task is not None and not self._task.done():
+            return self.snapshot()
+        if self.state == STATE_ERROR:
             return self.snapshot()
         probe = await self.detect()
         if not probe.cli_present:
@@ -566,6 +580,10 @@ class SearxngManager:
             await self._docker("rm", CONTAINER_NAME)
             self.port = None
             self._container = None
+            # Teardown is one of the two transitions allowed to clear a sticky
+            # error (the other is a setup retry); drop back to the pre-probe
+            # placeholder so the closing refresh() re-derives from the world.
+            self._set(STATE_UNKNOWN)
         return await self.refresh()
 
     async def shutdown(self) -> None:
