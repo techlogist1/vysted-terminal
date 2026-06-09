@@ -84,6 +84,53 @@ async def test_screener_run_invokes_engine_and_returns_rows(
 
 
 @pytest.mark.asyncio
+async def test_screener_run_accepts_formula_and_filters_server_side(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The agent can pass ``formula`` TODAY (the tool revalidates through
+    ScreenerRequest, which carries the field) — R7 Pillar 3. The catalog
+    schema advertisement is the lead's wiring (INTEGRATION_NOTES_R7_HACK)."""
+
+    async def fake_get_fundamentals(symbol: str) -> Fundamentals:
+        return _make_fundamentals(symbol, pe_ratio=10.0 if symbol == "AAA" else 40.0, roe=0.3)
+
+    def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
+        return _make_quote(symbol)
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
+
+    response = await screener_tools._screener_run(
+        {
+            "universe": "custom",
+            "custom_symbols": ["AAA", "BBB"],
+            "criteria": [],
+            "formula": "pe < 15 and roe > 0.2",
+            "limit": 10,
+        }
+    )
+    assert response["ok"] is True
+    assert [row["symbol"] for row in response["result"]["rows"]] == ["AAA"]
+    assert response["result"]["evaluated_count"] == 2
+
+
+@pytest.mark.asyncio
+async def test_screener_run_bad_formula_is_clean_tool_error() -> None:
+    """An unparseable formula is a recovery-first ``{"ok": False}`` return
+    carrying the caret column — never a crash out of the tool surface."""
+    response = await screener_tools._screener_run(
+        {
+            "universe": "sp500",
+            "criteria": [],
+            "formula": "pe << 15",
+        }
+    )
+    assert response["ok"] is False
+    assert "invalid formula" in response["error"]
+    assert "col" in response["error"]
+
+
+@pytest.mark.asyncio
 async def test_screener_run_invalid_payload_returns_error() -> None:
     response = await screener_tools._screener_run({"universe": "nope", "criteria": []})
     assert response["ok"] is False

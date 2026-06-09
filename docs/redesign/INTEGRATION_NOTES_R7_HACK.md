@@ -284,3 +284,47 @@ Once wired, un-skip
 `tests/test_backtest_custom.py::TestRunCustomBacktestTool::test_catalog_capability_exists`
 (it asserts the exact entry above) and add `run_custom_backtest` to an agent's
 `tools` allow-list (Strategy Critic is the natural fit) to make it reachable.
+
+## Pillar 3 — screener formula expression layer (`formula` on `screener_run`)
+
+### What shipped (works without wiring)
+
+The screener formula is now a SERVER-evaluated expression layer:
+`sidecar/services/screener_formula.py` (the one authoritative grammar — field
+refs incl. aliases, arithmetic, comparisons, and/or/not, abs/min/max; positioned
+`FormulaError`, MAX_TOKENS/MAX_NESTING_DEPTH caps, zero eval) ⇄
+`src/lib/screener-expr.ts` (the hand-mirrored TS twin powering the editor's
+caret-position validation + field autocomplete; parity vectors in both suites).
+`ScreenerRequest.formula` rides `POST /screener/run` and AND-combines with the
+criteria; rows missing a referenced field are skipped and itemized
+`missing_field:<f>` (the SC-034 ledger invariant holds); div-by-zero is a
+no-match. `POST /screener/formula/validate` → `{ok, error, position, fields}`.
+
+The `screener_run` agent tool ALREADY accepts `formula` — the handler
+revalidates through `ScreenerRequest`, so agent calls work today
+(`tests/test_screener_tools.py::test_screener_run_accepts_formula_and_filters_server_side`
+passes unwired; a bad formula is a clean `{"ok": False, "error": "...col N"}`).
+
+### Wiring request — advertise `formula` in the catalog schema (catalog.py ~L370)
+
+Without the schema property the models never KNOW the parameter exists. One
+paste-ready property for the `screener_run` capability's `input_schema` object
+(alongside `criteria`/`group`; do NOT add it to the required list):
+
+```python
+"formula": {
+    "type": "string",
+    "description": (
+        "Optional boolean formula evaluated server-side per symbol, "
+        "AND-combined with criteria. Fields: any numeric screener field "
+        "(pe_ratio, market_cap, roe, ...; aliases pe, marketCap, pb, ...). "
+        "Operators: + - * /, comparisons, and/or/not; functions abs/min/max. "
+        "E.g. 'pe < 15 and roe > 0.2' or 'market_cap / volume > 1e6'. "
+        "Rows missing a referenced field are skipped and itemized in "
+        "skip_details as missing_field:<f>."
+    ),
+},
+```
+
+No new capability/tool id, no roster-count bumps, no allow-list change —
+`screener_run` is already reachable wherever it was before.
