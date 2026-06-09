@@ -52,7 +52,7 @@ function metaFor(kind: string): { icon: LucideIcon; label: string } {
   return STEP_META[kind] ?? { icon: Wrench, label: kind };
 }
 
-function formatElapsed(ms: number): string {
+export function formatElapsed(ms: number): string {
   const secs = ms / 1000;
   return secs < 10 ? `${secs.toFixed(1)}s` : `${Math.round(secs)}s`;
 }

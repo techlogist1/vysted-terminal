@@ -30,6 +30,109 @@ describe("chat-history — agent plan (Track 6 #2)", () => {
   });
 });
 
+describe("chat-history — user-stopped streams (R7 Track C)", () => {
+  beforeEach(() => {
+    useChatHistoryStore.getState().clear();
+  });
+
+  it("stopAssistantMessage keeps the partial content and marks it stopped, not errored", () => {
+    const store = useChatHistoryStore.getState();
+    const id = store.beginAssistantMessage({ agentId: "copilot" });
+    store.appendAssistantDelta(id, "Partial answer about SPY…");
+
+    useChatHistoryStore.getState().stopAssistantMessage(id);
+
+    const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id);
+    expect(msg?.content).toBe("Partial answer about SPY…");
+    expect(msg?.stopped).toBe(true);
+    expect(msg?.pending).toBe(false);
+    expect(msg?.error).toBeFalsy();
+    expect(useChatHistoryStore.getState().streamingMessageId).toBeNull();
+  });
+
+  it("stopAssistantMessage on a non-streaming id leaves streamingMessageId for the live one", () => {
+    const store = useChatHistoryStore.getState();
+    const finished = store.beginAssistantMessage({ agentId: "copilot" });
+    useChatHistoryStore.getState().finalizeAssistantMessage(finished, null);
+    const live = useChatHistoryStore.getState().beginAssistantMessage({ agentId: "copilot" });
+
+    useChatHistoryStore.getState().stopAssistantMessage(finished);
+
+    expect(useChatHistoryStore.getState().streamingMessageId).toBe(live);
+  });
+});
+
+describe("chat-history — joined-rounds paragraph break (R7 Track C)", () => {
+  beforeEach(() => {
+    useChatHistoryStore.getState().clear();
+  });
+
+  it("inserts a paragraph break when a new model round streams after a tool step", () => {
+    const store = useChatHistoryStore.getState();
+    const id = store.beginAssistantMessage({ agentId: "copilot" });
+
+    store.appendAssistantDelta(id, "Here's how things look.");
+    store.appendToolStep(id, "Using set chart symbol");
+    store.appendAssistantDelta(id, "Set SPY on the chart.");
+
+    const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id);
+    expect(msg?.content).toBe("Here's how things look.\n\nSet SPY on the chart.");
+  });
+
+  it("inserts a paragraph break when a new round streams after research steps", () => {
+    const store = useChatHistoryStore.getState();
+    const id = store.beginAssistantMessage({ agentId: "copilot" });
+
+    store.appendAssistantDelta(id, "Let me dig in.");
+    store.appendResearchStep(id, {
+      stepKind: "search",
+      detail: "searched",
+      status: "ok",
+      index: 1,
+    });
+    store.appendAssistantDelta(id, "The data says yes.");
+
+    const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id);
+    expect(msg?.content).toBe("Let me dig in.\n\nThe data says yes.");
+  });
+
+  it("does NOT break when the trace arrives before any prose", () => {
+    const store = useChatHistoryStore.getState();
+    const id = store.beginAssistantMessage({ agentId: "copilot" });
+
+    store.appendToolStep(id, "Reading your portfolio");
+    store.appendAssistantDelta(id, "Your portfolio is concentrated.");
+
+    const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id);
+    expect(msg?.content).toBe("Your portfolio is concentrated.");
+  });
+
+  it("does NOT double-break when the prose already ends with whitespace", () => {
+    const store = useChatHistoryStore.getState();
+    const id = store.beginAssistantMessage({ agentId: "copilot" });
+
+    store.appendAssistantDelta(id, "First round done.\n\n");
+    store.appendToolStep(id, "Using fundamentals");
+    store.appendAssistantDelta(id, "Second round.");
+
+    const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id);
+    expect(msg?.content).toBe("First round done.\n\nSecond round.");
+  });
+
+  it("consumes the boundary — deltas within the same round never break", () => {
+    const store = useChatHistoryStore.getState();
+    const id = store.beginAssistantMessage({ agentId: "copilot" });
+
+    store.appendAssistantDelta(id, "…look.");
+    store.appendToolStep(id, "Using set chart symbol");
+    store.appendAssistantDelta(id, "Set SPY");
+    store.appendAssistantDelta(id, " to the chart.");
+
+    const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id);
+    expect(msg?.content).toBe("…look.\n\nSet SPY to the chart.");
+  });
+});
+
 describe("chat-history — research steps (Track A)", () => {
   beforeEach(() => {
     useChatHistoryStore.getState().clear();
