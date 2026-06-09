@@ -10,6 +10,7 @@ import { useChatHistoryStore } from "@/store/chat-history";
 import type { BacktestRequest } from "../../../types/backtest";
 
 import { BacktestResultView } from "./BacktestResultView";
+import { CustomStrategyEditor } from "./custom-strategy-editor";
 import { ParamsForm, StrategyPicker } from "./strategy-picker";
 
 const DEFAULT_SYMBOL = "SPY";
@@ -44,6 +45,8 @@ export function BacktestPanel() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [params, setParams] = useState<Record<string, unknown>>({});
+  // `false` only when the custom-DSL editor's inline validation failed.
+  const [customValid, setCustomValid] = useState(true);
   const [symbols, setSymbols] = useState(DEFAULT_SYMBOL);
   const [startDate, setStartDate] = useState(DEFAULT_START);
   const [endDate, setEndDate] = useState(DEFAULT_END);
@@ -99,8 +102,17 @@ export function BacktestPanel() {
     setParams(defaults);
   }, [selectedSpec]);
 
+  const isCustom = selectedSpec?.id === "custom";
+
+  // A strategy switch resets the custom-validity gate (the editor re-emits
+  // on its first debounce when re-selected).
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- gate reset on strategy switch, one bounded paint
+    setCustomValid(true);
+  }, [selectedId]);
+
   const isRunning = activeRun?.status === "pending" || activeRun?.status === "streaming";
-  const canRun = !!selectedSpec && !isRunning;
+  const canRun = !!selectedSpec && !isRunning && (!isCustom || customValid);
 
   const handleRun = useCallback(async () => {
     if (!selectedSpec) {
@@ -159,14 +171,22 @@ export function BacktestPanel() {
             </div>
           )}
 
-          {selectedSpec && (
-            <ParamsForm
-              schema={selectedSpec.paramsSchema as Record<string, unknown>}
-              values={params}
-              onChange={setParams}
-              disabled={isRunning}
-            />
-          )}
+          {selectedSpec &&
+            (isCustom ? (
+              <CustomStrategyEditor
+                values={params}
+                onChange={setParams}
+                disabled={isRunning}
+                onValidityChange={setCustomValid}
+              />
+            ) : (
+              <ParamsForm
+                schema={selectedSpec.paramsSchema as Record<string, unknown>}
+                values={params}
+                onChange={setParams}
+                disabled={isRunning}
+              />
+            ))}
 
           <div className="flex flex-col gap-1.5">
             <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
