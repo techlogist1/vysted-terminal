@@ -7,6 +7,7 @@ from a HEAD that already contains the merged sidecar tiers + the redesigned
 sectioned SettingsPanel.
 
 ## Ground rules
+
 - You OWN: `src/store/search-settings.ts`, `src/lib/search-headers.ts`,
   `src/components/SettingsPanel.tsx`, `src/lib/workspace.ts` ONLY IF the settings
   bundle needs new fields serialized (follow the existing searchSettings bundle
@@ -17,6 +18,7 @@ sectioned SettingsPanel.
   (sectioned hierarchy, 32px rows, ToggleSwitch) — match its new idioms exactly.
 
 ## The sidecar contract (already merged and tested — read these files, don't guess)
+
 - `sidecar/config.py` — research tier ContextVar: tiers `t1_local | t2_searxng | t3_hosted`,
   set by middleware from header `X-Vysted-Research-Tier`; hosted engine from
   `X-Vysted-Search-Engine` (firecrawl|exa); BYOK OpenRouter key from
@@ -25,12 +27,13 @@ sectioned SettingsPanel.
   e.g. "DuckDuckGo cooling down (24s)"; `available` only false when all engines open.
 - SearXNG guided flow (T2): `GET /search/searxng/status` returns the state machine
   verbatim: `not_installed_docker | docker_present_not_setup | pulling | starting |
-  ready | error(reason)`; `POST /search/searxng/setup` begins/retries setup;
+ready | error(reason)`; `POST /search/searxng/setup` begins/retries setup;
   `POST /search/searxng/teardown` removes. Drive the UI off these states EXACTLY.
 - The EXISTING legacy header trio (X-Vysted-Search-Tier/Exa-Key/Searxng-Url) stays
   untouched — the R7 research-tier headers are ADDITIVE.
 
 ## Deliverables
+
 1. **Store**: extend `useSearchSettingsStore` with `researchTier`
    ('t1_local'|'t2_searxng'|'t3_hosted', default t1_local) and `hostedEngine`
    ('firecrawl'|'exa', default firecrawl); persist via the existing settings bundle
@@ -62,6 +65,7 @@ sectioned SettingsPanel.
    tiers and the T2 state machine renders each state (mock fetch).
 
 ## Done =
+
 Gates green, full pnpm test green, committed + pushed, report
 `docs/redesign/R7_TRACK_TIERS_REPORT.md` (shipped file:line, what to eyeball live,
 NEEDS-MANUAL-CHECK — note T2 end-to-end needs the live Docker daemon, the lead runs it).
