@@ -40,6 +40,7 @@ from services.research.deep import (
     LLMCall,
     OnStep,
     ToolCall,
+    VisitCall,
     _coverage_met,
     _emit,
     _Findings,
@@ -197,6 +198,7 @@ async def run_iter_research(
     budget: BudgetGuard,
     on_step: OnStep | None = None,
     max_researchers: int = 3,
+    visit: VisitCall | None = None,
 ) -> ResearchBrief:
     """Run the IterResearch loop for ``query``; always returns a brief.
 
@@ -299,7 +301,12 @@ async def run_iter_research(
         results = await asyncio.gather(
             *(
                 _run_researcher(
-                    q, symbol=symbol, region=region, tool_call=tool_call, llm_call=llm_call
+                    q,
+                    symbol=symbol,
+                    region=region,
+                    tool_call=tool_call,
+                    llm_call=llm_call,
+                    visit=visit,
                 )
                 for q in open_questions[:max_researchers]
             )
@@ -463,6 +470,7 @@ async def run_heavy_research(
     budget: BudgetGuard,
     on_step: OnStep | None = None,
     max_researchers: int = 3,
+    visit: VisitCall | None = None,
 ) -> ResearchBrief:
     """Heavy mode — N parallel iter explorers (each its own evolving report) → one
     synthesized, citation-backed brief. Shares ``budget`` across the panel so the
@@ -520,6 +528,7 @@ async def run_heavy_research(
             budget=budget,  # shared: the panel stays inside one ceiling
             on_step=_angle_sink(on_step, i, angle),
             max_researchers=max_researchers,
+            visit=visit,
         )
         for i, angle in enumerate(angle_list)
     ]
@@ -537,6 +546,7 @@ async def run_heavy_research(
             budget=budget,
             on_step=on_step,
             max_researchers=max_researchers,
+            visit=visit,
         )
 
     # --- synthesis agent: integrate the panel into one brief -----------------

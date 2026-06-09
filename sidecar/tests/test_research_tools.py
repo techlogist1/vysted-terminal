@@ -81,6 +81,7 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
         budget,  # noqa: ANN001
         on_step=None,  # noqa: ANN001
         max_researchers=3,  # noqa: ANN001
+        visit=None,  # noqa: ANN001
     ):
         # The single-pass loop is the NAMED internal fallback only — it should NOT
         # be reached on the normal deep path (iter never raises). A test asserts so.
@@ -96,6 +97,7 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
         budget,  # noqa: ANN001
         on_step=None,  # noqa: ANN001
         max_researchers=3,  # noqa: ANN001
+        visit=None,  # noqa: ANN001
     ):
         calls["run_iter_research"] = {
             "query": query,
@@ -122,6 +124,7 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
         budget,  # noqa: ANN001
         on_step=None,  # noqa: ANN001
         max_researchers=3,  # noqa: ANN001
+        visit=None,  # noqa: ANN001
     ):
         calls["run_heavy_research"] = {
             "query": query,

@@ -148,6 +148,7 @@ async def _run_loop(
     from services.budget_guard import BudgetGuard
     from services.research import deep
     from services.research import iter as iter_research
+    from services.search.extract import visit_for_research
 
     step_factor = angles if angles >= _MIN_HEAVY_ANGLES else 1
     budget = BudgetGuard(
@@ -164,6 +165,10 @@ async def _run_loop(
         # exploration in Heavy mode. ``None`` outside an agent invocation.
         "on_step": config.get_step_sink(),
         "max_researchers": _MAX_RESEARCHERS,
+        # R7: each researcher reads the TOP web result's full page (bs4
+        # main-content extraction over the same impersonation-capable transport
+        # as the T1 engines); the loop fences it as untrusted before the prompt.
+        "visit": visit_for_research,
     }
     if angles >= _MIN_HEAVY_ANGLES:
         return await iter_research.run_heavy_research(query, angles=angles, **common)
