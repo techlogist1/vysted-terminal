@@ -345,3 +345,37 @@ lane downloaded live bhavcopies and located ICONIKSPEV's rows by
   regeneration ever drops the scrip (delisting), the probe message names the
   three possible root causes — swap the acceptance symbol for another BSE-only
   group-X name in the same commit that refreshes the master.
+
+## Final gate (run from this worktree, 2026-06-10)
+
+```
+$ sidecar/.venv/bin/pytest -q          (cwd: <worktree>/sidecar)
+1551 passed, 1 skipped, 1 warning in 39.74s            (exit 0)
+
+$ sidecar/.venv/bin/ruff format --check sidecar
+315 files already formatted
+$ sidecar/.venv/bin/ruff check sidecar
+All checks passed!
+
+$ pnpm typecheck                       (cwd: <worktree> root)
+> tsc --noEmit                                         (exit 0)
+```
+
+The one skip is the long-standing pre-existing skip, not introduced by this
+track. `pnpm typecheck` proves the hand-mirrored `types/data.ts` additions
+(`Announcement`, `AnnouncementsResponse`, `ResultsEvent`, `ResultsResponse`,
+`ShareholdingPattern`, `ShareholdingResponse`) compile under strict TS.
+No unrelated failures observed anywhere in the suite.
+
+Note for the lead: a full pytest run regenerates
+`docs/screenshots/v0.5.0/safety-audit/kill-switch-benchmark.json` in the
+working tree (a §6.5 benchmark artifact, not owned by this track) — it was
+`git restore`d, not committed.
+
+## Integration summary for the lead
+
+Everything is in `docs/redesign/INTEGRATION_NOTES_R7.md`. The ONLY `app.py`
+wiring this track asks of the lead is the disclosures router include
+(Component 3 entry); the NSE direct provider, the regenerated BSE master, the
+resolver hygiene, the two new catalog capabilities, and the agent allow-list
+additions all self-register through existing seams.
