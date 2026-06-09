@@ -1,11 +1,13 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { SettingsPanel, nativeSearchStatus } from "@/components/SettingsPanel";
+import { SettingsPanel, nativeSearchStatus, t1EngineStatusLine } from "@/components/SettingsPanel";
 import { vystedModules } from "@/modules";
 import { PLATFORM_MODULE_ID } from "@/modules/platform";
 import { resetKeybindingsStoreForTests, useKeybindingsStore } from "@/store/keybindings";
 import { useModulesStore } from "@/store/modules";
+import { useProviderKeysStore } from "@/store/provider-keys";
+import { resetSearchSettingsStoreForTests, useSearchSettingsStore } from "@/store/search-settings";
 import { resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
 
 // Keep the preference setters from firing a real autosave (network) under test.
@@ -13,6 +15,51 @@ vi.mock("@/lib/workspace", async (importActual) => {
   const actual = await importActual<typeof import("@/lib/workspace")>();
   return { ...actual, autosaveLayout: vi.fn(() => Promise.resolve()) };
 });
+
+// Resolve the sidecar base instantly (no Tauri invoke / health probe under
+// test); the per-test fetch stubs below decide what each endpoint returns.
+vi.mock("@/lib/sidecar-client", async (importActual) => {
+  const actual = await importActual<typeof import("@/lib/sidecar-client")>();
+  return { ...actual, getSidecarBaseUrl: vi.fn(() => Promise.resolve("http://sidecar.test")) };
+});
+
+// Keychain: keep the real KEYCHAIN_NAMESPACES; default the Tauri-backed reads
+// to a rejection (exactly what `invoke` does outside the shell) — individual
+// tests override `getSecret` to simulate stored keys.
+vi.mock("@/lib/keychain", async (importActual) => {
+  const actual = await importActual<typeof import("@/lib/keychain")>();
+  return {
+    ...actual,
+    getSecret: vi.fn(() => Promise.reject(new Error("no keychain under test"))),
+    setSecret: vi.fn(() => Promise.resolve()),
+    deleteSecret: vi.fn(() => Promise.resolve()),
+  };
+});
+
+import { getSecret } from "@/lib/keychain";
+
+const getSecretMock = vi.mocked(getSecret);
+
+/** A 200 JSON response for the fetch stubs. */
+function jsonResponse(value: unknown): Response {
+  return new Response(JSON.stringify(value), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+/** Stub global fetch with a path → payload router (unrouted paths 404). */
+function routeFetch(routes: Record<string, unknown>) {
+  const fetchMock = vi.fn((input: RequestInfo | URL) => {
+    const path = new URL(String(input)).pathname;
+    if (path in routes) {
+      return Promise.resolve(jsonResponse(routes[path]));
+    }
+    return Promise.resolve(new Response("{}", { status: 404 }));
+  });
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
 
 // WS5: the native-tier status copy must be honest for EVERY provider/model combo
 // — it must never claim a model has its own web search when it doesn't (the bug
@@ -53,10 +100,19 @@ describe("SettingsPanel", () => {
     useModulesStore.getState().registerModules(vystedModules);
     resetKeybindingsStoreForTests();
     resetSettingsStoreForTests();
+    resetSearchSettingsStoreForTests();
+    useProviderKeysStore.setState({ status: {}, probed: false });
+    // Default: no network — every sidecar fetch fails fast and the surfaces
+    // render their honest "unavailable" fallbacks. Tier tests route real paths.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.reject(new TypeError("no network under test"))),
+    );
   });
 
   afterEach(() => {
     cleanup();
+    vi.unstubAllGlobals();
     vi.clearAllMocks();
   });
 
@@ -272,5 +328,209 @@ describe("SettingsPanel", () => {
     expect(screen.getByRole("button", { name: /Open Marketplace/i })).toBeInTheDocument();
     expect(screen.getByLabelText("New layout name")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Import settings/i })).toBeInTheDocument();
+  });
+
+  // ---- R7 research search tiers (Track S) ----
+
+  function tierRadio(name: RegExp) {
+    const group = screen.getByRole("radiogroup", { name: "Research search tier" });
+    return within(group).getByRole("radio", { name });
+  }
+
+  it("renders the three research tiers as radio rows, t1 selected by default", () => {
+    render(<SettingsPanel />);
+    const t1 = tierRadio(/Local scraping \(keyless\)/);
+    const t2 = tierRadio(/Unlimited Research \(local SearXNG\)/);
+    const t3 = tierRadio(/Hosted search \(BYOK via OpenRouter\)/);
+    expect(t1).toHaveAttribute("aria-checked", "true");
+    expect(t2).toHaveAttribute("aria-checked", "false");
+    expect(t3).toHaveAttribute("aria-checked", "false");
+  });
+
+  it("selecting a tier updates the search-settings store", () => {
+    render(<SettingsPanel />);
+    fireEvent.click(tierRadio(/Unlimited Research/));
+    expect(useSearchSettingsStore.getState().researchTier).toBe("t2_searxng");
+    fireEvent.click(tierRadio(/Hosted search/));
+    expect(useSearchSettingsStore.getState().researchTier).toBe("t3_hosted");
+  });
+
+  it("t1 shows the live per-engine status line from /search/status", async () => {
+    routeFetch({
+      "/search/status": {
+        tier: "t1_keyless",
+        available: true,
+        engines: [
+          {
+            id: "duckduckgo",
+            label: "DuckDuckGo",
+            state: "open",
+            cooldown_remaining_s: 24.2,
+            detail: "DuckDuckGo cooling down (24s)",
+          },
+          {
+            id: "brave",
+            label: "Brave",
+            state: "closed",
+            cooldown_remaining_s: 0,
+            detail: "Brave available",
+          },
+          {
+            id: "mojeek",
+            label: "Mojeek",
+            state: "closed",
+            cooldown_remaining_s: 0,
+            detail: "Mojeek available",
+          },
+        ],
+      },
+    });
+    render(<SettingsPanel />);
+    const line = await screen.findByTestId("t1-engine-status");
+    expect(line).toHaveTextContent("DuckDuckGo — cooling down 24s · Brave — ok · Mojeek — ok");
+  });
+
+  it("t1 status line degrades honestly when the sidecar is unreachable", async () => {
+    render(<SettingsPanel />); // default fetch stub rejects
+    expect(
+      await screen.findByText(/Engine status unavailable \(sidecar not connected\)/),
+    ).toBeInTheDocument();
+  });
+
+  it("t1EngineStatusLine formats every breaker state honestly", () => {
+    expect(
+      t1EngineStatusLine([
+        { id: "a", label: "DuckDuckGo", state: "open", cooldown_remaining_s: 23.6, detail: "" },
+        { id: "b", label: "Brave", state: "half_open", cooldown_remaining_s: 0, detail: "" },
+        { id: "c", label: "Mojeek", state: "closed", cooldown_remaining_s: 0, detail: "" },
+      ]),
+    ).toBe("DuckDuckGo — cooling down 24s · Brave — probing · Mojeek — ok");
+  });
+
+  // The T2 guided flow renders each sidecar state machine state VERBATIM.
+  function searxngStatus(state: string, extra?: Partial<Record<string, unknown>>) {
+    return { state, detail: null, reason: null, port: null, url: null, ...extra };
+  }
+
+  async function renderT2(routes: Record<string, unknown>) {
+    const fetchMock = routeFetch(routes);
+    render(<SettingsPanel />);
+    fireEvent.click(tierRadio(/Unlimited Research/));
+    return fetchMock;
+  }
+
+  it("T2 not_installed_docker explains + shows a plain-text install hint (no link)", async () => {
+    await renderT2({ "/search/searxng/status": searxngStatus("not_installed_docker") });
+    expect(await screen.findByText(/Docker isn.t available on this machine/)).toBeInTheDocument();
+    const hint = screen.getByText(/docs\.docker\.com/);
+    expect(hint).toBeInTheDocument();
+    expect(hint.closest("a")).toBeNull(); // plain text, no external nav
+  });
+
+  it("T2 docker_present_not_setup offers one-click [Set up]", async () => {
+    await renderT2({ "/search/searxng/status": searxngStatus("docker_present_not_setup") });
+    expect(await screen.findByRole("button", { name: "Set up" })).toBeInTheDocument();
+  });
+
+  it("T2 pulling renders the progress state with the sidecar's detail", async () => {
+    await renderT2({
+      "/search/searxng/status": searxngStatus("pulling", {
+        detail: "pulling searxng/searxng (first run can take a few minutes)",
+      }),
+    });
+    expect(await screen.findByText(/Pulling the SearXNG image/)).toBeInTheDocument();
+    expect(screen.getByText(/first run can take a few minutes/)).toBeInTheDocument();
+  });
+
+  it("T2 starting renders the starting progress state", async () => {
+    await renderT2({ "/search/searxng/status": searxngStatus("starting") });
+    expect(await screen.findByText(/Starting the instance/)).toBeInTheDocument();
+  });
+
+  it("T2 ready shows the green OK + automatic routing + [Remove]", async () => {
+    await renderT2({
+      "/search/searxng/status": searxngStatus("ready", {
+        port: 8888,
+        url: "http://127.0.0.1:8888",
+      }),
+    });
+    expect(
+      await screen.findByText(/SearXNG is running at http:\/\/127\.0\.0\.1:8888/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/research searches use it automatically/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Remove/ })).toBeInTheDocument();
+  });
+
+  it("T2 error shows the reason + [Retry]", async () => {
+    await renderT2({
+      "/search/searxng/status": searxngStatus("error", {
+        reason: "docker pull failed: no space left on device",
+      }),
+    });
+    expect(
+      await screen.findByText(/Setup failed: docker pull failed: no space left on device/),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Retry/ })).toBeInTheDocument();
+  });
+
+  it("T2 [Set up] POSTs /search/searxng/setup and renders the returned pulling state", async () => {
+    const fetchMock = await renderT2({
+      "/search/searxng/status": searxngStatus("docker_present_not_setup"),
+      "/search/searxng/setup": searxngStatus("pulling", {
+        detail: "starting guided setup — checking docker",
+      }),
+    });
+    fireEvent.click(await screen.findByRole("button", { name: "Set up" }));
+    expect(await screen.findByText(/Pulling the SearXNG image/)).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith("http://sidecar.test/search/searxng/setup", {
+      method: "POST",
+    });
+  });
+
+  it("T2 [Remove] POSTs /search/searxng/teardown and renders the post-teardown state", async () => {
+    const fetchMock = await renderT2({
+      "/search/searxng/status": searxngStatus("ready", { url: "http://127.0.0.1:8888" }),
+      "/search/searxng/teardown": searxngStatus("docker_present_not_setup"),
+    });
+    fireEvent.click(await screen.findByRole("button", { name: /Remove/ }));
+    expect(await screen.findByRole("button", { name: "Set up" })).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith("http://sidecar.test/search/searxng/teardown", {
+      method: "POST",
+    });
+  });
+
+  it("T3 renders the engine segmented control; switching engines updates the store", async () => {
+    render(<SettingsPanel />);
+    fireEvent.click(tierRadio(/Hosted search/));
+
+    const engines = screen.getByRole("radiogroup", { name: "Hosted search engine" });
+    const firecrawl = within(engines).getByRole("radio", { name: /Firecrawl \(default\)/ });
+    expect(firecrawl).toHaveAttribute("aria-checked", "true");
+    // Honest default-engine cost line: free credits, then OpenRouter billing.
+    expect(screen.getByText(/Firecrawl starts on free credits/)).toBeInTheDocument();
+
+    fireEvent.click(within(engines).getByRole("radio", { name: "Exa" }));
+    expect(useSearchSettingsStore.getState().hostedEngine).toBe("exa");
+    // Honest per-search cost line for Exa, flagged as driftable.
+    expect(screen.getByText(/~\$0\.005 per search/)).toBeInTheDocument();
+  });
+
+  it("T3 points to AI Providers when no OpenRouter key is stored", async () => {
+    getSecretMock.mockResolvedValue(null); // keychain reachable, no key
+    render(<SettingsPanel />);
+    fireEvent.click(tierRadio(/Hosted search/));
+    expect(await screen.findByText(/add one under AI Providers above/)).toBeInTheDocument();
+  });
+
+  it("T3 shows key presence (never the value) when an OpenRouter key is stored", async () => {
+    getSecretMock.mockImplementation((account: string) =>
+      account === "llm-provider:openrouter"
+        ? Promise.resolve("sk-or-v1-secret")
+        : Promise.resolve(null),
+    );
+    render(<SettingsPanel />);
+    fireEvent.click(tierRadio(/Hosted search/));
+    expect(await screen.findByText(/OpenRouter key configured/)).toBeInTheDocument();
+    expect(screen.queryByText(/sk-or-v1-secret/)).toBeNull();
   });
 });
