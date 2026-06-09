@@ -134,8 +134,22 @@ def test_resolve_ddg_is_unconditional_keyless_floor() -> None:
     assert "ddg" in KNOWN_BACKENDS
 
 
+def test_resolve_keyless_is_unconditional_t1_tier() -> None:
+    from services.search.keyless import KeylessSearchBackend
+    from services.search.registry import KNOWN_BACKENDS
+
+    # The R7 multi-engine keyless tier needs no key/url — it ALWAYS resolves and
+    # is the web_search handler's default floor.
+    backend = resolve("keyless")
+    assert isinstance(backend, KeylessSearchBackend)
+    assert "keyless" in KNOWN_BACKENDS
+
+
 def test_resolve_returns_none_for_unknown_backend() -> None:
+    # Engine ids inside the keyless tier (brave/mojeek) are NOT registry-level
+    # backends — the tier is selected as one unit ("keyless").
     assert resolve("brave", exa_key="k", searxng_url="http://u") is None
+    assert resolve("mojeek") is None
 
 
 def test_resolve_returns_none_for_empty_active_id() -> None:

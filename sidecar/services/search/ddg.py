@@ -179,13 +179,34 @@ def _parse_lite(text: str, *, limit: int) -> list[SearchResult]:
     return out
 
 
+async def _impersonated_fallback(endpoint: str, data: dict[str, str]) -> str | None:
+    """One Chrome-impersonated retry for a DDG 403 (TLS-fingerprint block).
+
+    DuckDuckGo intermittently 403s the plain httpx TLS hello while serving the
+    same request to a real browser fingerprint. Returns the page text on a 2xx,
+    ``None`` on any failure — the caller then continues its normal retry/raise
+    path, so this fallback can only ever HELP (R7 T1 hardening).
+    """
+    from .transport import TransportError, impersonated_fetch
+
+    try:
+        fetched = await impersonated_fetch(endpoint, data=data)
+    except TransportError:
+        return None
+    if 200 <= fetched.status_code < 300:
+        return fetched.text
+    return None
+
+
 async def _fetch(http: httpx.AsyncClient, endpoint: str, data: dict[str, str]) -> str:
     """POST to a DDG endpoint with a bounded retry + honest rate-limit handling.
 
     Returns the response text. Raises :class:`SearchError` (unreachable OR
     rate-limited) only after the retry budget is spent — so a transient blip
     self-heals, while a persistent block surfaces a clear, human message instead
-    of being silently parsed as "no results".
+    of being silently parsed as "no results". A 403 (DDG's TLS-fingerprint
+    block, distinct from the 202/429 throttle) gets one Chrome-impersonated
+    retry via curl_cffi before counting as a failed attempt.
     """
     headers = {"User-Agent": _USER_AGENT}
     unreachable = (
@@ -199,6 +220,17 @@ async def _fetch(http: httpx.AsyncClient, endpoint: str, data: dict[str, str]) -
         except httpx.HTTPError as exc:
             if last:
                 raise SearchError(unreachable) from exc
+            await asyncio.sleep(_BACKOFF_SECS)
+            continue
+        if resp.status_code == 403:
+            # Fingerprint block, not a throttle: retry once with a real Chrome
+            # TLS hello. Success short-circuits; failure falls through to the
+            # normal retry/raise accounting.
+            text = await _impersonated_fallback(endpoint, data)
+            if text is not None:
+                return text
+            if last:
+                raise SearchError(unreachable)
             await asyncio.sleep(_BACKOFF_SECS)
             continue
         if resp.status_code in _RATE_LIMIT_STATUSES:

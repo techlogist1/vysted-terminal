@@ -2,18 +2,26 @@
 
 After the R4 research collapse (FR-115 / SC-028) this is the SINGLE user-facing +
 model-facing research capability. Depth is an INTERNAL escalation arg, not a user
-knob, and "go deeper" escalates the SAME run in place:
+knob, and "go deeper" escalates the SAME run in place. R7 names the depths
+``normal`` | ``deep`` | ``ultra`` (the depth router in
+:mod:`services.research.depth` is the ONE source of truth; legacy
+``quick``/``heavy`` spellings map onto them forever):
 
-- ``depth="quick"`` (default) → the fast, single-pass gather
+- ``depth="normal"`` (default; legacy ``quick``) → the fast, single-pass gather
   (:func:`services.research.fast.gather_fast`): resolve the symbol + fan out to the
   read-only data tools (news, quotes, fundamentals, filings) plus one web round and
   return one grounded bundle the model summarises. No inner LLM loop.
-- ``depth="deep"`` → the IterResearch evolving-report loop (the ONE deep loop).
-- ``depth="heavy"`` → the expert panel of parallel research angles.
+- ``depth="deep"`` → the IterResearch evolving-report loop (the ONE deep loop),
+  ~3 rounds × 3 researchers with the finance ``site:`` bias.
+- ``depth="ultra"`` (legacy ``heavy``) → the expert panel of parallel research
+  angles with stricter coverage (>=2 independent web domains) plus the numeric
+  cross-check verification round.
 
-``deep``/``heavy`` are served by :func:`services.agent_tools.deep_research.run_deep_brief`
-(the internal DEEP engine — no longer a separate tool). The optional ``backend``
-(``native`` | ``perplexity``) is internal too; Perplexity is opt-in-per-run, paid,
+Depth is per-query and ORTHOGONAL to the search tier (t1/t2/t3 — the tier rides
+the request ContextVars; see :mod:`config`). ``deep``/``ultra`` are served by
+:func:`services.agent_tools.deep_research.run_deep_brief` (the internal DEEP
+engine — no longer a separate tool). The optional ``backend`` (``native`` |
+``perplexity`` | ``sonar``) is internal too; the paid lanes are opt-in-per-run
 and NEVER auto-selected.
 
 The research/deep-research service is imported lazily inside the call so the module
@@ -27,37 +35,14 @@ from typing import Any
 
 from services.agent_tools import register_tool
 
-#: The internal depth tiers, in escalation order. ``quick`` is the FAST single-pass
-#: gather; ``deep``/``heavy`` run the ONE deep loop at increasing fan-out.
-_DEPTHS = ("quick", "deep", "heavy")
-
-
-def _normalize_depth(value: Any) -> str:
-    """Coerce a depth arg to one of :data:`_DEPTHS`, defaulting to ``"quick"``.
-
-    Tolerates legacy/loose values so an older agent prompt never dead-ends:
-    ``"fast"`` → quick; ``"iter"`` → deep; ``True``/``"all out"`` → heavy.
-    """
-    if value is True:
-        return "heavy"
-    text = str(value or "").strip().lower()
-    if text in _DEPTHS:
-        return text
-    if text in ("fast", ""):
-        return "quick"
-    if text in ("iter", "thorough", "single"):
-        return "deep"
-    if text in ("panel", "all out", "all-out"):
-        return "heavy"
-    return "quick"
-
 
 async def _research(args: dict[str, Any]) -> dict[str, Any]:
     """Run research for ``query`` at the requested internal ``depth``.
 
-    ``depth="quick"`` (default) gathers a grounded bundle in one pass; ``"deep"``/
-    ``"heavy"`` run the budgeted deep loop. On a missing/blank query returns
-    ``{"ok": False, "message": <human reason>}`` — never a raw error blob.
+    ``depth="normal"`` (default) gathers a grounded bundle in one pass;
+    ``"deep"``/``"ultra"`` run the budgeted deep loop at the profile's knobs.
+    On a missing/blank query returns ``{"ok": False, "message": <human reason>}``
+    — never a raw error blob.
     """
     query = args.get("query")
     if not isinstance(query, str) or not query.strip():
@@ -67,16 +52,20 @@ async def _research(args: dict[str, Any]) -> dict[str, Any]:
         }
     query = query.strip()
 
-    depth = _normalize_depth(args.get("depth"))
+    from services.research import depth as depth_mod
 
-    if depth in ("deep", "heavy"):
+    depth = depth_mod.normalize_depth(args.get("depth"))
+
+    if depth in (depth_mod.DEPTH_DEEP, depth_mod.DEPTH_ULTRA):
         from services.agent_tools.deep_research import run_deep_brief
 
         return await run_deep_brief(
             query,
             depth=depth,
-            rounds=args.get("rounds", 3),
-            wall_seconds=args.get("wall_seconds", 120),
+            # ``None`` lets the depth profile supply the default (deep: 3 rounds
+            # / 120s; ultra: 4 rounds / 240s); an explicit arg still wins.
+            rounds=args.get("rounds"),
+            wall_seconds=args.get("wall_seconds"),
             backend=args.get("backend"),
             api_key=args.get("api_key"),
         )
@@ -85,14 +74,17 @@ async def _research(args: dict[str, Any]) -> dict[str, Any]:
     from services import agent_tools
     from services.research import fast
 
-    return await fast.gather_fast(
+    out = await fast.gather_fast(
         query,
         region=config.get_region(),
         tool_call=agent_tools.invoke_tool,
         # Forward steps LIVE to the runtime sink (Track A) so even the default
-        # quick mode animates a working trace; ``None`` outside an agent run.
+        # normal mode animates a working trace; ``None`` outside an agent run.
         on_step=config.get_step_sink(),
     )
+    if isinstance(out, dict):
+        out.setdefault("depth", depth_mod.DEPTH_NORMAL)
+    return out
 
 
 def register() -> None:

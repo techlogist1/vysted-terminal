@@ -32,15 +32,18 @@ from __future__ import annotations
 import asyncio
 import time
 from dataclasses import dataclass
+from typing import Any
 
 from services.budget_guard import BudgetGuard
+from services.research import finance
 from services.research.deep import (
     _ROUND_MODEL,
     _ROUND_PROVIDER,
+    _WEB_ONLY_FLOOR_NOTE,
     LLMCall,
     OnStep,
     ToolCall,
-    _coverage_met,
+    VisitCall,
     _emit,
     _Findings,
     _record_structured,
@@ -52,13 +55,18 @@ from services.research.deep import (
     _safe_tool,
     _split_subquestions,
     _synthesize_brief,
+    coverage_floor_met,
+    structured_feeds_available,
+    web_only_floor_note,
 )
 from services.research.fast import snapshot_structured
 from services.research.models import ResearchBrief, ResearchSource, ResearchStep
 
-#: Hard cap on the rendered working report so the reconstructed context stays
+#: Default cap on the rendered working report so the reconstructed context stays
 #: bounded no matter how chatty the distill model is — the IterResearch invariant
 #: that prevents context bloat. The newest distilled content is kept on overflow.
+#: Scaled by depth (R7): the DEEP profile keeps this default; ULTRA widens it
+#: (``services.research.depth.PROFILES``) via the ``report_char_cap`` knob.
 _REPORT_CHAR_CAP = 6000
 
 #: Heavy mode angle bounds. The paper-grade panel uses a small N (~3 independent
@@ -81,13 +89,15 @@ class _Report:
     task: str
     body: str = ""
     round: int = 0
+    char_cap: int = _REPORT_CHAR_CAP
 
     def render(self) -> str:
         """The bounded working report for the next round's context."""
+        cap = self.char_cap if self.char_cap > 0 else _REPORT_CHAR_CAP
         text = self.body.strip()
-        if len(text) > _REPORT_CHAR_CAP:
+        if len(text) > cap:
             # Keep the newest distilled content (the tail) on overflow.
-            text = "…\n" + text[-_REPORT_CHAR_CAP:]
+            text = "…\n" + text[-cap:]
         return text or "(no findings distilled yet)"
 
 
@@ -127,9 +137,10 @@ async def _distill(
                     "report and the NEW findings from this round, output the UPDATED "
                     "report as markdown: integrate the new findings, keep only the "
                     "conclusions that matter to the task, remove redundancy, and "
-                    "preserve inline [n] citation markers. Output ONLY the report "
-                    "markdown (no preamble, no changelog) — rewrite the whole report. "
-                    "Keep it tight, under ~400 words."
+                    "preserve inline [n] citation markers (re-check them against the "
+                    "source list below). Output ONLY the report markdown (no "
+                    "preamble, no changelog) — rewrite the whole report. "
+                    "Keep it tight, under ~400 words.\n" + finance.date_directive()
                 ),
             },
             {
@@ -151,6 +162,7 @@ async def _synthesis_from_report(
 ) -> str:
     """Write the final brief markdown from the evolving report + numbered sources.
     Falls back to the raw report (then a terse stub) so a dead LLM still ships."""
+    priority = finance.priority_note(findings.all_sources())
     body = await _safe_llm(
         llm_call,
         [
@@ -164,7 +176,9 @@ async def _synthesis_from_report(
                     "price, a ratio, a percentage, a date, a quarter) MUST carry a "
                     "[n] citation to a real numbered source — never a live figure "
                     "from memory. If a figure was not gathered, say 'not available "
-                    "in this run' rather than guessing."
+                    "in this run' rather than guessing.\n"
+                    + finance.date_directive()
+                    + (("\n" + priority) if priority else "")
                 ),
             },
             {
@@ -197,6 +211,10 @@ async def run_iter_research(
     budget: BudgetGuard,
     on_step: OnStep | None = None,
     max_researchers: int = 3,
+    visit: VisitCall | None = None,
+    report_char_cap: int | None = None,
+    min_web_domains: int = 1,
+    site_bias: bool = False,
 ) -> ResearchBrief:
     """Run the IterResearch loop for ``query``; always returns a brief.
 
@@ -204,9 +222,16 @@ async def run_iter_research(
     the working context from ``{report + last round's evidence}`` (not the full
     history); parallel researchers; DISTILL the round into the central report;
     reflect; break on the coverage floor + a "complete" reflect. Never raises.
+
+    R7 depth knobs (``services.research.depth.PROFILES``): ``report_char_cap``
+    bounds the working report (``None`` keeps the module default);
+    ``min_web_domains`` scales the coverage strictness (distinct web domains
+    required before "complete" — loosened to web-only when no structured
+    provider covers the instrument); ``site_bias`` turns on the finance
+    ``site:`` query bias for filings/fundamentals researchers.
     """
     findings = _Findings()
-    report = _Report(task=query)
+    report = _Report(task=query, char_cap=report_char_cap or _REPORT_CHAR_CAP)
     steps: list[ResearchStep] = []
     structured: dict[str, object] = {}
 
@@ -229,6 +254,7 @@ async def run_iter_research(
         markdown = await _synthesis_from_report(
             llm_call, query=query, symbol=symbol, report=report, findings=findings
         )
+        markdown = web_only_floor_note(markdown, structured=structured, findings=findings)
         step = ResearchStep(
             "synthesize",
             f"abort→synthesize: {reason}",
@@ -268,7 +294,8 @@ async def run_iter_research(
                         "You are planning the next round of a research run. Based on "
                         "the working report and the latest evidence, list the open "
                         "sub-questions STILL unanswered, one per line. Be specific and "
-                        "non-redundant with what the report already covers."
+                        "non-redundant with what the report already covers.\n"
+                        + finance.date_directive()
                     ),
                 },
                 {
@@ -299,7 +326,13 @@ async def run_iter_research(
         results = await asyncio.gather(
             *(
                 _run_researcher(
-                    q, symbol=symbol, region=region, tool_call=tool_call, llm_call=llm_call
+                    q,
+                    symbol=symbol,
+                    region=region,
+                    tool_call=tool_call,
+                    llm_call=llm_call,
+                    visit=visit,
+                    site_bias=site_bias,
                 )
                 for q in open_questions[:max_researchers]
             )
@@ -352,7 +385,8 @@ async def run_iter_research(
                     "role": "system",
                     "content": (
                         "Reflect on research coverage. State whether coverage is "
-                        "COMPLETE or list remaining GAPS, one per line."
+                        "COMPLETE or list remaining GAPS, one per line.\n"
+                        + finance.date_directive()
                     ),
                 },
                 {
@@ -370,8 +404,12 @@ async def run_iter_research(
         steps.append(reflect_step)
         await _emit(on_step, reflect_step)
 
-        # Coverage FLOOR: every dimension needs >=1 source before "complete".
-        return _coverage_met(findings.coverage) and _reflect_says_complete(reflect_text)
+        # Coverage FLOOR (R7): every dimension >=1 source AND >= min_web_domains
+        # distinct web domains — loosened to web-only when no structured feed
+        # covers this instrument (micro-caps must still finish cleanly).
+        return coverage_floor_met(
+            findings, structured=structured, min_web_domains=min_web_domains
+        ) and _reflect_says_complete(reflect_text)
 
     while True:
         # --- top-of-round budget gate: FIRST breach => abort→synthesize -------
@@ -401,6 +439,7 @@ async def run_iter_research(
     markdown = await _synthesis_from_report(
         llm_call, query=query, symbol=symbol, report=report, findings=findings
     )
+    markdown = web_only_floor_note(markdown, structured=structured, findings=findings)
     synth_step = ResearchStep(
         "synthesize",
         "wrote brief from evolving report",
@@ -421,7 +460,13 @@ async def run_iter_research(
 
 
 def _merge_sources(briefs: list[ResearchBrief]) -> list[ResearchSource]:
-    """De-dup the panel's sources by url, preserving first-seen order."""
+    """De-dup the panel's sources by url, ranked by finance domain tier.
+
+    The panel synthesis RENUMBERS its ``[n]`` markers against this merged list,
+    so ranking here (exchange/regulator/filings → Tier-1 press → general; stable
+    within a tier across the angles' gathering order) gives the primary record
+    the low markers in the final ULTRA brief.
+    """
     seen: set[str] = set()
     out: list[ResearchSource] = []
     for brief in briefs:
@@ -430,7 +475,7 @@ def _merge_sources(briefs: list[ResearchBrief]) -> list[ResearchSource]:
                 continue
             seen.add(src.url)
             out.append(src)
-    return out
+    return finance.rank_sources(out)
 
 
 def _angle_sink(on_step: OnStep | None, index: int, label: str) -> OnStep:
@@ -463,11 +508,19 @@ async def run_heavy_research(
     budget: BudgetGuard,
     on_step: OnStep | None = None,
     max_researchers: int = 3,
+    visit: VisitCall | None = None,
+    report_char_cap: int | None = None,
+    min_web_domains: int = 1,
+    site_bias: bool = False,
 ) -> ResearchBrief:
     """Heavy mode — N parallel iter explorers (each its own evolving report) → one
     synthesized, citation-backed brief. Shares ``budget`` across the panel so the
     whole run stays inside the same ceiling (a breach winds each explorer down to
-    its partial brief, then synthesis merges the survivors). Never raises."""
+    its partial brief, then synthesis merges the survivors). Never raises.
+
+    The R7 depth knobs (``report_char_cap`` / ``min_web_domains`` / ``site_bias``)
+    are forwarded to every explorer — ULTRA's stricter coverage (>=2 distinct web
+    domains) is enforced inside each angle's floor."""
     angles = max(_MIN_ANGLES, min(int(angles), _MAX_ANGLES))
     steps: list[ResearchStep] = []
 
@@ -483,7 +536,8 @@ async def run_heavy_research(
                     "DISTINCT, non-overlapping research angles (for an investment "
                     "thesis these might be: fundamentals & valuation; competitive "
                     "position & market; risks & catalysts; price/technical & flow). "
-                    "Output one angle per line — each a short directive, no numbering."
+                    "Output one angle per line — each a short directive, no numbering.\n"
+                    + finance.date_directive()
                 ),
             },
             {"role": "user", "content": f"Task: {query}"},
@@ -511,15 +565,22 @@ async def run_heavy_research(
     await _emit(on_step, plan_step)
 
     # --- parallel explorers, each its own evolving workspace -----------------
+    explorer_knobs: dict[str, Any] = {
+        "region": region,
+        "tool_call": tool_call,
+        "llm_call": llm_call,
+        "max_researchers": max_researchers,
+        "visit": visit,
+        "report_char_cap": report_char_cap,
+        "min_web_domains": min_web_domains,
+        "site_bias": site_bias,
+    }
     explorers = [
         run_iter_research(
             f"{query} — focus: {angle}",
-            region=region,
-            tool_call=tool_call,
-            llm_call=llm_call,
             budget=budget,  # shared: the panel stays inside one ceiling
             on_step=_angle_sink(on_step, i, angle),
-            max_researchers=max_researchers,
+            **explorer_knobs,
         )
         for i, angle in enumerate(angle_list)
     ]
@@ -531,18 +592,16 @@ async def run_heavy_research(
         # a single iter run rather than returning nothing.
         return await run_iter_research(
             query,
-            region=region,
-            tool_call=tool_call,
-            llm_call=llm_call,
             budget=budget,
             on_step=on_step,
-            max_researchers=max_researchers,
+            **explorer_knobs,
         )
 
     # --- synthesis agent: integrate the panel into one brief -----------------
     merged_sources = _merge_sources(good)
     numbered = "\n".join(f"[{i + 1}] {s.title} — {s.url}" for i, s in enumerate(merged_sources))
     panel = "\n\n".join(f"## Angle {i + 1}\n{b.markdown}" for i, b in enumerate(good))
+    priority = finance.priority_note(merged_sources)
     budget.record(None, _ROUND_MODEL, _ROUND_PROVIDER)
     synth_t0 = time.monotonic()
     markdown = await _safe_llm(
@@ -559,7 +618,9 @@ async def run_heavy_research(
                     "markdown brief. PROVENANCE GUARANTEE: every numeric or dated "
                     "claim must carry a [n] citation to a real merged source — never "
                     "a live figure from memory; flag a missing figure as 'not "
-                    "available in this run' rather than inventing it."
+                    "available in this run' rather than inventing it.\n"
+                    + finance.date_directive()
+                    + (("\n" + priority) if priority else "")
                 ),
             },
             {
@@ -573,6 +634,17 @@ async def run_heavy_research(
     )
     if not markdown.strip():
         markdown = f"# Research brief: {query}\n\n{panel}"  # deterministic fallback
+    # Panel-level web-only honesty: each angle stamps its own coverage note, but
+    # the synthesist rewrites the prose and may drop it. When EVERY angle ran on
+    # the loosened web-only floor (no structured feed covers the instrument) and
+    # the merged panel actually cites web evidence, the final brief must state
+    # it too — once (skip when the synthesist already carried it through).
+    if (
+        all(not structured_feeds_available(b.structured) for b in good)
+        and any(s.url.startswith("http") for s in merged_sources)
+        and _WEB_ONLY_FLOOR_NOTE not in markdown
+    ):
+        markdown = markdown.rstrip() + "\n\n" + _WEB_ONLY_FLOOR_NOTE
     synth_step = ResearchStep(
         "synthesize",
         f"synthesized {len(good)} angle report(s) into one brief",
