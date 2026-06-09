@@ -185,16 +185,226 @@ export const CODE_NODE_SPEC: NodeSpec = {
 };
 
 // ---------------------------------------------------------------------------
+// v0.6.0 sidecar node kinds (mirror sidecar/services/workflow_nodes/*_nodes.py)
+// ---------------------------------------------------------------------------
+
+/**
+ * The 12 Phase-6 node ids registered server-side by
+ * `workflow_nodes/registry_v0_6_0.py` (macro, SEC, quant, research,
+ * screener domains). They were always RUNNABLE by the engine but never
+ * surfaced in the palette — the frontend registry only mirrored the 10
+ * v0.5.0 built-ins. Mirrored here so every registered kind is composable.
+ */
+export const SIDECAR_NODE_IDS = [
+  "data.fetch_macro_series",
+  "data.fetch_sec_filing",
+  "data.fetch_insider_transactions",
+  "data.fetch_earnings_calendar",
+  "data.fetch_earnings_history",
+  "data.fetch_analyst_history",
+  "data.fetch_price_target_history",
+  "quant.price_option",
+  "quant.compute_greeks",
+  "quant.price_bond",
+  "quant.yield_curve",
+  "analysis.screener_query",
+] as const;
+
+export type SidecarNodeId = (typeof SIDECAR_NODE_IDS)[number];
+
+/**
+ * Specs for the v0.6.0 sidecar kinds. Input ports mirror each handler's
+ * input-overrides-config contract — every port name is an exact key the
+ * handler (or its pydantic request model, for the quant nodes' `_merge`)
+ * reads. Output ports mirror the handlers' returned dict keys.
+ */
+export const SIDECAR_NODE_SPECS: Readonly<Record<SidecarNodeId, NodeSpec>> = {
+  "data.fetch_macro_series": {
+    id: "data.fetch_macro_series",
+    label: "Fetch Macro Series",
+    category: "trigger",
+    description: "Fetch one macro series (FRED / ECB / IMF / World Bank).",
+    inputs: [PORT("series_id", "Series ID", "string"), PORT("provider", "Provider", "string")],
+    outputs: [PORT("series", "Series", "object")],
+  },
+  "data.fetch_sec_filing": {
+    id: "data.fetch_sec_filing",
+    label: "Fetch SEC Filing",
+    category: "trigger",
+    description: "Pull a parsed SEC filing by accession + CIK/symbol.",
+    inputs: [PORT("accession", "Accession", "string"), PORT("identifier", "CIK/Symbol", "string")],
+    outputs: [PORT("filing", "Filing", "object")],
+  },
+  "data.fetch_insider_transactions": {
+    id: "data.fetch_insider_transactions",
+    label: "Insider Transactions",
+    category: "trigger",
+    description: "Form 3/4/5 insider transactions for an issuer.",
+    inputs: [
+      PORT("identifier", "CIK/Symbol", "string"),
+      PORT("form", "Form", "string"),
+      PORT("limit", "Limit", "number"),
+    ],
+    outputs: [PORT("transactions", "Transactions", "object")],
+  },
+  "data.fetch_earnings_calendar": {
+    id: "data.fetch_earnings_calendar",
+    label: "Earnings Calendar",
+    category: "trigger",
+    description: "Upcoming earnings events in a day window.",
+    inputs: [PORT("days", "Days", "number"), PORT("watchlist", "Watchlist", "any")],
+    outputs: [
+      PORT("events", "Events", "object"),
+      PORT("start_date", "Start", "string"),
+      PORT("end_date", "End", "string"),
+    ],
+  },
+  "data.fetch_earnings_history": {
+    id: "data.fetch_earnings_history",
+    label: "Earnings History",
+    category: "trigger",
+    description: "Past earnings results for a symbol.",
+    inputs: [PORT("symbol", "Symbol", "string")],
+    outputs: [PORT("symbol", "Symbol", "string"), PORT("history", "History", "object")],
+  },
+  "data.fetch_analyst_history": {
+    id: "data.fetch_analyst_history",
+    label: "Analyst Ratings",
+    category: "trigger",
+    description: "Analyst rating changes for a symbol (newest-first).",
+    inputs: [PORT("symbol", "Symbol", "string")],
+    outputs: [PORT("symbol", "Symbol", "string"), PORT("history", "History", "object")],
+  },
+  "data.fetch_price_target_history": {
+    id: "data.fetch_price_target_history",
+    label: "Price Targets",
+    category: "trigger",
+    description: "Price-target timeline for a symbol (newest-first).",
+    inputs: [PORT("symbol", "Symbol", "string")],
+    outputs: [PORT("symbol", "Symbol", "string"), PORT("history", "History", "object")],
+  },
+  "quant.price_option": {
+    id: "quant.price_option",
+    label: "Price Option",
+    category: "transform",
+    description: "Price an option (Black-Scholes / binomial / Monte Carlo).",
+    inputs: [
+      PORT("spot", "Spot", "number"),
+      PORT("strike", "Strike", "number"),
+      PORT("volatility", "Volatility", "number"),
+      PORT("risk_free_rate", "Rate", "number"),
+    ],
+    outputs: [PORT("result", "Result", "object")],
+  },
+  "quant.compute_greeks": {
+    id: "quant.compute_greeks",
+    label: "Compute Greeks",
+    category: "transform",
+    description: "Analytic Greeks for a European vanilla option.",
+    inputs: [
+      PORT("spot", "Spot", "number"),
+      PORT("strike", "Strike", "number"),
+      PORT("volatility", "Volatility", "number"),
+      PORT("risk_free_rate", "Rate", "number"),
+    ],
+    outputs: [PORT("result", "Result", "object")],
+  },
+  "quant.price_bond": {
+    id: "quant.price_bond",
+    label: "Price Bond",
+    category: "transform",
+    description: "Fixed-rate bond pricing from yield to maturity.",
+    inputs: [
+      PORT("coupon_rate", "Coupon", "number"),
+      PORT("yield_to_maturity", "YTM", "number"),
+      PORT("face_value", "Face Value", "number"),
+    ],
+    outputs: [PORT("result", "Result", "object")],
+  },
+  "quant.yield_curve": {
+    id: "quant.yield_curve",
+    label: "Yield Curve",
+    category: "transform",
+    description: "Bootstrap a zero curve from deposits + swaps.",
+    inputs: [PORT("instruments", "Instruments", "object")],
+    outputs: [PORT("result", "Result", "object")],
+  },
+  "analysis.screener_query": {
+    id: "analysis.screener_query",
+    label: "Screener Query",
+    category: "transform",
+    description: "Run the screener over a universe with criteria.",
+    inputs: [
+      PORT("universe", "Universe", "string"),
+      PORT("criteria", "Criteria", "object"),
+      PORT("custom_symbols", "Symbols", "object"),
+      PORT("limit", "Limit", "number"),
+    ],
+    outputs: [
+      PORT("rows", "Rows", "object"),
+      PORT("result_count", "Result Count", "number"),
+      PORT("evaluated_count", "Evaluated Count", "number"),
+    ],
+  },
+};
+
+/**
+ * Typed config forms for the sidecar kinds with flat scalar configs. The
+ * quant nodes and the screener query are deliberately ABSENT — their
+ * configs are nested request models (dates, enums, criteria lists), so
+ * the free-form JSON editor is the honest fit.
+ */
+const SIDECAR_NODE_CONFIG_FIELDS: Readonly<Record<string, readonly ConfigField[]>> = {
+  "data.fetch_macro_series": [
+    { key: "series_id", label: "Series ID", kind: "string", placeholder: "GDPC1" },
+    {
+      key: "provider",
+      label: "Provider",
+      kind: "select",
+      options: ["fred", "ecb", "imf", "world-bank"],
+      defaultValue: "fred",
+    },
+  ],
+  "data.fetch_sec_filing": [
+    { key: "accession", label: "Accession", kind: "string", placeholder: "0000320193-24-000123" },
+    { key: "identifier", label: "CIK / Symbol", kind: "string", placeholder: "AAPL" },
+  ],
+  "data.fetch_insider_transactions": [
+    { key: "identifier", label: "CIK / Symbol", kind: "string", placeholder: "AAPL" },
+    { key: "form", label: "Form", kind: "select", options: ["3", "4", "5"] },
+    { key: "limit", label: "Limit", kind: "number", placeholder: "30", defaultValue: 30 },
+  ],
+  "data.fetch_earnings_calendar": [
+    { key: "days", label: "Days", kind: "number", placeholder: "7", defaultValue: 7 },
+    { key: "watchlist", label: "Watchlist", kind: "string", placeholder: "AAPL, MSFT" },
+  ],
+  "data.fetch_earnings_history": [
+    { key: "symbol", label: "Symbol", kind: "string", placeholder: "AAPL" },
+  ],
+  "data.fetch_analyst_history": [
+    { key: "symbol", label: "Symbol", kind: "string", placeholder: "AAPL" },
+  ],
+  "data.fetch_price_target_history": [
+    { key: "symbol", label: "Symbol", kind: "string", placeholder: "AAPL" },
+  ],
+};
+
+// ---------------------------------------------------------------------------
 // First-party union
 // ---------------------------------------------------------------------------
 
-/** Every first-party node id the palette offers (built-ins + the code node). */
-export const FIRST_PARTY_NODE_IDS: readonly string[] = [...BUILT_IN_NODE_IDS, CODE_NODE_ID];
+/** Every first-party node id the palette offers (built-ins + code + sidecar kinds). */
+export const FIRST_PARTY_NODE_IDS: readonly string[] = [
+  ...BUILT_IN_NODE_IDS,
+  CODE_NODE_ID,
+  ...SIDECAR_NODE_IDS,
+];
 
 /** Spec lookup across every first-party node id. */
 export const FIRST_PARTY_NODE_SPECS: Readonly<Record<string, NodeSpec>> = {
   ...BUILT_IN_NODE_SPECS,
   [CODE_NODE_ID]: CODE_NODE_SPEC,
+  ...SIDECAR_NODE_SPECS,
 };
 
 /**
@@ -309,6 +519,7 @@ export const BUILT_IN_NODE_CONFIG_FIELDS: Readonly<Record<BuiltInNodeId, readonl
  */
 export const NODE_CONFIG_FIELDS: Readonly<Record<string, readonly ConfigField[]>> = {
   ...BUILT_IN_NODE_CONFIG_FIELDS,
+  ...SIDECAR_NODE_CONFIG_FIELDS,
 };
 
 /**

@@ -1,8 +1,10 @@
 "use client";
 
 /**
- * Node-editor palette — left rail. Renders the built-in node types and
- * plugin-contributed node types as draggable cards grouped by category.
+ * Node-editor palette — left rail. Renders every registered node kind —
+ * the first-party set (v0.5.0 built-ins, the code node, the v0.6.0
+ * sidecar kinds) plus plugin-contributed types — as draggable cards
+ * grouped by category, with a search filter (the registry is >12 kinds).
  *
  * The drag-and-drop flow uses the HTML5 native drag API rather than a
  * library so the palette stays SSR-friendly (no zustand or framer-motion
@@ -10,6 +12,8 @@
  * The drop handler lives in `NodeEditorPanel.tsx` and reads the
  * `application/x-vysted-node-type` MIME type set here.
  */
+
+import { useMemo, useState } from "react";
 
 import type { NodeSpec } from "../../../types/plugin";
 import { cn } from "@/lib/utils";
@@ -19,6 +23,9 @@ import { groupByCategory } from "./node-registry";
 
 /** MIME type stamped onto drag payloads so the canvas drop-handler can identify them. */
 export const NODE_DRAG_MIME = "application/x-vysted-node-type";
+
+/** Show the search input once the registry outgrows a scannable list. */
+const SEARCH_THRESHOLD = 12;
 
 interface NodePaletteProps {
   registry: readonly RegistryEntry[];
@@ -40,8 +47,27 @@ const CATEGORY_ORDER: readonly NodeSpec["category"][] = [
   "output",
 ];
 
+function matches(entry: RegistryEntry, needle: string): boolean {
+  if (needle === "") {
+    return true;
+  }
+  const { spec } = entry;
+  return (
+    spec.label.toLowerCase().includes(needle) ||
+    spec.id.toLowerCase().includes(needle) ||
+    (spec.description?.toLowerCase().includes(needle) ?? false)
+  );
+}
+
 export function NodePalette({ registry }: NodePaletteProps) {
-  const grouped = groupByCategory(registry);
+  const [query, setQuery] = useState("");
+  const needle = query.trim().toLowerCase();
+
+  const filtered = useMemo(
+    () => registry.filter((entry) => matches(entry, needle)),
+    [needle, registry],
+  );
+  const grouped = useMemo(() => groupByCategory(filtered), [filtered]);
 
   return (
     <aside
@@ -50,31 +76,57 @@ export function NodePalette({ registry }: NodePaletteProps) {
     >
       <header className="border-charcoal-700 flex items-baseline justify-between border-b px-3 py-2">
         <span className="text-charcoal-200 text-caption font-mono uppercase">Nodes</span>
-        <span className="text-charcoal-500 text-micro font-mono uppercase">{registry.length}</span>
+        <span data-testid="node-palette-count" className="text-charcoal-500 text-micro font-mono">
+          {needle === "" ? registry.length : `${filtered.length}/${registry.length}`}
+        </span>
       </header>
+      {registry.length > SEARCH_THRESHOLD && (
+        <div className="border-charcoal-800 border-b px-2 py-1.5">
+          <input
+            type="search"
+            aria-label="Search nodes"
+            data-testid="node-palette-search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search nodes…"
+            spellCheck={false}
+            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 rounded-control text-caption focus:ring-charcoal-500 h-7 w-full px-2 font-mono outline-none focus:ring-1"
+          />
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto py-2">
-        {CATEGORY_ORDER.map((category) => {
-          const entries = grouped[category];
-          if (entries.length === 0) {
-            return null;
-          }
-          return (
-            <section
-              key={category}
-              data-testid={`palette-category-${category}`}
-              className="mb-3 px-2"
-            >
-              <h3 className="text-charcoal-400 text-micro mb-1 px-1 font-mono uppercase">
-                {CATEGORY_LABELS[category]}
-              </h3>
-              <ul className="flex flex-col gap-1">
-                {entries.map((entry) => (
-                  <PaletteCard key={`${entry.source}:${entry.spec.id}`} entry={entry} />
-                ))}
-              </ul>
-            </section>
-          );
-        })}
+        {filtered.length === 0 ? (
+          <p
+            data-testid="node-palette-empty"
+            className="text-charcoal-500 text-micro px-3 py-2 font-mono"
+          >
+            No nodes match &ldquo;{query.trim()}&rdquo;
+          </p>
+        ) : (
+          CATEGORY_ORDER.map((category) => {
+            const entries = grouped[category];
+            if (entries.length === 0) {
+              return null;
+            }
+            return (
+              <section
+                key={category}
+                data-testid={`palette-category-${category}`}
+                className="mb-3 px-2"
+              >
+                <h3 className="text-charcoal-400 text-micro mb-1 flex items-baseline justify-between px-1 font-mono uppercase">
+                  <span>{CATEGORY_LABELS[category]}</span>
+                  <span className="text-charcoal-600">{entries.length}</span>
+                </h3>
+                <ul className="flex flex-col gap-1">
+                  {entries.map((entry) => (
+                    <PaletteCard key={`${entry.source}:${entry.spec.id}`} entry={entry} />
+                  ))}
+                </ul>
+              </section>
+            );
+          })
+        )}
       </div>
     </aside>
   );
