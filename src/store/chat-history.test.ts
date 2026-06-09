@@ -30,6 +30,38 @@ describe("chat-history — agent plan (Track 6 #2)", () => {
   });
 });
 
+describe("chat-history — user-stopped streams (R7 Track C)", () => {
+  beforeEach(() => {
+    useChatHistoryStore.getState().clear();
+  });
+
+  it("stopAssistantMessage keeps the partial content and marks it stopped, not errored", () => {
+    const store = useChatHistoryStore.getState();
+    const id = store.beginAssistantMessage({ agentId: "copilot" });
+    store.appendAssistantDelta(id, "Partial answer about SPY…");
+
+    useChatHistoryStore.getState().stopAssistantMessage(id);
+
+    const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id);
+    expect(msg?.content).toBe("Partial answer about SPY…");
+    expect(msg?.stopped).toBe(true);
+    expect(msg?.pending).toBe(false);
+    expect(msg?.error).toBeFalsy();
+    expect(useChatHistoryStore.getState().streamingMessageId).toBeNull();
+  });
+
+  it("stopAssistantMessage on a non-streaming id leaves streamingMessageId for the live one", () => {
+    const store = useChatHistoryStore.getState();
+    const finished = store.beginAssistantMessage({ agentId: "copilot" });
+    useChatHistoryStore.getState().finalizeAssistantMessage(finished, null);
+    const live = useChatHistoryStore.getState().beginAssistantMessage({ agentId: "copilot" });
+
+    useChatHistoryStore.getState().stopAssistantMessage(finished);
+
+    expect(useChatHistoryStore.getState().streamingMessageId).toBe(live);
+  });
+});
+
 describe("chat-history — research steps (Track A)", () => {
   beforeEach(() => {
     useChatHistoryStore.getState().clear();

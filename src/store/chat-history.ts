@@ -47,6 +47,9 @@ export interface ChatMessage {
   usage?: LLMUsage | null;
   /** ``true`` while the message is still being streamed. */
   pending?: boolean;
+  /** ``true`` when the USER stopped the stream mid-flight — the partial
+   *  content stands and the transcript marks it quietly. Not an error. */
+  stopped?: boolean;
   /** Error string if streaming failed. */
   error?: string | null;
   /** Human-readable tool-use steps the copilot took (e.g. "Reading your
@@ -91,6 +94,9 @@ interface ChatHistoryState {
   setPlan: (id: string, plan: AgentPlanView) => void;
   markBriefPublished: (id: string) => void;
   finalizeAssistantMessage: (id: string, usage?: LLMUsage | null) => void;
+  /** Finalize a stream the USER aborted (the composer's stop square): the
+   *  partial content stands, marked ``stopped`` — distinct from an error. */
+  stopAssistantMessage: (id: string) => void;
   failAssistantMessage: (id: string, error: string) => void;
   clear: () => void;
   /** Replace the whole transcript (used to swap between agent spaces/threads). */
@@ -179,6 +185,15 @@ export const useChatHistoryStore = create<ChatHistoryState>((set) => ({
     set((state) => ({
       messages: state.messages.map((message) =>
         message.id === id ? { ...message, pending: false, usage: usage ?? null } : message,
+      ),
+      streamingMessageId: state.streamingMessageId === id ? null : state.streamingMessageId,
+    })),
+  stopAssistantMessage: (id) =>
+    set((state) => ({
+      messages: state.messages.map((message) =>
+        message.id === id
+          ? { ...message, pending: false, stopped: true, usage: message.usage ?? null }
+          : message,
       ),
       streamingMessageId: state.streamingMessageId === id ? null : state.streamingMessageId,
     })),
