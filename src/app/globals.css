@@ -425,3 +425,81 @@
   scrollbar-width: thin;
   scrollbar-color: rgb(115 115 115 / 0.4) transparent;
 }
+
+/* @xyflow/react chrome resolved to the Vysted ladder. The library ships
+   near-white default fills for the zoom/fit/lock Controls and the minimap --
+   the one place third-party chrome leaked an unstyled surface (R7 defect D1).
+   Buttons follow the control spec: inset fill, 1px border, text-secondary
+   glyphs, 4px outer radius on the group, hover = one luminance step. */
+.react-flow {
+  /* The library's own theming variables -- these beat its stylesheet's
+     defaults regardless of import order (the class-selector overrides below
+     alone lose to @xyflow's identically-specific, later-loaded rules). */
+  --xy-controls-button-background-color: var(--color-charcoal-850, #242424);
+  --xy-controls-button-background-color-hover: var(--color-charcoal-875, #1d1d1d);
+  --xy-controls-button-color: var(--color-charcoal-400, #a8a8a8);
+  --xy-controls-button-color-hover: var(--color-charcoal-100, #ededed);
+  --xy-controls-button-border-color: var(--color-charcoal-700, #353535);
+  --xy-controls-box-shadow: none;
+  --xy-edge-stroke: var(--color-charcoal-600, #484848);
+  --xy-edge-stroke-selected: var(--color-charcoal-300, #d4d4d4);
+  --xy-connectionline-stroke: var(--color-charcoal-500, #8a8a8a);
+  --xy-handle-background-color: var(--color-charcoal-500, #8a8a8a);
+  --xy-handle-border-color: var(--color-charcoal-950, #0a0a0a);
+  --xy-minimap-background-color: var(--color-charcoal-925, #101010);
+  --xy-minimap-mask-background-color: rgb(16 16 16 / 0.7);
+  --xy-minimap-node-background-color: var(--color-charcoal-850, #242424);
+  --xy-attribution-background-color: transparent;
+  --xy-edge-label-background-color: var(--color-charcoal-900, #161616);
+  --xy-edge-label-color: var(--color-charcoal-300, #d4d4d4);
+  --xy-selection-border: 1px dotted var(--color-charcoal-500, #8a8a8a);
+  --xy-selection-background-color: rgb(115 115 115 / 0.08);
+}
+
+.react-flow__controls {
+  box-shadow: none;
+  border: 1px solid var(--color-charcoal-700, #353535);
+  border-radius: var(--radius-control, 4px);
+  overflow: hidden;
+}
+
+.react-flow__controls-button {
+  width: 24px;
+  height: 24px;
+  background: var(--color-charcoal-850, #242424);
+  border-bottom: 1px solid var(--color-charcoal-700, #353535);
+  color: var(--color-charcoal-400, #a8a8a8);
+}
+
+.react-flow__controls-button:last-child {
+  border-bottom: none;
+}
+
+.react-flow__controls-button:hover {
+  background: var(--color-charcoal-875, #1d1d1d);
+  color: var(--color-charcoal-100, #ededed);
+}
+
+.react-flow__controls-button svg {
+  fill: currentColor;
+  max-width: 11px;
+  max-height: 11px;
+}
+
+.react-flow__attribution {
+  background: transparent;
+  color: var(--color-charcoal-500, #8a8a8a);
+}
+
+.react-flow__minimap {
+  background: var(--color-charcoal-925, #101010);
+}
+
+.react-flow__minimap-mask {
+  fill: rgb(16 16 16 / 0.7);
+}
+
+.react-flow__minimap-node {
+  fill: var(--color-charcoal-850, #242424);
+  stroke: var(--color-charcoal-700, #353535);
+}
