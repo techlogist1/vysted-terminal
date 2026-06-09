@@ -20,6 +20,18 @@ exceptions are listed here per the track brief.
   formatting only (they failed `pnpm format:check`, which gates every track).
   Zero content changes.
 
+## Shared-component needs (for the lead)
+
+- **ToggleSwitch**: `PluginManagerPanel.tsx` now carries a local copy of the
+  SettingsPanel ToggleSwitch (readable 32px switch, sr-only checkbox keeps
+  `role="switch"`). Two copies exist by design — shared components are the
+  lead's. Lift into `components/ui` when convenient.
+- **DataTable expansion rows**: the earnings calendar keeps a hand-rolled
+  table only because its drill-down needs an inline expansion row, which
+  DataTable does not support. The hand-rolled table matches the DataTable
+  rhythm (micro headers, px-3 py-1.5 cells, right-aligned tabular numerics);
+  an `expandedRow` API on DataTable would let it fold in.
+
 ## For the lead to eyeball live
 
 - **Greeks dashboard**: result layout at narrow widths (the metric grid steps
