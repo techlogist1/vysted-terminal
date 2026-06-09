@@ -47,6 +47,8 @@ import {
 } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/EmptyState";
 import { executeCommand } from "@/lib/commands";
+import { useSymbolAutocomplete } from "@/lib/symbol-autocomplete";
+import { useActiveAgentStore } from "@/store/active-agent";
 import { sendToAgent } from "@/store/agent-command";
 import { useAgentDockStore } from "@/store/agent-dock";
 import {
@@ -138,6 +140,15 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
   const hasQuery = query.trim().length > 0;
   const showSymbols = hasQuery;
 
+  // Live resolver candidates (R7): the corpus only knows watchlist/known
+  // symbols, so a company-name query ("Route Mobile") found nothing. The fast
+  // masters-only autocomplete fills the gap; corpus rows win on dedupe.
+  const liveCandidates = useSymbolAutocomplete(query, 6);
+  const liveSymbolRows = useMemo(() => {
+    const known = new Set(symbols.map((i) => i.symbolEntry?.symbol.toUpperCase()).filter(Boolean));
+    return liveCandidates.filter((c) => !known.has(c.symbol.toUpperCase()));
+  }, [liveCandidates, symbols]);
+
   // Auto-focus the input when the body mounts (palette just opened).
   useEffect(() => {
     inputRef.current?.focus();
@@ -167,8 +178,10 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
 
       switch (item.kind) {
         case "agent":
-          // Surface the agent dock (the single agent surface). The agent picker
-          // within ChatSidebar is state-local; we just reveal the column.
+          // Switch the chat surface to THIS agent (the row was dead wiring
+          // until R7 — it revealed the dock but never changed the persona),
+          // then surface the dock.
+          useActiveAgentStore.getState().setActiveAgent(item.id.replace(/^agent:/, ""));
           useAgentDockStore.getState().setCollapsed(false);
           break;
         case "action":
@@ -352,6 +365,32 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
                 onSelect={() => handleSelectItem(item)}
                 icon={<LayoutGrid className="text-charcoal-400 size-4 shrink-0" aria-hidden />}
               />
+            ))}
+          </Command.Group>
+        )}
+
+        {/* ── Group 5b: Live ticker matches from the resolver ───────────── */}
+        {showSymbols && liveSymbolRows.length > 0 && (
+          <Command.Group heading="Tickers" className="[&_[cmdk-group-heading]]:group-heading-style">
+            {liveSymbolRows.map((c) => (
+              <Command.Item
+                key={`live:${c.symbol}:${c.exchange}`}
+                value={`live-symbol:${c.symbol} ${c.name}`}
+                keywords={[c.symbol, c.name, c.exchange]}
+                forceMount
+                onSelect={() => {
+                  setChartSymbol("palette", c.symbol);
+                  onClose();
+                }}
+                className="aria-selected:bg-charcoal-800 rounded-control flex min-h-9 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
+              >
+                <TrendingUp className="text-charcoal-400 size-4 shrink-0" aria-hidden />
+                <span className="text-charcoal-100 text-body shrink-0">{c.symbol}</span>
+                <span className="text-charcoal-500 text-micro shrink-0">{c.exchange}</span>
+                <span className="text-charcoal-400 text-caption min-w-0 flex-1 truncate">
+                  {c.name}
+                </span>
+              </Command.Item>
             ))}
           </Command.Group>
         )}

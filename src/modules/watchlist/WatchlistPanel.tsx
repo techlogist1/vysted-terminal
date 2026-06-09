@@ -12,6 +12,7 @@ import { formatPercent, formatPrice } from "@/lib/format";
 import { openCompanyOverview } from "@/lib/host-actions";
 import { isLiveQuote, useMarketSession } from "@/lib/market-session";
 import { SidecarError } from "@/lib/sidecar-client";
+import { useSymbolAutocomplete } from "@/lib/symbol-autocomplete";
 import { useTickFlash } from "@/lib/use-flash-value";
 import { cn } from "@/lib/utils";
 import { usePanelContextBus } from "@/store/panel-context";
@@ -126,6 +127,12 @@ export function WatchlistPanel() {
   const [inFlight, setInFlight] = useState(false);
   const inFlightRef = useRef(false);
   const [draftAssetClass, setDraftAssetClass] = useState<"equity" | "crypto">("equity");
+  // Live name/ticker autocomplete (R7): the resolver knows "Route Mobile" ->
+  // ROUTE; until now this input never asked it. Equity-only (crypto pairs
+  // aren't in the masters); keyboard-navigable; escape/blur dismisses.
+  const candidates = useSymbolAutocomplete(draftAssetClass === "equity" ? draft : "");
+  const [acOpen, setAcOpen] = useState(false);
+  const [acActive, setAcActive] = useState(0);
   // Tracks the symbol the user last interacted with via the row hover; null
   // when the user has not selected anything yet. Used as the publisher's
   // `selectedSymbol` payload field.
@@ -194,8 +201,19 @@ export function WatchlistPanel() {
     };
   }, [refresh]);
 
+  const pickCandidate = (symbol: string) => {
+    addSymbol(symbol, "equity");
+    setDraft("");
+    setAcOpen(false);
+    setAcActive(0);
+  };
+
   const handleAdd = (event: React.FormEvent) => {
     event.preventDefault();
+    if (acOpen && candidates.length > 0) {
+      pickCandidate(candidates[Math.min(acActive, candidates.length - 1)].symbol);
+      return;
+    }
     if (draft.trim() === "") {
       return;
     }
@@ -270,13 +288,65 @@ export function WatchlistPanel() {
         onSubmit={handleAdd}
         className="border-charcoal-700 flex items-center gap-2 border-b p-3"
       >
-        <input
-          aria-label="Add symbol"
-          placeholder="Add symbol"
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 text-body rounded-control focus:ring-charcoal-500 h-8 flex-1 px-3 outline-none focus:ring-1"
-        />
+        <div className="relative flex-1">
+          <input
+            aria-label="Add symbol"
+            placeholder="Add symbol or company name"
+            value={draft}
+            onChange={(event) => {
+              setDraft(event.target.value);
+              setAcOpen(true);
+              setAcActive(0);
+            }}
+            onFocus={() => setAcOpen(true)}
+            onBlur={() => setTimeout(() => setAcOpen(false), 120)}
+            onKeyDown={(event) => {
+              if (!acOpen || candidates.length === 0) return;
+              if (event.key === "ArrowDown") {
+                event.preventDefault();
+                setAcActive((i) => Math.min(i + 1, candidates.length - 1));
+              } else if (event.key === "ArrowUp") {
+                event.preventDefault();
+                setAcActive((i) => Math.max(i - 1, 0));
+              } else if (event.key === "Escape") {
+                setAcOpen(false);
+              }
+            }}
+            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 text-body rounded-control focus:ring-charcoal-500 h-8 w-full px-3 outline-none focus:ring-1"
+          />
+          {acOpen && candidates.length > 0 && (
+            <ul
+              role="listbox"
+              aria-label="Symbol matches"
+              className="bg-charcoal-875 border-charcoal-700 rounded-control absolute top-full right-0 left-0 z-20 mt-1 overflow-hidden border"
+            >
+              {candidates.map((c, i) => (
+                <li key={`${c.symbol}-${c.exchange}`}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={i === acActive}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      pickCandidate(c.symbol);
+                    }}
+                    onMouseEnter={() => setAcActive(i)}
+                    className={cn(
+                      "flex w-full items-center gap-2 px-3 py-1.5 text-left",
+                      i === acActive ? "bg-charcoal-800" : "bg-transparent",
+                    )}
+                  >
+                    <span className="text-charcoal-100 text-body shrink-0">{c.symbol}</span>
+                    <span className="text-charcoal-500 text-micro shrink-0">{c.exchange}</span>
+                    <span className="text-charcoal-400 text-caption min-w-0 flex-1 truncate">
+                      {c.name}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <div className="relative">
           <select
             aria-label="Asset class"

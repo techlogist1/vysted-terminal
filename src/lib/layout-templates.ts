@@ -24,6 +24,11 @@ export type LayoutTemplate = "single-focus" | "research-cockpit" | "compare" | "
  * module specs). Broader than the template `PANEL` set below so a CUSTOM arrange
  * ("put the chart here and news there") can place any of them (Track B).
  */
+// Ids/components MUST match each module's registered PanelSpec (the palette and
+// default layout open by those ids; arrange reuses open panels BY ID, so a
+// drifted id here silently duplicates a panel). R7: the map now covers every
+// first-party panel — "chart and settings side by side" used to silently drop
+// settings because only 9 panels were arrangeable.
 const ARRANGEABLE: Record<string, { id: string; component: string }> = {
   chart: { id: "chart", component: "chart-panel" },
   "equity-overview": { id: "equity-overview", component: "equity-overview-panel" },
@@ -31,9 +36,28 @@ const ARRANGEABLE: Record<string, { id: string; component: string }> = {
   news: { id: "news", component: "news-panel" },
   portfolio: { id: "portfolio", component: "portfolio-panel" },
   macro: { id: "macro", component: "macro-panel" },
-  screener: { id: "screener", component: "screener-panel" },
+  // The screener module registers id "screener-panel" (NOT "screener") — using
+  // the registered id keeps arrange from minting a duplicate beside the
+  // palette-opened one.
+  screener: { id: "screener-panel", component: "screener-panel" },
   brief: { id: "brief", component: "brief-panel" },
   notes: { id: "notes", component: "notes-panel" },
+  settings: { id: "settings", component: "settings-panel" },
+  marketplace: { id: "marketplace", component: "marketplace-panel" },
+  "plugin-manager": { id: "plugin-manager", component: "plugin-manager-panel" },
+  "agent-builder": { id: "agent-builder", component: "agent-builder-panel" },
+  "node-editor": { id: "node-editor", component: "node-editor-panel" },
+  backtest: { id: "backtest", component: "backtest-panel" },
+  "broker-connect": { id: "broker-connect", component: "broker-connect-panel" },
+  "order-entry": { id: "broker-order-entry", component: "broker-order-entry" },
+  "audit-log": { id: "audit-log", component: "audit-log-viewer" },
+  "sec-filings": { id: "sec-filings", component: "sec-filings-panel" },
+  "option-pricer": { id: "option-pricer", component: "option-pricer-panel" },
+  "greeks-dashboard": { id: "greeks-dashboard", component: "greeks-dashboard-panel" },
+  "bond-pricer": { id: "bond-pricer", component: "bond-pricer-panel" },
+  "yield-curve": { id: "yield-curve", component: "yield-curve-panel" },
+  "earnings-calendar": { id: "earnings-calendar", component: "earnings-calendar-panel" },
+  "analyst-ratings": { id: "analyst-ratings", component: "analyst-ratings-panel" },
 };
 
 /** Loose aliases the agent (or a user) might say, mapped to a canonical id. */
@@ -49,7 +73,30 @@ const PANEL_ALIASES: Record<string, string> = {
   macroeconomics: "macro",
   economy: "macro",
   screen: "screener",
+  "screener-panel": "screener",
   research: "brief",
+  preferences: "settings",
+  config: "settings",
+  workflows: "node-editor",
+  "workflow-editor": "node-editor",
+  nodes: "node-editor",
+  agents: "agent-builder",
+  broker: "broker-connect",
+  brokers: "broker-connect",
+  connections: "broker-connect",
+  orders: "order-entry",
+  "broker-order-entry": "order-entry",
+  audit: "audit-log",
+  sec: "sec-filings",
+  filings: "sec-filings",
+  options: "option-pricer",
+  greeks: "greeks-dashboard",
+  bonds: "bond-pricer",
+  earnings: "earnings-calendar",
+  calendar: "earnings-calendar",
+  analyst: "analyst-ratings",
+  ratings: "analyst-ratings",
+  plugins: "plugin-manager",
 };
 
 /** Resolve a free-text panel token to a canonical `{id, component}`, or `null`. */
@@ -115,7 +162,8 @@ const PANEL = {
   equityOverview: { id: "equity-overview", component: "equity-overview-panel" },
   news: { id: "news", component: "news-panel" },
   macro: { id: "macro", component: "macro-panel" },
-  screener: { id: "screener", component: "screener-panel" },
+  // Registered module id (see ARRANGEABLE note) — never bare "screener".
+  screener: { id: "screener-panel", component: "screener-panel" },
   brief: { id: "brief", component: "brief-panel" },
   notes: { id: "notes", component: "notes-panel" },
 } as const;
@@ -514,9 +562,24 @@ function applyPlan(api: DockviewApi, plan: LayoutPlan): void {
   for (const panel of plan.panels) {
     const existing = api.getPanel(panel.id);
     if (existing) {
-      // Reuse — idempotent re-tile. Don't move an already-open panel; dockview
-      // re-tiling of live panels is jarring and risks orphaning the user's view.
       present.add(panel.id);
+      // R7: a planned position is the user's explicit ask — HONOR it by moving
+      // the already-open panel. The old behavior left existing panels exactly
+      // where they were (tabs stayed tabs) while the agent narrated an
+      // arrangement that never happened — the fake-split bug.
+      const position = resolvePosition(panel.position, present);
+      if (position) {
+        const ref = api.getPanel(position.referencePanel);
+        if (ref && ref.id !== existing.id) {
+          const target = toMovePosition(position.direction);
+          const sameGroup = existing.group === ref.group;
+          // Moving "within" a group it's already in is a no-op — skip to avoid
+          // a pointless re-tile; any directional ask always applies.
+          if (!(sameGroup && target === "center")) {
+            existing.api.moveTo({ group: ref.group, position: target, skipSetActive: true });
+          }
+        }
+      }
       continue;
     }
 
@@ -549,6 +612,22 @@ function applyPlan(api: DockviewApi, plan: LayoutPlan): void {
   }
   if (plan.focus) {
     api.getPanel(plan.focus)?.api.setActive();
+  }
+}
+
+/** Map an addPanel-style direction onto the moveTo Position vocabulary. */
+function toMovePosition(direction: Direction): "left" | "right" | "top" | "bottom" | "center" {
+  switch (direction) {
+    case "left":
+      return "left";
+    case "right":
+      return "right";
+    case "above":
+      return "top";
+    case "below":
+      return "bottom";
+    default:
+      return "center";
   }
 }
 

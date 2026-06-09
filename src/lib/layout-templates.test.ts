@@ -2,6 +2,7 @@ import type { DockviewApi } from "dockview";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  applyCustomLayout,
   applyLayoutTemplate,
   applyResearchSpaceLayout,
   fitLayoutTemplate,
@@ -109,7 +110,7 @@ describe("planLayout", () => {
         position: { referencePanel: "macro", direction: "right" },
       },
       {
-        id: "screener",
+        id: "screener-panel",
         component: "screener-panel",
         position: { referencePanel: "macro", direction: "below" },
       },
@@ -127,7 +128,13 @@ describe("planLayout", () => {
     ];
     for (const t of templates) {
       for (const panel of planLayout(t).panels) {
-        expect(panel.component).toBe(`${panel.id}-panel`);
+        // screener's REGISTERED module id already carries the -panel suffix
+        // (id === component for it); every other panel id is the short name.
+        if (panel.id === "screener-panel") {
+          expect(panel.component).toBe("screener-panel");
+        } else {
+          expect(panel.component).toBe(`${panel.id}-panel`);
+        }
       }
     }
   });
@@ -158,9 +165,20 @@ describe("planLayout", () => {
  * the right api surface (getPanel/addPanel + focus/maximize) per the plan.
  */
 function makeFakeApi() {
-  const panels = new Map<string, { id: string; api: { setActive: ReturnType<typeof vi.fn> } }>();
+  const panels = new Map<
+    string,
+    {
+      id: string;
+      group: { id: string };
+      api: { setActive: ReturnType<typeof vi.fn>; moveTo: ReturnType<typeof vi.fn> };
+    }
+  >();
   const addPanel = vi.fn((opts: { id: string; component: string }) => {
-    const panel = { id: opts.id, api: { setActive: vi.fn() } };
+    const panel = {
+      id: opts.id,
+      group: { id: `group-${opts.id}` },
+      api: { setActive: vi.fn(), moveTo: vi.fn() },
+    };
     panels.set(opts.id, panel);
     return panel;
   });
@@ -233,7 +251,7 @@ describe("applyLayoutTemplate (smoke)", () => {
     // macro first, so positions resolve — assert the normal resolved path here.
     applyLayoutTemplate(api, "macro-scan");
     const screenerCall = api.addPanel.mock.calls.find(
-      (c) => (c[0] as { id: string }).id === "screener",
+      (c) => (c[0] as { id: string }).id === "screener-panel",
     );
     expect((screenerCall?.[0] as { position?: unknown }).position).toEqual({
       referencePanel: "macro",
@@ -308,5 +326,67 @@ describe("applyResearchSpaceLayout (003 per-stock research space)", () => {
     applyResearchSpaceLayout(api);
     const ids = api.addPanel.mock.calls.map((c) => (c[0] as { id: string }).id);
     expect(ids).toEqual(["chart", "brief", "notes"]);
+  });
+});
+
+describe("applyPlan moves already-open panels (R7 fake-split fix)", () => {
+  const originalRaf = globalThis.requestAnimationFrame;
+  beforeEach(() => {
+    (globalThis as { requestAnimationFrame?: unknown }).requestAnimationFrame = undefined;
+  });
+  afterAll(() => {
+    globalThis.requestAnimationFrame = originalRaf;
+  });
+
+  /** A fake api seeded with ALREADY-OPEN panels sharing one group (tabs). */
+  function makeSeededApi(ids: string[]) {
+    const sharedGroup = { id: "group-1" };
+    const panels = new Map<
+      string,
+      {
+        id: string;
+        group: { id: string };
+        api: { setActive: ReturnType<typeof vi.fn>; moveTo: ReturnType<typeof vi.fn> };
+      }
+    >();
+    for (const id of ids) {
+      panels.set(id, {
+        id,
+        group: sharedGroup,
+        api: { setActive: vi.fn(), moveTo: vi.fn() },
+      });
+    }
+    const api = {
+      get panels() {
+        return Array.from(panels.values());
+      },
+      getPanel: vi.fn((id: string) => panels.get(id)),
+      addPanel: vi.fn(),
+      hasMaximizedGroup: vi.fn(() => false),
+      exitMaximizedGroup: vi.fn(),
+      maximizeGroup: vi.fn(),
+    };
+    return { api: api as typeof api & DockviewApi, panels };
+  }
+
+  it("splits two panels that are open as tabs when asked side by side", () => {
+    const { api, panels } = makeSeededApi(["chart", "settings"]);
+    applyCustomLayout(api, [{ panel: "chart" }, { panel: "settings" }]);
+    // The second panel must MOVE to the right of the anchor — the old code
+    // left both as tabs and the agent narrated a split that never happened.
+    const moved = panels.get("settings")!.api.moveTo;
+    expect(moved).toHaveBeenCalledTimes(1);
+    expect(moved).toHaveBeenCalledWith(
+      expect.objectContaining({ position: "right", skipSetActive: true }),
+    );
+    // The anchor stays put.
+    expect(panels.get("chart")!.api.moveTo).not.toHaveBeenCalled();
+    expect(api.addPanel).not.toHaveBeenCalled();
+  });
+
+  it("does not churn a panel already 'within' its reference group", () => {
+    const { api, panels } = makeSeededApi(["chart", "news"]);
+    applyCustomLayout(api, [{ panel: "chart" }, { panel: "news", direction: "within" }]);
+    expect(panels.get("news")!.api.moveTo).not.toHaveBeenCalled();
   });
 });
