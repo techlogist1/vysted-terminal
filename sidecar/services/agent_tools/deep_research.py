@@ -8,7 +8,7 @@ supplies the deep/heavy engine behind ``depth in {"deep", "heavy"}`` via
 :func:`run_deep_brief`; the ``research`` handler calls it directly. There is no
 second tool name, no second catalog capability, and no user-visible ``/deep``.
 
-Two backends:
+Three backends:
 
 - **native** (default) — runs the built-in deep-research loop against the SAME
   model the user is talking to (via :func:`config.get_llm_creds` + the one-shot
@@ -19,6 +19,11 @@ Two backends:
   it is NEVER auto-selected (the catalog default is ``native`` and the Settings
   ContextVar only ever resolves to ``native``/``perplexity`` on an explicit user
   opt-in). With no key it returns an honest "needs a key" message.
+- **sonar** — OPT-IN-PER-RUN, PAID (R7 Component 3): the SAME sonar family
+  routed through OpenRouter on the user's OpenRouter BYOK key
+  (:mod:`services.research.sonar`) — one key unlocks both hosted search and the
+  one-call research lane. Same never-auto-selected guarantee; the key rides the
+  request only (``config.get_openrouter_search_key()`` / explicit ``api_key``).
 
 One deep LOOP (S-9): :mod:`services.research.iter` is THE deep loop
 (``run_iter_research`` for ``deep``, ``run_heavy_research`` for ``heavy``).
@@ -58,6 +63,10 @@ _MAX_ANGLES = 3
 _PERPLEXITY_NEEDS_KEY = (
     "Perplexity deep research needs an API key (opt-in, paid). Add it in "
     "Settings, or use the built-in deep research."
+)
+_SONAR_NEEDS_KEY = (
+    "The hosted Sonar research lane needs an OpenRouter API key (opt-in, paid). "
+    "Add it in Settings, or use the built-in deep research."
 )
 _NO_MODEL = "No model configured for deep research."
 
@@ -119,6 +128,39 @@ async def _run_perplexity(query: str, key: str | None) -> dict[str, Any]:
     out["ok"] = True
     out.setdefault("cost_estimate_usd", perplexity.estimate_cost_usd(query))
     out["backend"] = "perplexity"
+    return out
+
+
+async def _run_sonar(query: str, key: str | None, model: str | None = None) -> dict[str, Any]:
+    """Run the opt-in-per-run paid OpenRouter Sonar lane, or honest-fail without a key.
+
+    NEVER auto-selects — the caller already chose ``backend="sonar"`` explicitly
+    per-run (R7 Component 3). The OpenRouter key resolution order is: explicit
+    ``api_key`` arg → the per-request hosted-search key ContextVar → the active
+    LLM creds when the user is actually ON OpenRouter. Without any key it
+    returns the "needs a key" message; the key is never logged or echoed.
+    """
+    import config
+    from services.research import sonar
+
+    api_key = key or config.get_openrouter_search_key()
+    if not api_key:
+        creds = config.get_llm_creds()
+        # Only reuse the active key if the user is actually on OpenRouter.
+        if creds is not None and creds[0] == "openrouter":
+            api_key = creds[2]
+
+    if not sonar.is_configured(api_key):
+        return {"ok": False, "message": _SONAR_NEEDS_KEY}
+
+    resolved_model = sonar.resolve_model(model)
+    _emit_backend_step(f"Perplexity Sonar via OpenRouter — {resolved_model} (paid)")
+    backend = sonar.OpenRouterSonarBackend(api_key, model=resolved_model)
+    brief = await backend.research(query, region=config.get_region())
+    out = brief.to_dict()
+    out["ok"] = True
+    out.setdefault("cost_estimate_usd", sonar.estimate_cost_usd(query, resolved_model))
+    out["backend"] = "sonar"
     return out
 
 
@@ -230,13 +272,15 @@ async def run_deep_brief(
             panel of parallel angles). Anything else is treated as ``"deep"``.
         rounds: Research rounds, clamped to ``[1, 5]`` (default 3).
         wall_seconds: Wall-clock budget, clamped to ``[30, 300]`` (default 120).
-        backend: ``"native"`` (default) or ``"perplexity"`` (opt-in-per-run,
-            paid). When ``None`` the user's Settings selection (Track 5) is read
-            from the ContextVar; it only ever resolves to native unless the user
-            explicitly opted into Perplexity for the run. NEVER auto-selects
-            Perplexity.
-        api_key: Optional key for the opt-in Perplexity backend, when not reused
-            from the active credentials.
+        backend: ``"native"`` (default), ``"perplexity"`` (opt-in-per-run,
+            paid), or ``"sonar"`` (opt-in-per-run, paid — the same sonar family
+            through OpenRouter on the user's OpenRouter key; R7 Component 3).
+            When ``None`` the user's Settings selection (Track 5) is read from
+            the ContextVar; it only ever resolves to native unless the user
+            explicitly opted into a paid lane for the run. NEVER auto-selects a
+            paid backend.
+        api_key: Optional key for the opt-in Perplexity/Sonar backends, when not
+            reused from the active credentials.
 
     Returns the brief dict (``ok: True``) or ``{"ok": False, "message": ...}``.
     """
@@ -256,6 +300,8 @@ async def run_deep_brief(
 
     if resolved_backend == "perplexity":
         return await _run_perplexity(query, api_key)
+    if resolved_backend in ("sonar", "openrouter-sonar"):
+        return await _run_sonar(query, api_key)
     return await _run_native(query, rounds_i, wall, angles)
 
 
