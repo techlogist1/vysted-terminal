@@ -11,6 +11,16 @@ here — the agent runtime injects the provider's native search instead and this
 tool is withheld from the allow-list for native-capable runs. When no backend is
 configured the handler returns an honest, human "unavailable" naming exactly what
 would unlock it (FR-082) — it never fabricates a source.
+
+R7 (Track R, Component 3): an EXPLICIT per-request R7 tier selection
+(``t1_local`` / ``t2_searxng`` / ``t3_hosted`` via
+:func:`config.get_research_search_tier`) is authoritative and routes ahead of
+the legacy tier mapping: t1 → the keyless rotation floor, t2 → the (managed)
+SearXNG instance, t3 → OpenRouter's hosted web-search server tool (BYOK key,
+per-search cost estimate passed through under ``metadata``). An explicit tier
+that cannot be served fails HONESTLY with the unlock named — never a silent
+re-route (C.1). No selection → the legacy routing below, which already floors
+to the keyless t1 tier.
 """
 
 from __future__ import annotations
@@ -28,6 +38,60 @@ _NO_BACKEND_MESSAGE = (
     "search, or switch to a model with native web search. I won't invent sources."
 )
 
+_HOSTED_NEEDS_KEY_MESSAGE = (
+    "Hosted search (t3) is selected but no OpenRouter API key is configured. "
+    "Add one in Settings → Web search, or switch back to the built-in local "
+    "tier. I won't invent sources."
+)
+
+_SEARXNG_NOT_READY_MESSAGE = (
+    "SearXNG search (t2) is selected but no SearXNG instance is reachable. "
+    "Finish the one-click setup in Settings → Web search (or start the "
+    "vysted-searxng container), or switch back to the built-in local tier. "
+    "I won't invent sources."
+)
+
+
+async def _resolve_r7_tier(tier: str, region: str) -> tuple[Any, str | None]:
+    """Resolve the backend for an EXPLICIT R7 tier selection (Component 3).
+
+    Returns ``(backend, error_message)``. An explicit tier that cannot be
+    served returns ``(None, <honest message naming the unlock>)`` rather than
+    silently re-routing — the user chose the tier; swapping it behind their
+    back would be surprise routing (C.1). Exception: t1 IS the floor, so it
+    keeps the keyless → ddg defensive chain.
+    """
+    import config
+    from services.search import registry
+
+    if tier == config.SEARCH_TIER_T3_HOSTED:
+        openrouter_key = config.get_openrouter_search_key()
+        if not openrouter_key:
+            return None, _HOSTED_NEEDS_KEY_MESSAGE
+        backend = registry.resolve(
+            "hosted",
+            openrouter_key=openrouter_key,
+            engine=config.get_hosted_search_engine(),
+            region=region,
+        )
+        return backend, None if backend is not None else _HOSTED_NEEDS_KEY_MESSAGE
+
+    if tier == config.SEARCH_TIER_T2_SEARXNG:
+        searxng_url = config.get_searxng_url()
+        if not searxng_url:
+            # The managed instance (services.searxng_manager) and the pip/docker
+            # conventional ports are probed by the same autodetect.
+            from services.search.searxng import detect_searxng
+
+            searxng_url = await detect_searxng()
+        backend = registry.resolve("searxng", searxng_url=searxng_url, region=region)
+        return backend, None if backend is not None else _SEARXNG_NOT_READY_MESSAGE
+
+    # t1_local — the keyless floor, with the bare ddg chain as the defensive
+    # fallback (same chain the legacy path floors to).
+    backend = registry.resolve("keyless", region=region) or registry.resolve("ddg", region=region)
+    return backend, None
+
 
 async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
     """Run a web search via the configured BYOK/local backend; cite the results.
@@ -44,12 +108,22 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
 
     import config
     from services.search import registry
-    from services.search.base import SearchError
 
     region = config.get_region()
     tier = config.get_search_tier()
     exa_key = config.get_exa_key()
     searxng_url = config.get_searxng_url()
+
+    # R7 tier selection (Component 3): an EXPLICIT t1/t2/t3 selection on the
+    # request is authoritative — per-request override mirroring the deep-research
+    # backend ContextVar. ``None`` (no selection) keeps the legacy routing below,
+    # which already floors to the keyless t1 tier, so the default IS t1.
+    r7_tier = config.get_research_search_tier()
+    if r7_tier is not None:
+        backend, tier_error = await _resolve_r7_tier(r7_tier, region)
+        if backend is None:
+            return {"ok": False, "query": query, "message": tier_error or _NO_BACKEND_MESSAGE}
+        return await _dispatch(backend, query, num_results, category, region)
 
     # Wire the real SearXNG autodetect: a local-searxng tier with no configured
     # URL probes the conventional local ports (8888 pip → 8080 docker) before
@@ -87,6 +161,20 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
     if backend is None:  # pragma: no cover — ddg always resolves; defensive only
         return {"ok": False, "query": query, "message": _NO_BACKEND_MESSAGE}
 
+    return await _dispatch(backend, query, num_results, category, region)
+
+
+async def _dispatch(
+    backend: Any, query: str, num_results: int, category: str, region: str
+) -> dict[str, Any]:
+    """Run the resolved backend and shape the tool result (shared by both routes).
+
+    A backend that annotates its response (the t3 hosted tier's per-search cost
+    estimate) has that annex passed through under ``metadata`` so the caller can
+    show honest cost alongside the results (C.1).
+    """
+    from services.search.base import SearchError
+
     options = {"numResults": num_results, "category": category, "region": region}
     try:
         response = await backend.search(query, options=options)
@@ -108,7 +196,7 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
             "reason": "unreachable",
         }
 
-    return {
+    out: dict[str, Any] = {
         "ok": True,
         "backend": response.backend,
         "query": query,
@@ -126,6 +214,10 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
             {"url": c.url, "title": c.title, "excerpt": c.excerpt} for c in response.citations
         ],
     }
+    metadata = getattr(response, "metadata", None)
+    if isinstance(metadata, dict) and metadata:
+        out["metadata"] = metadata
+    return out
 
 
 def register() -> None:

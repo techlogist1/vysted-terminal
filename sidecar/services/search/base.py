@@ -58,12 +58,21 @@ class Citation:
 
 @dataclass
 class SearchResponse:
-    """A backend's reply: results, derived citations, the backend id + query."""
+    """A backend's reply: results, derived citations, the backend id + query.
+
+    ``metadata`` is an optional backend-specific annex (R7 Component 3): the
+    hosted tier uses it to surface the per-search COST ESTIMATE + engine/model
+    provenance (``{"tier", "engine", "model", "search_cost_estimate_usd",
+    "estimate": True, "cost_basis"}``) so the caller can show honest cost before
+    or alongside results. ``None`` for backends with nothing to annotate —
+    every existing constructor keeps working unchanged.
+    """
 
     results: list[SearchResult]
     citations: list[Citation]
     backend: str
     query: str
+    metadata: dict | None = None
 
 
 #: Typed reasons a :class:`SearchError` can carry, so a caller can distinguish a
