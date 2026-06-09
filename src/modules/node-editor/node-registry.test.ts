@@ -1,14 +1,18 @@
 import { describe, expect, it } from "vitest";
 
 import type { NodeSpec } from "../../../types/plugin";
+import { CODE_NODE_ID } from "./code-node";
 import {
   BUILT_IN_NODE_CONFIG_FIELDS,
   BUILT_IN_NODE_IDS,
   BUILT_IN_NODE_SPECS,
+  CODE_NODE_SPEC,
+  FIRST_PARTY_NODE_IDS,
+  FIRST_PARTY_NODE_SPECS,
   buildRegistry,
-  builtInEntries,
   defaultConfigFor,
   findEntry,
+  firstPartyEntries,
   groupByCategory,
 } from "./node-registry";
 
@@ -56,6 +60,28 @@ describe("node-registry: built-in specs", () => {
   });
 });
 
+describe("node-registry: first-party union (code node)", () => {
+  it("includes every built-in plus the code node", () => {
+    expect(FIRST_PARTY_NODE_IDS).toEqual([...BUILT_IN_NODE_IDS, CODE_NODE_ID]);
+    for (const id of FIRST_PARTY_NODE_IDS) {
+      expect(FIRST_PARTY_NODE_SPECS[id]?.id).toBe(id);
+    }
+  });
+
+  it("ships the code node as a transform with one value output", () => {
+    expect(CODE_NODE_SPEC.category).toBe("transform");
+    expect(CODE_NODE_SPEC.outputs).toEqual([{ id: "value", label: "Value", type: "any" }]);
+  });
+
+  it("defaultConfigFor the code node returns a runnable serializable spec", () => {
+    const cfg = defaultConfigFor(CODE_NODE_ID);
+    expect(cfg).toEqual({ expression: "a + b", inputs: ["a", "b"] });
+    // Mutating the returned config must not leak into the next drop.
+    (cfg["inputs"] as string[]).push("mutated");
+    expect(defaultConfigFor(CODE_NODE_ID)).toEqual({ expression: "a + b", inputs: ["a", "b"] });
+  });
+});
+
 describe("node-registry: buildRegistry", () => {
   const pluginNode: NodeSpec = {
     id: "tradesa.wait-for-decision",
@@ -66,35 +92,35 @@ describe("node-registry: buildRegistry", () => {
     description: "Block until Tradesa emits a decision event.",
   };
 
-  it("returns the 10 built-ins when there are no plugins", () => {
+  it("returns every first-party node when there are no plugins", () => {
     const registry = buildRegistry([]);
-    expect(registry).toHaveLength(BUILT_IN_NODE_IDS.length);
+    expect(registry).toHaveLength(FIRST_PARTY_NODE_IDS.length);
     expect(registry.every((e) => e.source === "built-in")).toBe(true);
   });
 
   it("appends plugin-contributed specs as source='plugin'", () => {
     const registry = buildRegistry([pluginNode]);
-    expect(registry).toHaveLength(BUILT_IN_NODE_IDS.length + 1);
+    expect(registry).toHaveLength(FIRST_PARTY_NODE_IDS.length + 1);
     const found = findEntry(registry, pluginNode.id);
     expect(found?.source).toBe("plugin");
     expect(found?.spec).toBe(pluginNode);
   });
 
-  it("drops plugin specs whose id collides with a built-in (built-in wins)", () => {
+  it("drops plugin specs whose id collides with a first-party id (first-party wins)", () => {
     const collisionPlugin: NodeSpec = {
       ...pluginNode,
       id: "data.fetch_quote",
     };
     const registry = buildRegistry([collisionPlugin]);
-    expect(registry).toHaveLength(BUILT_IN_NODE_IDS.length);
+    expect(registry).toHaveLength(FIRST_PARTY_NODE_IDS.length);
     const entry = findEntry(registry, "data.fetch_quote");
     expect(entry?.source).toBe("built-in");
   });
 });
 
 describe("node-registry: groupByCategory", () => {
-  it("partitions built-in entries into the contract's five categories", () => {
-    const groups = groupByCategory(builtInEntries());
+  it("partitions first-party entries into the contract's five categories", () => {
+    const groups = groupByCategory(firstPartyEntries());
     expect(groups.trigger.map((e) => e.spec.id)).toEqual([
       "data.fetch_quote",
       "data.fetch_history",
@@ -103,6 +129,7 @@ describe("node-registry: groupByCategory", () => {
       "compute.indicator",
       "transform.json_path",
       "flow.sleep",
+      CODE_NODE_ID,
     ]);
     expect(groups.condition.map((e) => e.spec.id)).toEqual(["logic.branch", "logic.compare"]);
     expect(groups.action.map((e) => e.spec.id)).toEqual([

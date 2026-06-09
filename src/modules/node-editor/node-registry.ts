@@ -20,6 +20,7 @@
  */
 
 import type { NodePort, NodeSpec } from "../../../types/plugin";
+import { CODE_NODE_ID, CODE_NODE_OUTPUT_PORT } from "./code-node";
 
 // ---------------------------------------------------------------------------
 // Config-field schema
@@ -164,6 +165,38 @@ export const BUILT_IN_NODE_SPECS: Readonly<Record<BuiltInNodeId, NodeSpec>> = {
   },
 };
 
+// ---------------------------------------------------------------------------
+// Code node (client-evaluated mathjs expression — R7 hackability pillar)
+// ---------------------------------------------------------------------------
+
+/**
+ * The `transform.code` spec. Its input ports are DYNAMIC — derived from
+ * `config.inputs` by the canvas renderer (`VystedNode`) — so the static
+ * ports here only describe the default config's bindings. Evaluation is
+ * client-side (sandboxed mathjs); see `code-node-run.ts`.
+ */
+export const CODE_NODE_SPEC: NodeSpec = {
+  id: CODE_NODE_ID,
+  label: "Code",
+  category: "transform",
+  description: "Evaluate a sandboxed math expression over named inputs.",
+  inputs: [PORT("a", "a"), PORT("b", "b")],
+  outputs: [PORT(CODE_NODE_OUTPUT_PORT, "Value", "any")],
+};
+
+// ---------------------------------------------------------------------------
+// First-party union
+// ---------------------------------------------------------------------------
+
+/** Every first-party node id the palette offers (built-ins + the code node). */
+export const FIRST_PARTY_NODE_IDS: readonly string[] = [...BUILT_IN_NODE_IDS, CODE_NODE_ID];
+
+/** Spec lookup across every first-party node id. */
+export const FIRST_PARTY_NODE_SPECS: Readonly<Record<string, NodeSpec>> = {
+  ...BUILT_IN_NODE_SPECS,
+  [CODE_NODE_ID]: CODE_NODE_SPEC,
+};
+
 /**
  * Properties-panel field schemas per built-in node type. The properties
  * panel reads this map to render typed inputs for the selected node;
@@ -266,6 +299,27 @@ export const BUILT_IN_NODE_CONFIG_FIELDS: Readonly<Record<BuiltInNodeId, readonl
     ],
   };
 
+/**
+ * Config-field schemas across ALL first-party node ids — a PARTIAL map by
+ * design. Ids present render the typed properties form; ids absent (and
+ * plugin nodes) fall back to the free-form JSON config editor, which is
+ * the honest fit for nodes whose config is a nested request model (the
+ * quant pricing nodes, the screener query). The code node never reads
+ * this map — it has its own inspector (`code-node-inspector.tsx`).
+ */
+export const NODE_CONFIG_FIELDS: Readonly<Record<string, readonly ConfigField[]>> = {
+  ...BUILT_IN_NODE_CONFIG_FIELDS,
+};
+
+/**
+ * Structural config defaults for nodes whose default config is not
+ * expressible as flat `ConfigField.defaultValue`s (arrays / nested
+ * objects). Checked by `defaultConfigFor` before the field-map path.
+ */
+const STRUCTURAL_DEFAULT_CONFIGS: Readonly<Record<string, Record<string, unknown>>> = {
+  [CODE_NODE_ID]: { expression: "a + b", inputs: ["a", "b"] },
+};
+
 // ---------------------------------------------------------------------------
 // Palette assembly
 // ---------------------------------------------------------------------------
@@ -279,44 +333,46 @@ export interface RegistryEntry {
   pluginId?: string;
 }
 
-/** Resolve every built-in spec as a `RegistryEntry`. */
-export function builtInEntries(): RegistryEntry[] {
-  return BUILT_IN_NODE_IDS.map((id) => ({
-    spec: BUILT_IN_NODE_SPECS[id],
+/** Resolve every first-party spec (built-ins + code node) as a `RegistryEntry`. */
+export function firstPartyEntries(): RegistryEntry[] {
+  return FIRST_PARTY_NODE_IDS.map((id) => ({
+    spec: FIRST_PARTY_NODE_SPECS[id],
     source: "built-in" as const,
   }));
 }
 
 /**
- * Combine built-in entries with plugin-contributed `NodeSpec`s.
+ * Combine first-party entries with plugin-contributed `NodeSpec`s.
  *
- * Plugin specs whose ids collide with a built-in are dropped — the
- * built-in wins. The collision is silent (not an error) to keep the
- * palette robust against accidentally-misnamed plugin nodes; the
+ * Plugin specs whose ids collide with a first-party id are dropped — the
+ * first-party spec wins. The collision is silent (not an error) to keep
+ * the palette robust against accidentally-misnamed plugin nodes; the
  * plugin manager UI surfaces the duplicate-id case elsewhere.
  */
 export function buildRegistry(pluginNodes: readonly NodeSpec[]): RegistryEntry[] {
-  const builtIns = builtInEntries();
-  const builtInIds = new Set<string>(BUILT_IN_NODE_IDS);
+  const firstParty = firstPartyEntries();
+  const firstPartyIds = new Set<string>(FIRST_PARTY_NODE_IDS);
   const pluginEntries: RegistryEntry[] = pluginNodes
-    .filter((spec) => !builtInIds.has(spec.id))
+    .filter((spec) => !firstPartyIds.has(spec.id))
     .map((spec) => ({
       spec,
       source: "plugin" as const,
     }));
-  return [...builtIns, ...pluginEntries];
+  return [...firstParty, ...pluginEntries];
 }
 
 /**
- * Build the default `config` payload for a freshly-dropped node. Pulls
- * `defaultValue`s from `BUILT_IN_NODE_CONFIG_FIELDS`; returns an empty
- * object for plugin nodes (the user fills the free-form key/value
- * editor).
+ * Build the default `config` payload for a freshly-dropped node.
+ * Structural defaults (code node) win; otherwise `defaultValue`s are
+ * pulled from `NODE_CONFIG_FIELDS`; plugin / schema-less nodes get an
+ * empty object (the user fills the free-form JSON editor).
  */
 export function defaultConfigFor(nodeTypeId: string): Record<string, unknown> {
-  const fields = (
-    BUILT_IN_NODE_CONFIG_FIELDS as Record<string, readonly ConfigField[] | undefined>
-  )[nodeTypeId];
+  const structural = STRUCTURAL_DEFAULT_CONFIGS[nodeTypeId];
+  if (structural !== undefined) {
+    return structuredClone(structural);
+  }
+  const fields = NODE_CONFIG_FIELDS[nodeTypeId];
   if (fields === undefined) {
     return {};
   }
