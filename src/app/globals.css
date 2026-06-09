@@ -379,6 +379,29 @@
 .dockview-theme-vysted .dv-tab {
   letter-spacing: 0.04em;
   transition: color 120ms var(--ease-instrument, ease);
+  /* R7: a crowded strip used to crush labels mid-word ("Equi", "Sc…"). Below
+     this floor a tab is unreadable — hold it and let the strip overflow into
+     dockview's dropdown instead. */
+  min-width: 96px;
+}
+
+/* The tabs-overflow control ("+N hidden tabs") on the design ladder: a quiet
+   24px compact chip, not the library's unstyled default. */
+.dockview-theme-vysted .dv-tabs-overflow-dropdown-default {
+  background-color: var(--color-charcoal-850, #242424);
+  color: var(--color-charcoal-400, #a8a8a8);
+  border: 1px solid var(--color-charcoal-700, #353535);
+  border-radius: var(--radius-control, 4px);
+  font-size: 11px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 6px;
+}
+
+.dockview-theme-vysted .dv-tabs-overflow-dropdown-default:hover {
+  background-color: var(--color-charcoal-875, #1d1d1d);
+  color: var(--color-charcoal-100, #ededed);
 }
 
 /* Paint dockview's scroll viewport so a panel's over-scroll region never falls
