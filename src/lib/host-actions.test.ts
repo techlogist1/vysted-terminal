@@ -39,6 +39,7 @@ describe("host-actions", () => {
         "arrange_layout",
         "close_panel",
         "focus_panel",
+        "open_company_overview",
         "open_panel",
         "propose_order",
         "publish_brief",
