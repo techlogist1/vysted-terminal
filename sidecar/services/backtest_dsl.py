@@ -26,6 +26,13 @@ Grammar (EBNF) ::
     FUNC  = "sma" | "ema" | "rsi" | "highest" | "lowest" | "stdev" | "change" ;
     INT   = integer literal, 1..500 (indicator period) ;
 
+Hostile-input caps: a rule is limited to ``MAX_TOKENS`` tokens and
+``MAX_NESTING_DEPTH`` levels of ``(``/``not``/unary-minus nesting, so a
+paren bomb like ``'('*5000 + 'close > 1' + ')'*5000`` is a positioned
+:class:`DslError` ("expression too deeply nested"), never a
+``RecursionError`` escaping the validation surface; ``compile_rule``
+additionally converts any residual ``RecursionError`` to ``DslError``.
+
 Indicator semantics (per symbol, computed incrementally as the engine streams
 bars — same single-pass model as the built-in strategies):
 
@@ -86,6 +93,11 @@ KEYWORDS: frozenset[str] = frozenset({"and", "or", "not"})
 
 MIN_PERIOD = 1
 MAX_PERIOD = 500
+
+# Hostility caps — bound both parser recursion (nesting) and AST spine depth
+# (token flood → deep left-leaning BinOp chains in _collect_indicators/_eval).
+MAX_TOKENS = 256
+MAX_NESTING_DEPTH = 32
 
 _CMP_OPS = frozenset({">", ">=", "<", "<=", "==", "!="})
 
@@ -191,6 +203,12 @@ class _Parser:
         self.text = text
         self.tokens = _tokenize(text)
         self.index = 0
+        self._depth = 0
+        if len(self.tokens) > MAX_TOKENS:
+            raise DslError(
+                f"expression too long — max {MAX_TOKENS} tokens, got {len(self.tokens)}",
+                position=self.tokens[MAX_TOKENS].position,
+            )
 
     # -- token helpers ------------------------------------------------------
 
@@ -227,6 +245,17 @@ class _Parser:
         self.index += 1
         return token
 
+    def _enter_nesting(self, position: int) -> None:
+        # One shared depth budget for every recursive grammar production —
+        # parens, `not` chains, and unary-minus chains all consume it, so the
+        # parser's Python recursion is bounded regardless of input.
+        self._depth += 1
+        if self._depth > MAX_NESTING_DEPTH:
+            raise DslError(
+                f"expression too deeply nested — max depth {MAX_NESTING_DEPTH}",
+                position,
+            )
+
     # -- grammar ------------------------------------------------------------
 
     def parse(self) -> Node:
@@ -251,8 +280,12 @@ class _Parser:
         return values[0] if len(values) == 1 else BoolOp(op="and", values=tuple(values))
 
     def _not_expr(self) -> Node:
-        if self._accept_keyword("not") is not None:
-            return NotOp(operand=self._not_expr())
+        token = self._accept_keyword("not")
+        if token is not None:
+            self._enter_nesting(token.position)
+            operand = self._not_expr()
+            self._depth -= 1
+            return NotOp(operand=operand)
         return self._comparison()
 
     def _comparison(self) -> Node:
@@ -288,8 +321,12 @@ class _Parser:
             node = BinOp(op=token.text, left=node, right=self._factor())
 
     def _factor(self) -> Node:
-        if self._accept_op("-") is not None:
-            return Neg(operand=self._factor())
+        token = self._accept_op("-")
+        if token is not None:
+            self._enter_nesting(token.position)
+            operand = self._factor()
+            self._depth -= 1
+            return Neg(operand=operand)
         return self._primary()
 
     def _primary(self) -> Node:
@@ -297,7 +334,9 @@ class _Parser:
         if token.kind == "num":
             return Num(value=float(token.text))
         if token.kind == "op" and token.text == "(":
+            self._enter_nesting(token.position)
             node = self._or_expr()
+            self._depth -= 1
             self._expect_op(")", "to close the parenthesis")
             return node
         if token.kind == "ident":
@@ -375,14 +414,19 @@ def compile_rule(source: str) -> CompiledRule:
     stripped = source.strip()
     if not stripped:
         raise DslError("empty rule", position=0)
-    root = _Parser(source).parse()
-    if not _is_boolean(root):
-        raise DslError(
-            "rule must be a comparison or boolean expression, e.g. sma(20) > sma(50)",
-            position=0,
-        )
     indicators: set[tuple[str, int]] = set()
-    _collect_indicators(root, indicators)
+    try:
+        root = _Parser(source).parse()
+        if not _is_boolean(root):
+            raise DslError(
+                "rule must be a comparison or boolean expression, e.g. sma(20) > sma(50)",
+                position=0,
+            )
+        _collect_indicators(root, indicators)
+    except RecursionError:
+        # Belt-and-suspenders: the MAX_TOKENS/MAX_NESTING_DEPTH caps make this
+        # unreachable, but a parse must NEVER leak a non-DslError upward.
+        raise DslError("expression too deeply nested", position=0) from None
     required = max((_warmup_bars(n, p) for n, p in indicators), default=1)
     return CompiledRule(
         source=stripped,

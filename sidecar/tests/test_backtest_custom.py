@@ -129,6 +129,47 @@ class TestParser:
             with pytest.raises(DslError):
                 compile_rule(hostile)
 
+    def test_paren_recursion_bomb_is_a_dsl_error(self) -> None:
+        # The reviewer's exact adversarial input: 5000 nested parens must be a
+        # positioned DslError (the token cap fires first at this size), never
+        # a RecursionError escaping compile_rule or validate_definition
+        # ("Never raises" is a contract, not a hope).
+        bomb = "(" * 5000 + "close > 1" + ")" * 5000
+        with pytest.raises(DslError, match="too long"):
+            compile_rule(bomb)
+        report = validate_definition({"entry": bomb, "exit": "rsi(14) > 70"})
+        assert report["ok"] is False
+        assert report["errors"][0]["rule"] == "entry"
+        assert report["errors"][0]["position"] is not None
+
+    def test_nesting_depth_cap_fires_under_the_token_cap(self) -> None:
+        # 50 nested parens is only ~109 tokens — small enough to pass the
+        # token cap, deep enough that ONLY the depth budget stops it.
+        with pytest.raises(DslError, match="too deeply nested"):
+            compile_rule("(" * 50 + "close > 1" + ")" * 50)
+
+    def test_not_and_unary_minus_chains_are_depth_capped(self) -> None:
+        # `not` and unary-minus recurse in the parser too — same budget.
+        with pytest.raises(DslError, match="too deeply nested"):
+            compile_rule("not " * 50 + "close > 1")
+        with pytest.raises(DslError, match="too deeply nested"):
+            compile_rule("-" * 50 + "close > 1")
+
+    def test_token_flood_is_a_dsl_error(self) -> None:
+        # A flat `+ 1` spine parses iteratively but builds a deep left-leaning
+        # BinOp chain that would recurse in _collect_indicators/_eval — the
+        # token cap rejects it before any AST exists.
+        with pytest.raises(DslError, match="too long"):
+            compile_rule("close " + "+ 1 " * 5000 + "> 1")
+
+    def test_legal_nesting_and_width_still_parse(self) -> None:
+        # Depth under the cap parses fine...
+        deep = "(" * 10 + "close > 1" + ")" * 10
+        assert compile_rule(deep).required_bars == 1
+        # ...and sibling groups don't accumulate depth (budget is released).
+        wide = " and ".join("(close > sma(2))" for _ in range(25))
+        assert compile_rule(wide).indicators == frozenset({("sma", 2)})
+
 
 # ---------------------------------------------------------------------------
 # Evaluator
@@ -302,6 +343,20 @@ class TestRouter:
         assert body["ok"] is False
         assert body["errors"][0]["rule"] == "entry"
         assert body["errors"][0]["position"] == 8
+
+    def test_validate_survives_paren_recursion_bomb(self, client: TestClient) -> None:
+        # Reviewer's live repro: this exact body used to 500 (RecursionError
+        # escaping validate_definition). Contract: 200 + ok:false, always.
+        bomb = "(" * 5000 + "close > 1" + ")" * 5000
+        response = client.post(
+            "/backtest/strategies/custom/validate",
+            json={"entry": bomb, "exit": "rsi(14) > 70"},
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["ok"] is False
+        assert body["errors"][0]["rule"] == "entry"
+        assert body["errors"][0]["position"] is not None
 
     def test_custom_spec_listed_once_registered(self, client: TestClient) -> None:
         backtest_strategies.register_all()
