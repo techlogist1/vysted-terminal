@@ -1,22 +1,39 @@
 "use client";
 
 /**
- * Greeks Dashboard — Teammate Q Phase 6.
+ * Greeks Dashboard — analytic Black-Scholes Greeks surface.
  *
- * Standalone analytic-Greeks surface — same Black-Scholes inputs as the
- * option pricer panel but without the engine selector, so the user can
- * sweep inputs without picking "black-scholes" each time. Hits
- * ``POST /quant/option/greeks`` which always uses the analytic engine
- * (delta/gamma/vega/theta/rho are closed-form for a European vanilla).
+ * R7 layout (VYSTED_DESIGN.md):
+ *
+ *   ┌──────────────┬──────────────────────────────────────────────────┐
+ *   │ INPUT RAIL   │ BLACK-SCHOLES PRICE  ····  request echo (meta)   │
+ *   │  payoff      ├──────────────────────────────────────────────────┤
+ *   │  segmented   │ [Δ DELTA] [Γ GAMMA] [ν VEGA] [Θ THETA] [ρ RHO]   │
+ *   │  2-col grid  │   metric cards — section-size tabular values     │
+ *   │  of 32px     ├──────────────────────────────────────────────────┤
+ *   │  inputs      │ SENSITIVITY READ — full-width DataTable          │
+ *   │  inline      │   greek · value · what the partial measures      │
+ *   │  validation  ├──────────────────────────────────────────────────┤
+ *   │ [Compute]    │ computed in N ms · analytic engine               │
+ *   └──────────────┴──────────────────────────────────────────────────┘
+ *
+ * The results column fills the panel width (metric grid + sensitivity table),
+ * never a small table stranded in dead space. Empty state is the composed
+ * shared EmptyState whose CTA runs the compute with the prefilled inputs.
+ * Hits ``POST /quant/option/greeks`` (always the analytic engine — the five
+ * Greeks are closed-form for a European vanilla).
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Gauge } from "lucide-react";
 
+import { DataTable, type DataColumn } from "@/components/DataTable";
+import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { useQuantStore } from "@/store/quant";
 
-import type { GreeksRequest, OptionPayoff } from "../../../types/quant";
+import type { GreeksRequest, GreeksResult, OptionPayoff } from "../../../types/quant";
 
 interface FieldProps {
   label: string;
@@ -28,10 +45,12 @@ interface FieldProps {
   testId?: string;
 }
 
+/** One labelled rail input — micro label over a 32px inset field (text-body,
+ *  tabular figures so swept values stay column-stable). */
 function Field({ label, value, onChange, type = "number", step, disabled, testId }: FieldProps) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-charcoal-300 text-micro font-mono">{label}</span>
+      <span className="text-charcoal-500 text-micro">{label}</span>
       <input
         type={type}
         step={step}
@@ -39,9 +58,102 @@ function Field({ label, value, onChange, type = "number", step, disabled, testId
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         data-testid={testId}
-        className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
+        className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 w-full border px-3 tabular-nums outline-none disabled:opacity-50"
       />
     </label>
+  );
+}
+
+/** The static, honest sensitivity read per greek — the partial each value IS,
+ *  never a fabricated per-unit P&L scaling. */
+const GREEK_ROWS: {
+  key: keyof GreeksResult["greeks"];
+  glyph: string;
+  name: string;
+  read: string;
+}[] = [
+  { key: "delta", glyph: "Δ", name: "Delta", read: "∂V/∂S — sensitivity to the underlying spot" },
+  { key: "gamma", glyph: "Γ", name: "Gamma", read: "∂²V/∂S² — convexity of delta in spot" },
+  { key: "vega", glyph: "ν", name: "Vega", read: "∂V/∂σ — sensitivity to implied volatility" },
+  { key: "theta", glyph: "Θ", name: "Theta", read: "∂V/∂t — sensitivity to time decay" },
+  { key: "rho", glyph: "ρ", name: "Rho", read: "∂V/∂r — sensitivity to the risk-free rate" },
+];
+
+interface SensitivityRow {
+  glyph: string;
+  name: string;
+  value: number;
+  read: string;
+}
+
+const SENSITIVITY_COLUMNS: DataColumn<SensitivityRow>[] = [
+  {
+    key: "name",
+    header: "Greek",
+    width: "18%",
+    format: (r) => `${r.glyph} ${r.name}`,
+  },
+  {
+    key: "value",
+    header: "Value",
+    numeric: true,
+    width: "22%",
+    format: (r) => r.value.toFixed(4),
+  },
+  {
+    key: "read",
+    header: "Sensitivity",
+    tier: "secondary",
+    truncate: true,
+    width: "60%",
+    format: (r) => r.read,
+    title: (r) => r.read,
+  },
+];
+
+/** One per-greek metric card — micro label over a section-size tabular value. */
+function GreekCard({
+  glyph,
+  name,
+  value,
+  testId,
+}: {
+  glyph: string;
+  name: string;
+  value: number;
+  testId: string;
+}) {
+  return (
+    <div
+      className="border-charcoal-700 bg-charcoal-900 flex flex-col gap-2 rounded-none border p-6"
+      data-testid={testId}
+    >
+      <span className="text-charcoal-500 text-micro">
+        {glyph} {name}
+      </span>
+      <span className="text-charcoal-100 text-section tabular-nums">{value.toFixed(4)}</span>
+    </div>
+  );
+}
+
+/** Pulse skeleton mirroring the result layout — shown only for the first
+ *  compute (a re-compute keeps the previous result on screen). */
+function ResultSkeleton() {
+  return (
+    <div className="flex animate-pulse flex-col gap-8" data-testid="greeks-skeleton">
+      <div className="border-charcoal-700 rounded-none border p-6">
+        <div className="bg-charcoal-800 h-3 w-32 rounded-none" />
+        <div className="bg-charcoal-800 mt-3 h-6 w-24 rounded-none" />
+      </div>
+      <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-5">
+        {GREEK_ROWS.map((g) => (
+          <div key={g.key} className="border-charcoal-700 rounded-none border p-6">
+            <div className="bg-charcoal-800 h-3 w-16 rounded-none" />
+            <div className="bg-charcoal-800 mt-3 h-5 w-20 rounded-none" />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -60,9 +172,39 @@ export function GreeksDashboard() {
   const [valuationDate, setValuationDate] = useState("2026-05-16");
   const [expiryDate, setExpiryDate] = useState("2026-06-30");
 
+  // The request a displayed result was computed FROM — echoed next to the price
+  // so the readout never silently pairs with edited-but-uncomputed inputs.
+  const [computedReq, setComputedReq] = useState<GreeksRequest | null>(null);
+
   const isRunning = status === "loading";
 
+  // Honest inline validation — surfaced in the rail, never a silent NaN POST.
+  const validationError = useMemo(() => {
+    const nums = { spot, strike, "risk-free r": r, "div. yield q": q, "volatility σ": vol };
+    for (const [name, raw] of Object.entries(nums)) {
+      if (raw.trim() === "" || Number.isNaN(Number(raw))) {
+        return `Enter a numeric ${name}.`;
+      }
+    }
+    if (Number(spot) <= 0 || Number(strike) <= 0) {
+      return "Spot and strike must be positive.";
+    }
+    if (Number(vol) <= 0) {
+      return "Volatility must be positive.";
+    }
+    if (valuationDate === "" || expiryDate === "") {
+      return "Both dates are required.";
+    }
+    if (expiryDate <= valuationDate) {
+      return "Expiry must be after the valuation date.";
+    }
+    return null;
+  }, [spot, strike, r, q, vol, valuationDate, expiryDate]);
+
   const handleCompute = useCallback(async () => {
+    if (validationError !== null) {
+      return;
+    }
     const req: GreeksRequest = {
       payoff,
       spot: Number(spot),
@@ -75,22 +217,35 @@ export function GreeksDashboard() {
     };
     try {
       await computeGreeks(req);
+      setComputedReq(req);
     } catch {
       // surfaced via store
     }
-  }, [payoff, spot, strike, r, q, vol, valuationDate, expiryDate, computeGreeks]);
+  }, [validationError, payoff, spot, strike, r, q, vol, valuationDate, expiryDate, computeGreeks]);
+
+  const sensitivityRows: SensitivityRow[] = lastResult
+    ? GREEK_ROWS.map((g) => ({
+        glyph: g.glyph,
+        name: g.name,
+        value: lastResult.greeks[g.key],
+        read: g.read,
+      }))
+    : [];
 
   return (
     <div className="bg-charcoal-900 flex h-full min-h-0 w-full">
+      {/* --- Input rail ----------------------------------------------------- */}
       <aside
-        className="border-charcoal-700 flex w-72 flex-col gap-3 overflow-y-auto border-r p-3"
+        className="border-charcoal-700 flex w-72 shrink-0 flex-col gap-6 overflow-y-auto border-r p-6"
         data-testid="greeks-form"
       >
-        <div className="flex flex-col gap-1.5">
-          <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
-            Payoff
-          </span>
-          <div role="radiogroup" aria-label="Payoff" className="grid grid-cols-2 gap-1">
+        <div className="flex flex-col gap-1">
+          <span className="text-charcoal-500 text-micro">Payoff</span>
+          <div
+            role="radiogroup"
+            aria-label="Payoff"
+            className="border-charcoal-700 divide-charcoal-700 rounded-control flex h-8 divide-x overflow-hidden border"
+          >
             {(["call", "put"] as const).map((p) => (
               <button
                 type="button"
@@ -99,11 +254,12 @@ export function GreeksDashboard() {
                 aria-checked={payoff === p}
                 onClick={() => setPayoff(p)}
                 disabled={isRunning}
-                className={
+                className={cn(
+                  "text-micro flex-1",
                   payoff === p
-                    ? "rounded-control text-micro border-charcoal-600 bg-charcoal-875 text-charcoal-100 h-8 border font-mono"
-                    : "rounded-control border-charcoal-700 bg-charcoal-850 text-charcoal-300 hover:bg-charcoal-800 text-micro h-8 border font-mono"
-                }
+                    ? "bg-charcoal-875 text-lume"
+                    : "text-charcoal-400 hover:text-charcoal-200 bg-transparent",
+                )}
                 data-testid={`greeks-payoff-${p}`}
               >
                 {p.toUpperCase()}
@@ -112,7 +268,7 @@ export function GreeksDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <Field
             label="Spot"
             value={spot}
@@ -155,10 +311,16 @@ export function GreeksDashboard() {
           disabled={isRunning}
         />
 
+        {validationError !== null && (
+          <p className="text-negative text-caption" role="alert" data-testid="greeks-validation">
+            {validationError}
+          </p>
+        )}
+
         <Button
           type="button"
           onClick={handleCompute}
-          disabled={isRunning}
+          disabled={isRunning || validationError !== null}
           size="sm"
           variant="default"
           className="mt-auto"
@@ -169,10 +331,11 @@ export function GreeksDashboard() {
         </Button>
       </aside>
 
-      <section className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
+      {/* --- Results -------------------------------------------------------- */}
+      <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-8 overflow-y-auto p-6">
         {error && (
           <p
-            className="text-negative bg-negative/10 border-negative/30 text-caption mb-3 rounded-none border p-2 font-mono"
+            className="text-negative bg-negative/10 border-negative/30 text-caption rounded-none border px-3 py-2"
             role="alert"
             data-testid="greeks-error"
           >
@@ -181,49 +344,79 @@ export function GreeksDashboard() {
         )}
 
         {!lastResult && !isRunning && (
-          <div className="text-charcoal-500 text-caption flex h-full items-center justify-center font-mono">
-            Fill in the BSM inputs and click Compute Greeks.
-          </div>
+          <EmptyState
+            icon={Gauge}
+            headline="No Greeks computed"
+            hint="Set the Black-Scholes inputs on the left and compute — the price, all five Greeks, and a sensitivity read land here."
+            cta={{ label: "Compute Greeks", onClick: () => void handleCompute(), primary: true }}
+          />
         )}
 
+        {!lastResult && isRunning && <ResultSkeleton />}
+
         {lastResult && (
-          <div className="grid gap-4" data-testid="greeks-result">
-            <div className="border-charcoal-700 bg-charcoal-850 rounded-none border p-4">
-              <div className="text-charcoal-500 text-micro mb-2 font-mono tracking-widest uppercase">
-                Black-Scholes price
+          <div className="flex flex-col gap-8" data-testid="greeks-result">
+            {/* Price header — the hero number plus the request it was computed from. */}
+            <div className="border-charcoal-700 bg-charcoal-900 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 rounded-none border p-6">
+              <div className="flex flex-col gap-2">
+                <span className="text-charcoal-500 text-micro">Black-Scholes price</span>
+                <span
+                  className="text-overview text-charcoal-100 tabular-nums"
+                  data-testid="greeks-price"
+                >
+                  ${lastResult.price.toFixed(4)}
+                </span>
               </div>
-              <span
-                className="text-overview text-charcoal-300 font-mono"
-                data-testid="greeks-price"
-              >
-                ${lastResult.price.toFixed(4)}
-              </span>
+              {computedReq && (
+                <div
+                  className="text-charcoal-400 text-caption flex flex-col items-end gap-1 tabular-nums"
+                  data-testid="greeks-request-echo"
+                >
+                  <span>
+                    {computedReq.payoff.toUpperCase()} · S {computedReq.spot} · K{" "}
+                    {computedReq.strike} · σ {computedReq.volatility}
+                  </span>
+                  <span className="text-charcoal-500">
+                    r {computedReq.risk_free_rate} · q {computedReq.dividend_yield} ·{" "}
+                    {computedReq.valuation_date} → {computedReq.expiry_date}
+                  </span>
+                </div>
+              )}
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
-              <BigGreek label="Δ Delta" value={lastResult.greeks.delta} testId="greek-delta" />
-              <BigGreek label="Γ Gamma" value={lastResult.greeks.gamma} testId="greek-gamma" />
-              <BigGreek label="ν Vega" value={lastResult.greeks.vega} testId="greek-vega" />
-              <BigGreek label="Θ Theta" value={lastResult.greeks.theta} testId="greek-theta" />
-              <BigGreek label="ρ Rho" value={lastResult.greeks.rho} testId="greek-rho" />
+
+            {/* Per-greek metric grid — fills the panel width. */}
+            <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-5">
+              {GREEK_ROWS.map((g) => (
+                <GreekCard
+                  key={g.key}
+                  glyph={g.glyph}
+                  name={g.name}
+                  value={lastResult.greeks[g.key]}
+                  testId={`greek-${g.key}`}
+                />
+              ))}
             </div>
-            <div className="text-charcoal-500 text-micro font-mono">
+
+            {/* Sensitivity read — the full-width table pairing each value with
+                the partial derivative it measures. */}
+            <div className="border-charcoal-700 rounded-none border">
+              <h3 className="text-charcoal-200 border-charcoal-700 text-micro border-b px-3 py-2">
+                Sensitivity read
+              </h3>
+              <DataTable
+                columns={SENSITIVITY_COLUMNS}
+                rows={sensitivityRows}
+                rowKey={(row) => row.name}
+                data-testid="greeks-sensitivity"
+              />
+            </div>
+
+            <div className="text-charcoal-500 text-micro">
               computed in {lastResult.duration_ms.toFixed(1)} ms · analytic engine
             </div>
           </div>
         )}
       </section>
-    </div>
-  );
-}
-
-function BigGreek({ label, value, testId }: { label: string; value: number; testId: string }) {
-  return (
-    <div
-      className="border-charcoal-700 bg-charcoal-850 flex flex-col gap-1 rounded-none border p-3"
-      data-testid={testId}
-    >
-      <span className="text-charcoal-400 text-micro font-mono">{label}</span>
-      <span className="text-charcoal-100 text-body font-mono">{value.toFixed(4)}</span>
     </div>
   );
 }
