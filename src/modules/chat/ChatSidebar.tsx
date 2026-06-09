@@ -65,6 +65,7 @@ import {
 } from "./slash-commands";
 import { SlashCommandPicker } from "./SlashCommandPicker";
 import { streamAgentInvocation, streamChat } from "./streaming";
+import { useActiveAgentStore } from "@/store/active-agent";
 import { SuggestionChips } from "./SuggestionChips";
 
 /** The default agent: the terminal-aware router/concierge. Bare text routes here. */
@@ -342,7 +343,11 @@ export function ChatSidebar() {
     [lastEventBySource, focusedSource, updatedAt],
   );
 
-  const [activeAgentId, setActiveAgentId] = useState<string | null>(DEFAULT_AGENT_ID);
+  // R7: the active persona lives in a store so EXTERNAL affordances (the ⌘K
+  // agent rows) can switch it — it was component-local state, which made the
+  // palette's agent entries dead wiring.
+  const activeAgentId = useActiveAgentStore((s) => s.activeAgentId);
+  const setActiveAgentId = useActiveAgentStore((s) => s.setActiveAgent);
   // Explicit provider override (HUD pick); null = use the active agent's default.
   const [providerOverride, setProviderOverride] = useState<LLMProviderId | null>(null);
   const [composer, setComposer] = useState("");
