@@ -312,6 +312,29 @@ def _build_server() -> FastMCP:
                 _log.debug("list_workflows: workflow router not reachable: %s", exc)
                 return {"workflows": []}
 
+    @mcp.tool
+    async def save_workflow(spec_json: str) -> dict[str, Any]:
+        """Create or update a saved workflow. Maps to ``POST /workflow/save``.
+
+        ``spec_json`` is a JSON-encoded WorkflowSpec — the same shape
+        ``run_workflow`` accepts, including ``transform.code`` nodes
+        (``config = {"expression": str, "inputs": [str, ...]}``). This is the
+        agent's workflow-AUTHORING surface (R7 hackability): compose or amend
+        a workflow programmatically, then run it via ``run_workflow``.
+        """
+        from models.workflow import WorkflowSpec
+
+        try:
+            spec = WorkflowSpec.model_validate_json(spec_json)
+        except Exception as exc:  # noqa: BLE001 — surface parse errors cleanly
+            return {"ok": False, "error": f"invalid workflow spec: {exc}"}
+        async with _internal_client() as client:
+            response = await client.post(
+                "/workflow/save", json=spec.model_dump(mode="json", by_alias=True)
+            )
+            response.raise_for_status()
+            return {"ok": True, "workflow": response.json()}
+
     # ---------- Delegate-run tools (P3 durable-runs surface) ----------
 
     @mcp.tool

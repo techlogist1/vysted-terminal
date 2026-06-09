@@ -10,6 +10,7 @@
 - [ ] Palette ticker rows: also offer "add to watchlist" secondary action (nice-to-have).
 
 ## Integration sequence (planned ~when tracks land)
+
 1. Merge r7-chart (PASSED adversarial review). Live-eyeball toolbar; consider `▾` → ASCII per review note.
 2. Merge r7-chat → wire useActiveAgentStore into ChatSidebar (replace local state); lens display-name; verify stop/queue/depth live.
 3. Merge r7-hack → apply its INTEGRATION_NOTES (catalog: transform.code parity handler note, run_custom_backtest, save_workflow MCP).

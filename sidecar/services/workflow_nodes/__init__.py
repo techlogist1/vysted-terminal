@@ -31,7 +31,7 @@ import logging
 
 from services import workflow_engine
 
-from . import builtin
+from . import builtin, code_node
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +54,10 @@ def register_all() -> None:
     workflow_engine.register_node_type("action.notify_desktop", builtin.action_notify_desktop)
     workflow_engine.register_node_type("transform.json_path", builtin.transform_json_path)
     workflow_engine.register_node_type("flow.sleep", builtin.flow_sleep)
-    logger.info("workflow_nodes: registered %d built-in node types", 10)
+    # R7 hackability — the agent-authorable restricted-expression code node
+    # (server parity for the node editor's client-side mathjs lane).
+    code_node.register()
+    logger.info("workflow_nodes: registered %d built-in node types", 11)
 
 
 __all__ = ["builtin", "register_all"]

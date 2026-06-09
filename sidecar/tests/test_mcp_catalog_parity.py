@@ -30,6 +30,10 @@ _RUNTIME_ONLY = {
     "get_workspace",
     "run_workflow",
     "list_workflows",
+    # R7 hackability — the agent's workflow-AUTHORING surface (hand-written,
+    # MCP-only, like its run/list siblings; CLAUDE.md: workflow tools are not
+    # catalog read_handlers).
+    "save_workflow",
     "list_runs",
 }
 

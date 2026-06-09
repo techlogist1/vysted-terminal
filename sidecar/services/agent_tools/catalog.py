@@ -368,6 +368,18 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             ),
             input_schema=_obj(
                 {
+                    "formula": {
+                        "type": "string",
+                        "description": (
+                            "Optional boolean formula evaluated server-side per symbol, "
+                            "AND-combined with criteria. Fields: any numeric screener field "
+                            "(pe_ratio, market_cap, roe, ...; aliases pe, marketCap, pb, ...). "
+                            "Operators: + - * /, comparisons, and/or/not; functions abs/min/max. "
+                            "E.g. 'pe < 15 and roe > 0.2' or 'market_cap / volume > 1e6'. "
+                            "Rows missing a referenced field are skipped and itemized in "
+                            "skip_details as missing_field:<f>."
+                        ),
+                    },
                     "universe": {
                         "type": "string",
                         "enum": ["sp500", "nifty50", "crypto-top50", "custom"],
@@ -783,6 +795,57 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
         ),
+        _cap(
+            "run_custom_backtest",
+            description=(
+                "Author and run a CUSTOM backtest strategy from declarative "
+                "entry/exit rules over indicator comparisons (e.g. entry "
+                "'sma(20) > sma(50)', exit 'rsi(14) > 70'). Fields: open, high, "
+                "low, close, volume. Functions: sma(n), ema(n), rsi(n), "
+                "highest(n), lowest(n), stdev(n), change(n). Operators: "
+                "+ - * /, comparisons, and/or/not. Parsed server-side with a "
+                "restricted grammar (never eval) and executed in the SIMULATED "
+                "backtest engine — §6.5: no order path is reachable. Returns "
+                "the digest (metrics, best/worst/recent trades) plus the runId; "
+                "the full result renders in the backtest panel and resolves via "
+                "backtest_summary."
+            ),
+            input_schema=_obj(
+                {
+                    "entry": {
+                        "type": "string",
+                        "description": "Entry rule, e.g. 'sma(20) > sma(50)'.",
+                    },
+                    "exit": {
+                        "type": "string",
+                        "description": "Exit rule, e.g. 'rsi(14) > 70'.",
+                    },
+                    "symbols": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Tickers to trade.",
+                    },
+                    "start_date": _DATE,
+                    "end_date": _DATE,
+                    "position_size": {
+                        "type": "number",
+                        "default": 100,
+                        "description": "Fixed share quantity per trade.",
+                    },
+                    "initial_capital": {"type": "number", "default": 100000},
+                    "walk_forward_slices": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10,
+                        "default": 1,
+                    },
+                },
+                ["entry", "exit", "symbols", "start_date", "end_date"],
+            ),
+            domain="workflows",
+            read_only=True,
+            kind="read_handler",
+        ),
         # --- brokers (read-only) --------------------------------------------
         _cap(
             "broker_portfolio",
@@ -849,6 +912,29 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 ["symbol"],
             ),
             domain="charts",
+            read_only=False,
+            kind="host_action",
+        ),
+        _cap(
+            "open_company_overview",
+            description=(
+                "Open the Equity Overview panel ON a company (fundamentals, "
+                "statements, ratings) by ticker. Optional `highlight` names ONE "
+                "metric to spotlight for the user (e.g. pe_ratio, market_cap, "
+                "dividend_yield) — use it when explaining a specific metric "
+                "('what is a P/E ratio? show me on X')."
+            ),
+            input_schema=_obj(
+                {
+                    "symbol": {"type": "string"},
+                    "highlight": {
+                        "type": "string",
+                        "description": "Metric key to spotlight (optional).",
+                    },
+                },
+                ["symbol"],
+            ),
+            domain="terminal",
             read_only=False,
             kind="host_action",
         ),

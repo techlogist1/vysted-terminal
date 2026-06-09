@@ -8,6 +8,7 @@ venv's binaries for tooling (they have all deps incl. curl_cffi):
 cwd inside THIS worktree.
 
 ## Ground rules
+
 - Conventional commits, one per concrete deliverable; push to `origin worktree-agent-r7-research` after each commit.
 - Before each Python commit: `ruff format <changed> && ruff format --check sidecar && ruff check sidecar` and the targeted pytest suite (offline; mock network).
 - NEVER touch: `types/plugin.ts`, `.github/`, `src-tauri/tauri.conf.json`, `LICENSE*`, `CLAUDE.md`, `sidecar/models/audit_log.py`, `sidecar/services/kill_switch.py`, broker code, `sidecar/services/agent_tools/catalog.py` (owned by another track). If a catalog/app-shared change is genuinely required, append it to `docs/redesign/INTEGRATION_NOTES_R7.md` (create it) for the lead instead.
@@ -23,10 +24,12 @@ cwd inside THIS worktree.
   Extend/replace within this structure; keep the `SearchBackend` seam.
 
 ## Component 1 — T1 keyless tier (the default floor, rebuilt)
+
 Multi-engine rotation: DuckDuckGo (existing, keep its token-bucket + typed SearchError),
 Brave HTML scrape (html.brave.com... actually https://search.brave.com/search?q= HTML),
 Mojeek HTML scrape (https://www.mojeek.com/search?q=). Engine adapters parse to the
 uniform result dict {title,url,snippet}. Add:
+
 - `curl_cffi.requests.AsyncSession(impersonate="chrome")` transport for engines that
   reject httpx TLS fingerprints (Brave; DDG 403 fallback). httpx stays for friendly hosts.
 - Per-engine CircuitBreaker (CLOSED/OPEN/HALF_OPEN, fail_threshold≈2, cooldown≈30-60s).
@@ -47,7 +50,9 @@ uniform result dict {title,url,snippet}. Add:
   instead of a fake global outage.
 
 ## Component 2 — T2 one-click SearXNG ("Unlimited Research")
+
 New `services/searxng_manager.py` + router (e.g. `routers/search_tiers.py`):
+
 - detect(): docker CLI present? daemon reachable? (run `docker version --format json`
   via asyncio subprocess; also recognize OrbStack).
 - setup(): `docker pull searxng/searxng`, run with a generated settings.yml that enables
@@ -61,6 +66,7 @@ New `services/searxng_manager.py` + router (e.g. `routers/search_tiers.py`):
 - Tests: mock the subprocess layer; do not require docker in CI.
 
 ## Component 3 — T3 BYOK hosted tier
+
 - OpenRouter **web-search server tool** (the `:online` suffix / `web` plugin is the OLD
   deprecated path — use the current `plugins: [{"id": "web", ...}]`? VERIFY against the
   live docs at https://openrouter.ai/docs (you have WebFetch) and implement what the docs
@@ -78,6 +84,7 @@ New `services/searxng_manager.py` + router (e.g. `routers/search_tiers.py`):
   threaded via ContextVar — mirror that pattern).
 
 ## Component 4 — Depth router (N/D/U) + finance tuning
+
 - Map depth → loop: NORMAL → existing FAST bundle (+agent prose); DEEP → run_iter_research
   (≈3 rounds, 3 researchers); ULTRA → run_heavy_research (3 angles × iter, stricter
   coverage). Depth is per-query, orthogonal to tier. The brief depth tiers
@@ -103,6 +110,7 @@ New `services/searxng_manager.py` + router (e.g. `routers/search_tiers.py`):
 - Tests for the router + tuning (mock LLM + search).
 
 ## Definition of done for this track
+
 Every component implemented (no stubs/TODOs), offline tests green
 (`.venv pytest sidecar/tests -q` for your suites + full suite still green), ruff clean,
 each component committed + pushed, and a final `docs/redesign/R7_TRACK_RESEARCH_REPORT.md`

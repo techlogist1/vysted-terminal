@@ -101,6 +101,12 @@ def register_v0_6_0_tools() -> None:
     disclosure_tools.register()
     registered.append("disclosures")
 
+    # R7 Track N — custom-DSL backtest authoring.
+    from services.agent_tools import run_custom_backtest
+
+    run_custom_backtest.register()
+    registered.append("backtest-custom")
+
     if registered:
         logger.info("agent_tools: registered v0.6.0 domains: %s", ", ".join(registered))
     else:

@@ -58,7 +58,14 @@ from services.planner import classify_intent, decompose
 #: vocabulary minus research/answer, which execute inside the loop, and with NO
 #: order verb — so a plan never touches the §6.5 path).
 _STAGEABLE_PLAN_ACTIONS = frozenset(
-    {"open_panel", "set_chart_symbol", "set_chart_indicators", "add_to_watchlist", "arrange_layout"}
+    {
+        "open_panel",
+        "set_chart_symbol",
+        "set_chart_indicators",
+        "add_to_watchlist",
+        "arrange_layout",
+        "open_company_overview",
+    }
 )
 
 #: Read-safe panel host-actions RETAINED on a READ intent (locked Decision 4): a
@@ -66,7 +73,14 @@ _STAGEABLE_PLAN_ACTIONS = frozenset(
 #: layout. These mutate only the cockpit view, never the broker — ``propose_order``
 #: is DELIBERATELY absent, so a read turn can never reach the §6.5 order path.
 _READ_SAFE_PANEL_ACTIONS = frozenset(
-    {"open_panel", "set_chart_symbol", "set_chart_indicators", "arrange_layout", "add_to_watchlist"}
+    {
+        "open_panel",
+        "set_chart_symbol",
+        "set_chart_indicators",
+        "arrange_layout",
+        "add_to_watchlist",
+        "open_company_overview",
+    }
 )
 
 #: Providers reliable enough at instruction-following for the visible planner. The

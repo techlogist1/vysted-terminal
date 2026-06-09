@@ -121,7 +121,7 @@ ownership rules), plus wiring the frontend/lead must pick up.
   `parameters`. The live docs (verified 2026-06-10,
   https://openrouter.ai/docs/guides/features/server-tools/web-search) support
   `parameters: {engine, max_results, max_total_results, search_context_size,
-  allowed_domains, excluded_domains}` — the agent-loop injection could carry
+allowed_domains, excluded_domains}` — the agent-loop injection could carry
   the user's engine choice via `config.get_hosted_search_engine()`. The t3
   search backend (`services/search/hosted.py:web_search_server_tool`) owns its
   own fully-parameterized builder, so this is an enhancement, not a defect.
@@ -138,11 +138,11 @@ ownership rules), plus wiring the frontend/lead must pick up.
 New per-request headers read by the region middleware (`sidecar/app.py`
 `_RegionMiddleware`), mirroring the existing `X-Vysted-Search-Tier` transport:
 
-| Header | ContextVar | Values |
-| --- | --- | --- |
-| `X-Vysted-Research-Tier` | `config.get_research_search_tier()` | `t1_local` / `t2_searxng` / `t3_hosted` (absent → no explicit selection, floors to t1) |
-| `X-Vysted-Openrouter-Key` | `config.get_openrouter_search_key()` | BYOK secret — keychain-sourced, never persisted/logged |
-| `X-Vysted-Search-Engine` | `config.get_hosted_search_engine()` | `firecrawl` (default) / `exa` / `parallel` / `auto` / `native` |
+| Header                    | ContextVar                           | Values                                                                                 |
+| ------------------------- | ------------------------------------ | -------------------------------------------------------------------------------------- |
+| `X-Vysted-Research-Tier`  | `config.get_research_search_tier()`  | `t1_local` / `t2_searxng` / `t3_hosted` (absent → no explicit selection, floors to t1) |
+| `X-Vysted-Openrouter-Key` | `config.get_openrouter_search_key()` | BYOK secret — keychain-sourced, never persisted/logged                                 |
+| `X-Vysted-Search-Engine`  | `config.get_hosted_search_engine()`  | `firecrawl` (default) / `exa` / `parallel` / `auto` / `native`                         |
 
 The Settings panel should persist the tier + engine in the frontend store
 (same pattern as the deep-research engine selection) and send them on every
@@ -195,7 +195,7 @@ sidecar request. The deep-research Settings picker may now also offer
   `depth` on the `research` tool call (no new headers). If a UI depth picker
   ships, send `normal|deep|ultra` — the sidecar normalizes any spelling.
 - ULTRA briefs may carry `structured.cross_check` (`{claims:[{claim, verdict:
-  agree|disagree|unverified, detail, domains}], disagreements, min_domains}` or
+agree|disagree|unverified, detail, domains}], disagreements, min_domains}` or
   `{skipped, reason}`) plus a `## Cross-check` markdown section; a disagreement
   count is appended to `note`. The brief panel can badge disagreements from
   `structured.cross_check.disagreements` without parsing markdown.

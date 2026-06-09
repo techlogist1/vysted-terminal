@@ -543,7 +543,6 @@ class TestRunCustomBacktestTool:
         assert agent_tools.is_registered("run_custom_backtest")
         agent_tools.reset_for_tests()
 
-    @pytest.mark.skip(reason="lead wires catalog entry")
     def test_catalog_capability_exists(self) -> None:
         """Passes once the lead lands the Capability from INTEGRATION_NOTES."""
         from services.agent_tools.catalog import CAPABILITY_CATALOG

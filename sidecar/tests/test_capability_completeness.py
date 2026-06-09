@@ -116,12 +116,13 @@ def test_copilot_grants_b2_actions() -> None:
 
 def test_copilot_grants_market_overview_and_roster_count() -> None:
     """WS1: market_overview is wired into the copilot's tool roster, which now
-    totals 36 tools (34 + the R7 corporate_announcements/shareholding_pattern)."""
+    totals 37 tools (34 + the R7 corporate_announcements/shareholding_pattern
+    + the R7 open_company_overview host action)."""
     tools = _copilot_tools()
     assert "market_overview" in tools, (
         "copilot.json 'tools' is missing 'market_overview' — the copilot cannot reach it"
     )
-    assert len(tools) == 36, f"copilot tool roster expected 36, got {len(tools)}"
+    assert len(tools) == 37, f"copilot tool roster expected 37, got {len(tools)}"
 
 
 def test_copilot_and_researcher_grant_disclosure_tools() -> None:

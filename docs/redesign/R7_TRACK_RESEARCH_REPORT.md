@@ -7,19 +7,19 @@ this worktree on 2026-06-10 (output below).
 
 ## Commits (one per deliverable, all pushed)
 
-| Commit | Deliverable |
-| --- | --- |
+| Commit    | Deliverable                                                                                          |
+| --------- | ---------------------------------------------------------------------------------------------------- |
 | `02c76ef` | deps: `curl_cffi==0.15.0` + explicit `beautifulsoup4==4.14.3` pin (`sidecar/requirements.txt:12,16`) |
-| `2b72b95` | T1 primitives: per-engine circuit breakers, pacing queue, dual-lane transport |
-| `e259d57` | Brave + Mojeek HTML engine adapters; DDG 403 impersonation fallback |
-| `94d16f5` | T1 keyless multi-engine rotation backend + honest `GET /search/status` |
-| `32a435d` | Full-page `visit` extraction + odysseus prompt-injection scrubbing |
-| `6d0d609` | T2 one-click managed SearXNG (docker state machine + guided-flow router) |
-| `b194354` | fix: sticky error state on the SearXNG status poll |
-| `336968a` | Tier-selection config (`t1_local\|t2_searxng\|t3_hosted`) via per-request ContextVars |
-| `5d6c016` | T3 BYOK hosted tier — OpenRouter `web_search` server tool + cost estimate |
-| `1c327bf` | Sonar one-call lane via OpenRouter + `normalize_openai` citation path |
-| `53a87c3` | Depth router (normal/deep/ultra) + finance tuning |
+| `2b72b95` | T1 primitives: per-engine circuit breakers, pacing queue, dual-lane transport                        |
+| `e259d57` | Brave + Mojeek HTML engine adapters; DDG 403 impersonation fallback                                  |
+| `94d16f5` | T1 keyless multi-engine rotation backend + honest `GET /search/status`                               |
+| `32a435d` | Full-page `visit` extraction + odysseus prompt-injection scrubbing                                   |
+| `6d0d609` | T2 one-click managed SearXNG (docker state machine + guided-flow router)                             |
+| `b194354` | fix: sticky error state on the SearXNG status poll                                                   |
+| `336968a` | Tier-selection config (`t1_local\|t2_searxng\|t3_hosted`) via per-request ContextVars                |
+| `5d6c016` | T3 BYOK hosted tier — OpenRouter `web_search` server tool + cost estimate                            |
+| `1c327bf` | Sonar one-call lane via OpenRouter + `normalize_openai` citation path                                |
+| `53a87c3` | Depth router (normal/deep/ultra) + finance tuning                                                    |
 
 ## Component 1 — T1 keyless tier (shipped)
 
@@ -66,7 +66,7 @@ this worktree on 2026-06-10 (output below).
 
 - `sidecar/services/searxng_manager.py:243` `SearxngManager` — the
   state machine (states :76): `not_installed_docker | docker_present_not_setup
-  | pulling | starting | ready | error(reason)`.
+| pulling | starting | ready | error(reason)`.
   - `detect()` via `docker version --format json` over asyncio subprocess
     (`_run_docker` :128, `_parse_docker_version` :192 — recognizes OrbStack).
   - `setup()`: pull `searxng/searxng`, generate a JSON-format-enabled
@@ -215,7 +215,7 @@ Full detail in `docs/redesign/INTEGRATION_NOTES_R7.md`. Summary:
   enhancement the lead can apply, the t3 backend owns its own builder.
 - **`normalize_openai` excerpt fallback:** the server tool's `url_citation`
   carries the excerpt under `content`; suggested one-line `_get(src,
-  "content")` first in the fallback chain (sources still render without it).
+"content")` first in the fallback chain (sources still render without it).
 - **Frontend settings round-trip:** persist tier + engine in the frontend
   store and send `X-Vysted-Research-Tier` / `X-Vysted-Openrouter-Key`
   (keychain-sourced) / `X-Vysted-Search-Engine` on every sidecar request —
