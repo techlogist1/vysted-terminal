@@ -73,12 +73,16 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
             "searxng", searxng_url=searxng_url, region=region
         )
 
-    # The keyless FLOOR: DuckDuckGo needs no key/URL, so it ALWAYS resolves. Wiring
-    # it last means web search is never dark on a fresh install (Track 1 — "works
-    # out of the box") while never overriding a configured native/BYOK/SearXNG
-    # route the user chose.
+    # The keyless FLOOR: the T1 multi-engine rotation (DDG → Brave → Mojeek with
+    # per-engine breakers + pacing) needs no key/URL, so it ALWAYS resolves.
+    # Wiring it last means web search is never dark on a fresh install (Track 1 —
+    # "works out of the box") while never overriding a configured native/BYOK/
+    # SearXNG route the user chose. The bare single-engine ddg floor stays as the
+    # defensive fallback should the keyless module ever fail to import.
     if backend is None:
-        backend = registry.resolve("ddg", region=region)
+        backend = registry.resolve("keyless", region=region) or registry.resolve(
+            "ddg", region=region
+        )
 
     if backend is None:  # pragma: no cover — ddg always resolves; defensive only
         return {"ok": False, "query": query, "message": _NO_BACKEND_MESSAGE}

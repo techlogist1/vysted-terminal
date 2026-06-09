@@ -43,6 +43,7 @@ from routers import (
     runs,
     safety,
     screener,
+    search_status,
     sec_filings,
     system,
     tradesa_v2,
@@ -79,6 +80,7 @@ _ROUTERS = (
     quant,
     earnings,
     screener,
+    search_status,
     system,
     tradesa_v2,
 )

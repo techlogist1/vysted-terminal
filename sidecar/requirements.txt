@@ -10,6 +10,10 @@ httpx==0.28.1
 # anti-bot guards reject plain httpx). Ships a bundled libcurl-impersonate —
 # PyInstaller needs --collect-all=curl_cffi (see ensure-sidecar.mjs).
 curl_cffi==0.15.0
+# R7 — bs4 was only a TRANSITIVE dep (via yfinance); the keyless T1 engines
+# (Brave/Mojeek SERP parse) and the research full-page extractor import it
+# directly, so pin it explicitly to survive an upstream dep shuffle.
+beautifulsoup4==4.14.3
 feedparser==6.0.12
 numpy==2.4.4
 pandas==3.0.3

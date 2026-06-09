@@ -11,9 +11,13 @@ Backend ids:
 
   * ``"exa"`` — Tier-2 BYOK REST search; needs ``EXA_API_KEY`` (``exa_key``).
   * ``"searxng"`` — Tier-3 local/private metasearch; needs a base ``searxng_url``.
-  * ``"ddg"`` — the keyless FLOOR (DuckDuckGo); needs nothing, so it always
-    resolves. Not a user-selectable tier — the ``web_search`` handler falls back
-    to it last so search is never dark on a fresh, key-less install.
+  * ``"keyless"`` — the rebuilt T1 keyless tier (R7): DuckDuckGo → Brave →
+    Mojeek rotation with per-engine circuit breakers, pacing, and a quality
+    filter (:mod:`services.search.keyless`). Needs nothing, always resolves —
+    the ``web_search`` handler's default floor.
+  * ``"ddg"`` — the single-engine DuckDuckGo floor the keyless tier grew out
+    of. Kept resolvable as the defensive fallback should the keyless module
+    ever fail to import.
 
 The concrete backends live in :mod:`services.search.exa` /
 :mod:`services.search.searxng` and are **lazy-imported** here (guarded) so the
@@ -28,8 +32,8 @@ from collections.abc import Callable
 from .base import SearchBackend
 
 #: Known backend ids, in preference order (BYOK first, then local, then the
-#: keyless DuckDuckGo floor that always resolves).
-KNOWN_BACKENDS: tuple[str, ...] = ("exa", "searxng", "ddg")
+#: keyless multi-engine tier, then the bare DuckDuckGo floor it grew out of).
+KNOWN_BACKENDS: tuple[str, ...] = ("exa", "searxng", "keyless", "ddg")
 
 
 def _build_exa(
@@ -69,11 +73,23 @@ def _build_ddg(
     return DdgSearchBackend(region=region)
 
 
+def _build_keyless(
+    *, exa_key: str | None, searxng_url: str | None, region: str | None
+) -> SearchBackend | None:
+    """Construct the T1 keyless rotation tier — UNCONDITIONAL (needs no credential)."""
+    try:
+        from .keyless import KeylessSearchBackend
+    except ImportError:
+        return None
+    return KeylessSearchBackend(region=region)
+
+
 # Each builder takes the full credential bundle by keyword and returns a backend
 # or ``None``; keeping a uniform signature lets resolve() dispatch generically.
 _BUILDERS: dict[str, Callable[..., SearchBackend | None]] = {
     "exa": _build_exa,
     "searxng": _build_searxng,
+    "keyless": _build_keyless,
     "ddg": _build_ddg,
 }
 
