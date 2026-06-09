@@ -200,9 +200,32 @@ class ScreenerRequest(BaseModel):
     # ``criteria`` (which stays AND-combined for back-compat). Lets the UI / agent
     # express OR + grouped logic without breaking the old wire shape.
     group: CriterionGroup | None = None
+    # Optional free-text boolean expression evaluated SERVER-SIDE per universe
+    # member, AND-combined with the criteria/group (R7 Pillar 3). The grammar is
+    # services.screener_formula (field refs + arithmetic + comparisons +
+    # and/or/not + abs/min/max — no eval). A row missing a referenced field is
+    # skipped and itemized ``missing_field:<f>`` in the skip ledger.
+    formula: str | None = None
     # Upper-bounded to match types/screener.ts ("max 1000") and the runtime
     # clamp in services/screener.py (_MAX_LIMIT=1000) — Phase 9.5.
     limit: int = Field(default=200, ge=1, le=1000)
+
+    @field_validator("formula")
+    @classmethod
+    def _formula_parses(cls, v: str | None) -> str | None:
+        """Reject an unparseable formula at the request boundary (422 with the
+        parser's message + 1-based column). Blank normalizes to ``None``. The
+        import is lazy to keep ``models`` free of import-time service deps."""
+        if v is None or not v.strip():
+            return None
+        from services.screener_formula import FormulaError, compile_formula
+
+        try:
+            compile_formula(v)
+        except FormulaError as exc:
+            col = f" (col {exc.position + 1})" if exc.position is not None else ""
+            raise ValueError(f"invalid formula: {exc}{col}") from exc
+        return v
 
     @model_validator(mode="after")
     def _custom_requires_symbols(self) -> ScreenerRequest:
@@ -255,14 +278,34 @@ class SkipDetail(BaseModel):
       - ``"rate_limited"`` — the upstream throttled the request (HTTP 429).
       - ``"correctness_gate"`` — the provider raised a ``ProviderError`` (a
         deliberate refusal to fabricate a value).
-      - ``"missing_field:<field>"`` — a criterion referenced a field neither the
-        batch row nor the per-symbol enrichment could supply for this symbol.
+      - ``"missing_field:<field>"`` — a criterion or the custom ``formula``
+        referenced a field neither the batch row nor the per-symbol enrichment
+        could supply for this symbol.
     """
 
     model_config = ConfigDict(extra="forbid")
 
     symbol: str
     reason: str
+
+
+class FormulaValidation(BaseModel):
+    """Response shape from ``POST /screener/formula/validate`` (R7 Pillar 3).
+
+    The inline-validation surface for the custom formula grammar
+    (:mod:`services.screener_formula`) — never a 4xx/5xx for a bad formula;
+    the error + 0-based caret ``position`` ride the body so an editor (or the
+    agent) can render `^` at the offending column.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    ok: bool
+    error: str | None = None
+    #: 0-based character offset of the error in the formula text.
+    position: int | None = None
+    #: Canonical (snake_case) fields the formula references, sorted.
+    fields: list[str] = Field(default_factory=list)
 
 
 class ScreenerResult(BaseModel):

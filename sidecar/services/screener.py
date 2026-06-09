@@ -80,7 +80,7 @@ from models.screener import (
     SkipDetail,
     StringEqCriterion,
 )
-from services import data_cache, provider_registry, yahoo_batch_provider
+from services import data_cache, provider_registry, screener_formula, yahoo_batch_provider
 from services.errors import ProviderError
 
 logger = logging.getLogger(__name__)
@@ -472,12 +472,20 @@ def _criteria_fields(criteria: list[ScreenerCriterion], group: CriterionGroup | 
 
 
 def _enrichment_fields_needed(
-    criteria: list[ScreenerCriterion], group: CriterionGroup | None
+    criteria: list[ScreenerCriterion],
+    group: CriterionGroup | None,
+    formula_fields: frozenset[str] = frozenset(),
 ) -> set[str]:
-    """The screened fields the v7 batch row cannot supply (need ``.info``)."""
+    """The screened fields the v7 batch row cannot supply (need ``.info``).
+
+    ``formula_fields`` are the canonical fields the request's custom formula
+    references (R7 Pillar 3) — they participate in enrichment exactly like
+    criterion fields so a formula over e.g. ``gross_margin`` triggers the same
+    throttled ``.info`` fetch instead of skipping every batch row.
+    """
     return {
         f
-        for f in _criteria_fields(criteria, group)
+        for f in (_criteria_fields(criteria, group) | set(formula_fields))
         if yahoo_batch_provider.field_needs_enrichment(f)
     }
 
@@ -644,6 +652,7 @@ async def _batch_collect(
     universe: ScreenerUniverse,
     criteria: list[ScreenerCriterion],
     group: CriterionGroup | None,
+    formula_fields: frozenset[str] = frozenset(),
 ) -> tuple[
     dict[str, tuple[Fundamentals, Quote | None]],
     dict[str, str],
@@ -691,8 +700,9 @@ async def _batch_collect(
             await _write_cached_quote(quote)
             await _write_cached_fundamentals(fundamentals)
 
-    # 3) Enrichment — only when a criterion (flat OR group) needs a field v7 omits.
-    needed = _enrichment_fields_needed(criteria, group)
+    # 3) Enrichment — only when a criterion (flat OR group) or the custom
+    #    formula needs a field v7 omits.
+    needed = _enrichment_fields_needed(criteria, group, formula_fields)
     if needed and pairs:
         sem = asyncio.Semaphore(_FETCH_CONCURRENCY)
         to_enrich = [
@@ -723,9 +733,12 @@ async def run_screener(req: ScreenerRequest) -> ScreenerResult:
     """Resolve the universe, fan out (batch fast path + fallback), filter, return.
 
     Filters by the request's ``group`` (AND/OR boolean tree) when present, else by
-    the flat AND-combined ``criteria``. Returns up to ``req.limit`` rows sorted by
-    market cap desc. Every dropped symbol is itemized in ``skip_details``
-    (SC-034); ``skipped_count == len(skip_details)``.
+    the flat AND-combined ``criteria``; an optional ``formula`` (the restricted
+    expression grammar in :mod:`services.screener_formula`) is AND-combined on
+    top. Returns up to ``req.limit`` rows sorted by market cap desc. Every
+    dropped symbol is itemized in ``skip_details`` (SC-034);
+    ``skipped_count == len(skip_details)`` — including rows the formula could
+    not evaluate because a referenced field was missing.
     """
     started_at = time.monotonic()
 
@@ -736,13 +749,23 @@ async def run_screener(req: ScreenerRequest) -> ScreenerResult:
     criteria = list(req.criteria)
     group = req.group
 
+    # The request model already validated the formula; compile_formula here is
+    # cheap and keeps this entrypoint safe for direct (non-HTTP) callers — a
+    # FormulaError subclasses ValueError, which the router maps to a 400.
+    compiled_formula = (
+        screener_formula.compile_formula(req.formula)
+        if req.formula and req.formula.strip()
+        else None
+    )
+    formula_fields = compiled_formula.fields if compiled_formula is not None else frozenset()
+
     # Fields the screen references that the v7 batch row cannot supply. A symbol
     # whose resolved fundamentals STILL lack one of these — whether it came off
     # the batch enrichment or the per-symbol fallback — is itemized
     # ``missing_field:<f>`` rather than silently failing the criterion. (For the
     # per-symbol / fallback path the registry fundamentals usually carry every
     # field, so this only bites when the upstream genuinely omits one.)
-    needed_fields = _enrichment_fields_needed(criteria, group)
+    needed_fields = _enrichment_fields_needed(criteria, group, formula_fields)
 
     pairs_by_symbol: dict[str, tuple[Fundamentals, Quote | None]] = {}
     skip_reasons: dict[str, str] = {}
@@ -753,7 +776,9 @@ async def run_screener(req: ScreenerRequest) -> ScreenerResult:
     #     path (no v7 batch equivalent). ---
     if universe.id in _BATCH_UNIVERSES and universe.asset_class == "equity":
         try:
-            batch_pairs, batch_skips = await _batch_collect(universe, criteria, group)
+            batch_pairs, batch_skips = await _batch_collect(
+                universe, criteria, group, formula_fields
+            )
         except Exception as exc:  # noqa: BLE001 — batch must never crash the screen
             logger.warning("screener: batch path failed, degrading to per-symbol: %s", exc)
             batch_pairs, batch_skips = {}, {}
@@ -792,8 +817,28 @@ async def run_screener(req: ScreenerRequest) -> ScreenerResult:
                 # Fallback's reason supersedes the batch's provisional one.
                 skip_reasons[key] = reason
 
+    # --- Custom formula (R7 Pillar 3) — evaluated server-side per pair. A row
+    #     missing a referenced field is SKIPPED and itemized (never a silent
+    #     criterion-fail); a row the formula rejects stays in the evaluated
+    #     count but is excluded from the match set (AND semantics). ---
+    formula_rejected: set[str] = set()
+    if compiled_formula is not None:
+        for key, (fundamentals, quote) in list(pairs_by_symbol.items()):
+            matched_row, missing = screener_formula.evaluate_formula(
+                compiled_formula, fundamentals, quote
+            )
+            if missing is not None:
+                pairs_by_symbol.pop(key)
+                skip_reasons[key] = f"missing_field:{missing}"
+            elif not matched_row:
+                formula_rejected.add(key)
+
     pairs = list(pairs_by_symbol.values())
-    matched = apply_criteria(pairs, criteria, group=group)
+    matched = apply_criteria(
+        [pair for key, pair in pairs_by_symbol.items() if key not in formula_rejected],
+        criteria,
+        group=group,
+    )
 
     # Apply limit. Clamp to ``_MAX_LIMIT`` so a malformed request body
     # cannot pull a 10k-row response.

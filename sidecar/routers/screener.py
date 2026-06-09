@@ -1,11 +1,15 @@
-"""Screener router — Phase 6 (Teammate Sc).
+"""Screener router — Phase 6 (Teammate Sc); R7 Pillar 3 formula layer.
 
-Two endpoints:
+Three endpoints:
 
-  - ``POST /screener/run``        — run the screener; returns
+  - ``POST /screener/run``              — run the screener; returns
     :class:`ScreenerResult`.
-  - ``GET  /screener/universe``    — resolve a universe by id; returns
+  - ``GET  /screener/universe``          — resolve a universe by id; returns
     :class:`ScreenerUniverse`.
+  - ``POST /screener/formula/validate``  — validate a custom formula against
+    the restricted expression grammar; returns :class:`FormulaValidation`
+    (``ok`` / ``error`` / caret ``position`` / referenced ``fields``) — never
+    a 4xx for a bad formula.
 
 The screener engine ( :mod:`services.screener` ) owns the filter
 semantics; this router is a thin adapter that validates the request
@@ -17,12 +21,27 @@ ProviderError exception handler in :mod:`app`.
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel, ConfigDict
 
-from models.screener import ScreenerRequest, ScreenerResult, ScreenerUniverse, ScreenerUniverseId
-from services import screener
+from models.screener import (
+    FormulaValidation,
+    ScreenerRequest,
+    ScreenerResult,
+    ScreenerUniverse,
+    ScreenerUniverseId,
+)
+from services import screener, screener_formula
 from services.errors import ProviderError
 
 router = APIRouter(prefix="/screener", tags=["screener"])
+
+
+class FormulaValidateRequest(BaseModel):
+    """Body for ``POST /screener/formula/validate``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    formula: str
 
 
 @router.post("/run", response_model=ScreenerResult)
@@ -50,6 +69,19 @@ async def run_screener(request: ScreenerRequest) -> ScreenerResult:
         # already enforces (e.g. an unknown universe id is a ValueError
         # in the engine).
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/formula/validate", response_model=FormulaValidation)
+async def validate_formula(request: FormulaValidateRequest) -> FormulaValidation:
+    """Validate a custom screener formula (R7 Pillar 3).
+
+    The recovery-first inline-validation surface: a malformed formula is an
+    ``ok: false`` body carrying the parser's message and 0-based caret
+    ``position`` — never an HTTP error — so an editor or the agent can render
+    the ``^`` marker and self-correct. A valid formula returns the sorted
+    canonical fields it references.
+    """
+    return FormulaValidation(**screener_formula.validate_formula(request.formula))
 
 
 @router.get("/universe", response_model=ScreenerUniverse)
