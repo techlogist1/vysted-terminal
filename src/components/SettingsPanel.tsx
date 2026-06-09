@@ -11,12 +11,13 @@ import {
   Cpu,
   Download,
   FlaskConical,
+  Globe,
   Info,
   KeyRound,
   Keyboard,
+  LayoutPanelLeft,
   Network,
   Package,
-  Palette,
   Plug,
   RotateCcw,
   Search,
@@ -77,25 +78,30 @@ import type { LLMModelOption, LLMProviderId } from "../../types/ai";
  * Settings — the discoverable control surface (Cursor-grade preferences,
  * FR-037/FR-038/FR-039, SC-011).
  *
- * Sections:
- *  - AI Providers (BYOK): the "where do I put my key" surface. Every provider
- *    shows its key status from the OS keychain with add / update / remove, plus
- *    a default-provider picker. This is what first-run onboarding points to.
- *  - Preferences: default agent/persona, default provider + provider
- *    *preference order*, default model, command-palette behaviour, the FR-032
- *    starter-cockpit composition, and the dark-only theme knobs.
- *  - Keybindings (FR-039): every bindable action with its current combo, an
- *    inline key recorder, a reset, and a surfaced conflict warning.
- *  - Integrations: read-only broker connections.
- *  - Layouts: save / restore / delete named cockpits + reset to the default.
- *  - Modules: enable / disable registered modules.
- *  - Export / Import (FR-037/FR-038): round-trip every preference between
- *    machines as a JSON bundle — explicitly WITHOUT secrets (FR-036/SC-010).
- *  - About: the open / local-first / BYOK positioning + version.
+ * R7 layout (VYSTED_DESIGN.md) — a sectioned hierarchy instead of a wall:
  *
- * Opened from the toolbar gear, the `platform.open-settings` command, or the
- * onboarding banner. Wired into the platform module as
- * `panelComponents["settings-panel"]`.
+ *   Settings
+ *   [jump nav: AI Providers · Web search · Research · Region & locale ·
+ *              Interface · Keybindings · Advanced]
+ *   ── AI Providers ──────────────────────────────────────────────
+ *      key rows (fixed-slot right cluster, so status text and buttons
+ *      align row to row) · defaults (agent/provider/model) · order
+ *   ── Web search ────────────────────────────────────────────────
+ *   ── Research ──────────────────────────────────────────────────
+ *      deep research · hardware & local models
+ *   ── Region & locale ───────────────────────────────────────────
+ *   ── Interface ─────────────────────────────────────────────────
+ *      command palette · starter cockpit · appearance
+ *   ── Keybindings ───────────────────────────────────────────────
+ *   ── Advanced ──────────────────────────────────────────────────
+ *      integrations · layouts · modules · export/import · about
+ *
+ * Rows share ONE primitive (32px-control SettingRow inside a single bordered
+ * card with hairline dividers — never a card per row); toggles are readable
+ * switches, never 8px checkboxes. Every pre-R7 setting stays reachable and
+ * its store wiring is untouched. Opened from the toolbar gear, the
+ * `platform.open-settings` command, or the onboarding banner. Wired into the
+ * platform module as `panelComponents["settings-panel"]`.
  */
 export const SettingsPanel: FunctionComponent = () => {
   return (
@@ -105,28 +111,27 @@ export const SettingsPanel: FunctionComponent = () => {
     // scrollbar — fixes the double-scrollbar-into-void (map-settings 3a).
     <div className="bg-charcoal-900 flex h-full w-full flex-col overflow-hidden">
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto flex max-w-2xl flex-col gap-8 p-6">
-          <header>
-            <h1 className="text-charcoal-100 text-overview flex items-center gap-2">
-              <Sliders className="text-charcoal-300 size-5" aria-hidden="true" />
-              Settings
-            </h1>
-            <p className="text-charcoal-400 text-caption mt-1 font-mono">
-              Local-first &amp; bring-your-own-keys. Nothing leaves this machine except calls you
-              make to providers you configure.
-            </p>
+        <div className="mx-auto flex max-w-2xl flex-col gap-12 p-6 pb-12">
+          <header className="flex flex-col gap-3">
+            <div>
+              <h1 className="text-charcoal-100 text-overview flex items-center gap-2">
+                <Sliders className="text-charcoal-300 size-5" aria-hidden="true" />
+                Settings
+              </h1>
+              <p className="text-charcoal-400 text-caption mt-1">
+                Local-first &amp; bring-your-own-keys. Nothing leaves this machine except calls you
+                make to providers you configure.
+              </p>
+            </div>
+            <SectionNav />
           </header>
           <ProvidersSection />
           <WebSearchSection />
-          <HardwareSection />
-          <DeepResearchSection />
-          <PreferencesSection />
+          <ResearchSection />
+          <RegionSection />
+          <InterfaceSection />
           <KeybindingsSection />
-          <IntegrationsSection />
-          <LayoutsSection />
-          <ModulesSection />
-          <ExportImportSection />
-          <AboutSection />
+          <AdvancedSection />
         </div>
       </div>
     </div>
@@ -136,7 +141,222 @@ export const SettingsPanel: FunctionComponent = () => {
 SettingsPanel.displayName = "SettingsPanel";
 
 // ---------------------------------------------------------------------------
-// AI Providers (BYOK)
+// Section scaffolding
+// ---------------------------------------------------------------------------
+
+const SECTION_NAV: { id: string; label: string }[] = [
+  { id: "settings-providers", label: "AI Providers" },
+  { id: "settings-search", label: "Web search" },
+  { id: "settings-research", label: "Research" },
+  { id: "settings-region", label: "Region & locale" },
+  { id: "settings-interface", label: "Interface" },
+  { id: "settings-keybindings", label: "Keybindings" },
+  { id: "settings-advanced", label: "Advanced" },
+];
+
+/** Jump chips under the page head — the cure for the settings wall. */
+function SectionNav() {
+  return (
+    <nav aria-label="Settings sections" className="flex flex-wrap gap-2">
+      {SECTION_NAV.map(({ id, label }) => (
+        <button
+          key={id}
+          type="button"
+          onClick={() =>
+            document.getElementById(id)?.scrollIntoView?.({ behavior: "smooth", block: "start" })
+          }
+          className="border-charcoal-700 text-charcoal-400 hover:text-charcoal-100 hover:bg-charcoal-875 rounded-control text-micro h-6 border px-3"
+        >
+          {label}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+/** A top-level section head — section-size title over a hairline rule. */
+function SectionHeader({
+  id,
+  icon,
+  title,
+  hint,
+}: {
+  id: string;
+  icon: React.ReactNode;
+  title: string;
+  hint?: string;
+}) {
+  return (
+    <header className="border-charcoal-800 mb-4 border-b pb-3">
+      <h2 id={id} className="text-charcoal-100 text-section flex scroll-mt-6 items-center gap-2">
+        {icon}
+        {title}
+      </h2>
+      {hint && <p className="text-charcoal-400 text-caption mt-1">{hint}</p>}
+    </header>
+  );
+}
+
+/** A micro group header above a card, inside a section. */
+function GroupLabel({ label, hint }: { label: string; hint?: string }) {
+  return (
+    <div className="mb-2">
+      <p className="text-charcoal-500 text-micro">{label}</p>
+      {hint && <p className="text-charcoal-400 text-caption mt-1">{hint}</p>}
+    </div>
+  );
+}
+
+/** ONE bordered card per group; rows divide with hairlines (never card-per-row). */
+function Card({ className, children }: { className?: string; children: React.ReactNode }) {
+  return (
+    <div
+      className={cn(
+        "border-charcoal-700 divide-charcoal-800 flex flex-col divide-y rounded-none border",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** The one labelled setting row: label + hint left, a 32px-ladder control right. */
+function SettingRow({
+  label,
+  hint,
+  icon,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex min-h-8 items-center justify-between gap-4 px-4 py-3">
+      <div className="flex min-w-0 flex-col">
+        <span className="text-charcoal-100 text-body flex items-center gap-2">
+          {icon}
+          {label}
+        </span>
+        {hint && <span className="text-charcoal-400 text-caption mt-1">{hint}</span>}
+      </div>
+      <div className="shrink-0">{children}</div>
+    </div>
+  );
+}
+
+/**
+ * A readable monochrome switch (replaces the 8px `size-4` checkboxes). The real
+ * checkbox stays in the tree (`sr-only`, `role="switch"`) so assistive tech and
+ * the existing tests keep their contract; the visible track/thumb are styled
+ * spans driven by `peer-checked`.
+ */
+function ToggleSwitch({
+  checked,
+  disabled,
+  onChange,
+  "aria-label": ariaLabel,
+}: {
+  checked: boolean;
+  disabled?: boolean;
+  onChange: (next: boolean) => void;
+  "aria-label"?: string;
+}) {
+  return (
+    <label
+      className={cn(
+        "relative inline-flex h-8 w-16 shrink-0 items-center",
+        disabled ? "cursor-not-allowed" : "cursor-pointer",
+      )}
+    >
+      <input
+        type="checkbox"
+        role="switch"
+        aria-label={ariaLabel}
+        checked={checked}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.checked)}
+        className="peer sr-only"
+      />
+      <span
+        aria-hidden="true"
+        className="bg-charcoal-850 border-charcoal-700 peer-checked:bg-charcoal-600 peer-checked:border-charcoal-500 rounded-control absolute inset-0 border transition-colors peer-disabled:opacity-40"
+      />
+      <span
+        aria-hidden="true"
+        className="bg-charcoal-500 peer-checked:bg-charcoal-100 rounded-control absolute left-1 size-6 transition-transform peer-checked:translate-x-8 peer-disabled:opacity-40"
+      />
+    </label>
+  );
+}
+
+/** A labelled switch row inside a card. */
+function ToggleRow({
+  label,
+  hint,
+  checked,
+  disabled,
+  onChange,
+  switchLabel,
+}: {
+  label: React.ReactNode;
+  hint?: React.ReactNode;
+  checked: boolean;
+  disabled?: boolean;
+  onChange: (next: boolean) => void;
+  /** Accessible name for the switch (defaults to the visible label). */
+  switchLabel: string;
+}) {
+  return (
+    <div className="flex min-h-8 items-center justify-between gap-4 px-4 py-3">
+      <div className="flex min-w-0 flex-col">
+        <span className="text-charcoal-100 text-body">{label}</span>
+        {hint && <span className="text-charcoal-400 text-caption mt-1">{hint}</span>}
+      </div>
+      <ToggleSwitch
+        checked={checked}
+        disabled={disabled}
+        onChange={onChange}
+        aria-label={switchLabel}
+      />
+    </div>
+  );
+}
+
+/** Shared 32px-ladder text input styling (inset fill, 1px border). */
+const inputClass =
+  "border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-500 rounded-control text-body focus:border-charcoal-500 h-8 border px-3 outline-none";
+
+/**
+ * Shared `<select>` styling for the preferences controls. `appearance-none`
+ * strips the WKWebView OS-default chrome (so the neutral chevron below shows
+ * through); `pr-6` reserves room for that chevron.
+ */
+const selectClass =
+  "border-charcoal-700 bg-charcoal-850 text-charcoal-100 h-8 min-w-[12rem] appearance-none rounded-control border pr-6 pl-3 text-body outline-none focus:border-charcoal-500";
+
+/**
+ * A `<select>` wrapped in a `relative` container with a neutral chevron overlay
+ * — the chevron replaces the suppressed native control glyph (`appearance-none`).
+ */
+function Select({ className, children, ...props }: React.ComponentProps<"select">) {
+  return (
+    <div className="relative inline-block">
+      <select className={cn(selectClass, className)} {...props}>
+        {children}
+      </select>
+      <ChevronDown
+        className="text-charcoal-400 pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2"
+        aria-hidden="true"
+      />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// AI Providers (BYOK keys + defaults + preference order)
 // ---------------------------------------------------------------------------
 
 function ProvidersSection() {
@@ -166,68 +386,74 @@ function ProvidersSection() {
         title="AI Providers"
         hint="Paste an API key to enable an AI provider. Keys are stored in your OS keychain — never on disk or sent anywhere but the provider you call."
       />
-      <ul className="flex flex-col gap-2">
-        {providers.map((provider) => {
-          const keyState = status[provider.id] ?? "missing";
-          const configured = keyState === "configured";
-          const isDefault = defaultProviderId === provider.id;
-          const needsKey = provider.requiresKey;
-          return (
-            <li
-              key={provider.id}
-              className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between gap-3 rounded-none border px-4 py-3"
-            >
-              <div className="flex min-w-0 flex-col">
-                <span className="text-charcoal-100 text-body flex min-w-0 items-center gap-2 font-mono">
-                  <span className="truncate">{provider.label}</span>
-                  {isDefault && (
-                    <span className="text-micro rounded-control bg-charcoal-700/15 shrink-0 px-2 py-1">
-                      default
-                    </span>
-                  )}
-                </span>
-                <span className="text-charcoal-400 text-caption mt-1 flex min-w-0 items-center gap-2 font-mono">
-                  {!needsKey ? (
-                    <span className="truncate">No key required (local)</span>
-                  ) : configured ? (
-                    <span className="text-positive flex min-w-0 items-center gap-1">
-                      <Check className="size-3 shrink-0" aria-hidden="true" />
-                      <span className="truncate">Key configured</span>
-                    </span>
-                  ) : (
-                    <span className="truncate">No key yet</span>
-                  )}
-                </span>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                {/* Picking a default is a free preference (no key precondition),
-                    so it shows on every non-default row — not just the one
-                    provider that happens to need no key (regression-95 BUG-3). */}
-                {!isDefault && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDefaultProviderId(provider.id);
-                      // Persist immediately (into the autosave slot) so the
-                      // choice survives relaunch even without a layout change.
-                      void autosaveLayout();
-                    }}
-                    className="text-micro text-charcoal-400 hover:text-charcoal-100 font-mono"
-                  >
-                    Set default
-                  </button>
-                )}
-                {needsKey && (
-                  <>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setDialogProvider(provider.id)}
-                    >
-                      <KeyRound className="size-3" aria-hidden="true" />
-                      {configured ? "Update key" : "Add key"}
-                    </Button>
-                    {configured && (
+      <div className="flex flex-col gap-6">
+        <Card>
+          {providers.map((provider) => {
+            const keyState = status[provider.id] ?? "missing";
+            const configured = keyState === "configured";
+            const isDefault = defaultProviderId === provider.id;
+            const needsKey = provider.requiresKey;
+            return (
+              <div
+                key={provider.id}
+                className="flex min-h-8 items-center justify-between gap-4 px-4 py-3"
+              >
+                <div className="flex min-w-0 flex-col">
+                  <span className="text-charcoal-100 text-body truncate">{provider.label}</span>
+                  <span className="text-charcoal-400 text-caption mt-1 flex min-w-0 items-center gap-2">
+                    {!needsKey ? (
+                      <span className="truncate">No key required (local)</span>
+                    ) : configured ? (
+                      <span className="text-positive flex min-w-0 items-center gap-1">
+                        <Check className="size-3 shrink-0" aria-hidden="true" />
+                        <span className="truncate">Key configured</span>
+                      </span>
+                    ) : (
+                      <span className="truncate">No key yet</span>
+                    )}
+                  </span>
+                </div>
+                {/* Fixed-width slots so the cluster aligns row to row — a row
+                    missing a control renders its slot empty, never collapses. */}
+                <div className="flex shrink-0 items-center gap-3">
+                  <span className="flex w-20 justify-end">
+                    {isDefault ? (
+                      <span className="text-micro rounded-control bg-charcoal-850 text-charcoal-300 px-2 py-1">
+                        default
+                      </span>
+                    ) : (
+                      // Picking a default is a free preference (no key
+                      // precondition), so it shows on every non-default row —
+                      // not just the one provider that happens to need no key
+                      // (regression-95 BUG-3).
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDefaultProviderId(provider.id);
+                          // Persist immediately (into the autosave slot) so the
+                          // choice survives relaunch even without a layout change.
+                          void autosaveLayout();
+                        }}
+                        className="text-micro text-charcoal-400 hover:text-charcoal-100 rounded-control h-6 px-1"
+                      >
+                        Set default
+                      </button>
+                    )}
+                  </span>
+                  <span className="flex w-28 justify-end">
+                    {needsKey && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setDialogProvider(provider.id)}
+                      >
+                        <KeyRound className="size-3" aria-hidden="true" />
+                        {configured ? "Update key" : "Add key"}
+                      </Button>
+                    )}
+                  </span>
+                  <span className="flex w-12 justify-end">
+                    {needsKey && configured && (
                       <button
                         type="button"
                         aria-label={`Remove ${provider.label} key`}
@@ -237,13 +463,16 @@ function ProvidersSection() {
                         <Trash2 className="size-3.5" aria-hidden="true" />
                       </button>
                     )}
-                  </>
-                )}
+                  </span>
+                </div>
               </div>
-            </li>
-          );
-        })}
-      </ul>
+            );
+          })}
+        </Card>
+
+        <DefaultsGroup />
+        <ProviderOrderGroup />
+      </div>
       <KeyEntryDialog
         open={dialogProvider !== null}
         providerId={dialogProvider}
@@ -253,6 +482,189 @@ function ProvidersSection() {
         onSaved={(id) => void refreshOne(id)}
       />
     </section>
+  );
+}
+
+/** Default agent / provider / model — the copilot's starting line-up. */
+function DefaultsGroup() {
+  const firstParty = useAgentsStore(selectFirstPartyAgents);
+  const custom = useAgentsStore(selectCustomAgents);
+  const agentsLoading = useAgentsStore((s) => s.loading);
+  const refreshAgents = useAgentsStore((s) => s.refresh);
+
+  const providers = useLLMProvidersStore((s) => s.providers);
+  const defaultProviderId = useLLMProvidersStore((s) => s.defaultProviderId);
+  const setDefaultProviderId = useLLMProvidersStore((s) => s.setDefaultProviderId);
+  const modelFor = useModelSelectionStore((s) => s.modelFor);
+  const setModel = useModelSelectionStore((s) => s.setModel);
+
+  const defaultAgentId = useSettingsStore((s) => s.defaultAgentId);
+  const setDefaultAgentId = useSettingsStore((s) => s.setDefaultAgentId);
+
+  useEffect(() => {
+    void refreshAgents();
+  }, [refreshAgents]);
+
+  const agents: AgentSummary[] = [...firstParty, ...custom];
+  const providerLabel = (id: LLMProviderId) => providers.find((p) => p.id === id)?.label ?? id;
+  // Prefer the LIVE provider catalog (queried from the provider's own models
+  // API); fall back to the config-driven known list, then the static map.
+  const defaultProviderInfo = providers.find((p) => p.id === defaultProviderId);
+  const { entry: defaultModelCatalog } = useModelCatalog(defaultProviderId);
+  const fallbackModelIds: readonly string[] =
+    defaultProviderInfo?.knownModels && defaultProviderInfo.knownModels.length > 0
+      ? defaultProviderInfo.knownModels
+      : (KNOWN_MODELS_BY_PROVIDER[defaultProviderId] ?? []);
+  const defaultModelOptions: LLMModelOption[] =
+    defaultModelCatalog?.models && defaultModelCatalog.models.length > 0
+      ? defaultModelCatalog.models
+      : fallbackModelIds.map((id) => ({ id, label: id }));
+  const { groups: defaultModelGroups } = buildModelGroups(
+    defaultModelOptions,
+    modelFor(defaultProviderId),
+  );
+
+  return (
+    <div>
+      <GroupLabel label="Defaults" hint="The persona, provider, and model the copilot starts on." />
+      <Card>
+        <SettingRow
+          label="Default agent"
+          hint="The persona the copilot starts with each session."
+          icon={<Bot className="text-charcoal-300 size-3.5" aria-hidden="true" />}
+        >
+          <Select
+            aria-label="Default agent"
+            value={agentsLoading && agents.length === 0 ? "__loading__" : (defaultAgentId ?? "")}
+            disabled={agentsLoading && agents.length === 0}
+            onChange={(e) => setDefaultAgentId(e.target.value === "" ? null : e.target.value)}
+          >
+            {agentsLoading && agents.length === 0 ? (
+              <option value="__loading__" disabled>
+                Loading agents…
+              </option>
+            ) : (
+              <>
+                <option value="">No default (raw chat)</option>
+                {agents.map((agent) => (
+                  <option key={agent.id} value={agent.id}>
+                    {agent.name}
+                  </option>
+                ))}
+              </>
+            )}
+          </Select>
+        </SettingRow>
+
+        <SettingRow
+          label="Default provider"
+          hint="The provider the copilot uses when an agent has no preference."
+        >
+          <Select
+            aria-label="Default provider"
+            value={defaultProviderId}
+            onChange={(e) => {
+              setDefaultProviderId(e.target.value as LLMProviderId);
+              void autosaveLayout();
+            }}
+          >
+            {providers.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.label}
+              </option>
+            ))}
+          </Select>
+        </SettingRow>
+
+        <SettingRow
+          label="Default model"
+          hint={
+            defaultModelCatalog?.note
+              ? `${providerLabel(defaultProviderId)} — ${defaultModelCatalog.note}`
+              : `The model used for ${providerLabel(defaultProviderId)}.`
+          }
+        >
+          <Select
+            aria-label="Default model"
+            value={modelFor(defaultProviderId)}
+            onChange={(e) => setModel(defaultProviderId, e.target.value)}
+          >
+            {defaultModelGroups.map((group, index) =>
+              group.label ? (
+                <optgroup key={group.label} label={group.label}>
+                  {group.options.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {modelOptionLabel(option)}
+                    </option>
+                  ))}
+                </optgroup>
+              ) : (
+                group.options.map((option) => (
+                  <option key={`${index}-${option.id}`} value={option.id}>
+                    {modelOptionLabel(option)}
+                  </option>
+                ))
+              ),
+            )}
+          </Select>
+        </SettingRow>
+      </Card>
+    </div>
+  );
+}
+
+/** Provider preference order — the order providers are offered in pickers. */
+function ProviderOrderGroup() {
+  const providers = useLLMProvidersStore((s) => s.providers);
+  const providerPreferenceOrder = useSettingsStore((s) => s.providerPreferenceOrder);
+  const moveProviderPreference = useSettingsStore((s) => s.moveProviderPreference);
+
+  const providerLabel = (id: LLMProviderId) => providers.find((p) => p.id === id)?.label ?? id;
+  // Union the persisted order with the live providers so a provider added in a
+  // later release still appears (appended), and a stale id drops off.
+  const liveIds = new Set(providers.map((p) => p.id));
+  const orderedProviderIds: LLMProviderId[] = [
+    ...providerPreferenceOrder.filter((id) => liveIds.has(id)),
+    ...providers.map((p) => p.id).filter((id) => !providerPreferenceOrder.includes(id)),
+  ];
+
+  return (
+    <div>
+      <GroupLabel
+        label="Provider preference order"
+        hint="The order providers are offered in pickers. Reorder to surface the ones you reach for first."
+      />
+      <Card>
+        {orderedProviderIds.map((id, idx) => (
+          <div key={id} className="flex min-h-8 items-center justify-between gap-4 px-4 py-2">
+            <span className="text-charcoal-100 text-body flex items-center gap-2">
+              <span className="text-charcoal-500 w-4 text-right tabular-nums">{idx + 1}</span>
+              {providerLabel(id)}
+            </span>
+            <span className="flex items-center gap-1">
+              <button
+                type="button"
+                aria-label={`Move ${providerLabel(id)} up`}
+                disabled={idx === 0}
+                onClick={() => moveProviderPreference(id, "up")}
+                className="text-charcoal-400 rounded-control hover:text-charcoal-100 p-1 disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                <ArrowUp className="size-3.5" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                aria-label={`Move ${providerLabel(id)} down`}
+                disabled={idx === orderedProviderIds.length - 1}
+                onClick={() => moveProviderPreference(id, "down")}
+                className="text-charcoal-400 rounded-control hover:text-charcoal-100 p-1 disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                <ArrowDown className="size-3.5" aria-hidden="true" />
+              </button>
+            </span>
+          </div>
+        ))}
+      </Card>
+    </div>
   );
 }
 
@@ -400,143 +812,146 @@ function WebSearchSection() {
         title="Web search"
         hint="Pick how the copilot searches the web. Native rides your model's own search when the active model supports it (else it falls back to the app's search tool); BYOK adds an Exa key for finance-grade retrieval; local routes through a private SearXNG so nothing leaves your machine."
       />
-      <div className="flex flex-col gap-4">
-        {/* Tier picker */}
-        <PrefRow
-          label="Search tier"
-          hint="Native (model's web search), BYOK Exa, or local SearXNG."
-        >
-          <Select
-            aria-label="Search tier"
-            value={tier}
-            onChange={(e) => setTier(e.target.value as SearchTier)}
+      <div className="flex flex-col gap-6">
+        <Card>
+          <SettingRow
+            label="Search tier"
+            hint="Native (model's web search), BYOK Exa, or local SearXNG."
           >
-            {SEARCH_TIERS.map((t) => (
-              <option key={t} value={t}>
-                {SEARCH_TIER_LABELS[t]}
-              </option>
-            ))}
-          </Select>
-        </PrefRow>
+            <Select
+              aria-label="Search tier"
+              value={tier}
+              onChange={(e) => setTier(e.target.value as SearchTier)}
+            >
+              {SEARCH_TIERS.map((t) => (
+                <option key={t} value={t}>
+                  {SEARCH_TIER_LABELS[t]}
+                </option>
+              ))}
+            </Select>
+          </SettingRow>
 
-        {/* Active-tier status: a one-line confirmation of where searches route,
-            so the selected tier's effect is never ambiguous. */}
-        <p className="text-charcoal-400 text-caption -mt-2 font-mono">
-          {tier === "native"
-            ? nativeStatus
-            : tier === "byok-exa"
-              ? exaConfigured
-                ? "Searches route through Exa using your stored key."
-                : "Add an Exa key below to activate this tier."
-              : "Searches route through your local SearXNG instance — nothing leaves your machine."}
-        </p>
+          {/* Active-tier status: a one-line confirmation of where searches route,
+              so the selected tier's effect is never ambiguous. */}
+          <p className="text-charcoal-400 text-caption px-4 py-3">
+            {tier === "native"
+              ? nativeStatus
+              : tier === "byok-exa"
+                ? exaConfigured
+                  ? "Searches route through Exa using your stored key."
+                  : "Add an Exa key below to activate this tier."
+                : "Searches route through your local SearXNG instance — nothing leaves your machine."}
+          </p>
+
+          <SettingRow
+            label="SearXNG URL"
+            hint="Local-tier base URL. Leave blank to autodetect localhost:8888 then :8080."
+          >
+            <input
+              type="url"
+              value={searxngUrl}
+              onChange={(e) => setSearxngUrl(e.target.value)}
+              placeholder="http://localhost:8080"
+              aria-label="SearXNG URL"
+              className={cn(inputClass, "min-w-[12rem]")}
+            />
+          </SettingRow>
+        </Card>
 
         {/* Exa API key (BYOK, keychain) */}
-        <div className="border-charcoal-700 bg-charcoal-850 rounded-none border px-4 py-3">
-          <p className="text-charcoal-200 text-caption flex items-center gap-2 font-mono">
-            <KeyRound className="text-charcoal-300 size-3.5" aria-hidden="true" />
-            Exa API key (BYOK)
-          </p>
-          <p className="text-charcoal-400 text-caption mt-1 mb-2 font-mono">
-            Optional. Stored in your OS keychain — never on disk or sent anywhere but Exa. Powers
-            the BYOK search tier.
-          </p>
-          {exaConfigured === null ? (
-            // Keychain read in flight — show a quiet checking state instead of
-            // briefly flashing the "needs a key" form (which is misleading if a
-            // key IS stored).
-            <span className="text-charcoal-400 text-caption font-mono">Checking…</span>
-          ) : exaConfigured ? (
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-positive text-caption flex items-center gap-1 font-mono">
-                <Check className="size-3" aria-hidden="true" /> Key configured
-              </span>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={exaBusy}
-                onClick={() => void handleRemoveExa()}
-              >
-                <Trash2 className="size-3" aria-hidden="true" />
-                Remove
-              </Button>
-            </div>
-          ) : (
-            <>
-              {/* When the BYOK tier is selected but no key is stored, the tier
-                  can't actually run — say so plainly rather than silently falling
-                  back. */}
-              {tier === "byok-exa" ? (
-                <p className="text-warning text-caption mb-2 font-mono">
-                  The BYOK search tier is selected but needs an Exa key to work — add one below.
-                </p>
-              ) : null}
-              <form
-                className="flex items-center gap-2"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void handleSaveExa();
-                }}
-              >
-                <input
-                  type="password"
-                  value={exaInput}
-                  onChange={(e) => setExaInput(e.target.value)}
-                  placeholder="exa_..."
-                  aria-label="Exa API key"
-                  className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-caption focus:border-charcoal-500 h-8 flex-1 border px-3 font-mono outline-none"
-                />
-                <Button
-                  type="submit"
-                  size="sm"
-                  variant="outline"
-                  disabled={exaBusy || exaInput.trim() === ""}
-                >
-                  Save key
-                </Button>
-              </form>
-              {exaError && (
-                <p className="text-negative text-caption mt-2 font-mono" role="alert">
-                  {exaError}
-                </p>
+        <div>
+          <GroupLabel
+            label="Exa API key (BYOK)"
+            hint="Optional. Stored in your OS keychain — never on disk or sent anywhere but Exa. Powers the BYOK search tier."
+          />
+          <Card>
+            <div className="flex min-h-8 flex-col justify-center gap-2 px-4 py-3">
+              {exaConfigured === null ? (
+                // Keychain read in flight — show a quiet checking state instead of
+                // briefly flashing the "needs a key" form (which is misleading if a
+                // key IS stored).
+                <span className="text-charcoal-400 text-caption">Checking…</span>
+              ) : exaConfigured ? (
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-positive text-caption flex items-center gap-1">
+                    <Check className="size-3" aria-hidden="true" /> Key configured
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={exaBusy}
+                    onClick={() => void handleRemoveExa()}
+                  >
+                    <Trash2 className="size-3" aria-hidden="true" />
+                    Remove
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {/* When the BYOK tier is selected but no key is stored, the tier
+                      can't actually run — say so plainly rather than silently falling
+                      back. */}
+                  {tier === "byok-exa" ? (
+                    <p className="text-warning text-caption">
+                      The BYOK search tier is selected but needs an Exa key to work — add one below.
+                    </p>
+                  ) : null}
+                  <form
+                    className="flex items-center gap-2"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void handleSaveExa();
+                    }}
+                  >
+                    <input
+                      type="password"
+                      value={exaInput}
+                      onChange={(e) => setExaInput(e.target.value)}
+                      placeholder="exa_..."
+                      aria-label="Exa API key"
+                      className={cn(inputClass, "flex-1")}
+                    />
+                    <Button
+                      type="submit"
+                      size="sm"
+                      variant="outline"
+                      disabled={exaBusy || exaInput.trim() === ""}
+                    >
+                      Save key
+                    </Button>
+                  </form>
+                  {exaError && (
+                    <p className="text-negative text-caption" role="alert">
+                      {exaError}
+                    </p>
+                  )}
+                </>
               )}
-            </>
-          )}
+            </div>
+          </Card>
         </div>
 
-        {/* SearXNG URL (local tier) */}
-        <PrefRow
-          label="SearXNG URL"
-          hint="Local-tier base URL. Leave blank to autodetect localhost:8888 then :8080."
-        >
-          <input
-            type="url"
-            value={searxngUrl}
-            onChange={(e) => setSearxngUrl(e.target.value)}
-            placeholder="http://localhost:8080"
-            aria-label="SearXNG URL"
-            className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-caption focus:border-charcoal-500 h-8 min-w-[12rem] border px-3 font-mono outline-none"
-          />
-        </PrefRow>
         {/* Run-a-local-instance hint — keyless private search in one command.
             JSON output is OFF by default in SearXNG, so the setup must enable it. */}
         {tier === "local-searxng" && (
-          <div className="border-charcoal-700 bg-charcoal-850 rounded-none border px-4 py-3">
-            <p className="text-charcoal-200 text-caption font-mono">
-              No instance yet? Run one locally (keyless, ~200 MB):
-            </p>
-            <pre className="text-charcoal-300 bg-charcoal-900 text-caption mt-2 overflow-x-auto rounded-none p-2 font-mono leading-relaxed">
-              {
-                "docker run -d -p 8080:8080 \\\n  -e SEARXNG_SETTINGS_PATH=/etc/searxng/settings.yml \\\n  searxng/searxng"
-              }
-            </pre>
-            <p className="text-charcoal-400 text-caption mt-2 font-mono">
-              Then enable JSON output: add <code className="text-charcoal-300">json</code> to{" "}
-              <code className="text-charcoal-300">search.formats</code> and set{" "}
-              <code className="text-charcoal-300">server.limiter: false</code> in settings.yml. The
-              terminal autodetects it on the next research run.
-            </p>
-          </div>
+          <Card>
+            <div className="px-4 py-3">
+              <p className="text-charcoal-200 text-caption">
+                No instance yet? Run one locally (keyless, ~200 MB):
+              </p>
+              <pre className="text-charcoal-300 bg-charcoal-850 text-caption mt-2 overflow-x-auto rounded-none p-2 leading-relaxed">
+                {
+                  "docker run -d -p 8080:8080 \\\n  -e SEARXNG_SETTINGS_PATH=/etc/searxng/settings.yml \\\n  searxng/searxng"
+                }
+              </pre>
+              <p className="text-charcoal-400 text-caption mt-2">
+                Then enable JSON output: add <code className="text-charcoal-300">json</code> to{" "}
+                <code className="text-charcoal-300">search.formats</code> and set{" "}
+                <code className="text-charcoal-300">server.limiter: false</code> in settings.yml.
+                The terminal autodetects it on the next research run.
+              </p>
+            </div>
+          </Card>
         )}
       </div>
     </section>
@@ -544,224 +959,173 @@ function WebSearchSection() {
 }
 
 // ---------------------------------------------------------------------------
-// Integrations (brokers + data providers)
+// Research (deep research + hardware capability)
 // ---------------------------------------------------------------------------
 
-function IntegrationsSection() {
-  const openPanel = useWorkspaceStore((s) => s.openPanel);
+/** One scored model row — a verdict chip + the reason. */
+function FitRow({ model }: { model: ScoredModel }) {
+  const meta = verdictMeta(model.verdict);
+  return (
+    <li className="flex min-h-8 items-center justify-between gap-4 px-4 py-2">
+      <div className="min-w-0">
+        <div className="text-charcoal-200 text-caption truncate">{model.name}</div>
+        <div className="text-charcoal-500 text-caption truncate">{model.reason}</div>
+      </div>
+      <span className={cn("text-caption shrink-0 font-semibold", meta.className)}>
+        {meta.label}
+      </span>
+    </li>
+  );
+}
+
+/**
+ * Research — how /deep works, plus the device's local-model fit gate.
+ *
+ * Deep research runs Vysted's own native IterResearch loop on the user's
+ * configured model. There is no engine selector: native is the only
+ * user-facing engine (the opt-in paid Perplexity backend is agent-selected
+ * with its own key, never surfaced here). The hardware report (Track D)
+ * detects the device and shows which local models it can run, gating the
+ * heavy local paths (FINDINGS §2.5): on a 16 GB M1, local deep-research is
+ * honestly marked "remote"; on a 32 GB+ box the same models flip to "runs
+ * locally" with no change.
+ */
+function ResearchSection() {
+  const [report, setReport] = useState<HardwareReport | null | "loading">("loading");
+
+  useEffect(() => {
+    let alive = true;
+    void fetchHardwareReport().then((r) => {
+      if (alive) {
+        setReport(r);
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   return (
-    <section aria-labelledby="settings-integrations">
+    <section aria-labelledby="settings-research">
       <SectionHeader
-        id="settings-integrations"
-        icon={<Network className="text-charcoal-300 size-4" aria-hidden="true" />}
-        title="Integrations"
-        hint="Connect a broker for read-only positions, holdings & P&L the copilot can analyse over your real account."
+        id="settings-research"
+        icon={<FlaskConical className="text-charcoal-300 size-4" aria-hidden="true" />}
+        title="Research"
+        hint="How /deep and 'go deeper' work, and what this machine can run on-device."
       />
-      <div className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between gap-3 rounded-none border px-4 py-3">
-        <span className="text-charcoal-400 text-caption font-mono">
-          Broker connections are managed in the Marketplace.
-        </span>
-        <Button size="sm" variant="outline" onClick={() => openPanel("marketplace-panel")}>
-          Open Marketplace
-        </Button>
+      <div className="flex flex-col gap-6">
+        <div>
+          <GroupLabel label="Deep research" />
+          <Card>
+            <p className="text-charcoal-400 text-caption px-4 py-3 leading-relaxed">
+              Deep research runs Vysted&rsquo;s own bounded{" "}
+              <span className="text-charcoal-200">IterResearch</span> loop on your configured model
+              — a multi-round search → read → reflect → synthesize pass that returns a cited brief.
+              Always available, no extra key, no extra cost.
+            </p>
+          </Card>
+        </div>
+
+        <div>
+          <GroupLabel
+            label="Hardware & local models"
+            hint="Heavy local paths (local deep-research, large local LLMs) enable only where the hardware earns it; everything else uses the keyless-remote path."
+          />
+          {report === "loading" && (
+            <Card>
+              <p className="text-charcoal-500 text-caption px-4 py-3">Detecting device…</p>
+            </Card>
+          )}
+          {report === null && (
+            <Card>
+              <p className="text-charcoal-500 text-caption px-4 py-3">
+                Hardware detection unavailable (sidecar not connected).
+              </p>
+            </Card>
+          )}
+          {report && report !== "loading" && (
+            <div className="flex flex-col gap-3">
+              <Card>
+                <div className="px-4 py-3">
+                  <div className="text-charcoal-100 text-body flex items-center gap-2">
+                    <Cpu className="text-charcoal-300 size-3.5" aria-hidden="true" />
+                    {report.device.chip}
+                  </div>
+                  <div className="text-charcoal-400 text-caption mt-1">
+                    {report.device.ramGib} GiB RAM · {report.device.gpuBudgetGib} GiB GPU budget ·{" "}
+                    {report.device.perfCores}P/{report.device.totalCores} cores ·{" "}
+                    {report.device.osName} {report.device.osVersion}
+                  </div>
+                </div>
+              </Card>
+              {report.ollama.models.length > 0 && (
+                <div>
+                  <GroupLabel label="Installed local models (Ollama)" />
+                  <Card>
+                    <ul className="divide-charcoal-800 divide-y">
+                      {report.ollama.models.map((m) => (
+                        <FitRow key={m.name} model={m} />
+                      ))}
+                    </ul>
+                  </Card>
+                </div>
+              )}
+              <div>
+                <GroupLabel label="Frontier deep-research models" />
+                <Card>
+                  <ul className="divide-charcoal-800 divide-y">
+                    {report.referenceCandidates.map((m) => (
+                      <FitRow key={m.name} model={m} />
+                    ))}
+                  </ul>
+                </Card>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Layouts
+// Region & locale
 // ---------------------------------------------------------------------------
 
-function LayoutsSection() {
-  const [names, setNames] = useState<string[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [newName, setNewName] = useState("");
-  const activeName = useWorkspaceStore((s) => s.name);
-  const resetLayout = useWorkspaceStore((s) => s.resetToDefaultLayout);
-
-  async function reload() {
-    try {
-      const all = await listWorkspaces();
-      setNames(all.filter((n) => !isReservedLayoutName(n)).sort());
-      setError(null);
-    } catch (caught) {
-      setError(caught instanceof WorkspaceError ? caught.message : "Could not list layouts.");
-      setNames([]);
-    }
-  }
-
-  useEffect(() => {
-    // `reload` only sets state after the awaited listWorkspaces() resolves —
-    // never synchronously within the effect — so the cascading-render concern
-    // the rule guards against does not apply (same pattern as PortfolioPanel).
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void reload();
-  }, []);
-
-  async function withBusy(fn: () => Promise<void>) {
-    setBusy(true);
-    setError(null);
-    try {
-      await fn();
-    } catch (caught) {
-      setError(caught instanceof WorkspaceError ? caught.message : "Layout operation failed.");
-    } finally {
-      setBusy(false);
-    }
-  }
+function RegionSection() {
+  const region = useSettingsStore((s) => s.region);
+  const setRegion = useSettingsStore((s) => s.setRegion);
 
   return (
-    <section aria-labelledby="settings-layouts">
+    <section aria-labelledby="settings-region">
       <SectionHeader
-        id="settings-layouts"
-        icon={<Package className="text-charcoal-300 size-4" aria-hidden="true" />}
-        title="Layouts"
-        hint="Drag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch."
+        id="settings-region"
+        icon={<Globe className="text-charcoal-300 size-4" aria-hidden="true" />}
+        title="Region & locale"
+        hint="Locale used for number formatting — a foundation for region-first data + feeds in a later release."
       />
-      <form
-        className="mb-2 flex items-center gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const name = newName.trim();
-          if (!name) return;
-          void withBusy(async () => {
-            await saveWorkspace(name);
-            setNewName("");
-            await reload();
-          });
-        }}
-      >
-        <input
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          placeholder="Save current layout as…"
-          aria-label="New layout name"
-          className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-caption focus:border-charcoal-500 h-8 flex-1 border px-3 font-mono outline-none"
-        />
-        <Button type="submit" size="sm" variant="outline" disabled={busy || newName.trim() === ""}>
-          Save
-        </Button>
-        <Button type="button" size="sm" variant="ghost" onClick={() => void resetLayout()}>
-          Reset to default
-        </Button>
-      </form>
-      {error && <p className="text-negative text-caption mb-2 font-mono">{error}</p>}
-      {names === null ? (
-        <p className="text-charcoal-400 text-caption font-mono">Loading layouts…</p>
-      ) : names.length === 0 ? (
-        <p className="text-charcoal-400 text-caption font-mono">
-          No saved layouts yet — arrange your panels and save above.
-        </p>
-      ) : (
-        <ul className="flex flex-col gap-1">
-          {names.map((name) => (
-            <li
-              key={name}
-              className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between rounded-none border px-3 py-2"
-            >
-              <span className="text-charcoal-100 text-caption truncate font-mono">
-                {name}
-                {name === activeName && (
-                  <span className="text-micro text-charcoal-500 ml-2">active</span>
-                )}
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => void withBusy(() => loadWorkspace(name))}
-                  className="text-micro text-charcoal-300 hover:text-charcoal-100 font-mono"
-                >
-                  Load
-                </button>
-                <button
-                  type="button"
-                  aria-label={`Delete layout ${name}`}
-                  onClick={() =>
-                    void withBusy(async () => {
-                      await deleteWorkspace(name);
-                      await reload();
-                    })
-                  }
-                  className="text-charcoal-400 hover:text-negative rounded-control p-1"
-                >
-                  <X className="size-3.5" aria-hidden="true" />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-      <p className="text-charcoal-500 text-caption mt-2 font-mono">
-        Autosave slot: {AUTOSAVE_LAYOUT_NAME} (hidden; restored on launch)
-      </p>
+      <Card>
+        {/* Region / locale — Pass A item 8 foundation seam (defaults to US) */}
+        <SettingRow label="Region" hint="Defaults to United States.">
+          <Select
+            aria-label="Region"
+            value={region}
+            onChange={(e) => setRegion(e.target.value as Region)}
+          >
+            {REGIONS.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.label}
+              </option>
+            ))}
+          </Select>
+        </SettingRow>
+      </Card>
     </section>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Modules
-// ---------------------------------------------------------------------------
-
-function ModulesSection() {
-  const modules = useModulesStore((state) => state.modules);
-  const enabled = useModulesStore((state) => state.enabled);
-  const setModuleEnabled = useModulesStore((state) => state.setModuleEnabled);
-
-  return (
-    <section aria-labelledby="settings-modules">
-      <SectionHeader
-        id="settings-modules"
-        icon={<Package className="text-charcoal-300 size-4" aria-hidden="true" />}
-        title="Modules"
-        hint="Disabled modules contribute no panels or ⌘K commands."
-      />
-      <ul className="flex flex-col gap-2">
-        {modules.map((module) => {
-          const isPlatform = module.id === PLATFORM_MODULE_ID;
-          const isEnabled = enabled[module.id] !== false;
-          return (
-            <li
-              key={module.id}
-              className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between rounded-none border px-4 py-3"
-            >
-              <div className="flex flex-col">
-                <span className="text-charcoal-100 text-body font-mono">{module.title}</span>
-                <span className="text-charcoal-400 text-caption font-mono">
-                  {module.panels.length} panel{module.panels.length === 1 ? "" : "s"} ·{" "}
-                  {module.commands.length} command{module.commands.length === 1 ? "" : "s"}
-                  {isPlatform ? " · always on" : ""}
-                </span>
-              </div>
-              <label className="flex items-center gap-2">
-                <span className="sr-only">
-                  {isEnabled ? "Disable" : "Enable"} {module.title}
-                </span>
-                <input
-                  type="checkbox"
-                  role="switch"
-                  aria-label={`${module.title} enabled`}
-                  checked={isEnabled}
-                  disabled={isPlatform}
-                  onChange={(event) => {
-                    if (isPlatform) return;
-                    setModuleEnabled(module.id, event.target.checked);
-                  }}
-                  className="accent-charcoal-300 size-4 disabled:cursor-not-allowed disabled:opacity-40"
-                />
-              </label>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Preferences
+// Interface (command palette · starter cockpit · appearance)
 // ---------------------------------------------------------------------------
 
 /** Friendly labels for the panel ids the starter cockpit can compose. */
@@ -778,147 +1142,46 @@ const STARTER_PANEL_LABELS: Record<string, string> = {
   "analyst-ratings-panel": "Analyst Ratings",
 };
 
-// ---------------------------------------------------------------------------
-// Hardware capability (Track D — local-model fit gate)
-// ---------------------------------------------------------------------------
-
-/** One scored model row — a verdict chip + the reason. */
-function FitRow({ model }: { model: ScoredModel }) {
-  const meta = verdictMeta(model.verdict);
+/** An ASCII-bracket toggle chip for the starter-cockpit panel picker —
+ *  a 32px-ladder control, never an 8px checkbox. */
+function StarterChip({
+  panelId,
+  label,
+  checked,
+  onChange,
+}: {
+  panelId: string;
+  label: string;
+  checked: boolean;
+  onChange: (next: boolean) => void;
+}) {
   return (
-    <li className="flex items-baseline justify-between gap-3 py-1">
-      <div className="min-w-0">
-        <div className="text-charcoal-200 text-caption truncate font-mono">{model.name}</div>
-        <div className="text-charcoal-500 text-caption truncate font-mono">{model.reason}</div>
-      </div>
-      <span className={cn("text-caption shrink-0 font-mono font-semibold", meta.className)}>
-        {meta.label}
+    <label
+      data-panel-id={panelId}
+      title={label}
+      className={cn(
+        "rounded-control text-caption flex h-8 min-w-0 cursor-pointer items-center gap-2 border px-3 select-none",
+        checked
+          ? "border-charcoal-600 bg-charcoal-875 text-charcoal-100"
+          : "border-charcoal-700 text-charcoal-400 hover:text-charcoal-200",
+      )}
+    >
+      <input
+        type="checkbox"
+        aria-label={`Starter cockpit: ${label}`}
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="sr-only"
+      />
+      <span aria-hidden="true" className={checked ? "text-charcoal-300" : "text-charcoal-500"}>
+        {checked ? "[x]" : "[ ]"}
       </span>
-    </li>
+      <span className="truncate">{label}</span>
+    </label>
   );
 }
 
-/**
- * Hardware capability — detects the device and shows which local models it can
- * run, gating the heavy local paths (FINDINGS §2.5). On a 16 GB M1, local
- * deep-research is honestly marked "remote" and the app uses the keyless-remote
- * path; on a 32 GB+ box the same models flip to "runs locally" with no change.
- */
-function HardwareSection() {
-  const [report, setReport] = useState<HardwareReport | null | "loading">("loading");
-
-  useEffect(() => {
-    let alive = true;
-    void fetchHardwareReport().then((r) => {
-      if (alive) {
-        setReport(r);
-      }
-    });
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  return (
-    <section aria-labelledby="settings-hardware">
-      <SectionHeader
-        id="settings-hardware"
-        icon={<Cpu className="text-charcoal-300 size-4" aria-hidden="true" />}
-        title="Hardware & local models"
-        hint="What this machine can run on-device. Heavy local paths (local deep-research, large local LLMs) enable only where the hardware earns it; everything else uses the keyless-remote path."
-      />
-      {report === "loading" && (
-        <p className="text-charcoal-500 text-caption font-mono">Detecting device…</p>
-      )}
-      {report === null && (
-        <p className="text-charcoal-500 text-caption font-mono">
-          Hardware detection unavailable (sidecar not connected).
-        </p>
-      )}
-      {report && report !== "loading" && (
-        <div className="flex flex-col gap-3">
-          <div className="border-charcoal-700 bg-charcoal-900 rounded-none border p-3">
-            <div className="text-charcoal-100 text-caption font-mono">{report.device.chip}</div>
-            <div className="text-charcoal-400 text-caption mt-1 font-mono">
-              {report.device.ramGib} GiB RAM · {report.device.gpuBudgetGib} GiB GPU budget ·{" "}
-              {report.device.perfCores}P/{report.device.totalCores} cores · {report.device.osName}{" "}
-              {report.device.osVersion}
-            </div>
-          </div>
-          {report.ollama.models.length > 0 && (
-            <div>
-              <div className="text-charcoal-400 text-caption mb-1 font-mono uppercase">
-                Installed local models (Ollama)
-              </div>
-              <ul className="divide-charcoal-800 divide-y">
-                {report.ollama.models.map((m) => (
-                  <FitRow key={m.name} model={m} />
-                ))}
-              </ul>
-            </div>
-          )}
-          <div>
-            <div className="text-charcoal-400 text-caption mb-1 font-mono uppercase">
-              Frontier deep-research models
-            </div>
-            <ul className="divide-charcoal-800 divide-y">
-              {report.referenceCandidates.map((m) => (
-                <FitRow key={m.name} model={m} />
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Deep-research engine (Track 5)
-// ---------------------------------------------------------------------------
-
-/**
- * Deep-research note (Track 5) — deep research runs Vysted's own native
- * IterResearch loop on the user's configured model. There is no engine selector:
- * native is the only user-facing engine (the opt-in paid Perplexity backend is
- * agent-selected with its own key, never surfaced here), so this is a static
- * explanation, not a radio group + routing probe.
- */
-function DeepResearchSection() {
-  return (
-    <section aria-labelledby="settings-deepresearch">
-      <SectionHeader
-        id="settings-deepresearch"
-        icon={<FlaskConical className="text-charcoal-300 size-4" aria-hidden="true" />}
-        title="Deep research"
-        hint="How /deep and 'go deeper' work."
-      />
-      <p className="text-charcoal-400 text-caption px-2 font-mono leading-relaxed">
-        Deep research runs Vysted&rsquo;s own bounded{" "}
-        <span className="text-charcoal-200">IterResearch</span> loop on your configured model — a
-        multi-round search → read → reflect → synthesize pass that returns a cited brief. Always
-        available, no extra key, no extra cost.
-      </p>
-    </section>
-  );
-}
-
-function PreferencesSection() {
-  const firstParty = useAgentsStore(selectFirstPartyAgents);
-  const custom = useAgentsStore(selectCustomAgents);
-  const agentsLoading = useAgentsStore((s) => s.loading);
-  const refreshAgents = useAgentsStore((s) => s.refresh);
-
-  const providers = useLLMProvidersStore((s) => s.providers);
-  const defaultProviderId = useLLMProvidersStore((s) => s.defaultProviderId);
-  const setDefaultProviderId = useLLMProvidersStore((s) => s.setDefaultProviderId);
-  const modelFor = useModelSelectionStore((s) => s.modelFor);
-  const setModel = useModelSelectionStore((s) => s.setModel);
-
-  const defaultAgentId = useSettingsStore((s) => s.defaultAgentId);
-  const setDefaultAgentId = useSettingsStore((s) => s.setDefaultAgentId);
-  const providerPreferenceOrder = useSettingsStore((s) => s.providerPreferenceOrder);
-  const moveProviderPreference = useSettingsStore((s) => s.moveProviderPreference);
+function InterfaceSection() {
   const paletteRecentsEnabled = useSettingsStore((s) => s.paletteRecentsEnabled);
   const setPaletteRecentsEnabled = useSettingsStore((s) => s.setPaletteRecentsEnabled);
   const paletteScopedToPanel = useSettingsStore((s) => s.paletteScopedToPanel);
@@ -927,247 +1190,61 @@ function PreferencesSection() {
   const toggleStarterCockpitPanel = useSettingsStore((s) => s.toggleStarterCockpitPanel);
   const themeKnobs = useSettingsStore((s) => s.themeKnobs);
   const setThemeKnobs = useSettingsStore((s) => s.setThemeKnobs);
-  const region = useSettingsStore((s) => s.region);
-  const setRegion = useSettingsStore((s) => s.setRegion);
-
-  useEffect(() => {
-    void refreshAgents();
-  }, [refreshAgents]);
-
-  const agents: AgentSummary[] = [...firstParty, ...custom];
-  const providerLabel = (id: LLMProviderId) => providers.find((p) => p.id === id)?.label ?? id;
-  // Union the persisted order with the live providers so a provider added in a
-  // later release still appears (appended), and a stale id drops off.
-  const liveIds = new Set(providers.map((p) => p.id));
-  const orderedProviderIds: LLMProviderId[] = [
-    ...providerPreferenceOrder.filter((id) => liveIds.has(id)),
-    ...providers.map((p) => p.id).filter((id) => !providerPreferenceOrder.includes(id)),
-  ];
-  // Prefer the LIVE provider catalog (queried from the provider's own models
-  // API); fall back to the config-driven known list, then the static map.
-  const defaultProviderInfo = providers.find((p) => p.id === defaultProviderId);
-  const { entry: defaultModelCatalog } = useModelCatalog(defaultProviderId);
-  const fallbackModelIds: readonly string[] =
-    defaultProviderInfo?.knownModels && defaultProviderInfo.knownModels.length > 0
-      ? defaultProviderInfo.knownModels
-      : (KNOWN_MODELS_BY_PROVIDER[defaultProviderId] ?? []);
-  const defaultModelOptions: LLMModelOption[] =
-    defaultModelCatalog?.models && defaultModelCatalog.models.length > 0
-      ? defaultModelCatalog.models
-      : fallbackModelIds.map((id) => ({ id, label: id }));
-  const { groups: defaultModelGroups } = buildModelGroups(
-    defaultModelOptions,
-    modelFor(defaultProviderId),
-  );
 
   return (
-    <section aria-labelledby="settings-preferences">
+    <section aria-labelledby="settings-interface">
       <SectionHeader
-        id="settings-preferences"
-        icon={<Sliders className="text-charcoal-300 size-4" aria-hidden="true" />}
-        title="Preferences"
-        hint="How the copilot, the command palette, and your first-run cockpit behave. These travel with Export / Import below."
+        id="settings-interface"
+        icon={<LayoutPanelLeft className="text-charcoal-300 size-4" aria-hidden="true" />}
+        title="Interface"
+        hint="How the command palette, your first-run cockpit, and the dark language behave. These travel with Export / Import below."
       />
-      <div className="flex flex-col gap-4">
-        {/* Default agent / persona */}
-        <PrefRow
-          label="Default agent"
-          hint="The persona the copilot starts with each session."
-          icon={<Bot className="text-charcoal-300 size-3.5" aria-hidden="true" />}
-        >
-          <Select
-            aria-label="Default agent"
-            value={agentsLoading && agents.length === 0 ? "__loading__" : (defaultAgentId ?? "")}
-            disabled={agentsLoading && agents.length === 0}
-            onChange={(e) => setDefaultAgentId(e.target.value === "" ? null : e.target.value)}
-          >
-            {agentsLoading && agents.length === 0 ? (
-              <option value="__loading__" disabled>
-                Loading agents…
-              </option>
-            ) : (
-              <>
-                <option value="">No default (raw chat)</option>
-                {agents.map((agent) => (
-                  <option key={agent.id} value={agent.id}>
-                    {agent.name}
-                  </option>
-                ))}
-              </>
-            )}
-          </Select>
-        </PrefRow>
-
-        {/* Default provider */}
-        <PrefRow
-          label="Default provider"
-          hint="The provider the copilot uses when an agent has no preference."
-        >
-          <Select
-            aria-label="Default provider"
-            value={defaultProviderId}
-            onChange={(e) => {
-              setDefaultProviderId(e.target.value as LLMProviderId);
-              void autosaveLayout();
-            }}
-          >
-            {providers.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.label}
-              </option>
-            ))}
-          </Select>
-        </PrefRow>
-
-        {/* Default model for the default provider */}
-        <PrefRow
-          label="Default model"
-          hint={
-            defaultModelCatalog?.note
-              ? `${providerLabel(defaultProviderId)} — ${defaultModelCatalog.note}`
-              : `The model used for ${providerLabel(defaultProviderId)}.`
-          }
-        >
-          <Select
-            aria-label="Default model"
-            value={modelFor(defaultProviderId)}
-            onChange={(e) => setModel(defaultProviderId, e.target.value)}
-          >
-            {defaultModelGroups.map((group, index) =>
-              group.label ? (
-                <optgroup key={group.label} label={group.label}>
-                  {group.options.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {modelOptionLabel(option)}
-                    </option>
-                  ))}
-                </optgroup>
-              ) : (
-                group.options.map((option) => (
-                  <option key={`${index}-${option.id}`} value={option.id}>
-                    {modelOptionLabel(option)}
-                  </option>
-                ))
-              ),
-            )}
-          </Select>
-        </PrefRow>
-
-        {/* Region / locale — Pass A item 8 foundation seam (defaults to US) */}
-        <PrefRow
-          label="Region"
-          hint="Locale used for number formatting. Defaults to United States — a foundation for region-first data + feeds in a later release."
-        >
-          <Select
-            aria-label="Region"
-            value={region}
-            onChange={(e) => setRegion(e.target.value as Region)}
-          >
-            {REGIONS.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.label}
-              </option>
-            ))}
-          </Select>
-        </PrefRow>
-
-        {/* Provider preference order */}
-        <div className="border-charcoal-700 bg-charcoal-850 rounded-none border px-4 py-3">
-          <p className="text-charcoal-200 text-caption font-mono">Provider preference order</p>
-          <p className="text-charcoal-400 text-caption mt-1 mb-2 font-mono">
-            The order providers are offered in pickers. Reorder to surface the ones you reach for
-            first.
-          </p>
-          <ul className="flex flex-col gap-1">
-            {orderedProviderIds.map((id, idx) => (
-              <li
-                key={id}
-                className="border-charcoal-700 bg-charcoal-900 flex items-center justify-between gap-2 rounded-none border px-3 py-2"
-              >
-                <span className="text-charcoal-100 text-caption flex items-center gap-2 font-mono">
-                  <span className="text-charcoal-500 w-4 text-right tabular-nums">{idx + 1}</span>
-                  {providerLabel(id)}
-                </span>
-                <span className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    aria-label={`Move ${providerLabel(id)} up`}
-                    disabled={idx === 0}
-                    onClick={() => moveProviderPreference(id, "up")}
-                    className="text-charcoal-400 rounded-control hover:text-charcoal-100 p-1 disabled:cursor-not-allowed disabled:opacity-30"
-                  >
-                    <ArrowUp className="size-3.5" aria-hidden="true" />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={`Move ${providerLabel(id)} down`}
-                    disabled={idx === orderedProviderIds.length - 1}
-                    onClick={() => moveProviderPreference(id, "down")}
-                    className="text-charcoal-400 rounded-control hover:text-charcoal-100 p-1 disabled:cursor-not-allowed disabled:opacity-30"
-                  >
-                    <ArrowDown className="size-3.5" aria-hidden="true" />
-                  </button>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Command-palette behaviour */}
-        <div className="border-charcoal-700 bg-charcoal-850 rounded-none border px-4 py-3">
-          <p className="text-charcoal-200 text-caption mb-2 font-mono">Command palette</p>
-          <ToggleRow
-            label="Show recent commands"
-            checked={paletteRecentsEnabled}
-            onChange={setPaletteRecentsEnabled}
-          />
-          <ToggleRow
-            label="Scope to the focused panel first"
-            checked={paletteScopedToPanel}
-            onChange={setPaletteScopedToPanel}
-          />
+      <div className="flex flex-col gap-6">
+        <div>
+          <GroupLabel label="Command palette" />
+          <Card>
+            <ToggleRow
+              label="Show recent commands"
+              checked={paletteRecentsEnabled}
+              onChange={setPaletteRecentsEnabled}
+              switchLabel="Show recent commands"
+            />
+            <ToggleRow
+              label="Scope to the focused panel first"
+              checked={paletteScopedToPanel}
+              onChange={setPaletteScopedToPanel}
+              switchLabel="Scope to the focused panel first"
+            />
+          </Card>
         </div>
 
         {/* Starter-cockpit composition (FR-032) */}
-        <div className="border-charcoal-700 bg-charcoal-850 rounded-none border px-4 py-3">
-          <p className="text-charcoal-200 text-caption font-mono">Starter cockpit</p>
-          <p className="text-charcoal-400 text-caption mt-1 mb-2 font-mono">
-            The panels that open on first run, before you save your own layout.
-          </p>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-            {Object.entries(STARTER_PANEL_LABELS).map(([panelId, label]) => {
-              const checked = starterCockpitPanelIds.includes(panelId);
-              return (
-                <label
-                  key={panelId}
-                  title={label}
-                  className="text-charcoal-200 text-caption flex min-w-0 items-center gap-2 font-mono"
-                >
-                  <input
-                    type="checkbox"
-                    aria-label={`Starter cockpit: ${label}`}
-                    checked={checked}
-                    onChange={(e) => toggleStarterCockpitPanel(panelId, e.target.checked)}
-                    className="accent-charcoal-300 size-4 shrink-0"
-                  />
-                  <span className="truncate">{label}</span>
-                </label>
-              );
-            })}
+        <div>
+          <GroupLabel
+            label="Starter cockpit"
+            hint="The panels that open on first run, before you save your own layout."
+          />
+          <div className="grid grid-cols-2 gap-2">
+            {Object.entries(STARTER_PANEL_LABELS).map(([panelId, label]) => (
+              <StarterChip
+                key={panelId}
+                panelId={panelId}
+                label={label}
+                checked={starterCockpitPanelIds.includes(panelId)}
+                onChange={(next) => toggleStarterCockpitPanel(panelId, next)}
+              />
+            ))}
           </div>
         </div>
 
         {/* Theme knobs (dark-only) */}
-        <div className="border-charcoal-700 bg-charcoal-850 rounded-none border px-4 py-3">
-          <p className="text-charcoal-200 text-caption flex items-center gap-2 font-mono">
-            <Palette className="text-charcoal-300 size-3.5" aria-hidden="true" />
-            Appearance
-          </p>
-          <p className="text-charcoal-400 text-caption mt-1 mb-2 font-mono">
-            Vysted is dark-only by design. These tune the dark language.
-          </p>
-          <div className="flex flex-col gap-2">
-            <PrefRow label="Accent intensity">
+        <div>
+          <GroupLabel
+            label="Appearance"
+            hint="Vysted is dark-only by design. These tune the dark language."
+          />
+          <Card>
+            <SettingRow label="Accent intensity">
               <Select
                 aria-label="Accent intensity"
                 value={themeKnobs.accentIntensity}
@@ -1181,8 +1258,8 @@ function PreferencesSection() {
                 <option value="normal">Normal</option>
                 <option value="vivid">Vivid</option>
               </Select>
-            </PrefRow>
-            <PrefRow label="Density">
+            </SettingRow>
+            <SettingRow label="Density">
               <Select
                 aria-label="Density"
                 value={themeKnobs.density}
@@ -1193,8 +1270,8 @@ function PreferencesSection() {
                 <option value="comfortable">Comfortable</option>
                 <option value="compact">Compact</option>
               </Select>
-            </PrefRow>
-          </div>
+            </SettingRow>
+          </Card>
         </div>
       </div>
     </section>
@@ -1295,14 +1372,14 @@ function KeybindingsSection() {
       {conflictList.length > 0 && (
         <div
           role="alert"
-          className="border-warning/40 bg-warning/10 text-warning text-caption mb-3 flex items-start gap-2 rounded-none border px-3 py-2 font-mono"
+          className="border-warning/40 bg-warning/10 text-warning text-caption mb-4 flex items-start gap-2 rounded-none border px-3 py-2"
         >
           <AlertTriangle className="mt-1 size-3.5 shrink-0" aria-hidden="true" />
           <div>
             <p className="font-medium">Conflicting bindings detected</p>
             {conflictList.map((c) => (
               <p key={c.keys} className="text-warning/90 mt-1">
-                <span className="font-mono">{formatBinding(c.keys)}</span> is bound to{" "}
+                <span>{formatBinding(c.keys)}</span> is bound to{" "}
                 {c.actionIds.map((id) => DEFAULT_KEYBINDINGS[id]?.label ?? id).join(" and ")}.
               </p>
             ))}
@@ -1310,7 +1387,7 @@ function KeybindingsSection() {
         </div>
       )}
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         {CATEGORY_ORDER.map(({ id: category, label }) => {
           const group = entries.filter((e) => e.def.category === category);
           if (group.length === 0) {
@@ -1318,25 +1395,23 @@ function KeybindingsSection() {
           }
           return (
             <div key={category}>
-              <h3 className="text-micro text-charcoal-400 mb-2 font-mono">{label}</h3>
-              <ul className="flex flex-col gap-1">
+              <GroupLabel label={label} />
+              <Card>
                 {group.map(({ actionId, def, combo }) => {
                   const isRecording = recording === actionId;
                   const isOverridden = actionId in overrides;
                   const conflicted = conflictedActionIds.has(actionId);
                   return (
-                    <li
+                    <div
                       key={actionId}
                       className={cn(
-                        "border-charcoal-700 bg-charcoal-850 flex items-center justify-between gap-3 rounded-none border px-4 py-3",
-                        conflicted && "border-warning/50",
+                        "flex min-h-8 items-center justify-between gap-4 px-4 py-3",
+                        conflicted && "border-warning/50 border-l-2",
                       )}
                     >
                       <div className="flex min-w-0 flex-col">
-                        <span className="text-charcoal-100 text-caption font-mono">
-                          {def.label}
-                        </span>
-                        <span className="text-charcoal-400 text-caption truncate font-mono">
+                        <span className="text-charcoal-100 text-body">{def.label}</span>
+                        <span className="text-charcoal-400 text-caption mt-1 truncate">
                           {def.description}
                         </span>
                       </div>
@@ -1344,7 +1419,7 @@ function KeybindingsSection() {
                         <kbd
                           aria-label={`${def.label} binding`}
                           className={cn(
-                            "border-charcoal-700 bg-charcoal-900 rounded-control text-caption border px-2 py-1 font-mono",
+                            "border-charcoal-700 bg-charcoal-850 rounded-control text-caption flex h-6 items-center border px-2",
                             conflicted ? "text-warning" : "text-charcoal-100",
                           )}
                         >
@@ -1361,9 +1436,9 @@ function KeybindingsSection() {
                             if (isRecording) setRecording(null);
                           }}
                           className={cn(
-                            "text-micro rounded-control px-2 py-1 font-mono",
+                            "text-micro rounded-control h-6 px-2",
                             isRecording
-                              ? "bg-charcoal-700/20 text-charcoal-300"
+                              ? "bg-charcoal-875 text-charcoal-200"
                               : "text-charcoal-400 hover:text-charcoal-100",
                           )}
                         >
@@ -1379,14 +1454,243 @@ function KeybindingsSection() {
                           <RotateCcw className="size-3.5" aria-hidden="true" />
                         </button>
                       </div>
-                    </li>
+                    </div>
                   );
                 })}
-              </ul>
+              </Card>
             </div>
           );
         })}
       </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Advanced (integrations · layouts · modules · export/import · about)
+// ---------------------------------------------------------------------------
+
+function AdvancedSection() {
+  return (
+    <section aria-labelledby="settings-advanced">
+      <SectionHeader
+        id="settings-advanced"
+        icon={<Package className="text-charcoal-300 size-4" aria-hidden="true" />}
+        title="Advanced"
+        hint="Broker integrations, saved layouts, module toggles, and settings portability."
+      />
+      <div className="flex flex-col gap-8">
+        <IntegrationsSection />
+        <LayoutsSection />
+        <ModulesSection />
+        <ExportImportSection />
+        <AboutSection />
+      </div>
+    </section>
+  );
+}
+
+/** A subsection head inside Advanced — title-size, still an aria region. */
+function SubsectionHeader({ id, icon, title, hint }: Parameters<typeof SectionHeader>[0]) {
+  return (
+    <header className="mb-2">
+      <h3 id={id} className="text-charcoal-100 text-panel-title flex items-center gap-2">
+        {icon}
+        {title}
+      </h3>
+      {hint && <p className="text-charcoal-400 text-caption mt-1">{hint}</p>}
+    </header>
+  );
+}
+
+function IntegrationsSection() {
+  const openPanel = useWorkspaceStore((s) => s.openPanel);
+
+  return (
+    <section aria-labelledby="settings-integrations">
+      <SubsectionHeader
+        id="settings-integrations"
+        icon={<Network className="text-charcoal-300 size-4" aria-hidden="true" />}
+        title="Integrations"
+        hint="Connect a broker for read-only positions, holdings & P&L the copilot can analyse over your real account."
+      />
+      <Card>
+        <div className="flex min-h-8 items-center justify-between gap-4 px-4 py-3">
+          <span className="text-charcoal-400 text-caption">
+            Broker connections are managed in the Marketplace.
+          </span>
+          <Button size="sm" variant="outline" onClick={() => openPanel("marketplace-panel")}>
+            Open Marketplace
+          </Button>
+        </div>
+      </Card>
+    </section>
+  );
+}
+
+function LayoutsSection() {
+  const [names, setNames] = useState<string[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [newName, setNewName] = useState("");
+  const activeName = useWorkspaceStore((s) => s.name);
+  const resetLayout = useWorkspaceStore((s) => s.resetToDefaultLayout);
+
+  async function reload() {
+    try {
+      const all = await listWorkspaces();
+      setNames(all.filter((n) => !isReservedLayoutName(n)).sort());
+      setError(null);
+    } catch (caught) {
+      setError(caught instanceof WorkspaceError ? caught.message : "Could not list layouts.");
+      setNames([]);
+    }
+  }
+
+  useEffect(() => {
+    // `reload` only sets state after the awaited listWorkspaces() resolves —
+    // never synchronously within the effect — so the cascading-render concern
+    // the rule guards against does not apply (same pattern as PortfolioPanel).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void reload();
+  }, []);
+
+  async function withBusy(fn: () => Promise<void>) {
+    setBusy(true);
+    setError(null);
+    try {
+      await fn();
+    } catch (caught) {
+      setError(caught instanceof WorkspaceError ? caught.message : "Layout operation failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section aria-labelledby="settings-layouts">
+      <SubsectionHeader
+        id="settings-layouts"
+        icon={<LayoutPanelLeft className="text-charcoal-300 size-4" aria-hidden="true" />}
+        title="Layouts"
+        hint="Drag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch."
+      />
+      <form
+        className="mb-2 flex items-center gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const name = newName.trim();
+          if (!name) return;
+          void withBusy(async () => {
+            await saveWorkspace(name);
+            setNewName("");
+            await reload();
+          });
+        }}
+      >
+        <input
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          placeholder="Save current layout as…"
+          aria-label="New layout name"
+          className={cn(inputClass, "flex-1")}
+        />
+        <Button type="submit" size="sm" variant="outline" disabled={busy || newName.trim() === ""}>
+          Save
+        </Button>
+        <Button type="button" size="sm" variant="ghost" onClick={() => void resetLayout()}>
+          Reset to default
+        </Button>
+      </form>
+      {error && <p className="text-negative text-caption mb-2">{error}</p>}
+      {names === null ? (
+        <p className="text-charcoal-400 text-caption">Loading layouts…</p>
+      ) : names.length === 0 ? (
+        <p className="text-charcoal-400 text-caption">
+          No saved layouts yet — arrange your panels and save above.
+        </p>
+      ) : (
+        <Card>
+          {names.map((name) => (
+            <div key={name} className="flex min-h-8 items-center justify-between gap-4 px-4 py-2">
+              <span className="text-charcoal-100 text-body truncate">
+                {name}
+                {name === activeName && (
+                  <span className="text-micro text-charcoal-500 ml-2">active</span>
+                )}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => void withBusy(() => loadWorkspace(name))}
+                  className="text-micro text-charcoal-300 hover:text-charcoal-100 rounded-control h-6 px-1"
+                >
+                  Load
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Delete layout ${name}`}
+                  onClick={() =>
+                    void withBusy(async () => {
+                      await deleteWorkspace(name);
+                      await reload();
+                    })
+                  }
+                  className="text-charcoal-400 hover:text-negative rounded-control p-1"
+                >
+                  <X className="size-3.5" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </Card>
+      )}
+      <p className="text-charcoal-500 text-caption mt-2">
+        Autosave slot: {AUTOSAVE_LAYOUT_NAME} (hidden; restored on launch)
+      </p>
+    </section>
+  );
+}
+
+function ModulesSection() {
+  const modules = useModulesStore((state) => state.modules);
+  const enabled = useModulesStore((state) => state.enabled);
+  const setModuleEnabled = useModulesStore((state) => state.setModuleEnabled);
+
+  return (
+    <section aria-labelledby="settings-modules">
+      <SubsectionHeader
+        id="settings-modules"
+        icon={<Package className="text-charcoal-300 size-4" aria-hidden="true" />}
+        title="Modules"
+        hint="Disabled modules contribute no panels or ⌘K commands."
+      />
+      <Card>
+        {modules.map((module) => {
+          const isPlatform = module.id === PLATFORM_MODULE_ID;
+          const isEnabled = enabled[module.id] !== false;
+          return (
+            <ToggleRow
+              key={module.id}
+              label={module.title}
+              hint={
+                <>
+                  {module.panels.length} panel{module.panels.length === 1 ? "" : "s"} ·{" "}
+                  {module.commands.length} command{module.commands.length === 1 ? "" : "s"}
+                  {isPlatform ? " · always on" : ""}
+                </>
+              }
+              checked={isEnabled}
+              disabled={isPlatform}
+              onChange={(next) => {
+                if (isPlatform) return;
+                setModuleEnabled(module.id, next);
+              }}
+              switchLabel={`${module.title} enabled`}
+            />
+          );
+        })}
+      </Card>
     </section>
   );
 }
@@ -1455,53 +1759,55 @@ function ExportImportSection() {
 
   return (
     <section aria-labelledby="settings-export">
-      <SectionHeader
+      <SubsectionHeader
         id="settings-export"
         icon={<Download className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Export / Import"
         hint="Carry your keybindings and preferences to another machine. Secrets are NEVER exported — re-enter your API keys via the keychain on the new machine."
       />
-      <div className="border-charcoal-700 bg-charcoal-850 flex flex-col gap-3 rounded-none border px-4 py-3">
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={handleExport}>
-            <Download className="size-3.5" aria-hidden="true" />
-            Export settings
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()}>
-            <Upload className="size-3.5" aria-hidden="true" />
-            Import settings
-          </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/json,.json"
-            aria-label="Import settings file"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                void handleImportFile(file);
-              }
-              e.target.value = ""; // allow re-importing the same file
-            }}
-          />
-        </div>
-        <p className="text-charcoal-500 text-caption font-mono">
-          The export bundles your keybinding remaps and preferences (default agent, provider order,
-          palette behaviour, starter cockpit, theme). API keys and broker credentials stay in your
-          OS keychain and are never written to the file.
-        </p>
-        {status && (
-          <p
-            className={cn(
-              "text-caption font-mono",
-              status.kind === "ok" ? "text-positive" : "text-negative",
-            )}
-          >
-            {status.message}
+      <Card>
+        <div className="flex flex-col gap-3 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={handleExport}>
+              <Download className="size-3.5" aria-hidden="true" />
+              Export settings
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()}>
+              <Upload className="size-3.5" aria-hidden="true" />
+              Import settings
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json,.json"
+              aria-label="Import settings file"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  void handleImportFile(file);
+                }
+                e.target.value = ""; // allow re-importing the same file
+              }}
+            />
+          </div>
+          <p className="text-charcoal-500 text-caption">
+            The export bundles your keybinding remaps and preferences (default agent, provider
+            order, palette behaviour, starter cockpit, theme). API keys and broker credentials stay
+            in your OS keychain and are never written to the file.
           </p>
-        )}
-      </div>
+          {status && (
+            <p
+              className={cn(
+                "text-caption",
+                status.kind === "ok" ? "text-positive" : "text-negative",
+              )}
+            >
+              {status.message}
+            </p>
+          )}
+        </div>
+      </Card>
     </section>
   );
 }
@@ -1512,125 +1818,24 @@ function ExportImportSection() {
 
 function AboutSection() {
   return (
-    <section aria-labelledby="settings-about" className="pb-4">
-      <SectionHeader
+    <section aria-labelledby="settings-about">
+      <SubsectionHeader
         id="settings-about"
         icon={<Info className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="About"
       />
-      <div className="border-charcoal-700 bg-charcoal-850 text-charcoal-300 text-caption flex flex-col gap-2 rounded-none border px-4 py-3 font-mono">
-        <p>
-          Vysted <span className="text-charcoal-500">v{HOST_VERSION}</span> — an open-source,
-          AI-native finance terminal.
-        </p>
-        <p className="text-charcoal-400">
-          Plugin architecture · local-first · bring-your-own-keys. Your data, your keys, your
-          machine — extend it like an IDE.
-        </p>
-      </div>
+      <Card>
+        <div className="text-charcoal-300 text-caption flex flex-col gap-2 px-4 py-3">
+          <p>
+            Vysted <span className="text-charcoal-500">v{HOST_VERSION}</span> — an open-source,
+            AI-native finance terminal.
+          </p>
+          <p className="text-charcoal-400">
+            Plugin architecture · local-first · bring-your-own-keys. Your data, your keys, your
+            machine — extend it like an IDE.
+          </p>
+        </div>
+      </Card>
     </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Shared
-// ---------------------------------------------------------------------------
-
-function SectionHeader({
-  id,
-  icon,
-  title,
-  hint,
-}: {
-  id: string;
-  icon: React.ReactNode;
-  title: string;
-  hint?: string;
-}) {
-  return (
-    <header className="mb-3">
-      <h2 id={id} className="text-charcoal-100 text-section flex items-center gap-2">
-        {icon}
-        {title}
-      </h2>
-      {hint && <p className="text-charcoal-400 text-caption mt-1 font-mono">{hint}</p>}
-    </header>
-  );
-}
-
-/**
- * Shared `<select>` styling for the preferences controls. `appearance-none`
- * strips the cold WKWebView OS-default chrome (so the warm chevron below shows
- * through); `pr-6` reserves room for that chevron.
- */
-const selectClass =
-  "border-charcoal-700 bg-charcoal-900 text-charcoal-100 h-8 min-w-[12rem] appearance-none rounded-control border pr-6 pl-2 font-mono text-caption outline-none focus:border-charcoal-500";
-
-/**
- * A `<select>` wrapped in a `relative` container with a warm chevron overlay —
- * the chevron replaces the suppressed native control glyph (`appearance-none`).
- */
-function Select({ className, children, ...props }: React.ComponentProps<"select">) {
-  return (
-    <div className="relative inline-block">
-      <select className={cn(selectClass, className)} {...props}>
-        {children}
-      </select>
-      <ChevronDown
-        className="text-charcoal-400 pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2"
-        aria-hidden="true"
-      />
-    </div>
-  );
-}
-
-/** A labelled preference row: label + hint on the left, a control on the right. */
-function PrefRow({
-  label,
-  hint,
-  icon,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  icon?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="border-charcoal-700 bg-charcoal-850 flex items-center justify-between gap-3 rounded-none border px-4 py-3">
-      <div className="flex min-w-0 flex-col">
-        <span className="text-charcoal-100 text-caption flex items-center gap-2 font-mono">
-          {icon}
-          {label}
-        </span>
-        {hint && <span className="text-charcoal-400 text-caption mt-1 font-mono">{hint}</span>}
-      </div>
-      <div className="shrink-0">{children}</div>
-    </div>
-  );
-}
-
-/** A compact labelled checkbox row used inside grouped preference cards. */
-function ToggleRow({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (next: boolean) => void;
-}) {
-  return (
-    <label className="text-charcoal-200 text-caption flex items-center justify-between gap-3 py-1 font-mono">
-      {label}
-      <input
-        type="checkbox"
-        role="switch"
-        aria-label={label}
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="accent-charcoal-300 size-4"
-      />
-    </label>
   );
 }

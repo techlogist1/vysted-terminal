@@ -58,4 +58,27 @@ describe("BondPricerPanel", () => {
     fireEvent.change(select, { target: { value: "1" } });
     expect(select.value).toBe("1");
   });
+
+  it("renders the composed empty state before the first price", () => {
+    render(<BondPricerPanel />);
+    expect(screen.getByTestId("empty-state")).toBeTruthy();
+    expect(screen.getByTestId("empty-state-headline").textContent).toBe("No bond priced");
+    expect(screen.getByTestId("empty-state-cta")).toBeTruthy();
+  });
+
+  it("surfaces inline validation and blocks the POST on a bad input", () => {
+    render(<BondPricerPanel />);
+    fireEvent.change(screen.getByTestId("field-face"), { target: { value: "0" } });
+    expect(screen.getByTestId("bond-validation").textContent).toMatch(/positive/);
+    const priceBtn = screen.getByTestId("price-bond") as HTMLButtonElement;
+    expect(priceBtn.disabled).toBe(true);
+    fireEvent.click(priceBtn);
+    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+  });
+
+  it("rejects an out-of-window settlement date inline", () => {
+    render(<BondPricerPanel />);
+    fireEvent.change(screen.getByTestId("field-settle"), { target: { value: "2040-01-01" } });
+    expect(screen.getByTestId("bond-validation").textContent).toMatch(/between issue and maturity/);
+  });
 });

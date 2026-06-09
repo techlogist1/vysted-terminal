@@ -1,8 +1,11 @@
 "use client";
 
 import { type FunctionComponent, useEffect, useMemo, useState } from "react";
+import { Blocks } from "lucide-react";
 
+import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { usePluginsStore } from "@/store/plugins";
 import { useWorkspaceStore } from "@/store/workspace";
 import type { LoadedPlugin, LoadedPluginState } from "../../types/plugin-runtime";
@@ -34,37 +37,40 @@ export const PluginManagerPanel: FunctionComponent = () => {
     <div className="bg-charcoal-900 h-full w-full overflow-y-auto p-6">
       <header className="mb-4">
         <h2 className="text-charcoal-100 text-section">Plugins</h2>
-        <p className="text-charcoal-400 text-caption mt-1 font-mono">
+        <p className="text-charcoal-400 text-caption mt-1">
           {plugins.length > 0
             ? `${enabledCount} active of ${plugins.length} loaded · ${dataSources.length} data sources · ${agents.length} agents · ${nodes.length} nodes`
             : null}
         </p>
       </header>
       {runtime === null ? (
-        // Runtime not attached yet — show skeleton rows
-        <ul className="flex flex-col gap-2">
-          {[...Array(3)].map((_, i) => (
-            <li
-              key={i}
-              className="border-charcoal-700 bg-charcoal-850 rounded-none border px-4 py-3"
-            >
-              <div className="bg-charcoal-700 h-3 w-2/3 animate-pulse rounded-none" />
-              <div className="bg-charcoal-700 mt-2 h-2 w-1/3 animate-pulse rounded-none" />
-            </li>
-          ))}
-          <p className="text-charcoal-500 text-caption mt-2 font-mono">Loading plugin runtime…</p>
-        </ul>
-      ) : plugins.length === 0 ? (
-        // Runtime attached but no plugins loaded
-        <div className="flex flex-col items-center justify-start gap-3 py-12 pt-8 text-center">
-          <h3 className="text-charcoal-200 text-body">Plugin Manager</h3>
-          <p className="text-charcoal-400 text-caption max-w-xs font-mono break-words">
-            No plugins are loaded. Open Marketplace to install extensions.
-          </p>
-          <Button size="sm" variant="outline" onClick={() => openPanel("marketplace-panel")}>
-            Open Marketplace
-          </Button>
+        // Runtime not attached yet — row-shaped skeleton with an honest meta line.
+        <div data-testid="plugin-runtime-skeleton">
+          <ul className="flex flex-col gap-2">
+            {[...Array(3)].map((_, i) => (
+              <li
+                key={i}
+                className="border-charcoal-700 bg-charcoal-850 rounded-none border px-4 py-3"
+              >
+                <div className="bg-charcoal-700 h-3 w-2/3 animate-pulse rounded-none" />
+                <div className="bg-charcoal-700 mt-2 h-2 w-1/3 animate-pulse rounded-none" />
+              </li>
+            ))}
+          </ul>
+          <p className="text-charcoal-500 text-caption mt-2">Loading plugin runtime…</p>
         </div>
+      ) : plugins.length === 0 ? (
+        // Runtime attached but no plugins loaded — the composed shared surface.
+        <EmptyState
+          icon={Blocks}
+          headline="No plugins loaded"
+          hint="No plugins are loaded. Open the Marketplace to install brokers, data providers, panels, and agent packs."
+          cta={{
+            label: "Open Marketplace",
+            primary: true,
+            onClick: () => openPanel("marketplace-panel"),
+          }}
+        />
       ) : (
         <ul className="flex flex-col gap-2">
           {plugins.map((plugin) => (
@@ -77,6 +83,53 @@ export const PluginManagerPanel: FunctionComponent = () => {
 };
 
 PluginManagerPanel.displayName = "PluginManagerPanel";
+
+/**
+ * A readable monochrome switch on the 32px ladder (replaces the 8px `size-4`
+ * checkbox). The real checkbox stays in the tree (`sr-only`, `role="switch"`)
+ * so assistive tech and the existing tests keep their contract; the visible
+ * track/thumb are styled spans driven by `peer-checked`. Mirrors the
+ * SettingsPanel ToggleSwitch — if a third panel needs it, the lead should
+ * lift it into a shared component (noted in INTEGRATION_NOTES_R7_PANELS.md).
+ */
+function ToggleSwitch({
+  checked,
+  disabled,
+  onChange,
+  "aria-label": ariaLabel,
+}: {
+  checked: boolean;
+  disabled?: boolean;
+  onChange: (next: boolean) => void;
+  "aria-label"?: string;
+}) {
+  return (
+    <label
+      className={cn(
+        "relative inline-flex h-8 w-16 shrink-0 items-center",
+        disabled ? "cursor-not-allowed" : "cursor-pointer",
+      )}
+    >
+      <input
+        type="checkbox"
+        role="switch"
+        aria-label={ariaLabel}
+        checked={checked}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.checked)}
+        className="peer sr-only"
+      />
+      <span
+        aria-hidden="true"
+        className="bg-charcoal-850 border-charcoal-700 peer-checked:bg-charcoal-600 peer-checked:border-charcoal-500 rounded-control absolute inset-0 border transition-colors peer-disabled:opacity-40"
+      />
+      <span
+        aria-hidden="true"
+        className="bg-charcoal-500 peer-checked:bg-charcoal-100 rounded-control absolute left-1 size-6 transition-transform peer-checked:translate-x-8 peer-disabled:opacity-40"
+      />
+    </label>
+  );
+}
 
 const STATE_TONE: Record<LoadedPluginState, string> = {
   discovered: "bg-charcoal-700 text-charcoal-200",
@@ -139,43 +192,31 @@ function PluginRow({ plugin, runtimeReady }: PluginRowProps) {
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col">
           <div className="flex items-center gap-2">
-            <span className="text-charcoal-100 text-body truncate font-mono font-medium">
+            <span className="text-charcoal-100 text-body truncate font-medium">
               {plugin.manifest.name}
             </span>
             <span
               data-testid={`plugin-state-${plugin.manifest.id}`}
-              className={`rounded-control text-micro px-1.5 py-0.5 font-mono tracking-wide uppercase ${STATE_TONE[plugin.state]}`}
+              className={`rounded-control text-micro px-1.5 py-0.5 uppercase ${STATE_TONE[plugin.state]}`}
             >
               {stateLabel}
             </span>
           </div>
-          <span className="text-charcoal-400 text-caption font-mono">
+          <span className="text-charcoal-400 text-caption">
             v{plugin.manifest.version}
             {plugin.manifest.author ? ` · ${plugin.manifest.author}` : ""} · id{" "}
             <code className="text-charcoal-300">{plugin.manifest.id}</code>
           </span>
           {plugin.manifest.description ? (
-            <p className="text-charcoal-400 text-caption mt-1 font-mono">
-              {plugin.manifest.description}
-            </p>
+            <p className="text-charcoal-400 text-caption mt-1">{plugin.manifest.description}</p>
           ) : null}
         </div>
-        <label className="flex shrink-0 items-center gap-2">
-          <span className="sr-only">
-            {isActive ? "Disable" : "Enable"} {plugin.manifest.name}
-          </span>
-          <input
-            type="checkbox"
-            role="switch"
-            aria-label={`${plugin.manifest.name} enabled`}
-            checked={isActive}
-            disabled={!isToggleable || pending}
-            onChange={(event) => {
-              void handleToggle(event.target.checked);
-            }}
-            className="accent-charcoal-300 size-4 disabled:cursor-not-allowed disabled:opacity-40"
-          />
-        </label>
+        <ToggleSwitch
+          checked={isActive}
+          disabled={!isToggleable || pending}
+          onChange={(next) => void handleToggle(next)}
+          aria-label={`${plugin.manifest.name} enabled`}
+        />
       </div>
 
       {plugin.errorMessage ? (
@@ -183,7 +224,7 @@ function PluginRow({ plugin, runtimeReady }: PluginRowProps) {
           data-testid={`plugin-error-${plugin.manifest.id}`}
           className="border-negative/30 bg-negative/10 flex items-start justify-between gap-2 rounded-none border px-2 py-1"
         >
-          <p className="text-negative text-caption font-mono">{plugin.errorMessage}</p>
+          <p className="text-negative text-caption">{plugin.errorMessage}</p>
           <Button
             size="xs"
             variant="outline"
@@ -198,7 +239,7 @@ function PluginRow({ plugin, runtimeReady }: PluginRowProps) {
 
       <div className="flex items-center justify-between gap-3">
         <HealthHistory history={plugin.healthHistory} />
-        <span className="text-charcoal-500 text-micro font-mono">
+        <span className="text-charcoal-500 text-micro">
           {latestHealth ? formatRelativeTime(latestHealth.recordedAt) : "no health samples yet"}
         </span>
       </div>
@@ -218,9 +259,7 @@ const HEALTH_TONE: Record<string, string> = {
 
 function HealthHistory({ history }: HealthHistoryProps) {
   if (history.length === 0) {
-    return (
-      <span className="text-charcoal-500 text-micro font-mono">awaiting first health check</span>
-    );
+    return <span className="text-charcoal-500 text-micro">awaiting first health check</span>;
   }
   return (
     <div

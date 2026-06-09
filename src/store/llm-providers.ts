@@ -92,7 +92,9 @@ export const DEFAULT_PROVIDERS: LLMProviderInfo[] = [
   },
   {
     id: "openrouter",
-    label: "OpenRouter (broker)",
+    // Plain "OpenRouter" — it is a model-routing aggregator, and "(broker)" in
+    // a finance terminal reads as a stock broker (R7 walkthrough defect).
+    label: "OpenRouter",
     requiresKey: true,
     defaultBaseUrl: "https://openrouter.ai/api/v1",
     defaultModel: "deepseek/deepseek-v4-flash",

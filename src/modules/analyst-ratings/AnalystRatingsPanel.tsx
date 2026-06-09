@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 
+import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAnalystRatingsStore } from "@/store/analyst-ratings";
@@ -22,10 +23,28 @@ type Tab = "history" | "price-targets" | "individual";
  * - Individual — per-firm currently-active forecasts.
  *
  * Each tab fetches via the store; switching tabs is instant on cache hit.
- * Errors land inline per-tab so a failure on one slice does not blank
- * the others.
+ * A slice failure with cached data keeps the table and shows an inline
+ * banner; with NO data it renders the composed error EmptyState (with a
+ * Retry CTA) — an error is never disguised as an empty result, and the
+ * fetch window is a table-shaped skeleton, never a pulsing prose line.
  */
 const DEFAULT_SYMBOL = "AAPL";
+
+/** Table-shaped pulse skeleton for the fetch window. */
+function TabSkeleton() {
+  return (
+    <div className="flex animate-pulse flex-col" data-testid="analyst-tab-skeleton">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="border-charcoal-800 flex gap-6 border-b px-3 py-2">
+          <div className="bg-charcoal-800 h-3 w-1/6 rounded-none" />
+          <div className="bg-charcoal-800 h-3 w-1/4 rounded-none" />
+          <div className="bg-charcoal-800 h-3 w-1/5 rounded-none" />
+          <div className="bg-charcoal-800 ml-auto h-3 w-1/6 rounded-none" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function AnalystRatingsPanel() {
   const [draft, setDraft] = useState(DEFAULT_SYMBOL);
@@ -67,19 +86,20 @@ export function AnalystRatingsPanel() {
 
   const tabError =
     tab === "history" ? historyError : tab === "price-targets" ? priceTargetError : individualError;
+  const tabData = tab === "history" ? history : tab === "price-targets" ? targets : individual;
 
   // A slice is "loading" while its symbol is set, the data hasn't arrived, and
   // no error has landed — gate the child empty-states behind this so the fetch
   // window isn't mislabelled as an empty result.
-  const historyLoading = symbol !== null && history === null && !historyError;
-  const priceTargetLoading = symbol !== null && targets === null && !priceTargetError;
-  const individualLoading = symbol !== null && individual === null && !individualError;
-  const tabLoading =
-    tab === "history"
-      ? historyLoading
-      : tab === "price-targets"
-        ? priceTargetLoading
-        : individualLoading;
+  const tabLoading = symbol !== null && tabData === null && !tabError;
+
+  // Re-fire the active tab's fetch (the store re-fetches on a cache miss).
+  const retryTab = () => {
+    if (!symbol) return;
+    if (tab === "history") void getHistory(symbol);
+    else if (tab === "price-targets") void getPriceTargets(symbol);
+    else void getIndividual(symbol);
+  };
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
@@ -92,7 +112,7 @@ export function AnalystRatingsPanel() {
           placeholder="Symbol (e.g. AAPL)"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
-          className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 text-body rounded-control focus:ring-charcoal-500 h-8 flex-1 px-2 outline-none focus:ring-1"
+          className="bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-500 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 flex-1 border px-3 outline-none"
         />
         <Button type="submit" size="sm" variant="outline">
           <Search />
@@ -101,9 +121,11 @@ export function AnalystRatingsPanel() {
       </form>
 
       {symbol === null ? (
-        <p className="text-charcoal-400 text-caption p-3">
-          Enter a symbol to load rating history, price targets, and individual analyst tracks.
-        </p>
+        <EmptyState
+          icon={Search}
+          headline="No symbol loaded"
+          hint="Enter a ticker above to load rating history, price targets, and individual analyst tracks."
+        />
       ) : (
         <>
           <nav
@@ -127,10 +149,18 @@ export function AnalystRatingsPanel() {
             />
           </nav>
 
-          {tabError && (
-            <p className="text-negative border-charcoal-700 text-caption border-b px-3 py-2">
-              {tabError}
-            </p>
+          {/* A failed slice that still has cached data keeps the table below
+              and flags the staleness inline; the no-data error case renders
+              the composed error state in the body instead. */}
+          {tabError && tabData !== null && (
+            <div className="border-charcoal-700 flex items-center justify-between gap-3 border-b px-3 py-2">
+              <p className="text-negative text-caption min-w-0 truncate" title={tabError}>
+                {tabError}
+              </p>
+              <Button type="button" size="xs" variant="ghost" onClick={retryTab}>
+                Retry
+              </Button>
+            </div>
           )}
 
           <div className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto p-3">
@@ -153,7 +183,14 @@ export function AnalystRatingsPanel() {
             </header>
 
             {tabLoading ? (
-              <p className="text-charcoal-400 text-caption animate-pulse">Loading {symbol}…</p>
+              <TabSkeleton />
+            ) : tabError && tabData === null ? (
+              <EmptyState
+                icon={Search}
+                headline={`Could not load ${symbol}`}
+                hint={tabError}
+                cta={{ label: "Retry", onClick: retryTab, primary: true }}
+              />
             ) : (
               <>
                 {tab === "history" && <RatingsHistoryTable history={history ?? []} />}
@@ -182,9 +219,9 @@ function TabButton({
       type="button"
       onClick={onSelect}
       className={cn(
-        "text-caption rounded-control px-3 py-1",
+        "text-caption rounded-control flex h-8 items-center px-3",
         active
-          ? "bg-charcoal-800 border-charcoal-700 text-charcoal-300 -mb-px border-x border-t"
+          ? "bg-charcoal-800 border-charcoal-700 text-charcoal-200 -mb-px border-x border-t"
           : "text-charcoal-400 hover:text-charcoal-200",
       )}
       aria-pressed={active}

@@ -215,4 +215,62 @@ describe("SettingsPanel", () => {
     const section = screen.getByRole("region", { name: "Export / Import" });
     expect(within(section).getByText(/never exported/i)).toBeInTheDocument();
   });
+
+  // ---- R7 sectioned hierarchy ----
+
+  it("groups the page into named sections with a jump nav", () => {
+    render(<SettingsPanel />);
+    expect(screen.getByRole("navigation", { name: "Settings sections" })).toBeInTheDocument();
+    for (const name of [
+      "AI Providers",
+      "Web search",
+      "Research",
+      "Region & locale",
+      "Interface",
+      "Keybindings",
+      "Advanced",
+    ]) {
+      expect(screen.getByRole("region", { name })).toBeInTheDocument();
+    }
+  });
+
+  it("labels OpenRouter plainly — never as a broker", () => {
+    render(<SettingsPanel />);
+    expect(screen.queryByText(/OpenRouter \(broker\)/)).toBeNull();
+    expect(screen.getAllByText("OpenRouter").length).toBeGreaterThan(0);
+  });
+
+  it("starter-cockpit chips toggle the settings store", () => {
+    render(<SettingsPanel />);
+    const chip = screen.getByRole("checkbox", { name: "Starter cockpit: Screener" });
+    const before = useSettingsStore.getState().starterCockpitPanelIds.includes("screener-panel");
+
+    fireEvent.click(chip);
+    expect(useSettingsStore.getState().starterCockpitPanelIds.includes("screener-panel")).toBe(
+      !before,
+    );
+  });
+
+  it("every pre-R7 setting control is still reachable", () => {
+    render(<SettingsPanel />);
+    // AI providers
+    expect(screen.getByLabelText("Default agent")).toBeInTheDocument();
+    expect(screen.getByLabelText("Default provider")).toBeInTheDocument();
+    expect(screen.getByLabelText("Default model")).toBeInTheDocument();
+    // Web search
+    expect(screen.getByLabelText("Search tier")).toBeInTheDocument();
+    expect(screen.getByLabelText("SearXNG URL")).toBeInTheDocument();
+    // Region, interface knobs
+    expect(screen.getByLabelText("Region")).toBeInTheDocument();
+    expect(screen.getByLabelText("Accent intensity")).toBeInTheDocument();
+    expect(screen.getByLabelText("Density")).toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: "Show recent commands" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("switch", { name: "Scope to the focused panel first" }),
+    ).toBeInTheDocument();
+    // Advanced
+    expect(screen.getByRole("button", { name: /Open Marketplace/i })).toBeInTheDocument();
+    expect(screen.getByLabelText("New layout name")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Import settings/i })).toBeInTheDocument();
+  });
 });

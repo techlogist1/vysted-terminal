@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Newspaper } from "lucide-react";
 
+import { EmptyState } from "@/components/EmptyState";
+import { Button } from "@/components/ui/button";
 import { STAGGER, tween } from "@/lib/motion";
 import { SidecarError } from "@/lib/sidecar-client";
 import { usePanelContextBus } from "@/store/panel-context";
@@ -119,7 +121,7 @@ function NewsRow({
       >
         <p className="text-charcoal-100 text-body leading-snug">{item.title}</p>
         <div className="flex items-center justify-between gap-3">
-          <span className="text-charcoal-400 text-micro min-w-0 truncate font-mono">
+          <span className="text-charcoal-500 text-caption min-w-0 truncate">
             {item.source}
             <span className="text-charcoal-600 mx-1.5">·</span>
             {relativeTime(item.published_at)}
@@ -133,7 +135,7 @@ function NewsRow({
             {item.symbols.map((symbol) => (
               <span
                 key={symbol}
-                className="bg-charcoal-800 rounded-control text-micro text-charcoal-300 px-1.5 py-0.5 font-mono"
+                className="bg-charcoal-800 rounded-control text-micro text-charcoal-300 px-1.5 py-0.5"
               >
                 {symbol}
               </span>
@@ -256,17 +258,16 @@ export function NewsFeedPanel() {
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
       <header className="border-charcoal-700 flex items-center justify-between border-b px-4 py-2">
-        <h2 className="text-charcoal-200 text-caption font-mono font-medium tracking-wide uppercase">
-          News Feed
-        </h2>
-        <button
+        <h2 className="text-charcoal-200 text-micro">News Feed</h2>
+        <Button
           type="button"
+          size="xs"
+          variant="ghost"
           onClick={refresh}
           disabled={state.status === "loading"}
-          className="text-charcoal-400 text-micro hover:text-charcoal-100 font-mono transition-colors disabled:pointer-events-none disabled:opacity-40"
         >
           {state.status === "loading" ? "Loading…" : "Refresh"}
-        </button>
+        </Button>
       </header>
 
       {state.status === "loading" ? (
@@ -287,36 +288,25 @@ export function NewsFeedPanel() {
       ) : null}
 
       {state.status === "error" ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center">
-          <p className="text-negative text-caption font-mono">{state.message}</p>
-          <button
-            type="button"
-            onClick={refresh}
-            className="text-micro text-charcoal-300 hover:text-charcoal-100 font-mono transition-colors"
-          >
-            Retry
-          </button>
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <EmptyState
+            icon={Newspaper}
+            headline="Could not load the news feed"
+            hint={state.message}
+            cta={{ label: "Retry", primary: true, onClick: refresh }}
+          />
         </div>
       ) : null}
 
       {state.status === "ready" ? (
         state.items.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-            <Newspaper className="text-charcoal-600 size-8" />
-            <p className="text-charcoal-300 text-caption font-mono">
-              No headlines for your watchlist.
-            </p>
-            <p className="text-charcoal-500 text-micro font-mono">
-              Add a NewsAPI key in Settings to pull live articles, or add more symbols to your
-              watchlist.
-            </p>
-            <button
-              type="button"
-              onClick={refresh}
-              className="text-micro text-charcoal-300 hover:text-charcoal-100 font-mono transition-colors"
-            >
-              Refresh feed
-            </button>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <EmptyState
+              icon={Newspaper}
+              headline="No headlines for your watchlist."
+              hint="Add a NewsAPI key in Settings to pull live articles, or add more symbols to your watchlist."
+              cta={{ label: "Refresh feed", onClick: refresh }}
+            />
           </div>
         ) : (
           <ul className="flex-1 overflow-y-auto">

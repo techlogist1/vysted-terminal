@@ -153,6 +153,12 @@ describe("EarningsCalendarPanel", () => {
     await waitFor(() => {
       expect(screen.getByTestId("eps-estimate-grid")).toBeInTheDocument();
     });
+    // The estimate detail is a sectioned statement table (EPS / Revenue), not
+    // a key-value dump: section headers + right-aligned formatted values.
+    expect(screen.getByText("EPS")).toBeInTheDocument();
+    expect(screen.getByText("Revenue")).toBeInTheDocument();
+    expect(screen.getByText("Std. dev.")).toBeInTheDocument();
+    expect(screen.getByText("0.05")).toBeInTheDocument();
   });
 
   it("captures upcoming-load errors inline", async () => {

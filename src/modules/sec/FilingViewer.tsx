@@ -10,7 +10,9 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { FileWarning } from "lucide-react";
 
+import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { openEdgarUrl, useSecStore } from "@/store/sec";
@@ -61,9 +63,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
         <Button size="xs" variant="ghost" onClick={onClose} data-testid="filing-viewer-close">
           ← Back
         </Button>
-        <span className="text-charcoal-100 text-panel-title font-semibold">
-          {detail?.filing.form_type ?? ""}
-        </span>
+        <span className="text-charcoal-100 text-panel-title">{detail?.filing.form_type ?? ""}</span>
         <span
           className="text-charcoal-400 text-caption max-w-[28ch] truncate"
           title={detail?.filing.company_name ?? ""}
@@ -73,7 +73,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
         {detail?.filing.filed_date && (
           <span className="text-charcoal-500 text-caption">· filed {detail.filing.filed_date}</span>
         )}
-        <span className="text-charcoal-500 text-micro ml-auto font-mono">{accession}</span>
+        <span className="text-charcoal-500 text-caption ml-auto tabular-nums">{accession}</span>
         {detail?.filing.edgar_url && (
           <Button
             size="xs"
@@ -89,23 +89,19 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
       {error && !detail && (
         <div className="flex min-h-0 flex-1">
           <div className="border-charcoal-700 w-56 shrink-0 border-r" />
-          <article
-            className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center"
-            data-testid="filing-viewer-error"
-          >
-            <p className="text-negative text-caption font-mono">Could not load this filing.</p>
-            <p className="text-charcoal-500 text-micro font-mono">{error}</p>
-            <div className="flex gap-2">
-              <Button
-                size="xs"
-                variant="ghost"
-                className="text-charcoal-300 hover:text-charcoal-100"
-                onClick={() =>
-                  accession && identifier && void loadFilingDetail(accession, identifier)
-                }
-              >
-                Retry
-              </Button>
+          <article className="flex-1 overflow-y-auto" data-testid="filing-viewer-error">
+            <EmptyState
+              icon={FileWarning}
+              headline="Could not load this filing"
+              hint={error}
+              cta={{
+                label: "Retry",
+                primary: true,
+                onClick: () =>
+                  accession && identifier && void loadFilingDetail(accession, identifier),
+              }}
+            />
+            <div className="flex justify-center">
               <Button size="xs" variant="ghost" onClick={onClose}>
                 ← Back to list
               </Button>
@@ -118,7 +114,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
           className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2"
           data-testid="filing-viewer-error"
         >
-          <span className="text-negative text-micro font-mono">{error}</span>
+          <span className="text-negative text-caption">{error}</span>
           <Button
             size="xs"
             variant="ghost"
@@ -168,7 +164,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
                     type="button"
                     onClick={() => setActiveSectionId(section.id)}
                     className={cn(
-                      "hover:bg-charcoal-800 text-micro w-full px-3 py-1.5 text-left",
+                      "hover:bg-charcoal-800 text-caption w-full px-3 py-1.5 text-left",
                       (activeSectionId ?? detail.sections[0]?.id) === section.id
                         ? "bg-charcoal-800 text-charcoal-100 border-l-charcoal-500 border-l-2"
                         : "text-charcoal-300",
@@ -176,7 +172,9 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
                     data-testid={`filing-section-${section.id}`}
                   >
                     <span className="block truncate">{section.title}</span>
-                    <span className="text-charcoal-500 text-micro">{section.word_count} words</span>
+                    <span className="text-charcoal-500 text-caption tabular-nums">
+                      {section.word_count} words
+                    </span>
                   </button>
                 </li>
               ))}
@@ -186,9 +184,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
           <article className="flex-1 overflow-y-auto px-4 py-3" data-testid="filing-viewer-body">
             {activeSection ? (
               <>
-                <h3 className="text-charcoal-100 text-panel-title mb-2 font-semibold">
-                  {activeSection.title}
-                </h3>
+                <h3 className="text-charcoal-100 text-panel-title mb-2">{activeSection.title}</h3>
                 <pre className="text-charcoal-200 text-prose max-w-full leading-relaxed whitespace-pre-wrap">
                   {activeSection.text}
                 </pre>

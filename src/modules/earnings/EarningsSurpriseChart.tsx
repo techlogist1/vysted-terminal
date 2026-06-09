@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { BarChart3 } from "lucide-react";
 import {
   createChart,
   HistogramSeries,
@@ -10,6 +11,7 @@ import {
   type UTCTimestamp,
 } from "lightweight-charts";
 
+import { EmptyState } from "@/components/EmptyState";
 import {
   CHART_BORDER,
   CHART_CROSSHAIR,
@@ -53,14 +55,21 @@ interface Props {
  * Histogram chart of recent earnings surprises (EPS actual minus estimate).
  * Positive surprises render in the green positive colour, negatives in red.
  * The chart renders at the parent container's intrinsic size; the caller
- * is responsible for giving it a sized div.
+ * is responsible for giving it a sized div. With no history the surface is
+ * the composed dense EmptyState — never an empty chart frame with a prose
+ * overlay.
  */
 export function EarningsSurpriseChart({ surprises, limit = 12 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
 
+  const hasData = surprises.length > 0;
+
   useEffect(() => {
+    if (!hasData) {
+      return;
+    }
     const container = containerRef.current;
     if (!container) {
       return;
@@ -79,7 +88,7 @@ export function EarningsSurpriseChart({ surprises, limit = 12 }: Props) {
       chartRef.current = null;
       seriesRef.current = null;
     };
-  }, []);
+  }, [hasData]);
 
   useEffect(() => {
     const series = seriesRef.current;
@@ -117,16 +126,22 @@ export function EarningsSurpriseChart({ surprises, limit = 12 }: Props) {
     chartRef.current?.timeScale().fitContent();
   }, [surprises, limit]);
 
+  if (!hasData) {
+    return (
+      <div data-testid="earnings-surprise-chart">
+        <EmptyState
+          dense
+          icon={BarChart3}
+          headline="No surprise history"
+          hint="Reported-vs-estimate EPS bars chart here once the provider has past quarters."
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="relative h-48 w-full" data-testid="earnings-surprise-chart">
+    <div className="h-48 w-full" data-testid="earnings-surprise-chart">
       <div ref={containerRef} className="h-full w-full" />
-      {surprises.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <p className="text-charcoal-400 text-caption">
-            No surprise history available for this symbol.
-          </p>
-        </div>
-      )}
     </div>
   );
 }

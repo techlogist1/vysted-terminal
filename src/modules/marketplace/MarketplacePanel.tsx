@@ -60,8 +60,8 @@ export function MarketplacePanel() {
   return (
     <div className="bg-charcoal-950 flex h-full w-full flex-col overflow-y-auto">
       <header className="border-charcoal-700 bg-charcoal-925 sticky top-0 z-10 border-b px-4 py-3">
-        <h2 className="text-charcoal-100 text-panel-title font-semibold">Marketplace</h2>
-        <p className="text-charcoal-400 text-micro mt-0.5 font-mono">
+        <h2 className="text-charcoal-100 text-panel-title">Marketplace</h2>
+        <p className="text-charcoal-400 text-caption mt-1">
           Install, enable, configure, and remove extensions — brokers, data, panels, and agents.
         </p>
       </header>
@@ -80,7 +80,7 @@ export function MarketplacePanel() {
               <section key={id} aria-label={label}>
                 <div className="mb-2">
                   <h3 className="hud-label">{label}</h3>
-                  <p className="text-charcoal-500 text-micro mt-0.5 font-mono">{blurb}</p>
+                  <p className="text-charcoal-500 text-caption mt-1">{blurb}</p>
                 </div>
                 <ul className="flex flex-col gap-2">
                   {entries.map((entry) => (
@@ -122,15 +122,13 @@ function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-charcoal-100 text-caption font-mono font-medium">
-              {entry.name}
-            </span>
+            <span className="text-charcoal-100 text-body truncate font-medium">{entry.name}</span>
             <StateBadge state={state} preinstalled={entry.preinstalled} hasCreds={hasCreds} />
           </div>
-          <p className="text-charcoal-400 text-micro mt-0.5 font-mono">{entry.description}</p>
+          <p className="text-charcoal-400 text-caption mt-1">{entry.description}</p>
           {state.errorMessage && (
             <div className="border-negative/30 bg-negative/10 mt-1 flex items-start justify-between gap-2 rounded-none border px-2 py-1">
-              <p className="text-negative text-caption font-mono">{state.errorMessage}</p>
+              <p className="text-negative text-caption">{state.errorMessage}</p>
               <Button
                 size="xs"
                 variant="ghost"
@@ -236,11 +234,7 @@ function StateBadge({
     tone = "text-warning border-warning/40";
   }
   return (
-    <span
-      className={cn("rounded-control text-micro border px-1.5 py-0.5 font-mono uppercase", tone)}
-    >
-      {label}
-    </span>
+    <span className={cn("rounded-control text-micro border px-1.5 py-0.5", tone)}>{label}</span>
   );
 }
 
@@ -265,25 +259,23 @@ function CredentialForm({ entry, onDone }: { entry: MarketplaceEntry; onDone: ()
         void configure(entry.pluginId, values).then(onDone);
       }}
     >
-      {entry.instructions && (
-        <p className="text-charcoal-400 text-micro font-mono">{entry.instructions}</p>
-      )}
+      {entry.instructions && <p className="text-charcoal-400 text-caption">{entry.instructions}</p>}
       {entry.website && (
         <a
           href={entry.website}
           target="_blank"
           rel="noreferrer"
-          className="text-micro text-charcoal-300 font-mono hover:underline"
+          className="text-caption text-charcoal-300 hover:underline"
         >
           Where to get credentials →
         </a>
       )}
       {fields.length === 0 && (
-        <p className="text-charcoal-500 text-micro font-mono">This extension needs no key.</p>
+        <p className="text-charcoal-500 text-caption">This extension needs no key.</p>
       )}
       {fields.map((field) => (
         <label key={field.key} className="flex flex-col gap-1">
-          <span className="text-charcoal-400 text-micro font-mono">
+          <span className="text-charcoal-400 text-micro">
             {field.label}
             {field.required && <span className="text-negative"> *</span>}
           </span>
@@ -297,11 +289,11 @@ function CredentialForm({ entry, onDone }: { entry: MarketplaceEntry; onDone: ()
               setValidationError(null);
               setValues((v) => ({ ...v, [field.key]: e.target.value }));
             }}
-            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 rounded-control text-body focus:ring-charcoal-500 h-8 px-2 font-mono outline-none focus:ring-1"
+            className="bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-500 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 border px-3 outline-none"
           />
         </label>
       ))}
-      {validationError && <p className="text-negative text-caption font-mono">{validationError}</p>}
+      {validationError && <p className="text-negative text-caption">{validationError}</p>}
       <div className="flex items-center justify-end gap-1.5">
         <Button type="button" size="sm" variant="ghost" onClick={onDone}>
           Cancel
@@ -311,7 +303,7 @@ function CredentialForm({ entry, onDone }: { entry: MarketplaceEntry; onDone: ()
           {busy ? "Saving…" : "Save credentials"}
         </Button>
       </div>
-      <p className="text-charcoal-500 text-micro font-mono">
+      <p className="text-charcoal-500 text-caption">
         Stored in your OS keychain — never written to disk or logs. Broker access is read-only;
         order execution stays deferred (paper-default, host §6.5-gated).
       </p>

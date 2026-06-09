@@ -1,18 +1,29 @@
 "use client";
 
 /**
- * Yield Curve Panel — Teammate Q Phase 6.
+ * Yield Curve — depo + swap bootstrap of a piecewise-linear zero curve.
  *
- * Lets the user paste a grid of (type, tenor, unit, rate) instruments
- * for a depo + swap bootstrap, then renders the resulting
- * piecewise-linear zero curve via lightweight-charts. The user starts
- * with a US Treasury preset (1mo / 3mo / 6mo deposits + 2y / 5y / 10y /
- * 30y swaps) — the panel is a quant research surface, not a productive
- * trading interface, so editable presets are the right level of polish
- * for v0.6.0.
+ * R7 layout (VYSTED_DESIGN.md):
+ *
+ *   ┌──────────────┬──────────────────────────────────────────────────┐
+ *   │ INPUT RAIL   │ ZERO CURVE — lightweight-charts line             │
+ *   │  valuation   ├──────────────────────────────────────────────────┤
+ *   │  instrument  │ SAMPLED CURVE — full-width DataTable             │
+ *   │  grid of     │   tenor · date · zero rate · discount factor     │
+ *   │  32px inputs ├──────────────────────────────────────────────────┤
+ *   │  inline      │ N points · computed in N ms                      │
+ *   │  validation  │                                                  │
+ *   │ [Bootstrap]  │                                                  │
+ *   └──────────────┴──────────────────────────────────────────────────┘
+ *
+ * Every instrument-grid control sits on the 32px ladder at text-body;
+ * validation (ordered tenors aside — the engine owns that) is an honest
+ * inline line. Before the first bootstrap the results column is the shared
+ * composed EmptyState (the chart only mounts with data, never an empty frame);
+ * the sampled curve renders through the one shared DataTable primitive.
  */
 
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Activity } from "lucide-react";
 import {
   createChart,
@@ -22,6 +33,8 @@ import {
   type UTCTimestamp,
 } from "lightweight-charts";
 
+import { DataTable, type DataColumn } from "@/components/DataTable";
+import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import {
   ACCENT_CORAL,
@@ -33,7 +46,11 @@ import {
 } from "@/lib/chart-theme";
 import { useQuantStore } from "@/store/quant";
 
-import type { YieldCurveInstrument, YieldCurveRequest } from "../../../types/quant";
+import type {
+  YieldCurveInstrument,
+  YieldCurvePoint,
+  YieldCurveRequest,
+} from "../../../types/quant";
 
 const CHART_THEME = {
   layout: {
@@ -50,8 +67,6 @@ const CHART_THEME = {
   crosshair: { vertLine: { color: CHART_CROSSHAIR }, horzLine: { color: CHART_CROSSHAIR } },
 } as const;
 
-const AMBER = ACCENT_CORAL;
-
 /** Preset matching the smoke-test in the spec. Approximate US Treasury 2026. */
 const DEFAULT_INSTRUMENTS: YieldCurveInstrument[] = [
   { type: "deposit", tenor: 1, tenor_unit: "months", rate: 0.041 },
@@ -65,6 +80,54 @@ const DEFAULT_INSTRUMENTS: YieldCurveInstrument[] = [
 
 const DEFAULT_VALUATION_DATE = "2026-05-16";
 
+/** Shared classes for the dense instrument-grid controls — 32px ladder,
+ *  text-body, inset fill (the rail is narrow, so padding drops to 8px). */
+const gridControlClass =
+  "bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 border px-2 outline-none disabled:opacity-50";
+
+const CURVE_COLUMNS: DataColumn<YieldCurvePoint>[] = [
+  {
+    key: "tenor_years",
+    header: "Tenor (y)",
+    numeric: true,
+    width: "20%",
+    format: (p) => p.tenor_years.toFixed(3),
+  },
+  { key: "date", header: "Date", tier: "secondary", width: "30%", format: (p) => p.date },
+  {
+    key: "zero_rate",
+    header: "Zero rate",
+    numeric: true,
+    width: "25%",
+    format: (p) => `${(p.zero_rate * 100).toFixed(3)}%`,
+  },
+  {
+    key: "discount_factor",
+    header: "DF",
+    numeric: true,
+    tier: "secondary",
+    width: "25%",
+    format: (p) => p.discount_factor.toFixed(5),
+  },
+];
+
+/** Pulse skeleton mirroring the result layout — first bootstrap only. */
+function ResultSkeleton() {
+  return (
+    <div className="flex animate-pulse flex-col gap-8" data-testid="yield-curve-skeleton">
+      <div className="border-charcoal-700 rounded-none border p-6">
+        <div className="bg-charcoal-800 h-3 w-40 rounded-none" />
+        <div className="bg-charcoal-800 mt-3 h-56 w-full rounded-none" />
+      </div>
+      <div className="border-charcoal-700 rounded-none border p-6">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="bg-charcoal-800 mt-2 h-3 w-full rounded-none first:mt-0" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function YieldCurvePanel() {
   const lastResult = useQuantStore((s) => s.lastYieldCurve);
   const status = useQuantStore((s) => s.yieldCurveStatus);
@@ -76,30 +139,59 @@ export function YieldCurvePanel() {
   const [sampleCount, setSampleCount] = useState("30");
 
   const isRunning = status === "loading";
+  const hasResult = lastResult !== null && lastResult.curve.length > 0;
+
+  // Honest inline validation — surfaced in the rail, never a silent NaN POST.
+  const validationError = useMemo(() => {
+    if (valuationDate === "") {
+      return "Valuation date is required.";
+    }
+    const samples = Number(sampleCount);
+    if (sampleCount.trim() === "" || !Number.isInteger(samples) || samples < 3 || samples > 200) {
+      return "Sample points must be a whole number from 3 to 200.";
+    }
+    for (const [idx, row] of instruments.entries()) {
+      if (!Number.isFinite(row.tenor) || row.tenor < 1) {
+        return `Instrument ${idx + 1}: tenor must be ≥ 1.`;
+      }
+      if (!Number.isFinite(row.rate) || row.rate <= 0) {
+        return `Instrument ${idx + 1}: rate must be positive.`;
+      }
+    }
+    return null;
+  }, [valuationDate, sampleCount, instruments]);
 
   const handleBootstrap = useCallback(async () => {
+    if (validationError !== null) {
+      return;
+    }
     const req: YieldCurveRequest = {
       valuation_date: valuationDate,
       instruments,
-      sample_count: Number(sampleCount) || 30,
+      sample_count: Number(sampleCount),
     };
     try {
       await bootstrap(req);
     } catch {
       // surfaced via store
     }
-  }, [valuationDate, instruments, sampleCount, bootstrap]);
+  }, [validationError, valuationDate, instruments, sampleCount, bootstrap]);
 
   const updateRow = useCallback((idx: number, patch: Partial<YieldCurveInstrument>) => {
     setInstruments((rows) => rows.map((row, i) => (i === idx ? { ...row, ...patch } : row)));
   }, []);
 
-  // Chart wiring
+  // Chart wiring — the chart mounts only once there is a curve to draw (the
+  // empty state owns the pre-bootstrap surface), so the create-effect keys on
+  // `hasResult` instead of running once on mount.
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Line"> | null>(null);
 
   useEffect(() => {
+    if (!hasResult) {
+      return;
+    }
     const container = containerRef.current;
     if (!container) {
       return;
@@ -107,7 +199,7 @@ export function YieldCurvePanel() {
     const chart = createChart(container, { ...CHART_THEME, autoSize: true });
     chartRef.current = chart;
     const series = chart.addSeries(LineSeries, {
-      color: AMBER,
+      color: ACCENT_CORAL,
       lineWidth: 2,
       priceLineVisible: false,
       lastValueVisible: true,
@@ -119,7 +211,7 @@ export function YieldCurvePanel() {
       chartRef.current = null;
       seriesRef.current = null;
     };
-  }, []);
+  }, [hasResult]);
 
   useEffect(() => {
     const series = seriesRef.current;
@@ -132,35 +224,34 @@ export function YieldCurvePanel() {
     }));
     series.setData(data);
     chartRef.current?.timeScale().fitContent();
-  }, [lastResult]);
+  }, [lastResult, hasResult]);
 
   return (
     <div className="bg-charcoal-900 flex h-full min-h-0 w-full">
+      {/* --- Input rail ----------------------------------------------------- */}
       <aside
-        className="border-charcoal-700 flex w-80 flex-col gap-3 overflow-y-auto border-r p-3"
+        className="border-charcoal-700 flex w-80 shrink-0 flex-col gap-6 overflow-y-auto border-r p-6"
         data-testid="yield-curve-form"
       >
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-300 text-micro font-mono">Valuation date</span>
+          <span className="text-charcoal-500 text-micro">Valuation date</span>
           <input
             type="date"
             value={valuationDate}
             onChange={(e) => setValuationDate(e.target.value)}
             disabled={isRunning}
             data-testid="field-valuation-date"
-            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
+            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 border px-3 tabular-nums outline-none disabled:opacity-50"
           />
         </label>
 
-        <div className="flex flex-col gap-1.5">
-          <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
-            Instruments
-          </span>
-          <div className="text-charcoal-500 text-micro grid grid-cols-12 gap-1 font-mono uppercase">
+        <div className="flex flex-col gap-2">
+          <span className="text-charcoal-500 text-micro">Instruments</span>
+          <div className="text-charcoal-500 text-micro grid grid-cols-12 gap-1">
             <span className="col-span-3">Type</span>
             <span className="col-span-3">Tenor</span>
             <span className="col-span-2">Unit</span>
-            <span className="col-span-4">Rate</span>
+            <span className="col-span-4 text-right">Rate</span>
           </div>
           {instruments.map((row, idx) => (
             <div
@@ -172,7 +263,8 @@ export function YieldCurvePanel() {
                 value={row.type}
                 onChange={(e) => updateRow(idx, { type: e.target.value as "deposit" | "swap" })}
                 disabled={isRunning}
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-micro focus-visible:border-charcoal-500 col-span-3 h-8 border px-1 font-mono outline-none"
+                aria-label={`Instrument ${idx + 1} type`}
+                className={`${gridControlClass} col-span-3`}
               >
                 <option value="deposit">depo</option>
                 <option value="swap">swap</option>
@@ -181,9 +273,10 @@ export function YieldCurvePanel() {
                 type="number"
                 min={1}
                 value={row.tenor}
-                onChange={(e) => updateRow(idx, { tenor: Number(e.target.value) || 1 })}
+                onChange={(e) => updateRow(idx, { tenor: Number(e.target.value) })}
                 disabled={isRunning}
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-micro focus-visible:border-charcoal-500 col-span-3 h-8 border px-1 font-mono outline-none"
+                aria-label={`Instrument ${idx + 1} tenor`}
+                className={`${gridControlClass} col-span-3 tabular-nums`}
               />
               <select
                 value={row.tenor_unit}
@@ -191,7 +284,8 @@ export function YieldCurvePanel() {
                   updateRow(idx, { tenor_unit: e.target.value as "months" | "years" })
                 }
                 disabled={isRunning}
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-micro focus-visible:border-charcoal-500 col-span-2 h-8 border px-1 font-mono outline-none"
+                aria-label={`Instrument ${idx + 1} tenor unit`}
+                className={`${gridControlClass} col-span-2 px-1`}
               >
                 <option value="months">mo</option>
                 <option value="years">yr</option>
@@ -200,16 +294,17 @@ export function YieldCurvePanel() {
                 type="number"
                 step="0.001"
                 value={row.rate}
-                onChange={(e) => updateRow(idx, { rate: Number(e.target.value) || 0 })}
+                onChange={(e) => updateRow(idx, { rate: Number(e.target.value) })}
                 disabled={isRunning}
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-micro focus-visible:border-charcoal-500 col-span-4 h-8 border px-1 font-mono outline-none"
+                aria-label={`Instrument ${idx + 1} rate`}
+                className={`${gridControlClass} col-span-4 text-right tabular-nums`}
               />
             </div>
           ))}
         </div>
 
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-300 text-micro font-mono">Sample points</span>
+          <span className="text-charcoal-500 text-micro">Sample points</span>
           <input
             type="number"
             min={3}
@@ -218,14 +313,24 @@ export function YieldCurvePanel() {
             onChange={(e) => setSampleCount(e.target.value)}
             disabled={isRunning}
             data-testid="field-sample-count"
-            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
+            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 border px-3 tabular-nums outline-none disabled:opacity-50"
           />
         </label>
+
+        {validationError !== null && (
+          <p
+            className="text-negative text-caption"
+            role="alert"
+            data-testid="yield-curve-validation"
+          >
+            {validationError}
+          </p>
+        )}
 
         <Button
           type="button"
           onClick={handleBootstrap}
-          disabled={isRunning}
+          disabled={isRunning || validationError !== null}
           size="sm"
           variant="default"
           className="mt-auto"
@@ -236,10 +341,11 @@ export function YieldCurvePanel() {
         </Button>
       </aside>
 
-      <section className="flex min-h-0 flex-1 flex-col p-4">
+      {/* --- Results -------------------------------------------------------- */}
+      <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-8 overflow-y-auto p-6">
         {error && (
           <p
-            className="text-negative bg-negative/10 border-negative/30 text-caption mb-3 rounded-none border p-2 font-mono"
+            className="text-negative bg-negative/10 border-negative/30 text-caption rounded-none border px-3 py-2"
             role="alert"
             data-testid="yield-curve-error"
           >
@@ -247,49 +353,46 @@ export function YieldCurvePanel() {
           </p>
         )}
 
-        <div className="border-charcoal-700 bg-charcoal-850 mb-3 rounded-none border p-2">
-          <div className="text-charcoal-500 text-micro mb-1 font-mono tracking-widest uppercase">
-            Zero curve (continuously compounded, %)
-          </div>
-          <div ref={containerRef} className="h-72 w-full" data-testid="yield-curve-chart" />
-        </div>
+        {!hasResult && !isRunning && (
+          <EmptyState
+            icon={Activity}
+            headline="No curve bootstrapped"
+            hint="Adjust the deposit + swap instruments on the left and bootstrap — the zero curve and its sampled points land here."
+            cta={{ label: "Bootstrap curve", onClick: () => void handleBootstrap(), primary: true }}
+          />
+        )}
 
-        {lastResult && lastResult.curve.length > 0 && (
-          <div
-            className="border-charcoal-700 bg-charcoal-850 rounded-none border p-3"
-            data-testid="yield-curve-table"
-          >
-            <div className="text-charcoal-500 text-micro mb-2 font-mono tracking-widest uppercase">
-              Sampled curve · {lastResult.curve.length} points · computed in{" "}
-              {lastResult.duration_ms.toFixed(1)} ms
+        {!hasResult && isRunning && <ResultSkeleton />}
+
+        {hasResult && lastResult && (
+          <div className="flex flex-col gap-8" data-testid="yield-curve-result">
+            <div className="border-charcoal-700 rounded-none border">
+              <h3 className="text-charcoal-200 border-charcoal-700 text-micro border-b px-3 py-2">
+                Zero curve (continuously compounded, %)
+              </h3>
+              <div className="p-3">
+                <div ref={containerRef} className="h-72 w-full" data-testid="yield-curve-chart" />
+              </div>
             </div>
-            <div className="text-charcoal-300 text-micro grid max-h-72 grid-cols-4 gap-x-2 overflow-y-auto font-mono tabular-nums">
-              <span className="text-charcoal-500 border-charcoal-700 bg-charcoal-850 sticky top-0 border-b pb-1 text-right">
-                Tenor (y)
-              </span>
-              <span className="text-charcoal-500 border-charcoal-700 bg-charcoal-850 sticky top-0 border-b pb-1">
-                Date
-              </span>
-              <span className="text-charcoal-500 border-charcoal-700 bg-charcoal-850 sticky top-0 border-b pb-1 text-right">
-                Zero rate
-              </span>
-              <span className="text-charcoal-500 border-charcoal-700 bg-charcoal-850 sticky top-0 border-b pb-1 text-right">
-                DF
-              </span>
-              {lastResult.curve.map((p, idx) => (
-                <Fragment key={`pt-${idx}-${p.date}`}>
-                  <span className="border-charcoal-800 border-b py-0.5 text-right">
-                    {p.tenor_years.toFixed(3)}
-                  </span>
-                  <span className="border-charcoal-800 border-b py-0.5">{p.date}</span>
-                  <span className="border-charcoal-800 text-charcoal-100 border-b py-0.5 text-right">
-                    {(p.zero_rate * 100).toFixed(3)}%
-                  </span>
-                  <span className="border-charcoal-800 border-b py-0.5 text-right">
-                    {p.discount_factor.toFixed(5)}
-                  </span>
-                </Fragment>
-              ))}
+
+            <div
+              className="border-charcoal-700 rounded-none border"
+              data-testid="yield-curve-table"
+            >
+              <h3 className="text-charcoal-200 border-charcoal-700 text-micro border-b px-3 py-2">
+                Sampled curve
+              </h3>
+              <DataTable
+                columns={CURVE_COLUMNS}
+                rows={lastResult.curve}
+                rowKey={(p, i) => `${p.date}-${i}`}
+                data-testid="yield-curve-points"
+              />
+            </div>
+
+            <div className="text-charcoal-500 text-micro">
+              {lastResult.curve.length} points · computed in {lastResult.duration_ms.toFixed(1)} ms
+              · piecewise-linear zero bootstrap
             </div>
           </div>
         )}

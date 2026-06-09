@@ -67,6 +67,25 @@ describe("OptionPricerPanel", () => {
     fireEvent.click(exerciseAmericanBtn);
     const priceBtn = screen.getByTestId("price-option") as HTMLButtonElement;
     expect(priceBtn.disabled).toBe(true);
+    // The incompatibility is honest inline validation, not a silent disable.
+    expect(screen.getByTestId("option-validation").textContent).toMatch(/European exercise/);
+  });
+
+  it("renders the composed empty state before the first price", () => {
+    render(<OptionPricerPanel />);
+    expect(screen.getByTestId("empty-state")).toBeTruthy();
+    expect(screen.getByTestId("empty-state-headline").textContent).toBe("No option priced");
+    expect(screen.getByTestId("empty-state-cta")).toBeTruthy();
+  });
+
+  it("surfaces inline validation and blocks the POST on a bad input", () => {
+    render(<OptionPricerPanel />);
+    fireEvent.change(screen.getByTestId("field-spot"), { target: { value: "-3" } });
+    expect(screen.getByTestId("option-validation").textContent).toMatch(/positive/);
+    const priceBtn = screen.getByTestId("price-option") as HTMLButtonElement;
+    expect(priceBtn.disabled).toBe(true);
+    fireEvent.click(priceBtn);
+    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
   });
 
   it("surfaces errors from the store via the error card", async () => {

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Building2, Loader2, Search, Sparkles } from "lucide-react";
+import { Building2, FileSpreadsheet, Loader2, Search, Sparkles, Star } from "lucide-react";
 
 import { cn, DataTable, type DataColumn, type DataSection } from "@/components/DataTable";
+import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import {
   formatCompactMoney,
@@ -200,7 +201,7 @@ function ProvenanceBadge({
   return (
     <span
       className={cn(
-        "border-charcoal-700 text-charcoal-400 text-micro rounded-control inline-flex items-center gap-1 border px-1.5 py-0.5",
+        "border-charcoal-700 text-charcoal-400 text-micro rounded-control inline-flex items-center gap-1 border px-2 py-1",
         stale && "border-warning/40 text-warning",
       )}
       title={`Source: ${provider}${freshness ? ` · ${freshness}` : ""}`}
@@ -208,6 +209,33 @@ function ProvenanceBadge({
       <span>{provider}</span>
       {freshness && <span className="text-charcoal-500">· {freshness}</span>}
     </span>
+  );
+}
+
+/** One analyst-ratings metric cell — a micro label over a body-size value
+ *  (tabular when numeric); null renders the table's quiet glyph. */
+function RatingMetric({
+  label,
+  value,
+  numeric = false,
+}: {
+  label: string;
+  value: string | null;
+  numeric?: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-1 px-3 py-2">
+      <span className="text-charcoal-500 text-micro">{label}</span>
+      <span
+        className={cn(
+          "text-body",
+          value === null ? "text-charcoal-600" : "text-charcoal-100",
+          numeric && "tabular-nums",
+        )}
+      >
+        {value ?? "—"}
+      </span>
+    </div>
   );
 }
 
@@ -225,7 +253,7 @@ function VerifiedProse({ text }: { text: string }) {
         part === "[unverified]" ? (
           <span
             key={i}
-            className="text-charcoal-500 border-charcoal-700 rounded-control mx-0.5 border border-dashed px-1 align-baseline"
+            className="text-charcoal-500 border-charcoal-700 rounded-control mx-1 border border-dashed px-1 align-baseline"
             title="A figure here was removed because it did not match the source data."
           >
             redacted
@@ -319,13 +347,14 @@ function NarrativeSection({
           )}
         </div>
       ) : (
-        // Quiet unavailable state — icon + one calm line (the reason), never blank.
-        <div className="flex flex-col items-center gap-2 px-3 py-6 text-center">
-          <Sparkles className="text-charcoal-600 size-4" />
-          <p className="text-charcoal-500 text-caption max-w-xs leading-snug">
-            {narrative?.reason ?? "AI overview unavailable."}
-          </p>
-        </div>
+        // Quiet unavailable state — the composed shared EmptyState, never blank.
+        <EmptyState
+          icon={Sparkles}
+          dense
+          headline="AI overview unavailable"
+          hint={narrative?.reason ?? undefined}
+          className="pt-4"
+        />
       )}
     </section>
   );
@@ -430,7 +459,13 @@ function StatementTable({
         {title}
       </h3>
       {statement === null ? (
-        <p className="text-charcoal-500 text-caption px-3 py-2">Unavailable.</p>
+        <EmptyState
+          icon={FileSpreadsheet}
+          dense
+          headline={`${title} unavailable`}
+          hint="The provider returned no data for this statement."
+          className="pt-4"
+        />
       ) : (
         <DataTable
           columns={columns}
@@ -702,7 +737,7 @@ export function EquityOverviewPanel() {
             onFocus={() => candidates.length > 0 && setAcOpen(true)}
             onBlur={() => setTimeout(() => setAcOpen(false), 120)}
             autoComplete="off"
-            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-500 text-body rounded-control focus:ring-charcoal-500 h-8 w-full px-3 outline-none focus:ring-1"
+            className="bg-charcoal-850 border-charcoal-700 text-charcoal-100 placeholder:text-charcoal-500 text-body rounded-control focus:border-charcoal-500 h-8 w-full border px-3 outline-none"
           />
           {acOpen && candidates.length > 0 && (
             <ul className="border-charcoal-700 bg-charcoal-875 absolute top-full right-0 left-0 z-20 mt-1 max-h-64 overflow-y-auto rounded-none border py-1">
@@ -717,7 +752,7 @@ export function EquityOverviewPanel() {
                     }}
                     onMouseEnter={() => setAcIndex(idx)}
                     className={cn(
-                      "flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left",
+                      "flex w-full items-center justify-between gap-2 px-3 py-2 text-left",
                       idx === acIndex ? "bg-charcoal-800" : "hover:bg-charcoal-800/60",
                     )}
                   >
@@ -778,18 +813,22 @@ export function EquityOverviewPanel() {
             ))}
           </div>
         ) : data === null ? (
-          <div className="flex flex-col items-center gap-4 pt-12 text-center">
-            <Building2 className="text-charcoal-600 size-8" />
-            <p className="text-charcoal-300 text-body max-w-sm">
-              Screener-grade fundamentals, statements, and ratings for any ticker — US, NSE, or BSE.
-            </p>
-            <div className="flex gap-2">
+          // Composed empty state — never instructional copy styled as primary
+          // content. The quick-load chips sit on the 24px compact-control ladder.
+          <div className="flex flex-col items-center">
+            <EmptyState
+              icon={Building2}
+              headline="Equity overview"
+              hint="Screener-grade fundamentals, statements, and ratings for any ticker — US, NSE, or BSE."
+              className="pb-3"
+            />
+            <div className="flex gap-2" data-testid="quick-load-chips">
               {["AAPL", "RELIANCE", "NVDA"].map((t) => (
                 <button
                   key={t}
                   type="button"
                   onClick={() => void quickLoad(t)}
-                  className="border-charcoal-700 bg-charcoal-800 text-charcoal-300 text-caption rounded-control hover:border-charcoal-500 hover:text-charcoal-100 border px-3 py-1.5 transition-colors"
+                  className="border-charcoal-700 text-charcoal-300 text-caption rounded-control hover:border-charcoal-500 hover:text-charcoal-100 flex h-6 items-center border px-3 transition-colors"
                 >
                   {t}
                 </button>
@@ -798,43 +837,54 @@ export function EquityOverviewPanel() {
           </div>
         ) : (
           <div className="flex flex-col gap-4">
-            <header className="flex flex-wrap items-center gap-2">
-              <h2 className="text-charcoal-100 text-overview">{data.symbol}</h2>
-              {fundamentals?.name != null && (
-                <span className="text-charcoal-400 text-body">{fundamentals.name}</span>
-              )}
-              {quote !== null && (
-                <span className="text-charcoal-100 text-overview tabular-nums">
-                  {formatPrice(quote.price)} {quote.currency}
-                </span>
-              )}
-              {quote !== null && (
-                <span
-                  className={cn(
-                    "text-body whitespace-nowrap tabular-nums",
-                    quote.change_percent >= 0 ? "text-positive" : "text-negative",
+            {/* Identity row + quote row share ONE baseline; the caption meta
+                (sector · 52w · provenance) drops to a second line — no more
+                mixed-size text floating mid-row. */}
+            <header className="flex flex-col gap-2" data-testid="equity-header">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-1">
+                <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <h2 className="text-charcoal-100 text-overview">{data.symbol}</h2>
+                  {fundamentals?.name != null && (
+                    <span className="text-charcoal-400 text-body truncate">
+                      {fundamentals.name}
+                    </span>
                   )}
-                >
-                  {quote.change >= 0 ? "+" : ""}
-                  {formatPrice(quote.change)} ({quote.change_percent >= 0 ? "+" : ""}
-                  {quote.change_percent.toFixed(2)}%)
-                </span>
-              )}
-              <ProvenanceBadge quote={quote} fundamentals={fundamentals} />
-              {fundamentals?.sector != null && (
-                <span className="text-charcoal-400 text-caption">
-                  {fundamentals.sector}
-                  {fundamentals.industry != null ? ` · ${fundamentals.industry}` : ""}
-                </span>
-              )}
-              {fundamentals != null &&
-                (fundamentals.fifty_two_week_low != null ||
-                  fundamentals.fifty_two_week_high != null) && (
-                  <span className="text-charcoal-500 text-caption tabular-nums">
-                    52w {fmtPriceField(fundamentals.fifty_two_week_low) ?? "—"} –{" "}
-                    {fmtPriceField(fundamentals.fifty_two_week_high) ?? "—"}
+                </div>
+                {quote !== null && (
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-charcoal-100 text-overview tabular-nums">
+                      {formatPrice(quote.price)} {quote.currency}
+                    </span>
+                    <span
+                      className={cn(
+                        "text-body whitespace-nowrap tabular-nums",
+                        quote.change_percent >= 0 ? "text-positive" : "text-negative",
+                      )}
+                    >
+                      {quote.change >= 0 ? "+" : ""}
+                      {formatPrice(quote.change)} ({quote.change_percent >= 0 ? "+" : ""}
+                      {quote.change_percent.toFixed(2)}%)
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="text-caption flex flex-wrap items-center gap-x-4 gap-y-1">
+                {fundamentals?.sector != null && (
+                  <span className="text-charcoal-400">
+                    {fundamentals.sector}
+                    {fundamentals.industry != null ? ` · ${fundamentals.industry}` : ""}
                   </span>
                 )}
+                {fundamentals != null &&
+                  (fundamentals.fifty_two_week_low != null ||
+                    fundamentals.fifty_two_week_high != null) && (
+                    <span className="text-charcoal-500 tabular-nums">
+                      52w {fmtPriceField(fundamentals.fifty_two_week_low) ?? "—"} –{" "}
+                      {fmtPriceField(fundamentals.fifty_two_week_high) ?? "—"}
+                    </span>
+                  )}
+                <ProvenanceBadge quote={quote} fundamentals={fundamentals} />
+              </div>
             </header>
 
             <NarrativeSection loading={narrativeLoading} narrative={narrative} />
@@ -844,17 +894,26 @@ export function EquityOverviewPanel() {
                 <h3 className="text-charcoal-200 border-charcoal-700 text-micro border-b px-3 py-2">
                   Fundamentals
                 </h3>
-                <p className="text-charcoal-500 text-caption px-3 py-2">Unavailable.</p>
+                <EmptyState
+                  icon={Building2}
+                  dense
+                  headline="Fundamentals unavailable"
+                  hint="The provider returned no fundamentals for this symbol."
+                  className="pt-4"
+                />
               </section>
             ) : fundamentalSections.length === 0 ? (
               <section className="border-charcoal-700 rounded-none border">
                 <h3 className="text-charcoal-200 border-charcoal-700 text-micro border-b px-3 py-2">
                   Fundamentals
                 </h3>
-                <p className="text-charcoal-500 text-caption px-3 py-2">
-                  No fundamentals resolved for this symbol — it may be newly listed, renamed, or
-                  delisted. Try the search above to pick the exact listing.
-                </p>
+                <EmptyState
+                  icon={Building2}
+                  dense
+                  headline="No fundamentals resolved"
+                  hint="This symbol may be newly listed, renamed, or delisted. Try the search above to pick the exact listing."
+                  className="pt-4"
+                />
               </section>
             ) : (
               <section className="border-charcoal-700 rounded-none border">
@@ -875,32 +934,40 @@ export function EquityOverviewPanel() {
                 Analyst ratings
               </h3>
               {ratings === null ? (
-                <p className="text-charcoal-500 text-caption px-3 py-2">Unavailable.</p>
+                <EmptyState
+                  icon={Star}
+                  dense
+                  headline="Ratings unavailable"
+                  hint="The provider returned no analyst coverage for this symbol."
+                  className="pt-4"
+                />
               ) : (
-                <div className="text-caption flex flex-wrap gap-x-6 gap-y-1 px-3 py-2">
-                  <span className="text-charcoal-200">
-                    Consensus: <span className="text-charcoal-300">{ratings.consensus ?? "—"}</span>
-                  </span>
-                  <span className="text-charcoal-200">
-                    Target mean:{" "}
-                    <span className="text-charcoal-100 tabular-nums">
-                      {fmtPriceField(ratings.target_mean) ?? "—"}
-                    </span>
-                  </span>
-                  <span className="text-charcoal-200">
-                    Range:{" "}
-                    <span className="text-charcoal-100 tabular-nums">
-                      {fmtPriceField(ratings.target_low) ?? "—"} –{" "}
-                      {fmtPriceField(ratings.target_high) ?? "—"}
-                    </span>
-                  </span>
-                  <span className="text-charcoal-400 flex flex-wrap gap-x-2 tabular-nums">
-                    <span className="whitespace-nowrap">SB {ratings.strong_buy}</span>
-                    <span className="whitespace-nowrap">· B {ratings.buy}</span>
-                    <span className="whitespace-nowrap">· H {ratings.hold}</span>
-                    <span className="whitespace-nowrap">· S {ratings.sell}</span>
-                    <span className="whitespace-nowrap">· SS {ratings.strong_sell}</span>
-                  </span>
+                // Metric strip on the table rhythm — micro label over a tabular
+                // value per cell, never an inline key:value run-on.
+                <div
+                  className="divide-charcoal-800 grid grid-cols-2 md:grid-cols-4 md:divide-x"
+                  data-testid="ratings-strip"
+                >
+                  <RatingMetric label="Consensus" value={ratings.consensus ?? null} />
+                  <RatingMetric
+                    label="Target mean"
+                    value={fmtPriceField(ratings.target_mean)}
+                    numeric
+                  />
+                  <RatingMetric
+                    label="Target range"
+                    value={
+                      ratings.target_low === null && ratings.target_high === null
+                        ? null
+                        : `${fmtPriceField(ratings.target_low) ?? "—"} – ${fmtPriceField(ratings.target_high) ?? "—"}`
+                    }
+                    numeric
+                  />
+                  <RatingMetric
+                    label="SB · B · H · S · SS"
+                    value={`${ratings.strong_buy} · ${ratings.buy} · ${ratings.hold} · ${ratings.sell} · ${ratings.strong_sell}`}
+                    numeric
+                  />
                 </div>
               )}
             </section>

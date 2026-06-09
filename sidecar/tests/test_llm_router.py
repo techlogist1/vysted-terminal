@@ -73,6 +73,12 @@ def test_get_providers_returns_all(client: TestClient) -> None:
         "claude-sonnet-4-6",
         "claude-haiku-4-5",
     ]
+    # OpenRouter is a model-routing aggregator, NOT a broker. The frontend
+    # providers store mirrors this label verbatim into Settings at runtime
+    # (useLLMProvidersStore.refresh), so this registry row is the one source
+    # that can resurface the "(broker)" walkthrough defect — pin it here.
+    openrouter_row = next(row for row in body if row["id"] == "openrouter")
+    assert openrouter_row["label"] == "OpenRouter"
 
 
 def test_validate_key_ok(

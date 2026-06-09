@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { TrendingUp } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/EmptyState";
 import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
 import { selectSeriesStatus, useMacroStore } from "@/store/macro";
 
@@ -59,39 +59,34 @@ export function MacroPanel() {
       <MacroSeriesPicker provider={provider} onProviderChange={setProvider} onSelect={onSelect} />
       <div className="flex-1 overflow-hidden">
         {status?.status === "loading" ? (
-          <div className="text-charcoal-400 text-caption flex h-full items-center justify-center font-mono">
-            <div className="flex items-center gap-2">
-              <div className="border-charcoal-600 border-t-charcoal-500 size-3 animate-spin rounded-full border-2" />
-              Loading {seriesId}…
-            </div>
+          // Chart-shaped pulse skeleton + an honest meta line — never a bare
+          // spinner standing in for the surface.
+          <div className="flex h-full flex-col gap-3 p-3" data-testid="macro-skeleton">
+            <div className="bg-charcoal-850 h-3 w-48 animate-pulse rounded-none" />
+            <div className="bg-charcoal-850 min-h-0 flex-1 animate-pulse rounded-none" />
+            <p className="text-charcoal-500 text-caption">Loading {seriesId}…</p>
           </div>
         ) : status?.status === "error" ? (
-          <div
-            className="text-negative text-caption flex h-full flex-col items-center justify-center px-4 text-center font-mono"
-            data-testid="macro-error"
-          >
-            <div>Could not load {seriesId}</div>
-            <div className="text-charcoal-400 text-micro mt-1">{status.error}</div>
-            <Button
-              size="xs"
-              variant="ghost"
-              className="text-charcoal-300 hover:text-charcoal-100 mt-3"
-              onClick={() => void loadSeries(provider, seriesId)}
-              data-testid="macro-retry"
-            >
-              Retry
-            </Button>
+          <div data-testid="macro-error">
+            <EmptyState
+              icon={TrendingUp}
+              headline={`Could not load ${seriesId}`}
+              hint={status.error ?? "The macro provider request failed."}
+              cta={{
+                label: "Retry",
+                primary: true,
+                onClick: () => void loadSeries(provider, seriesId),
+              }}
+            />
           </div>
         ) : status?.status === "ready" && status.series ? (
           <MacroChart series={status.series} />
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
-            <TrendingUp className="text-charcoal-600 size-8" />
-            <p className="text-charcoal-300 text-caption font-mono">No series loaded</p>
-            <p className="text-charcoal-500 text-micro font-mono">
-              Browse Featured or search above to load a FRED, ECB, IMF, or World Bank time series.
-            </p>
-          </div>
+          <EmptyState
+            icon={TrendingUp}
+            headline="No series loaded"
+            hint="Browse Featured or search above to load a FRED, ECB, IMF, or World Bank time series."
+          />
         )}
       </div>
     </div>
