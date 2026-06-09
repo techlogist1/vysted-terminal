@@ -186,9 +186,13 @@ const addData = [
 ]
   .map(([src, dest]) => `--add-data "${src}${addDataSep}${dest}"`)
   .join(" ");
+// curl_cffi ships a bundled libcurl-impersonate native library plus CA data;
+// --onefile discovers neither (the .dylib rides package data, not a Python
+// module). --collect-all bundles binaries + data + submodules in one flag.
+const collectAll = ["curl_cffi"].map((m) => `--collect-all=${m}`).join(" ");
 run(
   `"${pyinstaller}" --onefile --clean --noconfirm --name vysted-sidecar ` +
-    `${hidden} ${copyMeta} ${addData} --distpath "${distDir}" --workpath "${buildDir}" ` +
+    `${hidden} ${copyMeta} ${collectAll} ${addData} --distpath "${distDir}" --workpath "${buildDir}" ` +
     `--specpath "${buildDir}" main.py`,
   { cwd: SIDECAR_DIR },
 );
