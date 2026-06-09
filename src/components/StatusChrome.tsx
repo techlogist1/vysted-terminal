@@ -25,8 +25,15 @@ export function StatusChrome() {
   const providerLabel = provider
     ? (providers.find((p) => p.id === provider)?.label ?? provider)
     : "";
+  // When the model id already names its provider ("deepseek-v4-flash" under
+  // DeepSeek), the prefix is dead weight that pushed the tick into ellipsis
+  // ("DEEPSEEK-V4-FLA…") — show just the model in that case.
+  const modelNamesProvider =
+    !!model && !!provider && model.toLowerCase().startsWith(provider.toLowerCase());
   // Join only the parts we actually have so we never render a leading " · ".
-  const providerModel = [providerLabel, model].filter(Boolean).join(" · ");
+  const providerModel = modelNamesProvider
+    ? (model ?? "")
+    : [providerLabel, model].filter(Boolean).join(" · ");
 
   const activeRunCount = useMemo(
     () => runs.filter((r) => r.status === "running" || r.status === "paused").length,
@@ -55,7 +62,7 @@ export function StatusChrome() {
         <>
           <span className="bg-charcoal-700 h-3 w-px" aria-hidden />
           <span
-            className="text-charcoal-400 max-w-[13rem] truncate"
+            className="text-charcoal-400 max-w-[19rem] truncate"
             title="Default provider / model (the agent panel shows the per-send effective provider)"
           >
             {providerModel}

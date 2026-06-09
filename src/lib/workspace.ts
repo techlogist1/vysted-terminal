@@ -262,6 +262,7 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
     useModulesStore.getState().setEnabledMap(prevEnabled);
     throw error;
   }
+  migrateLegacyLayout(api);
   useWorkspaceStore.getState().setName(workspace.name);
   if (workspace.chartDrawings) {
     useChartDrawingsStore.getState().replaceAll(workspace.chartDrawings);
@@ -421,6 +422,33 @@ export async function loadWorkspace(name: string): Promise<void> {
     throw new WorkspaceError(`Could not parse workspace "${trimmed}" (malformed JSON).`);
   }
   deserializeWorkspace(workspace);
+}
+
+/**
+ * One-time hygiene over a freshly-restored layout (R7): old saved blobs can
+ * carry (a) duplicate chart panels minted before the singleton fix (ids like
+ * `chart-<ts>-<rand>` alongside the canonical `chart`) — the "persistent
+ * duplicate Chart tab" — and (b) a bare `screener` panel id from the era when
+ * the arrange templates drifted from the module's registered `screener-panel`
+ * id, which would make every future arrange/open mint a second screener.
+ * Removing the ghosts here means the very next autosave persists the clean
+ * layout and the migration self-retires.
+ */
+function migrateLegacyLayout(api: DockviewApi): void {
+  for (const panel of [...api.panels]) {
+    const component = (panel as { view?: { contentComponent?: string } }).view?.contentComponent;
+    const isChartDupe = component === "chart-panel" && panel.id !== "chart";
+    const isLegacyScreener =
+      panel.id === "screener" && api.getPanel("screener-panel") !== undefined;
+    if (isChartDupe || isLegacyScreener) {
+      try {
+        api.removePanel(panel);
+      } catch {
+        // A half-restored ghost that won't remove is left in place — never
+        // fail the whole restore over hygiene.
+      }
+    }
+  }
 }
 
 /**
