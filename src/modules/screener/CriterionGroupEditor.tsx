@@ -360,7 +360,7 @@ export function CriterionGroupEditor({
               onClick={() => setCombinator(opt.value)}
               className={
                 group.combinator === opt.value
-                  ? "text-background bg-foreground rounded-control px-2 py-0.5 font-medium transition-colors"
+                  ? "bg-charcoal-700 text-charcoal-100 rounded-control px-2 py-0.5 font-medium transition-colors"
                   : "text-muted-foreground hover:text-foreground rounded-control px-2 py-0.5 transition-colors"
               }
             >
