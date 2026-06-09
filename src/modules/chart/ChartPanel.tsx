@@ -51,7 +51,15 @@ import { fetchIndicators } from "./api";
 import { DrawingPrimitive } from "./drawings/base";
 import { createDrawingPrimitive, DEFAULT_DRAWING_STYLE, pointsRequired } from "./drawings/factory";
 import { IchimokuCloudPrimitive } from "./ichimoku-cloud-primitive";
-import { INDICATOR_COLORS, indicatorsByCategory, type IndicatorDef } from "./indicators";
+import { INDICATOR_COLORS, indicatorByKey } from "./indicators";
+import {
+  CompareMenu,
+  DRAWING_CHIP_LABELS,
+  DrawMenu,
+  IndicatorsMenu,
+  SyncMenu,
+  ToolbarDisclosure,
+} from "./toolbar";
 import { VolumeProfilePrimitive } from "./volume-profile-primitive";
 
 /** Bar intervals the chart panel exposes — mirrors the sidecar's `timeframe`. */
@@ -61,24 +69,8 @@ type Timeframe = (typeof TIMEFRAMES)[number];
 const DEFAULT_SYMBOL = "SPY";
 const DEFAULT_TIMEFRAME: Timeframe = "1d";
 
-/** The ten drawing kinds shown in the toolbar, in display order. */
-const DRAWING_TOOLS: ReadonlyArray<{ kind: DrawingKind; label: string }> = [
-  { kind: "trendline", label: "Trend" },
-  { kind: "horizontal-line", label: "H-Line" },
-  { kind: "vertical-line", label: "V-Line" },
-  { kind: "ray", label: "Ray" },
-  { kind: "rectangle", label: "Rect" },
-  { kind: "ellipse", label: "Ellipse" },
-  { kind: "fib-retracement", label: "Fib Retr" },
-  { kind: "fib-extension", label: "Fib Ext" },
-  { kind: "parallel-channel", label: "Channel" },
-  { kind: "text", label: "Text" },
-];
-
-/** kind → toolbar label, so the inspector chips read "Fib Retr", not "fib-retracement". */
-const DRAWING_LABELS: Record<DrawingKind, string> = Object.fromEntries(
-  DRAWING_TOOLS.map((tool) => [tool.kind, tool.label]),
-) as Record<DrawingKind, string>;
+/** The toolbar's disclosure popovers — at most one is open at a time. */
+type ToolbarMenu = "draw" | "indicators" | "compare" | "sync";
 
 /** Vysted dark palette, applied to the lightweight-charts canvas. */
 const CHART_THEME = {
@@ -196,11 +188,13 @@ function usePanelId(api?: { id?: string }): string {
 }
 
 /**
- * Chart panel — a lightweight-charts candlestick chart with a symbol input, a
- * timeframe selector, the 50-indicator catalog selector grouped into six
- * categories, ten drawing tools persisted via the workspace, optional
- * comparison overlay, and three opt-in sync flavors (crosshair / visible-range
- * / symbol) so multiple chart instances can stay in lock-step.
+ * Chart panel — a lightweight-charts candlestick chart behind a single calm
+ * toolbar row: symbol input, the eight-step timeframe segmented control, and
+ * four disclosure popovers (Draw / Indicators / Compare / Sync). The full
+ * 50-indicator catalog, the ten drawing tools, the comparison overlay, and the
+ * three opt-in sync flavors all stay reachable through the popovers; active
+ * selections surface as removable chips (an earned indicator-chip row appears
+ * only when ≥1 indicator is live). Drawings persist via the workspace store.
  */
 function ChartPanel(props: ChartPanelProps = {}) {
   const panelId = usePanelId(props.api);
@@ -234,6 +228,10 @@ function ChartPanel(props: ChartPanelProps = {}) {
   const [symbol, setSymbol] = useState(DEFAULT_SYMBOL);
   const [timeframe, setTimeframe] = useState<Timeframe>(DEFAULT_TIMEFRAME);
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
+
+  // --- toolbar disclosure state --------------------------------------------
+  const [openMenu, setOpenMenu] = useState<ToolbarMenu | null>(null);
+  const [indicatorQuery, setIndicatorQuery] = useState("");
 
   const [priceState, setPriceState] = useState<LoadState>("idle");
   const [priceError, setPriceError] = useState<string | null>(null);
@@ -960,6 +958,14 @@ function ChartPanel(props: ChartPanelProps = {}) {
     }
   }, [broadcastSymbol, panelId, symbolInput]);
 
+  /** Open/close one disclosure popover; opening Indicators resets its search. */
+  const handleMenuChange = useCallback((menu: ToolbarMenu, open: boolean) => {
+    setOpenMenu(open ? menu : null);
+    if (menu === "indicators" && open) {
+      setIndicatorQuery("");
+    }
+  }, []);
+
   const toggleIndicator = useCallback((key: string) => {
     setSelected((current) => {
       const next = new Set(current);
@@ -972,9 +978,17 @@ function ChartPanel(props: ChartPanelProps = {}) {
     });
   }, []);
 
+  const clearAllIndicators = useCallback(() => {
+    setSelected(new Set());
+  }, []);
+
   const submitComparison = useCallback(() => {
     const next = compareInput.trim().toUpperCase();
     setCompareSymbol(next.length > 0 ? next : null);
+    if (next.length > 0) {
+      setCompareInput(next);
+    }
+    setOpenMenu(null);
   }, [compareInput]);
 
   const clearComparison = useCallback(() => {
@@ -983,10 +997,18 @@ function ChartPanel(props: ChartPanelProps = {}) {
     setCompareState("ok");
   }, []);
 
-  const onToolToggle = useCallback((kind: DrawingKind) => {
+  /** Arm a drawing tool from the Draw popover (re-selecting disarms). */
+  const onArmTool = useCallback((kind: DrawingKind) => {
     setActiveTool((current) => (current === kind ? null : kind));
     setDraftPoints([]);
     setSelectedDrawingId(null);
+    setOpenMenu(null);
+  }, []);
+
+  /** Disarm via the active-tool chip's [x] (Escape does the same). */
+  const onDisarmTool = useCallback(() => {
+    setActiveTool(null);
+    setDraftPoints([]);
   }, []);
 
   const onSelectDrawing = useCallback((id: string) => {
@@ -1015,32 +1037,21 @@ function ChartPanel(props: ChartPanelProps = {}) {
     setSelectedDrawingId(null);
   }, [clearPanelDrawings, panelId]);
 
-  const renderIndicatorButton = (indicator: IndicatorDef) => {
-    const active = selected.has(indicator.key);
-    return (
-      <button
-        key={indicator.key}
-        type="button"
-        onClick={() => toggleIndicator(indicator.key)}
-        aria-pressed={active}
-        className={cn(
-          "rounded-control text-caption border px-2 py-1 text-left font-mono transition-colors",
-          active
-            ? "bg-charcoal-875 border-charcoal-600/50 text-charcoal-300 border"
-            : "border-charcoal-700 text-charcoal-400 hover:border-charcoal-600 hover:text-charcoal-200",
-        )}
-      >
-        {indicator.label}
-      </button>
-    );
-  };
+  const remainingPoints = activeTool ? pointsRequired(activeTool) - draftPoints.length : 0;
+  const syncCount =
+    Number(syncSubscriptions.crosshair) +
+    Number(syncSubscriptions.visibleRange) +
+    Number(syncSubscriptions.symbol);
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col" data-panel-id={panelId}>
-      {/* Controls */}
-      <div className="border-charcoal-700 flex flex-wrap items-center gap-2 border-b px-3 py-2">
+      {/* The one toolbar row — symbol, timeframes, disclosures, chips, status */}
+      <div
+        className="relative z-20 flex flex-wrap items-center gap-2 border-b px-3 py-2"
+        style={{ borderColor: "var(--hairline-strong)" }}
+      >
         <form
-          className="flex items-center gap-1.5"
+          className="flex items-center gap-1"
           onSubmit={(event) => {
             event.preventDefault();
             submitSymbol();
@@ -1052,14 +1063,19 @@ function ChartPanel(props: ChartPanelProps = {}) {
             aria-label="Symbol"
             placeholder="Symbol"
             spellCheck={false}
-            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-body focus-visible:border-charcoal-500 w-24 border px-2 py-1 font-mono uppercase outline-none"
+            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-body placeholder:text-charcoal-500 focus-visible:border-charcoal-500 h-6 w-24 border px-2 font-mono uppercase outline-none"
           />
-          <Button type="submit" size="sm" variant="outline">
+          <Button type="submit" size="xs" variant="outline">
             Load
           </Button>
         </form>
 
-        <div className="flex items-center gap-1" role="group" aria-label="Timeframe">
+        {/* Timeframe segmented control — the eight intervals stay load-bearing. */}
+        <div
+          className="border-charcoal-700 rounded-control flex items-center border"
+          role="group"
+          aria-label="Timeframe"
+        >
           {TIMEFRAMES.map((option) => (
             <button
               key={option}
@@ -1067,7 +1083,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
               onClick={() => setTimeframe(option)}
               aria-pressed={timeframe === option}
               className={cn(
-                "rounded-control text-caption px-2 py-1 font-mono transition-colors",
+                "rounded-control text-caption h-6 px-2 font-mono transition-colors",
                 timeframe === option
                   ? "bg-charcoal-875 text-charcoal-100"
                   : "text-charcoal-400 hover:text-charcoal-100",
@@ -1078,37 +1094,132 @@ function ChartPanel(props: ChartPanelProps = {}) {
           ))}
         </div>
 
-        {/* Sync toggles — three independent flavors */}
-        <div className="flex items-center gap-1" role="group" aria-label="Sync">
-          <span className="text-charcoal-500 text-micro mr-1 font-mono tracking-widest uppercase">
-            Sync
-          </span>
-          {(
-            [
-              ["crosshair", "Cx"],
-              ["visibleRange", "Zm"],
-              ["symbol", "Sy"],
-            ] as const
-          ).map(([flavor, label]) => (
+        <span
+          aria-hidden
+          className="h-4 w-px"
+          style={{ backgroundColor: "var(--hairline-strong)" }}
+        />
+
+        {/* Disclosure triggers — the entire tool surface, quiet until asked. */}
+        <ToolbarDisclosure
+          label="Draw"
+          open={openMenu === "draw"}
+          onOpenChange={(open) => handleMenuChange("draw", open)}
+          menuLabel="Drawing tools"
+          widthClass="w-72"
+        >
+          <DrawMenu activeTool={activeTool} onArm={onArmTool} />
+        </ToolbarDisclosure>
+        <ToolbarDisclosure
+          label="Indicators"
+          count={selected.size}
+          open={openMenu === "indicators"}
+          onOpenChange={(open) => handleMenuChange("indicators", open)}
+          menuLabel="Indicators"
+          widthClass="w-96"
+        >
+          <IndicatorsMenu
+            selected={selected}
+            query={indicatorQuery}
+            onQueryChange={setIndicatorQuery}
+            onToggle={toggleIndicator}
+            onClearAll={clearAllIndicators}
+          />
+        </ToolbarDisclosure>
+        <ToolbarDisclosure
+          label="Compare"
+          count={compareSymbol ? 1 : 0}
+          open={openMenu === "compare"}
+          onOpenChange={(open) => handleMenuChange("compare", open)}
+          menuLabel="Comparison overlay"
+          widthClass="w-72"
+        >
+          <CompareMenu
+            value={compareInput}
+            onChange={setCompareInput}
+            onSubmit={submitComparison}
+          />
+        </ToolbarDisclosure>
+        <ToolbarDisclosure
+          label="Sync"
+          count={syncCount}
+          open={openMenu === "sync"}
+          onOpenChange={(open) => handleMenuChange("sync", open)}
+          menuLabel="Chart sync"
+          widthClass="w-64"
+        >
+          <SyncMenu
+            subscriptions={syncSubscriptions}
+            onToggle={(flavor) => setSubscription(panelId, flavor, !syncSubscriptions[flavor])}
+          />
+        </ToolbarDisclosure>
+
+        {/* Armed-tool chip — appears only while a drawing tool is live. */}
+        {activeTool ? (
+          <span
+            className="rounded-control border-charcoal-700 bg-charcoal-875 text-caption text-charcoal-200 flex h-6 items-center gap-1 border px-2 font-mono"
+            data-testid="active-tool-chip"
+          >
+            {DRAWING_CHIP_LABELS[activeTool]}
+            <span className="text-charcoal-500">
+              {remainingPoints} {remainingPoints === 1 ? "point" : "points"} left
+            </span>
             <button
-              key={flavor}
               type="button"
-              onClick={() => setSubscription(panelId, flavor, !syncSubscriptions[flavor])}
-              aria-pressed={syncSubscriptions[flavor]}
-              aria-label={`Sync ${flavor}`}
+              onClick={onDisarmTool}
+              aria-label="Disarm drawing tool"
+              className="text-charcoal-400 hover:text-charcoal-100 px-1 transition-colors"
+            >
+              ×
+            </button>
+          </span>
+        ) : null}
+
+        {/* Comparison chip — symbol, no-data flag, % normalize, remove. */}
+        {compareSymbol ? (
+          <span
+            className={cn(
+              "rounded-control border-charcoal-700 text-caption flex h-6 items-center gap-1 border px-2 font-mono",
+              compareState === "error" ? "text-charcoal-500" : "text-charcoal-300",
+            )}
+            title={
+              compareState === "error" ? `No comparison data for ${compareSymbol}` : compareSymbol
+            }
+            data-testid="compare-chip"
+          >
+            {compareSymbol}
+            {compareState === "error" ? (
+              <span aria-hidden className="text-warning" title="No data">
+                !
+              </span>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => setCompareNormalize((current) => !current)}
+              aria-pressed={compareNormalize}
+              aria-label="Normalize comparison"
               className={cn(
-                "rounded-control text-micro px-2 py-1 font-mono transition-colors",
-                syncSubscriptions[flavor]
-                  ? "bg-charcoal-875 text-charcoal-100"
+                "rounded-control px-1 transition-colors",
+                compareNormalize
+                  ? "bg-charcoal-850 text-charcoal-100"
                   : "text-charcoal-400 hover:text-charcoal-100",
               )}
             >
-              {label}
+              %
             </button>
-          ))}
-        </div>
+            <button
+              type="button"
+              onClick={clearComparison}
+              aria-label="Remove comparison overlay"
+              className="text-charcoal-400 hover:text-charcoal-100 px-1 transition-colors"
+            >
+              ×
+            </button>
+          </span>
+        ) : null}
 
-        <div className="text-charcoal-400 text-caption ml-auto flex items-center gap-2 font-mono">
+        {/* Status cluster — symbol, provider, freshness, session. */}
+        <div className="text-charcoal-400 text-caption ml-auto flex min-w-0 items-center gap-2 font-mono">
           <span className="text-charcoal-200">{symbol}</span>
           {provider && priceState === "ready" ? <span>via {provider}</span> : null}
           {/* Calendar-aware freshness so a stale series is never read as current. */}
@@ -1118,7 +1229,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
               stale label from freshness rather than presenting EOD bars as live. */}
           {priceState === "ready" && sessionLabelFromFreshness(freshness) ? (
             <span
-              className="text-charcoal-500 tracking-wide"
+              className="text-charcoal-500 truncate tracking-wide"
               title={`Session: ${sessionLabelFromFreshness(freshness)}`}
             >
               {sessionLabelFromFreshness(freshness)}
@@ -1127,116 +1238,59 @@ function ChartPanel(props: ChartPanelProps = {}) {
         </div>
       </div>
 
-      {/* Drawing toolbar + comparison overlay row */}
-      <div className="border-charcoal-700 flex flex-wrap items-center gap-2 border-b px-3 py-1.5">
-        <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Drawings">
-          <span className="text-charcoal-500 text-micro mr-1 font-mono tracking-widest uppercase">
-            Draw
-          </span>
-          {DRAWING_TOOLS.map((tool) => {
-            const active = activeTool === tool.kind;
+      {/* Earned indicator-chip row — exists only while ≥1 indicator is active. */}
+      {selected.size > 0 ? (
+        <div
+          className="flex flex-wrap items-center gap-1 border-b px-3 py-1"
+          style={{ borderColor: "var(--hairline-strong)" }}
+          data-testid="indicator-chip-row"
+        >
+          {selectedKeys.map((key) => {
+            const label = indicatorByKey(key)?.label ?? key;
             return (
-              <button
-                key={tool.kind}
-                type="button"
-                onClick={() => onToolToggle(tool.kind)}
-                aria-pressed={active}
-                className={cn(
-                  "rounded-control text-micro px-2 py-1 font-mono transition-colors",
-                  active
-                    ? "bg-charcoal-875 text-charcoal-100"
-                    : "text-charcoal-400 hover:text-charcoal-100",
-                )}
+              <span
+                key={key}
+                className="rounded-control border-charcoal-700 text-caption text-charcoal-300 flex h-6 items-center gap-1 border px-2 font-mono"
               >
-                {tool.label}
-              </button>
+                {label}
+                <button
+                  type="button"
+                  onClick={() => toggleIndicator(key)}
+                  aria-label={`Remove ${label}`}
+                  className="text-charcoal-400 hover:text-charcoal-100 px-1 transition-colors"
+                >
+                  ×
+                </button>
+              </span>
             );
           })}
-          {drawings.length > 0 ? (
-            <button
-              type="button"
-              onClick={onClearAllDrawings}
-              className="text-charcoal-400 hover:text-charcoal-100 text-micro ml-1 font-mono underline-offset-2 hover:underline"
-            >
-              clear ({drawings.length})
-            </button>
+          {indicatorState === "loading" ? (
+            <span className="text-charcoal-400 text-caption font-mono">computing…</span>
           ) : null}
-          {activeTool ? (
-            <span className="text-charcoal-400 text-micro ml-1 font-mono">
-              click chart {pointsRequired(activeTool) - draftPoints.length} more time(s)
-            </span>
-          ) : null}
-        </div>
-
-        <form
-          className="ml-auto flex items-center gap-1"
-          onSubmit={(event) => {
-            event.preventDefault();
-            submitComparison();
-          }}
-        >
-          <span className="text-charcoal-500 text-micro mr-1 font-mono tracking-widest uppercase">
-            Compare
-          </span>
-          <input
-            value={compareInput}
-            onChange={(event) => setCompareInput(event.target.value)}
-            aria-label="Compare symbol"
-            placeholder="Symbol"
-            spellCheck={false}
-            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-caption focus-visible:border-charcoal-500 w-20 border px-2 py-1 font-mono uppercase outline-none"
-          />
-          <Button type="submit" size="sm" variant="outline">
-            Add
-          </Button>
-          {compareSymbol ? (
+          {indicatorState === "error" ? (
             <>
-              <span
-                className={cn(
-                  "text-micro flex items-center gap-0.5 px-1 font-mono",
-                  compareState === "error" ? "text-charcoal-500" : "text-charcoal-300",
-                )}
-                title={
-                  compareState === "error"
-                    ? `No comparison data for ${compareSymbol}`
-                    : compareSymbol
-                }
-              >
-                {compareSymbol}
-                {compareState === "error" ? (
-                  <span aria-hidden className="text-warning" title="No data">
-                    !
-                  </span>
-                ) : null}
-              </span>
+              <span className="text-negative text-caption font-mono">{indicatorError}</span>
               <button
                 type="button"
-                onClick={() => setCompareNormalize((current) => !current)}
-                aria-pressed={compareNormalize}
-                aria-label="Normalize comparison"
-                className={cn(
-                  "rounded-control text-micro px-2 py-1 font-mono transition-colors",
-                  compareNormalize
-                    ? "bg-charcoal-875 text-charcoal-100"
-                    : "text-charcoal-400 hover:text-charcoal-100",
-                )}
+                onClick={() => setIndicatorRetryNonce((n) => n + 1)}
+                aria-label="Retry indicators"
+                className="text-charcoal-400 text-caption hover:text-charcoal-100 font-mono transition-colors"
               >
-                %
-              </button>
-              <button
-                type="button"
-                onClick={clearComparison}
-                className="text-charcoal-400 hover:text-charcoal-100 text-micro font-mono"
-                aria-label="Remove comparison overlay"
-              >
-                ×
+                Retry
               </button>
             </>
           ) : null}
-        </form>
-      </div>
+          <button
+            type="button"
+            onClick={clearAllIndicators}
+            className="text-charcoal-400 hover:text-charcoal-100 text-caption ml-auto font-mono underline-offset-2 hover:underline"
+          >
+            Clear all ({selected.size})
+          </button>
+        </div>
+      ) : null}
 
-      {/* Chart */}
+      {/* Chart — the canvas gets every row the old indicator wall used to eat. */}
       <div className="relative min-h-0 flex-1">
         <div ref={containerRef} className="absolute inset-0" data-testid="chart-container" />
         {priceState === "loading" ? (
@@ -1258,13 +1312,21 @@ function ChartPanel(props: ChartPanelProps = {}) {
         ) : null}
       </div>
 
-      {/* Drawings inspector — list of drawings on this panel */}
+      {/* Drawings inspector — earned row, exists only when drawings exist. */}
       {drawings.length > 0 ? (
-        <div className="border-charcoal-700 max-h-24 overflow-y-auto border-t px-3 py-1.5">
+        <div
+          className="max-h-24 overflow-y-auto border-t px-3 py-1"
+          style={{ borderColor: "var(--hairline-strong)" }}
+        >
           <div className="mb-1 flex items-center gap-2">
-            <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
-              Drawings
-            </span>
+            <span className="text-charcoal-500 text-micro font-mono">Drawings</span>
+            <button
+              type="button"
+              onClick={onClearAllDrawings}
+              className="text-charcoal-400 hover:text-charcoal-100 text-caption ml-auto font-mono underline-offset-2 hover:underline"
+            >
+              Clear drawings ({drawings.length})
+            </button>
           </div>
           <div className="flex flex-wrap gap-1">
             {drawings.map((drawing) => {
@@ -1273,9 +1335,9 @@ function ChartPanel(props: ChartPanelProps = {}) {
                 <span
                   key={drawing.id}
                   className={cn(
-                    "rounded-control text-micro flex items-center gap-1 border px-1.5 py-0.5 font-mono",
+                    "rounded-control text-caption flex h-6 items-center gap-1 border px-2 font-mono",
                     active
-                      ? "bg-charcoal-875 border-charcoal-600/50 text-charcoal-300 border"
+                      ? "bg-charcoal-875 border-charcoal-600/50 text-charcoal-300"
                       : "border-charcoal-700 text-charcoal-400",
                   )}
                 >
@@ -1286,7 +1348,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
                     aria-label={`Select ${drawing.kind}`}
                     aria-pressed={active}
                   >
-                    {DRAWING_LABELS[drawing.kind] ?? drawing.kind}
+                    {DRAWING_CHIP_LABELS[drawing.kind] ?? drawing.kind}
                   </button>
                   <button
                     type="button"
@@ -1318,51 +1380,6 @@ function ChartPanel(props: ChartPanelProps = {}) {
           </div>
         </div>
       ) : null}
-
-      {/* Indicator selector — grouped by category so 50 entries stay scannable */}
-      <div className="border-charcoal-700 max-h-56 overflow-y-auto border-t px-3 py-2">
-        <div className="mb-1.5 flex items-center gap-2">
-          <span className="text-charcoal-200 text-caption font-mono tracking-wide uppercase">
-            Indicators
-          </span>
-          {indicatorState === "loading" ? (
-            <span className="text-charcoal-400 text-caption font-mono">computing…</span>
-          ) : null}
-          {indicatorState === "error" ? (
-            <>
-              <span className="text-negative text-caption font-mono">{indicatorError}</span>
-              <button
-                type="button"
-                onClick={() => setIndicatorRetryNonce((n) => n + 1)}
-                className="text-charcoal-400 text-caption hover:text-charcoal-100 font-mono transition-colors"
-              >
-                Retry
-              </button>
-            </>
-          ) : null}
-          {selected.size > 0 ? (
-            <button
-              type="button"
-              onClick={() => setSelected(new Set())}
-              className="text-charcoal-400 hover:text-charcoal-100 text-caption ml-auto font-mono underline-offset-2 hover:underline"
-            >
-              Clear ({selected.size})
-            </button>
-          ) : null}
-        </div>
-        <div className="space-y-2">
-          {indicatorsByCategory().map((group) => (
-            <div key={group.category}>
-              <div className="text-charcoal-500 text-micro mb-1 font-mono tracking-widest uppercase">
-                {group.label}
-              </div>
-              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
-                {group.indicators.map(renderIndicatorButton)}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
