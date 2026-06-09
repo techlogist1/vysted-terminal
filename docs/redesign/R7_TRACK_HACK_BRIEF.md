@@ -5,6 +5,7 @@ worktree only: `~/Documents/dev/vysted-terminal/.claude/worktrees/r7-hack`. Bran
 `worktree-agent-r7-hack`. NEVER write to the main repo path.
 
 ## Ground rules
+
 - You OWN: `src/modules/node-editor/**`, `src/modules/screener/**`, `src/modules/backtest/**`,
   `sidecar/services/backtest*` + `sidecar/services/screener*` (engine-side execution),
   `sidecar/routers/{backtest,screener}.py`, and their tests. NOTHING else. New agent tools
@@ -22,6 +23,7 @@ worktree only: `~/Documents/dev/vysted-terminal/.claude/worktrees/r7-hack`. Bran
 - No stubs/TODOs. Everything you ship EXECUTES.
 
 ## Pillar 1 — Custom code nodes in the node editor
+
 A first-class `code` node: user/agent-authored expression/script that transforms inputs to
 outputs inside a workflow run. Study how the node editor executes workflows today
 (workflow-run-overlay, the sidecar workflow execution if any — find the real execution
@@ -35,6 +37,7 @@ The palette: study `node-palette` — open it up so ALL registered node kinds in
 code node are composable, with grouped sections and search if >12 kinds.
 
 ## Pillar 2 — Agent-written backtest strategies that EXECUTE
+
 Find the backtest engine's strategy contract (strategy-picker + sidecar backtest service).
 Today it runs built-in strategies. Add a `custom` strategy lane: a user/agent-supplied
 strategy definition that the SIDECAR executes safely — implement a declarative signal DSL
@@ -50,6 +53,7 @@ overflow-hidden` on numeric cells → real column widths, right-aligned tabular)
 and the bare empty state (composed EmptyState).
 
 ## Pillar 3 — Screener formulas as a real expression layer
+
 The screener has a custom-formula leaf (`ScreenerFormulaLeaf`, `CUSTOM FORMULA` chip seen
 live). Grow it into a documented expression layer: field references (pe, market_cap, roe,
 …the existing screener fields), arithmetic, comparisons, boolean ops, and a few functions
@@ -64,6 +68,7 @@ Presentation: bring the screener panel to the design law while you're in there (
 rows, preset chips, results table on DataTable rhythm, composed empty state).
 
 ## Done =
+
 Everything executes end-to-end in tests (frontend + sidecar). Gates green. Committed +
 pushed. Final report `docs/redesign/R7_TRACK_HACK_REPORT.md`: shipped file:line, the real
 execution paths you found, grammar docs (brief), INTEGRATION_NOTES entries, what the lead

@@ -18,8 +18,12 @@ with engine-parity `upstream node failed` propagation. Code→server edges are
 rejected pre-run with an honest message. Serializable spec:
 
 ```json
-{ "id": "c1", "type": "transform.code", "position": { "x": 0, "y": 0 },
-  "config": { "expression": "quote.price * qty", "inputs": ["quote", "qty"] } }
+{
+  "id": "c1",
+  "type": "transform.code",
+  "position": { "x": 0, "y": 0 },
+  "config": { "expression": "quote.price * qty", "inputs": ["quote", "qty"] }
+}
 ```
 
 Each `inputs[i]` is BOTH an input port id and an expression variable. Output:
