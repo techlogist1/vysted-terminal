@@ -18,6 +18,10 @@ sidecar/sec_edgar_mcp_subprocess/dist/
 pnpm-lock.yaml
 docs/BLUEPRINT.md
 docs/superpowers/
+# Hand-authored spec doc with wide reference tables — prettier would re-pad every
+# table cell (a large cosmetic churn that hurts the raw-markdown readability),
+# same rationale as docs/BLUEPRINT.md above. Not source code.
+docs/redesign/AGENT_TOOLUSE_PLAN.md
 LICENSE
 # Generated §6.5 benchmark capture — test_safety_end_to_end.py rewrites it on
 # every run with raw-float JSON that prettier would reflag, so a pytest-then-
@@ -38,5 +42,7 @@ sidecar/services/resolver_masters/*.json
 
 # R5 verification artifacts — generated side-by-side comparison sheets (HTML)
 # assembled by the verification step, not hand-edited source. The PNG proof shots
-# alongside them are binary and not prettier-checked anyway.
+# alongside them are binary and not prettier-checked anyway. The *.md run reports
+# (e.g. the tool-use build telemetry) are generated wide-table artifacts too.
 docs/redesign/verification/*.html
+docs/redesign/verification/*.md
