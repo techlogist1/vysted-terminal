@@ -7,9 +7,15 @@ exceptions are listed here per the track brief.
 
 - `src/store/llm-providers.ts` — one label string: `"OpenRouter (broker)"` →
   `"OpenRouter"`. The brief assigns the label defect to this track but the
-  string lives in the store default, not in `SettingsPanel.tsx`. If the sidecar
-  `/providers` payload also carries a `label` for `openrouter`, fix it there too
-  (the sidecar row overrides the frontend default at runtime).
+  string lives in the store default, not in `SettingsPanel.tsx`.
+- `sidecar/config/model_registry.json` + `sidecar/tests/test_llm_router.py` —
+  the sidecar registry DID still carry `"label": "OpenRouter (broker)"`, and
+  `useLLMProvidersStore.refresh()` (fired on ChatSidebar mount) overwrites the
+  fixed store default with the sidecar label verbatim — so with the sidecar up
+  the broker label resurfaced at runtime regardless of the frontend fix. Fixed
+  at the source in this branch (registry label → `"OpenRouter"`) and pinned in
+  `test_get_providers_returns_all` so it cannot regress. The frontend no-broker
+  test alone is NOT sufficient (jsdom never reaches the sidecar).
 - `docs/redesign/{LESSONS.md, LEAD_INTEGRATION_TODO.md}` — prettier
   formatting only (they failed `pnpm format:check`, which gates every track).
   Zero content changes.

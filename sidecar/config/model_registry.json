@@ -55,7 +55,7 @@
     },
     {
       "id": "openrouter",
-      "label": "OpenRouter (broker)",
+      "label": "OpenRouter",
       "requires_key": true,
       "default_base_url": "https://openrouter.ai/api/v1",
       "default_model": "deepseek/deepseek-v4-flash",
