@@ -94,6 +94,13 @@ def register_v0_6_0_tools() -> None:
     research.register()
     registered.append("research")
 
+    # R7 Component 3 — India corporate disclosures (merged BSE+NSE announcements
+    # + quarterly shareholding patterns), read-only.
+    from services.agent_tools import disclosure_tools
+
+    disclosure_tools.register()
+    registered.append("disclosures")
+
     if registered:
         logger.info("agent_tools: registered v0.6.0 domains: %s", ", ".join(registered))
     else:

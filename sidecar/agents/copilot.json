@@ -28,6 +28,8 @@
     "sec_filings_list",
     "sec_filing_content",
     "sec_insider_transactions",
+    "corporate_announcements",
+    "shareholding_pattern",
     "backtest_summary",
     "open_panel",
     "close_panel",

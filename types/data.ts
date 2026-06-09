@@ -222,6 +222,83 @@ export interface NewsItem {
   provider: string;
 }
 
+// --- corporate disclosures (India) ------------------------------------------
+// Mirror of sidecar/models/announcements.py — the NSE+BSE disclosure feeds.
+
+/** One corporate announcement from an Indian exchange feed. */
+export interface Announcement {
+  symbol: string;
+  /** The exchange that disseminated this item: "NSE" | "BSE". */
+  exchange: string;
+  headline: string;
+  /** Exchange category label (e.g. "Updates", "Company Update"). */
+  category: string | null;
+  /** Direct URL of the filed attachment (usually a PDF). */
+  attachment_url: string | null;
+  /** Dissemination timestamp (ISO-8601, IST-aware); null when unparseable. */
+  ts: string | null;
+}
+
+/** `GET /disclosures/announcements` — the merged, deduped feed. */
+export interface AnnouncementsResponse {
+  symbol: string;
+  /** The single-exchange filter applied, or null for the merged NSE+BSE feed. */
+  exchange: string | null;
+  count: number;
+  announcements: Announcement[];
+  /** Exchanges that actually served this response (e.g. ["NSE","BSE"]). */
+  sources: string[];
+  /** Exchanges attempted but failed, with the honest reason (partial merge). */
+  errors: Record<string, string>;
+}
+
+/** One results-calendar / board-meeting event (NSE event-calendar feed). */
+export interface ResultsEvent {
+  symbol: string;
+  company: string | null;
+  /** Event purpose, e.g. "Financial Results", "Dividend", "Demerger". */
+  purpose: string;
+  /** The board-meeting description text accompanying the event. */
+  description: string | null;
+  /** Meeting/event date (ISO date); null when the feed row had none. */
+  date: string | null;
+}
+
+/** `GET /disclosures/results` — results/board-meeting events, newest first. */
+export interface ResultsCalendarResponse {
+  symbol: string;
+  count: number;
+  events: ResultsEvent[];
+}
+
+/**
+ * One quarterly shareholding-pattern row. Percentages are 0-100 as published.
+ * `fii_percent`/`dii_percent` are null when the source feed does not carry the
+ * split (the NSE master does not — the linked XBRL filing does); never fabricated.
+ */
+export interface ShareholdingPattern {
+  symbol: string;
+  /** The quarter-end date this pattern reports (ISO date, e.g. "2026-03-31"). */
+  quarter_end: string;
+  /** Promoter + promoter-group holding, percent of equity. */
+  promoter_percent: number | null;
+  fii_percent: number | null;
+  dii_percent: number | null;
+  public_percent: number | null;
+  employee_trusts_percent: number | null;
+  /** Date the pattern was filed with the exchange (ISO date). */
+  submission_date: string | null;
+  /** The XBRL filing URL carrying the full category-level split. */
+  xbrl_url: string | null;
+}
+
+/** `GET /disclosures/shareholding` — quarterly patterns, newest first. */
+export interface ShareholdingResponse {
+  symbol: string;
+  count: number;
+  patterns: ShareholdingPattern[];
+}
+
 // --- portfolio ------------------------------------------------------------
 
 /** A single held position, persisted in the local SQLite database. */

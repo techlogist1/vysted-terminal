@@ -15,6 +15,14 @@ When a model changes, update its TypeScript mirror in the same commit
 
 from __future__ import annotations
 
+from models.announcements import (
+    Announcement,
+    AnnouncementsResponse,
+    ResultsCalendarResponse,
+    ResultsEvent,
+    ShareholdingPattern,
+    ShareholdingResponse,
+)
 from models.audit_log import AUDIT_LOG_DB_FILENAME, AUDIT_LOG_DDL, AUDIT_LOG_NAMESPACE
 from models.backtest import (
     BacktestFeeModel,
@@ -91,6 +99,8 @@ __all__ = [
     "AccountSummary",
     "AiOrderGateProposal",
     "AnalystRating",
+    "Announcement",
+    "AnnouncementsResponse",
     "AuditLogAppendRequest",
     "AuditLogEntry",
     "BacktestFeeModel",
@@ -131,6 +141,10 @@ __all__ = [
     "PositionInput",
     "PositionLimits",
     "Quote",
+    "ResultsCalendarResponse",
+    "ResultsEvent",
+    "ShareholdingPattern",
+    "ShareholdingResponse",
     "StatementLine",
     "StaticIpStatus",
     "VolumeProfile",
