@@ -45,12 +45,20 @@ returns HTTP 200, ~1.7 MB, a bare JSON **list** (not `{"Table": [...]}`) of
 Observed record:
 
 ```json
-{"SCRIP_CD": "511260", "Scrip_Name": "Iconik Sports And Events Ltd",
- "Status": "Active", "GROUP": "X", "FACE_VALUE": "10.00",
- "ISIN_NUMBER": "INE088P01015", "INDUSTRY": null, "scrip_id": "ICONIKSPEV",
- "Segment": "Equity",
- "NSURL": "https://www.bseindia.com/stock-share-price/iconik-sports-and-events-ltd/iconikspev/511260/",
- "Issuer_Name": "ICONIK SPORTS AND EVENTS LIMITED", "Mktcap": "145.83"}
+{
+  "SCRIP_CD": "511260",
+  "Scrip_Name": "Iconik Sports And Events Ltd",
+  "Status": "Active",
+  "GROUP": "X",
+  "FACE_VALUE": "10.00",
+  "ISIN_NUMBER": "INE088P01015",
+  "INDUSTRY": null,
+  "scrip_id": "ICONIKSPEV",
+  "Segment": "Equity",
+  "NSURL": "https://www.bseindia.com/stock-share-price/iconik-sports-and-events-ltd/iconikspev/511260/",
+  "Issuer_Name": "ICONIK SPORTS AND EVENTS LIMITED",
+  "Mktcap": "145.83"
+}
 ```
 
 Group distribution observed: `{'B': 1621, 'X': 1296, 'A': 724, 'XT': 399,
@@ -110,6 +118,125 @@ Full sidecar pytest after the change: `1485 passed, 1 skipped in 31.99s` (exit 0
   `python -m services.resolver_masters.regenerate_bse_master > bse_instruments.json`
   periodically (quarterly is plenty — codes are stable, listings drift slowly).
 
-## Components 2–4
+## Component 2 — NSE exchange-direct (anti-bot lane)
 
-Not in this run's scope (Component 1 only). See `R7_TRACK_DATA_BRIEF.md`.
+### What shipped
+
+- `sidecar/services/nse_provider.py` (new, commit 4256dc1) — the curl_cffi
+  Chrome-impersonated direct lane:
+  - cookie dance: `_SessionHolder.ensure` (line 250) warms a fresh session on
+    `https://www.nseindia.com/` before its first API call; `_new_session`
+    (line 237) is the test seam;
+  - throttle: `_Throttle` (line 153) — ~1 req/s + jitter in [0, 0.4]s across
+    ALL NSE traffic, warm-ups included, injectable clock/sleep;
+  - rotation: `_get_json` (line 295) discards + re-warms the session on
+    401/403 and retries ONCE; a second block raises so the registry falls
+    through;
+  - circuit breaker: `_CircuitBreaker` (line 190), PER PATH via `_breaker_for`
+    (line 278) — 3 consecutive post-rotation blocks open a 300 s cooldown with
+    fast-fail, half-open re-probe after. Per-path because the edge was
+    OBSERVED blocking `quote-equity` while serving `historicalOR` on the same
+    session;
+  - `get_history` (line 454) — EOD from `api/historicalOR/cm/equity`, 90-day
+    windows bounded at 9 (wider ranges raise → jugaad serves them), weekly/
+    monthly resampled, intraday honestly refused;
+  - `get_quote` (line 479) — `api/quote-equity` when served (defensive
+    `priceInfo` parse, line 501) with the historicalOR-derived EOD fallback
+    (`_quote_from_history`, line 535: close + official
+    `CH_PREVIOUS_CLS_PRICE`);
+  - Component 3 raw fetchers: `get_corporate_announcements` (line 583),
+    `get_results_calendar` (line 596), `get_shareholding_master` (line 605).
+- `sidecar/services/provider_registry.py` — `nse_direct` declared at rank 15
+  (line 149): the IN chain is now `nse_direct(15) → nse/jugaad(20) → bse(25) →
+yfinance(50)`, gated on `nse_provider.is_available()` (curl_cffi import).
+- `scripts/smoke-test-sidecars.mjs` — `_probeNseDirectNoSla()` (line 253),
+  warn-only live probe of `historicalOR/cm/equity` through the sidecar venv's
+  python + curl_cffi (Node fetch has the wrong TLS fingerprint for NSE's
+  Akamai edge); wired into `main()` next to the BSE probe.
+- Tests: `sidecar/tests/test_nse_provider.py` (23 tests — cookie dance,
+  observed-shape parses, rotation, per-path breaker, throttle pacing, EOD
+  fallback, registry ranking) + `test_provider_registry_region.py` updated for
+  the four-deep IN chain. Fixtures: `sidecar/tests/fixtures/nse/` — VERBATIM
+  trims of the live captures, including the observed Akamai
+  `quote_equity_access_denied.html`.
+- `docs/redesign/INTEGRATION_NOTES_R7.md` (new) — no router/app.py wiring
+  needed; notes the deliberate sync-`Session`-instead-of-`AsyncSession`
+  deviation (the registry's quote/ohlcv seam is synchronous; identical
+  anti-bot surface).
+
+### Observed endpoint shapes (live probes, 2026-06-10 IST, curl_cffi impersonate="chrome", symbol RELIANCE)
+
+- `GET /` warm-up → 200; cookies `AKA_A2`, `_abck`, `ak_bmsc`, `bm_sz`
+  (Akamai). The get-quotes page adds `nsit`/`bm_sv`/`bm_mi`; `nseappid` never
+  appeared.
+- `api/historical/cm/equity` (legacy) → **503**. The live path is
+  `api/historicalOR/cm/equity?symbol=&series=["EQ"]&from=DD-MM-YYYY&to=` →
+  200, `{"data": [rows newest-first], "meta": {series, fromDate, toDate,
+symbol}}`; row keys: `CH_SYMBOL, CH_SERIES, CH_TIMESTAMP "YYYY-MM-DD" (the
+IST trading date directly — no UTC+5.5h decode, unlike jugaad),
+CH_OPENING_PRICE, CH_TRADE_HIGH_PRICE, CH_TRADE_LOW_PRICE,
+CH_CLOSING_PRICE, CH_PREVIOUS_CLS_PRICE, CH_LAST_TRADED_PRICE, VWAP,
+CH_TOT_TRADED_QTY, CH_TOT_TRADED_VAL, CH_TOTAL_TRADES, CH_52WEEK_*`.
+  30-day window → 21 rows.
+- `api/corporate-announcements?index=equities&symbol=RELIANCE` → 200, bare
+  list, **3,300 items / 2.8 MB (the FULL history — trim client-side)**; item
+  keys incl. `an_dt, attchmntFile (nsearchives PDF), attchmntText, desc,
+sm_isin, sm_name, sort_date, symbol, hasXbrl, seq_id`.
+- `api/event-calendar?index=equities&symbol=RELIANCE` → 200, bare list (64):
+  `{symbol, company, purpose, bm_desc, date "DD-Mon-YYYY"}`.
+- `api/corporate-share-holdings-master?index=equities&symbol=RELIANCE` → 200,
+  bare list (90 quarters): `{date "31-MAR-2026", pr_and_prgrp "50",
+public_val "50", submissionDate, recordId, xbrl (SHP XML URL), …}`.
+  FII/DII splits are NOT in the master — they live in the linked XBRL.
+- `api/quote-equity?symbol=RELIANCE` → **403 Akamai "Access Denied" (path
+  ACL) on EVERY variant**: chrome + safari impersonation, minimal/no headers,
+  page-level warm-ups, cookie hops via `api/marketStatus` (200) — while
+  `historicalOR` + the corporates endpoints served on the SAME session.
+  `api/NextApi/apiClient/GetQuoteApi?functionName=getSymbolDerivativesData` →
+  200 (the NextApi lane is reachable; no equity-quote function is exposed:
+  `getQuoteEquity` → 400 "Invalid function").
+- `api/chart-databyindex?index=RELIANCEEQN` → 200 but empty off-session
+  (`{closePrice: 0, grapthData: [], …}`) — not used.
+
+### Live smoke (scratch invocation — the once-only live run)
+
+```
+history: nse_direct RELIANCE bars: 26
+   2026-06-05 1304.5 1306.0 1288.0 1291.0 17785223.0
+   2026-06-08 1277.0 1282.6 1259.2 1263.3 16494759.0
+   2026-06-09 1269.0 1274.2 1257.5 1269.2 23620214.0
+quote: RELIANCE 1269.2 5.9 0.47 INR nse_direct 2026-06-09
+announcements: 3 | newest: 09-Jun-2026 19:45:31 | Updates
+events: 64 | first: Demerger 05-Aug-2005
+shareholding quarters: 90 | latest: 31-MAR-2026 promoter 50 public 50
+```
+
+The quote rode the EOD fallback exactly as designed (quote-equity blocked →
+rotate → historicalOR-derived close + official prev close). The smoke-script
+probe one-liner verified standalone: `WARMUP 200 / STATUS 200 / ROWS 7`.
+
+### Verification (offline)
+
+```
+pytest tests/test_nse_provider.py tests/test_provider_registry_region.py
+       tests/test_provider_registry.py tests/test_history.py
+       tests/test_quotes.py tests/test_health.py -q
+62 passed in 1.61s
+```
+
+Full sidecar pytest after the change: `1508 passed, 1 skipped in 31.42s`
+(exit 0). Ruff format + check clean.
+
+### NEEDS-MANUAL-CHECK
+
+- `api/quote-equity` may serve from residential Indian IPs (the parser is
+  ready); from this vantage it is hard-blocked at the edge. If a future probe
+  captures a real 200 payload, add it to `tests/fixtures/nse/` and tighten
+  `_quote_from_payload` to the observed shape.
+- The breaker cooldown (300 s) and window budget (9×90 d) are first-cut
+  tunings — revisit if real charts need >2y exchange-direct (jugaad currently
+  serves those ranges).
+
+## Components 3–4
+
+Not yet in this run's completed scope. See `R7_TRACK_DATA_BRIEF.md`.
