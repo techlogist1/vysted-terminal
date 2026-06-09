@@ -20,9 +20,11 @@ results to :class:`~services.search.base.Citation` chips via
 output the backend needs is enabled (it is OFF by default in SearXNG). A 403 means
 "up but JSON disabled" (the operator must add ``json`` to ``search.formats``); both
 non-usable cases return ``None`` so the registry only lights up Tier-3 when search
-will actually work. When no URL is configured it probes the two conventional local
-ports — ``8888`` (pip dev server) then ``8080`` (docker) — so a default install on
-either is found.
+will actually work. When no URL is configured it consults the one-click manager
+(:mod:`services.searxng_manager`) first — a READY managed instance routes here with
+zero extra config (R7 Component 2) — then probes the two conventional local ports,
+``8888`` (pip dev server) and ``8080`` (docker), so a default install on either is
+found.
 """
 
 from __future__ import annotations
@@ -64,6 +66,20 @@ def _normalize_base_url(base_url: str | None) -> str:
     return (base_url or DEFAULT_BASE_URL).rstrip("/")
 
 
+def _managed_base_url() -> str | None:
+    """The one-click managed instance's URL when its manager reports READY.
+
+    Lazy, guarded import so the backend stays importable in a half-built tree;
+    a pure in-memory read otherwise (the capability probe re-verifies the URL,
+    so a stale READY can never yield a false positive).
+    """
+    try:
+        from services.searxng_manager import manager
+    except ImportError:
+        return None
+    return manager.ready_base_url()
+
+
 async def _json_capable(http: httpx.AsyncClient, base: str) -> bool:
     """Capability probe: is a SearXNG at ``base`` up AND serving JSON search?
 
@@ -95,15 +111,23 @@ async def detect_searxng(
 
     Uses the capability probe (:func:`_json_capable`) so a "found" instance is one
     that can actually answer ``format=json`` searches — never a false positive
-    from an up-but-JSON-disabled instance. With no ``base_url`` it tries the two
-    conventional local ports (``8888`` pip, then ``8080`` docker); with one given
+    from an up-but-JSON-disabled instance. With no ``base_url`` it tries the
+    one-click managed instance first (when its manager reports READY), then the
+    two conventional local ports (``8888`` pip, ``8080`` docker); with one given
     it probes only that. Best-effort: never raises, so the registry silently skips
     Tier-3 when no usable private instance is running.
 
     Pass ``client`` to reuse a caller-owned :class:`httpx.AsyncClient`
     (the test seam); otherwise a short-timeout client is created per call.
     """
-    candidates = [_normalize_base_url(base_url)] if base_url else list(_DEFAULT_PROBE_URLS)
+    if base_url:
+        candidates = [_normalize_base_url(base_url)]
+    else:
+        candidates = []
+        managed = _managed_base_url()
+        if managed:
+            candidates.append(_normalize_base_url(managed))
+        candidates.extend(url for url in _DEFAULT_PROBE_URLS if url not in candidates)
 
     async def _probe(http: httpx.AsyncClient) -> str | None:
         for candidate in candidates:

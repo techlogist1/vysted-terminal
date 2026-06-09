@@ -44,13 +44,21 @@ from routers import (
     safety,
     screener,
     search_status,
+    search_tiers,
     sec_filings,
     system,
     tradesa_v2,
     workflow,
     workspace,
 )
-from services import agent_tools, backtest_strategies, mcp_client, mcp_server, run_manager
+from services import (
+    agent_tools,
+    backtest_strategies,
+    mcp_client,
+    mcp_server,
+    run_manager,
+    searxng_manager,
+)
 from services import screener as screener_service
 from services.errors import ProviderError
 
@@ -81,6 +89,7 @@ _ROUTERS = (
     earnings,
     screener,
     search_status,
+    search_tiers,
     system,
     tradesa_v2,
 )
@@ -130,6 +139,12 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
                 await run_manager.shutdown()
             except Exception as exc:  # noqa: BLE001 — shutdown best-effort
                 _log.debug("run_manager.shutdown raised on shutdown: %s", exc)
+            # Cancel an in-flight managed-SearXNG setup task (docker pull can
+            # run for minutes; it must not outlive the event loop).
+            try:
+                await searxng_manager.shutdown()
+            except Exception as exc:  # noqa: BLE001 — shutdown best-effort
+                _log.debug("searxng_manager.shutdown raised on shutdown: %s", exc)
             # Guard the client close so an aclose() error (timeout / SSL /
             # cleanup failure on shutdown) cannot prevent the MCP-client cache
             # reset that follows — otherwise external MCP transports leak open
