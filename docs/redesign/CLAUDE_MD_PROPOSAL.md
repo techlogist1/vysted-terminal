@@ -1,6 +1,7 @@
 # Proposed CLAUDE.md updates after R7 (sign-off-only file — apply on review)
 
 ## Stack section
+
 - Frontend line: replace "Next.js 16 (App Router, **static export**)" with
   "Vite 8 + React 19 + TypeScript (single-page shell: `index.html` + `src/main.tsx`;
   static build to `out/`)". JetBrains Mono is self-hosted via `@fontsource`
@@ -8,6 +9,7 @@
 - Dev server is `vite` on `127.0.0.1:5173` (tauri.conf.json devUrl matches; strictPort).
 
 ## Gotchas → Frontend
+
 - Vite watcher must ignore `.claude/**`, `out/**`, `sidecar/**`, `src-tauri/**`,
   `graphify-out/**` (vite.config.ts) or teammate-worktree commits reload the app mid-session.
 - The tauri-plugin-mcp socket bridge WEDGES (hangs, not refuses) after Vite HMR re-runs the
@@ -19,6 +21,7 @@
   `applyPlan` now MOVES already-open panels to their planned positions (real splits).
 
 ## Gotchas → Copilot & sidecar
+
 - Frontend CONTROL keys riding invocation `options` (research_depth, deepResearchBackend,
   modelWebSearch, history) must never reach adapter kwargs — `routers/llm.py` filters for
   raw chat; `agent_runtime` pops on the agent path. Adding a new control key = add it in
@@ -38,6 +41,7 @@
   `nse_direct` (rank 15) sits above jugaad for IN; disclosures live under `/disclosures/*`.
 
 ## Versioning & process
+
 - macOS dev signing: the "Vysted Terminal Dev Signing" identity disappeared from the login
   keychain during R7 — until `scripts/macos-dev-setup.sh` is re-run, every recompiled dev
   binary is ad-hoc and the FIRST keychain read at boot blocks on a SecurityAgent prompt
