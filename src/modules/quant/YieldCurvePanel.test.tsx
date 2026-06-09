@@ -67,5 +67,26 @@ describe("YieldCurvePanel", () => {
     render(<YieldCurvePanel />);
     fireEvent.click(screen.getByTestId("bootstrap-curve"));
     await screen.findByTestId("yield-curve-table");
+    // The sampled curve renders through the shared DataTable primitive.
+    expect(screen.getByTestId("yield-curve-points")).toBeTruthy();
+    expect(screen.getByTestId("yield-curve-chart")).toBeTruthy();
+  });
+
+  it("renders the composed empty state before the first bootstrap", () => {
+    render(<YieldCurvePanel />);
+    expect(screen.getByTestId("empty-state")).toBeTruthy();
+    expect(screen.getByTestId("empty-state-headline").textContent).toBe("No curve bootstrapped");
+    // No empty chart frame is mounted pre-bootstrap.
+    expect(screen.queryByTestId("yield-curve-chart")).toBeNull();
+  });
+
+  it("surfaces inline validation and blocks the POST on a bad sample count", () => {
+    render(<YieldCurvePanel />);
+    fireEvent.change(screen.getByTestId("field-sample-count"), { target: { value: "1" } });
+    expect(screen.getByTestId("yield-curve-validation").textContent).toMatch(/3 to 200/);
+    const bootstrapBtn = screen.getByTestId("bootstrap-curve") as HTMLButtonElement;
+    expect(bootstrapBtn.disabled).toBe(true);
+    fireEvent.click(bootstrapBtn);
+    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
   });
 });
