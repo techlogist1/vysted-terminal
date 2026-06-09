@@ -32,6 +32,9 @@ paren bomb like ``'('*5000 + 'close > 1' + ')'*5000`` is a positioned
 :class:`DslError` ("expression too deeply nested"), never a
 ``RecursionError`` escaping the validation surface; ``compile_rule``
 additionally converts any residual ``RecursionError`` to ``DslError``.
+Indicator periods are length-guarded before ``int()`` so a digit flood
+like ``sma(9…×5000)`` can't trip CPython's 4300-digit int-conversion
+``ValueError`` — it's a positioned period-range :class:`DslError`.
 
 Indicator semantics (per symbol, computed incrementally as the engine streams
 bars — same single-pass model as the built-in strategies):
@@ -362,7 +365,18 @@ class _Parser:
                 f"{name}() takes one integer period, e.g. {name}(20)",
                 arg.position if arg.kind != "op" or arg.text != ")" else name_token.position,
             )
-        period = int(arg.text)
+        # CPython caps int(str) at 4300 digits and raises a PLAIN ValueError
+        # past it — length-guard the digit string BEFORE int() so a digit
+        # flood like sma(9…×5000) stays a positioned DslError and never
+        # escapes the "Never raises" validate surface. MAX_PERIOD is 3
+        # digits; lstrip keeps sma(0020) parsing as before.
+        digits = arg.text.lstrip("0") or "0"
+        if len(digits) > len(str(MAX_PERIOD)):
+            raise DslError(
+                f"{name}() period must be {MIN_PERIOD}..{MAX_PERIOD}",
+                arg.position,
+            )
+        period = int(digits)
         if not (MIN_PERIOD <= period <= MAX_PERIOD):
             raise DslError(
                 f"{name}() period must be {MIN_PERIOD}..{MAX_PERIOD}, got {period}",

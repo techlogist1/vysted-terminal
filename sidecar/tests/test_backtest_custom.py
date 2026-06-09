@@ -162,6 +162,34 @@ class TestParser:
         with pytest.raises(DslError, match="too long"):
             compile_rule("close " + "+ 1 " * 5000 + "> 1")
 
+    def test_huge_integer_period_is_a_dsl_error(self) -> None:
+        # Reviewer's second adversarial input: a 5000-digit indicator period
+        # is ONE token (the token cap can't fire) and used to hit CPython's
+        # 4300-digit int(str) limit — a PLAIN ValueError escaping the
+        # "Never raises" validate surface. Both sides of that boundary must
+        # now be positioned DslErrors.
+        for digits in ("9" * 4301, "9" * 5000):
+            with pytest.raises(DslError, match="period must be 1..500") as excinfo:
+                compile_rule(f"sma({digits}) > 1")
+            assert excinfo.value.position == 4
+        # At/under the 4300-digit limit int() succeeds — same rejection lane.
+        with pytest.raises(DslError, match="period must be 1..500"):
+            compile_rule("sma(" + "9" * 4300 + ") > 1")
+        # Zero-flood normalizes to 0 → range rejection, not a crash.
+        with pytest.raises(DslError, match="period must be 1..500"):
+            compile_rule("sma(" + "0" * 5000 + ") > 1")
+        # validate_definition keeps its contract too.
+        report = validate_definition(
+            {"entry": "sma(" + "9" * 5000 + ") > 1", "exit": "rsi(14) > 70"}
+        )
+        assert report["ok"] is False
+        assert report["errors"][0]["rule"] == "entry"
+        assert report["errors"][0]["position"] == 4
+
+    def test_leading_zero_period_still_parses(self) -> None:
+        # The length guard strips leading zeros first — sma(0020) is sma(20).
+        assert compile_rule("sma(0020) > 1").indicators == frozenset({("sma", 20)})
+
     def test_legal_nesting_and_width_still_parse(self) -> None:
         # Depth under the cap parses fine...
         deep = "(" * 10 + "close > 1" + ")" * 10
@@ -357,6 +385,21 @@ class TestRouter:
         assert body["ok"] is False
         assert body["errors"][0]["rule"] == "entry"
         assert body["errors"][0]["position"] is not None
+
+    def test_validate_survives_huge_integer_period(self, client: TestClient) -> None:
+        # Reviewer's live repro: this exact body used to 500 (CPython's
+        # 4300-digit int(str) ValueError escaping validate_definition —
+        # same class as the paren bomb, same surface, same contract:
+        # 200 + ok:false, always.
+        response = client.post(
+            "/backtest/strategies/custom/validate",
+            json={"entry": "sma(" + "9" * 5000 + ") > 1", "exit": "rsi(14) > 70"},
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["ok"] is False
+        assert body["errors"][0]["rule"] == "entry"
+        assert body["errors"][0]["position"] == 4
 
     def test_custom_spec_listed_once_registered(self, client: TestClient) -> None:
         backtest_strategies.register_all()
