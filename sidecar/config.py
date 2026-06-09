@@ -191,6 +191,143 @@ def set_request_deep_research(backend: str | None) -> object:
     return _deep_research_ctx.set(backend)
 
 
+# --- R7 search-tier selection (Track R — Component 3) ------------------------
+#
+# The R7 research rebuild names three SEARCH tiers, orthogonal to depth:
+#
+#   ``t1_local``   — the keyless multi-engine rotation (DDG → Brave → Mojeek).
+#                    Zero keys, zero setup; the default floor.
+#   ``t2_searxng`` — the one-click managed SearXNG instance ("Unlimited
+#                    Research", :mod:`services.searxng_manager`).
+#   ``t3_hosted``  — the BYOK hosted tier: OpenRouter's ``openrouter:web_search``
+#                    server tool (Firecrawl default engine, Exa optional) — see
+#                    :mod:`services.search.hosted`.
+#
+# The selection mirrors the deep-research backend pattern above EXACTLY: the
+# frontend persists the choice in Settings and publishes it on each request
+# (``X-Vysted-Research-Tier``); the middleware sets it here so any code path the
+# request reaches — routers and the agent tool loop — reads the same tier via
+# :func:`get_research_search_tier`. Task-local, reset on request exit, never
+# leaks across requests. ``None`` means "no explicit selection this request" so
+# callers keep their legacy routing; an explicit-but-unknown value normalizes to
+# the t1 floor (defaulting t1 — never a surprise paid route).
+#
+# The OpenRouter BYOK key for the hosted tier is a SECRET with the same handling
+# as the Exa key above: it rides the request header (``X-Vysted-Openrouter-Key``)
+# into a per-request ContextVar, process-memory only, never persisted or logged.
+SEARCH_TIER_T1_LOCAL = "t1_local"
+SEARCH_TIER_T2_SEARXNG = "t2_searxng"
+SEARCH_TIER_T3_HOSTED = "t3_hosted"
+KNOWN_RESEARCH_SEARCH_TIERS = frozenset(
+    {SEARCH_TIER_T1_LOCAL, SEARCH_TIER_T2_SEARXNG, SEARCH_TIER_T3_HOSTED}
+)
+
+#: Forgiving aliases so a short spelling from settings/tests still lands on the
+#: intended tier rather than silently flooring to t1.
+_RESEARCH_TIER_ALIASES: dict[str, str] = {
+    "t1": SEARCH_TIER_T1_LOCAL,
+    "local": SEARCH_TIER_T1_LOCAL,
+    "keyless": SEARCH_TIER_T1_LOCAL,
+    "t2": SEARCH_TIER_T2_SEARXNG,
+    "searxng": SEARCH_TIER_T2_SEARXNG,
+    "t3": SEARCH_TIER_T3_HOSTED,
+    "hosted": SEARCH_TIER_T3_HOSTED,
+    "openrouter": SEARCH_TIER_T3_HOSTED,
+}
+
+_research_search_tier_ctx: ContextVar[str | None] = ContextVar(
+    "vysted_research_search_tier", default=None
+)
+_openrouter_search_key_ctx: ContextVar[str | None] = ContextVar(
+    "vysted_openrouter_search_key", default=None
+)
+_hosted_search_engine_ctx: ContextVar[str | None] = ContextVar(
+    "vysted_hosted_search_engine", default=None
+)
+
+
+def normalize_research_search_tier(value: str | None) -> str:
+    """Coerce a value to a known R7 search tier, defaulting to ``t1_local``.
+
+    Unknown / empty values fall back to the keyless t1 floor rather than
+    raising — a malformed header must never break a request, and t1 is the only
+    tier that can never surprise-bill or require setup.
+    """
+    if not value:
+        return SEARCH_TIER_T1_LOCAL
+    candidate = value.strip().lower()
+    if candidate in KNOWN_RESEARCH_SEARCH_TIERS:
+        return candidate
+    return _RESEARCH_TIER_ALIASES.get(candidate, SEARCH_TIER_T1_LOCAL)
+
+
+def get_research_search_tier() -> str | None:
+    """The explicitly selected R7 search tier for this request, or ``None``.
+
+    ``None`` means the request carried no selection — the caller keeps its
+    legacy routing (which already floors to the keyless t1 tier). A non-``None``
+    value is always one of :data:`KNOWN_RESEARCH_SEARCH_TIERS`.
+    """
+    return _research_search_tier_ctx.get()
+
+
+def set_request_research_search_tier(tier: str | None) -> object:
+    """Publish the R7 search tier for the request; returns a reset token.
+
+    ``None`` (header absent) stays ``None`` — "no explicit selection"; any
+    present value is normalized so downstream readers never see an unknown id.
+    """
+    return _research_search_tier_ctx.set(
+        normalize_research_search_tier(tier) if tier is not None and tier.strip() else None
+    )
+
+
+def reset_request_research_search_tier(token: object) -> None:
+    """Restore the R7 search-tier ContextVar (middleware teardown)."""
+    _research_search_tier_ctx.reset(token)  # type: ignore[arg-type]
+
+
+def get_openrouter_search_key() -> str | None:
+    """The per-request OpenRouter BYOK key for the t3 hosted tier, or ``None``.
+
+    A SECRET: keychain-sourced in the renderer, rides the request header only,
+    process-memory for the request, never persisted, never logged.
+    """
+    return _openrouter_search_key_ctx.get()
+
+
+def set_request_openrouter_search_key(key: str | None) -> object:
+    """Publish the per-request OpenRouter key; returns a reset token."""
+    return _openrouter_search_key_ctx.set(key.strip() if key and key.strip() else None)
+
+
+def reset_request_openrouter_search_key(token: object) -> None:
+    """Clear the OpenRouter key ContextVar (middleware teardown)."""
+    _openrouter_search_key_ctx.reset(token)  # type: ignore[arg-type]
+
+
+def get_hosted_search_engine() -> str | None:
+    """The user's hosted-search engine choice (``firecrawl``/``exa``/…), or ``None``.
+
+    ``None`` lets :mod:`services.search.hosted` apply its default (Firecrawl —
+    the engine with a free-credit tier). Validation against the known engine set
+    happens in that module; this is transport only.
+    """
+    return _hosted_search_engine_ctx.get()
+
+
+def set_request_hosted_search_engine(engine: str | None) -> object:
+    """Publish the per-request hosted-search engine; returns a reset token."""
+    return _hosted_search_engine_ctx.set(
+        engine.strip().lower() if engine and engine.strip() else None
+    )
+
+
+def reset_request_hosted_search_engine(token: object) -> None:
+    """Clear the hosted-search engine ContextVar (middleware teardown)."""
+    _hosted_search_engine_ctx.reset(token)  # type: ignore[arg-type]
+
+
 # --- Live research-step sink (Track A — aliveness) ---------------------------
 #
 # A long research tool (``deep_research`` / ``research``) runs for many seconds

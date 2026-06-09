@@ -214,6 +214,13 @@ class _RegionMiddleware:
     endpoint and is reliably visible to it. Absent the headers, region defaults to
     ``US`` and the tier to ``native`` — every existing caller behaves as before. The
     Exa key is a secret: held in process memory for the request only, reset on exit.
+
+    R7 (Track R, Component 3) adds the research search-tier selection on the same
+    transport: ``X-Vysted-Research-Tier`` (``t1_local`` / ``t2_searxng`` /
+    ``t3_hosted``; absent → no explicit selection, callers floor to t1),
+    ``X-Vysted-Openrouter-Key`` (the t3 BYOK secret — same never-persisted,
+    never-logged handling as the Exa key), and ``X-Vysted-Search-Engine`` (the
+    hosted engine choice; Firecrawl default applied downstream).
     """
 
     def __init__(self, app: Any) -> None:
@@ -227,6 +234,9 @@ class _RegionMiddleware:
         tier: str | None = None
         exa_key: str | None = None
         searxng_url: str | None = None
+        research_tier: str | None = None
+        openrouter_key: str | None = None
+        search_engine: str | None = None
         for key, value in scope.get("headers", []):
             if key == b"x-vysted-region":
                 region = value.decode("latin-1")
@@ -236,13 +246,25 @@ class _RegionMiddleware:
                 exa_key = value.decode("latin-1")
             elif key == b"x-vysted-searxng-url":
                 searxng_url = value.decode("latin-1")
+            elif key == b"x-vysted-research-tier":
+                research_tier = value.decode("latin-1")
+            elif key == b"x-vysted-openrouter-key":
+                openrouter_key = value.decode("latin-1")
+            elif key == b"x-vysted-search-engine":
+                search_engine = value.decode("latin-1")
         region_token = config.set_request_region(region)
         search_tokens = config.set_request_search(
             tier=tier, exa_key=exa_key, searxng_url=searxng_url
         )
+        research_tier_token = config.set_request_research_search_tier(research_tier)
+        openrouter_token = config.set_request_openrouter_search_key(openrouter_key)
+        engine_token = config.set_request_hosted_search_engine(search_engine)
         try:
             await self.app(scope, receive, send)
         finally:
+            config.reset_request_hosted_search_engine(engine_token)
+            config.reset_request_openrouter_search_key(openrouter_token)
+            config.reset_request_research_search_tier(research_tier_token)
             config.reset_request_search(search_tokens)
             config.reset_request_region(region_token)
 
