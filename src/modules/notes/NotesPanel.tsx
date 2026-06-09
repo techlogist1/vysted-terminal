@@ -62,15 +62,18 @@ function ScopeChip({
   active: boolean;
   onClick: () => void;
 }) {
+  // 24px compact-ladder chip; the active state is a quiet luminance step with
+  // bright text (segmented-toggle treatment), never an inverted bright fill.
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
-        "text-caption rounded-control px-2 py-1 font-medium transition-colors",
+        "text-caption rounded-control flex h-6 items-center px-2 font-medium transition-colors",
         active
-          ? "text-charcoal-950 bg-charcoal-200"
-          : "bg-charcoal-800 text-charcoal-300 hover:bg-charcoal-700",
+          ? "bg-charcoal-800 text-lume border-charcoal-600 border"
+          : "bg-charcoal-850 text-charcoal-400 hover:text-charcoal-200",
       )}
     >
       {label}
@@ -428,9 +431,9 @@ function SymbolChipInput({ onCommit }: { onCommit: (sym: string) => void }) {
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="text-caption text-charcoal-500 hover:text-charcoal-300 rounded-control px-2 py-1"
+        className="text-caption text-charcoal-500 hover:text-charcoal-300 rounded-control flex h-6 items-center px-2"
       >
-        + symbol
+        [+] symbol
       </button>
     );
   }
@@ -449,7 +452,7 @@ function SymbolChipInput({ onCommit }: { onCommit: (sym: string) => void }) {
       }}
       onBlur={commit}
       placeholder="AAPL"
-      className="text-caption border-charcoal-700 bg-charcoal-900 text-charcoal-200 placeholder:text-charcoal-600 rounded-control w-16 border px-2 py-1 outline-none"
+      className="text-caption border-charcoal-700 bg-charcoal-850 text-charcoal-200 placeholder:text-charcoal-600 rounded-control focus-visible:border-charcoal-500 h-6 w-16 border px-2 outline-none"
     />
   );
 }

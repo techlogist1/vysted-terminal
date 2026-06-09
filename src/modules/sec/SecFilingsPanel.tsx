@@ -121,13 +121,13 @@ export function SecFilingsPanel() {
     >
       <header className="border-charcoal-700 flex flex-wrap items-end gap-2 border-b px-3 py-2">
         <form onSubmit={submitSymbol} className="flex items-end gap-2">
-          <label className="flex flex-col gap-0.5">
-            <span className="text-charcoal-400 text-micro uppercase">Symbol / CIK</span>
+          <label className="flex flex-col gap-1">
+            <span className="text-charcoal-500 text-micro">Symbol / CIK</span>
             <input
               type="text"
               value={draftSymbol}
               onChange={(e) => setDraftSymbol(e.target.value)}
-              className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 w-32 border px-2 font-mono uppercase"
+              className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 w-32 border px-3 uppercase outline-none"
               placeholder="AAPL"
               data-testid="sec-symbol-input"
             />
@@ -137,12 +137,12 @@ export function SecFilingsPanel() {
           </Button>
         </form>
 
-        <label className="flex flex-col gap-0.5">
-          <span className="text-charcoal-400 text-micro uppercase">Form</span>
+        <label className="flex flex-col gap-1">
+          <span className="text-charcoal-500 text-micro">Form</span>
           <select
             value={formFilter}
             onChange={(e) => onPickForm(e.target.value as FilingFormType | "all")}
-            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption h-8 border px-2"
+            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 border px-3 outline-none"
             data-testid="sec-form-filter"
           >
             {FORM_FILTER_OPTIONS.map((opt) => (
@@ -173,7 +173,7 @@ export function SecFilingsPanel() {
           className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2"
           data-testid="sec-filings-error"
         >
-          <span className="text-negative text-micro font-mono">
+          <span className="text-negative text-caption">
             Could not load filings — {filingsError}
           </span>
           <Button
@@ -191,7 +191,17 @@ export function SecFilingsPanel() {
         </div>
       )}
       {filingsStatus === "loading" && filings.filings.length === 0 && (
-        <p className="text-charcoal-400 text-caption px-3 py-2">Loading filings…</p>
+        // Row-shaped pulse skeleton for the filings fetch window — never a bare
+        // prose line standing in for the table.
+        <div className="flex animate-pulse flex-col px-3 py-2" data-testid="sec-filings-skeleton">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="border-charcoal-800 flex gap-6 border-b px-3 py-2">
+              <div className="bg-charcoal-800 h-3 w-16 rounded-none" />
+              <div className="bg-charcoal-800 h-3 w-1/3 rounded-none" />
+              <div className="bg-charcoal-800 ml-auto h-3 w-24 rounded-none" />
+            </div>
+          ))}
+        </div>
       )}
 
       <div className="min-h-0 flex-1">

@@ -594,7 +594,7 @@ export function PortfolioPanel() {
                 assetClass: event.target.value === "crypto" ? "crypto" : "equity",
               }))
             }
-            className="bg-charcoal-800 text-charcoal-200 text-caption rounded-control focus:ring-charcoal-500 h-8 px-3 outline-none focus:ring-1"
+            className="bg-charcoal-800 text-charcoal-100 text-body rounded-control focus:ring-charcoal-500 h-8 px-3 outline-none focus:ring-1"
           >
             <option value="equity">Equity</option>
             <option value="crypto">Crypto</option>
@@ -690,13 +690,14 @@ export function PortfolioPanel() {
           <span className="text-warning text-caption">
             Couldn&apos;t refresh live quotes — values shown without market data.
           </span>
-          <button
+          <Button
             type="button"
+            size="xs"
+            variant="ghost"
             onClick={() => setQuotesNonce((n) => n + 1)}
-            className="text-caption text-charcoal-300 hover:text-charcoal-100 transition-colors"
           >
             Retry
-          </button>
+          </Button>
         </div>
       )}
 
