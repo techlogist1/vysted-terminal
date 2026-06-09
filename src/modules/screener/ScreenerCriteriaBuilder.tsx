@@ -23,9 +23,9 @@ import { ScreenerFormulaLeaf } from "./ScreenerFormulaLeaf";
  *   - ADVANCED: a recursive nested AND/OR group editor (`CriterionGroupEditor`),
  *     editing the existing recursive `CriterionGroup` wire tree the backend
  *     already evaluates. Toggling to advanced seeds the tree from the flat list.
- * Below either mode sits the custom-formula leaf (mathjs, client-side post-
- * filter). The operator pick switches the leaf's value input shape — single
- * number / (min, max) / string / comma-list.
+ * Below either mode sits the custom-formula leaf (the shared restricted
+ * grammar, evaluated server-side with the criteria). The operator pick switches
+ * the leaf's value input shape — single number / (min, max) / string / comma-list.
  */
 const NUMERIC_FIELDS: { value: ScreenerNumericField; label: string }[] = [
   { value: "market_cap", label: "Market cap" },

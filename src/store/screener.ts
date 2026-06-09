@@ -14,7 +14,7 @@
 
 import { create } from "zustand";
 
-import { runScreenerFormula } from "@/lib/screener-formula-runner";
+import { compileScreenerExpr } from "@/lib/screener-expr";
 import { getSidecarBaseUrl, sidecarGet } from "@/lib/sidecar-client";
 
 import type {
@@ -74,17 +74,14 @@ interface ScreenerState {
   group: CriterionGroup | null;
   /** Whether the builder is in advanced (nested group) mode vs simple flat. */
   advanced: boolean;
-  /** Custom client-side post-filter formula (mathjs). Applied to the
-   * server-returned matched rows in a Web Worker after a run. Empty = no-op. */
+  /** Custom formula (the shared restricted grammar, `src/lib/screener-expr.ts`
+   * ⇄ `sidecar/services/screener_formula.py`). Sent on the request and
+   * evaluated SERVER-SIDE per universe member, AND-combined with the criteria.
+   * Empty = no-op. Rows missing a referenced field land in the skip ledger. */
   formula: string;
 
   // --- last-run cache -------------------------------------------------
   lastResult: ScreenerResult | null;
-  /** Server result count BEFORE the custom formula post-filter — surfaced so the
-   * UI can show "N of M matched (formula)". Null when no formula was applied. */
-  preFormulaCount: number | null;
-  /** Inline parse/eval error from the last formula run (no raw stack). */
-  formulaError: string | null;
   status: ScreenerStatus;
   error: string | null;
 
@@ -166,8 +163,6 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
   advanced: false,
   formula: "",
   lastResult: null,
-  preFormulaCount: null,
-  formulaError: null,
   status: "idle",
   error: null,
   universeMeta: {},
@@ -214,7 +209,21 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       advanced,
       formula,
     } = get();
-    set({ status: "loading", error: null, formulaError: null, preFormulaCount: null });
+    // Pre-flight the formula against the SAME grammar the server enforces —
+    // an unparseable formula is an honest inline failure (with the caret
+    // column), never a wasted round-trip to a 422.
+    const trimmedFormula = formula.trim();
+    if (trimmedFormula) {
+      const compiled = compileScreenerExpr(trimmedFormula);
+      if (!compiled.ok) {
+        set({
+          status: "error",
+          error: `Formula: ${compiled.error} (col ${compiled.position + 1})`,
+        });
+        return null;
+      }
+    }
+    set({ status: "loading", error: null });
     // Three shapes for the boolean tree, in precedence:
     //   1. ADVANCED nested tree (the recursive group editor) — pruned, supersedes
     //      everything when it carries real nesting (server evaluates it).
@@ -234,33 +243,16 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       criteria,
       limit,
       ...(group ? { group } : {}),
+      // The formula rides the request and is evaluated SERVER-SIDE per
+      // universe member (R7 Pillar 3) — rows missing a referenced field come
+      // back itemized in the skip ledger, never silently dropped.
+      ...(trimmedFormula ? { formula: trimmedFormula } : {}),
       ...(universe === "custom" ? { custom_symbols: parseCustomSymbols(customSymbols) } : {}),
     };
     try {
       const result = await postJson<ScreenerRequest, ScreenerResult>("/screener/run", req);
-      // CLIENT-SIDE custom-formula post-filter (FR-122): the server returns the
-      // matched set; the mathjs Web Worker drops rows the formula rejects. A
-      // blank formula is a no-op. Errors surface inline; no rows silently vanish.
-      if (formula.trim()) {
-        const filtered = await runScreenerFormula(formula, result.rows);
-        const postResult: ScreenerResult = {
-          ...result,
-          rows: filtered.rows,
-          result_count: filtered.rows.length,
-        };
-        set({
-          lastResult: postResult,
-          preFormulaCount: result.rows.length,
-          formulaError: filtered.error ?? null,
-          status: "ready",
-          error: null,
-        });
-        return postResult;
-      }
       set({
         lastResult: result,
-        preFormulaCount: null,
-        formulaError: null,
         status: "ready",
         error: null,
       });
@@ -321,8 +313,6 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       advanced: false,
       formula: "",
       lastResult: null,
-      preFormulaCount: null,
-      formulaError: null,
       status: "idle",
       error: null,
       universeMeta: {},

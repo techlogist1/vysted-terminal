@@ -13,8 +13,8 @@
  * — see `code-node-run.ts` for how the run lifecycle weaves code nodes
  * into the sidecar SSE run.
  *
- * SECURITY — same sandbox recipe as `src/lib/screener-formula.ts`, per
- * mathjs guidance (https://mathjs.org/docs/expressions/security.html):
+ * SECURITY — sandboxed per mathjs's own guidance
+ * (https://mathjs.org/docs/expressions/security.html):
  * a dedicated `create(all)` instance with `import` / `createUnit` /
  * `evaluate` / `parse` / `simplify` / `derivative` / `resolve` shadowed
  * by throwing stubs, evaluated against a caller-built scope object only.
