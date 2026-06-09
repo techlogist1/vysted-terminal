@@ -128,11 +128,28 @@ afterEach(() => {
 });
 
 describe("EquityOverviewPanel", () => {
-  it("shows the empty prompt before a symbol is loaded", () => {
+  it("shows a composed empty state with quick-load chips before a symbol is loaded", () => {
     render(<EquityOverviewPanel />);
+    // The shared composed EmptyState — never instructional copy as content.
+    expect(screen.getByTestId("empty-state")).toBeInTheDocument();
+    expect(screen.getByTestId("empty-state-headline").textContent).toBe("Equity overview");
     expect(
       screen.getByText(/Screener-grade fundamentals, statements, and ratings/),
     ).toBeInTheDocument();
+    const chips = screen.getByTestId("quick-load-chips");
+    for (const t of ["AAPL", "RELIANCE", "NVDA"]) {
+      expect(chips.textContent).toContain(t);
+    }
+  });
+
+  it("a quick-load chip loads its symbol", async () => {
+    mockLoad.mockResolvedValue(overview());
+    render(<EquityOverviewPanel />);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "AAPL" }));
+    });
+    expect(mockLoad).toHaveBeenCalledWith("AAPL");
+    expect(screen.getByRole("heading", { name: "AAPL" })).toBeInTheDocument();
   });
 
   it("loads and displays fundamentals, ratios, statements, and ratings", async () => {
@@ -175,7 +192,21 @@ describe("EquityOverviewPanel", () => {
     await loadSymbol();
 
     expect(screen.getByText("Analyst ratings")).toBeInTheDocument();
-    expect(screen.getAllByText("Unavailable.").length).toBeGreaterThan(0);
+    // The failed section renders a composed dense empty state, never bare prose.
+    expect(screen.getByText("Ratings unavailable")).toBeInTheDocument();
+  });
+
+  it("renders analyst ratings as a labelled metric strip", async () => {
+    mockLoad.mockResolvedValue(overview());
+    render(<EquityOverviewPanel />);
+    await loadSymbol();
+
+    const strip = screen.getByTestId("ratings-strip");
+    expect(strip.textContent).toContain("Consensus");
+    expect(strip.textContent).toContain("buy");
+    expect(strip.textContent).toContain("Target mean");
+    expect(strip.textContent).toContain("SB · B · H · S · SS");
+    expect(strip.textContent).toContain("12 · 20 · 8 · 1 · 0");
   });
 
   it("shows an error when every section fails", async () => {
