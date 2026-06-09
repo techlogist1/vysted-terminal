@@ -332,9 +332,11 @@ function SimpleCriteriaEditor() {
               aria-checked={combinator === opt.value}
               aria-label={opt.label}
               onClick={() => setCombinator(opt.value)}
+              // Design-law segmented toggle: the active segment climbs one rung
+              // (raised surface, bright text) — never an inverted fill.
               className={
                 combinator === opt.value
-                  ? "text-background bg-foreground rounded-control px-2 py-0.5 font-medium transition-colors"
+                  ? "bg-charcoal-700 text-charcoal-100 rounded-control px-2 py-0.5 font-medium transition-colors"
                   : "text-muted-foreground hover:text-foreground rounded-control px-2 py-0.5 transition-colors"
               }
             >
@@ -423,7 +425,7 @@ export function ScreenerCriteriaBuilder() {
               onClick={() => toggleAdvanced(opt.value)}
               className={
                 advanced === opt.value
-                  ? "text-background bg-foreground rounded-control px-2 py-0.5 font-medium transition-colors"
+                  ? "bg-charcoal-700 text-charcoal-100 rounded-control px-2 py-0.5 font-medium transition-colors"
                   : "text-muted-foreground hover:text-foreground rounded-control px-2 py-0.5 transition-colors"
               }
             >
