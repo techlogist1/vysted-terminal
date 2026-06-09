@@ -52,9 +52,12 @@ async def _research(args: dict[str, Any]) -> dict[str, Any]:
         }
     query = query.strip()
 
+    import config as app_config
     from services.research import depth as depth_mod
 
-    depth = depth_mod.normalize_depth(args.get("depth"))
+    # Model-passed depth wins; otherwise the composer slider's request-level
+    # default (R7); otherwise normalize_depth floors to NORMAL.
+    depth = depth_mod.normalize_depth(args.get("depth") or app_config.get_request_research_depth())
 
     if depth in (depth_mod.DEPTH_DEEP, depth_mod.DEPTH_ULTRA):
         from services.agent_tools.deep_research import run_deep_brief

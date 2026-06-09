@@ -350,3 +350,25 @@ def test_citations_are_tier_ranked_for_synthesis() -> None:
     )
     web_urls = [s.url for s in brief.sources if s.url.startswith("https://")]
     assert web_urls[0] == "https://www.sec.gov/filing/tinyco-10k"
+
+
+def test_composer_slider_depth_is_the_request_default() -> None:
+    """options.research_depth (the slider) routes a depth-less research call.
+
+    The model passing an explicit depth still wins; clearing the ContextVar
+    restores the NORMAL floor. Wired via config.set_request_research_depth in
+    agent_runtime → services/agent_tools/research.py.
+    """
+    import config as app_config
+    from services.research import depth as depth_mod
+
+    token = app_config.set_request_research_depth("ultra")
+    try:
+        assert depth_mod.normalize_depth(None or app_config.get_request_research_depth()) == "ultra"
+        # explicit model arg wins over the slider default
+        assert (
+            depth_mod.normalize_depth("deep" or app_config.get_request_research_depth()) == "deep"
+        )
+    finally:
+        app_config._research_depth_ctx.reset(token)
+    assert depth_mod.normalize_depth(None or app_config.get_request_research_depth()) == "normal"

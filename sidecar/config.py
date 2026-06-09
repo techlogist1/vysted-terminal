@@ -191,6 +191,25 @@ def set_request_deep_research(backend: str | None) -> object:
     return _deep_research_ctx.set(backend)
 
 
+# R7: the composer's three-stop depth slider rides options.research_depth on
+# the agent-invoke request. It is the DEFAULT depth for research tool calls in
+# that run — an explicit depth arg from the model still wins (the deterministic
+# escalation path), and an absent slider value falls back to NORMAL via
+# normalize_depth. Mirrors the deep-research pattern above: task-local, never
+# cross-request.
+_research_depth_ctx: ContextVar[str | None] = ContextVar("vysted_research_depth", default=None)
+
+
+def get_request_research_depth() -> str | None:
+    """The composer-selected research depth for this run, or None."""
+    return _research_depth_ctx.get()
+
+
+def set_request_research_depth(depth: str | None) -> object:
+    """Publish the run's default research depth; returns a reset token."""
+    return _research_depth_ctx.set(depth)
+
+
 # --- R7 search-tier selection (Track R — Component 3) ------------------------
 #
 # The R7 research rebuild names three SEARCH tiers, orthogonal to depth:

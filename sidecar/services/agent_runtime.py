@@ -838,10 +838,13 @@ async def invoke_agent(
         dr_backend.strip().lower() if isinstance(dr_backend, str) and dr_backend.strip() else None,
     )
     # R7: the composer's depth slider rides `options.research_depth`
-    # (normal|deep|ultra). Popped here so it never leaks into adapter kwargs
-    # (OpenAI-shaped clients TypeError on unknown kwargs); threading it into
-    # the research tool's default depth lands with the depth router.
-    opts.pop("research_depth", None)
+    # (normal|deep|ultra). Popped so it never leaks into adapter kwargs
+    # (OpenAI-shaped clients TypeError on unknown kwargs) and published as the
+    # run's DEFAULT research depth — an explicit model-passed depth still wins.
+    req_depth = opts.pop("research_depth", None)
+    config.set_request_research_depth(
+        req_depth.strip().lower() if isinstance(req_depth, str) and req_depth.strip() else None,
+    )
 
     # --- Visible plan-then-execute pre-pass (Track 6 #2) ---------------------
     # For a COMPOUND request on a capable model, decompose the goal into an
