@@ -33,6 +33,21 @@ export interface StreamingHandlers {
   signal?: AbortSignal;
 }
 
+/**
+ * Map the camelCase frontend `options` onto the wire body. `researchDepth` (the
+ * composer's three-stop depth slider) crosses as snake_case `research_depth` so
+ * the sidecar reads ONE spelling; every other key passes through unchanged (the
+ * sidecar already consumes `history`/`deepResearchBackend`/`modelWebSearch`
+ * as-is — renaming them here would silently break those contracts).
+ */
+function wireOptions(options?: Record<string, unknown>): Record<string, unknown> {
+  if (!options) {
+    return {};
+  }
+  const { researchDepth, ...rest } = options;
+  return researchDepth === undefined ? rest : { ...rest, research_depth: researchDepth };
+}
+
 /** Stream a raw chat completion (no agent). */
 export async function streamChat(payload: ChatRequest, handlers: StreamingHandlers): Promise<void> {
   const base = await getSidecarBaseUrl();
@@ -43,7 +58,7 @@ export async function streamChat(payload: ChatRequest, handlers: StreamingHandle
     messages: payload.messages,
     api_key: payload.apiKey,
     base_url: payload.baseUrl,
-    options: payload.options ?? {},
+    options: wireOptions(payload.options),
   });
   await consumeSseStream(url, body, handlers);
 }
@@ -78,7 +93,7 @@ export async function streamAgentInvocation(
     // change is ALREADY applied (past tense); in "ask" it is staged for review.
     // Orders always require confirmation regardless (§6.5).
     autonomy: payload.autonomy,
-    options: payload.options ?? {},
+    options: wireOptions(payload.options),
   });
   await consumeSseStream(url, body, handlers);
 }
