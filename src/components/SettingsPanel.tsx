@@ -68,7 +68,12 @@ import {
   type ScoredModel,
   verdictMeta,
 } from "@/lib/hardware-fit";
-import { useSearchSettingsStore } from "@/store/search-settings";
+import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import {
+  type HostedSearchEngine,
+  type ResearchTier,
+  useSearchSettingsStore,
+} from "@/store/search-settings";
 import { type SettingsBundle, useSettingsStore } from "@/store/settings";
 import { SEARCH_TIER_LABELS, SEARCH_TIERS, type SearchTier } from "../../types/search";
 import { AUTOSAVE_LAYOUT_NAME, isReservedLayoutName, useWorkspaceStore } from "@/store/workspace";
@@ -978,6 +983,492 @@ function FitRow({ model }: { model: ScoredModel }) {
   );
 }
 
+// ---- R7 research search tiers (Track S) ------------------------------------
+
+/** One T1 keyless engine's live breaker state (`GET /search/status` wire shape). */
+interface T1EngineStatus {
+  id: string;
+  label: string;
+  state: string;
+  cooldown_remaining_s: number;
+  detail: string;
+}
+
+/** The T1 tier-status payload — mirrors `sidecar/services/search/keyless.tier_status`. */
+interface T1TierStatus {
+  tier: string;
+  available: boolean;
+  engines: T1EngineStatus[];
+}
+
+/** Fetch the live T1 per-engine status, or `null` when the sidecar is unreachable. */
+async function fetchT1TierStatus(): Promise<T1TierStatus | null> {
+  try {
+    const base = await getSidecarBaseUrl();
+    const resp = await fetch(new URL("/search/status", base).toString());
+    if (!resp.ok) {
+      return null;
+    }
+    return (await resp.json()) as T1TierStatus;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Format the T1 per-engine status line — "DuckDuckGo — cooling down 24s ·
+ * Brave — ok · Mojeek — ok". Honest per engine: `open` breaker = cooling down
+ * with the remaining seconds, `half_open` = probing, else ok. Exported so the
+ * formatting contract is locked by tests.
+ */
+export function t1EngineStatusLine(engines: T1EngineStatus[]): string {
+  return engines
+    .map((engine) => {
+      if (engine.state === "open") {
+        return `${engine.label} — cooling down ${Math.max(0, Math.round(engine.cooldown_remaining_s))}s`;
+      }
+      if (engine.state === "half_open") {
+        return `${engine.label} — probing`;
+      }
+      return `${engine.label} — ok`;
+    })
+    .join(" · ");
+}
+
+/** Poll cadence for the T1 status line while the tier is selected and visible. */
+const T1_STATUS_POLL_MS = 20_000;
+
+/** The live T1 per-engine status line — tertiary text, polled every ~20s. */
+function T1StatusLine() {
+  const [status, setStatus] = useState<T1TierStatus | null | "loading">("loading");
+
+  useEffect(() => {
+    let alive = true;
+    const tick = async () => {
+      // Skip the fetch while the window is hidden — the poll exists for a
+      // visible status line, not background traffic.
+      if (typeof document !== "undefined" && document.hidden) {
+        return;
+      }
+      const next = await fetchT1TierStatus();
+      if (alive) {
+        setStatus(next);
+      }
+    };
+    void tick();
+    const interval = setInterval(() => void tick(), T1_STATUS_POLL_MS);
+    return () => {
+      alive = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  if (status === "loading") {
+    return <p className="text-charcoal-500 text-caption">Checking engine status…</p>;
+  }
+  if (status === null) {
+    return (
+      <p className="text-charcoal-500 text-caption">
+        Engine status unavailable (sidecar not connected).
+      </p>
+    );
+  }
+  return (
+    <p className="text-charcoal-500 text-caption" data-testid="t1-engine-status">
+      {status.engines.length > 0 ? t1EngineStatusLine(status.engines) : "No engines reported."}
+      {!status.available && (
+        <span className="text-warning">
+          {" "}
+          All engines are cooling down — searches resume when the first recovers.
+        </span>
+      )}
+    </p>
+  );
+}
+
+/** The managed-SearXNG status payload — mirrors `searxng_manager.snapshot()`. */
+interface SearxngStatus {
+  state: string;
+  detail: string | null;
+  reason: string | null;
+  port: number | null;
+  url: string | null;
+}
+
+/** Fetch the T2 state machine's status, or `null` when the sidecar is unreachable. */
+async function fetchSearxngStatus(): Promise<SearxngStatus | null> {
+  try {
+    const base = await getSidecarBaseUrl();
+    const resp = await fetch(new URL("/search/searxng/status", base).toString());
+    if (!resp.ok) {
+      return null;
+    }
+    return (await resp.json()) as SearxngStatus;
+  } catch {
+    return null;
+  }
+}
+
+/** POST a T2 action (setup begins/retries; teardown removes); returns the new status. */
+async function postSearxngAction(action: "setup" | "teardown"): Promise<SearxngStatus | null> {
+  try {
+    const base = await getSidecarBaseUrl();
+    const resp = await fetch(new URL(`/search/searxng/${action}`, base).toString(), {
+      method: "POST",
+    });
+    if (!resp.ok) {
+      return null;
+    }
+    return (await resp.json()) as SearxngStatus;
+  } catch {
+    return null;
+  }
+}
+
+/** Poll cadence while the T2 setup is in a transition state (pulling/starting). */
+const SEARXNG_TRANSITION_POLL_MS = 3_000;
+
+/**
+ * The T2 guided one-click flow, driven VERBATIM off the sidecar state machine:
+ * not_installed_docker → explain + install hint (plain-text URL, no external
+ * nav); docker_present_not_setup → [Set up]; pulling/starting → progress
+ * (poll ~3s); ready → green OK + [Remove]; error → reason + [Retry].
+ */
+function SearxngGuidedFlow() {
+  const [status, setStatus] = useState<SearxngStatus | null | "loading">("loading");
+  const [busy, setBusy] = useState(false);
+
+  const state = status !== null && status !== "loading" ? status.state : null;
+  const transitional = state === "pulling" || state === "starting";
+
+  useEffect(() => {
+    let alive = true;
+    void fetchSearxngStatus().then((next) => {
+      if (alive) {
+        setStatus(next);
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // While the setup is pulling/starting, follow progress on a ~3s poll.
+  useEffect(() => {
+    if (!transitional) {
+      return;
+    }
+    let alive = true;
+    const interval = setInterval(() => {
+      void fetchSearxngStatus().then((next) => {
+        if (alive && next) {
+          setStatus(next);
+        }
+      });
+    }, SEARXNG_TRANSITION_POLL_MS);
+    return () => {
+      alive = false;
+      clearInterval(interval);
+    };
+  }, [transitional]);
+
+  async function runAction(action: "setup" | "teardown") {
+    setBusy(true);
+    try {
+      const next = await postSearxngAction(action);
+      setStatus(next ?? (await fetchSearxngStatus()));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (status === "loading") {
+    return <p className="text-charcoal-500 text-caption">Checking Docker…</p>;
+  }
+  if (status === null) {
+    return (
+      <p className="text-charcoal-500 text-caption">
+        SearXNG status unavailable (sidecar not connected).
+      </p>
+    );
+  }
+
+  switch (status.state) {
+    case "not_installed_docker":
+      return (
+        <div className="flex flex-col gap-1">
+          <p className="text-charcoal-300 text-caption">
+            SearXNG runs in a local Docker container, and Docker isn&rsquo;t available on this
+            machine.
+          </p>
+          {/* Plain-text install hint — deliberately NOT a link (no external nav). */}
+          <p className="text-charcoal-500 text-caption">
+            Install Docker first — docs.docker.com/get-started/get-docker — then setup from here is
+            one click.
+          </p>
+        </div>
+      );
+    case "docker_present_not_setup":
+      return (
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-charcoal-300 text-caption">
+            Docker is ready. One click pulls the SearXNG image and starts a private local instance —
+            searches then route through it automatically.
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={busy}
+            onClick={() => void runAction("setup")}
+          >
+            Set up
+          </Button>
+        </div>
+      );
+    case "pulling":
+      return (
+        <p className="text-charcoal-300 text-caption" role="status">
+          Pulling the SearXNG image…{" "}
+          <span className="text-charcoal-500">
+            {status.detail ?? "first run can take a few minutes"}
+          </span>
+        </p>
+      );
+    case "starting":
+      return (
+        <p className="text-charcoal-300 text-caption" role="status">
+          Starting the instance…{" "}
+          <span className="text-charcoal-500">{status.detail ?? "almost there"}</span>
+        </p>
+      );
+    case "ready":
+      return (
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-positive text-caption flex min-w-0 items-center gap-1">
+            <Check className="size-3 shrink-0" aria-hidden="true" />
+            <span className="truncate">
+              SearXNG is running{status.url ? ` at ${status.url}` : ""} — research searches use it
+              automatically.
+            </span>
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={busy}
+            onClick={() => void runAction("teardown")}
+          >
+            <Trash2 className="size-3" aria-hidden="true" />
+            Remove
+          </Button>
+        </div>
+      );
+    case "error":
+      return (
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-negative text-caption min-w-0" role="alert">
+            Setup failed: {status.reason ?? "unknown error"}
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={busy}
+            onClick={() => void runAction("setup")}
+          >
+            <RotateCcw className="size-3" aria-hidden="true" />
+            Retry
+          </Button>
+        </div>
+      );
+    default:
+      // An unknown state (newer sidecar) — show it honestly rather than guessing.
+      return (
+        <p className="text-charcoal-500 text-caption">
+          SearXNG state: {status.state}
+          {status.detail ? ` — ${status.detail}` : ""}
+        </p>
+      );
+  }
+}
+
+/** The t3 hosted engines — Firecrawl default (free credits), Exa per-request. */
+const HOSTED_ENGINE_OPTIONS: {
+  id: HostedSearchEngine;
+  label: string;
+  costLine: string;
+}[] = [
+  {
+    id: "firecrawl",
+    label: "Firecrawl",
+    costLine:
+      "Firecrawl starts on free credits; after those, each search bills through your OpenRouter account.",
+  },
+  {
+    id: "exa",
+    label: "Exa",
+    costLine:
+      "Exa bills ~$0.005 per search through your OpenRouter account — a documented rate that can drift.",
+  },
+];
+
+/** The t3 hosted-search controls: engine segmented control + key presence. */
+function HostedEngineControls() {
+  const hostedEngine = useSearchSettingsStore((s) => s.hostedEngine);
+  const setHostedEngine = useSearchSettingsStore((s) => s.setHostedEngine);
+  // Key PRESENCE only — the same keychain probe the AI Providers rows render
+  // from (`provider-keys`); the key value never enters frontend state.
+  const keyStatus = useProviderKeysStore((s) => s.status.openrouter);
+  const refreshOne = useProviderKeysStore((s) => s.refreshOne);
+
+  useEffect(() => {
+    void refreshOne("openrouter");
+  }, [refreshOne]);
+
+  const active = HOSTED_ENGINE_OPTIONS.find((opt) => opt.id === hostedEngine);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div
+        role="radiogroup"
+        aria-label="Hosted search engine"
+        className="border-charcoal-700 divide-charcoal-700 rounded-control flex h-8 max-w-xs divide-x overflow-hidden border"
+      >
+        {HOSTED_ENGINE_OPTIONS.map((opt) => (
+          <button
+            key={opt.id}
+            type="button"
+            role="radio"
+            aria-checked={hostedEngine === opt.id}
+            onClick={() => setHostedEngine(opt.id)}
+            className={cn(
+              "text-micro flex-1 px-3",
+              hostedEngine === opt.id
+                ? "bg-charcoal-875 text-lume"
+                : "text-charcoal-400 hover:text-charcoal-200 bg-transparent",
+            )}
+          >
+            {opt.label}
+            {opt.id === "firecrawl" ? " (default)" : ""}
+          </button>
+        ))}
+      </div>
+      <p className="text-charcoal-500 text-caption">{active?.costLine}</p>
+      {keyStatus === "configured" ? (
+        <p className="text-positive text-caption flex items-center gap-1">
+          <Check className="size-3 shrink-0" aria-hidden="true" />
+          OpenRouter key configured — hosted searches use it automatically.
+        </p>
+      ) : keyStatus === "missing" ? (
+        <p className="text-warning text-caption">
+          No OpenRouter key yet — add one under AI Providers above. Hosted search can&rsquo;t run
+          without it.
+        </p>
+      ) : (
+        <p className="text-charcoal-500 text-caption">
+          Couldn&rsquo;t check the OS keychain for an OpenRouter key.
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** The three research search tiers — names + one-line honest descriptions. */
+const RESEARCH_TIER_OPTIONS: {
+  id: ResearchTier;
+  name: string;
+  description: string;
+}[] = [
+  {
+    id: "t1_local",
+    name: "Local scraping (keyless)",
+    description:
+      "Scrapes DuckDuckGo, Brave, and Mojeek directly. Free, zero setup; engines rate-limit, so heavy runs slow down and rotate.",
+  },
+  {
+    id: "t2_searxng",
+    name: "Unlimited Research (local SearXNG)",
+    description:
+      "A managed SearXNG instance in local Docker — private, unmetered searches. Needs Docker on this machine.",
+  },
+  {
+    id: "t3_hosted",
+    name: "Hosted search (BYOK via OpenRouter)",
+    description:
+      "OpenRouter-hosted web search on your own key — the most reliable tier, and the only one that costs money per search.",
+  },
+];
+
+/**
+ * The R7 research search-tier picker (Track S): three 32px radio rows, the
+ * selected tier expanding its live detail surface — T1's polled per-engine
+ * status, T2's guided SearXNG state machine, T3's engine + key controls.
+ */
+function ResearchTierGroup() {
+  const researchTier = useSearchSettingsStore((s) => s.researchTier);
+  const setResearchTier = useSearchSettingsStore((s) => s.setResearchTier);
+
+  return (
+    <div>
+      <GroupLabel
+        label="Search tier"
+        hint="Where research searches run. The keyless floor needs nothing; SearXNG runs unlimited and local; hosted is BYOK via OpenRouter."
+      />
+      <Card>
+        <div
+          role="radiogroup"
+          aria-label="Research search tier"
+          className="divide-charcoal-800 flex flex-col divide-y"
+        >
+          {RESEARCH_TIER_OPTIONS.map((option) => {
+            const selected = researchTier === option.id;
+            return (
+              <div key={option.id}>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  onClick={() => setResearchTier(option.id)}
+                  className={cn(
+                    "flex min-h-8 w-full items-center justify-between gap-4 px-4 py-3 text-left",
+                    selected ? "bg-charcoal-875" : "hover:bg-charcoal-875/50",
+                  )}
+                >
+                  <span className="flex min-w-0 flex-col">
+                    <span
+                      className={cn(
+                        "text-body",
+                        selected ? "text-charcoal-100" : "text-charcoal-300",
+                      )}
+                    >
+                      {option.name}
+                    </span>
+                    <span className="text-charcoal-400 text-caption mt-1">
+                      {option.description}
+                    </span>
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "rounded-control size-2 shrink-0",
+                      selected ? "bg-charcoal-100" : "border-charcoal-600 border",
+                    )}
+                  />
+                </button>
+                {selected && (
+                  <div className="border-charcoal-800 border-t px-4 py-3">
+                    {option.id === "t1_local" && <T1StatusLine />}
+                    {option.id === "t2_searxng" && <SearxngGuidedFlow />}
+                    {option.id === "t3_hosted" && <HostedEngineControls />}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 /**
  * Research — how /deep works, plus the device's local-model fit gate.
  *
@@ -989,6 +1480,10 @@ function FitRow({ model }: { model: ScoredModel }) {
  * heavy local paths (FINDINGS §2.5): on a 16 GB M1, local deep-research is
  * honestly marked "remote"; on a 32 GB+ box the same models flip to "runs
  * locally" with no change.
+ *
+ * R7 (Track S) adds the research SEARCH-tier picker at the top: t1 keyless /
+ * t2 managed SearXNG / t3 hosted BYOK — persisted in the search-settings
+ * bundle and sent as `X-Vysted-Research-Tier` on every request.
  */
 function ResearchSection() {
   const [report, setReport] = useState<HardwareReport | null | "loading">("loading");
@@ -1011,9 +1506,10 @@ function ResearchSection() {
         id="settings-research"
         icon={<FlaskConical className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Research"
-        hint="How /deep and 'go deeper' work, and what this machine can run on-device."
+        hint="Where research searches run, how /deep and 'go deeper' work, and what this machine can run on-device."
       />
       <div className="flex flex-col gap-6">
+        <ResearchTierGroup />
         <div>
           <GroupLabel label="Deep research" />
           <Card>
