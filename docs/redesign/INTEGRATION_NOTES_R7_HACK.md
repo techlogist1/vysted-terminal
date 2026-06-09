@@ -174,3 +174,113 @@ async def save_workflow(spec_json: str) -> dict[str, Any]:
 Note: `POST /workflow/save` (`routers/workflow.py`) does not validate node
 types, so saving code-node specs already works today; only RUNNING them
 server-side needs wiring request 1.
+
+---
+
+## Pillar 2 — custom backtest strategies (`run_custom_backtest`)
+
+### What shipped (no wiring needed)
+
+The `custom` strategy lane EXECUTES end-to-end today: `services/backtest_dsl.py`
+(restricted recursive-descent grammar — NO eval/exec; fields
+open/high/low/close/volume; functions `sma|ema|rsi|highest|lowest|stdev|change`
+with integer periods 1..500; arithmetic, comparisons, and/or/not; warm-up and
+div-by-zero yield no-signal, never a crash), registered as strategy id
+`custom` by `backtest_strategies.register_all()`, listed by
+`GET /backtest/strategies`, validated by
+`POST /backtest/strategies/custom/validate` (caret-positioned errors), and run
+through the normal `POST /backtest/run` SSE lane with the definition riding
+`BacktestRequest.params` (`{"entry": str, "exit": str, "position_size": number}`)
+— zero model changes. The frontend picker's "Custom Strategy (DSL)" editor
+validates inline against the validate route.
+
+### Wiring request 3 — catalog Capability for `run_custom_backtest`
+
+The handler ships in `sidecar/services/agent_tools/run_custom_backtest.py`
+with a `register()` helper, deliberately NOT import-time-registered:
+`test_capability_catalog.py::test_every_registered_handler_has_a_catalog_entry`
+(SC-006) fails for any registered handler without a Capability, and
+`catalog.py` is owned by another track. Land BOTH together:
+
+1. Registration call — in `registry_v0_6_0.register_v0_6_0_tools()` (or a
+   later aggregator slot), mirroring the other domains:
+
+```python
+    # R7 Track N — custom-DSL backtest authoring.
+    from services.agent_tools import run_custom_backtest
+
+    run_custom_backtest.register()
+    registered.append("backtest-custom")
+```
+
+2. Catalog entry — paste into `CAPABILITY_CATALOG` next to `backtest_summary`
+   (`# --- backtest ---` section):
+
+```python
+        _cap(
+            "run_custom_backtest",
+            description=(
+                "Author and run a CUSTOM backtest strategy from declarative "
+                "entry/exit rules over indicator comparisons (e.g. entry "
+                "'sma(20) > sma(50)', exit 'rsi(14) > 70'). Fields: open, high, "
+                "low, close, volume. Functions: sma(n), ema(n), rsi(n), "
+                "highest(n), lowest(n), stdev(n), change(n). Operators: "
+                "+ - * /, comparisons, and/or/not. Parsed server-side with a "
+                "restricted grammar (never eval) and executed in the SIMULATED "
+                "backtest engine — §6.5: no order path is reachable. Returns "
+                "the digest (metrics, best/worst/recent trades) plus the runId; "
+                "the full result renders in the backtest panel and resolves via "
+                "backtest_summary."
+            ),
+            input_schema=_obj(
+                {
+                    "entry": {
+                        "type": "string",
+                        "description": "Entry rule, e.g. 'sma(20) > sma(50)'.",
+                    },
+                    "exit": {
+                        "type": "string",
+                        "description": "Exit rule, e.g. 'rsi(14) > 70'.",
+                    },
+                    "symbols": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Tickers to trade.",
+                    },
+                    "start_date": _DATE,
+                    "end_date": _DATE,
+                    "position_size": {
+                        "type": "number",
+                        "default": 100,
+                        "description": "Fixed share quantity per trade.",
+                    },
+                    "initial_capital": {"type": "number", "default": 100000},
+                    "walk_forward_slices": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10,
+                        "default": 1,
+                    },
+                },
+                ["entry", "exit", "symbols", "start_date", "end_date"],
+            ),
+            domain="workflows",
+            read_only=True,
+            kind="read_handler",
+        ),
+```
+
+`read_only=True` rationale: the tool only SIMULATES (backtest engine has no
+order path — §6.5) and caches the result in the in-memory `backtest_store`,
+exactly like UI-started runs; it mutates no real state. If the lead prefers
+the mutation gate anyway, flipping the flag needs no handler change.
+
+Consider keeping it MCP-internal-only alongside `backtest_summary`
+(`_MCP_INTERNAL_ONLY` at catalog.py ~L1071) for the same session-locality
+reason (a run_id only resolves in this sidecar's memory) — or expose both;
+the handler works either way.
+
+Once wired, un-skip
+`tests/test_backtest_custom.py::TestRunCustomBacktestTool::test_catalog_capability_exists`
+(it asserts the exact entry above) and add `run_custom_backtest` to an agent's
+`tools` allow-list (Strategy Critic is the natural fit) to make it reachable.
