@@ -113,7 +113,12 @@ describe("workspace serialization", () => {
       modelOverridesV: 3,
       keybindingOverrides: {},
       settings: DEFAULT_SETTINGS,
-      searchSettings: { tier: "native", searxngUrl: "" },
+      searchSettings: {
+        tier: "native",
+        searxngUrl: "",
+        researchTier: "t1_local",
+        hostedEngine: "firecrawl",
+      },
       brief: null,
       notes: { general: "", bySymbol: {}, focusSymbol: "" },
       // A non-research workspace omits `researchSymbol` but always carries the
