@@ -54,7 +54,7 @@ function MetaChip({
       title={title ?? label}
       onClick={onClick}
       className={cn(
-        "rounded-control text-micro flex h-6 min-w-0 shrink items-center gap-1 px-1 font-mono tracking-wide uppercase transition-colors",
+        "rounded-control text-micro flex h-6 min-w-0 shrink items-center gap-1 overflow-hidden px-1 font-mono tracking-wide uppercase transition-colors",
         open ? "bg-charcoal-875 text-charcoal-200" : "text-charcoal-500 hover:text-charcoal-300",
       )}
     >
@@ -357,15 +357,17 @@ export function ComposerMetaRow({
         )}
       </div>
 
-      {/* Lens chip → persona roster popover. ALWAYS the display name. */}
-      <div className="relative min-w-0 shrink">
+      {/* Lens chip → persona roster popover. ALWAYS the display name. The
+          min-w floor matters: as the only shrinkable item it was crushed to
+          0 width at dock widths, painting its text over the depth slider. */}
+      <div className="relative min-w-[4rem] shrink">
         <MetaChip
           label={`Active lens — ${lensLabel}`}
           title={`Lens: ${lensLabel}`}
           open={open === "lens"}
           onClick={() => toggle("lens")}
         >
-          <span className="max-w-[9rem] truncate">{lensLabel}</span>
+          <span className="max-w-[9rem] min-w-0 flex-1 truncate">{lensLabel}</span>
         </MetaChip>
         {open === "lens" && (
           <Popover align="left" label="Active lens">
@@ -407,8 +409,9 @@ export function ComposerMetaRow({
 
       <AutonomySegments />
 
-      {/* Model chip → provider · model popover (capability pips + refresh). */}
-      <div className="relative min-w-0 shrink-0">
+      {/* Model chip → provider · model popover (capability pips + refresh).
+          Shrinkable with a floor so the one-row meta strip fits the dock. */}
+      <div className="relative min-w-[4.5rem] shrink">
         <MetaChip
           label={`Model — ${providerLabel} · ${model}`}
           title={catalogNote ?? `${providerLabel} · ${model}`}
@@ -416,7 +419,9 @@ export function ComposerMetaRow({
           onClick={() => toggle("model")}
         >
           <span className="max-w-[13rem] truncate normal-case">
-            {providerLabel} · {model}
+            {model.toLowerCase().startsWith(provider.toLowerCase())
+              ? model
+              : `${providerLabel} · ${model}`}
           </span>
           {selectedIsNoTools && (
             <span
