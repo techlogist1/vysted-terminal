@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { LineChart } from "lucide-react";
 import {
   createChart,
   LineSeries,
@@ -10,6 +11,7 @@ import {
   type UTCTimestamp,
 } from "lightweight-charts";
 
+import { EmptyState } from "@/components/EmptyState";
 import {
   ACCENT_CORAL,
   CHART_BORDER,
@@ -49,14 +51,19 @@ interface Props {
 /**
  * Line chart of price-target values over time. Aggregates points across
  * firms; the panel chart is intentionally one line — per-firm overlays
- * belong in a future drill-down once we have richer track data.
+ * belong in a future drill-down once we have richer track data. With no
+ * history the surface is the composed dense EmptyState — never an empty
+ * chart frame with a prose overlay.
  */
 export function PriceTargetTimeline({ history }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Line"> | null>(null);
 
+  const hasData = history.length > 0;
+
   useEffect(() => {
+    if (!hasData) return;
     const container = containerRef.current;
     if (!container) return;
     const chart = createChart(container, { ...CHART_THEME, autoSize: true });
@@ -74,7 +81,7 @@ export function PriceTargetTimeline({ history }: Props) {
       chartRef.current = null;
       seriesRef.current = null;
     };
-  }, []);
+  }, [hasData]);
 
   useEffect(() => {
     const series = seriesRef.current;
@@ -103,16 +110,22 @@ export function PriceTargetTimeline({ history }: Props) {
     chartRef.current?.timeScale().fitContent();
   }, [history]);
 
+  if (!hasData) {
+    return (
+      <div data-testid="price-target-timeline-chart">
+        <EmptyState
+          dense
+          icon={LineChart}
+          headline="No price-target history"
+          hint="Consensus target moves chart here once covering firms publish revisions."
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="relative h-64 w-full" data-testid="price-target-timeline-chart">
+    <div className="h-64 w-full" data-testid="price-target-timeline-chart">
       <div ref={containerRef} className="h-full w-full" />
-      {history.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <p className="text-charcoal-400 text-caption">
-            No price-target history available for this symbol.
-          </p>
-        </div>
-      )}
     </div>
   );
 }

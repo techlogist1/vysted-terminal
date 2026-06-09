@@ -176,7 +176,15 @@ describe("AnalystRatingsPanel", () => {
     });
   });
 
-  it("surfaces an error banner when a slice fails", async () => {
+  it("renders a table-shaped skeleton during the fetch window, never pulsing prose", () => {
+    // Never-resolving fetches hold the loading window open.
+    vi.mocked(sidecarGet).mockImplementation(() => new Promise(() => {}));
+    render(<AnalystRatingsPanel />);
+    expect(screen.getByTestId("analyst-tab-skeleton")).toBeInTheDocument();
+    expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+  });
+
+  it("renders the composed error state (with Retry) when a slice fails with no data", async () => {
     vi.mocked(sidecarGet)
       .mockRejectedValueOnce(new Error("history offline"))
       .mockResolvedValueOnce(TARGETS)
@@ -186,6 +194,18 @@ describe("AnalystRatingsPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: /load/i }));
     await waitFor(() => {
       expect(screen.getByText(/history offline/i)).toBeInTheDocument();
+    });
+    // The failure is the composed EmptyState with a Retry CTA — not the
+    // "No ratings history" empty masquerading over an error.
+    expect(screen.getByTestId("empty-state")).toBeInTheDocument();
+    expect(screen.getByTestId("empty-state-cta")).toHaveTextContent("Retry");
+    expect(screen.queryByTestId("ratings-history-empty")).not.toBeInTheDocument();
+
+    // Retry re-fetches the failed slice and the table replaces the error.
+    vi.mocked(sidecarGet).mockResolvedValueOnce(HISTORY);
+    fireEvent.click(screen.getByTestId("empty-state-cta"));
+    await waitFor(() => {
+      expect(screen.getByText(/Morgan Stanley/i)).toBeInTheDocument();
     });
   });
 });
