@@ -60,4 +60,52 @@ describe("NodePalette", () => {
     expect(setData.calls.some((c) => c.type === NODE_DRAG_MIME)).toBe(true);
     expect(setData.calls.find((c) => c.type === NODE_DRAG_MIME)?.data).toBe("data.fetch_quote");
   });
+
+  it("offers every first-party kind — code node and v0.6.0 sidecar kinds included", () => {
+    render(<NodePalette registry={buildRegistry([])} />);
+    expect(screen.getByTestId("palette-card-transform.code")).toBeInTheDocument();
+    expect(screen.getByTestId("palette-card-data.fetch_macro_series")).toBeInTheDocument();
+    expect(screen.getByTestId("palette-card-quant.price_option")).toBeInTheDocument();
+    expect(screen.getByTestId("palette-card-analysis.screener_query")).toBeInTheDocument();
+    expect(screen.getByTestId("node-palette-count")).toHaveTextContent("23");
+  });
+
+  it("shows the search input once the registry exceeds 12 kinds", () => {
+    render(<NodePalette registry={buildRegistry([])} />);
+    expect(screen.getByTestId("node-palette-search")).toBeInTheDocument();
+  });
+
+  it("hides the search input for a small registry", () => {
+    const registry = buildRegistry([]).slice(0, 5);
+    render(<NodePalette registry={registry} />);
+    expect(screen.queryByTestId("node-palette-search")).not.toBeInTheDocument();
+  });
+
+  it("filters cards by label / id / description and shows the filtered count", () => {
+    render(<NodePalette registry={buildRegistry([])} />);
+    fireEvent.change(screen.getByTestId("node-palette-search"), {
+      target: { value: "earnings" },
+    });
+    expect(screen.getByTestId("palette-card-data.fetch_earnings_calendar")).toBeInTheDocument();
+    expect(screen.getByTestId("palette-card-data.fetch_earnings_history")).toBeInTheDocument();
+    expect(screen.queryByTestId("palette-card-data.fetch_quote")).not.toBeInTheDocument();
+    expect(screen.getByTestId("node-palette-count")).toHaveTextContent("2/23");
+  });
+
+  it("matches the code node by description keywords", () => {
+    render(<NodePalette registry={buildRegistry([])} />);
+    fireEvent.change(screen.getByTestId("node-palette-search"), {
+      target: { value: "expression" },
+    });
+    expect(screen.getByTestId("palette-card-transform.code")).toBeInTheDocument();
+  });
+
+  it("renders an honest empty state when nothing matches", () => {
+    render(<NodePalette registry={buildRegistry([])} />);
+    fireEvent.change(screen.getByTestId("node-palette-search"), {
+      target: { value: "zzz-no-such-node" },
+    });
+    expect(screen.getByTestId("node-palette-empty")).toBeInTheDocument();
+    expect(screen.queryByTestId("palette-category-trigger")).not.toBeInTheDocument();
+  });
 });

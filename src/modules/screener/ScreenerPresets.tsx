@@ -1,7 +1,5 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
-
 import { useScreenerStore } from "@/store/screener";
 
 import type { ScreenerCriterion, ScreenerUniverseId } from "../../../types/screener";
@@ -135,8 +133,10 @@ export function ScreenerPresets() {
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      <span className="text-muted-foreground text-micro inline-flex shrink-0 items-center gap-1 tracking-wide uppercase">
-        <Sparkles className="text-charcoal-400 size-3" /> Screens
+      {/* Design law: ASCII bracket markers lead group labels — no decorative
+          lucide icon on an idle chrome row. */}
+      <span className="text-muted-foreground text-micro shrink-0 tracking-wide uppercase">
+        {">"} Screens
       </span>
       {PRESETS.map((preset) => (
         <button

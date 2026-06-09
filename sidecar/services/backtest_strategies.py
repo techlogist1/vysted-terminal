@@ -38,6 +38,7 @@ import statistics
 from collections import deque
 from typing import Any
 
+from services.backtest_dsl import CustomDslStrategy
 from services.backtest_engine import (
     BacktestOrderIntent,
     BacktestStrategy,
@@ -160,6 +161,41 @@ STRATEGY_SPECS: list[dict[str, Any]] = [
                     "description": "Daily-return stdev above which the regime is 'high vol'.",
                 },
             },
+        },
+    },
+    {
+        "id": "custom",
+        "name": "Custom Strategy (DSL)",
+        "description": (
+            "Your own entry/exit rules over indicator comparisons — e.g. enter "
+            "when sma(20) > sma(50), exit when rsi(14) > 70. Parsed and "
+            "evaluated server-side with a restricted expression grammar."
+        ),
+        "paramsSchema": {
+            "type": "object",
+            "properties": {
+                "entry": {
+                    "type": "string",
+                    "default": "sma(20) > sma(50)",
+                    "description": (
+                        "Entry rule. Fields: open, high, low, close, volume. "
+                        "Functions: sma(n), ema(n), rsi(n), highest(n), lowest(n), "
+                        "stdev(n), change(n). Operators: + - * /, comparisons, and/or/not."
+                    ),
+                },
+                "exit": {
+                    "type": "string",
+                    "default": "rsi(14) > 70",
+                    "description": "Exit rule — same grammar as entry.",
+                },
+                "position_size": {
+                    "type": "number",
+                    "default": 100,
+                    "minimum": 1,
+                    "description": "Fixed share quantity per trade.",
+                },
+            },
+            "required": ["entry", "exit"],
         },
     },
 ]
@@ -413,6 +449,7 @@ def register_all() -> None:
     register_strategy("mean_reversion", MeanReversionStrategy)
     register_strategy("trend_following", TrendFollowingStrategy)
     register_strategy("regime_aware", RegimeAwareStrategy)
+    register_strategy("custom", CustomDslStrategy)
     logger.info(
         "backtest_strategies: registered %s",
         ", ".join(spec["id"] for spec in STRATEGY_SPECS),

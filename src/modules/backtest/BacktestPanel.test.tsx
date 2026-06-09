@@ -69,6 +69,20 @@ const SAMPLE_STRATEGIES: BacktestStrategySpec[] = [
       },
     },
   },
+  {
+    id: "custom",
+    name: "Custom Strategy (DSL)",
+    description: "your own entry/exit rules",
+    paramsSchema: {
+      type: "object",
+      properties: {
+        entry: { type: "string", default: "sma(20) > sma(50)" },
+        exit: { type: "string", default: "rsi(14) > 70" },
+        position_size: { type: "number", default: 100 },
+      },
+      required: ["entry", "exit"],
+    },
+  },
 ];
 
 const SAMPLE_RESULT: BacktestResult = {
@@ -253,5 +267,140 @@ describe("BacktestPanel", () => {
       expect(button).toBeDisabled();
     });
     expect(screen.getByTestId("streaming-progress")).toBeInTheDocument();
+  });
+
+  it("swaps the params form for the DSL editor on the custom strategy and gates Run on validity", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () =>
+        Promise.resolve({
+          ok: false,
+          errors: [{ rule: "entry", message: "unknown identifier 'smaa'", position: 8 }],
+          indicators: [],
+          requiredBars: 0,
+        }),
+    } as unknown as Response);
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: SAMPLE_STRATEGIES });
+      render(<BacktestPanel />);
+      await waitFor(() => screen.getByText("Custom Strategy (DSL)"));
+      fireEvent.click(screen.getByText("Custom Strategy (DSL)"));
+
+      // The definition editor replaces the generic params form.
+      await waitFor(() => {
+        expect(screen.getByTestId("custom-strategy-editor")).toBeInTheDocument();
+      });
+      expect(screen.queryByTestId("params-form")).not.toBeInTheDocument();
+      // Defaults from the spec's paramsSchema flow into the rule editors.
+      expect(screen.getByTestId("custom-rule-entry")).toHaveValue("sma(20) > sma(50)");
+
+      // Inline validation fails → the error renders and Run is gated off.
+      await waitFor(() => {
+        expect(screen.getByTestId("rule-error-entry")).toHaveTextContent("unknown identifier");
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId("run-backtest")).toBeDisabled();
+      });
+
+      // A fixed definition re-validates clean → Run is live again.
+      fetchMock.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({ ok: true, errors: [], indicators: ["sma(20)"], requiredBars: 20 }),
+      } as unknown as Response);
+      fireEvent.change(screen.getByTestId("custom-rule-entry"), {
+        target: { value: "close > sma(20)" },
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId("run-backtest")).toBeEnabled();
+      });
+      expect(screen.getByTestId("custom-valid-summary")).toHaveTextContent("needs 20 bars");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("renders composed empty states for the no-run panel and an empty trade log", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: SAMPLE_STRATEGIES });
+    render(<BacktestPanel />);
+    await waitFor(() => screen.getByText("Mean Reversion"));
+    // No run yet → the composed EmptyState, not a bare paragraph.
+    const emptyState = screen.getByTestId("empty-state");
+    expect(emptyState).toHaveTextContent("Run your first backtest");
+    expect(screen.getByTestId("empty-state-icon")).toBeInTheDocument();
+
+    // A completed run with zero trades → the dense trade-log EmptyState.
+    const tradelessResult = { ...SAMPLE_RESULT, trades: [] };
+    useBacktestStore.setState({
+      runs: {
+        "run-2": {
+          runId: "run-2",
+          request: SAMPLE_RESULT.request,
+          status: "complete",
+          barsProcessed: 250,
+          totalBars: 250,
+          trades: [],
+          result: tradelessResult,
+          error: null,
+          startedAt: SAMPLE_RESULT.startedAt,
+          finishedAt: SAMPLE_RESULT.startedAt + 320,
+        },
+      },
+      activeRunId: "run-2",
+    });
+    await waitFor(() => {
+      expect(screen.getByText("No trades yet")).toBeInTheDocument();
+    });
+    expect(screen.getByTestId("empty-state")).toHaveAttribute("data-dense", "true");
+  });
+
+  it("keeps real column widths in the trade table (no fixed colgroup truncation)", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: SAMPLE_STRATEGIES });
+    render(<BacktestPanel />);
+    await waitFor(() => screen.getByText("Mean Reversion"));
+    const wideTrade = {
+      id: "tr-wide",
+      symbol: "BRK.A",
+      side: "buy" as const,
+      enteredAt: "2024-03-01",
+      exitedAt: "2024-03-15",
+      entryPrice: 612345.67,
+      exitPrice: 645678.99,
+      quantity: 1234567,
+      pnl: 41172530.88,
+    };
+    useBacktestStore.setState({
+      runs: {
+        "run-3": {
+          runId: "run-3",
+          request: SAMPLE_RESULT.request,
+          status: "complete",
+          barsProcessed: 250,
+          totalBars: 250,
+          trades: [wideTrade],
+          result: { ...SAMPLE_RESULT, trades: [wideTrade] },
+          error: null,
+          startedAt: SAMPLE_RESULT.startedAt,
+          finishedAt: SAMPLE_RESULT.startedAt + 320,
+        },
+      },
+      activeRunId: "run-3",
+    });
+    await waitFor(() => {
+      expect(screen.getByText("612345.67")).toBeInTheDocument();
+    });
+    const table = screen.getByText("612345.67").closest("table");
+    expect(table).not.toBeNull();
+    // Auto layout — no table-fixed, no <colgroup> clipping numbers mid-digit.
+    expect(table?.className).not.toContain("table-fixed");
+    expect(table?.querySelector("colgroup")).toBeNull();
+    // Numeric cells stay right-aligned tabular.
+    const entryCell = screen.getByText("612345.67").closest("td");
+    expect(entryCell?.className).toContain("text-right");
+    expect(entryCell?.className).toContain("tabular-nums");
+    expect(screen.getByText("1,234,567")).toBeInTheDocument();
   });
 });

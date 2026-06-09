@@ -127,6 +127,15 @@ export interface ScreenerRequest {
   /** Optional boolean tree (AND/OR, nestable). When present it supersedes the
    * flat ``criteria``. Lets the UI / agent express OR + grouped logic. */
   group?: CriterionGroup | null;
+  /**
+   * Optional custom formula (R7 Pillar 3) — a free-text boolean expression
+   * evaluated SERVER-SIDE per universe member, AND-combined with the
+   * criteria/group. Grammar: field refs (snake_case + documented aliases),
+   * arithmetic, comparisons, and/or/not, abs/min/max — mirrored client-side by
+   * ``src/lib/screener-expr.ts`` for instant caret-position validation. A row
+   * missing a referenced field is skipped and itemized ``missing_field:<f>``.
+   */
+  formula?: string | null;
   /** Maximum rows to return (default 200, max 1000). */
   limit: number;
 }
@@ -178,10 +187,27 @@ export interface SkipDetail {
    *   - ``"no_data"`` — a row came back but carried no usable price / payload.
    *   - ``"rate_limited"`` — the upstream throttled the request (HTTP 429).
    *   - ``"correctness_gate"`` — the provider refused to fabricate a value.
-   *   - ``"missing_field:<field>"`` — a criterion referenced a field neither the
-   *     batch row nor the per-symbol enrichment could supply.
+   *   - ``"missing_field:<field>"`` — a criterion or the custom ``formula``
+   *     referenced a field neither the batch row nor the per-symbol enrichment
+   *     could supply.
    */
   reason: string;
+}
+
+/**
+ * Response shape from ``POST /screener/formula/validate`` (R7 Pillar 3) — the
+ * server-side inline-validation surface for the custom formula grammar. Never
+ * an HTTP error for a bad formula; the message + 0-based caret ``position``
+ * ride the body. Hand-mirrors ``FormulaValidation`` in
+ * ``sidecar/models/screener.py``.
+ */
+export interface FormulaValidation {
+  ok: boolean;
+  error: string | null;
+  /** 0-based character offset of the error in the formula text. */
+  position: number | null;
+  /** Canonical (snake_case) fields the formula references, sorted. */
+  fields: string[];
 }
 
 /** Response shape from ``POST /screener/run``. */

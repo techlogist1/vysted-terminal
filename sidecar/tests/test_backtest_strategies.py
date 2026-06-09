@@ -51,9 +51,10 @@ def isolated_registries() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_strategy_specs_catalog_has_three_archetypes() -> None:
+def test_strategy_specs_catalog_has_four_strategies() -> None:
+    """Three Teammate K archetypes + the R7 custom-DSL lane."""
     spec_ids = {spec["id"] for spec in STRATEGY_SPECS}
-    assert spec_ids == {"mean_reversion", "trend_following", "regime_aware"}
+    assert spec_ids == {"mean_reversion", "trend_following", "regime_aware", "custom"}
 
 
 def test_strategy_specs_carry_params_schema() -> None:

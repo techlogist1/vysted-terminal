@@ -23,9 +23,9 @@ import { ScreenerFormulaLeaf } from "./ScreenerFormulaLeaf";
  *   - ADVANCED: a recursive nested AND/OR group editor (`CriterionGroupEditor`),
  *     editing the existing recursive `CriterionGroup` wire tree the backend
  *     already evaluates. Toggling to advanced seeds the tree from the flat list.
- * Below either mode sits the custom-formula leaf (mathjs, client-side post-
- * filter). The operator pick switches the leaf's value input shape — single
- * number / (min, max) / string / comma-list.
+ * Below either mode sits the custom-formula leaf (the shared restricted
+ * grammar, evaluated server-side with the criteria). The operator pick switches
+ * the leaf's value input shape — single number / (min, max) / string / comma-list.
  */
 const NUMERIC_FIELDS: { value: ScreenerNumericField; label: string }[] = [
   { value: "market_cap", label: "Market cap" },
@@ -332,9 +332,11 @@ function SimpleCriteriaEditor() {
               aria-checked={combinator === opt.value}
               aria-label={opt.label}
               onClick={() => setCombinator(opt.value)}
+              // Design-law segmented toggle: the active segment climbs one rung
+              // (raised surface, bright text) — never an inverted fill.
               className={
                 combinator === opt.value
-                  ? "text-background bg-foreground rounded-control px-2 py-0.5 font-medium transition-colors"
+                  ? "bg-charcoal-700 text-charcoal-100 rounded-control px-2 py-0.5 font-medium transition-colors"
                   : "text-muted-foreground hover:text-foreground rounded-control px-2 py-0.5 transition-colors"
               }
             >
@@ -423,7 +425,7 @@ export function ScreenerCriteriaBuilder() {
               onClick={() => toggleAdvanced(opt.value)}
               className={
                 advanced === opt.value
-                  ? "text-background bg-foreground rounded-control px-2 py-0.5 font-medium transition-colors"
+                  ? "bg-charcoal-700 text-charcoal-100 rounded-control px-2 py-0.5 font-medium transition-colors"
                   : "text-muted-foreground hover:text-foreground rounded-control px-2 py-0.5 transition-colors"
               }
             >

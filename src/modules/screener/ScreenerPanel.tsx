@@ -132,7 +132,9 @@ export function ScreenerPanel() {
       </div>
 
       {error && (
-        <div className="border-destructive/40 bg-destructive/10 text-destructive text-body flex items-center gap-2 rounded-none border px-3 py-2">
+        // Design law: signal colors are text + a 1px marker, never a filled
+        // background — the destructive tone rides the border and the copy only.
+        <div className="border-destructive/40 text-destructive text-body flex items-center gap-2 rounded-none border px-3 py-2">
           <AlertCircle className="size-4 shrink-0" />
           <span className="flex-1">
             {error.startsWith("POST /screener/run failed")

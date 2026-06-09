@@ -56,6 +56,9 @@ import { cn } from "@/lib/utils";
 import { usePluginsStore } from "@/store/plugins";
 
 import type { WorkflowRunEvent, WorkflowSpec } from "../../../types/workflow";
+import { CODE_NODE_ID, codeNodeBindings } from "./code-node";
+import { CodeNodeInspector } from "./code-node-inspector";
+import { evaluateCodeNodes, partitionWorkflow } from "./code-node-run";
 import {
   coerceConfigValue,
   createFlowNode,
@@ -69,7 +72,7 @@ import {
 } from "./graph-state";
 import { NodePalette, NODE_DRAG_MIME } from "./node-palette";
 import {
-  BUILT_IN_NODE_CONFIG_FIELDS,
+  NODE_CONFIG_FIELDS,
   buildRegistry,
   defaultConfigFor,
   findEntry,
@@ -335,6 +338,11 @@ function NodeEditorPanelInner() {
   );
 
   // --- Run ------------------------------------------------------------------
+  // HYBRID execution (R7 hackability): server nodes run in the sidecar
+  // (`POST /workflow/run` SSE, services/workflow_engine.py); code nodes
+  // (`transform.code`) evaluate CLIENT-side in the mathjs sandbox after the
+  // server stream ends, fed by the streamed `node-output` outputs. See
+  // `code-node-run.ts` for the partition + topological evaluation.
   const handleRun = useCallback(async () => {
     // Cancel any in-flight stream so a second click doesn't double-subscribe.
     if (runAbortRef.current !== null) {
@@ -342,36 +350,120 @@ function NodeEditorPanelInner() {
     }
     const controller = new AbortController();
     runAbortRef.current = controller;
-    setRunState({
-      runId: null,
-      status: "running",
-      nodes: nodes.map((n) => ({
-        nodeId: n.id,
-        nodeType: n.data.nodeTypeId,
-        status: "pending",
-      })),
+    const seededRows = nodes.map((n) => ({
+      nodeId: n.id,
+      nodeType: n.data.nodeTypeId,
+      status: "pending" as const,
+    }));
+    const spec = flowToSpec({
+      id: workflowId,
+      name: workflowName,
+      description: workflowDescription !== "" ? workflowDescription : undefined,
+      nodes,
+      edges,
     });
+    const partition = partitionWorkflow(spec);
+    if (partition.error !== undefined) {
+      setRunState({ runId: null, status: "error", message: partition.error, nodes: seededRows });
+      return;
+    }
+    setRunState({ runId: null, status: "running", nodes: seededRows });
+    const startedMark = performance.now();
+    const outputsByNode = new Map<string, Record<string, unknown>>();
+    const failedServerIds: string[] = [];
+    // The engine validates BEFORE emitting run-start (`_validate_spec` is
+    // the first statement of `run_workflow`) and routers/workflow.py
+    // swallows the exception, so a rejected spec — unregistered plugin node
+    // type, dangling edge ref — closes the SSE stream with ZERO frames.
+    // Track whether a terminal frame ever arrived; its absence is a run
+    // failure, never a green "ok" over a board of pending rows.
+    let serverTerminalSeen = false;
+    let serverErrorMessage: string | null = null;
+    let runId = generateId("local");
     try {
-      const spec = flowToSpec({
-        id: workflowId,
-        name: workflowName,
-        description: workflowDescription !== "" ? workflowDescription : undefined,
-        nodes,
-        edges,
-      });
-      const base = await getSidecarBaseUrl();
-      const response = await fetch(new URL("/workflow/run", base).toString(), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ spec, mode: "full" }),
-        signal: controller.signal,
-      });
-      if (!response.ok || response.body === null) {
-        throw new Error(`run failed (${response.status})`);
+      if (partition.server.nodes.length > 0) {
+        const base = await getSidecarBaseUrl();
+        const response = await fetch(new URL("/workflow/run", base).toString(), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ spec: partition.server, mode: "full" }),
+          signal: controller.signal,
+        });
+        if (!response.ok || response.body === null) {
+          throw new Error(`run failed (${response.status})`);
+        }
+        await consumeSse(response.body, (event) => {
+          switch (event.kind) {
+            case "run-start":
+              // Adopt the server's run id WITHOUT the reducer's node-list
+              // reset, so the code-node rows stay visible as pending while
+              // the server wave runs.
+              runId = event.runId;
+              setRunState((prev) => ({
+                ...prev,
+                runId: event.runId,
+                status: "running",
+                startedAt: event.startedAt,
+              }));
+              return;
+            case "node-output":
+              outputsByNode.set(event.nodeId, event.outputs);
+              break;
+            case "node-error":
+              failedServerIds.push(event.nodeId);
+              break;
+            case "run-complete":
+              // Held — the run isn't over until the code nodes evaluated;
+              // server-side failures are folded into the final event below.
+              serverTerminalSeen = true;
+              return;
+            case "run-error":
+              // Held like run-complete, but keep the engine's message so an
+              // engine-level failure that produced no node-error frames
+              // still surfaces instead of folding into a fake success.
+              serverTerminalSeen = true;
+              serverErrorMessage = event.message;
+              return;
+            default:
+              break;
+          }
+          setRunState((prev) => applyEvent(prev, event));
+        });
+        if (controller.signal.aborted) {
+          return;
+        }
+        if (!serverTerminalSeen) {
+          throw new Error(
+            "workflow stream ended without a terminal frame — the sidecar " +
+              "rejected the spec before starting (e.g. a node type with no " +
+              "server-side handler) or crashed mid-run",
+          );
+        }
+      } else {
+        // Pure-code workflow — no sidecar round-trip at all.
+        setRunState((prev) => ({ ...prev, runId, startedAt: Date.now() }));
       }
-      await consumeSse(response.body, (event) => {
-        setRunState((prev) => applyEvent(prev, event));
-      });
+      const { failedNodeIds } = evaluateCodeNodes(
+        spec,
+        partition.codeOrder,
+        outputsByNode,
+        runId,
+        (event) => setRunState((prev) => applyEvent(prev, event)),
+      );
+      const durationMs = performance.now() - startedMark;
+      const allFailed = [...failedServerIds, ...failedNodeIds];
+      const failureMessage =
+        allFailed.length > 0
+          ? `failures in nodes: ${JSON.stringify([...allFailed].sort())}`
+          : serverErrorMessage;
+      setRunState((prev) =>
+        applyEvent(
+          prev,
+          failureMessage !== null
+            ? { kind: "run-error", runId, message: failureMessage, durationMs }
+            : { kind: "run-complete", runId, durationMs },
+        ),
+      );
     } catch (error: unknown) {
       if (controller.signal.aborted) {
         return;
@@ -508,6 +600,15 @@ function NodeEditorPanelInner() {
           onPatch={(patch) => {
             if (selectedNode === null) return;
             setNodes((prev) => updateNodeConfig(prev, selectedNode.id, patch));
+            // Code-node binding edits change the node's input PORTS — prune
+            // edges that now target a removed/renamed port so the spec never
+            // carries a dangling targetPort.
+            if (selectedNode.data.nodeTypeId === CODE_NODE_ID && Array.isArray(patch["inputs"])) {
+              const kept = new Set(codeNodeBindings(patch));
+              setEdges((prev) =>
+                prev.filter((e) => e.target !== selectedNode.id || kept.has(e.targetHandle ?? "")),
+              );
+            }
             markDirty(); // config edits are unsaved mutations too (Phase 9.5)
           }}
           onDelete={() => {
@@ -583,9 +684,7 @@ function PropertiesForm({
   onDelete,
 }: PropertiesPanelProps & { node: Node<FlowNodeData> }) {
   const nodeTypeId = node.data.nodeTypeId;
-  const fields = (
-    BUILT_IN_NODE_CONFIG_FIELDS as Record<string, readonly ConfigField[] | undefined>
-  )[nodeTypeId];
+  const fields = NODE_CONFIG_FIELDS[nodeTypeId];
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
@@ -596,7 +695,9 @@ function PropertiesForm({
         <span className="text-charcoal-400 text-micro font-mono uppercase">ID</span>
         <span className="text-charcoal-200 text-micro truncate font-mono">{node.id}</span>
       </div>
-      {fields !== undefined && fields.length > 0 ? (
+      {nodeTypeId === CODE_NODE_ID ? (
+        <CodeNodeInspector config={node.data.config} onPatch={onPatch} />
+      ) : fields !== undefined && fields.length > 0 ? (
         fields.map((field) => (
           <ConfigFieldEditor
             key={field.key}

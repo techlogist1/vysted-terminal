@@ -208,29 +208,37 @@ describe("useScreenerStore", () => {
       expect(body.group).toBeUndefined();
     });
 
-    it("a custom formula post-filters the server-returned rows", async () => {
-      // RESULT_SAMPLE has AAPL (pe 31.2) and MSFT (pe 35). Formula pe < 33 keeps
-      // only AAPL — the server query is unchanged; this is a CLIENT-SIDE filter.
-      vi.spyOn(globalThis, "fetch").mockResolvedValue(
-        new Response(JSON.stringify(RESULT_SAMPLE), { status: 200 }),
-      );
-      useScreenerStore.getState().setFormula("pe < 33");
-      const result = await useScreenerStore.getState().runScreener();
-      expect(result!.rows.map((r) => r.symbol)).toEqual(["AAPL"]);
-      expect(result!.result_count).toBe(1);
-      // The pre-filter (server) count is surfaced for the "N of M" copy.
-      expect(useScreenerStore.getState().preFormulaCount).toBe(2);
-      expect(useScreenerStore.getState().formulaError).toBeNull();
+    it("a custom formula rides the request — evaluated SERVER-SIDE (R7 Pillar 3)", async () => {
+      const fetchMock = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValue(new Response(JSON.stringify(RESULT_SAMPLE), { status: 200 }));
+      useScreenerStore.getState().setFormula("pe < 33 and roe > 0.1");
+      await useScreenerStore.getState().runScreener();
+      const [, init] = fetchMock.mock.calls[0]!;
+      const body = JSON.parse(String(init!.body));
+      expect(body.formula).toBe("pe < 33 and roe > 0.1");
     });
 
-    it("a broken formula reports an error and drops no server rows", async () => {
-      vi.spyOn(globalThis, "fetch").mockResolvedValue(
-        new Response(JSON.stringify(RESULT_SAMPLE), { status: 200 }),
-      );
+    it("a blank formula is stripped from the request (no-op filter)", async () => {
+      const fetchMock = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValue(new Response(JSON.stringify(RESULT_SAMPLE), { status: 200 }));
+      useScreenerStore.getState().setFormula("   ");
+      await useScreenerStore.getState().runScreener();
+      const [, init] = fetchMock.mock.calls[0]!;
+      const body = JSON.parse(String(init!.body));
+      expect(body.formula).toBeUndefined();
+    });
+
+    it("an unparseable formula fails the run inline with the caret column — no request fires", async () => {
+      const fetchMock = vi.spyOn(globalThis, "fetch");
       useScreenerStore.getState().setFormula("pe <");
       const result = await useScreenerStore.getState().runScreener();
-      expect(result!.rows).toHaveLength(2);
-      expect(useScreenerStore.getState().formulaError).toBeTruthy();
+      expect(result).toBeNull();
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(useScreenerStore.getState().status).toBe("error");
+      expect(useScreenerStore.getState().error).toContain("Formula:");
+      expect(useScreenerStore.getState().error).toContain("(col 5)");
     });
 
     it("applyFilters writes a nested group + flips to advanced mode", () => {

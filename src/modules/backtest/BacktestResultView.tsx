@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FlaskConical, ArrowUp, ArrowDown } from "lucide-react";
+import { FlaskConical, ArrowUp, ArrowDown, ReceiptText } from "lucide-react";
 import {
   AreaSeries,
   createChart,
@@ -14,6 +14,7 @@ import {
   type UTCTimestamp,
 } from "lightweight-charts";
 
+import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import {
   ACCENT_CORAL,
@@ -220,24 +221,23 @@ function TradeTable({ trades }: TradeTableProps) {
   );
 
   if (trades.length === 0) {
-    return <p className="text-charcoal-400 text-caption px-3 py-2 font-mono">No trades yet.</p>;
+    return (
+      <EmptyState
+        dense
+        icon={ReceiptText}
+        headline="No trades yet"
+        hint="Fills appear here as the strategy trades."
+      />
+    );
   }
 
+  // Auto table layout + nowrap cells: every column takes the width its widest
+  // value needs — no fixed <colgroup> widths clipping prices mid-number.
   return (
-    <div className="max-h-64 overflow-y-auto">
-      <table className="w-full table-fixed border-collapse">
-        <colgroup>
-          <col style={{ width: "72px" }} />
-          <col style={{ width: "36px" }} />
-          <col style={{ width: "74px" }} />
-          <col style={{ width: "74px" }} />
-          <col style={{ width: "80px" }} />
-          <col style={{ width: "80px" }} />
-          <col style={{ width: "60px" }} />
-          <col />
-        </colgroup>
+    <div className="max-h-64 overflow-x-auto overflow-y-auto">
+      <table className="w-full border-collapse">
         <thead className="bg-charcoal-900 sticky top-0">
-          <tr className="text-charcoal-400 border-charcoal-700 text-micro border-b text-left font-mono uppercase">
+          <tr className="text-charcoal-400 border-charcoal-700 text-micro border-b text-left font-mono whitespace-nowrap uppercase">
             <th
               className={cn(
                 "cursor-pointer px-3 py-1.5 font-medium",
@@ -323,7 +323,7 @@ function TradeTable({ trades }: TradeTableProps) {
                   {trade.exitPrice ? trade.exitPrice.toFixed(2) : "—"}
                 </td>
                 <td className="text-charcoal-300 px-3 py-1.5 text-right whitespace-nowrap tabular-nums">
-                  {trade.quantity}
+                  {trade.quantity.toLocaleString("en-US")}
                 </td>
                 <td
                   className={cn(
@@ -436,13 +436,12 @@ export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewPr
 
   if (!run) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
-        <FlaskConical className="text-charcoal-600 size-8" />
-        <p className="text-charcoal-200 text-body font-mono font-medium">Run your first backtest</p>
-        <p className="text-charcoal-400 text-caption max-w-xs font-mono">
-          Select a strategy on the left, set your date range, then click Run.
-        </p>
-      </div>
+      <EmptyState
+        icon={FlaskConical}
+        headline="Run your first backtest"
+        hint="Select a strategy on the left, set your date range, then click Run."
+        className="h-full justify-center pt-0"
+      />
     );
   }
 
