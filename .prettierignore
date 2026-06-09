@@ -46,3 +46,10 @@ sidecar/services/resolver_masters/*.json
 # (e.g. the tool-use build telemetry) are generated wide-table artifacts too.
 docs/redesign/verification/*.html
 docs/redesign/verification/*.md
+
+# R7 data-track test fixtures — VERBATIM trims of live exchange responses
+# (NSE historicalOR/corporates probes, BSE AnnSubCategoryGetData, the observed
+# Akamai Access-Denied HTML). Captured data, not hand-edited source — prettier
+# re-indenting them would undermine the "verbatim observed shape" guarantee the
+# provider tests document. Same rationale as the resolver masters above.
+sidecar/tests/fixtures/

@@ -8,6 +8,7 @@ binaries (all deps incl. curl_cffi present):
 `~/Documents/dev/vysted-terminal/sidecar/.venv/bin/{python,ruff,pytest}` with cwd in THIS worktree.
 
 ## Ground rules
+
 - Conventional commits per deliverable; push to `origin worktree-agent-r7-data` after each.
 - Before each Python commit: `ruff format <changed> && ruff format --check sidecar && ruff check sidecar` + targeted pytest (offline; mock network in tests; live probes belong in scripts/smoke, not pytest).
 - NEVER touch: `types/plugin.ts`, `.github/`, `src-tauri/tauri.conf.json`, `LICENSE*`, `CLAUDE.md`, §6.5 safety files, broker code, `sidecar/app.py` (owned by another track), `sidecar/services/config.py` (owned by another track), `sidecar/services/search/**`, `sidecar/services/research/**` (another track). Register new routers by appending instructions to `docs/redesign/INTEGRATION_NOTES_R7.md` (create it); test routers standalone (TestClient over a local FastAPI() + include_router).
@@ -17,11 +18,13 @@ binaries (all deps incl. curl_cffi present):
 - Keyless-first; honest errors; never fabricate bars.
 
 ## Current defects you are fixing (verified live, 2026-06-10)
+
 - `GET /resolve?q=ICONIKSPEV&region=IN` → exchange "NSE" but yahoo_symbol "ICONIKSPEV.BO" (contradiction), confidence 0.6. Master data is sloppy.
 - `GET /history/ICONIKSPEV` → `bars:[], provider:"none", reason:null` — the seeded BSE master has 2 placeholder rows (regenerate_bse_master.py never run), so scrip-code routing + region_hint + the `in_eod_only` honest reason ALL misfire.
 - No corporate announcements/results/shareholding ingestion exists anywhere.
 
 ## Component 1 — BSE completed (bhavcopy + scrip-code routing + real master)
+
 - Regenerate the REAL BSE master: extend/replace `resolver_masters` BSE data by downloading
   BSE's scrip master (the public ListOfScrips/scrip-master CSV from bseindia.com — the
   existing regenerate_bse_master.py has the URL shape; harden it with curl_cffi
@@ -36,7 +39,9 @@ binaries (all deps incl. curl_cffi present):
 - History for thin listings must return real EOD bars for BSE-only names (ICONIKSPEV class).
 
 ## Component 2 — NSE exchange-direct (anti-bot)
+
 New `services/nse_provider.py` (jugaad-data stays as one source; this is the direct lane):
+
 - curl_cffi `AsyncSession(impersonate="chrome")` with the NSE cookie dance (hit
   https://www.nseindia.com first for cookies, then API endpoints with proper headers;
   rotate session on 401/403; throttle ~1 req/s with jitter; circuit breaker on repeated
@@ -53,6 +58,7 @@ New `services/nse_provider.py` (jugaad-data stays as one source; this is the dir
   `scripts/smoke-test-sidecars.mjs`, you own it this run).
 
 ## Component 3 — Corporate disclosures into the product
+
 - New models (`sidecar/models/announcements.py`: Announcement {symbol, exchange, headline,
   category, attachment_url, ts}, ResultsEvent, ShareholdingPattern with promoter/FII/DII/
   public percentages + quarter) — mirror in `types/data.ts` same commit.
@@ -66,10 +72,11 @@ New `services/nse_provider.py` (jugaad-data stays as one source; this is the dir
   allow-list/MCP). Update roster-count asserts (`test_capability_catalog`,
   `test_mcp_catalog_parity`, `test_agent_runtime` roster, `test_agents_router`,
   `test_mcp_server`) — the counts bump.
-- Add the tools to the copilot + AI Researcher agents' allow-lists (sidecar/agents/*.json)
+- Add the tools to the copilot + AI Researcher agents' allow-lists (sidecar/agents/\*.json)
   so research runs can pull filings.
 
 ## Component 4 — Deterministic symbol resolution
+
 - Master hygiene: one canonical row per instrument; exchange field must agree with the
   yahoo_symbol suffix; dual-listed names carry BOTH exchanges with NSE preferred for
   trading data but BSE retained for BSE-only fundamentals; confidence model documented.
@@ -81,6 +88,7 @@ New `services/nse_provider.py` (jugaad-data stays as one source; this is the dir
 - Autocomplete stays fast and masters-only; verify "Route Mobile" still → ROUTE.
 
 ## Definition of done
+
 No stubs/TODOs. Offline tests green (your suites + FULL sidecar pytest still green), ruff
 clean, committed + pushed per component. Final `docs/redesign/R7_TRACK_DATA_REPORT.md` in
 the worktree: what shipped (file:line), verification evidence (test output), live-probe
