@@ -1,9 +1,11 @@
 "use client";
 
 import { Fragment, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { RefreshCw } from "lucide-react";
 
 import { buildModelGroups, modelOptionLabel } from "@/lib/model-options";
+import { DUR, tween } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { KNOWN_MODELS_BY_PROVIDER } from "@/store/model-selection";
@@ -31,7 +33,9 @@ import { type AgentMode, AGENT_MODES } from "../../../types/agent-modes";
 
 type PopoverKey = "mode" | "lens" | "model";
 
-/** Shared 24px chip — quiet tertiary text that brightens on hover/open. */
+/** Shared 24px chip — visibly interactive per law §5: a hairline border + a
+ *  hover bg/text step + cursor-pointer, so clickability is never a guess.
+ *  Chrome labels ride text-caption (law §1 — meta rows are caption, NOT micro). */
 function MetaChip({
   label,
   open,
@@ -54,8 +58,10 @@ function MetaChip({
       title={title ?? label}
       onClick={onClick}
       className={cn(
-        "rounded-control text-micro flex h-6 min-w-0 shrink items-center gap-1 overflow-hidden px-1 font-mono tracking-wide uppercase transition-colors",
-        open ? "bg-charcoal-875 text-charcoal-200" : "text-charcoal-500 hover:text-charcoal-300",
+        "rounded-control text-caption flex h-6 min-w-0 shrink cursor-pointer items-center gap-1 overflow-hidden border px-1.5 font-mono tracking-wide uppercase transition-colors",
+        open
+          ? "border-charcoal-600 bg-charcoal-875 text-charcoal-200"
+          : "border-charcoal-700 text-charcoal-400 hover:border-charcoal-600 hover:bg-charcoal-875 hover:text-charcoal-200",
       )}
     >
       {children}
@@ -127,28 +133,34 @@ function PopoverRow({
 
 /**
  * The three-stop depth slider — three dots on a thin dotted rail. The ACTIVE
- * stop's dot + label read text-bright at rest and take the accent ONLY while a
- * research run is live at that depth (`liveDepth`).
+ * stop carries the accent (law §5): it lands with a one-shot scale pop when
+ * the depth changes, and pulses gently while a research run is LIVE at that
+ * depth (`liveDepth`). Reduced motion collapses both to static color.
  */
 function DepthSlider({
   depth,
   onChange,
   liveDepth,
+  showLabel = true,
 }: {
   depth: ResearchDepth;
   onChange: (depth: ResearchDepth) => void;
   liveDepth: ResearchDepth | null;
+  /** Collapse ladder: the text label drops at the "short" step and below. */
+  showLabel?: boolean;
 }) {
+  const reduceMotion = useReducedMotion();
   const live = liveDepth !== null && liveDepth === depth;
   return (
     <div
       role="radiogroup"
       aria-label="Research depth"
-      title="Research depth for the next run — Normal / Deep / Ultra"
-      className="flex h-6 shrink-0 items-center px-1"
+      title={`Research depth for the next run — Normal / Deep / Ultra (now: ${RESEARCH_DEPTH_LABEL[depth]})`}
+      className="flex h-6 min-w-[3.5rem] shrink-0 items-center px-1"
     >
       {RESEARCH_DEPTHS.map((stop, i) => {
         const active = stop === depth;
+        const pulsing = active && live && !reduceMotion;
         return (
           <Fragment key={stop}>
             {i > 0 && (
@@ -161,31 +173,39 @@ function DepthSlider({
               aria-label={`${RESEARCH_DEPTH_LABEL[stop]} research depth`}
               title={RESEARCH_DEPTH_LABEL[stop]}
               onClick={() => onChange(stop)}
-              className="group flex h-6 items-center justify-center px-0.5"
+              className="group flex h-6 cursor-pointer items-center justify-center px-0.5"
             >
-              <span
+              <motion.span
                 aria-hidden
+                // Remounting on the active flip drives the ONE-SHOT pop: the
+                // newly-active dot enters oversized and settles.
+                key={`${stop}:${active ? "on" : "off"}`}
+                initial={active && !reduceMotion ? { scale: 1.6 } : false}
+                animate={pulsing ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+                transition={
+                  pulsing ? { duration: 1.8, ease: "easeInOut", repeat: Infinity } : tween(DUR.fast)
+                }
                 className={cn(
-                  "size-1.5 rounded-full transition-colors",
-                  active && live
+                  "size-1.5 rounded-full",
+                  active
                     ? "bg-amber-400"
-                    : active
-                      ? "bg-lume"
-                      : "bg-charcoal-600 group-hover:bg-charcoal-400",
+                    : "bg-charcoal-600 group-hover:bg-charcoal-400 transition-colors",
                 )}
               />
             </button>
           </Fragment>
         );
       })}
-      <span
-        className={cn(
-          "text-micro ml-1 tracking-wide uppercase",
-          live ? "text-amber-400" : "text-lume",
-        )}
-      >
-        {RESEARCH_DEPTH_LABEL[depth]}
-      </span>
+      {showLabel && (
+        <span
+          className={cn(
+            "text-caption ml-1 tracking-wide whitespace-nowrap uppercase",
+            live ? "text-amber-400" : "text-lume",
+          )}
+        >
+          {RESEARCH_DEPTH_LABEL[depth]}
+        </span>
+      )}
     </div>
   );
 }
@@ -213,10 +233,10 @@ function AutonomySegments() {
           aria-checked={autonomy === level}
           onClick={() => setAutonomy(level)}
           className={cn(
-            "text-micro flex items-center px-2 tracking-wide uppercase transition-colors",
+            "text-caption flex cursor-pointer items-center px-1.5 tracking-wide uppercase transition-colors",
             autonomy === level
               ? "bg-charcoal-875 text-lume"
-              : "text-charcoal-500 hover:text-charcoal-300",
+              : "text-charcoal-500 hover:bg-charcoal-875/60 hover:text-charcoal-300",
           )}
         >
           {level}
@@ -328,7 +348,7 @@ export function ComposerMetaRow({
   const activeMode = AGENT_MODES.find((m) => m.id === mode);
 
   return (
-    <div ref={containerRef} className="mb-2 flex h-6 items-center gap-1 px-3 font-mono">
+    <div ref={containerRef} className="mb-2 flex h-6 items-center gap-1.5 px-3 font-mono">
       {/* Mode chip → Agent | Delegate popover */}
       <div className="relative shrink-0">
         <MetaChip
