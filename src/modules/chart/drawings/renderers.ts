@@ -180,7 +180,8 @@ export class FibRetracementRenderer extends DrawingRenderer {
     }
     const xA = a.time === null ? 0 : (converters.timeToX(a.time) ?? 0);
     const { context, mediaSize } = scope;
-    context.font = "10px ui-monospace, monospace";
+    // R8 type floor: nothing renders below 11px — including canvas labels.
+    context.font = "11px ui-monospace, monospace";
     context.textBaseline = "middle";
     for (const level of FIB_LEVELS) {
       const price = a.price + (b.price - a.price) * level;
@@ -214,7 +215,8 @@ export class FibExtensionRenderer extends DrawingRenderer {
     const swing = b.price - a.price;
     const xC = c.time === null ? 0 : (converters.timeToX(c.time) ?? 0);
     const { context, mediaSize } = scope;
-    context.font = "10px ui-monospace, monospace";
+    // R8 type floor: nothing renders below 11px — including canvas labels.
+    context.font = "11px ui-monospace, monospace";
     context.textBaseline = "middle";
     for (const level of FIB_LEVELS) {
       const price = c.price + swing * level;
