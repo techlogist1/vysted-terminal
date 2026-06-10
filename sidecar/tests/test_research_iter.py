@@ -109,31 +109,29 @@ def test_iter_returns_brief_mode_deep() -> None:
     assert brief.source_count >= 1
 
 
-def test_iter_per_round_wall_guard_aborts_not_hangs() -> None:
-    """The slow-fallback fix: a round whose LLM calls outlive the wall slice is
-    cut by the per-round ``asyncio.timeout`` guard and aborts→synthesizes — the
-    run STILL returns a brief (never the 8-minutes-unfinished hang)."""
+def test_iter_starved_wall_winds_down_cleanly_not_an_abort() -> None:
+    """R8 graceful guard (a): with under MIN_ROUND_WALL_SECS of wall budget a
+    fresh round never starts — the run closes through the CLEAN synthesis path
+    (note=None, never a 'wall-clock guard' banner in the user's face), and the
+    dev step trace records why."""
 
     class SlowLLM:
         async def __call__(self, messages: list[dict[str, Any]]) -> str:
-            # Much longer than the tiny per-round wall slice below (a stand-in for
-            # a heavy "thinking" model streaming for minutes).
-            await asyncio.sleep(0.3)
+            await asyncio.sleep(0.05)
             return "x"
 
-    # A small-but-nonzero wall budget: the round-1 top-of-round breach passes
-    # (~0s elapsed), then the per-round guard fires inside the first LLM call.
     brief = _run(
         run_iter_research(
             "research NVDA",
             tool_call=fake_tool,
             llm_call=SlowLLM(),
-            budget=BudgetGuard(max_wall_seconds=0.05),
+            budget=BudgetGuard(max_wall_seconds=0.5),
         )
     )
     assert isinstance(brief, ResearchBrief)
-    assert brief.markdown.strip()  # abort→synthesize still ships a brief
-    assert brief.note is not None and "wall-clock guard" in brief.note
+    assert brief.markdown.strip()  # the run still ships a brief
+    assert brief.note is None  # CLEAN completion — no guard trace as a note
+    assert any("stopped before a new round" in s.detail for s in brief.steps)
 
 
 def test_iter_context_is_reconstructed_not_appended() -> None:
@@ -189,7 +187,11 @@ def test_iter_distill_empty_keeps_shipping() -> None:
 
 
 def test_iter_budget_breach_aborts_to_synthesis_never_raises() -> None:
-    """A budget that is already breached aborts to a synthesized brief, not a raise."""
+    """A budget that is already breached aborts to a synthesized brief, not a raise.
+    The note is the HUMAN budget-stop sentence; the raw ceiling reason lives on
+    the dev step trace only (R8)."""
+    from services.research.deep import BUDGET_STOP_NOTE
+
     brief = _run(
         run_iter_research(
             "q",
@@ -199,8 +201,8 @@ def test_iter_budget_breach_aborts_to_synthesis_never_raises() -> None:
         )
     )
     assert isinstance(brief, ResearchBrief)
-    assert brief.note is not None  # the abort reason is stamped
-    assert "step ceiling" in brief.note
+    assert brief.note == BUDGET_STOP_NOTE
+    assert any("step ceiling" in s.detail for s in brief.steps)  # raw reason = dev detail
 
 
 def test_iter_emits_distill_step() -> None:

@@ -40,6 +40,8 @@ from services.research.deep import (
     _ROUND_MODEL,
     _ROUND_PROVIDER,
     _WEB_ONLY_FLOOR_NOTE,
+    BUDGET_STOP_NOTE,
+    MIN_ROUND_WALL_SECS,
     LLMCall,
     OnStep,
     ToolCall,
@@ -57,6 +59,7 @@ from services.research.deep import (
     coverage_floor_met,
     finalize_markdown,
     record_snapshot_sources,
+    remaining_wall,
     snapshot_context,
     structured_feeds_available,
 )
@@ -315,10 +318,10 @@ async def run_iter_research(
             structured=structured,
             steps=steps,
             budget=budget,
-            note=reason,
+            note=BUDGET_STOP_NOTE,
         )
 
-    async def _run_round() -> bool:
+    async def _run_round(researchers: int | None = None, allow_visit: bool = True) -> bool:
         """One iter round: reconstruct workspace → plan → researchers → distill →
         reflect. Returns True when coverage is met AND reflect says complete.
 
@@ -326,6 +329,8 @@ async def run_iter_research(
         single slow round can't outlive the wall budget) while still mutating the
         shared ``report``/``findings``/``steps`` accumulators in place."""
         nonlocal last_round_findings
+        fan_out = researchers if researchers is not None else max_researchers
+        round_visit = visit if allow_visit else None
         report.round += 1
 
         # --- RECONSTRUCT WORKSPACE: plan from {report + latest evidence} ------
@@ -359,9 +364,9 @@ async def run_iter_research(
                 },
             ],
         )
-        open_questions = _split_subquestions(
-            plan_text, limit=max_researchers
-        ) or _default_questions(symbol or query, max_researchers)
+        open_questions = _split_subquestions(plan_text, limit=fan_out) or _default_questions(
+            symbol or query, fan_out
+        )
         plan_step = ResearchStep(
             "plan",
             f"round {report.round}: rebuilt workspace → {len(open_questions)} sub-question(s)",
@@ -381,15 +386,15 @@ async def run_iter_research(
                     region=region,
                     tool_call=tool_call,
                     llm_call=llm_call,
-                    visit=visit,
+                    visit=round_visit,
                     site_bias=site_bias,
                 )
-                for q in open_questions[:max_researchers]
+                for q in open_questions[:fan_out]
             )
         )
         last_round_findings = []
         for q, (finding, web_res, structured_pairs) in zip(
-            open_questions[:max_researchers], results, strict=False
+            open_questions[:fan_out], results, strict=False
         ):
             last_round_findings.append(finding)
             _record_web(findings, web_res, target=target, query=query)
@@ -466,19 +471,59 @@ async def run_iter_research(
             return await abort_synthesize(reason)
         budget.record(None, _ROUND_MODEL, _ROUND_PROVIDER)
 
+        # --- R8 graceful guard (a): starved wall → CLEAN synthesis ------------
+        # Under MIN_ROUND_WALL_SECS remaining, a fresh round would inherit a
+        # starved per-round ceiling and read like an abort — wind down to the
+        # NORMAL completion path (note=None); the dev step records why.
+        wall_left = remaining_wall(budget)
+        if wall_left is not None and wall_left < MIN_ROUND_WALL_SECS:
+            wind_step = ResearchStep(
+                "reflect",
+                f"stopped before a new round: {wall_left:.0f}s wall budget remaining "
+                f"(< {MIN_ROUND_WALL_SECS:.0f}s)",
+                status="skipped",
+            )
+            steps.append(wind_step)
+            await _emit(on_step, wind_step)
+            break
+
         # --- per-round wall guard --------------------------------------------
         # Bound EACH round so one slow "thinking"-model round can't blow the wall
         # budget (the run-level breach is only checked at the TOP of a round, and
-        # this foreground path has no outer asyncio.timeout). On overrun, abort→
-        # synthesize from whatever was distilled so far (never a bare timeout).
+        # this foreground path has no outer asyncio.timeout). On overrun (R8
+        # graceful guard (b)): the timeout is a DEV event, never a user-facing
+        # abort — with findings in hand and wall to spare, ONE constrained
+        # wind-down round (a single researcher, no page visits) runs, then the
+        # loop closes CLEANLY.
         limit = _round_wall_limit(budget)
         try:
             async with asyncio.timeout(limit):
                 done = await _run_round()
         except TimeoutError:
-            return await abort_synthesize(
-                f"per-round wall-clock guard: round exceeded {limit:.0f}s"
+            timeout_step = ResearchStep(
+                "reflect",
+                f"round overran its {limit:.0f}s slice — winding down",
+                status="skipped",
             )
+            steps.append(timeout_step)
+            await _emit(on_step, timeout_step)
+            wall_left = remaining_wall(budget)
+            has_findings = bool(
+                report.body.strip() or last_round_findings or findings.all_sources()
+            )
+            if has_findings and (wall_left is None or wall_left >= MIN_ROUND_WALL_SECS):
+                retry_limit = _round_wall_limit(budget)
+                retry_step = ResearchStep(
+                    "plan", "one wind-down round (1 researcher, visits off)", status="ok"
+                )
+                steps.append(retry_step)
+                await _emit(on_step, retry_step)
+                try:
+                    async with asyncio.timeout(retry_limit):
+                        await _run_round(researchers=1, allow_visit=False)
+                except TimeoutError:
+                    pass  # best-effort; clean synthesis follows
+            break
         if done:
             break
 

@@ -246,7 +246,9 @@ def test_ultra_strictness_blocks_single_domain_completion() -> None:
             min_web_domains=2,
         )
     )
-    assert brief.note is not None and "step ceiling" in brief.note
+    from services.research.deep import BUDGET_STOP_NOTE
+
+    assert brief.note == BUDGET_STOP_NOTE  # budget-cut, stated as a human sentence
 
 
 def test_ultra_strictness_met_by_two_independent_domains() -> None:

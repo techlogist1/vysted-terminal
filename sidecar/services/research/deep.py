@@ -78,6 +78,30 @@ _ROUND_PROVIDER = "research"
 _PER_ROUND_WALL_SECS = 90.0
 
 
+#: Minimum wall budget (seconds) worth STARTING a round with. Below this a
+#: fresh round would inherit a starved per-round ceiling (the live bug: after a
+#: slow round 1 of a 120s deep run, round 2 got a ~20s slice, timed out, and
+#: the whole run "aborted" into the user's face) — the loop instead winds down
+#: to a CLEAN synthesis. Also the floor for the one constrained retry round
+#: after a round timeout.
+MIN_ROUND_WALL_SECS = 25.0
+
+#: The HUMAN note a budget-stopped brief carries (R8). The raw breach reason
+#: (token/spend/wall/step ceilings) is a dev detail on the step trace;
+#: ``brief.note`` renders to the USER and must read like a sentence — never
+#: "per-round wall-clock guard: round exceeded 20s".
+BUDGET_STOP_NOTE = (
+    "Stopped early to stay within the run's time budget — coverage may be lighter than usual."
+)
+
+
+def remaining_wall(budget: BudgetGuard) -> float | None:
+    """Seconds of wall budget left, or ``None`` when the run has no wall cap."""
+    if budget.max_wall_seconds is None:
+        return None
+    return budget.max_wall_seconds - budget.wall_seconds()
+
+
 def _round_wall_limit(budget: BudgetGuard) -> float:
     """Seconds the CURRENT round may run before the per-round guard fires.
 
@@ -812,6 +836,8 @@ async def run_deep_research(
             markdown, target=target, structured=structured, findings=findings
         )
         latency = int((time.monotonic() - t0) * 1000)
+        # The RAW breach reason is a dev detail on the trace; the user-facing
+        # note is the one human sentence (R8 — note never reads like a guard).
         step = ResearchStep("synthesize", f"abort→synthesize: {reason}", latency_ms=latency)
         steps.append(step)
         await _emit(on_step, step)
@@ -823,17 +849,20 @@ async def run_deep_research(
             structured=structured,
             steps=steps,
             budget=budget,
-            note=reason,
+            note=BUDGET_STOP_NOTE,
         )
 
-    async def _run_round() -> bool:
+    async def _run_round(researchers: int | None = None, allow_visit: bool = True) -> bool:
         """One DEEP round: plan → parallel researchers → compress → reflect.
 
         Returns True when the coverage floor is met AND reflect says complete.
         Extracted so the round can run under a per-round ``asyncio.timeout`` guard
         (a single slow round can't outlive the wall budget) while still mutating
-        the shared ``findings``/``steps`` accumulators in place.
+        the shared ``findings``/``steps`` accumulators in place. The wind-down
+        retry after a round timeout passes ``researchers=1, allow_visit=False``.
         """
+        fan_out = researchers if researchers is not None else max_researchers
+        round_visit = visit if allow_visit else None
         # --- plan: what's unanswered? -> sub-questions ------------------------
         from services.research import disclosures as disclosures_mod
 
@@ -861,7 +890,7 @@ async def run_deep_research(
                 },
             ],
         )
-        open_questions = _split_subquestions(plan_text, limit=max_researchers)
+        open_questions = _split_subquestions(plan_text, limit=fan_out)
         if not open_questions:
             # No plan came back (dead/blank LLM) — seed a default fan-out so the
             # round still does real work rather than stalling.
@@ -870,7 +899,7 @@ async def run_deep_research(
                 f"What is the recent price action and trend for {display}?",
                 f"What do the latest fundamentals say about {display}?",
                 f"What recent news affects {display}?",
-            ][:max_researchers]
+            ][:fan_out]
         plan_step = ResearchStep(
             "plan",
             f"planned {len(open_questions)} sub-question(s)",
@@ -890,14 +919,14 @@ async def run_deep_research(
                     region=region,
                     tool_call=tool_call,
                     llm_call=llm_call,
-                    visit=visit,
+                    visit=round_visit,
                     site_bias=site_bias,
                 )
-                for q in open_questions[:max_researchers]
+                for q in open_questions[:fan_out]
             )
         )
         for q, (finding, web_res, structured_pairs) in zip(
-            open_questions[:max_researchers], results, strict=False
+            open_questions[:fan_out], results, strict=False
         ):
             findings.findings.append(finding)
             _record_web(findings, web_res, target=target, query=query)
@@ -971,20 +1000,57 @@ async def run_deep_research(
         # this layer — pass None; the lead's handler wires real usage if it has it.
         budget.record(None, _ROUND_MODEL, _ROUND_PROVIDER)
 
+        # --- R8 graceful guard (a): starved wall → CLEAN synthesis ------------
+        # With under MIN_ROUND_WALL_SECS remaining, a fresh round would inherit
+        # a starved per-round ceiling, time out, and read like an abort. Wind
+        # down to the NORMAL completion path instead (note=None); the step trace
+        # records why for the dev log.
+        wall_left = remaining_wall(budget)
+        if wall_left is not None and wall_left < MIN_ROUND_WALL_SECS:
+            wind_step = ResearchStep(
+                "reflect",
+                f"stopped before a new round: {wall_left:.0f}s wall budget remaining "
+                f"(< {MIN_ROUND_WALL_SECS:.0f}s)",
+                status="skipped",
+            )
+            steps.append(wind_step)
+            await _emit(on_step, wind_step)
+            break
+
         # --- per-round wall guard --------------------------------------------
         # The run-level wall budget is only checked at the TOP of a round, and the
         # foreground deep_research path (unlike the Delegate path) has no outer
         # asyncio.timeout — so a single slow "thinking"-model round could stream
-        # for minutes. Bound EACH round; on overrun abort→synthesize from whatever
-        # was gathered (never a bare timeout — SC-008).
+        # for minutes. Bound EACH round. On overrun (R8 graceful guard (b)): the
+        # timeout is a DEV event, never a user-facing abort — with findings in
+        # hand and wall to spare, ONE constrained wind-down round (a single
+        # researcher, no page visits) runs, then the loop closes CLEANLY.
         limit = _round_wall_limit(budget)
         try:
             async with asyncio.timeout(limit):
                 done = await _run_round()
         except TimeoutError:
-            return await abort_synthesize(
-                f"per-round wall-clock guard: round exceeded {limit:.0f}s"
+            timeout_step = ResearchStep(
+                "reflect",
+                f"round overran its {limit:.0f}s slice — winding down",
+                status="skipped",
             )
+            steps.append(timeout_step)
+            await _emit(on_step, timeout_step)
+            wall_left = remaining_wall(budget)
+            if findings.findings and (wall_left is None or wall_left >= MIN_ROUND_WALL_SECS):
+                retry_limit = _round_wall_limit(budget)
+                retry_step = ResearchStep(
+                    "plan", "one wind-down round (1 researcher, visits off)", status="ok"
+                )
+                steps.append(retry_step)
+                await _emit(on_step, retry_step)
+                try:
+                    async with asyncio.timeout(retry_limit):
+                        await _run_round(researchers=1, allow_visit=False)
+                except TimeoutError:
+                    pass  # the wind-down round is best-effort; synthesis follows
+            break
         if done:
             break
 
@@ -1017,7 +1083,9 @@ async def run_deep_research(
 
 
 __all__ = [
+    "BUDGET_STOP_NOTE",
     "LLMCall",
+    "MIN_ROUND_WALL_SECS",
     "OnStep",
     "ToolCall",
     "VisitCall",
@@ -1025,6 +1093,7 @@ __all__ = [
     "distinct_web_domains",
     "finalize_markdown",
     "record_snapshot_sources",
+    "remaining_wall",
     "run_deep_research",
     "snapshot_context",
     "structured_feeds_available",
