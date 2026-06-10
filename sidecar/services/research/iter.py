@@ -52,15 +52,22 @@ from services.research.deep import (
     _round_wall_limit,
     _run_researcher,
     _safe_llm,
-    _safe_tool,
     _split_subquestions,
     _synthesize_brief,
     coverage_floor_met,
+    finalize_markdown,
+    record_snapshot_sources,
+    snapshot_context,
     structured_feeds_available,
-    web_only_floor_note,
 )
 from services.research.fast import snapshot_structured
 from services.research.models import ResearchBrief, ResearchSource, ResearchStep
+from services.research.target import (
+    NO_INSTRUMENT_NOTE,
+    ResearchTarget,
+    resolve_target,
+    resolved_payload,
+)
 
 #: Default cap on the rendered working report so the reconstructed context stays
 #: bounded no matter how chatty the distill model is — the IterResearch invariant
@@ -158,11 +165,18 @@ async def _distill(
 
 
 async def _synthesis_from_report(
-    llm_call: LLMCall, *, query: str, symbol: str, report: _Report, findings: _Findings
+    llm_call: LLMCall,
+    *,
+    query: str,
+    symbol: str,
+    report: _Report,
+    findings: _Findings,
+    structured: dict[str, Any] | None = None,
 ) -> str:
     """Write the final brief markdown from the evolving report + numbered sources.
     Falls back to the raw report (then a terse stub) so a dead LLM still ships."""
     priority = finance.priority_note(findings.all_sources())
+    snapshot = snapshot_context(structured or {})
     body = await _safe_llm(
         llm_call,
         [
@@ -186,7 +200,8 @@ async def _synthesis_from_report(
                 "content": (
                     f"Query: {query}\nSymbol: {symbol}\n\n"
                     f"Working report:\n{report.render()}\n\n"
-                    f"Sources:\n{_numbered_sources(findings)}"
+                    + ((snapshot + "\n\n") if snapshot else "")
+                    + f"Sources:\n{_numbered_sources(findings)}"
                 ),
             },
         ],
@@ -215,6 +230,9 @@ async def run_iter_research(
     report_char_cap: int | None = None,
     min_web_domains: int = 1,
     site_bias: bool = False,
+    target: ResearchTarget | None = None,
+    bound: bool = False,
+    snapshot: dict[str, Any] | None = None,
 ) -> ResearchBrief:
     """Run the IterResearch loop for ``query``; always returns a brief.
 
@@ -222,6 +240,13 @@ async def run_iter_research(
     the working context from ``{report + last round's evidence}`` (not the full
     history); parallel researchers; DISTILL the round into the central report;
     reflect; break on the coverage floor + a "complete" reflect. Never raises.
+
+    R8 target contract: resolution happens exactly ONCE. A heavy explorer
+    receives the panel's SAME bound ``target`` (``bound=True``) and NEVER
+    re-resolves — its ``query`` may be focus-augmented prompt text, which must
+    never touch a structured tool. A ``None`` target means web-only research
+    (``brief.symbol == ""``, zero ``vysted://`` calls). ``snapshot`` lets the
+    heavy panel share ONE up-front price/fundamentals pull across explorers.
 
     R7 depth knobs (``services.research.depth.PROFILES``): ``report_char_cap``
     bounds the working report (``None`` keeps the module default);
@@ -233,28 +258,36 @@ async def run_iter_research(
     findings = _Findings()
     report = _Report(task=query, char_cap=report_char_cap or _REPORT_CHAR_CAP)
     steps: list[ResearchStep] = []
-    structured: dict[str, object] = {}
+    structured: dict[str, Any] = {}
 
-    resolve_args: dict[str, object] = {"query": query}
-    if region:
-        resolve_args["region"] = region
-    resolved = await _safe_tool(tool_call, "resolve_symbol", resolve_args)
-    instrument = (resolved.get("resolved") or {}) if resolved.get("ok") else {}
-    symbol = instrument.get("symbol") or query
-    structured["resolved"] = resolved
+    if target is None and not bound:
+        target = await resolve_target(tool_call, query, region=region)
+    symbol = target.symbol if target is not None else ""
+    structured["resolved"] = resolved_payload(target)
     # Snapshot price + fundamentals so an iter/Heavy brief backs the same native
-    # metric cards as a FAST one (additive; a failed leg renders no card).
-    if resolved.get("ok"):
-        structured.update(await snapshot_structured(tool_call, symbol))
+    # metric cards as a FAST one (additive; a failed leg renders no card). The
+    # heavy panel passes ONE shared snapshot so explorers never re-pull it.
+    if target is not None:
+        if snapshot is None:
+            snapshot = await snapshot_structured(tool_call, target.symbol)
+        structured.update(snapshot)
+        record_snapshot_sources(findings, target.symbol, structured)
 
     last_round_findings: list[str] = []
 
     async def abort_synthesize(reason: str) -> ResearchBrief:
         t0 = time.monotonic()
         markdown = await _synthesis_from_report(
-            llm_call, query=query, symbol=symbol, report=report, findings=findings
+            llm_call,
+            query=query,
+            symbol=symbol,
+            report=report,
+            findings=findings,
+            structured=structured,
         )
-        markdown = web_only_floor_note(markdown, structured=structured, findings=findings)
+        markdown = finalize_markdown(
+            markdown, target=target, structured=structured, findings=findings
+        )
         step = ResearchStep(
             "synthesize",
             f"abort→synthesize: {reason}",
@@ -312,7 +345,7 @@ async def run_iter_research(
         )
         open_questions = _split_subquestions(
             plan_text, limit=max_researchers
-        ) or _default_questions(symbol, max_researchers)
+        ) or _default_questions(symbol or query, max_researchers)
         plan_step = ResearchStep(
             "plan",
             f"round {report.round}: rebuilt workspace → {len(open_questions)} sub-question(s)",
@@ -327,7 +360,8 @@ async def run_iter_research(
             *(
                 _run_researcher(
                     q,
-                    symbol=symbol,
+                    target=target,
+                    query=query,
                     region=region,
                     tool_call=tool_call,
                     llm_call=llm_call,
@@ -338,15 +372,13 @@ async def run_iter_research(
             )
         )
         last_round_findings = []
-        for q, (finding, web_res, structured_pair) in zip(
+        for q, (finding, web_res, structured_pairs) in zip(
             open_questions[:max_researchers], results, strict=False
         ):
             last_round_findings.append(finding)
-            _record_web(findings, web_res)
-            if structured_pair:
-                _record_structured(
-                    findings, symbol, structured_pair["dim"], structured_pair["result"]
-                )
+            _record_web(findings, web_res, target=target, query=query)
+            for pair in structured_pairs:
+                _record_structured(findings, symbol, pair["dim"], pair["result"])
             rstep = ResearchStep(
                 "tool",
                 f"researcher: {q}",
@@ -437,9 +469,14 @@ async def run_iter_research(
     # --- clean completion: synthesize from the evolving report --------------
     synth_t0 = time.monotonic()
     markdown = await _synthesis_from_report(
-        llm_call, query=query, symbol=symbol, report=report, findings=findings
+        llm_call,
+        query=query,
+        symbol=symbol,
+        report=report,
+        findings=findings,
+        structured=structured,
     )
-    markdown = web_only_floor_note(markdown, structured=structured, findings=findings)
+    markdown = finalize_markdown(markdown, target=target, structured=structured, findings=findings)
     synth_step = ResearchStep(
         "synthesize",
         "wrote brief from evolving report",
@@ -512,17 +549,32 @@ async def run_heavy_research(
     report_char_cap: int | None = None,
     min_web_domains: int = 1,
     site_bias: bool = False,
+    target: ResearchTarget | None = None,
+    bound: bool = False,
 ) -> ResearchBrief:
     """Heavy mode — N parallel iter explorers (each its own evolving report) → one
     synthesized, citation-backed brief. Shares ``budget`` across the panel so the
     whole run stays inside the same ceiling (a breach winds each explorer down to
     its partial brief, then synthesis merges the survivors). Never raises.
 
+    R8 target contract: the panel resolves the CLEAN user ``query`` exactly ONCE
+    (here, before the fan-out) and hands every explorer the SAME bound target +
+    ONE shared structured snapshot. Explorers receive a focus-augmented TASK
+    string for prompting but never re-resolve it — the published brief carries
+    the ORIGINAL query and the bound symbol, never the focus sentence.
+
     The R7 depth knobs (``report_char_cap`` / ``min_web_domains`` / ``site_bias``)
     are forwarded to every explorer — ULTRA's stricter coverage (>=2 distinct web
     domains) is enforced inside each angle's floor."""
     angles = max(_MIN_ANGLES, min(int(angles), _MAX_ANGLES))
     steps: list[ResearchStep] = []
+
+    # --- bind the ONE target on the CLEAN query, before any fan-out ----------
+    if target is None and not bound:
+        target = await resolve_target(tool_call, query, region=region)
+    snapshot: dict[str, Any] | None = None
+    if target is not None:
+        snapshot = await snapshot_structured(tool_call, target.symbol)
 
     # --- panel plan: split into N distinct, non-overlapping angles -----------
     t0 = time.monotonic()
@@ -565,6 +617,9 @@ async def run_heavy_research(
     await _emit(on_step, plan_step)
 
     # --- parallel explorers, each its own evolving workspace -----------------
+    # Every explorer receives (task = focus-augmented prompt text, target = the
+    # SAME bound target, snapshot = the ONE shared structured pull) and is
+    # ``bound`` so it NEVER re-resolves the contaminated task string.
     explorer_knobs: dict[str, Any] = {
         "region": region,
         "tool_call": tool_call,
@@ -574,6 +629,9 @@ async def run_heavy_research(
         "report_char_cap": report_char_cap,
         "min_web_domains": min_web_domains,
         "site_bias": site_bias,
+        "target": target,
+        "bound": True,
+        "snapshot": snapshot,
     }
     explorers = [
         run_iter_research(
@@ -635,11 +693,15 @@ async def run_heavy_research(
     if not markdown.strip():
         markdown = f"# Research brief: {query}\n\n{panel}"  # deterministic fallback
     # Panel-level web-only honesty: each angle stamps its own coverage note, but
-    # the synthesist rewrites the prose and may drop it. When EVERY angle ran on
-    # the loosened web-only floor (no structured feed covers the instrument) and
-    # the merged panel actually cites web evidence, the final brief must state
-    # it too — once (skip when the synthesist already carried it through).
-    if (
+    # the synthesist rewrites the prose and may drop it. With NO bound target the
+    # honest statement is the one-line no-instrument note; otherwise, when EVERY
+    # angle ran on the loosened web-only floor (no structured feed covers the
+    # instrument) and the merged panel actually cites web evidence, the final
+    # brief must state it too — once (skip when the synthesist carried it).
+    if target is None:
+        if NO_INSTRUMENT_NOTE not in markdown:
+            markdown = markdown.rstrip() + "\n\n> " + NO_INSTRUMENT_NOTE
+    elif (
         all(not structured_feeds_available(b.structured) for b in good)
         and any(s.url.startswith("http") for s in merged_sources)
         and _WEB_ONLY_FLOOR_NOTE not in markdown
@@ -653,20 +715,24 @@ async def run_heavy_research(
     steps.append(synth_step)
     await _emit(on_step, synth_step)
 
-    note = f"heavy:{len(good)} angles"
-    if len(good) < len(angle_list):
-        note += f" ({len(angle_list) - len(good)} angle(s) failed)"
+    # The merged brief carries the ORIGINAL user query + the bound symbol —
+    # NEVER the focus-augmented explorer task text (the live ULTRA bug published
+    # the whole focus sentence as brief.symbol). The structured bundle carries
+    # the resolver payload + the ONE shared snapshot so the heavy brief backs
+    # the same native metric cards as a FAST/DEEP one, plus the panel trace.
+    merged_structured: dict[str, Any] = {"resolved": resolved_payload(target)}
+    if snapshot:
+        merged_structured.update(snapshot)
+    merged_structured["panel"] = [
+        {"angle": i + 1, "note": b.note, "symbol": b.symbol} for i, b in enumerate(good)
+    ]
     return ResearchBrief(
         query=query,
-        symbol=good[0].symbol,
+        symbol=target.symbol if target is not None else "",
         mode="deep",
         markdown=markdown.strip(),
         sources=merged_sources,
-        structured={
-            "panel": [
-                {"angle": i + 1, "note": b.note, "symbol": b.symbol} for i, b in enumerate(good)
-            ]
-        },
+        structured=merged_structured,
         steps=steps + [s for b in good for s in b.steps],
         source_count=len(merged_sources),
         cost=budget.cost(),
@@ -676,7 +742,10 @@ async def run_heavy_research(
         # produced any cited source at all. The honest structured-only banner
         # survives only when the panel gathered ZERO sources.
         web_available=any(b.web_available for b in good) or bool(merged_sources),
-        note=note,
+        # The "heavy:N angles" implementation note is GONE (R8): structured.panel
+        # already carries the angle data, and brief.note renders to the USER —
+        # human sentences only (a failed-angle count is a dev detail).
+        note=None,
     )
 
 

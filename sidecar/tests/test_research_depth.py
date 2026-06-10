@@ -154,13 +154,24 @@ def _micro_cap_tool(web_urls: list[str]):
 
     async def _tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
         if name == "resolve_symbol":
-            return {"ok": True, "resolved": {"symbol": "TINYCO"}}
+            return {
+                "ok": True,
+                "resolved": {
+                    "symbol": "TINYCO",
+                    "name": "Tinyco Industries",
+                    "exchange": "NSE",
+                    "region": "IN",
+                    "asset_class": "equity",
+                    "confidence": 0.9,
+                },
+            }
         if name == "web_search":
             web_queries.append(args["query"])
             return {
                 "ok": True,
                 "citations": [
-                    {"url": u, "title": u, "excerpt": "e", "source": u} for u in web_urls
+                    {"url": u, "title": f"TINYCO coverage — {u}", "excerpt": "e", "source": u}
+                    for u in web_urls
                 ],
             }
         # price_data / fundamentals / news / sec_filings_list: provider none.
@@ -192,11 +203,21 @@ def test_no_price_feed_run_finishes_cleanly_and_brief_says_so() -> None:
 def test_structured_backed_run_carries_no_web_only_note() -> None:
     async def _tool(name: str, args: dict[str, Any]) -> dict[str, Any]:  # noqa: ARG001
         if name == "resolve_symbol":
-            return {"ok": True, "resolved": {"symbol": "NVDA"}}
+            return {
+                "ok": True,
+                "resolved": {
+                    "symbol": "NVDA",
+                    "name": "NVIDIA Corporation",
+                    "asset_class": "equity",
+                    "confidence": 0.97,
+                },
+            }
         if name == "web_search":
             return {
                 "ok": True,
-                "citations": [{"url": "https://ex.com/a", "title": "A", "excerpt": "x"}],
+                "citations": [
+                    {"url": "https://ex.com/a", "title": "NVIDIA results", "excerpt": "x"}
+                ],
             }
         return {"ok": True, "provider": "test"}
 

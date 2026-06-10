@@ -192,6 +192,32 @@ async def snapshot_structured(tool_call: ToolCall, symbol: str) -> dict[str, Any
     }
 
 
+async def _web_round(tool_call: ToolCall, web_query: str) -> dict[str, Any]:
+    """ONE web round → the bundle's honest ``web`` section.
+
+    Surfaces a note plus the tool's own "how to unlock it" message when no
+    backend answered — NEVER an empty section pretending to be "no news".
+    Distinguishes a TRANSIENT throttle (the backend exists, it was rate-limited
+    this run) from a genuine no-backend miss: the former must not claim "no
+    backend configured" (that would be a false banner — symptom #2).
+    """
+    web_res = await _safe_call(tool_call, "web_search", {"query": web_query})
+    web_ok = bool(web_res.get("ok"))
+    web: dict[str, Any] = {
+        "available": web_ok,
+        "citations": web_res.get("citations", []) if web_ok else [],
+        "results": web_res.get("results", []) if web_ok else [],
+    }
+    if not web_ok:
+        reason = web_res.get("reason")
+        web["reason"] = reason
+        web["note"] = _RATE_LIMITED_NOTE if reason == "rate_limited" else _NO_WEB_NOTE
+        detail = web_res.get("message") or web_res.get("error")
+        if detail:
+            web["detail"] = detail
+    return web
+
+
 async def gather_fast(
     query: str,
     *,
@@ -210,32 +236,55 @@ async def gather_fast(
     Returns the bundle described in the unit brief: ``resolved``, a provenance-
     tagged ``structured`` map, an honest ``web`` section (``available=False`` +
     note when no backend answered), and the cockpit ``suggested_layout`` /
-    ``suggested_indicators`` hints. Resolution failure short-circuits with
-    ``ok: False`` (no point pulling price for an unknown name).
+    ``suggested_indicators`` hints.
+
+    R8 target contract: resolution happens ONCE via
+    :func:`services.research.target.resolve_target` (confidence floor +
+    symbol-shape gate). With NO bound target the bundle is WEB-ONLY: zero
+    structured calls (a free-text query never rides a ``symbol`` arg),
+    ``symbol = ""``, and the honest one-line :data:`NO_INSTRUMENT_NOTE`.
     """
-    resolve_args: dict[str, Any] = {"query": query}
-    if region:
-        resolve_args["region"] = region
+    from services.research.target import NO_INSTRUMENT_NOTE, resolve_target, resolved_payload
+
     t0 = time.perf_counter()
     await _emit(on_step, ResearchStep("plan", f'resolving "{query}"'))
-    resolved = await _safe_call(tool_call, "resolve_symbol", resolve_args)
+    target = await resolve_target(tool_call, query, region=region)
 
-    if not resolved.get("ok"):
+    if target is None:
         await _emit(
             on_step,
-            ResearchStep("plan", "could not resolve the query", _ms(t0), status="error"),
+            ResearchStep("plan", "no listed instrument matched — web evidence only", _ms(t0)),
         )
+        t_web = time.perf_counter()
+        await _emit(on_step, ResearchStep("search", f"searching the web for {query}"))
+        web = await _web_round(tool_call, f"{query} news outlook")
+        _hits = len(web["citations"]) or len(web["results"])
+        await _emit(
+            on_step,
+            ResearchStep(
+                "search",
+                f"{_hits} web source(s)" if web["available"] else "no web backend",
+                _ms(t_web),
+                status="ok" if web["available"] else "skipped",
+            ),
+        )
+        await _emit(on_step, ResearchStep("synthesize", "assembling the research bundle"))
         return {
-            "ok": False,
+            "ok": True,
             "query": query,
-            "resolved": resolved,
-            "error": resolved.get("message") or resolved.get("error") or "could not resolve query",
+            "resolved": resolved_payload(None),
+            "symbol": "",
+            "structured": {},
+            "web": web,
+            "note": NO_INSTRUMENT_NOTE,
+            "suggested_layout": "research-cockpit",
+            "suggested_indicators": _suggested_indicators(None),
         }
 
-    instrument = resolved.get("resolved") or {}
-    symbol = instrument.get("symbol") or query
-    name = instrument.get("name") or symbol
-    asset_class = instrument.get("asset_class")
+    resolved = resolved_payload(target)
+    symbol = target.symbol
+    name = target.name or symbol
+    asset_class = target.asset_class
     await _emit(on_step, ResearchStep("plan", f"resolved → {symbol}", _ms(t0)))
 
     # 2 — parallel structured fan-out. Each leg is pre-wrapped so a single
@@ -265,31 +314,8 @@ async def gather_fast(
     # web backend ranks on the company, not the bare ticker.
     t2 = time.perf_counter()
     await _emit(on_step, ResearchStep("search", f"searching the web for {name}"))
-    web_res = await _safe_call(
-        tool_call,
-        "web_search",
-        {"query": f"{name} {query} news outlook"},
-    )
-    web_ok = bool(web_res.get("ok"))
-    web: dict[str, Any] = {
-        "available": web_ok,
-        "citations": web_res.get("citations", []) if web_ok else [],
-        "results": web_res.get("results", []) if web_ok else [],
-    }
-    if not web_ok:
-        # Honest fallback — surface a note plus the tool's own "how to unlock it"
-        # message when it gave one. NEVER an empty section pretending to be "no
-        # news". Distinguish a TRANSIENT throttle (the backend exists, it was just
-        # rate-limited this run) from a genuine no-backend/unreachable miss: the
-        # former must NOT claim "no backend configured" (that would be a false
-        # banner — symptom #2). The reason is the typed discriminator the
-        # web_search tool surfaced from the search backend's SearchError.
-        reason = web_res.get("reason")
-        web["reason"] = reason
-        web["note"] = _RATE_LIMITED_NOTE if reason == "rate_limited" else _NO_WEB_NOTE
-        detail = web_res.get("message") or web_res.get("error")
-        if detail:
-            web["detail"] = detail
+    web = await _web_round(tool_call, f"{name} {query} news outlook")
+    web_ok = web["available"]
     _hits = len(web["citations"]) or len(web["results"])
     await _emit(
         on_step,

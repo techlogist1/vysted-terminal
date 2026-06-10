@@ -40,6 +40,12 @@ from services.budget_guard import BudgetGuard
 from services.research import finance
 from services.research.fast import snapshot_structured
 from services.research.models import ResearchBrief, ResearchSource, ResearchStep
+from services.research.target import (
+    NO_INSTRUMENT_NOTE,
+    ResearchTarget,
+    resolve_target,
+    resolved_payload,
+)
 
 #: Injected tool dispatcher — ``await tool_call(name, args) -> dict``.
 ToolCall = Callable[[str, dict[str, Any]], Awaitable[dict[str, Any]]]
@@ -242,6 +248,25 @@ def web_only_floor_note(markdown: str, *, structured: dict[str, Any], findings: 
     return markdown.rstrip() + "\n\n" + _WEB_ONLY_FLOOR_NOTE
 
 
+def finalize_markdown(
+    markdown: str,
+    *,
+    target: ResearchTarget | None,
+    structured: dict[str, Any],
+    findings: _Findings,
+) -> str:
+    """Stamp the honest coverage statement onto a finished brief body.
+
+    No bound target → the one-line :data:`NO_INSTRUMENT_NOTE` (the run never
+    called a structured provider, so the "providers returned no data" floor
+    note would be a lie). Bound target → the existing web-only-floor note when
+    it applies.
+    """
+    if target is None:
+        return markdown.rstrip() + "\n\n> " + NO_INSTRUMENT_NOTE
+    return web_only_floor_note(markdown, structured=structured, findings=findings)
+
+
 def _reflect_says_complete(text: str) -> bool:
     """Heuristic: does a reflect completion declare coverage met?
 
@@ -318,8 +343,82 @@ def _record_structured(findings: _Findings, name: str, dim: str, result: dict[st
     )
 
 
-def _record_web(findings: _Findings, result: dict[str, Any]) -> None:
-    """Fold a web_search result into citations + coverage.
+def record_snapshot_sources(findings: _Findings, symbol: str, structured: dict[str, Any]) -> None:
+    """Register the up-front price/fundamentals snapshot as citable sources.
+
+    The snapshot legs (:func:`services.research.fast.snapshot_structured`) back
+    the frontend metric cards, but before R8 they never entered the numbered
+    ``[n]`` list — so synthesis could not cite them and a weak model would
+    claim figures the panel was simultaneously rendering were "unavailable".
+    Coverage flags are NOT touched here (the floor still demands researcher
+    legs); this only makes the snapshot citable.
+    """
+    for dim in ("price", "fundamentals"):
+        leg = structured.get(dim)
+        if not isinstance(leg, dict) or not leg.get("ok"):
+            continue
+        url = f"vysted://{dim}/{symbol}"
+        if any(s.url == url for s in findings.structured_sources):
+            continue
+        provider = leg.get("provider") if isinstance(leg.get("provider"), str) else None
+        findings.structured_sources.append(
+            ResearchSource(
+                url=url,
+                title=f"{dim.title()} for {symbol}",
+                excerpt=f"Structured {dim} snapshot"
+                + (f" via {provider}" if provider else "")
+                + " gathered this run.",
+                domain=provider or "vysted",
+            )
+        )
+
+
+def snapshot_context(structured: dict[str, Any]) -> str:
+    """A prompt block carrying the run's REAL structured snapshot values.
+
+    Rendered into the synthesis prompts so the prose can cite the gathered
+    price/fundamentals via the ``vysted://`` sources instead of claiming the
+    figures are unavailable while the equity panel renders them (R8 parity).
+    Empty string when no snapshot leg succeeded.
+    """
+    import json
+
+    lines: list[str] = []
+    for dim in ("price", "fundamentals"):
+        leg = structured.get(dim)
+        if not isinstance(leg, dict) or not leg.get("ok"):
+            continue
+        data = leg.get("data")
+        try:
+            rendered = json.dumps(data, default=str)
+        except (TypeError, ValueError):
+            rendered = str(data)
+        provider = leg.get("provider")
+        label = f"{dim}" + (f" (via {provider})" if provider else "")
+        lines.append(f"- {label}: {rendered[:700]}")
+    if not lines:
+        return ""
+    return (
+        "Structured snapshot gathered THIS RUN — these figures are REAL and "
+        "citable via the vysted:// numbered sources; never claim they are "
+        "unavailable:\n" + "\n".join(lines)
+    )
+
+
+def _record_web(
+    findings: _Findings,
+    result: dict[str, Any],
+    *,
+    target: ResearchTarget | None = None,
+    query: str = "",
+) -> None:
+    """Fold a web_search result into citations + coverage — RELEVANCE-GATED.
+
+    R8: every row is scored against the bound target (or the query tokens when
+    no target is bound) by :func:`services.research.relevance.entity_match`;
+    rows below the floor are DROPPED — they never become sources and never
+    count toward coverage (the 69-junk-sources fix). Coverage flips only when
+    a KEPT row landed.
 
     Titles/excerpts come from the OPEN WEB and later ride synthesis prompts via
     the numbered ``[n]`` source list — sanitize them inline (newline-flatten +
@@ -328,6 +427,7 @@ def _record_web(findings: _Findings, result: dict[str, Any]) -> None:
     """
     if not result.get("ok"):
         return
+    from services.research import relevance
     from services.search.scrub import sanitize_inline
 
     citations = result.get("citations") or []
@@ -340,12 +440,17 @@ def _record_web(findings: _Findings, result: dict[str, Any]) -> None:
         url = row.get("url")
         if not url:
             continue
+        if not relevance.row_relevant(row, target=target, query=query):
+            continue
         findings.web_sources.append(
             ResearchSource(
                 url=str(url),
                 title=sanitize_inline(str(row.get("title") or url)),
                 excerpt=sanitize_inline(str(row.get("excerpt") or row.get("snippet") or "")),
                 domain=str(row.get("source") or "web"),
+                source_type=row.get("source_type")
+                if row.get("source_type") in ("news", "research", "filing", "web")
+                else None,
             )
         )
         added = True
@@ -366,20 +471,26 @@ def _top_result_url(web_res: dict[str, Any]) -> str | None:
 async def _run_researcher(
     sub_question: str,
     *,
-    symbol: str,
+    target: ResearchTarget | None,
+    query: str,
     region: str | None,
     tool_call: ToolCall,
     llm_call: LLMCall,
     visit: VisitCall | None = None,
     site_bias: bool = False,
-) -> tuple[str, dict[str, Any], dict[str, Any]]:
+) -> tuple[str, dict[str, Any], list[dict[str, Any]]]:
     """One researcher: a couple of tool lookups + a short LLM extraction.
 
     Pulls the web (always — the freshest, most question-shaped source) plus one
     structured leg chosen by what the sub-question is about, then asks the LLM to
-    extract the finding. Returns ``(finding_text, web_result, structured_pair)``
-    where ``structured_pair`` is ``{"dim": ..., "result": ...}`` (or empty) so
-    the caller folds coverage on the main task, not inside the gathered child.
+    extract the finding. Returns ``(finding_text, web_result, structured_pairs)``
+    where each pair is ``{"dim": ..., "result": ...}`` so the caller folds
+    coverage on the main task, not inside the gathered child.
+
+    R8 target contract: ALL structured tool calls use ``target.symbol`` — the
+    one clean binding resolved at the top of the run. With NO bound target the
+    researcher is WEB-ONLY: zero structured calls (a query sentence must never
+    ride a ``symbol`` arg), and the extraction prompt says so honestly.
 
     With a ``visit`` wired (R7), the TOP web result's page is fetched + reduced
     to readable text so the extraction reads past the two-line snippet. ALL web
@@ -394,6 +505,7 @@ async def _run_researcher(
     from services.search.scrub import wrap_untrusted
 
     low = sub_question.lower()
+    symbol = target.symbol if target is not None else ""
     if any(k in low for k in ("valuation", "fundamental", "earnings", "margin", "revenue", "debt")):
         dim, tool, args = "fundamentals", "fundamentals", {"symbol": symbol}
         bias_dim = "fundamentals"
@@ -407,17 +519,23 @@ async def _run_researcher(
         dim, tool, args = "news", "news", {"symbols": [symbol]}
         bias_dim = "news"
 
-    web_query = f"{symbol} {sub_question}"
+    web_query = _researcher_web_query(sub_question, target=target, query=query)
     if site_bias:
         web_query = finance.bias_query(web_query, dim=bias_dim, region=region)
     web_args: dict[str, Any] = {"query": web_query}
     if region:
         web_args["region"] = region
 
-    structured_res, web_res = await asyncio.gather(
-        _safe_tool(tool_call, tool, args),
-        _safe_tool(tool_call, "web_search", web_args),
-    )
+    if target is not None:
+        structured_res, web_res = await asyncio.gather(
+            _safe_tool(tool_call, tool, args),
+            _safe_tool(tool_call, "web_search", web_args),
+        )
+    else:
+        # Web-only: no bound instrument means NO structured call may fire — a
+        # free-text query must never be passed where a symbol is expected.
+        structured_res = {"ok": False, "error": "no listed instrument bound — web evidence only"}
+        web_res = await _safe_tool(tool_call, "web_search", web_args)
 
     page_url = _top_result_url(web_res) if visit is not None else None
     page_text: str | None = None
@@ -430,6 +548,23 @@ async def _run_researcher(
     web_block = wrap_untrusted("web_search results", web_res)
     if page_text:
         web_block += "\n\n" + wrap_untrusted(page_url or "visited page", page_text)
+
+    # Honest leg-status framing (R8): a FAILED structured pull is a feed outage,
+    # not proof the data does not exist — the extraction must never convert
+    # "temporarily unavailable" into "the company has no fundamentals".
+    if target is None:
+        structured_line = (
+            "Structured: (no listed instrument bound for this query — web evidence only)"
+        )
+    elif structured_res.get("ok"):
+        structured_line = f"Structured ({tool}): {structured_res}"
+    else:
+        reason = structured_res.get("error") or structured_res.get("message") or "unavailable"
+        structured_line = (
+            f"Structured ({tool}): temporarily unavailable this run ({reason}). "
+            "This is a feed outage, NOT evidence the data does not exist — do not "
+            "conclude the figures are unavailable or missing."
+        )
 
     extract = await _safe_llm(
         llm_call,
@@ -447,16 +582,29 @@ async def _run_researcher(
             {
                 "role": "user",
                 "content": (
-                    f"Sub-question: {sub_question}\n"
-                    f"Structured ({tool}): {structured_res}\n"
-                    f"Web evidence:\n{web_block}"
+                    f"Sub-question: {sub_question}\n{structured_line}\nWeb evidence:\n{web_block}"
                 ),
             },
         ],
     )
     finding = extract.strip() or f"(no finding extracted for: {sub_question})"
-    structured_pair = {"dim": dim, "result": structured_res} if structured_res.get("ok") else {}
-    return finding, web_res, structured_pair
+    structured_pairs = [{"dim": dim, "result": structured_res}] if structured_res.get("ok") else []
+    return finding, web_res, structured_pairs
+
+
+def _researcher_web_query(sub_question: str, *, target: ResearchTarget | None, query: str) -> str:
+    """The researcher's web query, anchored on the BOUND instrument.
+
+    With a target: ``"{name}" {symbol} {sub_question}`` — the quoted display
+    name pins the engine on the company (the bare-ticker query is what let
+    crypto "Router Protocol" rows flood a Route Mobile run). Without a target:
+    the clean user query + the sub-question.
+    """
+    if target is None:
+        return f"{query} {sub_question}".strip()
+    if target.name and target.name.upper() != target.symbol:
+        return f'"{target.name}" {target.symbol} {sub_question}'
+    return f"{target.symbol} {sub_question}"
 
 
 def _synthesize_brief(
@@ -495,7 +643,12 @@ def _synthesize_brief(
 
 
 async def _final_synthesis(
-    llm_call: LLMCall, *, query: str, symbol: str, findings: _Findings
+    llm_call: LLMCall,
+    *,
+    query: str,
+    symbol: str,
+    findings: _Findings,
+    structured: dict[str, Any] | None = None,
 ) -> str:
     """Ask the LLM to write the brief markdown with inline ``[n]`` citations.
 
@@ -514,6 +667,7 @@ async def _final_synthesis(
     sources = findings.all_sources()
     numbered = "\n".join(f"[{i + 1}] {s.title} — {s.url}" for i, s in enumerate(sources))
     priority = finance.priority_note(sources)
+    snapshot = snapshot_context(structured or {})
     body = await _safe_llm(
         llm_call,
         [
@@ -536,8 +690,11 @@ async def _final_synthesis(
                 "role": "user",
                 "content": (
                     f"Query: {query}\nSymbol: {symbol}\n\n"
-                    f"Findings:\n" + "\n".join(f"- {f}" for f in findings.findings) + "\n\n"
-                    f"Sources:\n{numbered}"
+                    f"Findings:\n"
+                    + "\n".join(f"- {f}" for f in findings.findings)
+                    + "\n\n"
+                    + ((snapshot + "\n\n") if snapshot else "")
+                    + f"Sources:\n{numbered}"
                 ),
             },
         ],
@@ -566,12 +723,20 @@ async def run_deep_research(
     visit: VisitCall | None = None,
     min_web_domains: int = 1,
     site_bias: bool = False,
+    target: ResearchTarget | None = None,
+    bound: bool = False,
 ) -> ResearchBrief:
     """Run the DEEP bounded research loop for ``query``; return a brief.
 
     See the module docstring for the loop shape and the three invariants. The
     function ALWAYS returns a :class:`ResearchBrief` — a budget breach aborts to
-    synthesis (with ``note`` set to the breach reason), never raises.
+    synthesis (with a human note), never raises.
+
+    R8 target contract: resolution happens exactly ONCE. A caller that already
+    resolved passes ``target`` (possibly ``None`` for a web-only run) with
+    ``bound=True`` and this loop NEVER re-resolves; otherwise the clean
+    ``query`` is resolved here, once, via :func:`resolve_target`. ``None``
+    target → web-only research, ``brief.symbol == ""``, zero structured calls.
 
     R7 depth knobs: ``min_web_domains`` scales the coverage strictness (distinct
     web domains required before "complete"); ``site_bias`` turns on the finance
@@ -581,24 +746,27 @@ async def run_deep_research(
     steps: list[ResearchStep] = []
     structured: dict[str, Any] = {}
 
-    # Resolve once up front so every round + the web rounds use a clean symbol.
-    resolve_args: dict[str, Any] = {"query": query}
-    if region:
-        resolve_args["region"] = region
-    resolved = await _safe_tool(tool_call, "resolve_symbol", resolve_args)
-    instrument = (resolved.get("resolved") or {}) if resolved.get("ok") else {}
-    symbol = instrument.get("symbol") or query
-    structured["resolved"] = resolved
+    # Resolve once up front (unless the caller already bound the target) so
+    # every round + the web rounds use ONE clean symbol.
+    if target is None and not bound:
+        target = await resolve_target(tool_call, query, region=region)
+    symbol = target.symbol if target is not None else ""
+    structured["resolved"] = resolved_payload(target)
     # Snapshot price + fundamentals so a DEEP brief backs the same native metric
     # cards as a FAST one (additive; a failed leg renders no card, never raises).
-    if resolved.get("ok"):
-        structured.update(await snapshot_structured(tool_call, symbol))
+    if target is not None:
+        structured.update(await snapshot_structured(tool_call, target.symbol))
+        record_snapshot_sources(findings, target.symbol, structured)
 
     async def abort_synthesize(reason: str) -> ResearchBrief:
         """Immediate abort→synthesis from whatever is gathered (never raises)."""
         t0 = time.monotonic()
-        markdown = await _final_synthesis(llm_call, query=query, symbol=symbol, findings=findings)
-        markdown = web_only_floor_note(markdown, structured=structured, findings=findings)
+        markdown = await _final_synthesis(
+            llm_call, query=query, symbol=symbol, findings=findings, structured=structured
+        )
+        markdown = finalize_markdown(
+            markdown, target=target, structured=structured, findings=findings
+        )
         latency = int((time.monotonic() - t0) * 1000)
         step = ResearchStep("synthesize", f"abort→synthesize: {reason}", latency_ms=latency)
         steps.append(step)
@@ -649,10 +817,11 @@ async def run_deep_research(
         if not open_questions:
             # No plan came back (dead/blank LLM) — seed a default fan-out so the
             # round still does real work rather than stalling.
+            display = symbol or query
             open_questions = [
-                f"What is the recent price action and trend for {symbol}?",
-                f"What do the latest fundamentals say about {symbol}?",
-                f"What recent news affects {symbol}?",
+                f"What is the recent price action and trend for {display}?",
+                f"What do the latest fundamentals say about {display}?",
+                f"What recent news affects {display}?",
             ][:max_researchers]
         plan_step = ResearchStep(
             "plan",
@@ -668,7 +837,8 @@ async def run_deep_research(
             *(
                 _run_researcher(
                     q,
-                    symbol=symbol,
+                    target=target,
+                    query=query,
                     region=region,
                     tool_call=tool_call,
                     llm_call=llm_call,
@@ -678,15 +848,13 @@ async def run_deep_research(
                 for q in open_questions[:max_researchers]
             )
         )
-        for q, (finding, web_res, structured_pair) in zip(
+        for q, (finding, web_res, structured_pairs) in zip(
             open_questions[:max_researchers], results, strict=False
         ):
             findings.findings.append(finding)
-            _record_web(findings, web_res)
-            if structured_pair:
-                _record_structured(
-                    findings, symbol, structured_pair["dim"], structured_pair["result"]
-                )
+            _record_web(findings, web_res, target=target, query=query)
+            for pair in structured_pairs:
+                _record_structured(findings, symbol, pair["dim"], pair["result"])
             rstep = ResearchStep(
                 "tool",
                 f"researcher: {q}",
@@ -777,8 +945,10 @@ async def run_deep_research(
 
     # --- clean completion: final synthesize ---------------------------------
     synth_t0 = time.monotonic()
-    markdown = await _final_synthesis(llm_call, query=query, symbol=symbol, findings=findings)
-    markdown = web_only_floor_note(markdown, structured=structured, findings=findings)
+    markdown = await _final_synthesis(
+        llm_call, query=query, symbol=symbol, findings=findings, structured=structured
+    )
+    markdown = finalize_markdown(markdown, target=target, structured=structured, findings=findings)
     synth_step = ResearchStep(
         "synthesize",
         "wrote brief",
@@ -805,7 +975,10 @@ __all__ = [
     "VisitCall",
     "coverage_floor_met",
     "distinct_web_domains",
+    "finalize_markdown",
+    "record_snapshot_sources",
     "run_deep_research",
+    "snapshot_context",
     "structured_feeds_available",
     "web_only_floor_note",
 ]

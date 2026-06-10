@@ -54,8 +54,12 @@ def _web_result() -> dict[str, Any]:
     return {
         "ok": True,
         "backend": "exa",
-        "results": [{"url": "https://news.example/a", "title": "A", "snippet": "s"}],
-        "citations": [{"url": "https://news.example/a", "title": "A", "excerpt": "e"}],
+        "results": [
+            {"url": "https://news.example/a", "title": "Apple results update", "snippet": "s"}
+        ],
+        "citations": [
+            {"url": "https://news.example/a", "title": "Apple results update", "excerpt": "e"}
+        ],
     }
 
 
@@ -75,7 +79,10 @@ class _FakeToolCall:
                 "resolved": {
                     "symbol": "AAPL",
                     "name": "Apple Inc.",
+                    "exchange": "NASDAQ",
+                    "region": "US",
                     "asset_class": "equity",
+                    "confidence": 0.98,
                 },
             }
         if name == "price_data":

@@ -67,12 +67,27 @@ class FakeLLM:
 
 async def fake_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
     if name == "resolve_symbol":
-        return {"ok": True, "resolved": {"symbol": "NVDA"}}
+        return {
+            "ok": True,
+            "resolved": {
+                "symbol": "NVDA",
+                "name": "NVIDIA Corporation",
+                "exchange": "NASDAQ",
+                "region": "US",
+                "asset_class": "equity",
+                "confidence": 0.97,
+            },
+        }
     if name == "web_search":
         return {
             "ok": True,
             "citations": [
-                {"url": "https://ex.com/a", "title": "A", "excerpt": "x", "source": "ex.com"}
+                {
+                    "url": "https://ex.com/a",
+                    "title": "NVIDIA quarterly results",
+                    "excerpt": "NVDA revenue grew",
+                    "source": "ex.com",
+                }
             ],
         }
     # structured legs (fundamentals / news / price_data / sec_filings_list)
@@ -218,7 +233,14 @@ def test_heavy_spawns_angles_and_synthesizes_merged_sources() -> None:
         )
     )
     assert isinstance(brief, ResearchBrief)
-    assert brief.note is not None and brief.note.startswith("heavy:")
+    # R8: the "heavy:N angles" implementation note is GONE — brief.note renders
+    # to the user; the angle trace rides structured["panel"] instead.
+    assert brief.note is None
+    assert [p["angle"] for p in brief.structured["panel"]] == [1, 2, 3]
+    # The merged brief carries the ORIGINAL query + the bound symbol — never the
+    # focus-augmented explorer task text.
+    assert brief.query == "investment thesis for NVDA"
+    assert brief.symbol == "NVDA"
     # All angles cited the same web url; the merged source list de-dupes it to one.
     web_urls = [s.url for s in brief.sources if s.url == "https://ex.com/a"]
     assert len(web_urls) == 1
