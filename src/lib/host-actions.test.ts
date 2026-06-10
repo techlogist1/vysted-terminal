@@ -15,6 +15,7 @@ import { composeBriefMarkdown } from "@/lib/brief-ingest";
 import { useBriefStore } from "@/store/brief";
 import { useBrokersStore } from "@/store/brokers";
 import { useChartCommandStore } from "@/store/chart-command";
+import { resetEquityCommandStoreForTests, useEquityCommandStore } from "@/store/equity-command";
 import { useOrdersStore } from "@/store/orders";
 import { useScreenerStore } from "@/store/screener";
 import { useSymbolsStore } from "@/store/symbols";
@@ -23,6 +24,7 @@ import { useWorkspaceStore } from "@/store/workspace";
 describe("host-actions", () => {
   beforeEach(() => {
     useChartCommandStore.setState({ command: null, activeSymbol: null });
+    resetEquityCommandStoreForTests();
     useSymbolsStore.setState({ entries: [] });
     useOrdersStore.setState({ proposals: [], activeProposalId: null });
     useBrokersStore.setState({ byId: {} });
@@ -71,12 +73,77 @@ describe("host-actions", () => {
     const maximise = describeHostAction("arrange_layout", { pattern: "focus", panel: "chart" });
     expect(maximise.after).toMatch(/maximised|Chart/);
 
-    // apply returns a label (the dockview ops no-op cleanly with no api in jsdom)
-    expect(applyHostAction("close_panel", { panel: "news" })).toMatch(/Closed/);
-    expect(applyHostAction("focus_panel", { panel: "chart" })).toMatch(/Focused/);
+    // apply narrates TRUTHFULLY with no layout on screen (jsdom: no dockview
+    // api): closing a not-open panel reports the already-true end state, and
+    // focusing a not-yet-open singleton reports the open-and-focus it issued.
+    useWorkspaceStore.setState({ dockviewApi: null, openPanel: vi.fn() } as never);
+    expect(applyHostAction("close_panel", { panel: "news" })).toBe("News was already closed");
+    expect(applyHostAction("focus_panel", { panel: "chart" })).toBe("Opened and focused Chart");
     expect(applyHostAction("arrange_layout", { pattern: "default" })).toMatch(/default/i);
     // focus pattern with no open target panel can't apply -> null (re-pends)
     expect(applyHostAction("arrange_layout", { pattern: "focus", panel: "chart" })).toBeNull();
+  });
+
+  // --- grounded narration (R8 seams deliverable 5): no fake success labels ----
+
+  it("open/close/focus on an UNKNOWN panel id return null — never a fake success", () => {
+    useWorkspaceStore.setState({ dockviewApi: null, openPanel: vi.fn() } as never);
+    expect(applyHostAction("open_panel", { panel: "flux-capacitor" })).toBeNull();
+    expect(applyHostAction("close_panel", { panel: "flux-capacitor" })).toBeNull();
+    expect(applyHostAction("focus_panel", { panel: "flux-capacitor" })).toBeNull();
+  });
+
+  it("open_panel('screener') opens the REGISTERED id (kills the screener id drift)", () => {
+    const openPanel = vi.fn();
+    useWorkspaceStore.setState({
+      // The fake layout already shows the screener component, so the
+      // post-open verification sees the panel on screen.
+      dockviewApi: {
+        panels: [{ api: { component: "screener-panel" } }],
+        getPanel: () => undefined,
+      } as never,
+      openPanel,
+    } as never);
+    expect(applyHostAction("open_panel", { panel: "screener" })).toBe("Opened Screener");
+    // The registered PanelSpec id — NOT the bare "screener" that no-ops.
+    expect(openPanel).toHaveBeenCalledWith("screener-panel");
+  });
+
+  it("open_panel returns null when the panel did not actually open (disabled module)", () => {
+    const openPanel = vi.fn(); // a no-op open — the module is disabled
+    useWorkspaceStore.setState({
+      dockviewApi: { panels: [], getPanel: () => undefined } as never,
+      openPanel,
+    } as never);
+    expect(applyHostAction("open_panel", { panel: "news" })).toBeNull();
+    expect(openPanel).toHaveBeenCalledWith("news");
+  });
+
+  it("close_panel closes an OPEN panel and says so; focus_panel focuses it", () => {
+    const closeSpy = vi.fn();
+    const setActiveSpy = vi.fn();
+    const newsPanel = {
+      api: { component: "news-panel", close: closeSpy, setActive: setActiveSpy },
+    };
+    useWorkspaceStore.setState({
+      dockviewApi: {
+        panels: [newsPanel],
+        getPanel: (id: string) => (id === "news" ? newsPanel : undefined),
+      } as never,
+      openPanel: vi.fn(),
+    } as never);
+    expect(applyHostAction("focus_panel", { panel: "news" })).toBe("Focused News");
+    expect(setActiveSpy).toHaveBeenCalledTimes(1);
+    expect(applyHostAction("close_panel", { panel: "news" })).toBe("Closed News");
+    expect(closeSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("focus_panel returns null when the panel can neither be found nor opened", () => {
+    useWorkspaceStore.setState({
+      dockviewApi: { panels: [], getPanel: () => undefined } as never,
+      openPanel: vi.fn(), // no-op open: the module is disabled
+    } as never);
+    expect(applyHostAction("focus_panel", { panel: "news" })).toBeNull();
   });
 
   it("applyHostAction(set_chart_symbol) commands the chart to load the symbol", () => {
@@ -189,6 +256,66 @@ describe("host-actions", () => {
     } as never);
     applyHostAction("set_chart_symbol", { symbol: "RELIANCE" });
     expect(openPanel).not.toHaveBeenCalled();
+  });
+
+  // --- open_panel carries its arguments (R8 seams deliverable 3) -------------
+
+  it("describeHostAction(open_panel) renders the symbol for a symbol-aware panel", () => {
+    const diff = describeHostAction("open_panel", {
+      panel: "equity-overview",
+      symbol: "SAKSOFT.NS",
+    });
+    expect(diff.title).toBe("Open Equity Overview — SAKSOFT.NS");
+    expect(diff.after).toContain("SAKSOFT.NS loaded");
+
+    // A stray symbol on a non-symbol-aware panel is NOT promised in the diff —
+    // the description must match exactly what the apply will do.
+    const plain = describeHostAction("open_panel", { panel: "news", symbol: "NVDA" });
+    expect(plain.title).toBe("Open News");
+    expect(plain.after).not.toContain("NVDA");
+  });
+
+  it("open_panel(equity-overview, symbol) opens the panel AND routes the symbol via the equity-command channel", () => {
+    const openPanel = vi.fn();
+    useWorkspaceStore.setState({ dockviewApi: null, openPanel } as never);
+    const label = applyHostAction("open_panel", {
+      panel: "equity-overview",
+      symbol: "SAKSOFT.NS",
+    });
+    expect(label).toBe("Opened Equity Overview — SAKSOFT.NS");
+    // The panel is opened first so the command has a consumer…
+    expect(openPanel).toHaveBeenCalledWith("equity-overview");
+    // …and the symbol rides the always-consumed equity-command channel. The
+    // store RETAINS the command, so a panel that mounts after this still sees it.
+    expect(useEquityCommandStore.getState().command).toMatchObject({ symbol: "SAKSOFT.NS" });
+  });
+
+  it("open_panel resolves aliases — 'overview' routes the symbol like 'equity-overview'", () => {
+    const openPanel = vi.fn();
+    useWorkspaceStore.setState({ dockviewApi: null, openPanel } as never);
+    applyHostAction("open_panel", { panel: "overview", symbol: "RELIANCE.NS" });
+    expect(openPanel).toHaveBeenCalledWith("equity-overview");
+    expect(useEquityCommandStore.getState().command).toMatchObject({ symbol: "RELIANCE.NS" });
+  });
+
+  it("open_panel(chart, symbol) routes through the chart-command channel", () => {
+    const openPanel = vi.fn();
+    useWorkspaceStore.setState({ dockviewApi: { panels: [] } as never, openPanel } as never);
+    const label = applyHostAction("open_panel", { panel: "chart", symbol: "NVDA" });
+    expect(label).toBe("Opened Chart — NVDA");
+    expect(openPanel).toHaveBeenCalledWith("chart");
+    expect(useChartCommandStore.getState().command?.symbol).toBe("NVDA");
+  });
+
+  it("open_panel ignores a stray symbol on a non-symbol-aware panel", () => {
+    const openPanel = vi.fn();
+    useWorkspaceStore.setState({ dockviewApi: null, openPanel } as never);
+    const label = applyHostAction("open_panel", { panel: "news", symbol: "NVDA" });
+    expect(label).toBe("Opened News");
+    expect(openPanel).toHaveBeenCalledWith("news");
+    // Neither command channel fires for a panel that consumes no symbol.
+    expect(useEquityCommandStore.getState().command).toBeNull();
+    expect(useChartCommandStore.getState().command).toBeNull();
   });
 
   // --- WS3: honest web banner — briefFromInput reconciliation ----------------

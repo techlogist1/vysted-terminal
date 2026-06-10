@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 
 import { SidecarError } from "@/lib/sidecar-client";
+import { resetEquityCommandStoreForTests, useEquityCommandStore } from "@/store/equity-command";
 import type { AnalystRating, FinancialStatement, Fundamentals, Quote } from "../../../types/data";
 import { EquityOverviewPanel } from "./EquityOverviewPanel";
 import type { EquityOverview } from "./api";
@@ -121,11 +122,19 @@ async function loadSymbol(value = "aapl"): Promise<void> {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  resetEquityCommandStoreForTests();
 });
 
 afterEach(() => {
   cleanup();
 });
+
+/** Flush the panel's deferred (setTimeout 0) command consumption. */
+async function flushCommandTick(): Promise<void> {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+}
 
 describe("EquityOverviewPanel", () => {
   it("shows a composed empty state with quick-load chips before a symbol is loaded", () => {
@@ -233,5 +242,35 @@ describe("EquityOverviewPanel", () => {
     await loadSymbol();
 
     expect(screen.getByText("upstream down")).toBeInTheDocument();
+  });
+
+  // --- equity-command consumption (R8 seams deliverable 4) -------------------
+
+  it("consumes a command issued BEFORE it mounted (the open-then-command host action race)", async () => {
+    mockLoad.mockResolvedValue(overview());
+    // The host action fires loadSymbol FIRST (openCompanyOverview / open_panel
+    // with a symbol), and the freshly-opened panel subscribes a tick later.
+    useEquityCommandStore.getState().loadSymbol("SAKSOFT.NS");
+    render(<EquityOverviewPanel />);
+    await flushCommandTick();
+    expect(mockLoad).toHaveBeenCalledWith("SAKSOFT.NS");
+  });
+
+  it("re-issuing the SAME symbol re-triggers the load (seq-keyed consumption)", async () => {
+    mockLoad.mockResolvedValue(overview());
+    render(<EquityOverviewPanel />);
+
+    await act(async () => {
+      useEquityCommandStore.getState().loadSymbol("AAPL");
+    });
+    await flushCommandTick();
+    expect(mockLoad).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      useEquityCommandStore.getState().loadSymbol("AAPL");
+    });
+    await flushCommandTick();
+    expect(mockLoad).toHaveBeenCalledTimes(2);
+    expect(mockLoad).toHaveBeenLastCalledWith("AAPL");
   });
 });

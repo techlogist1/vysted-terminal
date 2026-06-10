@@ -125,6 +125,82 @@ SCHEMA_PATH = AGENTS_DIR / "_schema.json"
 _RESERVED = {"_schema.json"}
 
 
+def _host_action_tool_ids() -> tuple[str, ...]:
+    """Every host-action capability id, PROJECTED from the catalog.
+
+    Constitution Principle II: the capability catalog is the one source of
+    truth — this is a projection (``kind == "host_action"``), never a
+    hand-maintained list, so a new host action reaches the whole first-party
+    roster the moment it lands in the catalog.
+    """
+    return tuple(c.id for c in catalog.CAPABILITY_CATALOG.values() if c.kind == "host_action")
+
+
+#: Non-host-action tools every first-party agent also gets (D21): the ONE
+#: research capability, so a persona can ground its lens in the same cited
+#: research pipeline the copilot uses.
+_FIRST_PARTY_EXTRA_TOOLS: tuple[str, ...] = ("research",)
+
+#: Shared terminal-capabilities preamble appended to every first-party agent's
+#: system prompt at LOAD time (D21 deliverable 2 — the persona JSON keeps its
+#: voice; the loader tells it about its hands). Mirrors what the copilot's own
+#: prompt teaches: the agent CAN drive the cockpit, and it must narrate
+#: applied-vs-proposed truthfully so chat claims always match real panel state.
+TERMINAL_CAPABILITIES_PREAMBLE = (
+    "## Terminal capabilities\n"
+    "You are operating inside the Vysted terminal, and your analysis comes with "
+    "hands — you CAN drive the cockpit with tools, never claim otherwise. You can "
+    "open, close, or focus panels (open_panel / close_panel / focus_panel — "
+    "open_panel takes an optional symbol so a symbol-aware panel like "
+    "equity-overview or the chart opens ON that company, never empty), load a "
+    "symbol into the chart (set_chart_symbol), apply chart indicators "
+    "(set_chart_indicators), open a company's full overview (open_company_overview "
+    "— always pass the symbol), arrange the cockpit layout (arrange_layout), add "
+    "symbols to the watchlist (add_to_watchlist), publish a research brief "
+    "(publish_brief), stage screener filters for the user to review and run "
+    "(write_screener_filters), and run the research tool for a grounded, cited "
+    "workup. When showing something on screen would help the user, do it.\n"
+    "Narrate these actions truthfully, matching each tool result: a result that "
+    "says applied means the change ALREADY landed — say so in past tense; a result "
+    "that says awaiting_user_review means it is STAGED for the user's review — say "
+    "you proposed it, never claim it is done; a result that reports a failure "
+    "means it did NOT happen — say plainly what could not be done. Orders are "
+    "never placed by you: propose_order only ever stages an order behind the "
+    "user's explicit confirm-before-place dialog, in every mode."
+)
+
+
+def _grant_first_party_hands(spec: AgentSpec) -> AgentSpec:
+    """Union a first-party agent's tools with the copilot's terminal hands.
+
+    Lead decision D21 (locked): persona = voice + analytical style ONLY. The
+    JSON files keep each persona's voice/specialty tools; at LOAD time every
+    first-party agent's effective allow-list is unioned with the catalog's
+    host-action ids (projected above) plus the ``research`` tool — so a
+    persona never again declares "I don't have the ability to open panels"
+    while the copilot drives the terminal freely.
+
+    §6.5 is untouched: this widens the ALLOW-list only. ``propose_order``
+    still rides the proposed-changes gate and the confirm-before-place dialog
+    for EVERY agent, and the read-only mode gate in :func:`invoke_agent`
+    strips mutating tools from read turns exactly as before.
+    """
+    merged = list(spec.tools)
+    seen = set(merged)
+    for tool_id in (*_host_action_tool_ids(), *_FIRST_PARTY_EXTRA_TOOLS):
+        if tool_id not in seen:
+            seen.add(tool_id)
+            merged.append(tool_id)
+    # Tell the persona about its hands (deliverable 2): the shared
+    # terminal-capabilities note rides every first-party system prompt at the
+    # loader level — the JSON voice text stays untouched on disk. Guarded so a
+    # double application (or a prompt that already carries it) stays idempotent.
+    prompt = spec.system_prompt
+    if TERMINAL_CAPABILITIES_PREAMBLE not in prompt:
+        prompt = f"{prompt}\n\n{TERMINAL_CAPABILITIES_PREAMBLE}"
+    return spec.model_copy(update={"tools": merged, "system_prompt": prompt})
+
+
 def _load_schema() -> dict[str, Any]:
     """Read the AgentSpec JSON Schema; raise loudly if missing or malformed."""
     with SCHEMA_PATH.open(encoding="utf-8") as handle:
@@ -173,7 +249,11 @@ def _discover_specs(agents_dir: Path = AGENTS_DIR) -> dict[str, AgentSpec]:
         if spec.id in specs:
             logger.warning("agent %s: duplicate id %r; keeping first", path.name, spec.id)
             continue
-        specs[spec.id] = spec
+        # D21 loader-level parity: every first-party agent gets the copilot's
+        # host actions + research, derived from the catalog — the JSON stays
+        # the persona's voice/specialty. Custom agents (the agents_store
+        # fallback in get_agent) are NOT unioned; their authors pick tools.
+        specs[spec.id] = _grant_first_party_hands(spec)
     return specs
 
 

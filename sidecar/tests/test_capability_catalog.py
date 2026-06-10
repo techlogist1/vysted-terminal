@@ -115,6 +115,22 @@ def test_stale_bogus_ids_are_gone() -> None:
     assert "macro_series" in KNOWN_TOOL_IDS
 
 
+# --- open_panel carries its arguments (R8 seams) ---
+
+
+def test_open_panel_schema_carries_optional_symbol() -> None:
+    """The open_panel host action takes an optional ``symbol`` for symbol-aware
+    panels (equity-overview, chart) — projected to TOOL_SCHEMAS from the catalog.
+    ``panel`` stays the only required field (the symbol must never become
+    mandatory: most panels consume none)."""
+    schema = TOOL_SCHEMAS["open_panel"]["input_schema"]
+    assert "panel" in schema["properties"]
+    assert "symbol" in schema["properties"]
+    assert schema.get("required") == ["panel"]
+    # The model is TOLD what the symbol does (schemas are the model's docs).
+    assert "symbol-aware" in schema["properties"]["symbol"]["description"]
+
+
 # --- The documented macro_series provider-field regression ---
 
 
