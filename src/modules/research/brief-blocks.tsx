@@ -34,7 +34,12 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { ProvenanceBadge, StalenessBadge, type Freshness } from "@/components/DataBadges";
-import { deriveAssetClass, type BriefAssetClass } from "@/lib/brief-ingest";
+import {
+  dedupeSources,
+  deriveAssetClass,
+  sanitizeCitationMarkers,
+  type BriefAssetClass,
+} from "@/lib/brief-ingest";
 import { loadSymbolIntoChart } from "@/lib/host-actions";
 import { staggerChild, staggerParent } from "@/lib/motion";
 import { useSymbolsStore } from "@/store/symbols";
@@ -594,15 +599,35 @@ function HeadingBlock({ level, text, ctx }: { level: number; text: string; ctx: 
   );
 }
 
-function ParagraphBlock({ text, ctx }: { text: string; ctx: InlineCtx }) {
-  return <p className="text-charcoal-200 text-prose leading-relaxed">{renderInline(text, ctx)}</p>;
+function ParagraphBlock({
+  text,
+  ctx,
+  proseClass,
+}: {
+  text: string;
+  ctx: InlineCtx;
+  proseClass: string;
+}) {
+  return (
+    <p className={`text-charcoal-200 ${proseClass} leading-relaxed`}>{renderInline(text, ctx)}</p>
+  );
 }
 
-function ListBlock({ ordered, items, ctx }: { ordered: boolean; items: string[]; ctx: InlineCtx }) {
+function ListBlock({
+  ordered,
+  items,
+  ctx,
+  proseClass,
+}: {
+  ordered: boolean;
+  items: string[];
+  ctx: InlineCtx;
+  proseClass: string;
+}) {
   const Tag = ordered ? "ol" : "ul";
   return (
     <Tag
-      className={`text-charcoal-200 text-prose ml-4 flex flex-col gap-1 leading-relaxed ${
+      className={`text-charcoal-200 ${proseClass} ml-4 flex flex-col gap-1 leading-relaxed ${
         ordered ? "list-decimal" : "list-disc"
       }`}
     >
@@ -688,10 +713,19 @@ export function MarkdownBody({
   source,
   known,
   onCite,
+  responsiveProse = false,
 }: {
   source: string;
   known?: Set<string>;
   onCite?: (n: number) => void;
+  /**
+   * Container-aware prose sizing (R8 Proportion Law §1): when true (the brief
+   * body, whose panel root declares `@container`), reading prose renders at
+   * `text-body` (13px) and steps up to `text-prose` (16px) only at ≥420px of
+   * container width — never 16px squeezed into a 200px column. Chat keeps its
+   * own sizing (default false; no container ancestor required).
+   */
+  responsiveProse?: boolean;
 }) {
   const reduced = useReducedMotion();
   const blocks = useMemo(() => parseBodyBlocks(source), [source]);
@@ -699,6 +733,7 @@ export function MarkdownBody({
     () => ({ onCite: onCite ?? (() => {}), known: known ?? new Set<string>() }),
     [onCite, known],
   );
+  const proseClass = responsiveProse ? "text-body @min-[420px]:text-prose" : "text-prose";
 
   const childProps = reduced ? {} : { variants: staggerChild };
 
@@ -709,9 +744,14 @@ export function MarkdownBody({
           {block.kind === "heading" ? (
             <HeadingBlock level={block.level} text={block.text} ctx={ctx} />
           ) : block.kind === "paragraph" ? (
-            <ParagraphBlock text={block.text} ctx={ctx} />
+            <ParagraphBlock text={block.text} ctx={ctx} proseClass={proseClass} />
           ) : block.kind === "list" ? (
-            <ListBlock ordered={block.ordered} items={block.items} ctx={ctx} />
+            <ListBlock
+              ordered={block.ordered}
+              items={block.items}
+              ctx={ctx}
+              proseClass={proseClass}
+            />
           ) : block.kind === "code" ? (
             <CodeBlock lang={block.lang} text={block.text} />
           ) : (
@@ -772,6 +812,13 @@ export function BriefBody({
       ),
     [brief, watchlist],
   );
+  // R8 marker truth: a `[n]` beyond the deduped source rail (or ANY marker on a
+  // zero-source brief) is stripped before parsing — a dead chip never renders.
+  // The rail indexes the SAME deduped list, so marker range == rail range.
+  const body = useMemo(
+    () => sanitizeCitationMarkers(brief.markdown, dedupeSources(brief.sources).length),
+    [brief.markdown, brief.sources],
+  );
 
   const parentProps = reduced
     ? {}
@@ -785,7 +832,7 @@ export function BriefBody({
           <MetricsBlock model={metrics} />
         </motion.div>
       ) : null}
-      <MarkdownBody source={brief.markdown} known={known} onCite={onCite} />
+      <MarkdownBody source={body} known={known} onCite={onCite} responsiveProse />
     </motion.div>
   );
 }

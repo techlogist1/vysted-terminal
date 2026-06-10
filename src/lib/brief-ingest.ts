@@ -243,6 +243,85 @@ export function dedupeSources(sources: readonly BriefSource[]): BriefSource[] {
   return out;
 }
 
+// ── citation-marker + banner truth (R8) ─────────────────────────────────────
+
+/** Inline `[n]` citation marker — not a markdown link (`[1](url)` is a link). */
+const CITE_MARKER_RE = /\[(\d{1,3})\](?!\()/g;
+
+/**
+ * Strip every inline `[n]` marker whose index exceeds the cited source count
+ * (or any marker at all when there are zero sources). The live failure: a FAST
+ * brief whose prose cited "[1] Screener.in" while the rail held 0 sources, and
+ * an ULTRA brief citing [47] against 21 sources — a dead chip must never
+ * render. Punctuation/space residue from the removal is tidied per line.
+ */
+export function sanitizeCitationMarkers(markdown: string, sourceCount: number): string {
+  let removed = false;
+  const cleaned = markdown.replace(CITE_MARKER_RE, (whole, digits: string) => {
+    const n = Number(digits);
+    if (n >= 1 && n <= sourceCount) {
+      return whole;
+    }
+    removed = true;
+    return "";
+  });
+  if (!removed) {
+    return markdown;
+  }
+  return cleaned
+    .split("\n")
+    .map((line) =>
+      line
+        .replace(/[ \t]+([.,;:!?)\]])/g, "$1")
+        .replace(/\(\s*\)/g, "")
+        .replace(/[ \t]{2,}/g, " ")
+        .trimEnd(),
+    )
+    .join("\n");
+}
+
+/** Bare-domain shapes that read as a web citation inside prose. */
+const WEB_DOMAIN_RE =
+  /https?:\/\/|\b[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.(?:com|net|org|io|co|in|gov|edu)\b/i;
+
+/**
+ * Does the brief BODY visibly cite web domains (Screener.in, URLs, …)?
+ * Drives the honest banner copy: when the body cites the web but the run
+ * captured zero sources, the banner must say "Sources were not captured for
+ * this brief" — never the internally-inconsistent "no web sources found".
+ */
+export function bodyCitesWeb(markdown: string): boolean {
+  return WEB_DOMAIN_RE.test(markdown);
+}
+
+/**
+ * The meta-header token segment, or `null` to OMIT it entirely — zero tokens
+ * never render as "0 tok" (R8 Proportion Law §6).
+ */
+export function formatBriefTokens(tokens: number | undefined): string | null {
+  if (typeof tokens !== "number" || !Number.isFinite(tokens) || tokens <= 0) {
+    return null;
+  }
+  if (tokens >= 1000) {
+    return `${(tokens / 1000).toFixed(tokens >= 10000 ? 0 : 1)}k tok`;
+  }
+  return `${tokens} tok`;
+}
+
+/**
+ * The meta-header spend segment, or `null` to OMIT it. "$0.0000" never renders
+ * (R8 Proportion Law §6): zero/absent spend → omit; below $0.005 → "<$0.01".
+ */
+export function formatBriefSpend(spendUsd: number | undefined): string | null {
+  if (typeof spendUsd !== "number" || !Number.isFinite(spendUsd) || spendUsd <= 0) {
+    return null;
+  }
+  if (spendUsd < 0.005) {
+    return "<$0.01";
+  }
+  return `$${spendUsd.toFixed(2)}`;
+}
+
 // ── asset-class metric branching ────────────────────────────────────────────
 
 /** The three metric families the brief's metric grid branches on. */
@@ -349,14 +428,16 @@ export function composeBriefMarkdown(brief: ResearchBriefData): string {
     lines.push("");
   }
 
-  const body = brief.markdown.trim();
+  // Sources appendix — de-duplicated, 1-based to match the `[n]` markers; the
+  // body is sanitised against the SAME deduped count so the exported document
+  // never carries a marker its own appendix cannot resolve (R8).
+  const sources = dedupeSources(brief.sources);
+
+  const body = sanitizeCitationMarkers(brief.markdown, sources.length).trim();
   if (body) {
     lines.push(body);
     lines.push("");
   }
-
-  // Sources appendix — de-duplicated, 1-based to match the `[n]` markers.
-  const sources = dedupeSources(brief.sources);
   if (sources.length > 0) {
     lines.push("## Sources");
     lines.push("");

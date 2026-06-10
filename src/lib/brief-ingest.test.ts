@@ -1,14 +1,18 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  bodyCitesWeb,
   briefSlug,
   composeBriefMarkdown,
   dedupeSources,
   deriveAssetClass,
   deriveSourceType,
+  formatBriefSpend,
+  formatBriefTokens,
   isAcceptableBriefMode,
   normalizeBriefDepth,
   normalizeBriefMode,
+  sanitizeCitationMarkers,
 } from "@/lib/brief-ingest";
 import type { BriefSource, BriefStructured, ResearchBriefData } from "../../types/brief";
 
@@ -239,5 +243,93 @@ describe("composeBriefMarkdown", () => {
   it("omits the symbol line when the brief has no symbol", () => {
     const md = composeBriefMarkdown(brief({ symbol: undefined }));
     expect(md).not.toContain("Symbol:");
+  });
+});
+
+// ── R8 truth surfaces: marker stripping, banner copy, cost formatting ────────
+
+describe("sanitizeCitationMarkers", () => {
+  it("strips markers exceeding the source count and tidies the residue", () => {
+    const md = "Revenue grew 23% [2]. Margin contracted [47]. Both held [1] [9].";
+    const out = sanitizeCitationMarkers(md, 3);
+    expect(out).not.toContain("[47]");
+    expect(out).not.toContain("[9]");
+    expect(out).toContain("[2]");
+    expect(out).toContain("[1]");
+    expect(out).toContain("Margin contracted.");
+    expect(out).not.toContain("  ");
+  });
+
+  it("strips EVERY marker on a zero-source brief (the fabricated-citation case)", () => {
+    const out = sanitizeCitationMarkers("P/E of 12 [1] per Screener.in [2].", 0);
+    expect(out).not.toMatch(/\[\d+\]/);
+    expect(out).toContain("P/E of 12");
+  });
+
+  it("leaves markdown links and in-range markers untouched", () => {
+    const md = "See [1](https://example.com/doc) and a real marker [2].";
+    expect(sanitizeCitationMarkers(md, 2)).toBe(md);
+  });
+
+  it("returns the input unchanged when every marker is in range", () => {
+    const md = "A [1] and B [2].";
+    expect(sanitizeCitationMarkers(md, 2)).toBe(md);
+  });
+});
+
+describe("bodyCitesWeb", () => {
+  it("detects bare domains and URLs in prose", () => {
+    expect(bodyCitesWeb("Per Screener.in the P/E is 12.")).toBe(true);
+    expect(bodyCitesWeb("See https://nseindia.com/quote for details.")).toBe(true);
+  });
+
+  it("stays false for plain prose and decimals", () => {
+    expect(bodyCitesWeb("Revenue grew 23.5% on margins of 12.1%.")).toBe(false);
+    expect(bodyCitesWeb("A structured-data-only readout.")).toBe(false);
+  });
+});
+
+describe("formatBriefTokens", () => {
+  it("omits the segment for zero/absent tokens", () => {
+    expect(formatBriefTokens(0)).toBeNull();
+    expect(formatBriefTokens(undefined)).toBeNull();
+    expect(formatBriefTokens(-5)).toBeNull();
+  });
+
+  it("renders compact token counts", () => {
+    expect(formatBriefTokens(412)).toBe("412 tok");
+    expect(formatBriefTokens(12_400)).toBe("12k tok");
+    expect(formatBriefTokens(2_500)).toBe("2.5k tok");
+  });
+});
+
+describe("formatBriefSpend", () => {
+  it("never renders $0.0000 — zero/absent spend is omitted", () => {
+    expect(formatBriefSpend(0)).toBeNull();
+    expect(formatBriefSpend(undefined)).toBeNull();
+  });
+
+  it("floors sub-cent spend to <$0.01 instead of $0.0000-style noise", () => {
+    expect(formatBriefSpend(0.0004)).toBe("<$0.01");
+    expect(formatBriefSpend(0.0049)).toBe("<$0.01");
+  });
+
+  it("renders readable two-decimal figures above the floor", () => {
+    expect(formatBriefSpend(0.03)).toBe("$0.03");
+    expect(formatBriefSpend(1.5)).toBe("$1.50");
+  });
+});
+
+describe("composeBriefMarkdown — marker truth (R8)", () => {
+  it("sanitises the exported body against the deduped source count", () => {
+    const md = composeBriefMarkdown(
+      brief({
+        markdown: "CUDA leads [1]. Fabricated claim [7].",
+        sources: [{ url: "https://sec.gov/a", title: "10-K", excerpt: "" }],
+        sourceCount: 1,
+      }),
+    );
+    expect(md).toContain("CUDA leads [1].");
+    expect(md).not.toContain("[7]");
   });
 });
