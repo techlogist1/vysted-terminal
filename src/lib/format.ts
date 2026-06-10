@@ -35,6 +35,18 @@ function activeCurrency(): string {
   return regionConfig(useSettingsStore.getState().region).currency;
 }
 
+/**
+ * Resolve the display currency for a money formatter call (R8 §6 — "currency
+ * formats by the INSTRUMENT's currency, never the locale default"). A caller
+ * holding the instrument's quoted currency (Quote.currency / Fundamentals
+ * .currency) passes it through; absent/blank input falls back to the region
+ * default so legacy call sites are byte-identical.
+ */
+function resolveCurrency(currency?: string | null): string {
+  const trimmed = currency?.trim().toUpperCase();
+  return trimmed && /^[A-Z]{3}$/.test(trimmed) ? trimmed : activeCurrency();
+}
+
 /** Abbreviate a magnitude >= 1e6 to a ~3-significant-digit unit string, else null. */
 function abbreviate(abs: number): string | null {
   for (const { value, suffix } of MONEY_UNITS) {
@@ -47,13 +59,14 @@ function abbreviate(abs: number): string | null {
   return null;
 }
 
-/** Active-currency value with full cents precision. Non-finite -> "—".
- *  (US → USD, byte-identical to before.) */
-export function formatMoney(value: number): string {
+/** Currency value with full cents precision. Non-finite -> "—". `currency` is
+ *  the INSTRUMENT's ISO-4217 code (R8 §6 — no ₹ on AAPL); omitted → the region
+ *  default (byte-identical to before for legacy call sites). */
+export function formatMoney(value: number, currency?: string | null): string {
   if (!Number.isFinite(value)) return "—";
   return value.toLocaleString(activeLocale(), {
     style: "currency",
-    currency: activeCurrency(),
+    currency: resolveCurrency(currency),
     maximumFractionDigits: 2,
   });
 }
@@ -63,16 +76,17 @@ export function formatMoney(value: number): string {
  * path never hardcodes `$`. Extracts the part either side of the magnitude in a
  * formatted sample; falls back to the ISO code if the locale renders no symbol.
  */
-function currencyAffix(): { prefix: string; suffix: string } {
+function currencyAffix(currency?: string | null): { prefix: string; suffix: string } {
+  const code = resolveCurrency(currency);
   const formatted = (1).toLocaleString(activeLocale(), {
     style: "currency",
-    currency: activeCurrency(),
+    currency: code,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
   const digitAt = formatted.search(/\d/);
   if (digitAt === -1) {
-    return { prefix: `${activeCurrency()} `, suffix: "" };
+    return { prefix: `${code} `, suffix: "" };
   }
   const lastDigitAt =
     formatted.length - 1 - [...formatted].reverse().findIndex((c) => /\d/.test(c));
@@ -82,23 +96,24 @@ function currencyAffix(): { prefix: string; suffix: string } {
   };
 }
 
-/** Active currency, abbreviated at >= 1M (₹621.7Q etc.); full cents below that.
- *  Non-finite -> "—". US output is byte-identical (`$`-prefixed). */
-export function formatCompactMoney(value: number): string {
+/** Compact currency, abbreviated at >= 1M ($4.20T etc.); full cents below that.
+ *  `currency` is the INSTRUMENT's ISO-4217 code (R8 §6); omitted → region
+ *  default. Non-finite -> "—". US output is byte-identical (`$`-prefixed). */
+export function formatCompactMoney(value: number, currency?: string | null): string {
   if (!Number.isFinite(value)) return "—";
   const abs = Math.abs(value);
   const abbr = abbreviate(abs);
   if (abbr !== null) {
-    const { prefix, suffix } = currencyAffix();
+    const { prefix, suffix } = currencyAffix(currency);
     return `${value < 0 ? "-" : ""}${prefix}${abbr}${suffix}`;
   }
-  return formatMoney(value);
+  return formatMoney(value, currency);
 }
 
 /** Like {@link formatCompactMoney} but with an explicit leading "+" for positives. */
-export function formatSignedMoney(value: number, compact = false): string {
+export function formatSignedMoney(value: number, compact = false, currency?: string | null): string {
   if (!Number.isFinite(value)) return "—";
-  const formatted = compact ? formatCompactMoney(value) : formatMoney(value);
+  const formatted = compact ? formatCompactMoney(value, currency) : formatMoney(value, currency);
   return value > 0 ? `+${formatted}` : formatted;
 }
 
@@ -196,4 +211,38 @@ export function groupDigits(raw: string | null | undefined): string {
   const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   const grouped = frac ? `${withCommas}.${frac}` : withCommas;
   return negative ? `-${grouped}` : grouped;
+}
+
+/**
+ * Designed short forms for data-provider labels (R8 overflow law §3.1 — a
+ * meaningful label never mid-word truncates; it gets a designed short form AT
+ * THE FORMATTER, not via CSS). The watchlist provenance chip used to clip
+ * "yfinance" to "YFINAN" at narrow panel widths; these forms fit the micro
+ * chip at every supported width. An unknown provider passes through unchanged
+ * (the chip's tooltip always carries the full label).
+ */
+const PROVIDER_SHORT_LABELS: Record<string, string> = {
+  yfinance: "YF",
+  newsapi: "NewsAPI",
+  alphavantage: "AV",
+  alpha_vantage: "AV",
+  coingecko: "CoinGecko",
+  binance: "Binance",
+  ccxt: "CCXT",
+  "sec.gov": "SEC",
+  sec_edgar: "SEC",
+  econdb: "EconDB",
+  fred: "FRED",
+  nse: "NSE",
+  bse: "BSE",
+  kite: "Kite",
+  upstox: "Upstox",
+  dhan: "Dhan",
+  rss: "RSS",
+};
+
+/** The designed short form for a provider id (case-insensitive); unknown ids
+ *  pass through so a new provider is never silently mislabelled. */
+export function providerShortLabel(provider: string): string {
+  return PROVIDER_SHORT_LABELS[provider.trim().toLowerCase()] ?? provider;
 }

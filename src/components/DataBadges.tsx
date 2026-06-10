@@ -18,10 +18,14 @@
  * re-skin re-values them without touching this file.
  */
 
+import { providerShortLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-/** Shared chip shell — keeps the two badges visually consistent. */
-const CHIP = "inline-flex items-center gap-1 rounded-control px-2 py-1 font-mono text-micro";
+/** Shared chip shell — keeps the two badges visually consistent. The label
+ *  never mid-word clips (R8 §3.1): providers render their designed short form
+ *  and the chip itself refuses to shrink below its content. */
+const CHIP =
+  "inline-flex shrink-0 items-center gap-1 rounded-control px-2 py-1 font-mono text-micro whitespace-nowrap";
 
 /**
  * Provider-origin badge. Reads `<provider>` normally; a `synthetic` value is
@@ -43,7 +47,8 @@ export function ProvenanceBadge({
   synthetic?: boolean;
   className?: string;
 }) {
-  const label = prefix ? `${prefix} · ${synthetic ? "synthetic" : provider}` : provider;
+  const short = providerShortLabel(provider);
+  const label = prefix ? `${prefix} · ${synthetic ? "synthetic" : short}` : short;
   return (
     <span
       data-testid="provenance-badge"

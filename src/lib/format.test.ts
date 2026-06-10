@@ -9,6 +9,7 @@ import {
   formatSignedMoney,
   formatUnit,
   groupDigits,
+  providerShortLabel,
 } from "./format";
 
 describe("formatMoney", () => {
@@ -50,6 +51,61 @@ describe("formatSignedMoney", () => {
   });
   it("supports compact mode", () => {
     expect(formatSignedMoney(2_500_000, true)).toBe("+$2.50M");
+  });
+  it("follows the instrument currency in both modes", () => {
+    expect(formatSignedMoney(500, false, "EUR")).toBe("+€500.00");
+    expect(formatSignedMoney(2_500_000, true, "INR")).toBe("+₹2.50M");
+  });
+});
+
+// R8 §6 — "currency formats by the INSTRUMENT's currency, never the locale
+// default (no ₹ on AAPL)". The instrument's quote/fundamentals currency code
+// threads through every money formatter; absent → region default (USD here).
+describe("currency-by-instrument", () => {
+  it("formatMoney renders the instrument currency", () => {
+    expect(formatMoney(1234.5, "USD")).toBe("$1,234.50");
+    expect(formatMoney(1234.5, "INR")).toBe("₹1,234.50");
+    expect(formatMoney(1234.5, "EUR")).toBe("€1,234.50");
+    expect(formatMoney(1234.5, "JPY")).toBe("¥1,234.5");
+  });
+  it("formatCompactMoney carries the instrument currency through the compact path", () => {
+    // The live D10 defect: AAPL market cap rendered "₹4.27T" — the instrument
+    // (USD) must win over the region default.
+    expect(formatCompactMoney(4.27e12, "USD")).toBe("$4.27T");
+    expect(formatCompactMoney(4.27e12, "INR")).toBe("₹4.27T");
+    expect(formatCompactMoney(-3_400_000, "EUR")).toBe("-€3.40M");
+    // Below the compact threshold it still respects the instrument.
+    expect(formatCompactMoney(999_999, "INR")).toBe("₹999,999.00");
+  });
+  it("falls back to the region default on a null/blank/garbage code", () => {
+    expect(formatMoney(10, null)).toBe("$10.00");
+    expect(formatMoney(10, "")).toBe("$10.00");
+    expect(formatMoney(10, "   ")).toBe("$10.00");
+    expect(formatMoney(10, "rupees")).toBe("$10.00");
+    expect(formatCompactMoney(1_500_000, undefined)).toBe("$1.50M");
+  });
+  it("normalises a lowercase ISO code", () => {
+    expect(formatMoney(10, "inr")).toBe("₹10.00");
+  });
+});
+
+describe("providerShortLabel", () => {
+  it("maps known providers to their designed short forms (no CSS mid-word clips)", () => {
+    // The live D3 defect: "yfinance" clipped to "YFINAN" in the watchlist chip.
+    expect(providerShortLabel("yfinance")).toBe("YF");
+    expect(providerShortLabel("newsapi")).toBe("NewsAPI");
+    expect(providerShortLabel("sec.gov")).toBe("SEC");
+    expect(providerShortLabel("fred")).toBe("FRED");
+    expect(providerShortLabel("nse")).toBe("NSE");
+    expect(providerShortLabel("bse")).toBe("BSE");
+    expect(providerShortLabel("ccxt")).toBe("CCXT");
+  });
+  it("is case/whitespace-insensitive on lookup", () => {
+    expect(providerShortLabel("YFinance")).toBe("YF");
+    expect(providerShortLabel(" yfinance ")).toBe("YF");
+  });
+  it("passes an unknown provider through unchanged", () => {
+    expect(providerShortLabel("my-custom-feed")).toBe("my-custom-feed");
   });
 });
 
