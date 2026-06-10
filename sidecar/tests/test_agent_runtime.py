@@ -168,6 +168,85 @@ def test_first_party_ids_do_not_use_custom_prefix() -> None:
 
 
 # ---------------------------------------------------------------------------
+# D21 — loader-level host-action parity (persona = voice only)
+# ---------------------------------------------------------------------------
+
+
+def test_first_party_effective_tools_superset_of_catalog_host_actions() -> None:
+    """Every first-party agent's EFFECTIVE tools ⊇ the catalog's host-action ids
+    (projected from ``kind == "host_action"``, never a hand-list) + ``research``
+    — so no persona can claim "I can't open panels" while the copilot can."""
+    from services.agent_tools import catalog
+
+    agent_runtime.reload()
+    host_actions = {c.id for c in catalog.CAPABILITY_CATALOG.values() if c.kind == "host_action"}
+    assert host_actions, "catalog projects no host actions — the parity gate is vacuous"
+    specs = agent_runtime.list_agents()
+    assert specs, "no first-party agents loaded"
+    for spec in specs:
+        missing = host_actions - set(spec.tools)
+        assert missing == set(), f"{spec.id}: effective tools missing host actions {missing}"
+        assert "research" in spec.tools, f"{spec.id}: effective tools missing 'research'"
+        # The union never duplicates an id the JSON already carried.
+        assert len(spec.tools) == len(set(spec.tools)), f"{spec.id}: duplicate tool ids"
+
+
+def test_grant_first_party_hands_is_idempotent_and_order_preserving() -> None:
+    """The union keeps the persona's own tool order first and is idempotent."""
+    agent_runtime.reload()
+    spec = agent_runtime.get_agent("graham")
+    assert spec is not None
+    # The persona's JSON voice tools lead the effective list.
+    assert spec.tools[:3] == ["price_data", "fundamentals", "news"]
+    again = agent_runtime._grant_first_party_hands(spec)
+    assert again.tools == spec.tools
+
+
+def test_every_agent_json_tool_id_resolves_to_a_catalog_capability() -> None:
+    """Every tool id written in every first-party agent JSON file resolves to a
+    real internal catalog capability (0 unresolvable ids — the roster analogue
+    of SC-006)."""
+    from services.agent_tools.catalog import CAPABILITY_CATALOG
+
+    json_files = sorted(p for p in agent_runtime.AGENTS_DIR.glob("*.json") if p.name[0] != "_")
+    assert len(json_files) == 13  # the roster — keep in sync with the count tests
+    for path in json_files:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        unresolved = [
+            tid
+            for tid in payload.get("tools", [])
+            if tid not in CAPABILITY_CATALOG or not CAPABILITY_CATALOG[tid].internal
+        ]
+        assert unresolved == [], f"{path.name}: unresolvable tool ids {unresolved}"
+
+
+def test_custom_agents_are_not_unioned_with_host_actions(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The D21 union is FIRST-PARTY only: a custom agent's tools stay exactly
+    what its author selected (the builder allow-list still validates them)."""
+    from config import DATA_DIR_ENV
+    from models.custom_agent import CustomAgentCreate
+    from services import agents_store
+
+    monkeypatch.setenv(DATA_DIR_ENV, str(tmp_path))
+    agent_runtime.reload()
+    agents_store.create_agent(
+        CustomAgentCreate(
+            id="custom:narrow-lens",
+            name="Narrow Lens",
+            philosophy="One tool only.",
+            system_prompt="You are a narrow analytical lens grounded in price data only.",
+            tools=["price_data"],
+            default_provider="anthropic",
+        )
+    )
+    spec = agent_runtime.get_agent("custom:narrow-lens")
+    assert spec is not None
+    assert spec.tools == ["price_data"]
+
+
+# ---------------------------------------------------------------------------
 # invoke_agent
 # ---------------------------------------------------------------------------
 
