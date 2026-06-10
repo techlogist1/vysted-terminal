@@ -518,6 +518,39 @@ async def test_invoke_openrouter_native_model_rides_native_search(
 
 
 @pytest.mark.asyncio
+async def test_invoke_explicit_t2_t3_tier_suppresses_native_search(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # R8 (one settings truth): an explicit t2/t3 research-tier selection means the
+    # user chose a search backend — the model's native search must NOT override it,
+    # and the local web_search tool stays so the chosen lane serves the run.
+    import config
+
+    for tier in ("t2_searxng", "t3_hosted"):
+        agent_runtime.reload()
+        provider = _FakeProvider()
+        _patch_provider(monkeypatch, provider)
+        token = config._research_search_tier_ctx.set(tier)
+        try:
+            async for _ in agent_runtime.invoke_agent(
+                agent_id="copilot",
+                prompt="what is the latest market news?",
+                provider="openrouter",
+                model="anthropic/claude-opus-4-8",
+                api_key="sk-test",
+                mode="ask",
+                options={"modelWebSearch": "native"},
+            ):
+                pass
+        finally:
+            config._research_search_tier_ctx.reset(token)
+        kwargs = provider.captured_kwargs
+        assert kwargs is not None
+        assert kwargs.get("web_search") is None, tier
+        assert "web_search" in (kwargs.get("tool_ids") or []), tier
+
+
+@pytest.mark.asyncio
 async def test_invoke_openrouter_none_model_keeps_local_tool(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

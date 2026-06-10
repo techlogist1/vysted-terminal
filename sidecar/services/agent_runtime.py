@@ -907,8 +907,16 @@ async def invoke_agent(
     else:
         model_web_search = None
     search_tier = config.get_search_tier()
-    if search_tier == config.SEARCH_TIER_NATIVE and _native_search_enabled(
-        provider_id, model_web_search
+    # R8 (one settings truth): the R7 research tier is the authoritative lane. An
+    # explicit t2 (managed SearXNG) or t3 (hosted BYOK) selection means the user
+    # chose a search backend — never ride the model's native search over it. The
+    # t1 keyless floor (or no explicit selection) keeps the native-injection
+    # behavior, where the model's own search is a strict upgrade.
+    r7_tier = config.get_research_search_tier()
+    if (
+        search_tier == config.SEARCH_TIER_NATIVE
+        and r7_tier not in ("t2_searxng", "t3_hosted")
+        and _native_search_enabled(provider_id, model_web_search)
     ):
         opts["web_search"] = True
         opts["web_search_max_uses"] = _WEB_SEARCH_CAP
