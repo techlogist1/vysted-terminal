@@ -116,9 +116,12 @@ export interface SerializedWorkspace {
    */
   settings?: SettingsBundle;
   /**
-   * The three-tier web-search preference (FR-080/083/084): the active tier +
-   * the local SearXNG URL. NEVER carries the BYOK Exa key (keychain-only).
-   * Optional for older blobs (absent → native tier, autodetect SearXNG).
+   * The web-search preference bundle (R8): the authoritative R7 research tier
+   * (`researchTier`), the t3 sub-mode (`exaDirect` / `hostedEngine`), and the
+   * t2 custom SearXNG URL. A pre-R8 blob carries only the legacy `tier` field
+   * — migrated on restore (native→t1_local, local-searxng→t2_searxng,
+   * byok-exa→t3_hosted+exaDirect). NEVER carries a BYOK key (keychain-only).
+   * Optional for older blobs (absent → the keyless t1 floor).
    */
   searchSettings?: SearchSettingsBundle;
   /**
@@ -320,9 +323,10 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
   if (workspace.settings && typeof workspace.settings === "object") {
     useSettingsStore.getState().setAll(workspace.settings);
   }
-  // Restore the web-search preference (older blobs lack it — keep the native
-  // default). `setAll` merges over the seed so a partial blob can't strip a
-  // field and a garbled tier falls back.
+  // Restore the web-search preference (older blobs lack it — keep the keyless
+  // t1 default). `setAll` MIGRATES a pre-R8 blob (legacy `tier`, no
+  // `researchTier`) into the R7 vocabulary first, then merges over the seed so
+  // a partial blob can't strip a field and a garbled value falls back.
   if (workspace.searchSettings && typeof workspace.searchSettings === "object") {
     useSearchSettingsStore.getState().setAll(workspace.searchSettings);
   }

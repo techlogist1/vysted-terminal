@@ -1,42 +1,36 @@
 /**
- * Web-search contracts — the three-tier search layer (FR-080/083/084).
+ * Web-search contracts — citation shapes + the LEGACY tier vocabulary.
  *
- * Vysted offers web search across three user-selectable tiers, each a search
- * backend behind a common interface:
- *  - `native`        — the active model's server-side web search on the user's
- *                      existing provider key (FR-081);
- *  - `byok-exa`      — a BYOK search API (Exa is the default backend, FR-083);
- *  - `local-searxng` — a local/private SearXNG instance, no data leaving the
- *                      machine (FR-084).
+ * R8 (settings-truth): the R7 research tier (`t1_local` / `t2_searxng` /
+ * `t3_hosted`, `src/store/search-settings.ts`) is the ONE authoritative
+ * web-search preference. The legacy three-tier vocabulary below survives for
+ * two jobs only:
+ *  - migrating pre-R8 workspace blobs (`tier` → `researchTier`, see
+ *    `migrateSearchSettings`), and
+ *  - the `X-Vysted-Search-Tier: byok-exa` wire lane the t3 "Exa direct"
+ *    sub-mode rides (the sidecar maps it onto the Exa backend).
  *
- * This module is the FRONTEND contract: the tier id and the normalized citation
- * shapes a search result carries. The sidecar mirrors these by hand (the
- * `types/data.ts ⇄ sidecar/models/` discipline). Kept dependency-free so any
- * panel, the chat sources tray (B4), or a plugin can import it without a cycle.
+ * This module is the FRONTEND contract: the legacy tier id and the normalized
+ * citation shapes a search result carries. The sidecar mirrors these by hand
+ * (the `types/data.ts ⇄ sidecar/models/` discipline). Kept dependency-free so
+ * any panel, the chat sources tray (B4), or a plugin can import it without a
+ * cycle.
  */
 
 /**
- * The three user-selectable search tiers (FR-080). The tier rides every chat /
- * agent request as the `X-Vysted-Search-Tier` header; the sidecar dispatches to
- * the matching backend. `native` is the default where the active model supports
- * server-side web search.
+ * The LEGACY (pre-R8) search tiers. No UI writes this anymore — it persists in
+ * old workspace blobs (migrated on restore) and as the wire value of the
+ * `X-Vysted-Search-Tier` header for the Exa-direct lane.
  */
 export type SearchTier = "native" | "byok-exa" | "local-searxng";
 
-/** The complete, ordered set of tiers — for pickers and validation. */
+/** The complete set of legacy tiers — for blob validation/migration. */
 export const SEARCH_TIERS: readonly SearchTier[] = ["native", "byok-exa", "local-searxng"];
 
-/** The default tier a fresh install starts from (native-on-your-key, FR-081). */
+/** The legacy default (what a pre-R8 blob means when the field is absent). */
 export const DEFAULT_SEARCH_TIER: SearchTier = "native";
 
-/** Human-readable labels for the search-tier picker. */
-export const SEARCH_TIER_LABELS: Record<SearchTier, string> = {
-  native: "Native (model's web search)",
-  "byok-exa": "BYOK search API (Exa)",
-  "local-searxng": "Local / private (SearXNG)",
-};
-
-/** Type guard for restoring a persisted tier (older/garbled blobs → default). */
+/** Type guard for a persisted legacy tier (older/garbled blobs → default). */
 export function isSearchTier(value: unknown): value is SearchTier {
   return typeof value === "string" && (SEARCH_TIERS as readonly string[]).includes(value);
 }

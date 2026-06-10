@@ -1,13 +1,25 @@
 /**
- * Search-settings store — the three-tier web-search preference (FR-080/083/084).
+ * Search-settings store — the ONE web-search preference surface (R8).
  *
- * Holds the non-secret half of the web-search config: which tier is active and
- * the local SearXNG URL for the local tier. The BYOK Exa API key is NOT here —
- * like every credential it lives ONLY in the OS keychain (read at request time
- * and sent as a header), never in this bundle (FR-036/SC-010).
+ * The R7 research tier (`researchTier`) is the single authoritative selection:
+ *  - `t1_local`   — keyless multi-engine scraping (the zero-setup floor);
+ *  - `t2_searxng` — the one-click managed SearXNG instance (an optional
+ *                   `searxngUrl` points at a custom instance instead);
+ *  - `t3_hosted`  — BYOK: hosted via OpenRouter (`hostedEngine` picks
+ *                   firecrawl/exa) or, with `exaDirect`, a direct Exa API key.
  *
- * Persistence mirrors the region/model-selection pattern: the tier + URL ride
- * the workspace blob (`SerializedWorkspace.searchSettings`), and because a tier
+ * The LEGACY pre-R8 `tier` field (native / byok-exa / local-searxng) is kept in
+ * the bundle for blob round-trip + migration only — no UI writes it. A pre-R8
+ * blob (legacy `tier`, no `researchTier`) migrates on restore via
+ * {@link migrateSearchSettings}: native→t1_local, local-searxng→t2_searxng,
+ * byok-exa→t3_hosted+exaDirect.
+ *
+ * No secrets here: the Exa and OpenRouter BYOK keys live ONLY in the OS
+ * keychain (read at request time and sent as headers), never in this bundle
+ * (FR-036/SC-010).
+ *
+ * Persistence mirrors the region/model-selection pattern: the bundle rides the
+ * workspace blob (`SerializedWorkspace.searchSettings`), and because a tier
  * change does not move the dockview layout, the store self-persists by calling
  * `void autosaveLayout()` from each setter — exactly like `store/settings`.
  *
@@ -22,10 +34,10 @@ import { autosaveLayout } from "@/lib/workspace";
 import { DEFAULT_SEARCH_TIER, isSearchTier, type SearchTier } from "../../types/search";
 
 /**
- * The R7 research search tiers (Track R Component 3), orthogonal to the legacy
- * {@link SearchTier}. Mirrors `sidecar/config.py KNOWN_RESEARCH_SEARCH_TIERS`
- * by hand (the `types/data.ts ⇄ sidecar/models/` discipline). Rides every
- * request as the `X-Vysted-Research-Tier` header.
+ * The R7 research search tiers (Track R Component 3). Mirrors
+ * `sidecar/config.py KNOWN_RESEARCH_SEARCH_TIERS` by hand (the
+ * `types/data.ts ⇄ sidecar/models/` discipline). Rides requests as the
+ * `X-Vysted-Research-Tier` header.
  */
 export type ResearchTier = "t1_local" | "t2_searxng" | "t3_hosted";
 
@@ -60,24 +72,36 @@ export function isHostedSearchEngine(value: unknown): value is HostedSearchEngin
 
 /**
  * The serialisable search-preference bundle — exactly what rides the workspace
- * blob's `searchSettings` field. NO secrets (the Exa key is keychain-only).
+ * blob's `searchSettings` field. NO secrets (both BYOK keys are keychain-only).
  */
 export interface SearchSettingsBundle {
-  /** The active web-search tier (FR-080). */
+  /**
+   * LEGACY (pre-R8) tier. Kept for blob round-trip and migration only — the
+   * UI no longer writes it and no routing reads it. See
+   * {@link migrateSearchSettings}.
+   */
   tier: SearchTier;
   /**
-   * The local SearXNG base URL for the local tier (FR-084). Empty string when
-   * unset — the sidecar autodetects `localhost:8080` in that case. Sent as the
-   * `X-Vysted-Searxng-Url` header (omitted when empty).
+   * The t2 custom SearXNG instance URL ("Advanced"). Empty string = use the
+   * one-click managed instance / autodetect. Sent as the
+   * `X-Vysted-Searxng-Url` header on t2 requests (omitted when empty).
    */
   searxngUrl: string;
-  /** The R7 research search tier (`X-Vysted-Research-Tier`). */
+  /** The authoritative research search tier (`X-Vysted-Research-Tier`). */
   researchTier: ResearchTier;
   /**
-   * The t3 hosted-search engine (`X-Vysted-Search-Engine`, sent only on t3).
-   * The BYOK OpenRouter key is NOT here — keychain-only, read at request time.
+   * The t3 hosted-search engine (`X-Vysted-Search-Engine`, sent only on t3
+   * hosted). The BYOK OpenRouter key is NOT here — keychain-only, read at
+   * request time.
    */
   hostedEngine: HostedSearchEngine;
+  /**
+   * The t3 sub-mode: `true` = "Exa direct" (searches call Exa's API on the
+   * user's own Exa key, riding the legacy `byok-exa` wire lane); `false` =
+   * hosted via OpenRouter. The Exa key is keychain-only
+   * (`vysted-search-exa:exa_api_key`).
+   */
+  exaDirect: boolean;
 }
 
 /** The immutable seed — what a fresh install (or a reset) starts from. */
@@ -87,14 +111,43 @@ export const DEFAULT_SEARCH_SETTINGS: Readonly<SearchSettingsBundle> =
     searxngUrl: "",
     researchTier: DEFAULT_RESEARCH_TIER,
     hostedEngine: DEFAULT_HOSTED_SEARCH_ENGINE,
+    exaDirect: false,
   });
 
+/** How each legacy tier folds into the authoritative R7 vocabulary. */
+const LEGACY_TIER_MIGRATION: Record<SearchTier, ResearchTier> = {
+  native: "t1_local",
+  "local-searxng": "t2_searxng",
+  "byok-exa": "t3_hosted",
+};
+
+/**
+ * Migrate a pre-R8 bundle: a blob carrying a valid legacy `tier` but NO valid
+ * `researchTier` folds the legacy choice into the R7 vocabulary
+ * (native→t1_local, local-searxng→t2_searxng, byok-exa→t3_hosted+exaDirect).
+ * A blob that already carries a `researchTier` is returned untouched — the R7
+ * selection is authoritative and migration never overwrites it. Pure (returns
+ * a new object; never mutates the input).
+ */
+export function migrateSearchSettings(
+  bundle: Partial<SearchSettingsBundle>,
+): Partial<SearchSettingsBundle> {
+  if (isResearchTier(bundle.researchTier) || !isSearchTier(bundle.tier)) {
+    return bundle;
+  }
+  return {
+    ...bundle,
+    researchTier: LEGACY_TIER_MIGRATION[bundle.tier],
+    exaDirect: bundle.tier === "byok-exa",
+  };
+}
+
 interface SearchSettingsState extends SearchSettingsBundle {
-  setTier: (tier: SearchTier) => void;
   setSearxngUrl: (url: string) => void;
   setResearchTier: (tier: ResearchTier) => void;
   setHostedEngine: (engine: HostedSearchEngine) => void;
-  /** Replace the entire bundle (workspace restore + import). */
+  setExaDirect: (exaDirect: boolean) => void;
+  /** Replace the entire bundle (workspace restore + import); migrates pre-R8 blobs. */
   setAll: (bundle: Partial<SearchSettingsBundle>) => void;
   /** Snapshot the current preferences as a plain bundle (for serialize/export). */
   toBundle: () => SearchSettingsBundle;
@@ -107,6 +160,7 @@ function seed(): SearchSettingsBundle {
     searxngUrl: DEFAULT_SEARCH_SETTINGS.searxngUrl,
     researchTier: DEFAULT_SEARCH_SETTINGS.researchTier,
     hostedEngine: DEFAULT_SEARCH_SETTINGS.hostedEngine,
+    exaDirect: DEFAULT_SEARCH_SETTINGS.exaDirect,
   };
 }
 
@@ -120,11 +174,6 @@ function persist(): void {
 
 export const useSearchSettingsStore = create<SearchSettingsState>((set, get) => ({
   ...seed(),
-
-  setTier: (tier) => {
-    set({ tier });
-    persist();
-  },
 
   setSearxngUrl: (url) => {
     set({ searxngUrl: url });
@@ -141,18 +190,28 @@ export const useSearchSettingsStore = create<SearchSettingsState>((set, get) => 
     persist();
   },
 
+  setExaDirect: (exaDirect) => {
+    set({ exaDirect });
+    persist();
+  },
+
   setAll: (bundle) => {
-    // Merge over the seed so a partial blob (older export, hand-edited import)
-    // can't strip a field — every key keeps a sane value, and a garbled tier
-    // falls back to the default.
+    // Fold a pre-R8 blob into the R7 vocabulary FIRST, then merge over the
+    // seed so a partial blob (older export, hand-edited import) can't strip a
+    // field — every key keeps a sane value, and a garbled value falls back to
+    // the default.
+    const migrated = migrateSearchSettings(bundle);
     const base = seed();
     set({
-      tier: isSearchTier(bundle.tier) ? bundle.tier : base.tier,
-      searxngUrl: typeof bundle.searxngUrl === "string" ? bundle.searxngUrl : base.searxngUrl,
-      researchTier: isResearchTier(bundle.researchTier) ? bundle.researchTier : base.researchTier,
-      hostedEngine: isHostedSearchEngine(bundle.hostedEngine)
-        ? bundle.hostedEngine
+      tier: isSearchTier(migrated.tier) ? migrated.tier : base.tier,
+      searxngUrl: typeof migrated.searxngUrl === "string" ? migrated.searxngUrl : base.searxngUrl,
+      researchTier: isResearchTier(migrated.researchTier)
+        ? migrated.researchTier
+        : base.researchTier,
+      hostedEngine: isHostedSearchEngine(migrated.hostedEngine)
+        ? migrated.hostedEngine
         : base.hostedEngine,
+      exaDirect: typeof migrated.exaDirect === "boolean" ? migrated.exaDirect : base.exaDirect,
     });
     persist();
   },
@@ -164,6 +223,7 @@ export const useSearchSettingsStore = create<SearchSettingsState>((set, get) => 
       searxngUrl: s.searxngUrl,
       researchTier: s.researchTier,
       hostedEngine: s.hostedEngine,
+      exaDirect: s.exaDirect,
     };
   },
 }));

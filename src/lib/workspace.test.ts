@@ -13,6 +13,7 @@ import { DEFAULT_MODEL_BY_PROVIDER, useModelSelectionStore } from "@/store/model
 import { useModulesStore } from "@/store/modules";
 import { useChatHistoryStore } from "@/store/chat-history";
 import { useResearchSpacesStore } from "@/store/research-spaces";
+import { resetSearchSettingsStoreForTests, useSearchSettingsStore } from "@/store/search-settings";
 import { DEFAULT_SETTINGS, resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
@@ -82,6 +83,7 @@ describe("workspace serialization", () => {
     useChatHistoryStore.getState().clear();
     resetKeybindingsStoreForTests();
     resetSettingsStoreForTests();
+    resetSearchSettingsStoreForTests();
   });
 
   afterEach(() => {
@@ -118,6 +120,7 @@ describe("workspace serialization", () => {
         searxngUrl: "",
         researchTier: "t1_local",
         hostedEngine: "firecrawl",
+        exaDirect: false,
       },
       brief: null,
       notes: { general: "", bySymbol: {}, focusSymbol: "" },
@@ -171,6 +174,62 @@ describe("workspace serialization", () => {
     deserializeWorkspace({ name: "old", layout: LAYOUT_A, enabledModules: {} });
 
     expect(useKeybindingsStore.getState().bindingFor("palette.open")).toBe("mod+shift+p");
+  });
+
+  it("migrates a pre-R8 searchSettings blob (legacy tier, no researchTier) on restore", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+
+    // byok-exa → t3_hosted + Exa direct.
+    deserializeWorkspace({
+      name: "pre-r8",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      searchSettings: { tier: "byok-exa", searxngUrl: "" } as never,
+    });
+    expect(useSearchSettingsStore.getState().researchTier).toBe("t3_hosted");
+    expect(useSearchSettingsStore.getState().exaDirect).toBe(true);
+
+    // local-searxng → t2_searxng, custom URL preserved.
+    deserializeWorkspace({
+      name: "pre-r8",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      searchSettings: { tier: "local-searxng", searxngUrl: "http://localhost:8080" } as never,
+    });
+    expect(useSearchSettingsStore.getState().researchTier).toBe("t2_searxng");
+    expect(useSearchSettingsStore.getState().searxngUrl).toBe("http://localhost:8080");
+    expect(useSearchSettingsStore.getState().exaDirect).toBe(false);
+
+    // native → the t1 keyless floor.
+    deserializeWorkspace({
+      name: "pre-r8",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      searchSettings: { tier: "native", searxngUrl: "" } as never,
+    });
+    expect(useSearchSettingsStore.getState().researchTier).toBe("t1_local");
+    expect(useSearchSettingsStore.getState().exaDirect).toBe(false);
+  });
+
+  it("an R7-era blob restores its researchTier verbatim — migration never reroutes", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    deserializeWorkspace({
+      name: "r7",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      searchSettings: {
+        tier: "byok-exa", // stale legacy leftover — must NOT win
+        searxngUrl: "",
+        researchTier: "t2_searxng",
+        hostedEngine: "exa",
+        exaDirect: false,
+      },
+    });
+    expect(useSearchSettingsStore.getState().researchTier).toBe("t2_searxng");
+    expect(useSearchSettingsStore.getState().hostedEngine).toBe("exa");
+    expect(useSearchSettingsStore.getState().exaDirect).toBe(false);
   });
 
   it("round-trips the agent mode, dock geometry, and model overrides (FR-003/004)", () => {
