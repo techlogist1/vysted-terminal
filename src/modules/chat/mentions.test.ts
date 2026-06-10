@@ -6,7 +6,13 @@ vi.mock("@/lib/sidecar-client", () => ({
   sidecarGet: (...args: unknown[]) => sidecarGet(...args),
 }));
 
-import { applyMentionPrefixes, matchMention, resolveMention, STATIC_MENTIONS } from "./mentions";
+import {
+  applyMentionPrefixes,
+  insertMentionToken,
+  matchMention,
+  resolveMention,
+  STATIC_MENTIONS,
+} from "./mentions";
 
 afterEach(() => {
   sidecarGet.mockReset();
@@ -78,6 +84,51 @@ describe("STATIC_MENTIONS", () => {
     for (const m of STATIC_MENTIONS.filter((m) => m.kind !== "agent")) {
       expect(m.promptPrefix).toBeUndefined();
     }
+  });
+});
+
+describe("insertMentionToken", () => {
+  it("replaces an in-progress `@token` ending at the caret (picker accept)", () => {
+    const input = "look at @char";
+    expect(insertMentionToken(input, input.length, "@chart")).toEqual({
+      value: "look at @chart ",
+      caret: "look at @chart ".length,
+    });
+  });
+
+  it("inserts at the caret into an empty composer", () => {
+    expect(insertMentionToken("", 0, "@watchlist")).toEqual({
+      value: "@watchlist ",
+      caret: 11,
+    });
+  });
+
+  it("space-separates when the caret sits flush against a word (typing parity)", () => {
+    const input = "compare apple";
+    expect(insertMentionToken(input, input.length, "@chart")).toEqual({
+      value: "compare apple @chart ",
+      caret: "compare apple @chart ".length,
+    });
+  });
+
+  it("does not double a space the user already typed", () => {
+    const input = "compare ";
+    expect(insertMentionToken(input, input.length, "@portfolio")).toEqual({
+      value: "compare @portfolio ",
+      caret: "compare @portfolio ".length,
+    });
+  });
+
+  it("inserts mid-text, preserving the tail after the caret", () => {
+    const input = "summarize  please";
+    // caret between the doubled spaces
+    const out = insertMentionToken(input, 10, "@news");
+    expect(out.value).toBe("summarize @news  please");
+    expect(out.caret).toBe("summarize @news ".length);
+  });
+
+  it("clamps an out-of-range caret to the end", () => {
+    expect(insertMentionToken("abc", 999, "@quant").value).toBe("abc @quant ");
   });
 });
 
