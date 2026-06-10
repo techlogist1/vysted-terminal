@@ -26,3 +26,13 @@ Kill-or-fix sweep (stray/vestigial items) runs per-partition during the pass; ki
 appended to this file by each team, verified live by the lead at gates.
 
 ## Kill list (appended during the pass)
+
+### Team C (chat + research partition)
+
+- **ComposerMetaRow five-chip strip** (mode · lens · depth-rail · ASK/AUTO · model below the input) — DEAD per C1; `ComposerMetaRow.tsx` + `meta-row-collapse.ts(.test)` deleted. Functions redistributed: persona/autonomy/mode → plus menu, depth → segmented pill in the controls row, model → quiet inline text.
+- **Dotted depth rail + dot-touching-pill artifact** (V2) — dead; replaced by the one segmented pill with the animated thumb.
+- **Standing "Context: none" badge row** — a permanent uppercase strip saying nothing; now renders only when real panel context exists (`ChatSidebar.tsx`).
+- **Queue-chip uppercase transform** — queued prompts are user content; text-micro's uppercase rendered them shouting. Now caption, verbatim.
+- **Plus-menu inline truncated hints** — "Every change waits f…" mid-sentence clips; hints now stack as full second lines.
+- **Persona drill bare section header over an empty roster** (sidecar down) — headers render only with rows; honest "No personas available yet" otherwise.
+- Audited and KEPT (work + earn their place): spaces tab strip (thread switching), AgentsRail (live runs only), BudgetConfig (delegate ceiling), ProposedChangesReview gate, brief "Copy markdown", DepthMirror (read-only echo), dev-only StepLog.
