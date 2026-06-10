@@ -18,7 +18,16 @@ import {
   type UTCTimestamp,
 } from "lightweight-charts";
 
-import { Lock, Unlock } from "lucide-react";
+import {
+  ArrowLeft,
+  ChartSpline,
+  Ellipsis,
+  GitCompare,
+  Link2,
+  Lock,
+  PenLine,
+  Unlock,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { type Freshness, StalenessBadge } from "@/components/DataBadges";
@@ -59,6 +68,7 @@ import {
   DrawMenu,
   IndicatorsMenu,
   SyncMenu,
+  TOOLBAR_ICON_CLASS,
   ToolbarDisclosure,
 } from "./toolbar";
 import { VolumeProfilePrimitive } from "./volume-profile-primitive";
@@ -71,14 +81,23 @@ const DEFAULT_SYMBOL = "SPY";
 const DEFAULT_TIMEFRAME: Timeframe = "1d";
 
 /**
- * R8 §3.4 — the toolbar row's declared collapse step: below this measured
- * width the eight-step timeframe segmented control collapses into a compact
- * dropdown so the row never starves into a third wrap line.
+ * R8 §3.4 / R9 §3 — the toolbar row's declared collapse ladder, in measured
+ * panel-width steps (useContainerWidth; jsdom measures null → the full step).
+ * The row stays ONE line at every panel width ≥360: full → timeframe dropdown
+ * → icon-only tool triggers → a single ⋯ tools menu. The status cluster sheds
+ * detail (provider/session) first and hides last — the symbol survives in the
+ * input, freshness in the badge.
  */
-const TIMEFRAME_DROPDOWN_BELOW = 700;
+const TIMEFRAME_DROPDOWN_BELOW = 1020;
+const TOOL_LABELS_BELOW = 800;
+const TOOLS_OVERFLOW_BELOW = 460;
+const STATUS_SESSION_BELOW = 1240;
+const STATUS_DETAIL_BELOW = 1100;
+const STATUS_HIDDEN_BELOW = 560;
 
-/** The toolbar's disclosure popovers — at most one is open at a time. */
-type ToolbarMenu = "draw" | "indicators" | "compare" | "sync";
+/** The toolbar's disclosure popovers — at most one is open at a time.
+ *  "tools" is the narrow-step ⋯ menu that absorbs the other four. */
+type ToolbarMenu = "draw" | "indicators" | "compare" | "sync" | "tools";
 
 /** Vysted dark palette, applied to the lightweight-charts canvas. */
 const CHART_THEME = {
@@ -240,10 +259,17 @@ function ChartPanel(props: ChartPanelProps = {}) {
   // --- toolbar disclosure state --------------------------------------------
   const [openMenu, setOpenMenu] = useState<ToolbarMenu | null>(null);
   const [indicatorQuery, setIndicatorQuery] = useState("");
-  // Measured toolbar width drives the §3.4 collapse step (segmented timeframes
-  // → dropdown). Null (first paint) renders the full control.
+  // The ⋯ tools menu's current view — null is the four-entry index.
+  const [overflowView, setOverflowView] = useState<Exclude<ToolbarMenu, "tools"> | null>(null);
+  // Measured toolbar width drives the §3.4 collapse ladder. Null (first paint)
+  // renders the full step.
   const { ref: toolbarRef, width: toolbarWidth } = useContainerWidth<HTMLDivElement>();
   const timeframesAsDropdown = toolbarWidth !== null && toolbarWidth < TIMEFRAME_DROPDOWN_BELOW;
+  const toolsIconOnly = toolbarWidth !== null && toolbarWidth < TOOL_LABELS_BELOW;
+  const toolsAsOverflow = toolbarWidth !== null && toolbarWidth < TOOLS_OVERFLOW_BELOW;
+  const statusNoSession = toolbarWidth !== null && toolbarWidth < STATUS_SESSION_BELOW;
+  const statusTrimmed = toolbarWidth !== null && toolbarWidth < STATUS_DETAIL_BELOW;
+  const statusHidden = toolbarWidth !== null && toolbarWidth < STATUS_HIDDEN_BELOW;
 
   const [priceState, setPriceState] = useState<LoadState>("idle");
   const [priceError, setPriceError] = useState<string | null>(null);
@@ -976,6 +1002,18 @@ function ChartPanel(props: ChartPanelProps = {}) {
     if (menu === "indicators" && open) {
       setIndicatorQuery("");
     }
+    // The ⋯ menu always re-opens on its four-entry index.
+    if (menu === "tools" && open) {
+      setOverflowView(null);
+    }
+  }, []);
+
+  /** Switch the ⋯ tools menu to one of its four submenu views. */
+  const handleOverflowView = useCallback((view: Exclude<ToolbarMenu, "tools"> | null) => {
+    setOverflowView(view);
+    if (view === "indicators") {
+      setIndicatorQuery("");
+    }
   }, []);
 
   const toggleIndicator = useCallback((key: string) => {
@@ -1057,40 +1095,43 @@ function ChartPanel(props: ChartPanelProps = {}) {
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col" data-panel-id={panelId}>
-      {/* The one toolbar row — symbol, timeframes, disclosures, chips, status */}
+      {/* The one toolbar row — symbol, timeframe, tools, chips, status. R9 §3:
+          everything rides the h-7 toolbar rung with 14px icons; the §3.4
+          ladder keeps it ONE row at every panel width ≥360 (no wrap). */}
       <div
         ref={toolbarRef}
-        className="relative z-20 flex flex-wrap items-center gap-2 border-b px-3 py-2"
+        className="relative z-20 flex flex-nowrap items-center gap-2 border-b px-3 py-2"
         style={{ borderColor: "var(--hairline-strong)" }}
       >
         <form
-          className="flex items-center gap-1"
+          className="flex shrink-0 items-center gap-1"
           onSubmit={(event) => {
             event.preventDefault();
             submitSymbol();
           }}
         >
-          {/* Symbol input on the h-7 toolbar-field rung; min-w fits 12
-              characters ("SAKSOFT.NS" + padding — law §2, never less). */}
+          {/* Symbol input on the h-7 toolbar rung; FIXED width sized to the
+              content class — fits "SAKSOFT.NS" + padding, never flex-greedy
+              (R9 §3 — the R8 flex-greedy symbol field was the bug). */}
           <input
             value={symbolInput}
             onChange={(event) => setSymbolInput(event.target.value)}
             aria-label="Symbol"
             placeholder="Symbol"
             spellCheck={false}
-            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-body placeholder:text-charcoal-500 focus-visible:border-charcoal-500 h-7 w-[7.5rem] min-w-[7.5rem] border px-2 font-mono uppercase outline-none"
+            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-body placeholder:text-charcoal-500 focus-visible:border-charcoal-500 h-7 w-[8.5rem] shrink-0 border px-2 font-mono uppercase outline-none" // tokens-ok: w-[8.5rem] fixed symbol width fits "SAKSOFT.NS" (R9 §3)
           />
-          <Button type="submit" size="xs" variant="outline">
+          <Button type="submit" size="sm" variant="outline">
             Load
           </Button>
         </form>
 
         {/* Timeframe control — the eight intervals stay load-bearing. Wide:
-            a segmented control with descender-safe py-based sizing (law §3.3 —
-            no fixed-height clip). Narrow (§3.4 collapse step): a compact
-            dropdown so the toolbar never starves. */}
+            an h-7 segmented control (descender-safe: caption 13 × 1.5 ≈ 20px
+            inside 28px — law §3.3). Narrow (§3.4 collapse step): a compact h-7
+            dropdown so the row never starves. */}
         {timeframesAsDropdown ? (
-          <div className="relative">
+          <div className="relative shrink-0">
             <select
               aria-label="Timeframe"
               value={timeframe}
@@ -1105,14 +1146,14 @@ function ChartPanel(props: ChartPanelProps = {}) {
             </select>
             <span
               aria-hidden
-              className="text-charcoal-500 text-micro pointer-events-none absolute top-1/2 right-1.5 -translate-y-1/2"
+              className="text-charcoal-500 text-micro pointer-events-none absolute top-1/2 right-2 -translate-y-1/2"
             >
               ▾
             </span>
           </div>
         ) : (
           <div
-            className="border-charcoal-700 rounded-control flex items-center border"
+            className="border-charcoal-700 rounded-control flex h-7 shrink-0 items-center border"
             role="group"
             aria-label="Timeframe"
           >
@@ -1123,7 +1164,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
                 onClick={() => setTimeframe(option)}
                 aria-pressed={timeframe === option}
                 className={cn(
-                  "rounded-control text-caption flex min-h-6 items-center px-2 py-1 font-mono transition-colors",
+                  "rounded-control text-caption flex h-full items-center px-2 font-mono transition-colors",
                   timeframe === option
                     ? "bg-charcoal-875 text-charcoal-100"
                     : "text-charcoal-400 hover:text-charcoal-100",
@@ -1137,74 +1178,177 @@ function ChartPanel(props: ChartPanelProps = {}) {
 
         <span
           aria-hidden
-          className="h-4 w-px"
+          className="h-4 w-px shrink-0"
           style={{ backgroundColor: "var(--hairline-strong)" }}
         />
 
-        {/* Disclosure triggers — the entire tool surface, quiet until asked. */}
-        <ToolbarDisclosure
-          label="Draw"
-          open={openMenu === "draw"}
-          onOpenChange={(open) => handleMenuChange("draw", open)}
-          menuLabel="Drawing tools"
-          widthClass="w-72"
-        >
-          <DrawMenu activeTool={activeTool} onArm={onArmTool} />
-        </ToolbarDisclosure>
-        <ToolbarDisclosure
-          label="Indicators"
-          count={selected.size}
-          open={openMenu === "indicators"}
-          onOpenChange={(open) => handleMenuChange("indicators", open)}
-          menuLabel="Indicators"
-          widthClass="w-96"
-        >
-          <IndicatorsMenu
-            selected={selected}
-            query={indicatorQuery}
-            onQueryChange={setIndicatorQuery}
-            onToggle={toggleIndicator}
-            onClearAll={clearAllIndicators}
-          />
-        </ToolbarDisclosure>
-        <ToolbarDisclosure
-          label="Compare"
-          count={compareSymbol ? 1 : 0}
-          open={openMenu === "compare"}
-          onOpenChange={(open) => handleMenuChange("compare", open)}
-          menuLabel="Comparison overlay"
-          widthClass="w-72"
-        >
-          <CompareMenu
-            value={compareInput}
-            onChange={setCompareInput}
-            onSubmit={submitComparison}
-          />
-        </ToolbarDisclosure>
-        <ToolbarDisclosure
-          label="Sync"
-          count={syncCount}
-          open={openMenu === "sync"}
-          onOpenChange={(open) => handleMenuChange("sync", open)}
-          menuLabel="Chart sync"
-          widthClass="w-64"
-        >
-          <SyncMenu
-            subscriptions={syncSubscriptions}
-            onToggle={(flavor) => setSubscription(panelId, flavor, !syncSubscriptions[flavor])}
-          />
-        </ToolbarDisclosure>
+        {/* Tool disclosures — one h-7 ladder, 14px icons, quiet until asked.
+            §3.4: labels → icons-only → a single ⋯ menu as the panel narrows. */}
+        {toolsAsOverflow ? (
+          <ToolbarDisclosure
+            label="Chart tools"
+            icon={<Ellipsis className={TOOLBAR_ICON_CLASS} />}
+            iconOnly
+            align="right"
+            open={openMenu === "tools"}
+            onOpenChange={(open) => handleMenuChange("tools", open)}
+            menuLabel="Chart tools"
+            widthClass="w-72"
+          >
+            {overflowView === null ? (
+              <div className="flex flex-col">
+                {(
+                  [
+                    { view: "draw", name: "Draw", Icon: PenLine, count: activeTool ? 1 : 0 },
+                    {
+                      view: "indicators",
+                      name: "Indicators",
+                      Icon: ChartSpline,
+                      count: selected.size,
+                    },
+                    {
+                      view: "compare",
+                      name: "Compare",
+                      Icon: GitCompare,
+                      count: compareSymbol ? 1 : 0,
+                    },
+                    { view: "sync", name: "Sync", Icon: Link2, count: syncCount },
+                  ] as const
+                ).map(({ view, name, Icon, count }) => (
+                  <button
+                    key={view}
+                    type="button"
+                    onClick={() => handleOverflowView(view)}
+                    className="rounded-control text-body text-charcoal-300 hover:bg-charcoal-850 hover:text-charcoal-100 flex h-8 w-full items-center gap-2 px-2 text-left font-mono transition-colors"
+                  >
+                    <Icon className={cn(TOOLBAR_ICON_CLASS, "text-charcoal-500 shrink-0")} />
+                    <span className="min-w-0 flex-1 truncate">{name}</span>
+                    {count > 0 ? <span className="text-charcoal-200 shrink-0">{count}</span> : null}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col">
+                <button
+                  type="button"
+                  onClick={() => handleOverflowView(null)}
+                  className="rounded-control text-caption text-charcoal-400 hover:bg-charcoal-850 hover:text-charcoal-100 mb-1 flex h-7 w-full items-center gap-2 px-2 text-left font-mono transition-colors"
+                >
+                  <ArrowLeft className={cn(TOOLBAR_ICON_CLASS, "shrink-0")} />
+                  All tools
+                </button>
+                {overflowView === "draw" ? (
+                  <DrawMenu activeTool={activeTool} onArm={onArmTool} />
+                ) : null}
+                {overflowView === "indicators" ? (
+                  <IndicatorsMenu
+                    selected={selected}
+                    query={indicatorQuery}
+                    onQueryChange={setIndicatorQuery}
+                    onToggle={toggleIndicator}
+                    onClearAll={clearAllIndicators}
+                  />
+                ) : null}
+                {overflowView === "compare" ? (
+                  <CompareMenu
+                    value={compareInput}
+                    onChange={setCompareInput}
+                    onSubmit={submitComparison}
+                  />
+                ) : null}
+                {overflowView === "sync" ? (
+                  <SyncMenu
+                    subscriptions={syncSubscriptions}
+                    onToggle={(flavor) =>
+                      setSubscription(panelId, flavor, !syncSubscriptions[flavor])
+                    }
+                  />
+                ) : null}
+              </div>
+            )}
+          </ToolbarDisclosure>
+        ) : (
+          <>
+            <ToolbarDisclosure
+              label="Draw"
+              icon={<PenLine className={TOOLBAR_ICON_CLASS} />}
+              iconOnly={toolsIconOnly}
+              open={openMenu === "draw"}
+              onOpenChange={(open) => handleMenuChange("draw", open)}
+              menuLabel="Drawing tools"
+              widthClass="w-64"
+            >
+              <DrawMenu activeTool={activeTool} onArm={onArmTool} />
+            </ToolbarDisclosure>
+            <ToolbarDisclosure
+              label="Indicators"
+              icon={<ChartSpline className={TOOLBAR_ICON_CLASS} />}
+              iconOnly={toolsIconOnly}
+              align={toolsIconOnly ? "right" : "left"}
+              count={selected.size}
+              open={openMenu === "indicators"}
+              onOpenChange={(open) => handleMenuChange("indicators", open)}
+              menuLabel="Indicators"
+              widthClass="w-80"
+            >
+              <IndicatorsMenu
+                selected={selected}
+                query={indicatorQuery}
+                onQueryChange={setIndicatorQuery}
+                onToggle={toggleIndicator}
+                onClearAll={clearAllIndicators}
+              />
+            </ToolbarDisclosure>
+            <ToolbarDisclosure
+              label="Compare"
+              icon={<GitCompare className={TOOLBAR_ICON_CLASS} />}
+              iconOnly={toolsIconOnly}
+              align="right"
+              count={compareSymbol ? 1 : 0}
+              open={openMenu === "compare"}
+              onOpenChange={(open) => handleMenuChange("compare", open)}
+              menuLabel="Comparison overlay"
+              widthClass="w-64"
+            >
+              <CompareMenu
+                value={compareInput}
+                onChange={setCompareInput}
+                onSubmit={submitComparison}
+              />
+            </ToolbarDisclosure>
+            <ToolbarDisclosure
+              label="Sync"
+              icon={<Link2 className={TOOLBAR_ICON_CLASS} />}
+              iconOnly={toolsIconOnly}
+              align="right"
+              count={syncCount}
+              open={openMenu === "sync"}
+              onOpenChange={(open) => handleMenuChange("sync", open)}
+              menuLabel="Chart sync"
+              widthClass="w-64"
+            >
+              <SyncMenu
+                subscriptions={syncSubscriptions}
+                onToggle={(flavor) => setSubscription(panelId, flavor, !syncSubscriptions[flavor])}
+              />
+            </ToolbarDisclosure>
+          </>
+        )}
 
-        {/* Armed-tool chip — appears only while a drawing tool is live. */}
+        {/* Armed-tool chip — appears only while a drawing tool is live; the
+            points meta moves to the title at the narrow step. */}
         {activeTool ? (
           <span
-            className="rounded-control border-charcoal-700 bg-charcoal-875 text-caption text-charcoal-200 flex h-6 items-center gap-1 border px-2 font-mono"
+            className="rounded-control border-charcoal-700 bg-charcoal-875 text-caption text-charcoal-200 flex h-6 shrink-0 items-center gap-1 border px-2 font-mono"
             data-testid="active-tool-chip"
+            title={`${remainingPoints} ${remainingPoints === 1 ? "point" : "points"} left`}
           >
             {DRAWING_CHIP_LABELS[activeTool]}
-            <span className="text-charcoal-500">
-              {remainingPoints} {remainingPoints === 1 ? "point" : "points"} left
-            </span>
+            {toolsAsOverflow ? null : (
+              <span className="text-charcoal-500">
+                {remainingPoints} {remainingPoints === 1 ? "point" : "points"} left
+              </span>
+            )}
             <button
               type="button"
               onClick={onDisarmTool}
@@ -1220,7 +1364,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
         {compareSymbol ? (
           <span
             className={cn(
-              "rounded-control border-charcoal-700 text-caption flex h-6 items-center gap-1 border px-2 font-mono",
+              "rounded-control border-charcoal-700 text-caption flex h-6 shrink-0 items-center gap-1 border px-2 font-mono",
               compareState === "error" ? "text-charcoal-500" : "text-charcoal-300",
             )}
             title={
@@ -1259,24 +1403,30 @@ function ChartPanel(props: ChartPanelProps = {}) {
           </span>
         ) : null}
 
-        {/* Status cluster — symbol, provider, freshness, session. */}
-        <div className="text-charcoal-400 text-caption ml-auto flex min-w-0 items-center gap-2 font-mono">
-          <span className="text-charcoal-200">{symbol}</span>
-          {provider && priceState === "ready" ? <span>via {provider}</span> : null}
-          {/* Calendar-aware freshness so a stale series is never read as current. */}
-          {freshness && priceState === "ready" ? <StalenessBadge freshness={freshness} /> : null}
-          {/* FR-118 session hint — the OHLCV series carries freshness but no
-              provider market_state, so the chart derives a humanized closed /
-              stale label from freshness rather than presenting EOD bars as live. */}
-          {priceState === "ready" && sessionLabelFromFreshness(freshness) ? (
-            <span
-              className="text-charcoal-500 truncate tracking-wide"
-              title={`Session: ${sessionLabelFromFreshness(freshness)}`}
-            >
-              {sessionLabelFromFreshness(freshness)}
-            </span>
-          ) : null}
-        </div>
+        {/* Status cluster — symbol, provider, freshness, session. §3.4: sheds
+            provider/session detail first, hides last (the symbol survives in
+            the input, freshness on the badge title). */}
+        {statusHidden ? null : (
+          <div className="text-charcoal-400 text-caption ml-auto flex min-w-0 items-center gap-2 font-mono whitespace-nowrap">
+            <span className="text-charcoal-200 shrink-0">{symbol}</span>
+            {!statusTrimmed && provider && priceState === "ready" ? (
+              <span className="min-w-0 truncate">via {provider}</span>
+            ) : null}
+            {/* Calendar-aware freshness so a stale series is never read as current. */}
+            {freshness && priceState === "ready" ? <StalenessBadge freshness={freshness} /> : null}
+            {/* FR-118 session hint — the OHLCV series carries freshness but no
+                provider market_state, so the chart derives a humanized closed /
+                stale label from freshness rather than presenting EOD bars as live. */}
+            {!statusNoSession && priceState === "ready" && sessionLabelFromFreshness(freshness) ? (
+              <span
+                className="text-charcoal-500 min-w-0 truncate tracking-wide"
+                title={`Session: ${sessionLabelFromFreshness(freshness)}`}
+              >
+                {sessionLabelFromFreshness(freshness)}
+              </span>
+            ) : null}
+          </div>
+        )}
       </div>
 
       {/* Earned indicator-chip row — exists only while ≥1 indicator is active. */}
@@ -1401,11 +1551,8 @@ function ChartPanel(props: ChartPanelProps = {}) {
                       drawing.locked && "text-charcoal-300",
                     )}
                   >
-                    {drawing.locked ? (
-                      <Lock className="size-2.5" />
-                    ) : (
-                      <Unlock className="size-2.5" />
-                    )}
+                    {/* 12px — the R9 §3 icon rung for h-6 chrome chips. */}
+                    {drawing.locked ? <Lock className="size-3" /> : <Unlock className="size-3" />}
                   </button>
                   <button
                     type="button"
