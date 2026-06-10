@@ -9,9 +9,10 @@
  */
 
 import { useCallback, useEffect, useMemo } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ScrollText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/EmptyState";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { defaultAuditFilter, useSafetyStore } from "@/store/safety";
@@ -138,12 +139,20 @@ export function AuditLogViewer() {
 
       <div className="flex-1 overflow-y-auto">
         {status === "loading" && entries.length === 0 && (
-          <p className="text-charcoal-400 px-3 py-2">Loading…</p>
+          <p className="text-charcoal-400 text-caption px-3 py-2">Loading…</p>
         )}
         {status === "ready" && entries.length === 0 && (
-          <p className="text-charcoal-400 px-3 py-2">No audit entries match the filter.</p>
+          <EmptyState
+            dense
+            icon={ScrollText}
+            headline="No audit entries match the filter"
+            hint="Loosen the broker/action/time filters, or wait for new order activity."
+          />
         )}
-        <table className="text-micro w-full table-fixed">
+        {/* Data cells at the caption step (R8 §1) — the table used to inherit
+            text-micro (11px UPPERCASE), which uppercased even payload JSON.
+            Headers keep the micro chrome step; ch-based tracks stay. */}
+        <table className="text-caption w-full table-fixed">
           <colgroup>
             <col className="w-[10ch]" />
             <col className="w-[18ch]" />
@@ -153,15 +162,15 @@ export function AuditLogViewer() {
             <col className="w-[10ch]" />
             <col className="w-[16ch]" />
           </colgroup>
-          <thead className="text-charcoal-400 bg-charcoal-925 text-micro sticky top-0 text-left uppercase">
+          <thead className="text-charcoal-400 bg-charcoal-925 text-micro sticky top-0 text-left">
             <tr>
-              <th className="px-2 py-1">ID</th>
-              <th className="px-2 py-1">Time</th>
-              <th className="px-2 py-1">Broker</th>
-              <th className="px-2 py-1">Action</th>
-              <th className="px-2 py-1">Payload</th>
-              <th className="px-2 py-1">Source</th>
-              <th className="px-2 py-1">Outcome</th>
+              <th className="px-2 py-1 font-medium">ID</th>
+              <th className="px-2 py-1 font-medium">Time</th>
+              <th className="px-2 py-1 font-medium">Broker</th>
+              <th className="px-2 py-1 font-medium">Action</th>
+              <th className="px-2 py-1 font-medium">Payload</th>
+              <th className="px-2 py-1 font-medium">Source</th>
+              <th className="px-2 py-1 font-medium">Outcome</th>
             </tr>
           </thead>
           <tbody>
