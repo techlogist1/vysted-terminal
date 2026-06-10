@@ -15,6 +15,27 @@ Consulted before each phase; appended as the run learns.
 
 ## Learned during R8
 
+- THE BRIDGE-WEDGE ROOT CAUSE: touching the tauri-mcp socket while the webview is still
+  booting wedges the debug server PERMANENTLY for that app instance (requests then hang —
+  even list_windows). Recipe that works: launch → wait for the "Bridge already initialized"
+  console line in the dev log → wait 45 more seconds → ONE probe. Never poll the socket
+  during boot.
+- AppleScript `System Events` keystrokes are TRUSTED input that reaches the composer; pair
+  with a Quartz `CGEventPost` clicker (sidecar venv python) for clicks at window-relative
+  coordinates. ⌘K does not reach the palette this way, but clicking "⊞ Open panel" + typing
+  does; dockview tab clicks at strip coordinates work but tabs REFLOW — re-crop before
+  clicking. The composer textarea sits at ~(100, 762) and the depth stops at ~(186/202/218, 821) in a 1280×832 window.
+- The model can ESCALATE research depth via its tool arg above the slider floor — prompts
+  like "use your research tool at ultra depth" exercise deep/ultra without clicking the
+  slider.
+- The composer QUEUE makes serial gate batteries cheap: type all prompts while the first
+  streams; they drain one by one. Watch brief publications by polling the autosave blob's
+  brief.createdAt (a watcher script archiving each new brief gives per-run regression
+  artifacts for free).
+- PyInstaller-binary stdin watchdog: running the sidecar binary by hand exits 0 instantly
+  (stdin EOF → os.\_exit(0)); hold stdin open (`sleep 1000 | binary …`) to test boots. Cold
+  onefile boot is ~60s on this Mac.
+
 - tauri-plugin-mcp `evaluate_script` evaluates in EXPRESSION context — a script starting with `const` fails ("Unexpected keyword 'const'"); wrap everything in an IIFE `(()=>{ … })()`.
 - dockview tabs do NOT switch on a synthetic `click` — dispatch the full pointer sequence (pointerdown/mousedown/pointerup/mouseup/click) on the `.dv-default-tab` element.
 - React-controlled inputs need the native value setter + `input` event (`Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set`).
