@@ -3,22 +3,11 @@
 import { type FunctionComponent, useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
-  Bot,
   Check,
   ChevronDown,
-  Cpu,
   Download,
-  FlaskConical,
-  Globe,
-  Info,
   KeyRound,
-  Keyboard,
-  LayoutPanelLeft,
-  Network,
-  Package,
-  Plug,
   RotateCcw,
-  Sliders,
   Trash2,
   Upload,
   X,
@@ -26,6 +15,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
+import { formatModelLabel } from "@/components/StatusChrome";
 import { type Region, REGIONS } from "@/lib/region";
 import { cn } from "@/lib/utils";
 import { deleteSecret, getSecret, KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
@@ -66,6 +56,7 @@ import {
   verdictMeta,
 } from "@/lib/hardware-fit";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { useContainerWidth } from "@/lib/use-container-width";
 import {
   type HostedSearchEngine,
   type ResearchTier,
@@ -115,12 +106,9 @@ export const SettingsPanel: FunctionComponent = () => {
     <div className="bg-charcoal-900 flex h-full w-full flex-col overflow-hidden">
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex max-w-2xl flex-col gap-12 p-6 pb-12">
-          <header className="flex flex-col gap-3">
+          <header className="flex flex-col gap-4">
             <div>
-              <h1 className="text-charcoal-100 text-overview flex items-center gap-2">
-                <Sliders className="text-charcoal-300 size-5" aria-hidden="true" />
-                Settings
-              </h1>
+              <h1 className="text-charcoal-100 text-overview">Settings</h1>
               <p className="text-charcoal-400 text-caption mt-1">
                 Local-first &amp; bring-your-own-keys. Nothing leaves this machine except calls you
                 make to providers you configure.
@@ -145,50 +133,109 @@ SettingsPanel.displayName = "SettingsPanel";
 // Section scaffolding
 // ---------------------------------------------------------------------------
 
-const SECTION_NAV: { id: string; label: string }[] = [
-  { id: "settings-providers", label: "AI Providers" },
-  { id: "settings-research", label: "Research" },
-  { id: "settings-region", label: "Region & locale" },
-  { id: "settings-keybindings", label: "Keybindings" },
-  { id: "settings-advanced", label: "Advanced" },
+const ICON_14 = "size-3.5"; // tokens-ok: the law's 14px icon step inside 28/32px controls (R9 §3)
+
+const SECTION_NAV: { id: string; label: string; short: string }[] = [
+  { id: "settings-providers", label: "AI Providers", short: "Providers" },
+  { id: "settings-research", label: "Research", short: "Research" },
+  { id: "settings-region", label: "Region & locale", short: "Region" },
+  { id: "settings-keybindings", label: "Keybindings", short: "Keys" },
+  { id: "settings-advanced", label: "Advanced", short: "Advanced" },
 ];
+
+/**
+ * Jump-nav collapse ladder (R8 §3.4): full labels → designed short labels →
+ * one overflow menu. Steps are deterministic width gates measured on the nav's
+ * own container, so chips NEVER wrap to a second line or clip mid-word.
+ * Thresholds = the rendered chip-row widths (text-micro, h-6, px-3, gap-2)
+ * with slack: full ≈ 430px, short ≈ 330px.
+ */
+const NAV_FULL_MIN_W = 440;
+const NAV_SHORT_MIN_W = 336;
+
+/** Smooth-scroll one section head into view. */
+function jumpToSection(id: string) {
+  document.getElementById(id)?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+}
 
 /** Jump chips under the page head — the cure for the settings wall. */
 function SectionNav() {
+  const { ref, width } = useContainerWidth<HTMLElement>();
+  const [menuOpen, setMenuOpen] = useState(false);
+  // null width = first paint: render full (overflow law — never the reverse flash).
+  const step: "full" | "short" | "overflow" =
+    width === null || width >= NAV_FULL_MIN_W
+      ? "full"
+      : width >= NAV_SHORT_MIN_W
+        ? "short"
+        : "overflow";
+
+  if (step === "overflow") {
+    return (
+      <nav ref={ref} aria-label="Settings sections" className="relative flex gap-2">
+        <button
+          type="button"
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((open) => !open)}
+          onBlur={(e) => {
+            // Close when focus leaves the nav entirely (a menu item keeps it).
+            if (!e.currentTarget.parentElement?.contains(e.relatedTarget)) {
+              setMenuOpen(false);
+            }
+          }}
+          className="border-charcoal-700 text-charcoal-400 hover:text-charcoal-100 hover:bg-charcoal-875 rounded-control text-micro h-6 border px-3 whitespace-nowrap"
+        >
+          Sections ⋯
+        </button>
+        {menuOpen && (
+          <div
+            role="menu"
+            aria-label="Settings sections menu"
+            className="border-charcoal-700 bg-charcoal-900 absolute top-7 left-0 z-10 flex min-w-40 flex-col border py-1"
+          >
+            {SECTION_NAV.map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false);
+                  jumpToSection(id);
+                }}
+                className="text-charcoal-300 hover:text-charcoal-100 hover:bg-charcoal-875 text-caption h-7 px-3 text-left whitespace-nowrap"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+      </nav>
+    );
+  }
+
   return (
-    <nav aria-label="Settings sections" className="flex flex-wrap gap-2">
-      {SECTION_NAV.map(({ id, label }) => (
+    <nav ref={ref} aria-label="Settings sections" className="flex gap-2">
+      {SECTION_NAV.map(({ id, label, short }) => (
         <button
           key={id}
           type="button"
-          onClick={() =>
-            document.getElementById(id)?.scrollIntoView?.({ behavior: "smooth", block: "start" })
-          }
+          onClick={() => jumpToSection(id)}
           className="border-charcoal-700 text-charcoal-400 hover:text-charcoal-100 hover:bg-charcoal-875 rounded-control text-micro h-6 border px-3 whitespace-nowrap"
         >
-          {label}
+          {step === "full" ? label : short}
         </button>
       ))}
     </nav>
   );
 }
 
-/** A top-level section head — section-size title over a hairline rule. */
-function SectionHeader({
-  id,
-  icon,
-  title,
-  hint,
-}: {
-  id: string;
-  icon: React.ReactNode;
-  title: string;
-  hint?: string;
-}) {
+/** A top-level section head — section-size title over a hairline rule. Quiet,
+ *  Linear-grade: plain text, no decorative icon (hierarchy by size + color). */
+function SectionHeader({ id, title, hint }: { id: string; title: string; hint?: string }) {
   return (
     <header className="border-charcoal-800 mb-4 border-b pb-3">
-      <h2 id={id} className="text-charcoal-100 text-section flex scroll-mt-6 items-center gap-2">
-        {icon}
+      <h2 id={id} className="text-charcoal-100 text-section scroll-mt-6">
         {title}
       </h2>
       {hint && <p className="text-charcoal-400 text-caption mt-1">{hint}</p>}
@@ -227,24 +274,19 @@ function Card({ className, children }: { className?: string; children: React.Rea
 function SettingRow({
   label,
   hint,
-  icon,
   children,
 }: {
   label: string;
   hint?: string;
-  icon?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <div className="flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
       <div className="flex min-w-0 flex-col">
-        <span className="text-charcoal-100 text-body flex items-center gap-2">
-          {icon}
-          {label}
-        </span>
+        <span className="text-charcoal-100 text-body">{label}</span>
         {hint && <span className="text-charcoal-400 text-caption mt-1">{hint}</span>}
       </div>
-      <div className="ml-auto shrink-0">{children}</div>
+      <div className="ml-auto min-w-0 shrink-0">{children}</div>
     </div>
   );
 }
@@ -267,9 +309,11 @@ function ToggleSwitch({
   "aria-label"?: string;
 }) {
   return (
+    // Reference-grade proportions (Linear ≈ 36×20 track): a 20px track with a
+    // 16px thumb, vertically centered in a 32px-tall hit area (≥24px target).
     <label
       className={cn(
-        "relative inline-flex h-8 w-16 shrink-0 items-center",
+        "relative inline-flex h-8 w-9 shrink-0 items-center",
         disabled ? "cursor-not-allowed" : "cursor-pointer",
       )}
     >
@@ -284,11 +328,11 @@ function ToggleSwitch({
       />
       <span
         aria-hidden="true"
-        className="bg-charcoal-850 border-charcoal-700 peer-checked:bg-charcoal-600 peer-checked:border-charcoal-500 rounded-control absolute inset-0 border transition-colors peer-disabled:opacity-40"
+        className="bg-charcoal-850 border-charcoal-700 peer-checked:bg-charcoal-600 peer-checked:border-charcoal-500 rounded-control h-5 w-9 border transition-colors peer-disabled:opacity-40"
       />
       <span
         aria-hidden="true"
-        className="bg-charcoal-500 peer-checked:bg-charcoal-100 rounded-control absolute left-1 size-6 transition-transform peer-checked:translate-x-8 peer-disabled:opacity-40"
+        className="bg-charcoal-400 peer-checked:bg-charcoal-100 rounded-control absolute top-1/2 left-1 size-4 -translate-y-1/2 transition-transform peer-checked:translate-x-3 peer-disabled:opacity-40"
       />
     </label>
   );
@@ -350,7 +394,10 @@ function Select({ className, children, ...props }: React.ComponentProps<"select"
         {children}
       </select>
       <ChevronDown
-        className="text-charcoal-400 pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2"
+        className={cn(
+          ICON_14,
+          "text-charcoal-400 pointer-events-none absolute top-1/2 right-2 -translate-y-1/2",
+        )}
         aria-hidden="true"
       />
     </div>
@@ -384,7 +431,6 @@ function ProvidersSection() {
     <section aria-labelledby="settings-providers">
       <SectionHeader
         id="settings-providers"
-        icon={<Plug className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="AI Providers"
         hint="Paste an API key to enable an AI provider. Keys are stored in your OS keychain — never on disk or sent anywhere but the provider you call."
       />
@@ -418,13 +464,17 @@ function ProvidersSection() {
                     )}
                   </span>
                 </div>
-                {/* Fixed-width slots so the cluster aligns row to row — a row
+                {/* ONE designed grid for every row (D2): fixed-width slots so
+                    the default / key / remove columns align row to row — a row
                     missing a control renders its slot empty, never collapses. */}
                 <div className="ml-auto flex shrink-0 items-center gap-3">
-                  <span className="flex w-20 justify-end">
+                  <span className="flex w-16 justify-end">
                     {isDefault ? (
-                      <span className="text-micro rounded-control bg-charcoal-850 text-charcoal-300 px-2 py-1 whitespace-nowrap">
-                        default
+                      // Short form + check state (V4: "SET DEFAULT" never
+                      // wraps) — the active default reads as a quiet fact.
+                      <span className="text-micro text-charcoal-200 flex h-6 items-center gap-1 whitespace-nowrap">
+                        <Check className="size-3 shrink-0" aria-hidden="true" />
+                        Default
                       </span>
                     ) : (
                       // Picking a default is a free preference (no key
@@ -439,11 +489,12 @@ function ProvidersSection() {
                           // choice survives relaunch even without a layout change.
                           void autosaveLayout();
                         }}
+                        aria-label={`Set ${provider.label} as default provider`}
                         // R8 §3.5: a button label never wraps to two lines —
-                        // "Set default" stays one line in its fixed w-20 slot.
+                        // the SAME short form as the active state, one column.
                         className="text-micro text-charcoal-400 hover:text-charcoal-100 rounded-control h-6 px-1 whitespace-nowrap"
                       >
-                        Set default
+                        Default
                       </button>
                     )}
                   </span>
@@ -454,12 +505,12 @@ function ProvidersSection() {
                         variant="outline"
                         onClick={() => setDialogProvider(provider.id)}
                       >
-                        <KeyRound className="size-3" aria-hidden="true" />
+                        <KeyRound aria-hidden="true" />
                         {configured ? "Update key" : "Add key"}
                       </Button>
                     )}
                   </span>
-                  <span className="flex w-12 justify-end">
+                  <span className="flex w-8 justify-end">
                     {needsKey && configured && (
                       <button
                         type="button"
@@ -467,7 +518,7 @@ function ProvidersSection() {
                         onClick={() => void handleRemove(provider.id)}
                         className="text-charcoal-400 hover:text-negative rounded-control p-2"
                       >
-                        <Trash2 className="size-3.5" aria-hidden="true" />
+                        <Trash2 className={ICON_14} aria-hidden="true" />
                       </button>
                     )}
                   </span>
@@ -524,7 +575,7 @@ function DefaultsGroup() {
   const defaultModelOptions: LLMModelOption[] =
     defaultModelCatalog?.models && defaultModelCatalog.models.length > 0
       ? defaultModelCatalog.models
-      : fallbackModelIds.map((id) => ({ id, label: id }));
+      : fallbackModelIds.map((id) => ({ id, label: formatModelLabel(id) }));
   const { groups: defaultModelGroups } = buildModelGroups(
     defaultModelOptions,
     modelFor(defaultProviderId),
@@ -537,7 +588,6 @@ function DefaultsGroup() {
         <SettingRow
           label="Default agent"
           hint="The persona the chat starts on — applies now and at every launch."
-          icon={<Bot className="text-charcoal-300 size-3.5" aria-hidden="true" />}
         >
           <Select
             aria-label="Default agent"
@@ -1378,7 +1428,6 @@ function ResearchSection() {
     <section aria-labelledby="settings-research">
       <SectionHeader
         id="settings-research"
-        icon={<FlaskConical className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Research"
         hint="Where web searches run, how /deep and 'go deeper' work, and what this machine can run on-device."
       />
@@ -1417,10 +1466,7 @@ function ResearchSection() {
             <div className="flex flex-col gap-3">
               <Card>
                 <div className="px-4 py-3">
-                  <div className="text-charcoal-100 text-body flex items-center gap-2">
-                    <Cpu className="text-charcoal-300 size-3.5" aria-hidden="true" />
-                    {report.device.chip}
-                  </div>
+                  <div className="text-charcoal-100 text-body">{report.device.chip}</div>
                   <div className="text-charcoal-400 text-caption mt-1">
                     {report.device.ramGib} GiB RAM · {report.device.gpuBudgetGib} GiB GPU budget ·{" "}
                     {report.device.perfCores}P/{report.device.totalCores} cores ·{" "}
@@ -1470,7 +1516,6 @@ function RegionSection() {
     <section aria-labelledby="settings-region">
       <SectionHeader
         id="settings-region"
-        icon={<Globe className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Region & locale"
         hint="Locale used for number formatting — a foundation for region-first data + feeds in a later release."
       />
@@ -1580,7 +1625,6 @@ function KeybindingsSection() {
     <section aria-labelledby="settings-keybindings">
       <SectionHeader
         id="settings-keybindings"
-        icon={<Keyboard className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Keybindings"
         hint="Remap any shortcut. Press Record, then the new combination. Conflicts are flagged below — two actions on one combo both fire."
       />
@@ -1590,7 +1634,7 @@ function KeybindingsSection() {
           role="alert"
           className="border-warning/40 bg-warning/10 text-warning text-caption mb-4 flex items-start gap-2 rounded-none border px-3 py-2"
         >
-          <AlertTriangle className="mt-1 size-3.5 shrink-0" aria-hidden="true" />
+          <AlertTriangle className={cn(ICON_14, "mt-1 shrink-0")} aria-hidden="true" />
           <div>
             <p className="font-medium">Conflicting bindings detected</p>
             {conflictList.map((c) => (
@@ -1671,7 +1715,7 @@ function KeybindingsSection() {
                           onClick={() => resetBinding(actionId)}
                           className="text-charcoal-400 rounded-control hover:text-charcoal-100 p-1 disabled:cursor-not-allowed disabled:opacity-30"
                         >
-                          <RotateCcw className="size-3.5" aria-hidden="true" />
+                          <RotateCcw className={ICON_14} aria-hidden="true" />
                         </button>
                       </div>
                     </div>
@@ -1695,7 +1739,6 @@ function AdvancedSection() {
     <section aria-labelledby="settings-advanced">
       <SectionHeader
         id="settings-advanced"
-        icon={<Package className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Advanced"
         hint="Broker integrations, saved layouts, module toggles, and settings portability."
       />
@@ -1711,11 +1754,10 @@ function AdvancedSection() {
 }
 
 /** A subsection head inside Advanced — title-size, still an aria region. */
-function SubsectionHeader({ id, icon, title, hint }: Parameters<typeof SectionHeader>[0]) {
+function SubsectionHeader({ id, title, hint }: Parameters<typeof SectionHeader>[0]) {
   return (
     <header className="mb-2">
-      <h3 id={id} className="text-charcoal-100 text-panel-title flex items-center gap-2">
-        {icon}
+      <h3 id={id} className="text-charcoal-100 text-panel-title">
         {title}
       </h3>
       {hint && <p className="text-charcoal-400 text-caption mt-1">{hint}</p>}
@@ -1730,7 +1772,6 @@ function IntegrationsSection() {
     <section aria-labelledby="settings-integrations">
       <SubsectionHeader
         id="settings-integrations"
-        icon={<Network className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Integrations"
         hint="Connect a broker for read-only positions, holdings & P&L the copilot can analyse over your real account."
       />
@@ -1791,7 +1832,6 @@ function LayoutsSection() {
     <section aria-labelledby="settings-layouts">
       <SubsectionHeader
         id="settings-layouts"
-        icon={<LayoutPanelLeft className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Layouts"
         hint="Drag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch."
       />
@@ -1858,7 +1898,7 @@ function LayoutsSection() {
                   }
                   className="text-charcoal-400 hover:text-negative rounded-control p-1"
                 >
-                  <X className="size-3.5" aria-hidden="true" />
+                  <X className={ICON_14} aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -1881,7 +1921,6 @@ function ModulesSection() {
     <section aria-labelledby="settings-modules">
       <SubsectionHeader
         id="settings-modules"
-        icon={<Package className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Modules"
         hint="Disabled modules contribute no panels or ⌘K commands."
       />
@@ -1981,7 +2020,6 @@ function ExportImportSection() {
     <section aria-labelledby="settings-export">
       <SubsectionHeader
         id="settings-export"
-        icon={<Download className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Export / Import"
         hint="Carry your keybindings and preferences to another machine. Secrets are NEVER exported — re-enter your API keys via the keychain on the new machine."
       />
@@ -1989,11 +2027,11 @@ function ExportImportSection() {
         <div className="flex flex-col gap-3 px-4 py-3">
           <div className="flex items-center gap-2">
             <Button size="sm" variant="outline" onClick={handleExport}>
-              <Download className="size-3.5" aria-hidden="true" />
+              <Download aria-hidden="true" />
               Export settings
             </Button>
             <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()}>
-              <Upload className="size-3.5" aria-hidden="true" />
+              <Upload aria-hidden="true" />
               Import settings
             </Button>
             <input
@@ -2039,11 +2077,7 @@ function ExportImportSection() {
 function AboutSection() {
   return (
     <section aria-labelledby="settings-about">
-      <SubsectionHeader
-        id="settings-about"
-        icon={<Info className="text-charcoal-300 size-4" aria-hidden="true" />}
-        title="About"
-      />
+      <SubsectionHeader id="settings-about" title="About" />
       <Card>
         <div className="text-charcoal-300 text-caption flex flex-col gap-2 px-4 py-3">
           <p>
