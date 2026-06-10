@@ -35,10 +35,12 @@ const POLL_INTERVAL_MS = 5_000;
 const PRICE_TRACK = "6.5rem"; // fits "61,446.08" + padding at caption/mono
 const CHANGE_TRACK = "5.25rem"; // fits "+100.00%" + padding
 const ACTION_TRACK = "3rem"; // the 24px remove control + padding
-/** Below this measured width the provenance/freshness chips drop (priority 1). */
-const DROP_CHIPS_BELOW = 300;
+/** Below this measured width the provenance/freshness chips drop (priority 1).
+ *  The chips live in the flexible symbol column — the fixed tracks total
+ *  ~236px, so this floor leaves the column ≥ ~104px (the "YF" + "EOD" pair). */
+const DROP_CHIPS_BELOW = 340;
 /** Below this measured width the change% column drops too (priority 2). */
-const DROP_CHANGE_BELOW = 240;
+const DROP_CHANGE_BELOW = 300;
 
 /** A signed percent ("+1.31%") — the watchlist change column. */
 function fmtChange(value: number): string {
@@ -65,9 +67,10 @@ function SymbolCell({ row, showChips }: { row: WatchlistRow; showChips: boolean 
     <div className="flex min-w-0 flex-col gap-0.5">
       <span className="text-charcoal-100 text-caption truncate">{entry.symbol}</span>
       {/* Drop-priority 1 (law §3.2): the provenance/freshness chips drop WHOLE
-          at narrow widths — never a mid-word clip ("YFINAN"). */}
+          at narrow widths — never a mid-word clip ("YFINAN"). flex-wrap stacks
+          whole chips if an unusually long provider outgrows the column. */}
       {showChips && quote !== null && (
-        <span className="flex items-center gap-1">
+        <span className="flex flex-wrap items-center gap-1 overflow-hidden">
           <ProvenanceBadge provider={quote.provider} />
           {quote.freshness != null && <StalenessBadge freshness={quote.freshness} />}
         </span>
