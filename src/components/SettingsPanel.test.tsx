@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { SettingsPanel, nativeSearchStatus, t1EngineStatusLine } from "@/components/SettingsPanel";
+import { SettingsPanel, t1EngineStatusLine } from "@/components/SettingsPanel";
 import { vystedModules } from "@/modules";
 import { PLATFORM_MODULE_ID } from "@/modules/platform";
 import { resetKeybindingsStoreForTests, useKeybindingsStore } from "@/store/keybindings";
@@ -60,39 +60,6 @@ function routeFetch(routes: Record<string, unknown>) {
   vi.stubGlobal("fetch", fetchMock);
   return fetchMock;
 }
-
-// WS5: the native-tier status copy must be honest for EVERY provider/model combo
-// — it must never claim a model has its own web search when it doesn't (the bug
-// that prompted this: OpenRouter/DeepSeek defaults claimed native search that
-// never fired). This locks the matrix so the copy can't silently rot.
-describe("nativeSearchStatus (WS5 honest native-tier copy)", () => {
-  it("provider-level providers claim the active model's own web search", () => {
-    for (const p of ["anthropic", "openai", "gemini", "groq", "xai"] as const) {
-      expect(nativeSearchStatus(p, null)).toMatch(/your active model's own web search/);
-    }
-  });
-  it("an OpenRouter native-capable model claims OpenRouter-credit native search", () => {
-    expect(nativeSearchStatus("openrouter", "native")).toMatch(
-      /native web search.*OpenRouter credits/,
-    );
-  });
-  it("an OpenRouter plugin model discloses the app fallback + a may-drift estimate, not auto-enabled", () => {
-    const copy = nativeSearchStatus("openrouter", "plugin");
-    expect(copy).toMatch(/fall back to the app's search tool/);
-    expect(copy).toMatch(/may drift/);
-    expect(copy).toMatch(/doesn't auto-enable/i);
-  });
-  it("OpenRouter-none and DeepSeek fall back to the app tool and never claim native", () => {
-    for (const [provider, ws] of [
-      ["openrouter", "none"],
-      ["deepseek", null],
-    ] as const) {
-      const copy = nativeSearchStatus(provider, ws);
-      expect(copy).toMatch(/app's own search tool/);
-      expect(copy).not.toMatch(/your active model's own/);
-    }
-  });
-});
 
 describe("SettingsPanel", () => {
   beforeEach(() => {
@@ -272,14 +239,13 @@ describe("SettingsPanel", () => {
     expect(within(section).getByText(/never exported/i)).toBeInTheDocument();
   });
 
-  // ---- R7 sectioned hierarchy ----
+  // ---- R8 sectioned hierarchy (ONE search surface) ----
 
   it("groups the page into named sections with a jump nav", () => {
     render(<SettingsPanel />);
     expect(screen.getByRole("navigation", { name: "Settings sections" })).toBeInTheDocument();
     for (const name of [
       "AI Providers",
-      "Web search",
       "Research",
       "Region & locale",
       "Interface",
@@ -288,6 +254,16 @@ describe("SettingsPanel", () => {
     ]) {
       expect(screen.getByRole("region", { name })).toBeInTheDocument();
     }
+  });
+
+  it("the legacy Web search section is gone — no section, no nav chip, no docker snippet", () => {
+    render(<SettingsPanel />);
+    expect(screen.queryByRole("region", { name: "Web search" })).toBeNull();
+    const nav = screen.getByRole("navigation", { name: "Settings sections" });
+    expect(within(nav).queryByRole("button", { name: "Web search" })).toBeNull();
+    // The legacy tier select and the manual docker-run snippet died with it.
+    expect(screen.queryByLabelText("Search tier")).toBeNull();
+    expect(screen.queryByText(/docker run -d -p 8080:8080/)).toBeNull();
   });
 
   it("labels OpenRouter plainly — never as a broker", () => {
@@ -307,15 +283,14 @@ describe("SettingsPanel", () => {
     );
   });
 
-  it("every pre-R7 setting control is still reachable", () => {
+  it("every surviving setting control is still reachable", () => {
     render(<SettingsPanel />);
     // AI providers
     expect(screen.getByLabelText("Default agent")).toBeInTheDocument();
     expect(screen.getByLabelText("Default provider")).toBeInTheDocument();
     expect(screen.getByLabelText("Default model")).toBeInTheDocument();
-    // Web search
-    expect(screen.getByLabelText("Search tier")).toBeInTheDocument();
-    expect(screen.getByLabelText("SearXNG URL")).toBeInTheDocument();
+    // Research search tiers — the one search surface.
+    expect(screen.getByRole("radiogroup", { name: "Research search tier" })).toBeInTheDocument();
     // Region, interface knobs
     expect(screen.getByLabelText("Region")).toBeInTheDocument();
     expect(screen.getByLabelText("Accent intensity")).toBeInTheDocument();
@@ -330,6 +305,15 @@ describe("SettingsPanel", () => {
     expect(screen.getByRole("button", { name: /Import settings/i })).toBeInTheDocument();
   });
 
+  it("the custom SearXNG URL survives inside the t2 detail and writes the store", () => {
+    render(<SettingsPanel />);
+    fireEvent.click(tierRadio(/Unlimited Research/));
+    const url = screen.getByLabelText("SearXNG URL");
+    expect(url).toBeInTheDocument();
+    fireEvent.change(url, { target: { value: "http://10.0.0.5:8080" } });
+    expect(useSearchSettingsStore.getState().searxngUrl).toBe("http://10.0.0.5:8080");
+  });
+
   // ---- R7 research search tiers (Track S) ----
 
   function tierRadio(name: RegExp) {
@@ -341,7 +325,7 @@ describe("SettingsPanel", () => {
     render(<SettingsPanel />);
     const t1 = tierRadio(/Local scraping \(keyless\)/);
     const t2 = tierRadio(/Unlimited Research \(local SearXNG\)/);
-    const t3 = tierRadio(/Hosted search \(BYOK via OpenRouter\)/);
+    const t3 = tierRadio(/BYOK search \(hosted or Exa direct\)/);
     expect(t1).toHaveAttribute("aria-checked", "true");
     expect(t2).toHaveAttribute("aria-checked", "false");
     expect(t3).toHaveAttribute("aria-checked", "false");
@@ -351,7 +335,7 @@ describe("SettingsPanel", () => {
     render(<SettingsPanel />);
     fireEvent.click(tierRadio(/Unlimited Research/));
     expect(useSearchSettingsStore.getState().researchTier).toBe("t2_searxng");
-    fireEvent.click(tierRadio(/Hosted search/));
+    fireEvent.click(tierRadio(/BYOK search/));
     expect(useSearchSettingsStore.getState().researchTier).toBe("t3_hosted");
   });
 
@@ -499,15 +483,25 @@ describe("SettingsPanel", () => {
     });
   });
 
-  it("T3 renders the engine segmented control; switching engines updates the store", async () => {
+  it("T3 defaults to the OpenRouter sub-mode with the engine segmented control", async () => {
     render(<SettingsPanel />);
-    fireEvent.click(tierRadio(/Hosted search/));
+    fireEvent.click(tierRadio(/BYOK search/));
+
+    const modes = screen.getByRole("radiogroup", { name: "BYOK search mode" });
+    expect(within(modes).getByRole("radio", { name: "Via OpenRouter" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    expect(within(modes).getByRole("radio", { name: "Exa direct" })).toHaveAttribute(
+      "aria-checked",
+      "false",
+    );
 
     const engines = screen.getByRole("radiogroup", { name: "Hosted search engine" });
-    const firecrawl = within(engines).getByRole("radio", { name: /Firecrawl \(default\)/ });
+    const firecrawl = within(engines).getByRole("radio", { name: "Firecrawl" });
     expect(firecrawl).toHaveAttribute("aria-checked", "true");
     // Honest default-engine cost line: free credits, then OpenRouter billing.
-    expect(screen.getByText(/Firecrawl starts on free credits/)).toBeInTheDocument();
+    expect(screen.getByText(/Starts on free credits/)).toBeInTheDocument();
 
     fireEvent.click(within(engines).getByRole("radio", { name: "Exa" }));
     expect(useSearchSettingsStore.getState().hostedEngine).toBe("exa");
@@ -518,7 +512,7 @@ describe("SettingsPanel", () => {
   it("T3 points to AI Providers when no OpenRouter key is stored", async () => {
     getSecretMock.mockResolvedValue(null); // keychain reachable, no key
     render(<SettingsPanel />);
-    fireEvent.click(tierRadio(/Hosted search/));
+    fireEvent.click(tierRadio(/BYOK search/));
     expect(await screen.findByText(/add one under AI Providers above/)).toBeInTheDocument();
   });
 
@@ -529,8 +523,67 @@ describe("SettingsPanel", () => {
         : Promise.resolve(null),
     );
     render(<SettingsPanel />);
-    fireEvent.click(tierRadio(/Hosted search/));
+    fireEvent.click(tierRadio(/BYOK search/));
     expect(await screen.findByText(/OpenRouter key configured/)).toBeInTheDocument();
     expect(screen.queryByText(/sk-or-v1-secret/)).toBeNull();
+  });
+
+  // ---- T3 "Exa direct" sub-mode (R8 — the legacy Exa keychain slot lives on) ----
+
+  it("switching to Exa direct flips the store and swaps in the key card", async () => {
+    getSecretMock.mockResolvedValue(null); // keychain reachable, no key stored
+    render(<SettingsPanel />);
+    fireEvent.click(tierRadio(/BYOK search/));
+
+    const modes = screen.getByRole("radiogroup", { name: "BYOK search mode" });
+    fireEvent.click(within(modes).getByRole("radio", { name: "Exa direct" }));
+    expect(useSearchSettingsStore.getState().exaDirect).toBe(true);
+
+    // The hosted engine control yields to the Exa key card.
+    expect(screen.queryByRole("radiogroup", { name: "Hosted search engine" })).toBeNull();
+    expect(
+      await screen.findByText(/needs an Exa API key to run — add one below/),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Exa API key")).toBeInTheDocument();
+  });
+
+  it("Exa direct shows key presence from the legacy keychain slot (never the value)", async () => {
+    getSecretMock.mockImplementation((account: string) =>
+      account === "plugin-secret:vysted-search-exa:exa_api_key"
+        ? Promise.resolve("exa-secret-123")
+        : Promise.resolve(null),
+    );
+    useSearchSettingsStore.getState().setExaDirect(true);
+    render(<SettingsPanel />);
+    fireEvent.click(tierRadio(/BYOK search/));
+
+    expect(await screen.findByText(/Exa key configured/)).toBeInTheDocument();
+    expect(screen.queryByText(/exa-secret-123/)).toBeNull();
+    expect(screen.getByRole("button", { name: /Remove/ })).toBeInTheDocument();
+  });
+
+  it("saving an Exa key writes the legacy keychain slot and flips to configured", async () => {
+    const { setSecret } = await import("@/lib/keychain");
+    const setSecretMock = vi.mocked(setSecret);
+    let stored: string | null = null;
+    getSecretMock.mockImplementation(() => Promise.resolve(stored));
+    setSecretMock.mockImplementation((_account: string, value: string) => {
+      stored = value;
+      return Promise.resolve();
+    });
+
+    useSearchSettingsStore.getState().setExaDirect(true);
+    render(<SettingsPanel />);
+    fireEvent.click(tierRadio(/BYOK search/));
+
+    const input = await screen.findByLabelText("Exa API key");
+    fireEvent.change(input, { target: { value: "exa_new_key" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save key" }));
+
+    expect(await screen.findByText(/Exa key configured/)).toBeInTheDocument();
+    expect(setSecretMock).toHaveBeenCalledWith(
+      "plugin-secret:vysted-search-exa:exa_api_key",
+      "exa_new_key",
+    );
   });
 });

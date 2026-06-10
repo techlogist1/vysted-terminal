@@ -20,7 +20,6 @@ import {
   Package,
   Plug,
   RotateCcw,
-  Search,
   Sliders,
   Trash2,
   Upload,
@@ -75,7 +74,6 @@ import {
   useSearchSettingsStore,
 } from "@/store/search-settings";
 import { type SettingsBundle, useSettingsStore } from "@/store/settings";
-import { SEARCH_TIER_LABELS, SEARCH_TIERS, type SearchTier } from "../../types/search";
 import { AUTOSAVE_LAYOUT_NAME, isReservedLayoutName, useWorkspaceStore } from "@/store/workspace";
 import type { LLMModelOption, LLMProviderId } from "../../types/ai";
 
@@ -83,17 +81,20 @@ import type { LLMModelOption, LLMProviderId } from "../../types/ai";
  * Settings — the discoverable control surface (Cursor-grade preferences,
  * FR-037/FR-038/FR-039, SC-011).
  *
- * R7 layout (VYSTED_DESIGN.md) — a sectioned hierarchy instead of a wall:
+ * R8 layout — a sectioned hierarchy instead of a wall; ONE search surface
+ * (the R7 research tiers — the legacy "Web search" section is gone, its
+ * Exa key and custom SearXNG URL folded into the tier details):
  *
  *   Settings
- *   [jump nav: AI Providers · Web search · Research · Region & locale ·
+ *   [jump nav: AI Providers · Research · Region & locale ·
  *              Interface · Keybindings · Advanced]
  *   ── AI Providers ──────────────────────────────────────────────
  *      key rows (fixed-slot right cluster, so status text and buttons
  *      align row to row) · defaults (agent/provider/model) · order
- *   ── Web search ────────────────────────────────────────────────
  *   ── Research ──────────────────────────────────────────────────
- *      deep research · hardware & local models
+ *      search tiers (t1 keyless · t2 SearXNG + custom URL ·
+ *      t3 BYOK: OpenRouter hosted or Exa direct) · deep research ·
+ *      hardware & local models
  *   ── Region & locale ───────────────────────────────────────────
  *   ── Interface ─────────────────────────────────────────────────
  *      command palette · starter cockpit · appearance
@@ -131,7 +132,6 @@ export const SettingsPanel: FunctionComponent = () => {
             <SectionNav />
           </header>
           <ProvidersSection />
-          <WebSearchSection />
           <ResearchSection />
           <RegionSection />
           <InterfaceSection />
@@ -151,7 +151,6 @@ SettingsPanel.displayName = "SettingsPanel";
 
 const SECTION_NAV: { id: string; label: string }[] = [
   { id: "settings-providers", label: "AI Providers" },
-  { id: "settings-search", label: "Web search" },
   { id: "settings-research", label: "Research" },
   { id: "settings-region", label: "Region & locale" },
   { id: "settings-interface", label: "Interface" },
@@ -674,296 +673,6 @@ function ProviderOrderGroup() {
 }
 
 // ---------------------------------------------------------------------------
-// Web search (three tiers — FR-080/083/084)
-// ---------------------------------------------------------------------------
-
-/** Providers whose native web search is a PROVIDER-level guarantee (every routable
- *  model rides the provider's own search). Mirrors
- *  `native_search.PROVIDER_LEVEL_NATIVE_SEARCH` on the sidecar. OpenRouter is
- *  deliberately absent — it is gated per-MODEL on the catalog `webSearch` flag. */
-const PROVIDER_LEVEL_NATIVE_SEARCH: ReadonlySet<LLMProviderId> = new Set([
-  "anthropic",
-  "openai",
-  "gemini",
-  "groq",
-  "xai",
-]);
-
-/** OpenRouter's documented per-search web-plugin price.
- *
- *  DOCUMENTED ESTIMATE — sourced from OpenRouter's web-search docs
- *  (https://openrouter.ai/docs/features/web-search), NOT from any code or live
- *  pricing feed, so it CAN DRIFT. Docs quote ~$0.005 for a search returning up to
- *  10 results, plus ~$0.001 per extra result. We surface only the typical
- *  (<=10-result) figure, always prefixed with "~" and labelled an estimate — it
- *  is NEVER presented as an authoritative charge. */
-const OPENROUTER_WEB_SEARCH_EST_USD = 0.005;
-
-/** Honest, model/provider-aware native-tier status copy (WS5). The OpenRouter
- *  plugin price is a DOCUMENTED ESTIMATE that may drift (OPENROUTER_WEB_SEARCH_
- *  EST_USD) — rendered as an estimate, never an authoritative quote. Exported so
- *  the honesty guarantee across the provider/model matrix is locked by tests. */
-export function nativeSearchStatus(
-  provider: LLMProviderId,
-  modelWebSearch: LLMModelOption["webSearch"],
-): string {
-  if (PROVIDER_LEVEL_NATIVE_SEARCH.has(provider)) {
-    return "Searches run on your active model's own web search — billed to your provider key, no extra key needed.";
-  }
-  if (provider === "openrouter") {
-    if (modelWebSearch === "native") {
-      // OpenRouter routes the search to the model's own native search — billed by
-      // the upstream, not the priced plugin; no separate per-search estimate.
-      return "Searches run on this OpenRouter model's own native web search — billed through your OpenRouter credits.";
-    }
-    if (modelWebSearch === "plugin") {
-      return `This OpenRouter model has no native web search, so searches fall back to the app's search tool. (OpenRouter can run a billed web plugin — est. ~$${OPENROUTER_WEB_SEARCH_EST_USD.toFixed(3)} per search, a documented price that may drift — but the terminal doesn't auto-enable it.)`;
-    }
-    return "This OpenRouter model has no native web search, so searches use the app's own search tool (Exa/SearXNG/keyless floor).";
-  }
-  // DeepSeek / Ollama and anything else: no native search rung — the app's tool runs.
-  return "This model has no native web search, so searches use the app's own search tool (Exa/SearXNG/keyless floor).";
-}
-
-/**
- * Web search — the three-tier search control (FR-080/083/084).
- *
- *  - Tier picker: native (model's own web search on your provider key) /
- *    BYOK Exa / local SearXNG.
- *  - Exa API key (BYOK): stored in the OS keychain, sent as `X-Vysted-Exa-Key`.
- *    Read/written here directly (the search-source plugin's secret namespace).
- *  - SearXNG URL: the local-tier base URL (`X-Vysted-Searxng-Url`); blank =
- *    autodetect `localhost:8080`.
- */
-function WebSearchSection() {
-  const tier = useSearchSettingsStore((s) => s.tier);
-  const setTier = useSearchSettingsStore((s) => s.setTier);
-  const searxngUrl = useSearchSettingsStore((s) => s.searxngUrl);
-  const setSearxngUrl = useSearchSettingsStore((s) => s.setSearxngUrl);
-
-  // The active provider + model decide whether the NATIVE tier actually fires on
-  // THIS model (WS5). The five provider-level native providers always do; an
-  // OpenRouter model only fires native search when its catalog flag is "native"
-  // (else searches fall back to the app's own search tool). Read the resolved
-  // model's capability from the live catalog so the copy is honest per model.
-  const activeProvider = useLLMProvidersStore((s) => s.defaultProviderId);
-  const activeModel = useModelSelectionStore((s) => s.modelFor(activeProvider));
-  const { entry: activeCatalog } = useModelCatalog(activeProvider);
-  const activeModelOption = activeCatalog?.models.find((m) => m.id === activeModel);
-  const nativeStatus = nativeSearchStatus(activeProvider, activeModelOption?.webSearch ?? null);
-
-  // Exa key status is read straight from the keychain (BYOK; never in a store).
-  const [exaConfigured, setExaConfigured] = useState<boolean | null>(null);
-  const [exaInput, setExaInput] = useState("");
-  const [exaBusy, setExaBusy] = useState(false);
-  const [exaError, setExaError] = useState<string | null>(null);
-
-  async function refreshExa() {
-    try {
-      const value = await getSecret(EXA_KEYCHAIN_ACCOUNT);
-      setExaConfigured(Boolean(value));
-    } catch {
-      setExaConfigured(false);
-    }
-  }
-
-  useEffect(() => {
-    // Only sets state after the awaited keychain read resolves (never
-    // synchronously) — same no-cascade pattern as the Layouts section.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void refreshExa();
-  }, []);
-
-  async function handleSaveExa() {
-    const value = exaInput.trim();
-    if (!value) {
-      return;
-    }
-    setExaBusy(true);
-    setExaError(null);
-    try {
-      await setSecret(EXA_KEYCHAIN_ACCOUNT, value);
-      setExaInput("");
-      await refreshExa();
-    } catch (err) {
-      // A keychain write can fail (locked keychain, denied access). Surface it —
-      // otherwise refreshExa() shows "not configured" and the user thinks it saved.
-      setExaError(err instanceof Error ? err.message : "Couldn't save the key to the keychain.");
-    } finally {
-      setExaBusy(false);
-    }
-  }
-
-  async function handleRemoveExa() {
-    setExaBusy(true);
-    setExaError(null);
-    try {
-      await deleteSecret(EXA_KEYCHAIN_ACCOUNT);
-      await refreshExa();
-    } catch (err) {
-      setExaError(
-        err instanceof Error ? err.message : "Couldn't remove the key from the keychain.",
-      );
-    } finally {
-      setExaBusy(false);
-    }
-  }
-
-  return (
-    <section aria-labelledby="settings-search">
-      <SectionHeader
-        id="settings-search"
-        icon={<Search className="text-charcoal-300 size-4" aria-hidden="true" />}
-        title="Web search"
-        hint="Pick how the copilot searches the web. Native rides your model's own search when the active model supports it (else it falls back to the app's search tool); BYOK adds an Exa key for finance-grade retrieval; local routes through a private SearXNG so nothing leaves your machine."
-      />
-      <div className="flex flex-col gap-6">
-        <Card>
-          <SettingRow
-            label="Search tier"
-            hint="Native (model's web search), BYOK Exa, or local SearXNG."
-          >
-            <Select
-              aria-label="Search tier"
-              value={tier}
-              onChange={(e) => setTier(e.target.value as SearchTier)}
-            >
-              {SEARCH_TIERS.map((t) => (
-                <option key={t} value={t}>
-                  {SEARCH_TIER_LABELS[t]}
-                </option>
-              ))}
-            </Select>
-          </SettingRow>
-
-          {/* Active-tier status: a one-line confirmation of where searches route,
-              so the selected tier's effect is never ambiguous. */}
-          <p className="text-charcoal-400 text-caption px-4 py-3">
-            {tier === "native"
-              ? nativeStatus
-              : tier === "byok-exa"
-                ? exaConfigured
-                  ? "Searches route through Exa using your stored key."
-                  : "Add an Exa key below to activate this tier."
-                : "Searches route through your local SearXNG instance — nothing leaves your machine."}
-          </p>
-
-          <SettingRow
-            label="SearXNG URL"
-            hint="Local-tier base URL. Leave blank to autodetect localhost:8888 then :8080."
-          >
-            <input
-              type="url"
-              value={searxngUrl}
-              onChange={(e) => setSearxngUrl(e.target.value)}
-              placeholder="http://localhost:8080"
-              aria-label="SearXNG URL"
-              className={cn(inputClass, "min-w-[12rem]")}
-            />
-          </SettingRow>
-        </Card>
-
-        {/* Exa API key (BYOK, keychain) */}
-        <div>
-          <GroupLabel
-            label="Exa API key (BYOK)"
-            hint="Optional. Stored in your OS keychain — never on disk or sent anywhere but Exa. Powers the BYOK search tier."
-          />
-          <Card>
-            <div className="flex min-h-8 flex-col justify-center gap-2 px-4 py-3">
-              {exaConfigured === null ? (
-                // Keychain read in flight — show a quiet checking state instead of
-                // briefly flashing the "needs a key" form (which is misleading if a
-                // key IS stored).
-                <span className="text-charcoal-400 text-caption">Checking…</span>
-              ) : exaConfigured ? (
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-positive text-caption flex items-center gap-1">
-                    <Check className="size-3" aria-hidden="true" /> Key configured
-                  </span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={exaBusy}
-                    onClick={() => void handleRemoveExa()}
-                  >
-                    <Trash2 className="size-3" aria-hidden="true" />
-                    Remove
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  {/* When the BYOK tier is selected but no key is stored, the tier
-                      can't actually run — say so plainly rather than silently falling
-                      back. */}
-                  {tier === "byok-exa" ? (
-                    <p className="text-warning text-caption">
-                      The BYOK search tier is selected but needs an Exa key to work — add one below.
-                    </p>
-                  ) : null}
-                  <form
-                    className="flex items-center gap-2"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      void handleSaveExa();
-                    }}
-                  >
-                    <input
-                      type="password"
-                      value={exaInput}
-                      onChange={(e) => setExaInput(e.target.value)}
-                      placeholder="exa_..."
-                      aria-label="Exa API key"
-                      className={cn(inputClass, "flex-1")}
-                    />
-                    <Button
-                      type="submit"
-                      size="sm"
-                      variant="outline"
-                      disabled={exaBusy || exaInput.trim() === ""}
-                    >
-                      Save key
-                    </Button>
-                  </form>
-                  {exaError && (
-                    <p className="text-negative text-caption" role="alert">
-                      {exaError}
-                    </p>
-                  )}
-                </>
-              )}
-            </div>
-          </Card>
-        </div>
-
-        {/* Run-a-local-instance hint — keyless private search in one command.
-            JSON output is OFF by default in SearXNG, so the setup must enable it. */}
-        {tier === "local-searxng" && (
-          <Card>
-            <div className="px-4 py-3">
-              <p className="text-charcoal-200 text-caption">
-                No instance yet? Run one locally (keyless, ~200 MB):
-              </p>
-              <pre className="text-charcoal-300 bg-charcoal-850 text-caption mt-2 overflow-x-auto rounded-none p-2 leading-relaxed">
-                {
-                  "docker run -d -p 8080:8080 \\\n  -e SEARXNG_SETTINGS_PATH=/etc/searxng/settings.yml \\\n  searxng/searxng"
-                }
-              </pre>
-              <p className="text-charcoal-400 text-caption mt-2">
-                Then enable JSON output: add <code className="text-charcoal-300">json</code> to{" "}
-                <code className="text-charcoal-300">search.formats</code> and set{" "}
-                <code className="text-charcoal-300">server.limiter: false</code> in settings.yml.
-                The terminal autodetects it on the next research run.
-              </p>
-            </div>
-          </Card>
-        )}
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Research (deep research + hardware capability)
 // ---------------------------------------------------------------------------
 
@@ -1300,7 +1009,7 @@ const HOSTED_ENGINE_OPTIONS: {
     id: "firecrawl",
     label: "Firecrawl",
     costLine:
-      "Firecrawl starts on free credits; after those, each search bills through your OpenRouter account.",
+      "The default engine. Starts on free credits; after those, each search bills through your OpenRouter account.",
   },
   {
     id: "exa",
@@ -1309,6 +1018,189 @@ const HOSTED_ENGINE_OPTIONS: {
       "Exa bills ~$0.005 per search through your OpenRouter account — a documented rate that can drift.",
   },
 ];
+
+/**
+ * The t3 BYOK sub-mode picker: hosted via OpenRouter (engine + key presence)
+ * or "Exa direct" (the user's own Exa API key, riding the legacy `byok-exa`
+ * wire lane the sidecar maps onto the Exa backend).
+ */
+function ByokSearchControls() {
+  const exaDirect = useSearchSettingsStore((s) => s.exaDirect);
+  const setExaDirect = useSearchSettingsStore((s) => s.setExaDirect);
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div
+        role="radiogroup"
+        aria-label="BYOK search mode"
+        className="border-charcoal-700 divide-charcoal-700 rounded-control flex h-8 max-w-xs divide-x overflow-hidden border"
+      >
+        <button
+          type="button"
+          role="radio"
+          aria-checked={!exaDirect}
+          onClick={() => setExaDirect(false)}
+          className={cn(
+            "text-micro flex-1 px-3 whitespace-nowrap",
+            !exaDirect
+              ? "bg-charcoal-875 text-lume"
+              : "text-charcoal-400 hover:text-charcoal-200 bg-transparent",
+          )}
+        >
+          Via OpenRouter
+        </button>
+        <button
+          type="button"
+          role="radio"
+          aria-checked={exaDirect}
+          onClick={() => setExaDirect(true)}
+          className={cn(
+            "text-micro flex-1 px-3 whitespace-nowrap",
+            exaDirect
+              ? "bg-charcoal-875 text-lume"
+              : "text-charcoal-400 hover:text-charcoal-200 bg-transparent",
+          )}
+        >
+          Exa direct
+        </button>
+      </div>
+      {exaDirect ? <ExaDirectControls /> : <HostedEngineControls />}
+    </div>
+  );
+}
+
+/**
+ * The "Exa direct" key card: the legacy `vysted-search-exa:exa_api_key`
+ * keychain slot keeps working — key presence is read straight from the OS
+ * keychain (BYOK; never in a store), and the value never enters frontend
+ * state beyond the controlled input.
+ */
+function ExaDirectControls() {
+  const [exaConfigured, setExaConfigured] = useState<boolean | null>(null);
+  const [exaInput, setExaInput] = useState("");
+  const [exaBusy, setExaBusy] = useState(false);
+  const [exaError, setExaError] = useState<string | null>(null);
+
+  async function refreshExa() {
+    try {
+      const value = await getSecret(EXA_KEYCHAIN_ACCOUNT);
+      setExaConfigured(Boolean(value));
+    } catch {
+      setExaConfigured(false);
+    }
+  }
+
+  useEffect(() => {
+    // Only sets state after the awaited keychain read resolves (never
+    // synchronously) — same no-cascade pattern as the Layouts section.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void refreshExa();
+  }, []);
+
+  async function handleSaveExa() {
+    const value = exaInput.trim();
+    if (!value) {
+      return;
+    }
+    setExaBusy(true);
+    setExaError(null);
+    try {
+      await setSecret(EXA_KEYCHAIN_ACCOUNT, value);
+      setExaInput("");
+      await refreshExa();
+    } catch (err) {
+      // A keychain write can fail (locked keychain, denied access). Surface it —
+      // otherwise refreshExa() shows "not configured" and the user thinks it saved.
+      setExaError(err instanceof Error ? err.message : "Couldn't save the key to the keychain.");
+    } finally {
+      setExaBusy(false);
+    }
+  }
+
+  async function handleRemoveExa() {
+    setExaBusy(true);
+    setExaError(null);
+    try {
+      await deleteSecret(EXA_KEYCHAIN_ACCOUNT);
+      await refreshExa();
+    } catch (err) {
+      setExaError(
+        err instanceof Error ? err.message : "Couldn't remove the key from the keychain.",
+      );
+    } finally {
+      setExaBusy(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-charcoal-500 text-caption">
+        Searches call Exa&rsquo;s API directly on your own Exa key — no OpenRouter account needed.
+        Billed by Exa per search. The key is stored in your OS keychain, never on disk or sent
+        anywhere but Exa.
+      </p>
+      {exaConfigured === null ? (
+        // Keychain read in flight — show a quiet checking state instead of
+        // briefly flashing the "needs a key" form (which is misleading if a
+        // key IS stored).
+        <span className="text-charcoal-400 text-caption">Checking…</span>
+      ) : exaConfigured ? (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-positive text-caption flex items-center gap-1">
+            <Check className="size-3 shrink-0" aria-hidden="true" />
+            Exa key configured — direct searches use it.
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={exaBusy}
+            onClick={() => void handleRemoveExa()}
+          >
+            <Trash2 className="size-3" aria-hidden="true" />
+            Remove
+          </Button>
+        </div>
+      ) : (
+        <>
+          {/* Exa direct is the active sub-mode but cannot run without a key —
+              say so plainly rather than silently flooring. */}
+          <p className="text-warning text-caption">
+            Exa direct is selected but needs an Exa API key to run — add one below.
+          </p>
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void handleSaveExa();
+            }}
+          >
+            <input
+              type="password"
+              value={exaInput}
+              onChange={(e) => setExaInput(e.target.value)}
+              placeholder="exa_..."
+              aria-label="Exa API key"
+              className={cn(inputClass, "min-w-0 flex-1")}
+            />
+            <Button
+              type="submit"
+              size="sm"
+              variant="outline"
+              disabled={exaBusy || exaInput.trim() === ""}
+            >
+              Save key
+            </Button>
+          </form>
+          {exaError && (
+            <p className="text-negative text-caption" role="alert">
+              {exaError}
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
 
 /** The t3 hosted-search controls: engine segmented control + key presence. */
 function HostedEngineControls() {
@@ -1340,14 +1232,13 @@ function HostedEngineControls() {
             aria-checked={hostedEngine === opt.id}
             onClick={() => setHostedEngine(opt.id)}
             className={cn(
-              "text-micro flex-1 px-3",
+              "text-micro flex-1 px-3 whitespace-nowrap",
               hostedEngine === opt.id
                 ? "bg-charcoal-875 text-lume"
                 : "text-charcoal-400 hover:text-charcoal-200 bg-transparent",
             )}
           >
             {opt.label}
-            {opt.id === "firecrawl" ? " (default)" : ""}
           </button>
         ))}
       </div>
@@ -1367,6 +1258,40 @@ function HostedEngineControls() {
           Couldn&rsquo;t check the OS keychain for an OpenRouter key.
         </p>
       )}
+    </div>
+  );
+}
+
+/**
+ * The t2 detail: the guided one-click managed flow plus the optional
+ * "Advanced" custom-instance URL (empty = managed instance / autodetect).
+ */
+function SearxngTierDetail() {
+  const searxngUrl = useSearchSettingsStore((s) => s.searxngUrl);
+  const setSearxngUrl = useSearchSettingsStore((s) => s.setSearxngUrl);
+
+  return (
+    <div className="flex flex-col gap-3">
+      <SearxngGuidedFlow />
+      <div className="flex flex-col gap-1">
+        <label htmlFor="settings-searxng-custom-url" className="text-charcoal-500 text-micro">
+          Advanced: custom instance URL
+        </label>
+        <input
+          id="settings-searxng-custom-url"
+          type="url"
+          value={searxngUrl}
+          onChange={(e) => setSearxngUrl(e.target.value)}
+          placeholder="http://localhost:8080"
+          aria-label="SearXNG URL"
+          className={cn(inputClass, "w-full max-w-sm")}
+        />
+        <p className="text-charcoal-500 text-caption">
+          Optional. Leave blank to use the managed instance above (or autodetect localhost:8888 /
+          :8080). A custom instance must enable the JSON output format and disable the limiter in
+          its settings.yml.
+        </p>
+      </div>
     </div>
   );
 }
@@ -1391,9 +1316,9 @@ const RESEARCH_TIER_OPTIONS: {
   },
   {
     id: "t3_hosted",
-    name: "Hosted search (BYOK via OpenRouter)",
+    name: "BYOK search (hosted or Exa direct)",
     description:
-      "OpenRouter-hosted web search on your own key — the most reliable tier, and the only one that costs money per search.",
+      "Your own key: OpenRouter-hosted web search (Firecrawl/Exa) or a direct Exa API key — the most reliable tier, and the only one that costs money per search.",
   },
 ];
 
@@ -1410,7 +1335,7 @@ function ResearchTierGroup() {
     <div>
       <GroupLabel
         label="Search tier"
-        hint="Where research searches run. The keyless floor needs nothing; SearXNG runs unlimited and local; hosted is BYOK via OpenRouter."
+        hint="Where web searches run. The keyless floor needs nothing; SearXNG runs unlimited and local; BYOK runs hosted via OpenRouter or direct on an Exa key."
       />
       <Card>
         <div
@@ -1456,8 +1381,8 @@ function ResearchTierGroup() {
                 {selected && (
                   <div className="border-charcoal-800 border-t px-4 py-3">
                     {option.id === "t1_local" && <T1StatusLine />}
-                    {option.id === "t2_searxng" && <SearxngGuidedFlow />}
-                    {option.id === "t3_hosted" && <HostedEngineControls />}
+                    {option.id === "t2_searxng" && <SearxngTierDetail />}
+                    {option.id === "t3_hosted" && <ByokSearchControls />}
                   </div>
                 )}
               </div>
@@ -1481,9 +1406,11 @@ function ResearchTierGroup() {
  * honestly marked "remote"; on a 32 GB+ box the same models flip to "runs
  * locally" with no change.
  *
- * R7 (Track S) adds the research SEARCH-tier picker at the top: t1 keyless /
- * t2 managed SearXNG / t3 hosted BYOK — persisted in the search-settings
- * bundle and sent as `X-Vysted-Research-Tier` on every request.
+ * R8 (settings-truth): the SEARCH-tier picker at the top is the ONE search
+ * settings surface — t1 keyless / t2 managed SearXNG (+ optional custom
+ * instance URL) / t3 BYOK (OpenRouter hosted, or "Exa direct" on the user's
+ * own Exa key). Persisted in the search-settings bundle; the legacy
+ * "Web search" section is gone.
  */
 function ResearchSection() {
   const [report, setReport] = useState<HardwareReport | null | "loading">("loading");
@@ -1506,7 +1433,7 @@ function ResearchSection() {
         id="settings-research"
         icon={<FlaskConical className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Research"
-        hint="Where research searches run, how /deep and 'go deeper' work, and what this machine can run on-device."
+        hint="Where web searches run, how /deep and 'go deeper' work, and what this machine can run on-device."
       />
       <div className="flex flex-col gap-6">
         <ResearchTierGroup />
