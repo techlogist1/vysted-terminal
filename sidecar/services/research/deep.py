@@ -526,7 +526,22 @@ async def _run_researcher(
     if region:
         web_args["region"] = region
 
-    if target is not None:
+    # Disclosures dimension (R8): an India-listed target with a results/
+    # earnings/announcement/dividend/transcript-shaped sub-question consults
+    # the exchange feeds ALONGSIDE the web — the in-house tools the live runs
+    # never used while concluding "no quarterly results announced".
+    from services.research import disclosures as disclosures_mod
+
+    use_disclosures = disclosures_mod.wants_disclosures(target, sub_question)
+    disclosure_bundle: dict[str, Any] | None = None
+
+    if target is not None and use_disclosures:
+        structured_res, web_res, disclosure_bundle = await asyncio.gather(
+            _safe_tool(tool_call, tool, args),
+            _safe_tool(tool_call, "web_search", web_args),
+            disclosures_mod.gather(tool_call, target=target, sub_question=sub_question),
+        )
+    elif target is not None:
         structured_res, web_res = await asyncio.gather(
             _safe_tool(tool_call, tool, args),
             _safe_tool(tool_call, "web_search", web_args),
@@ -537,7 +552,28 @@ async def _run_researcher(
         structured_res = {"ok": False, "error": "no listed instrument bound — web evidence only"}
         web_res = await _safe_tool(tool_call, "web_search", web_args)
 
-    page_url = _top_result_url(web_res) if visit is not None else None
+    # Announcement attachments become first-class citation rows (exchange tier
+    # in the finance ladder, verified_symbol provenance) riding the SAME web
+    # result the loop records — so they are numbered, ranked, and visitable.
+    disclosure_rows = disclosure_bundle["rows"] if disclosure_bundle else []
+    if disclosure_rows:
+        if web_res.get("ok"):
+            merged = dict(web_res)
+            merged["citations"] = disclosure_rows + list(
+                web_res.get("citations") or web_res.get("results") or []
+            )
+            web_res = merged
+        else:
+            web_res = {"ok": True, "citations": list(disclosure_rows), "results": []}
+
+    # Visit preference: a results-filing PDF from the exchange beats a press
+    # page — the PDF lane in services.search.extract reads it.
+    page_url: str | None = None
+    if visit is not None:
+        if disclosure_rows:
+            page_url = str(disclosure_rows[0]["url"])
+        else:
+            page_url = _top_result_url(web_res)
     page_text: str | None = None
     if page_url:
         try:
@@ -546,6 +582,10 @@ async def _run_researcher(
             page_text = None
 
     web_block = wrap_untrusted("web_search results", web_res)
+    if disclosure_bundle and disclosure_bundle.get("context"):
+        web_block += "\n\n" + wrap_untrusted(
+            "exchange disclosures (NSE/BSE feeds)", disclosure_bundle["context"]
+        )
     if page_text:
         web_block += "\n\n" + wrap_untrusted(page_url or "visited page", page_text)
 
@@ -589,6 +629,10 @@ async def _run_researcher(
     )
     finding = extract.strip() or f"(no finding extracted for: {sub_question})"
     structured_pairs = [{"dim": dim, "result": structured_res}] if structured_res.get("ok") else []
+    if disclosure_bundle and disclosure_bundle.get("announcements"):
+        # The announcements pull is real news-dimension coverage with its own
+        # vysted:// provenance source.
+        structured_pairs.append({"dim": "news", "result": disclosure_bundle["announcements"]})
     return finding, web_res, structured_pairs
 
 
@@ -791,6 +835,9 @@ async def run_deep_research(
         the shared ``findings``/``steps`` accumulators in place.
         """
         # --- plan: what's unanswered? -> sub-questions ------------------------
+        from services.research import disclosures as disclosures_mod
+
+        disclosure_hint = disclosures_mod.plan_hint(target)
         t0 = time.monotonic()
         plan_text = await _safe_llm(
             llm_call,
@@ -801,6 +848,7 @@ async def run_deep_research(
                         "You are planning a research run. List the open "
                         "sub-questions still unanswered, one per line. Be specific.\n"
                         + finance.date_directive()
+                        + (("\n" + disclosure_hint) if disclosure_hint else "")
                     ),
                 },
                 {

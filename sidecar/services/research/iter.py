@@ -317,6 +317,9 @@ async def run_iter_research(
         report.round += 1
 
         # --- RECONSTRUCT WORKSPACE: plan from {report + latest evidence} ------
+        from services.research import disclosures as disclosures_mod
+
+        disclosure_hint = disclosures_mod.plan_hint(target)
         t0 = time.monotonic()
         plan_text = await _safe_llm(
             llm_call,
@@ -329,6 +332,7 @@ async def run_iter_research(
                         "sub-questions STILL unanswered, one per line. Be specific and "
                         "non-redundant with what the report already covers.\n"
                         + finance.date_directive()
+                        + (("\n" + disclosure_hint) if disclosure_hint else "")
                     ),
                 },
                 {
