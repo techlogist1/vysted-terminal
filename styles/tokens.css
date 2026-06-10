@@ -82,6 +82,15 @@
   --color-negative-bright: #f87171; /* loss flash peak */
   --color-warning: #e0a13a; /* stale / paper / caution badge */
 
+  /* --- Research depth heat (R9) -- the ONE designed color family beyond the
+   * scarce accent: white -> peach -> ember escalation for the composer send
+   * fill + active depth stop. ultra is hotter than amber-400 but firmly
+   * distinct from negative (#e5544b, reserved for losses). Use nowhere else
+   * without a DECISIONS entry (R9_DESIGN_SYSTEM.md sec4). ------------------ */
+  --color-depth-normal: #f7f7f7; /* NORMAL -- quiet near-white (lume) */
+  --color-depth-deep: #fab283; /* DEEP -- the brand peach (amber-400) */
+  --color-depth-ultra: #f08a4b; /* ULTRA -- ember, one step hotter */
+
   /* --- Typography -- ONE monospace family (JetBrains Mono) across EVERY text
    * role (VYSTED_DESIGN.md). @fontsource/jetbrains-mono self-hosts the face
    * (imported in src/main.tsx); --font-jetbrains-mono is defined HERE so the
@@ -95,16 +104,19 @@
   --font-serif: var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace;
 
-  /* --- Type scale (R4, NEW -- ~1.20 modular, snapped to even px, doc sec3)
-   * Named utilities so components use text-body / text-panel-title / etc.
-   * instead of ad-hoc text-[11px]. Tailwind 4 reads @theme. -------------- */
-  --text-micro: 0.6875rem; /* 11px -- hud-label (uppercase, +0.10em tracking) */
-  --text-caption: 0.75rem; /* 12px -- caption, secondary, kbd chips */
-  --text-body: 0.8125rem; /* 13px -- body + table/data base */
-  --text-prose: 1rem; /* 16px -- AI narratives / briefs / notes reading size (leading 1.6) */
-  --text-panel-title: 0.9375rem; /* 15px -- panel title */
-  --text-section: 1.125rem; /* 18px -- section head */
-  --text-overview: 1.375rem; /* 22px -- overview / brief head */
+  /* --- Type scale (R9 -- ONE modular ratio ~1.2, snapped to whole px, six
+   * rendered sizes: 11 / 13 / 16 / 19 / 23 / 28. Utility NAMES are kept so
+   * call sites re-skin by revalue (the R6 trick); caption/body/panel-title
+   * now share 13px and differ by weight/transform only -- hierarchy below
+   * 16px is weight + color, never size (R9_DESIGN_SYSTEM.md sec2). 12, 15,
+   * 18, 22 are dead sizes; the audit script rejects them. ----------------- */
+  --text-micro: 0.6875rem; /* 11px -- THE floor; uppercase eyebrows, provenance */
+  --text-caption: 0.8125rem; /* 13px -- data cells (tabular), chrome labels, chips */
+  --text-body: 0.8125rem; /* 13px -- dock prose, user chat, form labels */
+  --text-prose: 1rem; /* 16px -- wide reading panels ONLY (leading 1.6) */
+  --text-panel-title: 0.8125rem; /* 13px + weight 500 -- quiet Linear-grade titles */
+  --text-section: 1.1875rem; /* 19px -- section head */
+  --text-overview: 1.4375rem; /* 23px -- overview / brief head */
   --text-hero: 1.75rem; /* 28px -- rare hero (first-run only) */
 
   --font-weight-body: 400;
@@ -118,19 +130,15 @@
   --leading-hero: 1.2; /* hero */
   --leading-prose: 1.6; /* reading briefs */
 
-  /* --- Spacing scale (R4, NEW -- 4px base, 8px rhythm, doc sec4)
-   * Component padding draws from {6, 8, 12}; section gaps from {16, 24, 32}.
-   * Forbid raw off-scale values (gap-2.5, px-[7px]) in new/changed code. */
-  --spacing-1: 0.125rem; /* 2px */
-  --spacing-2: 0.25rem; /* 4px */
-  --spacing-3: 0.375rem; /* 6px */
-  --spacing-4: 0.5rem; /* 8px */
-  --spacing-6: 0.75rem; /* 12px */
-  --spacing-8: 1rem; /* 16px */
-  --spacing-12: 1.5rem; /* 24px */
-  --spacing-16: 2rem; /* 32px */
-  --spacing-24: 3rem; /* 48px */
-  --spacing-32: 4rem; /* 64px */
+  /* --- Spacing (R9) -- STANDARD Tailwind semantics restored: 1 unit = 4px
+   * via the default --spacing multiplier. The R4 numeric overrides that
+   * halved the convention for an arbitrary subset of steps (h-6=12px while
+   * h-7=28px and h-8=16px -- the root cause of the proportion disease) are
+   * DELETED; do not reintroduce numeric --spacing-N tokens.
+   * The rhythm law lives in R9_DESIGN_SYSTEM.md sec1: 8-pt grid, 4px
+   * half-step, 2px restricted to intra-control optical gaps. Allowed
+   * utility steps: 0.5* 1 2 3 4 5 6 7(controls) 8 10 12 16 20 24.
+   * scripts/audit-design-tokens.mjs enforces the set statically. ---------- */
 
   /* --- Radius -- containers are SHARP rectangles (0px); only interactive
    * elements soften to 4px (VYSTED_DESIGN.md). */
