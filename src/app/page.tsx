@@ -141,7 +141,10 @@ export default function Page() {
     // move the dockview layout, so they need their own autosave trigger or a tier
     // change is lost on relaunch (same pattern as model overrides above).
     const unsubscribeSearch = useSearchSettingsStore.subscribe((state, previous) => {
-      if (state.tier !== previous.tier || state.searxngUrl !== previous.searxngUrl) {
+      if (
+        state.researchTier !== previous.researchTier ||
+        state.searxngUrl !== previous.searxngUrl
+      ) {
         void autosaveLayout();
       }
     });

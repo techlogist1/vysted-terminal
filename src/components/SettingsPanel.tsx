@@ -18,8 +18,7 @@ import { KeyEntryDialog } from "@/components/KeyEntryDialog";
 import { formatModelLabel } from "@/components/StatusChrome";
 import { type Region, REGIONS } from "@/lib/region";
 import { cn } from "@/lib/utils";
-import { deleteSecret, getSecret, KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
-import { EXA_KEYCHAIN_ACCOUNT } from "@/lib/search-headers";
+import { deleteSecret, KEYCHAIN_NAMESPACES } from "@/lib/keychain";
 import { HOST_VERSION } from "@/lib/plugin-bootstrap";
 import {
   autosaveLayout,
@@ -58,8 +57,8 @@ import {
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useContainerWidth } from "@/lib/use-container-width";
 import {
-  type HostedSearchEngine,
-  type ResearchTier,
+  RESEARCH_MODEL_OPTIONS,
+  type ResearchStop,
   useSearchSettingsStore,
 } from "@/store/search-settings";
 import { type SettingsBundle, useSettingsStore } from "@/store/settings";
@@ -689,108 +688,7 @@ function FitRow({ model }: { model: ScoredModel }) {
   );
 }
 
-// ---- R7 research search tiers (Track S) ------------------------------------
-
-/** One T1 keyless engine's live breaker state (`GET /search/status` wire shape). */
-interface T1EngineStatus {
-  id: string;
-  label: string;
-  state: string;
-  cooldown_remaining_s: number;
-  detail: string;
-}
-
-/** The T1 tier-status payload — mirrors `sidecar/services/search/keyless.tier_status`. */
-interface T1TierStatus {
-  tier: string;
-  available: boolean;
-  engines: T1EngineStatus[];
-}
-
-/** Fetch the live T1 per-engine status, or `null` when the sidecar is unreachable. */
-async function fetchT1TierStatus(): Promise<T1TierStatus | null> {
-  try {
-    const base = await getSidecarBaseUrl();
-    const resp = await fetch(new URL("/search/status", base).toString());
-    if (!resp.ok) {
-      return null;
-    }
-    return (await resp.json()) as T1TierStatus;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Format the T1 per-engine status line — "DuckDuckGo — cooling down 24s ·
- * Brave — ok · Mojeek — ok". Honest per engine: `open` breaker = cooling down
- * with the remaining seconds, `half_open` = probing, else ok. Exported so the
- * formatting contract is locked by tests.
- */
-export function t1EngineStatusLine(engines: T1EngineStatus[]): string {
-  return engines
-    .map((engine) => {
-      if (engine.state === "open") {
-        return `${engine.label} — cooling down ${Math.max(0, Math.round(engine.cooldown_remaining_s))}s`;
-      }
-      if (engine.state === "half_open") {
-        return `${engine.label} — probing`;
-      }
-      return `${engine.label} — ok`;
-    })
-    .join(" · ");
-}
-
-/** Poll cadence for the T1 status line while the tier is selected and visible. */
-const T1_STATUS_POLL_MS = 20_000;
-
-/** The live T1 per-engine status line — tertiary text, polled every ~20s. */
-function T1StatusLine() {
-  const [status, setStatus] = useState<T1TierStatus | null | "loading">("loading");
-
-  useEffect(() => {
-    let alive = true;
-    const tick = async () => {
-      // Skip the fetch while the window is hidden — the poll exists for a
-      // visible status line, not background traffic.
-      if (typeof document !== "undefined" && document.hidden) {
-        return;
-      }
-      const next = await fetchT1TierStatus();
-      if (alive) {
-        setStatus(next);
-      }
-    };
-    void tick();
-    const interval = setInterval(() => void tick(), T1_STATUS_POLL_MS);
-    return () => {
-      alive = false;
-      clearInterval(interval);
-    };
-  }, []);
-
-  if (status === "loading") {
-    return <p className="text-charcoal-500 text-caption">Checking engine status…</p>;
-  }
-  if (status === null) {
-    return (
-      <p className="text-charcoal-500 text-caption">
-        Engine status unavailable (sidecar not connected).
-      </p>
-    );
-  }
-  return (
-    <p className="text-charcoal-500 text-caption" data-testid="t1-engine-status">
-      {status.engines.length > 0 ? t1EngineStatusLine(status.engines) : "No engines reported."}
-      {!status.available && (
-        <span className="text-warning">
-          {" "}
-          All engines are cooling down — searches resume when the first recovers.
-        </span>
-      )}
-    </p>
-  );
-}
+// ---- R9 research tiers (two tiers — built on Team A's store contract) -------
 
 /** The managed-SearXNG status payload — mirrors `searxng_manager.snapshot()`. */
 interface SearxngStatus {
@@ -801,7 +699,7 @@ interface SearxngStatus {
   url: string | null;
 }
 
-/** Fetch the T2 state machine's status, or `null` when the sidecar is unreachable. */
+/** Fetch the SearXNG state machine's status, or `null` when the sidecar is unreachable. */
 async function fetchSearxngStatus(): Promise<SearxngStatus | null> {
   try {
     const base = await getSidecarBaseUrl();
@@ -815,7 +713,7 @@ async function fetchSearxngStatus(): Promise<SearxngStatus | null> {
   }
 }
 
-/** POST a T2 action (setup begins/retries; teardown removes); returns the new status. */
+/** POST a SearXNG action (setup begins/retries; teardown stops + removes). */
 async function postSearxngAction(action: "setup" | "teardown"): Promise<SearxngStatus | null> {
   try {
     const base = await getSidecarBaseUrl();
@@ -831,16 +729,56 @@ async function postSearxngAction(action: "setup" | "teardown"): Promise<SearxngS
   }
 }
 
-/** Poll cadence while the T2 setup is in a transition state (pulling/starting). */
+/** Poll cadence while the SearXNG setup is in a transition state (pulling/starting). */
 const SEARXNG_TRANSITION_POLL_MS = 3_000;
 
+/** Designed status-chip vocabulary per sidecar state (the brief's words, not
+ *  the wire ids). Exported so the chip contract is locked by tests. */
+export function searxngChipMeta(state: string): { label: string; className: string } {
+  switch (state) {
+    case "not_installed_docker":
+      return { label: "Docker not found", className: "text-warning border-warning/40" };
+    case "docker_present_not_setup":
+      return { label: "Not set up", className: "text-charcoal-400 border-charcoal-700" };
+    case "pulling":
+      return { label: "Pulling", className: "text-charcoal-200 border-charcoal-600" };
+    case "starting":
+      return { label: "Starting", className: "text-charcoal-200 border-charcoal-600" };
+    case "ready":
+      return { label: "Ready", className: "text-positive border-positive/40" };
+    case "error":
+      return { label: "Error", className: "text-negative border-negative/40" };
+    default:
+      // An unknown state (newer sidecar) — name it honestly rather than guessing.
+      return { label: state, className: "text-charcoal-400 border-charcoal-700" };
+  }
+}
+
+/** The live status chip — micro-text, hairline border, state-keyed color. */
+function SearxngStatusChip({ state }: { state: string }) {
+  const meta = searxngChipMeta(state);
+  return (
+    <span
+      data-testid="searxng-status-chip"
+      className={cn(
+        "text-micro rounded-control flex h-6 shrink-0 items-center border px-2 whitespace-nowrap",
+        meta.className,
+      )}
+    >
+      {meta.label}
+    </span>
+  );
+}
+
 /**
- * The T2 guided one-click flow, driven VERBATIM off the sidecar state machine:
- * not_installed_docker → explain + install hint (plain-text URL, no external
- * nav); docker_present_not_setup → [Set up]; pulling/starting → progress
- * (poll ~3s); ready → green OK + [Remove]; error → reason + [Retry].
+ * Tier A's managed-SearXNG flow, driven VERBATIM off the sidecar state
+ * machine: a status chip + a container-health line + ONE primary action per
+ * state (Set up → Stop; Retry on error; nothing while pulling/starting), the
+ * Docker-missing state with honest copy (plain-text install hint, no external
+ * nav), and — whenever the instance is not READY — the quiet truth line that
+ * research is riding the limited keyless fallback meanwhile.
  */
-function SearxngGuidedFlow() {
+function SearxngManagedFlow() {
   const [status, setStatus] = useState<SearxngStatus | null | "loading">("loading");
   const [busy, setBusy] = useState(false);
 
@@ -888,392 +826,149 @@ function SearxngGuidedFlow() {
     }
   }
 
+  /** The quiet not-ready truth line (brief D1). */
+  const fallbackNote = (
+    <p className="text-charcoal-500 text-caption">
+      Until set up, research uses limited keyless search.
+    </p>
+  );
+
   if (status === "loading") {
-    return <p className="text-charcoal-500 text-caption">Checking Docker…</p>;
+    return (
+      <div className="flex flex-col gap-2">
+        <p className="text-charcoal-500 text-caption">Checking Docker…</p>
+        {fallbackNote}
+        <SearxngAdvancedUrl />
+      </div>
+    );
   }
   if (status === null) {
     return (
-      <p className="text-charcoal-500 text-caption">
-        SearXNG status unavailable (sidecar not connected).
-      </p>
+      <div className="flex flex-col gap-2">
+        <p className="text-charcoal-500 text-caption">
+          SearXNG status unavailable (sidecar not connected).
+        </p>
+        {fallbackNote}
+        <SearxngAdvancedUrl />
+      </div>
     );
   }
 
+  // ONE primary action per state (brief D1): Set up → Stop; Retry on error.
+  let action: { label: string; verb: "setup" | "teardown" } | null = null;
+  if (status.state === "docker_present_not_setup") {
+    action = { label: "Set up", verb: "setup" };
+  } else if (status.state === "ready") {
+    action = { label: "Stop", verb: "teardown" };
+  } else if (status.state === "error") {
+    action = { label: "Retry", verb: "setup" };
+  }
+
+  // The container-health line, honest per state.
+  let healthLine: React.ReactNode;
   switch (status.state) {
     case "not_installed_docker":
-      return (
-        <div className="flex flex-col gap-1">
-          <p className="text-charcoal-300 text-caption">
-            SearXNG runs in a local Docker container, and Docker isn&rsquo;t available on this
-            machine.
-          </p>
-          {/* Plain-text install hint — deliberately NOT a link (no external nav). */}
-          <p className="text-charcoal-500 text-caption">
+      healthLine = (
+        <span>
+          SearXNG runs in a local Docker container, and Docker isn&rsquo;t available on this
+          machine. {/* Plain-text install hint — deliberately NOT a link (no external nav). */}
+          <span className="text-charcoal-500">
             Install Docker first — docs.docker.com/get-started/get-docker — then setup from here is
             one click.
-          </p>
-        </div>
+          </span>
+        </span>
       );
+      break;
     case "docker_present_not_setup":
-      return (
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-charcoal-300 text-caption">
-            Docker is ready. One click pulls the SearXNG image and starts a private local instance —
-            searches then route through it automatically.
-          </p>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={busy}
-            onClick={() => void runAction("setup")}
-          >
-            Set up
-          </Button>
-        </div>
-      );
+      healthLine =
+        "Docker is ready. One click pulls the SearXNG image and starts a private local instance.";
+      break;
     case "pulling":
-      return (
-        <p className="text-charcoal-300 text-caption" role="status">
+      healthLine = (
+        <span role="status">
           Pulling the SearXNG image…{" "}
           <span className="text-charcoal-500">
             {status.detail ?? "first run can take a few minutes"}
           </span>
-        </p>
+        </span>
       );
+      break;
     case "starting":
-      return (
-        <p className="text-charcoal-300 text-caption" role="status">
+      healthLine = (
+        <span role="status">
           Starting the instance…{" "}
           <span className="text-charcoal-500">{status.detail ?? "almost there"}</span>
-        </p>
+        </span>
       );
+      break;
     case "ready":
-      return (
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-positive text-caption flex min-w-0 items-center gap-1">
-            <Check className="size-3 shrink-0" aria-hidden="true" />
-            <span className="truncate">
-              SearXNG is running{status.url ? ` at ${status.url}` : ""} — research searches use it
-              automatically.
-            </span>
-          </p>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={busy}
-            onClick={() => void runAction("teardown")}
-          >
-            <Trash2 className="size-3" aria-hidden="true" />
-            Remove
-          </Button>
-        </div>
+      healthLine = (
+        <span className="text-positive">
+          Running{status.url ? ` at ${status.url}` : ""} — research searches route through it
+          automatically.
+        </span>
       );
+      break;
     case "error":
-      return (
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-negative text-caption min-w-0" role="alert">
-            Setup failed: {status.reason ?? "unknown error"}
-          </p>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={busy}
-            onClick={() => void runAction("setup")}
-          >
-            <RotateCcw className="size-3" aria-hidden="true" />
-            Retry
-          </Button>
-        </div>
+      healthLine = (
+        <span className="text-negative" role="alert">
+          Setup failed: {status.reason ?? "unknown error"}
+        </span>
       );
+      break;
     default:
-      // An unknown state (newer sidecar) — show it honestly rather than guessing.
-      return (
-        <p className="text-charcoal-500 text-caption">
+      healthLine = (
+        <span>
           SearXNG state: {status.state}
           {status.detail ? ` — ${status.detail}` : ""}
-        </p>
+        </span>
       );
-  }
-}
-
-/** The t3 hosted engines — Firecrawl default (free credits), Exa per-request. */
-const HOSTED_ENGINE_OPTIONS: {
-  id: HostedSearchEngine;
-  label: string;
-  costLine: string;
-}[] = [
-  {
-    id: "firecrawl",
-    label: "Firecrawl",
-    costLine:
-      "The default engine. Starts on free credits; after those, each search bills through your OpenRouter account.",
-  },
-  {
-    id: "exa",
-    label: "Exa",
-    costLine:
-      "Exa bills ~$0.005 per search through your OpenRouter account — a documented rate that can drift.",
-  },
-];
-
-/**
- * The t3 BYOK sub-mode picker: hosted via OpenRouter (engine + key presence)
- * or "Exa direct" (the user's own Exa API key, riding the legacy `byok-exa`
- * wire lane the sidecar maps onto the Exa backend).
- */
-function ByokSearchControls() {
-  const exaDirect = useSearchSettingsStore((s) => s.exaDirect);
-  const setExaDirect = useSearchSettingsStore((s) => s.setExaDirect);
-
-  return (
-    <div className="flex flex-col gap-3">
-      <div
-        role="radiogroup"
-        aria-label="BYOK search mode"
-        className="border-charcoal-700 divide-charcoal-700 rounded-control flex h-8 max-w-xs divide-x overflow-hidden border"
-      >
-        <button
-          type="button"
-          role="radio"
-          aria-checked={!exaDirect}
-          onClick={() => setExaDirect(false)}
-          className={cn(
-            "text-micro flex-1 px-3 whitespace-nowrap",
-            !exaDirect
-              ? "bg-charcoal-875 text-lume"
-              : "text-charcoal-400 hover:text-charcoal-200 bg-transparent",
-          )}
-        >
-          Via OpenRouter
-        </button>
-        <button
-          type="button"
-          role="radio"
-          aria-checked={exaDirect}
-          onClick={() => setExaDirect(true)}
-          className={cn(
-            "text-micro flex-1 px-3 whitespace-nowrap",
-            exaDirect
-              ? "bg-charcoal-875 text-lume"
-              : "text-charcoal-400 hover:text-charcoal-200 bg-transparent",
-          )}
-        >
-          Exa direct
-        </button>
-      </div>
-      {exaDirect ? <ExaDirectControls /> : <HostedEngineControls />}
-    </div>
-  );
-}
-
-/**
- * The "Exa direct" key card: the legacy `vysted-search-exa:exa_api_key`
- * keychain slot keeps working — key presence is read straight from the OS
- * keychain (BYOK; never in a store), and the value never enters frontend
- * state beyond the controlled input.
- */
-function ExaDirectControls() {
-  const [exaConfigured, setExaConfigured] = useState<boolean | null>(null);
-  const [exaInput, setExaInput] = useState("");
-  const [exaBusy, setExaBusy] = useState(false);
-  const [exaError, setExaError] = useState<string | null>(null);
-
-  async function refreshExa() {
-    try {
-      const value = await getSecret(EXA_KEYCHAIN_ACCOUNT);
-      setExaConfigured(Boolean(value));
-    } catch {
-      setExaConfigured(false);
-    }
-  }
-
-  useEffect(() => {
-    // Only sets state after the awaited keychain read resolves (never
-    // synchronously) — same no-cascade pattern as the Layouts section.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void refreshExa();
-  }, []);
-
-  async function handleSaveExa() {
-    const value = exaInput.trim();
-    if (!value) {
-      return;
-    }
-    setExaBusy(true);
-    setExaError(null);
-    try {
-      await setSecret(EXA_KEYCHAIN_ACCOUNT, value);
-      setExaInput("");
-      await refreshExa();
-    } catch (err) {
-      // A keychain write can fail (locked keychain, denied access). Surface it —
-      // otherwise refreshExa() shows "not configured" and the user thinks it saved.
-      setExaError(err instanceof Error ? err.message : "Couldn't save the key to the keychain.");
-    } finally {
-      setExaBusy(false);
-    }
-  }
-
-  async function handleRemoveExa() {
-    setExaBusy(true);
-    setExaError(null);
-    try {
-      await deleteSecret(EXA_KEYCHAIN_ACCOUNT);
-      await refreshExa();
-    } catch (err) {
-      setExaError(
-        err instanceof Error ? err.message : "Couldn't remove the key from the keychain.",
-      );
-    } finally {
-      setExaBusy(false);
-    }
   }
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-charcoal-500 text-caption">
-        Searches call Exa&rsquo;s API directly on your own Exa key — no OpenRouter account needed.
-        Billed by Exa per search. The key is stored in your OS keychain, never on disk or sent
-        anywhere but Exa.
-      </p>
-      {exaConfigured === null ? (
-        // Keychain read in flight — show a quiet checking state instead of
-        // briefly flashing the "needs a key" form (which is misleading if a
-        // key IS stored).
-        <span className="text-charcoal-400 text-caption">Checking…</span>
-      ) : exaConfigured ? (
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="text-positive text-caption flex items-center gap-1">
-            <Check className="size-3 shrink-0" aria-hidden="true" />
-            Exa key configured — direct searches use it.
-          </span>
+      <div className="flex min-h-8 flex-wrap items-center gap-x-3 gap-y-2">
+        <SearxngStatusChip state={status.state} />
+        <p className="text-charcoal-300 text-caption min-w-0 flex-1">{healthLine}</p>
+        {action && (
           <Button
             size="sm"
             variant="outline"
-            disabled={exaBusy}
-            onClick={() => void handleRemoveExa()}
+            disabled={busy}
+            onClick={() => void runAction(action.verb)}
           >
-            <Trash2 className="size-3" aria-hidden="true" />
-            Remove
+            {action.label}
           </Button>
-        </div>
-      ) : (
-        <>
-          {/* Exa direct is the active sub-mode but cannot run without a key —
-              say so plainly rather than silently flooring. */}
-          <p className="text-warning text-caption">
-            Exa direct is selected but needs an Exa API key to run — add one below.
-          </p>
-          <form
-            className="flex items-center gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              void handleSaveExa();
-            }}
-          >
-            <input
-              type="password"
-              value={exaInput}
-              onChange={(e) => setExaInput(e.target.value)}
-              placeholder="exa_..."
-              aria-label="Exa API key"
-              className={cn(inputClass, "min-w-0 flex-1")}
-            />
-            <Button
-              type="submit"
-              size="sm"
-              variant="outline"
-              disabled={exaBusy || exaInput.trim() === ""}
-            >
-              Save key
-            </Button>
-          </form>
-          {exaError && (
-            <p className="text-negative text-caption" role="alert">
-              {exaError}
-            </p>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
-
-/** The t3 hosted-search controls: engine segmented control + key presence. */
-function HostedEngineControls() {
-  const hostedEngine = useSearchSettingsStore((s) => s.hostedEngine);
-  const setHostedEngine = useSearchSettingsStore((s) => s.setHostedEngine);
-  // Key PRESENCE only — the same keychain probe the AI Providers rows render
-  // from (`provider-keys`); the key value never enters frontend state.
-  const keyStatus = useProviderKeysStore((s) => s.status.openrouter);
-  const refreshOne = useProviderKeysStore((s) => s.refreshOne);
-
-  useEffect(() => {
-    void refreshOne("openrouter");
-  }, [refreshOne]);
-
-  const active = HOSTED_ENGINE_OPTIONS.find((opt) => opt.id === hostedEngine);
-
-  return (
-    <div className="flex flex-col gap-2">
-      <div
-        role="radiogroup"
-        aria-label="Hosted search engine"
-        className="border-charcoal-700 divide-charcoal-700 rounded-control flex h-8 max-w-xs divide-x overflow-hidden border"
-      >
-        {HOSTED_ENGINE_OPTIONS.map((opt) => (
-          <button
-            key={opt.id}
-            type="button"
-            role="radio"
-            aria-checked={hostedEngine === opt.id}
-            onClick={() => setHostedEngine(opt.id)}
-            className={cn(
-              "text-micro flex-1 px-3 whitespace-nowrap",
-              hostedEngine === opt.id
-                ? "bg-charcoal-875 text-lume"
-                : "text-charcoal-400 hover:text-charcoal-200 bg-transparent",
-            )}
-          >
-            {opt.label}
-          </button>
-        ))}
+        )}
       </div>
-      <p className="text-charcoal-500 text-caption">{active?.costLine}</p>
-      {keyStatus === "configured" ? (
-        <p className="text-positive text-caption flex items-center gap-1">
-          <Check className="size-3 shrink-0" aria-hidden="true" />
-          OpenRouter key configured — hosted searches use it automatically.
-        </p>
-      ) : keyStatus === "missing" ? (
-        <p className="text-warning text-caption">
-          No OpenRouter key yet — add one under AI Providers above. Hosted search can&rsquo;t run
-          without it.
-        </p>
-      ) : (
-        <p className="text-charcoal-500 text-caption">
-          Couldn&rsquo;t check the OS keychain for an OpenRouter key.
-        </p>
-      )}
+      {status.state !== "ready" && fallbackNote}
+      <SearxngAdvancedUrl />
     </div>
   );
 }
 
 /**
- * The t2 detail: the guided one-click managed flow plus the optional
- * "Advanced" custom-instance URL (empty = managed instance / autodetect).
+ * The "Advanced" disclosure for a custom SearXNG instance URL. Kept because it
+ * is wired end-to-end (store → `X-Vysted-Searxng-Url` header → sidecar
+ * resolution under either tier); collapsed by default so the default flow
+ * stays one chip + one button.
  */
-function SearxngTierDetail() {
+function SearxngAdvancedUrl() {
   const searxngUrl = useSearchSettingsStore((s) => s.searxngUrl);
   const setSearxngUrl = useSearchSettingsStore((s) => s.setSearxngUrl);
 
   return (
-    <div className="flex flex-col gap-3">
-      <SearxngGuidedFlow />
-      <div className="flex flex-col gap-1">
-        <label htmlFor="settings-searxng-custom-url" className="text-charcoal-500 text-micro">
-          Advanced: custom instance URL
-        </label>
+    <details className="group">
+      <summary className="text-charcoal-500 hover:text-charcoal-300 text-micro cursor-pointer list-none select-none">
+        <span aria-hidden="true" className="mr-1 inline-block group-open:hidden">
+          ▸
+        </span>
+        <span aria-hidden="true" className="mr-1 hidden group-open:inline-block">
+          ▾
+        </span>
+        <span>Advanced: custom instance URL</span>
+      </summary>
+      <div className="mt-2 flex flex-col gap-1">
         <input
           id="settings-searxng-custom-url"
           type="url"
@@ -1284,131 +979,230 @@ function SearxngTierDetail() {
           className={cn(inputClass, "w-full max-w-sm")}
         />
         <p className="text-charcoal-500 text-caption">
-          Optional. Leave blank to use the managed instance above (or autodetect localhost:8888 /
-          :8080). A custom instance must enable the JSON output format and disable the limiter in
-          its settings.yml.
+          Optional. Leave blank to use the managed instance above. A custom instance must enable the
+          JSON output format and disable the limiter in its settings.yml.
         </p>
+      </div>
+    </details>
+  );
+}
+
+/** Friendly per-stop row copy for the Tier B model rows. */
+const RESEARCH_STOP_ROWS: { stop: ResearchStop; label: string; hint: string }[] = [
+  { stop: "normal", label: "Normal", hint: "Quick checks and single questions." },
+  { stop: "deep", label: "Deep", hint: "Multi-step research with reasoning." },
+  { stop: "ultra", label: "Ultra", hint: "Exhaustive runs — can take minutes." },
+];
+
+/** Option list for one stop: the shared picker + the persisted value if it is
+ *  a custom slug that dropped out of the list (never silently deselected). */
+function stopOptions(current: string): { id: string; label: string }[] {
+  const known = RESEARCH_MODEL_OPTIONS.some((o) => o.id === current);
+  const base = RESEARCH_MODEL_OPTIONS.map((o) => ({ id: o.id, label: o.label }));
+  return known ? base : [{ id: current, label: formatModelLabel(current) }, ...base];
+}
+
+/** One Tier B per-stop model row: stop label + live pricing micro-text left,
+ *  the model select right. Pricing renders from Team A's verified constant. */
+function ResearchModelRow({
+  stop,
+  label,
+  hint,
+}: {
+  stop: ResearchStop;
+  label: string;
+  hint: string;
+}) {
+  const model = useSearchSettingsStore((s) => s.researchModels[stop]);
+  const setResearchModel = useSearchSettingsStore((s) => s.setResearchModel);
+  const active = RESEARCH_MODEL_OPTIONS.find((o) => o.id === model);
+
+  return (
+    <div className="flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
+      <div className="flex min-w-0 flex-col">
+        <span className="text-charcoal-100 text-body">{label}</span>
+        <span className="text-charcoal-400 text-caption mt-1">{hint}</span>
+        <span className="text-charcoal-500 text-micro mt-1">
+          {active
+            ? `${active.priceHint}${active.priceVerified ? "" : " · estimate"}`
+            : "Custom model — pricing on its OpenRouter page"}
+        </span>
+      </div>
+      <div className="ml-auto shrink-0">
+        <Select
+          aria-label={`${label} research model`}
+          value={model}
+          onChange={(e) => setResearchModel(stop, e.target.value)}
+        >
+          {stopOptions(model).map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
       </div>
     </div>
   );
 }
 
-/** The three research search tiers — names + one-line honest descriptions. */
-const RESEARCH_TIER_OPTIONS: {
-  id: ResearchTier;
+/**
+ * Tier B's controls: the OpenRouter key state (the SAME keychain probe and
+ * entry dialog the AI-Providers rows use — key presence only, never the
+ * value), then the three per-stop model rows. With no key there are NO dead
+ * selects — the key CTA is the one control (brief D1).
+ */
+function ResearchModelControls() {
+  const keyStatus = useProviderKeysStore((s) => s.status.openrouter);
+  const refreshOne = useProviderKeysStore((s) => s.refreshOne);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    void refreshOne("openrouter");
+  }, [refreshOne]);
+
+  const keyDialog = (
+    <KeyEntryDialog
+      open={dialogOpen}
+      providerId={dialogOpen ? "openrouter" : null}
+      onOpenChange={setDialogOpen}
+      onSaved={(id) => void refreshOne(id)}
+    />
+  );
+
+  if (keyStatus !== "configured") {
+    return (
+      <div className="flex flex-col gap-2">
+        {keyStatus === "unknown" ? (
+          <p className="text-charcoal-500 text-caption">
+            Couldn&rsquo;t check the OS keychain for an OpenRouter key.
+          </p>
+        ) : (
+          <p className="text-charcoal-400 text-caption">
+            Needs your OpenRouter API key — research stays on the local tier until one is added. The
+            key lives in your OS keychain, never on disk.
+          </p>
+        )}
+        <div>
+          <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}>
+            <KeyRound aria-hidden="true" />
+            Add OpenRouter key
+          </Button>
+        </div>
+        {keyDialog}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <p className="text-positive text-caption flex min-w-0 items-center gap-1">
+          <Check className="size-3 shrink-0" aria-hidden="true" />
+          <span className="truncate">OpenRouter key configured — research bills to it.</span>
+        </p>
+        <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}>
+          Update key
+        </Button>
+      </div>
+      <div className="border-charcoal-700 divide-charcoal-800 -mx-4 -mb-3 divide-y border-t">
+        {RESEARCH_STOP_ROWS.map(({ stop, label, hint }) => (
+          <ResearchModelRow key={stop} stop={stop} label={label} hint={hint} />
+        ))}
+      </div>
+      {keyDialog}
+    </div>
+  );
+}
+
+/** One research-tier card: a radio-clear header (dot + name + two-line
+ *  explanation) over the tier's always-visible controls — the V9 cure: the
+ *  tier surface IS the controls, nothing hides behind the selection. */
+function TierCard({
+  selected,
+  name,
+  description,
+  onSelect,
+  children,
+}: {
+  selected: boolean;
   name: string;
   description: string;
-}[] = [
-  {
-    id: "t1_local",
-    name: "Local scraping (keyless)",
-    description:
-      "Scrapes DuckDuckGo, Brave, and Mojeek directly. Free, zero setup; engines rate-limit, so heavy runs slow down and rotate.",
-  },
-  {
-    id: "t2_searxng",
-    name: "Unlimited Research (local SearXNG)",
-    description:
-      "A managed SearXNG instance in local Docker — private, unmetered searches. Needs Docker on this machine.",
-  },
-  {
-    id: "t3_hosted",
-    name: "BYOK search (hosted or Exa direct)",
-    description:
-      "Your own key: OpenRouter-hosted web search (Firecrawl/Exa) or a direct Exa API key — the most reliable tier, and the only one that costs money per search.",
-  },
-];
+  onSelect: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-none border",
+        selected ? "border-charcoal-600" : "border-charcoal-700",
+      )}
+    >
+      <button
+        type="button"
+        role="radio"
+        aria-checked={selected}
+        onClick={onSelect}
+        className={cn(
+          "flex w-full items-start gap-3 px-4 py-3 text-left",
+          selected ? "bg-charcoal-875" : "hover:bg-charcoal-875/50",
+        )}
+      >
+        <span
+          aria-hidden="true"
+          className={cn(
+            "rounded-control mt-1 size-3 shrink-0 border",
+            selected ? "border-charcoal-100 bg-charcoal-100" : "border-charcoal-600",
+          )}
+        />
+        <span className="flex min-w-0 flex-col">
+          <span
+            className={cn(
+              "text-body font-medium",
+              selected ? "text-charcoal-100" : "text-charcoal-300",
+            )}
+          >
+            {name}
+          </span>
+          <span className="text-charcoal-400 text-caption mt-1">{description}</span>
+        </span>
+      </button>
+      <div className="border-charcoal-800 border-t px-4 py-3">{children}</div>
+    </div>
+  );
+}
 
 /**
- * The R7 research search-tier picker (Track S): three 32px radio rows, the
- * selected tier expanding its live detail surface — T1's polled per-engine
- * status, T2's guided SearXNG state machine, T3's engine + key controls.
+ * The R9 two-tier research picker (defect V9: findable, radio-clear, two
+ * visible tiers, no third anything). Tier A is the default — private local
+ * SearXNG retrieval with the active chat model; Tier B routes research (and
+ * only research) to a hosted research model on the user's OpenRouter key.
  */
 function ResearchTierGroup() {
   const researchTier = useSearchSettingsStore((s) => s.researchTier);
   const setResearchTier = useSearchSettingsStore((s) => s.setResearchTier);
 
   return (
-    <div>
-      <GroupLabel
-        label="Search tier"
-        hint="Where web searches run. The keyless floor needs nothing; SearXNG runs unlimited and local; BYOK runs hosted via OpenRouter or direct on an Exa key."
-      />
-      <Card>
-        <div
-          role="radiogroup"
-          aria-label="Research search tier"
-          className="divide-charcoal-800 flex flex-col divide-y"
-        >
-          {RESEARCH_TIER_OPTIONS.map((option) => {
-            const selected = researchTier === option.id;
-            return (
-              <div key={option.id}>
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  onClick={() => setResearchTier(option.id)}
-                  className={cn(
-                    "flex min-h-8 w-full items-center justify-between gap-4 px-4 py-3 text-left",
-                    selected ? "bg-charcoal-875" : "hover:bg-charcoal-875/50",
-                  )}
-                >
-                  <span className="flex min-w-0 flex-col">
-                    <span
-                      className={cn(
-                        "text-body",
-                        selected ? "text-charcoal-100" : "text-charcoal-300",
-                      )}
-                    >
-                      {option.name}
-                    </span>
-                    <span className="text-charcoal-400 text-caption mt-1">
-                      {option.description}
-                    </span>
-                  </span>
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "rounded-control size-2 shrink-0",
-                      selected ? "bg-charcoal-100" : "border-charcoal-600 border",
-                    )}
-                  />
-                </button>
-                {selected && (
-                  <div className="border-charcoal-800 border-t px-4 py-3">
-                    {option.id === "t1_local" && <T1StatusLine />}
-                    {option.id === "t2_searxng" && <SearxngTierDetail />}
-                    {option.id === "t3_hosted" && <ByokSearchControls />}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </Card>
+    <div role="radiogroup" aria-label="Research tier" className="flex flex-col gap-3">
+      <TierCard
+        selected={researchTier === "tier_a"}
+        name="Unlimited (Local)"
+        description="Private local search via SearXNG, paired with your active chat model. Unmetered and free — nothing leaves this machine but the pages it fetches."
+        onSelect={() => setResearchTier("tier_a")}
+      >
+        <SearxngManagedFlow />
+      </TierCard>
+      <TierCard
+        selected={researchTier === "tier_b"}
+        name="Hosted research model"
+        description="Purpose-built internet-native research via OpenRouter — research routes here at every depth regardless of chat model. Chat stays on your chat model."
+        onSelect={() => setResearchTier("tier_b")}
+      >
+        <ResearchModelControls />
+      </TierCard>
     </div>
   );
 }
 
-/**
- * Research — how /deep works, plus the device's local-model fit gate.
- *
- * Deep research runs Vysted's own native IterResearch loop on the user's
- * configured model. There is no engine selector: native is the only
- * user-facing engine (the opt-in paid Perplexity backend is agent-selected
- * with its own key, never surfaced here). The hardware report (Track D)
- * detects the device and shows which local models it can run, gating the
- * heavy local paths (FINDINGS §2.5): on a 16 GB M1, local deep-research is
- * honestly marked "remote"; on a 32 GB+ box the same models flip to "runs
- * locally" with no change.
- *
- * R8 (settings-truth): the SEARCH-tier picker at the top is the ONE search
- * settings surface — t1 keyless / t2 managed SearXNG (+ optional custom
- * instance URL) / t3 BYOK (OpenRouter hosted, or "Exa direct" on the user's
- * own Exa key). Persisted in the search-settings bundle; the legacy
- * "Web search" section is gone.
- */
 function ResearchSection() {
   const [report, setReport] = useState<HardwareReport | null | "loading">("loading");
 
@@ -1429,26 +1223,14 @@ function ResearchSection() {
       <SectionHeader
         id="settings-research"
         title="Research"
-        hint="Where web searches run, how /deep and 'go deeper' work, and what this machine can run on-device."
+        hint="Two ways to run research: unlimited private local search with your chat model, or a hosted research model on your own OpenRouter key."
       />
       <div className="flex flex-col gap-6">
         <ResearchTierGroup />
         <div>
-          <GroupLabel label="Deep research" />
-          <Card>
-            <p className="text-charcoal-400 text-caption px-4 py-3 leading-relaxed">
-              Deep research runs Vysted&rsquo;s own bounded{" "}
-              <span className="text-charcoal-200">IterResearch</span> loop on your configured model
-              — a multi-round search → read → reflect → synthesize pass that returns a cited brief.
-              Always available, no extra key, no extra cost.
-            </p>
-          </Card>
-        </div>
-
-        <div>
           <GroupLabel
             label="Hardware & local models"
-            hint="Heavy local paths (local deep-research, large local LLMs) enable only where the hardware earns it; everything else uses the keyless-remote path."
+            hint="Heavy local paths (local deep-research, large local LLMs) enable only where the hardware earns it; everything else stays remote."
           />
           {report === "loading" && (
             <Card>

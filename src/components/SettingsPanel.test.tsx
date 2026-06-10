@@ -1,13 +1,17 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { SettingsPanel, t1EngineStatusLine } from "@/components/SettingsPanel";
+import { searxngChipMeta, SettingsPanel } from "@/components/SettingsPanel";
 import { vystedModules } from "@/modules";
 import { PLATFORM_MODULE_ID } from "@/modules/platform";
 import { resetKeybindingsStoreForTests, useKeybindingsStore } from "@/store/keybindings";
 import { useModulesStore } from "@/store/modules";
 import { useProviderKeysStore } from "@/store/provider-keys";
-import { resetSearchSettingsStoreForTests, useSearchSettingsStore } from "@/store/search-settings";
+import {
+  DEFAULT_RESEARCH_MODELS,
+  resetSearchSettingsStoreForTests,
+  useSearchSettingsStore,
+} from "@/store/search-settings";
 import { resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
 
 // Keep the preference setters from firing a real autosave (network) under test.
@@ -284,8 +288,8 @@ describe("SettingsPanel", () => {
     expect(screen.getByLabelText("Default agent")).toBeInTheDocument();
     expect(screen.getByLabelText("Default provider")).toBeInTheDocument();
     expect(screen.getByLabelText("Default model")).toBeInTheDocument();
-    // Research search tiers — the one search surface.
-    expect(screen.getByRole("radiogroup", { name: "Research search tier" })).toBeInTheDocument();
+    // Research tiers — the one search surface.
+    expect(screen.getByRole("radiogroup", { name: "Research tier" })).toBeInTheDocument();
     // Region
     expect(screen.getByLabelText("Region")).toBeInTheDocument();
     // Advanced
@@ -294,165 +298,131 @@ describe("SettingsPanel", () => {
     expect(screen.getByRole("button", { name: /Import settings/i })).toBeInTheDocument();
   });
 
-  it("the custom SearXNG URL survives inside the t2 detail and writes the store", () => {
-    render(<SettingsPanel />);
-    fireEvent.click(tierRadio(/Unlimited Research/));
-    const url = screen.getByLabelText("SearXNG URL");
-    expect(url).toBeInTheDocument();
-    fireEvent.change(url, { target: { value: "http://10.0.0.5:8080" } });
-    expect(useSearchSettingsStore.getState().searxngUrl).toBe("http://10.0.0.5:8080");
-  });
-
-  // ---- R7 research search tiers (Track S) ----
+  // ---- R9 research tiers (two tiers — D1 on Team A's contract) ----
 
   function tierRadio(name: RegExp) {
-    const group = screen.getByRole("radiogroup", { name: "Research search tier" });
+    const group = screen.getByRole("radiogroup", { name: "Research tier" });
     return within(group).getByRole("radio", { name });
   }
 
-  it("renders the three research tiers as radio rows, t1 selected by default", () => {
+  it("renders exactly two tier cards as radios, Unlimited (Local) selected by default", () => {
     render(<SettingsPanel />);
-    const t1 = tierRadio(/Local scraping \(keyless\)/);
-    const t2 = tierRadio(/Unlimited Research \(local SearXNG\)/);
-    const t3 = tierRadio(/BYOK search \(hosted or Exa direct\)/);
-    expect(t1).toHaveAttribute("aria-checked", "true");
-    expect(t2).toHaveAttribute("aria-checked", "false");
-    expect(t3).toHaveAttribute("aria-checked", "false");
+    const group = screen.getByRole("radiogroup", { name: "Research tier" });
+    expect(within(group).getAllByRole("radio")).toHaveLength(2);
+    expect(tierRadio(/Unlimited \(Local\)/)).toHaveAttribute("aria-checked", "true");
+    expect(tierRadio(/Hosted research model/)).toHaveAttribute("aria-checked", "false");
   });
 
   it("selecting a tier updates the search-settings store", () => {
     render(<SettingsPanel />);
-    fireEvent.click(tierRadio(/Unlimited Research/));
-    expect(useSearchSettingsStore.getState().researchTier).toBe("t2_searxng");
-    fireEvent.click(tierRadio(/BYOK search/));
-    expect(useSearchSettingsStore.getState().researchTier).toBe("t3_hosted");
+    fireEvent.click(tierRadio(/Hosted research model/));
+    expect(useSearchSettingsStore.getState().researchTier).toBe("tier_b");
+    fireEvent.click(tierRadio(/Unlimited \(Local\)/));
+    expect(useSearchSettingsStore.getState().researchTier).toBe("tier_a");
   });
 
-  it("t1 shows the live per-engine status line from /search/status", async () => {
-    routeFetch({
-      "/search/status": {
-        tier: "t1_keyless",
-        available: true,
-        engines: [
-          {
-            id: "duckduckgo",
-            label: "DuckDuckGo",
-            state: "open",
-            cooldown_remaining_s: 24.2,
-            detail: "DuckDuckGo cooling down (24s)",
-          },
-          {
-            id: "brave",
-            label: "Brave",
-            state: "closed",
-            cooldown_remaining_s: 0,
-            detail: "Brave available",
-          },
-          {
-            id: "mojeek",
-            label: "Mojeek",
-            state: "closed",
-            cooldown_remaining_s: 0,
-            detail: "Mojeek available",
-          },
-        ],
-      },
-    });
+  it("the three-tier surface is gone — no keyless tier, no BYOK scraper, no Exa (R9 kill)", () => {
     render(<SettingsPanel />);
-    const line = await screen.findByTestId("t1-engine-status");
-    expect(line).toHaveTextContent("DuckDuckGo — cooling down 24s · Brave — ok · Mojeek — ok");
+    expect(screen.queryByText(/Local scraping \(keyless\)/)).toBeNull();
+    expect(screen.queryByText(/BYOK search/)).toBeNull();
+    expect(screen.queryByRole("radiogroup", { name: "BYOK search mode" })).toBeNull();
+    expect(screen.queryByRole("radiogroup", { name: "Hosted search engine" })).toBeNull();
+    expect(screen.queryByText(/Exa direct/)).toBeNull();
+    expect(screen.queryByLabelText("Exa API key")).toBeNull();
+    expect(screen.queryByTestId("t1-engine-status")).toBeNull();
   });
 
-  it("t1 status line degrades honestly when the sidecar is unreachable", async () => {
-    render(<SettingsPanel />); // default fetch stub rejects
-    expect(
-      await screen.findByText(/Engine status unavailable \(sidecar not connected\)/),
-    ).toBeInTheDocument();
+  it("searxngChipMeta speaks the designed chip vocabulary for every state", () => {
+    expect(searxngChipMeta("not_installed_docker").label).toBe("Docker not found");
+    expect(searxngChipMeta("docker_present_not_setup").label).toBe("Not set up");
+    expect(searxngChipMeta("pulling").label).toBe("Pulling");
+    expect(searxngChipMeta("starting").label).toBe("Starting");
+    expect(searxngChipMeta("ready").label).toBe("Ready");
+    expect(searxngChipMeta("error").label).toBe("Error");
+    // An unknown state names itself honestly rather than guessing.
+    expect(searxngChipMeta("rebooting").label).toBe("rebooting");
   });
 
-  it("t1EngineStatusLine formats every breaker state honestly", () => {
-    expect(
-      t1EngineStatusLine([
-        { id: "a", label: "DuckDuckGo", state: "open", cooldown_remaining_s: 23.6, detail: "" },
-        { id: "b", label: "Brave", state: "half_open", cooldown_remaining_s: 0, detail: "" },
-        { id: "c", label: "Mojeek", state: "closed", cooldown_remaining_s: 0, detail: "" },
-      ]),
-    ).toBe("DuckDuckGo — cooling down 24s · Brave — probing · Mojeek — ok");
-  });
-
-  // The T2 guided flow renders each sidecar state machine state VERBATIM.
+  // The Tier A flow renders each sidecar state machine state VERBATIM.
   function searxngStatus(state: string, extra?: Partial<Record<string, unknown>>) {
     return { state, detail: null, reason: null, port: null, url: null, ...extra };
   }
 
-  async function renderT2(routes: Record<string, unknown>) {
-    const fetchMock = routeFetch(routes);
-    render(<SettingsPanel />);
-    fireEvent.click(tierRadio(/Unlimited Research/));
-    return fetchMock;
+  async function chipText(): Promise<string | null> {
+    const chip = await screen.findByTestId("searxng-status-chip");
+    return chip.textContent;
   }
 
-  it("T2 not_installed_docker explains + shows a plain-text install hint (no link)", async () => {
-    await renderT2({ "/search/searxng/status": searxngStatus("not_installed_docker") });
-    expect(await screen.findByText(/Docker isn.t available on this machine/)).toBeInTheDocument();
+  it("Tier A not_installed_docker: honest chip + copy + plain-text install hint (no link), no action", async () => {
+    routeFetch({ "/search/searxng/status": searxngStatus("not_installed_docker") });
+    render(<SettingsPanel />);
+    expect(await chipText()).toBe("Docker not found");
+    expect(screen.getByText(/Docker isn.t available on this machine/)).toBeInTheDocument();
     const hint = screen.getByText(/docs\.docker\.com/);
-    expect(hint).toBeInTheDocument();
     expect(hint.closest("a")).toBeNull(); // plain text, no external nav
+    expect(screen.queryByRole("button", { name: "Set up" })).toBeNull();
   });
 
-  it("T2 docker_present_not_setup offers one-click [Set up]", async () => {
-    await renderT2({ "/search/searxng/status": searxngStatus("docker_present_not_setup") });
-    expect(await screen.findByRole("button", { name: "Set up" })).toBeInTheDocument();
+  it("Tier A docker_present_not_setup: 'Not set up' chip + ONE [Set up] action", async () => {
+    routeFetch({ "/search/searxng/status": searxngStatus("docker_present_not_setup") });
+    render(<SettingsPanel />);
+    expect(await chipText()).toBe("Not set up");
+    expect(screen.getByRole("button", { name: "Set up" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Stop" })).toBeNull();
   });
 
-  it("T2 pulling renders the progress state with the sidecar's detail", async () => {
-    await renderT2({
+  it("Tier A pulling: progress chip + sidecar detail, no action while transitional", async () => {
+    routeFetch({
       "/search/searxng/status": searxngStatus("pulling", {
         detail: "pulling searxng/searxng (first run can take a few minutes)",
       }),
     });
-    expect(await screen.findByText(/Pulling the SearXNG image/)).toBeInTheDocument();
+    render(<SettingsPanel />);
+    expect(await chipText()).toBe("Pulling");
+    expect(screen.getByText(/Pulling the SearXNG image/)).toBeInTheDocument();
     expect(screen.getByText(/first run can take a few minutes/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Set up" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Stop" })).toBeNull();
   });
 
-  it("T2 starting renders the starting progress state", async () => {
-    await renderT2({ "/search/searxng/status": searxngStatus("starting") });
-    expect(await screen.findByText(/Starting the instance/)).toBeInTheDocument();
-  });
-
-  it("T2 ready shows the green OK + automatic routing + [Remove]", async () => {
-    await renderT2({
+  it("Tier A ready: green chip + health line + [Stop]; the fallback note disappears", async () => {
+    routeFetch({
       "/search/searxng/status": searxngStatus("ready", {
         port: 8888,
         url: "http://127.0.0.1:8888",
       }),
     });
+    render(<SettingsPanel />);
+    expect(await chipText()).toBe("Ready");
     expect(
-      await screen.findByText(/SearXNG is running at http:\/\/127\.0\.0\.1:8888/),
+      screen.getByText(/Running at http:\/\/127\.0\.0\.1:8888 — research searches route/),
     ).toBeInTheDocument();
-    expect(screen.getByText(/research searches use it automatically/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Remove/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
+    expect(screen.queryByText(/Until set up, research uses limited keyless search/)).toBeNull();
   });
 
-  it("T2 error shows the reason + [Retry]", async () => {
-    await renderT2({
+  it("Tier A error: reason + [Retry]", async () => {
+    routeFetch({
       "/search/searxng/status": searxngStatus("error", {
         reason: "docker pull failed: no space left on device",
       }),
     });
+    render(<SettingsPanel />);
+    expect(await chipText()).toBe("Error");
     expect(
-      await screen.findByText(/Setup failed: docker pull failed: no space left on device/),
+      screen.getByText(/Setup failed: docker pull failed: no space left on device/),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Retry/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
   });
 
-  it("T2 [Set up] POSTs /search/searxng/setup and renders the returned pulling state", async () => {
-    const fetchMock = await renderT2({
+  it("Tier A [Set up] POSTs /search/searxng/setup and renders the returned pulling state", async () => {
+    const fetchMock = routeFetch({
       "/search/searxng/status": searxngStatus("docker_present_not_setup"),
       "/search/searxng/setup": searxngStatus("pulling", {
         detail: "starting guided setup — checking docker",
       }),
     });
+    render(<SettingsPanel />);
     fireEvent.click(await screen.findByRole("button", { name: "Set up" }));
     expect(await screen.findByText(/Pulling the SearXNG image/)).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith("http://sidecar.test/search/searxng/setup", {
@@ -460,119 +430,112 @@ describe("SettingsPanel", () => {
     });
   });
 
-  it("T2 [Remove] POSTs /search/searxng/teardown and renders the post-teardown state", async () => {
-    const fetchMock = await renderT2({
+  it("Tier A [Stop] POSTs /search/searxng/teardown and renders the post-teardown state", async () => {
+    const fetchMock = routeFetch({
       "/search/searxng/status": searxngStatus("ready", { url: "http://127.0.0.1:8888" }),
       "/search/searxng/teardown": searxngStatus("docker_present_not_setup"),
     });
-    fireEvent.click(await screen.findByRole("button", { name: /Remove/ }));
+    render(<SettingsPanel />);
+    fireEvent.click(await screen.findByRole("button", { name: "Stop" }));
     expect(await screen.findByRole("button", { name: "Set up" })).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith("http://sidecar.test/search/searxng/teardown", {
       method: "POST",
     });
   });
 
-  it("T3 defaults to the OpenRouter sub-mode with the engine segmented control", async () => {
+  it("Tier A shows the honest fallback note whenever the instance is not ready", async () => {
+    routeFetch({ "/search/searxng/status": searxngStatus("docker_present_not_setup") });
     render(<SettingsPanel />);
-    fireEvent.click(tierRadio(/BYOK search/));
-
-    const modes = screen.getByRole("radiogroup", { name: "BYOK search mode" });
-    expect(within(modes).getByRole("radio", { name: "Via OpenRouter" })).toHaveAttribute(
-      "aria-checked",
-      "true",
-    );
-    expect(within(modes).getByRole("radio", { name: "Exa direct" })).toHaveAttribute(
-      "aria-checked",
-      "false",
-    );
-
-    const engines = screen.getByRole("radiogroup", { name: "Hosted search engine" });
-    const firecrawl = within(engines).getByRole("radio", { name: "Firecrawl" });
-    expect(firecrawl).toHaveAttribute("aria-checked", "true");
-    // Honest default-engine cost line: free credits, then OpenRouter billing.
-    expect(screen.getByText(/Starts on free credits/)).toBeInTheDocument();
-
-    fireEvent.click(within(engines).getByRole("radio", { name: "Exa" }));
-    expect(useSearchSettingsStore.getState().hostedEngine).toBe("exa");
-    // Honest per-search cost line for Exa, flagged as driftable.
-    expect(screen.getByText(/~\$0\.005 per search/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Until set up, research uses limited keyless search/),
+    ).toBeInTheDocument();
   });
 
-  it("T3 points to AI Providers when no OpenRouter key is stored", async () => {
+  it("Tier A degrades honestly when the sidecar is unreachable", async () => {
+    render(<SettingsPanel />); // default fetch stub rejects
+    expect(
+      await screen.findByText(/SearXNG status unavailable \(sidecar not connected\)/),
+    ).toBeInTheDocument();
+  });
+
+  it("the custom SearXNG URL lives behind the Advanced disclosure and writes the store", () => {
+    render(<SettingsPanel />);
+    // Collapsed by default — open the disclosure first (the honest user path).
+    fireEvent.click(screen.getByText("Advanced: custom instance URL"));
+    const url = screen.getByLabelText("SearXNG URL");
+    fireEvent.change(url, { target: { value: "http://10.0.0.5:8080" } });
+    expect(useSearchSettingsStore.getState().searxngUrl).toBe("http://10.0.0.5:8080");
+  });
+
+  // ---- Tier B (hosted research model) ----
+
+  it("Tier B without a key shows the key CTA — never dead model selects", async () => {
     getSecretMock.mockResolvedValue(null); // keychain reachable, no key
     render(<SettingsPanel />);
-    fireEvent.click(tierRadio(/BYOK search/));
-    expect(await screen.findByText(/add one under AI Providers above/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/research stays on the local tier until one is added/),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Add OpenRouter key/ })).toBeInTheDocument();
+    expect(screen.queryByLabelText("Normal research model")).toBeNull();
+    expect(screen.queryByLabelText("Deep research model")).toBeNull();
+    expect(screen.queryByLabelText("Ultra research model")).toBeNull();
   });
 
-  it("T3 shows key presence (never the value) when an OpenRouter key is stored", async () => {
+  it("Tier B with a key shows key presence (never the value) + three per-stop rows", async () => {
     getSecretMock.mockImplementation((account: string) =>
       account === "llm-provider:openrouter"
         ? Promise.resolve("sk-or-v1-secret")
         : Promise.resolve(null),
     );
     render(<SettingsPanel />);
-    fireEvent.click(tierRadio(/BYOK search/));
     expect(await screen.findByText(/OpenRouter key configured/)).toBeInTheDocument();
     expect(screen.queryByText(/sk-or-v1-secret/)).toBeNull();
+    expect(screen.getByLabelText("Normal research model")).toBeInTheDocument();
+    expect(screen.getByLabelText("Deep research model")).toBeInTheDocument();
+    expect(screen.getByLabelText("Ultra research model")).toBeInTheDocument();
   });
 
-  // ---- T3 "Exa direct" sub-mode (R8 — the legacy Exa keychain slot lives on) ----
-
-  it("switching to Exa direct flips the store and swaps in the key card", async () => {
-    getSecretMock.mockResolvedValue(null); // keychain reachable, no key stored
-    render(<SettingsPanel />);
-    fireEvent.click(tierRadio(/BYOK search/));
-
-    const modes = screen.getByRole("radiogroup", { name: "BYOK search mode" });
-    fireEvent.click(within(modes).getByRole("radio", { name: "Exa direct" }));
-    expect(useSearchSettingsStore.getState().exaDirect).toBe(true);
-
-    // The hosted engine control yields to the Exa key card.
-    expect(screen.queryByRole("radiogroup", { name: "Hosted search engine" })).toBeNull();
-    expect(
-      await screen.findByText(/needs an Exa API key to run — add one below/),
-    ).toBeInTheDocument();
-    expect(screen.getByLabelText("Exa API key")).toBeInTheDocument();
-  });
-
-  it("Exa direct shows key presence from the legacy keychain slot (never the value)", async () => {
+  it("Tier B per-stop rows render the verified pricing hints from the shared constant", async () => {
     getSecretMock.mockImplementation((account: string) =>
-      account === "plugin-secret:vysted-search-exa:exa_api_key"
-        ? Promise.resolve("exa-secret-123")
-        : Promise.resolve(null),
+      account === "llm-provider:openrouter" ? Promise.resolve("sk-or-key") : Promise.resolve(null),
     );
-    useSearchSettingsStore.getState().setExaDirect(true);
     render(<SettingsPanel />);
-    fireEvent.click(tierRadio(/BYOK search/));
-
-    expect(await screen.findByText(/Exa key configured/)).toBeInTheDocument();
-    expect(screen.queryByText(/exa-secret-123/)).toBeNull();
-    expect(screen.getByRole("button", { name: /Remove/ })).toBeInTheDocument();
+    await screen.findByLabelText("Normal research model");
+    // The three verified defaults render their exact verified hints.
+    expect(screen.getByText("$1/M in · $1/M out · $5/1k searches")).toBeInTheDocument();
+    expect(screen.getByText("$2/M in · $8/M out · $5/1k searches")).toBeInTheDocument();
+    expect(
+      screen.getByText("$2/M in · $8/M out · $5/1k searches · $3/M reasoning"),
+    ).toBeInTheDocument();
   });
 
-  it("saving an Exa key writes the legacy keychain slot and flips to configured", async () => {
-    const { setSecret } = await import("@/lib/keychain");
-    const setSecretMock = vi.mocked(setSecret);
-    let stored: string | null = null;
-    getSecretMock.mockImplementation(() => Promise.resolve(stored));
-    setSecretMock.mockImplementation((_account: string, value: string) => {
-      stored = value;
-      return Promise.resolve();
-    });
-
-    useSearchSettingsStore.getState().setExaDirect(true);
-    render(<SettingsPanel />);
-    fireEvent.click(tierRadio(/BYOK search/));
-
-    const input = await screen.findByLabelText("Exa API key");
-    fireEvent.change(input, { target: { value: "exa_new_key" } });
-    fireEvent.click(screen.getByRole("button", { name: "Save key" }));
-
-    expect(await screen.findByText(/Exa key configured/)).toBeInTheDocument();
-    expect(setSecretMock).toHaveBeenCalledWith(
-      "plugin-secret:vysted-search-exa:exa_api_key",
-      "exa_new_key",
+  it("swapping a per-stop model writes the store; unverified picks are marked estimates", async () => {
+    getSecretMock.mockImplementation((account: string) =>
+      account === "llm-provider:openrouter" ? Promise.resolve("sk-or-key") : Promise.resolve(null),
     );
+    render(<SettingsPanel />);
+    const normal = await screen.findByLabelText("Normal research model");
+    fireEvent.change(normal, { target: { value: "openai/o3-deep-research" } });
+    expect(useSearchSettingsStore.getState().researchModels.normal).toBe("openai/o3-deep-research");
+    // The unverified alternate's hint is flagged as an estimate.
+    expect(screen.getByText("$10/M in · $40/M out · estimate")).toBeInTheDocument();
+    // The other stops are untouched.
+    expect(useSearchSettingsStore.getState().researchModels.deep).toBe(
+      DEFAULT_RESEARCH_MODELS.deep,
+    );
+    expect(useSearchSettingsStore.getState().researchModels.ultra).toBe(
+      DEFAULT_RESEARCH_MODELS.ultra,
+    );
+  });
+
+  it("a persisted custom slug stays selectable (never silently deselected)", async () => {
+    getSecretMock.mockImplementation((account: string) =>
+      account === "llm-provider:openrouter" ? Promise.resolve("sk-or-key") : Promise.resolve(null),
+    );
+    useSearchSettingsStore.getState().setResearchModel("deep", "acme/research-x1");
+    render(<SettingsPanel />);
+    const deep = (await screen.findByLabelText("Deep research model")) as HTMLSelectElement;
+    expect(deep.value).toBe("acme/research-x1");
+    expect(screen.getByText("Custom model — pricing on its OpenRouter page")).toBeInTheDocument();
   });
 });
