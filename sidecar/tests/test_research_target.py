@@ -125,3 +125,39 @@ def test_target_is_frozen() -> None:
     except AttributeError:
         return
     raise AssertionError("ResearchTarget must be immutable")
+
+
+def test_keyword_salad_query_binds_via_leading_prefix() -> None:
+    # The live R8 gate-1 rerun: the model passed "Route Mobile Q4 FY26 quarterly
+    # results revenue profit dividend exchange filings" — the full string does
+    # not resolve, but the leading words name the company. The prefix fallback
+    # must bind it instead of degrading to an unbound, empty run.
+    async def tool_call(name: str, args: dict[str, Any]) -> dict[str, Any]:
+        assert name == "resolve_symbol"
+        if args["query"] == "Route Mobile":
+            return {
+                "ok": True,
+                "resolved": {
+                    "symbol": "ROUTE",
+                    "name": "Route Mobile Limited",
+                    "confidence": 0.98,
+                },
+            }
+        return {"ok": False, "resolved": None}
+
+    bound = _run(
+        resolve_target(
+            tool_call,
+            "Route Mobile Q4 FY26 quarterly results revenue profit dividend exchange filings",
+            region="IN",
+        )
+    )
+    assert bound is not None and bound.symbol == "ROUTE"
+
+
+def test_prefix_fallback_never_binds_when_nothing_resolves() -> None:
+    async def tool_call(name: str, args: dict[str, Any]) -> dict[str, Any]:
+        return {"ok": False, "resolved": None}
+
+    bound = _run(resolve_target(tool_call, "completely unresolvable keyword salad here"))
+    assert bound is None

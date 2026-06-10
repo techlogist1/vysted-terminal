@@ -318,7 +318,12 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 {
                     "query": {
                         "type": "string",
-                        "description": "Company name, ticker, or research question.",
+                        "description": (
+                            "The company name or ticker, optionally followed by a "
+                            "plain-language focus (e.g. 'Route Mobile — latest "
+                            "quarterly results'). LEAD with the instrument name; "
+                            "never a bare keyword list."
+                        ),
                     },
                     "depth": {
                         "type": "string",

@@ -110,16 +110,10 @@ def target_from_payload(
     )
 
 
-async def resolve_target(
-    tool_call: ToolCall, query: str, region: str | None = None
+async def _resolve_once(
+    tool_call: ToolCall, query: str, region: str | None
 ) -> ResearchTarget | None:
-    """Resolve the CLEAN user ``query`` to a target — the run's ONE resolution.
-
-    Never raises: a resolver crash, an ``ok: False`` reply, a low-confidence
-    fuzzy match, and a non-ticker-shaped symbol all return ``None`` (research
-    proceeds web-only). Call this once at the top of a run and thread the
-    result; downstream layers must never re-resolve derived prompt text.
-    """
+    """One resolver call → gated target, or ``None``. Never raises."""
     args: dict[str, Any] = {"query": query}
     if region:
         args["region"] = region
@@ -130,6 +124,44 @@ async def resolve_target(
     if not isinstance(payload, dict):
         return None
     return target_from_payload(payload, region=region)
+
+
+#: Prefix lengths (in words) tried when the full query does not resolve. Models
+#: routinely pass keyword-salad queries ("Route Mobile Q4 FY26 quarterly results
+#: revenue profit dividend…") where the COMPANY leads the string — the live R8
+#: gate-1 rerun produced exactly this and an unbound, empty run. Longest first
+#: so "Route Mobile" wins over a one-word "Route" mis-bind.
+_PREFIX_WORDS = (4, 3, 2)
+
+
+async def resolve_target(
+    tool_call: ToolCall, query: str, region: str | None = None
+) -> ResearchTarget | None:
+    """Resolve the CLEAN user ``query`` to a target — the run's ONE resolution.
+
+    Tries the full query first; when that does not bind (keyword-salad queries
+    where only the leading words name the company), falls back to leading-word
+    prefixes (4 → 3 → 2 words), accepting the first match that clears the
+    confidence floor + shape gate. Never raises; ``None`` means web-only.
+    Downstream layers must never re-resolve derived prompt text.
+    """
+    text = (query or "").strip()
+    target = await _resolve_once(tool_call, text, region)
+    if target is not None:
+        return target
+    words = text.split()
+    tried = {text.lower()}
+    for n in _PREFIX_WORDS:
+        if len(words) <= n:
+            continue
+        prefix = " ".join(words[:n])
+        if prefix.lower() in tried:
+            continue
+        tried.add(prefix.lower())
+        target = await _resolve_once(tool_call, prefix, region)
+        if target is not None:
+            return target
+    return None
 
 
 def resolved_payload(target: ResearchTarget | None) -> dict[str, Any]:
