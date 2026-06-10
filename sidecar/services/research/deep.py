@@ -799,7 +799,11 @@ async def _final_synthesis(
                     "percentage, a date, a quarter) MUST carry a [n] citation to a "
                     "real numbered source above — never state a live figure from "
                     "memory. If a needed figure was not gathered, say so plainly "
-                    "('not available in this run') rather than guessing it.\n"
+                    "('not available in this run') rather than guessing it. "
+                    "ASSEMBLE ACROSS SOURCES: when findings carry components of "
+                    "one metric from different sources (e.g. interim dividends "
+                    "plus a final dividend), state the assembled total with ALL "
+                    "component citations.\n"
                     + finance.date_directive()
                     + (("\n" + priority) if priority else "")
                 ),

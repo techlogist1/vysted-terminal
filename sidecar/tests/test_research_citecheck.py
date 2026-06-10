@@ -161,3 +161,50 @@ def test_non_numeric_sentences_are_not_audited() -> None:
     out = _run(ensure_citation_integrity(md, _sources(1), llm_call=llm))
     assert llm.prompts == []  # nothing numeric to audit
     assert out == md
+
+
+# --- R9 B3: the raw-evidence store feeds the audit --------------------------------
+
+
+def test_audit_uses_full_page_text_when_evidence_carries_it() -> None:
+    """The spot-audit judges against the cited source's FULL extracted text
+    (the run's raw-evidence store), not just the two-line excerpt — a figure
+    that lives deep in a filing no longer reads as unsupported."""
+    md = "Revenue grew 23% to Rs 1,234 crore [1]."
+    llm = _AuditLLM("1: SUPPORTED")
+    evidence = {
+        "https://ex.com/1": (
+            "Full filing text page one ... deep in the annexure: revenue from "
+            "operations Rs 1,234 crore for the quarter, up 23% year on year ..."
+        )
+    }
+    _run(ensure_citation_integrity(md, _sources(1), llm_call=llm, evidence=evidence))
+    user = llm.prompts[0][-1]["content"]
+    assert "extracted page text" in user
+    assert "deep in the annexure" in user
+    # The two-line excerpt is superseded by the full text for this source.
+    assert "Excerpt 1 about Route Mobile revenue." not in user
+
+
+def test_audit_caps_evidence_and_shows_each_source_once() -> None:
+    from services.research.citecheck import EVIDENCE_AUDIT_CHARS
+
+    md = "Revenue grew 23% [1]. Margin reached 21% [1].\n"
+    llm = _AuditLLM("1: SUPPORTED\n2: SUPPORTED")
+    evidence = {"https://ex.com/1": "FULLTEXT " * 2000}
+    _run(ensure_citation_integrity(md, _sources(1), llm_call=llm, evidence=evidence))
+    user = llm.prompts[0][-1]["content"]
+    assert user.count("extracted page text") == 1  # shown once, referenced after
+    assert "(extracted text shown above)" in user
+    # The evidence rides capped, never the whole 18k chars.
+    start = user.index("extracted page text")
+    assert len(user) - start < EVIDENCE_AUDIT_CHARS + 2500
+
+
+def test_audit_without_evidence_keeps_excerpt_behavior() -> None:
+    md = "Revenue grew 23% [1]."
+    llm = _AuditLLM("1: SUPPORTED")
+    _run(ensure_citation_integrity(md, _sources(1), llm_call=llm, evidence={}))
+    user = llm.prompts[0][-1]["content"]
+    assert "Excerpt 1 about Route Mobile revenue." in user
+    assert "extracted page text" not in user
