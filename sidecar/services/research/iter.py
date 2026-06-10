@@ -233,6 +233,7 @@ async def run_iter_research(
     target: ResearchTarget | None = None,
     bound: bool = False,
     snapshot: dict[str, Any] | None = None,
+    citecheck: bool = True,
 ) -> ResearchBrief:
     """Run the IterResearch loop for ``query``; always returns a brief.
 
@@ -276,6 +277,8 @@ async def run_iter_research(
     last_round_findings: list[str] = []
 
     async def abort_synthesize(reason: str) -> ResearchBrief:
+        from services.research.citecheck import ensure_citation_integrity
+
         t0 = time.monotonic()
         markdown = await _synthesis_from_report(
             llm_call,
@@ -295,6 +298,15 @@ async def run_iter_research(
         )
         steps.append(step)
         await _emit(on_step, step)
+        if citecheck:
+            markdown = await ensure_citation_integrity(
+                markdown,
+                findings.all_sources(),
+                llm_call=llm_call,
+                budget=budget,
+                on_step=on_step,
+                steps=steps,
+            )
         return _synthesize_brief(
             query=query,
             symbol=symbol,
@@ -471,6 +483,8 @@ async def run_iter_research(
             break
 
     # --- clean completion: synthesize from the evolving report --------------
+    from services.research.citecheck import ensure_citation_integrity
+
     synth_t0 = time.monotonic()
     markdown = await _synthesis_from_report(
         llm_call,
@@ -488,6 +502,15 @@ async def run_iter_research(
     )
     steps.append(synth_step)
     await _emit(on_step, synth_step)
+    if citecheck:
+        markdown = await ensure_citation_integrity(
+            markdown,
+            findings.all_sources(),
+            llm_call=llm_call,
+            budget=budget,
+            on_step=on_step,
+            steps=steps,
+        )
     return _synthesize_brief(
         query=query,
         symbol=symbol,
@@ -636,6 +659,9 @@ async def run_heavy_research(
         "target": target,
         "bound": True,
         "snapshot": snapshot,
+        # The panel audits the MERGED brief once — per-angle audits would spend
+        # three extra LLM calls on intermediate reports the synthesist rewrites.
+        "citecheck": False,
     }
     explorers = [
         run_iter_research(
@@ -651,12 +677,13 @@ async def run_heavy_research(
 
     if not good:
         # Every explorer failed (should not happen — iter never raises). Degrade to
-        # a single iter run rather than returning nothing.
+        # a single iter run rather than returning nothing. This run publishes
+        # directly, so it audits its own citations.
         return await run_iter_research(
             query,
             budget=budget,
             on_step=on_step,
-            **explorer_knobs,
+            **{**explorer_knobs, "citecheck": True},
         )
 
     # --- synthesis agent: integrate the panel into one brief -----------------
@@ -718,6 +745,20 @@ async def run_heavy_research(
     )
     steps.append(synth_step)
     await _emit(on_step, synth_step)
+
+    # Citation integrity over the MERGED brief: out-of-range [n] markers are
+    # stripped and up to 8 numeric claims spot-audited against their cited
+    # sources (the [47]-of-21 / TMB-PDF-as-Route-transcript fix).
+    from services.research.citecheck import ensure_citation_integrity
+
+    markdown = await ensure_citation_integrity(
+        markdown,
+        merged_sources,
+        llm_call=llm_call,
+        budget=budget,
+        on_step=on_step,
+        steps=steps,
+    )
 
     # The merged brief carries the ORIGINAL user query + the bound symbol —
     # NEVER the focus-augmented explorer task text (the live ULTRA bug published
