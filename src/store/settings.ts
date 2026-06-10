@@ -7,17 +7,23 @@
  *  - secrets (OS keychain only — NEVER in this bundle, FR-036/SC-010),
  *  - the dockview layout + module-enabled map (the workspace blob proper).
  *
- * The values that already have a home in a dedicated store (the default
- * provider in `llm-providers`, the per-provider model in `model-selection`,
- * the agent mode in `agent-mode`) stay owned by those stores; this store holds
- * the preferences with no other home: the default agent/persona, the provider
- * *preference order*, command-palette behaviour, the FR-032 starter-cockpit
- * composition, per-panel defaults, and the dark-only theme knobs.
+ * R9 (settings-truth): every field here has a DEMONSTRABLE consumer — a
+ * preference that nothing reads is theater and dies (defect V6 and friends).
+ * The killed fields (`themeKnobs`, `paletteRecentsEnabled`,
+ * `paletteScopedToPanel`, `starterCockpitPanelIds`, `panelDefaults`,
+ * `providerPreferenceOrder`) are silently DROPPED from older blobs on restore
+ * — see the kill list in `docs/redesign/verification/R9_DEFECT_CATALOGUE.md`.
+ * What survives:
+ *  - `defaultAgentId` — now actually wired: it seeds the active-agent store at
+ *    boot restore and applies immediately when changed in Settings;
+ *  - `region` — locale/currency formatting, the `X-Vysted-Region` header, the
+ *    region-first news feed;
+ *  - `deepResearchBackend` — the deep-research engine selection threaded into
+ *    agent-invoke requests (`native` is the only user-facing engine).
  *
  * Persistence: every setter rides the workspace autosave slot. A preference
  * change isn't a layout change, so the store self-persists by calling
- * `void autosaveLayout()` directly (no `page.tsx` subscription needed) — the
- * same approach the "Set default provider" button already uses.
+ * `void autosaveLayout()` directly (no `page.tsx` subscription needed).
  *
  * SSR-safe: no `window`/`navigator` at module load; `autosaveLayout` already
  * no-ops before the dockview layout mounts.
@@ -27,13 +33,7 @@ import { create } from "zustand";
 
 import { type Region, DEFAULT_REGION, isRegion } from "@/lib/region";
 import { autosaveLayout } from "@/lib/workspace";
-import type { LLMProviderId } from "../../types/ai";
-
-/** Accent intensity for the dark theme — modest, dark-only knob (FR reskin). */
-export type AccentIntensity = "muted" | "normal" | "vivid";
-
-/** Row density for list-heavy panels — the other dark-only knob. */
-export type Density = "comfortable" | "compact";
+import { DEFAULT_AGENT_ID, useActiveAgentStore } from "@/store/active-agent";
 
 /**
  * The DEEP research engine the agent drives (Track 5). `native` is Vysted's own
@@ -44,43 +44,19 @@ export type Density = "comfortable" | "compact";
  */
 export type DeepResearchBackend = "native" | "perplexity";
 
-/** Dark-only theming knobs. We never leave the dark language; these tune it. */
-export interface ThemeKnobs {
-  accentIntensity: AccentIntensity;
-  density: Density;
-}
-
-/**
- * Per-panel default preferences. A small, open map keyed by panel id — each
- * panel reads the keys it cares about (e.g. `{ "chart-panel": { interval:
- * "1D" } }`). Kept `unknown`-valued so a panel owns its own shape without this
- * store knowing every panel's options.
- */
-export type PanelDefaults = Record<string, Record<string, unknown>>;
-
 /**
  * The serialisable preferences bundle. This is exactly what rides the workspace
  * blob's `settings` field and what export/import round-trips. NO secrets.
  */
 export interface SettingsBundle {
-  /** Default agent/persona id the chat sidebar selects on a fresh session. */
-  defaultAgentId: string | null;
   /**
-   * Preferred provider ordering — the order providers are offered in pickers.
-   * A subset/superset of the live provider list is tolerated; the UI unions it
-   * with the live list so a provider added in a later release still appears.
+   * Default agent/persona id the chat surface starts on each session.
+   * `null` = raw chat (no persona). On the wire an explicit raw-chat choice is
+   * serialized as {@link RAW_CHAT_SENTINEL} so it stays distinguishable from a
+   * legacy blob's dead `null` (the pre-R9 control was written-never-read; its
+   * `null` was a meaningless seed and coerces to the Copilot default).
    */
-  providerPreferenceOrder: LLMProviderId[];
-  /** Whether the command palette surfaces a recents section. */
-  paletteRecentsEnabled: boolean;
-  /** Whether the command palette opens scoped to the focused panel's commands. */
-  paletteScopedToPanel: boolean;
-  /** Panel component ids that open in the FR-032 first-run starter cockpit. */
-  starterCockpitPanelIds: string[];
-  /** Per-panel default preferences (open map). */
-  panelDefaults: PanelDefaults;
-  /** Dark-only theme knobs. */
-  themeKnobs: ThemeKnobs;
+  defaultAgentId: string | null;
   /**
    * Region / locale (Pass A item 8 seam). Defaults to `US`; drives locale-aware
    * formatting today and is the read point a later pass uses to make data/feeds
@@ -92,50 +68,25 @@ export interface SettingsBundle {
   deepResearchBackend: DeepResearchBackend;
 }
 
-/** The default starter-cockpit composition — mirrors `config/default-layout`. */
-export const DEFAULT_STARTER_COCKPIT_PANEL_IDS: readonly string[] = [
-  "chart-panel",
-  "equity-overview-panel",
-  "watchlist-panel",
-  "news-panel",
-  "portfolio-panel",
-];
+/**
+ * Wire form of an EXPLICIT raw-chat default. A legacy blob's `defaultAgentId:
+ * null` predates the wiring (the control was dead, so its null carried no
+ * intent) and coerces to the Copilot default; a user who deliberately picks
+ * "Raw chat" after R9 persists this sentinel instead, so the choice survives
+ * the round-trip unambiguously.
+ */
+export const RAW_CHAT_SENTINEL = "__raw-chat__";
 
 /** The immutable seed bundle — what a fresh install (or a reset) starts from. */
 export const DEFAULT_SETTINGS: Readonly<SettingsBundle> = Object.freeze<SettingsBundle>({
-  defaultAgentId: null,
-  // OpenRouter first — the recommended one-key broker for every model (Track 4).
-  providerPreferenceOrder: [
-    "openrouter",
-    "anthropic",
-    "openai",
-    "gemini",
-    "groq",
-    "ollama",
-    "deepseek",
-    "xai",
-  ],
-  paletteRecentsEnabled: true,
-  paletteScopedToPanel: false,
-  starterCockpitPanelIds: [...DEFAULT_STARTER_COCKPIT_PANEL_IDS],
-  panelDefaults: {},
-  themeKnobs: { accentIntensity: "normal", density: "comfortable" },
+  defaultAgentId: DEFAULT_AGENT_ID,
   region: DEFAULT_REGION,
   deepResearchBackend: "native",
 });
 
 interface SettingsState extends SettingsBundle {
+  /** Set the default persona — applies to the active chat lens immediately. */
   setDefaultAgentId: (agentId: string | null) => void;
-  setProviderPreferenceOrder: (order: LLMProviderId[]) => void;
-  /** Move one provider up or down in the preference order by one slot. */
-  moveProviderPreference: (id: LLMProviderId, direction: "up" | "down") => void;
-  setPaletteRecentsEnabled: (enabled: boolean) => void;
-  setPaletteScopedToPanel: (enabled: boolean) => void;
-  setStarterCockpitPanelIds: (ids: string[]) => void;
-  /** Toggle one panel id into / out of the starter-cockpit composition. */
-  toggleStarterCockpitPanel: (panelId: string, on: boolean) => void;
-  setPanelDefault: (panelId: string, prefs: Record<string, unknown>) => void;
-  setThemeKnobs: (knobs: Partial<ThemeKnobs>) => void;
   setRegion: (region: Region) => void;
   setDeepResearchBackend: (backend: DeepResearchBackend) => void;
   /** Replace the entire bundle (workspace/settings restore + import). */
@@ -148,12 +99,6 @@ interface SettingsState extends SettingsBundle {
 function seed(): SettingsBundle {
   return {
     defaultAgentId: DEFAULT_SETTINGS.defaultAgentId,
-    providerPreferenceOrder: [...DEFAULT_SETTINGS.providerPreferenceOrder],
-    paletteRecentsEnabled: DEFAULT_SETTINGS.paletteRecentsEnabled,
-    paletteScopedToPanel: DEFAULT_SETTINGS.paletteScopedToPanel,
-    starterCockpitPanelIds: [...DEFAULT_SETTINGS.starterCockpitPanelIds],
-    panelDefaults: {},
-    themeKnobs: { ...DEFAULT_SETTINGS.themeKnobs },
     region: DEFAULT_SETTINGS.region,
     deepResearchBackend: DEFAULT_SETTINGS.deepResearchBackend,
   };
@@ -168,76 +113,39 @@ function persist(): void {
   void autosaveLayout();
 }
 
+/**
+ * Parse a persisted/imported `defaultAgentId` into the in-state shape:
+ * sentinel → explicit raw chat (`null`); a non-empty agent id → itself;
+ * anything else (legacy dead `null`, absent, garbled) → the Copilot seed.
+ */
+function parseDefaultAgentId(value: unknown): string | null {
+  if (value === RAW_CHAT_SENTINEL) {
+    return null;
+  }
+  if (typeof value === "string" && value !== "") {
+    return value;
+  }
+  return DEFAULT_SETTINGS.defaultAgentId;
+}
+
+/**
+ * Whether the boot restore already seeded the active-agent store. The default
+ * persona applies on the FIRST `setAll` (the launch workspace restore) and on
+ * every explicit `setDefaultAgentId`; a mid-session layout load or settings
+ * import must NOT yank the user's current lens — the imported default takes
+ * effect next session, exactly as the Settings hint states.
+ */
+let defaultAgentApplied = false;
+
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   ...seed(),
 
   setDefaultAgentId: (agentId) => {
     set({ defaultAgentId: agentId });
-    persist();
-  },
-
-  setProviderPreferenceOrder: (order) => {
-    set({ providerPreferenceOrder: [...order] });
-    persist();
-  },
-
-  moveProviderPreference: (id, direction) => {
-    set((state) => {
-      const order = [...state.providerPreferenceOrder];
-      const idx = order.indexOf(id);
-      if (idx === -1) {
-        return state;
-      }
-      const swapWith = direction === "up" ? idx - 1 : idx + 1;
-      if (swapWith < 0 || swapWith >= order.length) {
-        return state;
-      }
-      [order[idx], order[swapWith]] = [order[swapWith]!, order[idx]!];
-      return { providerPreferenceOrder: order };
-    });
-    persist();
-  },
-
-  setPaletteRecentsEnabled: (enabled) => {
-    set({ paletteRecentsEnabled: enabled });
-    persist();
-  },
-
-  setPaletteScopedToPanel: (enabled) => {
-    set({ paletteScopedToPanel: enabled });
-    persist();
-  },
-
-  setStarterCockpitPanelIds: (ids) => {
-    set({ starterCockpitPanelIds: [...ids] });
-    persist();
-  },
-
-  toggleStarterCockpitPanel: (panelId, on) => {
-    set((state) => {
-      const has = state.starterCockpitPanelIds.includes(panelId);
-      if (on && !has) {
-        return { starterCockpitPanelIds: [...state.starterCockpitPanelIds, panelId] };
-      }
-      if (!on && has) {
-        return {
-          starterCockpitPanelIds: state.starterCockpitPanelIds.filter((id) => id !== panelId),
-        };
-      }
-      return state;
-    });
-    persist();
-  },
-
-  setPanelDefault: (panelId, prefs) => {
-    set((state) => ({
-      panelDefaults: { ...state.panelDefaults, [panelId]: { ...prefs } },
-    }));
-    persist();
-  },
-
-  setThemeKnobs: (knobs) => {
-    set((state) => ({ themeKnobs: { ...state.themeKnobs, ...knobs } }));
+    // The wiring that makes this control true (R9 D4): the default persona IS
+    // the active lens — applied now, and re-applied at every boot restore.
+    useActiveAgentStore.getState().setActiveAgent(agentId);
+    defaultAgentApplied = true;
     persist();
   },
 
@@ -253,54 +161,32 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   setAll: (bundle) => {
     // Merge over the seed so a partial blob (older export, hand-edited import)
-    // can't strip a field — every key keeps a sane value.
+    // can't strip a field — every key keeps a sane value. Unknown/killed keys
+    // (themeKnobs, palette*, starterCockpitPanelIds, panelDefaults,
+    // providerPreferenceOrder) are silently dropped by construction.
     const base = seed();
+    const defaultAgentId = parseDefaultAgentId(bundle.defaultAgentId);
     set({
-      defaultAgentId:
-        typeof bundle.defaultAgentId === "string" || bundle.defaultAgentId === null
-          ? bundle.defaultAgentId
-          : base.defaultAgentId,
-      providerPreferenceOrder: Array.isArray(bundle.providerPreferenceOrder)
-        ? [...bundle.providerPreferenceOrder]
-        : base.providerPreferenceOrder,
-      paletteRecentsEnabled:
-        typeof bundle.paletteRecentsEnabled === "boolean"
-          ? bundle.paletteRecentsEnabled
-          : base.paletteRecentsEnabled,
-      paletteScopedToPanel:
-        typeof bundle.paletteScopedToPanel === "boolean"
-          ? bundle.paletteScopedToPanel
-          : base.paletteScopedToPanel,
-      starterCockpitPanelIds: Array.isArray(bundle.starterCockpitPanelIds)
-        ? [...bundle.starterCockpitPanelIds]
-        : base.starterCockpitPanelIds,
-      panelDefaults:
-        bundle.panelDefaults && typeof bundle.panelDefaults === "object"
-          ? { ...bundle.panelDefaults }
-          : base.panelDefaults,
-      themeKnobs:
-        bundle.themeKnobs && typeof bundle.themeKnobs === "object"
-          ? { ...base.themeKnobs, ...bundle.themeKnobs }
-          : base.themeKnobs,
+      defaultAgentId,
       region: isRegion(bundle.region) ? bundle.region : base.region,
       deepResearchBackend:
         bundle.deepResearchBackend === "native" || bundle.deepResearchBackend === "perplexity"
           ? bundle.deepResearchBackend
           : base.deepResearchBackend, // legacy "tongyi" blobs coerce to native
     });
+    if (!defaultAgentApplied) {
+      // Boot restore: seed the chat lens with the persisted default persona.
+      useActiveAgentStore.getState().setActiveAgent(defaultAgentId);
+      defaultAgentApplied = true;
+    }
     persist();
   },
 
   toBundle: () => {
     const s = get();
     return {
-      defaultAgentId: s.defaultAgentId,
-      providerPreferenceOrder: [...s.providerPreferenceOrder],
-      paletteRecentsEnabled: s.paletteRecentsEnabled,
-      paletteScopedToPanel: s.paletteScopedToPanel,
-      starterCockpitPanelIds: [...s.starterCockpitPanelIds],
-      panelDefaults: { ...s.panelDefaults },
-      themeKnobs: { ...s.themeKnobs },
+      // Explicit raw chat rides the sentinel (see RAW_CHAT_SENTINEL).
+      defaultAgentId: s.defaultAgentId === null ? RAW_CHAT_SENTINEL : s.defaultAgentId,
       region: s.region,
       deepResearchBackend: s.deepResearchBackend,
     };
@@ -315,4 +201,5 @@ export function settingsBundle(): SettingsBundle {
 /** Test helper: reset the settings store to its seed (defaults). */
 export function resetSettingsStoreForTests(): void {
   useSettingsStore.setState(seed());
+  defaultAgentApplied = false;
 }

@@ -26,3 +26,22 @@ Kill-or-fix sweep (stray/vestigial items) runs per-partition during the pass; ki
 appended to this file by each team, verified live by the lead at gates.
 
 ## Kill list (appended during the pass)
+
+### Team D (Settings) — settings-truth sweep
+
+Verdict basis: a control that does not round-trip (change → persist → reload →
+APPLIED) is theater. Each entry below was verified written-never-read by grep
+over `src/` before the kill; old blob values are silently dropped on restore
+(`settings.setAll` merges only surviving keys).
+
+| Item | Evidence | Verdict |
+|---|---|---|
+| `themeKnobs.accentIntensity` + `themeKnobs.density` (Appearance group) | V6 — store fields written, zero render consumers | KILLED (controls, store fields, blob fields, tests) per brief D3 |
+| `paletteRecentsEnabled` ("Show recent commands") | CommandPalette renders recents unconditionally from `store/command-palette`; never reads the flag | KILLED — wiring lives in Team E's CommandPalette.tsx (out of partition); control was theater |
+| `paletteScopedToPanel` ("Scope to the focused panel first") | zero consumers anywhere | KILLED |
+| `starterCockpitPanelIds` (Starter cockpit picker, FR-032) | `config/default-layout.ts` composes a static panel set; never reads the preference | KILLED — the picker promised a composition nothing honored |
+| `panelDefaults` (store field, no UI) | no writer, no reader — stray store surface | KILLED |
+| `providerPreferenceOrder` ("Provider preference order" group) | no picker consumes the order (ComposerMetaRow + Settings selects render the live provider list directly) | KILLED — resurrect only WITH a consuming picker |
+| Interface section + nav chip | every control in it was dead after the above | REMOVED (section now: AI Providers · Research · Region & locale · Keybindings · Advanced) |
+| `defaultAgentId` ("Default agent" select) | was written-never-read (active-agent store seeded statically) | FIXED, not killed — `settings.setDefaultAgentId` now applies to `store/active-agent` immediately and the boot restore seeds the lens; explicit raw-chat persists as a sentinel so a legacy dead `null` coerces to Copilot |
+

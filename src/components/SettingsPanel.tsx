@@ -3,8 +3,6 @@
 import { type FunctionComponent, useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
-  ArrowDown,
-  ArrowUp,
   Bot,
   Check,
   ChevronDown,
@@ -81,31 +79,30 @@ import type { LLMModelOption, LLMProviderId } from "../../types/ai";
  * Settings — the discoverable control surface (Cursor-grade preferences,
  * FR-037/FR-038/FR-039, SC-011).
  *
- * R8 layout — a sectioned hierarchy instead of a wall; ONE search surface
- * (the R7 research tiers — the legacy "Web search" section is gone, its
- * Exa key and custom SearXNG URL folded into the tier details):
+ * R9 layout — a sectioned hierarchy instead of a wall; ONE search surface;
+ * every control demonstrably round-trips (change → persist → reload →
+ * applied) or it does not exist (the R9 settings-truth pass — the dead
+ * Interface section and the unread provider-preference-order group died; see
+ * the kill list in `verification/R9_DEFECT_CATALOGUE.md`):
  *
  *   Settings
  *   [jump nav: AI Providers · Research · Region & locale ·
- *              Interface · Keybindings · Advanced]
+ *              Keybindings · Advanced]
  *   ── AI Providers ──────────────────────────────────────────────
- *      key rows (fixed-slot right cluster, so status text and buttons
- *      align row to row) · defaults (agent/provider/model) · order
+ *      key rows (one designed grid, so status text and buttons
+ *      align row to row) · defaults (agent/provider/model)
  *   ── Research ──────────────────────────────────────────────────
- *      search tiers (t1 keyless · t2 SearXNG + custom URL ·
- *      t3 BYOK: OpenRouter hosted or Exa direct) · deep research ·
+ *      two tiers (Unlimited (Local) — managed SearXNG · Hosted
+ *      research model — OpenRouter per-stop models) ·
  *      hardware & local models
  *   ── Region & locale ───────────────────────────────────────────
- *   ── Interface ─────────────────────────────────────────────────
- *      command palette · starter cockpit · appearance
  *   ── Keybindings ───────────────────────────────────────────────
  *   ── Advanced ──────────────────────────────────────────────────
  *      integrations · layouts · modules · export/import · about
  *
  * Rows share ONE primitive (32px-control SettingRow inside a single bordered
  * card with hairline dividers — never a card per row); toggles are readable
- * switches, never 8px checkboxes. Every pre-R7 setting stays reachable and
- * its store wiring is untouched. Opened from the toolbar gear, the
+ * switches, never 8px checkboxes. Opened from the toolbar gear, the
  * `platform.open-settings` command, or the onboarding banner. Wired into the
  * platform module as `panelComponents["settings-panel"]`.
  */
@@ -134,7 +131,6 @@ export const SettingsPanel: FunctionComponent = () => {
           <ProvidersSection />
           <ResearchSection />
           <RegionSection />
-          <InterfaceSection />
           <KeybindingsSection />
           <AdvancedSection />
         </div>
@@ -153,7 +149,6 @@ const SECTION_NAV: { id: string; label: string }[] = [
   { id: "settings-providers", label: "AI Providers" },
   { id: "settings-research", label: "Research" },
   { id: "settings-region", label: "Region & locale" },
-  { id: "settings-interface", label: "Interface" },
   { id: "settings-keybindings", label: "Keybindings" },
   { id: "settings-advanced", label: "Advanced" },
 ];
@@ -483,7 +478,6 @@ function ProvidersSection() {
         </Card>
 
         <DefaultsGroup />
-        <ProviderOrderGroup />
       </div>
       <KeyEntryDialog
         open={dialogProvider !== null}
@@ -542,7 +536,7 @@ function DefaultsGroup() {
       <Card>
         <SettingRow
           label="Default agent"
-          hint="The persona the copilot starts with each session."
+          hint="The persona the chat starts on — applies now and at every launch."
           icon={<Bot className="text-charcoal-300 size-3.5" aria-hidden="true" />}
         >
           <Select
@@ -557,7 +551,7 @@ function DefaultsGroup() {
               </option>
             ) : (
               <>
-                <option value="">No default (raw chat)</option>
+                <option value="">Raw chat (no persona)</option>
                 {agents.map((agent) => (
                   <option key={agent.id} value={agent.id}>
                     {agent.name}
@@ -620,61 +614,6 @@ function DefaultsGroup() {
             )}
           </Select>
         </SettingRow>
-      </Card>
-    </div>
-  );
-}
-
-/** Provider preference order — the order providers are offered in pickers. */
-function ProviderOrderGroup() {
-  const providers = useLLMProvidersStore((s) => s.providers);
-  const providerPreferenceOrder = useSettingsStore((s) => s.providerPreferenceOrder);
-  const moveProviderPreference = useSettingsStore((s) => s.moveProviderPreference);
-
-  const providerLabel = (id: LLMProviderId) => providers.find((p) => p.id === id)?.label ?? id;
-  // Union the persisted order with the live providers so a provider added in a
-  // later release still appears (appended), and a stale id drops off.
-  const liveIds = new Set(providers.map((p) => p.id));
-  const orderedProviderIds: LLMProviderId[] = [
-    ...providerPreferenceOrder.filter((id) => liveIds.has(id)),
-    ...providers.map((p) => p.id).filter((id) => !providerPreferenceOrder.includes(id)),
-  ];
-
-  return (
-    <div>
-      <GroupLabel
-        label="Provider preference order"
-        hint="The order providers are offered in pickers. Reorder to surface the ones you reach for first."
-      />
-      <Card>
-        {orderedProviderIds.map((id, idx) => (
-          <div key={id} className="flex min-h-8 items-center justify-between gap-4 px-4 py-2">
-            <span className="text-charcoal-100 text-body flex items-center gap-2">
-              <span className="text-charcoal-500 w-4 text-right tabular-nums">{idx + 1}</span>
-              {providerLabel(id)}
-            </span>
-            <span className="flex items-center gap-1">
-              <button
-                type="button"
-                aria-label={`Move ${providerLabel(id)} up`}
-                disabled={idx === 0}
-                onClick={() => moveProviderPreference(id, "up")}
-                className="text-charcoal-400 rounded-control hover:text-charcoal-100 p-1 disabled:cursor-not-allowed disabled:opacity-30"
-              >
-                <ArrowUp className="size-3.5" aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                aria-label={`Move ${providerLabel(id)} down`}
-                disabled={idx === orderedProviderIds.length - 1}
-                onClick={() => moveProviderPreference(id, "down")}
-                className="text-charcoal-400 rounded-control hover:text-charcoal-100 p-1 disabled:cursor-not-allowed disabled:opacity-30"
-              >
-                <ArrowDown className="size-3.5" aria-hidden="true" />
-              </button>
-            </span>
-          </div>
-        ))}
       </Card>
     </div>
   );
@@ -1556,160 +1495,6 @@ function RegionSection() {
 }
 
 // ---------------------------------------------------------------------------
-// Interface (command palette · starter cockpit · appearance)
-// ---------------------------------------------------------------------------
-
-/** Friendly labels for the panel ids the starter cockpit can compose. */
-const STARTER_PANEL_LABELS: Record<string, string> = {
-  "chart-panel": "Chart",
-  "equity-overview-panel": "Equity Overview",
-  "watchlist-panel": "Watchlist",
-  "news-panel": "News",
-  "portfolio-panel": "Portfolio",
-  "screener-panel": "Screener",
-  "sec-filings-panel": "SEC Filings",
-  "macro-panel": "Macro",
-  "earnings-calendar-panel": "Earnings Calendar",
-  "analyst-ratings-panel": "Analyst Ratings",
-};
-
-/** An ASCII-bracket toggle chip for the starter-cockpit panel picker —
- *  a 32px-ladder control, never an 8px checkbox. */
-function StarterChip({
-  panelId,
-  label,
-  checked,
-  onChange,
-}: {
-  panelId: string;
-  label: string;
-  checked: boolean;
-  onChange: (next: boolean) => void;
-}) {
-  return (
-    <label
-      data-panel-id={panelId}
-      title={label}
-      className={cn(
-        "rounded-control text-caption flex h-8 min-w-0 cursor-pointer items-center gap-2 border px-3 select-none",
-        checked
-          ? "border-charcoal-600 bg-charcoal-875 text-charcoal-100"
-          : "border-charcoal-700 text-charcoal-400 hover:text-charcoal-200",
-      )}
-    >
-      <input
-        type="checkbox"
-        aria-label={`Starter cockpit: ${label}`}
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="sr-only"
-      />
-      <span aria-hidden="true" className={checked ? "text-charcoal-300" : "text-charcoal-500"}>
-        {checked ? "[x]" : "[ ]"}
-      </span>
-      <span className="truncate">{label}</span>
-    </label>
-  );
-}
-
-function InterfaceSection() {
-  const paletteRecentsEnabled = useSettingsStore((s) => s.paletteRecentsEnabled);
-  const setPaletteRecentsEnabled = useSettingsStore((s) => s.setPaletteRecentsEnabled);
-  const paletteScopedToPanel = useSettingsStore((s) => s.paletteScopedToPanel);
-  const setPaletteScopedToPanel = useSettingsStore((s) => s.setPaletteScopedToPanel);
-  const starterCockpitPanelIds = useSettingsStore((s) => s.starterCockpitPanelIds);
-  const toggleStarterCockpitPanel = useSettingsStore((s) => s.toggleStarterCockpitPanel);
-  const themeKnobs = useSettingsStore((s) => s.themeKnobs);
-  const setThemeKnobs = useSettingsStore((s) => s.setThemeKnobs);
-
-  return (
-    <section aria-labelledby="settings-interface">
-      <SectionHeader
-        id="settings-interface"
-        icon={<LayoutPanelLeft className="text-charcoal-300 size-4" aria-hidden="true" />}
-        title="Interface"
-        hint="How the command palette, your first-run cockpit, and the dark language behave. These travel with Export / Import below."
-      />
-      <div className="flex flex-col gap-6">
-        <div>
-          <GroupLabel label="Command palette" />
-          <Card>
-            <ToggleRow
-              label="Show recent commands"
-              checked={paletteRecentsEnabled}
-              onChange={setPaletteRecentsEnabled}
-              switchLabel="Show recent commands"
-            />
-            <ToggleRow
-              label="Scope to the focused panel first"
-              checked={paletteScopedToPanel}
-              onChange={setPaletteScopedToPanel}
-              switchLabel="Scope to the focused panel first"
-            />
-          </Card>
-        </div>
-
-        {/* Starter-cockpit composition (FR-032) */}
-        <div>
-          <GroupLabel
-            label="Starter cockpit"
-            hint="The panels that open on first run, before you save your own layout."
-          />
-          <div className="grid grid-cols-2 gap-2">
-            {Object.entries(STARTER_PANEL_LABELS).map(([panelId, label]) => (
-              <StarterChip
-                key={panelId}
-                panelId={panelId}
-                label={label}
-                checked={starterCockpitPanelIds.includes(panelId)}
-                onChange={(next) => toggleStarterCockpitPanel(panelId, next)}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Theme knobs (dark-only) */}
-        <div>
-          <GroupLabel
-            label="Appearance"
-            hint="Vysted is dark-only by design. These tune the dark language."
-          />
-          <Card>
-            <SettingRow label="Accent intensity">
-              <Select
-                aria-label="Accent intensity"
-                value={themeKnobs.accentIntensity}
-                onChange={(e) =>
-                  setThemeKnobs({
-                    accentIntensity: e.target.value as typeof themeKnobs.accentIntensity,
-                  })
-                }
-              >
-                <option value="muted">Muted</option>
-                <option value="normal">Normal</option>
-                <option value="vivid">Vivid</option>
-              </Select>
-            </SettingRow>
-            <SettingRow label="Density">
-              <Select
-                aria-label="Density"
-                value={themeKnobs.density}
-                onChange={(e) =>
-                  setThemeKnobs({ density: e.target.value as typeof themeKnobs.density })
-                }
-              >
-                <option value="comfortable">Comfortable</option>
-                <option value="compact">Compact</option>
-              </Select>
-            </SettingRow>
-          </Card>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Keybindings (FR-039)
 // ---------------------------------------------------------------------------
 
@@ -2227,9 +2012,9 @@ function ExportImportSection() {
             />
           </div>
           <p className="text-charcoal-500 text-caption">
-            The export bundles your keybinding remaps and preferences (default agent, provider
-            order, palette behaviour, starter cockpit, theme). API keys and broker credentials stay
-            in your OS keychain and are never written to the file.
+            The export bundles your keybinding remaps and preferences (default agent, region,
+            research engine). API keys and broker credentials stay in your OS keychain and are never
+            written to the file.
           </p>
           {status && (
             <p

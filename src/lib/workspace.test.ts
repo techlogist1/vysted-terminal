@@ -137,31 +137,25 @@ describe("workspace serialization", () => {
     // Set some non-default keybindings + preferences, then serialize.
     useKeybindingsStore.getState().setBinding("palette.open", "mod+shift+p");
     useSettingsStore.getState().setDefaultAgentId("buffett");
-    useSettingsStore.getState().setProviderPreferenceOrder(["groq", "ollama", "anthropic"]);
-    useSettingsStore.getState().setPaletteRecentsEnabled(false);
+    useSettingsStore.getState().setRegion("IN");
 
     const saved = serializeWorkspace("research");
     expect(saved.keybindingOverrides).toEqual({ "palette.open": "mod+shift+p" });
     expect(saved.settings?.defaultAgentId).toBe("buffett");
-    expect(saved.settings?.providerPreferenceOrder).toEqual(["groq", "ollama", "anthropic"]);
-    expect(saved.settings?.paletteRecentsEnabled).toBe(false);
+    expect(saved.settings?.region).toBe("IN");
 
     // Mutate the live state away…
     resetKeybindingsStoreForTests();
     resetSettingsStoreForTests();
     expect(useKeybindingsStore.getState().overrides).toEqual({});
-    expect(useSettingsStore.getState().defaultAgentId).toBeNull();
+    expect(useSettingsStore.getState().defaultAgentId).toBe(DEFAULT_SETTINGS.defaultAgentId);
+    expect(useSettingsStore.getState().region).toBe(DEFAULT_SETTINGS.region);
 
     // …then deserialize — the remaps + preferences come back exactly.
     deserializeWorkspace(saved);
     expect(useKeybindingsStore.getState().bindingFor("palette.open")).toBe("mod+shift+p");
     expect(useSettingsStore.getState().defaultAgentId).toBe("buffett");
-    expect(useSettingsStore.getState().providerPreferenceOrder).toEqual([
-      "groq",
-      "ollama",
-      "anthropic",
-    ]);
-    expect(useSettingsStore.getState().paletteRecentsEnabled).toBe(false);
+    expect(useSettingsStore.getState().region).toBe("IN");
   });
 
   it("deserializeWorkspace tolerates an older blob with no keybindings/settings", () => {

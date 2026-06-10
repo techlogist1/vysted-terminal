@@ -171,18 +171,31 @@ describe("SettingsPanel", () => {
     expect(alert).toHaveTextContent(/Open news/);
   });
 
-  // ---- Preferences ----
+  // ---- Preferences (R9 settings-truth: dead controls stay dead) ----
 
-  it("the provider preference order is reorderable", () => {
-    useSettingsStore.getState().setProviderPreferenceOrder(["anthropic", "openai", "gemini"]);
+  it("the unread provider-preference-order group is gone (R9 kill)", () => {
     render(<SettingsPanel />);
+    expect(screen.queryByText("Provider preference order")).toBeNull();
+    expect(screen.queryByRole("button", { name: /Move .* up/ })).toBeNull();
+  });
 
-    fireEvent.click(screen.getByRole("button", { name: "Move OpenAI up" }));
+  it("the dead Interface section is gone — no region, no nav chip, no knobs (R9 kill)", () => {
+    render(<SettingsPanel />);
+    expect(screen.queryByRole("region", { name: "Interface" })).toBeNull();
+    const nav = screen.getByRole("navigation", { name: "Settings sections" });
+    expect(within(nav).queryByRole("button", { name: "Interface" })).toBeNull();
+    // The written-never-read knobs died with it (defect V6 + friends).
+    expect(screen.queryByLabelText("Accent intensity")).toBeNull();
+    expect(screen.queryByLabelText("Density")).toBeNull();
+    expect(screen.queryByRole("switch", { name: "Show recent commands" })).toBeNull();
+    expect(screen.queryByRole("switch", { name: "Scope to the focused panel first" })).toBeNull();
+    expect(screen.queryByText(/Starter cockpit/)).toBeNull();
+  });
 
-    expect(useSettingsStore.getState().providerPreferenceOrder.slice(0, 2)).toEqual([
-      "openai",
-      "anthropic",
-    ]);
+  it("picking a default agent applies it to the active chat lens", () => {
+    render(<SettingsPanel />);
+    fireEvent.change(screen.getByLabelText("Default agent"), { target: { value: "" } });
+    expect(useSettingsStore.getState().defaultAgentId).toBeNull();
   });
 
   // ---- Export / Import (FR-037/FR-038/SC-010) ----
@@ -244,14 +257,7 @@ describe("SettingsPanel", () => {
   it("groups the page into named sections with a jump nav", () => {
     render(<SettingsPanel />);
     expect(screen.getByRole("navigation", { name: "Settings sections" })).toBeInTheDocument();
-    for (const name of [
-      "AI Providers",
-      "Research",
-      "Region & locale",
-      "Interface",
-      "Keybindings",
-      "Advanced",
-    ]) {
+    for (const name of ["AI Providers", "Research", "Region & locale", "Keybindings", "Advanced"]) {
       expect(screen.getByRole("region", { name })).toBeInTheDocument();
     }
   });
@@ -272,17 +278,6 @@ describe("SettingsPanel", () => {
     expect(screen.getAllByText("OpenRouter").length).toBeGreaterThan(0);
   });
 
-  it("starter-cockpit chips toggle the settings store", () => {
-    render(<SettingsPanel />);
-    const chip = screen.getByRole("checkbox", { name: "Starter cockpit: Screener" });
-    const before = useSettingsStore.getState().starterCockpitPanelIds.includes("screener-panel");
-
-    fireEvent.click(chip);
-    expect(useSettingsStore.getState().starterCockpitPanelIds.includes("screener-panel")).toBe(
-      !before,
-    );
-  });
-
   it("every surviving setting control is still reachable", () => {
     render(<SettingsPanel />);
     // AI providers
@@ -291,14 +286,8 @@ describe("SettingsPanel", () => {
     expect(screen.getByLabelText("Default model")).toBeInTheDocument();
     // Research search tiers — the one search surface.
     expect(screen.getByRole("radiogroup", { name: "Research search tier" })).toBeInTheDocument();
-    // Region, interface knobs
+    // Region
     expect(screen.getByLabelText("Region")).toBeInTheDocument();
-    expect(screen.getByLabelText("Accent intensity")).toBeInTheDocument();
-    expect(screen.getByLabelText("Density")).toBeInTheDocument();
-    expect(screen.getByRole("switch", { name: "Show recent commands" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("switch", { name: "Scope to the focused panel first" }),
-    ).toBeInTheDocument();
     // Advanced
     expect(screen.getByRole("button", { name: /Open Marketplace/i })).toBeInTheDocument();
     expect(screen.getByLabelText("New layout name")).toBeInTheDocument();
