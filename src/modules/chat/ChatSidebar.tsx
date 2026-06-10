@@ -22,6 +22,7 @@ import { validateProvider } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAgentCommandStore } from "@/store/agent-command";
+import { useAgentDockStore } from "@/store/agent-dock";
 import { useChatPendingStore } from "@/store/chat-pending";
 import { type ResearchDepth, useResearchDepthStore } from "@/store/research-depth";
 import { useAgentModeStore } from "@/store/agent-mode";
@@ -452,6 +453,8 @@ export function ChatSidebar() {
       history: useChatHistoryStore,
       pending: useChatPendingStore,
       depth: useResearchDepthStore,
+      dock: useAgentDockStore,
+      agents: useAgentsStore,
     };
   }, []);
 
@@ -1294,7 +1297,9 @@ function QueuedPrompts() {
       {queue.map((prompt, index) => (
         <li
           key={`${index}-${prompt}`}
-          className="border-charcoal-700 bg-charcoal-850 text-micro text-charcoal-400 rounded-control flex h-6 max-w-[14rem] items-center gap-1 border px-2 font-mono"
+          // Caption type, NOT micro — micro uppercases, and a queued prompt is
+          // user content that must render verbatim.
+          className="border-charcoal-700 bg-charcoal-850 text-caption text-charcoal-400 rounded-control flex h-6 max-w-[14rem] items-center gap-1 border px-2 font-mono"
         >
           <span className="truncate" title={prompt}>
             {prompt}

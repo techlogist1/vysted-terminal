@@ -92,13 +92,19 @@ function CheckRow({
         event.preventDefault();
         onPick();
       }}
-      className={cn(ROW_CLASS, active && "text-charcoal-100")}
+      className={cn(ROW_CLASS, "flex-col items-stretch gap-0", active && "text-charcoal-100")}
     >
-      <span className="w-3 shrink-0" aria-hidden>
-        {active ? <Check className="size-3" /> : null}
+      <span className="flex items-center gap-2">
+        <span className="w-3 shrink-0" aria-hidden>
+          {active ? <Check className="size-3" /> : null}
+        </span>
+        <span className="min-w-0 truncate">{label}</span>
       </span>
-      <span className="min-w-0 truncate">{label}</span>
-      {hint && <span className="text-charcoal-500 min-w-0 flex-1 truncate text-right">{hint}</span>}
+      {hint && (
+        <span className="text-micro text-charcoal-500 pl-5 leading-snug tracking-normal normal-case">
+          {hint}
+        </span>
+      )}
     </button>
   );
 }
@@ -221,7 +227,14 @@ export function ComposerPlusMenu({
                 <ChevronLeft className="size-3 shrink-0" aria-hidden />
                 <span className="min-w-0 truncate">Back</span>
               </button>
-              <SectionHeader>First-party</SectionHeader>
+              {orderedFirstParty.length === 0 && custom.length === 0 && (
+                // Empty roster (sidecar not up yet) — say so quietly rather
+                // than render a bare section header over nothing.
+                <div className="text-caption text-charcoal-500 px-3 py-1 font-mono">
+                  No personas available yet
+                </div>
+              )}
+              {orderedFirstParty.length > 0 && <SectionHeader>First-party</SectionHeader>}
               {orderedFirstParty.map((agent) => (
                 <CheckRow
                   key={agent.id}
