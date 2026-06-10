@@ -306,6 +306,74 @@ def test_presentation_ranks_band_05_behind_the_outcome_filing() -> None:
     assert rows[2]["url"].endswith("AUDIO.pdf")
 
 
+# --- V11: zero off-entity sources through the loop ---------------------------------
+
+
+def test_passing_mention_rows_never_reach_brief_sources() -> None:
+    from services.budget_guard import BudgetGuard
+    from services.research.iter import run_iter_research
+
+    class _LeakyTool:
+        async def __call__(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+            if name == "resolve_symbol":
+                return {
+                    "ok": True,
+                    "resolved": {
+                        "symbol": "SAKSOFT",
+                        "name": "Saksoft Limited",
+                        "exchange": "NSE",
+                        "region": "IN",
+                        "asset_class": "equity",
+                        "confidence": 0.96,
+                    },
+                }
+            if name == "web_search":
+                return {
+                    "ok": True,
+                    "citations": [
+                        {
+                            "url": "https://www.businessdaily.example/coromandel-q4",
+                            "title": "Coromandel International Q4 net profit rises 12%",
+                            "excerpt": "Other results today: Saksoft, Tea Post and SMEs.",
+                        },
+                        {
+                            "url": "https://www.ipowatch.example/tea-post-drhp",
+                            "title": "Tea Post Limited files DRHP for SME IPO",
+                            "excerpt": "Peers cited include Saksoft Limited.",
+                        },
+                        {
+                            "url": "https://www.moneycontrol.com/saksoft-q4",
+                            "title": "Saksoft Q4 results: PAT up 19.7%",
+                            "excerpt": "Saksoft Limited reported",
+                        },
+                    ],
+                }
+            return {"ok": True, "provider": "test"}
+
+    class _LLM:
+        async def __call__(self, messages: list[dict[str, Any]]) -> str:
+            system = str(messages[0]["content"]).lower()
+            if "reflect on research coverage" in system:
+                return "complete"
+            if "concise research brief" in system:
+                return "# Brief\nPAT up 19.7% [1]."
+            return "What did Q4 results say?"
+
+    brief = asyncio.run(
+        run_iter_research(
+            "Saksoft Limited",
+            region="IN",
+            tool_call=_LeakyTool(),
+            llm_call=_LLM(),
+            budget=BudgetGuard(max_steps=10),
+        )
+    )
+    urls = [s.url for s in brief.sources]
+    assert "https://www.moneycontrol.com/saksoft-q4" in urls
+    for off_entity in ("coromandel", "tea-post"):
+        assert not any(off_entity in u for u in urls), f"off-entity source leaked: {off_entity}"
+
+
 def test_non_results_question_keeps_feed_order() -> None:
     feed = {
         "ok": True,
