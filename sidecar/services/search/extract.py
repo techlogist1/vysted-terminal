@@ -62,7 +62,11 @@ _PDF_KEEP_PAGES = 6
 
 #: Finance-relevance keywords for page selection in long PDFs (results filings,
 #: annual reports): a page mentioning these + dense in digits carries the
-#: numbers a researcher needs.
+#: numbers a researcher needs. R9: the Indian quarterly-results grammar is
+#: first-class — "standalone"/"consolidated" statement headers and the
+#: "quarter ended"/"year ended" column captions are what the results annexure
+#: pages actually say ("crore"/"lakh" also count their plural forms via
+#: substring counting).
 _PDF_FINANCE_KEYWORDS = (
     "revenue",
     "profit",
@@ -77,6 +81,11 @@ _PDF_FINANCE_KEYWORDS = (
     "income",
     "eps",
     "earnings",
+    "standalone",
+    "consolidated",
+    "quarter ended",
+    "year ended",
+    "net sales",
 )
 
 #: Hosts whose downloads must ride the Chrome-impersonation lane (exchange
@@ -321,12 +330,100 @@ def _pdf_paragraphs(page_texts: list[str]) -> list[str]:
 
 
 def _pdf_page_score(text: str) -> float:
-    """Finance relevance of one PDF page: keyword hits + digit density."""
-    low = text.lower()
+    """Finance relevance of one PDF page: keyword hits + digit density.
+
+    The haystack is whitespace-normalized so multi-word keywords ("quarter
+    ended") match across the line breaks pypdf injects into table captions.
+    """
+    low = " ".join(text.lower().split())
     keyword_hits = sum(low.count(k) for k in _PDF_FINANCE_KEYWORDS)
-    digits = sum(ch.isdigit() for ch in text)
-    density = digits / max(len(text), 1)
+    digits = sum(ch.isdigit() for ch in low)
+    density = digits / max(len(low), 1)
     return keyword_hits * 2.0 + density * 100.0
+
+
+#: A page whose extracted text is shorter than this is an EMPTY page for the
+#: per-page honesty signal — raster scans sometimes leak a stray watermark
+#: character, which must not hide that the page has no real text layer.
+_EMPTY_PAGE_CHARS = 16
+
+#: Digit density below which an extracted excerpt is "digit-sparse" — i.e. it
+#: cannot be carrying a results table. Calibrated on the real SAKSOFT Q4 FY26
+#: outcome filing: cover letters/notes run 3–7% digits (CINs, dates, DINs);
+#: genuine results-table text runs 25–45%.
+_DIGIT_SPARSE_DENSITY = 0.10
+
+#: Excerpts shorter than this carry too little signal to judge density on.
+_DIGIT_SPARSE_MIN_CHARS = 200
+
+#: How many selected pages may get the pypdf layout-mode retry (cost guard).
+_PDF_LAYOUT_RETRY_MAX = 8
+
+#: WELL-FORMED financial numbers ("24,884.50", "1,00,719.12", "2.81") — a
+#: cleanly bounded grouped/decimal figure. Layout mode wins a page when it
+#: separates MORE of them than plain extraction: plain mode can fuse adjacent
+#: table cells into runs like "24,884.5023,998.71", which parse as malformed
+#: (4-decimal) figures and stop counting as well-formed.
+_FIN_NUMBER_RE = re.compile(r"(?<![\d.,])(?:\d{1,3}(?:,\d{2,3})+|\d+)(?:\.\d{1,2})?(?![\d.,])")
+
+
+def is_digit_sparse(text: str | None) -> bool:
+    """True when ``text`` cannot plausibly contain a financial results table.
+
+    Used by the research loop's digital-twin fallback: a disclosure visit that
+    came back digit-sparse (a cover letter, a procedural intimation) triggers
+    ONE bounded visit of the next disclosure row. Empty/short text is sparse.
+    """
+    if not text:
+        return True
+    flat = " ".join(text.split())
+    if len(flat) < _DIGIT_SPARSE_MIN_CHARS:
+        return True
+    digits = sum(ch.isdigit() for ch in flat)
+    return digits / len(flat) < _DIGIT_SPARSE_DENSITY
+
+
+#: Marker phrase carried by the scanned-pages note — detection key for the
+#: research loop (and a grep-stable contract for tests).
+SCANNED_NOTE_MARKER = "no extractable text"
+
+
+def scanned_pages_note(pages_empty: int, page_count: int) -> str:
+    """The honest one-line note appended when a PDF has image-only pages."""
+    return (
+        f"[Document note: {pages_empty} of {page_count} pages have "
+        f"{SCANNED_NOTE_MARKER} — financial tables are likely scanned images. "
+        "Figures missing from this excerpt are UNPARSED, not absent; prefer a "
+        "digital companion filing (earnings presentation / press release) for "
+        "the numbers.]"
+    )
+
+
+def has_scanned_pages_note(text: str | None) -> bool:
+    """Does an extracted excerpt carry the scanned-pages honesty note?"""
+    return bool(text) and SCANNED_NOTE_MARKER in str(text)
+
+
+def _layout_retry(pages: Any, page_texts: list[str], indices: list[int]) -> None:
+    """Re-extract selected pages in pypdf layout mode where layout WINS.
+
+    Plain extraction can fuse adjacent table cells into one unreadable digit
+    run ("Revenue24,884.5023,998.71"); layout mode preserves the column
+    whitespace. A page's layout text replaces the plain text only when it
+    yields strictly MORE well-formed financial numbers — never on ties, so
+    prose pages keep the cheaper plain extraction. Bounded at
+    :data:`_PDF_LAYOUT_RETRY_MAX` pages; any layout failure keeps plain.
+    """
+    for i in indices[:_PDF_LAYOUT_RETRY_MAX]:
+        plain = page_texts[i]
+        if len(plain.strip()) < _EMPTY_PAGE_CHARS:
+            continue  # no text layer — layout mode cannot conjure one
+        try:
+            layout = pages[i].extract_text(extraction_mode="layout") or ""
+        except Exception:  # noqa: BLE001 — layout mode is best-effort
+            continue
+        if len(_FIN_NUMBER_RE.findall(layout)) > len(_FIN_NUMBER_RE.findall(plain)):
+            page_texts[i] = layout
 
 
 def extract_pdf_text(data: bytes, *, max_chars: int = PDF_RESEARCH_MAX_CHARS) -> dict[str, Any]:
@@ -334,10 +431,24 @@ def extract_pdf_text(data: bytes, *, max_chars: int = PDF_RESEARCH_MAX_CHARS) ->
 
     Reads up to :data:`_PDF_MAX_PAGES` pages via pypdf; when the document is
     longer than the budget, the :data:`_PDF_KEEP_PAGES` highest-scoring pages
-    (keyword + digit-density scoring — results tables win) are kept in
-    DOCUMENT order; the excerpt is cut at a paragraph boundary, never
-    mid-sentence. Returns the same honest dict shape as :func:`fetch_page`
-    minus transport fields — never raises.
+    (keyword + digit-density scoring — results tables win) are kept; the
+    excerpt is cut at a paragraph boundary, never mid-sentence.
+
+    R9 honesty + assembly:
+
+    - ``pages_empty`` counts pages with NO extractable text (raster scans).
+      Partially scanned filings (the common Indian outcome shape: digital
+      cover letter + image-only results tables) return ``ok: True`` WITH the
+      count so the caller can say "scanned tables", never a false "parsed".
+    - Selected table-ish pages get one pypdf layout-mode retry where layout
+      separates more numeric runs than plain extraction.
+    - When the selected text exceeds the budget, pages are ASSEMBLED in score
+      order (best finance page first) so letterhead pages can never starve
+      the results table out of the excerpt; document order is kept when
+      everything fits.
+
+    Returns the same honest dict shape as :func:`fetch_page` minus transport
+    fields — never raises.
     """
     try:
         from pypdf import PdfReader
@@ -359,6 +470,8 @@ def extract_pdf_text(data: bytes, *, max_chars: int = PDF_RESEARCH_MAX_CHARS) ->
     except Exception as exc:  # noqa: BLE001 — malformed/encrypted PDFs are a soft miss
         return {"ok": False, "error": f"PDF parse failed: {exc}"}
 
+    pages_empty = sum(1 for t in page_texts if len(t.strip()) < _EMPTY_PAGE_CHARS)
+
     total_chars = sum(len(t) for t in page_texts)
     if total_chars > max_chars * 2 and len(page_texts) > _PDF_KEEP_PAGES:
         scores = [_pdf_page_score(t) for t in page_texts]
@@ -370,18 +483,32 @@ def extract_pdf_text(data: bytes, *, max_chars: int = PDF_RESEARCH_MAX_CHARS) ->
         keep = [i for i in ranked[:_PDF_KEEP_PAGES] if scores[i] >= max(2.0, top * 0.2)]
         if not keep:
             keep = ranked[:_PDF_KEEP_PAGES]
-        keep = sorted(keep)  # back to document order
-        selected = [page_texts[i] for i in keep]
-        pages_used = [i + 1 for i in keep]
+        keep = sorted(keep)  # document order for pages_used + assembly
     else:
-        selected = page_texts
-        pages_used = list(range(1, len(page_texts) + 1))
+        keep = list(range(len(page_texts)))
 
-    content, truncated = _truncate_at_paragraph(_pdf_paragraphs(selected), max_chars)
+    _layout_retry(pages, page_texts, keep)
+    pages_used = [i + 1 for i in keep]
+
+    # Assembly order: document order when the selection fits the budget;
+    # score order (best finance page first, stable on ties) when truncation
+    # is inevitable — a results table must never be starved by letterhead.
+    if sum(len(page_texts[i]) for i in keep) > max_chars:
+        keep_scores = {i: _pdf_page_score(page_texts[i]) for i in keep}
+        assembly = sorted(keep, key=lambda i: (-keep_scores[i], i))
+    else:
+        assembly = keep
+    paragraphs: list[str] = []
+    for i in assembly:
+        paragraphs.extend(_pdf_paragraphs([page_texts[i]]))
+
+    content, truncated = _truncate_at_paragraph(paragraphs, max_chars)
     if not content:
         return {
             "ok": False,
             "error": "no extractable text in PDF (likely a scanned/image document)",
+            "pages_empty": pages_empty,
+            "page_count": len(page_texts),
         }
     return {
         "ok": True,
@@ -391,6 +518,7 @@ def extract_pdf_text(data: bytes, *, max_chars: int = PDF_RESEARCH_MAX_CHARS) ->
         "chars": len(content),
         "pages_used": pages_used,
         "page_count": len(page_texts),
+        "pages_empty": pages_empty,
     }
 
 
@@ -418,7 +546,13 @@ async def _fetch_pdf_page(
         }
     extracted = extract_pdf_text(body, max_chars=max_chars)
     if not extracted.get("ok"):
-        return {"ok": False, "url": url, "error": str(extracted.get("error"))}
+        miss: dict[str, Any] = {"ok": False, "url": url, "error": str(extracted.get("error"))}
+        # Carry the per-page honesty signal through a textless miss so the
+        # research visit can say "scanned filing", never a false "not parsed".
+        for key in ("pages_empty", "page_count"):
+            if key in extracted:
+                miss[key] = extracted[key]
+        return miss
     extracted["url"] = url
     extracted["final_url"] = url
     extracted["content_type"] = "application/pdf"
@@ -506,15 +640,28 @@ async def visit_for_research(url: str, *, max_chars: int = RESEARCH_VISIT_MAX_CH
     A ``.pdf`` URL gets the wider :data:`PDF_RESEARCH_MAX_CHARS` budget —
     results filings carry their numbers deep in tables, and starving them was
     the "no quarterly results announced" failure mode.
+
+    R9 scanned-filing honesty: a PDF with image-only pages gets the one-line
+    :func:`scanned_pages_note` APPENDED to its excerpt (partial text layer) or
+    RETURNED as the excerpt (no text layer at all) — the researcher prompt then
+    treats the missing figures as unparsed scans, never as "not announced".
     """
     budget = max(max_chars, PDF_RESEARCH_MAX_CHARS) if _is_pdf_url(url) else max_chars
     try:
         page = await fetch_page(url, max_chars=budget)
     except Exception:  # noqa: BLE001 — belt-and-suspenders; fetch_page shouldn't raise
         return None
+    pages_empty = int(page.get("pages_empty") or 0)
+    page_count = int(page.get("page_count") or 0)
     if not page.get("ok"):
+        if pages_empty and page_count:
+            # Fully scanned filing: the honest note IS the visit text, so the
+            # researcher learns WHY there are no figures instead of a silent miss.
+            return scanned_pages_note(pages_empty, page_count)
         return None
     content = str(page.get("content") or "")
+    if content and pages_empty and page_count:
+        content = content.rstrip() + "\n\n" + scanned_pages_note(pages_empty, page_count)
     return content or None
 
 
@@ -522,8 +669,12 @@ __all__ = [
     "DEFAULT_MAX_CHARS",
     "PDF_MAX_BYTES",
     "PDF_RESEARCH_MAX_CHARS",
+    "SCANNED_NOTE_MARKER",
     "extract_pdf_text",
     "fetch_page",
+    "has_scanned_pages_note",
+    "is_digit_sparse",
     "is_public_http_url",
+    "scanned_pages_note",
     "visit_for_research",
 ]
