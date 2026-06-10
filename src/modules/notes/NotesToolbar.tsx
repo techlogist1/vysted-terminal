@@ -2,8 +2,9 @@
 
 /**
  * Notes formatting toolbar — the visible editor chrome (PRODUCT_DESIGN_DECISIONS
- * §12). A single h-12 bar of icon buttons grouped by gap-4: Headings · Inline ·
- * Lists · Blocks · Link · [[wikilink]].
+ * §12). A min-h-12 wrapping bar of 32px icon buttons (14px icons — the Notes
+ * surface's ONE icon size, R8 §2) in hairline-separated groups: Headings ·
+ * Inline · Lists · Blocks · Link · [[wikilink]].
  *
  * Each control reads `editor.isActive(x)` for its active state (amber TEXT, not a
  * fill) and runs `editor.chain().focus().toggleX().run()`. Active reads are
@@ -103,13 +104,22 @@ function ToolbarButton({
           : "text-charcoal-400 hover:bg-charcoal-800 hover:text-charcoal-100",
       )}
     >
-      <Icon size={16} strokeWidth={active ? 2.25 : 2} />
+      {/* ONE icon ladder for the whole Notes surface (R8 §2): 14px inside the
+          32px control — the header pencil and export icons match. */}
+      <Icon className="size-3.5" strokeWidth={active ? 2.25 : 2} />
     </button>
   );
 }
 
 function Group({ children }: { children: React.ReactNode }) {
   return <div className="flex items-center gap-1">{children}</div>;
+}
+
+/** Quiet hairline between toolbar groups — separation without loud gaps. */
+function GroupRule() {
+  return (
+    <span aria-hidden className="h-4 w-px" style={{ backgroundColor: "var(--hairline-strong)" }} />
+  );
 }
 
 // ── NotesToolbar ────────────────────────────────────────────────────────────
@@ -139,7 +149,9 @@ export function NotesToolbar({ editor }: { editor: Editor | null }) {
   };
 
   return (
-    <div className="border-charcoal-800 flex h-12 items-center gap-4 border-b px-3">
+    // min-h (not fixed h) + wrap: at a narrow panel the groups flow to a
+    // second row instead of clipping or overlapping (law §3.3/§3.4).
+    <div className="border-charcoal-800 flex min-h-12 flex-wrap items-center gap-2 border-b px-3 py-1">
       {/* Headings */}
       <Group>
         <ToolbarButton
@@ -161,6 +173,7 @@ export function NotesToolbar({ editor }: { editor: Editor | null }) {
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
         />
       </Group>
+      <GroupRule />
 
       {/* Inline */}
       <Group>
@@ -183,6 +196,7 @@ export function NotesToolbar({ editor }: { editor: Editor | null }) {
           onClick={() => editor.chain().focus().toggleCode().run()}
         />
       </Group>
+      <GroupRule />
 
       {/* Lists */}
       <Group>
@@ -199,6 +213,7 @@ export function NotesToolbar({ editor }: { editor: Editor | null }) {
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
         />
       </Group>
+      <GroupRule />
 
       {/* Blocks */}
       <Group>
@@ -215,6 +230,7 @@ export function NotesToolbar({ editor }: { editor: Editor | null }) {
           onClick={() => editor.chain().focus().toggleCodeBlock().run()}
         />
       </Group>
+      <GroupRule />
 
       {/* Link + wikilink */}
       <Group>

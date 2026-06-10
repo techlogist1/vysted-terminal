@@ -258,7 +258,9 @@ export function NotesPanel() {
         {/* Panel header — identity + exports */}
         <div className="notes-toolbar border-charcoal-800 flex h-12 items-center justify-between border-b px-3">
           <div className="flex items-center gap-2">
-            <Pencil size={16} className="text-charcoal-400" />
+            {/* ONE icon ladder across the Notes surface (R8 §2): every icon —
+                header pencil, formatting toolbar, exports — sits at 14px. */}
+            <Pencil className="text-charcoal-400 size-3.5" />
             <span className="text-panel-title text-charcoal-200">Notes</span>
           </div>
           <div className="flex items-center gap-1">
@@ -271,7 +273,7 @@ export function NotesPanel() {
               onClick={handleExportMd}
               className="text-charcoal-400 hover:text-charcoal-100"
             >
-              <FileText size={16} />
+              <FileText />
             </Button>
             <Button
               type="button"
@@ -282,7 +284,7 @@ export function NotesPanel() {
               onClick={handleExportPng}
               className="text-charcoal-400 hover:text-charcoal-100"
             >
-              <FileImage size={16} />
+              <FileImage />
             </Button>
             <Button
               type="button"
@@ -293,7 +295,7 @@ export function NotesPanel() {
               onClick={handleExportPdf}
               className="text-charcoal-400 hover:text-charcoal-100"
             >
-              <Printer size={16} />
+              <Printer />
             </Button>
           </div>
         </div>
@@ -308,8 +310,8 @@ export function NotesPanel() {
           </div>
         )}
 
-        {/* Scope chips */}
-        <div className="notes-scope-bar border-charcoal-800 flex flex-wrap items-center gap-3 border-b px-3 py-1">
+        {/* Scope chips — chrome rhythm (law §4): caption chips, h-6, gap-1.5. */}
+        <div className="notes-scope-bar border-charcoal-800 flex flex-wrap items-center gap-1.5 border-b px-3 py-1">
           <ScopeChip
             label="General"
             active={scope === ""}
