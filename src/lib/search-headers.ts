@@ -1,66 +1,55 @@
 /**
- * Search-header assembly — the web-search request contract (R8).
+ * Search-header assembly — the web-search request contract (R9 two-tier).
  *
  * Single source for the search headers every chat / agent request carries so
- * the sidecar can dispatch web search to the right backend. The R7 research
- * tier is the ONE authoritative selection:
- *  - `X-Vysted-Research-Tier`  — the tier (t1_local / t2_searxng / t3_hosted),
- *                                sent on every request EXCEPT the t3
- *                                "Exa direct" sub-mode (below);
- *  - `X-Vysted-Searxng-Url`    — the t2 custom-instance URL, sent only on t2
- *                                and only when the user set one (empty =
- *                                managed instance / autodetect);
- *  - `X-Vysted-Search-Engine`  — the t3 hosted engine (firecrawl / exa), sent
- *                                only on t3 hosted (the sidecar defaults
- *                                Firecrawl);
- *  - `X-Vysted-Openrouter-Key` — the t3 BYOK OpenRouter key, read from the OS
- *                                keychain (the AI-Providers `llm-provider:
- *                                openrouter` slot) at request time, sent only
- *                                on t3 hosted and only when present.
+ * the sidecar can route retrieval + research honestly. The R9 research tier is
+ * the ONE authoritative selection:
  *
- * The t3 "Exa direct" sub-mode rides the LEGACY wire lane instead: the R7 tier
- * header is deliberately OMITTED (an explicit R7 header always wins on the
- * sidecar) and the request carries `X-Vysted-Search-Tier: byok-exa` +
- * `X-Vysted-Exa-Key` (keychain-sourced, FR-036: secret in a header, never the
- * body/query, never persisted) — the sidecar's mapped legacy lane serves it
- * via the Exa backend.
+ *  - `X-Vysted-Research-Tier`   — `tier_a` (Unlimited Local — the default) or
+ *                                 `tier_b` (Hosted research model). Sent on
+ *                                 every request.
+ *  - `X-Vysted-Searxng-Url`     — the custom SearXNG instance URL, sent only
+ *                                 when the user set one (empty = the managed
+ *                                 instance). Retrieval is ONE local lane, so
+ *                                 this rides under either tier.
+ *  - `X-Vysted-Openrouter-Key`  — the Tier B BYOK OpenRouter key, read from
+ *                                 the OS keychain (the AI-Providers
+ *                                 `llm-provider:openrouter` slot) at request
+ *                                 time, sent only on tier_b and only when
+ *                                 present (FR-036: secret in a header, never
+ *                                 the body/query, never persisted/logged).
+ *  - `X-Vysted-Research-Models` — the Tier B per-stop research-model map
+ *                                 (`normal=…,deep=…,ultra=…`), sent only on
+ *                                 tier_b. The sidecar parse mirrors
+ *                                 {@link encodeResearchModels} in
+ *                                 `config.parse_research_models`.
+ *
+ * The R7/R8 lanes are dead: no `X-Vysted-Search-Tier`, no `X-Vysted-Exa-Key`,
+ * no `X-Vysted-Search-Engine` ride any request anymore (the sidecar still
+ * MAPS those legacy headers from third-party callers; this client never sends
+ * them).
  *
  * Every value is OMITTED when absent (undefined, never an empty string) so the
- * sidecar sees "no key" / "autodetect" rather than a blank override. Both the
- * REST client (`sidecar-client`) and the SSE client (`chat/streaming`) call
- * this so the header set can never drift between the two transports.
+ * sidecar sees "no key" / "managed instance" rather than a blank override.
+ * Both the REST client (`sidecar-client`) and the SSE client
+ * (`chat/streaming`) call this so the header set can never drift between the
+ * two transports.
  */
 
 import { getSecret, KEYCHAIN_NAMESPACES } from "@/lib/keychain";
-import { useSearchSettingsStore } from "@/store/search-settings";
+import {
+  RESEARCH_STOPS,
+  type ResearchModelMap,
+  useSearchSettingsStore,
+} from "@/store/search-settings";
 
-/** The search-source plugin id the Exa BYOK key is namespaced under. */
-const EXA_PLUGIN_ID = "vysted-search-exa";
-/** The keychain field the Exa API key is stored under. */
-const EXA_KEY_FIELD = "exa_api_key";
-
-/**
- * Read the BYOK Exa API key from the OS keychain. Returns `null` when no key is
- * stored (the keyless default) — a keychain miss must never throw into a request.
- */
-export async function getExaApiKey(): Promise<string | null> {
-  try {
-    return await getSecret(KEYCHAIN_NAMESPACES.pluginSecret(EXA_PLUGIN_ID, EXA_KEY_FIELD));
-  } catch {
-    return null;
-  }
-}
-
-/** The keychain account the Exa key lives under — for the Settings add/remove UI. */
-export const EXA_KEYCHAIN_ACCOUNT = KEYCHAIN_NAMESPACES.pluginSecret(EXA_PLUGIN_ID, EXA_KEY_FIELD);
-
-/** The LLM-provider id whose keychain slot holds the t3 BYOK OpenRouter key. */
+/** The LLM-provider id whose keychain slot holds the Tier B OpenRouter key. */
 const OPENROUTER_PROVIDER_ID = "openrouter";
 
 /**
  * Read the BYOK OpenRouter key from the OS keychain — the SAME `llm-provider:
  * openrouter` slot the Settings AI-Providers section writes, so configuring the
- * provider once lights up the t3 hosted-search tier with no second key entry.
+ * provider once lights up the Tier B research lane with no second key entry.
  * Returns `null` when no key is stored or the keychain is unreachable (a miss
  * must never throw into a request), and never an empty string.
  */
@@ -74,36 +63,37 @@ export async function getOpenrouterApiKey(): Promise<string | null> {
 }
 
 /**
- * Build the search headers for a sidecar request. Reads the tier + sub-mode +
- * SearXNG URL from the search-settings store (at call time, so a change
- * reflects immediately) and the BYOK keys from the keychain. Header values are
- * `undefined` when absent so the caller's header-merge drops them (never an
- * empty string). Keychain slots are read ONLY for the lane that needs them —
- * t1/t2 requests never touch the OpenRouter or Exa slots.
+ * Encode the per-stop research-model map for the `X-Vysted-Research-Models`
+ * header: ordered `stop=slug` pairs joined by commas, e.g.
+ * `normal=perplexity/sonar,deep=perplexity/sonar-reasoning-pro,ultra=…`.
+ * OpenRouter slugs never contain `,` or `=`, so the encoding needs no escaping;
+ * the sidecar drops any malformed pair and floors that stop to its default.
+ */
+export function encodeResearchModels(models: ResearchModelMap): string {
+  return RESEARCH_STOPS.map((stop) => `${stop}=${models[stop]}`).join(",");
+}
+
+/**
+ * Build the search headers for a sidecar request. Reads the tier + per-stop
+ * models + SearXNG URL from the search-settings store (at call time, so a
+ * change reflects immediately) and the BYOK key from the keychain. Header
+ * values are `undefined` when absent so the caller's header-merge drops them
+ * (never an empty string). The keychain is read ONLY for the lane that needs
+ * it — tier_a requests never touch the OpenRouter slot.
  */
 export async function buildSearchHeaders(): Promise<Record<string, string | undefined>> {
-  const { researchTier, hostedEngine, exaDirect, searxngUrl } = useSearchSettingsStore.getState();
+  const { researchTier, searxngUrl, researchModels } = useSearchSettingsStore.getState();
 
-  if (researchTier === "t3_hosted" && exaDirect) {
-    // Exa-direct rides the legacy byok-exa lane; the R7 tier header is omitted
-    // so the sidecar's legacy mapping (byok-exa → Exa backend) serves it. A
-    // missing key is omitted too — the sidecar floors honestly (managed
-    // SearXNG when ready, else keyless) and the Settings card names the unlock.
-    const exaKey = await getExaApiKey();
-    return {
-      "X-Vysted-Search-Tier": "byok-exa",
-      "X-Vysted-Exa-Key": exaKey ?? undefined,
-    };
-  }
-
-  const hosted = researchTier === "t3_hosted";
-  const openrouterKey = hosted ? await getOpenrouterApiKey() : null;
+  const tierB = researchTier === "tier_b";
+  // A missing key is OMITTED, never sent blank — the sidecar's research lane
+  // then stops honestly naming the unlock (retrieval still serves locally).
+  const openrouterKey = tierB ? await getOpenrouterApiKey() : null;
   const trimmedUrl = searxngUrl.trim();
+
   return {
     "X-Vysted-Research-Tier": researchTier,
-    "X-Vysted-Searxng-Url":
-      researchTier === "t2_searxng" && trimmedUrl !== "" ? trimmedUrl : undefined,
-    "X-Vysted-Search-Engine": hosted ? hostedEngine : undefined,
-    "X-Vysted-Openrouter-Key": hosted ? (openrouterKey ?? undefined) : undefined,
+    "X-Vysted-Searxng-Url": trimmedUrl !== "" ? trimmedUrl : undefined,
+    "X-Vysted-Openrouter-Key": tierB ? (openrouterKey ?? undefined) : undefined,
+    "X-Vysted-Research-Models": tierB ? encodeResearchModels(researchModels) : undefined,
   };
 }
