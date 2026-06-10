@@ -12,15 +12,25 @@ tool is withheld from the allow-list for native-capable runs. When no backend is
 configured the handler returns an honest, human "unavailable" naming exactly what
 would unlock it (FR-082) — it never fabricates a source.
 
-R7 (Track R, Component 3): an EXPLICIT per-request R7 tier selection
-(``t1_local`` / ``t2_searxng`` / ``t3_hosted`` via
-:func:`config.get_research_search_tier`) is authoritative and routes ahead of
-the legacy tier mapping: t1 → the keyless rotation floor, t2 → the (managed)
-SearXNG instance, t3 → OpenRouter's hosted web-search server tool (BYOK key,
-per-search cost estimate passed through under ``metadata``). An explicit tier
-that cannot be served fails HONESTLY with the unlock named — never a silent
-re-route (C.1). No selection → the legacy routing below, which already floors
-to the keyless t1 tier.
+R8 (settings-truth): backend selection is ONE resolution path
+(:func:`_resolve_backend`):
+
+(a) an EXPLICIT R7 tier selection (``t1_local`` / ``t2_searxng`` /
+    ``t3_hosted`` via :func:`config.get_research_search_tier`) is authoritative
+    — t1 → the keyless rotation floor, t2 → the (managed) SearXNG instance,
+    t3 → OpenRouter's hosted web-search server tool (BYOK key, per-search cost
+    estimate passed through under ``metadata``). An explicit tier that cannot
+    be served fails HONESTLY with the unlock named — never a silent re-route
+    (C.1).
+(b) else the LEGACY headers map into the same lanes: ``byok-exa`` → the
+    Exa-direct backend, ``local-searxng`` → t2 detection with the provided URL.
+    A legacy lane that cannot be served (no key, no reachable instance) falls
+    through to the default below — the legacy contract always floored, never
+    erred.
+(c) DEFAULT (no selection, or ``native`` with the tool still reachable): a
+    READY managed SearXNG (:mod:`services.searxng_manager` — an instant
+    in-process read, no network probe) is used FIRST; else the keyless floor.
+    A green SearXNG in Settings is never bypassed again.
 """
 
 from __future__ import annotations
@@ -29,24 +39,22 @@ from typing import Any
 
 from services.agent_tools import register_tool
 
-# Map the user's chosen tier to a concrete BYOK/local backend id.
-_TIER_BACKEND = {"byok-exa": "exa", "local-searxng": "searxng"}
-
 _NO_BACKEND_MESSAGE = (
     "No web-search backend is configured for this query. Add an Exa API key "
-    "(BYOK search) or point Vysted at a local SearXNG instance in Settings → Web "
-    "search, or switch to a model with native web search. I won't invent sources."
+    "(BYOK search) or set up the managed SearXNG instance in Settings → "
+    "Research, or switch to a model with native web search. I won't invent "
+    "sources."
 )
 
 _HOSTED_NEEDS_KEY_MESSAGE = (
     "Hosted search (t3) is selected but no OpenRouter API key is configured. "
-    "Add one in Settings → Web search, or switch back to the built-in local "
+    "Add one in Settings → Research, or switch back to the built-in local "
     "tier. I won't invent sources."
 )
 
 _SEARXNG_NOT_READY_MESSAGE = (
     "SearXNG search (t2) is selected but no SearXNG instance is reachable. "
-    "Finish the one-click setup in Settings → Web search (or start the "
+    "Finish the one-click setup in Settings → Research (or start the "
     "vysted-searxng container), or switch back to the built-in local tier. "
     "I won't invent sources."
 )
@@ -93,6 +101,67 @@ async def _resolve_r7_tier(tier: str, region: str) -> tuple[Any, str | None]:
     return backend, None
 
 
+async def _resolve_backend(region: str) -> tuple[Any, str | None]:
+    """The ONE backend-resolution path (R8 settings-truth).
+
+    Returns ``(backend, error_message)``:
+
+    (a) an explicit R7 tier header wins (t1/t2/t3 — :func:`_resolve_r7_tier`;
+        an unservable explicit tier fails honestly, never a silent re-route);
+    (b) else the legacy headers map into the same lanes — ``byok-exa`` → the
+        Exa-direct backend, ``local-searxng`` → t2 detection with the provided
+        URL — and an unservable legacy lane falls through to (c) (the legacy
+        contract always floored, never erred);
+    (c) DEFAULT: a READY managed SearXNG (an instant in-process
+        ``ready_base_url()`` read — no network probe) is used first, else the
+        keyless rotation floor (then the bare ddg defensive fallback). A live
+        green SearXNG is never bypassed.
+    """
+    import config
+    from services.search import registry
+
+    # (a) Explicit R7 tier selection — authoritative, per-request.
+    r7_tier = config.get_research_search_tier()
+    if r7_tier is not None:
+        return await _resolve_r7_tier(r7_tier, region)
+
+    # (b) Legacy headers map into the same lanes.
+    tier = config.get_search_tier()
+    if tier == "byok-exa":
+        backend = registry.resolve("exa", exa_key=config.get_exa_key(), region=region)
+        if backend is not None:
+            return backend, None
+    elif tier == "local-searxng":
+        searxng_url = config.get_searxng_url()
+        if not searxng_url:
+            # The same autodetect the t2 lane uses: the managed instance first
+            # (when READY), then the conventional local ports (8888 pip → 8080
+            # docker).
+            from services.search.searxng import detect_searxng
+
+            searxng_url = await detect_searxng()
+        backend = registry.resolve("searxng", searxng_url=searxng_url, region=region)
+        if backend is not None:
+            return backend, None
+
+    # (c) DEFAULT (no selection / ``native`` with the tool reachable / a legacy
+    # lane that could not be served): a READY managed SearXNG first — the user
+    # set it up and the Settings flow shows it green, so the floor must not
+    # shadow it — else the keyless rotation floor (DDG → Brave → Mojeek), which
+    # needs no key/URL and ALWAYS resolves, so web search is never dark on a
+    # fresh install. The bare single-engine ddg floor stays as the defensive
+    # fallback should the keyless module ever fail to import.
+    from services import searxng_manager
+
+    managed_url = searxng_manager.manager.ready_base_url()
+    if managed_url:
+        backend = registry.resolve("searxng", searxng_url=managed_url, region=region)
+        if backend is not None:
+            return backend, None
+    backend = registry.resolve("keyless", region=region) or registry.resolve("ddg", region=region)
+    return backend, None
+
+
 async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
     """Run a web search via the configured BYOK/local backend; cite the results.
 
@@ -107,59 +176,11 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
     category = str(args.get("category", "general"))
 
     import config
-    from services.search import registry
 
     region = config.get_region()
-    tier = config.get_search_tier()
-    exa_key = config.get_exa_key()
-    searxng_url = config.get_searxng_url()
-
-    # R7 tier selection (Component 3): an EXPLICIT t1/t2/t3 selection on the
-    # request is authoritative — per-request override mirroring the deep-research
-    # backend ContextVar. ``None`` (no selection) keeps the legacy routing below,
-    # which already floors to the keyless t1 tier, so the default IS t1.
-    r7_tier = config.get_research_search_tier()
-    if r7_tier is not None:
-        backend, tier_error = await _resolve_r7_tier(r7_tier, region)
-        if backend is None:
-            return {"ok": False, "query": query, "message": tier_error or _NO_BACKEND_MESSAGE}
-        return await _dispatch(backend, query, num_results, category, region)
-
-    # Wire the real SearXNG autodetect: a local-searxng tier with no configured
-    # URL probes the conventional local ports (8888 pip → 8080 docker) before
-    # giving up — previously this autodetect was dead code, so the Settings copy
-    # that promised it was lying.
-    if tier == "local-searxng" and not searxng_url:
-        from services.search.searxng import detect_searxng
-
-        searxng_url = await detect_searxng()
-
-    backend_id = _TIER_BACKEND.get(tier)
-    backend = None
-    if backend_id:
-        backend = registry.resolve(
-            backend_id, exa_key=exa_key, searxng_url=searxng_url, region=region
-        )
-    else:
-        # Native tier but the tool was reachable (a native-incapable provider):
-        # use any BYOK/local backend the user has configured.
-        backend = registry.resolve("exa", exa_key=exa_key, region=region) or registry.resolve(
-            "searxng", searxng_url=searxng_url, region=region
-        )
-
-    # The keyless FLOOR: the T1 multi-engine rotation (DDG → Brave → Mojeek with
-    # per-engine breakers + pacing) needs no key/URL, so it ALWAYS resolves.
-    # Wiring it last means web search is never dark on a fresh install (Track 1 —
-    # "works out of the box") while never overriding a configured native/BYOK/
-    # SearXNG route the user chose. The bare single-engine ddg floor stays as the
-    # defensive fallback should the keyless module ever fail to import.
+    backend, tier_error = await _resolve_backend(region)
     if backend is None:
-        backend = registry.resolve("keyless", region=region) or registry.resolve(
-            "ddg", region=region
-        )
-
-    if backend is None:  # pragma: no cover — ddg always resolves; defensive only
-        return {"ok": False, "query": query, "message": _NO_BACKEND_MESSAGE}
+        return {"ok": False, "query": query, "message": tier_error or _NO_BACKEND_MESSAGE}
 
     return await _dispatch(backend, query, num_results, category, region)
 
