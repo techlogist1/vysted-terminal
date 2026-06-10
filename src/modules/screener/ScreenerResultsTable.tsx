@@ -282,7 +282,7 @@ export function ScreenerResultsTable() {
                     key={col.key}
                     scope="col"
                     className={cn(
-                      "text-micro text-charcoal-400 px-3 py-1.5",
+                      "text-micro text-charcoal-400 px-3 py-1",
                       col.numeric ? "text-right" : "text-left",
                     )}
                   >
@@ -295,7 +295,7 @@ export function ScreenerResultsTable() {
               {Array.from({ length: 8 }).map((_, i) => (
                 <tr key={i} className="border-charcoal-800 border-b">
                   {COLUMNS.map((col) => (
-                    <td key={col.key} className="px-3 py-1.5">
+                    <td key={col.key} className="px-3 py-1">
                       <div
                         className={cn(
                           "bg-charcoal-800 h-4 animate-pulse rounded-none",

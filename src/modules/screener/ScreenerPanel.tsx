@@ -125,7 +125,7 @@ export function ScreenerPanel() {
             }
             data-testid="run-screener-button"
           >
-            <Play className="mr-1.5 size-4" />
+            <Play className="mr-1" />
             {status === "loading" ? "Running…" : "Run screener"}
           </Button>
         </div>

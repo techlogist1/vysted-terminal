@@ -140,7 +140,10 @@ export function EarningsSurpriseChart({ surprises, limit = 12 }: Props) {
   }
 
   return (
-    <div className="h-48 w-full" data-testid="earnings-surprise-chart">
+    <div
+      className={"h-48 w-full" /* tokens-ok: chart canvas height — layout, not rhythm */}
+      data-testid="earnings-surprise-chart"
+    >
       <div ref={containerRef} className="h-full w-full" />
     </div>
   );

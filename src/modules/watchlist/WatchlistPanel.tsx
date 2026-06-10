@@ -369,7 +369,7 @@ export function WatchlistPanel() {
                     }}
                     onMouseEnter={() => setAcActive(i)}
                     className={cn(
-                      "flex w-full items-center gap-2 px-3 py-1.5 text-left",
+                      "flex w-full items-center gap-2 px-3 py-1 text-left",
                       i === acActive ? "bg-charcoal-800" : "bg-transparent",
                     )}
                   >
@@ -444,18 +444,18 @@ export function WatchlistPanel() {
             <tbody>
               {Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-charcoal-800 border-b">
-                  <td className="px-3 py-1.5">
+                  <td className="px-3 py-1">
                     <div className="bg-charcoal-800 h-3 w-3/4 animate-pulse rounded-none" />
                   </td>
-                  <td className="px-3 py-1.5">
+                  <td className="px-3 py-1">
                     <div className="bg-charcoal-800 ml-auto h-3 w-full animate-pulse rounded-none" />
                   </td>
                   {showChange && (
-                    <td className="px-3 py-1.5">
+                    <td className="px-3 py-1">
                       <div className="bg-charcoal-800 ml-auto h-3 w-full animate-pulse rounded-none" />
                     </td>
                   )}
-                  <td className="px-1 py-1.5" />
+                  <td className="px-1 py-1" />
                 </tr>
               ))}
             </tbody>

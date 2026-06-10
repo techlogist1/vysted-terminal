@@ -123,7 +123,7 @@ export function ScreenerFormulaLeaf() {
   }
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
         <h3 className="text-muted-foreground text-caption font-semibold tracking-wide uppercase">
           Custom formula
@@ -214,7 +214,7 @@ export function ScreenerFormulaLeaf() {
         </p>
       )}
 
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-2">
         <span className="text-charcoal-500 text-micro tracking-wide uppercase">Examples</span>
         {EXAMPLES.map((example, i) => (
           <button

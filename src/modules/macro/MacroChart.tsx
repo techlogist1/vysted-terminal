@@ -121,7 +121,7 @@ export function MacroChart({ series, defaultLogScale = false }: Props) {
 
   return (
     <div className="flex h-full flex-col" data-testid="macro-chart">
-      <div className="border-charcoal-800 flex items-center justify-between gap-2 border-b px-3 py-1.5">
+      <div className="border-charcoal-800 flex items-center justify-between gap-2 border-b px-3 py-1">
         <div className="flex min-w-0 flex-col">
           <span className="text-charcoal-100 text-caption truncate font-mono">{series.title}</span>
           <span className="text-charcoal-500 text-micro truncate font-mono">
@@ -130,7 +130,7 @@ export function MacroChart({ series, defaultLogScale = false }: Props) {
             {series.frequency ? ` • ${series.frequency}` : ""}
           </span>
         </div>
-        <label className="text-charcoal-400 text-micro flex items-center gap-1.5 font-mono">
+        <label className="text-charcoal-400 text-micro flex items-center gap-2 font-mono">
           <input
             type="checkbox"
             checked={logScale}
