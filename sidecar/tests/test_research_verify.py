@@ -212,3 +212,192 @@ def test_dead_llm_degrades_to_unverified_never_raises() -> None:
     # No claims could be extracted — honest no-op, brief intact.
     assert brief.markdown.startswith("# Brief")
     assert brief.structured["cross_check"]["claims"] == []
+
+
+# --- R9 B4: the dual-channel cross-verification rule --------------------------------
+
+
+def _native_channel(reply: dict[str, Any]):
+    """A native-search channel fake recording every prompt."""
+    prompts: list[str] = []
+
+    async def _channel(prompt: str) -> dict[str, Any]:
+        prompts.append(prompt)
+        return reply
+
+    _channel.prompts = prompts  # type: ignore[attr-defined]
+    return _channel
+
+
+_NATIVE_OK = {
+    "ok": True,
+    "text": "NVDA's FY2024 data-center revenue grew 94%, per the company's 10-K.",
+    "citations": [],
+}
+_NATIVE_DARK = {"ok": False, "reason": "empty", "text": "", "citations": []}
+
+
+def test_dual_channel_agreement_is_corroborated() -> None:
+    llm = _FakeLLM(
+        claims="NVDA revenue grew 94% in FY2024",
+        verdict="AGREE — both channels state 94%",
+    )
+    channel = _native_channel(_NATIVE_OK)
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+            native_search=channel,
+        )
+    )
+    check = brief.structured["cross_check"]["claims"][0]
+    assert check["channels"] == ["searxng", "native"]
+    assert check["corroborated"] is True
+    assert brief.structured["cross_check"]["channels"] == ["searxng", "native"]
+    assert "corroborated across channels" in brief.markdown
+    # The native channel saw the claim, and the verdict prompt saw BOTH
+    # labeled evidence blocks.
+    assert channel.prompts and "94%" in channel.prompts[0]
+    user = llm.verdict_prompts[0]
+    assert "SearXNG lane" in user
+    assert "native model web search" in user
+
+
+def test_channel_disagreement_is_flagged_honestly() -> None:
+    llm = _FakeLLM(
+        claims="NVDA revenue grew 94% in FY2024",
+        verdict="DISAGREE — the native channel reports 78%, the web rows 94%",
+    )
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+            native_search=_native_channel(_NATIVE_OK),
+        )
+    )
+    check = brief.structured["cross_check"]["claims"][0]
+    assert check["verdict"] == "disagree"
+    assert check["corroborated"] is False
+    assert "DISAGREEMENT" in brief.markdown
+    assert brief.note is not None and "disagreement" in brief.note
+    # The verdict system prompt carried the channel-conflict rule.
+    # (Prompt content rides the recorded user message; the rule is system-side
+    # and exercised by the dual evidence blocks being present.)
+    assert "native model web search" in llm.verdict_prompts[0]
+
+
+def test_single_channel_claim_is_flagged_not_corroborated() -> None:
+    """The native channel comes back dark — the claim is still cross-checked
+    on the SearXNG lane but FLAGGED single-channel, never corroborated."""
+    llm = _FakeLLM(
+        claims="NVDA revenue grew 94% in FY2024",
+        verdict="AGREE — both web sources state 94%",
+    )
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+            native_search=_native_channel(_NATIVE_DARK),
+        )
+    )
+    check = brief.structured["cross_check"]["claims"][0]
+    assert check["channels"] == ["searxng"]
+    assert check["corroborated"] is False
+    assert "single-channel (searxng)" in brief.markdown
+    assert "not corroborated by the other channel" in brief.markdown
+
+
+def test_native_channel_compensates_a_thin_searx_lane() -> None:
+    """One SearXNG domain + the native grounded completion = two independent
+    retrieval paths — the verdict runs instead of an automatic UNVERIFIED."""
+    llm = _FakeLLM(
+        claims="EPS was $12.96",
+        verdict="AGREE — the grounded search confirms $12.96",
+    )
+    one_domain = ["https://blog.example/a"]
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(one_domain),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+            min_domains=2,
+            native_search=_native_channel(_NATIVE_OK),
+        )
+    )
+    check = brief.structured["cross_check"]["claims"][0]
+    assert check["verdict"] == "agree"
+    assert check["channels"] == ["searxng", "native"]
+    assert llm.verdict_prompts, "the verdict LLM should have been consulted"
+
+
+def test_both_channels_dark_is_unverified() -> None:
+    llm = _FakeLLM(claims="EPS was $12.96", verdict="AGREE")
+
+    async def _dark_web(name: str, args: dict[str, Any]) -> dict[str, Any]:
+        return {"ok": False, "error": "backend dark"}
+
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_dark_web,
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+            native_search=_native_channel(_NATIVE_DARK),
+        )
+    )
+    check = brief.structured["cross_check"]["claims"][0]
+    assert check["verdict"] == "unverified"
+    assert check["channels"] == []
+    assert llm.verdict_prompts == []
+
+
+def test_native_channel_crash_degrades_to_single_lane() -> None:
+    llm = _FakeLLM(
+        claims="NVDA revenue grew 94% in FY2024",
+        verdict="AGREE — both web sources state 94%",
+    )
+
+    async def _boom(prompt: str) -> dict[str, Any]:
+        raise RuntimeError("provider down")
+
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+            native_search=_boom,
+        )
+    )
+    check = brief.structured["cross_check"]["claims"][0]
+    assert check["verdict"] == "agree"
+    assert check["channels"] == ["searxng"]
+
+
+def test_no_native_channel_keeps_single_lane_shape() -> None:
+    """native_search=None (tier_b, or a native-less chat model) must keep the
+    pre-R9 wire shape byte-compatible: no channels keys anywhere."""
+    llm = _FakeLLM(
+        claims="NVDA revenue grew 94% in FY2024",
+        verdict="AGREE — both sources state 94%",
+    )
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+        )
+    )
+    payload = brief.structured["cross_check"]
+    assert "channels" not in payload
+    assert set(payload["claims"][0].keys()) == {"claim", "verdict", "detail", "domains"}
+    assert "single-channel" not in brief.markdown
+    assert "corroborated across channels" not in brief.markdown
