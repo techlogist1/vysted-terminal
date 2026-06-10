@@ -35,3 +35,19 @@ One line per significant decision, with rationale. Append-only during the run.
 | D13 | A/B (T3 lane A sonar-one-call vs lane B our loop) run live with the operator's OpenRouter key. BOTH lanes verified to FIRE: Lane A engages the genuine "Perplexity Sonar via OpenRouter — perplexity/sonar-deep-research" backend (research-step evidence); Lane B runs our iter loop (32 research steps observed on a RELIANCE Deep run, ~135s, cited brief, auto-published). Lane A (sonar-deep-research) is a SLOW server-side one-call model — a single RELIANCE query exceeded 4 min and was stopped; a 5-query sonar sweep is 20+ min. A full scored 5-query comparison was NOT completed (would monopolize the operator's morning; sonar's per-query latency is the limiter, not correctness). SHIPPED DEFAULT stays our native loop (D10 keyless-first rationale, independent of A/B); sonar remains a working picker option for users who want one-call hosted research. The 5-query scored sweep stays the operator's quality call. | Both lanes proven functional live; default decided by keyless-first invariant + observed latency, not left ambiguous. |
 
 | D25 | Explicit t2 (managed SearXNG) with the instance DOWN degrades to the keyless floor instead of erring — t2/t1 share the same local/keyless privacy class so no key/cost boundary is crossed; the result's `backend` id carries the truth so no banner can claim SearXNG served the run. t3 keeps the hard honest stop (key boundary). | Gate 6 resilience semantics; replaces the build-team's no-silent-reroute reading for the t2 cell only. |
+
+## R9 preconditions (recorded at R8 close-out, 2026-06-11)
+
+- **Stable dev signing is live.** Every dev build is auto-signed with the "Vysted Terminal
+  Dev Signing" identity before first exec — the main binary via the cargo runner
+  (`src-tauri/.cargo/config.toml` → `scripts/macos-dev-sign-run.sh`), all three PyInstaller
+  sidecars via `scripts/macos-dev-sign.mjs` in the ensure scripts. No manual step, no flag.
+- **Keychain reads are unattended.** All four items carry a single valid trusted-application
+  entry keyed to the stable identity (dead ACL entries pruned). A transient SELF-DISMISSING
+  keychain flash (~10–50s) on the FIRST key read of each never-executed binary is expected
+  and harmless — never answer it; only a dialog persisting >60s indicates a regression
+  (diagnostics in KEYCHAIN_DEV_SIGNING.md).
+- **TCC/automation grants persist across rebuilds** (verified across ~10 rebuilds: zero new
+  accessibility/automation dialogs for trusted CGEvent/AppleScript driving).
+- Net: an R9 session can rebuild, relaunch, and drive the app via computer-use/the trusted
+  rig indefinitely without operator presence.

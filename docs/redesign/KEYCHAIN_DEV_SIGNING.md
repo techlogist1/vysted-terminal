@@ -101,8 +101,12 @@ on their own and the keys are read. Only a prompt that survives >60s would indic
 regression (then re-check this doc's ACL inspection commands). Unattended overnight driving
 works: the only cost is a one-time ~10–50s delay on the first key read per rebuild.
 
-**Optional experiment** (one password entry, may remove even the transient — unverified,
-harmless if it fails): the partition list may accept a bare-prefix wildcard. Per item:
+**Optional experiment — status: NOT RUN** (offered at session close-out 2026-06-11; the
+attended password entry did not happen, and the partition lists were verified still
+cdhash-pinned afterwards). The transient self-dismissing flash therefore remains expected
+behavior per the FINAL VERDICT above. The one-liner below stays available if you ever want
+to try it (one password entry, may remove even the transient — unverified, harmless if it
+fails): the partition list may accept a bare-prefix wildcard. Per item:
 
 ```bash
 security set-generic-password-partition-list \
