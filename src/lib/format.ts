@@ -111,7 +111,11 @@ export function formatCompactMoney(value: number, currency?: string | null): str
 }
 
 /** Like {@link formatCompactMoney} but with an explicit leading "+" for positives. */
-export function formatSignedMoney(value: number, compact = false, currency?: string | null): string {
+export function formatSignedMoney(
+  value: number,
+  compact = false,
+  currency?: string | null,
+): string {
   if (!Number.isFinite(value)) return "—";
   const formatted = compact ? formatCompactMoney(value, currency) : formatMoney(value, currency);
   return value > 0 ? `+${formatted}` : formatted;

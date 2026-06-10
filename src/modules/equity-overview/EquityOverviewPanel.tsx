@@ -149,7 +149,11 @@ function fieldValue(fundamentals: Fundamentals, key: keyof Fundamentals): number
 
 /** Format a fundamentals field by its kind — every path goes through format.ts.
  *  `currency` is the instrument's quoted currency (money fields only). */
-function formatField(value: number | null, kind: FieldKind, currency: string | null): string | null {
+function formatField(
+  value: number | null,
+  kind: FieldKind,
+  currency: string | null,
+): string | null {
   switch (kind) {
     case "fraction":
       return fmtFraction(value);
