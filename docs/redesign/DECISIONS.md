@@ -61,3 +61,5 @@ One line per significant decision, with rationale. Append-only during the run.
   accessibility/automation dialogs for trusted CGEvent/AppleScript driving).
 - Net: an R9 session can rebuild, relaunch, and drive the app via computer-use/the trusted
   rig indefinitely without operator presence.
+
+| D31 | SAKSOFT gate reading: the outcome PDF's results tables are raster scans (no text layer — verified live, page map in R9_SAKSOFT_DIAGNOSIS.md). OCR rejected (binary budget + cross-platform). Fix = per-page honesty signal + digit-sparse fallback visit + earnings-presentation band in the disclosure row mix; "figures from the primary filing" is satisfied by figures cited to the company's exchange-filed documents with an honest scanned-tables marker — never a false "not parsed". | Honesty over heroics; the digital-twin pattern covers the Indian small-cap scan shape with zero new deps. |
