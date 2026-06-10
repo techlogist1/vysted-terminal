@@ -506,3 +506,123 @@ async def test_gemini_no_search_by_default(monkeypatch: pytest.MonkeyPatch) -> N
     config = client.aio.models.last_call["config"]  # type: ignore[index]
     # No system, no tools -> config is None.
     assert config is None or "tools" not in config
+
+
+# ---------------------------------------------------------------------------
+# R9 Track A interface — detection + the cross-verify invocation channel
+# ---------------------------------------------------------------------------
+
+
+def test_native_search_available_is_the_one_detection_truth() -> None:
+    from services.llm.native_search import native_search_available
+
+    # The five provider-level providers always qualify, hint or not.
+    for prov in ("anthropic", "openai", "gemini", "groq", "xai"):
+        assert native_search_available(prov) is True
+        assert native_search_available(prov, "none") is True
+    # OpenRouter is per-model: only the "native" capability rides.
+    assert native_search_available("openrouter", "native") is True
+    assert native_search_available("openrouter", "NATIVE ") is True
+    assert native_search_available("openrouter", "plugin") is False
+    assert native_search_available("openrouter", None) is False
+    # No native rung at all.
+    assert native_search_available("deepseek", "native") is False
+    assert native_search_available("ollama") is False
+
+
+def test_runtime_gate_delegates_to_the_same_truth() -> None:
+    # The agent runtime's injection gate and this interface must be ONE
+    # function — Team B's cross-verify and the loop can never disagree.
+    from services import agent_runtime
+    from services.llm.native_search import native_search_available
+
+    for prov, hint in (("openai", None), ("openrouter", "native"), ("openrouter", "plugin")):
+        assert agent_runtime._native_search_enabled(prov, hint) == native_search_available(
+            prov, hint
+        )
+
+
+class _OneshotProvider:
+    """Stub adapter for the invocation channel — records kwargs, streams text."""
+
+    def __init__(self, parts: list[str] | None = None, error: bool = False) -> None:
+        self.parts = parts if parts is not None else ["grounded ", "answer"]
+        self.error = error
+        self.captured: dict[str, Any] | None = None
+
+    def stream_chat(self, *, messages, model, api_key=None, **kwargs):  # noqa: ANN001, ANN003, ANN201
+        self.captured = {"messages": messages, "model": model, "api_key": api_key, **kwargs}
+
+        async def _gen() -> AsyncIterator[Any]:
+            if self.error:
+                raise RuntimeError("adapter blew up")
+            for part in self.parts:
+                from models.llm import LLMDeltaEvent
+
+                yield LLMDeltaEvent(text=part)
+            from models.llm import LLMDoneEvent
+
+            yield LLMDoneEvent()
+
+        return _gen()
+
+
+@pytest.mark.asyncio
+async def test_native_search_oneshot_grounds_and_returns_text(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import services.llm as llm_pkg
+    from services.llm.native_search import native_search_oneshot
+
+    provider = _OneshotProvider()
+    monkeypatch.setattr(llm_pkg, "get_provider", lambda *_a, **_k: provider)
+
+    out = await native_search_oneshot("openai", "gpt-4.1-mini", "sk-test", "nvda revenue?")
+    assert out["ok"] is True
+    assert out["text"] == "grounded answer"
+    assert isinstance(out["citations"], list)
+    # The adapter call MUST carry the native-search opt-in.
+    assert provider.captured is not None
+    assert provider.captured["web_search"] is True
+    assert provider.captured["web_search_max_uses"] == 3
+
+
+@pytest.mark.asyncio
+async def test_native_search_oneshot_honest_on_unavailable_pair() -> None:
+    from services.llm.native_search import native_search_oneshot
+
+    out = await native_search_oneshot("deepseek", "deepseek-v4-flash", "sk", "q")
+    assert out == {"ok": False, "reason": "unavailable", "text": "", "citations": []}
+    out = await native_search_oneshot("openrouter", "some/model", "sk", "q")
+    assert out["ok"] is False and out["reason"] == "unavailable"
+
+
+@pytest.mark.asyncio
+async def test_native_search_oneshot_openrouter_gated_per_model(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import services.llm as llm_pkg
+    from services.llm.native_search import native_search_oneshot
+
+    provider = _OneshotProvider()
+    monkeypatch.setattr(llm_pkg, "get_provider", lambda *_a, **_k: provider)
+    out = await native_search_oneshot(
+        "openrouter", "perplexity/sonar", "sk", "q", model_web_search="native"
+    )
+    assert out["ok"] is True
+
+
+@pytest.mark.asyncio
+async def test_native_search_oneshot_never_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+    import services.llm as llm_pkg
+    from services.llm.native_search import native_search_oneshot
+
+    provider = _OneshotProvider(error=True)
+    monkeypatch.setattr(llm_pkg, "get_provider", lambda *_a, **_k: provider)
+    out = await native_search_oneshot("openai", "gpt-4.1-mini", "sk", "q")
+    assert out["ok"] is False and out["reason"] == "error"
+
+    provider = _OneshotProvider(parts=[])
+    monkeypatch.setattr(llm_pkg, "get_provider", lambda *_a, **_k: provider)
+    out = await native_search_oneshot("openai", "gpt-4.1-mini", "sk", "q")
+    assert out["ok"] is False and out["reason"] == "empty"

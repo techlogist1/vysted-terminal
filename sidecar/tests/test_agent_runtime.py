@@ -518,19 +518,20 @@ async def test_invoke_openrouter_native_model_rides_native_search(
 
 
 @pytest.mark.asyncio
-async def test_invoke_explicit_t2_t3_tier_suppresses_native_search(
+async def test_invoke_tier_b_suppresses_native_search_entirely(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # R8 (one settings truth): an explicit t2/t3 research-tier selection means the
-    # user chose a search backend — the model's native search must NOT override it,
-    # and the local web_search tool stays so the chosen lane serves the run.
+    # R9 rule 3: tier_b ignores chat-model native search ENTIRELY — the hosted
+    # research model owns research, and the local web_search tool stays so plain
+    # retrieval serves locally (never a double-run / double-bill). Pinned for
+    # the explicit tier_b id AND the legacy t3_hosted spelling that folds in.
     import config
 
-    for tier in ("t2_searxng", "t3_hosted"):
+    for tier in ("tier_b", "t3_hosted"):
         agent_runtime.reload()
         provider = _FakeProvider()
         _patch_provider(monkeypatch, provider)
-        token = config._research_search_tier_ctx.set(tier)
+        token = config.set_request_research_search_tier(tier)
         try:
             async for _ in agent_runtime.invoke_agent(
                 agent_id="copilot",
@@ -543,11 +544,80 @@ async def test_invoke_explicit_t2_t3_tier_suppresses_native_search(
             ):
                 pass
         finally:
-            config._research_search_tier_ctx.reset(token)
+            config.reset_request_research_search_tier(token)
         kwargs = provider.captured_kwargs
         assert kwargs is not None
         assert kwargs.get("web_search") is None, tier
         assert "web_search" in (kwargs.get("tool_ids") or []), tier
+
+
+@pytest.mark.asyncio
+async def test_invoke_tier_a_compounds_native_search(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # R9 rule 3: on tier_a a native-capable model RIDES its own search (it
+    # compounds with the local retrieval lane — Team B cross-verifies between
+    # the channels). The explicit tier_a selection must not suppress it (the
+    # R8 t2-suppression semantics are deliberately retired with the t2 tier).
+    import config
+
+    agent_runtime.reload()
+    provider = _FakeProvider()
+    _patch_provider(monkeypatch, provider)
+    token = config.set_request_research_search_tier("tier_a")
+    try:
+        async for _ in agent_runtime.invoke_agent(
+            agent_id="copilot",
+            prompt="what is the latest market news?",
+            provider="openai",
+            model="gpt-4.1-mini",
+            api_key="sk-test",
+            mode="ask",
+        ):
+            pass
+    finally:
+        config.reset_request_research_search_tier(token)
+    kwargs = provider.captured_kwargs
+    assert kwargs is not None
+    assert kwargs.get("web_search") is True
+    assert "web_search" not in (kwargs.get("tool_ids") or [])
+
+
+@pytest.mark.asyncio
+async def test_depth_is_invisible_to_non_research_llm_requests(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # R9 rule 4 (depth-cost parity): the composer depth ContextVar is readable
+    # ONLY by research tools. A non-research turn (e.g. an arrange-layout ask)
+    # must produce a BYTE-IDENTICAL LLM request — system prompt, tools schema,
+    # messages, every adapter kwarg — at normal vs ultra. Depth must never
+    # inflate the cost of a turn that does no research.
+    async def _request_bytes(depth: str) -> bytes:
+        agent_runtime.reload()
+        provider = _FakeProvider()
+        _patch_provider(monkeypatch, provider)
+        async for _ in agent_runtime.invoke_agent(
+            agent_id="copilot",
+            prompt="arrange my layout for chart analysis",
+            provider="openai",
+            model="gpt-4.1-mini",
+            api_key="sk-test",
+            mode="ask",
+            options={"research_depth": depth},
+        ):
+            pass
+        assert provider.captured_messages is not None
+        assert provider.captured_kwargs is not None
+        return json.dumps(
+            {
+                "messages": [m.model_dump() for m in provider.captured_messages],
+                "kwargs": provider.captured_kwargs,
+            },
+            sort_keys=True,
+            default=str,
+        ).encode()
+
+    assert await _request_bytes("normal") == await _request_bytes("ultra")
 
 
 @pytest.mark.asyncio

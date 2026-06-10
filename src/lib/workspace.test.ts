@@ -25,6 +25,19 @@ vi.mock("@/lib/sidecar-client", () => ({
   getSidecarBaseUrl: () => Promise.resolve("http://127.0.0.1:51763"),
 }));
 
+// Keychain: the search-settings tier_b migration confirmation reads the
+// OpenRouter slot; stub the Tauri-backed reads (default: no key stored) so the
+// async demotion path is deterministic in jsdom.
+vi.mock("@/lib/keychain", async (importActual) => {
+  const actual = await importActual<typeof import("@/lib/keychain")>();
+  return {
+    ...actual,
+    getSecret: vi.fn(() => Promise.resolve(null)),
+    setSecret: vi.fn(() => Promise.resolve()),
+    deleteSecret: vi.fn(() => Promise.resolve()),
+  };
+});
+
 import {
   createResearchSpace,
   deserializeWorkspace,
@@ -116,11 +129,13 @@ describe("workspace serialization", () => {
       keybindingOverrides: {},
       settings: DEFAULT_SETTINGS,
       searchSettings: {
-        tier: "native",
+        researchTier: "tier_a",
         searxngUrl: "",
-        researchTier: "t1_local",
-        hostedEngine: "firecrawl",
-        exaDirect: false,
+        researchModels: {
+          normal: "perplexity/sonar",
+          deep: "perplexity/sonar-reasoning-pro",
+          ultra: "perplexity/sonar-deep-research",
+        },
       },
       brief: null,
       notes: { general: "", bySymbol: {}, focusSymbol: "" },
@@ -170,60 +185,67 @@ describe("workspace serialization", () => {
     expect(useKeybindingsStore.getState().bindingFor("palette.open")).toBe("mod+shift+p");
   });
 
-  it("migrates a pre-R8 searchSettings blob (legacy tier, no researchTier) on restore", () => {
+  it("migrates pre-R9 searchSettings blobs into the two-tier vocabulary on restore", async () => {
     const fakeApi = createFakeDockviewApi(LAYOUT_A);
     useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
 
-    // byok-exa → t3_hosted + Exa direct.
+    // Pre-R8 byok-exa → provisional tier_b; no OpenRouter key in the (stubbed)
+    // keychain → the async confirmation demotes to tier_a.
     deserializeWorkspace({
       name: "pre-r8",
       layout: LAYOUT_A,
       enabledModules: {},
       searchSettings: { tier: "byok-exa", searxngUrl: "" } as never,
     });
-    expect(useSearchSettingsStore.getState().researchTier).toBe("t3_hosted");
-    expect(useSearchSettingsStore.getState().exaDirect).toBe(true);
+    expect(useSearchSettingsStore.getState().researchTier).toBe("tier_b");
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(useSearchSettingsStore.getState().researchTier).toBe("tier_a");
 
-    // local-searxng → t2_searxng, custom URL preserved.
+    // local-searxng → tier_a, custom URL preserved.
     deserializeWorkspace({
       name: "pre-r8",
       layout: LAYOUT_A,
       enabledModules: {},
       searchSettings: { tier: "local-searxng", searxngUrl: "http://localhost:8080" } as never,
     });
-    expect(useSearchSettingsStore.getState().researchTier).toBe("t2_searxng");
+    expect(useSearchSettingsStore.getState().researchTier).toBe("tier_a");
     expect(useSearchSettingsStore.getState().searxngUrl).toBe("http://localhost:8080");
-    expect(useSearchSettingsStore.getState().exaDirect).toBe(false);
 
-    // native → the t1 keyless floor.
-    deserializeWorkspace({
-      name: "pre-r8",
-      layout: LAYOUT_A,
-      enabledModules: {},
-      searchSettings: { tier: "native", searxngUrl: "" } as never,
-    });
-    expect(useSearchSettingsStore.getState().researchTier).toBe("t1_local");
-    expect(useSearchSettingsStore.getState().exaDirect).toBe(false);
-  });
-
-  it("an R7-era blob restores its researchTier verbatim — migration never reroutes", () => {
-    const fakeApi = createFakeDockviewApi(LAYOUT_A);
-    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    // R7-era t1/t2 ids fold into tier_a; the legacy fields die from the state.
     deserializeWorkspace({
       name: "r7",
       layout: LAYOUT_A,
       enabledModules: {},
+      searchSettings: { tier: "native", searxngUrl: "", researchTier: "t2_searxng" } as never,
+    });
+    const state = useSearchSettingsStore.getState() as Record<string, unknown>;
+    expect(state.researchTier).toBe("tier_a");
+    expect(state.tier).toBeUndefined();
+    expect(state.exaDirect).toBeUndefined();
+    expect(state.hostedEngine).toBeUndefined();
+  });
+
+  it("an R9-era blob restores its researchTier + models verbatim — never rerouted", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    deserializeWorkspace({
+      name: "r9",
+      layout: LAYOUT_A,
+      enabledModules: {},
       searchSettings: {
-        tier: "byok-exa", // stale legacy leftover — must NOT win
+        researchTier: "tier_b",
         searxngUrl: "",
-        researchTier: "t2_searxng",
-        hostedEngine: "exa",
-        exaDirect: false,
+        researchModels: {
+          normal: "perplexity/sonar",
+          deep: "perplexity/sonar-reasoning-pro",
+          ultra: "openai/o3-deep-research",
+        },
       },
     });
-    expect(useSearchSettingsStore.getState().researchTier).toBe("t2_searxng");
-    expect(useSearchSettingsStore.getState().hostedEngine).toBe("exa");
-    expect(useSearchSettingsStore.getState().exaDirect).toBe(false);
+    expect(useSearchSettingsStore.getState().researchTier).toBe("tier_b");
+    expect(useSearchSettingsStore.getState().researchModels.ultra).toBe("openai/o3-deep-research");
   });
 
   it("round-trips the agent mode, dock geometry, and model overrides (FR-003/004)", () => {
