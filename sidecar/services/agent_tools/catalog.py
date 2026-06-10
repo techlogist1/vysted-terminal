@@ -894,9 +894,26 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             "open_panel",
             description=(
                 "Open or focus a terminal panel by id (chart, watchlist, news, "
-                "portfolio, equity-overview, screener, macro, earnings, ...)."
+                "portfolio, equity-overview, screener, macro, earnings, ...). "
+                "For a symbol-aware panel (equity-overview, chart) ALWAYS pass "
+                "`symbol` too, so the panel opens ON that company instead of "
+                "empty — never open equity-overview for a named company "
+                "without its symbol."
             ),
-            input_schema=_obj({"panel": {"type": "string"}}, ["panel"]),
+            input_schema=_obj(
+                {
+                    "panel": {"type": "string"},
+                    "symbol": {
+                        "type": "string",
+                        "description": (
+                            "Optional ticker to load into a symbol-aware panel "
+                            "(equity-overview, chart) as it opens, e.g. "
+                            "SAKSOFT.NS. Ignored by panels with no symbol."
+                        ),
+                    },
+                },
+                ["panel"],
+            ),
             domain="terminal",
             read_only=False,
             kind="host_action",

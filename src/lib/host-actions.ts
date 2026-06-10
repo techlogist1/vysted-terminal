@@ -22,6 +22,7 @@ import {
 import {
   applyCustomLayout,
   fitLayoutTemplate,
+  resolvePanelToken,
   type CustomPanelSpec,
   type LayoutTemplate,
 } from "@/lib/layout-templates";
@@ -434,6 +435,26 @@ function num(input: Record<string, unknown>, key: string): number {
   return typeof v === "number" ? v : Number(v ?? 0);
 }
 
+/**
+ * Which symbol-aware command channel an `open_panel` target consumes, if any.
+ * Resolved through the same alias-tolerant token map arrange uses, so
+ * "overview" / "equity" route like "equity-overview" does. Panels with no
+ * symbol input return null — a stray `symbol` arg on them is ignored.
+ */
+function symbolAwarePanelTarget(panelToken: string): "equity" | "chart" | null {
+  const resolved = resolvePanelToken(panelToken);
+  if (!resolved) {
+    return null;
+  }
+  if (resolved.id === "equity-overview") {
+    return "equity";
+  }
+  if (resolved.id === "chart") {
+    return "chart";
+  }
+  return null;
+}
+
 /** Human-friendly panel label from a panel id. */
 function panelLabel(id: string): string {
   return id.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -471,11 +492,14 @@ export function describeHostAction(
     }
     case "open_panel": {
       const panel = str(input, "panel");
+      // Render the symbol only when the target panel actually consumes one —
+      // the diff must promise exactly what the apply will do.
+      const sym = symbolAwarePanelTarget(panel) ? symbol : "";
       return {
         kind: "panel",
-        title: `Open the ${panelLabel(panel)} panel`,
+        title: `Open ${panelLabel(panel)}${sym ? ` — ${sym}` : ""}`,
         before: `${panelLabel(panel)} panel: not open`,
-        after: `${panelLabel(panel)} panel: open`,
+        after: `${panelLabel(panel)} panel: open${sym ? ` — ${sym} loaded` : ""}`,
       };
     }
     case "close_panel": {
@@ -651,11 +675,27 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
     }
     case "open_panel": {
       const panel = str(input, "panel");
-      if (panel) {
-        useWorkspaceStore.getState().openPanel(panel);
-        return `Opened ${panelLabel(panel)}`;
+      if (!panel) {
+        return null;
       }
-      return null;
+      // Symbol-aware open (the "opened equity-overview WITHOUT the requested
+      // symbol" fix): when the agent passes `symbol` for a panel that consumes
+      // one, route it through the existing always-consumed command channels —
+      // the equity-command store for the overview, the chart-command channel
+      // for the chart. Both helpers open the panel first so the command has a
+      // consumer; the stores RETAIN the last command, so a panel that mounts
+      // after the command fired still receives it.
+      const target = symbolAwarePanelTarget(panel);
+      if (symbol && target === "equity") {
+        openCompanyOverview(symbol);
+        return `Opened ${panelLabel(panel)} — ${symbol}`;
+      }
+      if (symbol && target === "chart") {
+        loadSymbolIntoChart(symbol);
+        return `Opened ${panelLabel(panel)} — ${symbol}`;
+      }
+      useWorkspaceStore.getState().openPanel(panel);
+      return `Opened ${panelLabel(panel)}`;
     }
     case "close_panel": {
       const panel = str(input, "panel");

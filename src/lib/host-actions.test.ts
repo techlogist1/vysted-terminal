@@ -15,6 +15,7 @@ import { composeBriefMarkdown } from "@/lib/brief-ingest";
 import { useBriefStore } from "@/store/brief";
 import { useBrokersStore } from "@/store/brokers";
 import { useChartCommandStore } from "@/store/chart-command";
+import { resetEquityCommandStoreForTests, useEquityCommandStore } from "@/store/equity-command";
 import { useOrdersStore } from "@/store/orders";
 import { useScreenerStore } from "@/store/screener";
 import { useSymbolsStore } from "@/store/symbols";
@@ -23,6 +24,7 @@ import { useWorkspaceStore } from "@/store/workspace";
 describe("host-actions", () => {
   beforeEach(() => {
     useChartCommandStore.setState({ command: null, activeSymbol: null });
+    resetEquityCommandStoreForTests();
     useSymbolsStore.setState({ entries: [] });
     useOrdersStore.setState({ proposals: [], activeProposalId: null });
     useBrokersStore.setState({ byId: {} });
@@ -189,6 +191,66 @@ describe("host-actions", () => {
     } as never);
     applyHostAction("set_chart_symbol", { symbol: "RELIANCE" });
     expect(openPanel).not.toHaveBeenCalled();
+  });
+
+  // --- open_panel carries its arguments (R8 seams deliverable 3) -------------
+
+  it("describeHostAction(open_panel) renders the symbol for a symbol-aware panel", () => {
+    const diff = describeHostAction("open_panel", {
+      panel: "equity-overview",
+      symbol: "SAKSOFT.NS",
+    });
+    expect(diff.title).toBe("Open Equity Overview — SAKSOFT.NS");
+    expect(diff.after).toContain("SAKSOFT.NS loaded");
+
+    // A stray symbol on a non-symbol-aware panel is NOT promised in the diff —
+    // the description must match exactly what the apply will do.
+    const plain = describeHostAction("open_panel", { panel: "news", symbol: "NVDA" });
+    expect(plain.title).toBe("Open News");
+    expect(plain.after).not.toContain("NVDA");
+  });
+
+  it("open_panel(equity-overview, symbol) opens the panel AND routes the symbol via the equity-command channel", () => {
+    const openPanel = vi.fn();
+    useWorkspaceStore.setState({ dockviewApi: null, openPanel } as never);
+    const label = applyHostAction("open_panel", {
+      panel: "equity-overview",
+      symbol: "SAKSOFT.NS",
+    });
+    expect(label).toBe("Opened Equity Overview — SAKSOFT.NS");
+    // The panel is opened first so the command has a consumer…
+    expect(openPanel).toHaveBeenCalledWith("equity-overview");
+    // …and the symbol rides the always-consumed equity-command channel. The
+    // store RETAINS the command, so a panel that mounts after this still sees it.
+    expect(useEquityCommandStore.getState().command).toMatchObject({ symbol: "SAKSOFT.NS" });
+  });
+
+  it("open_panel resolves aliases — 'overview' routes the symbol like 'equity-overview'", () => {
+    const openPanel = vi.fn();
+    useWorkspaceStore.setState({ dockviewApi: null, openPanel } as never);
+    applyHostAction("open_panel", { panel: "overview", symbol: "RELIANCE.NS" });
+    expect(openPanel).toHaveBeenCalledWith("equity-overview");
+    expect(useEquityCommandStore.getState().command).toMatchObject({ symbol: "RELIANCE.NS" });
+  });
+
+  it("open_panel(chart, symbol) routes through the chart-command channel", () => {
+    const openPanel = vi.fn();
+    useWorkspaceStore.setState({ dockviewApi: { panels: [] } as never, openPanel } as never);
+    const label = applyHostAction("open_panel", { panel: "chart", symbol: "NVDA" });
+    expect(label).toBe("Opened Chart — NVDA");
+    expect(openPanel).toHaveBeenCalledWith("chart");
+    expect(useChartCommandStore.getState().command?.symbol).toBe("NVDA");
+  });
+
+  it("open_panel ignores a stray symbol on a non-symbol-aware panel", () => {
+    const openPanel = vi.fn();
+    useWorkspaceStore.setState({ dockviewApi: null, openPanel } as never);
+    const label = applyHostAction("open_panel", { panel: "news", symbol: "NVDA" });
+    expect(label).toBe("Opened News");
+    expect(openPanel).toHaveBeenCalledWith("news");
+    // Neither command channel fires for a panel that consumes no symbol.
+    expect(useEquityCommandStore.getState().command).toBeNull();
+    expect(useChartCommandStore.getState().command).toBeNull();
   });
 
   // --- WS3: honest web banner — briefFromInput reconciliation ----------------
