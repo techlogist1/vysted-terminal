@@ -134,6 +134,35 @@ export function matchMention(input: string, caret: number): { open: boolean; que
   return { open: true, query };
 }
 
+/**
+ * Insert a mention token into the composer text EXACTLY as typing would
+ * (FR-101; R8 composer plus-menu). The one shared insert path: the inline
+ * `@`-picker and the plus-menu both route through it so the result is
+ * byte-identical to a hand-typed mention.
+ *
+ * If the text before `caret` ends in an in-progress `@token`, that token is
+ * REPLACED (the picker's accept). Otherwise the token is inserted at the caret,
+ * preceded by a space when the caret sits flush against a word (typing parity —
+ * a mention mid-sentence is always space-separated). A trailing space follows
+ * the token so the caret lands ready for the next word.
+ */
+export function insertMentionToken(
+  value: string,
+  caret: number,
+  token: string,
+): { value: string; caret: number } {
+  const pos = Math.max(0, Math.min(caret, value.length));
+  const before = value.slice(0, pos);
+  const after = value.slice(pos);
+  const tokenStart = before.search(/@\S*$/);
+  const start = tokenStart < 0 ? before.length : tokenStart;
+  const head = before.slice(0, start);
+  const sep = head.length > 0 && !/\s$/.test(head) ? " " : "";
+  const next = `${head}${sep}${token} ${after}`;
+  const newCaret = head.length + sep.length + token.length + 1;
+  return { value: next, caret: newCaret };
+}
+
 /** Prefix matches outrank substring matches; shorter labels break the tie. */
 function scoreStatic(def: MentionDef, query: string): number | null {
   if (query.length === 0) {

@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowUp, Plus, Sparkles, Square } from "lucide-react";
 
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
@@ -16,7 +16,7 @@ import { launchDelegateRun } from "@/lib/delegate-runs";
 import { isHostActionMutation } from "@/lib/host-actions";
 import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
 import { completeIncomplete, hasIncompleteCodeFence } from "@/lib/markdown-stream";
-import { tween } from "@/lib/motion";
+import { DUR, tween, tweenExit } from "@/lib/motion";
 import { validateProvider } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
@@ -50,7 +50,14 @@ import { AgentsRail } from "./AgentsRail";
 import { BudgetConfig, DEFAULT_DELEGATE_BUDGET } from "./BudgetConfig";
 import { ComposerMetaRow } from "./ComposerMetaRow";
 import { captureTerminalState } from "./context-provider";
-import { applyMentionPrefixes, type MentionDef, matchMention, resolveMention } from "./mentions";
+import {
+  applyMentionPrefixes,
+  insertMentionToken,
+  type MentionDef,
+  matchMention,
+  resolveMention,
+} from "./mentions";
+import { ComposerPlusMenu } from "./ComposerPlusMenu";
 import { MentionPicker } from "./MentionPicker";
 import { PlanView } from "./PlanView";
 import { ProposedChangesReview } from "./ProposedChangesReview";
@@ -1400,14 +1407,10 @@ function Composer({ value, onChange, onSend, onStop, streaming, mode, region }: 
   }
 
   function pickMention(m: MentionDef) {
-    // Replace the `@token` ending at the caret with the picked token + a space.
-    const pos = Math.max(0, Math.min(caret, value.length));
-    const before = value.slice(0, pos);
-    const after = value.slice(pos);
-    const tokenStart = before.search(/@\S*$/);
-    const start = tokenStart < 0 ? before.length : tokenStart;
-    const next = `${before.slice(0, start)}${m.token} ${after}`;
-    const newCaret = start + m.token.length + 1;
+    // The ONE mention-insert path (typing parity): replaces the `@token` ending
+    // at the caret, or inserts space-separated at the caret. The plus-menu
+    // routes through this same function, so both surfaces stay byte-identical.
+    const { value: next, caret: newCaret } = insertMentionToken(value, caret, m.token);
     onChange(next);
     setDismissedAt(null);
     requestAnimationFrame(() => {
@@ -1415,6 +1418,23 @@ function Composer({ value, onChange, onSend, onStop, streaming, mode, region }: 
       if (el) {
         el.focus();
         el.setSelectionRange(newCaret, newCaret);
+        syncCaret(el);
+      }
+    });
+  }
+
+  function primeSlashCommands() {
+    // The plus-menu's "Slash commands…" row: insert a leading "/" and focus —
+    // `matchSlash` opens the picker on a leading-slash, space-free input, so an
+    // empty composer lands directly in the command list.
+    const next = value.startsWith("/") ? value : `/${value}`;
+    onChange(next);
+    setDismissedAt(null);
+    requestAnimationFrame(() => {
+      const el = inputRef.current;
+      if (el) {
+        el.focus();
+        el.setSelectionRange(1, 1);
         syncCaret(el);
       }
     });
@@ -1495,10 +1515,12 @@ function Composer({ value, onChange, onSend, onStop, streaming, mode, region }: 
           }
         }}
       >
-        {/* ONE bordered unit (§14): the auto-growing textarea with the send/stop
-            square pinned INSIDE the field's bottom-right. Minimal, monochrome —
-            the peach accent is reserved for live agent activity, never the send. */}
-        <div className="bg-charcoal-850 border-charcoal-700 focus-within:border-charcoal-600 rounded-control relative border transition-colors">
+        {/* ONE bordered unit (Claude-reference, R8): the auto-growing textarea
+            with a controls row INSIDE the field — the plus-menu at bottom-left,
+            the send/stop square at bottom-right (law §2: primary actions 28×28
+            with a 16px icon). Send carries the accent when armed and morphs to
+            STOP while a stream is live (Enter then QUEUES — typing never locks). */}
+        <div className="bg-charcoal-850 border-charcoal-700 focus-within:border-charcoal-600 rounded-control border transition-colors">
           <textarea
             ref={inputRef}
             rows={1}
@@ -1522,36 +1544,80 @@ function Composer({ value, onChange, onSend, onStop, streaming, mode, region }: 
             }
             autoComplete="off"
             spellCheck={false}
-            className="text-charcoal-100 placeholder:text-charcoal-500 text-body block w-full resize-none bg-transparent py-2 pr-10 pl-3 font-mono outline-none"
+            className="text-charcoal-100 placeholder:text-charcoal-500 text-body block w-full resize-none bg-transparent px-3 pt-2 pb-1 font-mono outline-none"
           />
-          {streaming ? (
-            <button
-              type="button"
-              aria-label="Stop the in-flight run"
-              title="Stop — the partial answer stands"
-              onClick={onStop}
-              className="rounded-control bg-charcoal-200 text-charcoal-950 hover:bg-lume absolute right-2 bottom-2 flex size-6 shrink-0 items-center justify-center transition-colors"
-            >
-              <Square className="size-2.5" fill="currentColor" strokeWidth={0} />
-            </button>
-          ) : (
-            <button
-              type="submit"
-              aria-label="Send message"
-              disabled={value.trim().length === 0}
-              className={cn(
-                "rounded-control absolute right-2 bottom-2 flex size-6 shrink-0 items-center justify-center transition-colors",
-                value.trim().length > 0
-                  ? "bg-charcoal-200 text-charcoal-950 hover:bg-lume"
-                  : "text-charcoal-600",
-              )}
-            >
-              <ArrowUp className="size-3.5" strokeWidth={2.25} />
-            </button>
-          )}
+          <div className="flex items-center justify-between gap-2 px-1.5 pb-1.5">
+            <ComposerPlusMenu onInsertMention={pickMention} onSlashCommands={primeSlashCommands} />
+            <SendStopButton
+              streaming={streaming}
+              canSend={value.trim().length > 0}
+              onStop={onStop}
+            />
+          </div>
         </div>
       </form>
     </div>
+  );
+}
+
+/**
+ * The composer's primary action — a 28×28 square (law §2) at the field's
+ * bottom-right. Armed (text present) it carries the accent; while a stream is
+ * live it MORPHS into the stop square with a subtle scale/opacity crossfade
+ * (reduced-motion collapses the morph to an instant swap). Stop is sacred: it
+ * aborts the in-flight run via the lifted abortRef; the queue/drain semantics
+ * live in the parent and are untouched here.
+ */
+function SendStopButton({
+  streaming,
+  canSend,
+  onStop,
+}: {
+  streaming: boolean;
+  canSend: boolean;
+  onStop: () => void;
+}) {
+  const reduceMotion = useReducedMotion();
+  const morphIn = reduceMotion ? { opacity: 1 } : { scale: 1, opacity: 1 };
+  const morphOut = reduceMotion ? { opacity: 0 } : { scale: 0.7, opacity: 0 };
+  return (
+    <AnimatePresence initial={false} mode="popLayout">
+      {streaming ? (
+        <motion.button
+          key="stop"
+          type="button"
+          aria-label="Stop the in-flight run"
+          title="Stop — the partial answer stands"
+          onClick={onStop}
+          initial={morphOut}
+          animate={morphIn}
+          exit={morphOut}
+          transition={tween(DUR.fast)}
+          className="rounded-control text-charcoal-950 flex size-7 shrink-0 cursor-pointer items-center justify-center bg-amber-400 transition-colors hover:bg-amber-300"
+        >
+          <Square className="size-3" fill="currentColor" strokeWidth={0} />
+        </motion.button>
+      ) : (
+        <motion.button
+          key="send"
+          type="submit"
+          aria-label="Send message"
+          disabled={!canSend}
+          initial={morphOut}
+          animate={morphIn}
+          exit={morphOut}
+          transition={tweenExit(DUR.fast)}
+          className={cn(
+            "rounded-control flex size-7 shrink-0 items-center justify-center transition-colors",
+            canSend
+              ? "text-charcoal-950 cursor-pointer bg-amber-400 hover:bg-amber-300"
+              : "text-charcoal-600",
+          )}
+        >
+          <ArrowUp className="size-4" strokeWidth={2.25} />
+        </motion.button>
+      )}
+    </AnimatePresence>
   );
 }
 
