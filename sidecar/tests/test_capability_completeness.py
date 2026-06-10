@@ -75,7 +75,7 @@ def test_arrange_layout_has_named_templates() -> None:
     pattern_enum = CAPABILITY_CATALOG["arrange_layout"].input_schema["properties"]["pattern"][
         "enum"
     ]
-    for template in ("research-cockpit", "compare", "single-focus", "macro-scan"):
+    for template in ("auto", "research-cockpit", "compare", "single-focus", "macro-scan"):
         assert template in pattern_enum, (
             f"arrange_layout is missing the named template {template!r}"
         )

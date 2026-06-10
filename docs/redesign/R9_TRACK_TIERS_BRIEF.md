@@ -24,11 +24,11 @@ files below. Push every concrete deliverable (each push is a recovery checkpoint
 
 ## Tier B per-stop defaults (verified live on OpenRouter 2026-06-11; lead may re-pin at integration — build model-agnostic)
 
-| Stop | Model | Verified price |
-|---|---|---|
-| NORMAL | `perplexity/sonar` | $1/M in, $1/M out, $5/1k searches |
-| DEEP | `perplexity/sonar-reasoning-pro` | $2/M in, $8/M out, $5/1k searches |
-| ULTRA | `perplexity/sonar-deep-research` | $2/M in, $8/M out, $5/1k searches, $3/M reasoning |
+| Stop   | Model                            | Verified price                                    |
+| ------ | -------------------------------- | ------------------------------------------------- |
+| NORMAL | `perplexity/sonar`               | $1/M in, $1/M out, $5/1k searches                 |
+| DEEP   | `perplexity/sonar-reasoning-pro` | $2/M in, $8/M out, $5/1k searches                 |
+| ULTRA  | `perplexity/sonar-deep-research` | $2/M in, $8/M out, $5/1k searches, $3/M reasoning |
 
 Picker alternates (same per-stop slots): `perplexity/sonar-pro`, `perplexity/sonar-pro-search`,
 `openai/o4-mini-deep-research`, `openai/o3-deep-research`, `x-ai/grok-4.3`. Store pricing
@@ -37,20 +37,21 @@ hints WITH the models in one frontend constant so Settings (Team D) renders them
 ## Files you own
 
 Sidecar: `services/search/registry.py` (drop exa/hosted builders), `services/search/hosted.py`
-+ `exa.py` (DELETE), `services/agent_tools/web_search.py` (the ONE resolution path),
-`services/agent_tools/research.py` (depth+tier routing at the tool boundary),
-`services/agent_tools/deep_research.py` (Tier B lane: per-stop model dispatch via OpenRouter
-chat-completions; citations from annotations → sources), `services/llm/native_search.py`
-(keep; expose `native_search_available(provider, model)` + a callable channel for Team B's
-cross-verify — INTERFACE, push early), `config.py` (ContextVars: research tier +
-per-stop model map; keep depth ctx as-is), `app.py` middleware (header parsing),
-`routers/search_tiers.py` (SearXNG routes stay — they're now core; remove t3 bits),
-sidecar tests for all of the above.
-Frontend: `src/store/search-settings.ts` (new enum `tier_a | tier_b`, `researchModels`
-{normal,deep,ultra}, migration: native/t1_local/local-searxng/t2_searxng→tier_a;
-t3_hosted/t3-exa-direct→tier_b when an OpenRouter key is configured else tier_a),
-`src/lib/search-headers.ts`, `src/lib/workspace.ts` (searchSettings migrate on
-deserialize, guard older blobs).
+
+- `exa.py` (DELETE), `services/agent_tools/web_search.py` (the ONE resolution path),
+  `services/agent_tools/research.py` (depth+tier routing at the tool boundary),
+  `services/agent_tools/deep_research.py` (Tier B lane: per-stop model dispatch via OpenRouter
+  chat-completions; citations from annotations → sources), `services/llm/native_search.py`
+  (keep; expose `native_search_available(provider, model)` + a callable channel for Team B's
+  cross-verify — INTERFACE, push early), `config.py` (ContextVars: research tier +
+  per-stop model map; keep depth ctx as-is), `app.py` middleware (header parsing),
+  `routers/search_tiers.py` (SearXNG routes stay — they're now core; remove t3 bits),
+  sidecar tests for all of the above.
+  Frontend: `src/store/search-settings.ts` (new enum `tier_a | tier_b`, `researchModels`
+  {normal,deep,ultra}, migration: native/t1_local/local-searxng/t2_searxng→tier_a;
+  t3_hosted/t3-exa-direct→tier_b when an OpenRouter key is configured else tier_a),
+  `src/lib/search-headers.ts`, `src/lib/workspace.ts` (searchSettings migrate on
+  deserialize, guard older blobs).
 
 DO NOT touch: `SettingsPanel.tsx` (Team D builds the UI on your store contract — push the
 store contract within your first hour), `services/research/*` + `extract.py` (Team B),

@@ -133,6 +133,12 @@ export interface PlannedPanel {
   /** The registered React component id (e.g. `"chart-panel"`, `"news-panel"`). */
   component: string;
   position?: PlannedPanelPosition;
+  /** Fraction of the viewport width this panel's COLUMN should occupy after
+   *  tiling (applied via `setSize` on the panel's group). Only column heads
+   *  (the anchor, the wide secondary, the rail head) carry one — content-aware
+   *  arrange (R9) uses it so "dominant" means dominant on screen, not just
+   *  first in the plan. */
+  widthFraction?: number;
 }
 
 /** A declarative, dockview-free description of a cockpit arrangement. */
@@ -418,6 +424,208 @@ export function fitLayoutTemplate(
   return { applied: template, downgraded: false };
 }
 
+// --- content-aware arrange (R9, gate 11) -------------------------------------
+//
+// "Arrange my windows" should produce what a person would have chosen: a long
+// research brief deserves the dominant panel, a chart wants width, a watchlist
+// is a sidebar. `planContentAware` is a PURE, deterministic planner over the
+// panels that are ALREADY OPEN (it never opens or closes anything): rank mains
+// by a fixed role-score table (the brief outranks everything only when it
+// actually carries a published brief), park rail-class panels in a narrow
+// right-hand rail, overflow extra mains as tabs instead of slicing ever-thinner
+// columns, and assign honest column widths. Same input → same output, always.
+
+/** Live content signals the planner ranks against (read from stores by the
+ *  host-action; pure inputs here so the planner stays unit-testable). */
+export interface PanelContentSignals {
+  /** Length of the currently published brief's markdown (0 = no brief). */
+  briefChars: number;
+  /** Length of the general notes scratchpad. */
+  notesChars: number;
+  /** Watchlist row count (informational; the watchlist is rail-class regardless). */
+  watchlistRows: number;
+}
+
+/** Narrow side-rail panels — never a main column. */
+const RAIL_PANELS: ReadonlySet<string> = new Set([
+  "watchlist",
+  "news",
+  "audit-log",
+  "earnings-calendar",
+  "analyst-ratings",
+]);
+
+/** Fixed dominance scores for main-class panels (higher = anchors the layout).
+ *  The brief's score is dynamic: 100 with a real published brief (it is the
+ *  content the user is working with), else a quiet 40. */
+const MAIN_SCORES: Record<string, number> = {
+  chart: 80,
+  "node-editor": 75,
+  backtest: 70,
+  "screener-panel": 70,
+  portfolio: 60,
+  "equity-overview": 55,
+  macro: 55,
+  "sec-filings": 50,
+  brief: 40,
+  notes: 35,
+};
+const DEFAULT_MAIN_SCORE = 30;
+/** A brief at/over this many markdown chars is "long" → dominant. */
+const BRIEF_DOMINANT_MIN_CHARS = 1200;
+/** Below this viewport width the plan collapses to two columns (anchor + one). */
+const CONTENT_AWARE_NARROW_WIDTH = 1180;
+
+/** Column width fractions, by which columns exist. Chart-as-wide keeps ≥30% so
+ *  its 360px panel minimum holds at the 1280 default window. */
+const FRACTIONS = {
+  anchorWideRail: [0.52, 0.3, 0.18],
+  anchorWide: [0.62, 0.38],
+  anchorRail: [0.8, 0.2],
+  narrow: [0.62, 0.38],
+} as const;
+
+function contentScore(id: string, signals: PanelContentSignals): number {
+  if (id === "brief") {
+    return signals.briefChars >= BRIEF_DOMINANT_MIN_CHARS ? 100 : MAIN_SCORES.brief;
+  }
+  if (id === "notes") {
+    return signals.notesChars > 800 ? 45 : MAIN_SCORES.notes;
+  }
+  return MAIN_SCORES[id] ?? DEFAULT_MAIN_SCORE;
+}
+
+/** Look up the component for an OPEN panel id (known panels resolve through the
+ *  arrangeable map; unknown/plugin panels keep a sentinel — they are already
+ *  open, so `applyPlan` only ever MOVES them and the component is never used). */
+function componentForOpenId(id: string): string {
+  const known = Object.values(ARRANGEABLE).find((p) => p.id === id);
+  return known?.component ?? "open-panel";
+}
+
+/**
+ * PURE content-aware planner over the OPEN panel ids. Deterministic: fixed
+ * score table, stable tiebreak (the caller's panel order). Shape:
+ *   wide viewport → [ anchor | wide-secondary | rail(stacked, max 2) ],
+ *   extra mains tab into the wide column, extra rails tab into the rail;
+ *   narrow viewport → [ anchor | second ], everything else tabs into second;
+ *   a single open panel → maximized.
+ */
+export function planContentAware(
+  openPanelIds: string[],
+  signals: PanelContentSignals,
+  viewportWidth: number,
+): LayoutPlan {
+  const seen = new Set<string>();
+  const ids = openPanelIds.filter((id) => {
+    if (!id || seen.has(id)) {
+      return false;
+    }
+    seen.add(id);
+    return true;
+  });
+  if (ids.length === 0) {
+    return { panels: [] };
+  }
+
+  const rails = ids.filter((id) => RAIL_PANELS.has(id));
+  let mains = ids.filter((id) => !RAIL_PANELS.has(id));
+  // Stable sort: score desc, original order as tiebreak (sort() is stable).
+  mains = [...mains].sort((a, b) => contentScore(b, signals) - contentScore(a, signals));
+
+  // No main-class panel open → promote the first rail to anchor.
+  let promotedRail: string | undefined;
+  if (mains.length === 0 && rails.length > 0) {
+    promotedRail = rails[0];
+    mains = [promotedRail];
+  }
+  const railRest = promotedRail ? rails.slice(1) : rails;
+
+  const anchor = mains[0];
+  if (ids.length === 1) {
+    return {
+      panels: [{ id: anchor, component: componentForOpenId(anchor) }],
+      focus: anchor,
+      maximize: anchor,
+    };
+  }
+
+  const panels: PlannedPanel[] = [];
+  const push = (id: string, position?: PlannedPanelPosition, widthFraction?: number) =>
+    panels.push({ id, component: componentForOpenId(id), position, widthFraction });
+
+  if (viewportWidth < CONTENT_AWARE_NARROW_WIDTH) {
+    // Two columns only: anchor + the best remaining panel; the rest tab in.
+    const second = mains[1] ?? railRest[0];
+    push(anchor, undefined, FRACTIONS.narrow[0]);
+    push(second, { referencePanel: anchor, direction: "right" }, FRACTIONS.narrow[1]);
+    for (const id of [...mains.slice(2), ...railRest.filter((r) => r !== second)]) {
+      push(id, { referencePanel: second, direction: "within" });
+    }
+    return { panels, focus: anchor };
+  }
+
+  const wide = mains[1];
+  const railHead = railRest[0];
+  const fractions = wide
+    ? railHead
+      ? FRACTIONS.anchorWideRail
+      : FRACTIONS.anchorWide
+    : railHead
+      ? FRACTIONS.anchorRail
+      : [1];
+
+  push(anchor, undefined, fractions[0]);
+  if (wide) {
+    push(wide, { referencePanel: anchor, direction: "right" }, fractions[1]);
+    for (const id of mains.slice(2)) {
+      push(id, { referencePanel: wide, direction: "within" });
+    }
+  }
+  if (railHead) {
+    push(railHead, { referencePanel: wide ?? anchor, direction: "right" }, fractions[wide ? 2 : 1]);
+    if (railRest[1]) {
+      push(railRest[1], { referencePanel: railHead, direction: "below" });
+    }
+    for (const id of railRest.slice(2)) {
+      push(id, { referencePanel: railRest[1], direction: "within" });
+    }
+  }
+  return { panels, focus: anchor };
+}
+
+/** What a content-aware arrange did — for the host-action's honest message. */
+export interface ContentAwareResult {
+  /** The panel chosen as the dominant anchor. */
+  anchor: string | undefined;
+  /** How many open panels were arranged. */
+  count: number;
+}
+
+/**
+ * IMPERATIVE content-aware applier: plan over the panels currently open on
+ * `api` and re-tile (rAF-batched like the other appliers). Never opens or
+ * closes a panel.
+ */
+export function applyContentAwareLayout(
+  api: DockviewApi,
+  signals: PanelContentSignals,
+): ContentAwareResult {
+  const openIds = api.panels.map((p) => p.id);
+  const width = typeof api.width === "number" && api.width > 0 ? api.width : DEFAULT_FIT_WIDTH;
+  const plan = planContentAware(openIds, signals, width);
+  if (plan.panels.length === 0) {
+    return { anchor: undefined, count: 0 };
+  }
+  const run = () => applyPlan(api, plan);
+  if (typeof requestAnimationFrame === "function") {
+    requestAnimationFrame(run);
+  } else {
+    run();
+  }
+  return { anchor: plan.focus, count: plan.panels.length };
+}
+
 // --- macOS Window→Layout MENU modes (the finance cockpits) ------------------
 //
 // The native menu (`lib.rs` install_layout_menu) labels these Fundamental /
@@ -590,6 +798,17 @@ function applyPlan(api: DockviewApi, plan: LayoutPlan): void {
       position,
     });
     present.add(panel.id);
+  }
+
+  // Column widths (content-aware arrange): apply AFTER all panels land so the
+  // grid exists; `setSize` on a panel sizes its group/column. Guard `api.width`
+  // — an unmeasured grid skips sizing rather than sizing against 0.
+  if (typeof api.width === "number" && api.width > 0) {
+    for (const panel of plan.panels) {
+      if (panel.widthFraction && panel.widthFraction < 1) {
+        api.getPanel(panel.id)?.api.setSize({ width: Math.round(api.width * panel.widthFraction) });
+      }
+    }
   }
 
   // Maximize takes precedence over a plain focus (single-tile focus mode). Exit

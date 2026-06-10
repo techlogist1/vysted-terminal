@@ -20,6 +20,7 @@ import {
   normalizeBriefMode,
 } from "@/lib/brief-ingest";
 import {
+  applyContentAwareLayout,
   applyCustomLayout,
   fitLayoutTemplate,
   resolvePanelToken,
@@ -28,6 +29,7 @@ import {
 } from "@/lib/layout-templates";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useBriefStore } from "@/store/brief";
+import { useNotesStore } from "@/store/notes";
 import { useBrokersStore } from "@/store/brokers";
 import { useChartCommandStore } from "@/store/chart-command";
 import { useEquityCommandStore } from "@/store/equity-command";
@@ -542,6 +544,14 @@ export function describeHostAction(
     case "arrange_layout": {
       const pattern = str(input, "pattern") || "default";
       const panel = str(input, "panel");
+      if (pattern === "auto") {
+        return {
+          kind: "panel",
+          title: "Arrange your windows around the content",
+          before: "Layout: the current cockpit",
+          after: "Layout: content-aware (dominant reading panel, wide chart, side rail)",
+        };
+      }
       if (pattern === "focus") {
         return {
           kind: "panel",
@@ -781,6 +791,28 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
     case "arrange_layout": {
       const ws = useWorkspaceStore.getState();
       const pattern = str(input, "pattern") || "default";
+      // CONTENT-AWARE (R9, gate 11): arrange the OPEN panels the way a person
+      // would — the planner ranks live content (a published brief dominates,
+      // the chart gets width, the watchlist parks in a rail). Deterministic;
+      // never opens or closes a panel.
+      if (pattern === "auto") {
+        const api = ws.dockviewApi;
+        if (!api) {
+          return null;
+        }
+        const signals = {
+          briefChars: useBriefStore.getState().brief?.markdown?.length ?? 0,
+          notesChars: useNotesStore.getState().general.length,
+          watchlistRows: useSymbolsStore.getState().entries.length,
+        };
+        const result = applyContentAwareLayout(api, signals);
+        if (result.count === 0) {
+          return null;
+        }
+        return result.count === 1
+          ? `Focused ${panelLabel(result.anchor ?? "")} — it's the only panel open`
+          : `Arranged ${result.count} windows around ${panelLabel(result.anchor ?? "")}`;
+      }
       if (pattern === "focus") {
         const panel = str(input, "panel");
         const target = panel ? ws.dockviewApi?.getPanel(panel) : null;

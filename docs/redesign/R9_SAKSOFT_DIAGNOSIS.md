@@ -33,7 +33,7 @@ Root cause, verified end-to-end against the real filings (artifacts in /tmp/saks
    digit-sparse text (or `pages_empty > 0`), visit `disclosure_rows[1]` — one extra
    bounded fetch.
 3. **Row mix** (`disclosures.py`): band-0.5 for `investor presentation|earnings
-   presentation|press release` in the same results window so rows[1] is the digital twin,
+presentation|press release` in the same results window so rows[1] is the digital twin,
    not a fourth scanned outcome. (For this exact run: rows[0]=outcome scan,
    rows[1]=presentation surfaces every figure.)
 4. **NO OCR** — blows the ≤120 MB onefile budget, not cross-platform. The digital-twin
@@ -44,6 +44,7 @@ Root cause, verified end-to-end against the real filings (artifacts in /tmp/saks
    per-page caps.
 
 ## Ground truth (gate 7 evidence floor — consolidated, audited, p10, cross-checked to the
+
 digital presentation)
 
 - Q4 FY26 revenue (net sales): **₹24,884.50 lakh** (₹2,488.45 Mn; +3.7% YoY)

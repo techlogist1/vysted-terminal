@@ -1059,6 +1059,10 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             "arrange_layout",
             description=(
                 "Arrange the cockpit using a named template, for the user to review. "
+                "'auto' arranges the panels ALREADY OPEN around their content — a "
+                "published brief gets the dominant column, the chart gets width, the "
+                "watchlist parks in a side rail; pick 'auto' whenever the user asks to "
+                "arrange/organise/tidy their windows without naming a layout. "
                 "Templates: 'single-focus' (full-width chart + stats — a quick look); "
                 "'research-cockpit' (chart + fundamentals + news/filings + brief — the "
                 "flagship deep dive); 'compare' (dual charts side by side, pass two "
@@ -1075,6 +1079,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                     "pattern": {
                         "type": "string",
                         "enum": [
+                            "auto",
                             "default",
                             "focus",
                             "single-focus",

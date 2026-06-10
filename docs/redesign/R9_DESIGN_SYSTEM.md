@@ -48,16 +48,16 @@ One ratio (~1.2), snapped to whole px: **11 · 13 · 16 · 19 · 23 · 28**.
 Utility names are kept (the ~92 files re-skin by revalue, the R6 trick); several names now
 share a size and differ by weight/transform only:
 
-| Utility | px | Role |
-|---|---|---|
-| `text-micro` | 11 | uppercase eyebrows, provenance chips, keycaps. THE floor — nothing renders below 11px, ever |
-| `text-caption` | 13 | data cells (`tabular-nums`), chrome labels, chips, tabs, meta rows |
-| `text-body` | 13 | reading prose in the dock, user chat, form labels |
-| `text-panel-title` | 13 (weight 500) | panel titles — quiet, Linear-grade; titles do not shout |
-| `text-prose` | 16 | wide reading panels only (Brief, Notes ≥420px column) |
-| `text-section` | 19 | section heads |
-| `text-overview` | 23 | overview / brief head |
-| `text-hero` | 28 | rare hero (first-run only) |
+| Utility            | px              | Role                                                                                        |
+| ------------------ | --------------- | ------------------------------------------------------------------------------------------- |
+| `text-micro`       | 11              | uppercase eyebrows, provenance chips, keycaps. THE floor — nothing renders below 11px, ever |
+| `text-caption`     | 13              | data cells (`tabular-nums`), chrome labels, chips, tabs, meta rows                          |
+| `text-body`        | 13              | reading prose in the dock, user chat, form labels                                           |
+| `text-panel-title` | 13 (weight 500) | panel titles — quiet, Linear-grade; titles do not shout                                     |
+| `text-prose`       | 16              | wide reading panels only (Brief, Notes ≥420px column)                                       |
+| `text-section`     | 19              | section heads                                                                               |
+| `text-overview`    | 23              | overview / brief head                                                                       |
+| `text-hero`        | 28              | rare hero (first-run only)                                                                  |
 
 12px, 15px, 18px, 22px die. Hierarchy below 16px is expressed by **weight (400/500/700)
 and color (charcoal-500/400/100)**, not size — Refactoring UI: size is the bluntest
@@ -81,11 +81,11 @@ The R6 Pure Black doctrine stands: pure-neutral zinc ramp, ONE scarce accent
 for P&L data only. R9 adds exactly one designed family — **research depth heat** — and
 permits subtle Cursor-grade tinting ONLY through these tokens:
 
-| Token | Value | Meaning |
-|---|---|---|
-| `--color-depth-normal` | `#f7f7f7` (lume) | NORMAL — quiet, near-white |
-| `--color-depth-deep` | `#fab283` (amber-400) | DEEP — the brand peach |
-| `--color-depth-ultra` | `#f08a4b` | ULTRA — hotter ember, one step more saturated; distinct from `negative` #e5544b (red, reserved for losses) |
+| Token                  | Value                 | Meaning                                                                                                    |
+| ---------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `--color-depth-normal` | `#f7f7f7` (lume)      | NORMAL — quiet, near-white                                                                                 |
+| `--color-depth-deep`   | `#fab283` (amber-400) | DEEP — the brand peach                                                                                     |
+| `--color-depth-ultra`  | `#f08a4b`             | ULTRA — hotter ember, one step more saturated; distinct from `negative` #e5544b (red, reserved for losses) |
 
 Escalation reads as heat in one tonal family: white → peach → ember. The composer send
 button fill keys to the active depth (armed state); the depth selector's active stop uses

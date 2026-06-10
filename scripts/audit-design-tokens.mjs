@@ -26,12 +26,35 @@ const reportOnly = args.includes("--report");
 const targets = args.filter((a) => !a.startsWith("--"));
 const SCAN = targets.length ? targets : ["src", "plugins"];
 
-const ALLOWED_STEPS = new Set(["0", "0.5", "1", "2", "3", "4", "5", "6", "7", "8", "10", "12", "16", "20", "24"]);
+const ALLOWED_STEPS = new Set([
+  "0",
+  "0.5",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "10",
+  "12",
+  "16",
+  "20",
+  "24",
+]);
 const ALLOWED_FONT_PX = new Set([11, 13, 16, 19, 23, 28]);
-const RHYTHM = "(?:p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr|gap|gap-x|gap-y|space-x|space-y|h|min-h|max-h|size)";
+const RHYTHM =
+  "(?:p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr|gap|gap-x|gap-y|space-x|space-y|h|min-h|max-h|size)";
 // class-ish context: preceded by quote, space, colon (variant) or backtick
-const STEP_RE = new RegExp(`(?<=["'\\\`\\s:])(?:-?)${RHYTHM}-(\\d+(?:\\.\\d+)?)(?=["'\\\`\\s])`, "g");
-const ARB_RE = new RegExp(`(?<=["'\\\`\\s:])(?:-?)(?:${RHYTHM}|text)-\\[[^\\]]*(?:px|rem|em)[^\\]]*\\]`, "g");
+const STEP_RE = new RegExp(
+  `(?<=["'\\\`\\s:])(?:-?)${RHYTHM}-(\\d+(?:\\.\\d+)?)(?=["'\\\`\\s])`,
+  "g",
+);
+const ARB_RE = new RegExp(
+  `(?<=["'\\\`\\s:])(?:-?)(?:${RHYTHM}|text)-\\[[^\\]]*(?:px|rem|em)[^\\]]*\\]`,
+  "g",
+);
 const CSS_FONT_RE = /font-size:\s*([0-9.]+)(px|rem)/g;
 
 const SKIP_DIRS = new Set(["node_modules", "dist", ".git", "target", "__pycache__"]);
@@ -63,7 +86,8 @@ for (const scanRoot of SCAN) {
     lines.forEach((line, i) => {
       if (line.includes("tokens-ok:")) return; // justified exception
       for (const m of line.matchAll(STEP_RE)) {
-        if (!ALLOWED_STEPS.has(m[1])) violations.push(`${rel}:${i + 1}  off-grid step  ${m[0].trim()}`);
+        if (!ALLOWED_STEPS.has(m[1]))
+          violations.push(`${rel}:${i + 1}  off-grid step  ${m[0].trim()}`);
       }
       for (const m of line.matchAll(ARB_RE)) {
         violations.push(`${rel}:${i + 1}  arbitrary value  ${m[0].trim()}`);

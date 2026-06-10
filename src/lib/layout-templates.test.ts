@@ -6,6 +6,8 @@ import {
   applyLayoutTemplate,
   applyResearchSpaceLayout,
   fitLayoutTemplate,
+  applyContentAwareLayout,
+  planContentAware,
   planCustom,
   planLayout,
   resolvePanelToken,
@@ -388,5 +390,136 @@ describe("applyPlan moves already-open panels (R7 fake-split fix)", () => {
     const { api, panels } = makeSeededApi(["chart", "news"]);
     applyCustomLayout(api, [{ panel: "chart" }, { panel: "news", direction: "within" }]);
     expect(panels.get("news")!.api.moveTo).not.toHaveBeenCalled();
+  });
+});
+
+describe("planContentAware (R9 — content-aware arrange)", () => {
+  const SIGNALS = { briefChars: 0, notesChars: 0, watchlistRows: 7 };
+  const WIDE = 1440;
+
+  it("brief with real content dominates; chart goes wide; watchlist parks in the rail", () => {
+    const plan = planContentAware(
+      ["chart", "brief", "watchlist"],
+      { ...SIGNALS, briefChars: 5000 },
+      WIDE,
+    );
+    expect(plan.panels.map((p) => p.id)).toEqual(["brief", "chart", "watchlist"]);
+    expect(plan.panels[0].position).toBeUndefined();
+    expect(plan.panels[0].widthFraction).toBeCloseTo(0.52);
+    expect(plan.panels[1].position).toEqual({ referencePanel: "brief", direction: "right" });
+    expect(plan.panels[1].widthFraction).toBeCloseTo(0.3);
+    expect(plan.panels[2].position).toEqual({ referencePanel: "chart", direction: "right" });
+    expect(plan.panels[2].widthFraction).toBeCloseTo(0.18);
+    expect(plan.focus).toBe("brief");
+    expect(plan.maximize).toBeUndefined();
+  });
+
+  it("an empty brief does NOT dominate — the chart anchors instead", () => {
+    const plan = planContentAware(["chart", "brief", "watchlist"], SIGNALS, WIDE);
+    expect(plan.panels[0].id).toBe("chart");
+    expect(plan.panels[1].id).toBe("brief");
+    expect(plan.focus).toBe("chart");
+  });
+
+  it("extra mains tab into the wide column; extra rails stack then tab", () => {
+    const plan = planContentAware(
+      ["news", "watchlist", "chart", "equity-overview", "portfolio", "audit-log"],
+      SIGNALS,
+      WIDE,
+    );
+    const byId = Object.fromEntries(plan.panels.map((p) => [p.id, p]));
+    expect(plan.panels[0].id).toBe("chart");
+    expect(byId["portfolio"].position).toEqual({ referencePanel: "chart", direction: "right" });
+    // 3rd main tabs into the wide column instead of slicing a 4th column
+    expect(byId["equity-overview"].position).toEqual({
+      referencePanel: "portfolio",
+      direction: "within",
+    });
+    // rails: head right of the wide column, second below it, rest tab in
+    expect(byId["news"].position).toEqual({ referencePanel: "portfolio", direction: "right" });
+    expect(byId["watchlist"].position).toEqual({ referencePanel: "news", direction: "below" });
+    expect(byId["audit-log"].position).toEqual({
+      referencePanel: "watchlist",
+      direction: "within",
+    });
+  });
+
+  it("narrow viewport collapses to two columns with everything else tabbed", () => {
+    const plan = planContentAware(
+      ["chart", "brief", "watchlist", "news"],
+      { ...SIGNALS, briefChars: 5000 },
+      960,
+    );
+    expect(plan.panels.map((p) => p.id)).toEqual(["brief", "chart", "watchlist", "news"]);
+    expect(plan.panels[1].position).toEqual({ referencePanel: "brief", direction: "right" });
+    expect(plan.panels[2].position).toEqual({ referencePanel: "chart", direction: "within" });
+    expect(plan.panels[3].position).toEqual({ referencePanel: "chart", direction: "within" });
+  });
+
+  it("a single open panel is maximized", () => {
+    const plan = planContentAware(["chart"], SIGNALS, WIDE);
+    expect(plan.maximize).toBe("chart");
+  });
+
+  it("rail-only cockpit promotes the first rail to anchor", () => {
+    const plan = planContentAware(["watchlist", "news"], SIGNALS, WIDE);
+    expect(plan.panels[0].id).toBe("watchlist");
+    expect(plan.panels[1].id).toBe("news");
+    expect(plan.panels[1].position?.direction).toBe("right");
+  });
+
+  it("is deterministic (same input → same output) and drops duplicates", () => {
+    const a = planContentAware(["chart", "chart", "watchlist"], SIGNALS, WIDE);
+    const b = planContentAware(["chart", "watchlist"], SIGNALS, WIDE);
+    expect(a).toEqual(b);
+  });
+});
+
+describe("applyContentAwareLayout (imperative, width fractions)", () => {
+  it("re-tiles open panels and sizes the columns via setSize", () => {
+    vi.useFakeTimers();
+    const moved: Array<{ id: string; position: unknown }> = [];
+    const sized: Array<{ id: string; width: number }> = [];
+    const groups: Record<string, object> = {
+      chart: { g: "chart" },
+      brief: { g: "brief" },
+      watchlist: { g: "watchlist" },
+    };
+    const mkPanel = (id: string) => ({
+      id,
+      group: groups[id],
+      api: {
+        moveTo: (args: { position: unknown }) => moved.push({ id, position: args.position }),
+        setSize: (args: { width: number }) => sized.push({ id, width: args.width }),
+        setActive: () => {},
+      },
+    });
+    const panels = [mkPanel("brief"), mkPanel("chart"), mkPanel("watchlist")];
+    const api = {
+      width: 1440,
+      panels,
+      getPanel: (id: string) => panels.find((p) => p.id === id),
+      addPanel: () => {
+        throw new Error("content-aware arrange must never open panels");
+      },
+      hasMaximizedGroup: () => false,
+      exitMaximizedGroup: () => {},
+    } as unknown as DockviewApi;
+
+    const result = applyContentAwareLayout(api, {
+      briefChars: 5000,
+      notesChars: 0,
+      watchlistRows: 5,
+    });
+    vi.runAllTimers();
+    vi.useRealTimers();
+
+    expect(result).toEqual({ anchor: "brief", count: 3 });
+    expect(sized).toEqual([
+      { id: "brief", width: Math.round(1440 * 0.52) },
+      { id: "chart", width: Math.round(1440 * 0.3) },
+      { id: "watchlist", width: Math.round(1440 * 0.18) },
+    ]);
+    expect(moved.length).toBeGreaterThan(0);
   });
 });

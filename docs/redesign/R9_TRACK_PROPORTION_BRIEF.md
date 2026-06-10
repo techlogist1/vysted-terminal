@@ -28,6 +28,7 @@ buttons (Draw/Indicators/Compare/Sync) on one h-7 ladder with 14px icons, ONE ro
 widths ≥360, designed collapse below. Kill the two-row sprawl.
 
 ## E2 — Surface sweep (gate 9: reference-verifier pass + zero clipped/truncated text at
+
 default AND narrow)
 
 Per surface, in priority order: Notes toolbar (ONE icon ladder — h-7 buttons, 14px icons,
