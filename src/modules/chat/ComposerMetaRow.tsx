@@ -2,7 +2,7 @@
 
 import { Fragment, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { RefreshCw } from "lucide-react";
+import { Bot, Cpu, Ellipsis, Eye, RefreshCw, Timer } from "lucide-react";
 
 import { buildModelGroups, modelOptionLabel } from "@/lib/model-options";
 import { DUR, tween } from "@/lib/motion";
@@ -13,6 +13,7 @@ import { RESEARCH_DEPTHS, RESEARCH_DEPTH_LABEL, type ResearchDepth } from "@/sto
 
 import type { LLMModelOption, LLMProviderId, LLMProviderInfo } from "../../../types/ai";
 import { type AgentMode, AGENT_MODES } from "../../../types/agent-modes";
+import { metaRowPlan, metaRowStepForWidth, type MetaRowStep } from "./meta-row-collapse";
 
 /**
  * The composer's ONE quiet 24px meta row (R7 Track C) — every standing select
@@ -25,13 +26,17 @@ import { type AgentMode, AGENT_MODES } from "../../../types/agent-modes";
  * `<select>` rows carried — including the model catalog's capability pips
  * (`· no tools`, `· ⌕`) and the refresh affordance. The lens chip ALWAYS
  * shows the agent's display name, never a raw id. The depth slider is the
- * three-stop dotted rail; its active stop carries the peach accent ONLY while
- * a research run is live at that depth (live agent activity is the one accent
- * role), otherwise text-bright. Autonomy stays the law's 24px segmented
- * ASK/AUTO toggle. Everything here is `text-micro`, tertiary at rest.
+ * three-stop dotted rail; its active stop carries the accent (law §5) and
+ * animates while a research run is live at that depth. Autonomy stays the
+ * law's 24px segmented ASK/AUTO toggle. Chips ride text-caption (law §1).
+ *
+ * The row NEVER overlaps at any dock width (law §3.4): a ResizeObserver feeds
+ * the measured row width to `metaRowStepForWidth`, and the resulting plan
+ * walks the collapse ladder — full labels → short labels → icons + tooltips →
+ * a "⋯" overflow popover → two stacked 24px rows. See `meta-row-collapse.ts`.
  */
 
-type PopoverKey = "mode" | "lens" | "model";
+type PopoverKey = "mode" | "lens" | "model" | "overflow";
 
 /** Shared 24px chip — visibly interactive per law §5: a hairline border + a
  *  hover bg/text step + cursor-pointer, so clickability is never a guess.
@@ -246,6 +251,128 @@ function AutonomySegments() {
   );
 }
 
+/** ASK/AUTO as popover rows — the overflow ("⋯") step's autonomy control. */
+function AutonomyRows({ onPicked }: { onPicked: () => void }) {
+  const autonomy = useAgentAutonomyStore((state) => state.autonomy);
+  const setAutonomy = useAgentAutonomyStore((state) => state.setAutonomy);
+  return (
+    <>
+      {(["ask", "auto"] as const).map((level) => (
+        <PopoverRow
+          key={level}
+          active={autonomy === level}
+          label={level.toUpperCase()}
+          hint={
+            level === "auto"
+              ? "UI / layout / chart changes apply instantly; orders always confirm"
+              : "Every proposed change waits for your accept"
+          }
+          onSelect={() => {
+            setAutonomy(level);
+            onPicked();
+          }}
+        />
+      ))}
+    </>
+  );
+}
+
+/** The provider · model popover BODY — shared verbatim between the model chip's
+ *  own popover and the "⋯" overflow popover so the two never diverge. */
+function ModelPopoverBody({
+  providers,
+  provider,
+  providerLabel,
+  providerConfigured,
+  model,
+  groups,
+  selectedIsNoTools,
+  catalogNote,
+  catalogLoading,
+  onProviderChange,
+  onModelChange,
+  onKeyRequired,
+  onRefreshModels,
+  close,
+}: {
+  providers: LLMProviderInfo[];
+  provider: LLMProviderId;
+  providerLabel: string;
+  providerConfigured: boolean;
+  model: string;
+  groups: ReturnType<typeof buildModelGroups>["groups"];
+  selectedIsNoTools: boolean;
+  catalogNote?: string | null;
+  catalogLoading?: boolean;
+  onProviderChange: (provider: LLMProviderId) => void;
+  onModelChange: (model: string) => void;
+  onKeyRequired?: (provider: LLMProviderId) => void;
+  onRefreshModels?: () => void;
+  close: () => void;
+}) {
+  return (
+    <>
+      <PopoverHeader>
+        <span className="min-w-0 flex-1 truncate">Provider</span>
+        {onRefreshModels && (
+          <button
+            type="button"
+            onClick={onRefreshModels}
+            title={catalogNote ?? "Refresh model list"}
+            aria-label="Refresh model list"
+            className="text-charcoal-500 hover:text-charcoal-200 rounded-control shrink-0 cursor-pointer transition-colors"
+          >
+            <RefreshCw className={cn("size-3", catalogLoading && "animate-spin")} />
+          </button>
+        )}
+      </PopoverHeader>
+      {providers.map((p) => (
+        <PopoverRow
+          key={p.id}
+          active={p.id === provider}
+          label={p.label}
+          onSelect={() => onProviderChange(p.id)}
+        />
+      ))}
+      {!providerConfigured && (
+        <button
+          type="button"
+          onClick={() => {
+            onKeyRequired?.(provider);
+            close();
+          }}
+          className="text-warning text-caption hover:text-charcoal-100 w-full cursor-pointer px-3 py-1 text-left font-mono transition-colors"
+          title="No BYOK key configured for this provider — click to add"
+        >
+          no key for {providerLabel} — add one
+        </button>
+      )}
+      <PopoverHeader>Model</PopoverHeader>
+      {groups.map((group, index) => (
+        <Fragment key={group.label ?? `flat-${index}`}>
+          {group.label && <PopoverHeader>{group.label}</PopoverHeader>}
+          {group.options.map((option) => (
+            <PopoverRow
+              key={option.id}
+              active={option.id === model}
+              label={modelOptionLabel(option)}
+              onSelect={() => {
+                onModelChange(option.id);
+                close();
+              }}
+            />
+          ))}
+        </Fragment>
+      ))}
+      {selectedIsNoTools && (
+        <div className="text-warning text-micro px-3 py-1">
+          ⚠ no tools — agent host-actions will fail on this model
+        </div>
+      )}
+    </>
+  );
+}
+
 export interface ComposerMetaRowProps {
   mode: AgentMode;
   onModeChange: (mode: AgentMode) => void;
@@ -296,12 +423,31 @@ export function ComposerMetaRow({
   onRefreshModels,
 }: ComposerMetaRowProps) {
   const [open, setOpen] = useState<PopoverKey | null>(null);
+  const [step, setStep] = useState<MetaRowStep>("full");
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const toggle = useCallback(
     (key: PopoverKey) => setOpen((current) => (current === key ? null : key)),
     [],
   );
+
+  // Collapse ladder (law §3.4): the measured row width drives the step. The
+  // container width is set by the dock, not by our own content, so there is no
+  // measure→render feedback loop. An unmeasured row assumes "full".
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof ResizeObserver === "undefined") {
+      return;
+    }
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width;
+      if (typeof width === "number") {
+        setStep(metaRowStepForWidth(width));
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   // One popover at a time; click-outside or Escape dismisses.
   useEffect(() => {
@@ -346,179 +492,250 @@ export function ComposerMetaRow({
     a.id === "copilot" ? -1 : b.id === "copilot" ? 1 : 0,
   );
   const activeMode = AGENT_MODES.find((m) => m.id === mode);
+  const plan = metaRowPlan(step);
+  const iconsOnly = plan.labels === "icons";
+  const ModeIcon = mode === "delegate" ? Timer : Bot;
+
+  const close = useCallback(() => setOpen(null), []);
+
+  /* Mode chip → Agent | Delegate popover */
+  const modeChip = (
+    <div className="relative shrink-0">
+      <MetaChip
+        label={`Agent mode — ${activeMode?.label ?? mode}`}
+        title={activeMode?.hint ?? `Mode: ${activeMode?.label ?? mode}`}
+        open={open === "mode"}
+        onClick={() => toggle("mode")}
+      >
+        {iconsOnly ? (
+          <ModeIcon className="size-3 shrink-0" aria-hidden />
+        ) : (
+          <span className="truncate">{activeMode?.label ?? mode}</span>
+        )}
+      </MetaChip>
+      {open === "mode" && (
+        <Popover align="left" label="Agent mode">
+          {AGENT_MODES.map((m) => (
+            <PopoverRow
+              key={m.id}
+              active={m.id === mode}
+              label={`${m.label} (${m.hotkeyLabel})`}
+              hint={m.hint}
+              onSelect={() => {
+                onModeChange(m.id);
+                setOpen(null);
+              }}
+            />
+          ))}
+        </Popover>
+      )}
+    </div>
+  );
+
+  /* Lens chip → persona roster popover. ALWAYS the display name (or, at the
+     icons step, the eye glyph with the name in the tooltip — never a raw id,
+     never a mid-word clip: the cap tightens BEFORE the icon step engages). */
+  const lensChip = (
+    <div className={cn("relative", iconsOnly ? "shrink-0" : "min-w-[4rem] shrink")}>
+      <MetaChip
+        label={`Active lens — ${lensLabel}`}
+        title={`Lens: ${lensLabel}`}
+        open={open === "lens"}
+        onClick={() => toggle("lens")}
+      >
+        {iconsOnly ? (
+          <Eye className="size-3 shrink-0" aria-hidden />
+        ) : (
+          <span
+            className={cn(
+              "min-w-0 flex-1 truncate",
+              plan.labels === "full" ? "max-w-[9rem]" : "max-w-[6rem]",
+            )}
+          >
+            {lensLabel}
+          </span>
+        )}
+      </MetaChip>
+      {open === "lens" && (
+        <Popover align="left" label="Active lens">
+          <PopoverHeader>First-party</PopoverHeader>
+          {ordered.map((agent) => (
+            <PopoverRow
+              key={agent.id}
+              active={agent.id === activeAgentId}
+              label={agent.name}
+              onSelect={() => {
+                onLensChange(agent.id);
+                setOpen(null);
+              }}
+            />
+          ))}
+          {custom.length > 0 && (
+            <>
+              <PopoverHeader>Custom</PopoverHeader>
+              {custom.map((agent) => (
+                <PopoverRow
+                  key={agent.id}
+                  active={agent.id === activeAgentId}
+                  label={agent.name}
+                  onSelect={() => {
+                    onLensChange(agent.id);
+                    setOpen(null);
+                  }}
+                />
+              ))}
+            </>
+          )}
+        </Popover>
+      )}
+    </div>
+  );
+
+  const depthSlider = (
+    <DepthSlider
+      depth={depth}
+      onChange={onDepthChange}
+      liveDepth={liveDepth}
+      showLabel={plan.showDepthLabel}
+    />
+  );
+
+  const autonomy = <AutonomySegments />;
+
+  const modelTitle = catalogNote ?? `${providerLabel} · ${model}`;
+  const modelText = model.toLowerCase().startsWith(provider.toLowerCase())
+    ? model
+    : `${providerLabel} · ${model}`;
+
+  /* Model chip → provider · model popover (capability pips + refresh).
+     Shrinkable with a floor so the one-row meta strip fits the dock. */
+  const modelChip = (
+    <div className={cn("relative", iconsOnly ? "shrink-0" : "min-w-[4.5rem] shrink")}>
+      <MetaChip
+        label={`Model — ${providerLabel} · ${model}`}
+        title={modelTitle}
+        open={open === "model"}
+        onClick={() => toggle("model")}
+      >
+        {iconsOnly ? (
+          <Cpu className="size-3 shrink-0" aria-hidden />
+        ) : (
+          <span
+            className={cn(
+              "truncate normal-case",
+              plan.labels === "full" ? "max-w-[13rem]" : "max-w-[8rem]",
+            )}
+          >
+            {modelText}
+          </span>
+        )}
+        {selectedIsNoTools && (
+          <span
+            className="text-warning shrink-0 normal-case"
+            title="This model has no tool-calling — agent host-actions will fail. Pick a tool-capable model."
+          >
+            ⚠
+          </span>
+        )}
+        {!providerConfigured && !iconsOnly && (
+          <span className="text-warning shrink-0" title="No BYOK key configured">
+            no key
+          </span>
+        )}
+      </MetaChip>
+      {open === "model" && (
+        <Popover align="right" label="Provider and model">
+          <ModelPopoverBody
+            providers={providers}
+            provider={provider}
+            providerLabel={providerLabel}
+            providerConfigured={providerConfigured}
+            model={model}
+            groups={groups}
+            selectedIsNoTools={selectedIsNoTools}
+            catalogNote={catalogNote}
+            catalogLoading={catalogLoading}
+            onProviderChange={onProviderChange}
+            onModelChange={onModelChange}
+            onKeyRequired={onKeyRequired}
+            onRefreshModels={onRefreshModels}
+            close={close}
+          />
+        </Popover>
+      )}
+    </div>
+  );
+
+  /* The "⋯" overflow chip — at the overflow step it carries autonomy + the
+     provider/model picker so nothing ever clips out of reach. */
+  const overflowChip = (
+    <div className="relative shrink-0">
+      <MetaChip
+        label="More composer controls"
+        title="Autonomy · provider · model"
+        open={open === "overflow"}
+        onClick={() => toggle("overflow")}
+      >
+        <Ellipsis className="size-3 shrink-0" aria-hidden />
+      </MetaChip>
+      {open === "overflow" && (
+        <Popover align="right" label="More composer controls">
+          <PopoverHeader>Autonomy</PopoverHeader>
+          <AutonomyRows onPicked={close} />
+          <ModelPopoverBody
+            providers={providers}
+            provider={provider}
+            providerLabel={providerLabel}
+            providerConfigured={providerConfigured}
+            model={model}
+            groups={groups}
+            selectedIsNoTools={selectedIsNoTools}
+            catalogNote={catalogNote}
+            catalogLoading={catalogLoading}
+            onProviderChange={onProviderChange}
+            onModelChange={onModelChange}
+            onKeyRequired={onKeyRequired}
+            onRefreshModels={onRefreshModels}
+            close={close}
+          />
+        </Popover>
+      )}
+    </div>
+  );
+
+  if (plan.twoRow) {
+    // The floor of the ladder: wrap into two clean 24px rows rather than clip.
+    return (
+      <div ref={containerRef} className="mb-2 flex flex-col gap-1 px-3 font-mono">
+        <div className="flex h-6 items-center gap-1.5">
+          {modeChip}
+          {lensChip}
+          {depthSlider}
+          <div className="min-w-0 flex-1" />
+        </div>
+        <div className="flex h-6 items-center gap-1.5">
+          {autonomy}
+          <div className="min-w-0 flex-1" />
+          {modelChip}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} className="mb-2 flex h-6 items-center gap-1.5 px-3 font-mono">
-      {/* Mode chip → Agent | Delegate popover */}
-      <div className="relative shrink-0">
-        <MetaChip
-          label={`Agent mode — ${activeMode?.label ?? mode}`}
-          title={activeMode?.hint}
-          open={open === "mode"}
-          onClick={() => toggle("mode")}
-        >
-          <span className="truncate">{activeMode?.label ?? mode}</span>
-        </MetaChip>
-        {open === "mode" && (
-          <Popover align="left" label="Agent mode">
-            {AGENT_MODES.map((m) => (
-              <PopoverRow
-                key={m.id}
-                active={m.id === mode}
-                label={`${m.label} (${m.hotkeyLabel})`}
-                hint={m.hint}
-                onSelect={() => {
-                  onModeChange(m.id);
-                  setOpen(null);
-                }}
-              />
-            ))}
-          </Popover>
-        )}
-      </div>
-
-      {/* Lens chip → persona roster popover. ALWAYS the display name. The
-          min-w floor matters: as the only shrinkable item it was crushed to
-          0 width at dock widths, painting its text over the depth slider. */}
-      <div className="relative min-w-[4rem] shrink">
-        <MetaChip
-          label={`Active lens — ${lensLabel}`}
-          title={`Lens: ${lensLabel}`}
-          open={open === "lens"}
-          onClick={() => toggle("lens")}
-        >
-          <span className="max-w-[9rem] min-w-0 flex-1 truncate">{lensLabel}</span>
-        </MetaChip>
-        {open === "lens" && (
-          <Popover align="left" label="Active lens">
-            <PopoverHeader>First-party</PopoverHeader>
-            {ordered.map((agent) => (
-              <PopoverRow
-                key={agent.id}
-                active={agent.id === activeAgentId}
-                label={agent.name}
-                onSelect={() => {
-                  onLensChange(agent.id);
-                  setOpen(null);
-                }}
-              />
-            ))}
-            {custom.length > 0 && (
-              <>
-                <PopoverHeader>Custom</PopoverHeader>
-                {custom.map((agent) => (
-                  <PopoverRow
-                    key={agent.id}
-                    active={agent.id === activeAgentId}
-                    label={agent.name}
-                    onSelect={() => {
-                      onLensChange(agent.id);
-                      setOpen(null);
-                    }}
-                  />
-                ))}
-              </>
-            )}
-          </Popover>
-        )}
-      </div>
-
-      <DepthSlider depth={depth} onChange={onDepthChange} liveDepth={liveDepth} />
-
+      {modeChip}
+      {lensChip}
+      {depthSlider}
       <div className="min-w-0 flex-1" />
-
-      <AutonomySegments />
-
-      {/* Model chip → provider · model popover (capability pips + refresh).
-          Shrinkable with a floor so the one-row meta strip fits the dock. */}
-      <div className="relative min-w-[4.5rem] shrink">
-        <MetaChip
-          label={`Model — ${providerLabel} · ${model}`}
-          title={catalogNote ?? `${providerLabel} · ${model}`}
-          open={open === "model"}
-          onClick={() => toggle("model")}
-        >
-          <span className="max-w-[13rem] truncate normal-case">
-            {model.toLowerCase().startsWith(provider.toLowerCase())
-              ? model
-              : `${providerLabel} · ${model}`}
-          </span>
-          {selectedIsNoTools && (
-            <span
-              className="text-warning shrink-0 normal-case"
-              title="This model has no tool-calling — agent host-actions will fail. Pick a tool-capable model."
-            >
-              ⚠
-            </span>
-          )}
-          {!providerConfigured && (
-            <span className="text-warning shrink-0" title="No BYOK key configured">
-              no key
-            </span>
-          )}
-        </MetaChip>
-        {open === "model" && (
-          <Popover align="right" label="Provider and model">
-            <PopoverHeader>
-              <span className="min-w-0 flex-1 truncate">Provider</span>
-              {onRefreshModels && (
-                <button
-                  type="button"
-                  onClick={onRefreshModels}
-                  title={catalogNote ?? "Refresh model list"}
-                  aria-label="Refresh model list"
-                  className="text-charcoal-500 hover:text-charcoal-200 rounded-control shrink-0 transition-colors"
-                >
-                  <RefreshCw className={cn("size-3", catalogLoading && "animate-spin")} />
-                </button>
-              )}
-            </PopoverHeader>
-            {providers.map((p) => (
-              <PopoverRow
-                key={p.id}
-                active={p.id === provider}
-                label={p.label}
-                onSelect={() => onProviderChange(p.id)}
-              />
-            ))}
-            {!providerConfigured && (
-              <button
-                type="button"
-                onClick={() => {
-                  onKeyRequired?.(provider);
-                  setOpen(null);
-                }}
-                className="text-warning text-caption hover:text-charcoal-100 w-full px-3 py-1 text-left font-mono transition-colors"
-                title="No BYOK key configured for this provider — click to add"
-              >
-                no key for {providerLabel} — add one
-              </button>
-            )}
-            <PopoverHeader>Model</PopoverHeader>
-            {groups.map((group, index) => (
-              <Fragment key={group.label ?? `flat-${index}`}>
-                {group.label && <PopoverHeader>{group.label}</PopoverHeader>}
-                {group.options.map((option) => (
-                  <PopoverRow
-                    key={option.id}
-                    active={option.id === model}
-                    label={modelOptionLabel(option)}
-                    onSelect={() => {
-                      onModelChange(option.id);
-                      setOpen(null);
-                    }}
-                  />
-                ))}
-              </Fragment>
-            ))}
-            {selectedIsNoTools && (
-              <div className="text-warning text-micro px-3 py-1">
-                ⚠ no tools — agent host-actions will fail on this model
-              </div>
-            )}
-          </Popover>
-        )}
-      </div>
+      {plan.overflowMenu ? (
+        overflowChip
+      ) : (
+        <>
+          {autonomy}
+          {modelChip}
+        </>
+      )}
     </div>
   );
 }
