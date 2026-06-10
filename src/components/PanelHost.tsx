@@ -24,12 +24,11 @@ const AUTOSAVE_DEBOUNCE_MS = 1500;
  */
 const PANEL_MIN_SIZE: Record<string, { minimumWidth: number; minimumHeight: number }> = {
   // --- Default-cockpit panels ---
-  // chart: the always-present indicator selector (max-h-56 = 224px) + two
-  // flex-wrap toolbars (~80px) sit BELOW the chart canvas; at the old 220px
-  // floor the `flex-1` canvas collapsed to 0px and lightweight-charts rendered
-  // a 0-height surface. 480px = ~200px usable canvas + ~80px toolbars + the
-  // 200px indicator-section floor, so the canvas keeps a legible height.
-  "chart-panel": { minimumWidth: 360, minimumHeight: 480 },
+  // chart: ONE h-7 toolbar row (R9 — symbol/timeframe/tools, ~44px) + earned
+  // chip/inspector rows above/below the canvas. 360 wide is the toolbar's
+  // declared one-row floor (its §3.4 collapse ladder bottoms out at the ⋯
+  // step); 360 tall keeps ~260px of legible canvas under the chrome.
+  "chart-panel": { minimumWidth: 360, minimumHeight: 360 },
   "equity-overview-panel": { minimumWidth: 340, minimumHeight: 200 },
   "watchlist-panel": { minimumWidth: 264, minimumHeight: 140 },
   "news-panel": { minimumWidth: 280, minimumHeight: 160 },

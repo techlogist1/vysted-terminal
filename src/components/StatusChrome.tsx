@@ -137,8 +137,8 @@ export function StatusChrome() {
       aria-label="Status"
       className="text-charcoal-500 text-micro flex items-center gap-3 font-mono leading-none"
     >
-      <span className="flex items-center gap-1.5" title={`Sidecar: ${connLabel}`}>
-        <span className={cn("size-1.5 rounded-full", dotClass)} aria-hidden />
+      <span className="flex items-center gap-2" title={`Sidecar: ${connLabel}`}>
+        <span className={cn("size-2 rounded-full", dotClass)} aria-hidden />
         {connLabel}
       </span>
       {providerModel && (
@@ -147,8 +147,8 @@ export function StatusChrome() {
           {/* Provider dot + designed short model. Below 880px window width the
               label COLLAPSES to the dot alone (law §3.1 — collapse, never a
               mid-word clip); the tooltip keeps the full identity either way. */}
-          <span className="flex items-center gap-1.5" title={providerModelTitle}>
-            <span className="bg-charcoal-400 size-1.5 shrink-0 rounded-full" aria-hidden />
+          <span className="flex items-center gap-2" title={providerModelTitle}>
+            <span className="bg-charcoal-400 size-2 shrink-0 rounded-full" aria-hidden />
             <span className="text-charcoal-400 hidden whitespace-nowrap min-[880px]:inline">
               {providerModel}
             </span>
@@ -165,7 +165,7 @@ export function StatusChrome() {
             .map((r) => r.agentName)
             .join(", ")}`}
         >
-          <span className="size-1.5 animate-pulse rounded-full bg-current" aria-hidden />
+          <span className="size-2 animate-pulse rounded-full bg-current" aria-hidden />
           {activeRunCount}
         </span>
       )}

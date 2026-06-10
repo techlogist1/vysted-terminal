@@ -261,7 +261,9 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
       </div>
 
       {/* Results list */}
-      <Command.List className="max-h-96 w-full min-w-0 overflow-y-auto py-2">
+      <Command.List
+        className={"max-h-96 w-full min-w-0 overflow-y-auto py-2" /* tokens-ok: scroll cap */}
+      >
         {/* Empty state — shown when query returns no matches */}
         <Command.Empty>
           <EmptyState
@@ -302,7 +304,7 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
                   value={suggestion.id}
                   keywords={[suggestion.label, suggestion.description ?? ""]}
                   onSelect={() => handleSelectSuggested(suggestion)}
-                  className="aria-selected:bg-charcoal-800 rounded-control flex min-h-9 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
+                  className="aria-selected:bg-charcoal-800 rounded-control flex min-h-8 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
                 >
                   <suggestion.Icon className="text-charcoal-400 size-4 shrink-0" aria-hidden />
                   <div className="min-w-0 flex-1">
@@ -382,7 +384,7 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
                   setChartSymbol("palette", c.symbol);
                   onClose();
                 }}
-                className="aria-selected:bg-charcoal-800 rounded-control flex min-h-9 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
+                className="aria-selected:bg-charcoal-800 rounded-control flex min-h-8 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
               >
                 <TrendingUp className="text-charcoal-400 size-4 shrink-0" aria-hidden />
                 <span className="text-charcoal-100 text-body shrink-0">{c.symbol}</span>
@@ -453,14 +455,14 @@ function AskAiItem({ query, onSelect }: AskAiItemProps) {
       keywords={["ask", "ai", "agent", "query", trimmed]}
       onSelect={onSelect}
       forceMount
-      className="aria-selected:bg-charcoal-800 rounded-control flex min-h-9 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
+      className="aria-selected:bg-charcoal-800 rounded-control flex min-h-8 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
     >
       <Sparkles className="text-charcoal-300 size-4 shrink-0" aria-hidden />
       <div className="min-w-0 flex-1">
         <span className="text-charcoal-300 text-caption">Ask agent: </span>
         <span className="text-charcoal-100 text-body font-medium">&ldquo;{trimmed}&rdquo;</span>
       </div>
-      <kbd className="border-charcoal-700 text-charcoal-500 text-micro rounded-control border px-1.5 py-0.5">
+      <kbd className="border-charcoal-700 text-charcoal-500 text-micro rounded-control border px-1 py-0.5">
         Enter
       </kbd>
     </Command.Item>
@@ -484,7 +486,7 @@ function PaletteItemRow({ item, isRecent, onSelect, icon }: PaletteItemRowProps)
       value={item.id}
       keywords={[item.label, item.description ?? ""].filter(Boolean)}
       onSelect={onSelect}
-      className="aria-selected:bg-charcoal-800 rounded-control flex min-h-9 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
+      className="aria-selected:bg-charcoal-800 rounded-control flex min-h-8 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
     >
       {icon}
       <div className="min-w-0 flex-1">

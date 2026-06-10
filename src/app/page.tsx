@@ -209,7 +209,7 @@ export default function Page() {
             onClick={toggleAgent}
             aria-pressed={!agentCollapsed}
             className={cn(
-              "text-caption flex items-center gap-1.5 transition-colors",
+              "text-caption flex items-center gap-2 transition-colors",
               agentCollapsed
                 ? "text-charcoal-400 hover:text-lume"
                 : "text-charcoal-100 hover:text-lume",
@@ -227,19 +227,19 @@ export default function Page() {
           <button
             type="button"
             onClick={() => openPalette(true)}
-            className="text-charcoal-300 hover:text-lume text-caption flex items-center gap-1.5 transition-colors"
+            className="text-charcoal-300 hover:text-lume text-caption flex items-center gap-2 transition-colors"
             aria-label="Open command palette"
           >
             <LayoutGrid className="h-4 w-4" />
             Open panel
-            <kbd className="border-charcoal-700 text-charcoal-500 rounded-control text-micro border px-1.5 py-0.5">
+            <kbd className="border-charcoal-700 text-charcoal-500 rounded-control text-micro border px-1 py-0.5">
               ⌘K
             </kbd>
           </button>
           <button
             type="button"
             onClick={openSaveLayout}
-            className="text-charcoal-300 hover:text-lume text-caption flex items-center gap-1.5 transition-colors"
+            className="text-charcoal-300 hover:text-lume text-caption flex items-center gap-2 transition-colors"
             aria-label="Save layout"
           >
             <Save className="h-4 w-4" />
