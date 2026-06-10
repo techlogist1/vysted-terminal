@@ -169,7 +169,7 @@ function SectionNav() {
           onClick={() =>
             document.getElementById(id)?.scrollIntoView?.({ behavior: "smooth", block: "start" })
           }
-          className="border-charcoal-700 text-charcoal-400 hover:text-charcoal-100 hover:bg-charcoal-875 rounded-control text-micro h-6 border px-3"
+          className="border-charcoal-700 text-charcoal-400 hover:text-charcoal-100 hover:bg-charcoal-875 rounded-control text-micro h-6 border px-3 whitespace-nowrap"
         >
           {label}
         </button>
@@ -225,7 +225,10 @@ function Card({ className, children }: { className?: string; children: React.Rea
   );
 }
 
-/** The one labelled setting row: label + hint left, a 32px-ladder control right. */
+/** The one labelled setting row: label + hint left, a 32px-ladder control right.
+ *  Declares its collapse step (R8 §3.4): when the row starves (≈360px panel),
+ *  the control wraps BELOW the label as a unit, right-aligned — labels never
+ *  crush against a fixed-width control, nothing overlaps. */
 function SettingRow({
   label,
   hint,
@@ -238,7 +241,7 @@ function SettingRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-8 items-center justify-between gap-4 px-4 py-3">
+    <div className="flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
       <div className="flex min-w-0 flex-col">
         <span className="text-charcoal-100 text-body flex items-center gap-2">
           {icon}
@@ -246,7 +249,7 @@ function SettingRow({
         </span>
         {hint && <span className="text-charcoal-400 text-caption mt-1">{hint}</span>}
       </div>
-      <div className="shrink-0">{children}</div>
+      <div className="ml-auto shrink-0">{children}</div>
     </div>
   );
 }
@@ -400,7 +403,10 @@ function ProvidersSection() {
             return (
               <div
                 key={provider.id}
-                className="flex min-h-8 items-center justify-between gap-4 px-4 py-3"
+                // Collapse order (R8 §3.4): at narrow widths the control
+                // cluster wraps below the label as ONE unit (ml-auto keeps it
+                // right-aligned) — columns stay aligned, nothing overlaps.
+                className="flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3"
               >
                 <div className="flex min-w-0 flex-col">
                   <span className="text-charcoal-100 text-body truncate">{provider.label}</span>
@@ -419,10 +425,10 @@ function ProvidersSection() {
                 </div>
                 {/* Fixed-width slots so the cluster aligns row to row — a row
                     missing a control renders its slot empty, never collapses. */}
-                <div className="flex shrink-0 items-center gap-3">
+                <div className="ml-auto flex shrink-0 items-center gap-3">
                   <span className="flex w-20 justify-end">
                     {isDefault ? (
-                      <span className="text-micro rounded-control bg-charcoal-850 text-charcoal-300 px-2 py-1">
+                      <span className="text-micro rounded-control bg-charcoal-850 text-charcoal-300 px-2 py-1 whitespace-nowrap">
                         default
                       </span>
                     ) : (
@@ -438,7 +444,9 @@ function ProvidersSection() {
                           // choice survives relaunch even without a layout change.
                           void autosaveLayout();
                         }}
-                        className="text-micro text-charcoal-400 hover:text-charcoal-100 rounded-control h-6 px-1"
+                        // R8 §3.5: a button label never wraps to two lines —
+                        // "Set default" stays one line in its fixed w-20 slot.
+                        className="text-micro text-charcoal-400 hover:text-charcoal-100 rounded-control h-6 px-1 whitespace-nowrap"
                       >
                         Set default
                       </button>
@@ -1828,7 +1836,9 @@ function KeybindingsSection() {
                     <div
                       key={actionId}
                       className={cn(
-                        "flex min-h-8 items-center justify-between gap-4 px-4 py-3",
+                        // Collapse order (R8 §3.4): the kbd/record cluster
+                        // wraps below the label as a unit at narrow widths.
+                        "flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3",
                         conflicted && "border-warning/50 border-l-2",
                       )}
                     >
@@ -1838,11 +1848,13 @@ function KeybindingsSection() {
                           {def.description}
                         </span>
                       </div>
-                      <div className="flex shrink-0 items-center gap-2">
+                      <div className="ml-auto flex shrink-0 items-center gap-2">
                         <kbd
                           aria-label={`${def.label} binding`}
                           className={cn(
-                            "border-charcoal-700 bg-charcoal-850 rounded-control text-caption flex h-6 items-center border px-2",
+                            // §3.5: the combo (or the recording prompt) never
+                            // wraps inside the fixed-height chip.
+                            "border-charcoal-700 bg-charcoal-850 rounded-control text-caption flex h-6 items-center border px-2 whitespace-nowrap",
                             conflicted ? "text-warning" : "text-charcoal-100",
                           )}
                         >
