@@ -21,8 +21,9 @@ export { cn };
  *
  *  - Header cells: `text-micro` (11px) · weight-510 · `charcoal-400` · uppercase ·
  *    `px-3 py-1.5`. Numeric headers are right-aligned to their column.
- *  - Body cells: `text-body` (13px) · `px-3 py-1.5` (one rhythm for every dense
- *    table). Numeric cells are `text-right whitespace-nowrap tabular-nums`.
+ *  - Body cells: `text-caption` (12px — the R8 §1 data-cell step) · `px-3 py-1.5`
+ *    (one rhythm for every dense table). Numeric cells are
+ *    `text-right whitespace-nowrap tabular-nums`.
  *  - Three text tiers via the `tier` prop, never via colour-as-emphasis:
  *    primary `charcoal-100` · secondary `charcoal-400` · tertiary `charcoal-500`.
  *  - Null / missing values render `—` in `charcoal-600`.
@@ -163,7 +164,7 @@ function BodyCell<R, K extends string>({ col, row }: { col: DataColumn<R, K>; ro
   return (
     <td
       className={cn(
-        "text-body px-3 py-1.5",
+        "text-caption px-3 py-1.5",
         isNull ? "text-charcoal-600" : tier,
         col.numeric && "text-right whitespace-nowrap tabular-nums",
         col.truncate && !col.numeric && "max-w-0 truncate",

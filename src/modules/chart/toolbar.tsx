@@ -255,7 +255,7 @@ export function IndicatorsMenu({
         aria-label="Search indicators"
         placeholder="Search indicators"
         spellCheck={false}
-        className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-body placeholder:text-charcoal-500 focus-visible:border-charcoal-500 mb-1 h-6 w-full border px-2 font-mono outline-none"
+        className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-body placeholder:text-charcoal-500 focus-visible:border-charcoal-500 mb-1 h-7 w-full border px-2 font-mono outline-none"
       />
       <div className="max-h-80 overflow-y-auto">
         {groups.length === 0 ? (
@@ -332,11 +332,11 @@ export function CompareMenu({ value, onChange, onSubmit }: CompareMenuProps) {
           aria-label="Compare symbol"
           placeholder="Symbol"
           spellCheck={false}
-          className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-body placeholder:text-charcoal-500 focus-visible:border-charcoal-500 h-6 min-w-0 flex-1 border px-2 font-mono uppercase outline-none"
+          className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-body placeholder:text-charcoal-500 focus-visible:border-charcoal-500 h-7 min-w-0 flex-1 border px-2 font-mono uppercase outline-none"
         />
         <button
           type="submit"
-          className="rounded-control bg-charcoal-850 text-charcoal-200 hover:bg-charcoal-800 hover:text-charcoal-100 text-caption h-6 shrink-0 px-2 font-mono transition-colors"
+          className="rounded-control bg-charcoal-850 text-charcoal-200 hover:bg-charcoal-800 hover:text-charcoal-100 text-caption h-6 shrink-0 px-2 font-mono whitespace-nowrap transition-colors"
         >
           Add
         </button>

@@ -34,6 +34,7 @@ import {
 } from "@/lib/chart-theme";
 import { sessionLabelFromFreshness } from "@/lib/market-session";
 import { SidecarError, sidecarApi } from "@/lib/sidecar-client";
+import { useContainerWidth } from "@/lib/use-container-width";
 import { cn } from "@/lib/utils";
 import { useChartCommandStore } from "@/store/chart-command";
 import { newDrawingId, useChartDrawingsStore } from "@/store/chart-drawings";
@@ -68,6 +69,13 @@ type Timeframe = (typeof TIMEFRAMES)[number];
 
 const DEFAULT_SYMBOL = "SPY";
 const DEFAULT_TIMEFRAME: Timeframe = "1d";
+
+/**
+ * R8 §3.4 — the toolbar row's declared collapse step: below this measured
+ * width the eight-step timeframe segmented control collapses into a compact
+ * dropdown so the row never starves into a third wrap line.
+ */
+const TIMEFRAME_DROPDOWN_BELOW = 700;
 
 /** The toolbar's disclosure popovers — at most one is open at a time. */
 type ToolbarMenu = "draw" | "indicators" | "compare" | "sync";
@@ -232,6 +240,10 @@ function ChartPanel(props: ChartPanelProps = {}) {
   // --- toolbar disclosure state --------------------------------------------
   const [openMenu, setOpenMenu] = useState<ToolbarMenu | null>(null);
   const [indicatorQuery, setIndicatorQuery] = useState("");
+  // Measured toolbar width drives the §3.4 collapse step (segmented timeframes
+  // → dropdown). Null (first paint) renders the full control.
+  const { ref: toolbarRef, width: toolbarWidth } = useContainerWidth<HTMLDivElement>();
+  const timeframesAsDropdown = toolbarWidth !== null && toolbarWidth < TIMEFRAME_DROPDOWN_BELOW;
 
   const [priceState, setPriceState] = useState<LoadState>("idle");
   const [priceError, setPriceError] = useState<string | null>(null);
@@ -1047,6 +1059,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
     <div className="bg-charcoal-900 flex h-full w-full flex-col" data-panel-id={panelId}>
       {/* The one toolbar row — symbol, timeframes, disclosures, chips, status */}
       <div
+        ref={toolbarRef}
         className="relative z-20 flex flex-wrap items-center gap-2 border-b px-3 py-2"
         style={{ borderColor: "var(--hairline-strong)" }}
       >
@@ -1057,42 +1070,70 @@ function ChartPanel(props: ChartPanelProps = {}) {
             submitSymbol();
           }}
         >
+          {/* Symbol input on the h-7 toolbar-field rung; min-w fits 12
+              characters ("SAKSOFT.NS" + padding — law §2, never less). */}
           <input
             value={symbolInput}
             onChange={(event) => setSymbolInput(event.target.value)}
             aria-label="Symbol"
             placeholder="Symbol"
             spellCheck={false}
-            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-body placeholder:text-charcoal-500 focus-visible:border-charcoal-500 h-6 w-24 border px-2 font-mono uppercase outline-none"
+            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-body placeholder:text-charcoal-500 focus-visible:border-charcoal-500 h-7 w-[7.5rem] min-w-[7.5rem] border px-2 font-mono uppercase outline-none"
           />
           <Button type="submit" size="xs" variant="outline">
             Load
           </Button>
         </form>
 
-        {/* Timeframe segmented control — the eight intervals stay load-bearing. */}
-        <div
-          className="border-charcoal-700 rounded-control flex items-center border"
-          role="group"
-          aria-label="Timeframe"
-        >
-          {TIMEFRAMES.map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => setTimeframe(option)}
-              aria-pressed={timeframe === option}
-              className={cn(
-                "rounded-control text-caption h-6 px-2 font-mono transition-colors",
-                timeframe === option
-                  ? "bg-charcoal-875 text-charcoal-100"
-                  : "text-charcoal-400 hover:text-charcoal-100",
-              )}
+        {/* Timeframe control — the eight intervals stay load-bearing. Wide:
+            a segmented control with descender-safe py-based sizing (law §3.3 —
+            no fixed-height clip). Narrow (§3.4 collapse step): a compact
+            dropdown so the toolbar never starves. */}
+        {timeframesAsDropdown ? (
+          <div className="relative">
+            <select
+              aria-label="Timeframe"
+              value={timeframe}
+              onChange={(event) => setTimeframe(event.target.value as Timeframe)}
+              className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-caption focus-visible:border-charcoal-500 h-7 appearance-none border py-1 pr-6 pl-2 font-mono outline-none"
             >
-              {option}
-            </button>
-          ))}
-        </div>
+              {TIMEFRAMES.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <span
+              aria-hidden
+              className="text-charcoal-500 text-micro pointer-events-none absolute top-1/2 right-1.5 -translate-y-1/2"
+            >
+              ▾
+            </span>
+          </div>
+        ) : (
+          <div
+            className="border-charcoal-700 rounded-control flex items-center border"
+            role="group"
+            aria-label="Timeframe"
+          >
+            {TIMEFRAMES.map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setTimeframe(option)}
+                aria-pressed={timeframe === option}
+                className={cn(
+                  "rounded-control text-caption flex min-h-6 items-center px-2 py-1 font-mono transition-colors",
+                  timeframe === option
+                    ? "bg-charcoal-875 text-charcoal-100"
+                    : "text-charcoal-400 hover:text-charcoal-100",
+                )}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        )}
 
         <span
           aria-hidden

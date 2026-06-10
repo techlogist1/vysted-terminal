@@ -9,8 +9,11 @@ import { cn } from "@/lib/utils";
 // neutral focus ring, never a halo. Control-size ladder is exactly TWO heights:
 // 32px standard (default / sm / lg / icon / icon-sm / icon-lg) and 24px compact
 // (xs / icon-xs), so sibling controls never misalign.
+// Icon ladder (R8 §2): 14px (size-3.5) inside the 32px tier, 12px (size-3)
+// inside the 24px tier; 16px is reserved for explicit primary actions — the
+// caller passes `size-4` itself and the :not([class*='size-']) guard yields.
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-control text-body font-medium whitespace-nowrap transition-all outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-control text-body font-medium whitespace-nowrap transition-all outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
   {
     variants: {
       variant: {

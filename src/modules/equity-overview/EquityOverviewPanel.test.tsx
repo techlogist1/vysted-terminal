@@ -195,6 +195,63 @@ describe("EquityOverviewPanel", () => {
     expect(screen.queryByText(/free_cash_flow|shares_outstanding/)).toBeNull();
   });
 
+  it("formats money fields in the INSTRUMENT's currency, not the region default (R8 §6 / D10)", async () => {
+    const f = fundamentals();
+    f.currency = "INR";
+    const q = quote();
+    q.currency = "INR";
+    mockLoad.mockResolvedValue(overview({ fundamentals: f, quote: q }));
+    render(<EquityOverviewPanel />);
+    await loadSymbol("reliance");
+
+    // Market cap / revenue / FCF carry the instrument's ₹ even though the
+    // active region default is USD — and vice versa (no ₹ on AAPL).
+    expect(screen.getByText("₹3.00T")).toBeInTheDocument();
+    expect(screen.getByText("₹400B")).toBeInTheDocument();
+    expect(screen.getByText("₹95.0B")).toBeInTheDocument();
+    expect(screen.queryByText("$3.00T")).toBeNull();
+  });
+
+  it("closes the symbol autocomplete on selection and never re-opens over content (D10)", async () => {
+    const { autocompleteSymbols } = await import("./api");
+    vi.mocked(autocompleteSymbols).mockResolvedValue([
+      {
+        symbol: "SAKSOFT.NS",
+        name: "Saksoft Limited",
+        exchange: "NSE",
+        region: "IN",
+        asset_class: "equity",
+        yahoo_symbol: "SAKSOFT.NS",
+        confidence: 0.99,
+      },
+    ]);
+    mockLoad.mockResolvedValue(overview());
+    render(<EquityOverviewPanel />);
+
+    const input = screen.getByLabelText("Symbol");
+    input.focus();
+    fireEvent.change(input, { target: { value: "saksoft" } });
+    // Let the 140ms debounce + the mocked fetch resolve.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    });
+    const option = screen.getByText("Saksoft Limited");
+
+    // onMouseDown selects (fires before blur) — the list must close at once…
+    await act(async () => {
+      fireEvent.mouseDown(option);
+    });
+    expect(screen.queryByText("Saksoft Limited")).toBeNull();
+
+    // …and STAY closed: the programmatic draft write ("SAKSOFT.NS") re-runs
+    // the debounced autocomplete effect, which used to re-open the dropdown
+    // and leave it stuck over the loaded overview.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    });
+    expect(screen.queryByText("Saksoft Limited")).toBeNull();
+  });
+
   it("degrades gracefully when a section is missing", async () => {
     mockLoad.mockResolvedValue(overview({ ratings: null }));
     render(<EquityOverviewPanel />);

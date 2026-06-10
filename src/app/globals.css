@@ -365,7 +365,9 @@
   --dv-icon-hover-background-color: var(--color-charcoal-700, #353535);
   --dv-drag-over-background-color: rgb(var(--accent-rgb) / 0.14);
   --dv-drag-over-border-color: var(--color-charcoal-500, #8a8a8a);
-  --dv-tab-font-size: 12px;
+  /* R8: pinned to the type-scale token (caption — the chrome-label step), not
+     a literal, so a scale change re-values the tab strip with it. */
+  --dv-tab-font-size: var(--text-caption, 0.75rem);
 }
 
 /* The active tab wears a NEUTRAL underline tick along its bottom edge -- the lit
@@ -385,18 +387,38 @@
   min-width: 96px;
 }
 
-/* The tabs-overflow control ("+N hidden tabs") on the design ladder: a quiet
-   24px compact chip, not the library's unstyled default. */
+/* R8 §3.1 — dockview's default tab content sets text-overflow on the PARENT
+   but never overflow:hidden on the label node, so a squeezed tab HARD-CLIPS
+   mid-word ("Portfol"). Give the label node a real ellipsis; the min-width
+   floor above keeps full labels at every sane strip width. */
+.dockview-theme-vysted .dv-tab .dv-default-tab .dv-default-tab-content {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* The tabs-overflow control on the design ladder: a quiet 24px compact chip
+   with a REAL affordance — chevron + "N more" (not the library's bare ">18"),
+   hover step, pointer cursor. The library renders [svg chevron][span count];
+   the ::after supplies the word so the chip reads "⌄ 18 more". */
 .dockview-theme-vysted .dv-tabs-overflow-dropdown-default {
   background-color: var(--color-charcoal-850, #242424);
   color: var(--color-charcoal-400, #a8a8a8);
   border: 1px solid var(--color-charcoal-700, #353535);
   border-radius: var(--radius-control, 4px);
-  font-size: 11px;
+  font-size: var(--text-micro, 0.6875rem);
   height: 24px;
   display: inline-flex;
   align-items: center;
+  gap: 2px;
   padding: 0 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dockview-theme-vysted .dv-tabs-overflow-dropdown-default > span::after {
+  content: " more";
 }
 
 .dockview-theme-vysted .dv-tabs-overflow-dropdown-default:hover {

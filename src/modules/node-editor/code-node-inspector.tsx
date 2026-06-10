@@ -126,7 +126,7 @@ export function CodeNodeInspector({ config, onPatch }: CodeNodeInspectorProps) {
               value={samples[name] ?? ""}
               onChange={(event) => setSamples((prev) => ({ ...prev, [name]: event.target.value }))}
               placeholder="0"
-              className="bg-charcoal-800 text-charcoal-100 rounded-control text-micro focus:ring-charcoal-500 h-7 min-w-0 flex-1 px-2 font-mono outline-none focus:ring-1"
+              className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 h-7 min-w-0 flex-1 px-2 font-mono outline-none focus:ring-1"
             />
           </label>
         ))}

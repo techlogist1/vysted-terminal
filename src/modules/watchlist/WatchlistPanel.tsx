@@ -13,6 +13,7 @@ import { openCompanyOverview } from "@/lib/host-actions";
 import { isLiveQuote, useMarketSession } from "@/lib/market-session";
 import { SidecarError } from "@/lib/sidecar-client";
 import { useSymbolAutocomplete } from "@/lib/symbol-autocomplete";
+import { useContainerWidth } from "@/lib/use-container-width";
 import { useTickFlash } from "@/lib/use-flash-value";
 import { cn } from "@/lib/utils";
 import { usePanelContextBus } from "@/store/panel-context";
@@ -21,6 +22,25 @@ import { useSymbolsStore as useWatchlistStore } from "@/store/symbols";
 
 /** Poll interval for quote refreshes — a few seconds keeps it near-real-time. */
 const POLL_INTERVAL_MS = 5_000;
+
+/**
+ * R8 overflow law §3.2 — the watchlist's explicit column tracks. Price/change
+ * are fixed px tracks sized to their widest sane content at the caption step
+ * (12px mono · tabular), with the cells' own px-3 padding supplying a ≥8px
+ * gutter — price and change can never collide. The symbol column is the one
+ * flexible track. When the measured panel is narrower than the tracks' minimum
+ * the row drops a column by priority: provenance chips first, then change%;
+ * price always survives.
+ */
+const PRICE_TRACK = "6.5rem"; // fits "61,446.08" + padding at caption/mono
+const CHANGE_TRACK = "5.25rem"; // fits "+100.00%" + padding
+const ACTION_TRACK = "3rem"; // the 24px remove control + padding
+/** Below this measured width the provenance/freshness chips drop (priority 1).
+ *  The chips live in the flexible symbol column — the fixed tracks total
+ *  ~236px, so this floor leaves the column ≥ ~104px (the "YF" + "EOD" pair). */
+const DROP_CHIPS_BELOW = 340;
+/** Below this measured width the change% column drops too (priority 2). */
+const DROP_CHANGE_BELOW = 300;
 
 /** A signed percent ("+1.31%") — the watchlist change column. */
 function fmtChange(value: number): string {
@@ -40,14 +60,17 @@ function flashClass(dir: "up" | "down" | null): string {
  * humanized session label, so a closed/weekend/after-hours price is plainly
  * flagged as not-live (FR-041 / FR-118 / SC-019).
  */
-function SymbolCell({ row }: { row: WatchlistRow }) {
+function SymbolCell({ row, showChips }: { row: WatchlistRow; showChips: boolean }) {
   const { entry, quote } = row;
   const session = useMarketSession(quote?.market_state ?? null, quote?.freshness ?? null);
   return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-charcoal-100 text-body truncate">{entry.symbol}</span>
-      {quote !== null && (
-        <span className="flex items-center gap-1 overflow-hidden">
+    <div className="flex min-w-0 flex-col gap-0.5">
+      <span className="text-charcoal-100 text-caption truncate">{entry.symbol}</span>
+      {/* Drop-priority 1 (law §3.2): the provenance/freshness chips drop WHOLE
+          at narrow widths — never a mid-word clip ("YFINAN"). flex-wrap stacks
+          whole chips if an unusually long provider outgrows the column. */}
+      {showChips && quote !== null && (
+        <span className="flex flex-wrap items-center gap-1 overflow-hidden">
           <ProvenanceBadge provider={quote.provider} />
           {quote.freshness != null && <StalenessBadge freshness={quote.freshness} />}
         </span>
@@ -242,45 +265,58 @@ export function WatchlistPanel() {
     downloadCsv("vysted-watchlist.csv", csv);
   };
 
-  const columns = useMemo<DataColumn<WatchlistRow>[]>(
-    () => [
-      { key: "symbol", header: "Symbol", width: "36%", cell: (row) => <SymbolCell row={row} /> },
+  // Measured panel width drives the §3.2 drop-priority ladder. `null` (first
+  // paint) renders the full layout; the observer corrects on the next frame.
+  const { ref: tableAreaRef, width: tableWidth } = useContainerWidth<HTMLDivElement>();
+  const showChips = tableWidth === null || tableWidth >= DROP_CHIPS_BELOW;
+  const showChange = tableWidth === null || tableWidth >= DROP_CHANGE_BELOW;
+
+  const columns = useMemo<DataColumn<WatchlistRow>[]>(() => {
+    const cols: DataColumn<WatchlistRow>[] = [
+      // The one flexible track — takes whatever the fixed tracks leave.
+      {
+        key: "symbol",
+        header: "Symbol",
+        cell: (row) => <SymbolCell row={row} showChips={showChips} />,
+      },
       {
         key: "price",
         header: "Price",
         numeric: true,
-        width: "32%",
+        width: PRICE_TRACK,
         cell: (row) => <PriceCell row={row} />,
       },
-      {
+    ];
+    if (showChange) {
+      cols.push({
         key: "change",
         header: "Change",
         numeric: true,
-        width: "22%",
+        width: CHANGE_TRACK,
         cell: (row) => <ChangeCell row={row} />,
-      },
-      {
-        key: "remove",
-        action: true,
-        width: "10%",
-        cell: (row) => (
-          <Button
-            type="button"
-            size="icon-xs"
-            variant="ghost"
-            aria-label={`Remove ${row.entry.symbol}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              removeSymbol(row.entry.symbol);
-            }}
-          >
-            <X />
-          </Button>
-        ),
-      },
-    ],
-    [removeSymbol],
-  );
+      });
+    }
+    cols.push({
+      key: "remove",
+      action: true,
+      width: ACTION_TRACK,
+      cell: (row) => (
+        <Button
+          type="button"
+          size="icon-xs"
+          variant="ghost"
+          aria-label={`Remove ${row.entry.symbol}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            removeSymbol(row.entry.symbol);
+          }}
+        >
+          <X />
+        </Button>
+      ),
+    });
+    return cols;
+  }, [removeSymbol, showChips, showChange]);
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
@@ -291,7 +327,8 @@ export function WatchlistPanel() {
         <div className="relative flex-1">
           <input
             aria-label="Add symbol"
-            placeholder="Add symbol or company name"
+            placeholder="Add symbol"
+            title="Add a ticker or company name"
             value={draft}
             onChange={(event) => {
               setDraft(event.target.value);
@@ -312,7 +349,7 @@ export function WatchlistPanel() {
                 setAcOpen(false);
               }
             }}
-            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 text-body rounded-control focus:ring-charcoal-500 h-8 w-full px-3 outline-none focus:ring-1"
+            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 text-body rounded-control focus:ring-charcoal-500 h-8 w-full truncate px-3 outline-none focus:ring-1"
           />
           {acOpen && candidates.length > 0 && (
             <ul
@@ -392,14 +429,17 @@ export function WatchlistPanel() {
         </div>
       )}
 
-      <div className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto">
+      <div
+        ref={tableAreaRef}
+        className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto"
+      >
         {rows === null ? (
           <table className="w-full table-fixed border-collapse">
             <colgroup>
-              <col className="w-[36%]" />
-              <col className="w-[32%]" />
-              <col className="w-[22%]" />
-              <col className="w-[10%]" />
+              <col />
+              <col style={{ width: PRICE_TRACK }} />
+              {showChange && <col style={{ width: CHANGE_TRACK }} />}
+              <col style={{ width: ACTION_TRACK }} />
             </colgroup>
             <tbody>
               {Array.from({ length: 5 }).map((_, i) => (
@@ -410,9 +450,11 @@ export function WatchlistPanel() {
                   <td className="px-3 py-1.5">
                     <div className="bg-charcoal-800 ml-auto h-3 w-full animate-pulse rounded-none" />
                   </td>
-                  <td className="px-3 py-1.5">
-                    <div className="bg-charcoal-800 ml-auto h-3 w-full animate-pulse rounded-none" />
-                  </td>
+                  {showChange && (
+                    <td className="px-3 py-1.5">
+                      <div className="bg-charcoal-800 ml-auto h-3 w-full animate-pulse rounded-none" />
+                    </td>
+                  )}
                   <td className="px-1 py-1.5" />
                 </tr>
               ))}

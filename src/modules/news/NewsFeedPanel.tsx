@@ -65,7 +65,7 @@ function SentimentBadge({ item }: { item: NewsItem }) {
   const scored = item.sentiment_label !== null;
   return (
     <span
-      className={`text-micro flex items-center gap-1.5 ${color}`}
+      className={`text-micro flex shrink-0 items-center gap-1.5 whitespace-nowrap ${color}`}
       title={score !== null ? `Sentiment score ${score.toFixed(2)}` : "No sentiment score"}
       data-testid="sentiment-badge"
     >
@@ -76,13 +76,13 @@ function SentimentBadge({ item }: { item: NewsItem }) {
         aria-hidden="true"
         className={
           scored
-            ? "size-1.5 rounded-full bg-current"
-            : "size-1.5 rounded-full border border-current bg-transparent"
+            ? "size-1.5 shrink-0 rounded-full bg-current"
+            : "size-1.5 shrink-0 rounded-full border border-current bg-transparent"
         }
       />
       <span className="tracking-wide uppercase">{label}</span>
       {score !== null ? (
-        <span className="text-charcoal-400">
+        <span className="text-charcoal-400 tabular-nums">
           {score > 0 ? "+" : ""}
           {score.toFixed(2)}
         </span>
@@ -120,15 +120,16 @@ function NewsRow({
         className="hover:bg-charcoal-850 flex flex-col gap-1.5 px-4 py-3 transition-colors"
       >
         <p className="text-charcoal-100 text-body leading-snug">{item.title}</p>
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-charcoal-500 text-caption min-w-0 truncate">
+        {/* Meta row (R8 §3.4): the source truncates honestly, the sentiment
+            chip never shrinks, and at widths where both can't share the line
+            the row WRAPS to a second line — it never clips vertically. */}
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+          <span className="text-charcoal-500 text-caption min-w-0 flex-1 basis-32 truncate">
             {item.source}
             <span className="text-charcoal-600 mx-1.5">·</span>
             {relativeTime(item.published_at)}
           </span>
-          <span className="flex-shrink-0">
-            <SentimentBadge item={item} />
-          </span>
+          <SentimentBadge item={item} />
         </div>
         {item.symbols.length > 0 ? (
           <div className="flex flex-wrap gap-1">

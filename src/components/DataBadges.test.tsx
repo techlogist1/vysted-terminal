@@ -14,7 +14,16 @@ describe("ProvenanceBadge", () => {
 
   it("composes prefix · provider when a prefix is supplied", () => {
     render(<ProvenanceBadge provider="rss" prefix="EOD" />);
-    expect(screen.getByTestId("provenance-badge")).toHaveTextContent("EOD · rss");
+    // `rss` renders its designed short form (R8 §3.1 — formatter, not CSS clip).
+    expect(screen.getByTestId("provenance-badge")).toHaveTextContent("EOD · RSS");
+  });
+
+  it("renders the designed short form for a long provider id, full id in the tooltip", () => {
+    render(<ProvenanceBadge provider="yfinance" />);
+    const badge = screen.getByTestId("provenance-badge");
+    // The live D3 defect: "yfinance" mid-word clipped to "YFINAN" at narrow widths.
+    expect(badge).toHaveTextContent("YF");
+    expect(badge).toHaveAttribute("title", "Source: yfinance");
   });
 
   it("re-colours and re-labels a synthetic value as caution", () => {

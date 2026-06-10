@@ -50,10 +50,11 @@ function fmtFraction(value: number | null): string | null {
   return value === null || Number.isNaN(value) ? null : formatPercentRaw(value * 100);
 }
 
-/** A currency magnitude (market cap, revenue, FCF) — compact, currency-aware,
- *  always suffixed (the missing-B fix). */
-function fmtMoney(value: number | null): string | null {
-  return value === null || Number.isNaN(value) ? null : formatCompactMoney(value);
+/** A currency magnitude (market cap, revenue, FCF) — compact, always suffixed
+ *  (the missing-B fix), and denominated in the INSTRUMENT's currency (R8 §6 —
+ *  the live D10 defect put ₹ on AAPL's market cap). */
+function fmtMoney(value: number | null, currency: string | null): string | null {
+  return value === null || Number.isNaN(value) ? null : formatCompactMoney(value, currency);
 }
 
 /** A bare large count (shares outstanding) — always K/M/B/T-suffixed. */
@@ -146,13 +147,18 @@ function fieldValue(fundamentals: Fundamentals, key: keyof Fundamentals): number
   return typeof raw === "number" ? raw : null;
 }
 
-/** Format a fundamentals field by its kind — every path goes through format.ts. */
-function formatField(value: number | null, kind: FieldKind): string | null {
+/** Format a fundamentals field by its kind — every path goes through format.ts.
+ *  `currency` is the instrument's quoted currency (money fields only). */
+function formatField(
+  value: number | null,
+  kind: FieldKind,
+  currency: string | null,
+): string | null {
   switch (kind) {
     case "fraction":
       return fmtFraction(value);
     case "money":
-      return fmtMoney(value);
+      return fmtMoney(value, currency);
     case "count":
       return fmtCount(value);
     case "price":
@@ -506,6 +512,14 @@ export function EquityOverviewPanel() {
   const [acOpen, setAcOpen] = useState(false);
   const [acIndex, setAcIndex] = useState(-1);
   const acSeqRef = useRef(0);
+  // The symbol input element — the dropdown may only (re)open while the input
+  // owns focus, so a debounced response landing AFTER blur can never leave the
+  // list stuck open over content (the live D10 defect).
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  // Set when `draft` is written programmatically (selection, quick-load, the
+  // external open-company command): the next debounce pass for that exact
+  // value skips the fetch entirely instead of re-opening the list.
+  const programmaticDraftRef = useRef<string | null>(null);
 
   // --- panel-context bus ----------------------------------------------------
   const publishPanelContext = usePanelContextBus((s) => s.publish);
@@ -567,19 +581,30 @@ export function EquityOverviewPanel() {
         setAcOpen(false);
         return;
       }
+      // A programmatic draft write (candidate pick, quick-load, external
+      // command) must not re-query and re-open the list it just closed.
+      if (programmaticDraftRef.current !== null && q === programmaticDraftRef.current.trim()) {
+        programmaticDraftRef.current = null;
+        return;
+      }
       void autocompleteSymbols(q).then((rows) => {
         if (seq !== acSeqRef.current) {
           return;
         }
         setCandidates(rows);
         setAcIndex(-1);
-        setAcOpen(rows.length > 0);
+        // Only (re)open while the input owns focus — a slow response landing
+        // after blur would otherwise pin the dropdown open over content.
+        setAcOpen(rows.length > 0 && document.activeElement === inputRef.current);
       });
     }, 140);
     return () => clearTimeout(handle);
   }, [draft]);
 
   const doLoad = async (symbol: string) => {
+    // Any caller that loads a symbol has (or will) put it in the draft —
+    // suppress the autocomplete pass for that exact value.
+    programmaticDraftRef.current = symbol;
     submittedSymbolRef.current = symbol;
     setLoading(true);
     setError(null);
@@ -702,6 +727,10 @@ export function EquityOverviewPanel() {
   const quote = data?.quote ?? null;
   const fundamentals = data?.fundamentals ?? null;
   const ratings = data?.ratings ?? null;
+  // The INSTRUMENT's currency (R8 §6) — money fields format in it, never the
+  // region/locale default. Fundamentals state the statement currency; the
+  // quote currency is the fallback.
+  const instrumentCurrency = fundamentals?.currency ?? quote?.currency ?? null;
 
   // Which grouped sections have at least one populated field (hide empty groups),
   // projected to DataTable sections with each value pre-formatted through format.ts.
@@ -713,13 +742,13 @@ export function EquityOverviewPanel() {
       const rows: FundamentalRow[] = group.fields
         .map((f) => ({
           label: f.label,
-          value: formatField(fieldValue(fundamentals, f.key), f.kind),
+          value: formatField(fieldValue(fundamentals, f.key), f.kind, instrumentCurrency),
           headline: f.headline ?? false,
         }))
         .filter((r) => r.value !== null);
       return { label: group.title, rows };
     }).filter((s) => s.rows.length > 0);
-  }, [fundamentals]);
+  }, [fundamentals, instrumentCurrency]);
 
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
@@ -729,15 +758,21 @@ export function EquityOverviewPanel() {
       >
         <div className="relative flex-1">
           <input
+            ref={inputRef}
             aria-label="Symbol"
             placeholder="Search a company or ticker (AAPL, Route Mobile, RELIANCE)…"
             value={draft}
-            onChange={(event) => setDraft(event.target.value)}
+            onChange={(event) => {
+              // A keystroke is a USER edit — lift the programmatic suppression
+              // so the autocomplete works normally again.
+              programmaticDraftRef.current = null;
+              setDraft(event.target.value);
+            }}
             onKeyDown={handleKeyDown}
             onFocus={() => candidates.length > 0 && setAcOpen(true)}
             onBlur={() => setTimeout(() => setAcOpen(false), 120)}
             autoComplete="off"
-            className="bg-charcoal-850 border-charcoal-700 text-charcoal-100 placeholder:text-charcoal-500 text-body rounded-control focus:border-charcoal-500 h-8 w-full border px-3 outline-none"
+            className="bg-charcoal-850 border-charcoal-700 text-charcoal-100 placeholder:text-charcoal-500 text-body rounded-control focus:border-charcoal-500 h-8 w-full truncate border px-3 outline-none"
           />
           {acOpen && candidates.length > 0 && (
             <ul className="border-charcoal-700 bg-charcoal-875 absolute top-full right-0 left-0 z-20 mt-1 max-h-64 overflow-y-auto rounded-none border py-1">
