@@ -275,3 +275,48 @@ def test_researcher_skips_disclosures_for_us_target() -> None:
         )
     )
     assert "corporate_announcements" not in tool.calls
+
+
+def test_results_filing_outranks_newer_procedural_intimations() -> None:
+    # The live R8 gate-1 failure: the Q4 results outcome sat at feed index 14
+    # behind a stack of newer intimations, so the researcher's one visit read a
+    # procedural PDF and the brief said "content remains unextracted". For a
+    # results-shaped question the results-payload headline must rank FIRST.
+    feed = {
+        "ok": True,
+        "announcements": [
+            {
+                "exchange": "NSE",
+                "headline": "Intimation of analyst call audio recording",
+                "category": "Company Update",
+                "attachment_url": "https://nsearchives.nseindia.com/corporate/AUDIO.pdf",
+                "ts": "2026-05-22",
+            },
+            {
+                "exchange": "NSE",
+                "headline": "Copy of newspaper publication",
+                "category": "Company Update",
+                "attachment_url": "https://nsearchives.nseindia.com/corporate/NEWSPAPER.pdf",
+                "ts": "2026-05-09",
+            },
+            {
+                "exchange": "NSE",
+                "headline": (
+                    "ROUTE MOBILE LIMITED has submitted to the Exchange, "
+                    "the financial results for the period ended March 31, 2026"
+                ),
+                "category": "Financial Results",
+                "attachment_url": "https://nsearchives.nseindia.com/corporate/OUTCOME.pdf",
+                "ts": "2026-05-07",
+            },
+        ],
+    }
+    rows = disclosures.announcement_rows(
+        feed, symbol="ROUTE", sub_question="What were the latest quarterly results?"
+    )
+    assert rows[0]["url"].endswith("OUTCOME.pdf")
+    # A non-results question keeps the feed order (newest first).
+    rows_plain = disclosures.announcement_rows(
+        feed, symbol="ROUTE", sub_question="Any recent announcements?"
+    )
+    assert rows_plain[0]["url"].endswith("AUDIO.pdf")

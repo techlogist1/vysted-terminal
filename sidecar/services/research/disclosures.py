@@ -26,15 +26,31 @@ dimension:
 from __future__ import annotations
 
 import asyncio
+import re
 from typing import Any
 
 from services.research.target import ResearchTarget
 
-#: How many announcements one researcher pulls (compact prompt context).
-_ANNOUNCEMENT_LIMIT = 12
+#: How many announcements one researcher FETCHES. Deep enough that a quarter-old
+#: results filing is still in the window — the live ROUTE feed had the Q4 FY26
+#: outcome PDF at index 14, past the old 12-item fetch, so research listed
+#: intimations but never saw the filing that actually carries the numbers.
+_ANNOUNCEMENT_LIMIT = 50
+
+#: How many announcement lines the prompt context shows (compact).
+_CONTEXT_LIMIT = 12
 
 #: How many announcement rows become citable sources per researcher.
 _MAX_SOURCE_ROWS = 5
+
+#: Headline shapes that carry the actual RESULTS payload (the outcome/financial
+#: results filing and its press release) — ranked FIRST for results-shaped
+#: questions so the researcher's one visit reads the filing with the numbers,
+#: not the newest procedural intimation.
+_RESULTS_HEADLINE_RX = re.compile(
+    r"(?i)\b(financial\s+results?|outcome\s+of\s+(the\s+)?board|un-?audited|audited"
+    r"|press\s+release.{0,40}(result|quarter)|results?\s+for\s+the)\b"
+)
 
 #: Sub-question shapes that should consult the disclosure feeds.
 _DISCLOSURE_KEYWORDS = (
@@ -119,7 +135,9 @@ async def fetch_results_calendar(symbol: str) -> dict[str, Any]:
     }
 
 
-def announcement_rows(result: dict[str, Any], *, symbol: str) -> list[dict[str, Any]]:
+def announcement_rows(
+    result: dict[str, Any], *, symbol: str, sub_question: str = ""
+) -> list[dict[str, Any]]:
     """Announcement attachments → web-row-shaped citable sources.
 
     Each row carries ``verified_symbol`` (exchange-feed provenance — it passes
@@ -127,10 +145,16 @@ def announcement_rows(result: dict[str, Any], *, symbol: str) -> list[dict[str, 
     so the sources rail badges it correctly. Rows without an attachment URL
     inform the prompt context but cannot be cited/visited, so they are skipped
     here.
+
+    For a RESULTS-shaped ``sub_question``, rows whose headline carries the
+    actual results payload (:data:`_RESULTS_HEADLINE_RX` — the outcome filing,
+    the results press release) rank FIRST, newest-first within each band — the
+    researcher's one visit reads the filing with the numbers, never the newest
+    procedural intimation (the live R8 gate-1 failure mode).
     """
     if not isinstance(result, dict) or not result.get("ok"):
         return []
-    rows: list[dict[str, Any]] = []
+    candidates: list[dict[str, Any]] = []
     for item in result.get("announcements") or []:
         if not isinstance(item, dict):
             continue
@@ -143,7 +167,7 @@ def announcement_rows(result: dict[str, Any], *, symbol: str) -> list[dict[str, 
             bits.append(str(item["category"]))
         if item.get("ts"):
             bits.append(str(item["ts"]))
-        rows.append(
+        candidates.append(
             {
                 "url": str(url),
                 "title": str(item.get("headline") or url),
@@ -153,9 +177,14 @@ def announcement_rows(result: dict[str, Any], *, symbol: str) -> list[dict[str, 
                 "verified_symbol": symbol,
             }
         )
-        if len(rows) >= _MAX_SOURCE_ROWS:
-            break
-    return rows
+    low = (sub_question or "").lower()
+    results_shaped = any(
+        k in low for k in ("result", "earnings", "quarter", "dividend", "profit", "revenue")
+    )
+    if results_shaped:
+        # Stable partition: results-payload headlines first, feed order within.
+        candidates.sort(key=lambda row: 0 if _RESULTS_HEADLINE_RX.search(row["title"]) else 1)
+    return candidates[:_MAX_SOURCE_ROWS]
 
 
 def _context_lines(announcements: dict[str, Any] | None, calendar: dict[str, Any] | None) -> str:
@@ -165,7 +194,7 @@ def _context_lines(announcements: dict[str, Any] | None, calendar: dict[str, Any
         items = announcements.get("announcements") or []
         if items:
             lines.append("Exchange announcements (merged NSE+BSE, newest first):")
-            for item in items[:_ANNOUNCEMENT_LIMIT]:
+            for item in items[:_CONTEXT_LIMIT]:
                 if not isinstance(item, dict):
                     continue
                 ts = str(item.get("ts") or "?")
@@ -219,7 +248,7 @@ async def gather(
         calendar = await fetch_results_calendar(target.symbol)
 
     return {
-        "rows": announcement_rows(announcements, symbol=target.symbol),
+        "rows": announcement_rows(announcements, symbol=target.symbol, sub_question=sub_question),
         "context": _context_lines(announcements, calendar),
         "announcements": announcements if announcements.get("ok") else None,
         "calendar": calendar,
