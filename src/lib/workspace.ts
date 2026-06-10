@@ -116,12 +116,14 @@ export interface SerializedWorkspace {
    */
   settings?: SettingsBundle;
   /**
-   * The web-search preference bundle (R8): the authoritative R7 research tier
-   * (`researchTier`), the t3 sub-mode (`exaDirect` / `hostedEngine`), and the
-   * t2 custom SearXNG URL. A pre-R8 blob carries only the legacy `tier` field
-   * — migrated on restore (native→t1_local, local-searxng→t2_searxng,
-   * byok-exa→t3_hosted+exaDirect). NEVER carries a BYOK key (keychain-only).
-   * Optional for older blobs (absent → the keyless t1 floor).
+   * The web-search preference bundle (R9 two-tier): the authoritative research
+   * tier (`tier_a` Unlimited Local / `tier_b` hosted research model), the
+   * optional custom SearXNG URL, and the Tier B per-stop research models.
+   * Older blobs (pre-R8 `tier`, R7/R8 `t1_local`/`t2_searxng`/`t3_hosted` +
+   * `exaDirect`/`hostedEngine`) migrate on restore via the store's `setAll`
+   * (hosted/Exa selections land on tier_b only when an OpenRouter key is
+   * configured, else tier_a). NEVER carries a BYOK key (keychain-only).
+   * Optional for older blobs (absent → tier_a).
    */
   searchSettings?: SearchSettingsBundle;
   /**
@@ -323,10 +325,12 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
   if (workspace.settings && typeof workspace.settings === "object") {
     useSettingsStore.getState().setAll(workspace.settings);
   }
-  // Restore the web-search preference (older blobs lack it — keep the keyless
-  // t1 default). `setAll` MIGRATES a pre-R8 blob (legacy `tier`, no
-  // `researchTier`) into the R7 vocabulary first, then merges over the seed so
-  // a partial blob can't strip a field and a garbled value falls back.
+  // Restore the web-search preference (older blobs lack it — keep the tier_a
+  // default). `setAll` MIGRATES any pre-R9 blob (legacy `tier`, R7/R8 tier
+  // ids, exaDirect) into the two-tier vocabulary first, then merges over the
+  // seed so a partial blob can't strip a field and a garbled value falls back;
+  // a legacy hosted/Exa selection confirms the OpenRouter key asynchronously
+  // and demotes to tier_a when none is configured.
   if (workspace.searchSettings && typeof workspace.searchSettings === "object") {
     useSearchSettingsStore.getState().setAll(workspace.searchSettings);
   }
