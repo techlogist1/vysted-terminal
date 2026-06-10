@@ -14,6 +14,7 @@ import {
   formatSignedMoney,
   formatUnit,
 } from "@/lib/format";
+import { useContainerWidth } from "@/lib/use-container-width";
 import { usePanelContextBus } from "@/store/panel-context";
 import {
   type AssetClass,
@@ -37,6 +38,28 @@ function fmtQuantity(quantity: number): string {
   if (Math.abs(quantity) >= 1000) return formatUnit(quantity);
   return quantity.toLocaleString("en-US", { maximumFractionDigits: 8 });
 }
+
+/**
+ * R8 overflow law §3.2 — the holdings table's explicit column tracks (px, sized
+ * to the widest sane content at the caption step; cell px-3 padding supplies
+ * the ≥8px gutter) plus its width-keyed drop ladder. When the measured panel is
+ * narrower than the tracks' minimum, columns drop WHOLE by priority — weight,
+ * then cost, then price, then quantity — so numeric cells can never collide.
+ * Symbol, market value, P&L, and the action column always survive.
+ */
+const HOLDING_TRACKS = {
+  qty: "4.5rem",
+  cost: "5.5rem",
+  price: "5.5rem",
+  marketValue: "6rem",
+  pnl: "10rem",
+  weight: "3.5rem",
+  actions: "4.75rem",
+} as const;
+const DROP_WEIGHT_BELOW = 680;
+const DROP_COST_BELOW = 620;
+const DROP_PRICE_BELOW = 540;
+const DROP_QTY_BELOW = 460;
 
 interface FormState {
   symbol: string;
@@ -275,55 +298,71 @@ export function PortfolioPanel() {
     [summary.rows, holdings],
   );
 
-  // The 8-column holdings table on the shared DataTable. The P&L column is the
-  // one signed/coloured value (green/red, never the accent); the trailing column
-  // is a DataTable action column (edit/delete, outside truncation). All money
-  // runs through format.ts; the quantity reads with a unit at scale.
-  const holdingColumns = useMemo<DataColumn<PortfolioTableRow>[]>(
-    () => [
+  // Measured table-area width drives the §3.2 drop ladder (null = first paint
+  // renders everything; the observer corrects on the next frame).
+  const { ref: tableAreaRef, width: tableWidth } = useContainerWidth<HTMLDivElement>();
+  const showWeight = tableWidth === null || tableWidth >= DROP_WEIGHT_BELOW;
+  const showCost = tableWidth === null || tableWidth >= DROP_COST_BELOW;
+  const showPrice = tableWidth === null || tableWidth >= DROP_PRICE_BELOW;
+  const showQty = tableWidth === null || tableWidth >= DROP_QTY_BELOW;
+
+  // The holdings table on the shared DataTable: one flexible symbol track +
+  // fixed px tracks (HOLDING_TRACKS) so numeric columns can never collide. The
+  // P&L column is the one signed/coloured value (green/red, never the accent);
+  // the trailing column is a DataTable action column (edit/delete, outside
+  // truncation). All money runs through format.ts.
+  const holdingColumns = useMemo<DataColumn<PortfolioTableRow>[]>(() => {
+    const cols: DataColumn<PortfolioTableRow>[] = [
       {
         key: "symbol",
         header: "Symbol",
         truncate: true,
-        width: "18%",
         format: (r) => r.position.symbol,
       },
-      {
+    ];
+    if (showQty) {
+      cols.push({
         key: "quantity",
         header: "Qty",
         numeric: true,
         tier: "secondary",
-        width: "10%",
+        width: HOLDING_TRACKS.qty,
         format: (r) => fmtQuantity(r.position.quantity),
-      },
-      {
+      });
+    }
+    if (showCost) {
+      cols.push({
         key: "cost",
         header: "Cost",
         numeric: true,
         tier: "secondary",
-        width: "12%",
+        width: HOLDING_TRACKS.cost,
         format: (r) => formatMoney(r.position.cost_basis),
-      },
-      {
+      });
+    }
+    if (showPrice) {
+      cols.push({
         key: "price",
         header: "Price",
         numeric: true,
         tier: "secondary",
-        width: "12%",
+        width: HOLDING_TRACKS.price,
         format: (r) => (r.quote !== null ? formatMoney(r.quote.price) : null),
-      },
+      });
+    }
+    cols.push(
       {
         key: "marketValue",
         header: "Mkt val",
         numeric: true,
-        width: "13%",
+        width: HOLDING_TRACKS.marketValue,
         format: (r) => (r.marketValue !== null ? formatCompactMoney(r.marketValue) : null),
       },
       {
         key: "pnl",
         header: "P&L",
         numeric: true,
-        width: "20%",
+        width: HOLDING_TRACKS.pnl,
         cell: (r) =>
           r.pnl === null ? null : (
             <span
@@ -335,47 +374,49 @@ export function PortfolioPanel() {
             </span>
           ),
       },
-      {
+    );
+    if (showWeight) {
+      cols.push({
         key: "weight",
         header: "Wt",
         numeric: true,
         tier: "secondary",
-        width: "8%",
+        width: HOLDING_TRACKS.weight,
         format: (r) => (r.weight !== null ? `${(r.weight * 100).toFixed(1)}%` : null),
-      },
-      {
-        key: "actions",
-        action: true,
-        width: "7%",
-        cell: (r) => (
-          <>
-            <Button
-              type="button"
-              size="icon-xs"
-              variant="ghost"
-              aria-label={`Edit ${r.position.symbol}`}
-              onClick={() => r.holding && handleEdit(r.holding)}
-            >
-              <Pencil />
-            </Button>
-            <Button
-              type="button"
-              size="icon-xs"
-              variant="ghost"
-              aria-label={`Delete ${r.position.symbol}`}
-              onClick={() => r.holding && handleDelete(r.holding.id)}
-            >
-              <Trash2 />
-            </Button>
-          </>
-        ),
-      },
-    ],
+      });
+    }
+    cols.push({
+      key: "actions",
+      action: true,
+      width: HOLDING_TRACKS.actions,
+      cell: (r) => (
+        <>
+          <Button
+            type="button"
+            size="icon-xs"
+            variant="ghost"
+            aria-label={`Edit ${r.position.symbol}`}
+            onClick={() => r.holding && handleEdit(r.holding)}
+          >
+            <Pencil />
+          </Button>
+          <Button
+            type="button"
+            size="icon-xs"
+            variant="ghost"
+            aria-label={`Delete ${r.position.symbol}`}
+            onClick={() => r.holding && handleDelete(r.holding.id)}
+          >
+            <Trash2 />
+          </Button>
+        </>
+      ),
+    });
+    return cols;
     // handleEdit/handleDelete are stable enough across renders; the table only
-    // needs to rebuild when nothing data-bearing changes here.
+    // rebuilds when the drop ladder moves.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
+  }, [showQty, showCost, showPrice, showWeight]);
 
   const submitPfName = () => {
     const name = pfName.trim();
@@ -701,7 +742,10 @@ export function PortfolioPanel() {
         </div>
       )}
 
-      <div className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto">
+      <div
+        ref={tableAreaRef}
+        className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto"
+      >
         {holdings.length === 0 ? (
           <EmptyState
             icon={Briefcase}
@@ -714,11 +758,12 @@ export function PortfolioPanel() {
             }}
           />
         ) : (
+          // No min-width / horizontal clip: the §3.2 drop ladder sheds columns
+          // instead, so the table always fits the panel without overlap.
           <DataTable
             columns={holdingColumns}
             rows={tableRows}
             rowKey={(row) => row.holding?.id ?? row.position.symbol}
-            minWidth="min-w-[680px]"
             data-testid="portfolio-holdings-table"
           />
         )}

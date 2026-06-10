@@ -114,7 +114,10 @@ describe("WatchlistPanel", () => {
     const staleness = screen.getAllByTestId("staleness-badge");
     expect(provenance.length).toBe(DEFAULT_SYMBOLS.length);
     expect(staleness.length).toBe(DEFAULT_SYMBOLS.length);
-    expect(provenance[0]).toHaveTextContent("yfinance");
+    // The chip renders the designed short form (R8 §3.1 — "yfinance" used to
+    // mid-word clip to "YFINAN"); the full provider id stays in the tooltip.
+    expect(provenance[0]).toHaveTextContent("YF");
+    expect(provenance[0]).toHaveAttribute("title", "Source: yfinance");
     expect(staleness[0]).toHaveTextContent(/EOD/i);
   });
 
