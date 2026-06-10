@@ -25,6 +25,13 @@ Consulted before each phase; appended as the run learns.
   returns on the next fresh binary even with a byte-identical designated requirement. The
   "Always Allow" (with password) must actually be clicked once; only then is the
   trusted-application entry recorded against the stable DR.
+- File-keychain items carry a `partition_id` ACL entry pinning specific CDHASHES — with a
+  self-signed identity (no team id) every fresh binary triggers ONE securityd evaluation
+  pass on its first key read: a keychain dialog shows ~10-50s, then SELF-DISMISSES AS ALLOW
+  (the cert-based trusted-app entry validates). No interaction needed — never type the
+  password into these; only a prompt surviving >60s is a real regression. Dead ACL entries
+  from past ad-hoc Always-Allows (~165 found) are pruned by having the SIGNED APP rewrite
+  its own items (get→delete→set via its IPC) — no password, secrets never leave the app.
 - THE BRIDGE-WEDGE ROOT CAUSE: touching the tauri-mcp socket while the webview is still
   booting wedges the debug server PERMANENTLY for that app instance (requests then hang —
   even list_windows). Recipe that works: launch → wait for the "Bridge already initialized"

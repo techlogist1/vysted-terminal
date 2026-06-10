@@ -69,26 +69,54 @@ rebuild. Same pass-through rules as the runner.
   rebuilt binary raised no new automation/accessibility dialog — grants persisted across the
   rebuild (consistent with ~8 rebuilds across the R8 run, zero TCC dialogs).
 
-## OPERATOR — the one remaining grant (one-time-forever) + 60-second confirmation
+## FINAL VERDICT — post-grant verification (2026-06-11, attended grants given)
 
-1. The prompt is on screen now (or appears on the next launch): _"vysted-terminal wants to
-   access key 'vysted-terminal' in your keychain"_. Enter your login password and click
-   **Always Allow** (not Allow — and don't let it time out; a timed-out prompt records
-   nothing and will reappear). If a second prompt appears for another stored key item,
-   Always-Allow it the same way (one per item, once).
-2. Confirm permanence (this is the only verification automation could not perform — the
-   grant itself needs your password):
+**The disease (interactive prompts requiring your password) is CURED. A transient,
+self-dismissing dialog remains once per fresh binary — it needs NO interaction and stalls
+nothing.** Evidence from the verification run:
 
-   ```bash
-   cd ~/Documents/dev/vysted-terminal
-   touch src-tauri/src/main.rs        # force a fresh binary
-   pnpm tauri:dev                     # boots signed via the cargo runner
-   # expected: app boots, keys read, ZERO prompts — forever after
-   ```
+1. **Item census:** the app reads exactly FOUR keychain items at boot (service
+   `vysted-terminal`, accounts `llm-provider:deepseek`, `llm-provider:openrouter`,
+   `broker:_meta:first-launch-tos`, `app-meta:onboarding-complete`). Your "~4 prompts per
+   launch" was one per item; "× 3 rebuilds ≈ 12" matched one grant round per fresh binary
+   before the grants stuck.
+2. **ACL state after your grants:** every item carried ONE valid `(OK)` trusted-application
+   entry with the stable requirement (`identifier "com.vysted.terminal" and certificate leaf
+= H"c0d31e56…"`) — plus 29–48 DEAD entries each (~165 total), one for every past
+   Always-Allow on an ad-hoc build. That scar tissue has been PRUNED: the signed app itself
+   rewrote all four items in place (get → delete → set through its own IPC; values verified
+   in-process, never exposed). All four items now read: `apps=1, stable-OK=1, dead=0`.
+3. **Fresh-rebuild proofs:** after pruning, two more full rebuild+boot rounds (new binaries,
+   runner-signed, sidecar rebuilt and auto-signed as `com.vysted.sidecar`) booted and read
+   ALL keys with ZERO human input — chat on DeepSeek worked unattended.
+4. **The residual, precisely:** on the FIRST key read of a never-executed binary, macOS
+   shows the keychain dialog for ~10–50s and then SELF-DISMISSES AS ALLOW (the cert-based
+   ACL entry validates; the read succeeds; boot continues). Root cause: the item's
+   `partition_id` ACL entry pins specific **cdhashes** (verified in the dump:
+   `cdhash:1d73de…, cdhash:28621a…, …`), and a self-signed identity has no Apple team id
+   the partition list could express — so each new cdhash triggers one securityd evaluation
+   pass. This is structural to self-signed identities on the file keychain. A pre-exec
+   `codesign --verify` in the runner was tested and did NOT shorten it (reverted).
 
-   Every dev binary now carries the same designated requirement by construction
-   (three consecutive rebuilds verified byte-identical), so the recorded grant
-   keeps matching.
+**What this means for you:** IGNORE these dialogs — do not type your password; they vanish
+on their own and the keys are read. Only a prompt that survives >60s would indicate a real
+regression (then re-check this doc's ACL inspection commands). Unattended overnight driving
+works: the only cost is a one-time ~10–50s delay on the first key read per rebuild.
+
+**Optional experiment** (one password entry, may remove even the transient — unverified,
+harmless if it fails): the partition list may accept a bare-prefix wildcard. Per item:
+
+```bash
+security set-generic-password-partition-list \
+  -S "apple:,apple-tool:,codesign:,cdhash:" \
+  -s vysted-terminal -a "llm-provider:deepseek" \
+  -k "YOUR_LOGIN_PASSWORD" ~/Library/Keychains/login.keychain-db
+# repeat for: llm-provider:openrouter, broker:_meta:first-launch-tos,
+#             app-meta:onboarding-complete
+```
+
+Then rebuild + relaunch; if the transient dialog is gone, it worked. Note: any future
+"Always Allow" click re-pins a cdhash — harmless, but unnecessary.
 
 ---
 
