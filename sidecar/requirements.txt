@@ -106,6 +106,14 @@ fredapi==0.5.2
 # https://pypi.org/pypi/supabase/json — latest 2.30.0.
 supabase==2.30.0
 
+# R8 — PDF text extraction for the research visit path. Exchange results
+# filings / earnings-call transcripts (nsearchives.nseindia.com, bseindia.com
+# attachments) are PDFs; without this a results PDF in hand extracted nothing
+# and the brief concluded "no quarterly results announced". Pure-Python with a
+# literal __version__ and no package data — no extra PyInstaller flags needed
+# (verified against ensure-sidecar.mjs's --copy-metadata/--collect-data rules).
+pypdf==6.13.1
+
 # Pass B (B1) — keyless India NSE data. jugaad-data wraps the live NSE site to
 # serve T+1 EOD OHLCV for every NSE equity + ETF (GOLDBEES/NIFTYBEES/SILVERBEES),
 # the symbols yfinance is documented-unreliable for (#2612/#2055). It is the

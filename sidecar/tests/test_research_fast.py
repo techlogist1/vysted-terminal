@@ -205,14 +205,39 @@ def test_fast_web_rate_limited_is_transient_not_no_backend() -> None:
     assert "no web-search backend" not in web["note"].lower()
 
 
-def test_fast_resolution_failure_short_circuits() -> None:
+def test_fast_resolution_failure_goes_web_only() -> None:
+    """R8: an unresolvable query no longer dead-ends — the bundle proceeds
+    WEB-ONLY with the honest one-line note, ``symbol == ""``, and ZERO
+    structured calls (a free-text query never rides a ``symbol`` arg)."""
     fake = _FakeToolCall(resolve_ok=False)
     bundle = asyncio.run(gather_fast("zzzz nonsense", region="US", tool_call=fake))
 
-    assert bundle["ok"] is False
-    assert "error" in bundle
-    # No structured legs pulled once resolution failed.
-    assert fake.calls == ["resolve_symbol"]
+    assert bundle["ok"] is True
+    assert bundle["symbol"] == ""
+    assert bundle["structured"] == {}
+    assert bundle["note"] == "No listed instrument matched this query — web evidence only."
+    assert bundle["resolved"]["ok"] is False
+    # Exactly one resolve + one web round — no structured tool ever fired.
+    assert fake.calls == ["resolve_symbol", "web_search"]
+    assert bundle["web"]["available"] is True
+
+
+def test_fast_low_confidence_resolution_goes_web_only() -> None:
+    """A fuzzy match below the confidence floor is REJECTED (web-only run),
+    never silently bound to the wrong instrument."""
+
+    class _LowConfidence(_FakeToolCall):
+        def _dispatch(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+            out = super()._dispatch(name, args)
+            if name == "resolve_symbol":
+                out["resolved"]["confidence"] = 0.2
+            return out
+
+    fake = _LowConfidence()
+    bundle = asyncio.run(gather_fast("ambiguous name", region="US", tool_call=fake))
+    assert bundle["ok"] is True
+    assert bundle["symbol"] == ""
+    assert fake.calls == ["resolve_symbol", "web_search"]
 
 
 def test_fast_one_leg_failure_is_non_fatal() -> None:

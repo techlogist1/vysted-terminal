@@ -54,8 +54,12 @@ def _web_result() -> dict[str, Any]:
     return {
         "ok": True,
         "backend": "exa",
-        "results": [{"url": "https://news.example/a", "title": "A", "snippet": "s"}],
-        "citations": [{"url": "https://news.example/a", "title": "A", "excerpt": "e"}],
+        "results": [
+            {"url": "https://news.example/a", "title": "Apple results update", "snippet": "s"}
+        ],
+        "citations": [
+            {"url": "https://news.example/a", "title": "Apple results update", "excerpt": "e"}
+        ],
     }
 
 
@@ -75,7 +79,10 @@ class _FakeToolCall:
                 "resolved": {
                     "symbol": "AAPL",
                     "name": "Apple Inc.",
+                    "exchange": "NASDAQ",
+                    "region": "US",
                     "asset_class": "equity",
+                    "confidence": 0.98,
                 },
             }
         if name == "price_data":
@@ -144,7 +151,8 @@ def test_deep_tiny_step_budget_aborts_to_synthesize() -> None:
 
     Round 1 records one step (steps=1). Round 2's top-of-round ``breach()`` sees
     steps>=1 and forces abort→synthesize. The run STILL returns a brief and never
-    raises; ``note`` carries the breach reason.
+    raises; ``note`` carries the HUMAN budget-stop sentence (R8) while the raw
+    ceiling reason rides the dev step trace.
     """
     llm = _FakeLLM(reflect_complete=False)  # never "complete" -> would loop forever
     tools = _FakeToolCall(web_ok=True)
@@ -164,11 +172,11 @@ def test_deep_tiny_step_budget_aborts_to_synthesize() -> None:
 
     assert isinstance(brief, ResearchBrief)
     assert brief.markdown.strip()  # a brief, never empty
-    assert brief.note is not None
-    assert "step ceiling" in brief.note
-    # The final step is the abort→synthesize.
-    assert brief.steps[-1].kind == "synthesize"
-    assert "abort" in brief.steps[-1].detail
+    assert brief.note == deep.BUDGET_STOP_NOTE
+    # The raw reason + abort marker are DEV details on the step trace.
+    assert any("step ceiling" in s.detail for s in brief.steps)
+    synth_steps = [s for s in brief.steps if s.kind == "synthesize"]
+    assert synth_steps and "abort" in synth_steps[-1].detail
 
 
 def test_deep_zero_wall_budget_aborts_on_first_breach() -> None:
@@ -189,8 +197,9 @@ def test_deep_zero_wall_budget_aborts_on_first_breach() -> None:
     )
 
     assert isinstance(brief, ResearchBrief)
-    assert brief.note is not None
-    assert "wall-clock ceiling" in brief.note
+    assert brief.note == deep.BUDGET_STOP_NOTE
+    # The raw wall-ceiling reason is a dev step detail, never the note.
+    assert any("wall-clock ceiling" in s.detail for s in brief.steps)
     # Only the synthesize step ran (immediate abort before the first plan).
     assert [s.kind for s in brief.steps] == ["synthesize"]
     assert brief.markdown.strip()
@@ -220,8 +229,7 @@ def test_deep_coverage_floor_blocks_premature_complete() -> None:
 
     assert isinstance(brief, ResearchBrief)
     # The floor was never met -> the run was cut by the budget, not a clean break.
-    assert brief.note is not None
-    assert "ceiling" in brief.note
+    assert brief.note == deep.BUDGET_STOP_NOTE
     # WS3: web COVERAGE was never met, but the structured legs still produced
     # cited sources — so web_available is reconciled to True (a brief that cites N
     # sources must NOT also claim the web was unavailable / symptom #2). The honest

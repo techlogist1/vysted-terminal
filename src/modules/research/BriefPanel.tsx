@@ -20,10 +20,13 @@ import type {
 } from "../../../types/brief";
 import { ProvenanceBadge, StalenessBadge } from "@/components/DataBadges";
 import {
+  bodyCitesWeb,
   briefDepthTier,
   composeBriefMarkdown,
   dedupeSources,
   deriveSourceType,
+  formatBriefSpend,
+  formatBriefTokens,
   nextBriefDepth,
 } from "@/lib/brief-ingest";
 import { useBriefStore } from "@/store/brief";
@@ -41,18 +44,6 @@ function domainOf(source: BriefSource): string {
   } catch {
     return source.url;
   }
-}
-
-/** Compact a token / spend number to a terse readout (e.g. "12.4k", "$0.03"). */
-function formatTokens(tokens: number): string {
-  if (tokens >= 1000) {
-    return `${(tokens / 1000).toFixed(tokens >= 10000 ? 0 : 1)}k`;
-  }
-  return String(tokens);
-}
-
-function formatSpend(usd: number): string {
-  return usd >= 1 ? `$${usd.toFixed(2)}` : `$${usd.toFixed(usd >= 0.01 ? 2 : 4)}`;
 }
 
 // The brief BODY is now rendered as a typed-block document (metric cards, tables,
@@ -110,25 +101,42 @@ function DepthMirror({ brief }: { brief: ResearchBriefData }) {
 }
 
 function MetaHeader({ brief }: { brief: ResearchBriefData }) {
-  const tokens = brief.cost?.tokens;
-  const spend = brief.cost?.spendUsd;
+  // R8 Proportion Law §6: a zero-token segment is OMITTED (never "0 tok") and
+  // "$0.0000" never renders (zero spend omitted; below $0.005 → "<$0.01").
+  const tokenLabel = formatBriefTokens(brief.cost?.tokens);
+  const spendLabel = formatBriefSpend(brief.cost?.spendUsd);
   return (
     <header className="border-charcoal-700 flex flex-col gap-1.5 border-b px-4 py-3">
-      <div className="flex items-center gap-2">
+      {/* R8 Proportion Law §3.4: the meta row declares its collapse — chips
+          never shrink mid-glyph (shrink-0 + nowrap) and the row WRAPS to a
+          second line instead of overlapping ("92 SOURCES FOR $0.0000" colliding
+          with the symbol chip on the live screenshot). Only the symbol (user
+          content) may truncate with an honest ellipsis. */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <ModeBadge mode={brief.mode} />
         {brief.symbol ? (
-          <span className="text-micro text-charcoal-100 font-mono font-medium">{brief.symbol}</span>
-        ) : null}
-        <span className="text-charcoal-500 text-micro font-mono">
-          {brief.sourceCount} source{brief.sourceCount === 1 ? "" : "s"}
-        </span>
-        {typeof tokens === "number" ? (
-          <span className="text-charcoal-500 text-micro font-mono" title={`${tokens} tokens`}>
-            · {formatTokens(tokens)} tok
+          <span
+            className="text-micro text-charcoal-100 max-w-40 truncate font-mono font-medium"
+            title={brief.symbol}
+          >
+            {brief.symbol}
           </span>
         ) : null}
-        {typeof spend === "number" ? (
-          <span className="text-charcoal-500 text-micro font-mono">· {formatSpend(spend)}</span>
+        <span className="text-charcoal-500 text-micro font-mono whitespace-nowrap">
+          {brief.sourceCount} source{brief.sourceCount === 1 ? "" : "s"}
+        </span>
+        {tokenLabel ? (
+          <span
+            className="text-charcoal-500 text-micro font-mono whitespace-nowrap"
+            title={`${brief.cost?.tokens} tokens`}
+          >
+            · {tokenLabel}
+          </span>
+        ) : null}
+        {spendLabel ? (
+          <span className="text-charcoal-500 text-micro font-mono whitespace-nowrap">
+            · {spendLabel}
+          </span>
         ) : null}
         {/* Read-only depth mirror — the actionable "Go deeper" escalation lives
             in the chat surface (one source of truth); this only reflects the
@@ -414,14 +422,20 @@ export function BriefPanel() {
   // `noWeb` is the honest no-web state, already reconciled in briefFromInput with
   // the source count — so a brief that cited sources can never land here (the
   // symptom-#2 fix). When it DOES fire, `webRateLimited` picks the transient
-  // "rate-limited, retrying" copy over the false global "no backend" claim.
+  // "rate-limited, retrying" copy over the false global "no backend" claim, and
+  // `bodyCites` keys the R8 honest copy: a body that visibly cites web domains
+  // with ZERO captured sources must never claim "no web sources found" — the
+  // truthful statement is that sources were not captured.
   const noWeb = brief.webAvailable === false;
   const webRateLimited = brief.webReason === "rate_limited";
+  const bodyCites = bodyCitesWeb(brief.markdown);
   const forSymbol = brief.symbol ? ` for ${brief.symbol}` : "";
   const hasSteps = IS_DEV && Array.isArray(brief.steps) && brief.steps.length > 0;
 
   return (
-    <div className="bg-charcoal-900 flex h-full w-full flex-col">
+    // `@container` makes the PANEL the query container so the brief body can
+    // downshift prose(16px)→body(13px) below 420px of panel width (R8 §1).
+    <div className="bg-charcoal-900 @container flex h-full w-full flex-col">
       {/* Export toolbar — one "Copy markdown" button (Decision 7 default).
           `composeBriefMarkdown` is pure + reliable and already appends the
           "## Sources" appendix, so the copy needs no raster, no Rust round-trip,
@@ -466,13 +480,19 @@ export function BriefPanel() {
               <Globe className="text-warning mt-0.5 size-4 shrink-0" />
               <div className="flex flex-col gap-0.5">
                 <p className="text-caption text-warning font-medium">
-                  {webRateLimited ? "Web search was rate-limited" : "Structured-data-only brief"}
+                  {webRateLimited
+                    ? "Web search was rate-limited"
+                    : bodyCites
+                      ? "Sources were not captured for this brief"
+                      : "Structured-data-only brief"}
                 </p>
                 <p className="text-charcoal-300 text-micro leading-relaxed">
                   {brief.note ??
                     (webRateLimited
                       ? "Web search was rate-limited for this run — retry in a moment for live web sources."
-                      : `Structured data only — no web sources found${forSymbol}.`)}
+                      : bodyCites
+                        ? "The brief body cites web material, but this run did not capture the sources — treat its citations as unverified."
+                        : `Structured data only — no web sources found${forSymbol}.`)}
                 </p>
               </div>
             </div>
