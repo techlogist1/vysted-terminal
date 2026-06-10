@@ -13,6 +13,15 @@ Consulted before each phase; appended as the run learns.
 - Never pipe long-running commands through head/tee in the foreground (deadlock + masked exit code); run in background with job tracking.
 - Worktree teammates have historically written into the lead's main worktree — check `git worktree list` + `git branch` before lead work after dispatch and before integrating.
 
+## Learned during R8
+
+- tauri-plugin-mcp `evaluate_script` evaluates in EXPRESSION context — a script starting with `const` fails ("Unexpected keyword 'const'"); wrap everything in an IIFE `(()=>{ … })()`.
+- dockview tabs do NOT switch on a synthetic `click` — dispatch the full pointer sequence (pointerdown/mousedown/pointerup/mouseup/click) on the `.dv-default-tab` element.
+- React-controlled inputs need the native value setter + `input` event (`Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set`).
+- Quartz window capture: system python3 lacks PyObjC — use `sidecar/.venv/bin/python3` for /tmp/rigcap.py (matches `kCGWindowOwnerName` contains "vysted").
+- Window resize for narrow-width testing: `osascript … System Events … set size of front window` works (no accessibility fight on this Mac); the app window clamps at ~960px min width.
+- The operator's autosave workspace blob is a regression-evidence goldmine — `brief` rides the blob, so a failing published brief survives restarts (r8/regression-brief-*.json).
+
 ## Learned during R7
 
 - WKWebView serves STALE JS modules from its NetworkCache even through location.reload() — after any frontend edit that must be live-verified, restart the whole `pnpm tauri:dev` stack with `rm -rf ~/Library/Caches/vysted-terminal ~/Library/WebKit/vysted-terminal` first. Curl the Vite URL to confirm what's actually served vs what the webview shows.

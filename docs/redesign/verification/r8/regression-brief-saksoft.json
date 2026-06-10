@@ -1,0 +1,166 @@
+{
+ "query": "Saksoft Limited",
+ "symbol": "Saksoft Limited \u2014 focus: Analyze revenue growth trajectory, margin trends, and valuation multiples relative to historical and peer ranges, using the most recent quarterly filings (as of Q4 FY2026 if available).",
+ "mode": "DEEP",
+ "depth": "heavy",
+ "markdown": "# Saksoft Limited \u2013 Integrated Research Brief\n**As of: 10 June 2026**\n\n## 1. Financial Overview & Valuation\n\n- **Fundamentals data gap**: Standard financial APIs returned null for all fields (revenue, margins, valuation multiples) for Q4 FY2026 and earlier periods [10]. No current stock price, P/E, EV/EBITDA, or price-to\u2011sales ratio is available from these sources [10]. Web searches for BSE/NSE filings also yielded zero results [20].\n- **Alternative metrics (from secondary sources)**:\n  - Trailing twelve\u2011month revenue: **$115 million** as of 31 December 2025 (PitchBook) [17].\n  - Market capitalisation: **\u20b91,780.76 crore** as of 5 June 2026 (Livemint) [9].\n- **Discrepancy note**: The fundamental API [10] returns null data, while PitchBook [17] and Livemint [9] provide specific revenue and market cap figures. This may reflect incomplete API coverage or a lag in Saksoft\u2019s filing availability; no company announcement explaining the absence of Q4 FY2026 data was identified [20, 21].\n- **Historical trends**: No revenue growth rates or margin trends (FY2023\u2013FY2025) could be extracted from the queried sources [10, 21].\n\n## 2. Competitive Moat Assessment\n\n### Domain Specialisation\n- Digital engineering is Saksoft\u2019s dominant revenue driver, representing an estimated **45\u201355% of total revenue** as disclosed in the August 2024 and Q2 FY25 earnings calls [1, 2].\n- No public breakdown for ERP or data analytics service lines is available. The concentration in digital engineering suggests a focused capability, but granularity is insufficient for a full moat assessment.\n\n### Client Concentration\n- **Not assessable**. No data on top\u2011client share or dependency was found in any reviewed source [10, 20]. Client concentration risk remains unquantifiable.\n\n### Total Addressable Market (TAM)\n- **Not quantifiable** from the available data. No TAM estimates for mid\u2011cap IT services in digital engineering, ERP, or data analytics were identified. (General TAM calculation methods are covered in [11\u201316] but are not applied here due to lack of company\u2011specific inputs.)\n\n### Moat Conclusion\n- **Partial evidence of a moderate moat** via digital\u2011engineering specialisation (\u2248half of revenue) [1, 2].\n- Client concentration and TAM expansion are **not assessable**. Further disclosure on service\u2011line mix, top\u2011client share, and market sizing is required.\n\n## 3. Near-Term Catalysts & Key Risks\n\n- **Catalysts**: None identified. No deal wins, contract renewals, margin\u2011improvement initiatives, share buyback programs, or dividend declarations for the current fiscal year have been reported in news or fundamentals searches [20, 21].\n- **Key Risks**: No specific indicators of client spending cuts, currency headwinds, attrition trends, or wage pressure on margins were located. No forward guidance on these risk factors is available [20, 21].\n  - Employee attrition rate and hiring strategy are **not reported** in the available data [20, 21].\n\n## 4. Data Gaps & Discrepancies Summary\n\n- **Fundamentals API vs. secondary sources**: The API [10] returns null for all financial fields, while PitchBook [17] and Livemint [9] provide revenue and market cap. This inconsistency cannot be resolved from the current evidence; no company statement explains the missing quarterly filing [20, 21].\n- **Missing data points**: Revenue growth trajectory, margin trends, valuation multiples, client concentration, TAM sizing, and identifiable catalysts/risks are all absent from the queried universe.\n\n## 5. Conclusion\n\nSaksoft Limited presents a **partial competitive moat** driven by its digital\u2011engineering focus, but a comprehensive investment assessment is impossible due to a near\u2011complete absence of financial data and forward\u2011looking information. Investors should prioritize upcoming quarterly disclosures (Q1 FY27 expected by July 2026) and company announcements for insights on deal pipelines, margin outlook, and capital allocation.\n\n**Important**: Every numeric claim in this brief is sourced from the cited documents. Where figures are missing, it is explicitly stated rather than invented.\n\n---\n\n### Sources (Merged List)\n[1] Saksoft Ltd \u2013 08.08.2024 Earnings Conference Call (NSE)  \n[2] Saksoft Limited \u2013 Q2 FY25 Earnings Conference Call (BSE)  \n[3] (Not used \u2013 relates to other entity)  \n[4] (Not used)  \n[5] Saksoft Limited Annual Report 2024-25 (BSE)  \n[6] Saksoft Q3/9M-FY26 Earnings Presentation (BSE)  \n[7] (Not used \u2013 other filing)  \n[8] Saksoft Q1-FY26 Earnings Presentation (BSE)  \n[9] Saksoft Share Price Today 5 Jun 2026 (Livemint)  \n[10] Fundamentals API query \u2013 revenue, margins, valuation, quarterly filings (Q4 FY2026)  \n[11] TAM calculation guide (ZoomInfo)  \n[12] TAM calculation guide (SalesIntel)  \n[13] TAM glossary (ProductPlan)  \n[14] TAM guide (Clay)  \n[15] TAM calculation guide (Corporate Finance Institute)  \n[16] TAM guide (Salesforce)  \n[17] Saksoft 2026 Company Profile (PitchBook) \u2013 $115M TTM revenue as of Dec 2025  \n[18] (Not used \u2013 CLF news)  \n[19] (Not used \u2013 CLF fundamentals)  \n[20] News search for Saksoft Limited \u2013 catalysts & risks  \n[21] Fundamentals data for Saksoft Limited \u2013 catalysts & risks (revenue, margins, profit)",
+ "sources": [
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/SAKSOFT_14082024131959_TranscriptionSEsubmission.pdf",
+   "title": "Saksoft Ltd 1 08.08.2024 Earnings Conference Call Saksoft Ltd",
+   "excerpt": "So Amit, digital engineering, which is a product capability, that shows almost 45% of our revenues.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/a8b76710-2952-491f-a257-83ad1862c2c3.pdf",
+   "title": "Page 1 of 16 \u201cSaksoft Limited Q2 FY25 Earnings Conference Call\u201d",
+   "excerpt": "Yes. Almost 55% of our revenue -- 50% of our revenue comes from digital engineering.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/5ca444d1-d48f-4807-9702-93945f5647b0.pdf",
+   "title": "info@saksoft.com | www.saksoft.com SAKSOFT LIMITED",
+   "excerpt": "Saksoft has been its largest independent \u00b7 vendor for ten years, strengthening their business and revenues \u00b7 We are working with Central Governments, County and Health department in the UK. By enabling a digital \u00b7 transformation programs, we are improving citizen\u2019s life. Through predictive analytics we are reducing crime",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.bseindia.com/stock-share-price/saksoft-ltd/saksoft/590051/financials-results/",
+   "title": "Saksoft Ltd Financial Results",
+   "excerpt": "RSS stands for Really Simple Syndication. RSS feed is a XML file that provides summaries, including links to the full versions of the content.It is available through RSS feed reader or through some browsers. It will show you what's new since the last time you checked the feed, without having ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/ebdbfc33-34d9-497d-8802-fa07109cfa3b.pdf",
+   "title": "Saksoft Limited Annual Report 2024-25 SAKSOFT\u2019S NEW AVATAR. AI-LED PRODUCT",
+   "excerpt": "Saksoft\u2019s Balance Sheet. ... Pearls\u2019 approach. ... There were positive upsides to report. In FY 24-25, the \u00b7 Company protected most of its customer relationships. Revenues from Top 20 customers increased from 64% in",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/2adafd54-5e25-404a-8734-634019027000.pdf",
+   "title": "EARNINGS PRESENTATION Q3/9M-FY26",
+   "excerpt": "\u201cOur year-to-date revenues are higher by 18% when compared to the same period last year.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/7c7f1d5e-6726-4cc2-b9e8-68527acc4744.pdf",
+   "title": "Page 1 of 1 Saksoft Limited CIN: L72200TN1999PLC054429",
+   "excerpt": "The mix has been the same. I don't think the mix has changed too much. Digital engineering \u00b7 contributes the maximum percentage, and I think we'll continue to do that. And it's not just for \u00b7 us, it's for I think for every tech services company. Finally, it's how you classify revenue.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/5f5df8fc-dc0c-4fa5-9204-fd30e2bb7114.pdf",
+   "title": "EARNINGS PRESENTATION Q1-FY26",
+   "excerpt": "\u201cWe are happy with our performance in the first quarter with a 4% sequential increase in revenues and a 16% sequential increase in \u00b7 PBT. We continue to invest in our AI platform to strengthen our AI led product engineering value proposition.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.livemint.com/market/market-stats/stocks-saksoft-share-price-nse-bse-s0004177",
+   "title": "Saksoft Share Price Today 5 Jun 2026: Live NSE/BSE Rates, Technical Analysis and Expert Forecasts",
+   "excerpt": "... Saksoft is trading at 143.00 as on Fri Jun 05 2026 09:58:42. This is 0.63% upper as compared to its previous closing price of 142.10. ... The market capitalization of Saksoft is 1780.76 Cr as on Fri Jun 05 2026 09:58:42.",
+   "domain": "web"
+  },
+  {
+   "url": "vysted://fundamentals/Saksoft Limited \u2014 focus: Analyze revenue growth trajectory, margin trends, and valuation multiples relative to historical and peer ranges, using the most recent quarterly filings (as of Q4 FY2026 if available).",
+   "title": "Fundamentals for Saksoft Limited \u2014 focus: Analyze revenue growth trajectory, margin trends, and valuation multiples relative to historical and peer ranges, using the most recent quarterly filings (as of Q4 FY2026 if available).",
+   "excerpt": "Structured fundamentals pull.",
+   "domain": "vysted"
+  },
+  {
+   "url": "https://pipeline.zoominfo.com/marketing/how-to-calculate-total-addressable-market",
+   "title": "Total Addressable Market: Calculate TAM in Your Industry",
+   "excerpt": "Total addressable market (TAM) is often expressed in terms of total revenue. Learn how to calculate TAM using top-down and bottom-up market size approaches.",
+   "domain": "web"
+  },
+  {
+   "url": "https://salesintel.io/blog/how-to-calculate-total-addressable-market-tam/",
+   "title": "Calculating Total Addressable Market: The Key to Business Growth",
+   "excerpt": "TAM represents the maximum revenue opportunity available if your product captured 100% of the entire market. It defines universal market demand regardless of competition or your current capabilities, helping you assess overall market potential and long-term growth prospects.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.productplan.com/glossary/total-addressable-market",
+   "title": "Total Addressable Market (TAM) | Glossary | ProductPlan",
+   "excerpt": "What is Total Addressable Market (TAM) and how can you calculate it? Learn how TAM is used, how to understand your product or service's TAM, and more.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.clay.com/glossary/total-addressable-market",
+   "title": "What is Total Addressable Market (TAM)? | Clay",
+   "excerpt": "Total Addressable Market (TAM) represents the total revenue opportunity available for a specific product or service, assuming a company achieves 100% market share.",
+   "domain": "web"
+  },
+  {
+   "url": "https://corporatefinanceinstitute.com/resources/management/total-addressable-market-tam/",
+   "title": "Total Addressable Market - Learn How to Calculate the TAM",
+   "excerpt": "TAM estimations can take untapped markets, products and customer segments into consideration. The assessment helps to determine the actual size of the available market. There are three methods used to calculate the total addressable market. They include: The top-down analysis follows a process of elimination that starts by taking a large population of a known size that comprises the target market and using it to narrow down to a specific market segment.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.salesforce.com/blog/sales/total-addressable-market/",
+   "title": "What Is Total Addressable Market (TAM)? How to Calculate + Examples",
+   "excerpt": "Total Addressable Market (TAM) is the total potential revenue a company could earn if it captured 100% of its target market or customer base.",
+   "domain": "web"
+  },
+  {
+   "url": "https://pitchbook.com/profiles/company/60079-42",
+   "title": "Saksoft 2026 Company Profile: Stock Performance & Earnings | PitchBook",
+   "excerpt": "Its current market cap is $188M with 128M shares. ... As of 31-Dec-2025, Saksoft has a trailing 12-month revenue of $115M. Public Fundamental Data provided by Morningstar, Inc. disclaimer \u00b7 This information is available in the PitchBook Platform.",
+   "domain": "web"
+  },
+  {
+   "url": "vysted://news/CLF",
+   "title": "News for CLF",
+   "excerpt": "Structured news pull.",
+   "domain": "vysted"
+  },
+  {
+   "url": "vysted://fundamentals/CLF",
+   "title": "Fundamentals for CLF",
+   "excerpt": "Structured fundamentals pull.",
+   "domain": "vysted"
+  },
+  {
+   "url": "vysted://news/Saksoft Limited \u2014 focus: Identify near-term catalysts (deal wins, margin levers, buybacks) and key risks (client spending cuts, currency headwinds, attrition), with as-of dates for any forward guidance.",
+   "title": "News for Saksoft Limited \u2014 focus: Identify near-term catalysts (deal wins, margin levers, buybacks) and key risks (client spending cuts, currency headwinds, attrition), with as-of dates for any forward guidance.",
+   "excerpt": "Structured news pull.",
+   "domain": "vysted"
+  },
+  {
+   "url": "vysted://fundamentals/Saksoft Limited \u2014 focus: Identify near-term catalysts (deal wins, margin levers, buybacks) and key risks (client spending cuts, currency headwinds, attrition), with as-of dates for any forward guidance.",
+   "title": "Fundamentals for Saksoft Limited \u2014 focus: Identify near-term catalysts (deal wins, margin levers, buybacks) and key risks (client spending cuts, currency headwinds, attrition), with as-of dates for any forward guidance.",
+   "excerpt": "Structured fundamentals pull.",
+   "domain": "vysted"
+  }
+ ],
+ "sourceCount": 21,
+ "cost": {
+  "tokens": 0,
+  "spendUsd": 0
+ },
+ "webAvailable": true,
+ "note": "heavy:3 angles",
+ "structured": {
+  "panel": [
+   {
+    "angle": 1,
+    "note": "per-round wall-clock guard: round exceeded 19s",
+    "symbol": "Saksoft Limited \u2014 focus: Analyze revenue growth trajectory, margin trends, and valuation multiples relative to historical and peer ranges, using the most recent quarterly filings (as of Q4 FY2026 if available)."
+   },
+   {
+    "angle": 2,
+    "note": "per-round wall-clock guard: round exceeded 11s",
+    "symbol": "CLF"
+   },
+   {
+    "angle": 3,
+    "note": "per-round wall-clock guard: round exceeded 23s",
+    "symbol": "Saksoft Limited \u2014 focus: Identify near-term catalysts (deal wins, margin levers, buybacks) and key risks (client spending cuts, currency headwinds, attrition), with as-of dates for any forward guidance."
+   }
+  ],
+  "cross_check": {
+   "skipped": true,
+   "reason": "wall-clock ceiling 240s reached (286.7s elapsed)"
+  }
+ },
+ "createdAt": 1781098221741
+}
