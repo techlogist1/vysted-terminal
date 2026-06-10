@@ -1,36 +1,33 @@
-"""Pass B (B3) agent tool — ``web_search`` (the BYOK / local search path).
+"""Agent tool — ``web_search`` (the ONE retrieval resolution path; R9 two-tier).
 
-Grounds an answer in current web context (FR-080/082/083/084). This handler
-serves the **BYOK** (Exa) and **local** (SearXNG) tiers: it resolves the active
-backend from the per-request search config (set by the region/search middleware
-from the user's headers — tier + Exa key + SearXNG URL, all process-memory-only)
-and returns normalized results + citations.
+Grounds an answer in current web context (FR-080/082/083/084) and returns
+normalized results + citations. R9 (Track A) collapses retrieval to ONE local
+lane shared by BOTH research tiers — the tier governs where RESEARCH routes
+(see :mod:`services.agent_tools.research`), never where retrieval happens:
 
-The **native** tier (the model's own server-side search) does NOT come through
-here — the agent runtime injects the provider's native search instead and this
-tool is withheld from the allow-list for native-capable runs. When no backend is
-configured the handler returns an honest, human "unavailable" naming exactly what
-would unlock it (FR-082) — it never fabricates a source.
+(a) an explicit custom SearXNG URL (``X-Vysted-Searxng-Url`` →
+    :func:`config.get_searxng_url`) is used as-is;
+(b) else a READY managed SearXNG (:mod:`services.searxng_manager` — an instant
+    in-process ``ready_base_url()`` read, no network probe) serves the query;
+(c) else the keyless engine rotation serves it SILENTLY with the honest
+    ``backend="keyless-fallback"`` id on the result — the UI renders a nudge
+    banner off that id (Team C), and a stopped SearXNG NEVER yields a "no web
+    backend" error state (R9 rule 1, extending R8 D20/D25).
 
-R8 (settings-truth): backend selection is ONE resolution path
-(:func:`_resolve_backend`):
+A SearXNG instance that resolves but fails AT SEARCH TIME (stopped container,
+dead custom URL) degrades the same way: one retry on the keyless floor, stamped
+``keyless-fallback`` — same local/keyless privacy class, no key/cost boundary
+crossed, and the honest id means no banner can claim SearXNG served the run.
 
-(a) an EXPLICIT R7 tier selection (``t1_local`` / ``t2_searxng`` /
-    ``t3_hosted`` via :func:`config.get_research_search_tier`) is authoritative
-    — t1 → the keyless rotation floor, t2 → the (managed) SearXNG instance,
-    t3 → OpenRouter's hosted web-search server tool (BYOK key, per-search cost
-    estimate passed through under ``metadata``). An explicit tier that cannot
-    be served fails HONESTLY with the unlock named — never a silent re-route
-    (C.1).
-(b) else the LEGACY headers map into the same lanes: ``byok-exa`` → the
-    Exa-direct backend, ``local-searxng`` → t2 detection with the provided URL.
-    A legacy lane that cannot be served (no key, no reachable instance) falls
-    through to the default below — the legacy contract always floored, never
-    erred.
-(c) DEFAULT (no selection, or ``native`` with the tool still reachable): a
-    READY managed SearXNG (:mod:`services.searxng_manager` — an instant
-    in-process read, no network probe) is used FIRST; else the keyless floor.
-    A green SearXNG in Settings is never bypassed again.
+Legacy headers map per the R9 migration (``config.get_effective_research_tier``
+folds them); the dead R7/R8 lanes (Exa-direct, the OpenRouter web-plugin
+hosted scraper) are GONE — no legacy lane reaches a paid backend from here.
+
+When the model's native server-side search rides instead (tier_a with a
+native-capable model), the runtime withholds this tool — see
+``agent_runtime``. When even the defensive floor cannot resolve, the handler
+returns an honest, human "unavailable" naming the unlock (FR-082) — it never
+fabricates a source.
 """
 
 from __future__ import annotations
@@ -39,129 +36,40 @@ from typing import Any
 
 from services.agent_tools import register_tool
 
+#: The honest backend id stamped when the keyless rotation served a query in
+#: FALLBACK position (SearXNG selected-but-unavailable). The UI's nudge banner
+#: keys off this id; mirrored by the frontend brief/banner consumers (Team C).
+KEYLESS_FALLBACK_BACKEND_ID = "keyless-fallback"
+
 _NO_BACKEND_MESSAGE = (
-    "No web-search backend is configured for this query. Add an Exa API key "
-    "(BYOK search) or set up the managed SearXNG instance in Settings → "
-    "Research, or switch to a model with native web search. I won't invent "
-    "sources."
+    "No web-search backend is available for this query. Set up Unlimited "
+    "(Local) research in Settings → Research, or switch to a model with "
+    "native web search. I won't invent sources."
 )
-
-_HOSTED_NEEDS_KEY_MESSAGE = (
-    "Hosted search (t3) is selected but no OpenRouter API key is configured. "
-    "Add one in Settings → Research, or switch back to the built-in local "
-    "tier. I won't invent sources."
-)
-
-_SEARXNG_NOT_READY_MESSAGE = (
-    "SearXNG search (t2) is selected but no SearXNG instance is reachable. "
-    "Finish the one-click setup in Settings → Research (or start the "
-    "vysted-searxng container), or switch back to the built-in local tier. "
-    "I won't invent sources."
-)
-
-
-async def _resolve_r7_tier(tier: str, region: str) -> tuple[Any, str | None]:
-    """Resolve the backend for an EXPLICIT R7 tier selection (Component 3).
-
-    Returns ``(backend, error_message)``. An explicit tier that cannot be
-    served returns ``(None, <honest message naming the unlock>)`` rather than
-    silently re-routing — the user chose the tier; swapping it behind their
-    back would be surprise routing (C.1). Exception: t1 IS the floor, so it
-    keeps the keyless → ddg defensive chain.
-    """
-    import config
-    from services.search import registry
-
-    if tier == config.SEARCH_TIER_T3_HOSTED:
-        openrouter_key = config.get_openrouter_search_key()
-        if not openrouter_key:
-            return None, _HOSTED_NEEDS_KEY_MESSAGE
-        backend = registry.resolve(
-            "hosted",
-            openrouter_key=openrouter_key,
-            engine=config.get_hosted_search_engine(),
-            region=region,
-        )
-        return backend, None if backend is not None else _HOSTED_NEEDS_KEY_MESSAGE
-
-    if tier == config.SEARCH_TIER_T2_SEARXNG:
-        searxng_url = config.get_searxng_url()
-        if not searxng_url:
-            # The managed instance (services.searxng_manager) and the pip/docker
-            # conventional ports are probed by the same autodetect.
-            from services.search.searxng import detect_searxng
-
-            searxng_url = await detect_searxng()
-        backend = registry.resolve("searxng", searxng_url=searxng_url, region=region)
-        if backend is not None:
-            return backend, None
-        # R8 gate 6: a stopped t2 instance DEGRADES to the keyless floor instead
-        # of going dark — t2 and t1 share the same local/keyless privacy class,
-        # so the fallback crosses no key/cost boundary (t3 still hard-stops on a
-        # missing key). The result's ``backend`` id carries the truth
-        # ("keyless", never "searxng"), so no banner can claim the instance
-        # served the run.
-        backend = registry.resolve("keyless", region=region) or registry.resolve(
-            "ddg", region=region
-        )
-        return backend, None if backend is not None else _SEARXNG_NOT_READY_MESSAGE
-
-    # t1_local — the keyless floor, with the bare ddg chain as the defensive
-    # fallback (same chain the legacy path floors to).
-    backend = registry.resolve("keyless", region=region) or registry.resolve("ddg", region=region)
-    return backend, None
 
 
 async def _resolve_backend(region: str) -> tuple[Any, str | None]:
-    """The ONE backend-resolution path (R8 settings-truth).
+    """The ONE retrieval-resolution path (R9 Track A).
 
-    Returns ``(backend, error_message)``:
-
-    (a) an explicit R7 tier header wins (t1/t2/t3 — :func:`_resolve_r7_tier`;
-        an unservable explicit tier fails honestly, never a silent re-route);
-    (b) else the legacy headers map into the same lanes — ``byok-exa`` → the
-        Exa-direct backend, ``local-searxng`` → t2 detection with the provided
-        URL — and an unservable legacy lane falls through to (c) (the legacy
-        contract always floored, never erred);
-    (c) DEFAULT: a READY managed SearXNG (an instant in-process
-        ``ready_base_url()`` read — no network probe) is used first, else the
-        keyless rotation floor (then the bare ddg defensive fallback). A live
-        green SearXNG is never bypassed.
+    Returns ``(backend, label)``: ``label`` is the honest backend id override
+    (:data:`KEYLESS_FALLBACK_BACKEND_ID`) when the keyless floor serves in
+    fallback position, else ``None`` (the backend's own id stands). ``backend``
+    is ``None`` only on the defensive everything-failed-to-import path — never
+    because SearXNG is down (rule 1: a stopped SearXNG NEVER yields "no web
+    backend").
     """
     import config
     from services.search import registry
 
-    # (a) Explicit R7 tier selection — authoritative, per-request.
-    r7_tier = config.get_research_search_tier()
-    if r7_tier is not None:
-        return await _resolve_r7_tier(r7_tier, region)
-
-    # (b) Legacy headers map into the same lanes.
-    tier = config.get_search_tier()
-    if tier == "byok-exa":
-        backend = registry.resolve("exa", exa_key=config.get_exa_key(), region=region)
-        if backend is not None:
-            return backend, None
-    elif tier == "local-searxng":
-        searxng_url = config.get_searxng_url()
-        if not searxng_url:
-            # The same autodetect the t2 lane uses: the managed instance first
-            # (when READY), then the conventional local ports (8888 pip → 8080
-            # docker).
-            from services.search.searxng import detect_searxng
-
-            searxng_url = await detect_searxng()
+    # (a) An explicit custom instance URL is used as-is — the user pointed at it.
+    searxng_url = config.get_searxng_url()
+    if searxng_url:
         backend = registry.resolve("searxng", searxng_url=searxng_url, region=region)
         if backend is not None:
             return backend, None
 
-    # (c) DEFAULT (no selection / ``native`` with the tool reachable / a legacy
-    # lane that could not be served): a READY managed SearXNG first — the user
-    # set it up and the Settings flow shows it green, so the floor must not
-    # shadow it — else the keyless rotation floor (DDG → Brave → Mojeek), which
-    # needs no key/URL and ALWAYS resolves, so web search is never dark on a
-    # fresh install. The bare single-engine ddg floor stays as the defensive
-    # fallback should the keyless module ever fail to import.
+    # (b) The managed instance, when READY — an instant in-process read (no
+    # network probe on the hot path); a green SearXNG is never bypassed.
     from services import searxng_manager
 
     managed_url = searxng_manager.manager.ready_base_url()
@@ -169,16 +77,30 @@ async def _resolve_backend(region: str) -> tuple[Any, str | None]:
         backend = registry.resolve("searxng", searxng_url=managed_url, region=region)
         if backend is not None:
             return backend, None
+
+    # (c) The keyless rotation floor (DDG → Brave → Mojeek) — needs no key/URL
+    # and ALWAYS resolves, stamped with the honest fallback id. The bare
+    # single-engine ddg floor stays as the defensive fallback should the
+    # keyless module ever fail to import.
     backend = registry.resolve("keyless", region=region) or registry.resolve("ddg", region=region)
-    return backend, None
+    return backend, KEYLESS_FALLBACK_BACKEND_ID
+
+
+async def _keyless_floor(region: str) -> Any:
+    """The keyless floor backend (or the bare-ddg defensive fallback), or None."""
+    from services.search import registry
+
+    return registry.resolve("keyless", region=region) or registry.resolve("ddg", region=region)
 
 
 async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
-    """Run a web search via the configured BYOK/local backend; cite the results.
+    """Run a web search via the resolved local backend; cite the results.
 
     Returns ``{"ok": True, "backend": ..., "results": [...], "citations": [...]}``
-    or, when nothing is configured / the backend fails, ``{"ok": False,
+    or, when nothing can serve / the backend fails, ``{"ok": False,
     "message": <human reason>}`` — never raw JSON, never a fabricated source.
+    A SearXNG backend that fails at search time degrades ONCE to the keyless
+    floor (stamped ``keyless-fallback``) instead of erring.
     """
     query = args.get("query")
     if not isinstance(query, str) or not query.strip():
@@ -189,21 +111,36 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
     import config
 
     region = config.get_region()
-    backend, tier_error = await _resolve_backend(region)
+    backend, label = await _resolve_backend(region)
     if backend is None:
-        return {"ok": False, "query": query, "message": tier_error or _NO_BACKEND_MESSAGE}
+        return {"ok": False, "query": query, "message": _NO_BACKEND_MESSAGE}
 
-    return await _dispatch(backend, query, num_results, category, region)
+    out = await _dispatch(backend, query, num_results, category, region)
+
+    # A SearXNG instance that resolved but failed at SEARCH time (stopped
+    # container / dead custom URL) degrades to the keyless floor instead of
+    # surfacing an error state — same local privacy class, honest fallback id.
+    # ``label is None`` ⟺ a SearXNG lane served (by construction the keyless
+    # floor always carries the fallback label), so only SearXNG retries here.
+    if out.get("ok") is False and label is None and out.get("reason") == "unreachable":
+        floor = await _keyless_floor(region)
+        if floor is not None:
+            out = await _dispatch(floor, query, num_results, category, region)
+            label = KEYLESS_FALLBACK_BACKEND_ID
+
+    if out.get("ok") is True and label is not None:
+        out["backend"] = label
+    return out
 
 
 async def _dispatch(
     backend: Any, query: str, num_results: int, category: str, region: str
 ) -> dict[str, Any]:
-    """Run the resolved backend and shape the tool result (shared by both routes).
+    """Run the resolved backend and shape the tool result.
 
-    A backend that annotates its response (the t3 hosted tier's per-search cost
-    estimate) has that annex passed through under ``metadata`` so the caller can
-    show honest cost alongside the results (C.1).
+    A backend that annotates its response has that annex passed through under
+    ``metadata`` so the caller can show honest provenance alongside the
+    results (C.1).
     """
     from services.search.base import SearchError
 
@@ -257,4 +194,4 @@ def register() -> None:
     register_tool("web_search", _web_search)
 
 
-__all__ = ["_web_search", "register"]
+__all__ = ["KEYLESS_FALLBACK_BACKEND_ID", "_web_search", "register"]

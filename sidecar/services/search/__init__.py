@@ -1,9 +1,9 @@
 """Web-search backends — the common interface + registry (Pass B / Pillar C).
 
 The agent calls :meth:`SearchBackend.search` through this seam; concrete
-backends (Exa REST, SearXNG JSON, ...) are selected at call time by
-:func:`resolve`. See :mod:`services.search.base` for the wire contract and
-:mod:`services.search.registry` for backend selection.
+backends (SearXNG JSON, the keyless engine rotation, the bare DDG floor) are
+selected at call time by :func:`resolve`. See :mod:`services.search.base` for
+the wire contract and :mod:`services.search.registry` for backend selection.
 """
 
 from __future__ import annotations

@@ -113,11 +113,6 @@ def test_locale_domains_unknown_falls_back_to_us() -> None:
 # --- Registry resolution (offline) ------------------------------------------
 
 
-def test_resolve_returns_none_without_exa_key() -> None:
-    assert resolve("exa") is None
-    assert resolve("exa", exa_key="") is None
-
-
 def test_resolve_returns_none_without_searxng_url() -> None:
     assert resolve("searxng") is None
     assert resolve("searxng", searxng_url="") is None
@@ -134,27 +129,40 @@ def test_resolve_ddg_is_unconditional_keyless_floor() -> None:
     assert "ddg" in KNOWN_BACKENDS
 
 
-def test_resolve_keyless_is_unconditional_t1_tier() -> None:
+def test_resolve_keyless_is_unconditional_floor_tier() -> None:
     from services.search.keyless import KeylessSearchBackend
     from services.search.registry import KNOWN_BACKENDS
 
-    # The R7 multi-engine keyless tier needs no key/url — it ALWAYS resolves and
-    # is the web_search handler's default floor.
+    # The multi-engine keyless rotation needs no key/url — it ALWAYS resolves
+    # and is the web_search handler's invisible fallback (R9: stamped
+    # ``keyless-fallback`` at the tool layer, never a user-facing tier).
     backend = resolve("keyless")
     assert isinstance(backend, KeylessSearchBackend)
     assert "keyless" in KNOWN_BACKENDS
 
 
+def test_dead_r7_byok_backends_are_unresolvable() -> None:
+    # R9 Track A kill: the BYOK hosted-scraper tier (OpenRouter web plugin) and
+    # the Exa-direct lane are DELETED — the registry must treat their old ids as
+    # unknown, never construct a paid scraper backend again.
+    from services.search.registry import KNOWN_BACKENDS
+
+    assert resolve("exa") is None
+    assert resolve("hosted") is None
+    assert "exa" not in KNOWN_BACKENDS
+    assert "hosted" not in KNOWN_BACKENDS
+
+
 def test_resolve_returns_none_for_unknown_backend() -> None:
     # Engine ids inside the keyless tier (brave/mojeek) are NOT registry-level
     # backends — the tier is selected as one unit ("keyless").
-    assert resolve("brave", exa_key="k", searxng_url="http://u") is None
+    assert resolve("brave", searxng_url="http://u") is None
     assert resolve("mojeek") is None
 
 
 def test_resolve_returns_none_for_empty_active_id() -> None:
-    assert resolve(None, exa_key="k") is None
-    assert resolve("", exa_key="k") is None
+    assert resolve(None, searxng_url="http://u") is None
+    assert resolve("", searxng_url="http://u") is None
 
 
 def test_search_backend_protocol_is_runtime_checkable() -> None:

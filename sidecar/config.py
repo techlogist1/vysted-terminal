@@ -14,6 +14,7 @@ temporary directory.
 from __future__ import annotations
 
 import os
+import re
 from collections.abc import Callable
 from contextvars import ContextVar
 from pathlib import Path
@@ -86,23 +87,27 @@ def reset_request_region(token: object) -> None:
     _region_ctx.reset(token)  # type: ignore[arg-type]
 
 
-# --- Search config (Pass B / Pillar C — FR-080) -----------------------------
+# --- Search config (Pass B / Pillar C — FR-080; R9 two-tier) -----------------
 #
-# The web-search tier + its BYOK credential ride each request the same way the
-# region and BYOK secrets do — per-request headers read into ContextVars by the
-# region middleware, reset on the way out, NEVER logged or persisted. The agent
-# tool loop reads these to pick native vs BYOK (Exa) vs local (SearXNG) search.
-# The Exa key is a SECRET: process-memory only, gone when the request ends.
+# The web-search preference rides each request the same way the region and BYOK
+# secrets do — per-request headers read into ContextVars by the region
+# middleware, reset on the way out, NEVER logged or persisted.
+#
+# The LEGACY pre-R8 ``X-Vysted-Search-Tier`` header (``native`` / ``byok-exa`` /
+# ``local-searxng``) is still PARSED (third-party REST/MCP callers may send it)
+# but only as migration input: :func:`get_effective_research_tier` folds it into
+# the R9 two-tier vocabulary (byok-exa → tier_b when an OpenRouter key rides the
+# request, else tier_a; everything else → tier_a). The R7 Exa-direct lane and
+# its key header are DEAD — no Exa secret is read anymore.
 SEARCH_TIER_NATIVE = "native"
 _KNOWN_SEARCH_TIERS = frozenset({"native", "byok-exa", "local-searxng"})
 
 _search_tier_ctx: ContextVar[str] = ContextVar("vysted_search_tier", default=SEARCH_TIER_NATIVE)
-_exa_key_ctx: ContextVar[str | None] = ContextVar("vysted_exa_key", default=None)
 _searxng_url_ctx: ContextVar[str | None] = ContextVar("vysted_searxng_url", default=None)
 
 
 def normalize_search_tier(value: str | None) -> str:
-    """Coerce a value to a known search tier, defaulting to ``native``."""
+    """Coerce a value to a known LEGACY search tier, defaulting to ``native``."""
     if not value:
         return SEARCH_TIER_NATIVE
     candidate = value.strip().lower()
@@ -110,35 +115,27 @@ def normalize_search_tier(value: str | None) -> str:
 
 
 def get_search_tier() -> str:
+    """The LEGACY per-request search tier — migration input only (see above)."""
     return _search_tier_ctx.get()
 
 
-def get_exa_key() -> str | None:
-    """The per-request Exa BYOK key (from the keychain via header), or ``None``."""
-    return _exa_key_ctx.get()
-
-
 def get_searxng_url() -> str | None:
-    """The per-request SearXNG base URL (local tier), or ``None``."""
+    """The per-request custom SearXNG base URL, or ``None`` (managed instance)."""
     return _searxng_url_ctx.get()
 
 
-def set_request_search(
-    *, tier: str | None, exa_key: str | None, searxng_url: str | None
-) -> tuple[object, object, object]:
+def set_request_search(*, tier: str | None, searxng_url: str | None) -> tuple[object, object]:
     """Set the per-request search config; returns reset tokens (middleware teardown)."""
     return (
         _search_tier_ctx.set(normalize_search_tier(tier)),
-        _exa_key_ctx.set(exa_key.strip() if exa_key and exa_key.strip() else None),
         _searxng_url_ctx.set(searxng_url.strip() if searxng_url and searxng_url.strip() else None),
     )
 
 
-def reset_request_search(tokens: tuple[object, object, object]) -> None:
+def reset_request_search(tokens: tuple[object, object]) -> None:
     """Restore the search ContextVars to their prior values (middleware teardown)."""
-    tier_token, exa_token, searxng_token = tokens
+    tier_token, searxng_token = tokens
     _search_tier_ctx.reset(tier_token)  # type: ignore[arg-type]
-    _exa_key_ctx.reset(exa_token)  # type: ignore[arg-type]
     _searxng_url_ctx.reset(searxng_token)  # type: ignore[arg-type]
 
 
@@ -210,48 +207,57 @@ def set_request_research_depth(depth: str | None) -> object:
     return _research_depth_ctx.set(depth)
 
 
-# --- R7 search-tier selection (Track R — Component 3) ------------------------
+# --- R9 research-tier selection (two tiers, Track A) --------------------------
 #
-# The R7 research rebuild names three SEARCH tiers, orthogonal to depth:
+# R9 collapses the R7/R8 three-tier research model into TWO user-facing tiers:
 #
-#   ``t1_local``   — the keyless multi-engine rotation (DDG → Brave → Mojeek).
-#                    Zero keys, zero setup; the default floor.
-#   ``t2_searxng`` — the one-click managed SearXNG instance ("Unlimited
-#                    Research", :mod:`services.searxng_manager`).
-#   ``t3_hosted``  — the BYOK hosted tier: OpenRouter's ``openrouter:web_search``
-#                    server tool (Firecrawl default engine, Exa optional) — see
-#                    :mod:`services.search.hosted`.
+#   ``tier_a`` — "Unlimited (Local)": the managed SearXNG instance as retrieval
+#                paired with the active chat model running the built-in research
+#                loop. THE default. When SearXNG is not READY, retrieval silently
+#                serves the keyless engines and the result/brief carries the
+#                honest ``backend="keyless-fallback"`` id — never an error state,
+#                and never a user-facing "keyless tier".
+#   ``tier_b`` — "Hosted research model": an internet-native research model via
+#                OpenRouter owns research at ALL depth stops regardless of the
+#                chat model (per-stop model map below). Requires the BYOK
+#                OpenRouter key (``X-Vysted-Openrouter-Key`` — a SECRET:
+#                keychain-sourced in the renderer, header transport only,
+#                process-memory for the request, never persisted or logged).
 #
 # The selection mirrors the deep-research backend pattern above EXACTLY: the
 # frontend persists the choice in Settings and publishes it on each request
 # (``X-Vysted-Research-Tier``); the middleware sets it here so any code path the
 # request reaches — routers and the agent tool loop — reads the same tier via
-# :func:`get_research_search_tier`. Task-local, reset on request exit, never
-# leaks across requests. ``None`` means "no explicit selection this request" so
-# callers keep their legacy routing; an explicit-but-unknown value normalizes to
-# the t1 floor (defaulting t1 — never a surprise paid route).
-#
-# The OpenRouter BYOK key for the hosted tier is a SECRET with the same handling
-# as the Exa key above: it rides the request header (``X-Vysted-Openrouter-Key``)
-# into a per-request ContextVar, process-memory only, never persisted or logged.
-SEARCH_TIER_T1_LOCAL = "t1_local"
-SEARCH_TIER_T2_SEARXNG = "t2_searxng"
-SEARCH_TIER_T3_HOSTED = "t3_hosted"
-KNOWN_RESEARCH_SEARCH_TIERS = frozenset(
-    {SEARCH_TIER_T1_LOCAL, SEARCH_TIER_T2_SEARXNG, SEARCH_TIER_T3_HOSTED}
-)
+# :func:`get_effective_research_tier`. Task-local, reset on request exit, never
+# leaks across requests. The legacy R7/R8 spellings (``t1_local`` /
+# ``t2_searxng`` / ``t3_hosted``) and the pre-R8 legacy header fold in per the
+# migration table; an unknown value floors to ``tier_a`` — the only tier that
+# can never surprise-bill or require setup.
+SEARCH_TIER_A = "tier_a"
+SEARCH_TIER_B = "tier_b"
+KNOWN_RESEARCH_SEARCH_TIERS = frozenset({SEARCH_TIER_A, SEARCH_TIER_B})
 
-#: Forgiving aliases so a short spelling from settings/tests still lands on the
-#: intended tier rather than silently flooring to t1.
+#: Migration + forgiving aliases: the R7/R8 tier ids and short spellings fold
+#: into the two-tier vocabulary so an old client/blob still lands on the
+#: intended side of the key/cost boundary rather than silently flooring.
 _RESEARCH_TIER_ALIASES: dict[str, str] = {
-    "t1": SEARCH_TIER_T1_LOCAL,
-    "local": SEARCH_TIER_T1_LOCAL,
-    "keyless": SEARCH_TIER_T1_LOCAL,
-    "t2": SEARCH_TIER_T2_SEARXNG,
-    "searxng": SEARCH_TIER_T2_SEARXNG,
-    "t3": SEARCH_TIER_T3_HOSTED,
-    "hosted": SEARCH_TIER_T3_HOSTED,
-    "openrouter": SEARCH_TIER_T3_HOSTED,
+    # R7/R8 ids — t1/t2 share tier_a's local/keyless privacy class; t3 was the
+    # hosted key boundary, which is exactly tier_b's boundary.
+    "t1_local": SEARCH_TIER_A,
+    "t2_searxng": SEARCH_TIER_A,
+    "t3_hosted": SEARCH_TIER_B,
+    # Loose spellings the old normalizer tolerated.
+    "t1": SEARCH_TIER_A,
+    "t2": SEARCH_TIER_A,
+    "local": SEARCH_TIER_A,
+    "keyless": SEARCH_TIER_A,
+    "searxng": SEARCH_TIER_A,
+    "a": SEARCH_TIER_A,
+    "t3": SEARCH_TIER_B,
+    "hosted": SEARCH_TIER_B,
+    "openrouter": SEARCH_TIER_B,
+    "research-model": SEARCH_TIER_B,
+    "b": SEARCH_TIER_B,
 }
 
 _research_search_tier_ctx: ContextVar[str | None] = ContextVar(
@@ -260,40 +266,89 @@ _research_search_tier_ctx: ContextVar[str | None] = ContextVar(
 _openrouter_search_key_ctx: ContextVar[str | None] = ContextVar(
     "vysted_openrouter_search_key", default=None
 )
-_hosted_search_engine_ctx: ContextVar[str | None] = ContextVar(
-    "vysted_hosted_search_engine", default=None
-)
+
+#: One-shot deprecation note per legacy spelling (rule: config migration is
+#: graceful and logged ONCE in the run log — never a user error).
+_legacy_tier_notes_emitted: set[str] = set()
+
+
+def _note_legacy_tier_once(value: str, mapped: str) -> None:
+    """Log a single deprecation note the first time a legacy tier id is seen."""
+    if value in _legacy_tier_notes_emitted:
+        return
+    _legacy_tier_notes_emitted.add(value)
+    import logging
+
+    logging.getLogger(__name__).info(
+        "legacy research-tier value %r received — migrated to %r (R9 two-tier); "
+        "update the caller to send tier_a/tier_b",
+        value,
+        mapped,
+    )
 
 
 def normalize_research_search_tier(value: str | None) -> str:
-    """Coerce a value to a known R7 search tier, defaulting to ``t1_local``.
+    """Coerce a value to a known R9 research tier, defaulting to ``tier_a``.
 
-    Unknown / empty values fall back to the keyless t1 floor rather than
-    raising — a malformed header must never break a request, and t1 is the only
-    tier that can never surprise-bill or require setup.
+    Unknown / empty values fall back to the local tier_a default rather than
+    raising — a malformed header must never break a request, and tier_a is the
+    only tier that can never surprise-bill or require setup. Legacy R7/R8
+    spellings fold in per the migration table (logged once, never an error).
     """
     if not value:
-        return SEARCH_TIER_T1_LOCAL
+        return SEARCH_TIER_A
     candidate = value.strip().lower()
     if candidate in KNOWN_RESEARCH_SEARCH_TIERS:
         return candidate
-    return _RESEARCH_TIER_ALIASES.get(candidate, SEARCH_TIER_T1_LOCAL)
+    mapped = _RESEARCH_TIER_ALIASES.get(candidate)
+    if mapped is not None:
+        _note_legacy_tier_once(candidate, mapped)
+        return mapped
+    return SEARCH_TIER_A
 
 
 def get_research_search_tier() -> str | None:
-    """The explicitly selected R7 search tier for this request, or ``None``.
+    """The explicitly selected research tier for this request, or ``None``.
 
-    ``None`` means the request carried no selection — the caller keeps its
-    legacy routing (which already floors to the keyless t1 tier). A non-``None``
-    value is always one of :data:`KNOWN_RESEARCH_SEARCH_TIERS`.
+    ``None`` means the request carried no ``X-Vysted-Research-Tier`` header —
+    callers resolve the default via :func:`get_effective_research_tier`. A
+    non-``None`` value is always one of :data:`KNOWN_RESEARCH_SEARCH_TIERS`.
     """
     return _research_search_tier_ctx.get()
 
 
-def set_request_research_search_tier(tier: str | None) -> object:
-    """Publish the R7 search tier for the request; returns a reset token.
+def get_effective_research_tier() -> str:
+    """The tier this request EFFECTIVELY runs on — always ``tier_a``/``tier_b``.
 
-    ``None`` (header absent) stays ``None`` — "no explicit selection"; any
+    The ONE tier-resolution truth (extends R8 D20/D25):
+
+    1. an explicit ``X-Vysted-Research-Tier`` selection (already normalized,
+       legacy spellings folded in) is authoritative;
+    2. else the LEGACY pre-R8 ``X-Vysted-Search-Tier`` header maps per the
+       migration table — ``byok-exa`` (the dead Exa-direct lane) → ``tier_b``
+       when an OpenRouter key rides the request (the same key boundary), else
+       ``tier_a``; ``local-searxng`` / ``native`` → ``tier_a``;
+    3. else ``tier_a`` — the default tier. There is no "no tier" state.
+    """
+    explicit = _research_search_tier_ctx.get()
+    if explicit is not None:
+        return explicit
+    legacy = _search_tier_ctx.get()
+    if legacy == "byok-exa":
+        mapped = SEARCH_TIER_B if get_openrouter_search_key() else SEARCH_TIER_A
+        _note_legacy_tier_once("byok-exa", mapped)
+        return mapped
+    if legacy == "local-searxng":
+        _note_legacy_tier_once("local-searxng", SEARCH_TIER_A)
+        return SEARCH_TIER_A
+    return SEARCH_TIER_A
+
+
+def set_request_research_search_tier(tier: str | None) -> object:
+    """Publish the research tier for the request; returns a reset token.
+
+    ``None`` (header absent) stays ``None`` — "no explicit selection" (the
+    effective tier then derives from legacy headers or the tier_a default); any
     present value is normalized so downstream readers never see an unknown id.
     """
     return _research_search_tier_ctx.set(
@@ -302,12 +357,12 @@ def set_request_research_search_tier(tier: str | None) -> object:
 
 
 def reset_request_research_search_tier(token: object) -> None:
-    """Restore the R7 search-tier ContextVar (middleware teardown)."""
+    """Restore the research-tier ContextVar (middleware teardown)."""
     _research_search_tier_ctx.reset(token)  # type: ignore[arg-type]
 
 
 def get_openrouter_search_key() -> str | None:
-    """The per-request OpenRouter BYOK key for the t3 hosted tier, or ``None``.
+    """The per-request OpenRouter BYOK key for the tier_b lane, or ``None``.
 
     A SECRET: keychain-sourced in the renderer, rides the request header only,
     process-memory for the request, never persisted, never logged.
@@ -325,26 +380,89 @@ def reset_request_openrouter_search_key(token: object) -> None:
     _openrouter_search_key_ctx.reset(token)  # type: ignore[arg-type]
 
 
-def get_hosted_search_engine() -> str | None:
-    """The user's hosted-search engine choice (``firecrawl``/``exa``/…), or ``None``.
+# --- Tier B per-stop research-model map (R9 Track A) ---------------------------
+#
+# Tier B routes research to a per-depth-stop model (NORMAL / DEEP / ULTRA). The
+# frontend publishes the user's map on each request as the
+# ``X-Vysted-Research-Models`` header — ordered ``stop=slug`` pairs joined by
+# commas (``normal=perplexity/sonar,deep=…,ultra=…``; mirrored by
+# ``encodeResearchModels`` in ``src/lib/search-headers.ts``). Parsing is
+# defensive and MODEL-AGNOSTIC: any plausible OpenRouter slug is accepted (the
+# lead can re-pin defaults without touching routing code); a malformed pair is
+# dropped and that stop floors to its default. Task-local like every other
+# per-request setting above.
+RESEARCH_STOP_NORMAL = "normal"
+RESEARCH_STOP_DEEP = "deep"
+RESEARCH_STOP_ULTRA = "ultra"
+KNOWN_RESEARCH_STOPS = (RESEARCH_STOP_NORMAL, RESEARCH_STOP_DEEP, RESEARCH_STOP_ULTRA)
 
-    ``None`` lets :mod:`services.search.hosted` apply its default (Firecrawl —
-    the engine with a free-credit tier). Validation against the known engine set
-    happens in that module; this is transport only.
+#: The Tier B per-stop defaults — verified live on OpenRouter 2026-06-11
+#: (sonar $1/M in · $1/M out; sonar-reasoning-pro $2/M in · $8/M out;
+#: sonar-deep-research $2/M in · $8/M out · $3/M reasoning; all $5/1k searches).
+DEFAULT_RESEARCH_MODELS: dict[str, str] = {
+    RESEARCH_STOP_NORMAL: "perplexity/sonar",
+    RESEARCH_STOP_DEEP: "perplexity/sonar-reasoning-pro",
+    RESEARCH_STOP_ULTRA: "perplexity/sonar-deep-research",
+}
+
+#: A plausible OpenRouter model slug: sane charset, bounded length. Deliberately
+#: loose — routing stays model-agnostic; this only rejects garbage/injection.
+_MODEL_SLUG_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$")
+
+_research_models_ctx: ContextVar[dict[str, str] | None] = ContextVar(
+    "vysted_research_models", default=None
+)
+
+
+def parse_research_models(value: str | None) -> dict[str, str]:
+    """Parse the ``X-Vysted-Research-Models`` header into a FULL per-stop map.
+
+    Defensive: unknown stop names and implausible slugs are dropped; every stop
+    always resolves (missing/garbled entries floor to the verified defaults) so
+    downstream dispatch never sees a hole. Never raises.
     """
-    return _hosted_search_engine_ctx.get()
+    models = dict(DEFAULT_RESEARCH_MODELS)
+    if not value:
+        return models
+    for pair in value.split(","):
+        stop, sep, slug = pair.partition("=")
+        if not sep:
+            continue
+        stop = stop.strip().lower()
+        slug = slug.strip()
+        if stop in KNOWN_RESEARCH_STOPS and _MODEL_SLUG_RE.match(slug):
+            models[stop] = slug
+    return models
 
 
-def set_request_hosted_search_engine(engine: str | None) -> object:
-    """Publish the per-request hosted-search engine; returns a reset token."""
-    return _hosted_search_engine_ctx.set(
-        engine.strip().lower() if engine and engine.strip() else None
+def get_research_model_for(stop: str) -> str:
+    """The Tier B research model for ``stop`` (``normal``/``deep``/``ultra``).
+
+    Reads the per-request map when one was published, else the verified
+    defaults; an unknown stop floors to the NORMAL slot (the cheapest — never a
+    silent escalation).
+    """
+    key = (stop or "").strip().lower()
+    if key not in KNOWN_RESEARCH_STOPS:
+        key = RESEARCH_STOP_NORMAL
+    models = _research_models_ctx.get() or DEFAULT_RESEARCH_MODELS
+    return models.get(key) or DEFAULT_RESEARCH_MODELS[key]
+
+
+def set_request_research_models(value: str | None) -> object:
+    """Publish the per-request research-model map; returns a reset token.
+
+    ``None``/blank (header absent) stays ``None`` — readers fall back to the
+    defaults; a present value is parsed defensively to a FULL map.
+    """
+    return _research_models_ctx.set(
+        parse_research_models(value) if value is not None and value.strip() else None
     )
 
 
-def reset_request_hosted_search_engine(token: object) -> None:
-    """Clear the hosted-search engine ContextVar (middleware teardown)."""
-    _hosted_search_engine_ctx.reset(token)  # type: ignore[arg-type]
+def reset_request_research_models(token: object) -> None:
+    """Clear the research-model map ContextVar (middleware teardown)."""
+    _research_models_ctx.reset(token)  # type: ignore[arg-type]
 
 
 # --- Live research-step sink (Track A — aliveness) ---------------------------

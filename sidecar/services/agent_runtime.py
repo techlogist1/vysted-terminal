@@ -477,25 +477,16 @@ _WEB_SEARCH_CAP = 5
 def _native_search_enabled(provider_id: str, model_web_search: str | None) -> bool:
     """Decide whether THIS turn rides the provider's native server-side search.
 
-    WS5 makes the native-search gate per-MODEL, not per-provider:
-
-    * The five PROVIDER-level providers (anthropic/openai/gemini/groq/xai) keep
-      their existing behaviour — every routable model rides the provider's own
-      search, so the gate is simply "is the tier native + is this a provider-level
-      native-search provider".
-    * OpenRouter is a broker, so native search is a per-MODEL property carried by
-      the resolved model's :attr:`LLMModelOption.web_search` flag (threaded through
-      the invoke ``options`` from the frontend's public catalog — keyless-first, no
-      network on the hot path). ``"native"`` → ride it; ``"plugin"`` → keep the
-      local search tool (OpenRouter's billed plugin is not auto-enabled here, so we
-      never silently bill the user); ``"none"``/unknown → keep the local tool (the
-      FR-082 fallback, which never fabricates).
+    Delegates to :func:`services.llm.native_search.native_search_available` —
+    THE one detection truth (R9 Track A interface; Team B's tier_a cross-verify
+    reads the same function, so the two surfaces can never disagree). WS5
+    semantics unchanged: the five provider-level providers always qualify;
+    OpenRouter is gated per-MODEL on the resolved model's
+    :attr:`LLMModelOption.web_search` flag (``"native"`` → ride it; ``"plugin"``
+    is OpenRouter's billed plugin, never auto-enabled; ``"none"``/unknown keeps
+    the local tool — the FR-082 fallback, which never fabricates).
     """
-    if provider_id in native_search.PROVIDER_LEVEL_NATIVE_SEARCH:
-        return True
-    if provider_id == "openrouter":
-        return model_web_search == "native"
-    return False
+    return native_search.native_search_available(provider_id, model_web_search)
 
 
 #: Research tool(s) whose result the runtime auto-publishes to the brief panel.
@@ -906,17 +897,14 @@ async def invoke_agent(
         model_web_search = model_web_search.strip().lower() or None
     else:
         model_web_search = None
-    search_tier = config.get_search_tier()
-    # R8 (one settings truth): the R7 research tier is the authoritative lane. An
-    # explicit t2 (managed SearXNG) or t3 (hosted BYOK) selection means the user
-    # chose a search backend — never ride the model's native search over it. The
-    # t1 keyless floor (or no explicit selection) keeps the native-injection
-    # behavior, where the model's own search is a strict upgrade.
-    r7_tier = config.get_research_search_tier()
-    if (
-        search_tier == config.SEARCH_TIER_NATIVE
-        and r7_tier not in ("t2_searxng", "t3_hosted")
-        and _native_search_enabled(provider_id, model_web_search)
+    # R9 (two-tier truth): on tier_a the model's native search COMPOUNDS with the
+    # local retrieval lane (Team B's loop cross-verifies between the channels),
+    # so a native-capable model rides its own search. tier_b ignores chat-model
+    # native search ENTIRELY — the hosted research model owns research and the
+    # local web_search tool stays for plain retrieval, so the chat model's
+    # server-side search never double-runs (or double-bills) a tier_b session.
+    if config.get_effective_research_tier() != config.SEARCH_TIER_B and _native_search_enabled(
+        provider_id, model_web_search
     ):
         opts["web_search"] = True
         opts["web_search_max_uses"] = _WEB_SEARCH_CAP

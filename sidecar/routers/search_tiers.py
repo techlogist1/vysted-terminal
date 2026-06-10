@@ -1,7 +1,8 @@
-"""Search-tier management router — the T2 one-click SearXNG flow (R7 Component 2).
+"""Managed-SearXNG router — the one-click "Unlimited (Local)" flow (R9 core).
 
-Exposes the :mod:`services.searxng_manager` state machine to the UI's guided
-"Unlimited Research" setup:
+R9 (Track A): the managed SearXNG instance IS tier_a's retrieval engine — these
+routes are core, not an optional tier. Exposes the
+:mod:`services.searxng_manager` state machine to the UI's guided setup:
 
   ``GET  /search/searxng/status``    the live state (re-derived from docker on
                                      every poll unless a setup is in flight) —

@@ -140,6 +140,109 @@ def provider_supports_native_search(provider_id: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# R9 Track A interface — detection + invocation channel (Team B's cross-verify)
+# ---------------------------------------------------------------------------
+
+
+def native_search_available(provider_id: str, model_web_search: str | None = None) -> bool:
+    """Decide whether THIS (provider, resolved-model) pair serves native search.
+
+    THE one detection truth (the agent runtime's injection gate and Team B's
+    tier_a cross-verify both read it, so the two surfaces can never disagree):
+
+    * the five PROVIDER-level providers (anthropic/openai/gemini/groq/xai)
+      always qualify — every routable model rides the provider's own search;
+    * ``openrouter`` is a broker, so native search is a per-MODEL property:
+      ``model_web_search`` is the resolved model's ``web_search`` capability
+      flag (threaded from the frontend's public catalog) — only ``"native"``
+      qualifies (``"plugin"`` is OpenRouter's billed web plugin, never
+      auto-enabled; ``"none"``/unknown keeps the local search tool);
+    * everything else has no native-search rung at all.
+    """
+    if provider_id in PROVIDER_LEVEL_NATIVE_SEARCH:
+        return True
+    if provider_id == "openrouter":
+        return (model_web_search or "").strip().lower() == "native"
+    return False
+
+
+#: Per-call wall-clock cap for the invocation channel below — one grounded
+#: completion, bounded so a stalled stream can never hang a cross-verify round.
+NATIVE_SEARCH_ONESHOT_TIMEOUT_SECS = 90.0
+
+
+async def native_search_oneshot(
+    provider_id: str,
+    model: str,
+    api_key: str | None,
+    prompt: str,
+    *,
+    model_web_search: str | None = None,
+    max_searches: int = 3,
+    timeout: float = NATIVE_SEARCH_ONESHOT_TIMEOUT_SECS,
+) -> dict[str, Any]:
+    """Run ONE native-search-grounded completion — the callable channel for
+    Team B's tier_a cross-verify (R9 Track A interface).
+
+    Drives the provider adapter's ``stream_chat`` with the ``web_search`` opt-in
+    kwarg (each adapter injects its own native affordance; see the helpers
+    above) and joins the streamed text. Returns::
+
+        {"ok": True,  "text": <grounded completion>, "citations": [...]}
+        {"ok": False, "reason": <"unavailable"|"empty"|"error">, "text": "",
+         "citations": []}
+
+    ``citations`` is best-effort ``{url, title, excerpt}`` records: the adapters
+    currently surface native-search grounding inline in the TEXT (no structured
+    citation events ride the stream), so the list is usually empty — callers
+    must treat the text as the verification payload and the citations as a
+    bonus, never a requirement. Never raises; never logs the key.
+    ``model_web_search`` is the resolved model's capability flag (OpenRouter is
+    per-model); an unavailable pair returns an honest ``ok: False`` rather than
+    a silent ungrounded run.
+    """
+    if not native_search_available(provider_id, model_web_search):
+        return {"ok": False, "reason": "unavailable", "text": "", "citations": []}
+
+    import asyncio
+
+    from models.llm import LLMMessage
+    from services.llm import get_provider
+
+    parts: list[str] = []
+
+    async def _drive() -> None:
+        adapter = get_provider(provider_id)  # type: ignore[arg-type]
+        stream = adapter.stream_chat(
+            messages=[LLMMessage(role="user", content=prompt)],
+            model=model,
+            api_key=api_key,
+            web_search=True,
+            web_search_max_uses=int(max_searches),
+        )
+        async for event in stream:
+            kind = getattr(event, "kind", None)
+            if kind == "delta":
+                parts.append(getattr(event, "text", "") or "")
+            elif kind in ("done", "error"):
+                break
+            # tool_use / thinking events are ignored — one grounded text call.
+
+    try:
+        await asyncio.wait_for(_drive(), timeout if timeout and timeout > 0 else None)
+    except TimeoutError:
+        pass  # keep the partial text — the caller tolerates a degraded pass
+    except Exception:  # noqa: BLE001 - cross-verify tolerates an empty completion
+        if not parts:
+            return {"ok": False, "reason": "error", "text": "", "citations": []}
+
+    text = "".join(parts).strip()
+    if not text:
+        return {"ok": False, "reason": "empty", "text": "", "citations": []}
+    return {"ok": True, "text": text, "citations": []}
+
+
+# ---------------------------------------------------------------------------
 # Citation normalizers (response side)
 # ---------------------------------------------------------------------------
 
@@ -281,11 +384,14 @@ def normalize_xai(citations: Any) -> list[dict[str, str]]:
 __all__ = [
     "ANTHROPIC_WEB_SEARCH_TYPE",
     "DEFAULT_WEB_SEARCH_MAX_USES",
+    "NATIVE_SEARCH_ONESHOT_TIMEOUT_SECS",
     "PROVIDER_LEVEL_NATIVE_SEARCH",
     "SUPPORTS_NATIVE_SEARCH",
     "Citation",
     "anthropic_web_search_tool",
     "gemini_google_search_tool",
+    "native_search_available",
+    "native_search_oneshot",
     "normalize_anthropic",
     "normalize_gemini",
     "normalize_openai",
