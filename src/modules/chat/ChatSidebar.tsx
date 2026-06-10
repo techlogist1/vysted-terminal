@@ -16,6 +16,7 @@ import { launchDelegateRun } from "@/lib/delegate-runs";
 import { isHostActionMutation } from "@/lib/host-actions";
 import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
 import { completeIncomplete, hasIncompleteCodeFence } from "@/lib/markdown-stream";
+import { normalizePipeTables, stripTableRows } from "./chat-markdown";
 import { DUR, tween, tweenExit } from "@/lib/motion";
 import { validateProvider } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
@@ -159,16 +160,32 @@ function MessageBody({
   const isLong = content.trim().length > 200;
   const collapsible = Boolean(briefPublished) && !pending && isLong;
   const collapsed = collapsible && !expanded;
-  const shown = collapsed ? firstSentences(content) : content;
+  // The collapsed lead must never slice through a table — drop table rows from
+  // the lead text (the full table stays behind the expand toggle).
+  const shown = collapsed ? firstSentences(stripTableRows(content)) : content;
 
   // While streaming, repair the trailing in-flight token so the live markdown
   // doesn't flicker between broken/fixed on every delta. The pulsing caret is
   // suppressed inside an open code fence (where it would render as literal text).
-  const source = pending ? completeIncomplete(shown) : shown;
+  const repaired = pending ? completeIncomplete(shown) : shown;
+  // Separator-less pipe tables render as REAL tables, never a wall of pipes.
+  const source = useMemo(() => normalizePipeTables(repaired), [repaired]);
   const caret = pending && !hasIncompleteCodeFence(shown);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div
+      className={cn(
+        "flex min-w-0 flex-col gap-3 break-words",
+        // Law §1: chat reading prose is text-body 13 in the dock — downshift
+        // the shared MarkdownBody's prose-scale blocks (headings + paragraphs
+        // render as <p>, lists as ul/ol) without forking the renderer. Tables
+        // and code already ride text-caption. Lists indent 1.25rem and, with
+        // break-words above, can never escape the dock column.
+        "[&_p]:leading-body [&_p]:text-[length:var(--text-body)]",
+        "[&_ul]:leading-body [&_ul]:ml-5 [&_ul]:text-[length:var(--text-body)]",
+        "[&_ol]:leading-body [&_ol]:ml-5 [&_ol]:text-[length:var(--text-body)]",
+      )}
+    >
       <MarkdownBody source={source} known={chatKnownSet} onCite={NOOP_CITE} />
       {caret && (
         <span className="text-charcoal-400 -mt-3 animate-pulse" aria-hidden>
@@ -1053,10 +1070,13 @@ export function ChatSidebar() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={tween(0.18)}
                 className={cn(
-                  "text-body rounded-none border px-3 py-1.5 font-mono",
+                  // Law §1: user + assistant share the SAME type step (body 13)
+                  // — the user turn is distinguished by its quiet bordered
+                  // container only; the assistant reads as flat prose.
+                  "text-body text-charcoal-100 min-w-0 font-mono",
                   message.role === "user"
-                    ? "border-charcoal-700 bg-charcoal-800 text-charcoal-100"
-                    : "border-charcoal-700 bg-charcoal-875 text-charcoal-100",
+                    ? "border-charcoal-700 bg-charcoal-850 rounded-none border px-3 py-2"
+                    : "px-1 py-1",
                 )}
               >
                 <div className="text-charcoal-400 text-micro mb-1">
