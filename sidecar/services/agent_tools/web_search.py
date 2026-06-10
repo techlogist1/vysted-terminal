@@ -93,6 +93,17 @@ async def _resolve_r7_tier(tier: str, region: str) -> tuple[Any, str | None]:
 
             searxng_url = await detect_searxng()
         backend = registry.resolve("searxng", searxng_url=searxng_url, region=region)
+        if backend is not None:
+            return backend, None
+        # R8 gate 6: a stopped t2 instance DEGRADES to the keyless floor instead
+        # of going dark — t2 and t1 share the same local/keyless privacy class,
+        # so the fallback crosses no key/cost boundary (t3 still hard-stops on a
+        # missing key). The result's ``backend`` id carries the truth
+        # ("keyless", never "searxng"), so no banner can claim the instance
+        # served the run.
+        backend = registry.resolve("keyless", region=region) or registry.resolve(
+            "ddg", region=region
+        )
         return backend, None if backend is not None else _SEARXNG_NOT_READY_MESSAGE
 
     # t1_local — the keyless floor, with the bare ddg chain as the defensive

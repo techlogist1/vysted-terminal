@@ -241,11 +241,13 @@ def test_r7_t2_explicit_autodetects_when_no_url(monkeypatch: pytest.MonkeyPatch)
     assert searxng_calls[0]["searxng_url"] == MANAGED_URL
 
 
-def test_r7_t2_explicit_fails_honestly_when_nothing_reachable(
+def test_r7_t2_explicit_degrades_to_keyless_when_instance_is_down(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """An EXPLICIT t2 that cannot be served names the unlock — never a silent
-    re-route to the keyless floor (C.1)."""
+    """R8 gate 6: a STOPPED t2 instance degrades to the keyless floor (same
+    local/keyless privacy class — no key/cost boundary crossed) and the result's
+    ``backend`` id carries the truth, so no banner can claim SearXNG served the
+    run. t3 keeps the hard honest stop (key boundary)."""
     _stub_registry(monkeypatch)
     _set_manager_ready(monkeypatch, False)
     _stub_detect(monkeypatch, None)
@@ -253,8 +255,8 @@ def test_r7_t2_explicit_fails_honestly_when_nothing_reachable(
     with _request(r7="t2_searxng"):
         out = _run(_web_search({"query": "x"}))
 
-    assert out["ok"] is False
-    assert "SearXNG" in out["message"] and "t2" in out["message"]
+    assert out["ok"] is True
+    assert out["backend"] == "keyless"
 
 
 def test_r7_t3_explicit_fails_honestly_without_openrouter_key(
