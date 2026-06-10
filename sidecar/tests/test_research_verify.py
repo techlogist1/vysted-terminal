@@ -146,7 +146,12 @@ def test_breached_budget_skips_honestly() -> None:
         )
     )
     assert brief.structured["cross_check"]["skipped"] is True
-    assert "step ceiling" in brief.structured["cross_check"]["reason"]
+    # R8: the published reason is the HUMAN sentence; the raw breach telemetry
+    # ("step ceiling…") rides only the dev step below.
+    assert brief.structured["cross_check"]["reason"] == (
+        "Skipped to stay within the run's time budget."
+    )
+    assert any("step ceiling" in s.detail for s in brief.steps)
     assert "## Cross-check" not in brief.markdown  # no fake section
     assert any("cross-check skipped" in s.detail for s in brief.steps)
 

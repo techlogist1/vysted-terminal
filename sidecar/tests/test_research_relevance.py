@@ -161,3 +161,22 @@ def test_name_tokens_drop_corporate_suffixes() -> None:
     assert relevance.name_tokens("Saksoft Limited") == ["saksoft"]
     # An all-suffix name still yields something to match on.
     assert relevance.name_tokens("Limited") == ["limited"]
+
+
+def test_other_companys_filing_title_is_never_evidence() -> None:
+    # The RELIANCE audit: other corporates' exchange filings whose SNIPPETS
+    # mention the target rode into the sources. A filing-shaped title must name
+    # the target itself.
+    target = _target(symbol="RELIANCE", name="Reliance Industries Limited")
+    other = {
+        "url": "https://nsearchives.nseindia.com/corporate/SWSOLAR_x.pdf",
+        "title": "SW SOLAR LIMITED has informed the Exchange regarding Outcome of Board Meeting",
+        "excerpt": "…contract win with Reliance Industries for solar modules…",
+    }
+    assert relevance.entity_match(other, target=target) == 0.0
+    own = {
+        "url": "https://nsearchives.nseindia.com/corporate/RELIANCE_x.pdf",
+        "title": "RELIANCE INDUSTRIES LIMITED has informed the Exchange regarding Outcome of Board Meeting",
+        "excerpt": "Q4 results",
+    }
+    assert relevance.entity_match(own, target=target) >= relevance.MATCH_FLOOR

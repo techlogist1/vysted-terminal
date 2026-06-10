@@ -1,0 +1,258 @@
+{
+  "query": "Route Mobile Q4 FY26 net profit year over year change",
+  "symbol": "ROUTE",
+  "mode": "DEEP",
+  "depth": "deep",
+  "markdown": "# Research Brief: Route Mobile Q4 FY26 Net Profit \u2013 Year-over-Year Change\n\n**Query:** Year-over-year change in Route Mobile (ROUTE) net profit for Q4 FY26  \n**As of:** June 10, 2026 (data from audited results filed May 7, 2026)\n\n## Key Finding\nThe year-over-year change in net profit for Q4 FY26 **cannot be computed** from the available evidence. The consolidated net profit attributable to owners for Q4 FY26 (quarter ended March 31, 2026) is reported as **\u20b9109.32 crores** [1]. However, the audited financial results filing [1] does not disclose the corresponding net profit figure for Q4 FY25 (quarter ended March 31, 2025); the provided excerpt ends at depreciation and amortisation expense, omitting profit before tax, tax expense, and net profit for the prior period.\n\nNo other source in this evidence set \u2013 including the preceding quarterly filings [2][3][4], press releases [11][13][17], or financial data platforms [6][16][20] \u2013 contains the Q4 FY25 net profit figure needed for comparison. Therefore, the year-over-year change cannot be determined.\n\n## Data Gaps\n- **Q4 FY26 net profit:** \u20b9109.32 crores (available) [1]\n- **Q4 FY25 net profit:** Not available in this run\n- **YoY change:** Not computable without the base figure\n\n## Implications for Analysis\nAny assessment of Q4 FY26 performance relative to the corresponding quarter of the prior year is not possible with the current evidence. Investors and analysts seeking a full year-over-year comparison would need to obtain the complete audited annual report or a historical quarterly filing that includes the Q4 FY25 profit line.",
+  "sources": [
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ROUTE_07052026223910_Outcome07052026signed.pdf",
+      "title": "ROUTE MOBILE LIMITED has submitted to the Exchange, the financial results for the period ended March 31, 2026.",
+      "excerpt": "NSE \u00b7 Outcome of Board Meeting \u00b7 2026-05-07T22:39:25+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ROUTE_11022026132626_Upload.pdf",
+      "title": "ROUTE MOBILE LIMITED has informed the Exchange about Copy of Newspaper Publication for Unaudited financial results for the quarter and nine months ended December 31, 2025.",
+      "excerpt": "NSE \u00b7 Copy of Newspaper Publication \u00b7 2026-02-11T13:26:53+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ROUTE_09022026222714_Upload.pdf",
+      "title": "ROUTE MOBILE LIMITED has submitted to the Exchange, the financial results for the period ended December 31, 2025.",
+      "excerpt": "NSE \u00b7 Outcome of Board Meeting \u00b7 2026-02-09T22:30:22+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ROUTE_09022026222525_Upload.pdf",
+      "title": "ROUTE MOBILE LIMITED has informed the Exchange regarding Board meeting held on February 09, 2026 on unaudited financial results for quarter ended December 31, 2025.",
+      "excerpt": "NSE \u00b7 Outcome of Board Meeting \u00b7 2026-02-09T22:25:58+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/dfbd589e-2fcb-468f-b47f-8fb99514b8ae.pdf",
+      "title": "Compliances-Reg.24(A)-Annual Secretarial Compliance",
+      "excerpt": "BSE \u00b7 Company Update \u00b7 2026-05-29T12:26:53.190000+05:30",
+      "domain": "BSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://www.nseindia.com/get-quotes/equity?symbol=ROUTE",
+      "title": "ROUTE MOBILE LIMITED Share Price Today, Stock Price, Live NSE News, Quotes, Tips \u2013 NSE India",
+      "excerpt": "ROUTE MOBILE LIMITED Share Price Today, Live NSE Stock Price: Get the latest ROUTE MOBILE LIMITED news, company updates, quotes, offers, annual financial reports, graph, volumes, 52 week high low, buy sell tips, balance sheet, historical charts, market performance, capitalisation, dividends, volume, profit and loss account, research, results and more details at NSE India.",
+      "domain": "web"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ROUTE_09022026225150_Upload_.pdf",
+      "title": "Ref No: RML/2025-26/648 Date: February 9, 2026 To, BSE Limited",
+      "excerpt": "Mumbai, February 09, 2026: Route ... for the quarter ended on December 31, 2025, alongside a leadership ... Revenue from operations stood at Rs. 1,107.06 crore as against Rs. 1,183.79 crore in Q3FY25 ... Profit Before Tax stands at Rs....",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/corporates/download/381723/IPO%20BasisOfAllotment/Route%20Mobile%20Limited%20Prospectus_20200916115625.pdf",
+      "title": "Route Mobile Limited Prospectus_20200916115625.pdf",
+      "excerpt": "Our Company has received \u2018in-principle\u2019 approvals from BSE and NSE for listing of",
+      "domain": "web"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ROUTE_10082023145625_Pressrelease.pdf",
+      "title": "Ref No: RML/2023-24/392 Date: August 10, 2023 To, BSE Limited",
+      "excerpt": "Please find enclosed Press Release Titled \u201cRoute Mobile Limited launches OCEAN \u2013 Omnichannel CX Suite; \u00b7 On the launch of OCEAN and TruSense offerings at its flagship event, Route Amplify, Rajdipkumar Gupta, \u00b7 Do you interact with different people in the same way",
+      "domain": "web"
+    },
+    {
+      "url": "https://archives.nseindia.com/corporate/ROUTE_08022023155815_Intimation336PressRelease.pdf",
+      "title": "Ref No: RML/2022-23/336 Date: February 08, 2023 To, BSE Limited",
+      "excerpt": "Ref No: RML/2022-23/336 \u00b7 Date: February 08, 2023 \u00b7 BSE Limited \u00b7 National Stock Exchange of India Limited \u00b7 Scrip Code: 543228 \u00b7 Symbol: ROUTE \u00b7 Dear Sir/Madam, \u00b7 Sub: Press Release \u00b7 Please find enclosed Press Release titled \u201cROUTE MOBILE LIMITED LAUNCHES ROUBOT, A \u00b7 CUSTOMISABLE ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/a7de8b30-7967-4ca8-b92a-eccea50cde76.pdf",
+      "title": "Ref No: RML/2025-26/638 Date: December 18, 2025 To",
+      "excerpt": "Ref No: RML/2025-26/638 \u00b7 Date: December 18, 2025 \u00b7 BSE Limited \u00b7 National Stock Exchange of India Limited \u00b7 Scrip Code: 543228 \u00b7 Symbol: ROUTE \u00b7 Dear Sir/Madam, \u00b7 SUB: Allotment of 5,500 equity shares under Route Mobile Limited - Employee Stock Option Plan \u00b7 2017 ('RML ESOP 2017') ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.nseindia.com/get-quote/equity/ROUTE/ROUTE-MOBILE-LIMITED",
+      "title": "route mobile limited",
+      "excerpt": "NSE India (National Stock Exchange of India Ltd) \u2013 LIVE Share/Stock Market Updates Today. Get all latest share market news, live charts, analysis, IPO, stock/share tips, indices, equity, currency and commodity market, derivatives, finance, budget, mutual fund, bond, and corporate announcements ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/91b782fb-4e5f-4fcc-b371-b7b3802a41cb.pdf",
+      "title": "Ref No: RML/2025-26/633 Date: November 06, 2025 To,",
+      "excerpt": "* Total issue expenses attributable to Route Mobile Limited is 178.42 mn.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/4f31bc88-39cf-4952-8c1c-542ea4ffa0b0.pdf",
+      "title": "Ref No: RML/2025-26/638 Date: December 18, 2025 To",
+      "excerpt": "Ref No: RML/2025-26/638 \u00b7 Date: December 18, 2025 \u00b7 BSE Limited \u00b7 National Stock Exchange of India Limited \u00b7 Scrip Code: 543228 \u00b7 Symbol: ROUTE \u00b7 Dear Sir/Madam, \u00b7 SUB: Allotment of 5,500 equity shares under Route Mobile Limited - Employee Stock Option Plan \u00b7 2017 ('RML ESOP 2017') ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://scanx.trade/stock-market-news/companies/route-mobile-appoints-m-s-k-a-associates-llp-as-auditors/41017741",
+      "title": "Route Mobile Appoints M S K A & Associates LLP as Auditors",
+      "excerpt": "Of the consolidated profit for FY26, \u20b9239.02 crores was attributable to owners of the Company and \u20b917.92 crores to non-controlling interests. For Q4 FY26, profit attributable to owners stood at \u20b9109.32 crores and to non-controlling interests ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.perivis.com/note/1e345634-4ca8-4904-b93d-ed82d50965be",
+      "title": "Summary of quarterly results filing for Route Mobile Ltd published on 04 Nov, 2025 | Perivis",
+      "excerpt": "Prior year goodwill impairment and write-offs totaling \u20b928.08 crores standalone and \u20b918.45 crores consolidated. ... No new acquisitions or disposals reported in this quarter. Payment of purchase consideration for business combination: \u20b98.32 ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.tipranks.com/news/company-announcements/route-mobile-publishes-audited-fy26-results-in-line-with-disclosure-norms",
+      "title": "Route Mobile Publishes Audited FY26 Results in Line with Disclosure Norms - TipRanks.com",
+      "excerpt": "Route Mobile\u2019s board approved audited financial results for the quarter and year ended March 31, 2026, and published them in English and Marathi newspapers as required by Indian listing rules. By making the FY26 audited results publicly available and emphasizing regulatory compliance, Route Mobile underscores its transparency and supports investor confidence in its financial reporting.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.indiainfoline.com/company/route-mobile-ltd/reports/directors-report",
+      "title": "Route Mobile Ltd Director Discussions | India Infoline",
+      "excerpt": "Audited Revenue of the Consolidated MRM for the financial year ended March 31, 2025 was AED 330,969,316 (PreviousYear:AED 315,220,156)and Profit after tax for the period was AED 15,126,078 (Previous Year: AED 26,499,722).",
+      "domain": "web"
+    },
+    {
+      "url": "https://finance.yahoo.com/quote/ROUTE.NS/history/",
+      "title": "Route Mobile Limited (ROUTE.NS) Stock Historical Prices & Data - Yahoo Finance",
+      "excerpt": "Discover historical prices for ROUTE.NS stock on Yahoo Finance. View daily, weekly or monthly format back to when Route Mobile Limited stock was issued.",
+      "domain": "web"
+    },
+    {
+      "url": "https://finance.yahoo.com/quote/ROUTE.NS/key-statistics/",
+      "title": "Route Mobile Limited (ROUTE.NS) Valuation Measures & Financial Statistics",
+      "excerpt": "Find out all the key statistics for Route Mobile Limited (ROUTE.NS), including valuation measures, fiscal year financial statistics, trading record, share statistics and more.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.investywise.com/route-mobile-audited-financial-results-and-final-dividend-declaration-2/",
+      "title": "Route Mobile Strong Financial Results for FY 2025-26 and Strategic Management Updates",
+      "excerpt": "For the fiscal year ending March 31, 2026, Route Mobile posted a consolidated revenue from operations of \u20b94,408.21 crore, compared to \u20b94,575.62 crore in the previous year. The consolidated net profit for the year stood at \u20b9256.94 crore.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.investywise.com/route-mobile-q4-and-fy-25-26-earnings-results/",
+      "title": "Route Mobile Q4 and FY 25-26 Financial Results Reveal Global CPaaS Leadership",
+      "excerpt": "Route Mobile reports strong FY 2026 financial results with \u20b944,082M revenue. Discover how the CPaaS leader achieved 174.9B processed transactions this fiscal year.",
+      "domain": "web"
+    },
+    {
+      "url": "vysted://price/ROUTE",
+      "title": "Price for ROUTE",
+      "excerpt": "Structured price snapshot via nse_direct gathered this run.",
+      "domain": "nse_direct"
+    },
+    {
+      "url": "vysted://fundamentals/ROUTE",
+      "title": "Fundamentals for ROUTE",
+      "excerpt": "Structured fundamentals snapshot via yfinance gathered this run.",
+      "domain": "yfinance"
+    },
+    {
+      "url": "vysted://news/ROUTE",
+      "title": "News for ROUTE",
+      "excerpt": "Structured news pull.",
+      "domain": "vysted"
+    }
+  ],
+  "sourceCount": 25,
+  "cost": {
+    "tokens": 0,
+    "spendUsd": 0
+  },
+  "webAvailable": true,
+  "structured": {
+    "resolved": {
+      "ok": true,
+      "query": "Route Mobile Q4 FY26",
+      "region": "IN",
+      "resolved": {
+        "symbol": "ROUTE",
+        "name": "ROUTE MOBILE LIMITED",
+        "exchange": "NSE",
+        "region": "IN",
+        "asset_class": "equity",
+        "yahoo_symbol": "ROUTE.NS",
+        "confidence": 0.73
+      },
+      "needs_disambiguation": false,
+      "candidates": [
+        {
+          "symbol": "ROUTE",
+          "name": "ROUTE MOBILE LIMITED",
+          "exchange": "NSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "ROUTE.NS",
+          "confidence": 0.73
+        }
+      ]
+    },
+    "price": {
+      "ok": true,
+      "provider": "nse_direct",
+      "data": {
+        "symbol": "ROUTE",
+        "price": 518.35,
+        "change": -14.699999999999932,
+        "change_percent": -2.7577150361129226,
+        "volume": 82762,
+        "currency": "INR",
+        "market_state": "CLOSED",
+        "timestamp": "2026-06-10T00:00:00Z",
+        "provider": "nse_direct",
+        "freshness": null
+      }
+    },
+    "fundamentals": {
+      "ok": true,
+      "provider": "yfinance",
+      "data": {
+        "symbol": "ROUTE.NS",
+        "name": "Route Mobile Limited",
+        "sector": "Communication Services",
+        "industry": "Telecom Services",
+        "currency": "INR",
+        "market_cap": 32657645568,
+        "pe_ratio": 13.658761,
+        "forward_pe": 8.401475,
+        "peg_ratio": null,
+        "price_to_book": 1.1792554,
+        "price_to_sales": 0.7408369,
+        "ev_to_ebitda": 3.741,
+        "book_value": 439.557,
+        "dividend_yield": 0.0225,
+        "dividend_per_share": 12,
+        "eps": 37.95,
+        "beta": 0.291,
+        "fifty_two_week_high": 1158,
+        "fifty_two_week_low": 410.7,
+        "fifty_two_week_change": -0.48096395,
+        "roe": 0.09722,
+        "roa": 0.07296,
+        "gross_margin": 0.16298,
+        "operating_margin": 0.099580005,
+        "profit_margin": 0.05422,
+        "debt_to_equity": 0.014879999999999999,
+        "current_ratio": 3.852,
+        "quick_ratio": 3.502,
+        "revenue_ttm": 44082098176,
+        "net_income_ttm": 2390200064,
+        "free_cash_flow": 6622074880,
+        "shares_outstanding": 63003082,
+        "revenue_growth": -0.038,
+        "earnings_growth": 0.932,
+        "held_percent_insiders": 0.74858004,
+        "held_percent_institutions": 0.052550003,
+        "provider": "yfinance"
+      }
+    }
+  },
+  "createdAt": 1781112438711
+}

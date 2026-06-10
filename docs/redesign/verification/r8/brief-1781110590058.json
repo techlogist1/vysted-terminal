@@ -1,0 +1,315 @@
+{
+  "query": "Reliance Industries",
+  "symbol": "RELIANCE",
+  "mode": "DEEP",
+  "depth": "deep",
+  "markdown": "# Reliance Industries (RELIANCE) \u2013 Research Brief | June 10, 2026\n\n## Overview\n\nReliance Industries Ltd (NSE: RELIANCE) is an Indian energy-to-telecom conglomerate. As of market close on June 10, 2026, the stock traded at **\u20b91,258.8** on the NSE, down ~15.5% from its 52\u2011week high [1]. The company\u2019s market capitalisation stood at ~\u20b917.03\u202ftrillion, with a trailing P/E of 21.1 and a forward P/E of 17.5 [26].\n\n## Stock Performance\n\n- **Current price (June 10, 2026):** \u20b91,258.8 (\u22120.82% from previous close) [1].\n- **52\u2011week high:** \u20b91,489.5 (Feb\u202f3, 2026) [1].\n- **52\u2011week low:** \u20b91,254.4 (set on June\u202f10, 2026) [1].\n- **Beta:** 0.182 [26].\n\n## Financial Highlights (Q4 FY2026)\n\nThe analyst meet on April\u202f24, 2026 discussed audited results for the quarter and year ended March\u202f31, 2026 [3][4]. Absolute revenue and net profit were not disclosed in the available filings. Key takeaways:\n\n- Consolidated EBITDA was **flat** year\u2011on\u2011year [3].\n- Oil\u2011to\u2011Chemicals (O2C) segment EBITDA declined **4%** [3].\n\n## Corporate Actions\n\n- **Dividend:** A dividend for FY2025\u201126 was declared at the April\u202f24, 2026 board meeting. Record date: May\u202f28, 2026; payment scheduled for June\u202f12, 2026 [3][4].\n- **Dividend per share (trailing):** \u20b96.0 (yield ~0.47%) [26].\n- **Share buyback:** No buyback announcement in the past six months.\n\n## Recent Developments\n\nOn June\u202f10, 2026, Reliance announced a partnership with **Meta** to develop an AI\u2011enabled data centre in Jamnagar, Gujarat [7]. This aligns with the company\u2019s digital infrastructure strategy.\n\n## Outlook\n\n- The stock is trading near its 52\u2011week low, reflecting subdued Q4 results with flat EBITDA and a decline in the core O2C segment [1][3].\n- The Meta\u2011RIL data centre project signals a long\u2011term push into AI and cloud, but near\u2011term catalysts remain limited [7].\n- Dividend payout is ongoing; no buyback activity is in place.\n\n---\n\n**Sources**  \n[1] NSE \u2013 Reliance Industries equity quote (June 10, 2026)  \n[3] Transcript of analyst meet (April 24, 2026)  \n[4] Audio confirmation and details of analyst meet (April 24, 2026)  \n[7] Media release \u2013 Reliance and Meta to develop AI\u2011enabled data centre (June 10, 2026)  \n[26] Structured fundamentals (from yfinance) \u2013 P/E, book value, dividend, etc.",
+  "sources": [
+    {
+      "url": "https://www.nseindia.com/get-quotes/equity?symbol=RELIANCE",
+      "title": "Reliance Industries Limited (INE002A01018) - NSE",
+      "excerpt": "Reliance Industries Limited (INE002A01018). As on 09-Jun-2026 16:00:00 IST (All price values in \u20b9) Refresh-Icon. RELIANCE 1,272.30. 9.00(0.71 %). Close.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.ril.com/investors/shares",
+      "title": "RIL Shares - Stock Quote, BSE | NSE",
+      "excerpt": "INTRADAY HIGH, INTRADAY LOW, 52 WEEK HIGH, 52 WEEK LOW ... \u00a9 2026 Reliance Industries Limited. All rights reserved. Subscribe to our news alerts. Email.",
+      "domain": "web"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/kavinavora_26042026232750_SE_26042026.pdf",
+      "title": "Transcript of the discussion on the Audited Financial Results (Consolidated and Standalone) of the Company for the quarter and year ended March 31, 2026, at the analyst meet held on April 24, 2026, is attached and also available on the website of the Company.",
+      "excerpt": "NSE \u00b7 Analysts/Institutional Investor Meet/Con. Call Updates \u00b7 2026-04-26T23:28:02+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/kavinavora_25042026164846_SE_25042026_AR.pdf",
+      "title": "Audio recording of the discussion on the Audited Financial Results (Consolidated and Standalone) of the Company for the quarter and ended March 31, 2026, at the analyst meet held on April 24, 2026, is available on the website of the Company at https://www.ril.com/investors/events-presentations#webcast-sec.The analyst meet, conducted physically, concluded at 9:50 p.m. (IST) on April 24, 2026",
+      "excerpt": "NSE \u00b7 Analysts/Institutional Investor Meet/Con. Call Updates \u00b7 2026-04-25T16:49:03+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/53fed8f5-42bb-4392-a896-a8780c4f7ed3.pdf",
+      "title": "Newspaper Clippings - Special Window For Transfer And Dematerialisation (Demat) Of Physical Shares",
+      "excerpt": "BSE \u00b7 Company Update \u00b7 2026-06-10T16:23:18.433000+05:30",
+      "domain": "BSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/PVIVINMA_10062026162059_RILSpecialWindowAdvt.pdf",
+      "title": "Newspaper clippings Special Window for transfer and dematerialisation (demat) of physical sharesThe newspaper clippings of the advertisement on the captioned subject published today i.e., June 10, 2026 in the newspapers viz. The Indian Express (English), Financial Express (English), Loksatta (Marathi) and Jansatta (Hindi) are enclosed for information and records.",
+      "excerpt": "NSE \u00b7 Copy of Newspaper Publication \u00b7 2026-06-10T16:23:16+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/kavinavora_10062026083811_SE_10062026.pdf",
+      "title": "Please find attached a media release by the Company, titled Reliance and Meta to Develop AI-Enabled Data Centre in Jamnagar, Gujarat.",
+      "excerpt": "NSE \u00b7 Updates \u00b7 2026-06-10T08:38:26+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/annual_reports/AR_29374_SWSOLAR_2025_2026_A_9841651_09062026225210.pdf",
+      "title": "[PDF] June 09, 2026 BSE Limited Phiroze Jeejeebhoy Towers Dalal ... - NSE",
+      "excerpt": "23 hours ago \u00b7 the Audited Standalone Financial Statements of the. Company for the financial ... Reliance Industries Limited at Patalganga,. Silvassa, Hazira and ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/SWSOLAR_09062026235254_AnnualReport.pdf",
+      "title": "[PDF] June 09, 2026 BSE Limited Phiroze Jeejeebhoy Towers Dalal ... - NSE",
+      "excerpt": "23 hours ago \u00b7 the Audited Standalone Financial Statements of the. Company for the financial ... Reliance Industries Limited at Patalganga,. Silvassa, Hazira and ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/annual_reports/AR_29325_CIPLA_2025_2026_A_20783341_01062026233258.pdf",
+      "title": "[PDF] 1st June, 2026 (1) BSE Ltd. (2) National Stock Exchange of India ...",
+      "excerpt": "1 Jun 2026 \u00b7 \u201cResolved that the audited standalone financial statements of the Company for the financial ... Reliance Industries Limited. \u25cb. Reliance Jio ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/4070b137-2a68-4790-8821-268ff7c4e408.pdf",
+      "title": "[PDF] 1st June, 2026 (1) BSE Ltd. (2) National Stock Exchange of India ...",
+      "excerpt": "1 Jun 2026 \u00b7 \u201cResolved that the audited standalone financial statements of the Company for the financial ... Reliance Industries Limited. \u25cb. Reliance Jio ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/corporates/download/304663/DAMCAPITALDRHP_20240903202030.pdf",
+      "title": "[PDF] DAM CAPITAL ADVISORS LIMITED - BSE",
+      "excerpt": "3 Sept 2024 \u00b7 ... Reliance New Energy Solar Limited, a wholly-owned subsidiary of Reliance Industries Limited, through a combination of primary investment ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/GRASIM_21072025195838_SEIntimationAnnualReport.pdf",
+      "title": "[PDF] 500300 21st July 2025 National Stock Exchange of India Limited Symbol: G",
+      "excerpt": "21 Jul 2025 \u00b7 \u201cRESOLVED THAT the Audited Standalone and. Consolidated Financial Statements of the Company ... Reliance Industries Limited: Independent Director.",
+      "domain": "web"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/RELIANCE_06082023144318_NoticeIAR_SE_AGM2023_signed.pdf",
+      "title": "[PDF] SAVITHRI PAREKH - NSE",
+      "excerpt": "... Reliance Industries Limited. Savithri Parekh. Company Secretary and. Compliance ... a) \u201cRESOLVED THAT the audited financial statement of the Company for the ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/BSE_07082023160115_NSEIntimationAnnualreport.pdf",
+      "title": "[PDF] bse letterhead.cdr - NSE",
+      "excerpt": "31 Aug 2023 \u00b7 To declare a final dividend of ` 12.00 per equity share, for the Financial Year ended March 31, 2023. ... Reliance Industries Limited, JSW ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://economictimes.indiatimes.com/reliance-industries-ltd/stocks/companyid-13215.cms",
+      "title": "RIL Share Price Today, RIL Stock Price Live NSE/BSE Updates",
+      "excerpt": "Reliance Industries Limited. Jio ... What is 52 week high/low of RIL share price? 52 Week high of RIL share is ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bajajfinserv.in/investments/reliance-share-price",
+      "title": "Reliance Industries Ltd Share Price Today Live NSE/BSE - Bajaj Finserv",
+      "excerpt": "In November 2011, AXA SA, Bharti, Reliance Industries Limited (RIL) and its ... What is the 52 week high and low of Reliance Industries Ltd? The 52 ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://finance.yahoo.com/quote/RELIANCE.NS/history/",
+      "title": "Reliance Industries Limited (RELIANCE.NS) - Yahoo Finance",
+      "excerpt": "Reliance Industries Limited (RELIANCE.NS) ; Jun 10, 2026, 1,275.00, 1,300.50 ; Jun 9, 2026, 1,269.00, 1,274.20 ; Jun 8, 2026, 1,277.00, 1,282.60 ; Jun 5, 2026, 6.",
+      "domain": "web"
+    },
+    {
+      "url": "https://trendlyne.com/equity/1127/RELIANCE/reliance-industries-ltd/",
+      "title": "Reliance Industries Live Share Price Today, Share Analysis and Chart",
+      "excerpt": "Reliance Industries Limited (RIL) is a diversified multinational ... BSE Traded Volume 05 Jun, 2026 Week Month 0 5M 10M 15M 20M 25M. Daily Avg. Delivery ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.kotakneo.com/stocks/reliance-industries-share-price/",
+      "title": "Reliance Share Price Today - Live NSE: RELIANCE Stock Price & Chart",
+      "excerpt": "Rating 4.4(1,98,809)Today's High, 1300.5. 52-Week Low, 1257.5. Face Value, 10. Reliance Futures ... Reliance Industries Limited (RIL), incorporated originally as Mynylon Ltd in ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.indmoney.com/stocks/reliance-industries-ltd-share-price",
+      "title": "Reliance Share Price Today, Live Chart, News, Target Price - INDmoney",
+      "excerpt": "Reliance Industries Limited (RIL) is one of India's largest diversified ... What is the 52 week high and 52 week low range for Reliance Industries share?",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.ril.com/sites/default/files/2023-01/ca_buyback25012011.pdf",
+      "title": "[PDF] PUBLIC ANNOUNCEMENT - Reliance Industries Limited",
+      "excerpt": "1 Feb 2012 \u00b7 1). The Board of Directors of Reliance Industries Limited (RIL) at its meeting held on. January 20, 2012 unanimously approved the Buy-back of up ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.sharekhan.com/stock/reliance-industries-ltd",
+      "title": "Reliance Industries Ltd,Price \u20b91269.60 (0.46%) - Sharekhan",
+      "excerpt": "8 May 2025 \u00b7 ... Record date for the purpose of Dividend is 05-Jun-2026. ... - Once again Reliance Industries Limited (RIL) is in the international limelight.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.ril.com/sites/default/files/2023-01/MoA_AoA_RIL.pdf",
+      "title": "[PDF] Reliance Industries Limited",
+      "excerpt": "... (Reliance Industries Limited) has also passed a similar Resolution at its meeting held on 10.3.2007. 3.8. Accordingly, the Scheme of Amalgamation was prepared.",
+      "domain": "web"
+    },
+    {
+      "url": "vysted://price/RELIANCE",
+      "title": "Price for RELIANCE",
+      "excerpt": "Structured price snapshot via nse_direct gathered this run.",
+      "domain": "nse_direct"
+    },
+    {
+      "url": "vysted://fundamentals/RELIANCE",
+      "title": "Fundamentals for RELIANCE",
+      "excerpt": "Structured fundamentals snapshot via yfinance gathered this run.",
+      "domain": "yfinance"
+    },
+    {
+      "url": "vysted://news/RELIANCE",
+      "title": "News for RELIANCE",
+      "excerpt": "Structured news pull.",
+      "domain": "vysted"
+    }
+  ],
+  "sourceCount": 27,
+  "cost": {
+    "tokens": 0,
+    "spendUsd": 0
+  },
+  "webAvailable": true,
+  "structured": {
+    "resolved": {
+      "ok": true,
+      "query": "Reliance Industries",
+      "region": "IN",
+      "resolved": {
+        "symbol": "RELIANCE",
+        "name": "Reliance Industries Limited",
+        "exchange": "NSE",
+        "region": "IN",
+        "asset_class": "equity",
+        "yahoo_symbol": "RELIANCE.NS",
+        "confidence": 1
+      },
+      "needs_disambiguation": false,
+      "candidates": [
+        {
+          "symbol": "RELIANCE",
+          "name": "Reliance Industries Limited",
+          "exchange": "NSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "RELIANCE.NS",
+          "confidence": 1
+        },
+        {
+          "symbol": "ELANGO",
+          "name": "Elango Industries Ltd",
+          "exchange": "BSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "ELANGO.BO",
+          "confidence": 0.83
+        },
+        {
+          "symbol": "AERPACE",
+          "name": "Aerpace Industries Ltd",
+          "exchange": "BSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "AERPACE.BO",
+          "confidence": 0.812
+        },
+        {
+          "symbol": "PRIMIND",
+          "name": "Prime Industries Ltd",
+          "exchange": "BSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "PRIMIND.BO",
+          "confidence": 0.798
+        },
+        {
+          "symbol": "REGIS",
+          "name": "Regis Industries Ltd",
+          "exchange": "BSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "REGIS.BO",
+          "confidence": 0.798
+        },
+        {
+          "symbol": "PARLEIND",
+          "name": "Parle Industries Ltd",
+          "exchange": "BSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "PARLEIND.BO",
+          "confidence": 0.798
+        }
+      ]
+    },
+    "price": {
+      "ok": true,
+      "provider": "nse_direct",
+      "data": {
+        "symbol": "RELIANCE",
+        "price": 1258.8,
+        "change": -10.400000000000091,
+        "change_percent": -0.8194138039710124,
+        "volume": 21012796,
+        "currency": "INR",
+        "market_state": "CLOSED",
+        "timestamp": "2026-06-10T00:00:00Z",
+        "provider": "nse_direct",
+        "freshness": null
+      }
+    },
+    "fundamentals": {
+      "ok": true,
+      "provider": "yfinance",
+      "data": {
+        "symbol": "RELIANCE.NS",
+        "name": "Reliance Industries Limited",
+        "sector": "Energy",
+        "industry": "Oil & Gas Refining & Marketing",
+        "currency": "INR",
+        "market_cap": 17034677059584,
+        "pe_ratio": 21.103102,
+        "forward_pe": 17.453106,
+        "peg_ratio": 0.82,
+        "price_to_book": 1.8843043,
+        "price_to_sales": 1.6112723,
+        "ev_to_ebitda": 11.893,
+        "book_value": 668.045,
+        "dividend_yield": 0.004699999999999999,
+        "dividend_per_share": 6,
+        "eps": 59.65,
+        "beta": 0.182,
+        "fifty_two_week_high": 1611.8,
+        "fifty_two_week_low": 1254.4,
+        "fifty_two_week_change": -0.12402511,
+        "roe": 0.09139,
+        "roa": 0.03672,
+        "gross_margin": 0.34861,
+        "operating_margin": 0.099750005,
+        "profit_margin": 0.0764,
+        "debt_to_equity": 0.36652999999999997,
+        "current_ratio": 1.098,
+        "quick_ratio": 0.585,
+        "revenue_ttm": 10572189925376,
+        "net_income_ttm": 807750008832,
+        "free_cash_flow": 218291257344,
+        "shares_outstanding": 13532472634,
+        "revenue_growth": 0.125,
+        "earnings_growth": -0.126,
+        "held_percent_insiders": 0.51181,
+        "held_percent_institutions": 0.28678,
+        "provider": "yfinance"
+      }
+    }
+  },
+  "createdAt": 1781110590058
+}

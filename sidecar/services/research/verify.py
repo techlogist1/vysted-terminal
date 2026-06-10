@@ -217,7 +217,14 @@ async def cross_check(
         step = ResearchStep("reflect", f"cross-check skipped: {reason}", status="skipped")
         brief.steps.append(step)
         await _emit(on_step, step)
-        brief.structured["cross_check"] = {"skipped": True, "reason": reason}
+        # The raw breach reason is engine telemetry (it reads like "wall-clock
+        # ceiling 240s reached") — the step above carries it for dev eyes; the
+        # PUBLISHED structured payload gets the human sentence (R8: no internal
+        # strings in user-facing surfaces, exports included).
+        brief.structured["cross_check"] = {
+            "skipped": True,
+            "reason": "Skipped to stay within the run's time budget.",
+        }
         return brief
 
     budget.record(None, _VERIFY_MODEL, _VERIFY_PROVIDER)

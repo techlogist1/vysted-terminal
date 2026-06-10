@@ -1,0 +1,165 @@
+{
+  "query": "Route Mobile \u2014 latest quarterly results and full-year dividend per share",
+  "symbol": "ROUTE",
+  "mode": "DEEP",
+  "depth": "deep",
+  "markdown": "# Route Mobile \u2014 Latest Quarterly Results & Full-Year Dividend\n\n## Quarterly Results (Q4 FY26, ended March 31, 2026)\n\n- **Consolidated revenue from operations:** \u20b91,130.90 crores (audited, filed May 7, 2026) [1].  \n- **Net profit (PAT) for Q4 FY26:** Not disclosed in the filing [1].  \n- **Trailing twelve-month net profit margin:** 5.42% (as of latest available fundamentals) [7].\n\n## Full\u2011Year Dividend (FY26)\n\n- **Recommended total dividend:** \u20b911 per equity share (face value \u20b910) [1], comprising:  \n  - Three interim dividends of **\u20b93 each** \u2014 already paid during the year.  \n  - Final dividend of **\u20b92 per share** \u2014 proposed but **not yet approved** by shareholders; subject to approval at the ensuing AGM. No record date has been announced [1].  \n- As of **June 10, 2026**, no exchange filing confirms that the AGM has been held or that shareholders have voted on the final dividend [1].\n\n### Key Data Snapshot (as of 10 June 2026)\n\n| Metric | Value | Source |\n|--------|-------|--------|\n| Share price (NSE) | \u20b9518.35 (\u20132.76%) | [6] |\n| Dividend yield (trailing) | 2.25% | [7] |\n| Dividend per share (trailing) | \u20b912.00 | [7] |\n| P/E ratio (trailing) | 13.66 | [7] |\n\n*Note: The trailing dividend per share of \u20b912.00 from fundamental data [7] includes dividends from prior periods; the FY26 recommended total is \u20b911.00.*",
+  "sources": [
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ROUTE_07052026223910_Outcome07052026signed.pdf",
+      "title": "ROUTE MOBILE LIMITED has submitted to the Exchange, the financial results for the period ended March 31, 2026.",
+      "excerpt": "NSE \u00b7 Outcome of Board Meeting \u00b7 2026-05-07T22:39:25+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ROUTE_11022026132626_Upload.pdf",
+      "title": "ROUTE MOBILE LIMITED has informed the Exchange about Copy of Newspaper Publication for Unaudited financial results for the quarter and nine months ended December 31, 2025.",
+      "excerpt": "NSE \u00b7 Copy of Newspaper Publication \u00b7 2026-02-11T13:26:53+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ROUTE_09022026222714_Upload.pdf",
+      "title": "ROUTE MOBILE LIMITED has submitted to the Exchange, the financial results for the period ended December 31, 2025.",
+      "excerpt": "NSE \u00b7 Outcome of Board Meeting \u00b7 2026-02-09T22:30:22+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ROUTE_09022026222525_Upload.pdf",
+      "title": "ROUTE MOBILE LIMITED has informed the Exchange regarding Board meeting held on February 09, 2026 on unaudited financial results for quarter ended December 31, 2025.",
+      "excerpt": "NSE \u00b7 Outcome of Board Meeting \u00b7 2026-02-09T22:25:58+05:30",
+      "domain": "NSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/dfbd589e-2fcb-468f-b47f-8fb99514b8ae.pdf",
+      "title": "Compliances-Reg.24(A)-Annual Secretarial Compliance",
+      "excerpt": "BSE \u00b7 Company Update \u00b7 2026-05-29T12:26:53.190000+05:30",
+      "domain": "BSE",
+      "sourceType": "filing"
+    },
+    {
+      "url": "vysted://price/ROUTE",
+      "title": "Price for ROUTE",
+      "excerpt": "Structured price snapshot via nse_direct gathered this run.",
+      "domain": "nse_direct"
+    },
+    {
+      "url": "vysted://fundamentals/ROUTE",
+      "title": "Fundamentals for ROUTE",
+      "excerpt": "Structured fundamentals snapshot via yfinance gathered this run.",
+      "domain": "yfinance"
+    },
+    {
+      "url": "vysted://news/ROUTE",
+      "title": "News for ROUTE",
+      "excerpt": "Structured news pull.",
+      "domain": "vysted"
+    }
+  ],
+  "sourceCount": 8,
+  "cost": {
+    "tokens": 0,
+    "spendUsd": 0
+  },
+  "webAvailable": true,
+  "structured": {
+    "resolved": {
+      "ok": true,
+      "query": "Route Mobile \u2014 latest",
+      "region": "IN",
+      "resolved": {
+        "symbol": "ROUTE",
+        "name": "ROUTE MOBILE LIMITED",
+        "exchange": "NSE",
+        "region": "IN",
+        "asset_class": "equity",
+        "yahoo_symbol": "ROUTE.NS",
+        "confidence": 0.86
+      },
+      "needs_disambiguation": false,
+      "candidates": [
+        {
+          "symbol": "ROUTE",
+          "name": "ROUTE MOBILE LIMITED",
+          "exchange": "NSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "ROUTE.NS",
+          "confidence": 0.86
+        },
+        {
+          "symbol": "JG",
+          "name": "Aurora Mobile Ltd",
+          "exchange": "US",
+          "region": "US",
+          "asset_class": "equity",
+          "yahoo_symbol": "JG",
+          "confidence": 0.632
+        }
+      ]
+    },
+    "price": {
+      "ok": true,
+      "provider": "nse_direct",
+      "data": {
+        "symbol": "ROUTE",
+        "price": 518.35,
+        "change": -14.699999999999932,
+        "change_percent": -2.7577150361129226,
+        "volume": 82762,
+        "currency": "INR",
+        "market_state": "CLOSED",
+        "timestamp": "2026-06-10T00:00:00Z",
+        "provider": "nse_direct",
+        "freshness": null
+      }
+    },
+    "fundamentals": {
+      "ok": true,
+      "provider": "yfinance",
+      "data": {
+        "symbol": "ROUTE.NS",
+        "name": "Route Mobile Limited",
+        "sector": "Communication Services",
+        "industry": "Telecom Services",
+        "currency": "INR",
+        "market_cap": 32657645568,
+        "pe_ratio": 13.658761,
+        "forward_pe": 8.401475,
+        "peg_ratio": null,
+        "price_to_book": 1.1792554,
+        "price_to_sales": 0.7408369,
+        "ev_to_ebitda": 3.741,
+        "book_value": 439.557,
+        "dividend_yield": 0.0225,
+        "dividend_per_share": 12,
+        "eps": 37.95,
+        "beta": 0.291,
+        "fifty_two_week_high": 1158,
+        "fifty_two_week_low": 410.7,
+        "fifty_two_week_change": -0.48096395,
+        "roe": 0.09722,
+        "roa": 0.07296,
+        "gross_margin": 0.16298,
+        "operating_margin": 0.099580005,
+        "profit_margin": 0.05422,
+        "debt_to_equity": 0.014879999999999999,
+        "current_ratio": 3.852,
+        "quick_ratio": 3.502,
+        "revenue_ttm": 44082098176,
+        "net_income_ttm": 2390200064,
+        "free_cash_flow": 6622074880,
+        "shares_outstanding": 63003082,
+        "revenue_growth": -0.038,
+        "earnings_growth": 0.932,
+        "held_percent_insiders": 0.74858004,
+        "held_percent_institutions": 0.052550003,
+        "provider": "yfinance"
+      }
+    }
+  },
+  "createdAt": 1781111791960
+}

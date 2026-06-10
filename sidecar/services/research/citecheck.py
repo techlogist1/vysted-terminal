@@ -80,12 +80,19 @@ def strip_invalid_markers(markdown: str, source_count: int) -> tuple[str, int]:
     return cleaned, removed
 
 
-def _claim_sentences(markdown: str, source_count: int) -> list[tuple[str, list[int]]]:
+def _claim_sentences(
+    markdown: str, source_count: int, sources: list[ResearchSource] | None = None
+) -> list[tuple[str, list[int]]]:
     """Numeric/dated claim sentences with their (valid) cited markers.
 
     A claim is a sentence carrying at least one digit AND at least one
-    in-range ``[n]`` marker. Document order, capped at
-    :data:`MAX_AUDIT_CLAIMS`.
+    in-range ``[n]`` marker. Claims citing WEB sources rank ahead of claims
+    cited purely to ``vysted://`` structured pulls before the
+    :data:`MAX_AUDIT_CLAIMS` cap — a structured-leg citation is mechanical
+    (the number came from that leg), while a web-cited figure is exactly the
+    mis-attribution class the audit exists to catch (the RELIANCE audit found
+    fundamentals figures cited to an unrelated XLS). Document order within
+    each band.
     """
     claims: list[tuple[str, list[int]]] = []
     for line in markdown.splitlines():
@@ -104,9 +111,19 @@ def _claim_sentences(markdown: str, source_count: int) -> list[tuple[str, list[i
             if not digits_outside:
                 continue
             claims.append((sentence, markers))
-            if len(claims) >= MAX_AUDIT_CLAIMS:
-                return claims
-    return claims
+
+    def _cites_web(markers: list[int]) -> bool:
+        if not sources:
+            return True
+        for n in markers:
+            if 1 <= n <= len(sources):
+                url = str(sources[n - 1].url or "")
+                if not url.startswith("vysted://"):
+                    return True
+        return False
+
+    claims.sort(key=lambda claim: 0 if _cites_web(claim[1]) else 1)
+    return claims[:MAX_AUDIT_CLAIMS]
 
 
 def soften_sentence(sentence: str) -> str:
@@ -206,7 +223,7 @@ async def ensure_citation_integrity(
         )
         return cleaned
 
-    claims = _claim_sentences(cleaned, source_count)
+    claims = _claim_sentences(cleaned, source_count, sources)
     softened = 0
     if claims and source_count:
         if budget is not None:

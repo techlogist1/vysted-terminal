@@ -51,6 +51,20 @@ CRYPTO_HOSTS: frozenset[str] = frozenset(
     }
 )
 
+#: Exchange-filing title grammar — when a row's TITLE is another company's
+#: regulatory filing, a passing mention of the target in the SNIPPET must not
+#: admit it (the RELIANCE audit found SWSOLAR/other corporates' filings counted
+#: as coverage because their snippets mentioned RIL). A filing-shaped title must
+#: name the TARGET in the title itself to be evidence.
+_FILING_TITLE_RX = re.compile(
+    r"(?i)\b(has\s+(informed|submitted)\s+(to\s+)?the\s+exchange"
+    r"|outcome\s+of\s+(the\s+)?board\s+meeting"
+    r"|intimation\s+under\s+reg"
+    r"|announcement\s+under\s+regulation"
+    r"|compliance[s]?\s*-\s*reg"
+    r"|newspaper\s+publication)\b"
+)
+
 #: Generic-educational / SEO title shapes that answer nobody's research
 #: question about a SPECIFIC company. Matched against the row TITLE only.
 _SEO_TITLE_PATTERNS: tuple[re.Pattern[str], ...] = (
@@ -207,6 +221,18 @@ def entity_match(
         return 0.0
     if _is_seo_junk(title):
         return 0.0
+    if target is not None and _FILING_TITLE_RX.search(title):
+        # A regulatory-filing title must name the TARGET in the title — another
+        # company's filing whose snippet merely mentions the target is not
+        # evidence about the target.
+        title_lc = title.lower()
+        sym = target.symbol.lower()
+        named = any(
+            re.search(rf"(?<![a-z0-9]){re.escape(t)}(?![a-z0-9])", title_lc)
+            for t in name_tokens(target.name)
+        ) or (len(sym) >= 3 and re.search(rf"(?<![a-z0-9]){re.escape(sym)}(?![a-z0-9])", title_lc))
+        if not named:
+            return 0.0
 
     if target is None:
         tokens = query_tokens(query)
