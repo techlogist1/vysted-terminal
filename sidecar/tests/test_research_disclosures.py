@@ -242,7 +242,7 @@ def test_researcher_consults_disclosures_for_india_results_question() -> None:
         visited.append(url)
         return "Revenue Rs 1,234 crore for the quarter."
 
-    finding, web_res, pairs = _run(
+    finding, web_res, pairs, visited_pages = _run(
         _run_researcher(
             "What did the latest quarterly results announce?",
             target=_india_target(),

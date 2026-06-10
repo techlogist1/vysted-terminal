@@ -313,18 +313,31 @@ class _Findings:
     """Mutable accumulator threaded through the loop.
 
     Holds the running findings text (for compress/synthesize), the web citations
-    gathered (the ``[n]`` sources), the structured provenance seen, and the
-    coverage flags. Kept as a small object rather than a tuple so the round
+    gathered (the ``[n]`` sources), the structured provenance seen, the coverage
+    flags, and the run's RAW-EVIDENCE store (R9 B3): the full extracted page
+    text per visited URL, kept in-memory for the run so the citation spot-audit
+    can verify claims against the cited source's FULL text instead of its
+    two-line excerpt. Kept as a small object rather than a tuple so the round
     helpers read/mutate it without a wide return signature.
+
+    ``evidence`` may be a SHARED dict (the heavy panel hands every explorer one
+    store so the merged citecheck sees all angles' page text).
     """
 
-    __slots__ = ("findings", "web_sources", "structured_sources", "coverage")
+    __slots__ = ("findings", "web_sources", "structured_sources", "coverage", "evidence")
 
-    def __init__(self) -> None:
+    def __init__(self, *, evidence: dict[str, str] | None = None) -> None:
         self.findings: list[str] = []
         self.web_sources: list[ResearchSource] = []
         self.structured_sources: list[ResearchSource] = []
         self.coverage: dict[str, bool] = dict.fromkeys(_COVERAGE_DIMS, False)
+        self.evidence: dict[str, str] = evidence if evidence is not None else {}
+
+    def record_evidence(self, visited_pages: list[tuple[str, str]]) -> None:
+        """Fold a researcher's visited pages into the raw-evidence store."""
+        for url, text in visited_pages:
+            if url and text:
+                self.evidence.setdefault(url, text)
 
     def all_sources(self) -> list[ResearchSource]:
         """Web citations first (they own the low ``[n]`` markers), then
@@ -492,6 +505,31 @@ def _top_result_url(web_res: dict[str, Any]) -> str | None:
     return None
 
 
+async def _safe_visit(visit: VisitCall, url: str | None) -> str | None:
+    """One page visit, soft on every failure — a visit can never end a round."""
+    if not url:
+        return None
+    try:
+        return await visit(url)
+    except Exception:  # noqa: BLE001 — a failed visit is a soft miss, never fatal
+        return None
+
+
+def _needs_companion_visit(page_text: str | None) -> bool:
+    """Should the researcher read the NEXT disclosure row too? (R9 B1)
+
+    True when the primary disclosure visit cannot be carrying the results
+    figures: the visit missed entirely, the excerpt carries the scanned-pages
+    honesty note (image-only tables), or the text is digit-sparse (a cover
+    letter / procedural intimation). The common Indian small-cap shape is a
+    scanned outcome filing whose digital twin (earnings presentation / press
+    release) sits one row over — one extra bounded fetch reads it.
+    """
+    from services.search.extract import has_scanned_pages_note, is_digit_sparse
+
+    return page_text is None or has_scanned_pages_note(page_text) or is_digit_sparse(page_text)
+
+
 async def _run_researcher(
     sub_question: str,
     *,
@@ -502,14 +540,17 @@ async def _run_researcher(
     llm_call: LLMCall,
     visit: VisitCall | None = None,
     site_bias: bool = False,
-) -> tuple[str, dict[str, Any], list[dict[str, Any]]]:
+) -> tuple[str, dict[str, Any], list[dict[str, Any]], list[tuple[str, str]]]:
     """One researcher: a couple of tool lookups + a short LLM extraction.
 
     Pulls the web (always — the freshest, most question-shaped source) plus one
-    structured leg chosen by what the sub-question is about, then asks the LLM to
-    extract the finding. Returns ``(finding_text, web_result, structured_pairs)``
-    where each pair is ``{"dim": ..., "result": ...}`` so the caller folds
-    coverage on the main task, not inside the gathered child.
+    structured leg chosen by what the sub-question is about, then asks the LLM
+    to extract the finding. Returns ``(finding_text, web_result,
+    structured_pairs, visited_pages)`` where each pair is ``{"dim": ...,
+    "result": ...}`` so the caller folds coverage on the main task, not inside
+    the gathered child, and ``visited_pages`` is the ``(url, full_text)`` list
+    of pages actually read — the loop folds them into the run's raw-evidence
+    store so citation audits can check claims against FULL page text (R9 B3).
 
     R8 target contract: ALL structured tool calls use ``target.symbol`` — the
     one clean binding resolved at the top of the run. With NO bound target the
@@ -592,26 +633,35 @@ async def _run_researcher(
 
     # Visit preference: a results-filing PDF from the exchange beats a press
     # page — the PDF lane in services.search.extract reads it.
-    page_url: str | None = None
+    visited_pages: list[tuple[str, str]] = []
     if visit is not None:
-        if disclosure_rows:
-            page_url = str(disclosure_rows[0]["url"])
-        else:
-            page_url = _top_result_url(web_res)
-    page_text: str | None = None
-    if page_url:
-        try:
-            page_text = await visit(page_url)
-        except Exception:  # noqa: BLE001 — a failed visit is a soft miss, never fatal
-            page_text = None
+        page_url = str(disclosure_rows[0]["url"]) if disclosure_rows else _top_result_url(web_res)
+        page_text = await _safe_visit(visit, page_url)
+        if page_url and page_text:
+            visited_pages.append((page_url, page_text))
+        # R9 B1 digital-twin fallback: when the primary disclosure visit is a
+        # scanned/digit-sparse outcome (its tables are images or it is only the
+        # cover letter), ONE extra bounded fetch reads the next disclosure row
+        # — with the band-0.5 row mix that is the digital earnings presentation
+        # / press release carrying the same figures with a real text layer.
+        if (
+            disclosure_rows
+            and len(disclosure_rows) > 1
+            and _needs_companion_visit(page_text if page_url else None)
+        ):
+            companion_url = str(disclosure_rows[1]["url"])
+            if companion_url != page_url:
+                companion_text = await _safe_visit(visit, companion_url)
+                if companion_text:
+                    visited_pages.append((companion_url, companion_text))
 
     web_block = wrap_untrusted("web_search results", web_res)
     if disclosure_bundle and disclosure_bundle.get("context"):
         web_block += "\n\n" + wrap_untrusted(
             "exchange disclosures (NSE/BSE feeds)", disclosure_bundle["context"]
         )
-    if page_text:
-        web_block += "\n\n" + wrap_untrusted(page_url or "visited page", page_text)
+    for visited_url, visited_text in visited_pages:
+        web_block += "\n\n" + wrap_untrusted(visited_url, visited_text)
 
     # Honest leg-status framing (R8): a FAILED structured pull is a feed outage,
     # not proof the data does not exist — the extraction must never convert
@@ -657,7 +707,7 @@ async def _run_researcher(
         # The announcements pull is real news-dimension coverage with its own
         # vysted:// provenance source.
         structured_pairs.append({"dim": "news", "result": disclosure_bundle["announcements"]})
-    return finding, web_res, structured_pairs
+    return finding, web_res, structured_pairs, visited_pages
 
 
 def _researcher_web_query(sub_question: str, *, target: ResearchTarget | None, query: str) -> str:
@@ -925,11 +975,12 @@ async def run_deep_research(
                 for q in open_questions[:fan_out]
             )
         )
-        for q, (finding, web_res, structured_pairs) in zip(
+        for q, (finding, web_res, structured_pairs, visited_pages) in zip(
             open_questions[:fan_out], results, strict=False
         ):
             findings.findings.append(finding)
             _record_web(findings, web_res, target=target, query=query)
+            findings.record_evidence(visited_pages)
             for pair in structured_pairs:
                 _record_structured(findings, symbol, pair["dim"], pair["result"])
             rstep = ResearchStep(

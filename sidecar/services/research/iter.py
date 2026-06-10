@@ -393,11 +393,12 @@ async def run_iter_research(
             )
         )
         last_round_findings = []
-        for q, (finding, web_res, structured_pairs) in zip(
+        for q, (finding, web_res, structured_pairs, visited_pages) in zip(
             open_questions[:fan_out], results, strict=False
         ):
             last_round_findings.append(finding)
             _record_web(findings, web_res, target=target, query=query)
+            findings.record_evidence(visited_pages)
             for pair in structured_pairs:
                 _record_structured(findings, symbol, pair["dim"], pair["result"])
             rstep = ResearchStep(
