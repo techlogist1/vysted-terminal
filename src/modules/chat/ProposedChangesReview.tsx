@@ -43,7 +43,7 @@ export function ProposedChangesReview() {
               {pending.length} proposed change{pending.length === 1 ? "" : "s"} — review before they
               apply
             </span>
-            <div className="flex shrink-0 items-center gap-1.5">
+            <div className="flex shrink-0 items-center gap-2">
               <button
                 type="button"
                 onClick={() => void acceptAll()}
@@ -62,9 +62,14 @@ export function ProposedChangesReview() {
               </button>
             </div>
           </header>
-          {/* max-h-48 + overflow-y-auto prevents the diff list from pushing the
-              composer off-screen when many changes are staged at once (HIGH finding). */}
-          <ul className="mt-1.5 flex max-h-48 flex-col gap-1.5 overflow-y-auto">
+          {/* The scroll cap + overflow-y-auto prevents the diff list from pushing
+              the composer off-screen when many changes are staged at once. */}
+          <ul
+            className={cn(
+              "mt-2 flex flex-col gap-2 overflow-y-auto",
+              "max-h-48" /* tokens-ok: diff-list scroll cap — layout, not rhythm */,
+            )}
+          >
             <AnimatePresence initial={false}>
               {pending.map((change) => (
                 <ProposedChangeCard
@@ -95,7 +100,7 @@ function ProposedChangeCard({
     <motion.li
       layout
       data-kind={change.kind}
-      className="border-charcoal-700 bg-charcoal-900 rounded-none border px-2 py-1.5"
+      className="border-charcoal-700 bg-charcoal-900 rounded-none border px-2 py-2"
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 8, height: 0, marginBottom: 0 }}

@@ -40,7 +40,10 @@ export function MentionPicker({
     <ul
       role="listbox"
       aria-label="Mentions"
-      className="border-charcoal-700 bg-charcoal-875 rounded-control flex max-h-60 flex-col overflow-y-auto border py-1"
+      className={cn(
+        "border-charcoal-700 bg-charcoal-875 rounded-control flex flex-col overflow-y-auto border py-1",
+        "max-h-60" /* tokens-ok: picker scroll cap — layout, not rhythm */,
+      )}
     >
       {matches.map((mention, index) => {
         const active = index === activeIndex;

@@ -209,40 +209,47 @@ describe("ChatSidebar", () => {
     cleanup();
   });
 
-  it("offers every first-party agent (by display name) in the lens chip's popover", () => {
+  it("offers every first-party agent (by display name) in the plus menu's persona drill", () => {
     render(<ChatSidebar />);
-    // R7: the standing persona select row is gone — the lens chip in the 24px
-    // meta row opens ONE anchored popover holding the full roster.
-    fireEvent.click(screen.getByRole("button", { name: /active lens/i }));
+    // R9: the meta-row lens chip is dead — the + menu absorbs the persona
+    // picker as a drill-in roster.
+    fireEvent.click(screen.getByRole("button", { name: /insert context/i }));
+    fireEvent.mouseDown(screen.getByRole("menuitem", { name: /persona/i }));
     for (const agent of FIRST_PARTY_AGENTS) {
-      expect(screen.getByRole("option", { name: agent.name })).toBeInTheDocument();
+      expect(screen.getByRole("menuitemradio", { name: agent.name })).toBeInTheDocument();
     }
   });
 
-  it("the lens chip always shows the display name, never a raw agent id", () => {
+  it("the persona row always shows the display name, never a raw agent id", () => {
     render(<ChatSidebar />);
-    fireEvent.click(screen.getByRole("button", { name: /active lens/i }));
-    fireEvent.click(screen.getByRole("option", { name: "Warren Buffett" }));
-    const chip = screen.getByRole("button", { name: /active lens/i });
-    expect(chip.textContent).toContain("Warren Buffett");
-    expect(chip.textContent).not.toBe("buffett");
+    fireEvent.click(screen.getByRole("button", { name: /insert context/i }));
+    fireEvent.mouseDown(screen.getByRole("menuitem", { name: /persona/i }));
+    fireEvent.mouseDown(screen.getByRole("menuitemradio", { name: "Warren Buffett" }));
+    // The pick closed the menu; reopening shows the DISPLAY name on the row.
+    fireEvent.click(screen.getByRole("button", { name: /insert context/i }));
+    const row = screen.getByRole("menuitem", { name: /persona/i });
+    expect(row.textContent).toContain("Warren Buffett");
+    expect(row.textContent).not.toContain("buffett");
   });
 
-  it("replaces the old depth escalation with the three-stop slider (no toggle button)", () => {
+  it("replaces the old depth escalation with the segmented three-stop pill (no toggle button)", () => {
     render(<ChatSidebar />);
     // The "+DEEP · GO ALL OUT" control and any Deep-Research toggle are gone…
     expect(
       screen.queryByRole("button", { name: /deep research|go deeper|go all out/i }),
     ).toBeNull();
-    // …replaced by the segmented three-stop slider in the meta row.
-    expect(screen.getByRole("radiogroup", { name: "Research depth" })).toBeInTheDocument();
+    // …replaced by the segmented depth pill inside the composer's controls
+    // row: the active stop shows at rest, all three on hover/focus.
+    const pill = screen.getByRole("radiogroup", { name: "Research depth" });
+    fireEvent.mouseEnter(pill);
     for (const label of ["Normal", "Deep", "Ultra"]) {
       expect(screen.getByRole("radio", { name: `${label} research depth` })).toBeInTheDocument();
     }
   });
 
-  it("the depth slider sets the store and the depth rides the invocation options", async () => {
+  it("the depth pill sets the store and the depth rides the invocation options", async () => {
     render(<ChatSidebar />);
+    fireEvent.mouseEnter(screen.getByRole("radiogroup", { name: "Research depth" }));
     fireEvent.click(screen.getByRole("radio", { name: "Deep research depth" }));
     expect(useResearchDepthStore.getState().depth).toBe("deep");
     const input = screen.getByLabelText("Chat input");
@@ -255,10 +262,10 @@ describe("ChatSidebar", () => {
     expect(payload.options?.researchDepth).toBe("deep");
   });
 
-  it("the mode chip switches Agent ↔ Delegate through its popover", () => {
+  it("the plus menu's Mode rows switch Agent ↔ Delegate", () => {
     render(<ChatSidebar />);
-    fireEvent.click(screen.getByRole("button", { name: /agent mode/i }));
-    fireEvent.click(screen.getByRole("option", { name: /delegate/i }));
+    fireEvent.click(screen.getByRole("button", { name: /insert context/i }));
+    fireEvent.mouseDown(screen.getByRole("menuitemradio", { name: /delegate/i }));
     expect(useAgentModeStore.getState().mode).toBe("delegate");
   });
 
