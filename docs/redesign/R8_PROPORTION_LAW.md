@@ -7,14 +7,14 @@ lives. Every team builds against this file; verification audits the rendered scr
 
 ## 1. Type roles (what may use what)
 
-| Role | Step | Where |
-|------|------|-------|
+| Role                                                                           | Step                                                                                                    | Where                                                                                           |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | Reading prose (assistant chat, brief body, notes editor, learner explanations) | `text-body` 13 in the dock; `text-prose` 16 ONLY in wide reading panels (Notes, Brief at ≥420px column) | Brief body must downshift to `text-body` below 420px panel width — never 16px in a 200px column |
-| User chat message | `text-body` 13 — same step as assistant prose, distinguished by container (border/bg), never by size | kills the "enormous user type" defect |
-| Data cells (watchlist, screener, portfolio, tables) | `text-caption` 12, `tabular-nums` | price/change/etc. |
-| Panel headers / titles | `text-panel-title` 15 | one per panel |
-| Chrome labels (toolbar buttons, chips, tabs, meta rows) | `text-caption` 12 | NOT micro |
-| Micro-status (provenance chips, timestamps, keycap hints, section eyebrows) | `text-micro` 11 — the floor. NOTHING renders below 11px, ever, including via transforms | marketplace micro-text class |
+| User chat message                                                              | `text-body` 13 — same step as assistant prose, distinguished by container (border/bg), never by size    | kills the "enormous user type" defect                                                           |
+| Data cells (watchlist, screener, portfolio, tables)                            | `text-caption` 12, `tabular-nums`                                                                       | price/change/etc.                                                                               |
+| Panel headers / titles                                                         | `text-panel-title` 15                                                                                   | one per panel                                                                                   |
+| Chrome labels (toolbar buttons, chips, tabs, meta rows)                        | `text-caption` 12                                                                                       | NOT micro                                                                                       |
+| Micro-status (provenance chips, timestamps, keycap hints, section eyebrows)    | `text-micro` 11 — the floor. NOTHING renders below 11px, ever, including via transforms                 | marketplace micro-text class                                                                    |
 
 ## 2. Control scale (one ladder, no ad-hoc sizing)
 

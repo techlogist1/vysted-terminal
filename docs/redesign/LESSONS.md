@@ -20,7 +20,7 @@ Consulted before each phase; appended as the run learns.
 - React-controlled inputs need the native value setter + `input` event (`Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set`).
 - Quartz window capture: system python3 lacks PyObjC — use `sidecar/.venv/bin/python3` for /tmp/rigcap.py (matches `kCGWindowOwnerName` contains "vysted").
 - Window resize for narrow-width testing: `osascript … System Events … set size of front window` works (no accessibility fight on this Mac); the app window clamps at ~960px min width.
-- The operator's autosave workspace blob is a regression-evidence goldmine — `brief` rides the blob, so a failing published brief survives restarts (r8/regression-brief-*.json).
+- The operator's autosave workspace blob is a regression-evidence goldmine — `brief` rides the blob, so a failing published brief survives restarts (r8/regression-brief-\*.json).
 
 ## Learned during R7
 

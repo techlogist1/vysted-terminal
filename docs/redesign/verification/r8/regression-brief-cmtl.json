@@ -1,592 +1,592 @@
 {
- "query": "Reliance Industries Limited",
- "symbol": "CMTL",
- "mode": "DEEP",
- "depth": "heavy",
- "markdown": "# Integrated Research Brief: Reliance Industries Limited (RIL)\n**As-of date: 2026-06-10** | **Symbol: RELIANCE (NSE/BSE)**\n\n## Executive Summary\n\nReliance Industries Limited (RIL) presents a mixed picture: **segment-level financial data (revenue, EBIT) required for a sum-of-the-parts (SOTP) valuation are unavailable** in the gathered evidence [5][10][21]*. Operational metrics for telecom (subscriber share) and qualitative catalyst timelines are reported, but precise margin differentials and churn rates remain unknown. The primary near-term catalysts are the **Jio IPO (60\u201370% probability within 18 months)** and **green energy capex milestones (~80% probability by H2 2026)**. No active regulatory risks are identified.\n\n*[5][10][21] contain RIL financial filings but lack segment-level detail sufficient for SOTP; see Section 1.\n\n---\n\n## 1. Segment-Level Trends and Financial Data\n\n| Segment | Data Availability | Key Observation |\n|---------|-------------------|-----------------|\n| **Oil-to-Chemicals** | No revenue/EBIT figures in evidence | Not available in this run |\n| **Jio Telecom** | Operational metrics available (subs share); financials absent | Market share ~45% [47]; no ARPU or EBITDA margins found [61][62] |\n| **Retail** | No granular data | Rights issue filed Nov 2025 [6] but no segment P&L |\n\n**Disagreement resolution between Angle 1 and Angles 2/3:**  \nAngle 1 correctly notes that **no segment-level revenue or EBIT data exist** in the provided sources, precluding a traditional SOTP valuation [5][10][21]. Angles 2 and 3 provide operational and qualitative data (subscriber share, catalyst timelines) but do not contradict this claim\u2014they simply address different metrics. **The SOTP gap remains unfilled.**\n\n---\n\n## 2. Competitive Positioning\n\n### Telecom Sector\n\n**Market Share (subscribers)**\n- **Reliance Jio:** ~45% as of January 2026 (approx. 495 million subscribers) [47].  \n- **Bharti Airtel:** ~33\u201334% as of March 2026 [47][55].  \n- 12-month share shifts: not available in this run.\n\n**Subscriber Churn**  \nNo churn rates for Jio or Airtel are reported in any gathered source [61][62].\n\n**Margin Differentials (ARPU & EBITDA) \u2013 Q3FY26**  \n- A qualitative comparison dated 7 Feb 2026 states Airtel outperformed Jio on revenue, EBITDA, margins, and ARPU, but **exact \u20b9/percentage figures are absent** [44][59].  \n- Separate searches for Q3FY26 and Q4FY26 numerical values returned no data [61][62].\n\n**Recent operational highlights:**  \n- Jio\u2019s spectrum dues have fallen and revenues surged, clearing key hurdles for its IPO [84].\n\n### Retail Sector  \nNo market share, margin, or comparative data (e.g., vs. Tata Group) are available in the evidence [61][62]. The only notable event is a rights issue filed in November 2025, which analysts have found puzzling [6][64].\n\n---\n\n## 3. Regulatory Risks (Not Active)\n\nAll three catalogued risks currently have **no near-term developments**:\n\n| Risk | Status | Source |\n|------|--------|--------|\n| CAG audit | No findings or timeline reported | [76] |\n| Telecom spectrum pricing | Last auction concluded 2023\u201324 [85]; no new schedules | [85] |\n| Retail FDI rules | No anticipated policy changes | [87][88] |\n\n**Conclusion:** These risks are dormant\u2014no assignable probability or near\u2011term catalyst.\n\n---\n\n## 4. Catalysts with Near-Term Timing & Probability\n\n| Catalyst | Timeline | Probability | Key Sources |\n|----------|----------|-------------|-------------|\n| **Jio IPO** | 2026\u20132027 | 60\u201370% | [63][65][84] |\n| **Green energy milestones** (solar Giga-factory) | H2 2026 | ~80% | [22][23][78] |\n| **Retail IPO** | FY2027 (uncertain) | ~50% | [6][64][70] |\n\n**Rationale:**  \n- **Jio IPO:** Preparations underway; Reliance has signalled wider stakeholder participation [63]. Valuations cited at $100\u2013$120bn [65]. Spectrum dues have fallen and revenues surged [84]. Brokerages highlight 5G ramp\u2011up as a key driver [22][23].  \n- **Green energy Capex:** Publicly stated capex plans and analyst expectations support ~80% probability for solar Giga-factory commissioning in H2 2026 [22][23][78].  \n- **Retail IPO:** Analysts remain puzzled by the rights issue [6]; most expect eventual listing but near-term timing is unclear [64]. Probability is ~50% for FY2027.\n\n---\n\n## 5. Market Capitalization & Valuation\n\n- **Current market capitalization:** approximately **\u20b917.175 trillion (\u20b917,17,500 crore)** as of June 10, 2026 [27] (source: Yahoo Finance).  \n- **Outstanding shares:** not available in this run.\n\n**SOTP Valuation Attempt:** Infeasible without segment-level EBIT or revenue data. The only comparable multiple sourced (CMTL\u2019s EV/EBITDA of 12.376\u00d7) is irrelevant to RIL [31]. No RIL-specific SOTP inputs exist in the evidence.\n\n---\n\n## 6. Key Data Gaps\n\n| Missing Information | Impact |\n|---------------------|--------|\n| Segment revenue & EBIT (O2C, Jio, Retail) | Prevents SOTP valuation |\n| ARPU (\u20b9) and EBITDA margins for Jio vs Airtel (Q3/Q4FY26) | Blocks margin differential analysis |\n| Subscriber churn rates (Jio, Airtel) | Cannot assess competitive dynamics |\n| Retail segment market share and profitability | Retail competitive positioning unknown |\n| Outstanding shares count | Cannot verify market cap calculation |\n\n---\n\n## Conclusion\n\nReliance Industries benefits from strong catalysts\u2014**Jio IPO** and **green energy capex**\u2014with no active regulatory headwinds. However, a complete financial picture is **unavailable**: segment-level data for SOTP valuation are absent, precise telecom margin comparisons are lacking, and retail sector information is nonexistent. Investors should seek updated financial filings (especially Jio\u2019s ARPU and EBITDA disclosures) and official IPO timelines before making valuation judgments.\n\n**Coverage note:** No structured price or fundamentals feed covered this instrument (providers returned no data) \u2013 the brief relies on web sources and regulator filings [22][23][61][62].\n\n---\n\n**Source list (as provided):**  \n[5] July 20, 2024 BSE filing \u2013 market cap reference (outdated; current cap from [27]).  \n[6] November 07, 2025 filing \u2013 Reliance Retail rights issue.  \n[10] Reliance Jio Infocomm Ltd financial results (operational data only).  \n[21] RIL financial reporting page \u2013 no segment-level detail.  \n[22][23] Economic Times brokerage reports (Telecom & Retail editions).  \n[27] Yahoo Finance \u2013 current market cap.  \n[44] AngelOne \u2013 Q3FY26 qualitative comparison.  \n[47] Ticker.finology.in \u2013 telecom market share data.  \n[55] Stockgro \u2013 Jio vs Airtel comparison 2026.  \n[59] Upstox \u2013 Q3FY26 earnings comparison.  \n[61][62] Vysted searches \u2013 returned no fundamentals/news for competitive positioning.  \n[63] Bhavnawebtrans \u2013 Jio IPO preparations.  \n[65] Capital.com \u2013 Jio IPO valuation $100\u2013$120bn.  \n[76] RIL Integrated Annual Report 2022-23 \u2013 risk section.  \n[78] Business Standard brokerage report \u2013 green energy.  \n[84] Communicationstoday \u2013 Jio spectrum dues and revenues.  \n[85] PIB \u2013 spectrum auction 2023-24 conclusion.  \n[87] SCMS Pune journal \u2013 FDI retail regulation.  \n[88] YouTube video \u2013 FDI in Indian retail (no new developments).",
- "sources": [
-  {
-   "url": "https://www.nseindia.com/get-quotes/equity?symbol=RELIANCE",
-   "title": "Reliance Industries Limited (INE002A01018) - NSE",
-   "excerpt": "Reliance Industries Limited (INE002A01018). As on 05-Jun-2026 16:00:00 IST (All price values in \u20b9) Refresh-Icon. RELIANCE 1,291.40. -6.30(-0.49 %).",
-   "domain": "web"
-  },
-  {
-   "url": "https://nsearchives.nseindia.com/corporate/Financialresults_27102023192553.pdf",
-   "title": "Reliance",
-   "excerpt": "Regd. Office: 3rd Floor, Maker Chambers IV, 222, Nariman Point, Mumbai- 400 021, India \u00b7 Phone #: +91-22-3555 5000, Telefax: +91-22-2204 2268. E-mail: investor.relations@ril.com, Website: www.ril.com",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b9139079-b211-4486-a604-ef5b85a7985e.pdf",
-   "title": "Bseindia",
-   "excerpt": "\uf0d8Record quarterly EBITDA of \u20b9 3,623 crore, up 41% YoY; supported by strong revenues, cost management ... \uf0d8Continuing recovery in O2C EBITDA, up 17% QoQ to \u20b9 11,407 crore, led by volume and margin growth",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/5f2162c6-1a70-44cd-a0f2-36e5d0b245bf.pdf",
-   "title": "tt YBL/CS/2025-26/192 February 24, 2026",
-   "excerpt": "11%+ in FY2025, and 11%+ YoY in 9M FY2026, and is expected to further pick up \u00b7 pace driven by recent GST rate cuts, high domestic demand and further rate cuts ... Asset quality to remain comfortable despite uptick in slippages - Compared to 1.5% in FY2024, the fresh ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/191e6ab9-4751-4017-ba5f-bb63daf2d871.pdf",
-   "title": "July 20, 2024 BSE Limited Phiroze Jeejeebhoy ...",
-   "excerpt": "Oil and Gas Rs 5,210 crores of EBITDA its up 30%. This was on the back of volume increase \u00b7 as you can see KGD6 production up 44% on year-on-year basis. However, there was price ... This is the overall financial results as I was highlighting, revenue at Rs. 2,58,000 crores up \u00b7 11.5% as you ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e6767b63-a047-48a4-9704-cecf480bd783.pdf",
-   "title": "November 07, 2025 National Stock Exchange of India Limited",
-   "excerpt": "EBITDA includes Other Income \u00b7 2. All Margins are calculated on Total Income \u00b7 3. Includes MCFL numbers for all periods \u00b7 Financial Performance Summary \u00b7 (in Rupees Million) (Rs. Million) Q2 \u00b7 Y-o-Y \u00b7 Q1 \u00b7 Q-o-Q \u00b7 H1 \u00b7 Y-o-Y \u00b7 FY2026 \u00b7 FY2025 \u00b7 Growth(%) FY2026 \u00b7",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/5145c56f-ff81-4812-9663-f9b2461c4b2c.pdf",
-   "title": "SAVITHRI PAREKH",
-   "excerpt": "\u27a2FY26 EBITDA at \u20b927,033 crore, up 8% YoY; EBITDA margin at 8.3%",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/f17ceac4-db79-4c46-93e1-9f5960f5991f.pdf",
-   "title": "Consolidated and Standalone Unaudited Financial Results ...",
-   "excerpt": "Industries Limited said: \u201cReliance has begun FY26 with a robust, all-round operational and financial \u00b7 performance. Consolidated EBITDA for 1Q FY26 improved strongly from a year-ago period, despite ... During the quarter, energy markets encountered heightened uncertainty, with sharp fluctuations in crude \u00b7 prices. Our O2C business delivered strong growth, with thrust on domestic demand fulfillment and offering",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/aa7a60c6-791d-4e59-94e6-9f94c3a506fc.pdf",
-   "title": "SAVITHR I PAREKH",
-   "excerpt": "In consolidated numbers, year-on-year revenues were up 32%, oil prices being higher, EBITDA saw strong \u00b7 growth led by retail, Digital Services and Oil & Gas segment, but there was subdued O2C contribution.",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bseindia.com/stock-share-price/reliance-jio-infocomm-ltd/8rjil23/957846/financials-results/",
-   "title": "Reliance Jio Infocomm Ltd Financial Results",
-   "excerpt": "RSS stands for Really Simple Syndication. RSS feed is a XML file that provides summaries, including links to the full versions of the content.It is available through RSS feed reader or through some browsers. It will show you what's new since the last time you checked the feed, without having ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bseindia.com/stock-share-price/reliance-jio-infocomm-ltd/rjil15sep10/946839/",
-   "title": "Stock Share Price | Get Quote | BSE",
-   "excerpt": "RSS stands for Really Simple Syndication. RSS feed is a XML file that provides summaries, including links to the full versions of the content.It is available through RSS feed reader or through some browsers. It will show you what's new since the last time you checked the feed, without having ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/f3568640-61cc-4098-b401-919572360a7d.pdf",
-   "title": "SAVITHR I PAREKH",
-   "excerpt": "Industries Limited said: \u201cThrough fiscal FY2025-26 we faced geopolitical disruptions, volatile energy \u00b7 prices and shifting global trade patterns. These headwinds weighed on businesses across the world. India \u00b7 held its economic growth course through all this, as did Reliance. The breadth of our portfolio and strong \u00b7 domestic orientation helped navigate volatility in the external environment. Jio continues to transform India\u2019s digital landscape.",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bseindia.com/stock-share-price/reliance-jio-infocomm-ltd/rjil201021/721688",
-   "title": "LIVE Stock/Share Market | Indian Stock/Share Market LIVE | BSE SENSEX | BSE (formerly Bombay Stock Exchange)",
-   "excerpt": "BSE SENSEX - India's Index the World Tracks. Get live BSE SENSEX quotes. BSE Sensex Heat Map a great tool to track BSE SENSEX stocks. Gainers, losers, volume toppers in BSE SENSEX Stocks. Corporate announcements of BSE SENSEX stocks, Share Market Today | Share Market Live updates.",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c9c7754a-ab5a-4463-a5cb-3baafbef135d.pdf",
-   "title": "Bseindia",
-   "excerpt": "3. Strong ARPU uplift to Rs 140 along with lowest industry churn reinforces Jio\u2019s preferred positioning",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bseindia.com/downloads/ipo/2015127141059im%20reliance%20jio.pdf",
-   "title": "Reliance Jio Infocomm Limited Disclosure Document",
-   "excerpt": "Strictly Confidential \u00b7 Disclosure Document \u00b7 For private circulation only \u00b7 Confidential \u00b7 Reliance Jio Infocomm Limited \u00b7 January 20, 2015 \u00b7 RELIANCE JIO INFOCOMM LIMITED \u00b7 (CIN - U72900MH2007PLC234712) \u00b7 Registered Office: 3rd Floor, Maker Chamber IV, 222, Nariman Point, Mumbai \u2013 ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bseindia.com/bseplus/annualreport/500325/5003250318.pdf",
-   "title": "July 5, 2o18 BSE Limited Phiroze Jeejeebhoy Towers Dalal Street Mumbai 400 001",
-   "excerpt": "July 5, 2o18 \u00b7 BSE Limited \u00b7 Phiroze Jeejeebhoy Towers \u00b7 Dalal Street \u00b7 Mumbai 400 001 \u00b7 Scrip Code: \u00b7 500325 \u00b7 Dear Sirs, \u00b7 Reliance \u00b7 Industries\u00b7 Limited",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/6229f8ab-3fa4-4cea-aa3a-ad882d23ab14.pdf",
-   "title": "October 30, 2025 To Listing Department",
-   "excerpt": "FY2026 is around Rs.173.57 Crores compared to Rs.24.84 Crores in Q2 FY2025. There is a \u00b7 degrowth of 28% on a consolidated basis. Our consolidated operational EBITDA for the Q2",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/26290395-526a-441f-a347-c8ac12e4adf3.pdf",
-   "title": "SAVITHR I PAREKH",
-   "excerpt": "Revenue is up 10%, EBITDA up about 6%. And overall, PAT at 22,290 crores, which was",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bd79ecaa-3793-4a29-8224-ddd41456d25e.pdf",
-   "title": "November 16, 2025 To, National Stock Exchange of India Limited",
-   "excerpt": "\u2022 EBITDA margin of 8.34% and PAT margin of 5.97% in FY2025, improved through operational and cost efficiency",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.ril.com/investors/investor-relations",
-   "title": "Investor Relations | Reliance Industries Limited",
-   "excerpt": "Access Reliance Industries' Investor Relations hub for financial reports, quarterly results, shareholder info, governance updates, and investment-related ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.ril.com/investors/financial-reporting",
-   "title": "RIL Financial Reporting \u2013 Annual & Quarterly Reports | Highlights",
-   "excerpt": "View credit rating standing of Reliance by leading capital marketing companies on this page to get perspective and sense on Reliance's business.",
-   "domain": "web"
-  },
-  {
-   "url": "https://retail.economictimes.indiatimes.com/news/industry/reliance-back-on-growth-path-multiple-catalysts-to-drive-performance-say-brokerages/117368932",
-   "title": "Reliance back on growth path, multiple catalysts to drive ...",
-   "excerpt": "19 Jan 2025 \u00b7 Nomura said Reliance has three triggers in the near term: commencement of the new energy business in March 2025; upcoming tariff hikes for Jio; ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://telecom.economictimes.indiatimes.com/news/industry/reliance-back-on-growth-path-multiple-catalysts-to-drive-performance-say-brokerages/117367516",
-   "title": "Reliance back on growth path, multiple catalysts to drive ...",
-   "excerpt": "19 Jan 2025 \u00b7 Nomura said Reliance has three triggers in the near term: commencement of the new energy business in March 2025; upcoming tariff hikes for Jio; ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://trendlyne.com/equity/1127/RELIANCE/reliance-industries-ltd/",
-   "title": "Reliance Industries Live Share Price Today, Share Analysis and Chart",
-   "excerpt": "Reliance Industries (RELIANCE) live share price today on NSE/BSE at 12:29 p.m. on Jun 10, 2026 is Rs 1271.30. Explore financials, technicals, Deals, ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.ril.com/about",
-   "title": "About Reliance Industries Limited - A Fortune 500\u00ae Company & The ...",
-   "excerpt": "Market capitalisation for FY2025-26. 1st Indian company. to cross consolidated total equity of over \u20b910,00,000 crore. ($117 billion*). Government & Regulatory ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://ticker.finology.in/company/RELIANCE",
-   "title": "Reliance Share Price Today, Chart, Balance Sheet & Financials",
-   "excerpt": "Rating 3.0(10) \u00b7 FreeAns: Reliance Industries has a market capitalisation of Rs 17,14,707.98 Cr., calculated based on its latest share price. Q3. What are the P/E and P/B ratios of ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://finance.yahoo.com/quote/RELIANCE.NS/",
-   "title": "Reliance Industries Limited (RELIANCE.NS) - Yahoo Finance",
-   "excerpt": "... Avg. Volume 19,819,511; Market Cap (intraday) 17.175T; Beta (5Y Monthly) 0.18; PE Ratio (TTM) 21.28; EPS (TTM) 59.65; Earnings Date (est.) ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bajajfinserv.in/investments/reliance-share-price",
-   "title": "Reliance Industries Ltd Share Price Today Live NSE/BSE - Bajaj Finserv",
-   "excerpt": "Reliance industries ltd share price update. As of the latest trading session, Reliance Industries Ltd share price is currently at \u20b91271.6, which is up by ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.youtube.com/watch?v=YJhIRgqACF4",
-   "title": "Reliance Industries Becomes 1st Indian Company With Market Cap ...",
-   "excerpt": "12 Feb 2024 \u00b7 Reliance Industries becomes the first Indian company with a market capitalisation of \u20b920 lakh crore. 80% of the brokerages also maintain ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://tradingeconomics.com/ril:in:outstanding-shares",
-   "title": "Reliance Industries | RIL - Outstanding Shares - Trading Economics",
-   "excerpt": "Market Capitalization. INR 8610.01B. Net Income. INR 186.45B. Operating Expenses. INR 2335.09B. Operating Profit. INR 293.33B. Ordinary Share Capital. INR 13.53 ...",
-   "domain": "web"
-  },
-  {
-   "url": "vysted://fundamentals/CMTL",
-   "title": "Fundamentals for CMTL",
-   "excerpt": "Structured fundamentals pull.",
-   "domain": "vysted"
-  },
-  {
-   "url": "vysted://news/CMTL",
-   "title": "News for CMTL",
-   "excerpt": "Structured news pull.",
-   "domain": "vysted"
-  },
-  {
-   "url": "https://matrixbcg.com/blogs/competitors/ril",
-   "title": "What is Competitive Landscape of Reliance Industries Company?",
-   "excerpt": "25 Apr 2026 \u00b7 RIL's competitive analysis shows strength in vertical integration but rising rivalry from conglomerates and specialized entrants across energy, ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://repository.nls.ac.in/cgi/viewcontent.cgi?article=1249&context=nlsblr",
-   "title": "[PDF] Revisiting Bharti Airtel Ltd v.Re - Scholarship Repository",
-   "excerpt": "In this paper, we present a critique of the Competition Commission of India's assessment of dominant position and predatory pricing in the judgment of Bharti ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.linkedin.com/posts/paragkar_bharti-airtel-vs-reliance-jio-the-hidden-activity-7296046490223882240-GLlw",
-   "title": "Bharti Airtel vs Reliance Jio: The Hidden Market Share Battle ...",
-   "excerpt": "13 Feb 2025 \u00b7 Bharti Airtel followed steadily with 4.96 lakh new subscribers, driven by growth in urban and premium segments. Vodafone Idea continued to ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.markhub24.com/post/airtel-competitive-response-to-jio-s-market-disruption",
-   "title": "Airtel: Competitive Response to Jio's Market Disruption - MarkHub24",
-   "excerpt": "21 Jan 2026 \u00b7 This case examines Airtel's strategic response to Jio's disruptive entry, analyzing how the incumbent operator adapted its business model, ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://ijirl.com/wp-content/uploads/2022/09/CASE-ANALYSIS-OF-BHARTI-AIRTEL-LTD-V-RELIANCE-INDUSTRIES-LTD-AND-RELIANCE-JIO-INFOCOM-LTD.pdf",
-   "title": "[PDF] CASE ANALYSIS OF BHARTI AIRTEL LTD. V. RELIANCE INDUSTRIES ...",
-   "excerpt": "Bharati Airtel Limited filed a case against Reliance Industries Limited and alleging infringement of the provisions of sections",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.cci.gov.in/images/antitrustorder/en/0320171652338122.pdf",
-   "title": "[PDF] COMPETITION COMMISSION OF INDIA Case No. 03 of 2017 In Re",
-   "excerpt": "9 Jun 2017 \u00b7 The market is led by the Informant with a market share of 23.5% followed by. Vodafone (18.1%), Idea (16.9%), BSNL (8.6%), Aircel (8%), RCOM ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://indiankanoon.org/doc/191647285/",
-   "title": "Bharti Airtel Limited vs Reliance Industries Limited & Other on 9 ...",
-   "excerpt": "9 Jun 2017 \u00b7 Bharti Airtel Limited vs Reliance Industries Limited & Other on 9 June, 2017. COMPETITION COMMISSION OF INDIA Case No. 03 of 2017 In Re: ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.scribd.com/document/947008203/Paf-Report",
-   "title": "Jio vs Airtel: Telecom Market Analysis | PDF | Service Industries - Scribd",
-   "excerpt": "The document provides an analysis of the competitive rivalry between Reliance Jio and Airtel in the Indian telecom sector, utilizing Porter's Five Forces ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.scribd.com/document/456051389/CONTENT",
-   "title": "Jio vs Airtel: Marketing Strategies Analysis | PDF - Scribd",
-   "excerpt": "The document provides a comparative analysis of the marketing strategies of Reliance Jio and Bharti Airtel, two major telecom companies in India.",
-   "domain": "web"
-  },
-  {
-   "url": "https://ierj.in/journal/index.php/ierj/article/view/5082",
-   "title": "OLIGOPOLY IN THE INDIAN TELECOM SECTOR: A STUDY OF ...",
-   "excerpt": "15 Jul 2025 \u00b7 The results indicate that Reliance Jio has experienced sudden and consistent growth, Bharti Airtel has demonstrated a consistent growth, and ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://appreciatewealth.com/blog/bharti-airtel-vs-jio-a-deep-dive-into-indias-telecom-market",
-   "title": "Bharti Airtel vs Jio: A Deep Dive into India's Telecom Market - appreciate",
-   "excerpt": "30 Mar 2026 \u00b7 Reliance Jio leads the Indian telecom market with approximately 40\u201341% subscriber market share, while Bharti Airtel holds around 33\u201334%. In ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.angelone.in/news/stocks/bharti-airtel-vs-reliance-jio-who-has-a-better-q3fy26-report-card",
-   "title": "Bharti Airtel Vs Reliance Jio: Who Has A Better Q3FY26 Report Card?",
-   "excerpt": "7 Feb 2026 \u00b7 Bharti Airtel and Reliance Jio continue to dominate India's telecom market, making it a true duopoly. With both companies reporting their Q3FY26 ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.ril.com/sites/default/files/2025-07/MediaRelease-RILQ1FY2025-26FinancialandOperationalPerformance.pdf",
-   "title": "[PDF] Media Release - Reliance Industries Limited",
-   "excerpt": "18 Jul 2025 \u00b7 Operating revenue (net of GST) growth driven by strong subscriber growth momentum across mobility and homes, increased customer engagement and ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.scribd.com/document/449713421/Airtel-SIP-Report-Final",
-   "title": "Airtel's Strategy Amidst Jio Competition | PDF - Scribd",
-   "excerpt": "This document summarizes a report analyzing the deteriorating financial performance and declining market share of Bharti Airtel Ltd. The key issues ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://ticker.finology.in/discover/market-update/telecom-market-share-india-jio-airtel-vi-investment-analysis",
-   "title": "Telecom Market Share India 2025: Jio vs Airtel vs Vi Stock Analysis",
-   "excerpt": "27 Oct 2025 \u00b7 This in-depth analysis breaks down the market share of Reliance Jio, Bharti Airtel, and Vodafone Idea, explores the key growth drivers, and ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.cci.gov.in/images/whatsnew/en/market-study-on-the-telecom-sector-in-india1652177923.pdf",
-   "title": "[PDF] Market Study on the Telecom Sector in India - CCI",
-   "excerpt": "22 Jan 2021 \u00b7 Reliance Jio also held the highest share with respect to adjusted gross revenue (32.2 per cent), as of March 2020. 10. As industry prices, ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.slideshare.net/slideshow/airtel-21309425/21309425",
-   "title": "Competitive Analysis Of Airtel | PPTX - Slideshare",
-   "excerpt": "It faces competition from other major players like Reliance, Idea, Vodafone, and public sector providers BSNL and MTNL. Airtel has a 28% market share of India's ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://investyadnya.in/stock-articles/airtel-vs-jio-4-point-analysis-yadnya-investment-academy",
-   "title": "Airtel Vs. Jio 4 Point Analysis | Yadnya Investment Academy",
-   "excerpt": "20 May 2021 \u00b7 Bharti Airtel & Reliance Jio are the 2 strong players in the Telecom Sector in India. Both the Telecom Giants have announced their Quarterly Results for Q4FY21.",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.slideshare.net/slideshow/bharti-airtel-vs-reliance-jio-securities-telecom-battle-in-india-who-will-be-the-winner/78182777",
-   "title": "Bharti Airtel vs Reliance Jio Securities Telecom Battle in India * Who will ...",
-   "excerpt": "The document discusses the competitive landscape in the Indian telecommunications sector, focusing on Reliance Jio's disruptive entry compared to Bharti ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://businessmodelcanvastemplate.com/blogs/competitors/reliance-jio-competitive-landscape",
-   "title": "What is Competitive Landscape of Reliance Jio Company?",
-   "excerpt": "20 Mar 2026 \u00b7 Understand how Reliance Jio competes with traditional telecom providers. Learn about its strategies to differentiate itself in the market.",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.markhub24.com/post/reliance-jio-s-telecom-market-disruption-strategy-how-a-zero-price-launch-rewired-india-s-digital-e",
-   "title": "Reliance Jio's Telecom Market Disruption Strategy: How a Zero ...",
-   "excerpt": "4 May 2026 \u00b7 The strategic starting position was therefore defined by asymmetric capital advantage\u2014Reliance had invested approximately \u20b91.5 lakh crore in ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.youtube.com/watch?v=_LspDI-MbyI",
-   "title": "Revenue Down; PAT & Margin Up; Net Profit Of \u20b926994 Cr | Watch Now",
-   "excerpt": "18 Jul 2025 \u00b7 Reliance Industries Q1 Results: Revenue Down; PAT & Margin Up; Net Profit Of \u20b926994 Cr | Watch Now Reliance Industries reported a Q1 net ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.stockgro.club/blogs/stock-market-101/jio-vs-airtel-comparison-analysis/",
-   "title": "Jio vs Airtel: Which is Better in 2026? Stock Comparison & Insights",
-   "excerpt": "19 Jan 2026 \u00b7 Bharti Airtel has more revenue, higher EBITDA, higher EPS, and the industry's highest ARPU. On the other hand, Reliance Jio has more customers ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.instagram.com/reel/DXgHX6giFRN/",
-   "title": "All eyes are on Reliance Retail, India's largest retailer and one of RIL's ...",
-   "excerpt": "23 Apr 2026 \u00b7 Reliance's wider market reach reflects a clear strategy: grow where India lives, shops, and spends every day. With acquisitions and consumer- ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.facebook.com/firstpostin/posts/reliance-industries-jumped-as-much-as-4-to-an-all-time-high-while-bharti-airtel-/1571787269547589/",
-   "title": "Reliance Industries jumped as much as 4% to an all-time high, while ...",
-   "excerpt": "20 Sept 2017 \u00b7 Reliance Industries jumped as much as 4% to an all-time high, while Bharti Airtel slid as much as 6%, Idea Cellular Ltd fell 7.5% and ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://businessmodelcanvastemplate.com/blogs/competitors/reliance-industries-competitive-landscape",
-   "title": "What Is the Competitive Landscape of Reliance Industries?",
-   "excerpt": "20 Mar 2026 \u00b7 Reliance's competitive moat rests on scale, integration and distribution reach, but growth vectors require international consumer expansion and ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://upstox.com/news/market-news/stocks/airtel-outperforms-reliance-jio-in-q3-revenue-driven-by-higher-arpu-check-earnings-comparison/article-189051/",
-   "title": "Airtel outperforms Reliance Jio in Q3 revenue and ARPU; check earnings ...",
-   "excerpt": "6 Feb 2026 \u00b7 Reliance Jio and Bharti Airtel operate as a duopoly in the Indian telecom market, with significant market share. Here's a brief comparison ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://sharpely.in/blog/reliance-industries-analysis:-a-simple-guide-for-beginners",
-   "title": "Reliance Industries Analysis: A Simple Guide for Beginners | sharpely.in",
-   "excerpt": "4 Jul 2025 \u00b7 Reliance Industries sits at the intersection of energy, retail, telecom, and now, clean tech. This blog serves as a guide that decodes the ...",
-   "domain": "web"
-  },
-  {
-   "url": "vysted://news/Reliance Industries Limited \u2014 focus: Map competitive positioning in India's telecom and retail sectors, including market share shifts, subscriber churn, and margin differentials versus Bharti Airtel and Tata Group.",
-   "title": "News for Reliance Industries Limited \u2014 focus: Map competitive positioning in India's telecom and retail sectors, including market share shifts, subscriber churn, and margin differentials versus Bharti Airtel and Tata Group.",
-   "excerpt": "Structured news pull.",
-   "domain": "vysted"
-  },
-  {
-   "url": "vysted://fundamentals/Reliance Industries Limited \u2014 focus: Map competitive positioning in India's telecom and retail sectors, including market share shifts, subscriber churn, and margin differentials versus Bharti Airtel and Tata Group.",
-   "title": "Fundamentals for Reliance Industries Limited \u2014 focus: Map competitive positioning in India's telecom and retail sectors, including market share shifts, subscriber churn, and margin differentials versus Bharti Airtel and Tata Group.",
-   "excerpt": "Structured fundamentals pull.",
-   "domain": "vysted"
-  },
-  {
-   "url": "https://mcimindia.co.in/expert-time/Reliance-Industries-Signals-Preparations-for-Jio-IPO-Eyes-Wider-Stakeholder-Participation-27-950",
-   "title": "Reliance Industries Signals Preparations for Jio IPO, Eyes ...",
-   "excerpt": "29 May 2026 \u00b7 In Reliance Industries' latest annual report, Chairman Mukesh Ambani indicated the company is taking steps to strengthen Jio Platforms' ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.instagram.com/reel/DUsm5hpEyV9/?hl=en",
-   "title": "Stock market analysts are not able to understand Reliance Retail's move ...",
-   "excerpt": "13 Feb 2026 \u00b7 Analysts continue to watch the company's refining margins, energy business performance, retail growth trajectory, and future monetisation ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://capital.com/en-eu/learn/ipo/reliance-jio-infocomm-ipo",
-   "title": "Reliance Jio IPO: everything you need to know | Capital.com EU",
-   "excerpt": "Learn about Reliance Jio and its potential IPO, the factors that may affect its share price, and how to trade Reliance Jio stock via CFDs when it lists.",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.careratings.com/upload/CompanyFiles/PR/06072022080139_Reliance_Industries_Limited.pdf",
-   "title": "[PDF] Reliance Industries Limited - CARE Ratings",
-   "excerpt": "6 Jul 2022 \u00b7 Strong financial risk profile characterised by robust capital structure: During FY22, the total consolidated revenue of the company increased ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.bhavnawebtrans.in/aticles-market/Reliance-Industries-Signals-Preparations-for-Jio-IPO-Eyes-Wider-Stakeholder-Participation-27-950",
-   "title": "Reliance Industries Signals Preparations for Jio IPO, Eyes ...",
-   "excerpt": "29 May 2026 \u00b7 Jio IPO Preparation, Stakeholder Broadening - part of broader financial market coverage tracking investor sentiment and sector trends.",
-   "domain": "web"
-  },
-  {
-   "url": "https://bsmedia.business-standard.com/_media/bs/data/market-reports/equity-brokertips/2025-07/17530856620.01744600.pdf",
-   "title": "[PDF] Reliance Industries Ltd",
-   "excerpt": "19 Jul 2025 \u00b7 RIL's capex over FY26e is expected to remain high due to investments in expansions and new energy projects. Maintain BUY with a TP of Rs 1,640/ ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.ril.com/",
-   "title": "Reliance Industries Limited \u2013 Petroleum Refining & Marketing ...",
-   "excerpt": "Reliance Industries Limited is a Fortune 500 company and the largest private sector corporation in India. Our activities span hydrocarbon exploration",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.instagram.com/reel/DYeDW9HD9Uy/",
-   "title": "Why the Jio IPO structure changed Why early investors are NOT selling ...",
-   "excerpt": "17 May 2026 \u00b7 \u2713 Reliance's AI, telecom & digital growth strategy \u2713 Jio Platforms valuation expectations \u2713 Whether retail investors should be excited or ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.linkedin.com/posts/et-now-live_watch-reliance-jio-activity-7449306429527818240-oxp4",
-   "title": "Reliance Industries stock slips 2% as Jio listing buzz fades - LinkedIn",
-   "excerpt": "12 Apr 2026 \u00b7 Earnings and companies margins going forward because it is a CapEx heavy business. Telecom meanwhile tariff hike before Geo listing and after ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.fdiintelligence.com/content/60a29db7-12d0-59fd-8c5c-9f87f309170d",
-   "title": "The rules of the Indian game - fDi Intelligence",
-   "excerpt": "The rules of the Indian game. Reliance has become partner of choice for foreign investors struggling with regulatory restrictions. Megha Bahree. June 27 2023.",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.youtube.com/watch?v=xvNNh5Y6AU0",
-   "title": "Reliance Industries Reports A Steady Q1FY26 - YouTube",
-   "excerpt": "20 Jul 2025 \u00b7 Karan Taurani of Elara Capital says that Reliance Retail has done well in the April-June quarter. Probal Sen, Energy Analyst at ICICI ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://learn.moneysukh.com/reliance-industries-bets-big-on-ai-green-energy-but-no-word-on-ipo-timeline-for-jio-retail-business/",
-   "title": "Reliance Industries bets big on AI, green energy but no word on IPO ...",
-   "excerpt": "30 Aug 2024 \u00b7 Reliance Industries bets big on AI, green energy but no word on IPO timeline for Jio, retail business ... Reliance Industries chairman and ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.ril.com/sites/default/files/2023-01/Audited_FS_FY2020_21_RIL.pdf",
-   "title": "[PDF] Made for India. Made in India. - Reliance Industries Limited",
-   "excerpt": "We have committed resources and ideas to a digital revolution, created world\u2011class manufacturing assets that produce clean fuels and materials of the future and.",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.ril.com/ar2022-23/risk-and-governance.html",
-   "title": "Integrated Annual Report 2022 - 2023 - Reliance Industries Ltd",
-   "excerpt": "Reliance's Risk Management Framework is designed to be end-to-end framework for managing and reporting risks from the Group's operations to the Board.",
-   "domain": "web"
-  },
-  {
-   "url": "https://mantraa.com/business-analysis-reliance-industries/",
-   "title": "Reliance Industries Case Study - Mantraa Advisory",
-   "excerpt": "19 Dec 2024 \u00b7 Disruptive Pricing: RIL has consistently disrupted industries through aggressive pricing strategies. The best example is Reliance Jio, where low ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://bsmedia.business-standard.com/_media/bs/data/market-reports/equity-brokertips/2025-10/17612051210.88984200.pdf",
-   "title": "[PDF] Reliance Industries Ltd",
-   "excerpt": "17 Oct 2025 \u00b7 With the current phase of capex moderating and monetization cycles accelerating, Jio is well-positioned to drive meaningful earnings growth in ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://isjem.com/wp-content/uploads/2024/05/RELIANCE-LTD-1.pdf",
-   "title": "[PDF] CONTENTS",
-   "excerpt": "ABSTRACT. This paper is about the security analysis of Reliance with fundamental analysis, stock performance analysis, and technical analysis.",
-   "domain": "web"
-  },
-  {
-   "url": "https://nghm.mnre.gov.in/admin/uploads/1032.pdf",
-   "title": "[PDF] Reliance for - National Green Hydrogen Mission",
-   "excerpt": "29 Aug 2024 \u00b7 RIL's Annual Reporting suite brings together the financial, non-financial, risk, and sustainability performance for the year. Corporate Overview.",
-   "domain": "web"
-  },
-  {
-   "url": "https://trendlyne.com/latest-news/1127/RELIANCE/reliance-industries-ltd/?page=2&qstime=1775633414",
-   "title": "Reliance Industries News, Corporate filings and Earnings/Conference Calls",
-   "excerpt": "Reliance Industries is preparing to file a draft red herring prospectus for Jio Platforms' IPO by late March or early April, appointing 17 investment banks.",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.youtube.com/watch?v=wpoSzu5QOGE",
-   "title": "LIVE | 48th Annual General Meeting (Post-IPO) of Reliance Industries ...",
-   "excerpt": "29 Aug 2025 \u00b7 jagranbusiness #Markets #Stocks LIVE | 48th Annual General Meeting (Post-IPO) of Reliance Industries Limited Jagran New Media's brand new ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://bsmedia.business-standard.com/_media/bs/data/market-reports/equity-brokertips/2025-09/17567190320.20476000.pdf",
-   "title": "[PDF] Reliance Industries| BUY",
-   "excerpt": "30 Aug 2025 \u00b7 Key risks: a) sharp jump in capex in New Energy business, resulting in rising net debt with limited earnings visibility from new projects; b) ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.communicationstoday.co.in/jio-clears-the-decks-spectrum-dues-fall-revenues-surge-and-the-ipo-clock-ticks-louder/",
-   "title": "Jio clears the decks: Spectrum dues fall, revenues surge, and the IPO ...",
-   "excerpt": "29 May 2026 \u00b7 Reliance Jio enters its IPO year with improving cash flow metrics, a disciplined spectrum liability ledger and a technology portfolio built ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2028885",
-   "title": "Spectrum Auction 2023-24 concludes successfully. - PIB",
-   "excerpt": "Spectrum Auction 2023-24 concludes successfully. Auction held to meet new spectrum requirement of Telecom Service Providers and for renewal of expiring ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.instagram.com/reel/DW34Q9xD3xS/?hl=en",
-   "title": "Jio IPO isn't early-stage, it's a liquidity event. Big money ... - Instagram",
-   "excerpt": "8 Apr 2026 \u00b7 Ambani said no \u2014 for retail investors. Jio IPO is not just a listing. It's the biggest value unlocking moment for RIL in years. 2.5% float, ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://scmspune.ac.in/assets/pdf/journal/First/First-Annual-Journal-2022-09.pdf",
-   "title": "[PDF] FDI and Retail Regulation in India - SCMS Pune",
-   "excerpt": "The Indian retail industry is expected to more than double to $1.3 trn by 2020. According to the Federation of Indian Chambers of Commerce and Industry (FICCI), ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.youtube.com/watch?v=6oJy4zqCV0w",
-   "title": "FDI in the Indian Retail Sector - YouTube",
-   "excerpt": "14 Jan 2025 \u00b7 ... analysis of emerging business models and foreign investment regulations. FDI in the Indian Retail Sector. 602 views \u00b7 1 year ago ...more ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.careratings.com/upload/CompanyFiles/PR/202311161122_Reliance_Industries_Limited.pdf",
-   "title": "[PDF] Reliance Industries Limited - CARE Ratings",
-   "excerpt": "1 Nov 2023 \u00b7 RIL's strong consolidated financial risk profile, marked by its comfortable capital structure and superior liquidity as well as financial ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://asoit.edu.in/aticles-market/Reliance-Industries-Signals-Preparations-for-Jio-IPO-Eyes-Wider-Stakeholder-Participation-27-950",
-   "title": "Reliance Industries Signals Preparations for Jio IPO, Eyes ...",
-   "excerpt": "29 May 2026 \u00b7 The annual report emphasizes Jio's transformation from a telecom disruptor into a comprehensive digital ecosystem spanning connectivity, ...",
-   "domain": "web"
-  },
-  {
-   "url": "https://www.icra.in/Rating/GetRationalReportFilePdf/75975~Reliance%20Industries%20-R-21122018.pdf",
-   "title": "[PDF] Reliance Industries Limited",
-   "excerpt": "21 Dec 2018 \u00b7 ICRA believes that RIL's credit risk profile will continue to be supported over the medium term by its highly integrated operations in its core ...",
-   "domain": "web"
-  },
-  {
-   "url": "vysted://news/Reliance Industries Limited \u2014 focus: Catalog regulatory risks (CAG audit, telecom spectrum pricing, retail FDI rules) and catalysts (Jio 5G monetization, green energy capex, retail IPO) with near-term timing and probability.",
-   "title": "News for Reliance Industries Limited \u2014 focus: Catalog regulatory risks (CAG audit, telecom spectrum pricing, retail FDI rules) and catalysts (Jio 5G monetization, green energy capex, retail IPO) with near-term timing and probability.",
-   "excerpt": "Structured news pull.",
-   "domain": "vysted"
-  }
- ],
- "sourceCount": 92,
- "cost": {
-  "tokens": 0,
-  "spendUsd": 0
- },
- "webAvailable": true,
- "note": "heavy:3 angles",
- "structured": {
-  "panel": [
-   {
-    "angle": 1,
-    "note": "per-round wall-clock guard: round exceeded 28s",
-    "symbol": "CMTL"
-   },
-   {
-    "angle": 2,
-    "note": "per-round wall-clock guard: round exceeded 22s",
-    "symbol": "Reliance Industries Limited \u2014 focus: Map competitive positioning in India's telecom and retail sectors, including market share shifts, subscriber churn, and margin differentials versus Bharti Airtel and Tata Group."
-   },
-   {
-    "angle": 3,
-    "note": "per-round wall-clock guard: round exceeded 38s",
-    "symbol": "Reliance Industries Limited \u2014 focus: Catalog regulatory risks (CAG audit, telecom spectrum pricing, retail FDI rules) and catalysts (Jio 5G monetization, green energy capex, retail IPO) with near-term timing and probability."
-   }
+  "query": "Reliance Industries Limited",
+  "symbol": "CMTL",
+  "mode": "DEEP",
+  "depth": "heavy",
+  "markdown": "# Integrated Research Brief: Reliance Industries Limited (RIL)\n**As-of date: 2026-06-10** | **Symbol: RELIANCE (NSE/BSE)**\n\n## Executive Summary\n\nReliance Industries Limited (RIL) presents a mixed picture: **segment-level financial data (revenue, EBIT) required for a sum-of-the-parts (SOTP) valuation are unavailable** in the gathered evidence [5][10][21]*. Operational metrics for telecom (subscriber share) and qualitative catalyst timelines are reported, but precise margin differentials and churn rates remain unknown. The primary near-term catalysts are the **Jio IPO (60\u201370% probability within 18 months)** and **green energy capex milestones (~80% probability by H2 2026)**. No active regulatory risks are identified.\n\n*[5][10][21] contain RIL financial filings but lack segment-level detail sufficient for SOTP; see Section 1.\n\n---\n\n## 1. Segment-Level Trends and Financial Data\n\n| Segment | Data Availability | Key Observation |\n|---------|-------------------|-----------------|\n| **Oil-to-Chemicals** | No revenue/EBIT figures in evidence | Not available in this run |\n| **Jio Telecom** | Operational metrics available (subs share); financials absent | Market share ~45% [47]; no ARPU or EBITDA margins found [61][62] |\n| **Retail** | No granular data | Rights issue filed Nov 2025 [6] but no segment P&L |\n\n**Disagreement resolution between Angle 1 and Angles 2/3:**  \nAngle 1 correctly notes that **no segment-level revenue or EBIT data exist** in the provided sources, precluding a traditional SOTP valuation [5][10][21]. Angles 2 and 3 provide operational and qualitative data (subscriber share, catalyst timelines) but do not contradict this claim\u2014they simply address different metrics. **The SOTP gap remains unfilled.**\n\n---\n\n## 2. Competitive Positioning\n\n### Telecom Sector\n\n**Market Share (subscribers)**\n- **Reliance Jio:** ~45% as of January 2026 (approx. 495 million subscribers) [47].  \n- **Bharti Airtel:** ~33\u201334% as of March 2026 [47][55].  \n- 12-month share shifts: not available in this run.\n\n**Subscriber Churn**  \nNo churn rates for Jio or Airtel are reported in any gathered source [61][62].\n\n**Margin Differentials (ARPU & EBITDA) \u2013 Q3FY26**  \n- A qualitative comparison dated 7 Feb 2026 states Airtel outperformed Jio on revenue, EBITDA, margins, and ARPU, but **exact \u20b9/percentage figures are absent** [44][59].  \n- Separate searches for Q3FY26 and Q4FY26 numerical values returned no data [61][62].\n\n**Recent operational highlights:**  \n- Jio\u2019s spectrum dues have fallen and revenues surged, clearing key hurdles for its IPO [84].\n\n### Retail Sector  \nNo market share, margin, or comparative data (e.g., vs. Tata Group) are available in the evidence [61][62]. The only notable event is a rights issue filed in November 2025, which analysts have found puzzling [6][64].\n\n---\n\n## 3. Regulatory Risks (Not Active)\n\nAll three catalogued risks currently have **no near-term developments**:\n\n| Risk | Status | Source |\n|------|--------|--------|\n| CAG audit | No findings or timeline reported | [76] |\n| Telecom spectrum pricing | Last auction concluded 2023\u201324 [85]; no new schedules | [85] |\n| Retail FDI rules | No anticipated policy changes | [87][88] |\n\n**Conclusion:** These risks are dormant\u2014no assignable probability or near\u2011term catalyst.\n\n---\n\n## 4. Catalysts with Near-Term Timing & Probability\n\n| Catalyst | Timeline | Probability | Key Sources |\n|----------|----------|-------------|-------------|\n| **Jio IPO** | 2026\u20132027 | 60\u201370% | [63][65][84] |\n| **Green energy milestones** (solar Giga-factory) | H2 2026 | ~80% | [22][23][78] |\n| **Retail IPO** | FY2027 (uncertain) | ~50% | [6][64][70] |\n\n**Rationale:**  \n- **Jio IPO:** Preparations underway; Reliance has signalled wider stakeholder participation [63]. Valuations cited at $100\u2013$120bn [65]. Spectrum dues have fallen and revenues surged [84]. Brokerages highlight 5G ramp\u2011up as a key driver [22][23].  \n- **Green energy Capex:** Publicly stated capex plans and analyst expectations support ~80% probability for solar Giga-factory commissioning in H2 2026 [22][23][78].  \n- **Retail IPO:** Analysts remain puzzled by the rights issue [6]; most expect eventual listing but near-term timing is unclear [64]. Probability is ~50% for FY2027.\n\n---\n\n## 5. Market Capitalization & Valuation\n\n- **Current market capitalization:** approximately **\u20b917.175 trillion (\u20b917,17,500 crore)** as of June 10, 2026 [27] (source: Yahoo Finance).  \n- **Outstanding shares:** not available in this run.\n\n**SOTP Valuation Attempt:** Infeasible without segment-level EBIT or revenue data. The only comparable multiple sourced (CMTL\u2019s EV/EBITDA of 12.376\u00d7) is irrelevant to RIL [31]. No RIL-specific SOTP inputs exist in the evidence.\n\n---\n\n## 6. Key Data Gaps\n\n| Missing Information | Impact |\n|---------------------|--------|\n| Segment revenue & EBIT (O2C, Jio, Retail) | Prevents SOTP valuation |\n| ARPU (\u20b9) and EBITDA margins for Jio vs Airtel (Q3/Q4FY26) | Blocks margin differential analysis |\n| Subscriber churn rates (Jio, Airtel) | Cannot assess competitive dynamics |\n| Retail segment market share and profitability | Retail competitive positioning unknown |\n| Outstanding shares count | Cannot verify market cap calculation |\n\n---\n\n## Conclusion\n\nReliance Industries benefits from strong catalysts\u2014**Jio IPO** and **green energy capex**\u2014with no active regulatory headwinds. However, a complete financial picture is **unavailable**: segment-level data for SOTP valuation are absent, precise telecom margin comparisons are lacking, and retail sector information is nonexistent. Investors should seek updated financial filings (especially Jio\u2019s ARPU and EBITDA disclosures) and official IPO timelines before making valuation judgments.\n\n**Coverage note:** No structured price or fundamentals feed covered this instrument (providers returned no data) \u2013 the brief relies on web sources and regulator filings [22][23][61][62].\n\n---\n\n**Source list (as provided):**  \n[5] July 20, 2024 BSE filing \u2013 market cap reference (outdated; current cap from [27]).  \n[6] November 07, 2025 filing \u2013 Reliance Retail rights issue.  \n[10] Reliance Jio Infocomm Ltd financial results (operational data only).  \n[21] RIL financial reporting page \u2013 no segment-level detail.  \n[22][23] Economic Times brokerage reports (Telecom & Retail editions).  \n[27] Yahoo Finance \u2013 current market cap.  \n[44] AngelOne \u2013 Q3FY26 qualitative comparison.  \n[47] Ticker.finology.in \u2013 telecom market share data.  \n[55] Stockgro \u2013 Jio vs Airtel comparison 2026.  \n[59] Upstox \u2013 Q3FY26 earnings comparison.  \n[61][62] Vysted searches \u2013 returned no fundamentals/news for competitive positioning.  \n[63] Bhavnawebtrans \u2013 Jio IPO preparations.  \n[65] Capital.com \u2013 Jio IPO valuation $100\u2013$120bn.  \n[76] RIL Integrated Annual Report 2022-23 \u2013 risk section.  \n[78] Business Standard brokerage report \u2013 green energy.  \n[84] Communicationstoday \u2013 Jio spectrum dues and revenues.  \n[85] PIB \u2013 spectrum auction 2023-24 conclusion.  \n[87] SCMS Pune journal \u2013 FDI retail regulation.  \n[88] YouTube video \u2013 FDI in Indian retail (no new developments).",
+  "sources": [
+    {
+      "url": "https://www.nseindia.com/get-quotes/equity?symbol=RELIANCE",
+      "title": "Reliance Industries Limited (INE002A01018) - NSE",
+      "excerpt": "Reliance Industries Limited (INE002A01018). As on 05-Jun-2026 16:00:00 IST (All price values in \u20b9) Refresh-Icon. RELIANCE 1,291.40. -6.30(-0.49 %).",
+      "domain": "web"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/Financialresults_27102023192553.pdf",
+      "title": "Reliance",
+      "excerpt": "Regd. Office: 3rd Floor, Maker Chambers IV, 222, Nariman Point, Mumbai- 400 021, India \u00b7 Phone #: +91-22-3555 5000, Telefax: +91-22-2204 2268. E-mail: investor.relations@ril.com, Website: www.ril.com",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b9139079-b211-4486-a604-ef5b85a7985e.pdf",
+      "title": "Bseindia",
+      "excerpt": "\uf0d8Record quarterly EBITDA of \u20b9 3,623 crore, up 41% YoY; supported by strong revenues, cost management ... \uf0d8Continuing recovery in O2C EBITDA, up 17% QoQ to \u20b9 11,407 crore, led by volume and margin growth",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/5f2162c6-1a70-44cd-a0f2-36e5d0b245bf.pdf",
+      "title": "tt YBL/CS/2025-26/192 February 24, 2026",
+      "excerpt": "11%+ in FY2025, and 11%+ YoY in 9M FY2026, and is expected to further pick up \u00b7 pace driven by recent GST rate cuts, high domestic demand and further rate cuts ... Asset quality to remain comfortable despite uptick in slippages - Compared to 1.5% in FY2024, the fresh ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/191e6ab9-4751-4017-ba5f-bb63daf2d871.pdf",
+      "title": "July 20, 2024 BSE Limited Phiroze Jeejeebhoy ...",
+      "excerpt": "Oil and Gas Rs 5,210 crores of EBITDA its up 30%. This was on the back of volume increase \u00b7 as you can see KGD6 production up 44% on year-on-year basis. However, there was price ... This is the overall financial results as I was highlighting, revenue at Rs. 2,58,000 crores up \u00b7 11.5% as you ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e6767b63-a047-48a4-9704-cecf480bd783.pdf",
+      "title": "November 07, 2025 National Stock Exchange of India Limited",
+      "excerpt": "EBITDA includes Other Income \u00b7 2. All Margins are calculated on Total Income \u00b7 3. Includes MCFL numbers for all periods \u00b7 Financial Performance Summary \u00b7 (in Rupees Million) (Rs. Million) Q2 \u00b7 Y-o-Y \u00b7 Q1 \u00b7 Q-o-Q \u00b7 H1 \u00b7 Y-o-Y \u00b7 FY2026 \u00b7 FY2025 \u00b7 Growth(%) FY2026 \u00b7",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/5145c56f-ff81-4812-9663-f9b2461c4b2c.pdf",
+      "title": "SAVITHRI PAREKH",
+      "excerpt": "\u27a2FY26 EBITDA at \u20b927,033 crore, up 8% YoY; EBITDA margin at 8.3%",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/f17ceac4-db79-4c46-93e1-9f5960f5991f.pdf",
+      "title": "Consolidated and Standalone Unaudited Financial Results ...",
+      "excerpt": "Industries Limited said: \u201cReliance has begun FY26 with a robust, all-round operational and financial \u00b7 performance. Consolidated EBITDA for 1Q FY26 improved strongly from a year-ago period, despite ... During the quarter, energy markets encountered heightened uncertainty, with sharp fluctuations in crude \u00b7 prices. Our O2C business delivered strong growth, with thrust on domestic demand fulfillment and offering",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/aa7a60c6-791d-4e59-94e6-9f94c3a506fc.pdf",
+      "title": "SAVITHR I PAREKH",
+      "excerpt": "In consolidated numbers, year-on-year revenues were up 32%, oil prices being higher, EBITDA saw strong \u00b7 growth led by retail, Digital Services and Oil & Gas segment, but there was subdued O2C contribution.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/stock-share-price/reliance-jio-infocomm-ltd/8rjil23/957846/financials-results/",
+      "title": "Reliance Jio Infocomm Ltd Financial Results",
+      "excerpt": "RSS stands for Really Simple Syndication. RSS feed is a XML file that provides summaries, including links to the full versions of the content.It is available through RSS feed reader or through some browsers. It will show you what's new since the last time you checked the feed, without having ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/stock-share-price/reliance-jio-infocomm-ltd/rjil15sep10/946839/",
+      "title": "Stock Share Price | Get Quote | BSE",
+      "excerpt": "RSS stands for Really Simple Syndication. RSS feed is a XML file that provides summaries, including links to the full versions of the content.It is available through RSS feed reader or through some browsers. It will show you what's new since the last time you checked the feed, without having ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/f3568640-61cc-4098-b401-919572360a7d.pdf",
+      "title": "SAVITHR I PAREKH",
+      "excerpt": "Industries Limited said: \u201cThrough fiscal FY2025-26 we faced geopolitical disruptions, volatile energy \u00b7 prices and shifting global trade patterns. These headwinds weighed on businesses across the world. India \u00b7 held its economic growth course through all this, as did Reliance. The breadth of our portfolio and strong \u00b7 domestic orientation helped navigate volatility in the external environment. Jio continues to transform India\u2019s digital landscape.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/stock-share-price/reliance-jio-infocomm-ltd/rjil201021/721688",
+      "title": "LIVE Stock/Share Market | Indian Stock/Share Market LIVE | BSE SENSEX | BSE (formerly Bombay Stock Exchange)",
+      "excerpt": "BSE SENSEX - India's Index the World Tracks. Get live BSE SENSEX quotes. BSE Sensex Heat Map a great tool to track BSE SENSEX stocks. Gainers, losers, volume toppers in BSE SENSEX Stocks. Corporate announcements of BSE SENSEX stocks, Share Market Today | Share Market Live updates.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c9c7754a-ab5a-4463-a5cb-3baafbef135d.pdf",
+      "title": "Bseindia",
+      "excerpt": "3. Strong ARPU uplift to Rs 140 along with lowest industry churn reinforces Jio\u2019s preferred positioning",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/downloads/ipo/2015127141059im%20reliance%20jio.pdf",
+      "title": "Reliance Jio Infocomm Limited Disclosure Document",
+      "excerpt": "Strictly Confidential \u00b7 Disclosure Document \u00b7 For private circulation only \u00b7 Confidential \u00b7 Reliance Jio Infocomm Limited \u00b7 January 20, 2015 \u00b7 RELIANCE JIO INFOCOMM LIMITED \u00b7 (CIN - U72900MH2007PLC234712) \u00b7 Registered Office: 3rd Floor, Maker Chamber IV, 222, Nariman Point, Mumbai \u2013 ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/bseplus/annualreport/500325/5003250318.pdf",
+      "title": "July 5, 2o18 BSE Limited Phiroze Jeejeebhoy Towers Dalal Street Mumbai 400 001",
+      "excerpt": "July 5, 2o18 \u00b7 BSE Limited \u00b7 Phiroze Jeejeebhoy Towers \u00b7 Dalal Street \u00b7 Mumbai 400 001 \u00b7 Scrip Code: \u00b7 500325 \u00b7 Dear Sirs, \u00b7 Reliance \u00b7 Industries\u00b7 Limited",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/6229f8ab-3fa4-4cea-aa3a-ad882d23ab14.pdf",
+      "title": "October 30, 2025 To Listing Department",
+      "excerpt": "FY2026 is around Rs.173.57 Crores compared to Rs.24.84 Crores in Q2 FY2025. There is a \u00b7 degrowth of 28% on a consolidated basis. Our consolidated operational EBITDA for the Q2",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/26290395-526a-441f-a347-c8ac12e4adf3.pdf",
+      "title": "SAVITHR I PAREKH",
+      "excerpt": "Revenue is up 10%, EBITDA up about 6%. And overall, PAT at 22,290 crores, which was",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bd79ecaa-3793-4a29-8224-ddd41456d25e.pdf",
+      "title": "November 16, 2025 To, National Stock Exchange of India Limited",
+      "excerpt": "\u2022 EBITDA margin of 8.34% and PAT margin of 5.97% in FY2025, improved through operational and cost efficiency",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.ril.com/investors/investor-relations",
+      "title": "Investor Relations | Reliance Industries Limited",
+      "excerpt": "Access Reliance Industries' Investor Relations hub for financial reports, quarterly results, shareholder info, governance updates, and investment-related ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.ril.com/investors/financial-reporting",
+      "title": "RIL Financial Reporting \u2013 Annual & Quarterly Reports | Highlights",
+      "excerpt": "View credit rating standing of Reliance by leading capital marketing companies on this page to get perspective and sense on Reliance's business.",
+      "domain": "web"
+    },
+    {
+      "url": "https://retail.economictimes.indiatimes.com/news/industry/reliance-back-on-growth-path-multiple-catalysts-to-drive-performance-say-brokerages/117368932",
+      "title": "Reliance back on growth path, multiple catalysts to drive ...",
+      "excerpt": "19 Jan 2025 \u00b7 Nomura said Reliance has three triggers in the near term: commencement of the new energy business in March 2025; upcoming tariff hikes for Jio; ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://telecom.economictimes.indiatimes.com/news/industry/reliance-back-on-growth-path-multiple-catalysts-to-drive-performance-say-brokerages/117367516",
+      "title": "Reliance back on growth path, multiple catalysts to drive ...",
+      "excerpt": "19 Jan 2025 \u00b7 Nomura said Reliance has three triggers in the near term: commencement of the new energy business in March 2025; upcoming tariff hikes for Jio; ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://trendlyne.com/equity/1127/RELIANCE/reliance-industries-ltd/",
+      "title": "Reliance Industries Live Share Price Today, Share Analysis and Chart",
+      "excerpt": "Reliance Industries (RELIANCE) live share price today on NSE/BSE at 12:29 p.m. on Jun 10, 2026 is Rs 1271.30. Explore financials, technicals, Deals, ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.ril.com/about",
+      "title": "About Reliance Industries Limited - A Fortune 500\u00ae Company & The ...",
+      "excerpt": "Market capitalisation for FY2025-26. 1st Indian company. to cross consolidated total equity of over \u20b910,00,000 crore. ($117 billion*). Government & Regulatory ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://ticker.finology.in/company/RELIANCE",
+      "title": "Reliance Share Price Today, Chart, Balance Sheet & Financials",
+      "excerpt": "Rating 3.0(10) \u00b7 FreeAns: Reliance Industries has a market capitalisation of Rs 17,14,707.98 Cr., calculated based on its latest share price. Q3. What are the P/E and P/B ratios of ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://finance.yahoo.com/quote/RELIANCE.NS/",
+      "title": "Reliance Industries Limited (RELIANCE.NS) - Yahoo Finance",
+      "excerpt": "... Avg. Volume 19,819,511; Market Cap (intraday) 17.175T; Beta (5Y Monthly) 0.18; PE Ratio (TTM) 21.28; EPS (TTM) 59.65; Earnings Date (est.) ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bajajfinserv.in/investments/reliance-share-price",
+      "title": "Reliance Industries Ltd Share Price Today Live NSE/BSE - Bajaj Finserv",
+      "excerpt": "Reliance industries ltd share price update. As of the latest trading session, Reliance Industries Ltd share price is currently at \u20b91271.6, which is up by ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.youtube.com/watch?v=YJhIRgqACF4",
+      "title": "Reliance Industries Becomes 1st Indian Company With Market Cap ...",
+      "excerpt": "12 Feb 2024 \u00b7 Reliance Industries becomes the first Indian company with a market capitalisation of \u20b920 lakh crore. 80% of the brokerages also maintain ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://tradingeconomics.com/ril:in:outstanding-shares",
+      "title": "Reliance Industries | RIL - Outstanding Shares - Trading Economics",
+      "excerpt": "Market Capitalization. INR 8610.01B. Net Income. INR 186.45B. Operating Expenses. INR 2335.09B. Operating Profit. INR 293.33B. Ordinary Share Capital. INR 13.53 ...",
+      "domain": "web"
+    },
+    {
+      "url": "vysted://fundamentals/CMTL",
+      "title": "Fundamentals for CMTL",
+      "excerpt": "Structured fundamentals pull.",
+      "domain": "vysted"
+    },
+    {
+      "url": "vysted://news/CMTL",
+      "title": "News for CMTL",
+      "excerpt": "Structured news pull.",
+      "domain": "vysted"
+    },
+    {
+      "url": "https://matrixbcg.com/blogs/competitors/ril",
+      "title": "What is Competitive Landscape of Reliance Industries Company?",
+      "excerpt": "25 Apr 2026 \u00b7 RIL's competitive analysis shows strength in vertical integration but rising rivalry from conglomerates and specialized entrants across energy, ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://repository.nls.ac.in/cgi/viewcontent.cgi?article=1249&context=nlsblr",
+      "title": "[PDF] Revisiting Bharti Airtel Ltd v.Re - Scholarship Repository",
+      "excerpt": "In this paper, we present a critique of the Competition Commission of India's assessment of dominant position and predatory pricing in the judgment of Bharti ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.linkedin.com/posts/paragkar_bharti-airtel-vs-reliance-jio-the-hidden-activity-7296046490223882240-GLlw",
+      "title": "Bharti Airtel vs Reliance Jio: The Hidden Market Share Battle ...",
+      "excerpt": "13 Feb 2025 \u00b7 Bharti Airtel followed steadily with 4.96 lakh new subscribers, driven by growth in urban and premium segments. Vodafone Idea continued to ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.markhub24.com/post/airtel-competitive-response-to-jio-s-market-disruption",
+      "title": "Airtel: Competitive Response to Jio's Market Disruption - MarkHub24",
+      "excerpt": "21 Jan 2026 \u00b7 This case examines Airtel's strategic response to Jio's disruptive entry, analyzing how the incumbent operator adapted its business model, ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://ijirl.com/wp-content/uploads/2022/09/CASE-ANALYSIS-OF-BHARTI-AIRTEL-LTD-V-RELIANCE-INDUSTRIES-LTD-AND-RELIANCE-JIO-INFOCOM-LTD.pdf",
+      "title": "[PDF] CASE ANALYSIS OF BHARTI AIRTEL LTD. V. RELIANCE INDUSTRIES ...",
+      "excerpt": "Bharati Airtel Limited filed a case against Reliance Industries Limited and alleging infringement of the provisions of sections",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.cci.gov.in/images/antitrustorder/en/0320171652338122.pdf",
+      "title": "[PDF] COMPETITION COMMISSION OF INDIA Case No. 03 of 2017 In Re",
+      "excerpt": "9 Jun 2017 \u00b7 The market is led by the Informant with a market share of 23.5% followed by. Vodafone (18.1%), Idea (16.9%), BSNL (8.6%), Aircel (8%), RCOM ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://indiankanoon.org/doc/191647285/",
+      "title": "Bharti Airtel Limited vs Reliance Industries Limited & Other on 9 ...",
+      "excerpt": "9 Jun 2017 \u00b7 Bharti Airtel Limited vs Reliance Industries Limited & Other on 9 June, 2017. COMPETITION COMMISSION OF INDIA Case No. 03 of 2017 In Re: ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.scribd.com/document/947008203/Paf-Report",
+      "title": "Jio vs Airtel: Telecom Market Analysis | PDF | Service Industries - Scribd",
+      "excerpt": "The document provides an analysis of the competitive rivalry between Reliance Jio and Airtel in the Indian telecom sector, utilizing Porter's Five Forces ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.scribd.com/document/456051389/CONTENT",
+      "title": "Jio vs Airtel: Marketing Strategies Analysis | PDF - Scribd",
+      "excerpt": "The document provides a comparative analysis of the marketing strategies of Reliance Jio and Bharti Airtel, two major telecom companies in India.",
+      "domain": "web"
+    },
+    {
+      "url": "https://ierj.in/journal/index.php/ierj/article/view/5082",
+      "title": "OLIGOPOLY IN THE INDIAN TELECOM SECTOR: A STUDY OF ...",
+      "excerpt": "15 Jul 2025 \u00b7 The results indicate that Reliance Jio has experienced sudden and consistent growth, Bharti Airtel has demonstrated a consistent growth, and ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://appreciatewealth.com/blog/bharti-airtel-vs-jio-a-deep-dive-into-indias-telecom-market",
+      "title": "Bharti Airtel vs Jio: A Deep Dive into India's Telecom Market - appreciate",
+      "excerpt": "30 Mar 2026 \u00b7 Reliance Jio leads the Indian telecom market with approximately 40\u201341% subscriber market share, while Bharti Airtel holds around 33\u201334%. In ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.angelone.in/news/stocks/bharti-airtel-vs-reliance-jio-who-has-a-better-q3fy26-report-card",
+      "title": "Bharti Airtel Vs Reliance Jio: Who Has A Better Q3FY26 Report Card?",
+      "excerpt": "7 Feb 2026 \u00b7 Bharti Airtel and Reliance Jio continue to dominate India's telecom market, making it a true duopoly. With both companies reporting their Q3FY26 ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.ril.com/sites/default/files/2025-07/MediaRelease-RILQ1FY2025-26FinancialandOperationalPerformance.pdf",
+      "title": "[PDF] Media Release - Reliance Industries Limited",
+      "excerpt": "18 Jul 2025 \u00b7 Operating revenue (net of GST) growth driven by strong subscriber growth momentum across mobility and homes, increased customer engagement and ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.scribd.com/document/449713421/Airtel-SIP-Report-Final",
+      "title": "Airtel's Strategy Amidst Jio Competition | PDF - Scribd",
+      "excerpt": "This document summarizes a report analyzing the deteriorating financial performance and declining market share of Bharti Airtel Ltd. The key issues ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://ticker.finology.in/discover/market-update/telecom-market-share-india-jio-airtel-vi-investment-analysis",
+      "title": "Telecom Market Share India 2025: Jio vs Airtel vs Vi Stock Analysis",
+      "excerpt": "27 Oct 2025 \u00b7 This in-depth analysis breaks down the market share of Reliance Jio, Bharti Airtel, and Vodafone Idea, explores the key growth drivers, and ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.cci.gov.in/images/whatsnew/en/market-study-on-the-telecom-sector-in-india1652177923.pdf",
+      "title": "[PDF] Market Study on the Telecom Sector in India - CCI",
+      "excerpt": "22 Jan 2021 \u00b7 Reliance Jio also held the highest share with respect to adjusted gross revenue (32.2 per cent), as of March 2020. 10. As industry prices, ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.slideshare.net/slideshow/airtel-21309425/21309425",
+      "title": "Competitive Analysis Of Airtel | PPTX - Slideshare",
+      "excerpt": "It faces competition from other major players like Reliance, Idea, Vodafone, and public sector providers BSNL and MTNL. Airtel has a 28% market share of India's ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://investyadnya.in/stock-articles/airtel-vs-jio-4-point-analysis-yadnya-investment-academy",
+      "title": "Airtel Vs. Jio 4 Point Analysis | Yadnya Investment Academy",
+      "excerpt": "20 May 2021 \u00b7 Bharti Airtel & Reliance Jio are the 2 strong players in the Telecom Sector in India. Both the Telecom Giants have announced their Quarterly Results for Q4FY21.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.slideshare.net/slideshow/bharti-airtel-vs-reliance-jio-securities-telecom-battle-in-india-who-will-be-the-winner/78182777",
+      "title": "Bharti Airtel vs Reliance Jio Securities Telecom Battle in India * Who will ...",
+      "excerpt": "The document discusses the competitive landscape in the Indian telecommunications sector, focusing on Reliance Jio's disruptive entry compared to Bharti ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://businessmodelcanvastemplate.com/blogs/competitors/reliance-jio-competitive-landscape",
+      "title": "What is Competitive Landscape of Reliance Jio Company?",
+      "excerpt": "20 Mar 2026 \u00b7 Understand how Reliance Jio competes with traditional telecom providers. Learn about its strategies to differentiate itself in the market.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.markhub24.com/post/reliance-jio-s-telecom-market-disruption-strategy-how-a-zero-price-launch-rewired-india-s-digital-e",
+      "title": "Reliance Jio's Telecom Market Disruption Strategy: How a Zero ...",
+      "excerpt": "4 May 2026 \u00b7 The strategic starting position was therefore defined by asymmetric capital advantage\u2014Reliance had invested approximately \u20b91.5 lakh crore in ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.youtube.com/watch?v=_LspDI-MbyI",
+      "title": "Revenue Down; PAT & Margin Up; Net Profit Of \u20b926994 Cr | Watch Now",
+      "excerpt": "18 Jul 2025 \u00b7 Reliance Industries Q1 Results: Revenue Down; PAT & Margin Up; Net Profit Of \u20b926994 Cr | Watch Now Reliance Industries reported a Q1 net ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.stockgro.club/blogs/stock-market-101/jio-vs-airtel-comparison-analysis/",
+      "title": "Jio vs Airtel: Which is Better in 2026? Stock Comparison & Insights",
+      "excerpt": "19 Jan 2026 \u00b7 Bharti Airtel has more revenue, higher EBITDA, higher EPS, and the industry's highest ARPU. On the other hand, Reliance Jio has more customers ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.instagram.com/reel/DXgHX6giFRN/",
+      "title": "All eyes are on Reliance Retail, India's largest retailer and one of RIL's ...",
+      "excerpt": "23 Apr 2026 \u00b7 Reliance's wider market reach reflects a clear strategy: grow where India lives, shops, and spends every day. With acquisitions and consumer- ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.facebook.com/firstpostin/posts/reliance-industries-jumped-as-much-as-4-to-an-all-time-high-while-bharti-airtel-/1571787269547589/",
+      "title": "Reliance Industries jumped as much as 4% to an all-time high, while ...",
+      "excerpt": "20 Sept 2017 \u00b7 Reliance Industries jumped as much as 4% to an all-time high, while Bharti Airtel slid as much as 6%, Idea Cellular Ltd fell 7.5% and ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://businessmodelcanvastemplate.com/blogs/competitors/reliance-industries-competitive-landscape",
+      "title": "What Is the Competitive Landscape of Reliance Industries?",
+      "excerpt": "20 Mar 2026 \u00b7 Reliance's competitive moat rests on scale, integration and distribution reach, but growth vectors require international consumer expansion and ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://upstox.com/news/market-news/stocks/airtel-outperforms-reliance-jio-in-q3-revenue-driven-by-higher-arpu-check-earnings-comparison/article-189051/",
+      "title": "Airtel outperforms Reliance Jio in Q3 revenue and ARPU; check earnings ...",
+      "excerpt": "6 Feb 2026 \u00b7 Reliance Jio and Bharti Airtel operate as a duopoly in the Indian telecom market, with significant market share. Here's a brief comparison ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://sharpely.in/blog/reliance-industries-analysis:-a-simple-guide-for-beginners",
+      "title": "Reliance Industries Analysis: A Simple Guide for Beginners | sharpely.in",
+      "excerpt": "4 Jul 2025 \u00b7 Reliance Industries sits at the intersection of energy, retail, telecom, and now, clean tech. This blog serves as a guide that decodes the ...",
+      "domain": "web"
+    },
+    {
+      "url": "vysted://news/Reliance Industries Limited \u2014 focus: Map competitive positioning in India's telecom and retail sectors, including market share shifts, subscriber churn, and margin differentials versus Bharti Airtel and Tata Group.",
+      "title": "News for Reliance Industries Limited \u2014 focus: Map competitive positioning in India's telecom and retail sectors, including market share shifts, subscriber churn, and margin differentials versus Bharti Airtel and Tata Group.",
+      "excerpt": "Structured news pull.",
+      "domain": "vysted"
+    },
+    {
+      "url": "vysted://fundamentals/Reliance Industries Limited \u2014 focus: Map competitive positioning in India's telecom and retail sectors, including market share shifts, subscriber churn, and margin differentials versus Bharti Airtel and Tata Group.",
+      "title": "Fundamentals for Reliance Industries Limited \u2014 focus: Map competitive positioning in India's telecom and retail sectors, including market share shifts, subscriber churn, and margin differentials versus Bharti Airtel and Tata Group.",
+      "excerpt": "Structured fundamentals pull.",
+      "domain": "vysted"
+    },
+    {
+      "url": "https://mcimindia.co.in/expert-time/Reliance-Industries-Signals-Preparations-for-Jio-IPO-Eyes-Wider-Stakeholder-Participation-27-950",
+      "title": "Reliance Industries Signals Preparations for Jio IPO, Eyes ...",
+      "excerpt": "29 May 2026 \u00b7 In Reliance Industries' latest annual report, Chairman Mukesh Ambani indicated the company is taking steps to strengthen Jio Platforms' ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.instagram.com/reel/DUsm5hpEyV9/?hl=en",
+      "title": "Stock market analysts are not able to understand Reliance Retail's move ...",
+      "excerpt": "13 Feb 2026 \u00b7 Analysts continue to watch the company's refining margins, energy business performance, retail growth trajectory, and future monetisation ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://capital.com/en-eu/learn/ipo/reliance-jio-infocomm-ipo",
+      "title": "Reliance Jio IPO: everything you need to know | Capital.com EU",
+      "excerpt": "Learn about Reliance Jio and its potential IPO, the factors that may affect its share price, and how to trade Reliance Jio stock via CFDs when it lists.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.careratings.com/upload/CompanyFiles/PR/06072022080139_Reliance_Industries_Limited.pdf",
+      "title": "[PDF] Reliance Industries Limited - CARE Ratings",
+      "excerpt": "6 Jul 2022 \u00b7 Strong financial risk profile characterised by robust capital structure: During FY22, the total consolidated revenue of the company increased ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.bhavnawebtrans.in/aticles-market/Reliance-Industries-Signals-Preparations-for-Jio-IPO-Eyes-Wider-Stakeholder-Participation-27-950",
+      "title": "Reliance Industries Signals Preparations for Jio IPO, Eyes ...",
+      "excerpt": "29 May 2026 \u00b7 Jio IPO Preparation, Stakeholder Broadening - part of broader financial market coverage tracking investor sentiment and sector trends.",
+      "domain": "web"
+    },
+    {
+      "url": "https://bsmedia.business-standard.com/_media/bs/data/market-reports/equity-brokertips/2025-07/17530856620.01744600.pdf",
+      "title": "[PDF] Reliance Industries Ltd",
+      "excerpt": "19 Jul 2025 \u00b7 RIL's capex over FY26e is expected to remain high due to investments in expansions and new energy projects. Maintain BUY with a TP of Rs 1,640/ ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.ril.com/",
+      "title": "Reliance Industries Limited \u2013 Petroleum Refining & Marketing ...",
+      "excerpt": "Reliance Industries Limited is a Fortune 500 company and the largest private sector corporation in India. Our activities span hydrocarbon exploration",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.instagram.com/reel/DYeDW9HD9Uy/",
+      "title": "Why the Jio IPO structure changed Why early investors are NOT selling ...",
+      "excerpt": "17 May 2026 \u00b7 \u2713 Reliance's AI, telecom & digital growth strategy \u2713 Jio Platforms valuation expectations \u2713 Whether retail investors should be excited or ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.linkedin.com/posts/et-now-live_watch-reliance-jio-activity-7449306429527818240-oxp4",
+      "title": "Reliance Industries stock slips 2% as Jio listing buzz fades - LinkedIn",
+      "excerpt": "12 Apr 2026 \u00b7 Earnings and companies margins going forward because it is a CapEx heavy business. Telecom meanwhile tariff hike before Geo listing and after ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.fdiintelligence.com/content/60a29db7-12d0-59fd-8c5c-9f87f309170d",
+      "title": "The rules of the Indian game - fDi Intelligence",
+      "excerpt": "The rules of the Indian game. Reliance has become partner of choice for foreign investors struggling with regulatory restrictions. Megha Bahree. June 27 2023.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.youtube.com/watch?v=xvNNh5Y6AU0",
+      "title": "Reliance Industries Reports A Steady Q1FY26 - YouTube",
+      "excerpt": "20 Jul 2025 \u00b7 Karan Taurani of Elara Capital says that Reliance Retail has done well in the April-June quarter. Probal Sen, Energy Analyst at ICICI ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://learn.moneysukh.com/reliance-industries-bets-big-on-ai-green-energy-but-no-word-on-ipo-timeline-for-jio-retail-business/",
+      "title": "Reliance Industries bets big on AI, green energy but no word on IPO ...",
+      "excerpt": "30 Aug 2024 \u00b7 Reliance Industries bets big on AI, green energy but no word on IPO timeline for Jio, retail business ... Reliance Industries chairman and ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.ril.com/sites/default/files/2023-01/Audited_FS_FY2020_21_RIL.pdf",
+      "title": "[PDF] Made for India. Made in India. - Reliance Industries Limited",
+      "excerpt": "We have committed resources and ideas to a digital revolution, created world\u2011class manufacturing assets that produce clean fuels and materials of the future and.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.ril.com/ar2022-23/risk-and-governance.html",
+      "title": "Integrated Annual Report 2022 - 2023 - Reliance Industries Ltd",
+      "excerpt": "Reliance's Risk Management Framework is designed to be end-to-end framework for managing and reporting risks from the Group's operations to the Board.",
+      "domain": "web"
+    },
+    {
+      "url": "https://mantraa.com/business-analysis-reliance-industries/",
+      "title": "Reliance Industries Case Study - Mantraa Advisory",
+      "excerpt": "19 Dec 2024 \u00b7 Disruptive Pricing: RIL has consistently disrupted industries through aggressive pricing strategies. The best example is Reliance Jio, where low ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://bsmedia.business-standard.com/_media/bs/data/market-reports/equity-brokertips/2025-10/17612051210.88984200.pdf",
+      "title": "[PDF] Reliance Industries Ltd",
+      "excerpt": "17 Oct 2025 \u00b7 With the current phase of capex moderating and monetization cycles accelerating, Jio is well-positioned to drive meaningful earnings growth in ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://isjem.com/wp-content/uploads/2024/05/RELIANCE-LTD-1.pdf",
+      "title": "[PDF] CONTENTS",
+      "excerpt": "ABSTRACT. This paper is about the security analysis of Reliance with fundamental analysis, stock performance analysis, and technical analysis.",
+      "domain": "web"
+    },
+    {
+      "url": "https://nghm.mnre.gov.in/admin/uploads/1032.pdf",
+      "title": "[PDF] Reliance for - National Green Hydrogen Mission",
+      "excerpt": "29 Aug 2024 \u00b7 RIL's Annual Reporting suite brings together the financial, non-financial, risk, and sustainability performance for the year. Corporate Overview.",
+      "domain": "web"
+    },
+    {
+      "url": "https://trendlyne.com/latest-news/1127/RELIANCE/reliance-industries-ltd/?page=2&qstime=1775633414",
+      "title": "Reliance Industries News, Corporate filings and Earnings/Conference Calls",
+      "excerpt": "Reliance Industries is preparing to file a draft red herring prospectus for Jio Platforms' IPO by late March or early April, appointing 17 investment banks.",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.youtube.com/watch?v=wpoSzu5QOGE",
+      "title": "LIVE | 48th Annual General Meeting (Post-IPO) of Reliance Industries ...",
+      "excerpt": "29 Aug 2025 \u00b7 jagranbusiness #Markets #Stocks LIVE | 48th Annual General Meeting (Post-IPO) of Reliance Industries Limited Jagran New Media's brand new ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://bsmedia.business-standard.com/_media/bs/data/market-reports/equity-brokertips/2025-09/17567190320.20476000.pdf",
+      "title": "[PDF] Reliance Industries| BUY",
+      "excerpt": "30 Aug 2025 \u00b7 Key risks: a) sharp jump in capex in New Energy business, resulting in rising net debt with limited earnings visibility from new projects; b) ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.communicationstoday.co.in/jio-clears-the-decks-spectrum-dues-fall-revenues-surge-and-the-ipo-clock-ticks-louder/",
+      "title": "Jio clears the decks: Spectrum dues fall, revenues surge, and the IPO ...",
+      "excerpt": "29 May 2026 \u00b7 Reliance Jio enters its IPO year with improving cash flow metrics, a disciplined spectrum liability ledger and a technology portfolio built ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2028885",
+      "title": "Spectrum Auction 2023-24 concludes successfully. - PIB",
+      "excerpt": "Spectrum Auction 2023-24 concludes successfully. Auction held to meet new spectrum requirement of Telecom Service Providers and for renewal of expiring ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.instagram.com/reel/DW34Q9xD3xS/?hl=en",
+      "title": "Jio IPO isn't early-stage, it's a liquidity event. Big money ... - Instagram",
+      "excerpt": "8 Apr 2026 \u00b7 Ambani said no \u2014 for retail investors. Jio IPO is not just a listing. It's the biggest value unlocking moment for RIL in years. 2.5% float, ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://scmspune.ac.in/assets/pdf/journal/First/First-Annual-Journal-2022-09.pdf",
+      "title": "[PDF] FDI and Retail Regulation in India - SCMS Pune",
+      "excerpt": "The Indian retail industry is expected to more than double to $1.3 trn by 2020. According to the Federation of Indian Chambers of Commerce and Industry (FICCI), ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.youtube.com/watch?v=6oJy4zqCV0w",
+      "title": "FDI in the Indian Retail Sector - YouTube",
+      "excerpt": "14 Jan 2025 \u00b7 ... analysis of emerging business models and foreign investment regulations. FDI in the Indian Retail Sector. 602 views \u00b7 1 year ago ...more ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.careratings.com/upload/CompanyFiles/PR/202311161122_Reliance_Industries_Limited.pdf",
+      "title": "[PDF] Reliance Industries Limited - CARE Ratings",
+      "excerpt": "1 Nov 2023 \u00b7 RIL's strong consolidated financial risk profile, marked by its comfortable capital structure and superior liquidity as well as financial ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://asoit.edu.in/aticles-market/Reliance-Industries-Signals-Preparations-for-Jio-IPO-Eyes-Wider-Stakeholder-Participation-27-950",
+      "title": "Reliance Industries Signals Preparations for Jio IPO, Eyes ...",
+      "excerpt": "29 May 2026 \u00b7 The annual report emphasizes Jio's transformation from a telecom disruptor into a comprehensive digital ecosystem spanning connectivity, ...",
+      "domain": "web"
+    },
+    {
+      "url": "https://www.icra.in/Rating/GetRationalReportFilePdf/75975~Reliance%20Industries%20-R-21122018.pdf",
+      "title": "[PDF] Reliance Industries Limited",
+      "excerpt": "21 Dec 2018 \u00b7 ICRA believes that RIL's credit risk profile will continue to be supported over the medium term by its highly integrated operations in its core ...",
+      "domain": "web"
+    },
+    {
+      "url": "vysted://news/Reliance Industries Limited \u2014 focus: Catalog regulatory risks (CAG audit, telecom spectrum pricing, retail FDI rules) and catalysts (Jio 5G monetization, green energy capex, retail IPO) with near-term timing and probability.",
+      "title": "News for Reliance Industries Limited \u2014 focus: Catalog regulatory risks (CAG audit, telecom spectrum pricing, retail FDI rules) and catalysts (Jio 5G monetization, green energy capex, retail IPO) with near-term timing and probability.",
+      "excerpt": "Structured news pull.",
+      "domain": "vysted"
+    }
   ],
-  "cross_check": {
-   "skipped": true,
-   "reason": "wall-clock ceiling 240s reached (312.8s elapsed)"
-  }
- },
- "createdAt": 1781093891801
+  "sourceCount": 92,
+  "cost": {
+    "tokens": 0,
+    "spendUsd": 0
+  },
+  "webAvailable": true,
+  "note": "heavy:3 angles",
+  "structured": {
+    "panel": [
+      {
+        "angle": 1,
+        "note": "per-round wall-clock guard: round exceeded 28s",
+        "symbol": "CMTL"
+      },
+      {
+        "angle": 2,
+        "note": "per-round wall-clock guard: round exceeded 22s",
+        "symbol": "Reliance Industries Limited \u2014 focus: Map competitive positioning in India's telecom and retail sectors, including market share shifts, subscriber churn, and margin differentials versus Bharti Airtel and Tata Group."
+      },
+      {
+        "angle": 3,
+        "note": "per-round wall-clock guard: round exceeded 38s",
+        "symbol": "Reliance Industries Limited \u2014 focus: Catalog regulatory risks (CAG audit, telecom spectrum pricing, retail FDI rules) and catalysts (Jio 5G monetization, green energy capex, retail IPO) with near-term timing and probability."
+      }
+    ],
+    "cross_check": {
+      "skipped": true,
+      "reason": "wall-clock ceiling 240s reached (312.8s elapsed)"
+    }
+  },
+  "createdAt": 1781093891801
 }
