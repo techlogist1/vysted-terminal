@@ -1,15 +1,13 @@
 # Keychain Dev Signing — Runbook
 
-**Status (R8 hot patch, 2026-06-11): signing WIRED AND VERIFIED (3 rebuilds, identical DR);
-one attended "Always Allow" + one post-grant rebuild check remain.**
-The certificate exists and is trusted, codesign runs prompt-free (partition list set), and
-EVERY dev build now signs automatically before first launch with the SAME designated
-requirement (`identifier "com.vysted.terminal" and certificate leaf = H"c0d31e56…"` —
-verified byte-identical across three consecutive rebuilds via `codesign -d -r-`). The
-keychain item ACL still lacks a grant for that DR: each boot of a FRESH binary prompts once
-(an unanswered/timed-out prompt records nothing, which is why it reappears). One attended
-password + "Always Allow" records a trusted-application entry carrying the stable DR; the
-operator should then confirm with one rebuild (steps below).
+**Status (2026-06-11, verified post-grant): DONE — password prompts cured.** Every dev
+build (app + all three sidecars) auto-signs with the stable identity before first exec; the
+four keychain items each hold exactly one valid trusted-application entry with the stable
+requirement (dead entries pruned); two consecutive fresh-rebuild boots read all keys with
+zero human input. Residual: a transient SELF-DISMISSING dialog (~10–50s) on the first key
+read of each never-executed binary — structural to self-signed identities (cdhash-pinned
+`partition_id`), needs no interaction; see FINAL VERDICT below. **Never type the password
+into these dialogs again.**
 
 ---
 
