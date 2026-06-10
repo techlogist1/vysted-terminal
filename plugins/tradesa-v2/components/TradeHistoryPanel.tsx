@@ -34,7 +34,7 @@ function SideBadge({ side }: { side: TradesaTrade["side"] }) {
       : "text-negative bg-negative/15 border-negative/40";
   return (
     <span
-      className={`inline-flex rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${cls}`}
+      className={`text-micro inline-flex rounded border px-1.5 py-0.5 font-semibold tracking-wide uppercase ${cls}`}
     >
       {side}
     </span>
@@ -98,7 +98,7 @@ function SummaryCard({ stats }: { stats: SummaryStats }) {
       className="border-charcoal-800 bg-charcoal-925/60 grid shrink-0 grid-cols-2 gap-2 border-b p-3 text-xs sm:grid-cols-4"
     >
       <div className={tile}>
-        <div className="text-charcoal-500 text-[10px] tracking-wide uppercase">Today P&amp;L</div>
+        <div className="text-charcoal-500 text-micro tracking-wide uppercase">Today P&amp;L</div>
         <div
           className={`mt-0.5 font-mono text-sm ${stats.todayPnl >= 0 ? "text-positive" : "text-negative"}`}
         >
@@ -107,7 +107,7 @@ function SummaryCard({ stats }: { stats: SummaryStats }) {
         </div>
       </div>
       <div className={tile}>
-        <div className="text-charcoal-500 text-[10px] tracking-wide uppercase">7d P&amp;L</div>
+        <div className="text-charcoal-500 text-micro tracking-wide uppercase">7d P&amp;L</div>
         <div
           className={`mt-0.5 font-mono text-sm ${stats.weekPnl >= 0 ? "text-positive" : "text-negative"}`}
         >
@@ -116,14 +116,14 @@ function SummaryCard({ stats }: { stats: SummaryStats }) {
         </div>
       </div>
       <div className={tile}>
-        <div className="text-charcoal-500 text-[10px] tracking-wide uppercase">Closed</div>
+        <div className="text-charcoal-500 text-micro tracking-wide uppercase">Closed</div>
         <div className="text-charcoal-200 mt-0.5 font-mono text-sm">{stats.totalCount}</div>
       </div>
       <div className={tile}>
-        <div className="text-charcoal-500 text-[10px] tracking-wide uppercase">Win-rate</div>
+        <div className="text-charcoal-500 text-micro tracking-wide uppercase">Win-rate</div>
         <div className="text-charcoal-200 mt-0.5 font-mono text-sm">
           {(stats.winRate * 100).toFixed(0)}%
-          <span className="text-charcoal-500 ml-1 text-[10px]">
+          <span className="text-charcoal-500 text-micro ml-1">
             {stats.winCount}W / {stats.lossCount}L
           </span>
         </div>

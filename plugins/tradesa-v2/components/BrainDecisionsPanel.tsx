@@ -39,7 +39,7 @@ function ActionBadge({ action }: { action: DecisionAction }) {
   return (
     <span
       data-testid={`tradesa-action-${action}`}
-      className={`inline-flex rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${cls}`}
+      className={`text-micro inline-flex rounded border px-1.5 py-0.5 font-semibold tracking-wide uppercase ${cls}`}
     >
       {action.replace("_", " ")}
     </span>
@@ -69,7 +69,7 @@ function ConfidenceBar({ value }: { value: number }) {
       <div className="bg-charcoal-800 h-1.5 w-20 overflow-hidden rounded-full">
         <div className={`h-full ${tone}`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-charcoal-400 font-mono text-[10px]">{pct}%</span>
+      <span className="text-charcoal-400 text-micro font-mono">{pct}%</span>
     </div>
   );
 }
@@ -87,11 +87,11 @@ function DecisionCard({ decision }: { decision: TradesaDecision }) {
     >
       <header className="flex flex-wrap items-center gap-2">
         <ActionBadge action={decision.action} />
-        <span className="bg-charcoal-800 text-charcoal-300 rounded px-1.5 py-0.5 font-mono text-[10px]">
+        <span className="bg-charcoal-800 text-charcoal-300 text-micro rounded px-1.5 py-0.5 font-mono">
           {decision.instrument}
         </span>
         <ConfidenceBar value={decision.confidence} />
-        <span className="text-charcoal-500 ml-auto text-[10px]">
+        <span className="text-charcoal-500 text-micro ml-auto">
           {formatRelativeIso(decision.timestamp)}
         </span>
       </header>
@@ -184,11 +184,11 @@ function CostColumn({ rollup }: { rollup: TradesaCostRollup | undefined }) {
         <p className="text-charcoal-100 mt-1 font-mono text-2xl">
           {formatUsd(rollup?.total_usd ?? 0)}
         </p>
-        {rollup?.date && <p className="text-charcoal-500 text-[10px]">{rollup.date} UTC</p>}
+        {rollup?.date && <p className="text-charcoal-500 text-micro">{rollup.date} UTC</p>}
       </header>
 
       <div className="flex flex-col gap-2">
-        <h4 className="text-charcoal-500 text-[10px] font-medium tracking-wide uppercase">
+        <h4 className="text-charcoal-500 text-micro font-medium tracking-wide uppercase">
           By model
         </h4>
         {entries.length === 0 ? (

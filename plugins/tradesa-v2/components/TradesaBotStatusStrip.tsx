@@ -52,7 +52,7 @@ export function TradesaBotStatusStrip() {
       {state?.bot_mode && (
         <span
           aria-label={`Mode: ${state.bot_mode}`}
-          className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${modeClass}`}
+          className={`text-micro rounded border px-1.5 py-0.5 font-semibold tracking-wide uppercase ${modeClass}`}
         >
           {state.bot_mode}
         </span>
@@ -65,7 +65,7 @@ export function TradesaBotStatusStrip() {
       )}
 
       {state?.kill_switch_engaged === true && (
-        <span className="border-negative bg-negative/15 text-negative rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase">
+        <span className="border-negative bg-negative/15 text-negative text-micro rounded border px-1.5 py-0.5 font-semibold tracking-wide uppercase">
           Kill Switch
         </span>
       )}

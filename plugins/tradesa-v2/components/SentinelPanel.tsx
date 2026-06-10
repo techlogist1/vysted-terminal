@@ -30,7 +30,7 @@ function FailModeBadge({ failClosed }: { failClosed: boolean }) {
   return (
     <span
       data-testid={`tradesa-fail-${failClosed ? "closed" : "open"}`}
-      className={`inline-flex rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${cls}`}
+      className={`text-micro inline-flex rounded border px-1.5 py-0.5 font-semibold tracking-wide uppercase ${cls}`}
     >
       {failClosed ? "Fail-closed" : "Fail-open"}
     </span>

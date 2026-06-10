@@ -52,7 +52,7 @@ function TabButton({
       }`}
     >
       {children}
-      <span className="bg-charcoal-800 text-charcoal-300 rounded px-1.5 py-0.5 font-mono text-[10px]">
+      <span className="bg-charcoal-800 text-charcoal-300 text-micro rounded px-1.5 py-0.5 font-mono">
         {count}
       </span>
     </button>
@@ -81,7 +81,7 @@ function CurrentSettingsTable({ rows }: { rows: readonly TradesaBotSetting[] }) 
           data-testid="tradesa-settings-search"
           className="text-charcoal-200 placeholder:text-charcoal-600 flex-1 bg-transparent text-sm focus:outline-none"
         />
-        <span className="text-charcoal-500 text-[10px]">
+        <span className="text-charcoal-500 text-micro">
           {filtered.length} / {rows.length}
         </span>
       </div>
@@ -150,7 +150,7 @@ function DriftList({ rows }: { rows: readonly TradesaSettingsDrift[] }) {
         >
           <header className="flex flex-wrap items-center gap-2">
             <span className="text-charcoal-300 font-mono text-[11px]">{drift.key}</span>
-            <span className="text-charcoal-500 ml-auto text-[10px]">
+            <span className="text-charcoal-500 text-micro ml-auto">
               {formatRelativeIso(drift.changed_at)} by{" "}
               <span className="text-charcoal-400">{drift.changed_by ?? "system"}</span>
             </span>

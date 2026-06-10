@@ -50,7 +50,7 @@ const HYPOTHESIS_TONE: Record<TradesaDiscoveryHypothesis["status"], string> = {
 function StatusBadge({ status, tone }: { status: string; tone: string }) {
   return (
     <span
-      className={`inline-flex rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${tone}`}
+      className={`text-micro inline-flex rounded border px-1.5 py-0.5 font-semibold tracking-wide uppercase ${tone}`}
     >
       {status}
     </span>
@@ -66,7 +66,7 @@ function ConfidenceBar({ value }: { value: number }) {
       <div className="bg-charcoal-800 h-1.5 w-24 overflow-hidden rounded-full">
         <div className={`h-full ${tone}`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-charcoal-400 font-mono text-[10px]">{pct}%</span>
+      <span className="text-charcoal-400 text-micro font-mono">{pct}%</span>
     </div>
   );
 }
@@ -97,7 +97,7 @@ function TabButton({
       }`}
     >
       {children}
-      <span className="bg-charcoal-800 text-charcoal-300 rounded px-1.5 py-0.5 font-mono text-[10px]">
+      <span className="bg-charcoal-800 text-charcoal-300 text-micro rounded px-1.5 py-0.5 font-mono">
         {count}
       </span>
     </button>
@@ -126,7 +126,7 @@ function TuningTab({ rows }: { rows: readonly TradesaTuningProposal[] }) {
           <header className="flex flex-wrap items-center gap-2">
             <StatusBadge status={p.status} tone={STATUS_TONE[p.status]} />
             <span className="text-charcoal-300 font-mono text-[11px]">{p.target_key}</span>
-            <span className="text-charcoal-500 ml-auto text-[10px]">
+            <span className="text-charcoal-500 text-micro ml-auto">
               {formatRelativeIso(p.proposed_at)}
             </span>
           </header>
@@ -137,7 +137,7 @@ function TuningTab({ rows }: { rows: readonly TradesaTuningProposal[] }) {
             <span className="bg-charcoal-950 text-positive rounded px-2 py-1 font-mono">
               {p.proposed_value}
             </span>
-            <span className="bg-charcoal-800 text-charcoal-300 rounded px-1.5 py-0.5 text-[10px] tracking-wide uppercase">
+            <span className="bg-charcoal-800 text-charcoal-300 text-micro rounded px-1.5 py-0.5 tracking-wide uppercase">
               {p.queue_reason}
             </span>
           </div>
@@ -172,7 +172,7 @@ function DiscoveryTab({ rows }: { rows: readonly TradesaDiscoveryHypothesis[] })
           <header className="flex flex-wrap items-center gap-2">
             <StatusBadge status={h.status} tone={HYPOTHESIS_TONE[h.status]} />
             <h4 className="text-charcoal-100 text-sm font-semibold">{h.title}</h4>
-            <span className="text-charcoal-500 ml-auto text-[10px]">
+            <span className="text-charcoal-500 text-micro ml-auto">
               {formatRelativeIso(h.proposed_at)}
             </span>
           </header>
@@ -206,10 +206,10 @@ function ReflectionTab({ rows }: { rows: readonly TradesaReflectionNote[] }) {
           className="border-charcoal-800 bg-charcoal-900/40 rounded-md border p-3"
         >
           <header className="flex flex-wrap items-center gap-2">
-            <span className="bg-charcoal-800 text-charcoal-300 rounded px-1.5 py-0.5 font-mono text-[10px]">
+            <span className="bg-charcoal-800 text-charcoal-300 text-micro rounded px-1.5 py-0.5 font-mono">
               trade {note.trade_id.slice(0, 8)}
             </span>
-            <span className="text-charcoal-500 ml-auto text-[10px]">
+            <span className="text-charcoal-500 text-micro ml-auto">
               {formatRelativeIso(note.created_at)}
             </span>
           </header>
@@ -219,7 +219,7 @@ function ReflectionTab({ rows }: { rows: readonly TradesaReflectionNote[] }) {
               {note.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="rounded bg-amber-500/15 px-1.5 py-0.5 font-mono text-[10px] text-amber-300"
+                  className="text-micro rounded bg-amber-500/15 px-1.5 py-0.5 font-mono text-amber-300"
                 >
                   {tag}
                 </span>

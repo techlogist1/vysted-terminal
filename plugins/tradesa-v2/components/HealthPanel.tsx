@@ -43,7 +43,7 @@ function SourceBadge({ source }: { source: KillSwitchSource }) {
   return (
     <span
       data-testid={`tradesa-source-${source}`}
-      className={`inline-flex rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${cls}`}
+      className={`text-micro inline-flex rounded border px-1.5 py-0.5 font-semibold tracking-wide uppercase ${cls}`}
     >
       {source.replace(/_/g, " ")}
     </span>
@@ -72,40 +72,40 @@ function HealthCard({ latest }: { latest: TradesaBotHealthLike | null }) {
       className="border-charcoal-800 bg-charcoal-925/60 grid shrink-0 grid-cols-2 gap-3 border-b p-4 md:grid-cols-4"
     >
       <div className={tile}>
-        <div className="text-charcoal-500 text-[10px] tracking-wide uppercase">Status</div>
+        <div className="text-charcoal-500 text-micro tracking-wide uppercase">Status</div>
         <span
           className={`mt-0.5 inline-flex w-fit rounded border px-1.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase ${statusTone}`}
         >
           {latest.status}
         </span>
         {latest.detail && (
-          <span className="text-charcoal-500 mt-1 truncate text-[10px]">{latest.detail}</span>
+          <span className="text-charcoal-500 text-micro mt-1 truncate">{latest.detail}</span>
         )}
       </div>
       <div className={tile}>
-        <div className="text-charcoal-500 text-[10px] tracking-wide uppercase">Uptime</div>
+        <div className="text-charcoal-500 text-micro tracking-wide uppercase">Uptime</div>
         <div className="text-charcoal-100 mt-0.5 font-mono text-sm">
           {formatUptime(latest.uptime_s)}
         </div>
       </div>
       <div className={tile}>
-        <div className="text-charcoal-500 text-[10px] tracking-wide uppercase">FD count</div>
+        <div className="text-charcoal-500 text-micro tracking-wide uppercase">FD count</div>
         <div className="text-charcoal-100 mt-0.5 font-mono text-sm">
           {latest.fd_count !== null ? latest.fd_count.toLocaleString() : "—"}
         </div>
       </div>
       <div className={tile}>
-        <div className="text-charcoal-500 text-[10px] tracking-wide uppercase">Threads</div>
+        <div className="text-charcoal-500 text-micro tracking-wide uppercase">Threads</div>
         <div className="text-charcoal-100 mt-0.5 font-mono text-sm">
           {latest.thread_count !== null ? latest.thread_count.toLocaleString() : "—"}
         </div>
       </div>
       <div className={`${tile} col-span-2 md:col-span-4`}>
-        <div className="text-charcoal-500 text-[10px] tracking-wide uppercase">Last heartbeat</div>
+        <div className="text-charcoal-500 text-micro tracking-wide uppercase">Last heartbeat</div>
         <div className="text-charcoal-100 mt-0.5 text-sm">
           {formatRelativeIso(latest.recorded_at)}
         </div>
-        <div className="text-charcoal-500 text-[10px]">
+        <div className="text-charcoal-500 text-micro">
           {latest.recorded_at} ({latest.service})
         </div>
       </div>
@@ -141,12 +141,12 @@ function KillSwitchTimeline({ events }: { events: TradesaKillSwitchEvent[] }) {
               <span className="text-charcoal-300 text-xs">
                 {event.actor ?? <em className="text-charcoal-500">unknown actor</em>}
               </span>
-              <span className="text-charcoal-500 ml-auto text-[10px]">
+              <span className="text-charcoal-500 text-micro ml-auto">
                 {formatRelativeIso(event.fired_at)}
               </span>
             </div>
             {event.reason && <p className="text-charcoal-300 mt-1.5 text-xs">{event.reason}</p>}
-            <div className="text-charcoal-500 mt-1.5 text-[10px]">
+            <div className="text-charcoal-500 text-micro mt-1.5">
               {event.cleared_at ? (
                 <>cleared {formatRelativeIso(event.cleared_at)}</>
               ) : (

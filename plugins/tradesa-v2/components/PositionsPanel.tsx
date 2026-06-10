@@ -30,7 +30,7 @@ function SideBadge({ side }: { side: TradesaTrade["side"] }) {
   return (
     <span
       data-testid={`tradesa-side-${side}`}
-      className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${cls}`}
+      className={`text-micro inline-flex items-center gap-1 rounded border px-1.5 py-0.5 font-semibold tracking-wide uppercase ${cls}`}
     >
       {side}
     </span>
@@ -93,7 +93,7 @@ function PositionsTable({ rows }: { rows: readonly TradesaTrade[] }) {
                 </td>
                 <td className="px-3 py-2 text-right">
                   <span
-                    className={`inline-flex rounded px-1.5 py-0.5 font-mono text-[10px] ${
+                    className={`text-micro inline-flex rounded px-1.5 py-0.5 font-mono ${
                       trade.leverage > 4
                         ? "text-negative bg-negative/15"
                         : "bg-charcoal-800 text-charcoal-400"

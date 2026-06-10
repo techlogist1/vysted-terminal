@@ -28,7 +28,7 @@ export function PanelFetchError({
         <button
           type="button"
           onClick={onRetry}
-          className="border-warning/50 hover:bg-warning/15 shrink-0 rounded border px-2 py-0.5 font-mono text-[10px] tracking-wide uppercase"
+          className="border-warning/50 hover:bg-warning/15 text-micro shrink-0 rounded border px-2 py-0.5 font-mono tracking-wide uppercase"
         >
           Retry
         </button>
