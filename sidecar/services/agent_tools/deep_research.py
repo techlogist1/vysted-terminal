@@ -1,4 +1,4 @@
-"""Deep-research engine — the DEEP/ULTRA half of the ONE ``research`` capability.
+"""Deep-research engine — the engine room behind the ONE ``research`` capability.
 
 This module is NO LONGER a registered agent tool. After the R4 research collapse
 (FR-115 / SC-028) there is exactly ONE user-facing + model-facing research
@@ -12,7 +12,18 @@ supplies the engine behind ``depth in {"deep", "ultra"}`` via
 :func:`run_deep_brief`; the ``research`` handler calls it directly. There is no
 second tool name, no second catalog capability, and no user-visible ``/deep``.
 
-Three backends:
+R9 (Track A) adds the **Tier B research-model lane**
+(:func:`run_research_model_brief`): with ``researchTier == tier_b`` an
+internet-native research model via OpenRouter owns research at ALL depth stops
+regardless of the chat model — per-stop model dispatch
+(:func:`config.get_research_model_for`), citations mapped from OpenAI-style
+``url_citation`` annotations (+ the ``citations[]`` url-list fallback), the
+honest ``backend="research-model:<model-id>"`` id on the brief AND the live
+steps, and a generous per-stop wall clock (ULTRA can take minutes). The
+``research`` handler routes to it at the tool boundary; this module never
+self-selects it.
+
+Three per-run backends (tier_a):
 
 - **native** (default) — runs the built-in deep-research loop against the SAME
   model the user is talking to (via :func:`config.get_llm_creds` + the one-shot
@@ -69,6 +80,11 @@ _PERPLEXITY_NEEDS_KEY = (
 _SONAR_NEEDS_KEY = (
     "The hosted Sonar research lane needs an OpenRouter API key (opt-in, paid). "
     "Add it in Settings, or use the built-in deep research."
+)
+_RESEARCH_MODEL_NEEDS_KEY = (
+    "The hosted research model (Tier B) needs an OpenRouter API key. Add one in "
+    "Settings → Research, or switch back to Unlimited (Local). I won't invent "
+    "sources."
 )
 _NO_MODEL = "No model configured for deep research."
 
@@ -357,4 +373,299 @@ async def run_deep_brief(
     return await _run_native(query, profile, rounds_i, wall)
 
 
-__all__ = ["run_deep_brief"]
+# ---------------------------------------------------------------------------
+# Tier B — the hosted research-model lane (R9 Track A)
+# ---------------------------------------------------------------------------
+
+#: The honest backend-id prefix every Tier B brief and step carries —
+#: ``research-model:<openrouter-model-id>``. Team C's UI keys off it.
+RESEARCH_MODEL_BACKEND_PREFIX = "research-model:"
+
+#: Per-stop wall clocks (seconds) for the one-call research model. ULTRA on
+#: sonar-deep-research can take MINUTES — the brief mandates a generous (>=360s)
+#: ceiling; normal/deep are single search-grounded (reasoning) completions.
+_RESEARCH_MODEL_WALL_SECONDS: dict[str, float] = {
+    "normal": 120.0,
+    "deep": 300.0,
+    "ultra": 480.0,
+}
+
+#: Heartbeat cadence for the live progress steps while the one HTTP call runs —
+#: honest "still working" lines, since a vendor one-call lane exposes no
+#: internal stage events to stream.
+_RESEARCH_MODEL_HEARTBEAT_SECS = 20.0
+
+#: Coarse per-stop pre-run cost bands (USD) — ESTIMATES shown with the brief,
+#: never billed amounts (OpenRouter's pass-through metering is authoritative).
+#: normal ≈ one search-grounded completion; deep adds reasoning; ultra is the
+#: multi-step deep-research band (verified pricing in ``config``'s defaults).
+_RESEARCH_MODEL_COST_BANDS: dict[str, tuple[float, float, float]] = {
+    # (base, per_char, ceiling)
+    "normal": (0.01, 0.00001, 0.05),
+    "deep": (0.05, 0.00005, 0.15),
+    "ultra": (0.25, 0.00015, 0.40),
+}
+
+_RESEARCH_MODEL_PROVENANCE = "via hosted research model (OpenRouter)"
+
+
+def _research_model_stop(depth: str) -> str:
+    """Normalize a depth spelling to the per-stop key (normal/deep/ultra)."""
+    from services.research import depth as depth_mod
+
+    return depth_mod.normalize_depth(depth)
+
+
+def estimate_research_model_cost_usd(query: str, stop: str) -> float:
+    """Coarse per-run USD estimate for one Tier B call at ``stop`` — an
+    ESTIMATE flagged as such on the brief, never a billed amount."""
+    base, per_char, ceiling = _RESEARCH_MODEL_COST_BANDS.get(
+        stop, _RESEARCH_MODEL_COST_BANDS["normal"]
+    )
+    length = len((query or "").strip())
+    return round(min(base + length * per_char, ceiling), 4)
+
+
+def _research_model_http_error(status: int) -> str:
+    """Translate an OpenRouter HTTP status into a clean, key-free human message."""
+    if status in (401, 403):
+        return (
+            "OpenRouter rejected the request — check that your OpenRouter API "
+            "key is valid and active."
+        )
+    if status == 402:
+        return (
+            "OpenRouter reports insufficient credits for the research run — top "
+            "up your account to use the hosted research model."
+        )
+    if status == 429:
+        return "OpenRouter rate limit reached — slow down or check your plan's quota."
+    if status == 400:
+        return "OpenRouter could not process the research request (bad query or parameters)."
+    if status >= 500:
+        return "OpenRouter is temporarily unavailable (server error) — try again shortly."
+    return f"The hosted research model request failed with HTTP {status}."
+
+
+def _research_model_message(body: dict[str, Any]) -> dict[str, Any]:
+    """The first choice's message dict, or ``{}`` — never raises on a thin body."""
+    choices = body.get("choices")
+    if not isinstance(choices, list) or not choices:
+        return {}
+    first = choices[0]
+    if not isinstance(first, dict):
+        return {}
+    message = first.get("message")
+    return message if isinstance(message, dict) else {}
+
+
+def _research_model_sources(body: dict[str, Any]) -> list[Any]:
+    """Map citations to ``ResearchSource`` — annotations first, url-list fallback.
+
+    The PRIMARY path is the existing OpenAI ``url_citation`` normalizer over
+    ``choices[0].message.annotations`` (the same citation path every
+    OpenAI-shaped backend uses); the top-level / message-level ``citations[]``
+    plain-url list catches anything the annotations missed. Merged,
+    de-duplicated by url, order-preserved; every source carries the
+    research-model provenance in its ``domain`` label.
+    """
+    import httpx
+
+    from services.llm.native_search import normalize_openai
+    from services.research.models import ResearchSource
+
+    sources: list[Any] = []
+    seen: set[str] = set()
+
+    def _domain_of(url: str) -> str | None:
+        try:
+            host = httpx.URL(url).host
+        except (httpx.InvalidURL, ValueError, TypeError):
+            return None
+        if not host:
+            return None
+        return host[4:] if host.startswith("www.") else host
+
+    def _add(url: str, title: str = "", excerpt: str = "") -> None:
+        url = (url or "").strip()
+        if not url or url in seen:
+            return
+        seen.add(url)
+        host = _domain_of(url)
+        domain = f"{host} ({_RESEARCH_MODEL_PROVENANCE})" if host else _RESEARCH_MODEL_PROVENANCE
+        sources.append(
+            ResearchSource(
+                url=url,
+                title=(title or host or url).strip(),
+                excerpt=(excerpt or "").strip(),
+                domain=domain,
+            )
+        )
+
+    message = _research_model_message(body)
+    for record in normalize_openai(message.get("annotations")):
+        _add(record.get("url", ""), record.get("title", ""), record.get("excerpt", ""))
+    for container in (body, message):
+        citations = container.get("citations")
+        if isinstance(citations, list):
+            for entry in citations:
+                if isinstance(entry, str):
+                    _add(entry)
+    return sources
+
+
+def _make_step(kind: str, detail: str) -> Any:
+    """A :class:`ResearchStep` for the Tier B trace (collected + sunk live)."""
+    from services.research.models import ResearchStep
+
+    return ResearchStep(kind=kind, detail=detail)
+
+
+async def run_research_model_brief(
+    query: str,
+    *,
+    depth: str = "normal",
+    api_key: str | None = None,
+    model: str | None = None,
+) -> dict[str, Any]:
+    """Run ONE Tier B research call — the hosted research model owns this run.
+
+    Dispatches the per-stop model (``config.get_research_model_for``; an
+    explicit ``model`` arg wins — model-AGNOSTIC: any plausible OpenRouter slug
+    routes) via OpenRouter chat-completions on the user's BYOK key. The key
+    resolution order is: explicit ``api_key`` arg → the per-request
+    ``X-Vysted-Openrouter-Key`` ContextVar → the active LLM creds when the user
+    is actually ON OpenRouter. Without a key it returns the honest "needs a
+    key" message naming the unlock — never a silent demotion to another lane
+    (the key boundary, D25).
+
+    Streams progress honestly: an ``engine`` step naming
+    ``research-model:<model-id>`` up front, then heartbeat steps while the
+    (potentially minutes-long on ULTRA) call runs. The brief AND every step
+    carry the ``research-model:<model-id>`` backend id — evidence that research
+    routed to the research model regardless of the chat model.
+    """
+    import asyncio
+    import time
+
+    import httpx
+
+    import config
+    from services.search.base import SearchError
+
+    key = (api_key or "").strip() or config.get_openrouter_search_key()
+    if not key:
+        creds = config.get_llm_creds()
+        # Only reuse the active key if the user is actually on OpenRouter.
+        if creds is not None and creds[0] == "openrouter":
+            key = creds[2]
+    if not key:
+        return {"ok": False, "message": _RESEARCH_MODEL_NEEDS_KEY}
+
+    text = (query or "").strip()
+    if not text:
+        return {"ok": False, "message": "Research needs a query — tell me what to look into."}
+
+    stop = _research_model_stop(depth)
+    resolved_model = (model or "").strip() or config.get_research_model_for(stop)
+    backend_id = f"{RESEARCH_MODEL_BACKEND_PREFIX}{resolved_model}"
+    wall = _RESEARCH_MODEL_WALL_SECONDS.get(stop, _RESEARCH_MODEL_WALL_SECONDS["normal"])
+
+    sink = config.get_step_sink()
+    steps: list[Any] = []
+
+    def _step(kind: str, detail: str) -> None:
+        step = _make_step(kind, detail)
+        steps.append(step)
+        if sink is not None:
+            try:
+                sink(step)
+            except Exception:  # pragma: no cover — cosmetic; never breaks a run
+                pass
+
+    _step("engine", f"{backend_id} — hosted research model ({stop} stop, via OpenRouter)")
+
+    started = time.monotonic()
+
+    async def _heartbeat() -> None:
+        # Honest "still working" cadence — a vendor one-call lane exposes no
+        # internal stages, so elapsed time is the truthful progress signal
+        # (ULTRA on a deep-research model can legitimately take minutes).
+        while True:
+            await asyncio.sleep(_RESEARCH_MODEL_HEARTBEAT_SECS)
+            elapsed = int(time.monotonic() - started)
+            _step("engine", f"{backend_id} — still researching ({elapsed}s elapsed)")
+
+    payload: dict[str, Any] = {
+        "model": resolved_model,
+        "messages": [{"role": "user", "content": text}],
+    }
+    headers = {
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json",
+    }
+    timeout = httpx.Timeout(wall, connect=10.0)
+
+    heartbeat = asyncio.create_task(_heartbeat())
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            response = await client.post(
+                "https://openrouter.ai/api/v1/chat/completions", json=payload, headers=headers
+            )
+        response.raise_for_status()
+        body: dict[str, Any] = response.json()
+    except httpx.HTTPStatusError as exc:
+        return {"ok": False, "message": _research_model_http_error(exc.response.status_code)}
+    except httpx.HTTPError:
+        return {"ok": False, "message": "Could not reach OpenRouter — check your network."}
+    except ValueError:
+        return {"ok": False, "message": "OpenRouter returned a response that could not be parsed."}
+    except SearchError as exc:  # defensive — keep the human message
+        return {"ok": False, "message": str(exc)}
+    finally:
+        heartbeat.cancel()
+
+    content = _research_model_message(body).get("content")
+    markdown = content.strip() if isinstance(content, str) else ""
+    if not markdown:
+        return {"ok": False, "message": "The hosted research model returned an empty brief."}
+
+    sources = _research_model_sources(body)
+    elapsed_total = int(time.monotonic() - started)
+    _step("synthesize", f"{backend_id} — brief synthesised ({elapsed_total}s)")
+
+    from services.research.models import ResearchBrief
+
+    brief = ResearchBrief(
+        query=text,
+        symbol="",
+        # ``mode`` keeps the legacy fast/deep naming the brief contract renders;
+        # ``depth`` (below) carries the per-stop truth for new consumers.
+        mode="fast" if stop == "normal" else "deep",
+        markdown=markdown,
+        sources=sources,
+        steps=steps,
+        source_count=len(sources),
+        cost={
+            "tokens": None,
+            "spend_usd": estimate_research_model_cost_usd(text, stop),
+            "steps": None,
+            "estimate": True,
+            "provider": _RESEARCH_MODEL_PROVENANCE,
+        },
+        web_available=bool(sources),
+        note=None,
+    )
+    out = brief.to_dict()
+    out["ok"] = True
+    out["backend"] = backend_id
+    out["depth"] = stop
+    return out
+
+
+__all__ = [
+    "RESEARCH_MODEL_BACKEND_PREFIX",
+    "estimate_research_model_cost_usd",
+    "run_deep_brief",
+    "run_research_model_brief",
+]
