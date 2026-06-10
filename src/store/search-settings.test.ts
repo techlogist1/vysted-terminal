@@ -9,6 +9,7 @@ vi.mock("@/lib/workspace", () => ({
 import { autosaveLayout } from "@/lib/workspace";
 import {
   DEFAULT_SEARCH_SETTINGS,
+  migrateSearchSettings,
   resetSearchSettingsStoreForTests,
   searchSettingsBundle,
   useSearchSettingsStore,
@@ -26,19 +27,16 @@ describe("search-settings store", () => {
     vi.clearAllMocks();
   });
 
-  it("defaults to the native tier with an empty SearXNG URL", () => {
-    const s = useSearchSettingsStore.getState();
-    expect(s.tier).toBe("native");
-    expect(s.searxngUrl).toBe("");
-    expect(s.tier).toBe(DEFAULT_SEARCH_SETTINGS.tier);
-  });
-
-  it("defaults the research tier to the keyless t1 floor and the hosted engine to Firecrawl", () => {
+  it("defaults to the keyless t1 floor, Firecrawl hosted engine, no Exa direct", () => {
     const s = useSearchSettingsStore.getState();
     expect(s.researchTier).toBe("t1_local");
     expect(s.hostedEngine).toBe("firecrawl");
+    expect(s.exaDirect).toBe(false);
+    expect(s.searxngUrl).toBe("");
+    // The legacy passthrough field keeps its pre-R8 default for blob parity.
+    expect(s.tier).toBe("native");
     expect(DEFAULT_SEARCH_SETTINGS.researchTier).toBe("t1_local");
-    expect(DEFAULT_SEARCH_SETTINGS.hostedEngine).toBe("firecrawl");
+    expect(DEFAULT_SEARCH_SETTINGS.exaDirect).toBe(false);
   });
 
   it("setResearchTier updates state and triggers persistence", () => {
@@ -57,14 +55,10 @@ describe("search-settings store", () => {
     expect(autosaveMock).toHaveBeenCalledTimes(1);
   });
 
-  it("setTier updates state and triggers persistence", () => {
-    useSearchSettingsStore.getState().setTier("byok-exa");
-    expect(useSearchSettingsStore.getState().tier).toBe("byok-exa");
+  it("setExaDirect updates state and triggers persistence", () => {
+    useSearchSettingsStore.getState().setExaDirect(true);
+    expect(useSearchSettingsStore.getState().exaDirect).toBe(true);
     expect(autosaveMock).toHaveBeenCalledTimes(1);
-
-    useSearchSettingsStore.getState().setTier("local-searxng");
-    expect(useSearchSettingsStore.getState().tier).toBe("local-searxng");
-    expect(autosaveMock).toHaveBeenCalledTimes(2);
   });
 
   it("setSearxngUrl updates state and triggers persistence", () => {
@@ -74,55 +68,113 @@ describe("search-settings store", () => {
   });
 
   it("does not mutate the frozen default when a setter runs", () => {
-    useSearchSettingsStore.getState().setTier("local-searxng");
-    expect(DEFAULT_SEARCH_SETTINGS.tier).toBe("native");
-    expect(DEFAULT_SEARCH_SETTINGS.searxngUrl).toBe("");
+    useSearchSettingsStore.getState().setResearchTier("t3_hosted");
+    useSearchSettingsStore.getState().setExaDirect(true);
+    expect(DEFAULT_SEARCH_SETTINGS.researchTier).toBe("t1_local");
+    expect(DEFAULT_SEARCH_SETTINGS.exaDirect).toBe(false);
   });
 
-  it("setAll merges over the seed and drops a garbled tier", () => {
-    useSearchSettingsStore.getState().setAll({ tier: "byok-exa", searxngUrl: "http://local:8888" });
-    expect(useSearchSettingsStore.getState().tier).toBe("byok-exa");
-    expect(useSearchSettingsStore.getState().searxngUrl).toBe("http://local:8888");
+  // --- Pre-R8 blob migration (legacy tier → R7 vocabulary) -------------------
 
-    // A garbled tier falls back to the default; a missing field keeps the seed.
-    useSearchSettingsStore.getState().setAll({ tier: "nonsense" as never });
-    expect(useSearchSettingsStore.getState().tier).toBe("native");
-    expect(useSearchSettingsStore.getState().searxngUrl).toBe("");
+  it("migrateSearchSettings maps each legacy tier onto its R7 lane", () => {
+    expect(migrateSearchSettings({ tier: "native" })).toMatchObject({
+      researchTier: "t1_local",
+      exaDirect: false,
+    });
+    expect(migrateSearchSettings({ tier: "local-searxng" })).toMatchObject({
+      researchTier: "t2_searxng",
+      exaDirect: false,
+    });
+    expect(migrateSearchSettings({ tier: "byok-exa" })).toMatchObject({
+      researchTier: "t3_hosted",
+      exaDirect: true,
+    });
   });
 
-  it("setAll round-trips the research tier + hosted engine and drops garbage", () => {
-    useSearchSettingsStore.getState().setAll({ researchTier: "t3_hosted", hostedEngine: "exa" });
-    expect(useSearchSettingsStore.getState().researchTier).toBe("t3_hosted");
-    expect(useSearchSettingsStore.getState().hostedEngine).toBe("exa");
+  it("migrateSearchSettings never overwrites an existing researchTier", () => {
+    const bundle = { tier: "byok-exa", researchTier: "t2_searxng" } as const;
+    expect(migrateSearchSettings(bundle)).toBe(bundle);
+  });
 
-    // Garbled values (hand-edited import, future-version blob) fall back to the
-    // defaults — never an unknown id leaking into a request header.
+  it("migrateSearchSettings leaves a garbled legacy tier alone (seed applies)", () => {
+    const bundle = { tier: "warpdrive" as never };
+    expect(migrateSearchSettings(bundle)).toBe(bundle);
+  });
+
+  it("setAll migrates a pre-R8 native blob to the t1 floor", () => {
+    useSearchSettingsStore.getState().setAll({ tier: "native", searxngUrl: "" });
+    const s = useSearchSettingsStore.getState();
+    expect(s.researchTier).toBe("t1_local");
+    expect(s.exaDirect).toBe(false);
+    expect(s.tier).toBe("native");
+  });
+
+  it("setAll migrates a pre-R8 local-searxng blob to t2 and keeps the URL", () => {
+    useSearchSettingsStore.getState().setAll({
+      tier: "local-searxng",
+      searxngUrl: "http://localhost:8080",
+    });
+    const s = useSearchSettingsStore.getState();
+    expect(s.researchTier).toBe("t2_searxng");
+    expect(s.searxngUrl).toBe("http://localhost:8080");
+    expect(s.exaDirect).toBe(false);
+  });
+
+  it("setAll migrates a pre-R8 byok-exa blob to t3 + Exa direct", () => {
+    useSearchSettingsStore.getState().setAll({ tier: "byok-exa", searxngUrl: "" });
+    const s = useSearchSettingsStore.getState();
+    expect(s.researchTier).toBe("t3_hosted");
+    expect(s.exaDirect).toBe(true);
+  });
+
+  it("setAll keeps an R7-era blob verbatim — migration never reroutes it", () => {
+    useSearchSettingsStore.getState().setAll({
+      tier: "byok-exa", // stale legacy leftover in a current blob
+      researchTier: "t1_local",
+      hostedEngine: "exa",
+      exaDirect: false,
+    });
+    const s = useSearchSettingsStore.getState();
+    expect(s.researchTier).toBe("t1_local");
+    expect(s.exaDirect).toBe(false);
+    expect(s.hostedEngine).toBe("exa");
+  });
+
+  it("setAll merges over the seed and drops garbled values", () => {
     useSearchSettingsStore.getState().setAll({
       researchTier: "t9_quantum" as never,
       hostedEngine: 42 as never,
+      exaDirect: "yes" as never,
+      tier: "nonsense" as never,
     });
-    expect(useSearchSettingsStore.getState().researchTier).toBe("t1_local");
-    expect(useSearchSettingsStore.getState().hostedEngine).toBe("firecrawl");
+    const s = useSearchSettingsStore.getState();
+    expect(s.researchTier).toBe("t1_local");
+    expect(s.hostedEngine).toBe("firecrawl");
+    expect(s.exaDirect).toBe(false);
+    expect(s.tier).toBe("native");
+  });
 
-    // An older blob (fields absent entirely) keeps the seed values.
+  it("setAll with fields absent entirely keeps the seed values", () => {
     useSearchSettingsStore.getState().setResearchTier("t2_searxng");
-    useSearchSettingsStore.getState().setAll({ tier: "byok-exa" });
-    expect(useSearchSettingsStore.getState().researchTier).toBe("t1_local");
-    expect(useSearchSettingsStore.getState().hostedEngine).toBe("firecrawl");
+    useSearchSettingsStore.getState().setAll({});
+    const s = useSearchSettingsStore.getState();
+    expect(s.researchTier).toBe("t1_local");
+    expect(s.hostedEngine).toBe("firecrawl");
+    expect(s.exaDirect).toBe(false);
   });
 
   it("toBundle / searchSettingsBundle snapshot the persistence shape", () => {
-    useSearchSettingsStore.getState().setTier("byok-exa");
     useSearchSettingsStore.getState().setSearxngUrl("http://127.0.0.1:8080");
     useSearchSettingsStore.getState().setResearchTier("t2_searxng");
     useSearchSettingsStore.getState().setHostedEngine("exa");
 
     const bundle = searchSettingsBundle();
     expect(bundle).toEqual({
-      tier: "byok-exa",
+      tier: "native",
       searxngUrl: "http://127.0.0.1:8080",
       researchTier: "t2_searxng",
       hostedEngine: "exa",
+      exaDirect: false,
     });
     // The snapshot is a fresh object, not a live reference into the store.
     expect(bundle).not.toBe(useSearchSettingsStore.getState());

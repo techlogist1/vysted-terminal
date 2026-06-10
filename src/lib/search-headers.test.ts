@@ -34,7 +34,7 @@ function stubKeychain(secrets: Record<string, string | null>) {
   getSecretMock.mockImplementation((account: string) => Promise.resolve(secrets[account] ?? null));
 }
 
-describe("buildSearchHeaders — R7 research-tier emit/omit matrix", () => {
+describe("buildSearchHeaders — R8 one-truth emit/omit matrix", () => {
   beforeEach(() => {
     resetSearchSettingsStoreForTests();
     getSecretMock.mockReset();
@@ -45,29 +45,51 @@ describe("buildSearchHeaders — R7 research-tier emit/omit matrix", () => {
     vi.clearAllMocks();
   });
 
-  it("t1 (default) emits the research tier only — no engine, no OpenRouter key", async () => {
+  it("t1 (default) emits the research tier ONLY — no legacy headers, no keys", async () => {
     const headers = await buildSearchHeaders();
     expect(headers["X-Vysted-Research-Tier"]).toBe("t1_local");
+    expect(headers["X-Vysted-Search-Tier"]).toBeUndefined();
+    expect(headers["X-Vysted-Exa-Key"]).toBeUndefined();
+    expect(headers["X-Vysted-Searxng-Url"]).toBeUndefined();
     expect(headers["X-Vysted-Search-Engine"]).toBeUndefined();
     expect(headers["X-Vysted-Openrouter-Key"]).toBeUndefined();
   });
 
-  it("t1 never reads the OpenRouter keychain slot, even when a key is stored", async () => {
-    stubKeychain({ [OPENROUTER_ACCOUNT]: "sk-or-v1-secret" });
+  it("t1 never reads ANY keychain slot, even when keys are stored", async () => {
+    stubKeychain({
+      [OPENROUTER_ACCOUNT]: "sk-or-v1-secret",
+      [EXA_KEYCHAIN_ACCOUNT]: "exa-key-123",
+    });
     const headers = await buildSearchHeaders();
     expect(headers["X-Vysted-Openrouter-Key"]).toBeUndefined();
-    expect(getSecretMock).not.toHaveBeenCalledWith(OPENROUTER_ACCOUNT);
+    expect(headers["X-Vysted-Exa-Key"]).toBeUndefined();
+    expect(getSecretMock).not.toHaveBeenCalled();
   });
 
-  it("t2 emits the research tier only — the SearXNG instance is sidecar-managed", async () => {
+  it("t2 with no custom URL emits the research tier only (managed/autodetect)", async () => {
     useSearchSettingsStore.getState().setResearchTier("t2_searxng");
     const headers = await buildSearchHeaders();
     expect(headers["X-Vysted-Research-Tier"]).toBe("t2_searxng");
-    expect(headers["X-Vysted-Search-Engine"]).toBeUndefined();
-    expect(headers["X-Vysted-Openrouter-Key"]).toBeUndefined();
+    expect(headers["X-Vysted-Searxng-Url"]).toBeUndefined();
+    expect(headers["X-Vysted-Search-Tier"]).toBeUndefined();
   });
 
-  it("t3 emits the engine and the OpenRouter key when one is stored", async () => {
+  it("t2 with a custom URL emits the trimmed URL alongside the tier", async () => {
+    useSearchSettingsStore.getState().setResearchTier("t2_searxng");
+    useSearchSettingsStore.getState().setSearxngUrl("  http://127.0.0.1:8080  ");
+    const headers = await buildSearchHeaders();
+    expect(headers["X-Vysted-Research-Tier"]).toBe("t2_searxng");
+    expect(headers["X-Vysted-Searxng-Url"]).toBe("http://127.0.0.1:8080");
+  });
+
+  it("a custom SearXNG URL is NOT sent off-t2 (no blank/leftover overrides)", async () => {
+    useSearchSettingsStore.getState().setSearxngUrl("http://127.0.0.1:8080");
+    // researchTier stays t1_local
+    const headers = await buildSearchHeaders();
+    expect(headers["X-Vysted-Searxng-Url"]).toBeUndefined();
+  });
+
+  it("t3 hosted emits the engine and the OpenRouter key when one is stored", async () => {
     stubKeychain({ [OPENROUTER_ACCOUNT]: "sk-or-v1-secret" });
     useSearchSettingsStore.getState().setResearchTier("t3_hosted");
 
@@ -75,12 +97,14 @@ describe("buildSearchHeaders — R7 research-tier emit/omit matrix", () => {
     expect(headers["X-Vysted-Research-Tier"]).toBe("t3_hosted");
     expect(headers["X-Vysted-Search-Engine"]).toBe("firecrawl");
     expect(headers["X-Vysted-Openrouter-Key"]).toBe("sk-or-v1-secret");
+    expect(headers["X-Vysted-Search-Tier"]).toBeUndefined();
+    expect(headers["X-Vysted-Exa-Key"]).toBeUndefined();
 
     useSearchSettingsStore.getState().setHostedEngine("exa");
     expect((await buildSearchHeaders())["X-Vysted-Search-Engine"]).toBe("exa");
   });
 
-  it("t3 without a stored key emits the engine but OMITS the key (never empty)", async () => {
+  it("t3 hosted without a stored key emits the engine but OMITS the key (never empty)", async () => {
     useSearchSettingsStore.getState().setResearchTier("t3_hosted");
     const headers = await buildSearchHeaders();
     expect(headers["X-Vysted-Search-Engine"]).toBe("firecrawl");
@@ -88,13 +112,13 @@ describe("buildSearchHeaders — R7 research-tier emit/omit matrix", () => {
     expect(Object.values(headers)).not.toContain("");
   });
 
-  it("t3 with an empty-string keychain value omits the key", async () => {
+  it("t3 hosted with an empty-string keychain value omits the key", async () => {
     stubKeychain({ [OPENROUTER_ACCOUNT]: "" });
     useSearchSettingsStore.getState().setResearchTier("t3_hosted");
     expect((await buildSearchHeaders())["X-Vysted-Openrouter-Key"]).toBeUndefined();
   });
 
-  it("a keychain failure on t3 degrades to key-omitted, never a throw", async () => {
+  it("a keychain failure on t3 hosted degrades to key-omitted, never a throw", async () => {
     getSecretMock.mockRejectedValue(new Error("keychain locked"));
     useSearchSettingsStore.getState().setResearchTier("t3_hosted");
     const headers = await buildSearchHeaders();
@@ -102,22 +126,51 @@ describe("buildSearchHeaders — R7 research-tier emit/omit matrix", () => {
     expect(headers["X-Vysted-Openrouter-Key"]).toBeUndefined();
   });
 
-  it("the legacy header trio is untouched and rides alongside the R7 trio", async () => {
-    stubKeychain({
-      [EXA_KEYCHAIN_ACCOUNT]: "exa-key-123",
-      [OPENROUTER_ACCOUNT]: "sk-or-v1-secret",
-    });
-    useSearchSettingsStore.getState().setTier("byok-exa");
-    useSearchSettingsStore.getState().setSearxngUrl("  http://127.0.0.1:8080  ");
+  // --- t3 "Exa direct" — the legacy byok-exa wire lane -----------------------
+
+  it("Exa direct rides the legacy lane: byok-exa tier + Exa key, NO R7 header", async () => {
+    stubKeychain({ [EXA_KEYCHAIN_ACCOUNT]: "exa-key-123" });
     useSearchSettingsStore.getState().setResearchTier("t3_hosted");
+    useSearchSettingsStore.getState().setExaDirect(true);
 
     const headers = await buildSearchHeaders();
     expect(headers["X-Vysted-Search-Tier"]).toBe("byok-exa");
     expect(headers["X-Vysted-Exa-Key"]).toBe("exa-key-123");
-    expect(headers["X-Vysted-Searxng-Url"]).toBe("http://127.0.0.1:8080");
-    expect(headers["X-Vysted-Research-Tier"]).toBe("t3_hosted");
-    expect(headers["X-Vysted-Search-Engine"]).toBe("firecrawl");
-    expect(headers["X-Vysted-Openrouter-Key"]).toBe("sk-or-v1-secret");
+    // The R7 header is OMITTED — an explicit R7 tier always wins on the
+    // sidecar, so sending it would shadow the Exa-direct lane.
+    expect(headers["X-Vysted-Research-Tier"]).toBeUndefined();
+    expect(headers["X-Vysted-Search-Engine"]).toBeUndefined();
+    expect(headers["X-Vysted-Openrouter-Key"]).toBeUndefined();
+  });
+
+  it("Exa direct never reads the OpenRouter keychain slot", async () => {
+    stubKeychain({
+      [EXA_KEYCHAIN_ACCOUNT]: "exa-key-123",
+      [OPENROUTER_ACCOUNT]: "sk-or-v1-secret",
+    });
+    useSearchSettingsStore.getState().setResearchTier("t3_hosted");
+    useSearchSettingsStore.getState().setExaDirect(true);
+    await buildSearchHeaders();
+    expect(getSecretMock).not.toHaveBeenCalledWith(OPENROUTER_ACCOUNT);
+  });
+
+  it("Exa direct without a stored key omits the key (sidecar floors honestly)", async () => {
+    useSearchSettingsStore.getState().setResearchTier("t3_hosted");
+    useSearchSettingsStore.getState().setExaDirect(true);
+    const headers = await buildSearchHeaders();
+    expect(headers["X-Vysted-Search-Tier"]).toBe("byok-exa");
+    expect(headers["X-Vysted-Exa-Key"]).toBeUndefined();
+    expect(Object.values(headers)).not.toContain("");
+  });
+
+  it("exaDirect off t3 is inert — t1/t2 ignore the flag entirely", async () => {
+    stubKeychain({ [EXA_KEYCHAIN_ACCOUNT]: "exa-key-123" });
+    useSearchSettingsStore.getState().setExaDirect(true);
+    useSearchSettingsStore.getState().setResearchTier("t2_searxng");
+    const headers = await buildSearchHeaders();
+    expect(headers["X-Vysted-Research-Tier"]).toBe("t2_searxng");
+    expect(headers["X-Vysted-Search-Tier"]).toBeUndefined();
+    expect(headers["X-Vysted-Exa-Key"]).toBeUndefined();
   });
 
   it("getOpenrouterApiKey reads the AI-Providers slot and maps empty/miss to null", async () => {
