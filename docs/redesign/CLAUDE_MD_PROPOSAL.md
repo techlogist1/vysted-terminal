@@ -47,3 +47,12 @@
   binary is ad-hoc and the FIRST keychain read at boot blocks on a SecurityAgent prompt
   (the always-mounted chat surface refreshes provider keys at mount). Re-create the cert
   before any long autonomous run.
+
+## R8 proposal — sidecar spawn gotcha line
+
+The Gotchas line "After spawn, call `crate::wait_for_port` (port `0` → routes fall back /
+501, graceful degrade)" should now read "After spawn, call `crate::wait_for_port_with_retries`
+(45s × 2 — the budget a cold `--onefile` extraction actually needs; port `0` → routes fall
+back / 501, graceful degrade)". R8 removed the flat-15s `wait_for_port` wrapper after it
+false-flagged healthy cold boots ("Python sidecar did not come up") and skipped the FR-025
+endpoint file; the main sidecar now shares the MCP subprocesses' retry budget.

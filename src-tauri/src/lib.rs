@@ -54,11 +54,6 @@ pub(crate) fn wait_for_port_timeout(port: u16, timeout_secs: u64) -> bool {
     false
 }
 
-/// Backwards-compatible 15s probe used by the main-sidecar startup wait.
-pub(crate) fn wait_for_port(port: u16) -> bool {
-    wait_for_port_timeout(port, 15)
-}
-
 /// Per-attempt budget (seconds) for a cold MCP subprocess to bind its port.
 ///
 /// Phase-9 UC1 fix: the prior flat 15s budget was marginal for a COLD
@@ -245,7 +240,24 @@ fn start_main_sidecar(app: &tauri::App, port: u16) {
 
     let endpoint_data_dir = data_dir.clone();
     thread::spawn(move || {
-        if wait_for_port(port) {
+        // R8: the main sidecar gets the same cold-extraction budget as the MCP
+        // subprocesses (45s x 2) — a cold `--onefile` boot (~60s observed: _MEI
+        // extraction + heavy imports) outlives the old flat 15s probe, which
+        // logged a false "did not come up" and skipped the FR-025 endpoint file
+        // while the frontend's own retries connected fine moments later.
+        let bound = wait_for_port_with_retries(
+            port,
+            MCP_PORT_WAIT_SECS,
+            MCP_PORT_WAIT_ATTEMPTS,
+            |attempt, attempts| {
+                eprintln!(
+                    "[vysted] Python sidecar not up yet on port {port} after attempt \
+                     {attempt}/{attempts} ({MCP_PORT_WAIT_SECS}s); cold PyInstaller \
+                     extraction may be slow — retrying."
+                );
+            },
+        );
+        if bound {
             println!("[vysted] Python sidecar healthy on 127.0.0.1:{port}");
             // FR-025: publish the loopback MCP endpoint so an external MCP
             // client can discover it without scraping the console. Only on a
