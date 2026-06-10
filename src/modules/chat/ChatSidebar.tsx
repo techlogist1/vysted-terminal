@@ -99,6 +99,28 @@ function agentProviderPreference(
   return agent.defaultProvider as LLMProviderId | undefined;
 }
 
+/** The agent's preference, DEMOTED when that provider's key is known-missing — a
+ *  persona pin must never route a send to a dead provider (R8: switching the lens
+ *  to a persona pinned on an unkeyed provider produced an unanswerable run). A
+ *  "configured"/"unknown"/unprobed status passes through; only a probed MISSING
+ *  key demotes to the user's default. */
+function usableAgentProviderPreference(
+  agent: { id: string; defaultProvider?: string } | null | undefined,
+  keyStatuses: Partial<Record<LLMProviderId, "configured" | "missing" | "unknown">>,
+  providerList: readonly { id: LLMProviderId; requiresKey?: boolean }[],
+): LLMProviderId | undefined {
+  const pref = agentProviderPreference(agent);
+  if (!pref) {
+    return undefined;
+  }
+  const meta = providerList.find((p) => p.id === pref);
+  const requiresKey = meta?.requiresKey ?? true;
+  if (requiresKey && keyStatuses[pref] === "missing") {
+    return undefined;
+  }
+  return pref;
+}
+
 /** Title-case fallback for an agent id the roster hasn't resolved yet — the lens
  *  chip must NEVER show a raw id ("warren" → "Warren", "portfolio_advisor" →
  *  "Portfolio Advisor"). The roster display name always wins when present. */
@@ -428,8 +450,12 @@ export function ChatSidebar() {
   // generic concierge has none — see GENERIC_AGENT_IDS), else the user's
   // persisted default provider.
   const effectiveProvider = useMemo<LLMProviderId>(() => {
-    return providerOverride ?? agentProviderPreference(activeAgent) ?? defaultProviderId;
-  }, [providerOverride, activeAgent, defaultProviderId]);
+    return (
+      providerOverride ??
+      usableAgentProviderPreference(activeAgent, keyStatuses, providers) ??
+      defaultProviderId
+    );
+  }, [providerOverride, activeAgent, keyStatuses, providers, defaultProviderId]);
   const effectiveModel = useModelSelectionStore((state) => state.modelFor(effectiveProvider));
   // Live model catalog for the active provider — auto-fetched, TTL-cached.
   const { entry: modelCatalog, refresh: refreshModelCatalog } = useModelCatalog(effectiveProvider);
@@ -684,7 +710,14 @@ export function ChatSidebar() {
           customAgents.find((a) => a.id === agentForCall) ??
           null)
         : null;
-      const provider = providerOverride ?? agentProviderPreference(agentSpec) ?? defaultProviderId;
+      const provider =
+        providerOverride ??
+        usableAgentProviderPreference(
+          agentSpec,
+          useProviderKeysStore.getState().status,
+          providers,
+        ) ??
+        defaultProviderId;
       const model = useModelSelectionStore.getState().modelFor(provider);
       const providerMeta = providers.find((p) => p.id === provider);
       const requiresKey = providerMeta?.requiresKey ?? true;
