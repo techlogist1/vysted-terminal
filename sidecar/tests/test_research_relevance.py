@@ -176,7 +176,10 @@ def test_other_companys_filing_title_is_never_evidence() -> None:
     assert relevance.entity_match(other, target=target) == 0.0
     own = {
         "url": "https://nsearchives.nseindia.com/corporate/RELIANCE_x.pdf",
-        "title": "RELIANCE INDUSTRIES LIMITED has informed the Exchange regarding Outcome of Board Meeting",
+        "title": (
+            "RELIANCE INDUSTRIES LIMITED has informed the Exchange "
+            "regarding Outcome of Board Meeting"
+        ),
         "excerpt": "Q4 results",
     }
     assert relevance.entity_match(own, target=target) >= relevance.MATCH_FLOOR
