@@ -246,7 +246,21 @@ const PROVIDER_SHORT_LABELS: Record<string, string> = {
 };
 
 /** The designed short form for a provider id (case-insensitive); unknown ids
- *  pass through so a new provider is never silently mislabelled. */
+ *  pass through so a new provider is never silently mislabelled. Compound ids
+ *  ("ccxt:binance") short-form each segment ("CCXT·Binance") so a raw internal
+ *  id never reaches a chip. */
 export function providerShortLabel(provider: string): string {
-  return PROVIDER_SHORT_LABELS[provider.trim().toLowerCase()] ?? provider;
+  const key = provider.trim().toLowerCase();
+  const direct = PROVIDER_SHORT_LABELS[key];
+  if (direct) {
+    return direct;
+  }
+  if (key.includes(":")) {
+    return key
+      .split(":")
+      .filter(Boolean)
+      .map((part) => PROVIDER_SHORT_LABELS[part] ?? part)
+      .join("·");
+  }
+  return provider;
 }

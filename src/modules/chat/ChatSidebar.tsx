@@ -461,8 +461,9 @@ export function ChatSidebar() {
   const { entry: modelCatalog, refresh: refreshModelCatalog } = useModelCatalog(effectiveProvider);
   const providerInfo = providers.find((p) => p.id === effectiveProvider);
   const providerRequiresKey = providerInfo?.requiresKey ?? true;
-  const providerConfigured =
-    !providerRequiresKey || keyStatuses[effectiveProvider] === "configured";
+  // "no key" warns only on a PROBED missing key — an unprobed/unknown status
+  // must not flash a false "no key" chip during the boot keychain probe.
+  const providerConfigured = !providerRequiresKey || keyStatuses[effectiveProvider] !== "missing";
 
   const contextBadge = useMemo(() => describeContext(contextSnapshot), [contextSnapshot]);
 

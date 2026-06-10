@@ -606,7 +606,11 @@ export function ComposerMetaRow({
   // The chip shows the DESIGNED short form (law §3.1 — formatter, not CSS
   // truncation); the tooltip and the popover rows carry the exact ids.
   const modelTitle = catalogNote ?? `${providerLabel} · ${model}`;
-  const shortModel = formatModelLabel(model);
+  const fullModel = formatModelLabel(model);
+  // The SHORT step drops trailing variant words ("DeepSeek V4 Flash" →
+  // "DeepSeek V4") instead of letting CSS cut mid-word (law §3.1).
+  const shortModel =
+    plan.labels === "full" ? fullModel : fullModel.split(" ").slice(0, 2).join(" ");
   const modelText = model.toLowerCase().startsWith(provider.toLowerCase())
     ? shortModel
     : `${providerLabel} · ${shortModel}`;
