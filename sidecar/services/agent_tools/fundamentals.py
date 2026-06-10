@@ -8,9 +8,16 @@ and from ``app.create_app``.
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from services.agent_tools import register_tool
+
+#: One retry after a short backoff (R8 structured parity): the live failure
+#: was a single transient provider hiccup turning into a brief that claimed
+#: P/E "not available" while the equity panel — same provider_registry —
+#: rendered it. A second attempt half a second later usually succeeds.
+_RETRY_BACKOFF_SECS = 0.5
 
 
 async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
@@ -26,7 +33,9 @@ async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
 
     Falls back through the same registry path as ``GET /fundamentals``;
     openbb-mcp when bundled, yfinance otherwise. The registry's
-    fundamentals path is async (it awaits the openbb-mcp client).
+    fundamentals path is async (it awaits the openbb-mcp client). One
+    transient provider exception gets ONE retry (0.5s backoff) before the
+    honest ``ok: False`` — a single hiccup must not read as "no data exists".
     """
     symbol = args.get("symbol")
     if not isinstance(symbol, str) or not symbol:
@@ -34,17 +43,23 @@ async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
     from services import provider_registry
     from services.errors import ProviderError
 
-    try:
-        fundamentals = await provider_registry.get_fundamentals(symbol)
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"unexpected error: {exc}"}
+    last_error: str = "unavailable"
+    for attempt in (0, 1):
+        try:
+            fundamentals = await provider_registry.get_fundamentals(symbol)
+        except ProviderError as exc:
+            last_error = f"provider error: {exc}"
+        except Exception as exc:  # noqa: BLE001
+            last_error = f"unexpected error: {exc}"
+        else:
+            return {
+                "ok": True,
+                "fundamentals": fundamentals.model_dump(by_alias=True, mode="json"),
+            }
+        if attempt == 0:
+            await asyncio.sleep(_RETRY_BACKOFF_SECS)
 
-    return {
-        "ok": True,
-        "fundamentals": fundamentals.model_dump(by_alias=True, mode="json"),
-    }
+    return {"ok": False, "error": last_error}
 
 
 def register() -> None:
