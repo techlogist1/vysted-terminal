@@ -21,6 +21,10 @@ Consulted before each phase; appended as the run learns.
   scripts/macos-dev-sign-run.sh) signs-then-execs every dev binary. Cargo discovers
   `.cargo/config.toml` from the INVOCATION cwd, so the runner applies to the Tauri CLI
   (cargo from src-tauri/) but not to repo-root `cargo test --manifest-path` (CI untouched).
+- A timed-out/unanswered keychain SecurityAgent prompt records NOTHING — the same prompt
+  returns on the next fresh binary even with a byte-identical designated requirement. The
+  "Always Allow" (with password) must actually be clicked once; only then is the
+  trusted-application entry recorded against the stable DR.
 - THE BRIDGE-WEDGE ROOT CAUSE: touching the tauri-mcp socket while the webview is still
   booting wedges the debug server PERMANENTLY for that app instance (requests then hang —
   even list_windows). Recipe that works: launch → wait for the "Bridge already initialized"

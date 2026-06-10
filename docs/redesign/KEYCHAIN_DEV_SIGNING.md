@@ -1,10 +1,15 @@
 # Keychain Dev Signing — Runbook
 
-**Status (R8 hot patch, 2026-06-11): WIRED AND VERIFIED — one attended "Always Allow" remains.**
+**Status (R8 hot patch, 2026-06-11): signing WIRED AND VERIFIED (3 rebuilds, identical DR);
+one attended "Always Allow" + one post-grant rebuild check remain.**
 The certificate exists and is trusted, codesign runs prompt-free (partition list set), and
-EVERY dev build now signs automatically before first launch. One keychain item still holds an
-old build's designated requirement in its ACL — the next launch shows ONE password +
-"Always Allow" prompt; granting it re-keys the item to the stable identity permanently.
+EVERY dev build now signs automatically before first launch with the SAME designated
+requirement (`identifier "com.vysted.terminal" and certificate leaf = H"c0d31e56…"` —
+verified byte-identical across three consecutive rebuilds via `codesign -d -r-`). The
+keychain item ACL still lacks a grant for that DR: each boot of a FRESH binary prompts once
+(an unanswered/timed-out prompt records nothing, which is why it reappears). One attended
+password + "Always Allow" records a trusted-application entry carrying the stable DR; the
+operator should then confirm with one rebuild (steps below).
 
 ---
 
@@ -53,21 +58,37 @@ rebuild. Same pass-through rules as the runner.
   succeeded (header connected on DeepSeek).
 - **Rebuild round 2** (same procedure): binary again signed with the identical designated
   requirement — and ONE SecurityAgent prompt appeared: _"vysted-terminal wants to access key
-  'vysted-terminal' in your keychain"_. That item's ACL still holds an old build's DR. This
-  is THE one-time grant: password + "Always Allow" re-keys the ACL to the stable DR
-  (cert hash + `com.vysted.terminal`), which no rebuild changes again.
+  'vysted-terminal' in your keychain"_. The prompt was left unanswered (autonomous run — the
+  password cannot be typed by automation) and timed out; a timed-out prompt records nothing.
+- **Rebuild round 3**: DR again byte-identical (`codesign -d -r-` → `identifier
+"com.vysted.terminal" and certificate leaf = H"c0d31e56…"`), and the same prompt
+  reappeared — confirming the loop: until the grant is actually GIVEN once, every fresh
+  binary prompts. The grant is the one and only missing piece; the signing side is proven
+  stable.
 - **TCC**: a trusted CGEvent click + a System Events AppleScript query against the freshly
   rebuilt binary raised no new automation/accessibility dialog — grants persisted across the
   rebuild (consistent with ~8 rebuilds across the R8 run, zero TCC dialogs).
 
-## OPERATOR — the one remaining click (one-time-forever)
+## OPERATOR — the one remaining grant (one-time-forever) + 60-second confirmation
 
-On the next launch (or the prompt already on screen): when macOS asks
-_"vysted-terminal wants to access key 'vysted-terminal' in your keychain"_, enter your login
-password and click **Always Allow** (not Allow). If a second prompt appears for another
-stored key item (one per item whose ACL predates the stable identity), Always-Allow it the
-same way. After that, rebuilds never re-prompt: every dev binary now carries the same
-designated requirement by construction.
+1. The prompt is on screen now (or appears on the next launch): _"vysted-terminal wants to
+   access key 'vysted-terminal' in your keychain"_. Enter your login password and click
+   **Always Allow** (not Allow — and don't let it time out; a timed-out prompt records
+   nothing and will reappear). If a second prompt appears for another stored key item,
+   Always-Allow it the same way (one per item, once).
+2. Confirm permanence (this is the only verification automation could not perform — the
+   grant itself needs your password):
+
+   ```bash
+   cd ~/Documents/dev/vysted-terminal
+   touch src-tauri/src/main.rs        # force a fresh binary
+   pnpm tauri:dev                     # boots signed via the cargo runner
+   # expected: app boots, keys read, ZERO prompts — forever after
+   ```
+
+   Every dev binary now carries the same designated requirement by construction
+   (three consecutive rebuilds verified byte-identical), so the recorded grant
+   keeps matching.
 
 ---
 
