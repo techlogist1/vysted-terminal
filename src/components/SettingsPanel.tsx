@@ -146,11 +146,11 @@ const SECTION_NAV: { id: string; label: string; short: string }[] = [
  * Jump-nav collapse ladder (R8 §3.4): full labels → designed short labels →
  * one overflow menu. Steps are deterministic width gates measured on the nav's
  * own container, so chips NEVER wrap to a second line or clip mid-word.
- * Thresholds = the rendered chip-row widths (text-micro, h-6, px-3, gap-2)
- * with slack: full ≈ 430px, short ≈ 330px.
+ * Thresholds = the MEASURED chip-row widths (text-micro uppercase JetBrains
+ * Mono, h-6, px-3, gap-2 — full row 578px, short row ≈432px) + slack.
  */
-const NAV_FULL_MIN_W = 440;
-const NAV_SHORT_MIN_W = 336;
+const NAV_FULL_MIN_W = 592;
+const NAV_SHORT_MIN_W = 440;
 
 /** Smooth-scroll one section head into view. */
 function jumpToSection(id: string) {
