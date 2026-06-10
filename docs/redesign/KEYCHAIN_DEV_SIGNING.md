@@ -1,6 +1,73 @@
 # Keychain Dev Signing — Runbook
 
-**Status: NEEDS-MANUAL-CHECK** — The one-time cert creation and ACL step must be performed by the operator on the target machine. Automation cannot substitute for the attended prompt.
+**Status (R8 hot patch, 2026-06-11): WIRED AND VERIFIED — one attended "Always Allow" remains.**
+The certificate exists and is trusted, codesign runs prompt-free (partition list set), and
+EVERY dev build now signs automatically before first launch. One keychain item still holds an
+old build's designated requirement in its ACL — the next launch shows ONE password +
+"Always Allow" prompt; granting it re-keys the item to the stable identity permanently.
+
+---
+
+## R8 hot patch — why the prompts survived the original wiring, and the real fix
+
+**The original watcher could never work.** The `tauri:dev` wrapper re-signed
+`src-tauri/target/debug/vysted-terminal` on an mtime watch — but `codesign --force` on a
+RUNNING executable fails (text file busy), and by the time the watcher's first 1.5s tick
+fired, `tauri dev` had already launched the binary. Every failure was swallowed by
+`stdio:'ignore'` + try/catch, so every dev session silently ran AD-HOC signed (verified live:
+the running R8 binary showed `Signature=adhoc, linker-signed`), the designated requirement
+changed per rebuild, and the keychain ACL re-prompted — the ~20-prompts-per-session pain.
+
+**The fix is a cargo RUNNER** (`src-tauri/.cargo/config.toml` →
+`scripts/macos-dev-sign-run.sh`): cargo hands the freshly built executable to the runner
+BEFORE first exec — the only moment signing can succeed — and the runner signs it with
+"Vysted Terminal Dev Signing" (identifier `com.vysted.terminal`) and then `exec`s it. This
+covers the initial launch AND every HMR rust-rebuild relaunch, deterministically. The broken
+watcher is deleted from `package.json` (`tauri:dev` is now plain `tauri:mcp`).
+
+Notes on the runner approach (distinct from the rejected `[env]` idea below):
+
+- Cargo discovers `.cargo/config.toml` from the INVOCATION cwd. The Tauri CLI invokes cargo
+  from `src-tauri/`, so the runner applies there and `../scripts/...` resolves. ci-local's
+  `cargo test --manifest-path src-tauri/Cargo.toml` from the repo root never sees the config
+  — CI and test runs are untouched.
+- The runner passes through untouched (exec without signing) when the identity is missing
+  (CI, fresh machines) or `VYSTED_SKIP_DEV_SIGN=1`. A codesign failure warns and runs anyway
+  — it can never break a build.
+- Release signing/notarization (`tauri build` + `APPLE_SIGNING_IDENTITY`) is untouched.
+
+**Sidecar binaries are now signed too** (`scripts/macos-dev-sign.mjs`, called by all three
+`ensure-*-sidecar.mjs` scripts after each PyInstaller build): `com.vysted.sidecar`,
+`com.vysted.openbb-mcp-sidecar`, `com.vysted.sec-edgar-mcp-sidecar`, same identity. Sidecars
+do not read the keychain (the renderer does), but stable identities keep every other
+signature-keyed macOS permission (firewall accept-incoming, TCC pairings) from resetting per
+rebuild. Same pass-through rules as the runner.
+
+## R8 verification evidence (2026-06-11)
+
+- `codesign --force --sign "Vysted Terminal Dev Signing" …` runs with NO password prompt
+  (partition list confirmed set; identity `C0D31E56…` valid in the login keychain).
+- **Rebuild round 1** (`touch src-tauri/src/main.rs` → `pnpm tauri:dev`): the binary the app
+  ran was `Identifier=com.vysted.terminal / Authority=Vysted Terminal Dev Signing` (first
+  dev session ever to run identity-signed from boot), ZERO prompt windows, provider key read
+  succeeded (header connected on DeepSeek).
+- **Rebuild round 2** (same procedure): binary again signed with the identical designated
+  requirement — and ONE SecurityAgent prompt appeared: _"vysted-terminal wants to access key
+  'vysted-terminal' in your keychain"_. That item's ACL still holds an old build's DR. This
+  is THE one-time grant: password + "Always Allow" re-keys the ACL to the stable DR
+  (cert hash + `com.vysted.terminal`), which no rebuild changes again.
+- **TCC**: a trusted CGEvent click + a System Events AppleScript query against the freshly
+  rebuilt binary raised no new automation/accessibility dialog — grants persisted across the
+  rebuild (consistent with ~8 rebuilds across the R8 run, zero TCC dialogs).
+
+## OPERATOR — the one remaining click (one-time-forever)
+
+On the next launch (or the prompt already on screen): when macOS asks
+_"vysted-terminal wants to access key 'vysted-terminal' in your keychain"_, enter your login
+password and click **Always Allow** (not Allow). If a second prompt appears for another
+stored key item (one per item whose ACL predates the stable identity), Always-Allow it the
+same way. After that, rebuilds never re-prompt: every dev binary now carries the same
+designated requirement by construction.
 
 ---
 
@@ -38,9 +105,11 @@ path). It is **not** consumed by `tauri dev`. There is an open feature request
    The DR (cert hash + identifier) is the same every time → keychain ACL persists → no
    re-prompt after the first "Always Allow" click.
 
-The wiring lives in `scripts/macos-dev-setup.sh` (one-time setup, idempotent) and the
-`tauri:dev` script in `package.json` (re-signs the binary on each hot-reload cycle via a
-background file-watch loop).
+The wiring lives in `scripts/macos-dev-setup.sh` (one-time setup, idempotent) and — since
+the R8 hot patch — the cargo runner (`src-tauri/.cargo/config.toml` →
+`scripts/macos-dev-sign-run.sh`), which signs every freshly built dev binary before its
+first exec. (The original package.json file-watch loop is gone: it re-signed AFTER launch,
+which always fails on a running binary — see the R8 section at the top.)
 
 ---
 

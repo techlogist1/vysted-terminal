@@ -30,6 +30,7 @@ import { join, resolve } from "node:path";
 import { platform } from "node:os";
 
 import { isStale } from "./sidecar-staleness.mjs";
+import { signDevBinary } from "./macos-dev-sign.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const SUBPROCESS_DIR = join(ROOT, "sidecar", "openbb_mcp_subprocess");
@@ -178,6 +179,7 @@ run(
 const built = join(distDir, isWin ? "vysted-openbb-mcp-sidecar.exe" : "vysted-openbb-mcp-sidecar");
 copyWithRetry(built, outPath);
 console.log(`[ensure-openbb-mcp-sidecar] wrote ${outPath}`);
+signDevBinary(outPath, "com.vysted.openbb-mcp-sidecar");
 
 // 5. Tidy PyInstaller scratch directories.
 rmSync(buildDir, { recursive: true, force: true });

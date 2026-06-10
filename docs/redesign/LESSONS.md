@@ -15,6 +15,12 @@ Consulted before each phase; appended as the run learns.
 
 ## Learned during R8
 
+- `codesign --force` on a RUNNING executable fails (text file busy) — any "sign it after
+  launch" watcher is structurally broken and fails silently. The only reliable dev-signing
+  point is between build and exec: a cargo `runner` (src-tauri/.cargo/config.toml →
+  scripts/macos-dev-sign-run.sh) signs-then-execs every dev binary. Cargo discovers
+  `.cargo/config.toml` from the INVOCATION cwd, so the runner applies to the Tauri CLI
+  (cargo from src-tauri/) but not to repo-root `cargo test --manifest-path` (CI untouched).
 - THE BRIDGE-WEDGE ROOT CAUSE: touching the tauri-mcp socket while the webview is still
   booting wedges the debug server PERMANENTLY for that app instance (requests then hang —
   even list_windows). Recipe that works: launch → wait for the "Bridge already initialized"
