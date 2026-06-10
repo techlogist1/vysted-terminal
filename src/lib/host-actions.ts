@@ -436,6 +436,24 @@ function num(input: Record<string, unknown>, key: string): number {
 }
 
 /**
+ * Find an OPEN dockview panel for a resolved token — by its registered id
+ * first, then by component (robust to a legacy generated id like `chart-<id>`
+ * from a pre-singleton workspace blob). Null when the panel is not on screen
+ * (or the layout has not mounted yet).
+ */
+function findOpenPanel(resolved: { id: string; component: string }) {
+  const api = useWorkspaceStore.getState().dockviewApi;
+  if (!api) {
+    return null;
+  }
+  return (
+    api.getPanel(resolved.id) ??
+    api.panels.find((p) => p.api.component === resolved.component) ??
+    null
+  );
+}
+
+/**
  * Which symbol-aware command channel an `open_panel` target consumes, if any.
  * Resolved through the same alias-tolerant token map arrange uses, so
  * "overview" / "equity" route like "equity-overview" does. Panels with no
@@ -646,8 +664,14 @@ export function describeHostAction(
 
 /**
  * Apply a non-order host-action mutation to the live stores. Returns a short
- * label, or `null` if it couldn't apply. Orders are NOT applied here — they
- * route through `routeOrderProposal` → the §6.5 dialog.
+ * TRUTHFUL label describing what actually happened, or `null` if it could not
+ * apply — the proposed-changes gate re-pends a null and surfaces the failure,
+ * so chat/proposal narration never claims an action that did not land
+ * (grounded narration, R8 seams deliverable 5). No branch may return a
+ * success label without having done (or verified) the work: an unknown panel
+ * id, a panel that failed to open, or incomplete arguments all return null.
+ * Orders are NOT applied here — they route through `routeOrderProposal` →
+ * the §6.5 dialog.
  */
 export function applyHostAction(name: string, input: Record<string, unknown>): string | null {
   const symbol = str(input, "symbol");
@@ -678,6 +702,15 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
       if (!panel) {
         return null;
       }
+      // Resolve through the alias-tolerant token map (the same one arrange
+      // uses) so "screener" opens the registered "screener-panel" instead of
+      // silently no-opping — the id-drift class the screener fix documented.
+      // An UNRESOLVABLE token returns null: an honest "could not apply" beats
+      // a fake "Opened X" (grounded narration).
+      const resolved = resolvePanelToken(panel);
+      if (!resolved) {
+        return null;
+      }
       // Symbol-aware open (the "opened equity-overview WITHOUT the requested
       // symbol" fix): when the agent passes `symbol` for a panel that consumes
       // one, route it through the existing always-consumed command channels —
@@ -694,31 +727,56 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
         loadSymbolIntoChart(symbol);
         return `Opened ${panelLabel(panel)} — ${symbol}`;
       }
-      useWorkspaceStore.getState().openPanel(panel);
+      const ws = useWorkspaceStore.getState();
+      ws.openPanel(resolved.id);
+      // Verify the open actually landed when a live layout is on screen — a
+      // disabled module (findPanel miss) used to no-op while this still
+      // claimed "Opened". With no api yet (pre-mount) the claim is left
+      // optimistic; a mounted cockpit is the only place proposals apply.
+      if (ws.dockviewApi && !findOpenPanel(resolved)) {
+        return null;
+      }
       return `Opened ${panelLabel(panel)}`;
     }
     case "close_panel": {
       const panel = str(input, "panel");
-      if (panel) {
-        useWorkspaceStore.getState().closePanel(panel);
-        return `Closed ${panelLabel(panel)}`;
+      if (!panel) {
+        return null;
       }
-      return null;
+      const resolved = resolvePanelToken(panel);
+      if (!resolved) {
+        return null; // unknown panel id — never narrate a fake "Closed"
+      }
+      const target = findOpenPanel(resolved);
+      if (!target) {
+        // Truthful idempotent no-op: the desired end state already holds.
+        return `${panelLabel(panel)} was already closed`;
+      }
+      target.api.close();
+      return `Closed ${panelLabel(panel)}`;
     }
     case "focus_panel": {
       const panel = str(input, "panel");
       if (!panel) {
         return null;
       }
-      const ws = useWorkspaceStore.getState();
-      const target = ws.dockviewApi?.getPanel(panel);
+      const resolved = resolvePanelToken(panel);
+      if (!resolved) {
+        return null; // unknown panel id — honest failure
+      }
+      const target = findOpenPanel(resolved);
       if (target) {
         target.api.setActive();
-      } else {
-        // Not open yet — opening a singleton focuses it.
-        ws.openPanel(panel);
+        return `Focused ${panelLabel(panel)}`;
       }
-      return `Focused ${panelLabel(panel)}`;
+      // Not open yet — opening a singleton focuses it. Verify it landed so a
+      // disabled module never narrates a focus that did not happen.
+      const ws = useWorkspaceStore.getState();
+      ws.openPanel(resolved.id);
+      if (ws.dockviewApi && !findOpenPanel(resolved)) {
+        return null;
+      }
+      return `Opened and focused ${panelLabel(panel)}`;
     }
     case "arrange_layout": {
       const ws = useWorkspaceStore.getState();

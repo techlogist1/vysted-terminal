@@ -1097,6 +1097,34 @@ async def test_non_reasoner_reconstructed_turn_stays_empty(
 
 
 @pytest.mark.asyncio
+async def test_dispatch_unknown_tool_returns_relayable_error() -> None:
+    """Grounded narration (R8 seams): a tool call to an unknown/disallowed tool
+    id returns a structured, RELAYABLE error result — the model can narrate the
+    failure honestly ("that tool isn't available") instead of crashing the
+    stream or silently no-opping."""
+    event = LLMToolUseEvent(tool_call_id="call-bad", name="open_wormhole", input={})
+    result = json.loads(await agent_runtime._dispatch_tool(event))
+    assert result["ok"] is False
+    assert "open_wormhole" in result["error"]
+    assert "not available" in result["error"]
+
+
+@pytest.mark.asyncio
+async def test_dispatch_handler_exception_returns_relayable_error() -> None:
+    """A handler that raises surfaces a structured error keyed to the tool name
+    so the model recovers next round — never an unhandled exception."""
+
+    async def _boom(_args: dict[str, Any]) -> dict[str, Any]:
+        raise RuntimeError("upstream exploded")
+
+    event = LLMToolUseEvent(tool_call_id="call-x", name="fragile_tool", input={})
+    result = json.loads(await agent_runtime._dispatch_tool(event, {"fragile_tool": _boom}))
+    assert result["ok"] is False
+    assert "fragile_tool" in result["error"]
+    assert "upstream exploded" in result["error"]
+
+
+@pytest.mark.asyncio
 async def test_invalid_args_sentinel_dispatches_graceful_error_not_empty() -> None:
     """WS8 Step 1: a tool call the adapter could not repair carries the
     INVALID_ARGS_SENTINEL; _dispatch_tool surfaces the structured error keyed on
