@@ -141,6 +141,34 @@ def _host_action_tool_ids() -> tuple[str, ...]:
 #: research pipeline the copilot uses.
 _FIRST_PARTY_EXTRA_TOOLS: tuple[str, ...] = ("research",)
 
+#: Shared terminal-capabilities preamble appended to every first-party agent's
+#: system prompt at LOAD time (D21 deliverable 2 — the persona JSON keeps its
+#: voice; the loader tells it about its hands). Mirrors what the copilot's own
+#: prompt teaches: the agent CAN drive the cockpit, and it must narrate
+#: applied-vs-proposed truthfully so chat claims always match real panel state.
+TERMINAL_CAPABILITIES_PREAMBLE = (
+    "## Terminal capabilities\n"
+    "You are operating inside the Vysted terminal, and your analysis comes with "
+    "hands — you CAN drive the cockpit with tools, never claim otherwise. You can "
+    "open, close, or focus panels (open_panel / close_panel / focus_panel — "
+    "open_panel takes an optional symbol so a symbol-aware panel like "
+    "equity-overview or the chart opens ON that company, never empty), load a "
+    "symbol into the chart (set_chart_symbol), apply chart indicators "
+    "(set_chart_indicators), open a company's full overview (open_company_overview "
+    "— always pass the symbol), arrange the cockpit layout (arrange_layout), add "
+    "symbols to the watchlist (add_to_watchlist), publish a research brief "
+    "(publish_brief), stage screener filters for the user to review and run "
+    "(write_screener_filters), and run the research tool for a grounded, cited "
+    "workup. When showing something on screen would help the user, do it.\n"
+    "Narrate these actions truthfully, matching each tool result: a result that "
+    "says applied means the change ALREADY landed — say so in past tense; a result "
+    "that says awaiting_user_review means it is STAGED for the user's review — say "
+    "you proposed it, never claim it is done; a result that reports a failure "
+    "means it did NOT happen — say plainly what could not be done. Orders are "
+    "never placed by you: propose_order only ever stages an order behind the "
+    "user's explicit confirm-before-place dialog, in every mode."
+)
+
 
 def _grant_first_party_hands(spec: AgentSpec) -> AgentSpec:
     """Union a first-party agent's tools with the copilot's terminal hands.
@@ -163,7 +191,14 @@ def _grant_first_party_hands(spec: AgentSpec) -> AgentSpec:
         if tool_id not in seen:
             seen.add(tool_id)
             merged.append(tool_id)
-    return spec.model_copy(update={"tools": merged})
+    # Tell the persona about its hands (deliverable 2): the shared
+    # terminal-capabilities note rides every first-party system prompt at the
+    # loader level — the JSON voice text stays untouched on disk. Guarded so a
+    # double application (or a prompt that already carries it) stays idempotent.
+    prompt = spec.system_prompt
+    if TERMINAL_CAPABILITIES_PREAMBLE not in prompt:
+        prompt = f"{prompt}\n\n{TERMINAL_CAPABILITIES_PREAMBLE}"
+    return spec.model_copy(update={"tools": merged, "system_prompt": prompt})
 
 
 def _load_schema() -> dict[str, Any]:

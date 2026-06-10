@@ -220,6 +220,40 @@ def test_every_agent_json_tool_id_resolves_to_a_catalog_capability() -> None:
         assert unresolved == [], f"{path.name}: unresolvable tool ids {unresolved}"
 
 
+def test_loader_appends_terminal_capabilities_preamble_to_every_first_party_prompt() -> None:
+    """D21 deliverable 2: every first-party agent's EFFECTIVE system prompt
+    carries the shared terminal-capabilities note (it knows its hands and the
+    truthful applied-vs-proposed narration rule) — appended at the LOADER
+    level, exactly once."""
+    agent_runtime.reload()
+    for spec in agent_runtime.list_agents():
+        assert agent_runtime.TERMINAL_CAPABILITIES_PREAMBLE in spec.system_prompt, (
+            f"{spec.id}: system prompt missing the terminal-capabilities preamble"
+        )
+        assert spec.system_prompt.count("## Terminal capabilities") == 1, (
+            f"{spec.id}: the capabilities preamble must appear exactly once"
+        )
+        # The voice text still LEADS the prompt; the preamble is an appendix.
+        assert not spec.system_prompt.startswith("## Terminal capabilities")
+
+
+def test_capabilities_preamble_is_loader_level_not_in_the_json_files() -> None:
+    """The persona JSON files keep their voice — the preamble never leaks onto
+    disk (per-JSON edits are exactly what D21 forbids)."""
+    for path in sorted(agent_runtime.AGENTS_DIR.glob("*.json")):
+        if path.name.startswith("_"):
+            continue
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        assert "## Terminal capabilities" not in payload["systemPrompt"], (
+            f"{path.name}: the loader-level preamble leaked into the JSON file"
+        )
+    # And graham's voice/specialty JSON is byte-level intact on the seams the
+    # operator evidence named: voice tools only, no host actions on disk.
+    graham = json.loads((agent_runtime.AGENTS_DIR / "graham.json").read_text(encoding="utf-8"))
+    assert graham["tools"] == ["price_data", "fundamentals", "news"]
+    assert "Mr. Market" in graham["systemPrompt"]
+
+
 def test_custom_agents_are_not_unioned_with_host_actions(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
