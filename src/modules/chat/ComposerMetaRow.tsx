@@ -4,6 +4,7 @@ import { Fragment, type ReactNode, useCallback, useEffect, useRef, useState } fr
 import { motion, useReducedMotion } from "framer-motion";
 import { Bot, Cpu, Ellipsis, Eye, RefreshCw, Timer } from "lucide-react";
 
+import { formatModelLabel } from "@/components/StatusChrome";
 import { buildModelGroups, modelOptionLabel } from "@/lib/model-options";
 import { DUR, tween } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -602,10 +603,13 @@ export function ComposerMetaRow({
 
   const autonomy = <AutonomySegments />;
 
+  // The chip shows the DESIGNED short form (law §3.1 — formatter, not CSS
+  // truncation); the tooltip and the popover rows carry the exact ids.
   const modelTitle = catalogNote ?? `${providerLabel} · ${model}`;
+  const shortModel = formatModelLabel(model);
   const modelText = model.toLowerCase().startsWith(provider.toLowerCase())
-    ? model
-    : `${providerLabel} · ${model}`;
+    ? shortModel
+    : `${providerLabel} · ${shortModel}`;
 
   /* Model chip → provider · model popover (capability pips + refresh).
      Shrinkable with a floor so the one-row meta strip fits the dock. */
