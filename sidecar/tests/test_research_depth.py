@@ -352,23 +352,27 @@ def test_citations_are_tier_ranked_for_synthesis() -> None:
     assert web_urls[0] == "https://www.sec.gov/filing/tinyco-10k"
 
 
-def test_composer_slider_depth_is_the_request_default() -> None:
-    """options.research_depth (the slider) routes a depth-less research call.
-
-    The model passing an explicit depth still wins; clearing the ContextVar
-    restores the NORMAL floor. Wired via config.set_request_research_depth in
-    agent_runtime → services/agent_tools/research.py.
-    """
-    import config as app_config
+def _resolve_depth(model_arg, slider) -> str:
+    """Mirror the max-tier precedence in services/agent_tools/research.py."""
     from services.research import depth as depth_mod
 
-    token = app_config.set_request_research_depth("ultra")
-    try:
-        assert depth_mod.normalize_depth(None or app_config.get_request_research_depth()) == "ultra"
-        # explicit model arg wins over the slider default
-        assert (
-            depth_mod.normalize_depth("deep" or app_config.get_request_research_depth()) == "deep"
-        )
-    finally:
-        app_config._research_depth_ctx.reset(token)
-    assert depth_mod.normalize_depth(None or app_config.get_request_research_depth()) == "normal"
+    rank = {depth_mod.DEPTH_NORMAL: 0, depth_mod.DEPTH_DEEP: 1, depth_mod.DEPTH_ULTRA: 2}
+    m = depth_mod.normalize_depth(model_arg)
+    sl = depth_mod.normalize_depth(slider)
+    return m if rank[m] >= rank[sl] else sl
+
+
+def test_composer_slider_is_the_floor_model_may_escalate() -> None:
+    """The slider (request default) is a FLOOR; the model may escalate above it,
+    but a model schema-default never silently demotes the user's slider — the
+    seam fix for the slider being overridden by the model filling depth=normal.
+    """
+    # slider=deep, model omits/defaults to normal → deep wins (slider respected).
+    assert _resolve_depth(None, "deep") == "deep"
+    assert _resolve_depth("normal", "deep") == "deep"
+    # slider=normal, model escalates to ultra ("go all out") → ultra wins.
+    assert _resolve_depth("ultra", "normal") == "ultra"
+    # slider=ultra, model normal → ultra (never demote).
+    assert _resolve_depth("normal", "ultra") == "ultra"
+    # both normal → normal.
+    assert _resolve_depth(None, None) == "normal"

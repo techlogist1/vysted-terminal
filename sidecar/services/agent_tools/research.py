@@ -55,9 +55,15 @@ async def _research(args: dict[str, Any]) -> dict[str, Any]:
     import config as app_config
     from services.research import depth as depth_mod
 
-    # Model-passed depth wins; otherwise the composer slider's request-level
-    # default (R7); otherwise normalize_depth floors to NORMAL.
-    depth = depth_mod.normalize_depth(args.get("depth") or app_config.get_request_research_depth())
+    # The composer slider (request default) is the user's explicit FLOOR; the
+    # model may ESCALATE above it (the deterministic "go deeper" path) but never
+    # silently demote it. So take the MAX tier of (model arg, slider) — this
+    # fixes the slider being overridden by the model filling the schema's
+    # default depth arg (R7 seam: `args or ctxvar` let "normal" beat "deep").
+    _RANK = {depth_mod.DEPTH_NORMAL: 0, depth_mod.DEPTH_DEEP: 1, depth_mod.DEPTH_ULTRA: 2}
+    _model_depth = depth_mod.normalize_depth(args.get("depth"))
+    _slider_depth = depth_mod.normalize_depth(app_config.get_request_research_depth())
+    depth = _model_depth if _RANK[_model_depth] >= _RANK[_slider_depth] else _slider_depth
 
     if depth in (depth_mod.DEPTH_DEEP, depth_mod.DEPTH_ULTRA):
         from services.agent_tools.deep_research import run_deep_brief
