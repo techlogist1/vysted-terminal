@@ -670,3 +670,28 @@ describe("briefFromInput backend carry (R9 gate 2)", () => {
     expect(useBriefStore.getState().brief?.backend).toBeUndefined();
   });
 });
+
+describe("briefFromInput backend carry — symbol-less Tier B predecessor", () => {
+  it("carries the research-model id from a recent symbol-less auto-publish", () => {
+    useBriefStore.setState({
+      brief: {
+        query: "hdfc bank",
+        symbol: "",
+        mode: "FAST",
+        depth: "quick",
+        markdown: "## brief",
+        sources: [],
+        sourceCount: 0,
+        webAvailable: true,
+        backend: "research-model:perplexity/sonar",
+        createdAt: Date.now() - 5_000,
+      } as never,
+    });
+    applyHostAction("publish_brief", {
+      symbol: "HDFCBANK.NS",
+      markdown: "## HDFC Bank\nProse.",
+      sources: [],
+    });
+    expect(useBriefStore.getState().brief?.backend).toBe("research-model:perplexity/sonar");
+  });
+});

@@ -182,7 +182,11 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
   // cross-symbol contamination window 6x (AAPL then MSFT within seconds).
   const prevRecent =
     typeof prevBrief?.createdAt === "number" && Date.now() - prevBrief.createdAt < 20_000;
-  const sameTurnCarry = prevSameSymbol || (!symbol && prevRecent);
+  // Same turn ⟺ same symbol, OR one side lacks a symbol within the recency
+  // window: the model often omits the symbol on its re-publish, and the Tier B
+  // research-model lane publishes symbol-less (the model owns retrieval) — in
+  // both shapes the recent predecessor is this same research turn.
+  const sameTurnCarry = prevSameSymbol || ((!symbol || !prevBrief?.symbol) && prevRecent);
   if (!structured && prevBrief?.structured && sameTurnCarry) {
     structured = prevBrief.structured;
   }
