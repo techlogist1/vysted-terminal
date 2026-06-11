@@ -142,3 +142,5 @@ canvas heights carry `tokens-ok` layout justifications.
 | `e4f1ec9` | tradesa-v2 (all components)                 |
 | `c78235c` | chore: prettier over pre-existing doc warns |
 | `de48fca` | quant date inset + capture pack             |
+| `a65d9c6` | fix round: quant dates full-row (the inset  |
+|           | was not enough) + refreshed quant captures  |
