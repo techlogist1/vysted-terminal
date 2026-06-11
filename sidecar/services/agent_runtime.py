@@ -125,27 +125,11 @@ SCHEMA_PATH = AGENTS_DIR / "_schema.json"
 _RESERVED = {"_schema.json"}
 
 
-def _host_action_tool_ids() -> tuple[str, ...]:
-    """Every host-action capability id, PROJECTED from the catalog.
-
-    Constitution Principle II: the capability catalog is the one source of
-    truth — this is a projection (``kind == "host_action"``), never a
-    hand-maintained list, so a new host action reaches the whole first-party
-    roster the moment it lands in the catalog.
-    """
-    return tuple(c.id for c in catalog.CAPABILITY_CATALOG.values() if c.kind == "host_action")
-
-
-#: Non-host-action tools every first-party agent also gets (D21): the ONE
-#: research capability, so a persona can ground its lens in the same cited
-#: research pipeline the copilot uses.
-_FIRST_PARTY_EXTRA_TOOLS: tuple[str, ...] = ("research",)
-
 #: Shared terminal-capabilities preamble appended to every first-party agent's
 #: system prompt at LOAD time (D21 deliverable 2 — the persona JSON keeps its
 #: voice; the loader tells it about its hands). Mirrors what the copilot's own
 #: prompt teaches: the agent CAN drive the cockpit, and it must narrate
-#: applied-vs-proposed truthfully so chat claims always match real panel state.
+#: dispatched-vs-proposed truthfully so chat claims always match real panel state.
 TERMINAL_CAPABILITIES_PREAMBLE = (
     "## Terminal capabilities\n"
     "You are operating inside the Vysted terminal, and your analysis comes with "
@@ -156,13 +140,20 @@ TERMINAL_CAPABILITIES_PREAMBLE = (
     "symbol into the chart (set_chart_symbol), apply chart indicators "
     "(set_chart_indicators), open a company's full overview (open_company_overview "
     "— always pass the symbol), arrange the cockpit layout (arrange_layout), add "
-    "symbols to the watchlist (add_to_watchlist), publish a research brief "
-    "(publish_brief), stage screener filters for the user to review and run "
-    "(write_screener_filters), and run the research tool for a grounded, cited "
-    "workup. When showing something on screen would help the user, do it.\n"
+    "or remove watchlist symbols (add_to_watchlist / remove_from_watchlist), "
+    "publish a research brief (publish_brief), stage screener filters for the "
+    "user to review and run (write_screener_filters), save a screen or the "
+    "layout (save_screen / save_layout), maintain the user's LOCAL paper "
+    "portfolio (portfolio_add_position / portfolio_update_position / "
+    "portfolio_delete_position — a tracking ledger, never a broker order), "
+    "write notes (write_note), switch the market region (set_region), and run "
+    "the research tool for a grounded, cited workup. When showing something on "
+    "screen would help the user, do it.\n"
     "Narrate these actions truthfully, matching each tool result: a result that "
-    "says applied means the change ALREADY landed — say so in past tense; a result "
-    "that says awaiting_user_review means it is STAGED for the user's review — say "
+    "says dispatched means the action was SENT to the panel — verify with "
+    "get_terminal_state before claiming completion (panel state is "
+    "authoritative, never your tool call); a result that says "
+    "awaiting_user_review means it is STAGED for the user's review — say "
     "you proposed it, never claim it is done; a result that reports a failure "
     "means it did NOT happen — say plainly what could not be done. Orders are "
     "never placed by you: propose_order only ever stages an order behind the "
@@ -171,14 +162,17 @@ TERMINAL_CAPABILITIES_PREAMBLE = (
 
 
 def _grant_first_party_hands(spec: AgentSpec) -> AgentSpec:
-    """Union a first-party agent's tools with the copilot's terminal hands.
+    """Union a first-party agent's tools with the catalog's default grant.
 
-    Lead decision D21 (locked): persona = voice + analytical style ONLY. The
-    JSON files keep each persona's voice/specialty tools; at LOAD time every
-    first-party agent's effective allow-list is unioned with the catalog's
-    host-action ids (projected above) plus the ``research`` tool — so a
-    persona never again declares "I don't have the ability to open panels"
-    while the copilot drives the terminal freely.
+    Lead decision D21 (locked) + R10 E5: persona = voice + analytical style
+    ONLY. The JSON files keep each persona's voice/specialty tools; at LOAD
+    time every first-party agent's effective allow-list is unioned with the
+    catalog's :func:`~services.agent_tools.catalog.default_grant_tool_ids`
+    projection — the FULL internal capability set, not a hand-picked
+    host-actions+research slice — so correctness never again depends on an
+    agent JSON staying in sync with the catalog (the E5 "I don't have a
+    backtesting tool" drift). Custom agents (the agents_store fallback in
+    :func:`get_agent`) are NOT unioned; their authors pick tools.
 
     §6.5 is untouched: this widens the ALLOW-list only. ``propose_order``
     still rides the proposed-changes gate and the confirm-before-place dialog
@@ -187,7 +181,7 @@ def _grant_first_party_hands(spec: AgentSpec) -> AgentSpec:
     """
     merged = list(spec.tools)
     seen = set(merged)
-    for tool_id in (*_host_action_tool_ids(), *_FIRST_PARTY_EXTRA_TOOLS):
+    for tool_id in catalog.default_grant_tool_ids():
         if tool_id not in seen:
             seen.add(tool_id)
             merged.append(tool_id)
