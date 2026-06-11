@@ -577,7 +577,7 @@ function MetricsBlock({ model }: { model: MetricsModel }) {
           {model.items.map((item) => (
             <div
               key={item.label}
-              className="bg-charcoal-925 flex min-w-0 flex-col gap-0.5 px-3 py-2"
+              className={`bg-charcoal-925 flex min-w-0 flex-col gap-0.5 px-3 py-2 ${/range/i.test(item.label) ? "col-span-2" : ""}`}
             >
               <span className="hud-label">{item.label}</span>
               <span
