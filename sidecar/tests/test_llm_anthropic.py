@@ -241,3 +241,70 @@ async def test_validate_key_false_on_auth_error(monkeypatch: pytest.MonkeyPatch)
     _patch_client(monkeypatch, models=_FakeModels(raise_error=err))
     provider = AnthropicProvider()
     assert await provider.validate_key("sk-bad") is False
+
+
+# ---------------------------------------------------------------------------
+# E9 humanized error frame — adapter contract pins
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_error_event_carries_humanized_fields(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Error events must include action/detail/code (the E9 contract).
+
+    A 401 SDK error from Anthropic should produce a humanized frame — not raw
+    JSON — with code='auth', a non-empty action, and the raw exception text in
+    detail.
+    """
+
+    class _FakeMessages401:
+        def stream(self, **_: Any) -> Any:
+            err = anthropic.AuthenticationError.__new__(anthropic.AuthenticationError)
+            Exception.__init__(err, "Error code: 401 - Invalid API key")
+            raise err
+
+    class _FailingClient401:
+        def __init__(self, **_: Any) -> None:
+            self.messages = _FakeMessages401()
+            self.models = _FakeModels()
+
+    monkeypatch.setattr(anthropic, "AsyncAnthropic", lambda **_: _FailingClient401())
+    provider = AnthropicProvider()
+    out: list[Any] = []
+    async for event in provider.stream_chat(
+        messages=[LLMMessage(role="user", content="hi")],
+        model="claude-opus-4-7",
+        api_key="sk-test",
+    ):
+        out.append(event)
+
+    error_events = [e for e in out if e.kind == "error"]
+    assert error_events, "expected at least one error event"
+    err_event = error_events[0]
+    # The E9 contract: message must not be raw JSON, code/action must be set.
+    assert err_event.code == "auth", f"expected code='auth', got {err_event.code!r}"
+    assert err_event.action is not None, "action must be populated for auth errors"
+    assert "Anthropic" in err_event.message, "provider label must appear in message"
+    assert "json" not in err_event.message.lower() or "Error code:" not in err_event.message
+
+
+@pytest.mark.asyncio
+async def test_llm_error_event_model_dump_includes_all_fields(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """LLMErrorEvent.model_dump() must carry action/detail/code so the SSE
+    encoder (routers/agents.py:86, routers/llm.py:94) streams them correctly."""
+    from models.llm import LLMErrorEvent
+
+    event = LLMErrorEvent(
+        message="Your Anthropic API key was rejected.",
+        action="Re-enter the API key in Settings.",
+        detail="Error code: 401 - invalid key",
+        code="auth",
+    )
+    dumped = event.model_dump()
+    assert dumped["kind"] == "error"
+    assert dumped["message"] == "Your Anthropic API key was rejected."
+    assert dumped["action"] == "Re-enter the API key in Settings."
+    assert dumped["detail"] == "Error code: 401 - invalid key"
+    assert dumped["code"] == "auth"

@@ -180,3 +180,39 @@ async def test_validate_key_false_when_no_key(monkeypatch: pytest.MonkeyPatch) -
     _patch_client(monkeypatch)
     provider = GeminiProvider()
     assert await provider.validate_key(None) is False
+
+
+# ---------------------------------------------------------------------------
+# E9 humanized error frame — adapter contract pins (Gemini)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_error_event_carries_humanized_fields(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Gemini error events must carry code/action/detail (E9 contract)."""
+    from google.genai import errors as genai_errors
+
+    class _Failing401(_FakeAioModels):
+        async def generate_content_stream(self, **_: Any) -> AsyncIterator[Any]:
+            raise genai_errors.APIError(401, {"error": {"message": "API key invalid"}})
+
+    class _FailingClient401:
+        def __init__(self, **_: Any) -> None:
+            self.aio = _FakeAio(_Failing401([]))
+
+    monkeypatch.setattr(genai, "Client", lambda **kw: _FailingClient401(**kw))
+    provider = GeminiProvider()
+    out: list[Any] = []
+    async for event in provider.stream_chat(
+        messages=[LLMMessage(role="user", content="hi")],
+        model="gemini-2.5-pro",
+        api_key="key",
+    ):
+        out.append(event)
+
+    error_events = [e for e in out if e.kind == "error"]
+    assert error_events, "expected at least one error event"
+    err_event = error_events[0]
+    assert err_event.code == "auth", f"expected code='auth', got {err_event.code!r}"
+    assert err_event.action is not None, "action must be populated for auth errors"
+    assert "Google Gemini" in err_event.message

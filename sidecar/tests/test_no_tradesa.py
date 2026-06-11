@@ -1,13 +1,24 @@
 """Guard test: verifies Tradesa V2 has been fully removed from the codebase.
 
 Two concerns:
-1. NEGATIVE: no Python/TS/config file in the repo still imports, routes, or
-   references tradesa in code (doc strings in docs/ and CHANGELOG are exempt).
-2. POSITIVE: the plugin discovery path used by plugin-bootstrap still loads
-   at least five plugins via the sidecar ``/plugins`` endpoint contract.
+1. NEGATIVE: no Python/TS/config/requirements file in the repo still imports,
+   routes, or references tradesa in code (docs/ and CHANGELOG are exempt).
+2. POSITIVE: at least five plugin manifests survive in the plugins/ directory
+   (tradesa-v2 manifest absent, plugin directory count still healthy).
 
-The positive check uses the same registry / store logic the host calls at
-boot — it proves the plugin SYSTEM still works after the strip.
+Note: the positive check is a manifest-file census — it reads
+``plugins/*/manifest.json`` and ``plugins/brokers/*/manifest.json`` to count
+distinct plugin ids. It does NOT import the app or exercise the Python plugin
+store at runtime (which would require a live sidecar). The purpose is to
+confirm the plugins/ filesystem is intact after E11 removal, not to exercise
+the sidecar's in-process plugin registration path.
+
+Files legitimately retaining "tradesa" and WHY (surfaced for lead sign-off):
+  - types/plugin.ts (Tier-1 locked contract; tradesa-* example ids in JSDoc)
+  - sidecar/services/audit_log.py (§6.5 safety file; never touched per brief)
+  - src/lib/workspace.test.ts (R10 lines 273/278 — handoff to Team FRONTEND-BRIEF)
+  These are listed in EXEMPT_REL_PATHS below and verified by the grep evidence
+  in docs/redesign/R10_TRACK_ERRORS_REPORT.md.
 """
 
 from __future__ import annotations
@@ -22,7 +33,7 @@ from pathlib import Path
 # The worktree root — the single working copy we own. Staying within
 # the worktree (not the shared parent repo dir) ensures we don't scan
 # other worktrees that still have tradesa as pre-R10 state.
-WORKTREE_ROOT = Path(__file__).resolve().parents[2]  # …/wf_3d774b10-8d4-6
+WORKTREE_ROOT = Path(__file__).resolve().parents[2]
 
 # The canonical repo root (for the manifest discovery in the positive check).
 REPO_ROOT = WORKTREE_ROOT
@@ -61,9 +72,14 @@ def _is_exempt(path: Path) -> bool:
 
 
 def _code_files():
-    """Yield all .py/.ts/.tsx/.json/.rs/.toml/.mjs files in the worktree,
-    skipping node_modules, .git, __pycache__, .venv, dist, .next."""
-    suffixes = {".py", ".ts", ".tsx", ".json", ".rs", ".toml", ".mjs"}
+    """Yield all .py/.ts/.tsx/.json/.rs/.toml/.mjs/.txt files in the worktree,
+    skipping node_modules, .git, __pycache__, .venv, dist, .next.
+
+    .txt is included so sidecar/requirements.txt tradesa comment regressions are
+    caught (the supabase-only-for-tradesa comment that survived E11 until caught
+    in the R10 adversarial review).
+    """
+    suffixes = {".py", ".ts", ".tsx", ".json", ".rs", ".toml", ".mjs", ".txt"}
     for root, dirs, files in os.walk(WORKTREE_ROOT):
         # Prune directories in-place to skip hidden/build/cache dirs.
         dirs[:] = [

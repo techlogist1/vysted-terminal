@@ -92,3 +92,47 @@ async def test_validate_key_false_when_daemon_unreachable(monkeypatch: pytest.Mo
     _patch(monkeypatch, list_raises=RuntimeError("connection refused"))
     provider = OllamaProvider()
     assert await provider.validate_key(None) is False
+
+
+# ---------------------------------------------------------------------------
+# E9 humanized error frame — adapter contract pins (Ollama)
+# ---------------------------------------------------------------------------
+
+
+class _FailingAsyncClient:
+    """Raises a connection error on chat, simulating Ollama daemon unreachable."""
+
+    def __init__(self, **_: Any) -> None:
+        pass
+
+    async def chat(self, **_: Any) -> Any:
+        class _ConnErr(Exception):
+            pass
+
+        raise _ConnErr("connection refused by ollama daemon")
+
+    async def list(self) -> Any:
+        return {"models": []}
+
+
+@pytest.mark.asyncio
+async def test_error_event_carries_humanized_fields(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Ollama error events must carry code/action/detail (E9 contract).
+
+    A connection error should yield a humanized network frame with code='network'.
+    """
+    monkeypatch.setattr(ollama, "AsyncClient", lambda **_: _FailingAsyncClient())
+    provider = OllamaProvider()
+    out: list[Any] = []
+    async for event in provider.stream_chat(
+        messages=[LLMMessage(role="user", content="hi")],
+        model="llama3.1:8b",
+    ):
+        out.append(event)
+
+    error_events = [e for e in out if e.kind == "error"]
+    assert error_events, "expected at least one error event"
+    err_event = error_events[0]
+    assert err_event.code == "network", f"expected network, got {err_event.code!r}"
+    assert err_event.action is not None
+    assert "Ollama" in err_event.message

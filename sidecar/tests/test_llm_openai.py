@@ -258,6 +258,49 @@ async def test_validate_key_false_on_auth_error(monkeypatch: pytest.MonkeyPatch)
 
 
 # ---------------------------------------------------------------------------
+# E9 humanized error frame — adapter contract pins (OpenAI)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_error_event_carries_humanized_fields(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Error events must include action/detail/code (the E9 contract).
+
+    A 402 error from OpenAI should produce a humanized frame with no raw JSON in
+    message, code='provider_402', and a non-empty action.
+    """
+
+    class _Failing402:
+        async def create(self, **_: Any) -> Any:
+            raise Exception("Error code: 402 - Insufficient funds")
+
+    class _FakeChat:
+        completions = _Failing402()
+
+    class _FailingClient402:
+        def __init__(self, **_: Any) -> None:
+            self.chat = _FakeChat()
+            self.models = _FakeModels()
+
+    monkeypatch.setattr(openai, "AsyncOpenAI", lambda **_: _FailingClient402())
+    provider = OpenAIProvider()
+    out: list[Any] = []
+    async for event in provider.stream_chat(
+        messages=[LLMMessage(role="user", content="hi")],
+        model="gpt-4.1-mini",
+        api_key="sk-test",
+    ):
+        out.append(event)
+
+    error_events = [e for e in out if e.kind == "error"]
+    assert error_events, "expected at least one error event"
+    err_event = error_events[0]
+    assert err_event.code == "provider_402", f"expected provider_402, got {err_event.code!r}"
+    assert err_event.action is not None, "action must be populated for payment errors"
+    assert "Error code:" not in err_event.message, "raw SDK error must not appear in message"
+
+
+# ---------------------------------------------------------------------------
 # DeepSeek + xAI dispatch (factory wires base_url correctly)
 # ---------------------------------------------------------------------------
 

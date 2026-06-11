@@ -139,3 +139,43 @@ async def test_validate_key_false_on_auth_error(monkeypatch: pytest.MonkeyPatch)
     _patch(monkeypatch, models=_FakeModels(raise_error=err))
     provider = GroqProvider()
     assert await provider.validate_key("bad") is False
+
+
+# ---------------------------------------------------------------------------
+# E9 humanized error frame — adapter contract pins (Groq)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_error_event_carries_humanized_fields(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Groq error events must carry code/action/detail (E9 contract).
+
+    A 429 rate-limit from Groq should produce a humanized frame with
+    code='rate_limit' and no raw SDK text in message.
+    """
+
+    class _FakeCompletions429:
+        async def create(self, **_: Any) -> Any:
+            raise Exception("Error code: 429 - Rate limit exceeded")
+
+    class _FakeGroq429:
+        def __init__(self, **_: Any) -> None:
+            self.chat = type("_C", (), {"completions": _FakeCompletions429()})()
+            self.models = _FakeModels()
+
+    monkeypatch.setattr(groq, "AsyncGroq", lambda **_: _FakeGroq429())
+    provider = GroqProvider()
+    out: list[Any] = []
+    async for event in provider.stream_chat(
+        messages=[LLMMessage(role="user", content="hi")],
+        model="llama3-8b-8192",
+        api_key="gsk-test",
+    ):
+        out.append(event)
+
+    error_events = [e for e in out if e.kind == "error"]
+    assert error_events, "expected at least one error event"
+    err_event = error_events[0]
+    assert err_event.code == "rate_limit", f"expected rate_limit, got {err_event.code!r}"
+    assert err_event.action is not None
+    assert "Error code:" not in err_event.message

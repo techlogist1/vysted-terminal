@@ -115,6 +115,15 @@ def humanize(
             if isinstance(val, int) and 100 <= val < 600:
                 status = val
                 break
+        # httpx.HTTPStatusError carries the status on response.status_code, not
+        # directly on the exception — check that path so these errors classify
+        # correctly instead of falling through to "unknown".
+        if status is None:
+            response = getattr(exc, "response", None)
+            if response is not None:
+                val = getattr(response, "status_code", None)
+                if isinstance(val, int) and 100 <= val < 600:
+                    status = val
         if status is None and raw:
             status = _extract_status_from_str(raw)
 
@@ -209,10 +218,17 @@ def humanize(
                 code="network",
             )
 
-        # JSON / parse errors
-        if any(kw in cls_name for kw in ("jsondecode", "jsonparse", "valueerror")) and any(
+        # JSON / parse errors.
+        # For json.JSONDecodeError (and jsonparse): class name match alone is
+        # sufficient — the stdlib exception message ("Expecting value: line 1
+        # column 1 (char 0)") contains none of "json/parse/decode", so the
+        # AND condition would silently fall through to "unknown".
+        # For the broad ValueError: keep the AND to stay precise.
+        _json_class = any(kw in cls_name for kw in ("jsondecode", "jsonparse"))
+        _value_error_json = cls_name == "valueerror" and any(
             kw in exc_str for kw in ("json", "parse", "decode")
-        ):
+        )
+        if _json_class or _value_error_json:
             return HumanError(
                 message=f"{label} returned an unreadable response.",
                 action="Try again; if the problem persists, check the provider's status page.",
@@ -230,7 +246,7 @@ def humanize(
             )
 
         # Rate-limit errors from SDK classes
-        if any(kw in cls_name for kw in ("ratelimit", "ratelimt", "toomanyrequests")):
+        if any(kw in cls_name for kw in ("ratelimit", "toomanyrequests")):
             return HumanError(
                 message=f"{label} is rate-limiting your account — try again in a minute.",
                 action="Wait a moment, then try again.",

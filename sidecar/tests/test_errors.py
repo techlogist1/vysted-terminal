@@ -163,9 +163,43 @@ def test_json_decode_error_heuristic() -> None:
         json.loads("not-json")
     except json.JSONDecodeError as exc:
         h = humanize("openai", exc)
-        # JSONDecodeError is a ValueError subclass with "json" in the name chain —
-        # heuristic may not trigger if class name doesn't match; fallback is fine.
-        assert h.code in ("parse_error", "unknown")
+        # json.JSONDecodeError: class name is "jsondecode" (lowercase) — the
+        # class-name-only branch fires without requiring the message to contain
+        # "json/parse/decode" (the stdlib message is "Expecting value: line 1
+        # column 1 (char 0)" which does NOT contain those keywords).
+        assert h.code == "parse_error"
+
+
+# ---------------------------------------------------------------------------
+# httpx.HTTPStatusError — status on response.status_code (not exc attribute)
+# ---------------------------------------------------------------------------
+
+
+def test_httpx_response_status_code() -> None:
+    """Exceptions where the HTTP status lives on exc.response.status_code (e.g.
+    httpx.HTTPStatusError) must still classify correctly."""
+
+    class _FakeResponse:
+        status_code: int = 401
+
+    class _FakeHTTPStatusError(Exception):
+        response = _FakeResponse()
+
+    h = humanize("openai", _FakeHTTPStatusError("401 unauthorized"))
+    assert h.code == "auth"
+    assert "OpenAI" in h.message
+
+
+def test_httpx_response_status_code_402() -> None:
+    class _FakeResponse:
+        status_code: int = 402
+
+    class _FakeHTTPStatusError(Exception):
+        response = _FakeResponse()
+
+    h = humanize("deepseek", _FakeHTTPStatusError("payment required"))
+    assert h.code == "provider_402"
+    assert "DeepSeek" in h.message
 
 
 # ---------------------------------------------------------------------------
