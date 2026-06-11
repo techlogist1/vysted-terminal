@@ -852,14 +852,18 @@ def test_invocation_request_round_trips_autonomy() -> None:
 
 
 @pytest.mark.asyncio
-async def test_auto_autonomy_applies_non_order_host_action() -> None:
-    """With autonomy='auto' a NON-ORDER host-action reports it APPLIED (the
-    frontend auto-applies it) so the model narrates it in past tense."""
+async def test_auto_autonomy_dispatches_non_order_host_action() -> None:
+    """R10 E3.3: with autonomy='auto' a NON-ORDER host-action reports it
+    DISPATCHED (not 'applied … past tense' — the synthesized result used to
+    claim completion BEFORE the frontend ran applyHostAction, whose guards can
+    keep prior state). The model must verify via get_terminal_state."""
     local = agent_runtime._build_local_tools(None, autonomy="auto")
     result = await local["set_chart_symbol"]({"symbol": "SPY"})
     assert result["ok"] is True
-    assert result["status"] == "applied"
-    assert result["applied"] is True
+    assert result["status"] == "dispatched"
+    assert "applied" not in result  # no premature completion claim
+    assert "verify with get_terminal_state" in result["note"]
+    assert "authoritative" in result["note"]
     assert result["host_action"] == {"type": "set_chart_symbol", "args": {"symbol": "SPY"}}
 
 
@@ -1164,6 +1168,129 @@ def test_auto_publish_disambiguation_publishes_the_chooser() -> None:
         "TCS",
         "TATAMOTORS",
     ]
+
+
+# ---------------------------------------------------------------------------
+# R10 E3.3 — end-of-stream publish read-back (the ack ledger divergence check)
+# ---------------------------------------------------------------------------
+
+
+class _PublishThenAnswerProvider:
+    """Round 1 issues a model publish_brief; round 2 streams the final text."""
+
+    def __init__(self) -> None:
+        self._round = 0
+
+    async def stream_chat(
+        self,
+        messages: list[LLMMessage],
+        model: str,
+        api_key: str | None = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[Any]:
+        if self._round == 0:
+            self._round += 1
+            yield LLMToolUseEvent(
+                tool_call_id="pub-1", name="publish_brief", input={"markdown": "## x"}
+            )
+            yield LLMDoneEvent(usage=LLMUsage(input_tokens=5, output_tokens=1))
+            return
+        yield LLMDeltaEvent(text="Published.")
+        yield LLMDoneEvent(usage=LLMUsage(input_tokens=3, output_tokens=2))
+
+
+async def _collect_auto_publish_events(monkeypatch: pytest.MonkeyPatch) -> list[Any]:
+    agent_runtime.reload()
+    _patch_provider(monkeypatch, _PublishThenAnswerProvider())
+    monkeypatch.setattr(agent_runtime, "_ACK_GRACE_SECONDS", 0.0)  # no grace wait in tests
+    events: list[Any] = []
+    async for event in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="publish a brief",
+        api_key="sk-test",
+        mode="edit",
+        autonomy="auto",
+    ):
+        events.append(event)
+    return events
+
+
+def _notice_details(events: list[Any]) -> list[str]:
+    return [
+        e.detail
+        for e in events
+        if getattr(e, "kind", None) == "research_step"
+        and getattr(e, "tool", None) == "publish_brief"
+    ]
+
+
+@pytest.mark.asyncio
+async def test_unconfirmed_publish_yields_divergence_notice(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """No ack in the ledger → an honest 'panel did not confirm' notice rides the
+    step channel BEFORE the terminal done (E3.3: publish claims are read back,
+    never assumed)."""
+    from services import action_ledger
+
+    action_ledger.reset_for_tests()
+    events = await _collect_auto_publish_events(monkeypatch)
+    details = _notice_details(events)
+    assert any("did not confirm" in d for d in details)
+    # The notice precedes the terminator.
+    kinds = [e.kind for e in events]
+    assert kinds[-1] == "done"
+    assert kinds.index("research_step") < len(kinds) - 1
+
+
+@pytest.mark.asyncio
+async def test_kept_previous_ack_yields_kept_notice(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A kept_previous ack (the D33 shrink guard kept the richer brief) surfaces
+    as its own quiet notice — the agent can stop claiming the new one rendered."""
+    from services import action_ledger
+
+    action_ledger.reset_for_tests()
+    action_ledger.record("pub-1", "kept_previous")
+    events = await _collect_auto_publish_events(monkeypatch)
+    details = _notice_details(events)
+    assert any("kept the previous" in d for d in details)
+    action_ledger.reset_for_tests()
+
+
+@pytest.mark.asyncio
+async def test_applied_ack_yields_no_notice(monkeypatch: pytest.MonkeyPatch) -> None:
+    """An 'applied' ack means the optimistic dispatch was right — no notice."""
+    from services import action_ledger
+
+    action_ledger.reset_for_tests()
+    action_ledger.record("pub-1", "applied")
+    events = await _collect_auto_publish_events(monkeypatch)
+    assert _notice_details(events) == []
+    action_ledger.reset_for_tests()
+
+
+@pytest.mark.asyncio
+async def test_no_divergence_check_outside_auto_autonomy(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Under ask/review autonomy the publish is STAGED (the model already says
+    'proposed') — the ledger read-back is an AUTO-mode honesty device only."""
+    from services import action_ledger
+
+    action_ledger.reset_for_tests()
+    agent_runtime.reload()
+    _patch_provider(monkeypatch, _PublishThenAnswerProvider())
+    monkeypatch.setattr(agent_runtime, "_ACK_GRACE_SECONDS", 0.0)
+    events: list[Any] = []
+    async for event in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="publish a brief",
+        api_key="sk-test",
+        mode="edit",
+        autonomy="ask",
+    ):
+        events.append(event)
+    assert _notice_details(events) == []
 
 
 # ---------------------------------------------------------------------------

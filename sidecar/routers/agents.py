@@ -10,6 +10,10 @@ Endpoints:
 - ``POST /agents/{agent_id}/invoke`` — open an SSE stream of
   :class:`LLMStreamEvent` JSON frames, identical wire shape to
   ``POST /llm/chat``.
+- ``POST /agents/actions/ack`` — the frontend's host-action read-back (R10,
+  E3.3): after applying (or declining) a streamed host action it reports the
+  outcome keyed by ``tool_call_id`` so the runtime's end-of-stream divergence
+  check has ground truth instead of optimism.
 
 The agent runtime composes the system + context + user messages list and
 forwards into the resolved provider adapter — see
@@ -21,17 +25,66 @@ from __future__ import annotations
 import json
 import logging
 from collections.abc import AsyncIterator
+from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, ConfigDict, Field
 
 from models.agent import AgentInvocationRequest, AgentSummary
-from services import agent_runtime
+from services import action_ledger, agent_runtime
 from services.llm.base import LLMStreamEvent
+
+try:  # Team ERRORS ships services.errors.humanize in the same wave (E9).
+    from services.errors import humanize as _humanize_error
+except ImportError:  # pragma: no cover — until their branch merges
+
+    def _humanize_error(exc: BaseException) -> str:
+        return str(exc)
+
+
+def _human_error_message(exc: BaseException) -> str:
+    """One human line for the last-resort guard — never a naked provider blob.
+
+    Tolerates either ``humanize`` shape (a plain string or a structured
+    classification carrying ``message``) so this guard works before AND after
+    Team ERRORS' classifier lands.
+    """
+    try:
+        humanized = _humanize_error(exc)
+    except Exception:  # noqa: BLE001 — the guard must never raise
+        return str(exc)
+    if isinstance(humanized, str):
+        return humanized
+    if isinstance(humanized, dict):
+        message = humanized.get("message")
+        if isinstance(message, str) and message:
+            return message
+    return str(exc)
+
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/agents", tags=["agents"])
+
+
+class ActionAckRequest(BaseModel):
+    """``POST /agents/actions/ack`` body — the host-action read-back (E3.3)."""
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    tool_call_id: str = Field(alias="toolCallId", min_length=1)
+    status: Literal["applied", "kept_previous", "failed"]
+    #: Optional applied-brief identity ({run_id, created_at, symbol,
+    #: source_count}) so the divergence notice can name what actually rendered.
+    brief: dict[str, Any] | None = None
+
+
+@router.post("/actions/ack")
+def ack_action(payload: ActionAckRequest) -> dict[str, bool]:
+    """Record the frontend's outcome for one dispatched host action."""
+    action_ledger.record(payload.tool_call_id, payload.status, payload.brief)
+    return {"ok": True}
 
 
 @router.get("")
@@ -73,7 +126,9 @@ async def invoke_agent(agent_id: str, payload: AgentInvocationRequest) -> Stream
                 yield _encode_event(event)
         except Exception as exc:  # noqa: BLE001 — last-resort guard
             logger.exception("agent invoke crashed: %s", exc)
-            yield _encode_event_dict({"kind": "error", "message": str(exc)})
+            # E9: the last-resort guard humanizes too — chat never renders a
+            # naked provider blob (str(exc) only until services.errors lands).
+            yield _encode_event_dict({"kind": "error", "message": _human_error_message(exc)})
             yield _encode_event_dict({"kind": "done"})
 
     return StreamingResponse(_generator(), media_type="text/event-stream")

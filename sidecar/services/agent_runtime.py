@@ -24,6 +24,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import time
 from collections.abc import AsyncIterator, Callable
 from datetime import UTC, datetime
 from pathlib import Path
@@ -786,6 +787,61 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
     )
 
 
+#: End-of-stream ack grace (E3.3): the frontend's ``POST /agents/actions/ack``
+#: is an async HTTP round-trip racing the stream's close, so the divergence
+#: check polls the ledger briefly before declaring a publish unconfirmed.
+#: Module-level so tests can shrink it to ~0.
+_ACK_GRACE_SECONDS = 0.8
+_ACK_POLL_SECONDS = 0.1
+
+
+async def _publish_divergence_notices(publish_calls: list[str]) -> list[LLMResearchStepEvent]:
+    """The end-of-stream read-back (E3.3): one quiet notice per publish whose
+    panel outcome DIVERGED from the dispatched optimism.
+
+    Checks the ack ledger for every ``publish_brief`` tool call of this turn:
+    no ack → "the panel did not confirm"; ``kept_previous`` → the D33 shrink
+    guard kept the richer brief; ``failed`` → the apply failed. Rides the
+    existing ``research_step`` event vocabulary (the step/notice channel) — the
+    frontend renders these as quiet system chips (Team FRONTEND-BRIEF).
+    """
+    from services import action_ledger
+
+    deadline = time.monotonic() + _ACK_GRACE_SECONDS
+    pending = {cid for cid in publish_calls if action_ledger.get(cid) is None}
+    while pending and time.monotonic() < deadline:
+        await asyncio.sleep(_ACK_POLL_SECONDS)
+        pending = {cid for cid in pending if action_ledger.get(cid) is None}
+    notices: list[LLMResearchStepEvent] = []
+    for index, call_id in enumerate(publish_calls, start=1):
+        entry = action_ledger.get(call_id)
+        if entry is None:
+            detail = (
+                "The brief panel did not confirm the publish — treat it as NOT "
+                "rendered until get_terminal_state shows it."
+            )
+            status = "error"
+        elif entry.get("status") == "kept_previous":
+            detail = "The panel kept the previous, richer brief."
+            status = "ok"
+        elif entry.get("status") == "failed":
+            detail = "The brief panel reported the publish failed."
+            status = "error"
+        else:  # applied — the optimistic dispatch was right; nothing to say.
+            continue
+        notices.append(
+            LLMResearchStepEvent(
+                tool_call_id=call_id,
+                tool="publish_brief",
+                step_kind="engine",
+                detail=detail,
+                status=status,
+                index=index,
+            )
+        )
+    return notices
+
+
 def _build_local_tools(
     snapshot: AgentContextSnapshot | None,
     autonomy: str | None = None,
@@ -795,16 +851,19 @@ def _build_local_tools(
     ``get_terminal_state`` / ``get_portfolio`` return state passed in the request
     (the sidecar can't read the frontend's stores). The host-action tools return
     a synthetic result carrying a ``host_action`` directive whose narration tracks
-    the user's autonomy: with ``autonomy="auto"`` a NON-ORDER action is applied
-    immediately (the frontend's auto-apply lands it), so the result says
-    ``applied`` and the model narrates it in PAST tense; otherwise (``ask`` /
-    unknown) the action is STAGED in the diff/accept trust gate (FR-010), reports
-    ``awaiting_user_review``, and the model must say it *proposed* the change, not
-    that it happened. ``propose_order`` is EXEMPT from the auto path (§6.5): it
-    always returns ``awaiting_user_review`` in EVERY mode — the AI has no path to
-    ``confirm_and_place``. The frontend honours the same split (orders are excluded
-    from the auto-apply branch in proposed-changes), so this narration matches what
-    actually lands.
+    the user's autonomy: with ``autonomy="auto"`` a NON-ORDER action is
+    DISPATCHED to the panel (the frontend's auto-apply lands it asynchronously),
+    so the result says ``dispatched`` and tells the model to VERIFY with
+    ``get_terminal_state`` before claiming completion — panel state is
+    authoritative, never the tool call (E3.3: the old "applied … past tense"
+    optimism preceded ``applyHostAction``, whose guards can keep prior state).
+    Otherwise (``ask`` / unknown) the action is STAGED in the diff/accept trust
+    gate (FR-010), reports ``awaiting_user_review``, and the model must say it
+    *proposed* the change, not that it happened. ``propose_order`` is EXEMPT
+    from the auto path (§6.5): it always returns ``awaiting_user_review`` in
+    EVERY mode — the AI has no path to ``confirm_and_place``. The frontend
+    honours the same split (orders are excluded from the auto-apply branch in
+    proposed-changes), so this narration matches what actually lands.
     """
     from services.agent_tools.schemas import HOST_ACTION_TOOLS
 
@@ -837,14 +896,15 @@ def _build_local_tools(
                     "host_action": {"type": tool_id, "args": args},
                 }
             if autonomy == "auto":
-                # NON-ORDER action with auto-apply on: the frontend lands it
-                # immediately. Narrate it in past tense.
+                # NON-ORDER action with auto-apply on: the frontend WILL land
+                # it — but it has not confirmed yet (E3.3: the old "applied …
+                # past tense" claim preceded applyHostAction, whose guards can
+                # keep prior state). Honest narration: dispatched, verify.
                 return {
                     "ok": True,
-                    "status": "applied",
-                    "applied": True,
-                    "note": "Applied immediately (auto-apply is on). "
-                    "Tell the user it is done, in past tense.",
+                    "status": "dispatched",
+                    "note": "Dispatched to the panel — verify with get_terminal_state "
+                    "before claiming completion; panel state is authoritative.",
                     "host_action": {"type": tool_id, "args": args},
                 }
             return {  # ask / unknown -> current behavior
@@ -1035,6 +1095,10 @@ async def invoke_agent(
     # never echoes the big record), the tracked record is injected so the
     # panel's mode/depth badges always key on what actually ran.
     last_research_execution: dict[str, Any] | None = None
+    # R10 (E3.3): every publish_brief tool_call_id of this turn (model-issued
+    # AND synthetic) — checked against the ack ledger at end-of-stream so a
+    # publish the panel never confirmed gets an honest divergence notice.
+    publish_brief_calls: list[str] = []
     while True:
         pending_tools: list[LLMToolUseEvent] = []
         # WS8 Step 4: accumulate this round's reasoning_content (DeepSeek-reasoner
@@ -1065,6 +1129,8 @@ async def invoke_agent(
                     and last_research_execution is not None
                 ):
                     event.input["execution"] = last_research_execution
+                if event.name == "publish_brief":
+                    publish_brief_calls.append(event.tool_call_id)
                 pending_tools.append(event)
                 yield event
                 continue
@@ -1081,12 +1147,21 @@ async def invoke_agent(
                 # needs it.
                 if pending_tools and rounds < _MAX_TOOL_ROUNDS:
                     break
+                # E3.3 end-of-stream read-back: under AUTO autonomy a publish
+                # was DISPATCHED optimistically — surface any divergence the
+                # panel acked (or never acked) before the terminator.
+                if autonomy == "auto" and publish_brief_calls:
+                    for notice in await _publish_divergence_notices(publish_brief_calls):
+                        yield notice
                 yield event
                 return
             yield event
         if not seen_done:
             # Provider closed without a terminator — emit one so the SSE
             # framing stays well-formed for the consumer.
+            if autonomy == "auto" and publish_brief_calls:
+                for notice in await _publish_divergence_notices(publish_brief_calls):
+                    yield notice
             yield LLMDoneEvent()
             return
         if not pending_tools:
@@ -1181,6 +1256,7 @@ async def invoke_agent(
                     last_research_execution = _research_payload["execution"]
                 auto_brief = _auto_publish_event(tool_call, result_str)
                 if auto_brief is not None:
+                    publish_brief_calls.append(auto_brief.tool_call_id)
                     yield auto_brief
         rounds += 1
         if rounds >= _MAX_TOOL_ROUNDS:
