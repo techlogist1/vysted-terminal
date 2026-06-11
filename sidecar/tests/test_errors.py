@@ -10,7 +10,6 @@ import pytest
 
 from services.errors import HumanError, ProviderError, humanize
 
-
 # ---------------------------------------------------------------------------
 # ProviderError smoke test
 # ---------------------------------------------------------------------------

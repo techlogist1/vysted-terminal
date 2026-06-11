@@ -9,13 +9,14 @@ afterEach(() => {
   cleanup();
 });
 
+// Generic plugin fixture — not tied to any bundled plugin.
 const pluginNode: NodeSpec = {
-  id: "tradesa.wait-for-decision",
-  label: "Wait for Decision",
+  id: "example-plugin.wait-for-signal",
+  label: "Wait for Signal",
   category: "trigger",
   inputs: [],
-  outputs: [{ id: "decision", label: "Decision", type: "object" }],
-  description: "Block until Tradesa emits a decision event.",
+  outputs: [{ id: "signal", label: "Signal", type: "object" }],
+  description: "Block until the plugin emits a signal event.",
 };
 
 describe("NodePalette", () => {
@@ -40,7 +41,7 @@ describe("NodePalette", () => {
     render(<NodePalette registry={registry} />);
     // Plugin nodes render exactly once — as a draggable card within their
     // category group — not duplicated in a separate non-draggable label list.
-    expect(screen.getByTestId(`palette-card-${pluginNode.id}`)).toBeInTheDocument();
+    expect(screen.getByTestId(`palette-card-example-plugin.wait-for-signal`)).toBeInTheDocument();
     expect(screen.queryByTestId("palette-section-plugin")).not.toBeInTheDocument();
   });
 

@@ -57,13 +57,14 @@ describe("node-registry: built-in specs", () => {
 });
 
 describe("node-registry: buildRegistry", () => {
+  // Generic third-party plugin node fixture — not tied to any bundled plugin.
   const pluginNode: NodeSpec = {
-    id: "tradesa.wait-for-decision",
-    label: "Wait for Decision",
+    id: "example-plugin.wait-for-signal",
+    label: "Wait for Signal",
     category: "trigger",
     inputs: [],
-    outputs: [{ id: "decision", label: "Decision", type: "object" }],
-    description: "Block until Tradesa emits a decision event.",
+    outputs: [{ id: "signal", label: "Signal", type: "object" }],
+    description: "Block until the plugin emits a signal event.",
   };
 
   it("returns the 10 built-ins when there are no plugins", () => {

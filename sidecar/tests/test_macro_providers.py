@@ -97,7 +97,8 @@ def test_fred_get_series_maps_pandas_into_extended_shape(fake_fred: _FakeFred) -
 
 def test_fred_get_series_raises_without_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("FRED_API_KEY", raising=False)
-    with pytest.raises(ProviderError, match="FRED_API_KEY"):
+    # Error message was reworded in R10 to avoid dev-flavoured env-var copy.
+    with pytest.raises(ProviderError, match="FRED key in Settings"):
         fred_provider.get_series("DGS10")
 
 

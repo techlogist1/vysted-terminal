@@ -40,7 +40,6 @@ from routers import (
     safety,
     screener,
     sec_filings,
-    tradesa_v2,
     workflow,
     workspace,
 )
@@ -72,7 +71,6 @@ _ROUTERS = (
     quant,
     earnings,
     screener,
-    tradesa_v2,
 )
 
 _log = logging.getLogger(__name__)
@@ -143,13 +141,11 @@ def _register_v0_6_0_runtime_extensions() -> None:
 
 
 def _register_v0_6_5_runtime_extensions() -> None:
-    """Wire v0.6.5 (Tradesa V2 wrapper) extensions.
+    """Wire v0.6.5 runtime extensions.
 
-    v0.6.5 ships READ-ONLY by operator decision — no agent tools are
-    registered for the wrapper. The aggregator helper is invoked anyway
-    to maintain per-release-stamp parity with v0.5.0 / v0.6.0; when
-    write capability lands in v0.6.6+ the registration list inside
-    ``services/agent_tools/registry_v0_6_5.py`` becomes non-empty.
+    v0.6.5 shipped READ-ONLY; no agent tools are registered. The aggregator
+    helper is invoked to maintain per-release-stamp parity with v0.5.0 /
+    v0.6.0; the slot is reserved for v0.6.6+ additions.
     """
     from services.agent_tools import registry_v0_6_5 as _at_v0_6_5
 
@@ -200,9 +196,7 @@ def create_app() -> FastAPI:
     # submodule uncomments its registration entry.
     _register_v0_6_0_runtime_extensions()
 
-    # v0.6.5 (Tradesa V2 wrapper) runtime extensions — read-only release,
-    # no agent tools registered. Aggregator slot reserved for v0.6.6+
-    # when write capability is added per the operator-brief progression.
+    # v0.6.5 aggregator — no-op stub maintained for per-release-stamp parity.
     _register_v0_6_5_runtime_extensions()
 
     # Mount the FastMCP Streamable-HTTP transport at /mcp. External MCP

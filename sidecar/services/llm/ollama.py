@@ -27,7 +27,6 @@ from models.llm import (
     LLMToolUseEvent,
     LLMUsage,
 )
-
 from services.errors import humanize
 
 from .base import LLMProvider, LLMStreamEvent
@@ -157,11 +156,15 @@ class OllamaProvider(LLMProvider):
                 )
             except ollama.ResponseError as exc:  # pragma: no cover — network path
                 h = humanize("ollama", exc)
-                yield LLMErrorEvent(message=h.message, action=h.action, detail=h.detail, code=h.code)
+                yield LLMErrorEvent(
+                    message=h.message, action=h.action, detail=h.detail, code=h.code
+                )
                 return
             except Exception as exc:  # pragma: no cover — defensive
                 h = humanize("ollama", exc)
-                yield LLMErrorEvent(message=h.message, action=h.action, detail=h.detail, code=h.code)
+                yield LLMErrorEvent(
+                    message=h.message, action=h.action, detail=h.detail, code=h.code
+                )
                 return
 
         try:

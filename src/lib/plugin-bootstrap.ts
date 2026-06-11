@@ -16,9 +16,6 @@ import { examplePlugin } from "../../plugins/example";
 import exampleManifest from "../../plugins/example/manifest.json";
 import { openbbMcpPlugin } from "../../plugins/openbb-mcp";
 import openbbMcpManifest from "../../plugins/openbb-mcp/manifest.json";
-import { tradesaPlugin } from "../../plugins/tradesa-v2";
-import tradesaManifest from "../../plugins/tradesa-v2/manifest.json";
-import tradesaPanelComponents from "../../plugins/tradesa-v2/panels";
 
 import type { VystedModule } from "@/lib/module-registry";
 import {
@@ -45,7 +42,6 @@ const HEALTH_POLL_INTERVAL_MS = 30_000;
 const BUNDLED_PLUGINS: DiscoveredPlugin[] = [
   { manifest: exampleManifest as PluginManifest, instance: examplePlugin },
   { manifest: openbbMcpManifest as PluginManifest, instance: openbbMcpPlugin },
-  { manifest: tradesaManifest as PluginManifest, instance: tradesaPlugin },
 ];
 
 /**
@@ -78,9 +74,8 @@ const BUNDLED_PLUGINS: DiscoveredPlugin[] = [
  * plugin, the ``openbb-mcp`` plugin) are omitted here; ``moduleForPlugin``
  * tolerates absence gracefully.
  */
-const PLUGIN_COMPANIONS: Record<string, { panelComponents: Record<string, FunctionComponent> }> = {
-  "tradesa-v2": { panelComponents: tradesaPanelComponents },
-};
+const PLUGIN_COMPANIONS: Record<string, { panelComponents: Record<string, FunctionComponent> }> =
+  {};
 
 interface PluginConfigUpdateBody {
   enabled: boolean;

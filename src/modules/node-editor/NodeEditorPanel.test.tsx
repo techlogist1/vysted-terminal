@@ -172,17 +172,18 @@ describe("NodeEditorPanel", () => {
         agents: [],
         nodes: [
           {
-            id: "tradesa.wait-for-decision",
-            label: "Wait for Decision",
+            // Generic plugin node fixture — not tied to any bundled plugin.
+            id: "example-plugin.wait-for-signal",
+            label: "Wait for Signal",
             category: "trigger",
             inputs: [],
-            outputs: [{ id: "out", label: "Decision", type: "object" }],
+            outputs: [{ id: "out", label: "Signal", type: "object" }],
           },
         ],
         runtime: null,
       });
     });
     render(<NodeEditorPanel />);
-    expect(screen.getByTestId("palette-card-tradesa.wait-for-decision")).toBeInTheDocument();
+    expect(screen.getByTestId("palette-card-example-plugin.wait-for-signal")).toBeInTheDocument();
   });
 });

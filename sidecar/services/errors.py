@@ -125,8 +125,10 @@ def humanize(
     if status == 402:
         if provider_id == "deepseek":
             return HumanError(
-                message="Your DeepSeek balance is empty — top up or switch provider in Settings.",
-                action="Top up at platform.deepseek.com or pick a different provider in Settings.",
+                message=("Your DeepSeek balance is empty — top up or switch provider in Settings."),
+                action=(
+                    "Top up at platform.deepseek.com or pick a different provider in Settings."
+                ),
                 detail=raw,
                 code="provider_402",
             )
@@ -156,7 +158,7 @@ def humanize(
 
     if status == 429:
         return HumanError(
-            message=f"{label} is rate-limiting your account — retrying usually works in a minute.",
+            message=f"{label} is rate-limiting your account — try again in a minute.",
             action="Wait a moment, then try again.",
             detail=raw,
             code="rate_limit",
@@ -230,7 +232,7 @@ def humanize(
         # Rate-limit errors from SDK classes
         if any(kw in cls_name for kw in ("ratelimit", "ratelimt", "toomanyrequests")):
             return HumanError(
-                message=f"{label} is rate-limiting your account — retrying usually works in a minute.",
+                message=f"{label} is rate-limiting your account — try again in a minute.",
                 action="Wait a moment, then try again.",
                 detail=raw,
                 code="rate_limit",
@@ -240,8 +242,12 @@ def humanize(
         if any(kw in cls_name for kw in ("payment", "credit", "billing", "quota")):
             if provider_id == "deepseek":
                 return HumanError(
-                    message="Your DeepSeek balance is empty — top up or switch provider in Settings.",
-                    action="Top up at platform.deepseek.com or pick a different provider in Settings.",
+                    message=(
+                        "Your DeepSeek balance is empty — top up or switch provider in Settings."
+                    ),
+                    action=(
+                        "Top up at platform.deepseek.com or pick a different provider in Settings."
+                    ),
                     detail=raw,
                     code="provider_402",
                 )
