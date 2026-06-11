@@ -49,3 +49,13 @@ over `src/` before the kill; old blob values are silently dropped on restore
 | BYOK hosted-scraper + Exa-direct controls (engine segmented control, Exa key card) | V13 — tier killed by Team A; backends deleted from the sidecar | KILLED. NOTE: an existing `plugin-secret:vysted-search-exa:exa_api_key` keychain entry is now orphaned — no UI path deletes it (OS keychain cleanup is manual; flagged in the track report) |
 | SearXNG custom instance URL | works end-to-end (store → `X-Vysted-Searxng-Url` → sidecar resolution, under either tier per Team A's contract) | KEPT — demoted to a collapsed "Advanced" disclosure inside Tier A per brief D1 |
 
+
+### Team C (chat + research partition)
+
+- **ComposerMetaRow five-chip strip** (mode · lens · depth-rail · ASK/AUTO · model below the input) — DEAD per C1; `ComposerMetaRow.tsx` + `meta-row-collapse.ts(.test)` deleted. Functions redistributed: persona/autonomy/mode → plus menu, depth → segmented pill in the controls row, model → quiet inline text.
+- **Dotted depth rail + dot-touching-pill artifact** (V2) — dead; replaced by the one segmented pill with the animated thumb.
+- **Standing "Context: none" badge row** — a permanent uppercase strip saying nothing; now renders only when real panel context exists (`ChatSidebar.tsx`).
+- **Queue-chip uppercase transform** — queued prompts are user content; text-micro's uppercase rendered them shouting. Now caption, verbatim.
+- **Plus-menu inline truncated hints** — "Every change waits f…" mid-sentence clips; hints now stack as full second lines.
+- **Persona drill bare section header over an empty roster** (sidecar down) — headers render only with rows; honest "No personas available yet" otherwise.
+- Audited and KEPT (work + earn their place): spaces tab strip (thread switching), AgentsRail (live runs only), BudgetConfig (delegate ceiling), ProposedChangesReview gate, brief "Copy markdown", DepthMirror (read-only echo), dev-only StepLog.

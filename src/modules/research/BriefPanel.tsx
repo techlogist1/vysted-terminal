@@ -9,6 +9,7 @@ import {
   FlaskConical,
   Globe,
   Telescope,
+  X,
 } from "lucide-react";
 
 import type {
@@ -30,6 +31,7 @@ import {
   nextBriefDepth,
 } from "@/lib/brief-ingest";
 import { useBriefStore } from "@/store/brief";
+import { useWorkspaceStore } from "@/store/workspace";
 import { BriefBody } from "./brief-blocks";
 
 const IS_DEV = process.env.NODE_ENV !== "production";
@@ -56,7 +58,7 @@ function ModeBadge({ mode }: { mode: ResearchBriefData["mode"] }) {
   const deep = mode === "DEEP";
   return (
     <span
-      className={`rounded-control text-micro px-1.5 py-0.5 font-mono font-medium tracking-wide uppercase ${
+      className={`rounded-control text-micro px-1 py-0.5 font-mono font-medium tracking-wide uppercase ${
         deep ? "bg-charcoal-850 text-charcoal-300" : "bg-charcoal-800 text-charcoal-300"
       }`}
       title={deep ? "Deep research run" : "Fast research run"}
@@ -106,7 +108,7 @@ function MetaHeader({ brief }: { brief: ResearchBriefData }) {
   const tokenLabel = formatBriefTokens(brief.cost?.tokens);
   const spendLabel = formatBriefSpend(brief.cost?.spendUsd);
   return (
-    <header className="border-charcoal-700 flex flex-col gap-1.5 border-b px-4 py-3">
+    <header className="border-charcoal-700 flex flex-col gap-2 border-b px-4 py-3">
       {/* R8 Proportion Law §3.4: the meta row declares its collapse — chips
           never shrink mid-glyph (shrink-0 + nowrap) and the row WRAPS to a
           second line instead of overlapping ("92 SOURCES FOR $0.0000" colliding
@@ -150,7 +152,7 @@ function MetaHeader({ brief }: { brief: ResearchBriefData }) {
           reconciled `webAvailable` flag — that flag is true whenever ANY source
           (incl. synthetic `vysted://` structured-provenance legs) was cited, so
           using it here would falsely claim "web" for a structured-only run. */}
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-2">
         <ProvenanceBadge
           provider={
             (brief.sources ?? []).some((s) => /^https?:\/\//i.test(s.url))
@@ -207,7 +209,7 @@ const SOURCE_TYPE_LABEL: Record<BriefSourceType, string> = {
  */
 function SourceTypeBadge({ type }: { type: BriefSourceType }) {
   return (
-    <span className="border-charcoal-700 text-charcoal-400 bg-charcoal-850 rounded-control text-micro shrink-0 border px-1.5 py-0.5 font-mono tracking-wide uppercase">
+    <span className="border-charcoal-700 text-charcoal-400 bg-charcoal-850 rounded-control text-micro shrink-0 border px-1 py-0.5 font-mono tracking-wide uppercase">
       {SOURCE_TYPE_LABEL[type]}
     </span>
   );
@@ -244,7 +246,7 @@ function SourceRow({
           <span className="min-w-0">{source.title || source.url}</span>
           <ExternalLink className="text-charcoal-600 group-hover:text-charcoal-100 mt-0.5 size-3 shrink-0" />
         </a>
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-2">
           <SourceTypeBadge type={sourceType} />
           <span className="text-charcoal-500 bg-charcoal-850 rounded-control text-micro max-w-full truncate px-1 py-px font-mono">
             {domain}
@@ -274,7 +276,7 @@ function StepLog({ steps }: { steps: BriefStep[] }) {
       {steps.map((step, i) => (
         <li
           key={i}
-          className="border-charcoal-850 text-micro flex items-center gap-2 border-b px-4 py-1.5 font-mono last:border-b-0"
+          className="border-charcoal-850 text-micro flex items-center gap-2 border-b px-4 py-1 font-mono last:border-b-0"
         >
           <span className={`shrink-0 ${STEP_STATUS_COLOR[step.status]}`} aria-hidden="true">
             ●
@@ -314,9 +316,9 @@ function Tray({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="text-charcoal-300 hover:text-charcoal-100 text-micro flex w-full items-center gap-1.5 px-4 py-2 font-mono tracking-wide uppercase transition-colors"
+        className="text-charcoal-300 hover:text-charcoal-100 text-micro flex w-full items-center gap-2 px-4 py-2 font-mono tracking-wide uppercase transition-colors"
       >
-        {open ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
+        {open ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
         {title}
         {typeof count === "number" ? (
           <span className="text-charcoal-500 normal-case">({count})</span>
@@ -324,6 +326,47 @@ function Tray({
       </button>
       {open ? <div>{children}</div> : null}
     </section>
+  );
+}
+
+// --- keyless-fallback nudge --------------------------------------------------
+
+/**
+ * The honest keyless-fallback nudge (R9 gate 2): when the published brief's
+ * backend id is `keyless-fallback` — SearXNG wasn't ready, the run silently
+ * fell back to the rate-limited keyless engines — ONE quiet banner says so and
+ * links to Settings → Research. Never rendered for the searxng /
+ * research-model backends; dismissible per-brief (the parent keys dismissal
+ * on the brief identity, so the next run's banner re-appears honestly).
+ */
+function KeylessFallbackNudge({ onDismiss }: { onDismiss: () => void }) {
+  const openSettings = useCallback(() => {
+    useWorkspaceStore.getState().openPanel("settings");
+  }, []);
+  return (
+    <div className="border-charcoal-700 bg-charcoal-925 mx-3 mt-3 flex items-start gap-2 rounded-none border px-3 py-2">
+      <Globe className="text-charcoal-400 mt-0.5 size-3 shrink-0" aria-hidden />
+      <p className="text-charcoal-300 text-caption min-w-0 flex-1 leading-relaxed">
+        Limited keyless search —{" "}
+        <button
+          type="button"
+          onClick={openSettings}
+          className="text-charcoal-100 hover:text-lume cursor-pointer underline underline-offset-2 transition-colors"
+          title="Open Settings → Research"
+        >
+          set up Unlimited local research
+        </button>{" "}
+        for full capability.
+      </p>
+      <button
+        type="button"
+        aria-label="Dismiss the keyless search notice"
+        onClick={onDismiss}
+        className="text-charcoal-500 hover:text-charcoal-200 shrink-0 cursor-pointer transition-colors"
+      >
+        <X className="size-3" aria-hidden />
+      </button>
+    </div>
   );
 }
 
@@ -358,6 +401,11 @@ export function BriefPanel() {
   // view + flash it. A ref map (not state) — purely imperative, no re-render.
   const sourceRefs = useRef(new Map<number, HTMLLIElement>());
   const [sourcesOpenNonce, setSourcesOpenNonce] = useState(0);
+
+  // The keyless-fallback nudge is dismissible PER BRIEF: dismissal records the
+  // brief's identity (createdAt), so the next published brief that fell back
+  // re-shows the honest notice.
+  const [nudgeDismissedFor, setNudgeDismissedFor] = useState<number | null>(null);
 
   // Export is Copy-markdown (Decision 7 default): `composeBriefMarkdown` is pure +
   // reliable (it includes the "## Sources" appendix) and the clipboard write needs
@@ -431,6 +479,10 @@ export function BriefPanel() {
   const bodyCites = bodyCitesWeb(brief.markdown);
   const forSymbol = brief.symbol ? ` for ${brief.symbol}` : "";
   const hasSteps = IS_DEV && Array.isArray(brief.steps) && brief.steps.length > 0;
+  // Gate 2: the nudge fires ONLY on the exact keyless-fallback backend id —
+  // never on searxng / research-model — and stays dismissed for THIS brief.
+  const showKeylessNudge =
+    brief.backend === "keyless-fallback" && nudgeDismissedFor !== brief.createdAt;
 
   return (
     // `@container` makes the PANEL the query container so the brief body can
@@ -440,14 +492,14 @@ export function BriefPanel() {
           `composeBriefMarkdown` is pure + reliable and already appends the
           "## Sources" appendix, so the copy needs no raster, no Rust round-trip,
           no path to surface — it just writes the markdown to the clipboard. */}
-      <div className="border-charcoal-700 flex items-center justify-end gap-1 border-b px-3 py-1.5">
+      <div className="border-charcoal-700 flex items-center justify-end gap-1 border-b px-3 py-1">
         <button
           type="button"
           title="Copy the brief as Markdown (with a Sources appendix)"
           onClick={handleCopyMarkdown}
-          className="text-charcoal-400 hover:bg-charcoal-800 hover:text-charcoal-100 rounded-control text-caption flex items-center gap-1.5 px-2 py-1 transition-colors"
+          className="text-charcoal-400 hover:bg-charcoal-800 hover:text-charcoal-100 rounded-control text-caption flex items-center gap-1 px-2 py-1 transition-colors"
         >
-          <ClipboardCopy className="size-3.5" /> Copy markdown
+          <ClipboardCopy className="size-3" /> Copy markdown
         </button>
       </div>
 
@@ -455,7 +507,7 @@ export function BriefPanel() {
           (the same affordance pattern as the Notes panel). */}
       {exportStatus ? (
         <div
-          className="text-charcoal-400 border-charcoal-800 bg-charcoal-925 text-micro truncate border-b px-3 py-1.5 font-mono"
+          className="text-charcoal-400 border-charcoal-800 bg-charcoal-925 text-micro truncate border-b px-3 py-1 font-mono"
           title={exportStatus}
         >
           {exportStatus}
@@ -465,6 +517,10 @@ export function BriefPanel() {
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
         <div className="bg-charcoal-900 flex flex-col">
           <MetaHeader brief={brief} />
+
+          {showKeylessNudge && (
+            <KeylessFallbackNudge onDismiss={() => setNudgeDismissedFor(brief.createdAt)} />
+          )}
 
           {/* Honest no-web state: NOT an error, NOT empty — a prominent banner.
               `noWeb` is already reconciled with the source count (a sourced brief
@@ -512,7 +568,12 @@ export function BriefPanel() {
             count={sources.length}
             defaultOpen={sourcesOpenNonce > 0}
           >
-            <ul className="max-h-64 overflow-y-auto">
+            <ul
+              className={
+                "overflow-y-auto " +
+                "max-h-64" /* tokens-ok: tray scroll cap — layout, not rhythm */
+              }
+            >
               {sources.map((source, i) => (
                 <SourceRow
                   key={`${i}-${source.url}`}
@@ -527,7 +588,12 @@ export function BriefPanel() {
 
         {hasSteps ? (
           <Tray title="Step log · dev" count={brief.steps!.length}>
-            <div className="max-h-48 overflow-y-auto">
+            <div
+              className={
+                "overflow-y-auto " +
+                "max-h-48" /* tokens-ok: tray scroll cap — layout, not rhythm */
+              }
+            >
               <StepLog steps={brief.steps!} />
             </div>
           </Tray>

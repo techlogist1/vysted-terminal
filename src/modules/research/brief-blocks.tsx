@@ -557,11 +557,11 @@ function MetricsBlock({ model }: { model: MetricsModel }) {
             <span
               className={`text-body inline-flex items-center gap-0.5 font-mono whitespace-nowrap tabular-nums ${tone}`}
             >
-              <Caret className="size-3.5" />
+              <Caret className="size-3" />
               {formatSigned(model.change)} ({formatSignedPct(model.changePercent)})
             </span>
           ) : null}
-          <span className="ml-auto flex items-center gap-1.5">
+          <span className="ml-auto flex items-center gap-2">
             {model.provider ? <ProvenanceBadge provider={model.provider} /> : null}
             {model.freshness ? <StalenessBadge freshness={model.freshness} /> : null}
           </span>
@@ -661,7 +661,7 @@ function TableBlock({
             {headers.map((h, i) => (
               <th
                 key={i}
-                className={`text-charcoal-300 px-3 py-1.5 font-medium tracking-wide ${alignClass(i)}`}
+                className={`text-charcoal-300 px-3 py-1 font-medium tracking-wide ${alignClass(i)}`}
               >
                 {renderInline(h, ctx)}
               </th>
@@ -672,10 +672,7 @@ function TableBlock({
           {rows.map((row, r) => (
             <tr key={r} className="border-charcoal-800 border-b last:border-b-0">
               {row.map((cell, c) => (
-                <td
-                  key={c}
-                  className={`text-charcoal-100 px-3 py-1.5 tabular-nums ${alignClass(c)}`}
-                >
+                <td key={c} className={`text-charcoal-100 px-3 py-1 tabular-nums ${alignClass(c)}`}>
                   {renderInline(cell, ctx)}
                 </td>
               ))}

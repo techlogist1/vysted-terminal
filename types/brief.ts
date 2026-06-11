@@ -174,6 +174,15 @@ export interface ResearchBriefData {
    * Surfaced prominently when {@link webAvailable} is `false`.
    */
   note?: string;
+  /**
+   * The retrieval backend that served this brief's web round (R9 two-tier
+   * model, Team A): `"searxng"`, `"keyless-fallback"`, or
+   * `"research-model:<model-id>"`. `keyless-fallback` — SearXNG not ready, the
+   * run silently fell back to the keyless engines — drives the brief panel's
+   * honest "limited keyless search" nudge banner; it never renders for the
+   * searxng / research-model backends. Optional — older briefs omit it.
+   */
+  backend?: string;
   /** The dev-only research step trace, when the pipeline emitted one. */
   steps?: BriefStep[];
   /**

@@ -22,6 +22,7 @@ import { validateProvider } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAgentCommandStore } from "@/store/agent-command";
+import { useAgentDockStore } from "@/store/agent-dock";
 import { useChatPendingStore } from "@/store/chat-pending";
 import { type ResearchDepth, useResearchDepthStore } from "@/store/research-depth";
 import { useAgentModeStore } from "@/store/agent-mode";
@@ -45,11 +46,23 @@ import { useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
 import { MarkdownBody } from "@/modules/research/brief-blocks";
 import type { Region } from "@/lib/region";
-import type { AgentContextSnapshot, LLMProviderId, LLMStreamEvent } from "../../../types/ai";
+import type {
+  AgentContextSnapshot,
+  LLMModelOption,
+  LLMProviderId,
+  LLMProviderInfo,
+  LLMStreamEvent,
+} from "../../../types/ai";
 import { type AgentMode, AGENT_MODES, agentModeMeta } from "../../../types/agent-modes";
 import { AgentsRail } from "./AgentsRail";
 import { BudgetConfig, DEFAULT_DELEGATE_BUDGET } from "./BudgetConfig";
-import { ComposerMetaRow } from "./ComposerMetaRow";
+import {
+  composerControlsPlan,
+  composerControlsStepForWidth,
+  type ComposerControlsStep,
+} from "./composer-collapse";
+import { DEPTH_TOKEN, DepthControl } from "./DepthControl";
+import { ModelControl } from "./ModelControl";
 import { captureTerminalState } from "./context-provider";
 import {
   applyMentionPrefixes,
@@ -197,7 +210,7 @@ function MessageBody({
   return (
     <div
       className={cn(
-        "flex min-w-0 flex-col gap-3 break-words",
+        "flex min-w-0 flex-col gap-4 break-words",
         // Law §1: chat reading prose is text-body 13 in the dock — downshift
         // the shared MarkdownBody's prose-scale blocks (headings + paragraphs
         // render as <p>, lists as ul/ol) without forking the renderer. Tables
@@ -210,7 +223,7 @@ function MessageBody({
     >
       <MarkdownBody source={source} known={chatKnownSet} onCite={NOOP_CITE} />
       {caret && (
-        <span className="text-charcoal-400 -mt-3 animate-pulse" aria-hidden>
+        <span className="text-charcoal-400 -mt-4 animate-pulse" aria-hidden>
           ▋
         </span>
       )}
@@ -270,7 +283,7 @@ function ActivityTrace({ message }: { message: ChatMessage }) {
         />
       )}
       {toolSteps.length > 0 && (
-        <ul className="mb-1.5 flex flex-col gap-0.5">
+        <ul className="mb-2 flex flex-col gap-0.5">
           {toolSteps.map((step, i) => (
             <li key={i} className="text-charcoal-400 text-caption flex items-center gap-1">
               <span className="text-charcoal-500">→</span> {step}
@@ -294,18 +307,18 @@ function ActivityTrace({ message }: { message: ChatMessage }) {
       : "Planned";
 
   return (
-    <div className="mb-1.5">
+    <div className="mb-2">
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
         aria-label={`${expanded ? "Collapse" : "Expand"} step trace — ${label}`}
-        className="text-charcoal-500 text-micro hover:text-charcoal-300 flex items-center gap-1.5 transition-colors"
+        className="text-charcoal-500 text-micro hover:text-charcoal-300 flex items-center gap-1 transition-colors"
       >
         <span aria-hidden>{expanded ? "▾" : "▸"}</span>
         <span className="tabular-nums">{label}</span>
       </button>
-      {expanded && <div className="mt-1.5">{detail(false)}</div>}
+      {expanded && <div className="mt-2">{detail(false)}</div>}
     </div>
   );
 }
@@ -427,6 +440,23 @@ export function ChatSidebar() {
     void refreshProviders();
     void refreshKeys();
   }, [refreshAgents, refreshProviders, refreshKeys]);
+
+  // Dev-only self-verification seam (R9 gate): expose the chat-state stores so
+  // the headless-Chrome capture harness can drive composer states (armed,
+  // streaming, queued) without a live sidecar. DEV builds only — tree-shaken
+  // from production bundles.
+  useEffect(() => {
+    if (!import.meta.env.DEV || typeof window === "undefined") {
+      return;
+    }
+    (window as unknown as Record<string, unknown>).__vystedChatDebug = {
+      history: useChatHistoryStore,
+      pending: useChatPendingStore,
+      depth: useResearchDepthStore,
+      dock: useAgentDockStore,
+      agents: useAgentsStore,
+    };
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -1084,18 +1114,21 @@ export function ChatSidebar() {
           finalize(id, null);
         }}
       />
-      <ContextBadge text={contextBadge} />
+      {/* The standing "Context: none" row is dead (R9 stray-item audit) — the
+          badge renders only when there is REAL panel context to report. */}
+      {contextBadge !== "Context: none" && <ContextBadge text={contextBadge} />}
       <div
         ref={scrollRef}
         role="log"
         aria-live="polite"
         aria-label="Chat transcript"
-        className="flex-1 overflow-y-auto px-3 py-3"
+        className="flex-1 overflow-y-auto px-4 py-4"
       >
         {messages.length === 0 ? (
           <EmptyState activeAgentName={activeAgent?.name ?? null} mode={mode} />
         ) : (
-          <ul className="flex flex-col gap-2">
+          // Reading-surface rhythm (law §7): 16px between message blocks.
+          <ul className="flex flex-col gap-4">
             {messages.map((message) => (
               <motion.li
                 key={message.id}
@@ -1165,10 +1198,11 @@ export function ChatSidebar() {
           </motion.div>
         )}
       </AnimatePresence>
-      {/* ── Composer dock — ONE unit (R7 Track C, Cursor-grade): queued-prompt
-          chips → the bordered auto-growing field with send/stop INSIDE → one
-          quiet 24px meta row (mode · lens · depth ··· autonomy · model) whose
-          chips open anchored popovers. The standing select rows are gone. ── */}
+      {/* ── Composer dock (R9 Track C — Claude-exact structure): queued-prompt
+          chips → ONE field container with the controls row INSIDE — the plus
+          menu far left (persona / autonomy / mode / context live in it), then
+          the depth pill, the quiet model text, and the depth-keyed send at the
+          far right. The R8 five-chip meta strip below the input is dead. ── */}
       <div className="border-charcoal-700 border-t">
         {/* Delegate-only: the BudgetGuard ceiling for the durable background run. */}
         {mode === "delegate" && (
@@ -1193,22 +1227,20 @@ export function ChatSidebar() {
           onStop={() => abortRef.current?.abort()}
           streaming={streaming}
           mode={mode}
-          region={region}
-        />
-        <ComposerMetaRow
-          mode={mode}
           onModeChange={setMode}
-          lensLabel={activeAgent?.name ?? humanizeAgentId(activeAgentId ?? DEFAULT_AGENT_ID)}
+          region={region}
+          personaLabel={activeAgent?.name ?? humanizeAgentId(activeAgentId ?? DEFAULT_AGENT_ID)}
           firstParty={firstPartyAgents}
           custom={customAgents}
           activeAgentId={activeAgentId ?? DEFAULT_AGENT_ID}
-          onLensChange={(id) => {
+          onPersonaChange={(id) => {
             setActiveAgentId(id);
             setProviderOverride(null);
           }}
           depth={researchDepth}
           onDepthChange={setResearchDepth}
           liveDepth={researchLive ? lastSentDepth : null}
+          sentDepth={lastSentDepth}
           providers={providers}
           provider={effectiveProvider}
           model={effectiveModel}
@@ -1265,7 +1297,9 @@ function QueuedPrompts() {
       {queue.map((prompt, index) => (
         <li
           key={`${index}-${prompt}`}
-          className="border-charcoal-700 bg-charcoal-850 text-micro text-charcoal-400 rounded-control flex h-6 max-w-[14rem] items-center gap-1 border px-2 font-mono"
+          // Caption type, NOT micro — micro uppercases, and a queued prompt is
+          // user content that must render verbatim.
+          className="border-charcoal-700 bg-charcoal-850 text-caption text-charcoal-400 rounded-control flex h-6 max-w-[14rem] items-center gap-1 border px-2 font-mono"
         >
           <span className="truncate" title={prompt}>
             {prompt}
@@ -1288,7 +1322,7 @@ function ContextBadge({ text }: { text: string }) {
   return (
     <div
       aria-label="Panel context"
-      className="border-charcoal-700 text-charcoal-300 text-caption border-b px-3 py-1.5 font-mono tracking-wide uppercase"
+      className="border-charcoal-700 text-charcoal-300 text-caption border-b px-4 py-1 font-mono tracking-wide uppercase"
     >
       {text}
     </div>
@@ -1347,7 +1381,32 @@ interface ComposerProps {
   /** True while a foreground stream is live — Enter queues, the button stops. */
   streaming: boolean;
   mode: AgentMode;
+  onModeChange: (mode: AgentMode) => void;
   region: Region;
+  /** The active persona's DISPLAY NAME for the plus menu — never a raw id. */
+  personaLabel: string;
+  firstParty: readonly { id: string; name: string }[];
+  custom: readonly { id: string; name: string }[];
+  activeAgentId: string;
+  onPersonaChange: (id: string) => void;
+  /** Three-stop research depth — keys the send fill and the depth pill. */
+  depth: ResearchDepth;
+  onDepthChange: (depth: ResearchDepth) => void;
+  /** The depth a LIVE research run was sent at (the pill's pulse), or null. */
+  liveDepth: ResearchDepth | null;
+  /** The depth the in-flight run was SENT at — the stop morph keeps its color. */
+  sentDepth: ResearchDepth | null;
+  providers: LLMProviderInfo[];
+  provider: LLMProviderId;
+  model: string;
+  providerConfigured: boolean;
+  modelOptions?: LLMModelOption[];
+  catalogNote?: string | null;
+  catalogLoading?: boolean;
+  onProviderChange: (provider: LLMProviderId) => void;
+  onModelChange: (model: string) => void;
+  onKeyRequired?: (provider: LLMProviderId) => void;
+  onRefreshModels?: () => void;
 }
 
 /** Max field height before the textarea scrolls — ~6 lines of text-body
@@ -1355,19 +1414,70 @@ interface ComposerProps {
 const COMPOSER_MAX_HEIGHT_PX = 144;
 
 /**
- * The chat composer — ONE bordered unit (R7 Track C): an auto-growing textarea
- * (one line min, ~6 lines max) with the send/stop square pinned INSIDE the
- * field's bottom-right. While a stream is live the square morphs into STOP and
- * Enter queues the typed prompt instead of sending (the visible FIFO above the
- * field); Shift+Enter inserts a newline. The inline `/`-command and `@`-mention
- * pickers (FR-100/101, SC-023) are unchanged: keyboard-first, ↑/↓ moves, ↵/⇥
- * accepts, Esc dismisses; `matchSlash` fires only while typing the leading
- * command name, `matchMention` on the `@` token under the caret. Mention
- * resolution stays async + locale-aware, race-guarded by a sequence token.
+ * The chat composer (R9 Track C — Claude-exact structure, Vysted skin): ONE
+ * field container holding the auto-growing textarea (one line min, ~6 lines
+ * max) on top and the controls row INSIDE at the bottom — plus menu far left
+ * (persona / autonomy / mode / context absorbed there), then the depth pill,
+ * the quiet model text, and the depth-keyed send square far right. While a
+ * stream is live the square morphs into STOP (keeping the sent depth's heat
+ * token) and Enter queues the typed prompt instead of sending (the visible
+ * FIFO above the field); Shift+Enter inserts a newline. The inline `/`-command
+ * and `@`-mention pickers (FR-100/101, SC-023) are unchanged: keyboard-first,
+ * ↑/↓ moves, ↵/⇥ accepts, Esc dismisses. A measured collapse ladder
+ * (`composer-collapse.ts`) keeps the controls row overlap-free down to the
+ * 280px dock floor.
  */
-function Composer({ value, onChange, onSend, onStop, streaming, mode, region }: ComposerProps) {
+function Composer({
+  value,
+  onChange,
+  onSend,
+  onStop,
+  streaming,
+  mode,
+  onModeChange,
+  region,
+  personaLabel,
+  firstParty,
+  custom,
+  activeAgentId,
+  onPersonaChange,
+  depth,
+  onDepthChange,
+  liveDepth,
+  sentDepth,
+  providers,
+  provider,
+  model,
+  providerConfigured,
+  modelOptions,
+  catalogNote,
+  catalogLoading,
+  onProviderChange,
+  onModelChange,
+  onKeyRequired,
+  onRefreshModels,
+}: ComposerProps) {
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const [caret, setCaret] = useState(0);
+  // Collapse ladder (law §3.4): the measured controls-row width drives the
+  // density step. The row width is dock-set, so no measure→render feedback.
+  const controlsRef = useRef<HTMLDivElement | null>(null);
+  const [controlsStep, setControlsStep] = useState<ComposerControlsStep>("full");
+  useEffect(() => {
+    const el = controlsRef.current;
+    if (!el || typeof ResizeObserver === "undefined") {
+      return;
+    }
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width;
+      if (typeof width === "number") {
+        setControlsStep(composerControlsStepForWidth(width));
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  const controlsPlan = composerControlsPlan(controlsStep);
   // The composer value at the moment Esc was pressed — keeps the picker dismissed
   // until the text changes again (so Esc closes without losing what was typed).
   const [dismissedAt, setDismissedAt] = useState<string | null>(null);
@@ -1544,7 +1654,12 @@ function Composer({ value, onChange, onSend, onStop, streaming, mode, region }: 
   return (
     <div className="relative">
       {pickerOpen && (
-        <div className="absolute right-0 bottom-full left-0 mb-1 max-h-[min(18rem,45vh)] overflow-y-auto px-2">
+        <div
+          className={cn(
+            "absolute right-0 bottom-full left-0 mb-1 overflow-y-auto px-2",
+            "max-h-[min(18rem,45vh)]" /* tokens-ok: viewport scroll cap — layout, not rhythm */,
+          )}
+        >
           {showSlash ? (
             <SlashCommandPicker
               matches={slash.matches}
@@ -1569,11 +1684,12 @@ function Composer({ value, onChange, onSend, onStop, streaming, mode, region }: 
           }
         }}
       >
-        {/* ONE bordered unit (Claude-reference, R8): the auto-growing textarea
-            with a controls row INSIDE the field — the plus-menu at bottom-left,
-            the send/stop square at bottom-right (law §2: primary actions 28×28
-            with a 16px icon). Send carries the accent when armed and morphs to
-            STOP while a stream is live (Enter then QUEUES — typing never locks). */}
+        {/* ONE field container (Claude-reference, R9): the auto-growing
+            textarea with the controls row INSIDE at the bottom — plus menu far
+            left, depth pill + quiet model text + the depth-keyed send square
+            far right (law §3: primary actions 28×28 with 16px icons). Send
+            carries the active depth's heat token when armed and morphs to STOP
+            while a stream is live (Enter then QUEUES — typing never locks). */}
         <div className="bg-charcoal-850 border-charcoal-700 focus-within:border-charcoal-600 rounded-control border transition-colors">
           <textarea
             ref={inputRef}
@@ -1600,12 +1716,45 @@ function Composer({ value, onChange, onSend, onStop, streaming, mode, region }: 
             spellCheck={false}
             className="text-charcoal-100 placeholder:text-charcoal-500 text-body block w-full resize-none bg-transparent px-3 pt-2 pb-1 font-mono outline-none"
           />
-          <div className="flex items-center justify-between gap-2 px-1.5 pb-1.5">
-            <ComposerPlusMenu onInsertMention={pickMention} onSlashCommands={primeSlashCommands} />
+          <div ref={controlsRef} className="flex items-center gap-2 px-2 pt-1 pb-2">
+            <ComposerPlusMenu
+              onInsertMention={pickMention}
+              onSlashCommands={primeSlashCommands}
+              personaLabel={personaLabel}
+              firstParty={firstParty}
+              custom={custom}
+              activeAgentId={activeAgentId}
+              onPersonaChange={onPersonaChange}
+              mode={mode}
+              onModeChange={onModeChange}
+            />
+            <div className="min-w-0 flex-1" />
+            <DepthControl
+              depth={depth}
+              onChange={onDepthChange}
+              liveDepth={liveDepth}
+              expandable={controlsPlan.depthExpands}
+            />
+            <ModelControl
+              providers={providers}
+              provider={provider}
+              model={model}
+              providerConfigured={providerConfigured}
+              modelOptions={modelOptions}
+              catalogNote={catalogNote}
+              catalogLoading={catalogLoading}
+              onProviderChange={onProviderChange}
+              onModelChange={onModelChange}
+              onKeyRequired={onKeyRequired}
+              onRefreshModels={onRefreshModels}
+              density={controlsPlan.model}
+            />
             <SendStopButton
               streaming={streaming}
               canSend={value.trim().length > 0}
               onStop={onStop}
+              depth={depth}
+              sentDepth={sentDepth}
             />
           </div>
         </div>
@@ -1615,21 +1764,29 @@ function Composer({ value, onChange, onSend, onStop, streaming, mode, region }: 
 }
 
 /**
- * The composer's primary action — a 28×28 square (law §2) at the field's
- * bottom-right. Armed (text present) it carries the accent; while a stream is
- * live it MORPHS into the stop square with a subtle scale/opacity crossfade
- * (reduced-motion collapses the morph to an instant swap). Stop is sacred: it
- * aborts the in-flight run via the lifted abortRef; the queue/drain semantics
- * live in the parent and are untouched here.
+ * The composer's primary action — a 28×28 square (law §3) at the field's
+ * bottom-right, DEPTH-KEYED (law §4): armed (text present) its fill is the
+ * active depth's heat token — lume / peach / ember — with the icon flipped
+ * dark for contrast; while a stream is live it MORPHS into the stop square
+ * keeping the SENT depth's token (a depth change mid-run never recolors the
+ * live run's stop). Reduced motion collapses the morph to an instant swap.
+ * Stop is sacred: it aborts the in-flight run via the lifted abortRef; the
+ * queue/drain semantics live in the parent and are untouched here.
  */
 function SendStopButton({
   streaming,
   canSend,
   onStop,
+  depth,
+  sentDepth,
 }: {
   streaming: boolean;
   canSend: boolean;
   onStop: () => void;
+  /** The selector's active depth — keys the ARMED send fill. */
+  depth: ResearchDepth;
+  /** The depth the in-flight run was sent at — keys the STOP fill. */
+  sentDepth: ResearchDepth | null;
 }) {
   const reduceMotion = useReducedMotion();
   const morphIn = reduceMotion ? { opacity: 1 } : { scale: 1, opacity: 1 };
@@ -1647,7 +1804,8 @@ function SendStopButton({
           animate={morphIn}
           exit={morphOut}
           transition={tween(DUR.fast)}
-          className="rounded-control text-charcoal-950 flex size-7 shrink-0 cursor-pointer items-center justify-center bg-amber-400 transition-colors hover:bg-amber-300"
+          style={{ backgroundColor: DEPTH_TOKEN[sentDepth ?? depth] }}
+          className="rounded-control text-charcoal-950 flex size-7 shrink-0 cursor-pointer items-center justify-center transition-opacity hover:opacity-85"
         >
           <Square className="size-3" fill="currentColor" strokeWidth={0} />
         </motion.button>
@@ -1661,10 +1819,11 @@ function SendStopButton({
           animate={morphIn}
           exit={morphOut}
           transition={tweenExit(DUR.fast)}
+          style={canSend ? { backgroundColor: DEPTH_TOKEN[depth] } : undefined}
           className={cn(
-            "rounded-control flex size-7 shrink-0 items-center justify-center transition-colors",
+            "rounded-control flex size-7 shrink-0 items-center justify-center",
             canSend
-              ? "text-charcoal-950 cursor-pointer bg-amber-400 hover:bg-amber-300"
+              ? "text-charcoal-950 cursor-pointer transition-opacity hover:opacity-85"
               : "text-charcoal-600",
           )}
         >

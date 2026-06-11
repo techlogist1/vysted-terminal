@@ -36,7 +36,7 @@ export function AgentsRail({
       {active.length > 0 && (
         <motion.section
           aria-label="Running agents"
-          className="border-charcoal-700 bg-charcoal-925 flex flex-col gap-1.5 border-b px-3 py-1.5"
+          className="border-charcoal-700 bg-charcoal-925 flex flex-col gap-2 border-b px-3 py-2"
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
@@ -91,7 +91,7 @@ function RunRow({
       transition={tween(0.2)}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="flex min-w-0 items-center gap-1.5">
+        <span className="flex min-w-0 items-center gap-2">
           <span
             className={run.status === "paused" ? "text-warning" : "animate-pulse text-amber-400"}
             aria-hidden
@@ -165,7 +165,7 @@ function RunRow({
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               disabled={answerBusy}
-              className="bg-charcoal-850 text-charcoal-100 text-micro rounded-control focus:ring-charcoal-500 h-6 flex-1 px-1.5 outline-none focus:ring-1 disabled:opacity-50"
+              className="bg-charcoal-850 text-charcoal-100 text-micro rounded-control focus:ring-charcoal-500 h-6 flex-1 px-2 outline-none focus:ring-1 disabled:opacity-50"
             />
             <button
               type="submit"
