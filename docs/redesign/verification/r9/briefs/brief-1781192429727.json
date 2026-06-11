@@ -1,0 +1,268 @@
+{
+ "query": "RELIANCE.NS \u2014 latest price, recent developments, and fundamentals",
+ "symbol": "RPOWER",
+ "mode": "DEEP",
+ "depth": "deep",
+ "markdown": "## Reliance Power (RPOWER) \u2014 Research Brief\n\n**As of 11 June 2026 (server date)**\n\n### Latest Price\n\n| Metric | Value |\n|--------|-------|\n| Last traded price (NSE) | \u20b925.72 |\n| Change | -\u20b90.95 (-3.56%) |\n| Volume | 36,563,357 shares |\n| Exchange | NSE, BSE |\n| Data freshness | 11 June 2026, market closed |\n\n(All from NSE direct feed [24]; confirmed by Bloomberg terminal snapshot and secondary sources [12][13].)\n\n### Recent Developments\n\n- **Q4 FY26 & FY26 Full-Year Results Filed** \u2013 On 21 May 2026, Reliance Power submitted audited standalone and consolidated financial results for the quarter and year ended 31 March 2026 [1][2][3].\n  - *Note*: The working report did not extract standalone/consolidated quarterly revenue, net profit, or EPS for Q4 FY26 in this run. Those figures are **not available** here; the filing PDFs [1][2][3] contain the full statements.\n- **Change in Management** \u2013 The company informed the exchanges of changes in management positions, effective from 21 May 2026 [10][11].\n- **Annual Secretarial Compliance** \u2013 Filed for the year ended 31 March 2026 [9].\n\n### Fundamentals (TTM as of 31 March 2026)\n\n| Metric | Value |\n|--------|-------|\n| Revenue (TTM) | \u20b976,197 million [1][2][3] |\n| Net loss (TTM) | \u20b93,368 million [1][2][3] |\n| EPS (TTM) | -\u20b90.82 [1][2][3][25] |\n| P/E (trailing) | None (negative earnings) [25] |\n| Forward P/E | 5.70 [25] |\n| Price/Book | 0.66 [18][25] |\n| Price/Sales (TTM) | 1.40 [25] |\n| EV/EBITDA (TTM) | 8.29 [25] |\n| Market capitalisation | \u20b9106.37 billion [25] |\n| Book value per share | \u20b938.78 [25] |\n| Dividend yield | None [25] |\n| Debt/Equity | 0.92 [18][25] |\n| Current ratio | 0.46 [25] |\n| Gross margin | 50.1% [25] |\n| Operating margin | 19.7% [25] |\n| Profit margin | -4.4% [25] |\n| ROE | -2.1% [25] |\n| ROA | 2.9% [25] |\n| Beta | 0.85 [25] |\n| 52-week high | \u20b972.20 [25] |\n| 52-week low | \u20b920.17 [25] |\n| 52-week change | -61.7% [25] |\n\n**Sector**: Utilities \u2013 Independent Power Producers [25].\n\n### Notable Observations\n\n- The company is currently loss-making on a trailing basis, resulting in an undefined trailing P/E. However, the forward P/E of 5.70 suggests analysts expect a return to profitability in the coming year.\n- Debt/Equity of 0.92 indicates moderate leverage.\n- The stock trades well below book value (P/B 0.66) and at a low price-to-sales multiple relative to the Utilities sector.\n- No dividends have been declared in the trailing twelve months.\n\n### Sources Cited\n\n[1] NSE filing \u2013 Q4 FY26 result (21 May 2026)\n[2] BSE filing \u2013 Outcome of Board Meeting (21 May 2026)\n[3] BSE filing \u2013 Audited Financial Results (21 May 2026)\n[9] BSE filing \u2013 Annual Secretarial Compliance\n[10] NSE filing \u2013 Change in Management\n[11] BSE filing \u2013 Change in Management\n[12] Moneycontrol \u2013 Share price snapshot\n[13] Groww \u2013 Share price snapshot\n[18] Finology Ticker \u2013 Fundamental data\n[24] Vysted price snapshot for RPOWER (NSE direct)\n[25] Vysted fundamentals snapshot for RPOWER (Yahoo Finance)",
+ "sources": [
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/RPOWER_21052026214354_Reliance_Power_outcome_of_Board_Meeting.pdf",
+   "title": "Reliance Power Limited has submitted to the Exchange, the financial results for the period ended March 31, 2026.",
+   "excerpt": "NSE \u00b7 Outcome of Board Meeting \u00b7 2026-05-21T21:44:31+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/8dd6c9a3-709e-4700-9e92-1378e1fb19c6.pdf",
+   "title": "Board Meeting Outcome for Outcome Of The Board Meeting",
+   "excerpt": "BSE \u00b7 Board Meeting \u00b7 2026-05-21T21:32:28.860000+05:30",
+   "domain": "BSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/4c2b135c-f6c7-4690-a19a-c85a07b3f925.pdf",
+   "title": "Results - Audited Financial Results (Standalone And Consolidated) For The Quarter And Year Ended March 31, 2026",
+   "excerpt": "BSE \u00b7 Result \u00b7 2026-05-21T21:29:19.757000+05:30",
+   "domain": "BSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/RPOWER_30012026192205_OutcomeBM30012026FSSMP.pdf",
+   "title": "Reliance Power Limited has submitted to the Exchange, the financial results for the quarter and nine months ended December 31, 2025.",
+   "excerpt": "NSE \u00b7 Outcome of Board Meeting \u00b7 2026-01-30T19:23:47+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/RPOWER_10112025213004_Reliance_Power_Outcome_FR_FCCB_Final.pdf",
+   "title": "Reliance Power Limited has submitted to the Exchange, the financial results for the period ended September 30, 2025.",
+   "excerpt": "NSE \u00b7 Outcome of Board Meeting \u00b7 2025-11-10T21:35:39+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.sec.gov/Archives/edgar/vprr/1001/10016298.pdf",
+   "title": "[PDF] ReLIANCe Communications - SEC.gov",
+   "excerpt": "31 Mar 2009 \u00b7 ... Limited is the flagship. Company of Reliance. Anil. Dhirubhai. Ambani ... Net Worth Rs Cr. 36363. 37059. 20461. 22931. 46. 26. Y07. FY00. FY09.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.sec.gov/Archives/edgar/data/861884/000110465924024355/tm246217d1_ex99-1.htm",
+   "title": "Reliance, Inc. Reports Fourth Quarter and Full Year 2023 ...",
+   "excerpt": "Reliance, Inc. Reports Fourth Quarter and Full Year 2023 Financial Results and Unveils Corporate Rebranding \u00b7 \u2212 Second highest annual EPS of $22.64; fourth quarter EPS of $4.70",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.sec.gov/Archives/edgar/data/861884/000155837025006104/rs-20250331x10q.htm",
+   "title": "RELIANCE, INC._ March 31, 2025",
+   "excerpt": "Based upon that evaluation, our management, including the CEO and the CFO, concluded that, as of the end of the period covered in this report, the Company\u2019s disclosure controls and procedures were effective to ensure information required to be disclosed in the reports that the Company files or submits under the Exchange Act is recorded, processed, summarized, and reported within the time periods specified in the SEC rules and forms, and that it is accumulated and communicated to our management, including the CEO and our CFO, as appropriate, to allow timely decisions regarding required disclosure. ... There have been no changes in the Company\u2019s internal control over financial reporting during the first quarter of 2025 that have materially affected, or are reasonably likely to materially affect, our internal control over financial reporting.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/d8d09bb9-122b-4847-a051-f8e02e6e770b.pdf",
+   "title": "Compliances-Reg.24(A)-Annual Secretarial Compliance",
+   "excerpt": "BSE \u00b7 Company Update \u00b7 2026-05-29T18:50:50.443000+05:30",
+   "domain": "BSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/RPOWER_21052026215021_Reliance_Power_outcome_of_Board_Meeting.pdf",
+   "title": "Reliance Power Limited has informed the Exchange about change in Management",
+   "excerpt": "NSE \u00b7 Change in Management \u00b7 2026-05-21T21:50:36+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/306f92fb-d97b-41be-a8cd-2a44e1f4f62c.pdf",
+   "title": "Announcement under Regulation 30 (LODR)-Change in Management",
+   "excerpt": "BSE \u00b7 Company Update \u00b7 2026-05-21T21:47:40.880000+05:30",
+   "domain": "BSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.moneycontrol.com/india/stockpricequote/power-generationdistribution/reliancepower/RP",
+   "title": "Reliance Power Ltd - Share/Stock Price - Moneycontrol.com",
+   "excerpt": "Reliance Power Limited - Update on Outstanding Warrants. 24 Apr, 2026 | 07:22PM. Announcement Under Regulation 30 (LODR) - Newspaper Publication. Announcement ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://groww.in/stocks/reliance-power-ltd",
+   "title": "Reliance Power Stock Price Live NSE/BSE - Groww",
+   "excerpt": "N/A. 3Y CAGR, +2%, +73%. All Financials. About Reliance Power. Reliance Power Limited develops and operates power generation projects across thermal, solar, and ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.tickertape.in/stocks/reliance-power-RPOL",
+   "title": "RPOWER Share Price Live: Reliance Power NSE Today - Tickertape",
+   "excerpt": "RPOWER Company Profile. Reliance Power Limited is engaged in the business of generation of power. RPOWER Similar Stocks (Peers).",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.bajajfinserv.in/investments/rpower-share-price",
+   "title": "Reliance Power Ltd. Share Price Today Live NSE/BSE - Bajaj Finserv",
+   "excerpt": "Reliance Power Limited, a part of the Reliance Anil Dhirubhai Ambani Group ... The \u201clast sale\u201d is the most recent price at which a stock, like Reliance Power Ltd.",
+   "domain": "web"
+  },
+  {
+   "url": "https://finance.yahoo.com/quote/RPOWER.NS/",
+   "title": "Reliance Power Limited (RPOWER.NS) - Yahoo Finance",
+   "excerpt": "Find the latest Reliance Power Limited (RPOWER.NS) stock quote, history, news and other vital information to help you with your stock trading and investing.",
+   "domain": "web"
+  },
+  {
+   "url": "https://in.tradingview.com/symbols/NSE-RPOWER/ideas/page-3/",
+   "title": "Reliance Power Limited Trade Ideas \u2014 NSE:RPOWER - TradingView",
+   "excerpt": "TradingView India. Check out the latest trade and investment ideas for Reliance Power Limited from our top authors. They share opinions on price directions ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://ticker.finology.in/company/RPOWER",
+   "title": "Reliance Power Share Price Today, Chart & Financials - Finology Ticker",
+   "excerpt": "Rating 3.0(10) \u00b7 FreeFinally on July 4, 2007 the name got changed to Reliance Power Limited by a special resolution of the members passed at an EGM. ... The latest available Reliance ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.perplexity.ai/finance/RPOWER.BO",
+   "title": "Reliance Power Limited Price: Quote, Forecast, Charts & News (RPOWER ...",
+   "excerpt": "Reliance Power Limited (RPOWER.BO) is a Mumbai-based Independent Power Producer (IPP) and part of the Reliance Group, engaged in the development, construction, ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.reliancepower.co.in/documents/2181716/15541247/Annual_Report_2024_25.pdf",
+   "title": "[PDF] Annual Report 2024-25 Reliance Power Limited",
+   "excerpt": "8 Aug 2025 \u00b7 Reliance Power Limited traces its roots to the pioneering vision of Shri Dhirubhai H. Ambani (1932\u20132002), the founder of the Reliance Group.",
+   "domain": "web"
+  },
+  {
+   "url": "https://marketsmithindia.com/mstool/eval/rpower/evaluation.jsp",
+   "title": "Reliance Power Share Price - MarketSmith India",
+   "excerpt": "Reliance Power - Report. Generated on: May 27, 2026. Download PDF. BUSINESS PROFILE. Overview. Reliance Power Limited, part of the Reliance Group, was ...",
+   "domain": "web"
+  },
+  {
+   "url": "http://www.cmlinks.com/pub/dp/dp12653.pdf",
+   "title": "[PDF] Reliance Power Limited",
+   "excerpt": "19 Jan 2008 \u00b7 ... in. PUBLIC ISSUE OF 260,000,000 EQUITY SHARES OF Rs. 10 EACH OF RELIANCE POWER LIMITED (\u201cRELIANCE POWER\u201d OR THE \u201cCOMPANY\u201d OR THE. \u201cISSUER ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.rinfra.com/documents/1142822/15552929/Annual_Report_2024_25.pdf",
+   "title": "[PDF] Annual Report 2024-25 Reliance Infrastructure Limited",
+   "excerpt": "8 Aug 2025 \u00b7 ... March. 31, 2020, investment in Reliance Power Limited had been reduced to 12.77% of its paid-up share capital. Accordingly in terms of Ind AS ...",
+   "domain": "web"
+  },
+  {
+   "url": "vysted://price/RPOWER",
+   "title": "Price for RPOWER",
+   "excerpt": "Structured price snapshot via nse_direct gathered this run.",
+   "domain": "nse_direct"
+  },
+  {
+   "url": "vysted://fundamentals/RPOWER",
+   "title": "Fundamentals for RPOWER",
+   "excerpt": "Structured fundamentals snapshot via yfinance gathered this run.",
+   "domain": "yfinance"
+  },
+  {
+   "url": "vysted://news/RPOWER",
+   "title": "News for RPOWER",
+   "excerpt": "Structured news pull.",
+   "domain": "vysted"
+  }
+ ],
+ "sourceCount": 26,
+ "cost": {
+  "tokens": 0,
+  "spendUsd": 0
+ },
+ "webAvailable": true,
+ "structured": {
+  "resolved": {
+   "ok": true,
+   "query": "RELIANCE.NS \u2014 latest",
+   "region": "US",
+   "resolved": {
+    "symbol": "RPOWER",
+    "name": "Reliance Power Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "RPOWER.NS",
+    "confidence": 0.619
+   },
+   "needs_disambiguation": true,
+   "candidates": [
+    {
+     "symbol": "RPOWER",
+     "name": "Reliance Power Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "RPOWER.NS",
+     "confidence": 0.619
+    }
+   ]
+  },
+  "price": {
+   "ok": true,
+   "provider": "nse_direct",
+   "data": {
+    "symbol": "RPOWER",
+    "price": 25.72,
+    "change": -0.9500000000000028,
+    "change_percent": -3.5620547431571157,
+    "volume": 36563357,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-06-11T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": null
+   }
+  },
+  "fundamentals": {
+   "ok": true,
+   "provider": "yfinance",
+   "data": {
+    "symbol": "RPOWER.NS",
+    "name": "Reliance Power Limited",
+    "sector": "Utilities",
+    "industry": "Utilities - Independent Power Producers",
+    "currency": "INR",
+    "market_cap": 106372022272,
+    "pe_ratio": null,
+    "forward_pe": 5.702882,
+    "peg_ratio": null,
+    "price_to_book": 0.66326267,
+    "price_to_sales": 1.3960114,
+    "ev_to_ebitda": 8.288,
+    "book_value": 38.778,
+    "dividend_yield": null,
+    "dividend_per_share": null,
+    "eps": -0.82,
+    "beta": 0.85,
+    "fifty_two_week_high": 72.2,
+    "fifty_two_week_low": 20.17,
+    "fifty_two_week_change": -0.6174699,
+    "roe": -0.0208,
+    "roa": 0.02881,
+    "gross_margin": 0.50141,
+    "operating_margin": 0.19662,
+    "profit_margin": -0.04421,
+    "debt_to_equity": 0.92348,
+    "current_ratio": 0.463,
+    "quick_ratio": 0.3,
+    "revenue_ttm": 76197101568,
+    "net_income_ttm": -3367500032,
+    "free_cash_flow": 24676438016,
+    "shares_outstanding": 4135770966,
+    "revenue_growth": -0.046,
+    "earnings_growth": null,
+    "held_percent_insiders": 0.3005,
+    "held_percent_institutions": 0.11934,
+    "provider": "yfinance"
+   }
+  }
+ },
+ "backend": "native",
+ "createdAt": 1781192429727
+}

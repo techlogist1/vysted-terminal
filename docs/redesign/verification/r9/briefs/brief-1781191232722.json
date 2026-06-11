@@ -1,0 +1,98 @@
+{
+ "query": "Saksoft Limited SAKSOFT.NS",
+ "symbol": "SAKSOFT.NS",
+ "mode": "FAST",
+ "depth": "quick",
+ "markdown": "## Saksoft Limited ($SAKSOFT.NS) \u2014 Quick Brief\n\n**Saksoft** is an AI-led digital engineering & data transformation company based in India, serving clients across North America and Europe. The stock has been under significant pressure \u2014 down ~29% from its 52-week high.\n\n### Key Metrics\n| Metric | Value |\n|---|---|\n| **Price** | \u20b9138.17 (\u25bc2.9% today) |\n| **Market Cap** | \u20b91,766 Cr |\n| **P/E (TTM)** | 13.6x |\n| **Forward P/E** | 4.0x |\n| **P/B** | 2.3x |\n| **EV/EBITDA** | 8.6x |\n| **ROE** | 19.1% |\n| **Debt/Equity** | 0.06 (near debt-free) |\n| **Dividend Yield** | ~0.7% |\n| **52W High / Low** | \u20b9254 / \u20b9108 |\n\n### Valuation & Quality\n- **Cheap on earnings**: Trailing P/E of 13.6x is modest for an IT services firm with 19% ROE [1].\n- **Forward P/E of 4.0x** looks extremely low \u2014 likely reflecting expected earnings normalization or one-off charges.\n- **Near-zero debt** (D/E 0.06) and a current ratio of 2.2 \u2014 balance sheet is solid [1].\n- **Revenue growth** slowed to ~3.7% TTM, but **earnings grew 21.6%** \u2014 margin expansion at work [1].\n\n### Recent Performance\n- Stock is down ~29% from its 52-week high of \u20b9254, underperforming the broader market [2].\n- The company declared a 55% final dividend for FY26 (\u20b91/share) [3].\n- Mid-teen revenue growth expected over FY25\u201328E with EBITDA margins stabilizing at 18\u201319% [4].\n\n### Key Risks\n- **Growth slowdown**: Revenue growth has decelerated to ~3.7% \u2014 the market is pricing in a prolonged soft patch.\n- **Client concentration** in US/Europe exposes it to cross-currency and macro headwinds.\n- **Low institutional holding** (0.2%) \u2014 limited institutional validation.\n\n### Bottom Line\nSaksoft is a debt-light, profitable IT services firm trading at a deep discount to its historical multiples. The forward P/E of 4x suggests the market expects further earnings compression, but the 19% ROE and near-debt-free balance sheet provide a margin of safety. Worth watching for a catalyst (earnings inflection, large deal win) before jumping in.\n\n---\n*Sources: [1] Yahoo Finance / yfinance fundamentals; [2] Perplexity Finance; [3] Sharekhan; [4] MNCL Group research.*",
+ "sources": [
+  {
+   "url": "https://finance.yahoo.com/quote/SAKSOFT.NS/",
+   "title": "Yahoo Finance \u2014 Saksoft Fundamentals",
+   "excerpt": "P/E 13.6x, ROE 19.1%, D/E 0.06",
+   "domain": "finance.yahoo.com"
+  },
+  {
+   "url": "https://www.perplexity.ai/finance/SAKSOFT.NS/research",
+   "title": "Perplexity Finance \u2014 SAKSOFT.NS",
+   "excerpt": "Stock down ~25-29% YTD, trades at ~20x earnings",
+   "domain": "perplexity.ai"
+  },
+  {
+   "url": "https://www.sharekhan.com/stock/saksoft-ltd",
+   "title": "Sharekhan \u2014 Saksoft Ltd",
+   "excerpt": "55% final dividend declared for FY26",
+   "domain": "sharekhan.com"
+  },
+  {
+   "url": "https://www.mnclgroup.com/saksoft-ltd-temporary-headwinds-normalization-in-sight-company-update",
+   "title": "MNCL Group \u2014 Saksoft: Temporary headwinds",
+   "excerpt": "Mid-teen revenue growth expected FY25-28E, EBITDA margins 18-19%",
+   "domain": "mnclgroup.com"
+  }
+ ],
+ "sourceCount": 4,
+ "webAvailable": true,
+ "structured": {
+  "price": {
+   "ok": true,
+   "provider": "nse_direct",
+   "data": {
+    "symbol": "SAKSOFT",
+    "price": 138.17,
+    "change": -4.110000000000014,
+    "change_percent": -2.8886702277199983,
+    "volume": 138579,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-06-11T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": null
+   }
+  },
+  "fundamentals": {
+   "ok": true,
+   "provider": "yfinance",
+   "data": {
+    "symbol": "SAKSOFT.NS",
+    "name": "Saksoft Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "currency": "INR",
+    "market_cap": 17663541248,
+    "pe_ratio": 13.559372,
+    "forward_pe": 4.0471587,
+    "peg_ratio": null,
+    "price_to_book": 2.2680938,
+    "price_to_sales": 1.7537426,
+    "ev_to_ebitda": 8.618,
+    "book_value": 60.919,
+    "dividend_yield": 0.006999999999999999,
+    "dividend_per_share": 1,
+    "eps": 10.19,
+    "beta": 0.356,
+    "fifty_two_week_high": 253.99,
+    "fifty_two_week_low": 107.59,
+    "fifty_two_week_change": -0.29228014,
+    "roe": 0.19065,
+    "roa": 0.10484,
+    "gross_margin": 0.492,
+    "operating_margin": 0.16792999,
+    "profit_margin": 0.13232,
+    "debt_to_equity": 0.05607,
+    "current_ratio": 2.166,
+    "quick_ratio": 1.882,
+    "revenue_ttm": 10071912448,
+    "net_income_ttm": 1332697984,
+    "free_cash_flow": 851386496,
+    "shares_outstanding": 127839193,
+    "revenue_growth": 0.037,
+    "earnings_growth": 0.216,
+    "held_percent_insiders": 0.72541,
+    "held_percent_institutions": 0.00217,
+    "provider": "yfinance"
+   }
+  }
+ },
+ "backend": "searxng",
+ "createdAt": 1781191232722
+}
