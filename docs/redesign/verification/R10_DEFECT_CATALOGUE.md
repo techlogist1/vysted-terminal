@@ -26,6 +26,12 @@ RECX = "Recreatives **Industries**, Inc." in `us_instruments.json` — the same 
 model authors keyword-salad research queries; the tool binds the salad; the model's own
 narration uses its world knowledge — that is the "two organs disagree" symptom.
 
+**LIVE on the running sidecar (Phase 0):** `GET /resolve?q=research%20Reliance` →
+`resolved: REFR "RESEARCH FRONTIERS INC", confidence 0.7979, needs_disambiguation:
+false, region: "US"` — the endpoint BINDS a US ETF-adjacent micro-cap for a phrase any
+user would type, with the region defaulted to US on this install. Candidate 2 was RACC
+"Research Alliance Corp III". The Q4-salad query ranked LNKS above RELIANCE live.
+
 Aggravators: `resolve()` defaults `region` to US (symbol_resolver.py:336) with a +0.08
 ADDITIVE locale bonus, so a US prefix-band match (0.92+0.08=1.00) can outrank an NSE
 first-word match (0.97); `_live_lookup` (yfinance) ignores region and returns the first
@@ -137,9 +143,12 @@ CHOICE — the 402 is an expected condition to humanize, not an outage.
 
 ## E10 — Streaming line clips the VYSTED COPILOT header
 
-**Status:** to be reproduced live once the rebuilt stack boots (static sweep found the
-panel title in the dockview tab strip; the clip likely involves the in-panel transcript
-chrome at the streaming status line). Fix lands in FRONTEND-BRIEF with a screenshot pin.
+**REPRODUCED LIVE (r10/phase0/01-streaming-t2.png):** mid-stream, the streamed text /
+caret renders OVER the agent message's "VYSTED COPILOT" author label (the label reads
+"▌YSTED COPILOT" — first glyph overdrawn), and the "● VYSTED COPILOT AGENT" streaming
+status strip overlays the "CONTEXT: PORTFOLIO" row at the panel top. Once the stream
+completes (02-streaming-t5.png) the layout is clean — the defect is the in-flight
+layering/reserved-height of the author label + status strip. Fix in FRONTEND-BRIEF.
 
 ## E11 — Tradesa dead weight
 
