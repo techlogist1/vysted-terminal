@@ -1402,6 +1402,163 @@ async def test_non_reasoner_reconstructed_turn_stays_empty(
     assert turn.content == ""
 
 
+# ---------------------------------------------------------------------------
+# R10 E7 — per-tool dispatch timeouts (honest message, loop continues)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_dispatch_timeout_returns_honest_message(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A registry tool that exceeds its budget returns the honest timeout
+    payload (error='timeout', message naming the tool, the budget, and a next
+    step) — never an unbounded silent hang (E7)."""
+    import asyncio as _asyncio
+
+    from services import agent_tools
+    from services.agent_tools import catalog
+
+    async def _slow(_args: dict[str, Any]) -> dict[str, Any]:
+        await _asyncio.sleep(5)
+        return {"ok": True}  # pragma: no cover — never reached
+
+    agent_tools.register_tool("slow_probe_tool", _slow)
+    try:
+        monkeypatch.setattr(
+            catalog, "timeout_for", lambda tid: 0.05 if tid == "slow_probe_tool" else None
+        )
+        event = LLMToolUseEvent(tool_call_id="call-slow", name="slow_probe_tool", input={})
+        result = json.loads(await agent_runtime._dispatch_tool(event))
+    finally:
+        agent_tools.reset_for_tests()
+        agent_tools.register_v0_5_0_tools()
+        agent_tools.register_v0_6_0_tools()
+    assert result["ok"] is False
+    assert result["error"] == "timeout"
+    assert "slow_probe_tool timed out after 0s" in result["message"]
+    assert "—" in result["message"]  # the per-domain hint rides the message
+
+
+@pytest.mark.asyncio
+async def test_dispatch_timeout_loop_continues(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The E7 core: a timed-out tool round does NOT kill the stream — the
+    result reaches the model as a relayable error and the loop finishes the
+    turn normally."""
+    import asyncio as _asyncio
+
+    from services import agent_tools
+    from services.agent_tools import catalog
+
+    async def _slow(_args: dict[str, Any]) -> dict[str, Any]:
+        await _asyncio.sleep(5)
+        return {"ok": True}  # pragma: no cover — never reached
+
+    agent_tools.register_tool("slow_probe_tool", _slow)
+    monkeypatch.setattr(
+        catalog, "timeout_for", lambda tid: 0.05 if tid == "slow_probe_tool" else None
+    )
+
+    class _SlowToolProvider:
+        def __init__(self) -> None:
+            self._round = 0
+            self.round_messages: list[list[LLMMessage]] = []
+
+        async def stream_chat(
+            self,
+            messages: list[LLMMessage],
+            model: str,
+            api_key: str | None = None,
+            **kwargs: Any,
+        ) -> AsyncIterator[Any]:
+            self.round_messages.append(list(messages))
+            if self._round == 0:
+                self._round += 1
+                yield LLMToolUseEvent(tool_call_id="call-1", name="slow_probe_tool", input={})
+                yield LLMDoneEvent(usage=LLMUsage(input_tokens=5, output_tokens=1))
+                return
+            yield LLMDeltaEvent(text="That tool timed out; here is what I know.")
+            yield LLMDoneEvent(usage=LLMUsage(input_tokens=3, output_tokens=2))
+
+    agent_runtime.reload()
+    provider = _SlowToolProvider()
+    _patch_provider(monkeypatch, provider)
+    events: list[Any] = []
+    try:
+        async for event in agent_runtime.invoke_agent(
+            agent_id="copilot",
+            prompt="probe",
+            api_key="sk-test",
+            mode="edit",
+        ):
+            events.append(event)
+    finally:
+        agent_tools.reset_for_tests()
+        agent_tools.register_v0_5_0_tools()
+        agent_tools.register_v0_6_0_tools()
+    # The stream completed (loop continued past the timeout)…
+    assert [e.kind for e in events][-1] == "done"
+    # …and the model's second round saw the honest timeout result.
+    tool_turns = [m for m in provider.round_messages[1] if m.role == "tool"]
+    assert len(tool_turns) == 1
+    timeout_payload = json.loads(tool_turns[0].content)
+    assert timeout_payload["error"] == "timeout"
+    assert "timed out" in timeout_payload["message"]
+
+
+def test_research_guard_scales_with_args_and_depth() -> None:
+    """The research outer guard = max(arg wall, profile wall, engine floor) + 90
+    — it can never fire before a legitimately-running engine (tier_a profile
+    walls AND tier_b research-model walls both fit under it)."""
+    event_cls = LLMToolUseEvent
+    # normal: floor 120 + 90.
+    assert (
+        agent_runtime._tool_timeout_seconds(
+            event_cls(tool_call_id="c", name="research", input={"query": "x"})
+        )
+        == 210.0
+    )
+    # deep: tier_b research-model wall 300 beats the 120 profile wall.
+    assert (
+        agent_runtime._tool_timeout_seconds(
+            event_cls(tool_call_id="c", name="research", input={"query": "x", "depth": "deep"})
+        )
+        == 390.0
+    )
+    # ultra: 480 floor (tier_b) beats the 360 profile wall.
+    assert (
+        agent_runtime._tool_timeout_seconds(
+            event_cls(tool_call_id="c", name="research", input={"query": "x", "depth": "ultra"})
+        )
+        == 570.0
+    )
+    # An explicit wall_seconds above every floor wins.
+    assert (
+        agent_runtime._tool_timeout_seconds(
+            event_cls(
+                tool_call_id="c",
+                name="research",
+                input={"query": "x", "depth": "deep", "wall_seconds": 600},
+            )
+        )
+        == 690.0
+    )
+
+
+def test_host_actions_and_per_invocation_tools_have_no_timeout() -> None:
+    """Host-action locals (frontend round-trips) and per-invocation reads are
+    EXEMPT from dispatch timeouts; every registry read tool carries one."""
+    from services.agent_tools import catalog
+
+    for cap in catalog.CAPABILITY_CATALOG.values():
+        if cap.kind in ("host_action", "per_invocation"):
+            assert cap.timeout_seconds is None, f"{cap.id}: locals must be exempt"
+        elif cap.kind == "read_handler" and cap.id != "research":
+            assert cap.timeout_seconds is not None, f"{cap.id}: registry tool needs a budget"
+    # research's guard is computed from args, not the catalog.
+    assert catalog.timeout_for("research") is None
+
+
 @pytest.mark.asyncio
 async def test_dispatch_unknown_tool_returns_relayable_error() -> None:
     """Grounded narration (R8 seams): a tool call to an unknown/disallowed tool

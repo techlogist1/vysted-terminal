@@ -492,6 +492,48 @@ _RESEARCH_TOOLS = ("research",)
 
 LocalToolHandler = Any  # async (dict) -> dict, bound per-invocation
 
+#: Headroom (seconds) the research outer guard adds above the engine's own
+#: wall budget (E7) — the guard is a backstop for a WEDGED engine, never a
+#: second scheduler racing a healthy run.
+_RESEARCH_GUARD_EXTRA_SECONDS = 90.0
+
+#: Per-depth wall floors for the research guard, covering BOTH engines: the
+#: tier_a depth-profile walls (deep 120 / ultra 360) AND the tier_b hosted
+#: research-model walls (normal 120 / deep 300 / ultra 480) — the guard takes
+#: the max so it can never fire before a legitimately-running engine finishes.
+_RESEARCH_WALL_FLOOR_SECONDS = {"normal": 120.0, "deep": 300.0, "ultra": 480.0}
+
+
+def _research_guard_seconds(args: Any) -> float:
+    """The research tool's outer timeout: ``wall_seconds + 90`` from its args.
+
+    Resolves the effective depth exactly as the handler does (the MAX of the
+    model's arg and the composer-slider floor), takes the larger of the
+    explicit ``wall_seconds`` arg, the depth profile's wall, and the per-depth
+    engine floor, then adds the guard headroom.
+    """
+    from services.research import depth as depth_mod
+
+    arg_map = args if isinstance(args, dict) else {}
+    rank = {depth_mod.DEPTH_NORMAL: 0, depth_mod.DEPTH_DEEP: 1, depth_mod.DEPTH_ULTRA: 2}
+    model_depth = depth_mod.normalize_depth(arg_map.get("depth"))
+    slider_depth = depth_mod.normalize_depth(config.get_request_research_depth())
+    depth = model_depth if rank[model_depth] >= rank[slider_depth] else slider_depth
+    try:
+        wall = float(arg_map.get("wall_seconds"))
+    except (TypeError, ValueError):
+        wall = 0.0
+    profile_wall = float(depth_mod.profile_for(depth).wall_seconds)
+    floor = _RESEARCH_WALL_FLOOR_SECONDS.get(depth, 120.0)
+    return max(wall, profile_wall, floor) + _RESEARCH_GUARD_EXTRA_SECONDS
+
+
+def _tool_timeout_seconds(event: LLMToolUseEvent) -> float | None:
+    """The dispatch wall budget for one registry tool call (E7); ``None`` = none."""
+    if event.name == "research":
+        return _research_guard_seconds(event.input)
+    return catalog.timeout_for(event.name)
+
 
 async def _dispatch_tool(
     event: LLMToolUseEvent,
@@ -504,6 +546,12 @@ async def _dispatch_tool(
     they ride the existing :class:`LLMMessage` ``content`` field. A handler that
     raises (or an unregistered tool) surfaces a structured error so the model
     recovers gracefully on the next turn rather than crashing the stream.
+
+    R10 (E7): registry tools run under their catalog ``timeout_seconds`` (the
+    ``research`` guard derives from its args) via ``asyncio.wait_for`` — a
+    timed-out tool returns an honest message with a per-domain next step and
+    the loop CONTINUES; host-action locals + per-invocation reads are exempt
+    (frontend round-trips / in-memory).
     """
     name = event.name
     # WS8 Step 1: the adapter could not parse/validate/repair this call's
@@ -520,7 +568,23 @@ async def _dispatch_tool(
         if local_tools and name in local_tools:
             payload: dict[str, Any] = await local_tools[name](event.input)
         elif agent_tools.is_registered(name):
-            payload = await agent_tools.invoke_tool(name, event.input)
+            timeout = _tool_timeout_seconds(event)
+            if timeout is not None:
+                try:
+                    payload = await asyncio.wait_for(
+                        agent_tools.invoke_tool(name, event.input), timeout
+                    )
+                except TimeoutError:
+                    payload = {
+                        "ok": False,
+                        "error": "timeout",
+                        "message": (
+                            f"{name} timed out after {int(timeout)}s — "
+                            f"{catalog.timeout_hint_for(name)}"
+                        ),
+                    }
+            else:
+                payload = await agent_tools.invoke_tool(name, event.input)
         else:
             payload = {"ok": False, "error": f"tool {name!r} is not available in this build"}
     except Exception as exc:  # noqa: BLE001 — surface failures to the model
