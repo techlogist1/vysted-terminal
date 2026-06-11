@@ -105,12 +105,34 @@ export function deserializeSavedScreens(raw: string | null | undefined): SavedSc
         // Ensure combinator is valid; default to "and".
         const combinator: import("./screener").ScreenerCombinator =
           s.combinator === "or" ? "or" : "and";
+        // Validate group shape: must be null, or an object with a valid
+        // combinator string and an array criteria field.  A group with an
+        // unexpected shape (e.g. `group: "junk"`) is silently dropped to null
+        // so loadScreen never passes a corrupt value to hasNestedGroup.
+        let group: CriterionGroup | null | undefined;
+        if (s.group === null || s.group === undefined) {
+          group = s.group as null | undefined;
+        } else if (
+          (typeof s.group === "object" &&
+            (s.group as Record<string, unknown>).combinator === "and") ||
+          (typeof s.group === "object" && (s.group as Record<string, unknown>).combinator === "or")
+        ) {
+          const rawGroup = s.group as Record<string, unknown>;
+          if (Array.isArray(rawGroup.criteria)) {
+            group = s.group as CriterionGroup;
+          } else {
+            group = null;
+          }
+        } else {
+          // Corrupt/unexpected shape — drop to null.
+          group = null;
+        }
         return {
           name: s.name as string,
           universe: s.universe as SavedScreen["universe"],
           criteria,
           combinator,
-          ...(s.group !== undefined ? { group: s.group as CriterionGroup | null } : {}),
+          ...(group !== undefined ? { group } : {}),
           ...(typeof s.formula === "string" && s.formula ? { formula: s.formula } : {}),
         };
       });
@@ -199,6 +221,9 @@ interface ScreenerState {
   /** Load a saved screen into the active draft (restores universe, criteria,
    * group, formula, combinator). Does NOT auto-run. */
   loadScreen: (name: string) => void;
+  /** Replace the full savedScreens list atomically — used by the workspace
+   * restore path (deserializeWorkspace) to rehydrate persisted screens. */
+  setSavedScreens: (screens: SavedScreen[]) => void;
   __resetForTests: () => void;
 }
 
@@ -608,6 +633,8 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       savedScreens: state.savedScreens.filter((s) => s.name !== name),
     }));
   },
+
+  setSavedScreens: (screens) => set({ savedScreens: screens }),
 
   loadScreen: (name) => {
     const screen = get().savedScreens.find((s) => s.name === name);

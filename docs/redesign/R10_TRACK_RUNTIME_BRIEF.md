@@ -50,8 +50,8 @@ publish_brief without `execution`, inject the tracked record before yielding the
   `record(tool_call_id, status, brief_meta)`, `get(tool_call_id)`, TTL ~10min,
   `reset_for_tests()`.
 - `routers/agents.py`: `POST /agents/actions/ack` body `{tool_call_id, status:
-"applied"|"kept_previous"|"failed", brief?: {run_id, created_at, symbol,
-source_count}}` → ledger. (Also: route the router's last-resort exception guard
+  "applied"|"kept_previous"|"failed", brief?: {run_id, created_at, symbol,
+  source_count}}` → ledger. (Also: route the router's last-resort exception guard
   through `services.errors.humanize` — Team ERRORS ships that module; until their
   branch merges, guard with a try/except ImportError fallback to today's str(exc).)
 - In `_build_local_tools`' autonomy=auto synthesized result for publish_brief (and
@@ -79,11 +79,11 @@ Pin with a resume test.
   (agents_store) stay author-picked.
 - NEW host_action capabilities (kind="host_action", read_only=False, with JSON
   schemas): `portfolio_add_position(symbol, quantity, cost_basis, asset_class?,
-note?, purchased_at?)`, `portfolio_update_position(position_id, …same)`,
+  note?, purchased_at?)`, `portfolio_update_position(position_id, …same)`,
   `portfolio_delete_position(position_id)`, `write_note(scope, text, mode:
-replace|append)`, `remove_from_watchlist(symbol)`, `save_layout(name?)`,
+  replace|append)`, `remove_from_watchlist(symbol)`, `save_layout(name?)`,
   `save_screen(name, criteria?, group?, formula?, universe?)`, `set_region(region:
-US|IN|GLOBAL)`. Extend `write_screener_filters` schema with `formula?: string` and
+  US|IN|GLOBAL)`. Extend `write_screener_filters` schema with `formula?: string` and
   `run?: boolean`; extend both screener capability universe enums with
   nse-all/bse-all/india-all (coordinate text with Team SCREENER's models — the enum
   strings are already in the contracts commit).

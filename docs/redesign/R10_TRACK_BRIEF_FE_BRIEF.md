@@ -13,32 +13,20 @@ zinc + scarce peach, depth heat lume/peach/ember).
 context-provider.ts, message components), `src/lib/workspace.ts` (+ its test),
 `src/store/proposed-changes.ts`, and their vitest files. Do NOT touch
 `src/store/screener.ts`/`src/modules/screener` (Team FRONTEND-DATA), `src/lib/
-marketplace.ts`/`keychain.ts` (Team ERRORS), types/\* (frozen contracts), sidecar.
+marketplace.ts`/`keychain.ts` (Team ERRORS), types/* (frozen contracts), sidecar.
 
 ## 1. Brief state machine — `src/store/brief.ts` (E3 dead)
 
 ```ts
 type BriefPanelState =
   | { phase: "empty" }
-  | {
-      phase: "in_flight";
-      runId: string;
-      query: string;
-      symbol?: string;
-      depth: BriefDepth;
-      startedAt: number;
-      steps: BriefStep[];
-      prior?: ResearchBriefData;
-    }
+  | { phase: "in_flight"; runId: string; query: string; symbol?: string;
+      depth: BriefDepth; startedAt: number; steps: BriefStep[];
+      prior?: ResearchBriefData }
   | { phase: "published"; brief: ResearchBriefData }
-  | {
-      phase: "archived";
-      brief: ResearchBriefData;
-      archivedAt: number;
-      reason: "restored" | "superseded" | "run_failed";
-    };
+  | { phase: "archived"; brief: ResearchBriefData; archivedAt: number;
+      reason: "restored" | "superseded" | "run_failed" };
 ```
-
 Transitions: `beginRun` (from the runtime's `research:begin {run_id} …` engine step —
 parse it in streaming.ts and call the store; prior published → carried as `prior`);
 `publish` (publish_brief applied; if `execution.run_id === inFlight.runId` or no run
@@ -114,7 +102,7 @@ divergence notices as a quiet system chip in the transcript (13px caption, zinc)
   color for message, charcoal for detail; Retry button stays); legacy plain-string
   errors render as today.
 - context-provider.ts: TerminalState gains `brief: {phase, runId?, symbol?,
-createdAt?, sourceCount?, depth?}` so get_terminal_state answers panel truth.
+  createdAt?, sourceCount?, depth?}` so get_terminal_state answers panel truth.
 - E10 — the streaming-line/header clip: reproduce at narrow widths/long status lines
   (the transcript header area "VYSTED COPILOT"); fix the layout (reserve height /
   clip-safe container per R8 §3.3 descender rule); pin with a vitest on the

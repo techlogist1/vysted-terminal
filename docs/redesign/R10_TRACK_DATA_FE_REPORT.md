@@ -1,6 +1,7 @@
 # R10 Track FRONTEND-DATA — ship report
 
-Branch: `worktree-agent-r10-fedata`. Commit: `c6f4159` + fix commit (this branch).
+Branch: `worktree-agent-r10-fedata`. Commits: `c6f4159` (feat) + `ed64c9d` (fix) + this
+round-2 fix commit.
 
 ## What shipped
 
@@ -24,8 +25,8 @@ state or null the live controller.
 
 ### §2 Saved screens
 
-`saveScreen / deleteScreen / loadScreen / savedScreens` are in `useScreenerStore`.
-Serialization helpers are **exported**:
+`saveScreen / deleteScreen / loadScreen / setSavedScreens / savedScreens` are in
+`useScreenerStore`. Serialization helpers are **exported**:
 
 ```ts
 import { serializeSavedScreens, deserializeSavedScreens } from "@/store/screener";
@@ -49,23 +50,32 @@ import { deserializeSavedScreens } from "@/store/screener";
 
 // Inside deserializeWorkspace, guard for older blobs:
 if (typeof blob.savedScreens === "string") {
-  useScreenerStore.getState().savedScreens = deserializeSavedScreens(blob.savedScreens);
-  // Or call a restore action if the store exposes one.
+  useScreenerStore.getState().setSavedScreens(deserializeSavedScreens(blob.savedScreens));
 }
 ```
 
+`setSavedScreens` is a proper store action — it calls `set({ savedScreens })` so all
+subscribers are notified and restored screens render. Do NOT write directly to
+`getState().savedScreens` (direct mutation bypasses Zustand's subscriber notification).
+
 **3. `src/app/page.tsx` — autosave subscription:**
-Because savedScreens changes do not move the dockview layout, add a store
-subscription in `page.tsx` that calls `autosaveLayout()` when `savedScreens` changes
-(per the CLAUDE.md workspace blob rule: "if the change doesn't move the dockview
-layout, add a store subscription in page.tsx calling autosaveLayout()").
+
+Because savedScreens changes do not move the dockview layout, add a store subscription
+in `page.tsx` that calls `autosaveLayout()` when `savedScreens` changes (per the
+CLAUDE.md workspace blob rule: "if the change doesn't move the dockview layout, add a
+store subscription in page.tsx calling autosaveLayout()").
+
+The store is created bare with `create<ScreenerState>(...)` — **no `subscribeWithSelector`
+middleware**. Use the established two-argument `subscribe((state, previous) => …)` pattern
+that all 12 existing page.tsx subscriptions follow:
 
 ```ts
-useScreenerStore.subscribe(
-  (s) => s.savedScreens,
-  () => autosaveLayout(),
-  { equalityFn: shallow },
-);
+const unsubscribeScreens = useScreenerStore.subscribe((state, previous) => {
+  if (state.savedScreens !== previous.savedScreens) {
+    void autosaveLayout();
+  }
+});
+// Add unsubscribeScreens() to the cleanup return.
 ```
 
 Without these three wires, `savedScreens` are session-only and do not persist across
@@ -122,13 +132,22 @@ state; React subscribers update synchronously).
 
 ### Notes seam
 
-`src/store/notes.ts` was not modified — the `appendGeneral` / `appendSymbolNote`
-question is out of scope for this fix pass. Verified: `setGeneral` and
-`setSymbolNote` are present in the existing store.
+`appendGeneral` and `appendSymbolNote` **shipped in commit `c6f4159`** with 8
+behavioral tests in `src/store/notes.test.ts`. The round-2 fix pass (`ed64c9d`) left
+`notes.ts` untouched in that commit but the round-3 fix (this commit) corrects
+`joinNote`: the previous implementation trimmed the **existing** note body on append,
+destroying leading indentation and deliberate trailing newlines. The fixed version
+preserves the existing body verbatim and only trims the new addendum.
+
+**Team FRONTEND-BRIEF write_note apply case:** call `appendGeneral(text)` or
+`appendSymbolNote(symbol, text)` from `useNotesStore` — these are the R10 write seams.
+`setGeneral` / `setSymbolNote` overwrite the entire note and should only be used for
+full replacements.
 
 ## Gates
 
 All vitest, lint, typecheck, format:check must be green before push. See the branch
 for the full test suite covering: cancel mid-stream, progress frame, result with
 partial/coverage/freshness, Run→Cancel morph, PARTIAL badge with and without coverage,
-three-tier freshness labels, saved-screens strip (save/load/delete).
+three-tier freshness labels, saved-screens strip (save/load/delete), append seam
+correctness, existing-body preservation on append.

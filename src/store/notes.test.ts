@@ -35,10 +35,17 @@ describe("notes store", () => {
       expect(useNotesStore.getState().general).toBe("existing content\n\nnew paragraph");
     });
 
-    it("appending empty text is a no-op (trims to existing)", () => {
+    it("appending empty text is a no-op (existing body unchanged)", () => {
       useNotesStore.getState().setGeneral("body");
       useNotesStore.getState().appendGeneral("   ");
       expect(useNotesStore.getState().general).toBe("body");
+    });
+
+    it("does NOT trim leading indentation or trailing newlines from the existing body", () => {
+      // An agent write_note append must never destroy the user's formatting.
+      useNotesStore.getState().setGeneral("  indented note\n");
+      useNotesStore.getState().appendGeneral("appended");
+      expect(useNotesStore.getState().general).toBe("  indented note\n\n\nappended");
     });
   });
 

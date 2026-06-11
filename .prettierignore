@@ -58,3 +58,12 @@ sidecar/tests/fixtures/
 docs/redesign/verification/r8/
 docs/redesign/verification/r9/briefs/
 docs/redesign/verification/r10/regression/
+# Track brief docs for other R10 teams — not owned by FE-DATA; reverted to
+# pre-Prettier state to undo spec-text corruption (portfolio_db.py / quote_*
+# underscores were escaped by Prettier's markdown emphasis escaping). These are
+# canonical specs for sibling branches; they must stay byte-identical to 0e2446e.
+docs/redesign/R10_TRACK_BRIEF_FE_BRIEF.md
+docs/redesign/R10_TRACK_ERRORS_BRIEF.md
+docs/redesign/R10_TRACK_RESOLVE_BRIEF.md
+docs/redesign/R10_TRACK_RUNTIME_BRIEF.md
+docs/redesign/R10_TRACK_SCREENER_BRIEF.md

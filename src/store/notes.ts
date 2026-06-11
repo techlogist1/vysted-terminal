@@ -37,14 +37,16 @@ interface NotesState {
   fromBundle: (bundle: NotesBundle | null) => void;
 }
 
-/** Join an existing note body and new text with a double newline separator.
- *  Avoids leading/trailing blank lines when either part is empty. */
+/** Append new text to an existing note body with a double newline separator.
+ *  The existing body is NEVER mutated — only the addendum is trimmed (to avoid
+ *  writing an empty separator when the agent sends whitespace-only text).
+ *  Leading indentation and deliberate trailing newlines in the existing body are
+ *  preserved verbatim. */
 function joinNote(existing: string, text: string): string {
-  const trimmed = existing.trim();
   const addendum = text.trim();
-  if (!trimmed) return addendum;
-  if (!addendum) return trimmed;
-  return `${trimmed}\n\n${addendum}`;
+  if (!existing) return addendum;
+  if (!addendum) return existing;
+  return `${existing}\n\n${addendum}`;
 }
 
 export const useNotesStore = create<NotesState>((set, get) => ({

@@ -32,7 +32,6 @@ class HumanError:
 def humanize(provider_id: str | None, exc: Exception | None = None, *,
              status: int | None = None, detail: str | None = None) -> HumanError
 ```
-
 Classification at minimum: 402 (DeepSeek direct: "Your DeepSeek balance is empty —
 top up or switch provider in Settings." — an EXPECTED state, not an outage; generic:
 "Your <provider> account has no credit."), 401/403 ("The <provider> API key was
