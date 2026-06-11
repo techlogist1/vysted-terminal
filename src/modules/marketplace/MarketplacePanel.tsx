@@ -68,7 +68,7 @@ export function MarketplacePanel() {
       {showSkeleton ? (
         <div className="flex flex-col gap-3 px-4 py-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-charcoal-800 h-14 animate-pulse rounded-none" />
+            <div key={i} className="bg-charcoal-800 h-16 animate-pulse rounded-none" />
           ))}
         </div>
       ) : (
@@ -141,7 +141,7 @@ function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
             </div>
           )}
         </div>
-        <div className="flex shrink-0 items-center gap-1.5">
+        <div className="flex shrink-0 items-center gap-2">
           {!state.installed && (
             <Button
               size="sm"
@@ -149,7 +149,7 @@ function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
               disabled={busy}
               onClick={() => void install(entry.pluginId)}
             >
-              {busy ? <Loader2 className="size-3 animate-spin" /> : null}
+              {busy ? <Loader2 className="animate-spin" /> : null}
               {busy ? "Working…" : "Install"}
             </Button>
           )}
@@ -160,7 +160,7 @@ function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
               disabled={busy}
               onClick={() => void enable(entry.pluginId)}
             >
-              {busy ? <Loader2 className="size-3 animate-spin" /> : <Power className="size-3" />}
+              {busy ? <Loader2 className="animate-spin" /> : <Power />}
               {busy ? "Working…" : "Enable"}
             </Button>
           )}
@@ -172,7 +172,7 @@ function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
               aria-label={`Disable ${entry.name}`}
               onClick={() => void disable(entry.pluginId)}
             >
-              {busy ? <Loader2 className="size-3 animate-spin" /> : <Power className="size-3" />}
+              {busy ? <Loader2 className="animate-spin" /> : <Power />}
               {busy ? "Working…" : "Disable"}
             </Button>
           )}
@@ -184,7 +184,7 @@ function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
               aria-label={`Configure ${entry.name}`}
               onClick={() => setConfiguring((v) => !v)}
             >
-              <Settings2 className="size-3.5" />
+              <Settings2 />
             </Button>
           )}
           {state.installed && !entry.preinstalled && (
@@ -195,7 +195,7 @@ function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
               aria-label={`Remove ${entry.name}`}
               onClick={() => void remove(entry.pluginId)}
             >
-              {busy ? <Loader2 className="size-3 animate-spin" /> : <Trash2 className="size-3.5" />}
+              {busy ? <Loader2 className="animate-spin" /> : <Trash2 />}
             </Button>
           )}
         </div>
@@ -233,9 +233,7 @@ function StateBadge({
     label = "Disabled";
     tone = "text-warning border-warning/40";
   }
-  return (
-    <span className={cn("rounded-control text-micro border px-1.5 py-0.5", tone)}>{label}</span>
-  );
+  return <span className={cn("rounded-control text-micro border px-1 py-0.5", tone)}>{label}</span>;
 }
 
 function CredentialForm({ entry, onDone }: { entry: MarketplaceEntry; onDone: () => void }) {
@@ -294,12 +292,12 @@ function CredentialForm({ entry, onDone }: { entry: MarketplaceEntry; onDone: ()
         </label>
       ))}
       {validationError && <p className="text-negative text-caption">{validationError}</p>}
-      <div className="flex items-center justify-end gap-1.5">
-        <Button type="button" size="sm" variant="ghost" onClick={onDone}>
+      <div className="flex items-center justify-end gap-2">
+        <Button type="button" variant="ghost" onClick={onDone}>
           Cancel
         </Button>
-        <Button type="submit" size="sm" variant="outline" disabled={busy}>
-          {busy ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3" />}
+        <Button type="submit" variant="outline" disabled={busy}>
+          {busy ? <Loader2 className="animate-spin" /> : <Check />}
           {busy ? "Saving…" : "Save credentials"}
         </Button>
       </div>
