@@ -254,7 +254,6 @@ export function BondPricerPanel() {
           type="button"
           onClick={handlePrice}
           disabled={isRunning || validationError !== null}
-          size="sm"
           variant="default"
           className="mt-auto"
           data-testid="price-bond"

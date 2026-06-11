@@ -472,7 +472,6 @@ export function OptionPricerPanel() {
           type="button"
           onClick={handlePrice}
           disabled={isRunning || validationError !== null}
-          size="sm"
           variant="default"
           aria-label="Price option"
           className="mt-auto"

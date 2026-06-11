@@ -321,7 +321,6 @@ export function GreeksDashboard() {
           type="button"
           onClick={handleCompute}
           disabled={isRunning || validationError !== null}
-          size="sm"
           variant="default"
           className="mt-auto"
           data-testid="compute-greeks"
