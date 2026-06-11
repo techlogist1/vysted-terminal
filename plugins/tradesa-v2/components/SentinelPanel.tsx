@@ -30,7 +30,7 @@ function FailModeBadge({ failClosed }: { failClosed: boolean }) {
   return (
     <span
       data-testid={`tradesa-fail-${failClosed ? "closed" : "open"}`}
-      className={`text-micro inline-flex rounded border px-1.5 py-0.5 font-semibold tracking-wide uppercase ${cls}`}
+      className={`text-micro rounded-control inline-flex border px-1 py-0.5 font-semibold tracking-wide uppercase ${cls}`}
     >
       {failClosed ? "Fail-closed" : "Fail-open"}
     </span>
@@ -46,7 +46,7 @@ function SentinelTable({ rows }: { rows: readonly TradesaSentinelBlock[] }) {
     return (
       <div
         data-testid="tradesa-sentinel-empty"
-        className="text-charcoal-500 flex flex-1 items-center justify-center p-6 text-sm"
+        className="text-charcoal-500 text-body flex flex-1 items-center justify-center p-6"
       >
         No sentinel-gate data yet.
       </div>
@@ -56,15 +56,15 @@ function SentinelTable({ rows }: { rows: readonly TradesaSentinelBlock[] }) {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="overflow-auto">
-        <table className="w-full text-sm">
+        <table className="text-body w-full">
           <thead className="bg-charcoal-925 sticky top-0 z-10">
-            <tr className="border-charcoal-700 text-charcoal-500 border-b text-left text-[11px] font-medium tracking-wide uppercase">
-              <th className="px-3 py-2">Gate</th>
-              <th className="px-3 py-2">Label</th>
-              <th className="px-3 py-2 text-right">Today</th>
-              <th className="px-3 py-2 text-right">Total</th>
-              <th className="px-3 py-2 text-right">Last blocked</th>
-              <th className="px-3 py-2">Mode</th>
+            <tr className="border-charcoal-700 text-charcoal-500 text-micro border-b text-left font-medium tracking-wide uppercase">
+              <th className="px-3 py-1">Gate</th>
+              <th className="px-3 py-1">Label</th>
+              <th className="px-3 py-1 text-right">Today</th>
+              <th className="px-3 py-1 text-right">Total</th>
+              <th className="px-3 py-1 text-right">Last blocked</th>
+              <th className="px-3 py-1">Mode</th>
             </tr>
           </thead>
           <tbody>
@@ -74,13 +74,11 @@ function SentinelTable({ rows }: { rows: readonly TradesaSentinelBlock[] }) {
                 data-testid="tradesa-sentinel-row"
                 className="border-charcoal-800 hover:bg-charcoal-800/40 border-b transition-colors"
               >
-                <td className="text-charcoal-400 px-3 py-2 font-mono text-[11px]">
-                  {gate.gate_id}
-                </td>
-                <td className="text-charcoal-200 px-3 py-2 text-xs">{gate.gate_label}</td>
-                <td className="px-3 py-2 text-right">
+                <td className="text-charcoal-400 text-micro px-3 py-1 font-mono">{gate.gate_id}</td>
+                <td className="text-charcoal-200 text-caption px-3 py-1">{gate.gate_label}</td>
+                <td className="px-3 py-1 text-right">
                   <span
-                    className={`inline-flex rounded px-1.5 py-0.5 font-mono text-xs ${
+                    className={`rounded-control text-caption inline-flex px-1 py-0.5 font-mono ${
                       gate.today_count > 0
                         ? "text-warning bg-warning/15"
                         : "bg-charcoal-800 text-charcoal-500"
@@ -89,13 +87,13 @@ function SentinelTable({ rows }: { rows: readonly TradesaSentinelBlock[] }) {
                     {gate.today_count.toLocaleString()}
                   </span>
                 </td>
-                <td className="text-charcoal-400 px-3 py-2 text-right font-mono text-xs">
+                <td className="text-charcoal-400 text-caption px-3 py-1 text-right font-mono">
                   {gate.total_count.toLocaleString()}
                 </td>
-                <td className="text-charcoal-400 px-3 py-2 text-right text-xs">
+                <td className="text-charcoal-400 text-caption px-3 py-1 text-right">
                   {formatRelativeIso(gate.last_blocked_at)}
                 </td>
-                <td className="px-3 py-2">
+                <td className="px-3 py-1">
                   <FailModeBadge failClosed={gate.fail_closed} />
                 </td>
               </tr>

@@ -43,7 +43,7 @@ function SourceBadge({ source }: { source: KillSwitchSource }) {
   return (
     <span
       data-testid={`tradesa-source-${source}`}
-      className={`text-micro inline-flex rounded border px-1.5 py-0.5 font-semibold tracking-wide uppercase ${cls}`}
+      className={`text-micro rounded-control inline-flex border px-1 py-0.5 font-semibold tracking-wide uppercase ${cls}`}
     >
       {source.replace(/_/g, " ")}
     </span>
@@ -55,7 +55,7 @@ function HealthCard({ latest }: { latest: TradesaBotHealthLike | null }) {
     return (
       <div
         data-testid="tradesa-health-card"
-        className="border-charcoal-800 bg-charcoal-925/60 text-charcoal-500 border-b p-4 text-sm"
+        className="border-charcoal-800 bg-charcoal-925/60 text-charcoal-500 text-body border-b p-4"
       >
         No heartbeat recorded yet.
       </div>
@@ -65,7 +65,7 @@ function HealthCard({ latest }: { latest: TradesaBotHealthLike | null }) {
     STATUS_TONE[latest.status?.toLowerCase()] ??
     "bg-charcoal-800 text-charcoal-300 border-charcoal-700";
   const tile =
-    "border-charcoal-800 bg-charcoal-900/40 flex flex-col gap-0.5 rounded-md border px-3 py-2";
+    "border-charcoal-800 bg-charcoal-900/40 flex flex-col gap-0.5 rounded-none border px-3 py-2";
   return (
     <div
       data-testid="tradesa-health-card"
@@ -74,7 +74,7 @@ function HealthCard({ latest }: { latest: TradesaBotHealthLike | null }) {
       <div className={tile}>
         <div className="text-charcoal-500 text-micro tracking-wide uppercase">Status</div>
         <span
-          className={`mt-0.5 inline-flex w-fit rounded border px-1.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase ${statusTone}`}
+          className={`rounded-control text-micro mt-0.5 inline-flex w-fit border px-1 py-0.5 font-semibold tracking-wide uppercase ${statusTone}`}
         >
           {latest.status}
         </span>
@@ -84,25 +84,25 @@ function HealthCard({ latest }: { latest: TradesaBotHealthLike | null }) {
       </div>
       <div className={tile}>
         <div className="text-charcoal-500 text-micro tracking-wide uppercase">Uptime</div>
-        <div className="text-charcoal-100 mt-0.5 font-mono text-sm">
+        <div className="text-charcoal-100 text-body mt-0.5 font-mono">
           {formatUptime(latest.uptime_s)}
         </div>
       </div>
       <div className={tile}>
         <div className="text-charcoal-500 text-micro tracking-wide uppercase">FD count</div>
-        <div className="text-charcoal-100 mt-0.5 font-mono text-sm">
+        <div className="text-charcoal-100 text-body mt-0.5 font-mono">
           {latest.fd_count !== null ? latest.fd_count.toLocaleString() : "—"}
         </div>
       </div>
       <div className={tile}>
         <div className="text-charcoal-500 text-micro tracking-wide uppercase">Threads</div>
-        <div className="text-charcoal-100 mt-0.5 font-mono text-sm">
+        <div className="text-charcoal-100 text-body mt-0.5 font-mono">
           {latest.thread_count !== null ? latest.thread_count.toLocaleString() : "—"}
         </div>
       </div>
       <div className={`${tile} col-span-2 md:col-span-4`}>
         <div className="text-charcoal-500 text-micro tracking-wide uppercase">Last heartbeat</div>
-        <div className="text-charcoal-100 mt-0.5 text-sm">
+        <div className="text-charcoal-100 text-body mt-0.5">
           {formatRelativeIso(latest.recorded_at)}
         </div>
         <div className="text-charcoal-500 text-micro">
@@ -118,7 +118,7 @@ function KillSwitchTimeline({ events }: { events: TradesaKillSwitchEvent[] }) {
     return (
       <div
         data-testid="tradesa-killswitch-empty"
-        className="text-charcoal-500 flex flex-1 items-center justify-center p-6 text-sm"
+        className="text-charcoal-500 text-body flex flex-1 items-center justify-center p-6"
       >
         No kill-switch events recorded.
       </div>
@@ -126,7 +126,7 @@ function KillSwitchTimeline({ events }: { events: TradesaKillSwitchEvent[] }) {
   }
   return (
     <div className="flex flex-1 flex-col overflow-auto p-3">
-      <h3 className="text-charcoal-500 mb-2 text-[11px] font-medium tracking-wide uppercase">
+      <h3 className="text-charcoal-500 text-micro mb-2 font-medium tracking-wide uppercase">
         Kill-switch events
       </h3>
       <ul className="flex flex-col gap-2">
@@ -134,23 +134,23 @@ function KillSwitchTimeline({ events }: { events: TradesaKillSwitchEvent[] }) {
           <li
             key={event.id}
             data-testid="tradesa-killswitch-row"
-            className="border-charcoal-800 bg-charcoal-900/40 rounded-md border p-3"
+            className="border-charcoal-800 bg-charcoal-900/40 rounded-none border p-3"
           >
             <div className="flex flex-wrap items-center gap-2">
               <SourceBadge source={event.source} />
-              <span className="text-charcoal-300 text-xs">
+              <span className="text-charcoal-300 text-caption">
                 {event.actor ?? <em className="text-charcoal-500">unknown actor</em>}
               </span>
               <span className="text-charcoal-500 text-micro ml-auto">
                 {formatRelativeIso(event.fired_at)}
               </span>
             </div>
-            {event.reason && <p className="text-charcoal-300 mt-1.5 text-xs">{event.reason}</p>}
-            <div className="text-charcoal-500 text-micro mt-1.5">
+            {event.reason && <p className="text-charcoal-300 text-caption mt-2">{event.reason}</p>}
+            <div className="text-charcoal-500 text-micro mt-2">
               {event.cleared_at ? (
                 <>cleared {formatRelativeIso(event.cleared_at)}</>
               ) : (
-                <span className="border-negative/40 bg-negative/15 text-negative inline-flex rounded border px-1.5 py-0.5">
+                <span className="border-negative/40 bg-negative/15 text-negative rounded-control inline-flex border px-1 py-0.5">
                   still active
                 </span>
               )}

@@ -45,14 +45,14 @@ function TabButton({
       onClick={onClick}
       data-testid={testId}
       aria-pressed={active}
-      className={`-mb-px flex items-center gap-2 border-b-2 px-3 py-2 text-sm transition-colors ${
+      className={`text-body -mb-px flex items-center gap-2 border-b-2 px-3 py-2 transition-colors ${
         active
           ? "text-charcoal-100 border-amber-400"
           : "text-charcoal-400 hover:text-charcoal-200 border-transparent"
       }`}
     >
       {children}
-      <span className="bg-charcoal-800 text-charcoal-300 text-micro rounded px-1.5 py-0.5 font-mono">
+      <span className="bg-charcoal-800 text-charcoal-300 text-micro rounded-control px-1 py-0.5 font-mono">
         {count}
       </span>
     </button>
@@ -71,7 +71,10 @@ function CurrentSettingsTable({ rows }: { rows: readonly TradesaBotSetting[] }) 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="border-charcoal-800 bg-charcoal-925/60 flex shrink-0 items-center gap-2 border-b px-3 py-2">
-        <Search className="text-charcoal-500 size-3.5" aria-hidden />
+        <Search
+          className={"text-charcoal-500 size-3.5" /* tokens-ok: 14px icon - R9 s3 toolbar rung */}
+          aria-hidden
+        />
         <input
           type="search"
           value={query}
@@ -79,7 +82,7 @@ function CurrentSettingsTable({ rows }: { rows: readonly TradesaBotSetting[] }) 
           placeholder="Filter by key…"
           aria-label="Filter settings by key"
           data-testid="tradesa-settings-search"
-          className="text-charcoal-200 placeholder:text-charcoal-600 flex-1 bg-transparent text-sm focus:outline-none"
+          className="text-charcoal-200 placeholder:text-charcoal-600 text-body flex-1 bg-transparent focus:outline-none"
         />
         <span className="text-charcoal-500 text-micro">
           {filtered.length} / {rows.length}
@@ -89,20 +92,20 @@ function CurrentSettingsTable({ rows }: { rows: readonly TradesaBotSetting[] }) 
       {filtered.length === 0 ? (
         <div
           data-testid="tradesa-settings-empty"
-          className="text-charcoal-500 flex flex-1 items-center justify-center p-6 text-sm"
+          className="text-charcoal-500 text-body flex flex-1 items-center justify-center p-6"
         >
           {rows.length === 0 ? "No settings loaded yet." : "No keys match your filter."}
         </div>
       ) : (
         <div className="overflow-auto">
-          <table className="w-full text-sm">
+          <table className="text-body w-full">
             <thead className="bg-charcoal-950 sticky top-0 z-10">
-              <tr className="border-charcoal-800 text-charcoal-500 border-b text-left text-[11px] font-medium tracking-wide uppercase">
-                <th className="px-3 py-2">Key</th>
-                <th className="px-3 py-2">Value</th>
-                <th className="px-3 py-2">Description</th>
-                <th className="px-3 py-2 text-right">Updated</th>
-                <th className="px-3 py-2">Changed by</th>
+              <tr className="border-charcoal-800 text-charcoal-500 text-micro border-b text-left font-medium tracking-wide uppercase">
+                <th className="px-3 py-1">Key</th>
+                <th className="px-3 py-1">Value</th>
+                <th className="px-3 py-1">Description</th>
+                <th className="px-3 py-1 text-right">Updated</th>
+                <th className="px-3 py-1">Changed by</th>
               </tr>
             </thead>
             <tbody>
@@ -112,13 +115,17 @@ function CurrentSettingsTable({ rows }: { rows: readonly TradesaBotSetting[] }) 
                   data-testid="tradesa-settings-row"
                   className="border-charcoal-900/50 hover:bg-charcoal-900/40 border-b transition-colors"
                 >
-                  <td className="text-charcoal-300 px-3 py-2 font-mono text-[11px]">{row.key}</td>
-                  <td className="text-charcoal-100 px-3 py-2 font-mono text-[11px]">{row.value}</td>
-                  <td className="text-charcoal-400 px-3 py-2 text-xs">{row.description ?? "—"}</td>
-                  <td className="text-charcoal-400 px-3 py-2 text-right text-xs">
+                  <td className="text-charcoal-300 text-micro px-3 py-1 font-mono">{row.key}</td>
+                  <td className="text-charcoal-100 text-micro px-3 py-1 font-mono">{row.value}</td>
+                  <td className="text-charcoal-400 text-caption px-3 py-1">
+                    {row.description ?? "—"}
+                  </td>
+                  <td className="text-charcoal-400 text-caption px-3 py-1 text-right">
                     {formatRelativeIso(row.updated_at)}
                   </td>
-                  <td className="text-charcoal-400 px-3 py-2 text-xs">{row.changed_by ?? "—"}</td>
+                  <td className="text-charcoal-400 text-caption px-3 py-1">
+                    {row.changed_by ?? "—"}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -134,7 +141,7 @@ function DriftList({ rows }: { rows: readonly TradesaSettingsDrift[] }) {
     return (
       <div
         data-testid="tradesa-drift-empty"
-        className="text-charcoal-500 flex flex-1 items-center justify-center p-6 text-sm"
+        className="text-charcoal-500 text-body flex flex-1 items-center justify-center p-6"
       >
         No drift detected since last refresh.
       </div>
@@ -146,21 +153,21 @@ function DriftList({ rows }: { rows: readonly TradesaSettingsDrift[] }) {
         <article
           key={`${drift.key}-${drift.changed_at}`}
           data-testid="tradesa-drift-row"
-          className="border-charcoal-800 bg-charcoal-900/40 rounded-md border p-3"
+          className="border-charcoal-800 bg-charcoal-900/40 rounded-none border p-3"
         >
           <header className="flex flex-wrap items-center gap-2">
-            <span className="text-charcoal-300 font-mono text-[11px]">{drift.key}</span>
+            <span className="text-charcoal-300 text-micro font-mono">{drift.key}</span>
             <span className="text-charcoal-500 text-micro ml-auto">
               {formatRelativeIso(drift.changed_at)} by{" "}
               <span className="text-charcoal-400">{drift.changed_by ?? "system"}</span>
             </span>
           </header>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-            <span className="bg-charcoal-950 text-charcoal-500 rounded px-2 py-1 font-mono line-through">
+          <div className="text-caption mt-2 flex flex-wrap items-center gap-2">
+            <span className="bg-charcoal-950 text-charcoal-500 rounded-control px-2 py-1 font-mono line-through">
               {drift.previous_value ?? <em>unset</em>}
             </span>
-            <ArrowRight className="text-charcoal-500 size-3.5" aria-hidden />
-            <span className="bg-charcoal-950 text-positive rounded px-2 py-1 font-mono">
+            <ArrowRight className="text-charcoal-500 size-3" aria-hidden />
+            <span className="bg-charcoal-950 text-positive rounded-control px-2 py-1 font-mono">
               {drift.current_value}
             </span>
           </div>

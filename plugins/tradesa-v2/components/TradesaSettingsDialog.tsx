@@ -22,6 +22,7 @@
 import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { setSecret } from "@/lib/keychain";
 
 import { TRADESA_KEYCHAIN_ACCOUNTS, readCredentials } from "../connection";
@@ -106,18 +107,18 @@ export function TradesaSettingsDialog({ open, onClose }: TradesaSettingsDialogPr
       data-testid="tradesa-settings-dialog"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
     >
-      <div className="border-charcoal-700 bg-charcoal-950 text-charcoal-100 w-full max-w-lg rounded-lg border p-6 shadow-2xl">
-        <h2 id="tradesa-settings-dialog-title" className="text-lg font-semibold">
+      <div className="border-charcoal-700 bg-charcoal-950 text-charcoal-100 rounded-control w-full max-w-lg border p-6">
+        <h2 id="tradesa-settings-dialog-title" className="text-section">
           Tradesa V2 — Connect your bot
         </h2>
-        <p className="text-charcoal-400 mt-1 text-sm">
+        <p className="text-charcoal-400 text-body mt-1">
           Vysted Terminal reads your Tradesa V2 bot&apos;s state from its Supabase project.
           Credentials live in the OS keychain — never in browser storage.
         </p>
 
         <form className="mt-4 flex flex-col gap-4" onSubmit={handleSubmit}>
           <label className="flex flex-col gap-1">
-            <span className="text-charcoal-400 text-xs font-medium tracking-wide uppercase">
+            <span className="text-charcoal-400 text-caption font-medium tracking-wide uppercase">
               Tradesa V2 Supabase URL
             </span>
             <input
@@ -129,12 +130,12 @@ export function TradesaSettingsDialog({ open, onClose }: TradesaSettingsDialogPr
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               data-testid="tradesa-settings-url"
-              className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-600 rounded-md border px-3 py-2 text-sm focus:border-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+              className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-600 rounded-control text-body focus:border-charcoal-500 focus-visible:ring-charcoal-500 h-8 border px-3 focus:outline-none focus-visible:ring-1"
             />
           </label>
 
           <label className="flex flex-col gap-1">
-            <span className="text-charcoal-400 text-xs font-medium tracking-wide uppercase">
+            <span className="text-charcoal-400 text-caption font-medium tracking-wide uppercase">
               Service-Role Key
             </span>
             <div className="flex">
@@ -147,21 +148,26 @@ export function TradesaSettingsDialog({ open, onClose }: TradesaSettingsDialogPr
                 value={key}
                 onChange={(e) => setKey(e.target.value)}
                 data-testid="tradesa-settings-key"
-                className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-600 flex-1 rounded-l-md border border-r-0 px-3 py-2 font-mono text-xs focus:border-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                className="border-charcoal-700 bg-charcoal-900 text-charcoal-100 placeholder:text-charcoal-600 rounded-l-control text-caption focus:border-charcoal-500 focus-visible:ring-charcoal-500 h-8 flex-1 border border-r-0 px-3 font-mono focus:outline-none focus-visible:ring-1"
               />
               <button
                 type="button"
                 aria-label={showKey ? "Hide service-role key" : "Show service-role key"}
                 onClick={() => setShowKey((v) => !v)}
                 data-testid="tradesa-settings-show-toggle"
-                className="border-charcoal-700 bg-charcoal-800 text-charcoal-300 hover:bg-charcoal-700 inline-flex items-center justify-center rounded-r-md border px-3 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                className="border-charcoal-700 bg-charcoal-800 text-charcoal-300 hover:bg-charcoal-700 rounded-r-control focus-visible:ring-charcoal-500 inline-flex h-8 items-center justify-center border px-3 transition-colors focus:outline-none focus-visible:ring-1"
               >
-                {showKey ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                {/* 14px icon — R9 §3 rung for the h-8 control. */}
+                {showKey ? (
+                  <EyeOff className={"size-3.5" /* tokens-ok: 14px icon — R9 §3 rung */} />
+                ) : (
+                  <Eye className={"size-3.5" /* tokens-ok: 14px icon — R9 §3 rung */} />
+                )}
               </button>
             </div>
           </label>
 
-          <div className="border-warning/40 bg-warning/10 text-warning rounded-md border px-3 py-2 text-xs">
+          <div className="border-warning/40 bg-warning/10 text-warning text-caption rounded-none border px-3 py-2">
             Your service-role key has full read+write power on your Tradesa V2 Supabase project.
             Vysted Terminal uses it read-only. Keep it on this machine only — don&apos;t share via
             screen-share or chat.
@@ -171,29 +177,21 @@ export function TradesaSettingsDialog({ open, onClose }: TradesaSettingsDialogPr
             <div
               role="alert"
               data-testid="tradesa-settings-error"
-              className="border-negative/40 bg-negative/10 text-negative rounded-md border px-3 py-2 text-xs"
+              className="border-negative/40 bg-negative/10 text-negative text-caption rounded-none border px-3 py-2"
             >
               {error}
             </div>
           )}
 
+          {/* Form rung (R9 §3): actions join the sibling h-8 inputs; the shared
+              primitive supplies the monochrome primary, no shadow, 1px ring. */}
           <div className="mt-2 flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={submitting}
-              className="border-charcoal-700 bg-charcoal-900 text-charcoal-200 hover:bg-charcoal-800 focus-visible:ring-charcoal-500 rounded-md border px-4 py-2 text-sm transition-colors focus:outline-none focus-visible:ring-2 disabled:opacity-50"
-            >
+            <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              data-testid="tradesa-settings-submit"
-              className="text-charcoal-950 rounded-md bg-amber-500 px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
-            >
+            </Button>
+            <Button type="submit" disabled={submitting} data-testid="tradesa-settings-submit">
               {submitting ? "Saving…" : "Save & Connect"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

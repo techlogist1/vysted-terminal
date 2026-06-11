@@ -50,7 +50,7 @@ const HYPOTHESIS_TONE: Record<TradesaDiscoveryHypothesis["status"], string> = {
 function StatusBadge({ status, tone }: { status: string; tone: string }) {
   return (
     <span
-      className={`text-micro inline-flex rounded border px-1.5 py-0.5 font-semibold tracking-wide uppercase ${tone}`}
+      className={`text-micro rounded-control inline-flex border px-1 py-0.5 font-semibold tracking-wide uppercase ${tone}`}
     >
       {status}
     </span>
@@ -63,7 +63,7 @@ function ConfidenceBar({ value }: { value: number }) {
   const tone = clamped >= 0.75 ? "bg-positive" : clamped >= 0.5 ? "bg-warning" : "bg-negative";
   return (
     <div className="flex items-center gap-2" aria-label="Confidence">
-      <div className="bg-charcoal-800 h-1.5 w-24 overflow-hidden rounded-full">
+      <div className="bg-charcoal-800 h-1 w-24 overflow-hidden rounded-none">
         <div className={`h-full ${tone}`} style={{ width: `${pct}%` }} />
       </div>
       <span className="text-charcoal-400 text-micro font-mono">{pct}%</span>
@@ -90,14 +90,14 @@ function TabButton({
       onClick={onClick}
       data-testid={testId}
       aria-pressed={active}
-      className={`-mb-px flex items-center gap-2 border-b-2 px-3 py-2 text-sm transition-colors ${
+      className={`text-body -mb-px flex items-center gap-2 border-b-2 px-3 py-2 transition-colors ${
         active
           ? "text-charcoal-100 border-amber-400"
           : "text-charcoal-400 hover:text-charcoal-200 border-transparent"
       }`}
     >
       {children}
-      <span className="bg-charcoal-800 text-charcoal-300 text-micro rounded px-1.5 py-0.5 font-mono">
+      <span className="bg-charcoal-800 text-charcoal-300 text-micro rounded-control px-1 py-0.5 font-mono">
         {count}
       </span>
     </button>
@@ -109,7 +109,7 @@ function TuningTab({ rows }: { rows: readonly TradesaTuningProposal[] }) {
     return (
       <div
         data-testid="tradesa-tuning-empty"
-        className="text-charcoal-500 flex flex-1 items-center justify-center p-6 text-sm"
+        className="text-charcoal-500 text-body flex flex-1 items-center justify-center p-6"
       >
         No tuning proposals yet — the self-tuning agent hasn&apos;t queued one.
       </div>
@@ -121,28 +121,28 @@ function TuningTab({ rows }: { rows: readonly TradesaTuningProposal[] }) {
         <article
           key={p.id}
           data-testid="tradesa-tuning-card"
-          className="border-charcoal-800 bg-charcoal-900/40 rounded-md border p-3"
+          className="border-charcoal-800 bg-charcoal-900/40 rounded-none border p-3"
         >
           <header className="flex flex-wrap items-center gap-2">
             <StatusBadge status={p.status} tone={STATUS_TONE[p.status]} />
-            <span className="text-charcoal-300 font-mono text-[11px]">{p.target_key}</span>
+            <span className="text-charcoal-300 text-micro font-mono">{p.target_key}</span>
             <span className="text-charcoal-500 text-micro ml-auto">
               {formatRelativeIso(p.proposed_at)}
             </span>
           </header>
-          <div className="mt-2 flex flex-wrap gap-2 text-xs">
-            <span className="bg-charcoal-950 text-charcoal-500 rounded px-2 py-1 font-mono line-through">
+          <div className="text-caption mt-2 flex flex-wrap gap-2">
+            <span className="bg-charcoal-950 text-charcoal-500 rounded-control px-2 py-1 font-mono line-through">
               {p.current_value}
             </span>
-            <span className="bg-charcoal-950 text-positive rounded px-2 py-1 font-mono">
+            <span className="bg-charcoal-950 text-positive rounded-control px-2 py-1 font-mono">
               {p.proposed_value}
             </span>
-            <span className="bg-charcoal-800 text-charcoal-300 text-micro rounded px-1.5 py-0.5 tracking-wide uppercase">
+            <span className="bg-charcoal-800 text-charcoal-300 text-micro rounded-control px-1 py-0.5 tracking-wide uppercase">
               {p.queue_reason}
             </span>
           </div>
           {p.rationale && (
-            <p className="text-charcoal-300 mt-2 text-xs leading-relaxed">{p.rationale}</p>
+            <p className="text-charcoal-300 text-caption mt-2 leading-relaxed">{p.rationale}</p>
           )}
         </article>
       ))}
@@ -155,7 +155,7 @@ function DiscoveryTab({ rows }: { rows: readonly TradesaDiscoveryHypothesis[] })
     return (
       <div
         data-testid="tradesa-discovery-empty"
-        className="text-charcoal-500 flex flex-1 items-center justify-center p-6 text-sm"
+        className="text-charcoal-500 text-body flex flex-1 items-center justify-center p-6"
       >
         No discovery hypotheses yet. (Re-enabled at closed_trades ≥ 100.)
       </div>
@@ -167,11 +167,11 @@ function DiscoveryTab({ rows }: { rows: readonly TradesaDiscoveryHypothesis[] })
         <article
           key={h.id}
           data-testid="tradesa-discovery-card"
-          className="border-charcoal-800 bg-charcoal-900/40 rounded-md border p-3"
+          className="border-charcoal-800 bg-charcoal-900/40 rounded-none border p-3"
         >
           <header className="flex flex-wrap items-center gap-2">
             <StatusBadge status={h.status} tone={HYPOTHESIS_TONE[h.status]} />
-            <h4 className="text-charcoal-100 text-sm font-semibold">{h.title}</h4>
+            <h4 className="text-charcoal-100 text-body font-semibold">{h.title}</h4>
             <span className="text-charcoal-500 text-micro ml-auto">
               {formatRelativeIso(h.proposed_at)}
             </span>
@@ -179,7 +179,9 @@ function DiscoveryTab({ rows }: { rows: readonly TradesaDiscoveryHypothesis[] })
           <div className="mt-2">
             <ConfidenceBar value={h.confidence} />
           </div>
-          {h.body && <p className="text-charcoal-300 mt-2 text-xs leading-relaxed">{h.body}</p>}
+          {h.body && (
+            <p className="text-charcoal-300 text-caption mt-2 leading-relaxed">{h.body}</p>
+          )}
         </article>
       ))}
     </div>
@@ -191,7 +193,7 @@ function ReflectionTab({ rows }: { rows: readonly TradesaReflectionNote[] }) {
     return (
       <div
         data-testid="tradesa-reflection-empty"
-        className="text-charcoal-500 flex flex-1 items-center justify-center p-6 text-sm"
+        className="text-charcoal-500 text-body flex flex-1 items-center justify-center p-6"
       >
         No reflection notes yet.
       </div>
@@ -203,23 +205,23 @@ function ReflectionTab({ rows }: { rows: readonly TradesaReflectionNote[] }) {
         <article
           key={note.id}
           data-testid="tradesa-reflection-card"
-          className="border-charcoal-800 bg-charcoal-900/40 rounded-md border p-3"
+          className="border-charcoal-800 bg-charcoal-900/40 rounded-none border p-3"
         >
           <header className="flex flex-wrap items-center gap-2">
-            <span className="bg-charcoal-800 text-charcoal-300 text-micro rounded px-1.5 py-0.5 font-mono">
+            <span className="bg-charcoal-800 text-charcoal-300 text-micro rounded-control px-1 py-0.5 font-mono">
               trade {note.trade_id.slice(0, 8)}
             </span>
             <span className="text-charcoal-500 text-micro ml-auto">
               {formatRelativeIso(note.created_at)}
             </span>
           </header>
-          <p className="text-charcoal-100 mt-2 text-xs font-medium">{note.summary}</p>
+          <p className="text-charcoal-100 text-caption mt-2 font-medium">{note.summary}</p>
           {note.tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {note.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="text-micro rounded bg-amber-500/15 px-1.5 py-0.5 font-mono text-amber-300"
+                  className="text-micro rounded-control bg-amber-500/15 px-1 py-0.5 font-mono text-amber-300"
                 >
                   {tag}
                 </span>
@@ -227,7 +229,7 @@ function ReflectionTab({ rows }: { rows: readonly TradesaReflectionNote[] }) {
             </div>
           )}
           {note.body && (
-            <p className="text-charcoal-300 mt-2 text-xs leading-relaxed">{note.body}</p>
+            <p className="text-charcoal-300 text-caption mt-2 leading-relaxed">{note.body}</p>
           )}
         </article>
       ))}
