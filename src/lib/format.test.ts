@@ -1,4 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+
+import { DEFAULT_REGION } from "@/lib/region";
+import { useSettingsStore } from "@/store/settings";
 
 import {
   formatCompactMoney,
@@ -11,6 +14,15 @@ import {
   groupDigits,
   providerShortLabel,
 } from "./format";
+
+// R10 (E1): the shipped default region flipped US→IN, so the no-currency
+// fallback now resolves INR/en-IN. These baseline blocks pin the formatters
+// against an EXPLICIT US region — the unit under test is the instrument-currency
+// law (R8 §6) and the magnitude/precision behavior, not the shipped default
+// (that truth is pinned in "R10 IN-first region default" below).
+beforeEach(() => {
+  useSettingsStore.setState({ region: "US" });
+});
 
 describe("formatMoney", () => {
   it("formats with cents", () => {
@@ -86,6 +98,26 @@ describe("currency-by-instrument", () => {
   });
   it("normalises a lowercase ISO code", () => {
     expect(formatMoney(10, "inr")).toBe("₹10.00");
+  });
+});
+
+// R10 (E1): the IN-first default — `src/lib/region.ts` DEFAULT_REGION mirrors
+// the sidecar's `config._DEFAULT_REGION` flip (brief §2, same commit). Under the
+// shipped default an instrument-less money render falls back to INR with en-IN
+// (lakh/crore) digit grouping; an explicit instrument currency still wins.
+describe("R10 IN-first region default", () => {
+  it("ships IN as the default region", () => {
+    expect(DEFAULT_REGION).toBe("IN");
+  });
+  it("falls back to INR/en-IN when no instrument currency is given", () => {
+    useSettingsStore.setState({ region: DEFAULT_REGION });
+    expect(formatMoney(10, null)).toBe("₹10.00");
+    expect(formatMoney(123456.7)).toBe("₹1,23,456.70");
+    expect(formatCompactMoney(1_500_000)).toBe("₹1.50M");
+  });
+  it("instrument currency beats the IN region default (R8 §6 — no ₹ on AAPL)", () => {
+    useSettingsStore.setState({ region: DEFAULT_REGION });
+    expect(formatCompactMoney(4.27e12, "USD")).toBe("$4.27T");
   });
 });
 

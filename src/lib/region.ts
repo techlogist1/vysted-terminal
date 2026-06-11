@@ -1,7 +1,7 @@
 /**
  * Region / locale — the minimal foundation seam (Pass A item 8).
  *
- * A single region setting (default `US`) drives locale-aware formatting today and
+ * A single region setting (default `IN` since R10 E1) drives locale-aware formatting today and
  * is the registration point a later pass uses to make data + feeds region-first
  * (e.g. India-first quotes/news, INR + FX). This module is PURE (no store import)
  * so it can be read anywhere without a cycle; the ACTIVE region lives in the

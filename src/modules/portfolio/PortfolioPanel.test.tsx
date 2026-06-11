@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 
 import { usePortfoliosStore } from "@/store/portfolios";
+import { useSettingsStore } from "@/store/settings";
 import type { Quote } from "../../../types/data";
 import { PortfolioPanel } from "./PortfolioPanel";
 
@@ -50,6 +51,11 @@ async function addHolding(symbol: string, quantity: string, costBasis: string) {
 beforeEach(() => {
   vi.clearAllMocks();
   resetStore();
+  // R10 (E1): the shipped region default flipped US→IN; the P&L renders fall
+  // back to the region currency (the panel doesn't thread quote.currency yet).
+  // The fixtures here are USD instruments — pin US so these tests stay about
+  // P&L math + formatting, not the region default.
+  useSettingsStore.setState({ region: "US" });
   mockFetchQuotes.mockResolvedValue(new Map());
 });
 

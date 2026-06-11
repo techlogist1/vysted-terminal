@@ -9,6 +9,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 
 import type { ScreenerResult } from "../../../types/screener";
 import { useScreenerStore } from "@/store/screener";
+import { useSettingsStore } from "@/store/settings";
 
 import { ScreenerResultsTable } from "./ScreenerResultsTable";
 
@@ -65,6 +66,11 @@ const RESULT: ScreenerResult = {
 
 beforeEach(() => {
   useScreenerStore.getState().__resetForTests();
+  // R10 (E1): the shipped region default flipped US→IN; screener rows carry no
+  // currency, so market-cap falls back to the region currency. The fixture is
+  // the sp500 universe (USD) — pin US so the cell-formatter assertions stay
+  // about wiring, not the region default.
+  useSettingsStore.setState({ region: "US" });
 });
 
 afterEach(() => {
