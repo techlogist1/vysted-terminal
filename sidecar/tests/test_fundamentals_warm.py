@@ -211,6 +211,41 @@ async def test_crawl_once_respects_priority_and_pause(monkeypatch: pytest.Monkey
     assert row["sector_source"] == "yf"
 
 
+@pytest.mark.asyncio
+async def test_crawl_failures_rotate_out_and_never_wedge(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Permanently-failing symbols (Yahoo doesn't cover thousands of BSE
+    scrips) must NOT wedge the crawler: a failed fetch stamps the symbol out
+    of the priority head, so the next cycle moves PAST it instead of retrying
+    the same batch forever."""
+    from services import screener_universe_india
+
+    monkeypatch.setattr(
+        screener_universe_india,
+        "load_india_universe",
+        _tiny_universe(["DEAD1.BO", "DEAD2.BO"]),
+    )
+    monkeypatch.setattr(fundamentals_warm, "_CRAWL_JITTER_RANGE", (0.0, 0.001))
+    await fundamentals_store.seed_universe([{"symbol": "DEAD1.BO"}, {"symbol": "DEAD2.BO"}])
+
+    calls: list[str] = []
+
+    async def always_fails(symbol: str) -> Fundamentals:
+        calls.append(symbol)
+        raise RuntimeError("yahoo has never heard of this scrip")
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", always_fails)
+
+    assert await fundamentals_warm._crawl_once() == 0
+    assert sorted(calls) == ["DEAD1.BO", "DEAD2.BO"]
+    rows = await fundamentals_store.fetch_rows(["DEAD1.BO", "DEAD2.BO"])
+    assert all(r["info_failed_at"] is not None for r in rows.values())
+    # The next cycle selects an EMPTY batch — zero re-fetches of the failures.
+    assert await fundamentals_warm._crawl_once() == 0
+    assert len(calls) == 2, "wedge: the crawler re-selected permanently-failing symbols"
+
+
 # ---------------------------------------------------------------------------
 # Lifespan start/stop
 # ---------------------------------------------------------------------------

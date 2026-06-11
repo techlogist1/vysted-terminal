@@ -101,8 +101,62 @@ async def test_upsert_info_writes_full_vocabulary_and_sector_source() -> None:
     # The info write is a v7 superset — both stamps land.
     assert row["info_updated_at"] is not None
     assert row["v7_updated_at"] is not None
-    # The earlier v7 numerics survive (info wrote only non-None fields).
+    # The earlier v7 numerics survive — info writes v7-TIER fields only when
+    # non-None (a sparse enrichment must not wipe a fresher batch sweep).
     assert row["market_cap"] == 1e12
+
+
+@pytest.mark.asyncio
+async def test_upsert_v7_clears_fields_the_fresh_row_omits() -> None:
+    """v7 is authoritative for its tier: a field the fresh fetch omits goes
+    NULL (a company swings to a loss → trailingPE vanishes → the old
+    pe_ratio=20 must not be served — or pruned on — as fresh)."""
+    await store.upsert_v7(
+        "AAA", _fund("AAA", market_cap=1e12, pe_ratio=20.0, dividend_yield=0.04), _quote("AAA")
+    )
+    # Fresh fetch no longer carries pe_ratio / dividend_yield.
+    await store.upsert_v7("AAA", _fund("AAA", market_cap=1.1e12), _quote("AAA"))
+    row = (await store.fetch_rows(["AAA"]))["AAA"]
+    assert row["market_cap"] == 1.1e12
+    assert row["pe_ratio"] is None
+    assert row["dividend_yield"] is None
+    # Prefilter must KEEP the symbol now (NULL never prunes) — before the fix
+    # the stale 20 masqueraded as fresh and pruned it out of a pe<15 screen.
+    kept = await store.prefilter(
+        ["AAA"], [NumericThresholdCriterion(field="pe_ratio", operator="lt", value=15.0)]
+    )
+    assert kept == ["AAA"]
+
+
+@pytest.mark.asyncio
+async def test_upsert_info_clears_omitted_info_only_fields_keeps_v7_tier() -> None:
+    """The info tier is authoritative for the info-ONLY fields (cleared when
+    omitted); the v7-tier numerics survive a sparse info row."""
+    await store.upsert_v7("AAA", _fund("AAA", market_cap=1e12, pe_ratio=18.0), _quote("AAA"))
+    await store.upsert_info("AAA", _fund("AAA", roe=0.3, profit_margin=0.1))
+    # Re-enrich: roe rides along, profit_margin vanished upstream.
+    await store.upsert_info("AAA", _fund("AAA", roe=0.25))
+    row = (await store.fetch_rows(["AAA"]))["AAA"]
+    assert row["roe"] == 0.25
+    assert row["profit_margin"] is None  # vanished value cleared, not served stale
+    assert row["market_cap"] == 1e12  # v7 tier untouched by the sparse info row
+    assert row["pe_ratio"] == 18.0
+
+
+@pytest.mark.asyncio
+async def test_upsert_v7_batch_roundtrip_single_transaction() -> None:
+    await store.upsert_v7_batch(
+        [
+            ("AAA", _fund("AAA", market_cap=3e12), _quote("AAA", price=10.0)),
+            ("bbb", _fund("BBB", market_cap=2e12), _quote("BBB", price=20.0)),
+            ("", _fund("BAD"), None),  # blank key dropped, not written
+        ]
+    )
+    rows = await store.fetch_rows(["AAA", "BBB"])
+    assert rows["AAA"]["market_cap"] == 3e12
+    assert rows["BBB"]["quote_price"] == 20.0
+    assert rows["AAA"]["v7_updated_at"] is not None
+    assert rows["BBB"]["quote_updated_at"] is not None
 
 
 @pytest.mark.asyncio
@@ -262,6 +316,46 @@ async def test_info_priority_never_fetched_first_then_mcap_then_stalest() -> Non
     await store.upsert_info("FRESHINFO", _fund("FRESHINFO", market_cap=4e12, roe=0.1))
     order = await store.info_priority(["FRESHINFO", "OLDINFO", "SMALLNEW", "BIGNEW"], 3)
     assert order == ["BIGNEW", "SMALLNEW", "OLDINFO"]
+
+
+@pytest.mark.asyncio
+async def test_info_priority_failed_batch_not_reselected() -> None:
+    """The wedge pin: a batch of permanently-failing symbols, once stamped
+    via ``mark_info_failure``, must NOT be re-selected by the next
+    ``info_priority`` call — they rotate out for TTL_INFO_RETRY_SECONDS so
+    the crawl progresses past them."""
+    await store.upsert_v7("DEAD1.BO", _fund("DEAD1.BO", market_cap=9e12), _quote("DEAD1.BO"))
+    await store.upsert_v7("DEAD2.BO", _fund("DEAD2.BO", market_cap=8e12), _quote("DEAD2.BO"))
+    await store.upsert_v7("ALIVE.NS", _fund("ALIVE.NS", market_cap=1e12), _quote("ALIVE.NS"))
+    first = await store.info_priority(["DEAD1.BO", "DEAD2.BO", "ALIVE.NS"], 2)
+    assert first == ["DEAD1.BO", "DEAD2.BO"]  # never-attempted head, mcap desc
+    await store.mark_info_failure("DEAD1.BO")
+    await store.mark_info_failure("DEAD2.BO")
+    second = await store.info_priority(["DEAD1.BO", "DEAD2.BO", "ALIVE.NS"], 2)
+    assert second == ["ALIVE.NS"]  # the failures rotated out — no wedge
+    # After the retry TTL the failures become eligible again (attempted group).
+    await _age_tier("DEAD1.BO", "info_failed_at", store.TTL_INFO_RETRY_SECONDS + 60)
+    third = await store.info_priority(["DEAD1.BO", "DEAD2.BO", "ALIVE.NS"], 3)
+    assert third == ["ALIVE.NS", "DEAD1.BO"]
+    # A later SUCCESS clears the failure stamp entirely.
+    await store.upsert_info("DEAD2.BO", _fund("DEAD2.BO", roe=0.1))
+    row = (await store.fetch_rows(["DEAD2.BO"]))["DEAD2.BO"]
+    assert row["info_failed_at"] is None
+    assert row["info_updated_at"] is not None
+
+
+@pytest.mark.asyncio
+async def test_prefilter_quote_ttl_rides_the_callers_serving_tier() -> None:
+    """Quote-tier prune freshness uses the CALLER's quote TTL: a 100 s-old
+    quote may prune a full-market screen (600 s tier) but NOT a curated one
+    (45 s tier) — prune may only widen against the serving definition."""
+    await store.upsert_v7("AAA", _fund("AAA"), _quote("AAA", price=5.0))
+    await _age_tier("AAA", "quote_updated_at", 100)
+    crit = [NumericThresholdCriterion(field="price", operator="gt", value=50.0)]
+    kept_full = await store.prefilter(["AAA"], crit, quote_ttl=store.TTL_QUOTE_FULL_SECONDS)
+    assert kept_full == []  # fresh within 600 s — definitively fails price>50
+    kept_curated = await store.prefilter(["AAA"], crit, quote_ttl=store.TTL_QUOTE_CURATED_SECONDS)
+    assert kept_curated == ["AAA"]  # stale for the 45 s tier — must be KEPT
 
 
 @pytest.mark.asyncio

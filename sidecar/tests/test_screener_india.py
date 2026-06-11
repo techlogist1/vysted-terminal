@@ -97,6 +97,25 @@ async def test_resolve_universe_india_branches() -> None:
         assert universe.symbols
 
 
+def test_india_symbol_meta_is_constant_time_for_the_boot_seed() -> None:
+    """The boot seed calls ``india_symbol_meta`` + ``sector_seed_for`` once per
+    ``india-all`` symbol with zero awaits between — rebuilding the master
+    lookup dicts per call was O(n²) and blocked the event loop ~4 s (measured)
+    against the brief's '<1 s'. With the hoisted lru_cache lookups the whole
+    loop runs in ~tens of ms; 1 s is a wide CI margin that still fails the
+    quadratic version by 4x."""
+    import time as _time
+
+    universe = screener_universe_india.load_india_universe("india-all")
+    assert len(universe.symbols) > 5000
+    screener_universe_india.india_symbol_meta(universe.symbols[0])  # warm the caches
+    start = _time.perf_counter()
+    for symbol in universe.symbols:
+        screener_universe_india.india_symbol_meta(symbol)
+        screener_universe_india.sector_seed_for(symbol)
+    assert _time.perf_counter() - start < 1.0
+
+
 def test_india_symbol_meta_joins_masters() -> None:
     rel = screener_universe_india.india_symbol_meta("RELIANCE.NS")
     assert rel is not None
@@ -404,6 +423,52 @@ async def test_wall_expiry_keeps_completed_chunks(monkeypatch: pytest.MonkeyPatc
 
 
 @pytest.mark.asyncio
+async def test_budget_expiry_itemizes_stale_cached_rows_instead_of_serving(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A candidate whose chunk never ran but that has an OLD store row (v7
+    stamp beyond the 6 h serving TTL) is itemized ``budget_exhausted`` at
+    finalize — counting a 20 h-old row as 'screened' would overstate what
+    this run actually evaluated."""
+    import contextlib as _ctx
+    import sqlite3
+    import time as _time
+
+    monkeypatch.setattr(screener, "resolve_universe", _fake_universe("nse-all", ["OLD.NS"]))
+    await fundamentals_store.upsert_v7(
+        "OLD.NS",
+        Fundamentals(symbol="OLD.NS", market_cap=1e12, pe_ratio=10.0, provider="t"),
+        Quote(
+            symbol="OLD.NS",
+            price=100.0,
+            change=0.0,
+            change_percent=0.0,
+            volume=1.0,
+            currency="INR",
+            timestamp=datetime.now(tz=UTC),
+            provider="t",
+        ),
+    )
+    twenty_hours = 20 * 3600
+    with _ctx.closing(sqlite3.connect(fundamentals_store._db_path())) as conn:
+        conn.execute(
+            "UPDATE fundamentals SET v7_updated_at = ?, quote_updated_at = ? WHERE symbol = ?",
+            (_time.time() - twenty_hours, _time.time() - twenty_hours, "OLD.NS"),
+        )
+        conn.commit()
+    yb.reset_for_tests(_HangingTransport())  # this run's sweep never lands
+
+    request = ScreenerRequest(universe="nse-all", criteria=[], limit=100)
+    result = await screener.run_screener(request, wall_budget_s=0.3)
+    assert result.partial is True
+    assert result.rows == []  # the 20 h-old row is NOT served as screened
+    assert result.evaluated_count == 0
+    assert result.skipped_count == len(result.skip_details) == 1
+    assert result.skip_details[0].reason == "budget_exhausted"
+    assert result.coverage == "screened 0 of 1 — 1 unavailable"
+
+
+@pytest.mark.asyncio
 async def test_cancellation_finalizes_partial_instead_of_vanishing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -542,3 +607,37 @@ async def test_sse_stream_emits_progress_then_result(monkeypatch: pytest.MonkeyP
     assert result["partial"] is False
     assert {r["symbol"] for r in result["rows"]} == {"AAA", "BBB"}
     assert result["coverage"] == "screened 2 of 2 — 0 unavailable"
+
+
+@pytest.mark.asyncio
+async def test_sse_stream_engine_crash_emits_sanitized_error_frame(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An engine crash terminates the stream with one ``{"event":"error"}``
+    frame (mirrors ``ScreenerErrorFrame`` in types/screener.ts) whose message
+    is sanitized — no raw provider/debug text reaches the UI."""
+
+    async def explode(request, *, wall_budget_s=120.0, on_progress=None):  # noqa: ANN001, ARG001
+        raise RuntimeError("curl_cffi: TLS handshake gobbledygook host=10.0.0.7")
+
+    monkeypatch.setattr("services.screener.run_screener", explode)
+
+    transport = httpx.ASGITransport(app=create_app())
+    frames: list[dict] = []
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        async with client.stream(
+            "POST",
+            "/screener/run/stream",
+            json={"universe": "custom", "custom_symbols": ["AAA"], "criteria": []},
+        ) as response:
+            assert response.status_code == 200
+            async for line in response.aiter_lines():
+                if line.startswith("data: "):
+                    frames.append(json.loads(line[len("data: ") :]))
+
+    assert len(frames) == 1
+    error = frames[0]
+    assert set(error) == {"event", "message"}
+    assert error["event"] == "error"
+    assert "gobbledygook" not in error["message"]  # debug-ish provider text stays in the logs
+    assert "RuntimeError" in error["message"]

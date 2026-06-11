@@ -26,6 +26,7 @@ ProviderError exception handler in :mod:`app`.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
 from collections.abc import AsyncIterator
@@ -98,10 +99,15 @@ async def run_screener_stream(request: ScreenerRequest) -> StreamingResponse:
 
     Frames are ``{"event":"progress",phase,done,total,detail}`` (mirrors
     ``ScreenerProgressFrame`` in ``types/screener.ts``) followed by one
-    ``{"event":"result", …ScreenerResult}``. The engine runs as a separate
-    task; when the client disconnects the generator is torn down and the task
-    cancelled — the engine catches the cancellation, finalizes an honest
-    partial, and stops (no orphaned sweep).
+    ``{"event":"result", …ScreenerResult}``. An engine crash emits one
+    ``{"event":"error","message"}`` frame instead of the result (mirrors
+    ``ScreenerErrorFrame``; the message is a ProviderError's text — already
+    the unary route's 502 detail — or a sanitized one-liner, never raw
+    debug/provider output). The engine runs as a separate task; when the
+    client disconnects the generator is torn down and the task cancelled —
+    the engine catches the cancellation, finalizes an honest partial, and
+    stops (no orphaned sweep). The cancelled task is AWAITED before the
+    generator closes so a server shutdown never destroys a pending task.
     """
 
     async def _generator() -> AsyncIterator[bytes]:
@@ -117,9 +123,19 @@ async def run_screener_stream(request: ScreenerRequest) -> StreamingResponse:
                 await queue.put({"event": "result", **result.model_dump(mode="json")})
             except asyncio.CancelledError:
                 raise
+            except ProviderError as exc:
+                # ProviderError text is the unary route's 502 detail — safe
+                # and meaningful to surface verbatim.
+                logger.exception("screener stream run failed")
+                await queue.put({"event": "error", "message": str(exc)})
             except Exception as exc:  # noqa: BLE001 — surface a clean error frame
                 logger.exception("screener stream run crashed")
-                await queue.put({"event": "error", "message": str(exc)})
+                await queue.put(
+                    {
+                        "event": "error",
+                        "message": f"screener run failed ({type(exc).__name__}); see sidecar logs",
+                    }
+                )
             finally:
                 queue.put_nowait(None)
 
@@ -133,6 +149,12 @@ async def run_screener_stream(request: ScreenerRequest) -> StreamingResponse:
         finally:
             if not task.done():
                 task.cancel()
+            # The engine uncancels itself to finalize an honest partial, so a
+            # bare cancel() leaves it running detached — await it (suppressing
+            # teardown noise) so shutdown never logs "Task was destroyed but
+            # it is pending".
+            with contextlib.suppress(BaseException):
+                await task
 
     return StreamingResponse(_generator(), media_type="text/event-stream")
 

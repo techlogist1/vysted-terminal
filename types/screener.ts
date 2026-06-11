@@ -253,8 +253,10 @@ export interface ScreenerResult {
 
 /**
  * One progress frame on the `POST /screener/run/stream` SSE channel (R10, D40).
- * Frames stream as `{"event":"progress",...}` then one `{"event":"result",...}`
- * carrying the full ScreenerResult. Client disconnect cancels the run.
+ * Frames stream as `{"event":"progress",...}` then one terminal frame: either
+ * `{"event":"result",...}` carrying the full ScreenerResult or — on an engine
+ * crash — one `{"event":"error",...}` (see ScreenerErrorFrame). Client
+ * disconnect cancels the run.
  */
 export interface ScreenerProgressFrame {
   event: "progress";
@@ -264,4 +266,16 @@ export interface ScreenerProgressFrame {
   total: number;
   /** One human line ("sweeping quotes 850/2,100"). */
   detail: string;
+}
+
+/**
+ * The terminal error frame on the `POST /screener/run/stream` SSE channel,
+ * emitted INSTEAD of the result frame when the engine crashes. `message` is
+ * safe to render: a ProviderError's text (the same string the unary
+ * `POST /screener/run` returns as its 502 detail) or a sanitized one-liner —
+ * never raw provider/debug output.
+ */
+export interface ScreenerErrorFrame {
+  event: "error";
+  message: string;
 }

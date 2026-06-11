@@ -89,6 +89,21 @@ def _bse_rows() -> list[tuple[str, str, str, str, str]]:
 
 
 @lru_cache(maxsize=1)
+def _nse_lookup() -> dict[str, tuple[str, str]]:
+    """``{SYMBOL: (name, type)}`` — hoisted so :func:`india_symbol_meta` is
+    O(1). The boot seed calls it once per ``india-all`` symbol (~5,156);
+    rebuilding both master dicts per call was O(n²) and blocked the event
+    loop ~4 s at startup."""
+    return {sym: (name, typ) for sym, name, typ in _nse_rows()}
+
+
+@lru_cache(maxsize=1)
+def _bse_lookup() -> dict[str, tuple[str, str, str, str]]:
+    """``{SYMBOL: (name, group, scrip_code, isin)}`` (see :func:`_nse_lookup`)."""
+    return {sym: (name, group, code, isin) for sym, name, group, code, isin in _bse_rows()}
+
+
+@lru_cache(maxsize=1)
 def _sector_map() -> dict[str, dict[str, Any]]:
     """``{BASE_SYMBOL: record}`` from the bundled ``india_sector_map.json``.
 
@@ -123,6 +138,8 @@ def reset_caches_for_tests() -> None:
     """Drop the in-process master caches (test helper)."""
     _nse_rows.cache_clear()
     _bse_rows.cache_clear()
+    _nse_lookup.cache_clear()
+    _bse_lookup.cache_clear()
     _sector_map.cache_clear()
 
 
@@ -172,8 +189,8 @@ def india_symbol_meta(symbol: str) -> dict[str, Any] | None:
     if not base:
         return None
 
-    nse = {sym: (name, typ) for sym, name, typ in _nse_rows()}
-    bse = {sym: (name, group, code, isin) for sym, name, group, code, isin in _bse_rows()}
+    nse = _nse_lookup()
+    bse = _bse_lookup()
 
     if suffix in (None, "NS") and base in nse:
         name, _typ = nse[base]

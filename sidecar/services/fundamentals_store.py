@@ -56,6 +56,11 @@ TTL_QUOTE_CURATED_SECONDS = 45.0
 TTL_V7_SECONDS = 6 * 60 * 60.0
 #: Deep ``.info`` tier (sector, ROE, margins, growth, ownership, …).
 TTL_INFO_SECONDS = 7 * 24 * 60 * 60.0
+#: How long a FAILED deep ``.info`` fetch keeps a symbol out of the crawl
+#: priority head. Without this, permanently-failing symbols (BSE scrips Yahoo
+#: doesn't cover) sort never-fetched-first forever and wedge the crawler on
+#: the same batch every cycle.
+TTL_INFO_RETRY_SECONDS = 24 * 60 * 60.0
 
 #: Numeric ``Fundamentals`` fields stored 1:1 as columns (the screener's full
 #: numeric vocabulary minus the quote-derived trio, which rides ``quote_*``).
@@ -106,6 +111,13 @@ _V7_NUMERIC_FIELDS: tuple[str, ...] = (
     "shares_outstanding",
 )
 
+#: The ``.info``-only numeric fields — everything the deep tier alone supplies.
+#: ``upsert_info`` is AUTHORITATIVE for these: a field the fresh ``.info`` row
+#: omits is cleared to NULL (a vanished value must not masquerade as fresh).
+_INFO_ONLY_NUMERIC_FIELDS: tuple[str, ...] = tuple(
+    f for f in _NUMERIC_FIELDS if f not in _V7_NUMERIC_FIELDS
+)
+
 _SCHEMA = f"""
 CREATE TABLE IF NOT EXISTS fundamentals (
     symbol TEXT PRIMARY KEY,
@@ -129,6 +141,7 @@ CREATE TABLE IF NOT EXISTS fundamentals (
     quote_updated_at REAL,
     v7_updated_at REAL,
     info_updated_at REAL,
+    info_failed_at REAL,
     provider TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_fundamentals_sector ON fundamentals(sector);
@@ -150,7 +163,17 @@ def _connect() -> sqlite3.Connection:
     conn = sqlite3.connect(_db_path())
     conn.row_factory = sqlite3.Row
     conn.executescript(_SCHEMA)
+    _migrate(conn)
     return conn
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Additive column migration — ``CREATE TABLE IF NOT EXISTS`` never alters
+    an existing table, so a DB created before a column landed gets it here."""
+    have = {row[1] for row in conn.execute("PRAGMA table_info(fundamentals)")}
+    for column, decl in (("info_failed_at", "REAL"),):
+        if column not in have:
+            conn.execute(f"ALTER TABLE fundamentals ADD COLUMN {column} {decl}")
 
 
 def reset_for_tests(path: Path | str | None = None) -> None:
@@ -242,30 +265,69 @@ def _quote_columns(quote: Quote | None) -> dict[str, Any]:
     }
 
 
-async def upsert_v7(symbol: str, fundamentals: Fundamentals, quote: Quote | None) -> None:
-    """Write one v7 batch row: the v7-tier numerics + the quote columns,
-    stamping ``v7_updated_at`` (and ``quote_updated_at`` when a quote rode
-    along). v7 carries no sector — sector columns are untouched."""
+def _v7_columns(fundamentals: Fundamentals, quote: Quote | None) -> dict[str, Any]:
     cols: dict[str, Any] = {
         "name": fundamentals.name,
         "currency": fundamentals.currency,
         "provider": fundamentals.provider,
         "v7_updated_at": time.time(),
     }
+    # v7 is AUTHORITATIVE for its tier: a field the fresh row omits is
+    # cleared to NULL. The old write-only-non-None behaviour let a vanished
+    # value (e.g. trailing PE after a swing to loss) ride the new stamp and
+    # be served — and pruned on — as fresh forever.
     for field in _V7_NUMERIC_FIELDS:
-        value = getattr(fundamentals, field, None)
-        if value is not None:
-            cols[field] = value
+        cols[field] = getattr(fundamentals, field, None)
     cols.update(_quote_columns(quote))
-    await _upsert(symbol, cols)
+    return cols
+
+
+async def upsert_v7(symbol: str, fundamentals: Fundamentals, quote: Quote | None) -> None:
+    """Write one v7 batch row: the v7-tier numerics + the quote columns,
+    stamping ``v7_updated_at`` (and ``quote_updated_at`` when a quote rode
+    along). v7 is authoritative for its tier — numerics the fresh row omits
+    are CLEARED (and the quote columns likewise when a quote rode along).
+    v7 carries no sector — sector columns are untouched."""
+    await _upsert(symbol, _v7_columns(fundamentals, quote))
+
+
+async def upsert_v7_batch(items: list[tuple[str, Fundamentals, Quote | None]]) -> None:
+    """``upsert_v7`` for a whole sweep chunk under ONE lock acquisition,
+    connection, and transaction. The per-symbol connect+commit costs ~1.4 ms
+    each — ~7 s of serialized store time across a cold 5k-symbol india sweep —
+    so the sweeps batch their writes."""
+    rows: list[tuple[str, dict[str, Any]]] = []
+    for symbol, fundamentals, quote in items:
+        key = symbol.strip().upper()
+        if key:
+            rows.append((key, _v7_columns(fundamentals, quote)))
+    if not rows:
+        return
+
+    def _work() -> None:
+        with contextlib.closing(_connect()) as conn:
+            for key, cols in rows:
+                sql, values = _upsert_sql(key, cols)
+                conn.execute(sql, values)
+            conn.commit()
+
+    async with _lock:
+        await asyncio.to_thread(_work)
 
 
 async def upsert_info(symbol: str, fundamentals: Fundamentals) -> None:
-    """Write one deep ``.info`` enrichment row: the FULL numeric vocabulary +
-    sector/industry (``sector_source`` becomes the provider — a live fetch
-    outranks the build-time seed), stamping ``info_updated_at``. The registry
-    ``.info`` fundamentals are a superset of the v7 tier, so ``v7_updated_at``
-    is stamped too (the sweep can skip a freshly-info'd symbol)."""
+    """Write one deep ``.info`` enrichment row, stamping ``info_updated_at``
+    (and clearing ``info_failed_at`` — a success resets the retry gate).
+
+    The info tier is AUTHORITATIVE for the ``.info``-only numeric fields: a
+    field the fresh row omits is cleared to NULL (a suspended dividend or
+    vanished ratio must not be served as fresh). The v7-tier numerics write
+    only when non-None — a sparse enrichment row must not wipe a fresher
+    batch sweep's values. Sector/industry write only when non-None (the
+    build-time seed is the floor; ``sector_source`` becomes the provider).
+    The registry ``.info`` fundamentals are a superset of the v7 tier, so
+    ``v7_updated_at`` is stamped too (the sweep can skip a freshly-info'd
+    symbol)."""
     now = time.time()
     cols: dict[str, Any] = {
         "name": fundamentals.name,
@@ -273,23 +335,31 @@ async def upsert_info(symbol: str, fundamentals: Fundamentals) -> None:
         "provider": fundamentals.provider,
         "info_updated_at": now,
         "v7_updated_at": now,
+        "info_failed_at": None,
     }
     if fundamentals.sector is not None:
         cols["sector"] = fundamentals.sector
         cols["sector_source"] = fundamentals.provider or "yfinance"
     if fundamentals.industry is not None:
         cols["industry"] = fundamentals.industry
-    for field in _NUMERIC_FIELDS:
+    for field in _INFO_ONLY_NUMERIC_FIELDS:
+        cols[field] = getattr(fundamentals, field, None)
+    for field in _V7_NUMERIC_FIELDS:
         value = getattr(fundamentals, field, None)
         if value is not None:
             cols[field] = value
     await _upsert(symbol, cols)
 
 
-async def _upsert(symbol: str, cols: dict[str, Any]) -> None:
-    key = symbol.strip().upper()
-    if not key or not cols:
-        return
+async def mark_info_failure(symbol: str) -> None:
+    """Stamp a FAILED deep ``.info`` fetch (``info_failed_at``) so the symbol
+    rotates out of the :func:`info_priority` head for
+    ``TTL_INFO_RETRY_SECONDS`` instead of wedging the crawler. A later
+    successful :func:`upsert_info` clears the stamp."""
+    await _upsert(symbol, {"info_failed_at": time.time()})
+
+
+def _upsert_sql(key: str, cols: dict[str, Any]) -> tuple[str, list[Any]]:
     names = list(cols)
     assignments = ", ".join(f"{c} = excluded.{c}" for c in names)
     sql = (
@@ -297,7 +367,14 @@ async def _upsert(symbol: str, cols: dict[str, Any]) -> None:
         f"VALUES (?, {', '.join('?' for _ in names)}) "
         f"ON CONFLICT(symbol) DO UPDATE SET {assignments}"
     )
-    values = [key, *[cols[c] for c in names]]
+    return sql, [key, *[cols[c] for c in names]]
+
+
+async def _upsert(symbol: str, cols: dict[str, Any]) -> None:
+    key = symbol.strip().upper()
+    if not key or not cols:
+        return
+    sql, values = _upsert_sql(key, cols)
 
     def _work() -> None:
         with contextlib.closing(_connect()) as conn:
@@ -455,7 +532,9 @@ def _field_column(field: str) -> str:
     return _QUOTE_FIELD_COLUMNS.get(field, field)
 
 
-def _criterion_fails_sql(criterion: ScreenerCriterion) -> tuple[str, list[Any]] | None:
+def _criterion_fails_sql(
+    criterion: ScreenerCriterion, quote_ttl: float
+) -> tuple[str, list[Any]] | None:
     """SQL predicate that is TRUE when a FRESH NON-NULL value DEFINITIVELY
     fails ``criterion`` — the only condition under which pruning is sound.
 
@@ -467,13 +546,13 @@ def _criterion_fails_sql(criterion: ScreenerCriterion) -> tuple[str, list[Any]] 
     if isinstance(criterion, NumericThresholdCriterion):
         col = _field_column(criterion.field)
         op = {"gt": "<=", "lt": ">=", "gte": "<", "lte": ">"}[criterion.operator]
-        return f"({col} IS NOT NULL AND {_fresh_sql(criterion.field)} AND {col} {op} ?)", [
-            criterion.value
-        ]
+        fresh = _fresh_sql(criterion.field, quote_ttl)
+        return f"({col} IS NOT NULL AND {fresh} AND {col} {op} ?)", [criterion.value]
     if isinstance(criterion, NumericBetweenCriterion):
         col = _field_column(criterion.field)
+        fresh = _fresh_sql(criterion.field, quote_ttl)
         return (
-            f"({col} IS NOT NULL AND {_fresh_sql(criterion.field)} AND ({col} < ? OR {col} > ?))",
+            f"({col} IS NOT NULL AND {fresh} AND ({col} < ? OR {col} > ?))",
             [criterion.value.min, criterion.value.max],
         )
     if isinstance(criterion, StringEqCriterion):
@@ -498,31 +577,40 @@ def _criterion_fails_sql(criterion: ScreenerCriterion) -> tuple[str, list[Any]] 
     return None
 
 
-def _fresh_sql(field: str) -> str:
-    """Freshness predicate for a numeric field's serving tier (see module doc)."""
+def _fresh_sql(field: str, quote_ttl: float) -> str:
+    """Freshness predicate for a numeric field's serving tier (see module doc).
+
+    ``quote_ttl`` is the CALLER's serving quote TTL (600 s full-market / 45 s
+    curated) — hardcoding the full-market TTL here let a curated screen prune
+    on a quote up to 10 minutes old."""
     if field in _QUOTE_FIELD_COLUMNS:
-        return (
-            f"(quote_updated_at IS NOT NULL AND ? - quote_updated_at <= {TTL_QUOTE_FULL_SECONDS})"
-        )
+        return f"(quote_updated_at IS NOT NULL AND ? - quote_updated_at <= {quote_ttl})"
     if field in _V7_NUMERIC_FIELDS:
         return f"(v7_updated_at IS NOT NULL AND ? - v7_updated_at <= {TTL_V7_SECONDS})"
     return f"(info_updated_at IS NOT NULL AND ? - info_updated_at <= {TTL_INFO_SECONDS})"
 
 
-async def prefilter(symbols: list[str], cheap_criteria: list[ScreenerCriterion]) -> list[str]:
+async def prefilter(
+    symbols: list[str],
+    cheap_criteria: list[ScreenerCriterion],
+    *,
+    quote_ttl: float = TTL_QUOTE_FULL_SECONDS,
+) -> list[str]:
     """Prune ``symbols`` by the AND-ed ``cheap_criteria`` — soundly.
 
     Removes a symbol ONLY when a stored, fresh, non-NULL value definitively
     fails one of the criteria (each criterion is AND-ed, so failing one is
     fatal). NULL / stale / missing rows are KEPT — pruning may only widen,
-    never narrow, the candidate set. Preserves input order."""
+    never narrow, the candidate set. ``quote_ttl`` is the serving quote TTL
+    for the universe being screened (quote-tier values fresher than it may
+    prune). Preserves input order."""
     if not symbols or not cheap_criteria:
         return list(symbols)
     predicates: list[str] = []
     params: list[Any] = []
     now = time.time()
     for criterion in cheap_criteria:
-        translated = _criterion_fails_sql(criterion)
+        translated = _criterion_fails_sql(criterion, quote_ttl)
         if translated is None:
             continue
         sql, crit_params = translated
@@ -556,10 +644,17 @@ async def prefilter(symbols: list[str], cheap_criteria: list[ScreenerCriterion])
 
 async def info_priority(symbols: list[str], limit: int) -> list[str]:
     """The next ``limit`` symbols the deep crawler should ``.info``-fetch:
-    never-fetched first, market cap descending, then stalest first."""
+    never-ATTEMPTED first, market cap descending, then stalest last attempt
+    (``max(info_updated_at, info_failed_at)``) first.
+
+    A symbol whose last fetch FAILED within ``TTL_INFO_RETRY_SECONDS`` is
+    NOT eligible — without that gate, the thousands of BSE scrips Yahoo
+    doesn't cover would sort to the head forever and wedge every crawl
+    cycle on the same never-succeeding batch."""
     keys = [s.strip().upper() for s in symbols if s and s.strip()]
     if not keys or limit <= 0:
         return []
+    now = time.time()
 
     def _work() -> list[str]:
         out: list[tuple[int, float, float, str]] = []
@@ -567,16 +662,19 @@ async def info_priority(symbols: list[str], limit: int) -> list[str]:
             for chunk in _chunked(keys):
                 marks = ", ".join("?" for _ in chunk)
                 for row in conn.execute(
-                    f"SELECT symbol, market_cap, info_updated_at FROM fundamentals "
-                    f"WHERE symbol IN ({marks})",
+                    f"SELECT symbol, market_cap, info_updated_at, info_failed_at "
+                    f"FROM fundamentals WHERE symbol IN ({marks})",
                     chunk,
                 ):
-                    never = 0 if row["info_updated_at"] is None else 1
+                    failed_at = row["info_failed_at"]
+                    if failed_at is not None and now - failed_at <= TTL_INFO_RETRY_SECONDS:
+                        continue  # recently failed — rotated out until the retry TTL lapses
+                    attempted_at = max(row["info_updated_at"] or 0.0, failed_at or 0.0)
                     out.append(
                         (
-                            never,
+                            0 if attempted_at == 0.0 else 1,
                             -(row["market_cap"] or 0.0),
-                            row["info_updated_at"] or 0.0,
+                            attempted_at,
                             row["symbol"],
                         )
                     )
@@ -606,6 +704,7 @@ async def freshness(symbols: list[str]) -> dict[str, float]:
 
 __all__ = [
     "DB_FILENAME",
+    "TTL_INFO_RETRY_SECONDS",
     "TTL_INFO_SECONDS",
     "TTL_QUOTE_CURATED_SECONDS",
     "TTL_QUOTE_FULL_SECONDS",
@@ -613,6 +712,7 @@ __all__ = [
     "fetch_rows",
     "freshness",
     "info_priority",
+    "mark_info_failure",
     "prefilter",
     "query",
     "reset_for_tests",
@@ -621,4 +721,5 @@ __all__ = [
     "stale_symbols",
     "upsert_info",
     "upsert_v7",
+    "upsert_v7_batch",
 ]

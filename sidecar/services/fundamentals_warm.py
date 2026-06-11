@@ -13,10 +13,13 @@ Region-aware: the loops only do WORK while ``config.get_region() == "IN"``
      reusing the screener warm loop's exponential 429 backoff discipline
      (``screener._warm_sleep_seconds`` + its constants; never duplicated).
   3. **Deep ``.info`` crawler** — ``fundamentals_store.info_priority(20)``
-     per cycle (never-fetched first, market cap desc, then stalest),
+     per cycle (never-attempted first, market cap desc, then stalest),
      ``Semaphore(4)``, 1.5–3 s jitter between fetches, and it PAUSES while a
      foreground screen runs (the engine brackets every run with
-     :func:`screen_started` / :func:`screen_finished`).
+     :func:`screen_started` / :func:`screen_finished`). A FAILED fetch is
+     stamped (``mark_info_failure``) so never-succeeding symbols (BSE scrips
+     Yahoo doesn't cover) rotate out of the priority head for
+     ``TTL_INFO_RETRY_SECONDS`` instead of wedging every cycle.
 
 ``stop_warm_fundamentals()`` cancels + awaits both loops (lifespan finally).
 """
@@ -93,28 +96,34 @@ async def seed_india_store() -> int:
     """Seed identity + sector-map rows for every ``india-all`` symbol.
 
     Local-only (bundled masters + bundled sector map — zero network). Returns
-    the number of rows touched. Idempotent: seeds only NULL columns."""
+    the number of rows touched. Idempotent: seeds only NULL columns. The
+    row-building loop runs on a thread (zero awaits inside it), so the boot
+    seed never stalls ``/health`` or a first request."""
     from services import screener_universe_india
 
-    universe = screener_universe_india.load_india_universe("india-all")
-    rows: list[dict[str, object]] = []
-    for symbol in universe.symbols:
-        meta = screener_universe_india.india_symbol_meta(symbol) or {}
-        seed = screener_universe_india.sector_seed_for(symbol) or {}
-        rows.append(
-            {
-                "symbol": symbol,
-                "name": meta.get("name"),
-                "exchange": meta.get("exchange"),
-                "isin": meta.get("isin") or seed.get("isin"),
-                "scrip_code": meta.get("scrip_code") or seed.get("scrip_code"),
-                "group": meta.get("group"),
-                "sector": seed.get("sector"),
-                "industry": seed.get("industry_raw"),
-                "sector_source": "seed" if seed.get("sector") else None,
-                "shares_outstanding": seed.get("shares_outstanding"),
-            }
-        )
+    def _build_rows() -> list[dict[str, object]]:
+        universe = screener_universe_india.load_india_universe("india-all")
+        rows: list[dict[str, object]] = []
+        for symbol in universe.symbols:
+            meta = screener_universe_india.india_symbol_meta(symbol) or {}
+            seed = screener_universe_india.sector_seed_for(symbol) or {}
+            rows.append(
+                {
+                    "symbol": symbol,
+                    "name": meta.get("name"),
+                    "exchange": meta.get("exchange"),
+                    "isin": meta.get("isin") or seed.get("isin"),
+                    "scrip_code": meta.get("scrip_code") or seed.get("scrip_code"),
+                    "group": meta.get("group"),
+                    "sector": seed.get("sector"),
+                    "industry": seed.get("industry_raw"),
+                    "sector_source": "seed" if seed.get("sector") else None,
+                    "shares_outstanding": seed.get("shares_outstanding"),
+                }
+            )
+        return rows
+
+    rows = await asyncio.to_thread(_build_rows)
     touched = await fundamentals_store.seed_universe(rows)
     logger.info("fundamentals warm: seeded %d india rows", touched)
     return touched
@@ -141,12 +150,12 @@ async def _sweep_once() -> bool:
         return False
     rows, failures = await yahoo_batch_provider.fetch_quotes_batch(stale)
     rate_limited = sum(1 for reason in failures.values() if reason == "rate_limited")
+    items = []
     for _sym, row in rows.items():
         quote = yahoo_batch_provider.quote_from_v7(row)
         if quote is not None:
-            await fundamentals_store.upsert_v7(
-                quote.symbol, yahoo_batch_provider.fundamentals_from_v7(row), quote
-            )
+            items.append((quote.symbol, yahoo_batch_provider.fundamentals_from_v7(row), quote))
+    await fundamentals_store.upsert_v7_batch(items)
     logger.debug(
         "fundamentals warm: swept %d stale india symbols (%d resolved, %d rate-limited)",
         len(stale),
@@ -229,6 +238,11 @@ async def _crawl_once() -> int:
                 )
             except Exception as exc:  # noqa: BLE001 — the crawler shrugs and moves on
                 logger.debug("fundamentals warm: crawl %s failed: %s", symbol, exc)
+                # Stamp the failure so the symbol rotates out of the priority
+                # head — without this a batch of never-succeeding symbols
+                # (e.g. BSE scrips Yahoo doesn't cover) wedges the crawler:
+                # every cycle re-selects the same 20, fetches 0, forever.
+                await fundamentals_store.mark_info_failure(symbol)
                 return
             await fundamentals_store.upsert_info(symbol, rich)
             fetched += 1

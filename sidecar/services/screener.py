@@ -594,14 +594,19 @@ async def _finalize(
 ) -> ScreenerResult:
     """Materialize the result from the store — works mid-run for partials."""
     rows_by_symbol = await fundamentals_store.fetch_rows(state.candidates)
+    now = time.time()
     pairs_by_symbol: dict[str, tuple[Fundamentals, Quote | None]] = {}
     for sym in state.candidates:
         key = sym.upper()
         row = rows_by_symbol.get(key)
-        if row is None or row.get("v7_updated_at") is None:
-            # Never fetched (or identity-only seed row) — itemize. A reason
-            # recorded during the sweep/fallback sticks; otherwise a partial
-            # run owns the miss (budget_exhausted), a complete one is no_data.
+        v7_at = row.get("v7_updated_at") if row is not None else None
+        if v7_at is None or now - v7_at > fundamentals_store.TTL_V7_SECONDS:
+            # Never fetched (or identity-only seed row), or the stored v7
+            # tier is staler than its serving TTL — counting a row this run
+            # never refreshed as "screened" would overstate coverage, so it
+            # is itemized instead. A reason recorded during the sweep /
+            # fallback sticks; otherwise a partial run owns the miss
+            # (budget_exhausted), a complete one is no_data.
             state.skip_reasons.setdefault(key, "budget_exhausted" if state.partial else "no_data")
             continue
         absent = next(
@@ -696,6 +701,7 @@ async def _sweep_v7(
         nonlocal done
         async with sem:
             rows, failures = await yahoo_batch_provider.fetch_quotes_batch(chunk)
+        items: list[tuple[str, Fundamentals, Quote | None]] = []
         for sym in chunk:
             key = sym.upper()
             row = rows.get(key)
@@ -706,9 +712,11 @@ async def _sweep_v7(
             if quote is None:
                 state.skip_reasons[key] = "no_data"
                 continue
-            fundamentals = yahoo_batch_provider.fundamentals_from_v7(row)
-            await fundamentals_store.upsert_v7(key, fundamentals, quote)
+            items.append((key, yahoo_batch_provider.fundamentals_from_v7(row), quote))
             state.skip_reasons.pop(key, None)
+        # One store transaction per chunk — per-symbol connect+commit cost
+        # ~1.4 ms each (~7 s serialized over a cold 5k-symbol india sweep).
+        await fundamentals_store.upsert_v7_batch(items)
         done += len(chunk)
         emit("sweep", done, total, f"sweeping quotes {done:,}/{total:,}")
 
@@ -912,11 +920,13 @@ async def _run_batch_phases(
         else fundamentals_store.TTL_QUOTE_CURATED_SECONDS
     )
 
-    # Phase P — sound SQL prune on the top-level AND-ed cheap criteria.
+    # Phase P — sound SQL prune on the top-level AND-ed cheap criteria. The
+    # universe's serving quote TTL rides along so a curated screen never
+    # prunes on a quote older than its own 45 s tier.
     cheap = _cheap_prune_criteria(list(req.criteria), req.group)
     if cheap:
         before = len(state.candidates)
-        kept = await fundamentals_store.prefilter(state.candidates, cheap)
+        kept = await fundamentals_store.prefilter(state.candidates, cheap, quote_ttl=quote_ttl)
         state.pruned_failed |= set(state.candidates) - set(kept)
         state.candidates = kept
         emit("prefilter", len(kept), before, f"prefilter kept {len(kept):,} of {before:,}")
@@ -929,7 +939,7 @@ async def _run_batch_phases(
     # Re-apply the cheap criteria — fresh post-sweep values prune properly now.
     if cheap:
         before = len(state.candidates)
-        kept = await fundamentals_store.prefilter(state.candidates, cheap)
+        kept = await fundamentals_store.prefilter(state.candidates, cheap, quote_ttl=quote_ttl)
         if len(kept) != before:
             newly_pruned = set(state.candidates) - set(kept)
             # A symbol whose sweep failed is a SKIP, not an evaluated-fail.
@@ -1035,12 +1045,12 @@ async def _warm_once() -> bool:
         requested += len(symbols)
         rows, failures = await yahoo_batch_provider.fetch_quotes_batch(symbols)
         rate_limited += sum(1 for reason in failures.values() if reason == "rate_limited")
+        items = []
         for _sym, row in rows.items():
             quote = yahoo_batch_provider.quote_from_v7(row)
             if quote is not None:
-                await fundamentals_store.upsert_v7(
-                    quote.symbol, yahoo_batch_provider.fundamentals_from_v7(row), quote
-                )
+                items.append((quote.symbol, yahoo_batch_provider.fundamentals_from_v7(row), quote))
+        await fundamentals_store.upsert_v7_batch(items)
     return requested > 0 and rate_limited >= requested * _WARM_THROTTLE_RATIO
 
 
