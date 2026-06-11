@@ -469,7 +469,7 @@ def fundamentals_from_v7(row: dict[str, Any]) -> Fundamentals:
 
     Populates ONLY the fields the v7 quote row actually carries — valuation
     ratios (market cap, trailing/forward P/E, price/book, book value), EPS, the
-    52-week range + change, dividend yield, currency, name. Everything v7 omits
+    52-week range + change, dividend yield, shares outstanding, currency, name. Everything v7 omits
     (``sector``/``industry``/``peg_ratio``/``beta``/``price_to_sales``/
     ``ev_to_ebitda``/profitability/health/growth/ownership) is left ``None`` —
     a screen that filters on one of those triggers per-symbol ``.info``
@@ -490,6 +490,7 @@ def fundamentals_from_v7(row: dict[str, Any]) -> Fundamentals:
         fifty_two_week_high=_num(row.get("fiftyTwoWeekHigh")),
         fifty_two_week_low=_num(row.get("fiftyTwoWeekLow")),
         fifty_two_week_change=_normalize_fifty_two_week_change(row),
+        shares_outstanding=_num(row.get("sharesOutstanding")),
         provider=PROVIDER,
     )
 
