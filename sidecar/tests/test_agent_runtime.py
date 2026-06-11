@@ -956,6 +956,20 @@ class _StubToolCall:
         self.tool_call_id = tool_call_id
 
 
+def _execution(loop: str = "fast", requested: str = "normal") -> dict[str, Any]:
+    """A well-formed R10 execution record — every auto-publishable payload
+    must carry one (E2: no execution → no auto-publish)."""
+    return {
+        "run_id": "run-exec-1",
+        "requested_depth": requested,
+        "loop": loop,
+        "backend": None,
+        "started_at": 1.0,
+        "finished_at": 2.0,
+        "degraded_reason": None,
+    }
+
+
 def test_auto_publish_maps_fast_web_round_into_brief_sources() -> None:
     """The keyless '0 sources / structured only' bug: a FAST bundle strands its web
     round under web.{citations,results} (no top-level `sources`). The synthetic
@@ -965,6 +979,7 @@ def test_auto_publish_maps_fast_web_round_into_brief_sources() -> None:
         "ok": True,
         "query": "NVDA",
         "symbol": "NVDA",
+        "execution": _execution(),  # R10: auto-publish requires the record
         "structured": {"price": {"ok": True}},
         "web": {
             "available": True,
@@ -991,6 +1006,7 @@ def test_auto_publish_passes_through_deep_sources_and_honest_no_web() -> None:
     deep_bundle = {
         "ok": True,
         "query": "AAPL",
+        "execution": _execution(loop="iter", requested="deep"),
         "markdown": "## Brief\nText [1].",
         "sources": [{"url": "https://sec.gov/x", "title": "10-K", "domain": "sec"}],
         "web_available": True,
@@ -1003,6 +1019,7 @@ def test_auto_publish_passes_through_deep_sources_and_honest_no_web() -> None:
     no_web = {
         "ok": True,
         "query": "AAPL",
+        "execution": _execution(),
         "structured": {"price": {"ok": True}},
         "web": {"available": False, "citations": [], "note": "structured only"},
     }
@@ -1022,6 +1039,7 @@ def test_auto_publish_forwards_transient_rate_limit_reason() -> None:
     throttled = {
         "ok": True,
         "query": "AAPL",
+        "execution": _execution(),
         "structured": {"price": {"ok": True}},
         "web": {
             "available": False,
@@ -1047,6 +1065,7 @@ def test_auto_publish_reconciles_web_available_with_sources() -> None:
     sourced_but_flagged_no_web = {
         "ok": True,
         "query": "AAPL",
+        "execution": _execution(loop="iter", requested="deep"),
         "markdown": "## Brief\nText [1].",
         "sources": [{"url": "https://sec.gov/x", "title": "10-K", "domain": "sec"}],
         "web_available": False,
@@ -1061,6 +1080,7 @@ def test_auto_publish_reconciles_web_available_with_sources() -> None:
     sourceless = {
         "ok": True,
         "query": "AAPL",
+        "execution": _execution(),
         "structured": {"price": {"ok": True}},
         "web": {"available": False, "citations": []},
     }
@@ -1070,24 +1090,80 @@ def test_auto_publish_reconciles_web_available_with_sources() -> None:
     assert sourceless_event.input["web_available"] is False  # honest no-web survives
 
 
-def test_auto_publish_maps_depth_tier_from_result_mode() -> None:
-    """FR-115: the auto-publish carries the true depth TIER so the brief panel's
-    'Go deeper' affordance knows the next tier. A FAST bundle (no mode) → 'quick';
-    a deep run → 'deep'; a heavy run → 'heavy'."""
-    fast = {"ok": True, "query": "NVDA", "structured": {"price": {"ok": True}}}
+def test_auto_publish_maps_depth_tier_from_execution_loop() -> None:
+    """FR-115 + R10 E2: mode/depth derive ONLY from the execution record's loop
+    (what RAN) — never from the payload's ``mode`` field, which the old read
+    defaulted to 'fast' and stamped a DEEP run "Mode: FAST". A payload whose
+    mode CONTRADICTS its loop renders the loop's truth."""
+    fast = {
+        "ok": True,
+        "query": "NVDA",
+        "execution": _execution(loop="fast"),
+        "structured": {"price": {"ok": True}},
+    }
     fast_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(fast))
     assert fast_event is not None
     assert fast_event.input["depth"] == "quick"
+    assert fast_event.input["mode"] == "fast"
 
-    deep = {"ok": True, "query": "NVDA", "markdown": "x", "mode": "deep"}
+    # The E2 repro: a deep run whose payload LACKS a mode field — the loop wins.
+    deep = {
+        "ok": True,
+        "query": "NVDA",
+        "markdown": "x",
+        "execution": _execution(loop="iter", requested="deep"),
+    }
     deep_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(deep))
     assert deep_event is not None
     assert deep_event.input["depth"] == "deep"
+    assert deep_event.input["mode"] == "deep"
 
-    heavy = {"ok": True, "query": "NVDA", "markdown": "x", "mode": "heavy"}
+    heavy = {
+        "ok": True,
+        "query": "NVDA",
+        "markdown": "x",
+        "mode": "fast",  # contradicting payload mode — the loop's truth wins
+        "execution": _execution(loop="heavy", requested="ultra"),
+    }
     heavy_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(heavy))
     assert heavy_event is not None
     assert heavy_event.input["depth"] == "heavy"
+    assert heavy_event.input["mode"] == "deep"
+    # The verbatim record rides the publish for the panel's badges/carry.
+    assert heavy_event.input["execution"]["loop"] == "heavy"
+
+
+def test_auto_publish_requires_an_execution_record() -> None:
+    """R10 E2: a research payload WITHOUT an execution record is malformed and
+    never auto-publishes — the depth stamp can no longer be guessed."""
+    legacy = {"ok": True, "query": "NVDA", "markdown": "x", "mode": "deep"}
+    assert agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(legacy)) is None
+
+
+def test_auto_publish_disambiguation_publishes_the_chooser() -> None:
+    """R10 D37: a needs_disambiguation result publishes the candidate chooser —
+    {query, disambiguation, execution} and NOTHING else (no markdown, no
+    structured, no guessed entity)."""
+    payload = {
+        "ok": True,
+        "needs_disambiguation": True,
+        "query": "tata",
+        "candidates": [
+            {"symbol": "TCS", "name": "Tata Consultancy", "exchange": "NSE", "score": 0.6},
+            {"symbol": "TATAMOTORS", "name": "Tata Motors", "exchange": "NSE", "score": 0.58},
+        ],
+        "message": "Which Tata did you mean?",
+        "execution": _execution(),
+    }
+    event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(payload))
+    assert event is not None
+    assert event.name == "publish_brief"
+    assert set(event.input) == {"query", "disambiguation", "execution"}
+    assert event.input["disambiguation"]["query"] == "tata"
+    assert [c["symbol"] for c in event.input["disambiguation"]["candidates"]] == [
+        "TCS",
+        "TATAMOTORS",
+    ]
 
 
 # ---------------------------------------------------------------------------

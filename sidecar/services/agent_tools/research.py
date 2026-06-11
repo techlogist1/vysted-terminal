@@ -35,9 +35,102 @@ the service in place.
 
 from __future__ import annotations
 
+import time
+import uuid
 from typing import Any
 
 from services.agent_tools import register_tool
+
+#: ``ResearchExecution.loop`` derivation from a LEGACY payload ``mode`` —
+#: used only when an engine return carries no ``execution_loop`` key (Team
+#: RESOLVE stamps it on every new engine return; this covers an older payload
+#: shape so the record is never absent).
+_LEGACY_MODE_TO_LOOP = {"fast": "fast", "deep": "iter", "heavy": "heavy"}
+
+_LEGACY_PAYLOAD_REASON = "legacy engine payload"
+
+
+def _emit_begin_step(run_id: str, depth: str, query: str) -> None:
+    """ONE synthetic begin step through the live step sink (R10, D38).
+
+    The frontend keys its in-flight brief state on this exact detail format
+    (contract with Team FRONTEND-BRIEF) — change it only in lockstep:
+    ``research:begin {run_id} depth={depth} query={query}``. No-ops outside an
+    agent run (no sink wired) and never raises.
+    """
+    import config
+
+    sink = config.get_step_sink()
+    if sink is None:
+        return
+    from services.research.models import ResearchStep
+
+    try:
+        sink(
+            ResearchStep(
+                kind="engine", detail=f"research:begin {run_id} depth={depth} query={query}"
+            )
+        )
+    except Exception:  # pragma: no cover — cosmetic; must never break a run
+        pass
+
+
+def _derive_loop(payload: dict[str, Any]) -> tuple[str, str | None]:
+    """Resolve the loop that RAN from the payload; ``(loop, degraded_reason)``.
+
+    Prefers the engine-stamped ``execution_loop`` (Team RESOLVE's contract:
+    every engine return carries one of fast/iter/heavy/research-model). A
+    payload without it is legacy — the loop derives from the old ``mode``
+    field (and the research-model backend prefix) with an explicit
+    ``degraded_reason`` so the inference is never silent.
+    """
+    from services.research.models import EXECUTION_LOOPS
+
+    loop = payload.get("execution_loop")
+    if isinstance(loop, str) and loop in EXECUTION_LOOPS:
+        return loop, None
+    backend = payload.get("backend")
+    if isinstance(backend, str) and backend.startswith("research-model:"):
+        return "research-model", _LEGACY_PAYLOAD_REASON
+    mode = str(payload.get("mode") or "fast").strip().lower()
+    return _LEGACY_MODE_TO_LOOP.get(mode, "fast"), _LEGACY_PAYLOAD_REASON
+
+
+def _stamp_execution(payload: Any, *, run_id: str, requested_depth: str, started_at: float) -> Any:
+    """Attach the :class:`ResearchExecution` record to an engine return (E2).
+
+    Stamped from the loop that ACTUALLY RAN, never the request. Degradation
+    rule: requested deep/ultra served by the fast loop MUST carry a stated
+    reason (the payload's note/web reason when present) — degradation is never
+    silent. Non-dict returns pass through untouched (defensive).
+    """
+    if not isinstance(payload, dict):
+        return payload
+    from services.research import depth as depth_mod
+    from services.research.models import ResearchExecution
+
+    loop, degraded_reason = _derive_loop(payload)
+    if requested_depth in (depth_mod.DEPTH_DEEP, depth_mod.DEPTH_ULTRA) and loop == "fast":
+        note = payload.get("note")
+        web = payload.get("web") if isinstance(payload.get("web"), dict) else None
+        web_reason = web.get("reason") if web else None
+        stated = note or web_reason or payload.get("message")
+        degraded_reason = (
+            f"requested {requested_depth} but the fast loop ran — {stated}"
+            if stated
+            else f"requested {requested_depth} but the fast loop ran (no reason reported)"
+        )
+    record = ResearchExecution(
+        run_id=run_id,
+        requested_depth=requested_depth,
+        loop=loop,
+        backend=payload.get("backend"),
+        started_at=started_at,
+        finished_at=time.time(),
+        degraded_reason=degraded_reason,
+    )
+    payload["execution"] = record.to_dict()
+    return payload
 
 
 async def _research(args: dict[str, Any]) -> dict[str, Any]:
@@ -46,7 +139,9 @@ async def _research(args: dict[str, Any]) -> dict[str, Any]:
     ``depth="normal"`` (default) gathers a grounded bundle in one pass;
     ``"deep"``/``"ultra"`` run the budgeted deep loop at the profile's knobs.
     On a missing/blank query returns ``{"ok": False, "message": <human reason>}``
-    — never a raw error blob.
+    — never a raw error blob. Every dict return carries the R10
+    ``execution`` record (run_id + requested depth + the loop that RAN) —
+    the brief's mode/depth badges derive from it and only it (E2).
     """
     query = args.get("query")
     if not isinstance(query, str) or not query.strip():
@@ -69,6 +164,12 @@ async def _research(args: dict[str, Any]) -> dict[str, Any]:
     _slider_depth = depth_mod.normalize_depth(app_config.get_request_research_depth())
     depth = _model_depth if _RANK[_model_depth] >= _RANK[_slider_depth] else _slider_depth
 
+    # R10 (E2): mint the run id at the tool boundary and announce the run so
+    # the frontend can key its in-flight brief state before any engine work.
+    run_id = uuid.uuid4().hex
+    started_at = time.time()
+    _emit_begin_step(run_id, depth, query)
+
     # R9 (Track A) tier routing at the tool boundary: on tier_b the hosted
     # research model OWNS research at ALL depth stops regardless of the chat
     # model — including NORMAL (one search-grounded call) — and regardless of
@@ -82,12 +183,13 @@ async def _research(args: dict[str, Any]) -> dict[str, Any]:
         # NOTE: no model passthrough from the LLM's tool args — the user's
         # per-stop Settings map is authoritative (never a surprise model on the
         # user's key); only the explicit api_key arg (internal callers) rides.
-        return await run_research_model_brief(query, depth=depth, api_key=args.get("api_key"))
+        out = await run_research_model_brief(query, depth=depth, api_key=args.get("api_key"))
+        return _stamp_execution(out, run_id=run_id, requested_depth=depth, started_at=started_at)
 
     if depth in (depth_mod.DEPTH_DEEP, depth_mod.DEPTH_ULTRA):
         from services.agent_tools.deep_research import run_deep_brief
 
-        return await run_deep_brief(
+        out = await run_deep_brief(
             query,
             depth=depth,
             # ``None`` lets the depth profile supply the default (deep: 3 rounds
@@ -97,6 +199,7 @@ async def _research(args: dict[str, Any]) -> dict[str, Any]:
             backend=args.get("backend"),
             api_key=args.get("api_key"),
         )
+        return _stamp_execution(out, run_id=run_id, requested_depth=depth, started_at=started_at)
 
     import config
     from services import agent_tools
@@ -112,7 +215,7 @@ async def _research(args: dict[str, Any]) -> dict[str, Any]:
     )
     if isinstance(out, dict):
         out.setdefault("depth", depth_mod.DEPTH_NORMAL)
-    return out
+    return _stamp_execution(out, run_id=run_id, requested_depth=depth, started_at=started_at)
 
 
 def register() -> None:

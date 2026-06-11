@@ -293,14 +293,24 @@ def test_research_deep_runs_the_iter_loop_and_returns_brief(
     assert isinstance(call["budget"], BudgetGuard)
     assert callable(call["llm_call"])
     assert call["on_step"] is sink
-    # The handler emits an honest "engine" step first (naming IterResearch).
+    # R10 (E2): the tool boundary emits the run's begin step FIRST — the
+    # frontend keys its in-flight brief state on it — then the honest "engine"
+    # step naming IterResearch.
     from services.research.models import ResearchStep
 
     assert isinstance(streamed[0], ResearchStep)
     assert streamed[0].kind == "engine"
-    assert "anthropic/claude-x" in streamed[0].detail
-    assert "IterResearch" in streamed[0].detail
-    assert streamed[1:] == ["plan", "distill", "synthesize"]
+    assert streamed[0].detail.startswith("research:begin ")
+    assert "depth=deep" in streamed[0].detail
+    assert isinstance(streamed[1], ResearchStep)
+    assert streamed[1].kind == "engine"
+    assert "anthropic/claude-x" in streamed[1].detail
+    assert "IterResearch" in streamed[1].detail
+    assert streamed[2:] == ["plan", "distill", "synthesize"]
+    # ...and the result carries the matching execution record (loop that RAN).
+    assert out["execution"]["loop"] == "iter"
+    assert out["execution"]["requested_depth"] == "deep"
+    assert out["execution"]["run_id"] in streamed[0].detail
 
 
 def test_research_deep_is_the_one_loop_single_pass_is_not_reached(

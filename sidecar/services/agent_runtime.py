@@ -617,6 +617,35 @@ async def _dispatch_tool_with_progress(
         config.reset_step_sink(token)
 
 
+#: ``ResearchExecution.loop`` → the brief's (mode, depth) badges (R10, E2). The
+#: stamp derives from the loop that RAN — never the result payload's ``mode``
+#: (the old ``raw_mode`` read that stamped a DEEP run "FAST" whenever a payload
+#: omitted the field). ``research-model`` maps per REQUESTED stop below.
+_LOOP_TO_MODE_DEPTH: dict[str, tuple[str, str]] = {
+    "fast": ("fast", "quick"),
+    "iter": ("deep", "deep"),
+    "heavy": ("deep", "heavy"),
+}
+
+#: The research-model (Tier B) lane maps per requested stop: only a NORMAL
+#: request renders as the quick tier; deep/ultra requests render at the deep
+#: tier they bought (heavy for ultra so "Go deeper" stays honest).
+_RESEARCH_MODEL_STOP_TO_MODE_DEPTH: dict[str, tuple[str, str]] = {
+    "normal": ("fast", "quick"),
+    "deep": ("deep", "deep"),
+    "ultra": ("deep", "heavy"),
+}
+
+
+def _mode_depth_from_execution(execution: dict[str, Any]) -> tuple[str, str]:
+    """The brief's (mode, depth) derived ONLY from the execution record."""
+    loop = str(execution.get("loop") or "")
+    if loop == "research-model":
+        requested = str(execution.get("requested_depth") or "normal")
+        return _RESEARCH_MODEL_STOP_TO_MODE_DEPTH.get(requested, ("deep", "deep"))
+    return _LOOP_TO_MODE_DEPTH.get(loop, ("fast", "quick"))
+
+
 def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolUseEvent | None:
     """Build a synthetic ``publish_brief`` host-action from a research result.
 
@@ -630,6 +659,12 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
     trust gate), and is idempotent with a model-issued publish (``setBrief``
     replaces). Returns ``None`` on a malformed/failed result so a broken run
     never half-publishes — the live research trace still animated.
+
+    R10 (E2): a payload WITHOUT an ``execution`` record is malformed and never
+    auto-publishes — the brief's mode/depth derive from the loop that RAN,
+    never from the payload's ``mode`` field or a default. A
+    ``needs_disambiguation`` result publishes the candidate CHOOSER instead of
+    a guessed brief (D37).
     """
     try:
         payload = json.loads(result_str)
@@ -637,6 +672,31 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
         return None
     if not isinstance(payload, dict) or not payload.get("ok"):
         return None
+    execution = payload.get("execution")
+    if not isinstance(execution, dict) or not execution.get("run_id"):
+        logger.warning(
+            "research result without an execution record — auto-publish suppressed "
+            "(tool_call_id=%s)",
+            tool_call.tool_call_id,
+        )
+        return None
+    # Honest disambiguation (D37): publish the chooser, nothing else — no
+    # markdown, no structured, no guessed entity. The panel renders the
+    # candidate picker keyed on the run's execution record.
+    if payload.get("needs_disambiguation"):
+        query = payload.get("query", "")
+        return LLMToolUseEvent(
+            tool_call_id=f"{tool_call.tool_call_id}__autobrief",
+            name="publish_brief",
+            input={
+                "query": query,
+                "disambiguation": {
+                    "query": query,
+                    "candidates": payload.get("candidates") or [],
+                },
+                "execution": execution,
+            },
+        )
     markdown = payload.get("markdown")
     structured = payload.get("structured")
     has_markdown = isinstance(markdown, str) and bool(markdown.strip())
@@ -691,19 +751,20 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
         web_reason = web.get("reason")
         if not note:
             note = web.get("note") or web.get("detail")
-    # The true depth TIER the run reached (FR-115): the result's ``mode`` is "fast"
-    # (quick gather) / "deep" (iter loop) / "heavy" (panel). Map it to the brief's
-    # ``depth`` so the panel's "Go deeper" affordance knows the NEXT tier; the FAST
-    # bundle has no ``mode``, so a missing/"fast" value is the quick tier.
-    raw_mode = str(payload.get("mode") or "fast").strip().lower()
-    depth = raw_mode if raw_mode in ("deep", "heavy") else "quick"
+    # The true depth TIER the run reached (FR-115/E2): derived ONLY from the
+    # execution record's loop — never from the payload's ``mode`` (the old read
+    # stamped any mode-less payload "FAST", so a DEEP run rendered as quick).
+    mode, depth = _mode_depth_from_execution(execution)
     # Forward only the fields the publish_brief host-action consumes (snake_case,
     # exactly as the frontend's briefFromInput reads them).
     brief_input: dict[str, Any] = {
         "query": payload.get("query", ""),
         "symbol": payload.get("symbol", ""),
-        "mode": payload.get("mode", "fast"),
+        "mode": mode,
         "depth": depth,
+        # R10 (D38): the verbatim execution record rides the publish so the
+        # panel's badges + run-scoped carry key on what actually RAN.
+        "execution": execution,
         "markdown": markdown if isinstance(markdown, str) else "",
         "sources": sources,
         "structured": structured,
@@ -969,6 +1030,11 @@ async def invoke_agent(
 
     rounds = 0
     web_search_calls = 0  # per-run cap on the BYOK/local web_search tool (FR-081)
+    # R10 (E2): the latest research execution record of THIS invoke. When the
+    # model issues its own publish_brief without an ``execution`` (it almost
+    # never echoes the big record), the tracked record is injected so the
+    # panel's mode/depth badges always key on what actually ran.
+    last_research_execution: dict[str, Any] | None = None
     while True:
         pending_tools: list[LLMToolUseEvent] = []
         # WS8 Step 4: accumulate this round's reasoning_content (DeepSeek-reasoner
@@ -989,6 +1055,16 @@ async def invoke_agent(
                 yield event
                 continue
             if isinstance(event, LLMToolUseEvent):
+                # R10 (E2): a model-issued publish_brief without an execution
+                # record inherits the run's tracked record before anything
+                # downstream (frontend, dispatch) sees the event.
+                if (
+                    event.name == "publish_brief"
+                    and isinstance(event.input, dict)
+                    and "execution" not in event.input
+                    and last_research_execution is not None
+                ):
+                    event.input["execution"] = last_research_execution
                 pending_tools.append(event)
                 yield event
                 continue
@@ -1095,6 +1171,14 @@ async def invoke_agent(
             # never calls it — riding the existing review/AUTO gate. The model is
             # told (in its prompt) it need not publish; a duplicate is idempotent.
             if tool_call.name in _RESEARCH_TOOLS:
+                try:
+                    _research_payload = json.loads(result_str)
+                except (json.JSONDecodeError, ValueError, TypeError):
+                    _research_payload = None
+                if isinstance(_research_payload, dict) and isinstance(
+                    _research_payload.get("execution"), dict
+                ):
+                    last_research_execution = _research_payload["execution"]
                 auto_brief = _auto_publish_event(tool_call, result_str)
                 if auto_brief is not None:
                     yield auto_brief
