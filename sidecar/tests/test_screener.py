@@ -31,7 +31,7 @@ from models.screener import (
     SetInCriterion,
     StringEqCriterion,
 )
-from services import data_cache, screener
+from services import data_cache, fundamentals_store, screener
 from services.errors import ProviderError
 
 
@@ -39,8 +39,10 @@ from services.errors import ProviderError
 def _isolated_cache(tmp_path: Path) -> None:
     """Point the data cache at a tmp file per test."""
     data_cache.reset_for_tests(tmp_path / "screener_test_cache.db")
+    fundamentals_store.reset_for_tests(tmp_path / "fundamentals_test.db")
     yield
     data_cache.reset_for_tests(None)
+    fundamentals_store.reset_for_tests(None)
 
 
 # ---------------------------------------------------------------------------

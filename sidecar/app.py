@@ -55,6 +55,7 @@ from routers import (
 from services import (
     agent_tools,
     backtest_strategies,
+    fundamentals_warm,
     mcp_client,
     mcp_server,
     run_manager,
@@ -124,12 +125,19 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
         # sidecar boot the Tauri core waits on; the loop pre-warms the S&P 500 batch
         # so warm screens are sub-second. Cancelled + awaited in the finally below.
         screener_service.start_warm_precompute()
+        # The region-aware India fundamentals warming (boot seed + 15-min v7
+        # sweep + deep .info crawler — R10/D40). Detached; never blocks boot.
+        fundamentals_warm.start_warm_fundamentals()
         try:
             yield
         finally:
             # Cancel + await the warm-precompute task and close the batch provider's
             # shared httpx client FIRST so neither a detached task nor an open socket
             # outlives the event loop.
+            try:
+                await fundamentals_warm.stop_warm_fundamentals()
+            except Exception as exc:  # noqa: BLE001 — shutdown best-effort
+                _log.debug("fundamentals_warm.stop_warm_fundamentals raised on shutdown: %s", exc)
             try:
                 await screener_service.stop_warm_precompute()
             except Exception as exc:  # noqa: BLE001 — shutdown best-effort

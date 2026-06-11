@@ -1,55 +1,58 @@
-"""Screener / scanner filter engine — Phase 6 + R4 batch fast path (FR-126).
+"""Screener / scanner filter engine — R10 phased rewrite (E4 dead; D40).
 
-A fan-out service that resolves a universe of symbols, fetches each symbol's
-``Fundamentals`` snapshot (plus latest ``Quote`` for price-derived fields),
-applies an AND-combined list (or an AND/OR ``group`` tree) of
-:class:`ScreenerCriterion` filters, and returns the matching rows sorted by
-``market_cap`` desc.
+A fan-out service that resolves a universe of symbols, gathers each symbol's
+``Fundamentals`` + latest ``Quote``, applies an AND-combined list (or an AND/OR
+``group`` tree) of :class:`ScreenerCriterion` filters plus an optional custom
+``formula``, and returns the matching rows sorted by ``market_cap`` desc.
 
-Two fetch paths
-~~~~~~~~~~~~~~~
+Phased engine (the batch universes: sp500 / nifty50 / nse-all / bse-all /
+india-all)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  * **Batch fast path** (R4 / FR-126, the curated equity universes — ``sp500`` /
-    ``nifty50``) — the common screener fields (price, market cap, P/E, dividend
-    yield, 52-week, EPS, volume, currency, …) come from Yahoo's
-    ``/v7/finance/quote`` BATCH endpoint via :mod:`services.yahoo_batch_provider`:
-    ≤50 symbols/request, ~11 calls for the 506-name S&P 500, cookie+crumb reused,
-    ``Semaphore(8)`` + ``gather``. A full cold S&P 500 screen now returns in
-    single-digit seconds (was ~205 s), and every dropped symbol is itemized in
-    the skip ledger (SC-034 — zero silent drops). A criterion that references a
-    field v7 does not carry (sector/industry/peg/beta/margins/health/growth/
-    ownership) triggers a throttled per-symbol ``.info`` ENRICHMENT of only the
-    affected symbols.
-  * **Per-symbol path** (the graceful fallback + non-equity + custom universes) —
-    the original cache-first, semaphore-throttled :func:`provider_registry`
-    fan-out. Used when the batch endpoint fails entirely (degrade, never crash),
-    for any symbol the batch did not cover, and for ``custom`` / ``crypto-top50``
-    universes (no v7 batch equivalent / arbitrary symbols).
+Every run executes under a WALL BUDGET (default 120 s — the unbounded
+``screener.py:687`` batch call that hung the UI for 5 minutes is dead):
 
-Skip ledger
-~~~~~~~~~~~
+  U  universe   — resolve the symbol list (5 s cap; bundled JSON, instant).
+  P  prefilter  — the top-level AND-ed CHEAP criteria (sector / industry /
+     v7-tier numerics) prune candidates via the SQLite fundamentals store
+     (:mod:`services.fundamentals_store`). Pruning is SOUND: a symbol is
+     dropped only when a fresh, non-NULL stored value definitively fails an
+     AND-ed criterion — NULL / stale / missing rows are kept, and OR subtrees
+     never prune. Pruning may only WIDEN, never narrow, the true match set.
+  B  sweep      — the stale-or-missing candidates are batch-fetched from the
+     Yahoo v7 quote endpoint, the WHOLE sweep inside
+     ``asyncio.wait_for(min(60, remaining))``, chunked ≤50 under a semaphore;
+     each chunk upserts into the store INCREMENTALLY so a timeout keeps the
+     completed work. The cheap criteria re-apply afterwards (now they bite).
+     Batch misses retry once on the per-symbol fallback within the budget.
+  E  enrich     — SURVIVORS ONLY whose criteria/formula reference a field the
+     v7 row cannot supply get a per-symbol ``.info`` fetch (15 s each,
+     ``Semaphore(12)``), the whole phase inside ``remaining − 10 s``.
+  F  evaluate   — criteria + group + formula + sort + limit, the existing
+     semantics, served from the store rows.
 
-Every universe member that does not reach the evaluation set is itemized in
-``ScreenerResult.skip_details`` with a reason (``timeout`` / ``not_found`` /
-``no_data`` / ``rate_limited`` / ``correctness_gate`` / ``missing_field:<f>``)
-— ``skipped_count == len(skip_details)``. A batch-skip reason is PROVISIONAL: the
-symbol is retried on the per-symbol fallback before its reason sticks.
+On wall expiry or cancellation the run FINALIZES A PARTIAL: unevaluated
+symbols are itemized in the skip ledger (reason ``budget_exhausted``),
+``partial=True``, ``coverage`` carries the one human line, and ``freshness``
+stamps the serving tiers. ``on_progress(phase, done, total, detail)`` fires per
+chunk/phase; inside an agent tool dispatch the same frames bridge to
+``config.get_step_sink()`` so chat renders a live "sweeping quotes 850/2,100".
 
-Caching tiers
-~~~~~~~~~~~~~
+Currency note: ``market_cap`` (and every currency-denominated field) is in the
+LISTING currency — INR for ``.NS`` / ``.BO`` symbols. A ``market_cap > 1e10``
+criterion against india-all means ₹1,000 crore, not $10 B.
 
-Two separate cache tiers (spec §5.4): a SHORT-TTL quote cache (45 s — price moves
-intraday) and a LONG-TTL fundamentals/profile cache (6 h — valuation ratios,
-sector, peg, beta move daily at most). A re-run inside the quote window is
-sub-second and skips the batch call entirely.
+The ``custom`` / ``crypto-top50`` universes stay on the per-symbol registry
+path (no v7 batch equivalent), cache-first against the same store, under the
+same wall budget.
 
 Warm precompute
 ~~~~~~~~~~~~~~~
 
-:func:`start_warm_precompute` spawns a background task that re-warms the S&P 500
-batch on an interval so warm runs are sub-second. It is started from the FastAPI
-lifespan AFTER startup (never blocks the Tauri-awaited boot) and cancelled +
-awaited on shutdown (no leaked task / socket).
+:func:`start_warm_precompute` re-warms the S&P 500 batch into the store on an
+interval with exponential 429 backoff (state observable in
+``_warm_consecutive_throttles``); :mod:`services.fundamentals_warm` runs the
+region-aware India warming on the same backoff discipline.
 """
 
 from __future__ import annotations
@@ -60,9 +63,12 @@ import json
 import logging
 import random
 import time
+from collections.abc import Callable
+from dataclasses import dataclass, field
 from importlib import resources
 from typing import Any
 
+import config
 from config import get_region
 from models.fundamentals import Fundamentals
 from models.market import Quote
@@ -80,18 +86,22 @@ from models.screener import (
     SkipDetail,
     StringEqCriterion,
 )
-from services import data_cache, provider_registry, screener_formula, yahoo_batch_provider
+from services import (
+    data_cache,
+    fundamentals_store,
+    provider_registry,
+    screener_formula,
+    screener_universe_india,
+    yahoo_batch_provider,
+)
 from services.errors import ProviderError
+from services.research.models import ResearchStep
 
 logger = logging.getLogger(__name__)
 
 #: Locale-sensible default screener universe per region (Pass B / Pillar A —
-#: FR-060). The :class:`ScreenerRequest` always carries an explicit ``universe``
-#: today (the frontend universe-picker supplies it; the field is required with no
-#: default), so this is consulted only when a caller has to *choose* a default
-#: rather than overriding an explicit one — e.g. a region-aware UI/agent default
-#: or a future "no universe given" entrypoint. US/GLOBAL → ``sp500``; IN →
-#: ``nifty50`` (which already ships as ``nifty50.json``).
+#: FR-060). Consulted only when a caller must *choose* a default; an explicit
+#: ``ScreenerRequest.universe`` is never overridden.
 _DEFAULT_UNIVERSE_BY_REGION: dict[str, ScreenerUniverseId] = {
     "US": "sp500",
     "IN": "nifty50",
@@ -100,91 +110,64 @@ _DEFAULT_UNIVERSE_BY_REGION: dict[str, ScreenerUniverseId] = {
 
 
 def default_universe_for_region(region: str | None = None) -> ScreenerUniverseId:
-    """Return the locale-sensible default screener universe for ``region``.
-
-    ``region`` defaults to the active per-request region (:func:`config.get_region`).
-    US/GLOBAL → ``"sp500"``; IN → ``"nifty50"``. Used where a default universe must
-    be chosen; an explicit ``ScreenerRequest.universe`` is never overridden.
-    """
+    """Return the locale-sensible default screener universe for ``region``."""
     resolved = region if region is not None else get_region()
     return _DEFAULT_UNIVERSE_BY_REGION.get(resolved, "sp500")
 
 
-#: How long the resolved ``crypto-top50`` list stays in the cache before a
-#: refresh is attempted. ccxt's top-by-volume ordering shifts slowly; one
-#: day is the right balance between freshness and rate-limit politeness.
+#: How long the resolved ``crypto-top50`` list stays cached before refresh.
 _CRYPTO_TOP50_TTL_SECONDS = 24 * 60 * 60
 
-#: Per-symbol fan-out timeout (the fallback / enrichment path). A single hung
-#: upstream does not stall the screener — symbols that time out are itemized as
-#: ``timeout``.
+#: Default wall budget for one screener run (R10 / D40). The route and the
+#: agent tool both ride this; the SSE stream surfaces progress inside it.
+DEFAULT_WALL_BUDGET_SECONDS = 120.0
+#: Phase U cap — universe resolution is bundled-JSON instant; 5 s is paranoia.
+_UNIVERSE_PHASE_TIMEOUT_SECONDS = 5.0
+#: Phase B cap — the whole v7 sweep runs inside min(this, remaining).
+_SWEEP_PHASE_CAP_SECONDS = 60.0
+#: Reserved tail for evaluate+finalize — phase E gets ``remaining − this``.
+_FINALIZE_RESERVE_SECONDS = 10.0
+#: Per-symbol ``.info`` enrichment timeout (phase E).
+_INFO_TIMEOUT_SECONDS = 15.0
+#: Per-symbol fan-out timeout on the fallback path (custom / crypto / retries).
 _SYMBOL_TIMEOUT_SECONDS = 30.0
-
-#: Hard upper bound on the request's ``limit`` field. v0.6.0 doesn't need
-#: pagination so the result table caps at 1000 rows.
+#: Hard upper bound on the request's ``limit`` field.
 _MAX_LIMIT = 1000
-
-# --- Concurrency + caching tiers (R4 / FR-126) ---------------------------------
-
-#: Live concurrency cap on the per-symbol fallback / enrichment fan-out. The
-#: batch path is the bulk fetch; this only throttles the residual symbols the
-#: batch did not cover (and the enrichment of fields v7 omits), so it can be
-#: modest without hurting the cold-run target.
+#: Concurrency cap on per-symbol fetches (fallback + enrichment).
 _FETCH_CONCURRENCY = 12
-
-#: QUOTE cache tier — short TTL (price moves intraday). 45 s sits inside the
-#: spec's 15–60 s window: a re-run within the window is sub-second and avoids a
-#: redundant batch call, but a price never goes stale enough to mislead.
-_QUOTE_CACHE_TTL_SECONDS = 45.0
-
-#: FUNDAMENTALS / profile cache tier — long TTL (valuation ratios, sector, peg,
-#: beta move daily at most). Six hours keeps a research session iterating
-#: criteria instantly without re-scraping ``.info``.
-_FUNDAMENTALS_CACHE_TTL_SECONDS = 6 * 60 * 60.0
+#: Sweep chunk size (mirrors the v7 endpoint's ~50-symbol cap).
+_SWEEP_CHUNK_SIZE = 50
+#: Concurrent in-flight sweep chunks.
+_SWEEP_CONCURRENCY = 8
 
 # --- Warm-universe precompute (R4 / FR-126) ------------------------------------
 
-#: Re-warm interval for the S&P 500 batch so warm runs stay sub-second. Slightly
-#: under the quote TTL so the cache rarely goes cold between warms. This is the
-#: warm-loop's BASE sleep; a throttled cycle backs the next sleep off
-#: exponentially (see below) so the worker stops self-inflicting a 429 storm.
 _WARM_INTERVAL_SECONDS = 40.0
-#: Universes the background worker pre-warms. Equity-only (the batch path).
 _WARM_UNIVERSES: tuple[ScreenerUniverseId, ...] = ("sp500",)
 
 # --- Warm-loop exponential backoff (self-throttle fix) -------------------------
 #
-# The warm worker re-hits the Yahoo v7 batch every ``_WARM_INTERVAL_SECONDS``.
-# With no backoff, a 429 returns the whole universe ``rate_limited`` and the loop
-# retries ~40 s later — SUSTAINING the rate-limit and degrading Yahoo data
-# app-wide. So a cycle that comes back rate-limited grows the next sleep
-# geometrically: ``min(cap, base × factor**n)`` over ``n`` consecutive throttled
-# cycles, plus ±jitter so a fleet of clients never re-synchronises into a
-# thundering herd. The FIRST clean cycle resets straight back to ``base`` (the
-# block lifted — resume tight warming). State is module-level + logged so the
-# backoff is observable.
+# A warm cycle that comes back rate-limited grows the next sleep geometrically
+# (``min(cap, base × factor**n)`` over ``n`` consecutive throttled cycles) with
+# ±jitter; the first clean cycle resets to base. Shared discipline: the India
+# warm worker (services.fundamentals_warm) imports these same constants +
+# ``_warm_sleep_seconds`` rather than duplicating them.
 _WARM_BACKOFF_FACTOR = 1.8
-#: Ceiling on the backed-off warm sleep (~10 min). Long enough to let a sustained
-#: Yahoo block clear; short enough that warming resumes promptly once it lifts.
 _WARM_BACKOFF_CAP_SECONDS = 600.0
-#: ± fraction of jitter applied to the (post-backoff) warm sleep.
 _WARM_BACKOFF_JITTER_FRACTION = 0.2
-#: A cycle is "throttled" when at least this fraction of the warmed symbols come
-#: back ``rate_limited`` — a stray single-chunk 429 should not trip the backoff,
-#: but a near-total block must. The fetch's own bounded retry has already tried
-#: to self-heal a transient blip before we ever see these failures.
 _WARM_THROTTLE_RATIO = 0.5
 
-#: Observable backoff state: count of consecutive throttled warm cycles. Zero
-#: while warming cleanly; each throttled cycle increments it (driving a larger
-#: next sleep); the first clean cycle resets it to zero. Module-level so a test
-#: or an operator probe can read the current backoff posture.
+#: Observable backoff state: consecutive throttled warm cycles.
 _warm_consecutive_throttles = 0
 
-#: Curated equity universes that take the v7 BATCH fast path. ``custom`` (arbitrary
-#: pasted tickers) and ``crypto-top50`` (no v7 batch equivalent) stay on the
-#: per-symbol path — this also keeps the custom-universe unit tests off the network.
-_BATCH_UNIVERSES: frozenset[ScreenerUniverseId] = frozenset({"sp500", "nifty50"})
+#: Universes that take the v7 BATCH fast path. ``custom`` / ``crypto-top50``
+#: stay per-symbol (no v7 batch equivalent / arbitrary symbols).
+_BATCH_UNIVERSES: frozenset[ScreenerUniverseId] = frozenset(
+    {"sp500", "nifty50", "nse-all", "bse-all", "india-all"}
+)
+
+#: Progress callback shape: ``(phase, done, total, detail)``.
+ProgressFn = Callable[[str, int, int, str], None]
 
 
 # ---------------------------------------------------------------------------
@@ -202,8 +185,6 @@ def _load_universe_snapshot(filename: str) -> dict[str, Any]:
         ) as fp:
             return json.load(fp)
     except (FileNotFoundError, ModuleNotFoundError) as exc:
-        # ``ModuleNotFoundError`` is raised by ``importlib.resources`` on a
-        # missing package — treat both as "no snapshot shipped".
         raise ProviderError(f"missing universe snapshot {filename!r}") from exc
 
 
@@ -214,12 +195,10 @@ async def resolve_universe(
     """Return the :class:`ScreenerUniverse` for ``universe_id``.
 
     A non-empty ``custom_symbols`` list takes precedence over the named
-    universe — the caller explicitly listed the symbols they want to screen.
-    Previously ``custom_symbols`` was honoured ONLY when ``universe_id ==
-    "custom"`` and was silently ignored when sent alongside e.g. ``"sp500"``
-    (Phase 9.5 nit: screener ignored custom_symbols). Otherwise the shipped JSON
-    snapshots seed the universe; the crypto path additionally checks the data
-    cache for a refreshed list.
+    universe. The India full-market ids resolve from the bundled resolver
+    masters (:mod:`services.screener_universe_india`); the curated ids from
+    the shipped JSON snapshots; crypto additionally checks the data cache for
+    a refreshed list.
     """
     cleaned = [s.strip().upper() for s in (custom_symbols or []) if s and s.strip()]
     if cleaned:
@@ -230,8 +209,10 @@ async def resolve_universe(
             asset_class="equity",
         )
     if universe_id == "custom":
-        # Explicit custom universe but no usable symbols → a 4xx-grade error.
         raise ProviderError("custom universe requires a non-empty symbol list")
+
+    if screener_universe_india.is_india_universe(universe_id):
+        return screener_universe_india.load_india_universe(universe_id)
 
     if universe_id == "sp500":
         snapshot = _load_universe_snapshot("sp500.json")
@@ -252,10 +233,6 @@ async def resolve_universe(
         )
 
     if universe_id == "crypto-top50":
-        # Prefer the cached top-50 list if it's still fresh; fall back
-        # to the shipped seed otherwise. The cache hit avoids re-loading
-        # the JSON on every screener run; a future v0.7+ refresh worker
-        # populates the cache from ccxt.
         cached = await data_cache.get(
             "screener:universe:crypto-top50",
             ttl_seconds=_CRYPTO_TOP50_TTL_SECONDS,
@@ -289,30 +266,18 @@ async def resolve_universe(
 def _numeric_field_value(
     fundamentals: Fundamentals, quote: Quote | None, field: str
 ) -> float | None:
-    """Resolve a numeric field's value from a fundamentals+quote pair.
-
-    Most numeric fields live on :class:`Fundamentals`; the price /
-    change% / volume trio is derived from the latest :class:`Quote`.
-    Returns ``None`` if the underlying provider did not populate the
-    field — the caller treats a ``None`` as a "criterion fails".
-    """
+    """Resolve a numeric field's value from a fundamentals+quote pair."""
     if field == "price":
         return quote.price if quote is not None else None
     if field == "change_percent_1d":
         return quote.change_percent if quote is not None else None
     if field == "volume":
         return quote.volume if quote is not None else None
-    # Everything else maps directly to a ``Fundamentals`` attribute.
     return getattr(fundamentals, field, None)
 
 
 def _string_field_value(fundamentals: Fundamentals, quote: Quote | None, field: str) -> str | None:
-    """Resolve a string field's value. ``currency`` lives on the quote (equity
-    quotes default to ``USD``), so special-case it like the numeric price/volume
-    trio rather than reading a non-existent ``Fundamentals.currency`` attribute
-    — which made every ``currency`` criterion silently fail and return zero rows
-    for an all-USD universe. A crypto-only flow without a quote resolves
-    ``currency`` to ``None`` (the criterion fails, honestly)."""
+    """Resolve a string field's value. ``currency`` lives on the quote."""
     if field == "currency":
         return quote.currency if quote is not None else None
     return getattr(fundamentals, field, None)
@@ -387,16 +352,14 @@ def apply_criteria(
 ) -> list[ScreenerResultRow]:
     """Filter fundamentals+quote pairs by the criteria, ordered by market_cap desc.
 
-    When ``group`` is given it supersedes the flat ``criteria`` and is evaluated as
-    a boolean AND/OR tree; otherwise the flat ``criteria`` are AND-combined (the
-    back-compat path). Symbols whose ``market_cap`` is unknown sort to the end.
+    When ``group`` is given it supersedes the flat ``criteria``; otherwise the
+    flat ``criteria`` are AND-combined. Symbols whose ``market_cap`` is unknown
+    sort to the end.
     """
     matched: list[ScreenerResultRow] = []
     for fundamentals, quote in rows:
         passed_indices: list[int] = []
         if group is not None:
-            # Boolean-tree path (OR / nested). matched_criteria isn't a flat-index
-            # concept here, so it stays empty.
             if not _evaluate_group(group, fundamentals, quote):
                 continue
         else:
@@ -436,7 +399,7 @@ def apply_criteria(
 
 
 # ---------------------------------------------------------------------------
-# Criteria field introspection — what does THIS screen actually need?
+# Criteria field introspection
 # ---------------------------------------------------------------------------
 
 
@@ -447,25 +410,19 @@ def _group_fields(group: CriterionGroup) -> set[str]:
         if isinstance(node, CriterionGroup):
             fields |= _group_fields(node)
         else:
-            field = getattr(node, "field", None)
-            if field:
-                fields.add(field)
+            field_name = getattr(node, "field", None)
+            if field_name:
+                fields.add(field_name)
     return fields
 
 
 def _criteria_fields(criteria: list[ScreenerCriterion], group: CriterionGroup | None) -> set[str]:
-    """Every field referenced by the screen — the flat criteria AND the group tree.
-
-    The group SUPERSEDES the flat criteria at evaluation time, but for enrichment
-    we conservatively union both: if either path could reference an enrichment
-    field, that field must be fetched. (A field referenced only by the inactive
-    flat list costs at most one wasted enrichment, never a wrong result.)
-    """
+    """Every field referenced by the screen — flat criteria AND the group tree."""
     fields: set[str] = set()
     for criterion in criteria:
-        field = getattr(criterion, "field", None)
-        if field:
-            fields.add(field)
+        field_name = getattr(criterion, "field", None)
+        if field_name:
+            fields.add(field_name)
     if group is not None:
         fields |= _group_fields(group)
     return fields
@@ -476,13 +433,7 @@ def _enrichment_fields_needed(
     group: CriterionGroup | None,
     formula_fields: frozenset[str] = frozenset(),
 ) -> set[str]:
-    """The screened fields the v7 batch row cannot supply (need ``.info``).
-
-    ``formula_fields`` are the canonical fields the request's custom formula
-    references (R7 Pillar 3) — they participate in enrichment exactly like
-    criterion fields so a formula over e.g. ``gross_margin`` triggers the same
-    throttled ``.info`` fetch instead of skipping every batch row.
-    """
+    """The screened fields the v7 batch row cannot supply (need ``.info``)."""
     return {
         f
         for f in (_criteria_fields(criteria, group) | set(formula_fields))
@@ -491,49 +442,61 @@ def _enrichment_fields_needed(
 
 
 # ---------------------------------------------------------------------------
-# Caching helpers — separate quote (short TTL) + fundamentals (long TTL) tiers.
+# Cheap-criteria extraction (phase P)
 # ---------------------------------------------------------------------------
 
-
-def _quote_cache_key(symbol: str) -> str:
-    return f"screener:quote:{symbol.upper()}"
-
-
-def _fundamentals_cache_key(symbol: str) -> str:
-    return f"screener:fundamentals:{symbol.upper()}"
+#: String/set fields the store can prune on (seeded sector map / masters).
+_CHEAP_STRING_FIELDS = frozenset({"sector", "industry", "symbol"})
 
 
-async def _read_cached_quote(symbol: str) -> Quote | None:
-    cached = await data_cache.get(_quote_cache_key(symbol), _QUOTE_CACHE_TTL_SECONDS)
-    if isinstance(cached, dict):
-        with contextlib.suppress(Exception):
-            return Quote(**cached)
-    return None
+def _is_cheap(criterion: ScreenerCriterion) -> bool:
+    """True when the store's prefilter can soundly prune on this criterion.
+
+    Numeric criteria are cheap when the field rides the v7/quote tier (no
+    ``.info`` needed); string/set criteria when the field is sector / industry
+    / symbol (seed-or-master truth). ``currency`` is quote-shaped — phase F.
+    """
+    if isinstance(criterion, (NumericThresholdCriterion, NumericBetweenCriterion)):
+        return not yahoo_batch_provider.field_needs_enrichment(criterion.field)
+    if isinstance(criterion, (StringEqCriterion, SetInCriterion)):
+        return criterion.field in _CHEAP_STRING_FIELDS
+    return False
 
 
-async def _read_cached_fundamentals(symbol: str) -> Fundamentals | None:
-    cached = await data_cache.get(_fundamentals_cache_key(symbol), _FUNDAMENTALS_CACHE_TTL_SECONDS)
-    if isinstance(cached, dict):
-        with contextlib.suppress(Exception):
-            return Fundamentals(**cached)
-    return None
+def _and_leaves(group: CriterionGroup) -> list[ScreenerCriterion]:
+    """Leaf criteria that are unconditionally AND-ed by ``group``.
+
+    Recurses through nested AND groups; an OR subtree contributes NOTHING —
+    pruning on any of its branches could narrow the match set (a row failing
+    one OR branch may pass another, possibly on a not-yet-fetched tier), so
+    OR trees never prune. Strictly sound: skipping prune work only widens.
+    """
+    if group.combinator != "and":
+        return []
+    leaves: list[ScreenerCriterion] = []
+    for node in group.criteria:
+        if isinstance(node, CriterionGroup):
+            leaves.extend(_and_leaves(node))
+        else:
+            leaves.append(node)
+    return leaves
 
 
-async def _write_cached_quote(quote: Quote) -> None:
-    with contextlib.suppress(Exception):
-        await data_cache.set(_quote_cache_key(quote.symbol), quote.model_dump(mode="json"))
+def _cheap_prune_criteria(
+    criteria: list[ScreenerCriterion], group: CriterionGroup | None
+) -> list[ScreenerCriterion]:
+    """The top-level AND-ed cheap criteria the prefilter may prune on.
 
-
-async def _write_cached_fundamentals(fundamentals: Fundamentals) -> None:
-    with contextlib.suppress(Exception):
-        await data_cache.set(
-            _fundamentals_cache_key(fundamentals.symbol),
-            fundamentals.model_dump(mode="json"),
-        )
+    When ``group`` is present it supersedes the flat list at evaluation time,
+    so ONLY its AND-ed leaves prune (pruning on the inactive flat list could
+    narrow incorrectly). The custom ``formula`` never prunes (expression
+    grammar — evaluated in phase F)."""
+    source = _and_leaves(group) if group is not None else list(criteria)
+    return [c for c in source if _is_cheap(c)]
 
 
 # ---------------------------------------------------------------------------
-# Per-symbol fallback fetch (the graceful-degrade + non-equity path)
+# Per-symbol fetch (fallback path + phase E enrichment)
 # ---------------------------------------------------------------------------
 
 
@@ -563,8 +526,7 @@ async def _fetch_pair(
 
     quote: Quote | None = None
     try:
-        # provider_registry.get_quote is synchronous — run on a thread
-        # so the gather() fan-out does not block the event loop.
+        # provider_registry.get_quote is synchronous — run on a thread.
         quote = await asyncio.wait_for(
             asyncio.to_thread(provider_registry.get_quote, symbol, asset_class),
             timeout=_SYMBOL_TIMEOUT_SECONDS,
@@ -579,248 +541,83 @@ async def _fetch_pair(
     return (fundamentals, quote), None
 
 
-async def _cached_fallback_pair(
-    symbol: str, asset_class: str, sem: asyncio.Semaphore
-) -> tuple[str, tuple[Fundamentals, Quote | None] | None, str | None]:
-    """Cache-first per-symbol fetch under the semaphore. Returns
-    ``(symbol, pair, skip_reason)``. A fundamentals cache hit short-circuits the
-    network (re-runs near-instant); the quote rides its own short-TTL tier so a
-    fresh fundamentals hit still pairs with whatever quote is cached (possibly
-    ``None`` — the price-derived criteria then fail honestly)."""
-    cached_fund = await _read_cached_fundamentals(symbol)
-    if cached_fund is not None:
-        cached_quote = await _read_cached_quote(symbol)
-        return symbol, (cached_fund, cached_quote), None
-    async with sem:
-        pair, reason = await _fetch_pair(symbol, asset_class)
-    if pair is not None:
-        await _write_cached_fundamentals(pair[0])
-        if pair[1] is not None:
-            await _write_cached_quote(pair[1])
-    return symbol, pair, reason
+async def _store_pair(symbol: str, pair: tuple[Fundamentals, Quote | None]) -> None:
+    """Persist a registry-resolved pair: the rich fundamentals are info-tier
+    (a superset of v7), the quote rides the quote tier."""
+    fundamentals, quote = pair
+    await fundamentals_store.upsert_info(symbol, fundamentals)
+    await fundamentals_store.upsert_v7(symbol, fundamentals, quote)
 
 
 # ---------------------------------------------------------------------------
-# Batch fast path (Yahoo v7) + per-symbol enrichment
+# Run state + finalization (honest partials)
 # ---------------------------------------------------------------------------
 
 
-def _merge_enrichment(base: Fundamentals, rich: Fundamentals, fields: set[str]) -> Fundamentals:
-    """Return a copy of ``base`` with the ``fields`` taken from ``rich``."""
-    overrides = {f: getattr(rich, f, None) for f in fields}
-    return base.model_copy(update=overrides)
+@dataclass
+class _RunState:
+    """Mutable accounting for one screener run, finalizable at ANY phase."""
+
+    universe: ScreenerUniverse
+    #: Current candidate set (upper-cased), in universe order.
+    candidates: list[str]
+    #: Symbols pruned by a FRESH failing cheap criterion — evaluated-as-failed.
+    pruned_failed: set[str] = field(default_factory=set)
+    #: Skip reasons keyed by upper symbol (provisional until finalize).
+    skip_reasons: dict[str, str] = field(default_factory=dict)
+    #: True once any phase was cut short (budget / cancellation).
+    partial: bool = False
 
 
-async def _enrich_one(
-    symbol: str,
-    base: Fundamentals,
-    needed: set[str],
-    sem: asyncio.Semaphore,
-) -> tuple[str, Fundamentals, str | None]:
-    """Per-symbol ``.info`` enrichment of the fields v7 omits.
+def _progress_emitter(on_progress: ProgressFn | None) -> ProgressFn:
+    """Compose the caller's ``on_progress`` with the agent step sink (when the
+    run executes inside an agent tool dispatch) — both best-effort."""
+    sink = config.get_step_sink()
 
-    Pulls the richer registry ``Fundamentals`` and copies ONLY the
-    ``needed`` (enrichment) fields onto the batch ``base`` so the criterion can
-    evaluate. Returns ``(symbol, merged, skip_reason)`` — ``skip_reason`` is
-    ``missing_field:<f>`` when the enrichment still cannot supply a needed
-    field, else ``None``."""
-    # Cache hit (long TTL) — reuse a prior enrichment if it carries every field.
-    cached = await _read_cached_fundamentals(symbol)
-    if cached is not None and all(getattr(cached, f, None) is not None for f in needed):
-        return symbol, _merge_enrichment(base, cached, needed), None
-    async with sem:
-        try:
-            rich = await asyncio.wait_for(
-                provider_registry.get_fundamentals(symbol),
-                timeout=_SYMBOL_TIMEOUT_SECONDS,
-            )
-        except TimeoutError:
-            return symbol, base, f"missing_field:{sorted(needed)[0]}"
-        except Exception as exc:  # noqa: BLE001 — any failure ⇒ field stays missing
-            logger.debug("screener: enrichment failed for %s: %s", symbol, exc)
-            return symbol, base, f"missing_field:{sorted(needed)[0]}"
-    await _write_cached_fundamentals(rich)
-    merged = _merge_enrichment(base, rich, needed)
-    # If a needed field is STILL None after enrichment, itemize it.
-    for field in sorted(needed):
-        if getattr(merged, field, None) is None:
-            return symbol, merged, f"missing_field:{field}"
-    return symbol, merged, None
+    def emit(phase: str, done: int, total: int, detail: str) -> None:
+        if on_progress is not None:
+            with contextlib.suppress(Exception):
+                on_progress(phase, done, total, detail)
+        if sink is not None:
+            with contextlib.suppress(Exception):
+                sink(ResearchStep(kind="tool", detail=f"screener: {detail}"))
+
+    return emit
 
 
-async def _batch_collect(
-    universe: ScreenerUniverse,
-    criteria: list[ScreenerCriterion],
-    group: CriterionGroup | None,
-    formula_fields: frozenset[str] = frozenset(),
-) -> tuple[
-    dict[str, tuple[Fundamentals, Quote | None]],
-    dict[str, str],
-]:
-    """Run the batch fast path over a curated equity universe.
-
-    Returns ``(pairs_by_upper_symbol, provisional_skip_reasons)``. ``pairs`` are
-    the symbols the batch (or its cache) resolved; ``provisional_skip_reasons``
-    maps each UNRESOLVED symbol to the batch's reason (``not_found`` / ``timeout``
-    / ``rate_limited`` / ``no_data`` / ``missing_field:<f>``). The caller retries
-    every unresolved symbol on the per-symbol fallback — these reasons only stick
-    if the fallback ALSO fails. On a TOTAL batch wipeout (endpoint down) ``pairs``
-    is empty → full graceful degrade to the fallback path.
-    """
-    symbols = list(universe.symbols)
-    pairs: dict[str, tuple[Fundamentals, Quote | None]] = {}
-    skips: dict[str, str] = {}
-
-    # 1) Warm-cache pass: a fresh quote (short TTL) + fundamentals (long TTL)
-    #    avoids a network call entirely (sub-second warm runs).
-    miss: list[str] = []
-    for sym in symbols:
-        c_quote = await _read_cached_quote(sym)
-        c_fund = await _read_cached_fundamentals(sym)
-        if c_quote is not None and c_fund is not None:
-            pairs[sym.upper()] = (c_fund, c_quote)
-        else:
-            miss.append(sym)
-
-    # 2) Batch-fetch the cache misses.
-    if miss:
-        rows, failures = await yahoo_batch_provider.fetch_quotes_batch(miss)
-        for sym in miss:
-            row = rows.get(sym.upper())
-            if row is None:
-                # Itemize the batch failure reason (default not_found).
-                skips[sym.upper()] = failures.get(sym, "not_found")
-                continue
-            quote = yahoo_batch_provider.quote_from_v7(row)
-            if quote is None:
-                skips[sym.upper()] = "no_data"
-                continue
-            fundamentals = yahoo_batch_provider.fundamentals_from_v7(row)
-            pairs[sym.upper()] = (fundamentals, quote)
-            await _write_cached_quote(quote)
-            await _write_cached_fundamentals(fundamentals)
-
-    # 3) Enrichment — only when a criterion (flat OR group) or the custom
-    #    formula needs a field v7 omits.
-    needed = _enrichment_fields_needed(criteria, group, formula_fields)
-    if needed and pairs:
-        sem = asyncio.Semaphore(_FETCH_CONCURRENCY)
-        to_enrich = [
-            (sym, fund)
-            for sym, (fund, _q) in pairs.items()
-            if any(getattr(fund, f, None) is None for f in needed)
-        ]
-        results = await asyncio.gather(
-            *(_enrich_one(sym, fund, needed, sem) for sym, fund in to_enrich)
-        )
-        for sym, merged, reason in results:
-            quote = pairs[sym][1]
-            pairs[sym] = (merged, quote)
-            if reason is not None:
-                # A needed field is still missing → drop the symbol, itemized.
-                pairs.pop(sym, None)
-                skips[sym] = reason
-
-    return pairs, skips
-
-
-# ---------------------------------------------------------------------------
-# Top-level run
-# ---------------------------------------------------------------------------
-
-
-async def run_screener(req: ScreenerRequest) -> ScreenerResult:
-    """Resolve the universe, fan out (batch fast path + fallback), filter, return.
-
-    Filters by the request's ``group`` (AND/OR boolean tree) when present, else by
-    the flat AND-combined ``criteria``; an optional ``formula`` (the restricted
-    expression grammar in :mod:`services.screener_formula`) is AND-combined on
-    top. Returns up to ``req.limit`` rows sorted by market cap desc. Every
-    dropped symbol is itemized in ``skip_details`` (SC-034);
-    ``skipped_count == len(skip_details)`` — including rows the formula could
-    not evaluate because a referenced field was missing.
-    """
-    started_at = time.monotonic()
-
-    # ``req.universe`` is always explicit (required on ScreenerRequest, no default)
-    # — region-default selection happens upstream via ``default_universe_for_region``;
-    # here we honour exactly what the caller sent.
-    universe = await resolve_universe(req.universe, req.custom_symbols)
-    criteria = list(req.criteria)
-    group = req.group
-
-    # The request model already validated the formula; compile_formula here is
-    # cheap and keeps this entrypoint safe for direct (non-HTTP) callers — a
-    # FormulaError subclasses ValueError, which the router maps to a 400.
-    compiled_formula = (
-        screener_formula.compile_formula(req.formula)
-        if req.formula and req.formula.strip()
-        else None
-    )
-    formula_fields = compiled_formula.fields if compiled_formula is not None else frozenset()
-
-    # Fields the screen references that the v7 batch row cannot supply. A symbol
-    # whose resolved fundamentals STILL lack one of these — whether it came off
-    # the batch enrichment or the per-symbol fallback — is itemized
-    # ``missing_field:<f>`` rather than silently failing the criterion. (For the
-    # per-symbol / fallback path the registry fundamentals usually carry every
-    # field, so this only bites when the upstream genuinely omits one.)
-    needed_fields = _enrichment_fields_needed(criteria, group, formula_fields)
-
+async def _finalize(
+    req: ScreenerRequest,
+    state: _RunState,
+    compiled_formula: Any,
+    needed_fields: set[str],
+    started_at: float,
+) -> ScreenerResult:
+    """Materialize the result from the store — works mid-run for partials."""
+    rows_by_symbol = await fundamentals_store.fetch_rows(state.candidates)
     pairs_by_symbol: dict[str, tuple[Fundamentals, Quote | None]] = {}
-    skip_reasons: dict[str, str] = {}
-    fallback_symbols: list[str] = list(universe.symbols)
-
-    # --- Batch fast path — only the curated equity universes (sp500 / nifty50).
-    #     ``custom`` (arbitrary tickers) + ``crypto-top50`` stay on the per-symbol
-    #     path (no v7 batch equivalent). ---
-    if universe.id in _BATCH_UNIVERSES and universe.asset_class == "equity":
-        try:
-            batch_pairs, batch_skips = await _batch_collect(
-                universe, criteria, group, formula_fields
+    for sym in state.candidates:
+        key = sym.upper()
+        row = rows_by_symbol.get(key)
+        if row is None or row.get("v7_updated_at") is None:
+            # Never fetched (or identity-only seed row) — itemize. A reason
+            # recorded during the sweep/fallback sticks; otherwise a partial
+            # run owns the miss (budget_exhausted), a complete one is no_data.
+            state.skip_reasons.setdefault(
+                key, "budget_exhausted" if state.partial else "no_data"
             )
-        except Exception as exc:  # noqa: BLE001 — batch must never crash the screen
-            logger.warning("screener: batch path failed, degrading to per-symbol: %s", exc)
-            batch_pairs, batch_skips = {}, {}
-        pairs_by_symbol.update(batch_pairs)
-        # The batch's skip reasons are PROVISIONAL — every unresolved symbol is
-        # retried on the per-symbol fallback (it may fill a missing field or a
-        # symbol the batch endpoint truncated). The reason only sticks if the
-        # fallback ALSO cannot resolve it.
-        skip_reasons.update(batch_skips)
-        fallback_symbols = [s for s in universe.symbols if s.upper() not in pairs_by_symbol]
-
-    # --- Per-symbol fallback (residual symbols + non-batch universes). ---
-    if fallback_symbols:
-        sem = asyncio.Semaphore(_FETCH_CONCURRENCY)
-        fallback_results = await asyncio.gather(
-            *(_cached_fallback_pair(sym, universe.asset_class, sem) for sym in fallback_symbols)
+            continue
+        absent = next(
+            (f for f in sorted(needed_fields) if row.get(f) is None),
+            None,
         )
-        for sym, pair, reason in fallback_results:
-            key = sym.upper()
-            if pair is not None:
-                fundamentals = pair[0]
-                # A criterion field the resolved fundamentals STILL lack is a
-                # missing-field skip, not a silent criterion-fail (SC-034). The
-                # batch enrichment already gates its own path; this catches the
-                # fallback path symmetrically so the accounting is authoritative.
-                absent = next(
-                    (f for f in sorted(needed_fields) if getattr(fundamentals, f, None) is None),
-                    None,
-                )
-                if absent is not None:
-                    skip_reasons[key] = f"missing_field:{absent}"
-                else:
-                    pairs_by_symbol[key] = pair
-                    skip_reasons.pop(key, None)
-            elif reason is not None:
-                # Fallback's reason supersedes the batch's provisional one.
-                skip_reasons[key] = reason
+        if absent is not None:
+            state.skip_reasons[key] = f"missing_field:{absent}"
+            continue
+        pairs_by_symbol[key] = fundamentals_store.row_to_pair(row)
+        state.skip_reasons.pop(key, None)
 
-    # --- Custom formula (R7 Pillar 3) — evaluated server-side per pair. A row
-    #     missing a referenced field is SKIPPED and itemized (never a silent
-    #     criterion-fail); a row the formula rejects stays in the evaluated
-    #     count but is excluded from the match set (AND semantics). ---
+    # Custom formula — AND semantics; a row missing a referenced field is
+    # itemized, a rejected row stays in the evaluated count.
     formula_rejected: set[str] = set()
     if compiled_formula is not None:
         for key, (fundamentals, quote) in list(pairs_by_symbol.items()):
@@ -829,41 +626,395 @@ async def run_screener(req: ScreenerRequest) -> ScreenerResult:
             )
             if missing is not None:
                 pairs_by_symbol.pop(key)
-                skip_reasons[key] = f"missing_field:{missing}"
+                state.skip_reasons[key] = f"missing_field:{missing}"
             elif not matched_row:
                 formula_rejected.add(key)
 
-    pairs = list(pairs_by_symbol.values())
     matched = apply_criteria(
         [pair for key, pair in pairs_by_symbol.items() if key not in formula_rejected],
-        criteria,
-        group=group,
+        list(req.criteria),
+        group=req.group,
     )
-
-    # Apply limit. Clamp to ``_MAX_LIMIT`` so a malformed request body
-    # cannot pull a 10k-row response.
     limit = max(1, min(int(req.limit), _MAX_LIMIT))
     rows = matched[:limit]
 
-    # Build the itemized skip ledger (SC-034 — zero silent drops). A symbol is
-    # skipped iff it produced no evaluable pair; reason defaults to no_data.
-    evaluated = set(pairs_by_symbol)
+    # Itemized skip ledger (SC-034 — zero silent drops). A symbol is skipped
+    # iff it neither produced an evaluable pair nor failed a fresh prune.
+    evaluated = set(pairs_by_symbol) | state.pruned_failed
     skip_details: list[SkipDetail] = []
-    for sym in universe.symbols:
+    for sym in state.universe.symbols:
         key = sym.upper()
         if key not in evaluated:
-            skip_details.append(SkipDetail(symbol=key, reason=skip_reasons.get(key, "no_data")))
+            default = "budget_exhausted" if state.partial else "no_data"
+            skip_details.append(
+                SkipDetail(symbol=key, reason=state.skip_reasons.get(key, default))
+            )
+
+    evaluated_count = len(pairs_by_symbol) + len(state.pruned_failed)
+    total = len(state.universe.symbols)
+    coverage = (
+        f"screened {evaluated_count:,} of {total:,} — {len(skip_details):,} unavailable"
+    )
+    freshness = await fundamentals_store.freshness(list(pairs_by_symbol)) or None
 
     duration_ms = (time.monotonic() - started_at) * 1000.0
     return ScreenerResult(
         universe=req.universe,
-        evaluated_count=len(pairs),
+        evaluated_count=evaluated_count,
         skipped_count=len(skip_details),
         skip_details=skip_details,
         result_count=len(rows),
         rows=rows,
         duration_ms=duration_ms,
+        partial=state.partial,
+        coverage=coverage,
+        freshness=freshness,
     )
+
+
+# ---------------------------------------------------------------------------
+# Phase B — budgeted v7 batch sweep
+# ---------------------------------------------------------------------------
+
+
+async def _sweep_v7(
+    stale: list[str],
+    budget_s: float,
+    state: _RunState,
+    emit: ProgressFn,
+) -> None:
+    """Sweep the stale candidates through the v7 batch endpoint into the store.
+
+    The WHOLE sweep runs inside ``asyncio.wait_for(budget_s)`` — chunks of
+    ≤50 under a semaphore, each chunk upserting incrementally so a timeout
+    keeps every completed chunk. Batch misses land in ``state.skip_reasons``
+    PROVISIONALLY (the fallback retries them)."""
+    if not stale or budget_s <= 0:
+        if stale:
+            state.partial = True
+        return
+    chunks = [stale[i : i + _SWEEP_CHUNK_SIZE] for i in range(0, len(stale), _SWEEP_CHUNK_SIZE)]
+    sem = asyncio.Semaphore(_SWEEP_CONCURRENCY)
+    done = 0
+    total = len(stale)
+
+    async def _one(chunk: list[str]) -> None:
+        nonlocal done
+        async with sem:
+            rows, failures = await yahoo_batch_provider.fetch_quotes_batch(chunk)
+        for sym in chunk:
+            key = sym.upper()
+            row = rows.get(key)
+            if row is None:
+                state.skip_reasons[key] = failures.get(sym, "not_found")
+                continue
+            quote = yahoo_batch_provider.quote_from_v7(row)
+            if quote is None:
+                state.skip_reasons[key] = "no_data"
+                continue
+            fundamentals = yahoo_batch_provider.fundamentals_from_v7(row)
+            await fundamentals_store.upsert_v7(key, fundamentals, quote)
+            state.skip_reasons.pop(key, None)
+        done += len(chunk)
+        emit("sweep", done, total, f"sweeping quotes {done:,}/{total:,}")
+
+    try:
+        await asyncio.wait_for(asyncio.gather(*(_one(c) for c in chunks)), timeout=budget_s)
+    except TimeoutError:
+        state.partial = True
+        logger.warning(
+            "screener: v7 sweep hit its %.0fs budget at %d/%d symbols — partial",
+            budget_s,
+            done,
+            total,
+        )
+
+
+async def _fallback_retry(
+    symbols: list[str],
+    asset_class: str,
+    budget_s: float,
+    state: _RunState,
+    emit: ProgressFn,
+) -> None:
+    """Per-symbol registry retry for batch misses, inside ``budget_s``.
+
+    A recovered symbol lands in the store (info+quote tiers) and clears its
+    provisional skip; a failed retry's reason supersedes the provisional one."""
+    if not symbols or budget_s <= 0:
+        if symbols:
+            state.partial = True
+        return
+    sem = asyncio.Semaphore(_FETCH_CONCURRENCY)
+    done = 0
+    total = len(symbols)
+
+    async def _one(sym: str) -> None:
+        nonlocal done
+        async with sem:
+            pair, reason = await _fetch_pair(sym, asset_class)
+        key = sym.upper()
+        if pair is not None:
+            await _store_pair(key, pair)
+            state.skip_reasons.pop(key, None)
+        elif reason is not None:
+            state.skip_reasons[key] = reason
+        done += 1
+        if done % 25 == 0 or done == total:
+            emit("sweep", done, total, f"retrying misses {done:,}/{total:,}")
+
+    try:
+        await asyncio.wait_for(asyncio.gather(*(_one(s) for s in symbols)), timeout=budget_s)
+    except TimeoutError:
+        state.partial = True
+        logger.warning("screener: fallback retry hit its budget at %d/%d", done, total)
+
+
+# ---------------------------------------------------------------------------
+# Phase E — targeted .info enrichment of survivors
+# ---------------------------------------------------------------------------
+
+
+async def _enrich_survivors(
+    needed: set[str],
+    budget_s: float,
+    state: _RunState,
+    emit: ProgressFn,
+) -> None:
+    """Per-symbol ``.info`` enrichment of SURVIVORS whose store row lacks a
+    needed field — 15 s per symbol, ``Semaphore(12)``, whole phase inside
+    ``budget_s``. A symbol still missing a needed field after enrichment is
+    itemized ``missing_field:<f>`` at finalize (phase F checks the row)."""
+    if not needed:
+        return
+    rows = await fundamentals_store.fetch_rows(state.candidates)
+    to_enrich = [
+        sym
+        for sym in state.candidates
+        if sym.upper() not in state.skip_reasons
+        and any((rows.get(sym.upper()) or {}).get(f) is None for f in needed)
+    ]
+    if not to_enrich:
+        return
+    if budget_s <= 0:
+        state.partial = True
+        return
+    sem = asyncio.Semaphore(_FETCH_CONCURRENCY)
+    done = 0
+    total = len(to_enrich)
+
+    async def _one(sym: str) -> None:
+        nonlocal done
+        key = sym.upper()
+        async with sem:
+            try:
+                rich = await asyncio.wait_for(
+                    provider_registry.get_fundamentals(key),
+                    timeout=_INFO_TIMEOUT_SECONDS,
+                )
+            except (TimeoutError, Exception) as exc:  # noqa: BLE001 — field stays missing
+                logger.debug("screener: enrichment failed for %s: %s", key, exc)
+                done += 1
+                return
+        await fundamentals_store.upsert_info(key, rich)
+        done += 1
+        if done % 10 == 0 or done == total:
+            emit("enrich", done, total, f"enriching fundamentals {done:,}/{total:,}")
+
+    try:
+        await asyncio.wait_for(asyncio.gather(*(_one(s) for s in to_enrich)), timeout=budget_s)
+    except TimeoutError:
+        state.partial = True
+        logger.warning("screener: enrichment hit its budget at %d/%d", done, total)
+
+
+# ---------------------------------------------------------------------------
+# Top-level run
+# ---------------------------------------------------------------------------
+
+
+async def run_screener(
+    req: ScreenerRequest,
+    *,
+    wall_budget_s: float = DEFAULT_WALL_BUDGET_SECONDS,
+    on_progress: ProgressFn | None = None,
+) -> ScreenerResult:
+    """Run the phased screener under a wall budget (see module docstring).
+
+    Returns up to ``req.limit`` rows sorted by market cap desc. Every dropped
+    symbol is itemized in ``skip_details``; ``skipped_count ==
+    len(skip_details)`` always. On wall expiry or task cancellation the run
+    finalizes an honest PARTIAL (``partial=True`` + ``coverage`` +
+    ``budget_exhausted`` skips) instead of hanging or vanishing.
+    """
+    started_at = time.monotonic()
+    deadline = started_at + max(1.0, wall_budget_s)
+
+    def remaining() -> float:
+        return max(0.0, deadline - time.monotonic())
+
+    emit = _progress_emitter(on_progress)
+
+    universe = await asyncio.wait_for(
+        resolve_universe(req.universe, req.custom_symbols),
+        timeout=min(_UNIVERSE_PHASE_TIMEOUT_SECONDS, max(0.1, remaining())),
+    )
+    emit("universe", 1, 1, f"{universe.label}: {len(universe.symbols):,} symbols")
+
+    criteria = list(req.criteria)
+    group = req.group
+    compiled_formula = (
+        screener_formula.compile_formula(req.formula)
+        if req.formula and req.formula.strip()
+        else None
+    )
+    formula_fields = compiled_formula.fields if compiled_formula is not None else frozenset()
+    needed_fields = _enrichment_fields_needed(criteria, group, formula_fields)
+
+    state = _RunState(
+        universe=universe,
+        candidates=[s.upper() for s in universe.symbols],
+    )
+
+    # The background .info crawler pauses while a foreground screen runs.
+    from services import fundamentals_warm
+
+    fundamentals_warm.screen_started()
+    try:
+        try:
+            if universe.id in _BATCH_UNIVERSES and universe.asset_class == "equity":
+                await _run_batch_phases(req, universe, state, needed_fields, remaining, emit)
+            else:
+                await _run_per_symbol(universe, state, remaining, emit)
+        except asyncio.CancelledError:
+            # Client disconnect / task cancel — finalize the partial honestly.
+            # The store keeps every chunk that completed; uncancel() clears the
+            # pending cancellation so the result can be delivered.
+            state.partial = True
+            task = asyncio.current_task()
+            if task is not None and task.cancelling():
+                task.uncancel()
+            logger.info("screener: run cancelled — finalizing partial")
+    finally:
+        fundamentals_warm.screen_finished()
+
+    emit("evaluate", 1, 1, f"evaluating {len(state.candidates):,} candidates")
+    return await _finalize(req, state, compiled_formula, needed_fields, started_at)
+
+
+async def _run_batch_phases(
+    req: ScreenerRequest,
+    universe: ScreenerUniverse,
+    state: _RunState,
+    needed_fields: set[str],
+    remaining: Callable[[], float],
+    emit: ProgressFn,
+) -> None:
+    """Phases P → B → E for the batch universes (curated + India full-market)."""
+    is_full = screener_universe_india.is_india_universe(universe.id)
+    quote_ttl = (
+        fundamentals_store.TTL_QUOTE_FULL_SECONDS
+        if is_full
+        else fundamentals_store.TTL_QUOTE_CURATED_SECONDS
+    )
+
+    # Phase P — sound SQL prune on the top-level AND-ed cheap criteria.
+    cheap = _cheap_prune_criteria(list(req.criteria), req.group)
+    if cheap:
+        before = len(state.candidates)
+        kept = await fundamentals_store.prefilter(state.candidates, cheap)
+        state.pruned_failed |= set(state.candidates) - set(kept)
+        state.candidates = kept
+        emit("prefilter", len(kept), before, f"prefilter kept {len(kept):,} of {before:,}")
+
+    # Phase B — budgeted sweep of the stale-or-missing candidates.
+    stale = await fundamentals_store.stale_symbols(state.candidates, quote_ttl=quote_ttl)
+    if stale:
+        await _sweep_v7(stale, min(_SWEEP_PHASE_CAP_SECONDS, remaining()), state, emit)
+
+    # Re-apply the cheap criteria — fresh post-sweep values prune properly now.
+    if cheap:
+        before = len(state.candidates)
+        kept = await fundamentals_store.prefilter(state.candidates, cheap)
+        if len(kept) != before:
+            newly_pruned = set(state.candidates) - set(kept)
+            # A symbol whose sweep failed is a SKIP, not an evaluated-fail.
+            state.pruned_failed |= {s for s in newly_pruned if s not in state.skip_reasons}
+            state.candidates = kept
+            emit("prefilter", len(kept), before, f"post-sweep prune kept {len(kept):,}")
+
+    # Batch misses retry once on the per-symbol fallback (graceful degrade;
+    # it may resolve a symbol the endpoint truncated or a missing field).
+    misses = [s for s in state.candidates if s in state.skip_reasons]
+    if misses:
+        await _fallback_retry(
+            misses,
+            universe.asset_class,
+            max(0.0, remaining() - _FINALIZE_RESERVE_SECONDS),
+            state,
+            emit,
+        )
+
+    # Phase E — targeted enrichment of survivors only.
+    await _enrich_survivors(
+        needed_fields,
+        max(0.0, remaining() - _FINALIZE_RESERVE_SECONDS),
+        state,
+        emit,
+    )
+
+
+async def _run_per_symbol(
+    universe: ScreenerUniverse,
+    state: _RunState,
+    remaining: Callable[[], float],
+    emit: ProgressFn,
+) -> None:
+    """The per-symbol registry path (custom / crypto) — cache-first against
+    the store, the whole fan-out inside the wall budget."""
+    rows = await fundamentals_store.fetch_rows(state.candidates)
+    now = time.time()
+    to_fetch: list[str] = []
+    for sym in state.candidates:
+        row = rows.get(sym.upper())
+        info_at = (row or {}).get("info_updated_at")
+        quote_at = (row or {}).get("quote_updated_at")
+        if (
+            row is None
+            or info_at is None
+            or now - info_at > fundamentals_store.TTL_INFO_SECONDS
+            or quote_at is None
+            or now - quote_at > fundamentals_store.TTL_QUOTE_CURATED_SECONDS
+        ):
+            to_fetch.append(sym)
+    if not to_fetch:
+        return
+    budget = max(0.0, remaining() - _FINALIZE_RESERVE_SECONDS)
+    if budget <= 0:
+        state.partial = True
+        return
+    sem = asyncio.Semaphore(_FETCH_CONCURRENCY)
+    done = 0
+    total = len(to_fetch)
+
+    async def _one(sym: str) -> None:
+        nonlocal done
+        async with sem:
+            pair, reason = await _fetch_pair(sym, universe.asset_class)
+        key = sym.upper()
+        if pair is not None:
+            await _store_pair(key, pair)
+        elif reason is not None:
+            state.skip_reasons[key] = reason
+        done += 1
+        if done % 10 == 0 or done == total:
+            emit("sweep", done, total, f"fetching {done:,}/{total:,}")
+
+    try:
+        await asyncio.wait_for(asyncio.gather(*(_one(s) for s in to_fetch)), timeout=budget)
+    except TimeoutError:
+        state.partial = True
+        logger.warning("screener: per-symbol fan-out hit the wall at %d/%d", done, total)
 
 
 # ---------------------------------------------------------------------------
@@ -874,15 +1025,10 @@ _warm_task: asyncio.Task[None] | None = None
 
 
 async def _warm_once() -> bool:
-    """Pre-warm one batch cycle over the warm universes (best-effort).
+    """Pre-warm one batch cycle over the warm universes into the store.
 
-    Returns ``True`` when the cycle was RATE-LIMITED — at least
-    ``_WARM_THROTTLE_RATIO`` of the warmed symbols came back ``rate_limited``
-    (a near-total block, the warm loop's signal to back off) — and ``False`` on a
-    clean (or merely partial / empty) cycle. The fetch path's own bounded 429
-    retry has already tried to self-heal a transient blip before any failure
-    surfaces here, so a throttle reaching this point is a genuine sustained
-    block, not a one-off burst."""
+    Returns ``True`` when the cycle was RATE-LIMITED (≥ ``_WARM_THROTTLE_RATIO``
+    of warmed symbols came back ``rate_limited``) — the loop's backoff signal."""
     requested = 0
     rate_limited = 0
     for universe_id in _WARM_UNIVERSES:
@@ -898,21 +1044,19 @@ async def _warm_once() -> bool:
         for _sym, row in rows.items():
             quote = yahoo_batch_provider.quote_from_v7(row)
             if quote is not None:
-                await _write_cached_quote(quote)
-                await _write_cached_fundamentals(yahoo_batch_provider.fundamentals_from_v7(row))
-    # A cycle that resolved no universe (requested == 0) is not a throttle.
+                await fundamentals_store.upsert_v7(
+                    quote.symbol, yahoo_batch_provider.fundamentals_from_v7(row), quote
+                )
     return requested > 0 and rate_limited >= requested * _WARM_THROTTLE_RATIO
 
 
 def _warm_sleep_seconds(base: float, consecutive_throttles: int) -> float:
-    """Jittered next-cycle sleep for the warm loop given the throttle streak.
+    """Jittered next-cycle sleep for a warm loop given the throttle streak.
 
-    ``consecutive_throttles == 0`` → ``base`` (+jitter): warm cleanly. Each
-    additional consecutive throttled cycle multiplies the sleep by
-    ``_WARM_BACKOFF_FACTOR`` (capped at ``_WARM_BACKOFF_CAP_SECONDS``) so the
-    worker stops re-hitting a rate-limited endpoint every ``base`` seconds. The
-    ±``_WARM_BACKOFF_JITTER_FRACTION`` jitter keeps a fleet of clients from
-    re-synchronising into a thundering herd."""
+    ``consecutive_throttles == 0`` → ``base`` (+jitter). Each additional
+    consecutive throttled cycle multiplies the sleep by ``_WARM_BACKOFF_FACTOR``
+    (capped at ``_WARM_BACKOFF_CAP_SECONDS``); ±jitter de-synchronises a fleet.
+    Shared by the India warm worker (:mod:`services.fundamentals_warm`)."""
     target = min(
         _WARM_BACKOFF_CAP_SECONDS,
         base * (_WARM_BACKOFF_FACTOR**consecutive_throttles),
@@ -922,14 +1066,7 @@ def _warm_sleep_seconds(base: float, consecutive_throttles: int) -> float:
 
 
 async def _warm_loop(interval: float) -> None:
-    """Background loop: warm immediately, then re-warm with adaptive backoff.
-
-    A clean cycle re-warms every ``interval`` s. A RATE-LIMITED cycle (the batch
-    came back near-totally ``rate_limited``) backs the next sleep off
-    exponentially with jitter — so the worker stops self-inflicting a 429 storm —
-    and the FIRST clean cycle resets straight back to ``interval``. Swallows every
-    per-cycle error (a transient Yahoo blip must not kill the worker) and exits
-    cleanly on cancellation."""
+    """Background loop: warm immediately, then re-warm with adaptive backoff."""
     global _warm_consecutive_throttles
     _warm_consecutive_throttles = 0
     try:
@@ -971,27 +1108,20 @@ async def _warm_loop(interval: float) -> None:
 
 
 def start_warm_precompute(interval: float = _WARM_INTERVAL_SECONDS) -> None:
-    """Start the warm-precompute background task (idempotent).
-
-    Spawned from the FastAPI lifespan AFTER startup so it never blocks the
-    sidecar boot the Tauri core waits on. The task is detached; the loop's first
-    iteration runs the initial warm. Re-calling while a task is live is a no-op."""
+    """Start the warm-precompute background task (idempotent)."""
     global _warm_task
     if _warm_task is not None and not _warm_task.done():
         return
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
-        # No running loop (e.g. called outside an async context) — skip; the
-        # lifespan is the real caller and always has a loop.
         logger.debug("screener warm: no running loop; precompute not started")
         return
     _warm_task = loop.create_task(_warm_loop(interval))
 
 
 async def stop_warm_precompute() -> None:
-    """Cancel + await the warm-precompute task so it does not leak on shutdown,
-    then close the batch provider's shared client (no leaked socket)."""
+    """Cancel + await the warm-precompute task, then close the batch client."""
     global _warm_task
     task = _warm_task
     _warm_task = None
@@ -1003,6 +1133,7 @@ async def stop_warm_precompute() -> None:
 
 
 __all__ = [
+    "DEFAULT_WALL_BUDGET_SECONDS",
     "apply_criteria",
     "default_universe_for_region",
     "resolve_universe",
