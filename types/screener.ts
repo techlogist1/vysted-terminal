@@ -15,7 +15,15 @@
 
 /** Curated universe id. Custom universes are pasted by the user as a
  * ticker list and don't get an id. */
-export type ScreenerUniverseId = "sp500" | "nifty50" | "crypto-top50" | "custom";
+export type ScreenerUniverseId =
+  | "sp500"
+  | "nifty50"
+  | "crypto-top50"
+  | "custom"
+  // R10 (D40): full-market India universes from the bundled resolver masters.
+  | "nse-all"
+  | "bse-all"
+  | "india-all";
 
 /**
  * A universe definition. ``"sp500"`` and ``"nifty50"`` are curated server-side
@@ -228,4 +236,32 @@ export interface ScreenerResult {
   result_count: number;
   rows: ScreenerResultRow[];
   duration_ms: number;
+  /**
+   * R10 (D40) honest-coverage block — optional in the mirror for older blobs.
+   * `partial` = the wall budget or a cancel cut the run early; `coverage` is
+   * the one human line ("screened 1,840 of 2,100 — 260 unavailable");
+   * `freshness` stamps the serving data tiers (epoch seconds).
+   */
+  partial?: boolean;
+  coverage?: string | null;
+  freshness?: {
+    quotes_as_of?: number;
+    valuation_as_of?: number;
+    deep_as_of?: number;
+  } | null;
+}
+
+/**
+ * One progress frame on the `POST /screener/run/stream` SSE channel (R10, D40).
+ * Frames stream as `{"event":"progress",...}` then one `{"event":"result",...}`
+ * carrying the full ScreenerResult. Client disconnect cancels the run.
+ */
+export interface ScreenerProgressFrame {
+  event: "progress";
+  /** The engine phase: "universe" | "prefilter" | "sweep" | "enrich" | "evaluate". */
+  phase: string;
+  done: number;
+  total: number;
+  /** One human line ("sweeping quotes 850/2,100"). */
+  detail: string;
 }

@@ -104,6 +104,45 @@ class ResearchStep:
 
 
 @dataclass(slots=True)
+class ResearchExecution:
+    """The execution record of one research run (R10, D38).
+
+    Minted at the research tool boundary and stamped from the loop that
+    ACTUALLY RAN — never from the request, the slider, or UI state. The brief's
+    rendered mode/depth derive from ``loop`` alone; a research payload without
+    an execution record is malformed and never auto-publishes. When the run
+    executed below ``requested_depth`` (budget squeeze, backend miss),
+    ``degraded_reason`` says why — degradation is never silent.
+
+    Mirrored by ``BriefExecution`` in ``types/brief.ts`` (camelCase there;
+    ``briefFromInput`` maps the wire shape).
+    """
+
+    run_id: str
+    requested_depth: str  # normal | deep | ultra (post slider-floor merge)
+    loop: str  # fast | iter | heavy | research-model — what RAN
+    backend: str | None = None
+    started_at: float | None = None  # epoch seconds
+    finished_at: float | None = None
+    degraded_reason: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "run_id": self.run_id,
+            "requested_depth": self.requested_depth,
+            "loop": self.loop,
+            "backend": self.backend,
+            "started_at": self.started_at,
+            "finished_at": self.finished_at,
+            "degraded_reason": self.degraded_reason,
+        }
+
+
+#: ``ResearchExecution.loop`` values — the engines a run can actually execute.
+EXECUTION_LOOPS = ("fast", "iter", "heavy", "research-model")
+
+
+@dataclass(slots=True)
 class ResearchBrief:
     """The output of a research run — markdown prose + the evidence behind it.
 
@@ -129,6 +168,9 @@ class ResearchBrief:
     cost: dict[str, Any] = field(default_factory=dict)
     web_available: bool = False
     note: str | None = None
+    #: The run's :class:`ResearchExecution` as a dict (R10, D38) — ``None`` only
+    #: on legacy payloads; new engine paths always stamp it.
+    execution: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -143,14 +185,17 @@ class ResearchBrief:
             "cost": self.cost,
             "web_available": self.web_available,
             "note": self.note,
+            "execution": self.execution,
         }
 
 
 __all__ = [
+    "EXECUTION_LOOPS",
     "RESEARCH_MODES",
     "SOURCE_TYPES",
     "STEP_KINDS",
     "ResearchBrief",
+    "ResearchExecution",
     "ResearchSource",
     "ResearchStep",
 ]

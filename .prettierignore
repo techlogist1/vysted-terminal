@@ -57,3 +57,4 @@ sidecar/tests/fixtures/
 # never reformatted (r8 precedent below if present).
 docs/redesign/verification/r8/
 docs/redesign/verification/r9/briefs/
+docs/redesign/verification/r10/regression/

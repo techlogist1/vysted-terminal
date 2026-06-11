@@ -12,8 +12,20 @@
  * no path to placement (FR-011).
  */
 
-/** The host-action families the gate governs (all `read_only=false` in the catalog). */
-export type ProposedChangeKind = "panel" | "chart" | "watchlist" | "order";
+/**
+ * The host-action families the gate governs (all `read_only=false` in the
+ * catalog). R10 (D41/D45) adds `data-write` (paper-portfolio positions, notes,
+ * saved screens — auto-applicable under AUTO autonomy) and `settings` (the two
+ * agent-drivable settings: region + default research depth). `order` remains
+ * the ONE kind that never auto-applies in any mode (§6.5).
+ */
+export type ProposedChangeKind =
+  | "panel"
+  | "chart"
+  | "watchlist"
+  | "order"
+  | "data-write"
+  | "settings";
 
 export type ProposedChangeStatus = "pending" | "accepted" | "rejected";
 

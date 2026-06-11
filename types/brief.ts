@@ -49,6 +49,102 @@ export interface BriefStructured {
   news?: BriefStructuredLeg;
   /** Filings-index leg. */
   filings?: BriefStructuredLeg;
+  /**
+   * The metric-semantics leg (R10, D37/E8): values COMPUTED sidecar-side from
+   * the raw legs with explicit labels and bases, plus cross-source conflicts.
+   * `provider` is always `"derived"`. Absent on older briefs.
+   */
+  derived?: BriefStructuredLeg<BriefDerivedMetrics>;
+}
+
+/**
+ * One semantically-disciplined metric value (R10 semantics layer). Every number
+ * the brief states carries its label, basis, and (when computed) formula — so
+ * drawdown-from-high can never wear 52-week-change's label and a growth figure
+ * always names its base.
+ */
+export interface BriefDerivedValue {
+  /** The numeric value, or null when inputs were missing (never fabricated). */
+  value: number | null;
+  /** The exact display label (e.g. "Below 52-week high"). */
+  label: string;
+  /** The measurement basis (e.g. "TTM", "FY/FY", "vs 52w high", "of face value"). */
+  basis?: string;
+  /** The computation, when derived (e.g. "(52w high − price) / 52w high"). */
+  formula?: string;
+  /** How to render the value. */
+  unit?: "percent" | "currency" | "ratio";
+}
+
+/** A cross-source numeric disagreement the pipeline flagged instead of silently picking. */
+export interface BriefMetricConflict {
+  /** The metric in conflict (e.g. "dividend_yield", "market_cap"). */
+  field: string;
+  /** The disagreeing values with their provenance. */
+  sources: { provider: string; value: number | string }[];
+  /** One human line on why this is flagged and what would reconcile it. */
+  note: string;
+}
+
+/** The semantics leg's payload — derived, labeled metrics + flagged conflicts. */
+export interface BriefDerivedMetrics {
+  /** (52w high − price) / 52w high — the true "off the high" figure. */
+  drawdown_from_high?: BriefDerivedValue;
+  /** Yahoo's 52-week price change — explicitly NOT drawdown. */
+  fifty_two_week_change?: BriefDerivedValue;
+  /** Reconciled dividend yield (fraction of price). */
+  dividend_yield?: BriefDerivedValue;
+  /** Dividend in listing currency per share. */
+  dividend_per_share?: BriefDerivedValue;
+  /** Revenue growth with its basis named. */
+  revenue_growth?: BriefDerivedValue;
+  /** Earnings growth with its basis named. */
+  earnings_growth?: BriefDerivedValue;
+  /** Cross-source disagreements — flagged, never silently resolved. */
+  conflicts?: BriefMetricConflict[];
+}
+
+/**
+ * The execution record of the research run that produced a brief (R10, D38).
+ * Stamped at the tool boundary from the loop that ACTUALLY RAN — the brief's
+ * mode/depth badges derive from this and only this, never from request or UI
+ * state. Wire shape from the sidecar is snake_case; `briefFromInput` maps it.
+ */
+export interface BriefExecution {
+  /** Unique id of the research run (minted when the tool dispatched). */
+  runId: string;
+  /** The depth requested after the slider-floor/model-escalation merge. */
+  requestedDepth: "normal" | "deep" | "ultra";
+  /** The loop that actually executed. */
+  loop: "fast" | "iter" | "heavy" | "research-model";
+  /** The retrieval backend the run rode (mirrors `ResearchBriefData.backend`). */
+  backend?: string | null;
+  /** Epoch ms the run started/finished, when metered. */
+  startedAt?: number;
+  finishedAt?: number;
+  /** Why the run executed below the requested depth, when it did — never silent. */
+  degradedReason?: string | null;
+}
+
+/** One instrument candidate in an honest disambiguation (R10, D37). */
+export interface BriefCandidate {
+  symbol: string;
+  name: string;
+  exchange?: string | null;
+  /** Resolver confidence in [0,1]. */
+  score?: number;
+  /** The quote-routable form (e.g. "RELIANCE.NS") for one-click re-research. */
+  yahooSymbol?: string;
+}
+
+/**
+ * An explicit "which did you mean?" — rendered INSTEAD of a guessed brief when
+ * resolution lands between the reject and accept thresholds. Never co-exists
+ * with a researched body for the same run.
+ */
+export interface BriefDisambiguation {
+  query: string;
+  candidates: BriefCandidate[];
 }
 
 /**
@@ -192,6 +288,19 @@ export interface ResearchBriefData {
    * (never fabricated).
    */
   structured?: BriefStructured;
+  /**
+   * The execution record of the run that produced this brief (R10, D38). The
+   * mode/depth badges derive from `execution.loop` when present; structured
+   * carry-over between publishes requires a matching `execution.runId`.
+   * Optional — pre-R10 briefs omit it and render as archival.
+   */
+  execution?: BriefExecution;
+  /**
+   * Set when resolution needed an explicit human choice (R10, D37) — the panel
+   * renders the candidate chooser instead of a brief body. Mutually exclusive
+   * with a researched `markdown`.
+   */
+  disambiguation?: BriefDisambiguation;
   /** Epoch milliseconds the brief was produced. */
   createdAt: number;
 }

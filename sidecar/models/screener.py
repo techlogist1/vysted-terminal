@@ -25,7 +25,18 @@ def _reject_non_finite(value: float, name: str) -> float:
 # Universe
 # ---------------------------------------------------------------------------
 
-ScreenerUniverseId = Literal["sp500", "nifty50", "crypto-top50", "custom"]
+ScreenerUniverseId = Literal[
+    "sp500",
+    "nifty50",
+    "crypto-top50",
+    "custom",
+    # R10 (D40): full-market India universes resolved from the bundled resolver
+    # masters — nse-all (~2.7k EQ/BE/SME rows), bse-all (4.9k Active scrips),
+    # india-all (union, NSE listing preferred on dual-listings).
+    "nse-all",
+    "bse-all",
+    "india-all",
+]
 ScreenerAssetClass = Literal["equity", "crypto"]
 
 
@@ -326,3 +337,12 @@ class ScreenerResult(BaseModel):
     result_count: int
     rows: list[ScreenerResultRow]
     duration_ms: float
+    # R10 (D40) honest-coverage block — additive, defaulted for back-compat.
+    # ``partial`` is True when the wall budget or a cancellation cut the run
+    # before the whole universe was evaluated; ``coverage`` is the one human
+    # line the UI/agent surface ("screened 1,840 of 2,100 — 260 unavailable");
+    # ``freshness`` stamps the data tiers the rows were served from (epoch
+    # seconds: {"quotes_as_of": …, "valuation_as_of": …, "deep_as_of": …}).
+    partial: bool = False
+    coverage: str | None = None
+    freshness: dict[str, float] | None = None

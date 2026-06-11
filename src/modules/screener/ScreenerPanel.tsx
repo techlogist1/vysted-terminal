@@ -17,6 +17,9 @@ const UNIVERSE_LABELS: Record<ScreenerUniverseId, string> = {
   nifty50: "NIFTY 50",
   "crypto-top50": "Crypto top 50",
   custom: "Custom tickers",
+  "nse-all": "NSE — full market",
+  "bse-all": "BSE — full market",
+  "india-all": "India — NSE + BSE",
 };
 
 /**
