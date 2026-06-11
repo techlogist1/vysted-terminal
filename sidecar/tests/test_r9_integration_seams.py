@@ -49,9 +49,7 @@ def test_run_native_threads_native_search_into_the_loop(monkeypatch) -> None:
     creds_token = config.set_request_llm_creds("openrouter", "x-ai/grok-4.3", "k")
     mws_token = config.set_request_model_web_search("native")
     try:
-        out = asyncio.run(
-            deep_research._run_native("q", PROFILES["deep"], rounds=1, wall=30)
-        )
+        out = asyncio.run(deep_research._run_native("q", PROFILES["deep"], rounds=1, wall=30))
     finally:
         config.reset_request_llm_creds(creds_token)
         config._model_web_search_ctx.reset(mws_token)
@@ -73,9 +71,7 @@ def test_run_native_keeps_single_lane_without_native_capability(monkeypatch) -> 
     monkeypatch.setattr(deep_research, "_run_loop", fake_run_loop)
     creds_token = config.set_request_llm_creds("deepseek", "deepseek-v4-flash", "k")
     try:
-        out = asyncio.run(
-            deep_research._run_native("q", PROFILES["deep"], rounds=1, wall=30)
-        )
+        out = asyncio.run(deep_research._run_native("q", PROFILES["deep"], rounds=1, wall=30))
     finally:
         config.reset_request_llm_creds(creds_token)
     assert out["ok"] is True
@@ -95,9 +91,7 @@ def test_keyless_floor_retrieval_stamps_the_published_brief(monkeypatch) -> None
     monkeypatch.setattr(deep_research, "_run_loop", fake_run_loop)
     creds_token = config.set_request_llm_creds("deepseek", "deepseek-v4-flash", "k")
     try:
-        out = asyncio.run(
-            deep_research._run_native("q", PROFILES["deep"], rounds=1, wall=30)
-        )
+        out = asyncio.run(deep_research._run_native("q", PROFILES["deep"], rounds=1, wall=30))
     finally:
         config.reset_request_llm_creds(creds_token)
     assert out["backend"] == "keyless-fallback"
@@ -112,9 +106,7 @@ def test_searxng_served_run_keeps_native_backend(monkeypatch) -> None:
     monkeypatch.setattr(deep_research, "_run_loop", fake_run_loop)
     creds_token = config.set_request_llm_creds("deepseek", "deepseek-v4-flash", "k")
     try:
-        out = asyncio.run(
-            deep_research._run_native("q", PROFILES["deep"], rounds=1, wall=30)
-        )
+        out = asyncio.run(deep_research._run_native("q", PROFILES["deep"], rounds=1, wall=30))
     finally:
         config.reset_request_llm_creds(creds_token)
     assert out["backend"] == "native"

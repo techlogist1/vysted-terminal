@@ -339,9 +339,7 @@ async def _run_native(query: str, profile: DepthProfile, rounds: int, wall: int)
     # The honest backend id: "native" names the chat-model engine; when ANY
     # retrieval in the run was served by the keyless floor the brief carries
     # "keyless-fallback" instead — the UI's setup-Unlimited nudge keys on it.
-    out["backend"] = (
-        "keyless-fallback" if telemetry.get("keyless_fallback_searches") else "native"
-    )
+    out["backend"] = "keyless-fallback" if telemetry.get("keyless_fallback_searches") else "native"
     # ``mode`` keeps the legacy loop naming the brief contract renders; ``depth``
     # carries the R7 surface naming (normal/deep/ultra) for new consumers.
     out["mode"] = "heavy" if profile.angles >= _MIN_HEAVY_ANGLES else "deep"

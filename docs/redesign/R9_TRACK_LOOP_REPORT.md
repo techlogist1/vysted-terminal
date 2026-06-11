@@ -49,7 +49,7 @@ repo, no network in tests).
   carries the scanned note, or is digit-sparse.
 - **Band-0.5 row mix** — `announcement_rows` ranks the results filing first
   (band 0), its digital twin (`investor presentation|earnings presentation|
-  press release|analyst/results presentation`) at band 0.5, the rest at band 1
+press release|analyst/results presentation`) at band 0.5, the rest at band 1
   (feed order within bands) — so `rows[1]` is the digital twin, not a fourth
   scanned outcome. Simplification noted: banding is headline-shape only (the
   feed gives no reliable same-window date pairing); newest-first within band
@@ -76,7 +76,7 @@ roundup, Tea Post DRHP, Nestle/Zomato generic-token cluster).
 
 - **CK-Pro structured progress state** — the iter distill step demands four
   fixed sections (`Facts established` with per-fact `[n]` markers, `Open
-  questions`, `Dead ends` with do-not-retry detail, `Planned next`); the
+questions`, `Dead ends` with do-not-retry detail, `Planned next`); the
   planner is instructed never to re-plan a dead end. Render/synthesis never
   parse the sections structurally, so a weak model that ignores the contract
   still ships (the R8 guarantees hold).
@@ -144,7 +144,7 @@ change is `PROFILES[ultra].wall_seconds` — deliberately left to live evidence.
 - Full pytest in-worktree: **2024 passed, 1 skipped** (baseline at branch:
   1982 passed, 1 skipped — **+42 new pinned tests**, zero regressions). One
   pre-existing perf test (`test_autocomplete_stays_keystroke_fast_over_full_
-  masters`, outside this partition) flaked once under concurrent shell load
+masters`, outside this partition) flaked once under concurrent shell load
   and passes in isolation and on the clean rerun.
 - `ruff check .` and `ruff format --check .` clean over the sidecar (365 files).
 - The track's test files (`test_search_extract`, `test_research_r9_regressions`
@@ -162,8 +162,8 @@ change is `PROFILES[ultra].wall_seconds` — deliberately left to live evidence.
 - `sidecar/services/search/extract.py`
 - `sidecar/services/research/{deep,iter,relevance,citecheck,verify,disclosures}.py`
 - `sidecar/tests/{test_search_extract,test_research_r8_regressions,
-  test_research_r9_regressions,test_research_relevance,test_research_citecheck,
-  test_research_verify,test_research_disclosures}.py`
+test_research_r9_regressions,test_research_relevance,test_research_citecheck,
+test_research_verify,test_research_disclosures}.py`
   (r8 file untouched except none; r9 file is new)
 - `sidecar/tests/fixtures/saksoft_outcome_pages.json` (new, real-filing text)
 - `docs/redesign/R9_TRACK_LOOP_REPORT.md` (this file)

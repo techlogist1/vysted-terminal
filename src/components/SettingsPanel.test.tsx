@@ -524,7 +524,7 @@ describe("SettingsPanel", () => {
     ).toBeInTheDocument();
   });
 
-  it("swapping a per-stop model writes the store; unverified picks are marked estimates", async () => {
+  it("swapping a per-stop model writes the store; live-verified prices render unflagged", async () => {
     getSecretMock.mockImplementation((account: string) =>
       account === "llm-provider:openrouter" ? Promise.resolve("sk-or-key") : Promise.resolve(null),
     );
@@ -532,8 +532,9 @@ describe("SettingsPanel", () => {
     const normal = await screen.findByLabelText("Normal research model");
     fireEvent.change(normal, { target: { value: "openai/o3-deep-research" } });
     expect(useSearchSettingsStore.getState().researchModels.normal).toBe("openai/o3-deep-research");
-    // The unverified alternate's hint is flagged as an estimate.
-    expect(screen.getByText("$10/M in · $40/M out · estimate")).toBeInTheDocument();
+    // All eight picker prices were re-verified live at R9 integration
+    // (priceVerified: true), so the hint renders WITHOUT the estimate flag.
+    expect(screen.getByText("$10/M in · $40/M out · $10/1k searches")).toBeInTheDocument();
     // The other stops are untouched.
     expect(useSearchSettingsStore.getState().researchModels.deep).toBe(
       DEFAULT_RESEARCH_MODELS.deep,
