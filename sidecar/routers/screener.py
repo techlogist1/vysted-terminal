@@ -65,7 +65,10 @@ async def run_screener(request: ScreenerRequest) -> ScreenerResult:
     (custom universes use the request's ``custom_symbols``). Provider
     failures during the fan-out are swallowed per-symbol so a single
     upstream hiccup does not fail the whole run; if the universe itself
-    cannot be resolved the route returns 502.
+    cannot be resolved the route returns 502. The whole run is bounded by
+    the engine's 120 s wall budget (R10/D40) — a starved run returns an
+    honest partial (``partial`` / ``coverage`` / ``budget_exhausted``
+    skips), never a multi-minute hang.
 
     ``ScreenerRequest.universe`` is required (no default), so the universe is
     always explicit here — region-aware default selection (US→sp500, IN→nifty50,

@@ -443,6 +443,41 @@ async def test_progress_callback_fires_per_phase(monkeypatch: pytest.MonkeyPatch
     assert "sweeping quotes" in sweep[3]
 
 
+@pytest.mark.asyncio
+async def test_agent_step_sink_receives_progress_frames(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Inside an agent tool dispatch the engine bridges progress to the step
+    sink so chat renders a live 'sweeping quotes …' trace (the screener_run
+    seam — no tool-code change needed)."""
+    import config
+
+    symbols = ["AAA.NS", "BBB.NS"]
+    monkeypatch.setattr(screener, "resolve_universe", _fake_universe("nse-all", symbols))
+    _install_v7({s: _v7_row(s) for s in symbols})
+
+    steps: list[object] = []
+    token = config.set_step_sink(steps.append)
+    try:
+        request = ScreenerRequest(universe="nse-all", criteria=[], limit=100)
+        result = await screener.run_screener(request)
+    finally:
+        config.reset_step_sink(token)
+    assert result.result_count == 2
+    details = [getattr(s, "detail", "") for s in steps]
+    assert any("sweeping quotes" in d for d in details)
+    assert all(getattr(s, "kind", "") == "tool" for s in steps)
+
+
+def test_universe_route_resolves_india_ids(client) -> None:  # noqa: ANN001
+    response = client.get("/screener/universe", params={"id": "india-all"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["id"] == "india-all"
+    assert len(body["symbols"]) > 5000
+    assert "RELIANCE.NS" in body["symbols"]
+
+
 # ---------------------------------------------------------------------------
 # sharesOutstanding v7 mapping
 # ---------------------------------------------------------------------------
