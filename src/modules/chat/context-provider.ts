@@ -11,11 +11,14 @@
 
 import { researchSpaceName } from "@/lib/workspace";
 import type { Region } from "@/lib/region";
+import { useBriefStore } from "@/store/brief";
 import { usePanelContextBus } from "@/store/panel-context";
+import { usePortfoliosStore } from "@/store/portfolios";
 import { useResearchSpacesStore } from "@/store/research-spaces";
 import { useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
+import type { BriefDepth } from "../../../types/brief";
 
 export interface TerminalChart {
   panelId: string;
@@ -26,6 +29,9 @@ export interface TerminalChart {
 
 /** One holding of the active portfolio, as the panel publishes it. */
 export interface TerminalHolding {
+  /** The store holding id — the handle a portfolio_update/delete_position
+   *  action echoes back as `position_id`. Absent on older bus payloads. */
+  id?: string;
   symbol: string;
   quantity: number;
   costBasis: number;
@@ -55,6 +61,20 @@ export interface TerminalResearchSpace {
   priorTurns: number;
 }
 
+/**
+ * The brief panel's lifecycle identity (R10 D39): `get_terminal_state` answers
+ * PANEL TRUTH — which run is in flight, or which artifact is on screen and how
+ * fresh it is — so the agent can verify a publish landed instead of assuming.
+ */
+export interface TerminalBrief {
+  phase: "empty" | "in_flight" | "published" | "archived";
+  runId?: string;
+  symbol?: string;
+  createdAt?: number;
+  sourceCount?: number;
+  depth?: BriefDepth;
+}
+
 /** Structured snapshot the copilot reasons over (serialisable). */
 export interface TerminalState {
   focusedPanel: string | null;
@@ -63,6 +83,8 @@ export interface TerminalState {
   charts: TerminalChart[];
   watchlist: { symbols: string[]; selected: string | null };
   portfolio: TerminalPortfolio | null;
+  /** The brief panel's lifecycle truth (phase + run/artifact identity). */
+  brief: TerminalBrief;
   openPanels: string[];
   /** The active research space + its prior-research memory (S-19). Present iff
    *  the active workspace is a research space. */
@@ -99,7 +121,9 @@ function extractHoldings(value: unknown): TerminalHolding[] {
     }
     const marketValue = typeof row.marketValue === "number" ? row.marketValue : null;
     const pnl = typeof row.pnl === "number" ? row.pnl : null;
+    const id = asString(row.id);
     holdings.push({
+      ...(id !== null ? { id } : {}),
       symbol,
       quantity: Number(row.quantity ?? 0),
       costBasis: Number(row.costBasis ?? 0),
@@ -109,6 +133,61 @@ function extractHoldings(value: unknown): TerminalHolding[] {
     });
   }
   return holdings;
+}
+
+/**
+ * The ACTIVE portfolio straight from the store — the fallback when the
+ * portfolio panel is closed (the bus never published). Carries holding ids so
+ * the agent's portfolio writes (E6) can target a position without the panel
+ * open; market values stay null (no quotes were joined — provenance-honest).
+ */
+function portfolioFromStore(): TerminalPortfolio | null {
+  const s = usePortfoliosStore.getState();
+  const active = s.portfolios.find((p) => p.id === s.activeId) ?? s.portfolios[0];
+  if (!active) {
+    return null;
+  }
+  return {
+    positionCount: active.holdings.length,
+    totalValue: 0,
+    activePortfolioId: active.id,
+    activePortfolioName: active.name,
+    holdings: active.holdings.map((h) => ({
+      id: h.id,
+      symbol: h.symbol,
+      quantity: h.quantity,
+      costBasis: h.costBasis,
+      assetClass: h.assetClass,
+      marketValue: null,
+      pnl: null,
+    })),
+  };
+}
+
+/** The brief panel's lifecycle identity for the snapshot (R10 D39). */
+function briefStateForSnapshot(): TerminalBrief {
+  const { panel } = useBriefStore.getState();
+  if (panel.phase === "in_flight") {
+    return {
+      phase: "in_flight",
+      runId: panel.runId,
+      symbol: panel.symbol,
+      createdAt: panel.startedAt,
+      depth: panel.depth,
+    };
+  }
+  if (panel.phase === "published" || panel.phase === "archived") {
+    const brief = panel.brief;
+    return {
+      phase: panel.phase,
+      runId: brief.execution?.runId,
+      symbol: brief.symbol,
+      createdAt: brief.createdAt,
+      sourceCount: brief.sourceCount,
+      depth: brief.depth,
+    };
+  }
+  return { phase: "empty" };
 }
 
 /** Read the live bus + stores once and assemble a structured snapshot. */
@@ -157,6 +236,12 @@ export function captureTerminalState(): TerminalState {
     watchlist = { symbols: entries.map((e) => e.symbol), selected: watchlist.selected };
   }
 
+  // Same store-fallback rule for the portfolio (E6): a closed panel must not
+  // blind get_portfolio — the portfolios store is the canonical truth.
+  if (portfolio === null) {
+    portfolio = portfolioFromStore();
+  }
+
   const focusedPanel = bus.focusedSource;
   const focusedChart =
     (focusedPanel && charts.find((c) => c.panelId === focusedPanel)) || charts[0] || null;
@@ -201,6 +286,7 @@ export function captureTerminalState(): TerminalState {
     charts,
     watchlist,
     portfolio,
+    brief: briefStateForSnapshot(),
     openPanels,
     ...(researchSpace ? { researchSpace } : {}),
     ...(viewport ? { viewport } : {}),

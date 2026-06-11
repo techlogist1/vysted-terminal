@@ -8,8 +8,10 @@
  * ``LLMStreamEvent`` discriminated-union member.
  */
 
+import { normalizeBriefDepth } from "@/lib/brief-ingest";
 import { buildSearchHeaders } from "@/lib/search-headers";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { useBriefStore } from "@/store/brief";
 import { useSettingsStore } from "@/store/settings";
 import type {
   AgentInvocationRequest,
@@ -17,6 +19,85 @@ import type {
   LLMProviderId,
   LLMStreamEvent,
 } from "../../../types/ai";
+import type { BriefStepKind, BriefStepStatus } from "../../../types/brief";
+
+/**
+ * A structured error frame (R10 D43, Team ERRORS contract): `{kind:"error",
+ * message, action?, detail?, code?}`. Structurally assignable to the legacy
+ * `{kind:"error", message}` union member, so every existing consumer keeps
+ * working; the chat surface reads the extra fields via {@link errorFrameOf}.
+ */
+export interface StreamErrorFrame {
+  kind: "error";
+  message: string;
+  /** The next step in plain language ("Top up or switch provider in Settings"). */
+  action?: string;
+  /** The raw provider text — shown behind a "Details" disclosure only. */
+  detail?: string;
+  /** Machine tag ("provider_402", "network", "auth", …). */
+  code?: string;
+}
+
+/** The structured fields of an error event, or null for a legacy plain error. */
+export function errorFrameOf(
+  event: LLMStreamEvent,
+): Pick<StreamErrorFrame, "action" | "detail" | "code"> | null {
+  if (event.kind !== "error") {
+    return null;
+  }
+  const frame = event as StreamErrorFrame;
+  if (frame.action === undefined && frame.detail === undefined && frame.code === undefined) {
+    return null;
+  }
+  return { action: frame.action, detail: frame.detail, code: frame.code };
+}
+
+/** The runtime's `research:begin {run_id} depth={depth} query={…}` engine step
+ *  (Team RUNTIME contract) — the frontend keys its in-flight brief state on it. */
+const RESEARCH_BEGIN_RE = /^research:begin\s+(\S+)\s+depth=(\S+)(?:\s+query=(.*))?$/;
+
+const BRIEF_STEP_KINDS = new Set<string>([
+  "plan",
+  "tool",
+  "search",
+  "compress",
+  "distill",
+  "reflect",
+  "synthesize",
+  "engine",
+]);
+
+/**
+ * Feed the brief lifecycle store from the research-step channel (R10 D39):
+ * the `research:begin` engine step transitions the panel to in_flight, and
+ * every subsequent step rides into the in-flight trace (the store ignores
+ * steps outside a run). One chokepoint — every SSE consumer (chat, palette
+ * one-shots) keeps the panel honest without re-implementing the parse.
+ */
+function feedBriefLifecycle(step: {
+  stepKind: string;
+  detail: string;
+  latencyMs?: number;
+  status: string;
+}): void {
+  const begin = step.stepKind === "engine" ? RESEARCH_BEGIN_RE.exec(step.detail.trim()) : null;
+  if (begin) {
+    useBriefStore.getState().beginRun({
+      runId: begin[1],
+      depth: normalizeBriefDepth(begin[2]),
+      query: (begin[3] ?? "").trim(),
+    });
+    return;
+  }
+  useBriefStore.getState().appendRunStep({
+    kind: (BRIEF_STEP_KINDS.has(step.stepKind) ? step.stepKind : "tool") as BriefStepKind,
+    detail: step.detail,
+    latencyMs: step.latencyMs,
+    status: (step.status === "error" || step.status === "skipped"
+      ? step.status
+      : "ok") as BriefStepStatus,
+  });
+}
 
 export interface ChatRequest {
   provider: LLMProviderId;
@@ -208,8 +289,8 @@ function normalizeEvent(payload: Record<string, unknown>): LLMStreamEvent | null
     };
   }
   if (kind === "research_step") {
-    return {
-      kind: "research_step",
+    const step = {
+      kind: "research_step" as const,
       toolCallId: String(payload.tool_call_id ?? ""),
       tool: String(payload.tool ?? ""),
       stepKind: String(payload.step_kind ?? "tool"),
@@ -218,6 +299,10 @@ function normalizeEvent(payload: Record<string, unknown>): LLMStreamEvent | null
       status: String(payload.status ?? "ok"),
       index: Number(payload.index ?? 0),
     };
+    // One chokepoint: the brief panel's lifecycle (in_flight begin + live
+    // steps) is fed here so EVERY stream consumer keeps the panel honest.
+    feedBriefLifecycle(step);
+    return step;
   }
   if (kind === "agent_plan") {
     const rawSteps = Array.isArray(payload.steps) ? payload.steps : [];
@@ -257,7 +342,21 @@ function normalizeEvent(payload: Record<string, unknown>): LLMStreamEvent | null
     };
   }
   if (kind === "error") {
-    return { kind: "error", message: String(payload.message ?? "unknown error") };
+    // Structured frames (R10 D43) carry action/detail/code; a legacy frame's
+    // bare message passes through untouched. Typed as StreamErrorFrame so the
+    // extra fields survive the union without widening the frozen contract.
+    const frame: StreamErrorFrame = {
+      kind: "error",
+      message: String(payload.message ?? "unknown error"),
+      ...(typeof payload.action === "string" && payload.action
+        ? { action: payload.action }
+        : {}),
+      ...(typeof payload.detail === "string" && payload.detail
+        ? { detail: payload.detail }
+        : {}),
+      ...(typeof payload.code === "string" && payload.code ? { code: payload.code } : {}),
+    };
+    return frame;
   }
   return null;
 }

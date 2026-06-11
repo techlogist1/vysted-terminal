@@ -12,6 +12,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowUp, Plus, Sparkles, Square } from "lucide-react";
 
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
+import { depthTierToWire } from "@/lib/brief-ingest";
 import { launchDelegateRun } from "@/lib/delegate-runs";
 import { isHostActionMutation } from "@/lib/host-actions";
 import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
@@ -23,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAgentCommandStore } from "@/store/agent-command";
 import { useAgentDockStore } from "@/store/agent-dock";
+import { useBriefStore } from "@/store/brief";
 import { useChatPendingStore } from "@/store/chat-pending";
 import { type ResearchDepth, useResearchDepthStore } from "@/store/research-depth";
 import { useAgentModeStore } from "@/store/agent-mode";
@@ -72,6 +74,11 @@ import {
   resolveMention,
 } from "./mentions";
 import { ComposerPlusMenu } from "./ComposerPlusMenu";
+import {
+  isDivergenceNotice,
+  useMessageNoticesStore,
+  type MessageErrorFrame,
+} from "./message-notices";
 import { MentionPicker } from "./MentionPicker";
 import { PlanView } from "./PlanView";
 import { ProposedChangesReview } from "./ProposedChangesReview";
@@ -85,7 +92,7 @@ import {
   matchSlash,
 } from "./slash-commands";
 import { SlashCommandPicker } from "./SlashCommandPicker";
-import { streamAgentInvocation, streamChat } from "./streaming";
+import { errorFrameOf, streamAgentInvocation, streamChat } from "./streaming";
 import { useActiveAgentStore } from "@/store/active-agent";
 import { SuggestionChips } from "./SuggestionChips";
 
@@ -233,8 +240,19 @@ function MessageBody({
       )}
     >
       <MarkdownBody source={source} known={chatKnownSet} onCite={NOOP_CITE} />
+      {/* E10 — the caret's `-mt-4` exists ONLY to cancel the column's gap-4
+          between itself and the preceding body block. With an EMPTY body (the
+          first instants of a stream) there is no preceding block, so the
+          negative margin pulled the caret up OVER the message eyebrow
+          ("VYSTED COPILOT") and clipped it. Clip-safe rule (R8 §3.3): a
+          negative margin may only cancel a real gap — never reach into the
+          container above. */}
       {caret && (
-        <span className="text-charcoal-400 -mt-4 animate-pulse" aria-hidden>
+        <span
+          data-testid="stream-caret"
+          className={cn("text-charcoal-400 animate-pulse", source.trim() && "-mt-4")}
+          aria-hidden
+        >
           ▋
         </span>
       )}
@@ -612,6 +630,7 @@ export function ChatSidebar() {
       switch (action) {
         case "clear":
           clearHistory();
+          useMessageNoticesStore.getState().clear();
           return;
         case "export":
           exportConversation();
@@ -662,7 +681,7 @@ export function ChatSidebar() {
   );
 
   const handleSend = useCallback(
-    async (rawInput: string) => {
+    async (rawInput: string, sendOptions?: { depthOverride?: ResearchDepth }) => {
       // Curated slash registry (FR-100) takes precedence over the legacy verbs.
       // An ACTION dispatches through the gate and returns; a PROMPT composes its
       // template and routes as raw agent text — we DON'T re-run the legacy parser
@@ -688,6 +707,7 @@ export function ChatSidebar() {
       }
       if (result.kind === "clear") {
         clearHistory();
+        useMessageNoticesStore.getState().clear();
         setStatusLine(null);
         return;
       }
@@ -799,9 +819,12 @@ export function ChatSidebar() {
           ?.webSearch ?? undefined;
       // The meta-row depth slider (R7): read at call time, threaded into the
       // invocation options (streaming.ts puts it on the wire as snake_case
-      // `research_depth`). Remember what THIS send carried so the slider can
-      // accent its live stop honestly.
-      const depthForSend = useResearchDepthStore.getState().depth;
+      // `research_depth`). A go-deeper/refresh agent command OVERRIDES the
+      // slider with the tier it escalates to (E2's UI leg) — the re-run's
+      // depth rides the deterministic options floor, never just the prompt
+      // text. Remember what THIS send carried so the slider can accent its
+      // live stop honestly.
+      const depthForSend = sendOptions?.depthOverride ?? useResearchDepthStore.getState().depth;
       setLastSentDepth(depthForSend);
       const deepResearchOptions = {
         deepResearchBackend,
@@ -864,9 +887,14 @@ export function ChatSidebar() {
 
       const handlers = makeHandlers({
         onDelta: (text) => appendDelta(assistantId, text),
-        onError: (message) => {
+        onError: (message, frame) => {
           if (abortRef.current === controller) {
             abortRef.current = null;
+          }
+          // A dead/stopped stream can never publish — settle the brief panel's
+          // in-flight run (restores the prior as archived(run_failed), D39).
+          if (useBriefStore.getState().panel.phase === "in_flight") {
+            useBriefStore.getState().failRun();
           }
           if (controller.signal.aborted) {
             // User-stopped (the composer's stop square / rail cancel): the
@@ -874,6 +902,11 @@ export function ChatSidebar() {
             stopMessage(assistantId);
             endRun(runId, "cancelled");
           } else {
+            // Structured frame (D43): the action/detail/code ride beside the
+            // message for the "Details" disclosure; legacy strings carry none.
+            if (frame) {
+              useMessageNoticesStore.getState().setErrorFrame(assistantId, frame);
+            }
             fail(assistantId, message);
             endRun(runId, "error", message);
           }
@@ -889,6 +922,22 @@ export function ChatSidebar() {
             });
           }
           endRun(runId, "done");
+          // Done-without-publish (E3/D39): a research run began but the stream
+          // ended with NO publish applied or pending review — the run failed
+          // silently. Settle the panel (archive the prior) instead of leaving
+          // a forever-spinning in-flight state. A publish staged in the ASK
+          // gate keeps the run alive: accept publishes it, reject settles it.
+          const brief = useBriefStore.getState();
+          if (brief.panel.phase === "in_flight") {
+            const publishPending = useProposedChangesStore
+              .getState()
+              .changes.some(
+                (c) => c.status === "pending" && c.action.name === "publish_brief",
+              );
+            if (!publishPending) {
+              brief.failRun();
+            }
+          }
         },
         onToolUse: (name, input, toolCallId) => {
           if (isHostActionMutation(name)) {
@@ -931,7 +980,16 @@ export function ChatSidebar() {
             appendToolStep(assistantId, readToolLabel(name));
           }
         },
-        onResearchStep: (step) => appendResearchStep(assistantId, step),
+        onResearchStep: (step) => {
+          // The runtime's end-of-stream publish-divergence notices ride the
+          // engine-step channel (D39) — render them as quiet system chips in
+          // the transcript, not telemetry rows in the step trace.
+          if (isDivergenceNotice(step.stepKind, step.detail)) {
+            useMessageNoticesStore.getState().addNotice(assistantId, step.detail);
+            return;
+          }
+          appendResearchStep(assistantId, step);
+        },
         // Track 6 #2: surface the plan up front (visible plan-then-execute). It is
         // ADVISORY — the loop below still drives execution and stages each
         // host-action through the existing gate, so we don't pre-stage here (that
@@ -1027,7 +1085,12 @@ export function ChatSidebar() {
       return;
     }
     lastAgentCmdSeq.current = agentCommand.seq;
-    void handleSend(agentCommand.prompt);
+    // A depth-carrying command (go-deeper / archived-brief refresh) OVERRIDES
+    // the slider for THIS send (quick→normal, deep→deep, heavy→ultra) so the
+    // escalation rides the deterministic `research_depth` options floor — the
+    // prompt's "at depth=<tier>" alone could be ignored by a weak model (E2).
+    const depthOverride = agentCommand.depth ? depthTierToWire(agentCommand.depth) : undefined;
+    void handleSend(agentCommand.prompt, depthOverride ? { depthOverride } : undefined);
   }, [agentCommand, streaming, handleSend]);
 
   // Drain the FIFO prompt queue (R7 Track C): prompts typed while a stream was
@@ -1170,24 +1233,22 @@ export function ChatSidebar() {
                   pending={message.pending}
                   briefPublished={message.briefPublished}
                 />
+                <MessageNotices messageId={message.id} />
                 {message.stopped && (
                   <div className="text-charcoal-500 text-caption mt-1">stopped</div>
                 )}
                 {message.error && (
-                  <div className="text-caption mt-1 flex items-center gap-2">
-                    <span className="text-negative">Something went wrong — {message.error}</span>
-                    {lastPrompt && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          void handleSend(lastPrompt);
-                        }}
-                        className="text-charcoal-300 hover:text-lume shrink-0 underline transition-colors"
-                      >
-                        Retry
-                      </button>
-                    )}
-                  </div>
+                  <ErrorRow
+                    messageId={message.id}
+                    message={message.error}
+                    onRetry={
+                      lastPrompt
+                        ? () => {
+                            void handleSend(lastPrompt);
+                          }
+                        : undefined
+                    }
+                  />
                 )}
               </motion.li>
             ))}
@@ -1336,6 +1397,83 @@ function ContextBadge({ text }: { text: string }) {
       className="border-charcoal-700 text-charcoal-300 text-caption border-b px-4 py-1 font-mono tracking-wide uppercase"
     >
       {text}
+    </div>
+  );
+}
+
+/** The runtime's end-of-stream publish-divergence notices (D39) — quiet
+ *  system chips under the message body: caption-13, zinc, no accent. */
+function MessageNotices({ messageId }: { messageId: string }) {
+  const notices = useMessageNoticesStore((s) => s.notices[messageId]);
+  if (!notices || notices.length === 0) {
+    return null;
+  }
+  return (
+    <div className="mt-1 flex flex-col gap-1">
+      {notices.map((notice, i) => (
+        <div
+          key={i}
+          className="border-charcoal-700 bg-charcoal-850 text-caption text-charcoal-400 self-start border px-2 py-1 font-mono"
+        >
+          {notice}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * The transcript error row (R10 D43 — every failure speaks human): the plain
+ * message in the negative color, the NEXT STEP as its own quiet line, and the
+ * raw provider text behind a "Details" disclosure (charcoal — telemetry, not
+ * alarm). A legacy plain-string error (no structured frame) renders exactly
+ * as before. Retry stays.
+ */
+function ErrorRow({
+  messageId,
+  message,
+  onRetry,
+}: {
+  messageId: string;
+  message: string;
+  onRetry?: () => void;
+}) {
+  const frame = useMessageNoticesStore((s) => s.errorFrames[messageId]);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  return (
+    <div className="text-caption mt-1 flex flex-col gap-1">
+      <div className="flex items-center gap-2">
+        <span className="text-negative">
+          {frame ? message : `Something went wrong — ${message}`}
+        </span>
+        {onRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="text-charcoal-300 hover:text-lume shrink-0 underline transition-colors"
+          >
+            Retry
+          </button>
+        )}
+      </div>
+      {frame?.action && <div className="text-charcoal-300">{frame.action}</div>}
+      {frame?.detail && (
+        <div className="flex flex-col gap-1">
+          <button
+            type="button"
+            onClick={() => setDetailsOpen((v) => !v)}
+            aria-expanded={detailsOpen}
+            className="text-charcoal-500 hover:text-charcoal-300 self-start underline transition-colors"
+          >
+            {detailsOpen ? "Hide details" : "Details"}
+          </button>
+          {detailsOpen && (
+            <pre className="text-charcoal-400 bg-charcoal-850 border-charcoal-700 overflow-x-auto border px-2 py-1 font-mono break-words whitespace-pre-wrap">
+              {frame.detail}
+            </pre>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -1851,7 +1989,9 @@ function SendStopButton({
 
 interface InternalHandlers {
   onDelta: (text: string) => void;
-  onError: (message: string) => void;
+  /** `frame` carries the STRUCTURED part of an R10 error frame (D43) — null
+   *  for a legacy plain-string error or a transport failure. */
+  onError: (message: string, frame?: MessageErrorFrame | null) => void;
   onDone: (usage: { inputTokens: number; outputTokens: number } | null) => void;
   onToolUse: (name: string, input: Record<string, unknown>, toolCallId: string) => void;
   onResearchStep: (step: ResearchStepView) => void;
@@ -1883,7 +2023,7 @@ function makeHandlers(internal: InternalHandlers): {
       } else if (event.kind === "agent_plan") {
         internal.onPlan({ goal: event.goal, steps: event.steps, note: event.note });
       } else if (event.kind === "error") {
-        internal.onError(event.message);
+        internal.onError(event.message, errorFrameOf(event));
       } else if (event.kind === "done") {
         internal.onDone(
           event.usage
