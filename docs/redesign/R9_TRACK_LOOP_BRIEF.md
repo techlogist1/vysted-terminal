@@ -14,6 +14,7 @@ which A pushes early on `worktree-agent-r9-tiers` — read it from origin.
 ## Workstreams
 
 ### B1 — Filing extraction robustness (gate: fresh SAKSOFT deep run surfaces real Q4 FY26
+
 quarterly figures from the primary outcome filing)
 The lead's diagnosis findings are in `docs/redesign/R9_SAKSOFT_DIAGNOSIS.md` (committed
 before your dispatch — read it FIRST; it has the root cause, the real attachment URLs,
@@ -27,6 +28,7 @@ than a false "not parsed"), page-selection keyword coverage for Indian quarterly
 Regression payloads: R8's archived briefs live in `docs/redesign/verification/r8/`.
 
 ### B2 — Last-mile relevance (gate: zero off-entity sources in fresh SAKSOFT + ROUTE runs)
+
 relevance.py: partial-token leaks (Coromandel/Tea Post rode into SAKSOFT; Nestle/Zomato
 cluster into ROUTE). Tighten entity matching so an off-entity source NEVER counts as a
 source: require a strong-name or symbol match (not generic-token overlap), keep the tiered
@@ -34,9 +36,11 @@ floors so thin micro-caps still finish. Replay R8 regression payloads + add fixt
 the operator's failing runs.
 
 ### B3 — Assembly completeness (gate: fresh ROUTE deep run nails Q4 numbers AND assembles
+
 the ₹11/share FY26 dividend total its secondary sources carry)
 The synthesis step must assemble the complete picture ACROSS sources, not transcribe the
 primary filing's literal text. Adopt (from the June-2026 frontier scan, D30):
+
 1. **CK-Pro structured progress state**: restructure the iter distill/working-report step
    into fixed sections — facts-established (with per-fact source indices), open questions,
    dead ends ("BSE search empty for X — don't retry"), planned next. Cuts wasted re-queries
@@ -46,11 +50,12 @@ primary filing's literal text. Adopt (from the June-2026 frontier scan, D30):
    title+excerpt only). Measure: unsupported-claim verdicts should drop on the regression set.
 3. **WebWeaver-lite (heavy/ultra only)**: synthesis emits an outline first, each section
    bound to explicit source indices, then writes per-section against only those sources.
-Cross-source numeric assembly: when multiple sources carry components of one metric
-(interim + final dividends), the working report holds them as separate facts and synthesis
-is prompted to compute/state the assembled total WITH all component citations.
+   Cross-source numeric assembly: when multiple sources carry components of one metric
+   (interim + final dividends), the working report holds them as separate facts and synthesis
+   is prompted to compute/state the assembled total WITH all component citations.
 
 ### B4 — Cross-verification rule (gate 5)
+
 On tier_a, when the active chat model has native web search (A's interface): the loop runs
 BOTH channels — SearXNG retrieval AND native search — and cross-verifies claims between
 them before the brief renders (extend verify.py: numeric claims appearing in one channel
@@ -61,6 +66,7 @@ within existing depth walls. ULTRA wall on slow chat models: keep the honest ski
 rebalance the ultra profile wall if evidence supports it (log in your report).
 
 ### B5 — Depth honesty
+
 depth.py profiles stay deterministic. The composer slider remains the FLOOR (R7's
 test_composer_slider_is_the_floor_model_may_escalate stays green).
 

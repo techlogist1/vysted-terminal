@@ -14,6 +14,7 @@ contract is missing something, leave a `R9_TRACK_SETTINGS_REPORT.md` note and st
 locally — the lead reconciles at merge).
 
 ## D1 — The Research surface (gates 1, 9; defect V9: the operator could not FIND tier
+
 controls after R8)
 
 One section, radio-clear, two visible tiers, beautiful:
@@ -36,6 +37,7 @@ One section, radio-clear, two visible tiers, beautiful:
   "Advanced" disclosure if kept; kill if half-wired — log the verdict).
 
 ## D2 — Settings proportion rebuild (gate 9: zero clipped/truncated text, default AND
+
 narrow; V4)
 
 Rebuild on the law: section jump-nav chips that never clip/wrap awkwardly (collapse ladder:
