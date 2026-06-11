@@ -1438,7 +1438,9 @@ function KeybindingsSection() {
           return (
             <div key={category}>
               <GroupLabel label={label} />
-              <Card>
+              {/* @container: the card is the query container so the row ladder
+                  below keys off the PANEL's width, not the window's. */}
+              <Card className="@container">
                 {group.map(({ actionId, def, combo }) => {
                   const isRecording = recording === actionId;
                   const isOverridden = actionId in overrides;
@@ -1447,13 +1449,20 @@ function KeybindingsSection() {
                     <div
                       key={actionId}
                       className={cn(
-                        // Collapse order (R8 §3.4): the kbd/record cluster
-                        // wraps below the label as a unit at narrow widths.
+                        // Collapse ladder (R8 §3.4), uniform per CARD so row
+                        // shapes never mix: above 576px card width the label
+                        // column is flex-1 basis-0 — its copy never decides
+                        // the wrap point, every row keeps its kbd/record
+                        // cluster inline on one aligned column (D2). Below
+                        // 576px ALL rows stack: the label takes basis-full and
+                        // the cluster wraps under it as a unit (ml-auto keeps
+                        // it right-aligned). The description's truncate is the
+                        // genuine last resort at sub-stack starvation.
                         "flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3",
                         conflicted && "border-warning/50 border-l-2",
                       )}
                     >
-                      <div className="flex min-w-0 flex-col">
+                      <div className="flex min-w-0 flex-1 flex-col @max-[576px]:basis-full">
                         <span className="text-charcoal-100 text-body">{def.label}</span>
                         <span className="text-charcoal-400 text-caption mt-1 truncate">
                           {def.description}

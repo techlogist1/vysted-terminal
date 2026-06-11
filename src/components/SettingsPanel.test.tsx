@@ -134,6 +134,21 @@ describe("SettingsPanel", () => {
     expect(binding.textContent).toMatch(/K$/);
   });
 
+  it("keeps every keybinding row's label column flex-1 so the cluster never wraps on copy length (D2)", () => {
+    render(<SettingsPanel />);
+    // Row shape: kbd → cluster div → row div; the label column is the row's
+    // first child. flex-1 (basis-0) means description width never decides the
+    // wrap point — every row keeps its kbd/Record/reset cluster inline on one
+    // aligned column at default width, with truncate as the live last resort.
+    const kbds = screen.getAllByLabelText(/ binding$/);
+    expect(kbds.length).toBeGreaterThan(0);
+    for (const kbd of kbds) {
+      const labelCol = kbd.parentElement?.parentElement?.firstElementChild;
+      expect(labelCol?.className).toContain("flex-1");
+      expect(labelCol?.className).toContain("min-w-0");
+    }
+  });
+
   it("recording a key remaps the binding via setBinding", () => {
     render(<SettingsPanel />);
 

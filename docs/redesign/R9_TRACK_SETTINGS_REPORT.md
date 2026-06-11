@@ -41,9 +41,13 @@ selection):
 - Jump-nav collapse ladder: full → designed short labels (Providers / Research /
   Region / Keys / Advanced) → one "Sections ⋯" overflow menu. Gates re-pinned to
   MEASURED row widths (578px full / 432px short in uppercase JetBrains Mono
-  micro); verified live at 1280/980 (full), 900/820 (short), 760 (overflow) —
+  micro); verified live at 1280/980 (full), 900 (short), 760 (overflow) —
   zero clip/wrap at every step (the first estimate, 440px, clipped at 530 — the
-  capture round caught it).
+  capture round caught it). An 820px window sits within scrollbar-width of the
+  440px short gate and renders short OR overflow depending on the rig — both
+  steps fit, neither clips, so the ladder degrades safely either way (fix-round
+  correction: the original "820 (short)" claim did not reproduce on the
+  reviewer's rig).
 - Provider rows on one designed slot grid (name+status flex, w-16 default slot,
   w-28 key slot, w-8 remove slot); SET DEFAULT is now the short form "Default"
   (button) / check+"Default" (active state) — never wraps, one column.
@@ -55,7 +59,10 @@ selection):
   color). One icon step (`ICON_14`, the law's 14px) with a single `tokens-ok`
   justification line; partition audit = zero violations.
 - Swept all five sections at 1280 + minimum panel width; the India region row
-  fits; keybinding rows wrap their kbd/record cluster below the label as a unit.
+  fits. Keybinding rows ride a uniform per-CARD collapse ladder (fix round, see
+  below): label column `flex-1` keeps every row's kbd/record cluster inline on
+  one aligned column while the card is ≥576px; below that ALL rows stack the
+  cluster under the label as a unit — row shapes never mix at any width.
 
 ### D3 — appearance knobs: KILLED (V6)
 
@@ -115,3 +122,46 @@ verdicts (full table appended to `verification/R9_DEFECT_CATALOGUE.md`):
    `config/default-layout.ts`), per the works-perfectly-or-dies rule.
 5. Dev-rig note: Vite under `.claude/worktrees/` does not hot-reload (chokidar
    ignores dot-directories) — restart the server to pick up edits.
+
+## Fix round (adversarial review blocker)
+
+**Blocker:** at 1280 (Settings solo) the keybindings card mixed row shapes —
+rows with long descriptions wrapped their kbd/Record/reset cluster onto a
+second line while short rows kept it inline-right, breaking D2's row-to-row
+control-column alignment. Mechanism: the row was `flex-wrap` and the label div
+had no `flex-1`, so its flex base size was the description's max-content width
+(~525px for the old 70-char Edit-panel copy) and the row wrapped before the
+description's own `truncate` could ever engage.
+
+**Fix (both halves of the reviewer's prescription, done uniformly per card):**
+
+1. `SettingsPanel.tsx` — the keybindings `Card` is now a `@container`; the
+   label column is `flex-1` (basis-0, so its copy never decides the wrap
+   point) with `@max-[576px]:basis-full` (below 576px card width ALL rows
+   stack the cluster under the label as a unit, ml-auto right-aligned). Row
+   shapes are uniform at every width; `truncate` is the genuine last resort
+   at sub-stack starvation. Container-query variant follows the
+   `brief-blocks.tsx` precedent; audit script stays clean.
+2. `store/keybindings.ts` — designed short descriptions for the four
+   over-budget actions (all defaults now ≤43 chars, fitting the stacked
+   min-width row with zero truncation; the old copy truncated mid-word in the
+   previous min capture): "Switch to read-only Ask mode." / "Switch to
+   single-panel Edit mode." / "Switch to multi-panel Build mode." / "Switch to
+   autonomous Delegate mode." / "Show or fully hide the agent column."
+
+**Pins:** `SettingsPanel.test.tsx` asserts every keybinding row's label column
+is `flex-1 min-w-0`; `keybindings.test.ts` pins the copy budget (description +
+non-mac formatted combo ≤56 chars for the inline state, description alone ≤43
+for the stacked state).
+
+**Evidence (headless Chrome CDP, Settings solo'd by closing the other tabs,
+per-row `getBoundingClientRect` + `scrollWidth` audit):**
+
+- 1280 (card 622px): 15/15 rows inline, clusters on one right column, zero
+  truncation → `1280-keybindings.png` (REPLACES the defective capture the
+  reviewer cited).
+- 760 with agent column (card 377px): 15/15 rows uniformly stacked, zero
+  truncation → `min-keybindings.png` (the previous capture truncated
+  mid-word: "surgical chan…").
+- 460, agent column hidden (card 399px): 15/15 uniformly stacked, zero
+  truncation → `460-narrow-keybindings.png` (new).

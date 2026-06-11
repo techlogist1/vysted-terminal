@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  DEFAULT_KEYBINDINGS,
   formatBinding,
   matchesEvent,
   normalizeBinding,
@@ -122,6 +123,23 @@ describe("formatBinding", () => {
   it("is SSR-safe (no navigator → treats as non-mac)", () => {
     vi.stubGlobal("navigator", undefined);
     expect(formatBinding("mod+k")).toBe("Ctrl+K");
+  });
+});
+
+describe("DEFAULT_KEYBINDINGS copy budget", () => {
+  it("keeps every default description short enough for the settings rows at the gated widths", () => {
+    // Settings keybinding row geometry (R9 gate 9: zero truncated text).
+    // Inline state (card ≥ 576px; 1280 default = ~590px inner row): ~128px of
+    // fixed cluster chrome (Record + reset + gaps + kbd padding) leaves ~58
+    // mono-caption chars shared by the description and the formatted combo.
+    // Stacked state (catalogued min capture, ~345px inner row): the
+    // description gets the full row ≈ 44 mono-caption chars on its own.
+    vi.stubGlobal("navigator", { platform: "Win32", userAgent: "Windows NT" });
+    for (const [actionId, def] of Object.entries(DEFAULT_KEYBINDINGS)) {
+      const combined = def.description.length + formatBinding(def.keys).length;
+      expect(combined, `${actionId}: "${def.description}"`).toBeLessThanOrEqual(56);
+      expect(def.description.length, `${actionId}: "${def.description}"`).toBeLessThanOrEqual(43);
+    }
   });
 });
 
