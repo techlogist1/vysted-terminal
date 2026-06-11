@@ -1,8 +1,131 @@
 # R9 Run Report — Two-tier research & reference-grade design
 
-(Morning report is written at close-out and inserted ABOVE this line.)
+## Morning report
+
+**R9 shipped.** The research architecture is two tiers, the research brain is decoupled
+from the chat model, and the visual layer was rebuilt against external authority instead
+of its own taste — with the proportion disease root-caused as a structural bug, not a
+styling debt. The branch is pushed and tagged `r9-two-tier`; ci-local is green end to end
+(2,045 pytest / 1,409 vitest / clippy / ruff / audit), the PyInstaller binary builds and
+boots, the smoke test passes including the ICONIKSPEV hard check, and the app is left
+running on the clean five-panel default — CONNECTED on OpenRouter · DeepSeek V4 Flash.
+
+**The two tiers, live.** Settings → Research shows exactly two radio-clear options.
+Tier A "Unlimited (Local)": the managed SearXNG card (READY at :8888 with status/Stop and
+an advanced custom-URL disclosure) paired with whatever chat model is active; when SearXNG
+is stopped, research keeps functioning on the invisible keyless floor and the brief
+carries an honest `keyless-fallback` id that renders a quiet "Limited keyless search —
+set up Unlimited local research" nudge (driven live both ways; a SearXNG-served brief
+stamps `searxng`, and a fresh sidecar process now world-derives once so a running
+container is never bypassed — the R8 "green but unused" disease came back in a new form
+and died in this battery). Tier B "Hosted research model": per-stop OpenRouter research
+models with live-verified pricing — all three stops proven with REAL runs on your key,
+chat pinned on DeepSeek the whole time: NORMAL → `perplexity/sonar` ($1/M in · $1/M out ·
+$5/1k searches), DEEP → `perplexity/sonar-reasoning-pro` ($2/$8 · $5/1k; 15-source brief),
+ULTRA → `perplexity/sonar-deep-research` ($2/$8 · $5/1k · $3/M reasoning; a 50-source,
+90k-char report). Every brief and step carries `research-model:<id>` as routing evidence.
+The BYOK scraper tier (Exa/Firecrawl/hosted web-plugin) is deleted, config migrated.
+All eight picker models carry live-verified pricing hints (o4-mini-deep-research,
+o3-deep-research, sonar-pro, sonar-pro-search, grok-4.3 as alternates).
+
+**The research engine kept its brain and gained judgment.** The June-2026 frontier scan
+confirmed the IterResearch backbone is still the right architecture (the frontier's gains
+are trained weights, not loop structure) and three bookkeeping adopts landed: CK-Pro
+structured progress state with a dead-ends ledger, full-text citation auditing, and
+WebWeaver-lite section-bound synthesis. The SAKSOFT failure was root-caused live — the
+outcome PDF's results tables are raster scans; pypdf reads the cover letter and the old
+code believed it read everything — and the fix ships: per-page honesty signals, a
+digit-sparse digital-twin fallback visit, an earnings-presentation band in the disclosure
+row mix, filing cover pages always surviving page selection, and a 9k extract budget for
+exchange archives. Fresh ROUTE deep runs nail Q4 FY26 to the filing (₹1,130.90 Cr revenue,
+₹109.32 Cr PAT attributable, [1] = the May-7 outcome) with ZERO off-entity sources, and
+the assembly directive provably assembles across sources (a ₹3+₹3+₹2 = ₹8 total with
+per-component citations — see NEEDS-MANUAL-CHECK for the third-interim variance). SAKSOFT
+runs are clean, honest about the scans, assemble their own dividend total (₹0.45+₹0.55),
+and never fabricate. The ULTRA cross-check round now actually RUNS (a reserved 90-second
+wall slice after three live honest skips) and emits per-claim verdict rows.
+
+**The surface holds against the references.** The root cause (D26): R4's spacing tokens
+halved Tailwind's convention for an arbitrary subset of steps — h-6 rendered 12px while
+h-7 rendered 28px and h-8 16px; 1,897 call sites on one convention, 51 on the other,
+interleaved on every surface. Standard semantics are restored, one ~1.2 modular type
+scale (11/13/16/19/23/28), an 8-pt grid, and `scripts/audit-design-tokens.mjs` enforces
+it (274 violations swept to zero). The composer is the Claude reference structurally —
+one field container, + inside-left (absorbing persona/autonomy/mode), quiet model text,
+depth-keyed send (lume → peach → ember, pixel-sampled by the verifier) — and the
+fresh-context verifier passed it against the live Claude capture. The chart toolbar,
+notes ladder, settings forms, watchlist, and panel chrome were swept to the law; the
+adversarial sweep then found five real defects in the rebuilt surfaces (metric cells
+truncating in narrow rails, a missing sub-360px toolbar rung, markdown-breaking snippet
+ellipsis, stale four-mode keybinding rows, ultra-depth mislabeling) — all fixed, pinned,
+and re-verified live the same session.
+
+**Safety re-verified live (§6.5):** with autonomy on AUTO — panel arranges auto-applying
+seconds earlier in the same session — the order proposal stayed gated behind the
+confirmation dialog ("never executes without your explicit approval") and the append-only
+audit log shows zero entries: nothing ever reached a broker stage. Personas have hands:
+Benjamin Graham, selected via the palette, analyzed INFY with his own toolkit (book
+value, P/B, current ratio) over live data and loaded panels en route. "Arrange my
+windows" is content-aware (pattern=auto): with a published brief + chart + watchlist
+open it gave the brief the dominant column, the chart the wide secondary, and railed/
+tabbed the rest — and the narration described exactly what rendered. Depth-cost parity
+is measured (1 step at NORMAL, 1 step at ULTRA for the same arrange) and pinned by a
+byte-identical-request test.
+
+### The research-model economics (verified live on OpenRouter, 2026-06-11)
+
+| Stop | Model | Price |
+| --- | --- | --- |
+| NORMAL | perplexity/sonar | $1/M in · $1/M out · $5/1k searches |
+| DEEP | perplexity/sonar-reasoning-pro | $2/M in · $8/M out · $5/1k searches |
+| ULTRA | perplexity/sonar-deep-research | $2/M in · $8/M out · $5/1k searches · $3/M reasoning |
+
+A full ULTRA run in the battery produced a 50-source 90k-char report for roughly a quarter
+(the run's cost line read ~$0.25). Alternates (all live-priced in the picker):
+sonar-pro $3/$15·$5/1k, sonar-pro-search $3/$15·$18/1k (agentic), o4-mini-deep-research
+$2/$8·$10/1k, o3-deep-research $10/$40·$10/1k, grok-4.3 $1.25/$2.50·$5/1k. No
+Tongyi/Kimi-Researcher/GLM/MiniMax research-native model is served on OpenRouter today
+(re-verified; D3 still true).
+
+### NEEDS-MANUAL-CHECK
+
+1. **In-webview drags** (dockview tab reorder, node-editor palette→canvas) — no rig on
+   this Mac synthesizes trusted drags; click through by hand.
+2. **Your taste pass** — the law held under a fresh-context verifier and an adversarial
+   sweep, but taste is yours. Start with the composer and the Research settings card.
+3. **DeepSeek direct account is out of balance** (402 mid-battery). Chat default moved to
+   the SAME model via your funded OpenRouter key (D34); top up and flip the picker back
+   if you prefer direct.
+4. **SAKSOFT live quarterly figures**: the pipeline provably extracts them (the digital
+   presentation yields the full income statement in-process — revenue ₹2,488.45 Mn, PAT
+   ₹359.31 Mn, EPS ₹2.81) but bseindia's AttachLive serving is intermittent per run;
+   live runs are honest about the scans either way. One re-run on a morning when BSE
+   behaves (or an NSE-feed roll) completes it.
+5. **ROUTE ₹11/share**: the cross-source assembly mechanism works (₹8 = ₹3+₹3+₹2
+   assembled with citations); the run's retrieval surfaced two of three interim
+   announcements. A re-roll that catches the third interim (or the outcome PDF page
+   carrying the aggregate line) lands the ₹11.
+6. **Dual-channel cross-verify live exercise** needs ONE direct anthropic/openai/gemini/
+   xai key (OpenRouter exposes no native-search models; D35). The implementation is
+   test-pinned; the cross-check round itself runs live.
+7. **Smaller polish** (sweep advisories): plus-menu scroll-fold bottom inset; depth chip
+   rest-state fill one notch louder than Claude's; model selector lacks a caret
+   affordance; orphaned `plugin-secret:vysted-search-exa` keychain entry (the Exa lane
+   died — delete by hand in Keychain Access); settings 460-sliver captures should be
+   retaken on the integrated build (the row-wrap fix landed after the pack).
+
+### How to launch
+
+`cd ~/Documents/dev/vysted-terminal && pnpm tauri:dev` — sidecars build automatically;
+the app is already running on the clean five-panel default (CONNECTED · OpenRouter ·
+DeepSeek V4 Flash, research on Unlimited (Local) with SearXNG READY, autonomy ASK). Your
+gate-battery workspace is archived as `__autosave__.vysted-workspace.bak-r9-gates`.
+Evidence: `docs/redesign/verification/r9/` (gates/, composer/, research-tiers/,
+settings/, briefs/ — 29 archived regression briefs), decisions D26–D35, defects + kill
+lists in `verification/R9_DEFECT_CATALOGUE.md`, track reports `R9_TRACK_*_REPORT.md`.
 
 ---
+
 
 ## Telemetry (running)
 

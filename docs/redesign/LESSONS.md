@@ -68,3 +68,27 @@ Consulted before each phase; appended as the run learns.
 - The smoke-test pre-flight kills on ANY running vysted processes — stop the dev app before running it.
 - macOS bash 3.2: no ${var,,} lowercasing in scripts.
 - The tauri-plugin-mcp socket bridge WEDGES (requests hang, not refuse) after Vite HMR re-runs the bridge init ("Bridge already initialized" warn) — restart the whole dev stack after ANY frontend change before driving the rig; never interleave merges with rig-driven verification.
+
+## Learned during R9
+
+- Capture-scale trap: rigcap PNGs are 2560×1664 (2×) but render at varying thumb
+  widths — window coords = thumb_x × (1280 / thumb_width). Mis-scaling cost three
+  silent mis-clicks (palette, composer, radios). Measure from the FILE pixels.
+- The composer's right-anchored control cluster SHIFTS with the model-name width
+  ("Grok 4.3" vs "DeepSeek V4 Flash") — re-measure the depth pill per model.
+- Palette Enter selects the FIRST row ("Ask agent: …"), which routes the text to
+  chat — click the Open/Action row instead.
+- ci-local's final stage (`cd sidecar && python …`) breaks a RELATIVE venv PATH
+  entry — use `PATH=/abs/path/sidecar/.venv/bin:$PATH`.
+- bseindia.com `AttachLive` PDF serving is INTERMITTENT (4-byte responses, then
+  4kB with figures minutes later) — the digital-twin fallback can flake per run;
+  nsearchives is the reliable host.
+- A keyless `/agents/*/invoke` curl (no provider arg) routes to the agent's
+  ollama default and silently cold-loads a 4GB model on this M1 — always pass
+  `provider` in probes.
+- The tauri-plugin-mcp socket was dead-on-arrival on every R9 stack (zero bytes
+  even for list_windows on a fresh boot, no HMR involved) — the trusted
+  CGEvent/AppleScript rig + Quartz capture is the only dependable drive path.
+- The autosave-blob PRUNE trick (keep settings-class fields, drop session debris)
+  resets the cockpit but the provider default may demote through restore guards —
+  set `defaultProviderId` on the FULL post-boot blob with the app stopped.
