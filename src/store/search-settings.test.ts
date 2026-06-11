@@ -68,7 +68,7 @@ describe("search-settings store (R9 two-tier)", () => {
   });
 
   it("exposes NO legacy tier vocabulary — the keyless/Exa era is dead", () => {
-    const s = useSearchSettingsStore.getState() as Record<string, unknown>;
+    const s = useSearchSettingsStore.getState() as unknown as Record<string, unknown>;
     expect(s.tier).toBeUndefined();
     expect(s.hostedEngine).toBeUndefined();
     expect(s.exaDirect).toBeUndefined();

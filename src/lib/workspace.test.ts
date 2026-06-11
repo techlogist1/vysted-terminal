@@ -226,7 +226,7 @@ describe("workspace serialization", () => {
       enabledModules: {},
       searchSettings: { tier: "native", searxngUrl: "", researchTier: "t2_searxng" } as never,
     });
-    const state = useSearchSettingsStore.getState() as Record<string, unknown>;
+    const state = useSearchSettingsStore.getState() as unknown as Record<string, unknown>;
     expect(state.researchTier).toBe("tier_a");
     expect(state.tier).toBeUndefined();
     expect(state.exaDirect).toBeUndefined();
