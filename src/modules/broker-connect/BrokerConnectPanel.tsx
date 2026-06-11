@@ -327,7 +327,7 @@ function StatusBadge({ status }: { status: BrokerState["status"] }) {
   return (
     <span
       data-testid="broker-status-badge"
-      className={cn("rounded-control text-micro px-1.5 py-[1px] uppercase", color)}
+      className={cn("rounded-control text-micro px-1 py-0.5 uppercase", color)}
     >
       {status}
     </span>
@@ -339,7 +339,7 @@ function ModeBadge({ mode }: { mode: BrokerMode }) {
     <span
       data-testid="broker-mode-badge"
       className={cn(
-        "rounded-control text-micro px-1.5 py-[1px] uppercase",
+        "rounded-control text-micro px-1 py-0.5 uppercase",
         mode === "paper" ? "bg-warning/15 text-warning" : "bg-negative/15 text-negative",
       )}
     >
@@ -352,7 +352,7 @@ function ReadOnlyBadge() {
   return (
     <span
       data-testid="broker-readonly-badge"
-      className="bg-warning/20 text-warning rounded-control text-micro px-1.5 py-[1px] uppercase"
+      className="bg-warning/20 text-warning rounded-control text-micro px-1 py-0.5 uppercase"
     >
       read-only
     </span>

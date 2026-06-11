@@ -62,6 +62,9 @@ export interface KiteStaticIpBannerProps {
 
 const DEFAULT_POLL_INTERVAL_MS = 30_000;
 
+// 14px banner icon beside caption-13 text (R9 §3 icon rung).
+const BANNER_ICON = "size-3.5"; // tokens-ok: 14px icon — R9 §3 rung
+
 async function defaultFetcher(url: string): Promise<KiteStaticIpStatus> {
   const response = await fetch(url);
   if (!response.ok) {
@@ -140,7 +143,7 @@ export function KiteStaticIpBanner({
           className,
         )}
       >
-        <Globe className="h-3.5 w-3.5" />
+        <Globe className={BANNER_ICON} />
         <span>Checking Kite static-IP status…</span>
       </div>
     );
@@ -157,7 +160,7 @@ export function KiteStaticIpBanner({
           className,
         )}
       >
-        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+        <AlertTriangle className={cn(BANNER_ICON, "mt-0.5 shrink-0")} />
         <div className="flex-1">
           <div className="font-medium">Static-IP status unavailable</div>
           <div className="text-warning/80">{error}</div>
@@ -182,7 +185,7 @@ export function KiteStaticIpBanner({
           className,
         )}
       >
-        <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+        <CheckCircle2 className={cn(BANNER_ICON, "mt-0.5 shrink-0")} />
         <div className="flex-1">
           <div className="font-medium">Kite static IP matches</div>
           <div className="text-positive/80">
@@ -203,7 +206,7 @@ export function KiteStaticIpBanner({
         className,
       )}
     >
-      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+      <AlertTriangle className={cn(BANNER_ICON, "mt-0.5 shrink-0")} />
       <div className="flex-1">
         <div className="font-medium">Kite static IP mismatch — orders may be rejected</div>
         <div className="text-negative/80">{status.message}</div>

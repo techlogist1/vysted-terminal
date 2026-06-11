@@ -67,7 +67,7 @@ export function BrokerReadsSection({ broker }: { broker: BrokerId }) {
   }, [open, reads.positions, loading, load]);
 
   return (
-    <div className="mt-1.5" data-testid={`broker-reads-${broker}`}>
+    <div className="mt-2" data-testid={`broker-reads-${broker}`}>
       <button
         type="button"
         onClick={handleToggle}
@@ -119,7 +119,7 @@ function ProvenanceBadge({
     <span
       data-testid="broker-read-provenance"
       className={cn(
-        "rounded-control text-micro px-1 py-[1px] uppercase",
+        "rounded-control text-micro px-1 py-0.5 uppercase",
         synthetic ? "bg-warning/20 text-warning" : "bg-positive/15 text-positive",
       )}
       title={synthetic ? "Paper-mode synthetic placeholder — not a real broker read" : provider}
