@@ -53,3 +53,7 @@ docs/redesign/verification/*.md
 # re-indenting them would undermine the "verbatim observed shape" guarantee the
 # provider tests document. Same rationale as the resolver masters above.
 sidecar/tests/fixtures/
+# Archived research-brief regression artifacts — byte-preserved evidence,
+# never reformatted (r8 precedent below if present).
+docs/redesign/verification/r8/
+docs/redesign/verification/r9/briefs/
