@@ -695,3 +695,57 @@ describe("briefFromInput backend carry — symbol-less Tier B predecessor", () =
     expect(useBriefStore.getState().brief?.backend).toBe("research-model:perplexity/sonar");
   });
 });
+
+describe("publish_brief same-turn shrink guard (R9 D33)", () => {
+  it("keeps the engine's richer brief when the model's re-publish strictly shrinks it", () => {
+    const engineBrief = {
+      query: "saksoft",
+      symbol: "SAKSOFT",
+      mode: "DEEP",
+      depth: "deep",
+      markdown: "## Engine report\n" + "evidence [1] line.\n".repeat(200),
+      sources: Array.from({ length: 12 }, (_, i) => ({
+        url: `https://example.com/${i}`,
+        title: `s${i}`,
+        excerpt: "",
+      })),
+      sourceCount: 12,
+      webAvailable: true,
+      backend: "native",
+      createdAt: Date.now() - 4_000,
+    };
+    useBriefStore.setState({ brief: engineBrief as never });
+    const msg = applyHostAction("publish_brief", {
+      symbol: "SAKSOFT",
+      markdown: "## Short summary\nA few lines.",
+      sources: [{ url: "https://example.com/a", title: "a" }],
+    });
+    expect(msg).toMatch(/Kept the richer/);
+    const kept = useBriefStore.getState().brief;
+    expect(kept?.sourceCount).toBe(12);
+    expect(kept?.markdown.startsWith("## Engine report")).toBe(true);
+  });
+
+  it("a genuinely richer re-publish still replaces (more sources)", () => {
+    useBriefStore.setState({
+      brief: {
+        query: "x",
+        symbol: "SAKSOFT",
+        mode: "FAST",
+        depth: "quick",
+        markdown: "## small",
+        sources: [],
+        sourceCount: 0,
+        webAvailable: false,
+        createdAt: Date.now() - 4_000,
+      } as never,
+    });
+    const msg = applyHostAction("publish_brief", {
+      symbol: "SAKSOFT",
+      markdown: "## Bigger report\nWith more.",
+      sources: [{ url: "https://example.com/a", title: "a" }],
+    });
+    expect(msg).toMatch(/Published/);
+    expect(useBriefStore.getState().brief?.sourceCount).toBe(1);
+  });
+});

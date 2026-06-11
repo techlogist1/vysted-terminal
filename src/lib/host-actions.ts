@@ -912,6 +912,29 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
       if (!brief.markdown.trim() && !brief.structured) {
         return null;
       }
+      // R9 (D33): a same-turn re-publish that STRICTLY SHRINKS the brief is a
+      // downgrade — the deep engine's cited report (auto-published seconds ago)
+      // must not be replaced by the model's shorter, less-cited summary. The
+      // model's narrative still reads in the chat transcript; the brief panel
+      // keeps the richer artifact. Whole-brief decision only (never merge two
+      // markdowns — the [n] markers must stay coherent with their sources).
+      const prev = useBriefStore.getState().brief;
+      const sameTurn =
+        !!prev &&
+        ((!!prev.symbol &&
+          !!brief.symbol &&
+          prev.symbol.toUpperCase() === brief.symbol.toUpperCase()) ||
+          ((!brief.symbol || !prev.symbol) &&
+            typeof prev.createdAt === "number" &&
+            Date.now() - prev.createdAt < 20_000));
+      const shrinks =
+        !!prev &&
+        brief.sourceCount < prev.sourceCount &&
+        brief.markdown.trim().length < (prev.markdown ?? "").trim().length;
+      if (sameTurn && shrinks) {
+        useWorkspaceStore.getState().openPanel("brief");
+        return "Kept the richer research brief already on screen";
+      }
       // Open the brief panel so the B+A output is on screen, then publish.
       useWorkspaceStore.getState().openPanel("brief");
       useBriefStore.getState().setBrief(brief);
