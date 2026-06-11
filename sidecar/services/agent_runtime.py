@@ -717,6 +717,10 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
         "web_available": bool(web_available),
         "note": note,
         "web_reason": web_reason,
+        # R9: the engine's honest backend id rides the synthetic publish so the
+        # brief panel can render the keyless-fallback nudge / name the Tier B
+        # research model (gates 2-4 evidence). Verbatim passthrough.
+        "backend": payload.get("backend"),
     }
     return LLMToolUseEvent(
         tool_call_id=f"{tool_call.tool_call_id}__autobrief",
@@ -897,6 +901,9 @@ async def invoke_agent(
         model_web_search = model_web_search.strip().lower() or None
     else:
         model_web_search = None
+    # Publish for the run so the tier_a deep-research lane can gate the B4
+    # dual-channel cross-verify on the SAME capability truth (task-local).
+    config.set_request_model_web_search(model_web_search)
     # R9 (two-tier truth): on tier_a the model's native search COMPOUNDS with the
     # local retrieval lane (Team B's loop cross-verifies between the channels),
     # so a native-capable model rides its own search. tier_b ignores chat-model

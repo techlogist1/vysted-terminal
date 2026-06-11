@@ -207,6 +207,47 @@ def set_request_research_depth(depth: str | None) -> object:
     return _research_depth_ctx.set(depth)
 
 
+# The resolved chat model's native web-search capability flag ("native"/"plugin"/
+# None), threaded from the frontend catalog via the agent-invoke request. The
+# deep-research tier_a lane reads it to gate the B4 dual-channel cross-verify
+# with THE same detection truth as the runtime's injection gate
+# (services.llm.native_search.native_search_available). Task-local, never
+# cross-request — mirrors the depth ContextVar above.
+_model_web_search_ctx: ContextVar[str | None] = ContextVar("vysted_model_web_search", default=None)
+
+
+def get_request_model_web_search() -> str | None:
+    """The active chat model's web-search capability flag for this run, or None."""
+    return _model_web_search_ctx.get()
+
+
+def set_request_model_web_search(flag: str | None) -> object:
+    """Publish the run's model web-search capability; returns a reset token."""
+    return _model_web_search_ctx.set(flag)
+
+
+# Run-scoped search telemetry (R9 gate 2): the deep-research lane needs to know
+# whether ANY retrieval in the run was served by the keyless floor so the
+# published brief can carry the honest ``keyless-fallback`` id (the UI's
+# setup-Unlimited nudge keys on it). A parent task creates the MUTABLE dict
+# before fanning out researchers; child tasks copy the ContextVar but share the
+# dict OBJECT, so their mutations are visible to the parent. ``None`` (no
+# telemetry begun) keeps the web_search tool zero-overhead outside research.
+_search_telemetry_ctx: ContextVar[dict | None] = ContextVar("vysted_search_telemetry", default=None)
+
+
+def begin_search_telemetry() -> dict:
+    """Open a fresh telemetry dict for this run and return it (parent task)."""
+    telemetry: dict = {}
+    _search_telemetry_ctx.set(telemetry)
+    return telemetry
+
+
+def get_search_telemetry() -> dict | None:
+    """The run's shared search-telemetry dict, or None outside a research run."""
+    return _search_telemetry_ctx.get()
+
+
 # --- R9 research-tier selection (two tiers, Track A) --------------------------
 #
 # R9 collapses the R7/R8 three-tier research model into TWO user-facing tiers:

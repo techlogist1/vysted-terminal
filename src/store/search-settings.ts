@@ -106,9 +106,8 @@ export interface ResearchModelOption {
 /**
  * THE one frontend constant for the Tier B model picker — every per-stop
  * select renders this same list (the per-stop slots differ only in which
- * default is pre-selected). Pricing on the three defaults was verified live
- * on OpenRouter 2026-06-11; alternates carry the best-known hint and are
- * re-pinned by the lead at integration if drifted.
+ * default is pre-selected). Pricing on ALL eight models was verified live
+ * on OpenRouter 2026-06-11 (re-pinned by the lead at integration).
  */
 export const RESEARCH_MODEL_OPTIONS: readonly ResearchModelOption[] = [
   {
@@ -133,31 +132,31 @@ export const RESEARCH_MODEL_OPTIONS: readonly ResearchModelOption[] = [
     id: "perplexity/sonar-pro",
     label: "Perplexity Sonar Pro",
     priceHint: "$3/M in · $15/M out · $5/1k searches",
-    priceVerified: false,
+    priceVerified: true,
   },
   {
     id: "perplexity/sonar-pro-search",
     label: "Perplexity Sonar Pro Search",
-    priceHint: "OpenRouter metered — see model page",
-    priceVerified: false,
+    priceHint: "$3/M in · $15/M out · $18/1k searches (agentic)",
+    priceVerified: true,
   },
   {
     id: "openai/o4-mini-deep-research",
     label: "OpenAI o4-mini Deep Research",
-    priceHint: "$2/M in · $8/M out",
-    priceVerified: false,
+    priceHint: "$2/M in · $8/M out · $10/1k searches",
+    priceVerified: true,
   },
   {
     id: "openai/o3-deep-research",
     label: "OpenAI o3 Deep Research",
-    priceHint: "$10/M in · $40/M out",
-    priceVerified: false,
+    priceHint: "$10/M in · $40/M out · $10/1k searches",
+    priceVerified: true,
   },
   {
     id: "x-ai/grok-4.3",
     label: "xAI Grok 4.3",
-    priceHint: "OpenRouter metered — see model page",
-    priceVerified: false,
+    priceHint: "$1.25/M in · $2.50/M out · $5/1k searches",
+    priceVerified: true,
   },
 ];
 

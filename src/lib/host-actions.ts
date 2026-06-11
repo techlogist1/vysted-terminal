@@ -212,6 +212,10 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
     note: str(input, "note") || undefined,
     steps,
     structured,
+    // The engine's honest backend id (R9: "keyless-fallback" drives the brief
+    // panel's setup-Unlimited nudge; "research-model:<id>" names the Tier B
+    // brain). Passed through verbatim — never derived, never defaulted.
+    backend: str(input, "backend") || undefined,
     createdAt: Date.now(),
   };
 }

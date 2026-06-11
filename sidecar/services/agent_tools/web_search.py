@@ -130,6 +130,15 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
 
     if out.get("ok") is True and label is not None:
         out["backend"] = label
+        # R9 gate 2: record the floor hit on the run's shared telemetry (when a
+        # research parent opened one) so the published brief can carry the
+        # honest keyless-fallback id even though researchers run in child tasks.
+        if label == KEYLESS_FALLBACK_BACKEND_ID:
+            telemetry = config.get_search_telemetry()
+            if telemetry is not None:
+                telemetry["keyless_fallback_searches"] = (
+                    telemetry.get("keyless_fallback_searches", 0) + 1
+                )
     return out
 
 

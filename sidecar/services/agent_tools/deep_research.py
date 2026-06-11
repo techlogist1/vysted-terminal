@@ -189,6 +189,7 @@ async def _run_loop(
     llm_call: Any,
     rounds: int,
     wall: int,
+    native_search: Any = None,
 ) -> Any:
     """Run THE one deep loop at the profile's knobs, returning a ``ResearchBrief``.
 
@@ -259,6 +260,10 @@ async def _run_loop(
                 budget=budget,
                 on_step=on_step,
                 min_domains=max(2, profile.min_web_domains),
+                # R9 B4 (lead integration): the tier_a dual-channel cross-verify.
+                # ``None`` (no native-capable chat model, or tier_b which never
+                # reaches this lane) keeps the single-lane behavior byte-identical.
+                native_search=native_search,
             )
         return brief
     try:
@@ -299,12 +304,44 @@ async def _run_native(query: str, profile: DepthProfile, rounds: int, wall: int)
             provider, model, key, messages, timeout=_LLM_CALL_TIMEOUT_SECS
         )
 
+    # R9 B4 (lead integration): on this tier_a lane, a native-search-capable
+    # chat model compounds as a SECOND verification channel — the loop's
+    # cross-check round re-checks claims through both SearXNG retrieval and the
+    # model's own search (Track A detection truth + invocation channel, Track B
+    # dual-channel verdicts). tier_b never reaches this lane (research.py routes
+    # it to the hosted research model first), so no tier check is needed here.
+    from services.llm import native_search as native_search_mod
+
+    native_search = None
+    model_web_search = config.get_request_model_web_search()
+    if native_search_mod.native_search_available(provider, model_web_search):
+
+        async def native_search(prompt: str) -> dict[str, Any]:
+            return await native_search_mod.native_search_oneshot(
+                provider, model, key, prompt, model_web_search=model_web_search
+            )
+
+    # R9 gate 2: open the run-scoped search telemetry BEFORE the loop fans out
+    # researchers (child tasks share the dict object), so a keyless-floor
+    # retrieval anywhere in the run surfaces on the published brief.
+    telemetry = config.begin_search_telemetry()
+
     brief = await _run_loop(
-        profile=profile, query=query, llm_call=llm_call, rounds=rounds, wall=wall
+        profile=profile,
+        query=query,
+        llm_call=llm_call,
+        rounds=rounds,
+        wall=wall,
+        native_search=native_search,
     )
     out = brief.to_dict()
     out["ok"] = True
-    out["backend"] = "native"
+    # The honest backend id: "native" names the chat-model engine; when ANY
+    # retrieval in the run was served by the keyless floor the brief carries
+    # "keyless-fallback" instead — the UI's setup-Unlimited nudge keys on it.
+    out["backend"] = (
+        "keyless-fallback" if telemetry.get("keyless_fallback_searches") else "native"
+    )
     # ``mode`` keeps the legacy loop naming the brief contract renders; ``depth``
     # carries the R7 surface naming (normal/deep/ultra) for new consumers.
     out["mode"] = "heavy" if profile.angles >= _MIN_HEAVY_ANGLES else "deep"
