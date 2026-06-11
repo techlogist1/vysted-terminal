@@ -16,6 +16,9 @@
 import {
   briefDepthTier,
   dedupeSources,
+  depthFromExecution,
+  disambiguationFromWire,
+  executionFromWire,
   normalizeBriefDepth,
   normalizeBriefMode,
 } from "@/lib/brief-ingest";
@@ -27,14 +30,18 @@ import {
   type CustomPanelSpec,
   type LayoutTemplate,
 } from "@/lib/layout-templates";
+import { regionConfig, isRegion, type Region } from "@/lib/region";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { saveWorkspace } from "@/lib/workspace";
 import { useBriefStore } from "@/store/brief";
 import { useNotesStore } from "@/store/notes";
 import { useBrokersStore } from "@/store/brokers";
 import { useChartCommandStore } from "@/store/chart-command";
 import { useEquityCommandStore } from "@/store/equity-command";
 import { useOrdersStore } from "@/store/orders";
+import { usePortfoliosStore, type AssetClass, type Holding } from "@/store/portfolios";
 import { useScreenerStore } from "@/store/screener";
+import { useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 
@@ -50,7 +57,11 @@ import type {
 import type { ProposedChangeKind } from "../../types/proposed-change";
 import type { CriterionGroup, ScreenerCriterion, ScreenerUniverseId } from "../../types/screener";
 
-/** The catalog host-action tool ids (`kind="host_action"`, `read_only=false`). */
+/** The catalog host-action tool ids (`kind="host_action"`, `read_only=false`).
+ *  R10 (D41/E6) adds the data-write family (paper-portfolio positions, notes,
+ *  saved screens, layout save), the watchlist remove, and the ONE settings
+ *  action the agent may drive (`set_region` — D45). Names are EXACT catalog
+ *  ids; Team RUNTIME's toolbelt-integrity test asserts set-equality. */
 export const HOST_ACTION_NAMES = new Set([
   "open_panel",
   "close_panel",
@@ -59,10 +70,18 @@ export const HOST_ACTION_NAMES = new Set([
   "set_chart_symbol",
   "set_chart_indicators",
   "add_to_watchlist",
+  "remove_from_watchlist",
   "publish_brief",
   "propose_order",
   "write_screener_filters",
   "open_company_overview",
+  "portfolio_add_position",
+  "portfolio_update_position",
+  "portfolio_delete_position",
+  "write_note",
+  "save_layout",
+  "save_screen",
+  "set_region",
 ]);
 
 /** Tier order for {@link BriefDepth}: quick < deep < heavy. Drives the MAX-tier
@@ -71,27 +90,19 @@ export const HOST_ACTION_NAMES = new Set([
 const DEPTH_RANK: Record<BriefDepth, number> = { quick: 0, deep: 1, heavy: 2 };
 
 /**
- * Resolve the brief's depth TIER, carrying the prior run's tier across a
- * depth-less re-publish — the exact mirror of the structured-bundle carry-over
- * below (same 20s/same-symbol recency guard). The bug it fixes (#5): the runtime
- * auto-publish stamps the real tier (e.g. `heavy`), then the model issues its own
- * `publish_brief` carrying only prose — no `depth`, no deep `mode` — which used
- * to normalise back to `quick` and clobber the tier, so the brief's "Go all out"
- * affordance reappeared after a heavy run. Now:
- *   - the model gives an EXPLICIT signal (a `depth` arg or a `deep`/`heavy` mode)
- *     → take the MAX of it and the prior same-symbol tier (an escalation can only
- *     deepen, never shallow, and an explicit re-run at the same tier is a no-op);
- *   - the model OMITS depth (re-publish of the same turn) → keep the prior tier.
- * The recency/same-symbol guard is identical to the structured carry so the two
- * never disagree about whether this is the same research turn.
+ * Resolve a LEGACY (execution-less) brief's depth TIER, carrying the prior
+ * run's tier across a depth-less SAME-SYMBOL re-publish. The bug it fixes
+ * (#5): the runtime auto-publish stamps the real tier (e.g. `heavy`), then the
+ * model issues its own `publish_brief` carrying only prose — no `depth`, no
+ * deep `mode` — which used to normalise back to `quick` and clobber the tier,
+ * so the brief's "Go all out" affordance reappeared after a heavy run. The
+ * R10 rule (D38): a brief WITH an execution record derives its tier from the
+ * loop that ran and never reaches this helper; the same-symbol MAX-tier carry
+ * survives for legacy inputs only. The 20s wall-clock recency branch is DEAD —
+ * a symbol-less artifact can no longer inherit another entity's tier (E3.2).
  */
 function carryBriefDepth(input: Record<string, unknown>, symbol: string | undefined): BriefDepth {
   const own = normalizeBriefDepth(str(input, "depth"), str(input, "mode"));
-  // An explicit signal is a `depth` arg OR a `deep`/`heavy` mode — anything that
-  // resolves above `quick`. (`quick` is also the no-signal default, so a bare
-  // re-publish is indistinguishable from an explicit `quick` here — and we never
-  // want a re-publish to SHALLOW a deeper prior run regardless, so both branches
-  // below treat `quick` as "no escalation" and prefer the carried tier.)
   const prev = useBriefStore.getState().brief;
   // Same tier-derivation rule as the chat control + brief mirror (one source of
   // truth — briefDepthTier reads the explicit `depth` with a mode-badge fallback).
@@ -100,13 +111,10 @@ function carryBriefDepth(input: Record<string, unknown>, symbol: string | undefi
     return own;
   }
   const sameSymbol = !!prev?.symbol && !!symbol && baseSymbol(prev.symbol) === baseSymbol(symbol);
-  const recent = typeof prev?.createdAt === "number" && Date.now() - prev.createdAt < 20_000;
-  // Same research turn? (Same symbol, or the model omitted the symbol on a brief
-  // published moments ago — the auto-publish always seeds the CURRENT symbol.)
-  if (!(sameSymbol || (!symbol && recent))) {
+  if (!sameSymbol) {
     return own;
   }
-  // Same turn: never shallow the prior tier — take the deeper of the two.
+  // Same symbol: never shallow the prior tier — take the deeper of the two.
   return DEPTH_RANK[own] >= DEPTH_RANK[prevDepth] ? own : prevDepth;
 }
 
@@ -150,16 +158,19 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
   // shows twice in the rail (the markdown's [n] markers point at the first).
   const sources = dedupeSources(mapped);
   const symbol = str(input, "symbol") || undefined;
-  // The true depth TIER (FR-115): prefer the explicit `depth` the auto-publish
-  // sets; else derive it from the mode ("heavy"/"deep" → DEEP tier, else quick).
-  // Drives the brief panel's in-place "Go deeper" escalation. The mode BADGE
-  // then collapses the three tiers to FAST|DEEP — also fixing the S-6 casing
-  // miss where a lowercase "deep"/"heavy" never matched the uppercase badge.
-  // `carryBriefDepth` MIRRORS the structured carry-over below: a depth-less
-  // model re-publish keeps the prior run's tier (so a heavy run isn't clobbered
-  // back to quick — fixing the "Go all out reappears after a deep report" bug),
-  // and an explicit re-publish takes the MAX tier for the same symbol.
-  const depth: BriefDepth = carryBriefDepth(input, symbol);
+  // The execution record of the run that ACTUALLY RAN (R10, D38) — minted at
+  // the sidecar tool boundary, injected by the runtime onto the model's own
+  // re-publish. Snake_case wire → camelCase contract in brief-ingest. A brief
+  // WITHOUT a valid record is a legacy/archival artifact by definition.
+  const execution = executionFromWire(input.execution);
+  // The honest "which did you mean?" (D37) — ingested verbatim; the panel
+  // renders the candidate chooser instead of a brief body.
+  const disambiguation = disambiguationFromWire(input.disambiguation);
+  // Depth truth (E2 dead): with an execution record the tier derives ONLY from
+  // the loop that ran (fast→quick, iter→deep, heavy→heavy, research-model→
+  // stop-based) — the wire `mode` is ignored. Legacy inputs keep the explicit
+  // depth/mode derivation with the same-symbol MAX-tier carry (#5).
+  const depth: BriefDepth = execution ? depthFromExecution(execution) : carryBriefDepth(input, symbol);
   const mode = normalizeBriefMode(depth === "quick" ? "fast" : "deep");
   const cost =
     typeof input.cost === "object" && input.cost !== null
@@ -174,38 +185,29 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
     typeof input.structured === "object" && input.structured !== null
       ? (input.structured as BriefStructured)
       : undefined;
-  // Preserve the structured bundle across a structured-LESS re-publish: the
-  // runtime auto-publish seeds the live metric data, and a model-issued
-  // publish_brief (which doesn't copy the big structured dict — and often omits
-  // the symbol arg) would otherwise wipe it. Carry it over when the symbol
-  // matches OR the model omitted the symbol on a brief published moments ago —
-  // the auto-publish always seeds the CURRENT symbol first, so a recent prior
-  // brief is this same research turn (the recency bound rules out cross-symbol
-  // contamination). Keeps the native metric cards populated either way.
-  // The same-turn carry window shared by `structured` and `backend` below.
+  // Carry-over is RUN-SCOPED (E3.2 — the 20s wall-clock window is dead): the
+  // engine's auto-publish seeds structured/backend, and the model's same-run
+  // re-publish (the runtime injects the same execution record) may omit them.
+  // Carry ONLY when this publish's run_id matches the previous brief's
+  // execution.runId AND the base symbols match-or-one-absent — a reload, a
+  // different run, or a different entity can never inherit another artifact's
+  // live metrics again.
   const prevBrief = useBriefStore.getState().brief;
-  const prevSameSymbol =
-    !!prevBrief?.symbol && !!symbol && baseSymbol(prevBrief.symbol) === baseSymbol(symbol);
-  // Tight 20s window (was 120s): the auto-publish → model publish_brief round-trip
-  // is a few seconds, so 20s safely covers the same turn while shrinking the
-  // cross-symbol contamination window 6x (AAPL then MSFT within seconds).
-  const prevRecent =
-    typeof prevBrief?.createdAt === "number" && Date.now() - prevBrief.createdAt < 20_000;
-  // Same turn ⟺ same symbol, OR one side lacks a symbol within the recency
-  // window: the model often omits the symbol on its re-publish, and the Tier B
-  // research-model lane publishes symbol-less (the model owns retrieval) — in
-  // both shapes the recent predecessor is this same research turn.
-  const sameTurnCarry = prevSameSymbol || ((!symbol || !prevBrief?.symbol) && prevRecent);
-  if (!structured && prevBrief?.structured && sameTurnCarry) {
+  const symbolsCompatible =
+    !symbol || !prevBrief?.symbol || baseSymbol(prevBrief.symbol) === baseSymbol(symbol);
+  const runCarry =
+    !!execution &&
+    !!prevBrief?.execution?.runId &&
+    prevBrief.execution.runId === execution.runId &&
+    symbolsCompatible;
+  if (!structured && prevBrief?.structured && runCarry) {
     structured = prevBrief.structured;
   }
   // The engine's honest backend id (R9: "keyless-fallback" drives the nudge,
-  // "research-model:<id>" names the Tier B brain). The model's own
-  // publish_brief never knows it — carry it across the same-turn re-publish
-  // exactly like `structured`, or the nudge dies the moment the model writes
-  // its prose (found live in the R9 gate battery).
-  let backend = str(input, "backend") || undefined;
-  if (!backend && prevBrief?.backend && sameTurnCarry) {
+  // "research-model:<id>" names the Tier B brain). The execution record names
+  // it authoritatively; the same-run carry covers a record that omitted it.
+  let backend = str(input, "backend") || execution?.backend || undefined;
+  if (!backend && prevBrief?.backend && runCarry) {
     backend = prevBrief.backend;
   }
   // webAvailable, reconciled with the ACTUAL evidence (WS3 — kills symptom #2,
@@ -235,9 +237,11 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
     note: str(input, "note") || undefined,
     steps,
     structured,
-    // See the carry block above — verbatim when sent, same-turn carry when the
+    // See the carry block above — verbatim when sent, same-run carry when the
     // model's own publish omits it.
     backend,
+    execution,
+    disambiguation,
     createdAt: Date.now(),
   };
 }
@@ -335,6 +339,10 @@ const _SCREENER_UNIVERSES: ReadonlySet<string> = new Set([
   "nifty50",
   "crypto-top50",
   "custom",
+  // R10 (D40): the full India universes from the resolver masters.
+  "nse-all",
+  "bse-all",
+  "india-all",
 ]);
 
 /**
@@ -504,6 +512,59 @@ function symbolAwarePanelTarget(panelToken: string): "equity" | "chart" | null {
 /** Human-friendly panel label from a panel id. */
 function panelLabel(id: string): string {
   return id.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/** The active region's currency sign for human diff copy ("@ ₹1,263"). */
+function currencySign(): string {
+  const currency = regionConfig(useSettingsStore.getState().region).currency;
+  return currency === "INR" ? "₹" : "$";
+}
+
+/** "₹1,263" — a human price in the active region's locale + sign. */
+function formatPrice(value: number): string {
+  const locale = regionConfig(useSettingsStore.getState().region).locale;
+  return `${currencySign()}${value.toLocaleString(locale, { maximumFractionDigits: 2 })}`;
+}
+
+/** The ACTIVE paper portfolio (the panel's truth — frontend store). */
+function activePortfolio() {
+  const s = usePortfoliosStore.getState();
+  return s.portfolios.find((p) => p.id === s.activeId) ?? s.portfolios[0];
+}
+
+/**
+ * Resolve the holding a portfolio update/delete targets: an exact holding-id
+ * match first (the agent echoes the snapshot's `id` back as `position_id`),
+ * else the first same-symbol holding (a sidecar-numbered id never matches a
+ * frontend holding id, but the action always names the symbol). Null when
+ * nothing matches — an honest failure, never a guessed mutation.
+ */
+function resolveHolding(input: Record<string, unknown>): Holding | null {
+  const portfolio = activePortfolio();
+  if (!portfolio) {
+    return null;
+  }
+  const id = input.position_id != null ? String(input.position_id) : "";
+  const byId = id ? portfolio.holdings.find((h) => h.id === id) : undefined;
+  if (byId) {
+    return byId;
+  }
+  const symbol = str(input, "symbol");
+  if (!symbol) {
+    return null;
+  }
+  return portfolio.holdings.find((h) => baseSymbol(h.symbol) === baseSymbol(symbol)) ?? null;
+}
+
+/** The note-scope key: "" = the General bucket, else an uppercased ticker. */
+function noteScope(input: Record<string, unknown>): string {
+  const scope = str(input, "scope").trim();
+  return scope.toLowerCase() === "general" ? "" : scope.toUpperCase();
+}
+
+/** A short human label for a note scope. */
+function noteScopeLabel(scope: string): string {
+  return scope === "" ? "General" : scope;
 }
 
 /**
@@ -684,13 +745,116 @@ export function describeHostAction(
       const nested =
         group && group.criteria.some((c) => "combinator" in c) ? " (nested AND/OR)" : "";
       const universe = typeof input.universe === "string" ? input.universe : "";
+      const formula = str(input, "formula").trim();
+      const runs = input.run === true;
       return {
         kind: "panel",
         title: "Write screener filters",
         before: `Screener: ${currentCount} criteri${currentCount === 1 ? "on" : "a"}`,
         after: `Screener: ${proposedCount} criteri${proposedCount === 1 ? "on" : "a"}${nested}${
           universe && _SCREENER_UNIVERSES.has(universe) ? ` · ${universe}` : ""
-        } — review then Run`,
+        }${formula ? " · formula" : ""} — ${runs ? "runs on apply" : "review then Run"}`,
+      };
+    }
+    case "portfolio_add_position": {
+      const qty = num(input, "quantity");
+      const cost = num(input, "cost_basis");
+      const count = activePortfolio()?.holdings.length ?? 0;
+      return {
+        kind: "data-write",
+        title: `Add ${qty || ""} ${symbol}${cost ? ` @ ${formatPrice(cost)}` : ""} to the paper portfolio`
+          .replace(/\s+/g, " ")
+          .trim(),
+        before: `Portfolio: ${count} position${count === 1 ? "" : "s"}`,
+        after: `Portfolio: +${symbol} ×${qty} (${count + 1} total)`,
+      };
+    }
+    case "portfolio_update_position": {
+      const target = resolveHolding(input);
+      const qty = num(input, "quantity");
+      const cost = num(input, "cost_basis");
+      const label = target?.symbol || symbol || "position";
+      return {
+        kind: "data-write",
+        title: `Update ${label} in the paper portfolio`,
+        before: target
+          ? `${target.symbol}: ×${target.quantity} @ ${formatPrice(target.costBasis)}`
+          : `${label}: not found in the active portfolio`,
+        after: `${label}: ×${qty}${cost ? ` @ ${formatPrice(cost)}` : ""}`,
+      };
+    }
+    case "portfolio_delete_position": {
+      const target = resolveHolding(input);
+      const label = target?.symbol || symbol || "position";
+      return {
+        kind: "data-write",
+        title: `Remove ${label} from the paper portfolio`,
+        before: target
+          ? `${target.symbol}: ×${target.quantity} @ ${formatPrice(target.costBasis)}`
+          : `${label}: not found in the active portfolio`,
+        after: `${label}: removed`,
+      };
+    }
+    case "write_note": {
+      const scope = noteScope(input);
+      const text = str(input, "text");
+      const append = str(input, "mode") === "append";
+      const current = useNotesStore.getState().noteFor(scope);
+      return {
+        kind: "data-write",
+        title: `${append ? "Append to" : "Write"} the ${noteScopeLabel(scope)} note`,
+        before: `${noteScopeLabel(scope)} note: ${current.trim() ? `${current.trim().length} chars` : "empty"}`,
+        after: append
+          ? `${noteScopeLabel(scope)} note: +${text.trim().length} chars appended`
+          : `${noteScopeLabel(scope)} note: replaced (${text.trim().length} chars)`,
+      };
+    }
+    case "remove_from_watchlist": {
+      const entries = useSymbolsStore.getState().entries;
+      const tracked = entries.some((e) => e.symbol.toUpperCase() === symbol.toUpperCase());
+      return {
+        kind: "watchlist",
+        title: `Remove ${symbol} from your watchlist`,
+        before: `Watchlist: ${entries.length} symbol${entries.length === 1 ? "" : "s"}`,
+        after: tracked
+          ? `Watchlist: −${symbol} (${entries.length - 1} total)`
+          : `Watchlist: ${symbol} is not tracked`,
+      };
+    }
+    case "save_layout": {
+      const layoutName = str(input, "name").trim() || "Agent layout";
+      return {
+        kind: "data-write",
+        title: `Save the current layout as "${layoutName}"`,
+        before: "Saved workspaces: unchanged",
+        after: `Saved workspaces: +"${layoutName}" (current cockpit)`,
+      };
+    }
+    case "save_screen": {
+      const screenName = str(input, "name").trim() || "Agent screen";
+      const leafCount = (() => {
+        const group = parseScreenerGroup(input.group);
+        if (group) {
+          return countLeaves(group);
+        }
+        const criteria = parseScreenerCriteria(input);
+        return criteria.length;
+      })();
+      return {
+        kind: "data-write",
+        title: `Save the screen as "${screenName}"`,
+        before: "Saved screens: unchanged",
+        after: `Saved screens: +"${screenName}"${leafCount ? ` (${leafCount} criteri${leafCount === 1 ? "on" : "a"})` : " (current filters)"}`,
+      };
+    }
+    case "set_region": {
+      const current = useSettingsStore.getState().region;
+      const next = str(input, "region").toUpperCase();
+      return {
+        kind: "settings",
+        title: `Set the region to ${next || "?"}`,
+        before: `Region: ${current}`,
+        after: `Region: ${next || current}`,
       };
     }
     default:
@@ -917,25 +1081,26 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
     case "publish_brief": {
       const brief = briefFromInput(input);
       // Allow a structured-only seed (the FAST auto-publish carries live metrics
-      // before the model writes the prose); reject only a truly empty brief.
-      if (!brief.markdown.trim() && !brief.structured) {
+      // before the model writes the prose) and a disambiguation-only publish
+      // (the chooser renders instead of a body); reject only a truly empty brief.
+      if (!brief.markdown.trim() && !brief.structured && !brief.disambiguation) {
         return null;
       }
-      // R9 (D33): a same-turn re-publish that STRICTLY SHRINKS the brief is a
-      // downgrade — the deep engine's cited report (auto-published seconds ago)
-      // must not be replaced by the model's shorter, less-cited summary. The
-      // model's narrative still reads in the chat transcript; the brief panel
-      // keeps the richer artifact. Whole-brief decision only (never merge two
-      // markdowns — the [n] markers must stay coherent with their sources).
+      // R9 (D33), R10-scoped: a SAME-RUN re-publish that STRICTLY SHRINKS the
+      // brief is a downgrade — the deep engine's cited report must not be
+      // replaced by the model's shorter, less-cited summary of the same run.
+      // Scope is the execution run_id (the 20s wall-clock window is dead): the
+      // runtime injects the run's record onto the model's own publish, so the
+      // same-turn pair always shares one run_id. The model's narrative still
+      // reads in chat; the panel keeps the richer artifact. Whole-brief
+      // decision only (never merge two markdowns — the [n] markers must stay
+      // coherent with their sources). The apply path reports kept_previous
+      // through the ack (D39 §4) via the "Kept …" label.
       const prev = useBriefStore.getState().brief;
-      const sameTurn =
-        !!prev &&
-        ((!!prev.symbol &&
-          !!brief.symbol &&
-          baseSymbol(prev.symbol) === baseSymbol(brief.symbol)) ||
-          ((!brief.symbol || !prev.symbol) &&
-            typeof prev.createdAt === "number" &&
-            Date.now() - prev.createdAt < 20_000));
+      const sameRun =
+        !!prev?.execution?.runId &&
+        !!brief.execution?.runId &&
+        prev.execution.runId === brief.execution.runId;
       const shrinks =
         !!prev &&
         ((brief.sourceCount < prev.sourceCount &&
@@ -943,13 +1108,18 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
           // A source-LESS re-publish over a sourced brief is a downgrade no
           // matter how long its prose runs — citations are the product.
           (brief.sourceCount === 0 && prev.sourceCount > 0));
-      if (sameTurn && shrinks) {
+      if (sameRun && shrinks && !brief.disambiguation) {
         useWorkspaceStore.getState().openPanel("brief");
         return "Kept the richer research brief already on screen";
       }
-      // Open the brief panel so the B+A output is on screen, then publish.
+      // Open the brief panel so the output is on screen, then publish through
+      // the lifecycle machine — a publish whose run_id mismatches the run in
+      // flight is ignored as stale (E3.2) and reports kept_previous.
       useWorkspaceStore.getState().openPanel("brief");
-      useBriefStore.getState().setBrief(brief);
+      const result = useBriefStore.getState().publish(brief);
+      if (result === "stale_run") {
+        return "Kept the run in flight — this publish belonged to a different run";
+      }
       return `Published the ${brief.mode} research brief`;
     }
     case "add_to_watchlist":
@@ -962,8 +1132,9 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
     case "write_screener_filters": {
       const criteria = parseScreenerCriteria(input);
       const group = parseScreenerGroup(input.group);
-      // Need at least one well-formed criterion (flat OR nested) to write.
-      if (criteria.length === 0 && !group) {
+      const formula = str(input, "formula").trim();
+      // Need at least one well-formed criterion (flat OR nested) or a formula.
+      if (criteria.length === 0 && !group && !formula) {
         return null;
       }
       const universe =
@@ -973,17 +1144,300 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
       // When the agent gives only a nested group, mirror its leaves into the
       // flat `criteria` too so older readers + the match-index column resolve.
       const flat = criteria.length ? criteria : group ? flattenLeaves(group) : [];
-      useScreenerStore.getState().applyFilters({ criteria: flat, group, universe });
+      const screener = useScreenerStore.getState();
+      // `formula`/`run` pass through to the store's applyFilters (R10 — Team
+      // FRONTEND-DATA extends the input type in the same wave; the cast keeps
+      // the two branches integrable without a cross-team type dependency).
+      screener.applyFilters({
+        criteria: flat,
+        group,
+        universe,
+        ...(formula ? { formula } : {}),
+        ...(input.run === true ? { run: true } : {}),
+      } as Parameters<typeof screener.applyFilters>[0]);
       // Stage the panel so the proposed filters are on screen for the user to Run.
       // The screener module REGISTERS id "screener-panel" — the bare "screener"
       // id silently no-opped here (same drift class as the arrange map).
       useWorkspaceStore.getState().openPanel("screener-panel");
       const count = group ? countLeaves(group) : criteria.length;
-      return `Wrote ${count} screener criteri${count === 1 ? "on" : "a"} — review and Run`;
+      const what = count
+        ? `${count} screener criteri${count === 1 ? "on" : "a"}${formula ? " + a formula" : ""}`
+        : "a screener formula";
+      return `Wrote ${what} — ${input.run === true ? "running" : "review and Run"}`;
+    }
+    case "write_note": {
+      const scope = noteScope(input);
+      const text = str(input, "text");
+      if (!text.trim()) {
+        return null;
+      }
+      const notes = useNotesStore.getState();
+      const append = str(input, "mode") === "append";
+      const current = notes.noteFor(scope);
+      const next = append && current.trim() ? `${current.replace(/\s+$/, "")}\n\n${text}` : text;
+      if (scope === "") {
+        notes.setGeneral(next);
+      } else {
+        notes.setSymbolNote(scope, next);
+      }
+      useWorkspaceStore.getState().openPanel("notes");
+      return `${append ? "Appended to" : "Wrote"} the ${noteScopeLabel(scope)} note`;
+    }
+    case "remove_from_watchlist": {
+      if (!symbol) {
+        return null;
+      }
+      const symbols = useSymbolsStore.getState();
+      const tracked = symbols.entries.some((e) => e.symbol.toUpperCase() === symbol.toUpperCase());
+      if (!tracked) {
+        // Truthful idempotent no-op: the desired end state already holds.
+        return `${symbol.toUpperCase()} was not on your watchlist`;
+      }
+      symbols.removeSymbol(symbol);
+      return `Removed ${symbol.toUpperCase()} from your watchlist`;
+    }
+    case "save_screen": {
+      const screenName = str(input, "name").trim();
+      if (!screenName) {
+        return null;
+      }
+      // Delegate to the screener store's saved-screens API (Team FRONTEND-DATA
+      // ships `saveScreen` in the same wave). The duck-typed seam keeps the two
+      // branches independently green; until the API lands the action returns
+      // an honest null (re-pends) instead of narrating a save that never was.
+      const screener = useScreenerStore.getState() as unknown as {
+        saveScreen?: (name: string, payload: Record<string, unknown>) => unknown;
+      };
+      if (typeof screener.saveScreen !== "function") {
+        return null;
+      }
+      const group = parseScreenerGroup(input.group);
+      const criteria = parseScreenerCriteria(input);
+      const formula = str(input, "formula").trim();
+      const universe =
+        typeof input.universe === "string" && _SCREENER_UNIVERSES.has(input.universe)
+          ? input.universe
+          : undefined;
+      screener.saveScreen(screenName, {
+        ...(criteria.length ? { criteria } : {}),
+        ...(group ? { group } : {}),
+        ...(formula ? { formula } : {}),
+        ...(universe ? { universe } : {}),
+      });
+      return `Saved the screen as "${screenName}"`;
+    }
+    case "set_region": {
+      const next = str(input, "region").toUpperCase();
+      if (!isRegion(next)) {
+        return null;
+      }
+      useSettingsStore.getState().setRegion(next as Region);
+      return `Set the region to ${next}`;
     }
     default:
       return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Async apply seam + publish ack (R10 §3/§4)
+// ---------------------------------------------------------------------------
+
+/** The paper-portfolio positions endpoint (sidecar SQLite ledger). */
+async function portfolioUrl(id?: number): Promise<string> {
+  const base = await getSidecarBaseUrl();
+  const path = id === undefined ? "/portfolio/positions" : `/portfolio/positions/${id}`;
+  return new URL(path, base).toString();
+}
+
+/** The wire body the sidecar's PositionInput expects (snake_case). */
+function positionBody(input: Record<string, unknown>, fallback?: Holding) {
+  const symbol = (str(input, "symbol") || fallback?.symbol || "").toUpperCase();
+  const quantity = typeof input.quantity === "number" ? input.quantity : (fallback?.quantity ?? 0);
+  const costBasis =
+    typeof input.cost_basis === "number" ? input.cost_basis : (fallback?.costBasis ?? 0);
+  const assetClass: AssetClass = (input.asset_class ?? fallback?.assetClass) === "crypto"
+    ? "crypto"
+    : "equity";
+  const note = str(input, "note") || fallback?.note;
+  return { symbol, quantity, costBasis, assetClass, note };
+}
+
+/** Best-effort sidecar ledger sync — the frontend store is the panel's truth
+ *  (it feeds the panel, the workspace blob, and get_portfolio's snapshot); the
+ *  sidecar positions table is a secondary ledger kept in sync per the wire
+ *  contract. A sidecar miss is tolerated: the user's visible change must not
+ *  fail over a ledger no surface reads (the store mutation IS the apply). */
+async function syncPositionToSidecar(
+  method: "POST" | "PUT" | "DELETE",
+  body: ReturnType<typeof positionBody> | null,
+  id?: number,
+): Promise<boolean> {
+  try {
+    const response = await fetch(await portfolioUrl(id), {
+      method,
+      headers: { "Content-Type": "application/json" },
+      ...(body
+        ? {
+            body: JSON.stringify({
+              symbol: body.symbol,
+              quantity: body.quantity,
+              cost_basis: body.costBasis,
+              asset_class: body.assetClass,
+              ...(body.note ? { note: body.note } : {}),
+            }),
+          }
+        : {}),
+    });
+    // A 404 on update/delete means the sidecar ledger never had this row (it
+    // is written only through this path) — the frontend store remains the
+    // truth, so the miss is tolerated rather than failing the user's change.
+    return response.ok || response.status === 404;
+  } catch {
+    return false;
+  }
+}
+
+/** A numeric sidecar position id from the agent's `position_id`, when it is one. */
+function sidecarPositionId(input: Record<string, unknown>): number | undefined {
+  const raw = input.position_id;
+  const n = typeof raw === "number" ? raw : Number(raw);
+  return Number.isInteger(n) && n >= 0 ? n : undefined;
+}
+
+/**
+ * Apply a host-action mutation, including the network-backed cases (paper
+ * portfolio writes ride POST/PUT/DELETE `/portfolio/positions` and mirror into
+ * the portfolios store — the truth every surface reads; `save_layout` awaits
+ * the workspace save). Everything else delegates to the synchronous
+ * {@link applyHostAction}. Same truth contract: a string label means the work
+ * landed; null re-pends with an honest failure.
+ */
+export async function applyHostActionAsync(
+  name: string,
+  input: Record<string, unknown>,
+): Promise<string | null> {
+  switch (name) {
+    case "portfolio_add_position": {
+      const body = positionBody(input);
+      if (!body.symbol || !(body.quantity > 0)) {
+        return null;
+      }
+      await syncPositionToSidecar("POST", body);
+      const portfolio = activePortfolio();
+      if (!portfolio) {
+        return null;
+      }
+      usePortfoliosStore.getState().addHolding(portfolio.id, {
+        symbol: body.symbol,
+        quantity: body.quantity,
+        costBasis: body.costBasis,
+        assetClass: body.assetClass,
+        note: body.note,
+      });
+      useWorkspaceStore.getState().openPanel("portfolio");
+      return `Added ${body.quantity} ${body.symbol} @ ${formatPrice(body.costBasis)} to the paper portfolio`;
+    }
+    case "portfolio_update_position": {
+      const target = resolveHolding(input);
+      if (!target) {
+        return null; // never guess which position to mutate
+      }
+      const body = positionBody(input, target);
+      if (!(body.quantity > 0)) {
+        return null;
+      }
+      await syncPositionToSidecar("PUT", body, sidecarPositionId(input));
+      const portfolio = activePortfolio();
+      if (!portfolio) {
+        return null;
+      }
+      usePortfoliosStore.getState().updateHolding(portfolio.id, target.id, {
+        symbol: body.symbol,
+        quantity: body.quantity,
+        costBasis: body.costBasis,
+        assetClass: body.assetClass,
+        note: body.note,
+      });
+      useWorkspaceStore.getState().openPanel("portfolio");
+      return `Updated ${body.symbol}: ×${body.quantity} @ ${formatPrice(body.costBasis)}`;
+    }
+    case "portfolio_delete_position": {
+      const target = resolveHolding(input);
+      if (!target) {
+        return null;
+      }
+      await syncPositionToSidecar("DELETE", null, sidecarPositionId(input));
+      const portfolio = activePortfolio();
+      if (!portfolio) {
+        return null;
+      }
+      usePortfoliosStore.getState().removeHolding(portfolio.id, target.id);
+      useWorkspaceStore.getState().openPanel("portfolio");
+      return `Removed ${target.symbol} from the paper portfolio`;
+    }
+    case "save_layout": {
+      const layoutName = str(input, "name").trim() || "Agent layout";
+      try {
+        await saveWorkspace(layoutName);
+      } catch {
+        return null; // layout not mounted / sidecar down — honest failure
+      }
+      return `Saved the layout as "${layoutName}"`;
+    }
+    default:
+      return applyHostAction(name, input);
+  }
+}
+
+/** How a publish_brief apply resolved — the ack vocabulary (D39 §4). */
+export type PublishAckStatus = "applied" | "kept_previous" | "failed";
+
+/** Map the publish apply label onto the ack status: null → failed, a "Kept …"
+ *  arbitration (shrink guard / stale run) → kept_previous, else applied. */
+export function publishAckStatus(label: string | null): PublishAckStatus {
+  if (label === null) {
+    return "failed";
+  }
+  return label.startsWith("Kept") ? "kept_previous" : "applied";
+}
+
+/**
+ * Read back a publish_brief outcome to the sidecar's action ledger
+ * (`POST /agents/actions/ack`, Team RUNTIME) so the runtime can surface a
+ * divergence notice when its synthesized "dispatched to the panel" narration
+ * and the panel's reality disagree (E3.3). Fire-and-forget: an unreachable
+ * sidecar must never block the apply path — the missing ack itself reads as
+ * "the panel did not confirm" on the runtime side, which is the honest state.
+ */
+export function ackPublishBrief(toolCallId: string, status: PublishAckStatus): void {
+  if (!toolCallId) {
+    return;
+  }
+  const brief = useBriefStore.getState().brief;
+  void (async () => {
+    const base = await getSidecarBaseUrl();
+    await fetch(new URL("/agents/actions/ack", base).toString(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tool_call_id: toolCallId,
+        status,
+        ...(brief
+          ? {
+              brief: {
+                run_id: brief.execution?.runId ?? null,
+                created_at: brief.createdAt,
+                symbol: brief.symbol ?? null,
+                source_count: brief.sourceCount,
+              },
+            }
+          : {}),
+      }),
+    });
+  })().catch(() => {
+    // Best-effort read-back; the runtime treats a missing ack honestly.
+  });
 }
 
 /** Collect every leaf criterion from a (possibly nested) group, in order. */

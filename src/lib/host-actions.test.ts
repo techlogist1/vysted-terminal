@@ -43,10 +43,18 @@ describe("host-actions", () => {
         "focus_panel",
         "open_company_overview",
         "open_panel",
+        "portfolio_add_position",
+        "portfolio_delete_position",
+        "portfolio_update_position",
         "propose_order",
         "publish_brief",
+        "remove_from_watchlist",
+        "save_layout",
+        "save_screen",
         "set_chart_indicators",
         "set_chart_symbol",
+        "set_region",
+        "write_note",
         "write_screener_filters",
       ].sort(),
     );
@@ -54,6 +62,9 @@ describe("host-actions", () => {
     expect(isHostActionMutation("close_panel")).toBe(true);
     expect(isHostActionMutation("arrange_layout")).toBe(true);
     expect(isHostActionMutation("propose_order")).toBe(true);
+    expect(isHostActionMutation("portfolio_add_position")).toBe(true);
+    expect(isHostActionMutation("write_note")).toBe(true);
+    expect(isHostActionMutation("set_region")).toBe(true);
     expect(isHostActionMutation("price_data")).toBe(false);
     expect(isHostActionMutation("get_terminal_state")).toBe(false);
   });
@@ -616,8 +627,10 @@ describe("host-actions", () => {
   });
 });
 
-describe("briefFromInput backend carry (R9 gate 2)", () => {
-  it("keeps the engine's backend id when the model's same-turn re-publish omits it", () => {
+describe("briefFromInput backend carry (R9 gate 2, R10 run-scoped)", () => {
+  it("keeps the engine's backend id when the model's SAME-RUN re-publish omits it", () => {
+    // The engine's auto-publish carried the execution record; the runtime
+    // injects the SAME record onto the model's own re-publish (R10 D38/D39).
     useBriefStore.setState({
       brief: {
         query: "infosys",
@@ -629,6 +642,7 @@ describe("briefFromInput backend carry (R9 gate 2)", () => {
         sourceCount: 0,
         webAvailable: true,
         backend: "keyless-fallback",
+        execution: { runId: "run-1", requestedDepth: "normal", loop: "fast" },
         createdAt: Date.now() - 3_000,
       } as never,
     });
@@ -636,15 +650,42 @@ describe("briefFromInput backend carry (R9 gate 2)", () => {
       symbol: "INFY.NS",
       markdown: "## Infosys — Quick Brief\nProse.",
       sources: [{ url: "https://example.com", title: "t" }],
+      execution: { run_id: "run-1", requested_depth: "normal", loop: "fast" },
     });
     expect(described).toBeTruthy();
     const applied = applyHostAction("publish_brief", {
       symbol: "INFY.NS",
       markdown: "## Infosys — Quick Brief\nProse.",
       sources: [{ url: "https://example.com", title: "t" }],
+      execution: { run_id: "run-1", requested_depth: "normal", loop: "fast" },
     });
     expect(applied).toBeTruthy();
     expect(useBriefStore.getState().brief?.backend).toBe("keyless-fallback");
+  });
+
+  it("a DIFFERENT run never inherits the prior backend (the 20s clock is dead)", () => {
+    useBriefStore.setState({
+      brief: {
+        query: "infosys",
+        symbol: "INFY.NS",
+        mode: "FAST",
+        depth: "quick",
+        markdown: "",
+        sources: [],
+        sourceCount: 0,
+        webAvailable: true,
+        backend: "keyless-fallback",
+        execution: { runId: "run-1", requestedDepth: "normal", loop: "fast" },
+        createdAt: Date.now() - 3_000, // SECONDS old — recency no longer carries
+      } as never,
+    });
+    applyHostAction("publish_brief", {
+      symbol: "INFY.NS",
+      markdown: "## Infosys\nProse.",
+      sources: [{ url: "https://example.com", title: "t" }],
+      execution: { run_id: "run-2", requested_depth: "normal", loop: "fast" },
+    });
+    expect(useBriefStore.getState().brief?.backend).toBeUndefined();
   });
 
   it("a cross-symbol publish does NOT inherit the prior backend", () => {
@@ -672,7 +713,9 @@ describe("briefFromInput backend carry (R9 gate 2)", () => {
 });
 
 describe("briefFromInput backend carry — symbol-less Tier B predecessor", () => {
-  it("carries the research-model id from a recent symbol-less auto-publish", () => {
+  it("carries the research-model id across a same-run publish that gains a symbol", () => {
+    // Tier B auto-publishes symbol-less; the model's re-publish names the
+    // symbol. One side lacking a symbol is compatible — the RUN ID scopes it.
     useBriefStore.setState({
       brief: {
         query: "hdfc bank",
@@ -684,6 +727,7 @@ describe("briefFromInput backend carry — symbol-less Tier B predecessor", () =
         sourceCount: 0,
         webAvailable: true,
         backend: "research-model:perplexity/sonar",
+        execution: { runId: "run-b", requestedDepth: "normal", loop: "research-model" },
         createdAt: Date.now() - 5_000,
       } as never,
     });
@@ -691,13 +735,14 @@ describe("briefFromInput backend carry — symbol-less Tier B predecessor", () =
       symbol: "HDFCBANK.NS",
       markdown: "## HDFC Bank\nProse.",
       sources: [],
+      execution: { run_id: "run-b", requested_depth: "normal", loop: "research-model" },
     });
     expect(useBriefStore.getState().brief?.backend).toBe("research-model:perplexity/sonar");
   });
 });
 
-describe("publish_brief same-turn shrink guard (R9 D33)", () => {
-  it("keeps the engine's richer brief when the model's re-publish strictly shrinks it", () => {
+describe("publish_brief same-run shrink guard (R9 D33, R10 run_id-scoped)", () => {
+  it("keeps the engine's richer brief when the model's SAME-RUN re-publish strictly shrinks it", () => {
     const engineBrief = {
       query: "saksoft",
       symbol: "SAKSOFT",
@@ -712,6 +757,7 @@ describe("publish_brief same-turn shrink guard (R9 D33)", () => {
       sourceCount: 12,
       webAvailable: true,
       backend: "native",
+      execution: { runId: "run-s", requestedDepth: "deep", loop: "iter" },
       createdAt: Date.now() - 4_000,
     };
     useBriefStore.setState({ brief: engineBrief as never });
@@ -719,6 +765,7 @@ describe("publish_brief same-turn shrink guard (R9 D33)", () => {
       symbol: "SAKSOFT",
       markdown: "## Short summary\nA few lines.",
       sources: [{ url: "https://example.com/a", title: "a" }],
+      execution: { run_id: "run-s", requested_depth: "deep", loop: "iter" },
     });
     expect(msg).toMatch(/Kept the richer/);
     const kept = useBriefStore.getState().brief;
@@ -750,7 +797,7 @@ describe("publish_brief same-turn shrink guard (R9 D33)", () => {
   });
 });
 
-describe("same-turn matching is exchange-suffix-insensitive (R9)", () => {
+describe("same-run matching is exchange-suffix-insensitive (R9)", () => {
   it("SAKSOFT.NS re-publish cannot shrink the engine's SAKSOFT brief", () => {
     useBriefStore.setState({
       brief: {
@@ -767,6 +814,7 @@ describe("same-turn matching is exchange-suffix-insensitive (R9)", () => {
         sourceCount: 9,
         webAvailable: true,
         backend: "native",
+        execution: { runId: "run-x", requestedDepth: "deep", loop: "iter" },
         createdAt: Date.now() - 60_000,
       } as never,
     });
@@ -774,6 +822,7 @@ describe("same-turn matching is exchange-suffix-insensitive (R9)", () => {
       symbol: "SAKSOFT.NS",
       markdown: "## Summary\nshort.",
       sources: [],
+      execution: { run_id: "run-x", requested_depth: "deep", loop: "iter" },
     });
     expect(msg).toMatch(/Kept the richer/);
     expect(useBriefStore.getState().brief?.sourceCount).toBe(9);
@@ -781,7 +830,7 @@ describe("same-turn matching is exchange-suffix-insensitive (R9)", () => {
 });
 
 describe("shrink guard blocks source-less prose re-publishes", () => {
-  it("a 0-source long-prose re-publish never replaces a sourced brief", () => {
+  it("a 0-source long-prose SAME-RUN re-publish never replaces a sourced brief", () => {
     useBriefStore.setState({
       brief: {
         query: "saksoft",
@@ -793,6 +842,7 @@ describe("shrink guard blocks source-less prose re-publishes", () => {
         sourceCount: 1,
         webAvailable: true,
         backend: "native",
+        execution: { runId: "run-y", requestedDepth: "deep", loop: "iter" },
         createdAt: Date.now() - 5_000,
       } as never,
     });
@@ -800,6 +850,7 @@ describe("shrink guard blocks source-less prose re-publishes", () => {
       symbol: "SAKSOFT.NS",
       markdown: "## Very long prose\n" + "uncited line.\n".repeat(120),
       sources: [],
+      execution: { run_id: "run-y", requested_depth: "deep", loop: "iter" },
     });
     expect(msg).toMatch(/Kept the richer/);
     expect(useBriefStore.getState().brief?.sourceCount).toBe(1);
