@@ -1262,7 +1262,10 @@ function positionBody(input: Record<string, unknown>, fallback?: Holding) {
   const assetClass: AssetClass =
     (input.asset_class ?? fallback?.assetClass) === "crypto" ? "crypto" : "equity";
   const note = str(input, "note") || fallback?.note;
-  return { symbol, quantity, costBasis, assetClass, note };
+  // The catalog's `purchased_at` maps onto the ledger's `opened_at` (the
+  // frontend Holding carries no date — ledger-only provenance).
+  const openedAt = str(input, "purchased_at") || undefined;
+  return { symbol, quantity, costBasis, assetClass, note, openedAt };
 }
 
 /** Best-effort sidecar ledger sync — the frontend store is the panel's truth
@@ -1287,6 +1290,7 @@ async function syncPositionToSidecar(
               cost_basis: body.costBasis,
               asset_class: body.assetClass,
               ...(body.note ? { note: body.note } : {}),
+              ...(body.openedAt ? { opened_at: body.openedAt } : {}),
             }),
           }
         : {}),
