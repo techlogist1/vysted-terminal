@@ -7,8 +7,10 @@ vi.mock("@/lib/workspace", () => ({
 }));
 
 import { autosaveLayout } from "@/lib/workspace";
+import { DEFAULT_AGENT_ID, useActiveAgentStore } from "@/store/active-agent";
 import {
   DEFAULT_SETTINGS,
+  RAW_CHAT_SENTINEL,
   resetSettingsStoreForTests,
   settingsBundle,
   useSettingsStore,
@@ -19,6 +21,7 @@ const autosaveMock = vi.mocked(autosaveLayout);
 describe("settings store", () => {
   beforeEach(() => {
     resetSettingsStoreForTests();
+    useActiveAgentStore.setState({ activeAgentId: DEFAULT_AGENT_ID });
     autosaveMock.mockClear();
   });
 
@@ -28,22 +31,24 @@ describe("settings store", () => {
 
   it("seeds from the default bundle", () => {
     const s = useSettingsStore.getState();
-    expect(s.defaultAgentId).toBe(DEFAULT_SETTINGS.defaultAgentId);
-    expect(s.providerPreferenceOrder).toEqual(DEFAULT_SETTINGS.providerPreferenceOrder);
-    expect(s.paletteRecentsEnabled).toBe(true);
-    expect(s.starterCockpitPanelIds).toEqual(DEFAULT_SETTINGS.starterCockpitPanelIds);
-    expect(s.themeKnobs).toEqual({ accentIntensity: "normal", density: "comfortable" });
+    expect(s.defaultAgentId).toBe(DEFAULT_AGENT_ID);
+    expect(s.region).toBe(DEFAULT_SETTINGS.region);
+    expect(s.deepResearchBackend).toBe("native");
   });
 
-  it("does not mutate the frozen default when a setter runs", () => {
-    useSettingsStore.getState().setStarterCockpitPanelIds(["chart-panel"]);
-    expect(DEFAULT_SETTINGS.starterCockpitPanelIds).toEqual([
-      "chart-panel",
-      "equity-overview-panel",
-      "watchlist-panel",
-      "news-panel",
-      "portfolio-panel",
-    ]);
+  it("carries NO killed preference fields (R9 settings-truth)", () => {
+    // The dead knobs died with their UI: written-never-read fields are theater.
+    const bundle = settingsBundle() as unknown as Record<string, unknown>;
+    for (const killed of [
+      "themeKnobs",
+      "paletteRecentsEnabled",
+      "paletteScopedToPanel",
+      "starterCockpitPanelIds",
+      "panelDefaults",
+      "providerPreferenceOrder",
+    ]) {
+      expect(bundle).not.toHaveProperty(killed);
+    }
   });
 
   it("setters update state and trigger persistence", () => {
@@ -52,82 +57,108 @@ describe("settings store", () => {
     store.setDefaultAgentId("buffett");
     expect(useSettingsStore.getState().defaultAgentId).toBe("buffett");
 
-    store.setPaletteRecentsEnabled(false);
-    expect(useSettingsStore.getState().paletteRecentsEnabled).toBe(false);
+    store.setRegion("IN");
+    expect(useSettingsStore.getState().region).toBe("IN");
 
-    store.setPaletteScopedToPanel(true);
-    expect(useSettingsStore.getState().paletteScopedToPanel).toBe(true);
-
-    store.setThemeKnobs({ accentIntensity: "vivid" });
-    expect(useSettingsStore.getState().themeKnobs.accentIntensity).toBe("vivid");
-    // density untouched by a partial set
-    expect(useSettingsStore.getState().themeKnobs.density).toBe("comfortable");
+    store.setDeepResearchBackend("perplexity");
+    expect(useSettingsStore.getState().deepResearchBackend).toBe("perplexity");
 
     // Each setter self-persists.
-    expect(autosaveMock).toHaveBeenCalledTimes(4);
+    expect(autosaveMock).toHaveBeenCalledTimes(3);
   });
 
-  it("toggleStarterCockpitPanel adds and removes ids", () => {
-    const store = useSettingsStore.getState();
-    store.setStarterCockpitPanelIds([]);
-    store.toggleStarterCockpitPanel("screener-panel", true);
-    expect(useSettingsStore.getState().starterCockpitPanelIds).toContain("screener-panel");
-    store.toggleStarterCockpitPanel("screener-panel", false);
-    expect(useSettingsStore.getState().starterCockpitPanelIds).not.toContain("screener-panel");
+  // ---- defaultAgentId wiring (R9 D4: change → persist → reload → APPLIED) ----
+
+  it("setDefaultAgentId applies the persona to the active-agent store immediately", () => {
+    useSettingsStore.getState().setDefaultAgentId("graham");
+    expect(useActiveAgentStore.getState().activeAgentId).toBe("graham");
+
+    useSettingsStore.getState().setDefaultAgentId(null); // raw chat
+    expect(useActiveAgentStore.getState().activeAgentId).toBeNull();
   });
 
-  it("moveProviderPreference reorders and clamps at the edges", () => {
-    const store = useSettingsStore.getState();
-    store.setProviderPreferenceOrder(["anthropic", "openai", "gemini"]);
-
-    store.moveProviderPreference("openai", "up");
-    expect(useSettingsStore.getState().providerPreferenceOrder).toEqual([
-      "openai",
-      "anthropic",
-      "gemini",
-    ]);
-
-    // Moving the first item up is a no-op (clamped).
-    store.moveProviderPreference("openai", "up");
-    expect(useSettingsStore.getState().providerPreferenceOrder).toEqual([
-      "openai",
-      "anthropic",
-      "gemini",
-    ]);
-
-    store.moveProviderPreference("gemini", "down");
-    expect(useSettingsStore.getState().providerPreferenceOrder).toEqual([
-      "openai",
-      "anthropic",
-      "gemini",
-    ]);
+  it("the boot restore (first setAll) seeds the active agent from the blob", () => {
+    useSettingsStore.getState().setAll({ defaultAgentId: "munger" });
+    expect(useActiveAgentStore.getState().activeAgentId).toBe("munger");
   });
 
-  it("setPanelDefault stores per-panel preferences", () => {
-    useSettingsStore.getState().setPanelDefault("chart-panel", { interval: "1D" });
-    expect(useSettingsStore.getState().panelDefaults["chart-panel"]).toEqual({ interval: "1D" });
+  it("a later restore does NOT yank the live lens (default applies per session)", () => {
+    useSettingsStore.getState().setAll({ defaultAgentId: "munger" }); // boot
+    useActiveAgentStore.getState().setActiveAgent("graham"); // user switches lens
+    useSettingsStore.getState().setAll({ defaultAgentId: "buffett" }); // layout load / import
+    expect(useSettingsStore.getState().defaultAgentId).toBe("buffett");
+    expect(useActiveAgentStore.getState().activeAgentId).toBe("graham");
   });
+
+  it("an explicit raw-chat default round-trips via the sentinel", () => {
+    useSettingsStore.getState().setDefaultAgentId(null);
+    const bundle = settingsBundle();
+    expect(bundle.defaultAgentId).toBe(RAW_CHAT_SENTINEL);
+
+    resetSettingsStoreForTests();
+    useSettingsStore.getState().setAll(bundle);
+    expect(useSettingsStore.getState().defaultAgentId).toBeNull();
+    expect(useActiveAgentStore.getState().activeAgentId).toBeNull();
+  });
+
+  it("a legacy blob's dead null coerces to the Copilot default", () => {
+    // Pre-R9 the control was written-never-read, so a persisted null carried
+    // no intent — restoring it must not strand the chat on raw mode.
+    useSettingsStore.getState().setAll({ defaultAgentId: null });
+    expect(useSettingsStore.getState().defaultAgentId).toBe(DEFAULT_AGENT_ID);
+    expect(useActiveAgentStore.getState().activeAgentId).toBe(DEFAULT_AGENT_ID);
+  });
+
+  // ---- setAll hygiene ----
 
   it("setAll replaces the bundle and merges a partial blob over the seed", () => {
     useSettingsStore.getState().setAll({
       defaultAgentId: "munger",
-      providerPreferenceOrder: ["groq", "ollama"],
       // intentionally omit the rest — they must fall back to the seed
     });
     const s = useSettingsStore.getState();
     expect(s.defaultAgentId).toBe("munger");
-    expect(s.providerPreferenceOrder).toEqual(["groq", "ollama"]);
-    expect(s.paletteRecentsEnabled).toBe(DEFAULT_SETTINGS.paletteRecentsEnabled);
-    expect(s.themeKnobs).toEqual(DEFAULT_SETTINGS.themeKnobs);
+    expect(s.region).toBe(DEFAULT_SETTINGS.region);
+    expect(s.deepResearchBackend).toBe("native");
+  });
+
+  it("setAll silently drops killed fields from an older blob", () => {
+    useSettingsStore.getState().setAll({
+      defaultAgentId: "buffett",
+      themeKnobs: { accentIntensity: "vivid", density: "compact" },
+      paletteRecentsEnabled: false,
+      starterCockpitPanelIds: ["chart-panel"],
+      providerPreferenceOrder: ["groq"],
+      panelDefaults: { "chart-panel": { interval: "1D" } },
+    } as never);
+    const s = useSettingsStore.getState() as unknown as Record<string, unknown>;
+    expect(s.defaultAgentId).toBe("buffett");
+    for (const killed of [
+      "themeKnobs",
+      "paletteRecentsEnabled",
+      "starterCockpitPanelIds",
+      "providerPreferenceOrder",
+      "panelDefaults",
+    ]) {
+      expect(s[killed]).toBeUndefined();
+    }
+  });
+
+  it("setAll coerces a garbled region and a legacy deep-research backend", () => {
+    useSettingsStore.getState().setAll({
+      region: "ATLANTIS",
+      deepResearchBackend: "tongyi",
+    } as never);
+    expect(useSettingsStore.getState().region).toBe(DEFAULT_SETTINGS.region);
+    expect(useSettingsStore.getState().deepResearchBackend).toBe("native");
   });
 
   it("toBundle / settingsBundle snapshot the current preferences", () => {
     useSettingsStore.getState().setDefaultAgentId("buffett");
-    useSettingsStore.getState().setProviderPreferenceOrder(["anthropic", "openai"]);
+    useSettingsStore.getState().setRegion("IN");
     const bundle = settingsBundle();
     expect(bundle.defaultAgentId).toBe("buffett");
-    // The snapshot is a copy — mutating it doesn't bleed into the store.
-    bundle.providerPreferenceOrder.push("gemini");
-    expect(useSettingsStore.getState().providerPreferenceOrder).toEqual(["anthropic", "openai"]);
+    expect(bundle.region).toBe("IN");
+    expect(bundle.deepResearchBackend).toBe("native");
   });
 });

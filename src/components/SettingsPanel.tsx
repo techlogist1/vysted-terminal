@@ -3,24 +3,11 @@
 import { type FunctionComponent, useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
-  ArrowDown,
-  ArrowUp,
-  Bot,
   Check,
   ChevronDown,
-  Cpu,
   Download,
-  FlaskConical,
-  Globe,
-  Info,
   KeyRound,
-  Keyboard,
-  LayoutPanelLeft,
-  Network,
-  Package,
-  Plug,
   RotateCcw,
-  Sliders,
   Trash2,
   Upload,
   X,
@@ -28,10 +15,10 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
+import { formatModelLabel } from "@/components/StatusChrome";
 import { type Region, REGIONS } from "@/lib/region";
 import { cn } from "@/lib/utils";
-import { deleteSecret, getSecret, KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
-import { EXA_KEYCHAIN_ACCOUNT } from "@/lib/search-headers";
+import { deleteSecret, KEYCHAIN_NAMESPACES } from "@/lib/keychain";
 import { HOST_VERSION } from "@/lib/plugin-bootstrap";
 import {
   autosaveLayout,
@@ -68,9 +55,10 @@ import {
   verdictMeta,
 } from "@/lib/hardware-fit";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { useContainerWidth } from "@/lib/use-container-width";
 import {
-  type HostedSearchEngine,
-  type ResearchTier,
+  RESEARCH_MODEL_OPTIONS,
+  type ResearchStop,
   useSearchSettingsStore,
 } from "@/store/search-settings";
 import { type SettingsBundle, useSettingsStore } from "@/store/settings";
@@ -81,31 +69,30 @@ import type { LLMModelOption, LLMProviderId } from "../../types/ai";
  * Settings — the discoverable control surface (Cursor-grade preferences,
  * FR-037/FR-038/FR-039, SC-011).
  *
- * R8 layout — a sectioned hierarchy instead of a wall; ONE search surface
- * (the R7 research tiers — the legacy "Web search" section is gone, its
- * Exa key and custom SearXNG URL folded into the tier details):
+ * R9 layout — a sectioned hierarchy instead of a wall; ONE search surface;
+ * every control demonstrably round-trips (change → persist → reload →
+ * applied) or it does not exist (the R9 settings-truth pass — the dead
+ * Interface section and the unread provider-preference-order group died; see
+ * the kill list in `verification/R9_DEFECT_CATALOGUE.md`):
  *
  *   Settings
  *   [jump nav: AI Providers · Research · Region & locale ·
- *              Interface · Keybindings · Advanced]
+ *              Keybindings · Advanced]
  *   ── AI Providers ──────────────────────────────────────────────
- *      key rows (fixed-slot right cluster, so status text and buttons
- *      align row to row) · defaults (agent/provider/model) · order
+ *      key rows (one designed grid, so status text and buttons
+ *      align row to row) · defaults (agent/provider/model)
  *   ── Research ──────────────────────────────────────────────────
- *      search tiers (t1 keyless · t2 SearXNG + custom URL ·
- *      t3 BYOK: OpenRouter hosted or Exa direct) · deep research ·
+ *      two tiers (Unlimited (Local) — managed SearXNG · Hosted
+ *      research model — OpenRouter per-stop models) ·
  *      hardware & local models
  *   ── Region & locale ───────────────────────────────────────────
- *   ── Interface ─────────────────────────────────────────────────
- *      command palette · starter cockpit · appearance
  *   ── Keybindings ───────────────────────────────────────────────
  *   ── Advanced ──────────────────────────────────────────────────
  *      integrations · layouts · modules · export/import · about
  *
  * Rows share ONE primitive (32px-control SettingRow inside a single bordered
  * card with hairline dividers — never a card per row); toggles are readable
- * switches, never 8px checkboxes. Every pre-R7 setting stays reachable and
- * its store wiring is untouched. Opened from the toolbar gear, the
+ * switches, never 8px checkboxes. Opened from the toolbar gear, the
  * `platform.open-settings` command, or the onboarding banner. Wired into the
  * platform module as `panelComponents["settings-panel"]`.
  */
@@ -118,12 +105,9 @@ export const SettingsPanel: FunctionComponent = () => {
     <div className="bg-charcoal-900 flex h-full w-full flex-col overflow-hidden">
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex max-w-2xl flex-col gap-12 p-6 pb-12">
-          <header className="flex flex-col gap-3">
+          <header className="flex flex-col gap-4">
             <div>
-              <h1 className="text-charcoal-100 text-overview flex items-center gap-2">
-                <Sliders className="text-charcoal-300 size-5" aria-hidden="true" />
-                Settings
-              </h1>
+              <h1 className="text-charcoal-100 text-overview">Settings</h1>
               <p className="text-charcoal-400 text-caption mt-1">
                 Local-first &amp; bring-your-own-keys. Nothing leaves this machine except calls you
                 make to providers you configure.
@@ -134,7 +118,6 @@ export const SettingsPanel: FunctionComponent = () => {
           <ProvidersSection />
           <ResearchSection />
           <RegionSection />
-          <InterfaceSection />
           <KeybindingsSection />
           <AdvancedSection />
         </div>
@@ -149,51 +132,109 @@ SettingsPanel.displayName = "SettingsPanel";
 // Section scaffolding
 // ---------------------------------------------------------------------------
 
-const SECTION_NAV: { id: string; label: string }[] = [
-  { id: "settings-providers", label: "AI Providers" },
-  { id: "settings-research", label: "Research" },
-  { id: "settings-region", label: "Region & locale" },
-  { id: "settings-interface", label: "Interface" },
-  { id: "settings-keybindings", label: "Keybindings" },
-  { id: "settings-advanced", label: "Advanced" },
+const ICON_14 = "size-3.5"; // tokens-ok: the law's 14px icon step inside 28/32px controls (R9 §3)
+
+const SECTION_NAV: { id: string; label: string; short: string }[] = [
+  { id: "settings-providers", label: "AI Providers", short: "Providers" },
+  { id: "settings-research", label: "Research", short: "Research" },
+  { id: "settings-region", label: "Region & locale", short: "Region" },
+  { id: "settings-keybindings", label: "Keybindings", short: "Keys" },
+  { id: "settings-advanced", label: "Advanced", short: "Advanced" },
 ];
+
+/**
+ * Jump-nav collapse ladder (R8 §3.4): full labels → designed short labels →
+ * one overflow menu. Steps are deterministic width gates measured on the nav's
+ * own container, so chips NEVER wrap to a second line or clip mid-word.
+ * Thresholds = the MEASURED chip-row widths (text-micro uppercase JetBrains
+ * Mono, h-6, px-3, gap-2 — full row 578px, short row ≈432px) + slack.
+ */
+const NAV_FULL_MIN_W = 592;
+const NAV_SHORT_MIN_W = 440;
+
+/** Smooth-scroll one section head into view. */
+function jumpToSection(id: string) {
+  document.getElementById(id)?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+}
 
 /** Jump chips under the page head — the cure for the settings wall. */
 function SectionNav() {
+  const { ref, width } = useContainerWidth<HTMLElement>();
+  const [menuOpen, setMenuOpen] = useState(false);
+  // null width = first paint: render full (overflow law — never the reverse flash).
+  const step: "full" | "short" | "overflow" =
+    width === null || width >= NAV_FULL_MIN_W
+      ? "full"
+      : width >= NAV_SHORT_MIN_W
+        ? "short"
+        : "overflow";
+
+  if (step === "overflow") {
+    return (
+      <nav ref={ref} aria-label="Settings sections" className="relative flex gap-2">
+        <button
+          type="button"
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((open) => !open)}
+          onBlur={(e) => {
+            // Close when focus leaves the nav entirely (a menu item keeps it).
+            if (!e.currentTarget.parentElement?.contains(e.relatedTarget)) {
+              setMenuOpen(false);
+            }
+          }}
+          className="border-charcoal-700 text-charcoal-400 hover:text-charcoal-100 hover:bg-charcoal-875 rounded-control text-micro h-6 border px-3 whitespace-nowrap"
+        >
+          Sections ⋯
+        </button>
+        {menuOpen && (
+          <div
+            role="menu"
+            aria-label="Settings sections menu"
+            className="border-charcoal-700 bg-charcoal-900 absolute top-7 left-0 z-10 flex min-w-40 flex-col border py-1"
+          >
+            {SECTION_NAV.map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false);
+                  jumpToSection(id);
+                }}
+                className="text-charcoal-300 hover:text-charcoal-100 hover:bg-charcoal-875 text-caption h-7 px-3 text-left whitespace-nowrap"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+      </nav>
+    );
+  }
+
   return (
-    <nav aria-label="Settings sections" className="flex flex-wrap gap-2">
-      {SECTION_NAV.map(({ id, label }) => (
+    <nav ref={ref} aria-label="Settings sections" className="flex gap-2">
+      {SECTION_NAV.map(({ id, label, short }) => (
         <button
           key={id}
           type="button"
-          onClick={() =>
-            document.getElementById(id)?.scrollIntoView?.({ behavior: "smooth", block: "start" })
-          }
+          onClick={() => jumpToSection(id)}
           className="border-charcoal-700 text-charcoal-400 hover:text-charcoal-100 hover:bg-charcoal-875 rounded-control text-micro h-6 border px-3 whitespace-nowrap"
         >
-          {label}
+          {step === "full" ? label : short}
         </button>
       ))}
     </nav>
   );
 }
 
-/** A top-level section head — section-size title over a hairline rule. */
-function SectionHeader({
-  id,
-  icon,
-  title,
-  hint,
-}: {
-  id: string;
-  icon: React.ReactNode;
-  title: string;
-  hint?: string;
-}) {
+/** A top-level section head — section-size title over a hairline rule. Quiet,
+ *  Linear-grade: plain text, no decorative icon (hierarchy by size + color). */
+function SectionHeader({ id, title, hint }: { id: string; title: string; hint?: string }) {
   return (
     <header className="border-charcoal-800 mb-4 border-b pb-3">
-      <h2 id={id} className="text-charcoal-100 text-section flex scroll-mt-6 items-center gap-2">
-        {icon}
+      <h2 id={id} className="text-charcoal-100 text-section scroll-mt-6">
         {title}
       </h2>
       {hint && <p className="text-charcoal-400 text-caption mt-1">{hint}</p>}
@@ -232,24 +273,19 @@ function Card({ className, children }: { className?: string; children: React.Rea
 function SettingRow({
   label,
   hint,
-  icon,
   children,
 }: {
   label: string;
   hint?: string;
-  icon?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <div className="flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
       <div className="flex min-w-0 flex-col">
-        <span className="text-charcoal-100 text-body flex items-center gap-2">
-          {icon}
-          {label}
-        </span>
+        <span className="text-charcoal-100 text-body">{label}</span>
         {hint && <span className="text-charcoal-400 text-caption mt-1">{hint}</span>}
       </div>
-      <div className="ml-auto shrink-0">{children}</div>
+      <div className="ml-auto min-w-0 shrink-0">{children}</div>
     </div>
   );
 }
@@ -272,9 +308,11 @@ function ToggleSwitch({
   "aria-label"?: string;
 }) {
   return (
+    // Reference-grade proportions (Linear ≈ 36×20 track): a 20px track with a
+    // 16px thumb, vertically centered in a 32px-tall hit area (≥24px target).
     <label
       className={cn(
-        "relative inline-flex h-8 w-16 shrink-0 items-center",
+        "relative inline-flex h-8 w-9 shrink-0 items-center",
         disabled ? "cursor-not-allowed" : "cursor-pointer",
       )}
     >
@@ -289,11 +327,11 @@ function ToggleSwitch({
       />
       <span
         aria-hidden="true"
-        className="bg-charcoal-850 border-charcoal-700 peer-checked:bg-charcoal-600 peer-checked:border-charcoal-500 rounded-control absolute inset-0 border transition-colors peer-disabled:opacity-40"
+        className="bg-charcoal-850 border-charcoal-700 peer-checked:bg-charcoal-600 peer-checked:border-charcoal-500 rounded-control h-5 w-9 border transition-colors peer-disabled:opacity-40"
       />
       <span
         aria-hidden="true"
-        className="bg-charcoal-500 peer-checked:bg-charcoal-100 rounded-control absolute left-1 size-6 transition-transform peer-checked:translate-x-8 peer-disabled:opacity-40"
+        className="bg-charcoal-400 peer-checked:bg-charcoal-100 rounded-control absolute top-1/2 left-1 size-4 -translate-y-1/2 transition-transform peer-checked:translate-x-3 peer-disabled:opacity-40"
       />
     </label>
   );
@@ -355,7 +393,10 @@ function Select({ className, children, ...props }: React.ComponentProps<"select"
         {children}
       </select>
       <ChevronDown
-        className="text-charcoal-400 pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2"
+        className={cn(
+          ICON_14,
+          "text-charcoal-400 pointer-events-none absolute top-1/2 right-2 -translate-y-1/2",
+        )}
         aria-hidden="true"
       />
     </div>
@@ -389,7 +430,6 @@ function ProvidersSection() {
     <section aria-labelledby="settings-providers">
       <SectionHeader
         id="settings-providers"
-        icon={<Plug className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="AI Providers"
         hint="Paste an API key to enable an AI provider. Keys are stored in your OS keychain — never on disk or sent anywhere but the provider you call."
       />
@@ -423,13 +463,17 @@ function ProvidersSection() {
                     )}
                   </span>
                 </div>
-                {/* Fixed-width slots so the cluster aligns row to row — a row
+                {/* ONE designed grid for every row (D2): fixed-width slots so
+                    the default / key / remove columns align row to row — a row
                     missing a control renders its slot empty, never collapses. */}
                 <div className="ml-auto flex shrink-0 items-center gap-3">
-                  <span className="flex w-20 justify-end">
+                  <span className="flex w-16 justify-end">
                     {isDefault ? (
-                      <span className="text-micro rounded-control bg-charcoal-850 text-charcoal-300 px-2 py-1 whitespace-nowrap">
-                        default
+                      // Short form + check state (V4: "SET DEFAULT" never
+                      // wraps) — the active default reads as a quiet fact.
+                      <span className="text-micro text-charcoal-200 flex h-6 items-center gap-1 whitespace-nowrap">
+                        <Check className="size-3 shrink-0" aria-hidden="true" />
+                        Default
                       </span>
                     ) : (
                       // Picking a default is a free preference (no key
@@ -444,11 +488,12 @@ function ProvidersSection() {
                           // choice survives relaunch even without a layout change.
                           void autosaveLayout();
                         }}
+                        aria-label={`Set ${provider.label} as default provider`}
                         // R8 §3.5: a button label never wraps to two lines —
-                        // "Set default" stays one line in its fixed w-20 slot.
+                        // the SAME short form as the active state, one column.
                         className="text-micro text-charcoal-400 hover:text-charcoal-100 rounded-control h-6 px-1 whitespace-nowrap"
                       >
-                        Set default
+                        Default
                       </button>
                     )}
                   </span>
@@ -459,12 +504,12 @@ function ProvidersSection() {
                         variant="outline"
                         onClick={() => setDialogProvider(provider.id)}
                       >
-                        <KeyRound className="size-3" aria-hidden="true" />
+                        <KeyRound aria-hidden="true" />
                         {configured ? "Update key" : "Add key"}
                       </Button>
                     )}
                   </span>
-                  <span className="flex w-12 justify-end">
+                  <span className="flex w-8 justify-end">
                     {needsKey && configured && (
                       <button
                         type="button"
@@ -472,7 +517,7 @@ function ProvidersSection() {
                         onClick={() => void handleRemove(provider.id)}
                         className="text-charcoal-400 hover:text-negative rounded-control p-2"
                       >
-                        <Trash2 className="size-3.5" aria-hidden="true" />
+                        <Trash2 className={ICON_14} aria-hidden="true" />
                       </button>
                     )}
                   </span>
@@ -483,7 +528,6 @@ function ProvidersSection() {
         </Card>
 
         <DefaultsGroup />
-        <ProviderOrderGroup />
       </div>
       <KeyEntryDialog
         open={dialogProvider !== null}
@@ -530,7 +574,7 @@ function DefaultsGroup() {
   const defaultModelOptions: LLMModelOption[] =
     defaultModelCatalog?.models && defaultModelCatalog.models.length > 0
       ? defaultModelCatalog.models
-      : fallbackModelIds.map((id) => ({ id, label: id }));
+      : fallbackModelIds.map((id) => ({ id, label: formatModelLabel(id) }));
   const { groups: defaultModelGroups } = buildModelGroups(
     defaultModelOptions,
     modelFor(defaultProviderId),
@@ -542,8 +586,7 @@ function DefaultsGroup() {
       <Card>
         <SettingRow
           label="Default agent"
-          hint="The persona the copilot starts with each session."
-          icon={<Bot className="text-charcoal-300 size-3.5" aria-hidden="true" />}
+          hint="The persona the chat starts on — applies now and at every launch."
         >
           <Select
             aria-label="Default agent"
@@ -557,7 +600,7 @@ function DefaultsGroup() {
               </option>
             ) : (
               <>
-                <option value="">No default (raw chat)</option>
+                <option value="">Raw chat (no persona)</option>
                 {agents.map((agent) => (
                   <option key={agent.id} value={agent.id}>
                     {agent.name}
@@ -625,61 +668,6 @@ function DefaultsGroup() {
   );
 }
 
-/** Provider preference order — the order providers are offered in pickers. */
-function ProviderOrderGroup() {
-  const providers = useLLMProvidersStore((s) => s.providers);
-  const providerPreferenceOrder = useSettingsStore((s) => s.providerPreferenceOrder);
-  const moveProviderPreference = useSettingsStore((s) => s.moveProviderPreference);
-
-  const providerLabel = (id: LLMProviderId) => providers.find((p) => p.id === id)?.label ?? id;
-  // Union the persisted order with the live providers so a provider added in a
-  // later release still appears (appended), and a stale id drops off.
-  const liveIds = new Set(providers.map((p) => p.id));
-  const orderedProviderIds: LLMProviderId[] = [
-    ...providerPreferenceOrder.filter((id) => liveIds.has(id)),
-    ...providers.map((p) => p.id).filter((id) => !providerPreferenceOrder.includes(id)),
-  ];
-
-  return (
-    <div>
-      <GroupLabel
-        label="Provider preference order"
-        hint="The order providers are offered in pickers. Reorder to surface the ones you reach for first."
-      />
-      <Card>
-        {orderedProviderIds.map((id, idx) => (
-          <div key={id} className="flex min-h-8 items-center justify-between gap-4 px-4 py-2">
-            <span className="text-charcoal-100 text-body flex items-center gap-2">
-              <span className="text-charcoal-500 w-4 text-right tabular-nums">{idx + 1}</span>
-              {providerLabel(id)}
-            </span>
-            <span className="flex items-center gap-1">
-              <button
-                type="button"
-                aria-label={`Move ${providerLabel(id)} up`}
-                disabled={idx === 0}
-                onClick={() => moveProviderPreference(id, "up")}
-                className="text-charcoal-400 rounded-control hover:text-charcoal-100 p-1 disabled:cursor-not-allowed disabled:opacity-30"
-              >
-                <ArrowUp className="size-3.5" aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                aria-label={`Move ${providerLabel(id)} down`}
-                disabled={idx === orderedProviderIds.length - 1}
-                onClick={() => moveProviderPreference(id, "down")}
-                className="text-charcoal-400 rounded-control hover:text-charcoal-100 p-1 disabled:cursor-not-allowed disabled:opacity-30"
-              >
-                <ArrowDown className="size-3.5" aria-hidden="true" />
-              </button>
-            </span>
-          </div>
-        ))}
-      </Card>
-    </div>
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Research (deep research + hardware capability)
 // ---------------------------------------------------------------------------
@@ -700,108 +688,7 @@ function FitRow({ model }: { model: ScoredModel }) {
   );
 }
 
-// ---- R7 research search tiers (Track S) ------------------------------------
-
-/** One T1 keyless engine's live breaker state (`GET /search/status` wire shape). */
-interface T1EngineStatus {
-  id: string;
-  label: string;
-  state: string;
-  cooldown_remaining_s: number;
-  detail: string;
-}
-
-/** The T1 tier-status payload — mirrors `sidecar/services/search/keyless.tier_status`. */
-interface T1TierStatus {
-  tier: string;
-  available: boolean;
-  engines: T1EngineStatus[];
-}
-
-/** Fetch the live T1 per-engine status, or `null` when the sidecar is unreachable. */
-async function fetchT1TierStatus(): Promise<T1TierStatus | null> {
-  try {
-    const base = await getSidecarBaseUrl();
-    const resp = await fetch(new URL("/search/status", base).toString());
-    if (!resp.ok) {
-      return null;
-    }
-    return (await resp.json()) as T1TierStatus;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Format the T1 per-engine status line — "DuckDuckGo — cooling down 24s ·
- * Brave — ok · Mojeek — ok". Honest per engine: `open` breaker = cooling down
- * with the remaining seconds, `half_open` = probing, else ok. Exported so the
- * formatting contract is locked by tests.
- */
-export function t1EngineStatusLine(engines: T1EngineStatus[]): string {
-  return engines
-    .map((engine) => {
-      if (engine.state === "open") {
-        return `${engine.label} — cooling down ${Math.max(0, Math.round(engine.cooldown_remaining_s))}s`;
-      }
-      if (engine.state === "half_open") {
-        return `${engine.label} — probing`;
-      }
-      return `${engine.label} — ok`;
-    })
-    .join(" · ");
-}
-
-/** Poll cadence for the T1 status line while the tier is selected and visible. */
-const T1_STATUS_POLL_MS = 20_000;
-
-/** The live T1 per-engine status line — tertiary text, polled every ~20s. */
-function T1StatusLine() {
-  const [status, setStatus] = useState<T1TierStatus | null | "loading">("loading");
-
-  useEffect(() => {
-    let alive = true;
-    const tick = async () => {
-      // Skip the fetch while the window is hidden — the poll exists for a
-      // visible status line, not background traffic.
-      if (typeof document !== "undefined" && document.hidden) {
-        return;
-      }
-      const next = await fetchT1TierStatus();
-      if (alive) {
-        setStatus(next);
-      }
-    };
-    void tick();
-    const interval = setInterval(() => void tick(), T1_STATUS_POLL_MS);
-    return () => {
-      alive = false;
-      clearInterval(interval);
-    };
-  }, []);
-
-  if (status === "loading") {
-    return <p className="text-charcoal-500 text-caption">Checking engine status…</p>;
-  }
-  if (status === null) {
-    return (
-      <p className="text-charcoal-500 text-caption">
-        Engine status unavailable (sidecar not connected).
-      </p>
-    );
-  }
-  return (
-    <p className="text-charcoal-500 text-caption" data-testid="t1-engine-status">
-      {status.engines.length > 0 ? t1EngineStatusLine(status.engines) : "No engines reported."}
-      {!status.available && (
-        <span className="text-warning">
-          {" "}
-          All engines are cooling down — searches resume when the first recovers.
-        </span>
-      )}
-    </p>
-  );
-}
+// ---- R9 research tiers (two tiers — built on Team A's store contract) -------
 
 /** The managed-SearXNG status payload — mirrors `searxng_manager.snapshot()`. */
 interface SearxngStatus {
@@ -812,7 +699,7 @@ interface SearxngStatus {
   url: string | null;
 }
 
-/** Fetch the T2 state machine's status, or `null` when the sidecar is unreachable. */
+/** Fetch the SearXNG state machine's status, or `null` when the sidecar is unreachable. */
 async function fetchSearxngStatus(): Promise<SearxngStatus | null> {
   try {
     const base = await getSidecarBaseUrl();
@@ -826,7 +713,7 @@ async function fetchSearxngStatus(): Promise<SearxngStatus | null> {
   }
 }
 
-/** POST a T2 action (setup begins/retries; teardown removes); returns the new status. */
+/** POST a SearXNG action (setup begins/retries; teardown stops + removes). */
 async function postSearxngAction(action: "setup" | "teardown"): Promise<SearxngStatus | null> {
   try {
     const base = await getSidecarBaseUrl();
@@ -842,16 +729,56 @@ async function postSearxngAction(action: "setup" | "teardown"): Promise<SearxngS
   }
 }
 
-/** Poll cadence while the T2 setup is in a transition state (pulling/starting). */
+/** Poll cadence while the SearXNG setup is in a transition state (pulling/starting). */
 const SEARXNG_TRANSITION_POLL_MS = 3_000;
 
+/** Designed status-chip vocabulary per sidecar state (the brief's words, not
+ *  the wire ids). Exported so the chip contract is locked by tests. */
+export function searxngChipMeta(state: string): { label: string; className: string } {
+  switch (state) {
+    case "not_installed_docker":
+      return { label: "Docker not found", className: "text-warning border-warning/40" };
+    case "docker_present_not_setup":
+      return { label: "Not set up", className: "text-charcoal-400 border-charcoal-700" };
+    case "pulling":
+      return { label: "Pulling", className: "text-charcoal-200 border-charcoal-600" };
+    case "starting":
+      return { label: "Starting", className: "text-charcoal-200 border-charcoal-600" };
+    case "ready":
+      return { label: "Ready", className: "text-positive border-positive/40" };
+    case "error":
+      return { label: "Error", className: "text-negative border-negative/40" };
+    default:
+      // An unknown state (newer sidecar) — name it honestly rather than guessing.
+      return { label: state, className: "text-charcoal-400 border-charcoal-700" };
+  }
+}
+
+/** The live status chip — micro-text, hairline border, state-keyed color. */
+function SearxngStatusChip({ state }: { state: string }) {
+  const meta = searxngChipMeta(state);
+  return (
+    <span
+      data-testid="searxng-status-chip"
+      className={cn(
+        "text-micro rounded-control flex h-6 shrink-0 items-center border px-2 whitespace-nowrap",
+        meta.className,
+      )}
+    >
+      {meta.label}
+    </span>
+  );
+}
+
 /**
- * The T2 guided one-click flow, driven VERBATIM off the sidecar state machine:
- * not_installed_docker → explain + install hint (plain-text URL, no external
- * nav); docker_present_not_setup → [Set up]; pulling/starting → progress
- * (poll ~3s); ready → green OK + [Remove]; error → reason + [Retry].
+ * Tier A's managed-SearXNG flow, driven VERBATIM off the sidecar state
+ * machine: a status chip + a container-health line + ONE primary action per
+ * state (Set up → Stop; Retry on error; nothing while pulling/starting), the
+ * Docker-missing state with honest copy (plain-text install hint, no external
+ * nav), and — whenever the instance is not READY — the quiet truth line that
+ * research is riding the limited keyless fallback meanwhile.
  */
-function SearxngGuidedFlow() {
+function SearxngManagedFlow() {
   const [status, setStatus] = useState<SearxngStatus | null | "loading">("loading");
   const [busy, setBusy] = useState(false);
 
@@ -899,392 +826,149 @@ function SearxngGuidedFlow() {
     }
   }
 
+  /** The quiet not-ready truth line (brief D1). */
+  const fallbackNote = (
+    <p className="text-charcoal-500 text-caption">
+      Until set up, research uses limited keyless search.
+    </p>
+  );
+
   if (status === "loading") {
-    return <p className="text-charcoal-500 text-caption">Checking Docker…</p>;
+    return (
+      <div className="flex flex-col gap-2">
+        <p className="text-charcoal-500 text-caption">Checking Docker…</p>
+        {fallbackNote}
+        <SearxngAdvancedUrl />
+      </div>
+    );
   }
   if (status === null) {
     return (
-      <p className="text-charcoal-500 text-caption">
-        SearXNG status unavailable (sidecar not connected).
-      </p>
+      <div className="flex flex-col gap-2">
+        <p className="text-charcoal-500 text-caption">
+          SearXNG status unavailable (sidecar not connected).
+        </p>
+        {fallbackNote}
+        <SearxngAdvancedUrl />
+      </div>
     );
   }
 
+  // ONE primary action per state (brief D1): Set up → Stop; Retry on error.
+  let action: { label: string; verb: "setup" | "teardown" } | null = null;
+  if (status.state === "docker_present_not_setup") {
+    action = { label: "Set up", verb: "setup" };
+  } else if (status.state === "ready") {
+    action = { label: "Stop", verb: "teardown" };
+  } else if (status.state === "error") {
+    action = { label: "Retry", verb: "setup" };
+  }
+
+  // The container-health line, honest per state.
+  let healthLine: React.ReactNode;
   switch (status.state) {
     case "not_installed_docker":
-      return (
-        <div className="flex flex-col gap-1">
-          <p className="text-charcoal-300 text-caption">
-            SearXNG runs in a local Docker container, and Docker isn&rsquo;t available on this
-            machine.
-          </p>
-          {/* Plain-text install hint — deliberately NOT a link (no external nav). */}
-          <p className="text-charcoal-500 text-caption">
+      healthLine = (
+        <span>
+          SearXNG runs in a local Docker container, and Docker isn&rsquo;t available on this
+          machine. {/* Plain-text install hint — deliberately NOT a link (no external nav). */}
+          <span className="text-charcoal-500">
             Install Docker first — docs.docker.com/get-started/get-docker — then setup from here is
             one click.
-          </p>
-        </div>
+          </span>
+        </span>
       );
+      break;
     case "docker_present_not_setup":
-      return (
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-charcoal-300 text-caption">
-            Docker is ready. One click pulls the SearXNG image and starts a private local instance —
-            searches then route through it automatically.
-          </p>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={busy}
-            onClick={() => void runAction("setup")}
-          >
-            Set up
-          </Button>
-        </div>
-      );
+      healthLine =
+        "Docker is ready. One click pulls the SearXNG image and starts a private local instance.";
+      break;
     case "pulling":
-      return (
-        <p className="text-charcoal-300 text-caption" role="status">
+      healthLine = (
+        <span role="status">
           Pulling the SearXNG image…{" "}
           <span className="text-charcoal-500">
             {status.detail ?? "first run can take a few minutes"}
           </span>
-        </p>
+        </span>
       );
+      break;
     case "starting":
-      return (
-        <p className="text-charcoal-300 text-caption" role="status">
+      healthLine = (
+        <span role="status">
           Starting the instance…{" "}
           <span className="text-charcoal-500">{status.detail ?? "almost there"}</span>
-        </p>
+        </span>
       );
+      break;
     case "ready":
-      return (
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-positive text-caption flex min-w-0 items-center gap-1">
-            <Check className="size-3 shrink-0" aria-hidden="true" />
-            <span className="truncate">
-              SearXNG is running{status.url ? ` at ${status.url}` : ""} — research searches use it
-              automatically.
-            </span>
-          </p>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={busy}
-            onClick={() => void runAction("teardown")}
-          >
-            <Trash2 className="size-3" aria-hidden="true" />
-            Remove
-          </Button>
-        </div>
+      healthLine = (
+        <span className="text-positive">
+          Running{status.url ? ` at ${status.url}` : ""} — research searches route through it
+          automatically.
+        </span>
       );
+      break;
     case "error":
-      return (
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-negative text-caption min-w-0" role="alert">
-            Setup failed: {status.reason ?? "unknown error"}
-          </p>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={busy}
-            onClick={() => void runAction("setup")}
-          >
-            <RotateCcw className="size-3" aria-hidden="true" />
-            Retry
-          </Button>
-        </div>
+      healthLine = (
+        <span className="text-negative" role="alert">
+          Setup failed: {status.reason ?? "unknown error"}
+        </span>
       );
+      break;
     default:
-      // An unknown state (newer sidecar) — show it honestly rather than guessing.
-      return (
-        <p className="text-charcoal-500 text-caption">
+      healthLine = (
+        <span>
           SearXNG state: {status.state}
           {status.detail ? ` — ${status.detail}` : ""}
-        </p>
+        </span>
       );
-  }
-}
-
-/** The t3 hosted engines — Firecrawl default (free credits), Exa per-request. */
-const HOSTED_ENGINE_OPTIONS: {
-  id: HostedSearchEngine;
-  label: string;
-  costLine: string;
-}[] = [
-  {
-    id: "firecrawl",
-    label: "Firecrawl",
-    costLine:
-      "The default engine. Starts on free credits; after those, each search bills through your OpenRouter account.",
-  },
-  {
-    id: "exa",
-    label: "Exa",
-    costLine:
-      "Exa bills ~$0.005 per search through your OpenRouter account — a documented rate that can drift.",
-  },
-];
-
-/**
- * The t3 BYOK sub-mode picker: hosted via OpenRouter (engine + key presence)
- * or "Exa direct" (the user's own Exa API key, riding the legacy `byok-exa`
- * wire lane the sidecar maps onto the Exa backend).
- */
-function ByokSearchControls() {
-  const exaDirect = useSearchSettingsStore((s) => s.exaDirect);
-  const setExaDirect = useSearchSettingsStore((s) => s.setExaDirect);
-
-  return (
-    <div className="flex flex-col gap-3">
-      <div
-        role="radiogroup"
-        aria-label="BYOK search mode"
-        className="border-charcoal-700 divide-charcoal-700 rounded-control flex h-8 max-w-xs divide-x overflow-hidden border"
-      >
-        <button
-          type="button"
-          role="radio"
-          aria-checked={!exaDirect}
-          onClick={() => setExaDirect(false)}
-          className={cn(
-            "text-micro flex-1 px-3 whitespace-nowrap",
-            !exaDirect
-              ? "bg-charcoal-875 text-lume"
-              : "text-charcoal-400 hover:text-charcoal-200 bg-transparent",
-          )}
-        >
-          Via OpenRouter
-        </button>
-        <button
-          type="button"
-          role="radio"
-          aria-checked={exaDirect}
-          onClick={() => setExaDirect(true)}
-          className={cn(
-            "text-micro flex-1 px-3 whitespace-nowrap",
-            exaDirect
-              ? "bg-charcoal-875 text-lume"
-              : "text-charcoal-400 hover:text-charcoal-200 bg-transparent",
-          )}
-        >
-          Exa direct
-        </button>
-      </div>
-      {exaDirect ? <ExaDirectControls /> : <HostedEngineControls />}
-    </div>
-  );
-}
-
-/**
- * The "Exa direct" key card: the legacy `vysted-search-exa:exa_api_key`
- * keychain slot keeps working — key presence is read straight from the OS
- * keychain (BYOK; never in a store), and the value never enters frontend
- * state beyond the controlled input.
- */
-function ExaDirectControls() {
-  const [exaConfigured, setExaConfigured] = useState<boolean | null>(null);
-  const [exaInput, setExaInput] = useState("");
-  const [exaBusy, setExaBusy] = useState(false);
-  const [exaError, setExaError] = useState<string | null>(null);
-
-  async function refreshExa() {
-    try {
-      const value = await getSecret(EXA_KEYCHAIN_ACCOUNT);
-      setExaConfigured(Boolean(value));
-    } catch {
-      setExaConfigured(false);
-    }
-  }
-
-  useEffect(() => {
-    // Only sets state after the awaited keychain read resolves (never
-    // synchronously) — same no-cascade pattern as the Layouts section.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void refreshExa();
-  }, []);
-
-  async function handleSaveExa() {
-    const value = exaInput.trim();
-    if (!value) {
-      return;
-    }
-    setExaBusy(true);
-    setExaError(null);
-    try {
-      await setSecret(EXA_KEYCHAIN_ACCOUNT, value);
-      setExaInput("");
-      await refreshExa();
-    } catch (err) {
-      // A keychain write can fail (locked keychain, denied access). Surface it —
-      // otherwise refreshExa() shows "not configured" and the user thinks it saved.
-      setExaError(err instanceof Error ? err.message : "Couldn't save the key to the keychain.");
-    } finally {
-      setExaBusy(false);
-    }
-  }
-
-  async function handleRemoveExa() {
-    setExaBusy(true);
-    setExaError(null);
-    try {
-      await deleteSecret(EXA_KEYCHAIN_ACCOUNT);
-      await refreshExa();
-    } catch (err) {
-      setExaError(
-        err instanceof Error ? err.message : "Couldn't remove the key from the keychain.",
-      );
-    } finally {
-      setExaBusy(false);
-    }
   }
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-charcoal-500 text-caption">
-        Searches call Exa&rsquo;s API directly on your own Exa key — no OpenRouter account needed.
-        Billed by Exa per search. The key is stored in your OS keychain, never on disk or sent
-        anywhere but Exa.
-      </p>
-      {exaConfigured === null ? (
-        // Keychain read in flight — show a quiet checking state instead of
-        // briefly flashing the "needs a key" form (which is misleading if a
-        // key IS stored).
-        <span className="text-charcoal-400 text-caption">Checking…</span>
-      ) : exaConfigured ? (
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="text-positive text-caption flex items-center gap-1">
-            <Check className="size-3 shrink-0" aria-hidden="true" />
-            Exa key configured — direct searches use it.
-          </span>
+      <div className="flex min-h-8 flex-wrap items-center gap-x-3 gap-y-2">
+        <SearxngStatusChip state={status.state} />
+        <p className="text-charcoal-300 text-caption min-w-0 flex-1">{healthLine}</p>
+        {action && (
           <Button
             size="sm"
             variant="outline"
-            disabled={exaBusy}
-            onClick={() => void handleRemoveExa()}
+            disabled={busy}
+            onClick={() => void runAction(action.verb)}
           >
-            <Trash2 className="size-3" aria-hidden="true" />
-            Remove
+            {action.label}
           </Button>
-        </div>
-      ) : (
-        <>
-          {/* Exa direct is the active sub-mode but cannot run without a key —
-              say so plainly rather than silently flooring. */}
-          <p className="text-warning text-caption">
-            Exa direct is selected but needs an Exa API key to run — add one below.
-          </p>
-          <form
-            className="flex items-center gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              void handleSaveExa();
-            }}
-          >
-            <input
-              type="password"
-              value={exaInput}
-              onChange={(e) => setExaInput(e.target.value)}
-              placeholder="exa_..."
-              aria-label="Exa API key"
-              className={cn(inputClass, "min-w-0 flex-1")}
-            />
-            <Button
-              type="submit"
-              size="sm"
-              variant="outline"
-              disabled={exaBusy || exaInput.trim() === ""}
-            >
-              Save key
-            </Button>
-          </form>
-          {exaError && (
-            <p className="text-negative text-caption" role="alert">
-              {exaError}
-            </p>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
-
-/** The t3 hosted-search controls: engine segmented control + key presence. */
-function HostedEngineControls() {
-  const hostedEngine = useSearchSettingsStore((s) => s.hostedEngine);
-  const setHostedEngine = useSearchSettingsStore((s) => s.setHostedEngine);
-  // Key PRESENCE only — the same keychain probe the AI Providers rows render
-  // from (`provider-keys`); the key value never enters frontend state.
-  const keyStatus = useProviderKeysStore((s) => s.status.openrouter);
-  const refreshOne = useProviderKeysStore((s) => s.refreshOne);
-
-  useEffect(() => {
-    void refreshOne("openrouter");
-  }, [refreshOne]);
-
-  const active = HOSTED_ENGINE_OPTIONS.find((opt) => opt.id === hostedEngine);
-
-  return (
-    <div className="flex flex-col gap-2">
-      <div
-        role="radiogroup"
-        aria-label="Hosted search engine"
-        className="border-charcoal-700 divide-charcoal-700 rounded-control flex h-8 max-w-xs divide-x overflow-hidden border"
-      >
-        {HOSTED_ENGINE_OPTIONS.map((opt) => (
-          <button
-            key={opt.id}
-            type="button"
-            role="radio"
-            aria-checked={hostedEngine === opt.id}
-            onClick={() => setHostedEngine(opt.id)}
-            className={cn(
-              "text-micro flex-1 px-3 whitespace-nowrap",
-              hostedEngine === opt.id
-                ? "bg-charcoal-875 text-lume"
-                : "text-charcoal-400 hover:text-charcoal-200 bg-transparent",
-            )}
-          >
-            {opt.label}
-          </button>
-        ))}
+        )}
       </div>
-      <p className="text-charcoal-500 text-caption">{active?.costLine}</p>
-      {keyStatus === "configured" ? (
-        <p className="text-positive text-caption flex items-center gap-1">
-          <Check className="size-3 shrink-0" aria-hidden="true" />
-          OpenRouter key configured — hosted searches use it automatically.
-        </p>
-      ) : keyStatus === "missing" ? (
-        <p className="text-warning text-caption">
-          No OpenRouter key yet — add one under AI Providers above. Hosted search can&rsquo;t run
-          without it.
-        </p>
-      ) : (
-        <p className="text-charcoal-500 text-caption">
-          Couldn&rsquo;t check the OS keychain for an OpenRouter key.
-        </p>
-      )}
+      {status.state !== "ready" && fallbackNote}
+      <SearxngAdvancedUrl />
     </div>
   );
 }
 
 /**
- * The t2 detail: the guided one-click managed flow plus the optional
- * "Advanced" custom-instance URL (empty = managed instance / autodetect).
+ * The "Advanced" disclosure for a custom SearXNG instance URL. Kept because it
+ * is wired end-to-end (store → `X-Vysted-Searxng-Url` header → sidecar
+ * resolution under either tier); collapsed by default so the default flow
+ * stays one chip + one button.
  */
-function SearxngTierDetail() {
+function SearxngAdvancedUrl() {
   const searxngUrl = useSearchSettingsStore((s) => s.searxngUrl);
   const setSearxngUrl = useSearchSettingsStore((s) => s.setSearxngUrl);
 
   return (
-    <div className="flex flex-col gap-3">
-      <SearxngGuidedFlow />
-      <div className="flex flex-col gap-1">
-        <label htmlFor="settings-searxng-custom-url" className="text-charcoal-500 text-micro">
-          Advanced: custom instance URL
-        </label>
+    <details className="group">
+      <summary className="text-charcoal-500 hover:text-charcoal-300 text-micro cursor-pointer list-none select-none">
+        <span aria-hidden="true" className="mr-1 inline-block group-open:hidden">
+          ▸
+        </span>
+        <span aria-hidden="true" className="mr-1 hidden group-open:inline-block">
+          ▾
+        </span>
+        <span>Advanced: custom instance URL</span>
+      </summary>
+      <div className="mt-2 flex flex-col gap-1">
         <input
           id="settings-searxng-custom-url"
           type="url"
@@ -1295,131 +979,230 @@ function SearxngTierDetail() {
           className={cn(inputClass, "w-full max-w-sm")}
         />
         <p className="text-charcoal-500 text-caption">
-          Optional. Leave blank to use the managed instance above (or autodetect localhost:8888 /
-          :8080). A custom instance must enable the JSON output format and disable the limiter in
-          its settings.yml.
+          Optional. Leave blank to use the managed instance above. A custom instance must enable the
+          JSON output format and disable the limiter in its settings.yml.
         </p>
+      </div>
+    </details>
+  );
+}
+
+/** Friendly per-stop row copy for the Tier B model rows. */
+const RESEARCH_STOP_ROWS: { stop: ResearchStop; label: string; hint: string }[] = [
+  { stop: "normal", label: "Normal", hint: "Quick checks and single questions." },
+  { stop: "deep", label: "Deep", hint: "Multi-step research with reasoning." },
+  { stop: "ultra", label: "Ultra", hint: "Exhaustive runs — can take minutes." },
+];
+
+/** Option list for one stop: the shared picker + the persisted value if it is
+ *  a custom slug that dropped out of the list (never silently deselected). */
+function stopOptions(current: string): { id: string; label: string }[] {
+  const known = RESEARCH_MODEL_OPTIONS.some((o) => o.id === current);
+  const base = RESEARCH_MODEL_OPTIONS.map((o) => ({ id: o.id, label: o.label }));
+  return known ? base : [{ id: current, label: formatModelLabel(current) }, ...base];
+}
+
+/** One Tier B per-stop model row: stop label + live pricing micro-text left,
+ *  the model select right. Pricing renders from Team A's verified constant. */
+function ResearchModelRow({
+  stop,
+  label,
+  hint,
+}: {
+  stop: ResearchStop;
+  label: string;
+  hint: string;
+}) {
+  const model = useSearchSettingsStore((s) => s.researchModels[stop]);
+  const setResearchModel = useSearchSettingsStore((s) => s.setResearchModel);
+  const active = RESEARCH_MODEL_OPTIONS.find((o) => o.id === model);
+
+  return (
+    <div className="flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
+      <div className="flex min-w-0 flex-col">
+        <span className="text-charcoal-100 text-body">{label}</span>
+        <span className="text-charcoal-400 text-caption mt-1">{hint}</span>
+        <span className="text-charcoal-500 text-micro mt-1">
+          {active
+            ? `${active.priceHint}${active.priceVerified ? "" : " · estimate"}`
+            : "Custom model — pricing on its OpenRouter page"}
+        </span>
+      </div>
+      <div className="ml-auto shrink-0">
+        <Select
+          aria-label={`${label} research model`}
+          value={model}
+          onChange={(e) => setResearchModel(stop, e.target.value)}
+        >
+          {stopOptions(model).map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
       </div>
     </div>
   );
 }
 
-/** The three research search tiers — names + one-line honest descriptions. */
-const RESEARCH_TIER_OPTIONS: {
-  id: ResearchTier;
+/**
+ * Tier B's controls: the OpenRouter key state (the SAME keychain probe and
+ * entry dialog the AI-Providers rows use — key presence only, never the
+ * value), then the three per-stop model rows. With no key there are NO dead
+ * selects — the key CTA is the one control (brief D1).
+ */
+function ResearchModelControls() {
+  const keyStatus = useProviderKeysStore((s) => s.status.openrouter);
+  const refreshOne = useProviderKeysStore((s) => s.refreshOne);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    void refreshOne("openrouter");
+  }, [refreshOne]);
+
+  const keyDialog = (
+    <KeyEntryDialog
+      open={dialogOpen}
+      providerId={dialogOpen ? "openrouter" : null}
+      onOpenChange={setDialogOpen}
+      onSaved={(id) => void refreshOne(id)}
+    />
+  );
+
+  if (keyStatus !== "configured") {
+    return (
+      <div className="flex flex-col gap-2">
+        {keyStatus === "unknown" ? (
+          <p className="text-charcoal-500 text-caption">
+            Couldn&rsquo;t check the OS keychain for an OpenRouter key.
+          </p>
+        ) : (
+          <p className="text-charcoal-400 text-caption">
+            Needs your OpenRouter API key — research stays on the local tier until one is added. The
+            key lives in your OS keychain, never on disk.
+          </p>
+        )}
+        <div>
+          <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}>
+            <KeyRound aria-hidden="true" />
+            Add OpenRouter key
+          </Button>
+        </div>
+        {keyDialog}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <p className="text-positive text-caption flex min-w-0 items-center gap-1">
+          <Check className="size-3 shrink-0" aria-hidden="true" />
+          <span className="truncate">OpenRouter key configured — research bills to it.</span>
+        </p>
+        <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}>
+          Update key
+        </Button>
+      </div>
+      <div className="border-charcoal-700 divide-charcoal-800 -mx-4 -mb-3 divide-y border-t">
+        {RESEARCH_STOP_ROWS.map(({ stop, label, hint }) => (
+          <ResearchModelRow key={stop} stop={stop} label={label} hint={hint} />
+        ))}
+      </div>
+      {keyDialog}
+    </div>
+  );
+}
+
+/** One research-tier card: a radio-clear header (dot + name + two-line
+ *  explanation) over the tier's always-visible controls — the V9 cure: the
+ *  tier surface IS the controls, nothing hides behind the selection. */
+function TierCard({
+  selected,
+  name,
+  description,
+  onSelect,
+  children,
+}: {
+  selected: boolean;
   name: string;
   description: string;
-}[] = [
-  {
-    id: "t1_local",
-    name: "Local scraping (keyless)",
-    description:
-      "Scrapes DuckDuckGo, Brave, and Mojeek directly. Free, zero setup; engines rate-limit, so heavy runs slow down and rotate.",
-  },
-  {
-    id: "t2_searxng",
-    name: "Unlimited Research (local SearXNG)",
-    description:
-      "A managed SearXNG instance in local Docker — private, unmetered searches. Needs Docker on this machine.",
-  },
-  {
-    id: "t3_hosted",
-    name: "BYOK search (hosted or Exa direct)",
-    description:
-      "Your own key: OpenRouter-hosted web search (Firecrawl/Exa) or a direct Exa API key — the most reliable tier, and the only one that costs money per search.",
-  },
-];
+  onSelect: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-none border",
+        selected ? "border-charcoal-600" : "border-charcoal-700",
+      )}
+    >
+      <button
+        type="button"
+        role="radio"
+        aria-checked={selected}
+        onClick={onSelect}
+        className={cn(
+          "flex w-full items-start gap-3 px-4 py-3 text-left",
+          selected ? "bg-charcoal-875" : "hover:bg-charcoal-875/50",
+        )}
+      >
+        <span
+          aria-hidden="true"
+          className={cn(
+            "rounded-control mt-1 size-3 shrink-0 border",
+            selected ? "border-charcoal-100 bg-charcoal-100" : "border-charcoal-600",
+          )}
+        />
+        <span className="flex min-w-0 flex-col">
+          <span
+            className={cn(
+              "text-body font-medium",
+              selected ? "text-charcoal-100" : "text-charcoal-300",
+            )}
+          >
+            {name}
+          </span>
+          <span className="text-charcoal-400 text-caption mt-1">{description}</span>
+        </span>
+      </button>
+      <div className="border-charcoal-800 border-t px-4 py-3">{children}</div>
+    </div>
+  );
+}
 
 /**
- * The R7 research search-tier picker (Track S): three 32px radio rows, the
- * selected tier expanding its live detail surface — T1's polled per-engine
- * status, T2's guided SearXNG state machine, T3's engine + key controls.
+ * The R9 two-tier research picker (defect V9: findable, radio-clear, two
+ * visible tiers, no third anything). Tier A is the default — private local
+ * SearXNG retrieval with the active chat model; Tier B routes research (and
+ * only research) to a hosted research model on the user's OpenRouter key.
  */
 function ResearchTierGroup() {
   const researchTier = useSearchSettingsStore((s) => s.researchTier);
   const setResearchTier = useSearchSettingsStore((s) => s.setResearchTier);
 
   return (
-    <div>
-      <GroupLabel
-        label="Search tier"
-        hint="Where web searches run. The keyless floor needs nothing; SearXNG runs unlimited and local; BYOK runs hosted via OpenRouter or direct on an Exa key."
-      />
-      <Card>
-        <div
-          role="radiogroup"
-          aria-label="Research search tier"
-          className="divide-charcoal-800 flex flex-col divide-y"
-        >
-          {RESEARCH_TIER_OPTIONS.map((option) => {
-            const selected = researchTier === option.id;
-            return (
-              <div key={option.id}>
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  onClick={() => setResearchTier(option.id)}
-                  className={cn(
-                    "flex min-h-8 w-full items-center justify-between gap-4 px-4 py-3 text-left",
-                    selected ? "bg-charcoal-875" : "hover:bg-charcoal-875/50",
-                  )}
-                >
-                  <span className="flex min-w-0 flex-col">
-                    <span
-                      className={cn(
-                        "text-body",
-                        selected ? "text-charcoal-100" : "text-charcoal-300",
-                      )}
-                    >
-                      {option.name}
-                    </span>
-                    <span className="text-charcoal-400 text-caption mt-1">
-                      {option.description}
-                    </span>
-                  </span>
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "rounded-control size-2 shrink-0",
-                      selected ? "bg-charcoal-100" : "border-charcoal-600 border",
-                    )}
-                  />
-                </button>
-                {selected && (
-                  <div className="border-charcoal-800 border-t px-4 py-3">
-                    {option.id === "t1_local" && <T1StatusLine />}
-                    {option.id === "t2_searxng" && <SearxngTierDetail />}
-                    {option.id === "t3_hosted" && <ByokSearchControls />}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </Card>
+    <div role="radiogroup" aria-label="Research tier" className="flex flex-col gap-3">
+      <TierCard
+        selected={researchTier === "tier_a"}
+        name="Unlimited (Local)"
+        description="Private local search via SearXNG, paired with your active chat model. Unmetered and free — nothing leaves this machine but the pages it fetches."
+        onSelect={() => setResearchTier("tier_a")}
+      >
+        <SearxngManagedFlow />
+      </TierCard>
+      <TierCard
+        selected={researchTier === "tier_b"}
+        name="Hosted research model"
+        description="Purpose-built internet-native research via OpenRouter — research routes here at every depth regardless of chat model. Chat stays on your chat model."
+        onSelect={() => setResearchTier("tier_b")}
+      >
+        <ResearchModelControls />
+      </TierCard>
     </div>
   );
 }
 
-/**
- * Research — how /deep works, plus the device's local-model fit gate.
- *
- * Deep research runs Vysted's own native IterResearch loop on the user's
- * configured model. There is no engine selector: native is the only
- * user-facing engine (the opt-in paid Perplexity backend is agent-selected
- * with its own key, never surfaced here). The hardware report (Track D)
- * detects the device and shows which local models it can run, gating the
- * heavy local paths (FINDINGS §2.5): on a 16 GB M1, local deep-research is
- * honestly marked "remote"; on a 32 GB+ box the same models flip to "runs
- * locally" with no change.
- *
- * R8 (settings-truth): the SEARCH-tier picker at the top is the ONE search
- * settings surface — t1 keyless / t2 managed SearXNG (+ optional custom
- * instance URL) / t3 BYOK (OpenRouter hosted, or "Exa direct" on the user's
- * own Exa key). Persisted in the search-settings bundle; the legacy
- * "Web search" section is gone.
- */
 function ResearchSection() {
   const [report, setReport] = useState<HardwareReport | null | "loading">("loading");
 
@@ -1439,28 +1222,15 @@ function ResearchSection() {
     <section aria-labelledby="settings-research">
       <SectionHeader
         id="settings-research"
-        icon={<FlaskConical className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Research"
-        hint="Where web searches run, how /deep and 'go deeper' work, and what this machine can run on-device."
+        hint="Two ways to run research: unlimited private local search with your chat model, or a hosted research model on your own OpenRouter key."
       />
       <div className="flex flex-col gap-6">
         <ResearchTierGroup />
         <div>
-          <GroupLabel label="Deep research" />
-          <Card>
-            <p className="text-charcoal-400 text-caption px-4 py-3 leading-relaxed">
-              Deep research runs Vysted&rsquo;s own bounded{" "}
-              <span className="text-charcoal-200">IterResearch</span> loop on your configured model
-              — a multi-round search → read → reflect → synthesize pass that returns a cited brief.
-              Always available, no extra key, no extra cost.
-            </p>
-          </Card>
-        </div>
-
-        <div>
           <GroupLabel
             label="Hardware & local models"
-            hint="Heavy local paths (local deep-research, large local LLMs) enable only where the hardware earns it; everything else uses the keyless-remote path."
+            hint="Heavy local paths (local deep-research, large local LLMs) enable only where the hardware earns it; everything else stays remote."
           />
           {report === "loading" && (
             <Card>
@@ -1478,10 +1248,7 @@ function ResearchSection() {
             <div className="flex flex-col gap-3">
               <Card>
                 <div className="px-4 py-3">
-                  <div className="text-charcoal-100 text-body flex items-center gap-2">
-                    <Cpu className="text-charcoal-300 size-3.5" aria-hidden="true" />
-                    {report.device.chip}
-                  </div>
+                  <div className="text-charcoal-100 text-body">{report.device.chip}</div>
                   <div className="text-charcoal-400 text-caption mt-1">
                     {report.device.ramGib} GiB RAM · {report.device.gpuBudgetGib} GiB GPU budget ·{" "}
                     {report.device.perfCores}P/{report.device.totalCores} cores ·{" "}
@@ -1531,7 +1298,6 @@ function RegionSection() {
     <section aria-labelledby="settings-region">
       <SectionHeader
         id="settings-region"
-        icon={<Globe className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Region & locale"
         hint="Locale used for number formatting — a foundation for region-first data + feeds in a later release."
       />
@@ -1551,160 +1317,6 @@ function RegionSection() {
           </Select>
         </SettingRow>
       </Card>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Interface (command palette · starter cockpit · appearance)
-// ---------------------------------------------------------------------------
-
-/** Friendly labels for the panel ids the starter cockpit can compose. */
-const STARTER_PANEL_LABELS: Record<string, string> = {
-  "chart-panel": "Chart",
-  "equity-overview-panel": "Equity Overview",
-  "watchlist-panel": "Watchlist",
-  "news-panel": "News",
-  "portfolio-panel": "Portfolio",
-  "screener-panel": "Screener",
-  "sec-filings-panel": "SEC Filings",
-  "macro-panel": "Macro",
-  "earnings-calendar-panel": "Earnings Calendar",
-  "analyst-ratings-panel": "Analyst Ratings",
-};
-
-/** An ASCII-bracket toggle chip for the starter-cockpit panel picker —
- *  a 32px-ladder control, never an 8px checkbox. */
-function StarterChip({
-  panelId,
-  label,
-  checked,
-  onChange,
-}: {
-  panelId: string;
-  label: string;
-  checked: boolean;
-  onChange: (next: boolean) => void;
-}) {
-  return (
-    <label
-      data-panel-id={panelId}
-      title={label}
-      className={cn(
-        "rounded-control text-caption flex h-8 min-w-0 cursor-pointer items-center gap-2 border px-3 select-none",
-        checked
-          ? "border-charcoal-600 bg-charcoal-875 text-charcoal-100"
-          : "border-charcoal-700 text-charcoal-400 hover:text-charcoal-200",
-      )}
-    >
-      <input
-        type="checkbox"
-        aria-label={`Starter cockpit: ${label}`}
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="sr-only"
-      />
-      <span aria-hidden="true" className={checked ? "text-charcoal-300" : "text-charcoal-500"}>
-        {checked ? "[x]" : "[ ]"}
-      </span>
-      <span className="truncate">{label}</span>
-    </label>
-  );
-}
-
-function InterfaceSection() {
-  const paletteRecentsEnabled = useSettingsStore((s) => s.paletteRecentsEnabled);
-  const setPaletteRecentsEnabled = useSettingsStore((s) => s.setPaletteRecentsEnabled);
-  const paletteScopedToPanel = useSettingsStore((s) => s.paletteScopedToPanel);
-  const setPaletteScopedToPanel = useSettingsStore((s) => s.setPaletteScopedToPanel);
-  const starterCockpitPanelIds = useSettingsStore((s) => s.starterCockpitPanelIds);
-  const toggleStarterCockpitPanel = useSettingsStore((s) => s.toggleStarterCockpitPanel);
-  const themeKnobs = useSettingsStore((s) => s.themeKnobs);
-  const setThemeKnobs = useSettingsStore((s) => s.setThemeKnobs);
-
-  return (
-    <section aria-labelledby="settings-interface">
-      <SectionHeader
-        id="settings-interface"
-        icon={<LayoutPanelLeft className="text-charcoal-300 size-4" aria-hidden="true" />}
-        title="Interface"
-        hint="How the command palette, your first-run cockpit, and the dark language behave. These travel with Export / Import below."
-      />
-      <div className="flex flex-col gap-6">
-        <div>
-          <GroupLabel label="Command palette" />
-          <Card>
-            <ToggleRow
-              label="Show recent commands"
-              checked={paletteRecentsEnabled}
-              onChange={setPaletteRecentsEnabled}
-              switchLabel="Show recent commands"
-            />
-            <ToggleRow
-              label="Scope to the focused panel first"
-              checked={paletteScopedToPanel}
-              onChange={setPaletteScopedToPanel}
-              switchLabel="Scope to the focused panel first"
-            />
-          </Card>
-        </div>
-
-        {/* Starter-cockpit composition (FR-032) */}
-        <div>
-          <GroupLabel
-            label="Starter cockpit"
-            hint="The panels that open on first run, before you save your own layout."
-          />
-          <div className="grid grid-cols-2 gap-2">
-            {Object.entries(STARTER_PANEL_LABELS).map(([panelId, label]) => (
-              <StarterChip
-                key={panelId}
-                panelId={panelId}
-                label={label}
-                checked={starterCockpitPanelIds.includes(panelId)}
-                onChange={(next) => toggleStarterCockpitPanel(panelId, next)}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Theme knobs (dark-only) */}
-        <div>
-          <GroupLabel
-            label="Appearance"
-            hint="Vysted is dark-only by design. These tune the dark language."
-          />
-          <Card>
-            <SettingRow label="Accent intensity">
-              <Select
-                aria-label="Accent intensity"
-                value={themeKnobs.accentIntensity}
-                onChange={(e) =>
-                  setThemeKnobs({
-                    accentIntensity: e.target.value as typeof themeKnobs.accentIntensity,
-                  })
-                }
-              >
-                <option value="muted">Muted</option>
-                <option value="normal">Normal</option>
-                <option value="vivid">Vivid</option>
-              </Select>
-            </SettingRow>
-            <SettingRow label="Density">
-              <Select
-                aria-label="Density"
-                value={themeKnobs.density}
-                onChange={(e) =>
-                  setThemeKnobs({ density: e.target.value as typeof themeKnobs.density })
-                }
-              >
-                <option value="comfortable">Comfortable</option>
-                <option value="compact">Compact</option>
-              </Select>
-            </SettingRow>
-          </Card>
-        </div>
-      </div>
     </section>
   );
 }
@@ -1795,7 +1407,6 @@ function KeybindingsSection() {
     <section aria-labelledby="settings-keybindings">
       <SectionHeader
         id="settings-keybindings"
-        icon={<Keyboard className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Keybindings"
         hint="Remap any shortcut. Press Record, then the new combination. Conflicts are flagged below — two actions on one combo both fire."
       />
@@ -1805,7 +1416,7 @@ function KeybindingsSection() {
           role="alert"
           className="border-warning/40 bg-warning/10 text-warning text-caption mb-4 flex items-start gap-2 rounded-none border px-3 py-2"
         >
-          <AlertTriangle className="mt-1 size-3.5 shrink-0" aria-hidden="true" />
+          <AlertTriangle className={cn(ICON_14, "mt-1 shrink-0")} aria-hidden="true" />
           <div>
             <p className="font-medium">Conflicting bindings detected</p>
             {conflictList.map((c) => (
@@ -1827,7 +1438,9 @@ function KeybindingsSection() {
           return (
             <div key={category}>
               <GroupLabel label={label} />
-              <Card>
+              {/* @container: the card is the query container so the row ladder
+                  below keys off the PANEL's width, not the window's. */}
+              <Card className="@container">
                 {group.map(({ actionId, def, combo }) => {
                   const isRecording = recording === actionId;
                   const isOverridden = actionId in overrides;
@@ -1836,13 +1449,20 @@ function KeybindingsSection() {
                     <div
                       key={actionId}
                       className={cn(
-                        // Collapse order (R8 §3.4): the kbd/record cluster
-                        // wraps below the label as a unit at narrow widths.
+                        // Collapse ladder (R8 §3.4), uniform per CARD so row
+                        // shapes never mix: above 576px card width the label
+                        // column is flex-1 basis-0 — its copy never decides
+                        // the wrap point, every row keeps its kbd/record
+                        // cluster inline on one aligned column (D2). Below
+                        // 576px ALL rows stack: the label takes basis-full and
+                        // the cluster wraps under it as a unit (ml-auto keeps
+                        // it right-aligned). The description's truncate is the
+                        // genuine last resort at sub-stack starvation.
                         "flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3",
                         conflicted && "border-warning/50 border-l-2",
                       )}
                     >
-                      <div className="flex min-w-0 flex-col">
+                      <div className="flex min-w-0 flex-1 flex-col @max-[576px]:basis-full">
                         <span className="text-charcoal-100 text-body">{def.label}</span>
                         <span className="text-charcoal-400 text-caption mt-1 truncate">
                           {def.description}
@@ -1886,7 +1506,7 @@ function KeybindingsSection() {
                           onClick={() => resetBinding(actionId)}
                           className="text-charcoal-400 rounded-control hover:text-charcoal-100 p-1 disabled:cursor-not-allowed disabled:opacity-30"
                         >
-                          <RotateCcw className="size-3.5" aria-hidden="true" />
+                          <RotateCcw className={ICON_14} aria-hidden="true" />
                         </button>
                       </div>
                     </div>
@@ -1910,7 +1530,6 @@ function AdvancedSection() {
     <section aria-labelledby="settings-advanced">
       <SectionHeader
         id="settings-advanced"
-        icon={<Package className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Advanced"
         hint="Broker integrations, saved layouts, module toggles, and settings portability."
       />
@@ -1926,11 +1545,10 @@ function AdvancedSection() {
 }
 
 /** A subsection head inside Advanced — title-size, still an aria region. */
-function SubsectionHeader({ id, icon, title, hint }: Parameters<typeof SectionHeader>[0]) {
+function SubsectionHeader({ id, title, hint }: Parameters<typeof SectionHeader>[0]) {
   return (
     <header className="mb-2">
-      <h3 id={id} className="text-charcoal-100 text-panel-title flex items-center gap-2">
-        {icon}
+      <h3 id={id} className="text-charcoal-100 text-panel-title">
         {title}
       </h3>
       {hint && <p className="text-charcoal-400 text-caption mt-1">{hint}</p>}
@@ -1945,7 +1563,6 @@ function IntegrationsSection() {
     <section aria-labelledby="settings-integrations">
       <SubsectionHeader
         id="settings-integrations"
-        icon={<Network className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Integrations"
         hint="Connect a broker for read-only positions, holdings & P&L the copilot can analyse over your real account."
       />
@@ -2006,7 +1623,6 @@ function LayoutsSection() {
     <section aria-labelledby="settings-layouts">
       <SubsectionHeader
         id="settings-layouts"
-        icon={<LayoutPanelLeft className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Layouts"
         hint="Drag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch."
       />
@@ -2073,7 +1689,7 @@ function LayoutsSection() {
                   }
                   className="text-charcoal-400 hover:text-negative rounded-control p-1"
                 >
-                  <X className="size-3.5" aria-hidden="true" />
+                  <X className={ICON_14} aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -2096,7 +1712,6 @@ function ModulesSection() {
     <section aria-labelledby="settings-modules">
       <SubsectionHeader
         id="settings-modules"
-        icon={<Package className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Modules"
         hint="Disabled modules contribute no panels or ⌘K commands."
       />
@@ -2196,7 +1811,6 @@ function ExportImportSection() {
     <section aria-labelledby="settings-export">
       <SubsectionHeader
         id="settings-export"
-        icon={<Download className="text-charcoal-300 size-4" aria-hidden="true" />}
         title="Export / Import"
         hint="Carry your keybindings and preferences to another machine. Secrets are NEVER exported — re-enter your API keys via the keychain on the new machine."
       />
@@ -2204,11 +1818,11 @@ function ExportImportSection() {
         <div className="flex flex-col gap-3 px-4 py-3">
           <div className="flex items-center gap-2">
             <Button size="sm" variant="outline" onClick={handleExport}>
-              <Download className="size-3.5" aria-hidden="true" />
+              <Download aria-hidden="true" />
               Export settings
             </Button>
             <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()}>
-              <Upload className="size-3.5" aria-hidden="true" />
+              <Upload aria-hidden="true" />
               Import settings
             </Button>
             <input
@@ -2227,9 +1841,9 @@ function ExportImportSection() {
             />
           </div>
           <p className="text-charcoal-500 text-caption">
-            The export bundles your keybinding remaps and preferences (default agent, provider
-            order, palette behaviour, starter cockpit, theme). API keys and broker credentials stay
-            in your OS keychain and are never written to the file.
+            The export bundles your keybinding remaps and preferences (default agent, region,
+            research engine). API keys and broker credentials stay in your OS keychain and are never
+            written to the file.
           </p>
           {status && (
             <p
@@ -2254,11 +1868,7 @@ function ExportImportSection() {
 function AboutSection() {
   return (
     <section aria-labelledby="settings-about">
-      <SubsectionHeader
-        id="settings-about"
-        icon={<Info className="text-charcoal-300 size-4" aria-hidden="true" />}
-        title="About"
-      />
+      <SubsectionHeader id="settings-about" title="About" />
       <Card>
         <div className="text-charcoal-300 text-caption flex flex-col gap-2 px-4 py-3">
           <p>

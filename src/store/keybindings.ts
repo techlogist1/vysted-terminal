@@ -65,31 +65,31 @@ const SHELL_DEFAULTS: Record<string, KeybindingDef> = {
   "agent.mode.ask": {
     keys: "alt+1",
     label: "Agent: Ask",
-    description: "Switch the agent to read-only Ask mode.",
+    description: "Switch to read-only Ask mode.",
     category: "agent",
   },
   "agent.mode.edit": {
     keys: "alt+2",
     label: "Agent: Edit panel",
-    description: "Switch the agent to Edit mode (surgical change to the focused panel).",
+    description: "Switch to single-panel Edit mode.",
     category: "agent",
   },
   "agent.mode.build": {
     keys: "alt+3",
     label: "Agent: Build",
-    description: "Switch the agent to Build mode (compose multiple panels).",
+    description: "Switch to multi-panel Build mode.",
     category: "agent",
   },
   "agent.mode.delegate": {
     keys: "alt+4",
     label: "Agent: Delegate",
-    description: "Switch the agent to Delegate mode (autonomous background task).",
+    description: "Switch to autonomous Delegate mode.",
     category: "agent",
   },
   "agent.toggle": {
     keys: "mod+b",
     label: "Toggle agent panel",
-    description: "Show or fully hide the agent column (hands the full cockpit back).",
+    description: "Show or fully hide the agent column.",
     category: "agent",
   },
   "changes.acceptAll": {
