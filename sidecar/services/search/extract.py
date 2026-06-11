@@ -490,6 +490,14 @@ def extract_pdf_text(data: bytes, *, max_chars: int = PDF_RESEARCH_MAX_CHARS) ->
         keep = [i for i in ranked[:_PDF_KEEP_PAGES] if scores[i] >= max(2.0, top * 0.2)]
         if not keep:
             keep = ranked[:_PDF_KEEP_PAGES]
+        # The first TEXT pages of a filing carry its declarative summary (an
+        # outcome letter states "dividend ... aggregates to Rs X/- per share"
+        # on page 1-2 while the tables live deep) — always include the first
+        # two non-empty pages so the cover statement survives selection (R9).
+        first_text = [i for i, t in enumerate(page_texts) if len(t.strip()) >= _EMPTY_PAGE_CHARS][
+            :2
+        ]
+        keep = list({*keep, *first_text})
         keep = sorted(keep)  # document order for pages_used + assembly
     else:
         keep = list(range(len(page_texts)))

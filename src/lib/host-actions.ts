@@ -938,8 +938,11 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
             Date.now() - prev.createdAt < 20_000));
       const shrinks =
         !!prev &&
-        brief.sourceCount < prev.sourceCount &&
-        brief.markdown.trim().length < (prev.markdown ?? "").trim().length;
+        ((brief.sourceCount < prev.sourceCount &&
+          brief.markdown.trim().length < (prev.markdown ?? "").trim().length) ||
+          // A source-LESS re-publish over a sourced brief is a downgrade no
+          // matter how long its prose runs — citations are the product.
+          (brief.sourceCount === 0 && prev.sourceCount > 0));
       if (sameTurn && shrinks) {
         useWorkspaceStore.getState().openPanel("brief");
         return "Kept the richer research brief already on screen";

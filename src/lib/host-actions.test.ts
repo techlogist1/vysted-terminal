@@ -779,3 +779,29 @@ describe("same-turn matching is exchange-suffix-insensitive (R9)", () => {
     expect(useBriefStore.getState().brief?.sourceCount).toBe(9);
   });
 });
+
+describe("shrink guard blocks source-less prose re-publishes", () => {
+  it("a 0-source long-prose re-publish never replaces a sourced brief", () => {
+    useBriefStore.setState({
+      brief: {
+        query: "saksoft",
+        symbol: "SAKSOFT",
+        mode: "DEEP",
+        depth: "deep",
+        markdown: "## Engine\nshort but cited [1].",
+        sources: [{ url: "https://e.com/1", title: "s", excerpt: "" }],
+        sourceCount: 1,
+        webAvailable: true,
+        backend: "native",
+        createdAt: Date.now() - 5_000,
+      } as never,
+    });
+    const msg = applyHostAction("publish_brief", {
+      symbol: "SAKSOFT.NS",
+      markdown: "## Very long prose\n" + "uncited line.\n".repeat(120),
+      sources: [],
+    });
+    expect(msg).toMatch(/Kept the richer/);
+    expect(useBriefStore.getState().brief?.sourceCount).toBe(1);
+  });
+});
