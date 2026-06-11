@@ -89,14 +89,14 @@ function SaveWorkspaceForm({ onDone }: ModeProps) {
         onChange={(event) => setName(event.target.value)}
         placeholder="Workspace name"
         aria-label="Workspace name"
-        className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-body focus:border-charcoal-500 mt-4 w-full border px-3 py-2 font-mono outline-none"
+        className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-body focus:border-charcoal-500 mt-4 h-8 w-full border px-3 font-mono outline-none"
       />
       {error ? <p className="text-negative text-caption mt-2 font-mono">{error}</p> : null}
       <div className="mt-4 flex justify-end gap-2">
-        <Button type="button" variant="ghost" size="sm" onClick={onDone} disabled={busy}>
+        <Button type="button" variant="ghost" onClick={onDone} disabled={busy}>
           Cancel
         </Button>
-        <Button type="submit" size="sm" disabled={busy || name.trim() === ""}>
+        <Button type="submit" disabled={busy || name.trim() === ""}>
           {busy ? "Saving…" : "Save"}
         </Button>
       </div>
@@ -140,14 +140,14 @@ function ResearchSpaceForm({ onDone }: ModeProps) {
         onChange={(event) => setSymbol(event.target.value.toUpperCase())}
         placeholder="Ticker, e.g. NVDA or RELIANCE"
         aria-label="Research space ticker"
-        className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-body focus:border-charcoal-500 mt-4 w-full border px-3 py-2 font-mono outline-none"
+        className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-body focus:border-charcoal-500 mt-4 h-8 w-full border px-3 font-mono outline-none"
       />
       {error ? <p className="text-negative text-caption mt-2 font-mono">{error}</p> : null}
       <div className="mt-4 flex justify-end gap-2">
-        <Button type="button" variant="ghost" size="sm" onClick={onDone} disabled={busy}>
+        <Button type="button" variant="ghost" onClick={onDone} disabled={busy}>
           Cancel
         </Button>
-        <Button type="submit" size="sm" disabled={busy || symbol.trim() === ""}>
+        <Button type="submit" disabled={busy || symbol.trim() === ""}>
           {busy ? "Creating…" : "Create space"}
         </Button>
       </div>
@@ -245,7 +245,11 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
           )}
         </div>
       ) : null}
-      <div className="mt-4 flex max-h-72 flex-col gap-1.5 overflow-y-auto">
+      <div
+        className={
+          "mt-4 flex max-h-72 flex-col gap-2 overflow-y-auto" /* tokens-ok: workspace-list scroll cap — layout */
+        }
+      >
         {names === null ? (
           <p className="text-charcoal-400 text-caption py-4 text-center font-mono">Loading…</p>
         ) : names.length === 0 && !fetchFailed ? (
@@ -295,7 +299,7 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
         )}
       </div>
       <div className="mt-4 flex justify-end">
-        <Button type="button" variant="ghost" size="sm" onClick={onDone} disabled={busy}>
+        <Button type="button" variant="ghost" onClick={onDone} disabled={busy}>
           Cancel
         </Button>
       </div>
