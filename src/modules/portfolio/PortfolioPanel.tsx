@@ -501,7 +501,7 @@ export function PortfolioPanel() {
               }}
               placeholder={pfAction === "create" ? "New portfolio name" : "Rename portfolio"}
               aria-label={pfAction === "create" ? "New portfolio name" : "Rename portfolio"}
-              className="bg-charcoal-800 text-charcoal-100 text-body rounded-control focus:ring-charcoal-500 h-8 min-w-0 flex-1 px-3 outline-none focus:ring-1"
+              className="bg-charcoal-800 text-charcoal-100 text-body rounded-control focus:ring-charcoal-500 h-7 min-w-0 flex-1 px-2 outline-none focus:ring-1"
             />
             <Button
               type="button"
@@ -524,12 +524,17 @@ export function PortfolioPanel() {
           </>
         ) : (
           <>
-            <Briefcase className="text-charcoal-500 size-4 shrink-0" aria-hidden="true" />
+            <Briefcase
+              className={
+                "text-charcoal-500 size-3.5 shrink-0" /* tokens-ok: 14px icon — R9 §3 rung for the h-7 toolbar row */
+              }
+              aria-hidden="true"
+            />
             <select
               aria-label="Active portfolio"
               value={active.id}
               onChange={(event) => setActive(event.target.value)}
-              className="bg-charcoal-800 text-charcoal-100 text-body rounded-control focus:ring-charcoal-500 h-8 min-w-0 flex-1 px-3 outline-none focus:ring-1"
+              className="bg-charcoal-800 text-charcoal-100 text-body rounded-control focus:ring-charcoal-500 h-7 min-w-0 flex-1 px-2 outline-none focus:ring-1"
             >
               {portfolios.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -650,14 +655,16 @@ export function PortfolioPanel() {
             className="bg-charcoal-800 text-charcoal-100 text-body rounded-control focus:ring-charcoal-500 h-8 min-w-24 px-3 outline-none focus:ring-1"
           />
         </label>
-        <Button type="submit" size="sm" variant="outline">
+        {/* Form rung (R9 §3): the submit + cancel join their sibling h-8 inputs
+            so the items-end baseline never staggers. */}
+        <Button type="submit" variant="outline">
           <Plus />
           {editingId !== null ? "Save" : "Add"}
         </Button>
         {editingId !== null && (
           <Button
             type="button"
-            size="icon-sm"
+            size="icon"
             variant="ghost"
             aria-label="Cancel edit"
             onClick={resetForm}
@@ -670,14 +677,16 @@ export function PortfolioPanel() {
       {error !== null && (
         <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
           <p className="text-negative text-caption">{error}</p>
-          <button
+          <Button
             type="button"
-            onClick={() => setError(null)}
+            size="icon-xs"
+            variant="ghost"
             aria-label="Dismiss error"
-            className="text-charcoal-400 hover:text-charcoal-200 ml-auto pl-3"
+            className="ml-auto"
+            onClick={() => setError(null)}
           >
-            <X className="size-3" />
-          </button>
+            <X />
+          </Button>
         </div>
       )}
 
