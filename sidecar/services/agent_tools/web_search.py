@@ -72,7 +72,7 @@ async def _resolve_backend(region: str) -> tuple[Any, str | None]:
     # network probe on the hot path); a green SearXNG is never bypassed.
     from services import searxng_manager
 
-    managed_url = searxng_manager.manager.ready_base_url()
+    managed_url = await searxng_manager.manager.ready_base_url_detected()
     if managed_url:
         backend = registry.resolve("searxng", searxng_url=managed_url, region=region)
         if backend is not None:

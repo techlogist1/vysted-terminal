@@ -99,8 +99,7 @@ function carryBriefDepth(input: Record<string, unknown>, symbol: string | undefi
   if (prevDepth === undefined) {
     return own;
   }
-  const sameSymbol =
-    !!prev?.symbol && !!symbol && prev.symbol.toUpperCase() === symbol.toUpperCase();
+  const sameSymbol = !!prev?.symbol && !!symbol && baseSymbol(prev.symbol) === baseSymbol(symbol);
   const recent = typeof prev?.createdAt === "number" && Date.now() - prev.createdAt < 20_000;
   // Same research turn? (Same symbol, or the model omitted the symbol on a brief
   // published moments ago — the auto-publish always seeds the CURRENT symbol.)
@@ -109,6 +108,16 @@ function carryBriefDepth(input: Record<string, unknown>, symbol: string | undefi
   }
   // Same turn: never shallow the prior tier — take the deeper of the two.
   return DEPTH_RANK[own] >= DEPTH_RANK[prevDepth] ? own : prevDepth;
+}
+
+/** Exchange-suffix-insensitive symbol identity ("SAKSOFT" ≡ "SAKSOFT.NS" ≡
+ *  "SAKSOFT.BO") — the engine binds the bare NSE/BSE name while panels and the
+ *  model often carry the suffixed form; same-turn carries must not miss on it. */
+function baseSymbol(value: string | undefined | null): string {
+  return (value ?? "")
+    .trim()
+    .toUpperCase()
+    .replace(/\.(NS|BO|NSE|BSE)$/, "");
 }
 
 /** Build a frontend ResearchBriefData from a publish_brief tool input.
@@ -176,7 +185,7 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
   // The same-turn carry window shared by `structured` and `backend` below.
   const prevBrief = useBriefStore.getState().brief;
   const prevSameSymbol =
-    !!prevBrief?.symbol && !!symbol && prevBrief.symbol.toUpperCase() === symbol.toUpperCase();
+    !!prevBrief?.symbol && !!symbol && baseSymbol(prevBrief.symbol) === baseSymbol(symbol);
   // Tight 20s window (was 120s): the auto-publish → model publish_brief round-trip
   // is a few seconds, so 20s safely covers the same turn while shrinking the
   // cross-symbol contamination window 6x (AAPL then MSFT within seconds).
@@ -923,7 +932,7 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
         !!prev &&
         ((!!prev.symbol &&
           !!brief.symbol &&
-          prev.symbol.toUpperCase() === brief.symbol.toUpperCase()) ||
+          baseSymbol(prev.symbol) === baseSymbol(brief.symbol)) ||
           ((!brief.symbol || !prev.symbol) &&
             typeof prev.createdAt === "number" &&
             Date.now() - prev.createdAt < 20_000));

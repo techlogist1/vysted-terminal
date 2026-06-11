@@ -193,3 +193,26 @@ def test_fast_web_round_carries_retrieval_backend(monkeypatch) -> None:
     web = asyncio.run(fast._web_round(fake_tool, "tcs news"))
     assert web["backend"] == "keyless-fallback"
     assert web["available"] is True
+
+
+def test_hot_path_detects_already_running_searxng_once(monkeypatch) -> None:
+    """A fresh process must world-derive ONCE on the retrieval hot path so an
+    already-running managed container is used, never bypassed (gate 2:
+    running -> used; the R8 'green but unused' disease)."""
+    from services import searxng_manager as sm
+
+    mgr = sm.SearxngManager()
+    calls = {"refresh": 0}
+
+    async def fake_refresh() -> dict:
+        calls["refresh"] += 1
+        mgr.port = 8888
+        mgr._set(sm.STATE_READY, detail="test")
+        return {}
+
+    monkeypatch.setattr(mgr, "refresh", fake_refresh)
+    url1 = asyncio.run(mgr.ready_base_url_detected())
+    url2 = asyncio.run(mgr.ready_base_url_detected())
+    assert url1 == "http://127.0.0.1:8888"
+    assert url2 == "http://127.0.0.1:8888"
+    assert calls["refresh"] == 1, "world-derivation must run exactly once per process"

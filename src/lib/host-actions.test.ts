@@ -749,3 +749,33 @@ describe("publish_brief same-turn shrink guard (R9 D33)", () => {
     expect(useBriefStore.getState().brief?.sourceCount).toBe(1);
   });
 });
+
+describe("same-turn matching is exchange-suffix-insensitive (R9)", () => {
+  it("SAKSOFT.NS re-publish cannot shrink the engine's SAKSOFT brief", () => {
+    useBriefStore.setState({
+      brief: {
+        query: "saksoft",
+        symbol: "SAKSOFT",
+        mode: "DEEP",
+        depth: "deep",
+        markdown: "## Engine\n" + "line [1].\n".repeat(100),
+        sources: Array.from({ length: 9 }, (_, i) => ({
+          url: `https://e.com/${i}`,
+          title: `s${i}`,
+          excerpt: "",
+        })),
+        sourceCount: 9,
+        webAvailable: true,
+        backend: "native",
+        createdAt: Date.now() - 60_000,
+      } as never,
+    });
+    const msg = applyHostAction("publish_brief", {
+      symbol: "SAKSOFT.NS",
+      markdown: "## Summary\nshort.",
+      sources: [],
+    });
+    expect(msg).toMatch(/Kept the richer/);
+    expect(useBriefStore.getState().brief?.sourceCount).toBe(9);
+  });
+});

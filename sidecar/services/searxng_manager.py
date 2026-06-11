@@ -264,6 +264,8 @@ class SearxngManager:
         self._health_probe = health_probe
         self._port_free = port_free
         self._config_dir = config_dir
+        # One-shot hot-path world-derivation guard (see ready_base_url_detected).
+        self._hot_path_detected = False
         self.preferred_port = int(preferred_port)
         self.health_timeout_secs = float(health_timeout_secs)
         self.health_interval_secs = float(health_interval_secs)
@@ -331,6 +333,25 @@ class SearxngManager:
         if self.state == STATE_READY and self.port:
             return f"http://127.0.0.1:{self.port}"
         return None
+
+    async def ready_base_url_detected(self) -> str | None:
+        """:meth:`ready_base_url`, with ONE lazy world-derivation per process.
+
+        A fresh sidecar process starts state-cold even when the user's managed
+        container is already running (the in-memory machine only advances via
+        setup/status/teardown). The retrieval hot path must never bypass a live
+        instance just because the process restarted — the R8 "green in settings
+        but unused" disease (gate 2: running -> used). The FIRST hot-path read
+        re-derives from docker once; every later read is the pure in-memory
+        check again (status polls keep it current thereafter).
+        """
+        if not self._hot_path_detected:
+            self._hot_path_detected = True
+            try:
+                await self.refresh()
+            except Exception:  # noqa: BLE001 — detection must never break retrieval
+                pass
+        return self.ready_base_url()
 
     # --------------------------------------------------------------- detection
 
