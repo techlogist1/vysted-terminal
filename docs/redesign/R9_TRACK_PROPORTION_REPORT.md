@@ -51,8 +51,12 @@ canvas heights carry `tokens-ok` layout justifications.
       a 28px control. `node-editor-1280.png`, `node-editor-960.png`.
 - [x] **Quant** (option pricer, bond pricer, yield curve, greeks) — submit
       buttons join the h-8 form rung; chart canvas + skeleton carry tokens-ok;
-      date inputs take a px-2 inset so dd/mm/yyyy stays whole beside the native
-      calendar indicator. `option-pricer-1280.png`, `bond-pricer-1280.png`,
+      date inputs ride full-width rail rows (never the 2-col grid — at the grid
+      step the native calendar indicator clipped the year's last digit; the
+      earlier px-2 inset was not enough and is reverted to the uniform px-3),
+      with Volatility joining the full-width stack so the grid stays a clean
+      2×2. Verified by live DOM measure: every date field ≥180px of text room
+      for a ~51px dd/mm/yyyy. `option-pricer-1280.png`, `bond-pricer-1280.png`,
       `yield-curve-1280.png`, `greeks-dashboard-1280.png`.
 - [x] **Broker connect + order entry** (visual only, §6.5 untouched) — status/
       mode/read-only/provenance chips on the px-1 py-0.5 micro pattern (the
@@ -111,8 +115,8 @@ canvas heights carry `tokens-ok` layout justifications.
 2. **dockview minimum enforcement below viewport budget** — at 1280 wide with
    the default cockpit + an extra quant tab, the active group renders ~460px,
    under option-pricer's declared 640 minimum (dockview lets groups compress
-   when the sum of minimums exceeds the viewport). Inputs survive (the date
-   inset fix keeps dd/mm/yyyy whole) but the results column starves. Worth a
+   when the sum of minimums exceeds the viewport). Inputs survive (the rail is
+   fixed-width and date fields ride full rows) but the results column starves. Worth a
    lead-level look at whether minimums should clamp harder or the quant panels
    should declare a collapse ladder for the results column.
 3. **Sidecar-dependent populated states** (screener results, audit-log rows,

@@ -79,9 +79,9 @@ function Field({ label, value, onChange, type = "number", step, disabled, testId
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         data-testid={testId}
-        // Date inputs reserve ~20px for the native calendar indicator — the
-        // tighter px-2 inset keeps dd/mm/yyyy whole at the 2-col grid step.
-        className={`bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 w-full border tabular-nums outline-none disabled:opacity-50 ${type === "date" ? "px-2" : "px-3"}`}
+        // Date inputs ride full-width rows (never the 2-col grid) so dd/mm/yyyy
+        // plus the native calendar indicator always fit at the fixed rail width.
+        className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 w-full border px-3 tabular-nums outline-none disabled:opacity-50"
       />
     </label>
   );
@@ -412,22 +412,24 @@ export function OptionPricerPanel() {
             disabled={isRunning}
             testId="field-div"
           />
-          <Field
-            label="Volatility σ"
-            value={vol}
-            onChange={setVol}
-            step="0.01"
-            disabled={isRunning}
-            testId="field-vol"
-          />
-          <Field
-            label="Valuation"
-            value={valuationDate}
-            onChange={setValuationDate}
-            type="date"
-            disabled={isRunning}
-          />
         </div>
+        <Field
+          label="Volatility σ"
+          value={vol}
+          onChange={setVol}
+          step="0.01"
+          disabled={isRunning}
+          testId="field-vol"
+        />
+        {/* Date fields take the rail's full width — at the 2-col grid step the
+            native calendar indicator clips the year's last digit. */}
+        <Field
+          label="Valuation"
+          value={valuationDate}
+          onChange={setValuationDate}
+          type="date"
+          disabled={isRunning}
+        />
         <Field
           label="Expiry"
           value={expiryDate}
