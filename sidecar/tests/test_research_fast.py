@@ -132,7 +132,8 @@ def test_fast_bundle_shape_and_provenance() -> None:
     assert bundle["suggested_layout"] == "research-cockpit"
 
     structured = bundle["structured"]
-    assert set(structured) == {"price", "fundamentals", "news", "filings"}
+    # R10 (E8): the derived metric-semantics leg rides every bundle.
+    assert set(structured) == {"price", "fundamentals", "news", "filings", "derived"}
     for slot in structured.values():
         assert slot["ok"] is True
 
@@ -140,6 +141,9 @@ def test_fast_bundle_shape_and_provenance() -> None:
     assert structured["price"]["provider"] == "yfinance"
     assert structured["fundamentals"]["provider"] == "openbb"
     assert structured["filings"]["provider"] == "sec-edgar"
+    assert structured["derived"]["provider"] == "derived"
+    # The execution-loop hint (R10, D38) names the lane that ran.
+    assert bundle["execution_loop"] == "fast"
 
     # Web section present + populated when a backend answered.
     assert bundle["web"]["available"] is True
@@ -217,8 +221,11 @@ def test_fast_resolution_failure_goes_web_only() -> None:
     assert bundle["structured"] == {}
     assert bundle["note"] == "No listed instrument matched this query — web evidence only."
     assert bundle["resolved"]["ok"] is False
-    # Exactly one resolve + one web round — no structured tool ever fired.
-    assert fake.calls == ["resolve_symbol", "web_search"]
+    # Resolve attempts (full query + the R10 prefix rungs) and ONE web round —
+    # no structured tool ever fired.
+    assert set(fake.calls) == {"resolve_symbol", "web_search"}
+    assert fake.calls[-1] == "web_search"
+    assert fake.calls.count("web_search") == 1
     assert bundle["web"]["available"] is True
 
 
@@ -237,7 +244,50 @@ def test_fast_low_confidence_resolution_goes_web_only() -> None:
     bundle = asyncio.run(gather_fast("ambiguous name", region="US", tool_call=fake))
     assert bundle["ok"] is True
     assert bundle["symbol"] == ""
-    assert fake.calls == ["resolve_symbol", "web_search"]
+    # Resolve attempts only (full query + prefix rungs) + ONE web round.
+    assert set(fake.calls) == {"resolve_symbol", "web_search"}
+    assert fake.calls.count("web_search") == 1
+
+
+def test_fast_disambiguation_returns_chooser_with_zero_web_spend() -> None:
+    """R10 (D37): an ambiguous resolution returns the explicit "which did you
+    mean?" payload — no markdown, no structured pulls, no web round."""
+
+    class _Ambiguous(_FakeToolCall):
+        def _dispatch(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+            if name == "resolve_symbol":
+                return {
+                    "ok": True,
+                    "query": args.get("query"),
+                    "status": "disambiguate",
+                    "reason": "marquee family name",
+                    "resolved": None,
+                    "needs_disambiguation": True,
+                    "candidates": [
+                        {
+                            "symbol": "TCS",
+                            "name": "Tata Consultancy Services Limited",
+                            "exchange": "NSE",
+                            "confidence": 0.6,
+                            "yahoo_symbol": "TCS.NS",
+                        }
+                    ],
+                    "message": "which did you mean?",
+                }
+            return super()._dispatch(name, args)
+
+    fake = _Ambiguous()
+    bundle = asyncio.run(gather_fast("tata results", region="IN", tool_call=fake))
+    assert bundle["ok"] is True
+    assert bundle["needs_disambiguation"] is True
+    assert bundle["query"] == "tata results"
+    assert bundle["candidates"][0]["symbol"] == "TCS"
+    assert bundle["candidates"][0]["yahoo_symbol"] == "TCS.NS"
+    assert bundle["message"]
+    assert bundle["execution_loop"] == "fast"
+    assert "markdown" not in bundle and "structured" not in bundle
+    # ZERO web/structured spend — only the resolver was consulted.
+    assert set(fake.calls) == {"resolve_symbol"}
 
 
 def test_fast_one_leg_failure_is_non_fatal() -> None:

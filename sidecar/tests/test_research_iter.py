@@ -315,3 +315,110 @@ def test_heavy_never_raises_on_dead_llm() -> None:
     )
     assert isinstance(brief, ResearchBrief)
     assert brief.markdown.strip()
+
+
+async def _ambiguous_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
+    if name == "resolve_symbol":
+        return {
+            "ok": True,
+            "query": args.get("query"),
+            "status": "disambiguate",
+            "reason": "marquee family name",
+            "resolved": None,
+            "needs_disambiguation": True,
+            "candidates": [
+                {
+                    "symbol": "TCS",
+                    "name": "Tata Consultancy Services Limited",
+                    "exchange": "NSE",
+                    "confidence": 0.6,
+                    "yahoo_symbol": "TCS.NS",
+                }
+            ],
+            "message": "which did you mean?",
+        }
+    raise AssertionError(f"no tool but the resolver may run on an ambiguous query: {name}")
+
+
+def test_iter_disambiguation_returns_chooser_with_zero_spend() -> None:
+    # R10 (D37): the iter loop returns the chooser dict before any round runs.
+    out = _run(
+        run_iter_research(
+            "tata results",
+            region="IN",
+            tool_call=_ambiguous_tool,
+            llm_call=FakeLLM(),
+            budget=BudgetGuard(max_steps=10),
+        )
+    )
+    assert isinstance(out, dict)
+    assert out["ok"] is True and out["needs_disambiguation"] is True
+    assert out["candidates"][0]["symbol"] == "TCS"
+
+
+def test_heavy_disambiguation_returns_chooser_before_fanout() -> None:
+    out = _run(
+        run_heavy_research(
+            "tata results",
+            angles=3,
+            region="IN",
+            tool_call=_ambiguous_tool,
+            llm_call=FakeLLM(),
+            budget=BudgetGuard(max_steps=12),
+        )
+    )
+    assert isinstance(out, dict)
+    assert out["ok"] is True and out["needs_disambiguation"] is True
+    assert out["query"] == "tata results"
+
+
+def test_iter_synthesis_prompt_carries_metric_facts() -> None:
+    # R10 (E8): the derived METRIC FACTS block rides the synthesis prompt so
+    # the prose states figures under the cards' labels and bases.
+    class _RecordingLLM(FakeLLM):
+        def __init__(self) -> None:
+            super().__init__(reflect="complete")
+            self.synthesis_prompts: list[str] = []
+
+        async def __call__(self, messages: list[dict[str, Any]]) -> str:
+            system = messages[0]["content"].lower()
+            if "concise research brief" in system:
+                self.synthesis_prompts.append(messages[-1]["content"])
+            return await super().__call__(messages)
+
+    async def tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
+        if name == "resolve_symbol":
+            return {
+                "ok": True,
+                "status": "bound",
+                "resolved": {
+                    "symbol": "NVDA",
+                    "name": "NVIDIA Corporation",
+                    "exchange": "NASDAQ",
+                    "region": "US",
+                    "asset_class": "equity",
+                    "confidence": 1.0,
+                },
+            }
+        if name == "price_data":
+            return {"ok": True, "provider": "yfinance", "quote": {"price": 80.0}}
+        if name == "fundamentals":
+            return {
+                "ok": True,
+                "fundamentals": {"fifty_two_week_high": 100.0, "provider": "yfinance"},
+            }
+        return await fake_tool(name, args)
+
+    llm = _RecordingLLM()
+    brief = _run(
+        run_iter_research(
+            "NVDA outlook",
+            tool_call=tool,
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=2),
+        )
+    )
+    assert isinstance(brief, ResearchBrief)
+    assert brief.structured["derived"]["provider"] == "derived"
+    assert llm.synthesis_prompts, "synthesis never ran"
+    assert any("METRIC FACTS" in p and "Below 52-week high" in p for p in llm.synthesis_prompts)
