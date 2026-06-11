@@ -54,6 +54,13 @@ PDF_MAX_BYTES = 15 * 1024 * 1024
 #: their numbers deep in tables, so the PDF budget is wider than the HTML one.
 PDF_RESEARCH_MAX_CHARS = 4000
 
+#: Exchange-archive filings get a WIDER budget still (R9 gate 7): the outcome
+#: letter's dividend-aggregate line and a presentation's income statement both
+#: sit past 4k chars of selected pages — a primary filing that was fetched must
+#: yield its figures, so the disclosure lane reads deeper. Bounded; prompts
+#: fence the text as untrusted either way.
+PDF_EXCHANGE_MAX_CHARS = 9000
+
 #: How many pages of a long PDF are read at most (text extraction cost guard).
 _PDF_MAX_PAGES = 60
 
@@ -647,6 +654,9 @@ async def visit_for_research(url: str, *, max_chars: int = RESEARCH_VISIT_MAX_CH
     treats the missing figures as unparsed scans, never as "not announced".
     """
     budget = max(max_chars, PDF_RESEARCH_MAX_CHARS) if _is_pdf_url(url) else max_chars
+    if _is_pdf_url(url) and _needs_impersonated_pdf_lane(url):
+        # Exchange-archive filing: the primary document for the run — read deeper.
+        budget = max(budget, PDF_EXCHANGE_MAX_CHARS)
     try:
         page = await fetch_page(url, max_chars=budget)
     except Exception:  # noqa: BLE001 — belt-and-suspenders; fetch_page shouldn't raise
@@ -668,6 +678,7 @@ async def visit_for_research(url: str, *, max_chars: int = RESEARCH_VISIT_MAX_CH
 __all__ = [
     "DEFAULT_MAX_CHARS",
     "PDF_MAX_BYTES",
+    "PDF_EXCHANGE_MAX_CHARS",
     "PDF_RESEARCH_MAX_CHARS",
     "SCANNED_NOTE_MARKER",
     "extract_pdf_text",

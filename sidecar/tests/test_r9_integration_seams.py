@@ -216,3 +216,22 @@ def test_hot_path_detects_already_running_searxng_once(monkeypatch) -> None:
     assert url1 == "http://127.0.0.1:8888"
     assert url2 == "http://127.0.0.1:8888"
     assert calls["refresh"] == 1, "world-derivation must run exactly once per process"
+
+
+def test_mixed_run_with_searxng_serving_does_not_stamp_fallback(monkeypatch) -> None:
+    """One flaked-to-floor search on a run SearXNG otherwise served must not
+    flip the brief to keyless-fallback (no false setup-Unlimited nudge)."""
+
+    async def fake_run_loop(**kwargs: Any) -> Any:
+        telemetry = config.get_search_telemetry()
+        telemetry["keyless_fallback_searches"] = 1
+        telemetry["searxng_searches"] = 7
+        return _stub_brief()
+
+    monkeypatch.setattr(deep_research, "_run_loop", fake_run_loop)
+    creds_token = config.set_request_llm_creds("deepseek", "deepseek-v4-flash", "k")
+    try:
+        out = asyncio.run(deep_research._run_native("q", PROFILES["deep"], rounds=1, wall=30))
+    finally:
+        config.reset_request_llm_creds(creds_token)
+    assert out["backend"] == "native"

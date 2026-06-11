@@ -128,6 +128,12 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
             out = await _dispatch(floor, query, num_results, category, region)
             label = KEYLESS_FALLBACK_BACKEND_ID
 
+    if out.get("ok") is True and label is None:
+        # A SearXNG-served search: record it so the run's brief stamp can tell
+        # "never had Unlimited" apart from "one search flaked to the floor".
+        telemetry = config.get_search_telemetry()
+        if telemetry is not None:
+            telemetry["searxng_searches"] = telemetry.get("searxng_searches", 0) + 1
     if out.get("ok") is True and label is not None:
         out["backend"] = label
         # R9 gate 2: record the floor hit on the run's shared telemetry (when a
