@@ -52,6 +52,28 @@ _RESULTS_HEADLINE_RX = re.compile(
     r"|press\s+release.{0,40}(result|quarter)|results?\s+for\s+the)\b"
 )
 
+#: Headline shapes of the DIGITAL TWIN of a results filing — the investor /
+#: earnings presentation or press release the company files the same evening.
+#: Band 0.5 (R9 B1): right behind the outcome filing, ahead of everything
+#: else, so when the outcome's tables turn out to be raster scans the
+#: researcher's ONE fallback visit (``rows[1]``) reads the document that
+#: carries every figure with a real text layer — not a fourth scanned outcome.
+_PRESENTATION_HEADLINE_RX = re.compile(
+    r"(?i)\b(investor\s+presentation|earnings\s+presentation|press\s+release"
+    r"|analyst\s+presentation|results?\s+presentation)\b"
+)
+
+
+def _results_band(title: str) -> float:
+    """Rank band for a results-shaped question: 0 = the results filing itself,
+    0.5 = its digital twin (presentation / press release), 1 = the rest."""
+    if _RESULTS_HEADLINE_RX.search(title):
+        return 0.0
+    if _PRESENTATION_HEADLINE_RX.search(title):
+        return 0.5
+    return 1.0
+
+
 #: Sub-question shapes that should consult the disclosure feeds.
 _DISCLOSURE_KEYWORDS = (
     "result",
@@ -148,9 +170,13 @@ def announcement_rows(
 
     For a RESULTS-shaped ``sub_question``, rows whose headline carries the
     actual results payload (:data:`_RESULTS_HEADLINE_RX` — the outcome filing,
-    the results press release) rank FIRST, newest-first within each band — the
-    researcher's one visit reads the filing with the numbers, never the newest
-    procedural intimation (the live R8 gate-1 failure mode).
+    the results press release) rank FIRST, the filing's digital twin
+    (:data:`_PRESENTATION_HEADLINE_RX` — investor/earnings presentation, press
+    release) ranks at band 0.5, everything else last, newest-first within each
+    band. The researcher's one visit reads the filing with the numbers, never
+    the newest procedural intimation (the live R8 gate-1 failure mode); when
+    the filing is a raster scan, the bounded fallback visit reads the digital
+    twin at ``rows[1]`` (the live R9 V10 failure mode).
     """
     if not isinstance(result, dict) or not result.get("ok"):
         return []
@@ -182,8 +208,9 @@ def announcement_rows(
         k in low for k in ("result", "earnings", "quarter", "dividend", "profit", "revenue")
     )
     if results_shaped:
-        # Stable partition: results-payload headlines first, feed order within.
-        candidates.sort(key=lambda row: 0 if _RESULTS_HEADLINE_RX.search(row["title"]) else 1)
+        # Stable partition: results filing, then its digital twin, then the
+        # rest — feed order (newest first) within each band.
+        candidates.sort(key=lambda row: _results_band(row["title"]))
     return candidates[:_MAX_SOURCE_ROWS]
 
 

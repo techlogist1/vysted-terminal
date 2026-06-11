@@ -97,6 +97,72 @@ _NAME_STOPWORDS: frozenset[str] = frozenset(
     }
 )
 
+#: SECTOR/DESCRIPTOR name tokens that carry near-zero entity identity on their
+#: own — "mobile" matching a Zomato delivery article must never admit it as a
+#: Route Mobile source (the R9 V11 partial-token leak). A row may still match
+#: on these when ALL of the name's distinctive tokens appear together in the
+#: title; one generic token alone is never a strong signal.
+_GENERIC_NAME_TOKENS: frozenset[str] = frozenset(
+    {
+        "mobile",
+        "industries",
+        "international",
+        "india",
+        "indian",
+        "global",
+        "group",
+        "tech",
+        "technology",
+        "technologies",
+        "solutions",
+        "systems",
+        "services",
+        "digital",
+        "info",
+        "infotech",
+        "communications",
+        "telecom",
+        "energy",
+        "power",
+        "finance",
+        "financial",
+        "capital",
+        "bank",
+        "banking",
+        "insurance",
+        "motors",
+        "auto",
+        "pharma",
+        "pharmaceuticals",
+        "labs",
+        "laboratories",
+        "life",
+        "sciences",
+        "healthcare",
+        "foods",
+        "consumer",
+        "products",
+        "projects",
+        "infrastructure",
+        "infra",
+        "enterprises",
+        "ventures",
+        "resources",
+        "steel",
+        "cement",
+        "chemicals",
+        "textiles",
+        "retail",
+        "media",
+        "entertainment",
+        "exports",
+        "trading",
+        "agro",
+        "green",
+        "renewables",
+    }
+)
+
 #: Query glue words ignored when matching on raw query tokens (no target).
 _QUERY_STOPWORDS: frozenset[str] = frozenset(
     {
@@ -139,6 +205,13 @@ MATCH_FLOOR = 0.34
 #: Relaxed floor when NO target is bound (web-only run, query-token matching).
 RELAXED_FLOOR = 0.2
 
+#: Ceiling on a SNIPPET-ONLY match (R9 V11). A row whose title/host/url never
+#: name the target — only its snippet does — is the passing-mention shape
+#: (market roundups, peer lists, another company's prospectus) that let
+#: Coromandel/Tea Post ride into a SAKSOFT run. Capped strictly below
+#: :data:`MATCH_FLOOR` so it can NEVER count as a source.
+WEAK_MATCH_CEILING = 0.25
+
 _TOKEN_RE = re.compile(r"[a-z0-9][a-z0-9.&-]*")
 
 
@@ -157,6 +230,19 @@ def query_tokens(query: str) -> list[str]:
     """The meaningful tokens of a free-text query (glue words dropped)."""
     tokens = [t for t in _TOKEN_RE.findall((query or "").lower()) if len(t) >= 3]
     return [t for t in tokens if t not in _QUERY_STOPWORDS]
+
+
+def brand_tokens(name: str) -> list[str]:
+    """The tokens of a display name that IDENTIFY the company on their own.
+
+    Distinctive tokens minus the sector/descriptor vocabulary: "Route Mobile
+    Limited" → ``["route"]``, "Reliance Industries Limited" → ``["reliance"]``,
+    "Saksoft Limited" → ``["saksoft"]``. MAY be empty (a name made entirely of
+    sector words, e.g. "Global Industries Limited") — such names match only
+    via the ALL-distinctive-tokens-together rule in the strong-channel score,
+    never on one generic word alone.
+    """
+    return [t for t in name_tokens(name) if t not in _GENERIC_NAME_TOKENS]
 
 
 def _is_seo_junk(title: str) -> bool:
@@ -192,6 +278,49 @@ def _token_score(tokens: list[str], text: str, host: str) -> float:
     return hit / len(tokens)
 
 
+def _bounded(token: str, text: str) -> bool:
+    """Word-bounded presence — ``route`` never matches inside ``router``."""
+    return bool(re.search(rf"(?<![a-z0-9]){re.escape(token)}(?![a-z0-9])", text))
+
+
+def _strong_entity_score(target: ResearchTarget, *, title_lc: str, host: str, url_lc: str) -> float:
+    """The STRONG-channel score: does the title/host/url itself name the target?
+
+    Strong signals (any one suffices — the R9 V11 contract that an off-entity
+    source never counts):
+
+    - the SYMBOL, word-bounded in the title, as a host substring, or bounded in
+      the url path/query (``/ROUTE`` / ``symbol=ROUTE``) — 1.0 (0.6 for short
+      3-char symbols, which collide more);
+    - a BRAND name token (sector descriptors excluded) word-bounded in the
+      title, or inside the host (``routemobile.com``) — 1.0;
+    - ALL distinctive name tokens together in the title (covers names whose
+      every token is generic) — 1.0.
+
+    Snippets are deliberately NOT consulted here: a snippet passing-mention is
+    the leak shape (roundups, peer lists, prospectus mentions).
+    """
+    symbol = target.symbol.lower()
+    if len(symbol) >= 3 and (
+        _bounded(symbol, title_lc)
+        or symbol in host
+        or re.search(rf"[/=]{re.escape(symbol)}(?![a-z0-9])", url_lc)
+    ):
+        return 1.0 if len(symbol) >= 4 else 0.6
+    branded = brand_tokens(target.name)
+    if any(_bounded(t, title_lc) for t in branded):
+        return 1.0
+    if any(len(t) >= 4 and t in host for t in branded):
+        return 1.0
+    distinctive = name_tokens(target.name)
+    if distinctive and all(_bounded(t, title_lc) for t in distinctive):
+        return 1.0
+    if not branded and distinctive and all(len(t) >= 4 and t in host for t in distinctive):
+        # All-generic name compressed into the host (globalindustries.com).
+        return 1.0
+    return 0.0
+
+
 def entity_match(
     row: dict[str, Any],
     *,
@@ -205,9 +334,14 @@ def entity_match(
     - SEO-pattern titles ("what is support and resistance") → 0.
     - ``verified_symbol`` rows (exchange-disclosure provenance keyed to the
       target's own symbol) → 1.
-    - Otherwise: symbol presence (word-bounded, ≥3 chars) and distinctive
-      name-token presence in title+snippet+host, the stronger of the two.
-    - With NO target: name tokens are replaced by the query's tokens.
+    - Otherwise (R9 V11 tightening): the row must carry a STRONG entity
+      signal — the symbol or a brand name token in the TITLE, HOST, or URL
+      (:func:`_strong_entity_score`). A snippet-only passing mention (market
+      roundups, peer lists, another company's DRHP) scores at most
+      :data:`WEAK_MATCH_CEILING`, strictly below the keep floor — an
+      off-entity source can never count as a source.
+    - With NO target: query-token matching over title+snippet (unchanged —
+      there is no entity to be off of).
     """
     text, host, url_lc = _haystacks(row)
     title = str(row.get("title") or "")
@@ -241,15 +375,13 @@ def entity_match(
             return 1.0
         return _token_score(tokens, text, host)
 
-    score = _token_score(name_tokens(target.name), text, host)
-    symbol = target.symbol.lower()
-    if len(symbol) >= 3 and (
-        re.search(rf"(?<![a-z0-9]){re.escape(symbol)}(?![a-z0-9])", text)
-        or symbol in host
-        or re.search(rf"[/=]{re.escape(symbol)}(?![a-z0-9])", url_lc)
-    ):
-        score = max(score, 1.0 if len(symbol) >= 4 else 0.6)
-    return min(score, 1.0)
+    strong = _strong_entity_score(target, title_lc=title.lower(), host=host, url_lc=url_lc)
+    if strong > 0.0:
+        return min(strong, 1.0)
+    # Weak channel: the target appears only in the snippet (or via generic
+    # tokens). Kept as a sub-floor score for debugging — never a kept source.
+    weak = _token_score(name_tokens(target.name), text, host)
+    return min(weak, WEAK_MATCH_CEILING)
 
 
 def row_relevant(
@@ -268,6 +400,8 @@ __all__ = [
     "JUNK_HOSTS",
     "MATCH_FLOOR",
     "RELAXED_FLOOR",
+    "WEAK_MATCH_CEILING",
+    "brand_tokens",
     "entity_match",
     "name_tokens",
     "query_tokens",

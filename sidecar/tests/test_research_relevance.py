@@ -163,6 +163,100 @@ def test_name_tokens_drop_corporate_suffixes() -> None:
     assert relevance.name_tokens("Limited") == ["limited"]
 
 
+# --- the R9 V11 last-mile fixtures: snippet passing-mentions never count ----------
+
+
+SAKSOFT = _target(symbol="SAKSOFT", name="Saksoft Limited")
+
+
+def test_roundup_rows_mentioning_target_in_snippet_are_dropped() -> None:
+    """The live V11 leak: Coromandel and a Tea Post DRHP rode into a SAKSOFT
+    run because their SNIPPETS mentioned Saksoft in passing. A title/host/url
+    that never names the target is not evidence about the target."""
+    rows = [
+        _row(
+            "https://www.businessdaily.example/coromandel-q4",
+            "Coromandel International Q4 net profit rises 12%",
+            "Other results today: Saksoft, Tea Post and three SME listings.",
+        ),
+        _row(
+            "https://www.ipowatch.example/tea-post-drhp",
+            "Tea Post Limited files DRHP for SME IPO",
+            "Peers cited in the draft prospectus include Saksoft Limited.",
+        ),
+    ]
+    for row in rows:
+        assert relevance.entity_match(row, target=SAKSOFT) < relevance.MATCH_FLOOR, row["url"]
+        assert not relevance.row_relevant(row, target=SAKSOFT), row["url"]
+
+
+def test_generic_name_token_overlap_never_clears_the_floor() -> None:
+    """ "mobile" in a Zomato/Nestle article must not admit it as a Route Mobile
+    source — one generic sector token is not an entity match."""
+    rows = [
+        _row(
+            "https://www.fooddaily.example/zomato-growth",
+            "Zomato expands mobile ordering across tier-2 cities",
+            "The mobile delivery market grew 40% this year.",
+        ),
+        _row(
+            "https://www.fmcgnews.example/nestle-q4",
+            "Nestle India Q4: packaged foods and mobile commerce lift sales",
+            "Route to market strategies are shifting toward mobile.",
+        ),
+    ]
+    for row in rows:
+        assert not relevance.row_relevant(row, target=ROUTE), row["url"]
+
+
+def test_target_named_in_title_host_or_url_is_kept() -> None:
+    rows = [
+        _row(
+            "https://www.moneycontrol.com/saksoft-q4",
+            "Saksoft Q4 results: PAT up 19.7%",
+            "Quarterly results",
+        ),
+        _row("https://www.saksoft.com/investors", "Investor Relations", "Reports and filings"),
+        _row(
+            "https://www.nseindia.com/get-quotes/equity?symbol=SAKSOFT",
+            "Equity quote",
+            "",
+        ),
+    ]
+    for row in rows:
+        assert relevance.row_relevant(row, target=SAKSOFT), row["url"]
+
+
+def test_brand_tokens_drop_sector_descriptors() -> None:
+    assert relevance.brand_tokens("Route Mobile Limited") == ["route"]
+    assert relevance.brand_tokens("Reliance Industries Limited") == ["reliance"]
+    assert relevance.brand_tokens("Saksoft Limited") == ["saksoft"]
+    # An all-generic name has NO brand token — it matches only when all its
+    # distinctive tokens appear together (title) or compressed in the host.
+    assert relevance.brand_tokens("Global Industries Limited") == []
+
+
+def test_all_generic_name_requires_every_token_in_title() -> None:
+    gil = _target(symbol="GIL", name="Global Industries Limited")
+    kept = _row("https://press.example/a", "Global Industries posts record quarter")
+    dropped = _row("https://press.example/b", "Global markets rally on rate cut hopes")
+    assert relevance.row_relevant(kept, target=gil)
+    assert not relevance.row_relevant(dropped, target=gil)
+
+
+def test_micro_cap_with_own_host_rows_still_finishes() -> None:
+    """Tiered-floor sanity: a thin micro-cap whose only evidence is its own
+    site + one titled article keeps BOTH rows — tightening must not starve
+    legitimately thin runs."""
+    micro = _target(symbol="TINYCO", name="Tinyco Specialty Limited")
+    rows = [
+        _row("https://www.tinyco.com/investors", "Financial information", ""),
+        _row("https://smallcapwatch.example/t", "Tinyco Specialty wins export order", ""),
+    ]
+    for row in rows:
+        assert relevance.row_relevant(row, target=micro), row["url"]
+
+
 def test_other_companys_filing_title_is_never_evidence() -> None:
     # The RELIANCE audit: other corporates' exchange filings whose SNIPPETS
     # mention the target rode into the sources. A filing-shaped title must name
