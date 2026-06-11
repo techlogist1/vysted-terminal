@@ -173,17 +173,27 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
   // the auto-publish always seeds the CURRENT symbol first, so a recent prior
   // brief is this same research turn (the recency bound rules out cross-symbol
   // contamination). Keeps the native metric cards populated either way.
-  if (!structured) {
-    const prev = useBriefStore.getState().brief;
-    const sameSymbol =
-      !!prev?.symbol && !!symbol && prev.symbol.toUpperCase() === symbol.toUpperCase();
-    // Tight 20s window (was 120s): the auto-publish → model publish_brief round-trip
-    // is a few seconds, so 20s safely covers the same turn while shrinking the
-    // cross-symbol contamination window 6x (AAPL then MSFT within seconds).
-    const recent = typeof prev?.createdAt === "number" && Date.now() - prev.createdAt < 20_000;
-    if (prev?.structured && (sameSymbol || (!symbol && recent))) {
-      structured = prev.structured;
-    }
+  // The same-turn carry window shared by `structured` and `backend` below.
+  const prevBrief = useBriefStore.getState().brief;
+  const prevSameSymbol =
+    !!prevBrief?.symbol && !!symbol && prevBrief.symbol.toUpperCase() === symbol.toUpperCase();
+  // Tight 20s window (was 120s): the auto-publish → model publish_brief round-trip
+  // is a few seconds, so 20s safely covers the same turn while shrinking the
+  // cross-symbol contamination window 6x (AAPL then MSFT within seconds).
+  const prevRecent =
+    typeof prevBrief?.createdAt === "number" && Date.now() - prevBrief.createdAt < 20_000;
+  const sameTurnCarry = prevSameSymbol || (!symbol && prevRecent);
+  if (!structured && prevBrief?.structured && sameTurnCarry) {
+    structured = prevBrief.structured;
+  }
+  // The engine's honest backend id (R9: "keyless-fallback" drives the nudge,
+  // "research-model:<id>" names the Tier B brain). The model's own
+  // publish_brief never knows it — carry it across the same-turn re-publish
+  // exactly like `structured`, or the nudge dies the moment the model writes
+  // its prose (found live in the R9 gate battery).
+  let backend = str(input, "backend") || undefined;
+  if (!backend && prevBrief?.backend && sameTurnCarry) {
+    backend = prevBrief.backend;
   }
   // webAvailable, reconciled with the ACTUAL evidence (WS3 — kills symptom #2,
   // the "N sources" + "web unavailable" banner firing together):
@@ -212,10 +222,9 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
     note: str(input, "note") || undefined,
     steps,
     structured,
-    // The engine's honest backend id (R9: "keyless-fallback" drives the brief
-    // panel's setup-Unlimited nudge; "research-model:<id>" names the Tier B
-    // brain). Passed through verbatim — never derived, never defaulted.
-    backend: str(input, "backend") || undefined,
+    // See the carry block above — verbatim when sent, same-turn carry when the
+    // model's own publish omits it.
+    backend,
     createdAt: Date.now(),
   };
 }

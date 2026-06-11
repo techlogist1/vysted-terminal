@@ -615,3 +615,58 @@ describe("host-actions", () => {
     expect(useOrdersStore.getState().proposals).toHaveLength(0);
   });
 });
+
+describe("briefFromInput backend carry (R9 gate 2)", () => {
+  it("keeps the engine's backend id when the model's same-turn re-publish omits it", () => {
+    useBriefStore.setState({
+      brief: {
+        query: "infosys",
+        symbol: "INFY.NS",
+        mode: "FAST",
+        depth: "quick",
+        markdown: "",
+        sources: [],
+        sourceCount: 0,
+        webAvailable: true,
+        backend: "keyless-fallback",
+        createdAt: Date.now() - 3_000,
+      } as never,
+    });
+    const described = describeHostAction("publish_brief", {
+      symbol: "INFY.NS",
+      markdown: "## Infosys — Quick Brief\nProse.",
+      sources: [{ url: "https://example.com", title: "t" }],
+    });
+    expect(described).toBeTruthy();
+    const applied = applyHostAction("publish_brief", {
+      symbol: "INFY.NS",
+      markdown: "## Infosys — Quick Brief\nProse.",
+      sources: [{ url: "https://example.com", title: "t" }],
+    });
+    expect(applied).toBeTruthy();
+    expect(useBriefStore.getState().brief?.backend).toBe("keyless-fallback");
+  });
+
+  it("a cross-symbol publish does NOT inherit the prior backend", () => {
+    useBriefStore.setState({
+      brief: {
+        query: "infosys",
+        symbol: "INFY.NS",
+        mode: "FAST",
+        depth: "quick",
+        markdown: "",
+        sources: [],
+        sourceCount: 0,
+        webAvailable: true,
+        backend: "keyless-fallback",
+        createdAt: Date.now() - 60_000,
+      } as never,
+    });
+    applyHostAction("publish_brief", {
+      symbol: "MSFT",
+      markdown: "## MSFT\nProse.",
+      sources: [],
+    });
+    expect(useBriefStore.getState().brief?.backend).toBeUndefined();
+  });
+});
