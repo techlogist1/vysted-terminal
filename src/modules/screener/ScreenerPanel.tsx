@@ -78,13 +78,19 @@ export function ScreenerPanel() {
   const universeInfo = universeMeta[universe];
   const isRunning = status === "loading";
 
-  // Freshness label — quotes + deep fields if both timestamps present.
+  // Freshness label — three tiers with correct labels per the frozen contract:
+  //   quotes_as_of   → "quotes"       (600s quote tier)
+  //   valuation_as_of → "valuation"   (6h v7 valuation tier)
+  //   deep_as_of     → "deep fields"  (7d .info deep tier — ROE, margins, growth)
+  // Brief example: "quotes 4m ago · deep fields 2d ago" maps "deep fields"
+  // to deep_as_of, NOT valuation_as_of.
   function freshnessLine(): string | null {
     const f = lastResult?.freshness;
     if (!f) return null;
     const parts: string[] = [];
     if (f.quotes_as_of) parts.push(`quotes ${fmtAgo(f.quotes_as_of)}`);
-    if (f.valuation_as_of) parts.push(`deep fields ${fmtAgo(f.valuation_as_of)}`);
+    if (f.valuation_as_of) parts.push(`valuation ${fmtAgo(f.valuation_as_of)}`);
+    if (f.deep_as_of) parts.push(`deep fields ${fmtAgo(f.deep_as_of)}`);
     return parts.length > 0 ? parts.join(" · ") : null;
   }
 
@@ -178,20 +184,33 @@ export function ScreenerPanel() {
       {isRunning && (
         <div className="shrink-0 space-y-1" data-testid="screener-progress">
           <div className="text-muted-foreground text-caption tabular-nums">
-            {progress ? progress.detail : "Connecting to screener engine…"}
+            {progress
+              ? progress.detail
+              : // No progress frames yet — be honest: we are sending the request.
+                // On the streaming path this resolves quickly; on the unary fallback
+                // progress stays null for the entire run so we label it accordingly.
+                "Sending request…"}
           </div>
-          {/* Determinate 2px progress bar — zinc-700 track, lume fill */}
-          <div className="bg-charcoal-700 h-0.5 w-full overflow-hidden rounded-none">
-            <div
-              className="bg-lume h-full transition-[width] duration-300"
-              style={{
-                width:
-                  progress && progress.total > 0
-                    ? `${Math.min(100, (progress.done / progress.total) * 100).toFixed(1)}%`
-                    : "0%",
-              }}
-            />
-          </div>
+          {/* Determinate 2px progress bar — zinc-700 track, lume fill.
+              When progress is null (e.g. unary path), show a thin indeterminate
+              pulse rather than a 0% bar that falsely implies 0% done. */}
+          {progress ? (
+            <div className="bg-charcoal-700 h-0.5 w-full overflow-hidden rounded-none">
+              <div
+                className="bg-lume h-full transition-[width] duration-300"
+                style={{
+                  width:
+                    progress.total > 0
+                      ? `${Math.min(100, (progress.done / progress.total) * 100).toFixed(1)}%`
+                      : "0%",
+                }}
+              />
+            </div>
+          ) : (
+            <div className="bg-charcoal-700 h-0.5 w-full overflow-hidden rounded-none">
+              <div className="bg-lume h-full w-1/3 animate-pulse transition-[width] duration-300" />
+            </div>
+          )}
         </div>
       )}
 
@@ -302,15 +321,24 @@ export function ScreenerPanel() {
       {/* ── Result header: coverage + PARTIAL badge + freshness ───────────── */}
       {lastResult && (
         <div className="shrink-0 space-y-0.5">
-          {lastResult.coverage && (
-            <div className="text-muted-foreground text-caption flex items-center gap-2">
-              {lastResult.partial && (
-                <span className="bg-warning/15 text-warning text-micro rounded-none px-1 py-0.5 font-medium tracking-wide uppercase">
-                  PARTIAL
-                </span>
+          {/* PARTIAL badge: shown whenever partial=true, independent of coverage.
+              VYSTED_DESIGN.md:458 — signal colors appear as text or 1px markers,
+              never a filled background. Badge is text-only (text-warning), no bg. */}
+          {lastResult.partial && (
+            <div className="text-caption flex items-center gap-2">
+              <span
+                className="text-warning text-micro border-warning/50 rounded-none border px-1 py-0.5 font-medium tracking-wide uppercase"
+                data-testid="partial-badge"
+              >
+                PARTIAL
+              </span>
+              {lastResult.coverage && (
+                <span className="text-muted-foreground">{lastResult.coverage}</span>
               )}
-              <span>{lastResult.coverage}</span>
             </div>
+          )}
+          {!lastResult.partial && lastResult.coverage && (
+            <div className="text-muted-foreground text-caption">{lastResult.coverage}</div>
           )}
           {freshnessLine() && (
             <div className="text-muted-foreground text-micro">{freshnessLine()}</div>

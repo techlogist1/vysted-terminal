@@ -27,6 +27,15 @@ import type {
   ScreenerUniverseId,
 } from "../../types/screener";
 
+// AbortController for the active streaming run. Module-level (singleton store)
+// so cancelRun() can abort without threading it through state.
+// IMPORTANT: every async path that reads this must capture it into a local
+// `controller` variable at the START of the run, then guard every state write
+// with `if (_runAbortController === controller)` so a superseded run (run B
+// started while A streams) never clobbers B's loading/progress state or nulls
+// B's controller.
+let _runAbortController: AbortController | null = null;
+
 /** Strip empty sub-groups so a serialized tree never carries dead nodes that
  * the server would treat as "matches everything". Returns null when the whole
  * tree collapses to nothing (→ fall back to the flat criteria path). */
@@ -76,13 +85,35 @@ export function deserializeSavedScreens(raw: string | null | undefined): SavedSc
   try {
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (s): s is SavedScreen =>
-        s !== null &&
-        typeof s === "object" &&
-        typeof (s as Record<string, unknown>).name === "string" &&
-        typeof (s as Record<string, unknown>).universe === "string",
-    );
+    return parsed
+      .filter(
+        (s): s is Record<string, unknown> =>
+          s !== null &&
+          typeof s === "object" &&
+          typeof (s as Record<string, unknown>).name === "string" &&
+          typeof (s as Record<string, unknown>).universe === "string",
+      )
+      .map((s): SavedScreen => {
+        // Ensure criteria is a valid array; corrupt/missing entries default to [].
+        const rawCriteria = s.criteria;
+        const criteria: ScreenerCriterion[] = Array.isArray(rawCriteria)
+          ? (rawCriteria as unknown[]).filter(
+              (c): c is ScreenerCriterion =>
+                c !== null && typeof c === "object" && "field" in (c as object),
+            )
+          : [];
+        // Ensure combinator is valid; default to "and".
+        const combinator: import("./screener").ScreenerCombinator =
+          s.combinator === "or" ? "or" : "and";
+        return {
+          name: s.name as string,
+          universe: s.universe as SavedScreen["universe"],
+          criteria,
+          combinator,
+          ...(s.group !== undefined ? { group: s.group as CriterionGroup | null } : {}),
+          ...(typeof s.formula === "string" && s.formula ? { formula: s.formula } : {}),
+        };
+      });
   } catch {
     return [];
   }
@@ -93,10 +124,6 @@ export function deserializeSavedScreens(raw: string | null | undefined): SavedSc
 // module-level map (the store is a singleton) coalesces them without changing
 // the state shape / test mocks.
 const _inFlightUniverses = new Map<string, Promise<ScreenerUniverse | null>>();
-
-// AbortController for the active streaming run. Module-level (singleton store)
-// so cancelRun() can abort without threading it through state.
-let _runAbortController: AbortController | null = null;
 
 interface ScreenerState {
   // --- editable draft -------------------------------------------------
@@ -289,6 +316,13 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
     const controller = new AbortController();
     _runAbortController = controller;
     set({ status: "loading", error: null, progress: null });
+
+    /** Guard: only the CURRENT run may touch status/progress or null the slot.
+     *  Run B aborting run A must not let A's cleanup clobber B's state. */
+    function isCurrent(): boolean {
+      return _runAbortController === controller;
+    }
+
     // Three shapes for the boolean tree, in precedence:
     //   1. ADVANCED nested tree (the recursive group editor) — pruned, supersedes
     //      everything when it carries real nesting (server evaluates it).
@@ -317,9 +351,12 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
     // --- Attempt streaming via POST /screener/run/stream (R10 D40) ----------
     // Falls back to the unary endpoint on 404 (older sidecar builds). Disconnect
     // (cancel) aborts the server-side engine per the SSE contract.
+    // Wire format: SSE (text/event-stream) — frames are `data: {json}\n\n`
+    // (precedent: routers/backtest.py:195, _encode_event). The parser strips the
+    // `data:` prefix and tolerates bare NDJSON for resilience.
     const base = await getSidecarBaseUrl();
     const streamUrl = new URL("/screener/run/stream", base).toString();
-    let streamResponse: Response;
+    let streamResponse: Response | null = null;
     try {
       streamResponse = await fetch(streamUrl, {
         method: "POST",
@@ -327,34 +364,60 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
         body: JSON.stringify(req),
         signal: controller.signal,
       });
-    } catch {
+    } catch (fetchErr) {
       if (controller.signal.aborted) {
-        set({ status: "idle", progress: null });
-        _runAbortController = null;
+        if (isCurrent()) {
+          set({ status: "idle", progress: null });
+          _runAbortController = null;
+        }
         return null;
       }
-      // Network error before we even got a response — fall through to unary.
-      streamResponse = new Response(null, { status: 503 });
+      // Network error before any response (sidecar down / cold-boot).
+      // Attempt the unary fallback — it may work if the sidecar just came up.
+      try {
+        const result = await postJson<ScreenerRequest, ScreenerResult>("/screener/run", req);
+        if (!controller.signal.aborted && isCurrent()) {
+          set({ lastResult: result, status: "ready", error: null, progress: null });
+          _runAbortController = null;
+        }
+        return controller.signal.aborted ? null : result;
+      } catch {
+        if (isCurrent()) {
+          const fetchErrMsg = fetchErr instanceof Error ? fetchErr.message : "sidecar unreachable";
+          set({
+            status: "error",
+            error: `Sidecar unreachable: ${fetchErrMsg}`,
+            progress: null,
+          });
+          _runAbortController = null;
+        }
+        return null;
+      }
     }
     if (streamResponse.status === 404) {
       // Older sidecar: fall back to unary /screener/run.
       try {
         const result = await postJson<ScreenerRequest, ScreenerResult>("/screener/run", req);
-        set({ lastResult: result, status: "ready", error: null, progress: null });
-        _runAbortController = null;
-        return result;
-      } catch (err: unknown) {
-        if (controller.signal.aborted) {
-          set({ status: "idle", progress: null });
-        } else {
-          const message = err instanceof Error ? err.message : "screener run failed";
-          set({ status: "error", error: message, progress: null });
+        if (!controller.signal.aborted && isCurrent()) {
+          set({ lastResult: result, status: "ready", error: null, progress: null });
+          _runAbortController = null;
         }
-        _runAbortController = null;
+        return controller.signal.aborted ? null : result;
+      } catch (err: unknown) {
+        if (isCurrent()) {
+          if (controller.signal.aborted) {
+            set({ status: "idle", progress: null });
+          } else {
+            const message = err instanceof Error ? err.message : "screener run failed";
+            set({ status: "error", error: message, progress: null });
+          }
+          _runAbortController = null;
+        }
         return null;
       }
     }
     if (!streamResponse.ok) {
+      if (!isCurrent()) return null;
       let detail = streamResponse.statusText;
       try {
         const parsed = (await streamResponse.json()) as { detail?: string };
@@ -362,66 +425,96 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       } catch {
         // Not JSON — keep status text.
       }
-      set({
-        status: "error",
-        error: `POST /screener/run/stream failed (${streamResponse.status}): ${detail}`,
-        progress: null,
-      });
-      _runAbortController = null;
+      if (isCurrent()) {
+        set({
+          status: "error",
+          error: `POST /screener/run/stream failed (${streamResponse.status}): ${detail}`,
+          progress: null,
+        });
+        _runAbortController = null;
+      }
       return null;
     }
-    // Consume the stream: newline-delimited JSON frames.
-    //   {"event":"progress","phase":"sweep","done":850,"total":2100,"detail":"sweeping quotes 850/2,100"}
-    //   {"event":"result", ...ScreenerResult fields...}
+    // Consume the SSE stream.
+    // The sidecar emits `data: {json}\n\n` per frame (backtest.py:195 precedent).
+    // We split on `\n\n` event boundaries and strip the `data:` prefix from each
+    // line before JSON.parse. Bare NDJSON (no `data:` prefix) is also tolerated
+    // for resilience during development / older intermediary builds.
     const body = streamResponse.body;
     if (!body) {
-      set({ status: "error", error: "Stream body was empty", progress: null });
-      _runAbortController = null;
+      if (isCurrent()) {
+        set({ status: "error", error: "Stream body was empty", progress: null });
+        _runAbortController = null;
+      }
       return null;
     }
     const reader = body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
     let finalResult: ScreenerResult | null = null;
+
+    /** Parse one SSE data line or bare NDJSON line into a frame object, or null. */
+    function parseLine(raw: string): Record<string, unknown> | null {
+      const trimmed = raw.trim();
+      if (!trimmed || trimmed.startsWith(":")) return null; // blank or comment
+      // Strip `data:` prefix (SSE format).
+      const jsonStr = trimmed.startsWith("data:") ? trimmed.slice(5).trim() : trimmed;
+      if (!jsonStr) return null;
+      try {
+        return JSON.parse(jsonStr) as Record<string, unknown>;
+      } catch {
+        return null;
+      }
+    }
+
+    function processFrame(frame: Record<string, unknown>) {
+      if (!isCurrent()) return;
+      if (frame.event === "progress") {
+        set({
+          progress: {
+            phase: String(frame.phase ?? ""),
+            done: Number(frame.done ?? 0),
+            total: Number(frame.total ?? 0),
+            detail: String(frame.detail ?? ""),
+          },
+        });
+      } else if (frame.event === "result") {
+        // The result frame carries the full ScreenerResult fields inline.
+        // Strip the envelope key so the shape matches ScreenerResult exactly.
+        const { event: _e, ...resultFields } = frame;
+        finalResult = resultFields as unknown as ScreenerResult;
+      }
+    }
+
     try {
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {
+          // Flush the trailing decoder buffer (final frame without a trailing newline).
+          buffer += decoder.decode();
+          break;
+        }
         if (controller.signal.aborted) break;
         buffer += decoder.decode(value, { stream: true });
-        // Process all complete lines in the buffer.
+        // Split on event boundaries. SSE uses \n\n; NDJSON uses \n. We handle both
+        // by splitting on \n and processing each data: line individually. Empty lines
+        // (the \n\n separator) are skipped by parseLine.
         const lines = buffer.split("\n");
         // The last element may be an incomplete line — keep it in the buffer.
         buffer = lines.pop() ?? "";
         for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed) continue;
-          let frame: Record<string, unknown>;
-          try {
-            frame = JSON.parse(trimmed) as Record<string, unknown>;
-          } catch {
-            // Partial or malformed frame — skip.
-            continue;
-          }
-          if (frame.event === "progress") {
-            set({
-              progress: {
-                phase: String(frame.phase ?? ""),
-                done: Number(frame.done ?? 0),
-                total: Number(frame.total ?? 0),
-                detail: String(frame.detail ?? ""),
-              },
-            });
-          } else if (frame.event === "result") {
-            // The result frame carries the full ScreenerResult fields inline.
-            // Strip the envelope key so the shape matches ScreenerResult exactly.
-            const { event: _e, ...resultFields } = frame;
-            finalResult = resultFields as unknown as ScreenerResult;
-          }
+          const frame = parseLine(line);
+          if (frame) processFrame(frame);
         }
       }
+      // Process any remainder left in the buffer (final frame without trailing newline).
+      if (buffer.trim()) {
+        const frame = parseLine(buffer);
+        if (frame) processFrame(frame);
+        buffer = "";
+      }
     } catch (readErr) {
-      if (!controller.signal.aborted) {
+      if (!controller.signal.aborted && isCurrent()) {
         const message = readErr instanceof Error ? readErr.message : "stream read failed";
         set({ status: "error", error: message, progress: null });
         _runAbortController = null;
@@ -430,6 +523,7 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
     } finally {
       reader.releaseLock();
     }
+    if (!isCurrent()) return null;
     if (controller.signal.aborted) {
       set({ status: "idle", progress: null });
       _runAbortController = null;

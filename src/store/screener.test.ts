@@ -55,6 +55,13 @@ const RESULT_SAMPLE: ScreenerResult = {
     },
   ],
   duration_ms: 280.0,
+  partial: true,
+  coverage: "screened 100 of 500 — 400 unavailable",
+  freshness: {
+    quotes_as_of: 1_700_000_000,
+    valuation_as_of: 1_699_980_000,
+    deep_as_of: 1_699_400_000,
+  },
 };
 
 const UNIVERSE_SAMPLE: ScreenerUniverse = {
@@ -78,20 +85,27 @@ function mockFetchFallback(result: ScreenerResult) {
   });
 }
 
-/** Build a ReadableStream that yields newline-delimited JSON frames simulating
- *  the /screener/run/stream SSE contract (progress then result). */
+/**
+ * Build a ReadableStream that yields real SSE frames: `data: {json}\n\n`
+ * matching the sidecar wire format (routers/backtest.py:195 _encode_event
+ * precedent: `f"data: {json}\n\n".encode()`).
+ *
+ * Emits one progress frame then one result frame.
+ */
 function makeStreamResponse(result: ScreenerResult): Response {
-  const frame = JSON.stringify({ event: "result", ...result }) + "\n";
+  const progressFrame = `data: ${JSON.stringify({ event: "progress", phase: "sweep", done: 50, total: 100, detail: "sweeping quotes 50/100" })}\n\n`;
+  const resultFrame = `data: ${JSON.stringify({ event: "result", ...result })}\n\n`;
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     start(controller) {
-      controller.enqueue(encoder.encode(frame));
+      controller.enqueue(encoder.encode(progressFrame));
+      controller.enqueue(encoder.encode(resultFrame));
       controller.close();
     },
   });
   return new Response(stream, {
     status: 200,
-    headers: { "Content-Type": "application/x-ndjson" },
+    headers: { "Content-Type": "text/event-stream" },
   });
 }
 
@@ -154,16 +168,144 @@ describe("useScreenerStore", () => {
       expect(body.limit).toBe(200);
     });
 
-    it("consumes the streaming endpoint when available and surfaces the result frame", async () => {
+    it("consumes the streaming SSE endpoint: progress frame populates state, result frame finalizes", async () => {
+      // Capture progress state during the stream by spying on set before the run.
+      let capturedProgress: unknown = undefined;
+      const unsubscribe = useScreenerStore.subscribe((state) => {
+        if (state.progress !== null && capturedProgress === undefined) {
+          capturedProgress = { ...state.progress };
+        }
+      });
+
       vi.spyOn(globalThis, "fetch").mockResolvedValue(makeStreamResponse(RESULT_SAMPLE));
 
       const result = await useScreenerStore.getState().runScreener();
+
+      unsubscribe();
+
+      // Result is correct.
       expect(result).toEqual(RESULT_SAMPLE);
       expect(useScreenerStore.getState().lastResult).toEqual(RESULT_SAMPLE);
       expect(useScreenerStore.getState().status).toBe("ready");
       // Progress clears after run.
       expect(useScreenerStore.getState().progress).toBeNull();
+
+      // Progress frame WAS populated during the stream (not silently skipped).
+      expect(capturedProgress).toMatchObject({
+        phase: "sweep",
+        done: 50,
+        total: 100,
+        detail: "sweeping quotes 50/100",
+      });
     });
+
+    it("streaming result exposes partial, coverage, and freshness on lastResult", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(makeStreamResponse(RESULT_SAMPLE));
+      await useScreenerStore.getState().runScreener();
+      const last = useScreenerStore.getState().lastResult;
+      expect(last?.partial).toBe(true);
+      expect(last?.coverage).toBe("screened 100 of 500 — 400 unavailable");
+      expect(last?.freshness?.quotes_as_of).toBe(1_700_000_000);
+      expect(last?.freshness?.valuation_as_of).toBe(1_699_980_000);
+      expect(last?.freshness?.deep_as_of).toBe(1_699_400_000);
+    });
+
+    it("cancelRun aborts the in-flight stream and sets status to idle", async () => {
+      // Use a controllable stream: we capture the abort signal from the fetch call
+      // and resolve a hanging read promise when abort fires.
+      let capturedSignal: AbortSignal | undefined;
+      let resolveHang!: () => void;
+      const hangPromise = new Promise<ReadableStreamReadResult<Uint8Array>>((resolve) => {
+        resolveHang = () => resolve({ done: true, value: undefined });
+      });
+
+      const stream = new ReadableStream<Uint8Array>({
+        pull(ctrl) {
+          // Enqueue one empty chunk so the stream looks open, then hang.
+          ctrl.enqueue(new Uint8Array(0));
+          // Return the hanging promise — the reader will block here.
+          return hangPromise.then(() => {});
+        },
+        cancel() {
+          resolveHang();
+        },
+      });
+
+      vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) => {
+        capturedSignal = (init as RequestInit | undefined)?.signal as AbortSignal | undefined;
+        if (capturedSignal) {
+          capturedSignal.addEventListener("abort", () => resolveHang());
+        }
+        return new Response(stream, {
+          status: 200,
+          headers: { "Content-Type": "text/event-stream" },
+        });
+      });
+
+      // Start the run but do not await it yet.
+      const runPromise = useScreenerStore.getState().runScreener();
+      // Yield to let the run kick off and reach the stream reader.
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(useScreenerStore.getState().status).toBe("loading");
+
+      // Cancel.
+      useScreenerStore.getState().cancelRun();
+      await runPromise;
+
+      expect(useScreenerStore.getState().status).toBe("idle");
+      expect(useScreenerStore.getState().progress).toBeNull();
+    }, 10000);
+
+    it("run B starting while run A is in flight does not let A clobber B's loading state", async () => {
+      // Run A: stream that hangs until its abort signal fires.
+      let resolveRunA!: () => void;
+      const runAHang = new Promise<void>((r) => {
+        resolveRunA = r;
+      });
+
+      const makeHangStream = (onAbort: () => void) => {
+        const stream = new ReadableStream<Uint8Array>({
+          pull(ctrl) {
+            ctrl.enqueue(new Uint8Array(0));
+            return runAHang.then(() => {});
+          },
+          cancel() {
+            onAbort();
+          },
+        });
+        return new Response(stream, {
+          status: 200,
+          headers: { "Content-Type": "text/event-stream" },
+        });
+      };
+
+      let runAFetchCount = 0;
+      vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) => {
+        runAFetchCount++;
+        if (runAFetchCount === 1) {
+          // Run A — hanging stream.
+          const signal = (init as RequestInit | undefined)?.signal as AbortSignal | undefined;
+          if (signal) signal.addEventListener("abort", () => resolveRunA());
+          return makeHangStream(() => resolveRunA());
+        }
+        // Run B — fast SSE result.
+        return makeStreamResponse(RESULT_SAMPLE);
+      });
+
+      const runAPromise = useScreenerStore.getState().runScreener();
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      expect(useScreenerStore.getState().status).toBe("loading");
+
+      // Run B starts while A is streaming — aborts A, installs B.
+      const runBPromise = useScreenerStore.getState().runScreener();
+      await runBPromise;
+      await runAPromise;
+
+      // B completes successfully; A's cleanup did NOT clobber B's result.
+      expect(useScreenerStore.getState().status).toBe("ready");
+      expect(useScreenerStore.getState().lastResult).toEqual(RESULT_SAMPLE);
+    }, 10000);
 
     it("for the custom universe, serialises custom_symbols from the raw text", async () => {
       const fetchMock = mockFetchFallback(RESULT_SAMPLE);
