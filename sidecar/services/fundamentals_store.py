@@ -473,8 +473,7 @@ def _criterion_fails_sql(criterion: ScreenerCriterion) -> tuple[str, list[Any]] 
     if isinstance(criterion, NumericBetweenCriterion):
         col = _field_column(criterion.field)
         return (
-            f"({col} IS NOT NULL AND {_fresh_sql(criterion.field)} "
-            f"AND ({col} < ? OR {col} > ?))",
+            f"({col} IS NOT NULL AND {_fresh_sql(criterion.field)} AND ({col} < ? OR {col} > ?))",
             [criterion.value.min, criterion.value.max],
         )
     if isinstance(criterion, StringEqCriterion):
@@ -503,8 +502,7 @@ def _fresh_sql(field: str) -> str:
     """Freshness predicate for a numeric field's serving tier (see module doc)."""
     if field in _QUOTE_FIELD_COLUMNS:
         return (
-            "(quote_updated_at IS NOT NULL"
-            f" AND ? - quote_updated_at <= {TTL_QUOTE_FULL_SECONDS})"
+            f"(quote_updated_at IS NOT NULL AND ? - quote_updated_at <= {TTL_QUOTE_FULL_SECONDS})"
         )
     if field in _V7_NUMERIC_FIELDS:
         return f"(v7_updated_at IS NOT NULL AND ? - v7_updated_at <= {TTL_V7_SECONDS})"
@@ -546,10 +544,7 @@ async def prefilter(symbols: list[str], cheap_criteria: list[ScreenerCriterion])
         with contextlib.closing(_connect()) as conn:
             for chunk in _chunked(keys):
                 marks = ", ".join("?" for _ in chunk)
-                sql = (
-                    f"SELECT symbol FROM fundamentals "
-                    f"WHERE symbol IN ({marks}) AND ({fails})"
-                )
+                sql = f"SELECT symbol FROM fundamentals WHERE symbol IN ({marks}) AND ({fails})"
                 for row in conn.execute(sql, [*chunk, *params]):
                     failed.add(row["symbol"])
         return failed

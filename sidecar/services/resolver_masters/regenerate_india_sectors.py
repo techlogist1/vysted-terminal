@@ -70,8 +70,7 @@ HEADER_URL = (
     "?quotetype=EQ&scripcode={code}&seriesid="
 )
 BHAVCOPY_URL = (
-    "https://www.bseindia.com/download/BhavCopy/Equity/"
-    "BhavCopy_BSE_CM_0_0_0_{yyyymmdd}_F_0000.CSV"
+    "https://www.bseindia.com/download/BhavCopy/Equity/BhavCopy_BSE_CM_0_0_0_{yyyymmdd}_F_0000.CSV"
 )
 _REFERER = "https://www.bseindia.com/"
 _FALLBACK_UA = (
@@ -329,8 +328,7 @@ def crawl_bse_sectors(codes: list[str]) -> dict[str, dict[str, str | None]]:
                 break
         if idx and idx % 100 == 0:
             print(
-                f"regenerate_india_sectors: crawled {idx}/{len(codes)} "
-                f"({len(out)} classified)",
+                f"regenerate_india_sectors: crawled {idx}/{len(codes)} ({len(out)} classified)",
                 file=sys.stderr,
             )
         time.sleep(random.uniform(*_CRAWL_SLEEP_RANGE))
@@ -507,8 +505,7 @@ def main() -> None:
         symbols = [str(r.get("scrip_id") or "").strip().upper() for r in ordered]
         symbols = [s for s in symbols if s][: args.fallback_yfinance]
         print(
-            f"regenerate_india_sectors: BSE crawl empty — yfinance fallback for "
-            f"{len(symbols)}",
+            f"regenerate_india_sectors: BSE crawl empty — yfinance fallback for {len(symbols)}",
             file=sys.stderr,
         )
         yf_sectors = crawl_yfinance_sectors(symbols)

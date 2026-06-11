@@ -602,9 +602,7 @@ async def _finalize(
             # Never fetched (or identity-only seed row) — itemize. A reason
             # recorded during the sweep/fallback sticks; otherwise a partial
             # run owns the miss (budget_exhausted), a complete one is no_data.
-            state.skip_reasons.setdefault(
-                key, "budget_exhausted" if state.partial else "no_data"
-            )
+            state.skip_reasons.setdefault(key, "budget_exhausted" if state.partial else "no_data")
             continue
         absent = next(
             (f for f in sorted(needed_fields) if row.get(f) is None),
@@ -646,15 +644,11 @@ async def _finalize(
         key = sym.upper()
         if key not in evaluated:
             default = "budget_exhausted" if state.partial else "no_data"
-            skip_details.append(
-                SkipDetail(symbol=key, reason=state.skip_reasons.get(key, default))
-            )
+            skip_details.append(SkipDetail(symbol=key, reason=state.skip_reasons.get(key, default)))
 
     evaluated_count = len(pairs_by_symbol) + len(state.pruned_failed)
     total = len(state.universe.symbols)
-    coverage = (
-        f"screened {evaluated_count:,} of {total:,} — {len(skip_details):,} unavailable"
-    )
+    coverage = f"screened {evaluated_count:,} of {total:,} — {len(skip_details):,} unavailable"
     freshness = await fundamentals_store.freshness(list(pairs_by_symbol)) or None
 
     duration_ms = (time.monotonic() - started_at) * 1000.0

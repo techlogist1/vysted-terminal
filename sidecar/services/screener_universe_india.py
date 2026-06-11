@@ -145,9 +145,7 @@ def load_india_universe(universe_id: ScreenerUniverseId) -> ScreenerUniverse:
     if universe_id == "india-all":
         nse_symbols = {sym for sym, _name, _typ in _nse_rows()}
         symbols = [f"{sym}.NS" for sym, _name, _typ in _nse_rows()]
-        symbols += [
-            f"{sym}.BO" for sym, _n, _g, _c, _i in _bse_rows() if sym not in nse_symbols
-        ]
+        symbols += [f"{sym}.BO" for sym, _n, _g, _c, _i in _bse_rows() if sym not in nse_symbols]
         return ScreenerUniverse(
             id="india-all",
             label="India (NSE + BSE)",
