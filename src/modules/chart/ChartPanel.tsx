@@ -91,6 +91,11 @@ const DEFAULT_TIMEFRAME: Timeframe = "1d";
 const TIMEFRAME_DROPDOWN_BELOW = 1020;
 const TOOL_LABELS_BELOW = 800;
 const TOOLS_OVERFLOW_BELOW = 460;
+// Final rung: dockview can compress a group BELOW the declared 360 panel
+// minimum when the viewport budget runs out (R9 adversarial sweep — the Load
+// button clipped mid-glyph at a ~300px rail). Below this the Load button
+// folds (Enter in the input submits) and the symbol field narrows one step.
+const SYMBOL_ONLY_BELOW = 360;
 const STATUS_SESSION_BELOW = 1240;
 const STATUS_DETAIL_BELOW = 1100;
 const STATUS_HIDDEN_BELOW = 560;
@@ -265,6 +270,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
   // renders the full step.
   const { ref: toolbarRef, width: toolbarWidth } = useContainerWidth<HTMLDivElement>();
   const timeframesAsDropdown = toolbarWidth !== null && toolbarWidth < TIMEFRAME_DROPDOWN_BELOW;
+  const symbolOnly = toolbarWidth !== null && toolbarWidth < SYMBOL_ONLY_BELOW;
   const toolsIconOnly = toolbarWidth !== null && toolbarWidth < TOOL_LABELS_BELOW;
   const toolsAsOverflow = toolbarWidth !== null && toolbarWidth < TOOLS_OVERFLOW_BELOW;
   const statusNoSession = toolbarWidth !== null && toolbarWidth < STATUS_SESSION_BELOW;
@@ -1119,11 +1125,13 @@ function ChartPanel(props: ChartPanelProps = {}) {
             aria-label="Symbol"
             placeholder="Symbol"
             spellCheck={false}
-            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-body placeholder:text-charcoal-500 focus-visible:border-charcoal-500 h-7 w-[8.5rem] shrink-0 border px-2 font-mono uppercase outline-none" // tokens-ok: w-[8.5rem] fixed symbol width fits "SAKSOFT.NS" (R9 §3)
+            className={`border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-body placeholder:text-charcoal-500 focus-visible:border-charcoal-500 h-7 shrink-0 border px-2 font-mono uppercase outline-none ${symbolOnly ? "w-[6.5rem]" : "w-[8.5rem]"}`} // tokens-ok: fixed symbol widths fit "SAKSOFT.NS" / "RELIANCE" (R9 §3)
           />
-          <Button type="submit" size="sm" variant="outline">
-            Load
-          </Button>
+          {symbolOnly ? null : (
+            <Button type="submit" size="sm" variant="outline">
+              Load
+            </Button>
+          )}
         </form>
 
         {/* Timeframe control — the eight intervals stay load-bearing. Wide:

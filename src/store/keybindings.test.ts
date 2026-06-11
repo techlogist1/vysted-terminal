@@ -34,7 +34,7 @@ afterEach(() => {
 describe("bindingFor", () => {
   it("returns the seeded default for a known action", () => {
     expect(useKeybindingsStore.getState().bindingFor("palette.open")).toBe("mod+k");
-    expect(useKeybindingsStore.getState().bindingFor("agent.mode.ask")).toBe("alt+1");
+    expect(useKeybindingsStore.getState().bindingFor("agent.mode.agent")).toBe("alt+1");
     expect(useKeybindingsStore.getState().bindingFor("changes.acceptAll")).toBe("mod+enter");
   });
 
@@ -73,8 +73,8 @@ describe("setOverrides", () => {
   it("replaces the whole overrides map and normalises entries", () => {
     useKeybindingsStore
       .getState()
-      .setOverrides({ "agent.mode.ask": "Mod+P", "platform.save-workspace": "" });
-    expect(useKeybindingsStore.getState().bindingFor("agent.mode.ask")).toBe("mod+p");
+      .setOverrides({ "agent.mode.agent": "Mod+P", "platform.save-workspace": "" });
+    expect(useKeybindingsStore.getState().bindingFor("agent.mode.agent")).toBe("mod+p");
     // Empty string is dropped, so platform.save-workspace falls back to default.
     expect(useKeybindingsStore.getState().bindingFor("platform.save-workspace")).toBe("mod+s");
   });
@@ -83,12 +83,12 @@ describe("setOverrides", () => {
 describe("conflicts", () => {
   it("detects two actions bound to the same combo", () => {
     // Default keymap intentionally has no shell-action collisions; introduce one.
-    useKeybindingsStore.getState().setBinding("agent.mode.ask", "mod+k");
+    useKeybindingsStore.getState().setBinding("agent.mode.agent", "mod+k");
     const conflicts = useKeybindingsStore.getState().conflicts();
     const collision = conflicts.find((c) => c.keys === "mod+k");
     expect(collision).toBeDefined();
     expect(collision?.actionIds).toContain("palette.open");
-    expect(collision?.actionIds).toContain("agent.mode.ask");
+    expect(collision?.actionIds).toContain("agent.mode.agent");
   });
 
   it("reports no spurious conflicts on the default keymap shell actions", () => {

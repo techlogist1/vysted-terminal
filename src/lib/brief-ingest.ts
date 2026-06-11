@@ -49,6 +49,15 @@ export function normalizeBriefDepth(rawDepth: unknown, rawMode?: unknown): Brief
   if (d === "quick" || d === "deep" || d === "heavy") {
     return d as BriefDepth;
   }
+  // R7 surface naming maps onto the brief-contract tiers (normal/deep/ultra →
+  // quick/deep/heavy). Without this, a Tier B ULTRA brief (depth="ultra")
+  // displayed as the DEEP tier (adversarial-sweep finding, R9).
+  if (d === "ultra") {
+    return "heavy";
+  }
+  if (d === "normal" || d === "fast") {
+    return "quick";
+  }
   const m = String(rawMode ?? "")
     .trim()
     .toLowerCase();

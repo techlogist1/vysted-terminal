@@ -62,28 +62,19 @@ const SHELL_DEFAULTS: Record<string, KeybindingDef> = {
     description: "Open the fuzzy command palette.",
     category: "palette",
   },
-  "agent.mode.ask": {
+  // The collapsed two-mode surface (R9): Agent infers read/edit intent from
+  // the prompt; Delegate runs durably. The legacy four-mode rows (Ask/Edit/
+  // Build on alt+1-4) described bindings the shipped handler no longer has.
+  "agent.mode.agent": {
     keys: "alt+1",
-    label: "Agent: Ask",
-    description: "Switch to read-only Ask mode.",
-    category: "agent",
-  },
-  "agent.mode.edit": {
-    keys: "alt+2",
-    label: "Agent: Edit panel",
-    description: "Switch to single-panel Edit mode.",
-    category: "agent",
-  },
-  "agent.mode.build": {
-    keys: "alt+3",
-    label: "Agent: Build",
-    description: "Switch to multi-panel Build mode.",
+    label: "Agent mode",
+    description: "Interactive agent for this cockpit.",
     category: "agent",
   },
   "agent.mode.delegate": {
-    keys: "alt+4",
-    label: "Agent: Delegate",
-    description: "Switch to autonomous Delegate mode.",
+    keys: "alt+2",
+    label: "Delegate mode",
+    description: "Budget-capped autonomous run.",
     category: "agent",
   },
   "agent.toggle": {

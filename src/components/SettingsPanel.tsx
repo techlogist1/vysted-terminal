@@ -448,7 +448,11 @@ function ProvidersSection() {
                 // right-aligned) — columns stay aligned, nothing overlaps.
                 className="flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3"
               >
-                <div className="flex min-w-0 flex-col">
+                {/* basis-40 makes the wrap REAL on a compressed sliver: with
+                    min-w-0 alone the name shrank to nothing while the fixed
+                    control cluster overflowed the card (adversarial sweep) —
+                    a declared base width forces the cluster onto line two. */}
+                <div className="flex min-w-0 grow basis-40 flex-col">
                   <span className="text-charcoal-100 text-body truncate">{provider.label}</span>
                   <span className="text-charcoal-400 text-caption mt-1 flex min-w-0 items-center gap-2">
                     {!needsKey ? (

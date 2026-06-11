@@ -569,7 +569,11 @@ function MetricsBlock({ model }: { model: MetricsModel }) {
       )}
       {/* Metric grid — gap-px over the border draws hairline dividers between cells. */}
       {model.items.length > 0 ? (
-        <div className="bg-charcoal-700 grid grid-cols-2 gap-px sm:grid-cols-4">
+        // Columns follow the PANEL (container query), never the viewport — a narrow
+        // rail drops to 2 columns so numeric values render WHOLE (overflow law: a
+        // number that cannot fit drops a column, never ellipsizes into "4.5…").
+        // BriefPanel's root declares @container.
+        <div className="bg-charcoal-700 grid grid-cols-2 gap-px @[30rem]:grid-cols-3 @[42rem]:grid-cols-4">
           {model.items.map((item) => (
             <div
               key={item.label}

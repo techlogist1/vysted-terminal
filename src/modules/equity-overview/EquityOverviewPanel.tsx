@@ -751,7 +751,7 @@ export function EquityOverviewPanel() {
   }, [fundamentals, instrumentCurrency]);
 
   return (
-    <div className="bg-charcoal-900 flex h-full w-full flex-col">
+    <div className="bg-charcoal-900 @container flex h-full w-full flex-col">
       <form
         onSubmit={handleSubmit}
         className="border-charcoal-700 relative flex items-center gap-2 border-b p-3"
@@ -984,7 +984,7 @@ export function EquityOverviewPanel() {
                 // Metric strip on the table rhythm — micro label over a tabular
                 // value per cell, never an inline key:value run-on.
                 <div
-                  className="divide-charcoal-800 grid grid-cols-2 md:grid-cols-4 md:divide-x"
+                  className="divide-charcoal-800 grid grid-cols-2 gap-px @[40rem]:grid-cols-4 @[40rem]:divide-x"
                   data-testid="ratings-strip"
                 >
                   <RatingMetric label="Consensus" value={ratings.consensus ?? null} />

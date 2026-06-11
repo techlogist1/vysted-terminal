@@ -158,6 +158,17 @@ function firstSentences(text: string, max = 2, maxChars = 220): string {
         .slice(0, maxChars)
         .replace(/\s+\S*$/, "")
         .trim() + "…";
+    // The cut can leave an unbalanced markdown pair ("**Larsen &…"), which
+    // renders as raw asterisks (adversarial-sweep finding). Strip any marker
+    // whose closer fell past the cut — the snippet is a glance, not markup.
+    const bolds = (out.match(/\*\*/g) ?? []).length;
+    if (bolds % 2 === 1) {
+      out = out.replace(/\*\*(?!.*\*\*)/, "");
+    }
+    const ticks = (out.match(/`/g) ?? []).length;
+    if (ticks % 2 === 1) {
+      out = out.replace(/`(?!.*`)/, "");
+    }
   }
   return out;
 }
