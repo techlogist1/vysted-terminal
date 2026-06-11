@@ -115,6 +115,15 @@ _MAX_CANDIDATES = 6
 # unrelated company (REFR — "Research Frontiers Inc"). Only stripped while more
 # than one token remains, so a company genuinely named with one of these still
 # resolves on its remaining tokens.
+#
+# Known corner (un-briefed heuristic, R10 review): a company whose name BEGINS
+# with one of these verbs resolves only on its remaining tokens — "Lookup
+# Technologies" binds the substring hit on the leftover ("Technologies" → PLTR
+# at 0.8), and "Research Frontiers Inc" reaches band 1/0.8 instead of
+# name-exact. The pre-R10 resolver also misbound this class (via whole-string
+# fuzzy), so this is not a regression — the trade buys "research Reliance"
+# binding RELIANCE outright (band 5, exceeding the Phase-0 pin). A future fix
+# is to score the unstripped query too and keep the higher band.
 _LEAD_VERBS = frozenset(
     {"research", "analyze", "analyse", "investigate", "explore", "study", "review", "lookup"}
 )
@@ -503,7 +512,12 @@ def resolve(query: str, region: str) -> Resolution:
     """Resolve ``query`` to an instrument + ranked candidates, locale-aware.
 
     ``region`` is REQUIRED — callers pass ``config.get_region()`` (the old
-    silent ``US`` default mis-ranked every IN session). Stages: exact ticker →
+    silent ``US`` default mis-ranked every IN session). Brief §2 spelled the
+    signature ``resolve(query, *, region)``; ``region`` stays positional-or-
+    keyword (no bare ``*``) because the unowned ``routers/resolve.py`` calls
+    ``asyncio.to_thread(symbol_resolver.resolve, query, active_region)``
+    positionally — required-ness is the load-bearing half of the spec, and it
+    holds. Stages: exact ticker →
     marquee aliases (IN/GLOBAL) → banded name match → live keyless fallback.
     Ranking is ``(band, locale_match, raw_score)``; reported confidence is the
     raw score — acceptance is the resolution policy's call, not this module's.

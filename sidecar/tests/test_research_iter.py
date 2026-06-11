@@ -422,3 +422,33 @@ def test_iter_synthesis_prompt_carries_metric_facts() -> None:
     assert brief.structured["derived"]["provider"] == "derived"
     assert llm.synthesis_prompts, "synthesis never ran"
     assert any("METRIC FACTS" in p and "Below 52-week high" in p for p in llm.synthesis_prompts)
+
+
+def test_run_loop_deep_fallback_is_never_silent(monkeypatch):
+    """R10 review (E2 — stamp what RAN): if ``run_iter_research`` ever raises,
+    ``_run_loop`` drops to the single-pass ``run_deep_research`` fallback. The
+    closed EXECUTION_LOOPS enum has no label for that path, so the degradation
+    must ride the brief's never-silent ``note`` channel."""
+    from services.agent_tools import deep_research as deep_research_tool
+    from services.research import deep
+    from services.research.depth import profile_for
+
+    async def boom(query: str, **kwargs: Any) -> ResearchBrief:
+        raise RuntimeError("iter exploded")
+
+    async def fake_deep(query: str, **kwargs: Any) -> ResearchBrief:
+        return ResearchBrief(query=query, symbol="", mode="deep", markdown="fallback brief")
+
+    monkeypatch.setattr(iter_research, "run_iter_research", boom)
+    monkeypatch.setattr(deep, "run_deep_research", fake_deep)
+
+    async def llm(messages: list[dict[str, Any]]) -> str:
+        return "unused"
+
+    brief = _run(
+        deep_research_tool._run_loop(
+            profile=profile_for("deep"), query="q", llm_call=llm, rounds=1, wall=120
+        )
+    )
+    assert isinstance(brief, ResearchBrief)
+    assert brief.note is not None and "fallback" in brief.note

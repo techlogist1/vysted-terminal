@@ -280,12 +280,20 @@ async def _run_loop(
         return brief
     try:
         return await iter_research.run_iter_research(query, **common)
-    except Exception:  # pragma: no cover — iter never raises; fall back regardless
+    except Exception:  # iter never raises by design; fall back regardless
         # The NAMED single-pass fallback (S-9): not a parallel user-reachable
         # loop, only the catch-all so the deep path can never error out. It takes
         # the shared researcher/coverage knobs but has no working report to cap.
         common.pop("report_char_cap", None)
-        return await deep.run_deep_research(query, **common)
+        brief = await deep.run_deep_research(query, **common)
+        # R10 review (E2 — stamp what RAN): the closed EXECUTION_LOOPS enum
+        # ("fast"/"iter"/"heavy"/"research-model", frozen contract) has no
+        # label for this fallback, so the caller's "iter" stamp would be a
+        # silent lie on its own — the degradation rides the brief's
+        # never-silent note channel instead.
+        if not isinstance(brief, dict) and brief.note is None:
+            brief.note = "iter loop raised; the single-pass deep fallback ran"
+        return brief
 
 
 def _engine_label(provider: str, model: str, profile: DepthProfile) -> str:
