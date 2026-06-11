@@ -59,15 +59,24 @@ const RESULT_SAMPLE: ScreenerResult = {
   duration_ms: 320.0,
 };
 
+/** Fallback mock: /stream returns 404 (older sidecar), /screener/run returns the result.
+ *  Matches the streaming-first architecture added in R10. */
+function mockFetchFallback(result: ScreenerResult) {
+  return vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+    if (String(url).includes("/stream")) {
+      return new Response(null, { status: 404 });
+    }
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  });
+}
+
 beforeEach(() => {
   useScreenerStore.getState().__resetForTests();
   vi.mocked(sidecarGet).mockResolvedValue(UNIVERSE_SAMPLE);
-  vi.spyOn(globalThis, "fetch").mockResolvedValue(
-    new Response(JSON.stringify(RESULT_SAMPLE), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    }),
-  );
+  mockFetchFallback(RESULT_SAMPLE);
 });
 
 afterEach(() => {

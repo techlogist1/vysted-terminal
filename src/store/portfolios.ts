@@ -205,3 +205,43 @@ export const usePortfoliosStore = create<PortfoliosState>((set) => ({
       return { portfolios: cleaned, activeId: valid };
     }),
 }));
+
+// ---------------------------------------------------------------------------
+// Typed client for the host-action apply path (R10 §4 / E6).
+// Team FRONTEND-BRIEF's portfolio_add/update/delete_position apply cases import
+// from here. Holdings are stored locally (workspace blob) — no sidecar CRUD.
+// ---------------------------------------------------------------------------
+
+/** Add a position to the active portfolio. Returns the generated holding id. */
+export function addPosition(input: HoldingInput): string {
+  const { activeId, addHolding, portfolios } = usePortfoliosStore.getState();
+  addHolding(activeId, input);
+  // The normalizeHolding path assigns the id — re-read from state.
+  const portfolio = usePortfoliosStore.getState().portfolios.find((p) => p.id === activeId);
+  const lastHolding = portfolio?.holdings.at(-1);
+  // If the symbol exists in state return its id; fall back to a fresh id guard.
+  const inputSymbol = input.symbol.trim().toUpperCase();
+  const match = (portfolio ?? portfolios.find((p) => p.id === activeId))?.holdings
+    .filter((h) => h.symbol === inputSymbol)
+    .at(-1);
+  return match?.id ?? lastHolding?.id ?? genId("h");
+}
+
+/** Update an existing holding in the active portfolio by holding id. */
+export function updatePosition(holdingId: string, input: HoldingInput): void {
+  const store = usePortfoliosStore.getState();
+  store.updateHolding(store.activeId, holdingId, input);
+}
+
+/** Remove a holding from the active portfolio by holding id. */
+export function deletePosition(holdingId: string): void {
+  const store = usePortfoliosStore.getState();
+  store.removeHolding(store.activeId, holdingId);
+}
+
+/** No-op refresh — holdings are local-state; the panel subscribes reactively.
+ *  Exported to satisfy the host-action apply path's expected typed surface. */
+export function refresh(): void {
+  // Local-state portfolio — React subscribers update synchronously on any store
+  // mutation. No async fetch needed.
+}

@@ -23,7 +23,12 @@ interface NotesState {
    * space can scope it and it persists with the workspace. */
   focusSymbol: string;
   setGeneral: (text: string) => void;
+  /** Append text to the general notes with a blank-line separator (R10 write_note
+   * apply path — Team FRONTEND-BRIEF calls this). */
+  appendGeneral: (text: string) => void;
   setSymbolNote: (symbol: string, text: string) => void;
+  /** Append text to a symbol's note with a blank-line separator (R10). */
+  appendSymbolNote: (symbol: string, text: string) => void;
   setFocusSymbol: (symbol: string) => void;
   noteFor: (scope: string) => string;
   /** Scopes (uppercased tickers) that currently hold a non-empty note. */
@@ -32,11 +37,22 @@ interface NotesState {
   fromBundle: (bundle: NotesBundle | null) => void;
 }
 
+/** Join an existing note body and new text with a double newline separator.
+ *  Avoids leading/trailing blank lines when either part is empty. */
+function joinNote(existing: string, text: string): string {
+  const trimmed = existing.trim();
+  const addendum = text.trim();
+  if (!trimmed) return addendum;
+  if (!addendum) return trimmed;
+  return `${trimmed}\n\n${addendum}`;
+}
+
 export const useNotesStore = create<NotesState>((set, get) => ({
   general: "",
   bySymbol: {},
   focusSymbol: "",
   setGeneral: (text) => set({ general: text }),
+  appendGeneral: (text) => set((s) => ({ general: joinNote(s.general, text) })),
   setSymbolNote: (symbol, text) => {
     const key = symbol.trim().toUpperCase();
     if (!key) {
@@ -44,6 +60,16 @@ export const useNotesStore = create<NotesState>((set, get) => ({
       return;
     }
     set((s) => ({ bySymbol: { ...s.bySymbol, [key]: text } }));
+  },
+  appendSymbolNote: (symbol, text) => {
+    const key = symbol.trim().toUpperCase();
+    if (!key) {
+      set((s) => ({ general: joinNote(s.general, text) }));
+      return;
+    }
+    set((s) => ({
+      bySymbol: { ...s.bySymbol, [key]: joinNote(s.bySymbol[key] ?? "", text) },
+    }));
   },
   setFocusSymbol: (symbol) => set({ focusSymbol: symbol.trim().toUpperCase() }),
   noteFor: (scope) => {

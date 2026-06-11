@@ -22,12 +22,13 @@ screener capability schemas), src/ (frontend teams), research files.
 
 `load_india_universe(universe_id) -> ScreenerUniverse` from the bundled resolver
 masters via importlib.resources (pattern: `_load_universe_snapshot`):
+
 - nse-all: every NSE master row → `SYMBOL.NS` (~2,675).
 - bse-all: BSE master rows with STATUS=="Active" → `SYMBOL.BO` (group retained).
 - india-all: union, NSE listing preferred (skip BSE rows whose SYMBOL is in the NSE
   master).
-`india_symbol_meta(symbol)` → {exchange, scrip_code, isin, name, group}.
-`resolve_universe` in screener.py gains the three branches.
+  `india_symbol_meta(symbol)` → {exchange, scrip_code, isin, name, group}.
+  `resolve_universe` in screener.py gains the three branches.
 
 ## 2. india_sector_map.json + regenerate script
 
@@ -47,10 +48,10 @@ warm crawler backfills sector for the rest at runtime (store sector_source).
 
 ## 3. fundamentals_store.py — the columnar cache
 
-SQLite at `config.get_data_dir()/fundamentals_cache.db` (precedent portfolio_db.py),
+SQLite at `config.get_data_dir()/fundamentals_cache.db` (precedent portfolio*db.py),
 sync sqlite3 under asyncio.Lock. Schema per D40 (symbol PK in quote form, identity
 cols, sector/industry/sector_source, the full numeric vocabulary incl.
-shares_outstanding/roe/margins/debt_to_equity/growth/52wk, quote_* columns,
+shares_outstanding/roe/margins/debt_to_equity/growth/52wk, quote*\* columns,
 per-tier stamps quote_updated_at/v7_updated_at/info_updated_at, provider; indexes on
 sector, market_cap DESC, info_updated_at). API: `seed_universe(rows)`,
 `upsert_v7(symbol, fundamentals, quote)`, `upsert_info(symbol, fundamentals)`,

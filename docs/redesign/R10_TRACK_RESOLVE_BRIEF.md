@@ -30,6 +30,7 @@ REJECT = 0.50   # < REJECT  -> unresolved
     reason: str
 def decide(resolution: Resolution) -> ResolutionDecision
 ```
+
 Delete `target.py`'s `CONFIDENCE_FLOOR`; `symbol_resolver.DISAMBIGUATION_THRESHOLD`
 re-exports from here. A grep-style test pins that no second threshold constant exists.
 
@@ -83,9 +84,10 @@ no markdown, no structured, no web spend. The `resolve_symbol` tool reply gains
 
 In `run_research_model_brief`, BEFORE the OpenRouter call:
 `resolve_target(invoke_tool, text, region=config.get_region())`.
+
 - disambiguation → return the needs_disambiguation dict (zero HTTP spend).
 - bound → prepend pin line `"Research target: {name} ({exchange}: {symbol}). Every
-  claim must concern this exact listed entity."` to the prompt; after the call run
+claim must concern this exact listed entity."` to the prompt; after the call run
   `fast.snapshot_structured(invoke_tool, target.symbol)`; brief gets
   `symbol=target.symbol`, `structured={"resolved": resolved_payload(target), **snap}`.
 - None → web-only with NO_INSTRUMENT_NOTE (today's behavior).

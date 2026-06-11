@@ -22,4 +22,41 @@ describe("notes store", () => {
     useNotesStore.getState().fromBundle(bundle);
     expect(useNotesStore.getState().noteFor("MSFT")).toBe("azure growth");
   });
+
+  describe("appendGeneral (R10 write_note seam)", () => {
+    it("appends to an empty note without leading blank lines", () => {
+      useNotesStore.getState().appendGeneral("first paragraph");
+      expect(useNotesStore.getState().general).toBe("first paragraph");
+    });
+
+    it("appends with a double-newline separator when body exists", () => {
+      useNotesStore.getState().setGeneral("existing content");
+      useNotesStore.getState().appendGeneral("new paragraph");
+      expect(useNotesStore.getState().general).toBe("existing content\n\nnew paragraph");
+    });
+
+    it("appending empty text is a no-op (trims to existing)", () => {
+      useNotesStore.getState().setGeneral("body");
+      useNotesStore.getState().appendGeneral("   ");
+      expect(useNotesStore.getState().general).toBe("body");
+    });
+  });
+
+  describe("appendSymbolNote (R10 write_note seam)", () => {
+    it("appends to a fresh symbol note", () => {
+      useNotesStore.getState().appendSymbolNote("NVDA", "gpu dominance");
+      expect(useNotesStore.getState().noteFor("NVDA")).toBe("gpu dominance");
+    });
+
+    it("appends with a separator to an existing symbol note", () => {
+      useNotesStore.getState().setSymbolNote("NVDA", "first note");
+      useNotesStore.getState().appendSymbolNote("nvda", "second note");
+      expect(useNotesStore.getState().noteFor("NVDA")).toBe("first note\n\nsecond note");
+    });
+
+    it("empty symbol falls back to the general bucket", () => {
+      useNotesStore.getState().appendSymbolNote("", "general content");
+      expect(useNotesStore.getState().general).toBe("general content");
+    });
+  });
 });
