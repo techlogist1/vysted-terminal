@@ -17,12 +17,16 @@ knob, and "go deeper" escalates the SAME run in place. R7 names the depths
   angles with stricter coverage (>=2 independent web domains) plus the numeric
   cross-check verification round.
 
-Depth is per-query and ORTHOGONAL to the search tier (t1/t2/t3 — the tier rides
-the request ContextVars; see :mod:`config`). ``deep``/``ultra`` are served by
-:func:`services.agent_tools.deep_research.run_deep_brief` (the internal DEEP
-engine — no longer a separate tool). The optional ``backend`` (``native`` |
-``perplexity`` | ``sonar``) is internal too; the paid lanes are opt-in-per-run
-and NEVER auto-selected.
+Depth is per-query and ORTHOGONAL to the research tier (R9: ``tier_a`` /
+``tier_b`` ride the request ContextVars; see :mod:`config`). The tier routes at
+THIS tool boundary: ``tier_b`` sends EVERY depth stop to the hosted
+research-model lane (:func:`services.agent_tools.deep_research.
+run_research_model_brief` — per-stop model dispatch via OpenRouter, the user's
+setting outranking any model-passed backend arg); ``tier_a`` serves
+``deep``/``ultra`` via :func:`services.agent_tools.deep_research.run_deep_brief`
+(the internal DEEP engine — no longer a separate tool). The optional
+``backend`` (``native`` | ``perplexity`` | ``sonar``) is internal too; the paid
+lanes are opt-in-per-run and NEVER auto-selected.
 
 The research/deep-research service is imported lazily inside the call so the module
 imports cleanly even before the service lands, and so the test suite can monkeypatch
@@ -64,6 +68,21 @@ async def _research(args: dict[str, Any]) -> dict[str, Any]:
     _model_depth = depth_mod.normalize_depth(args.get("depth"))
     _slider_depth = depth_mod.normalize_depth(app_config.get_request_research_depth())
     depth = _model_depth if _RANK[_model_depth] >= _RANK[_slider_depth] else _slider_depth
+
+    # R9 (Track A) tier routing at the tool boundary: on tier_b the hosted
+    # research model OWNS research at ALL depth stops regardless of the chat
+    # model — including NORMAL (one search-grounded call) — and regardless of
+    # any model-passed ``backend`` arg (the user's tier setting outranks the
+    # model's tool-arg whims; the depth FLOOR above still applies). tier_a
+    # keeps the built-in lanes below. Without a key the lane stops honestly
+    # naming the unlock — never a silent demotion (the key boundary, D25).
+    if app_config.get_effective_research_tier() == app_config.SEARCH_TIER_B:
+        from services.agent_tools.deep_research import run_research_model_brief
+
+        # NOTE: no model passthrough from the LLM's tool args — the user's
+        # per-stop Settings map is authoritative (never a surprise model on the
+        # user's key); only the explicit api_key arg (internal callers) rides.
+        return await run_research_model_brief(query, depth=depth, api_key=args.get("api_key"))
 
     if depth in (depth_mod.DEPTH_DEEP, depth_mod.DEPTH_ULTRA):
         from services.agent_tools.deep_research import run_deep_brief

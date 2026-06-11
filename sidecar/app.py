@@ -206,23 +206,29 @@ class _RegionMiddleware:
     """Pure-ASGI middleware threading per-request locale + search config into ContextVars.
 
     The frontend sends the active region as ``X-Vysted-Region`` and the web-search
-    tier + its BYOK credential as ``X-Vysted-Search-Tier`` / ``X-Vysted-Exa-Key`` /
-    ``X-Vysted-Searxng-Url`` on every sidecar request (the same per-request transport
-    BYOK secrets use). This middleware reads them into per-request ContextVars
-    (:func:`config.get_region`, :func:`config.get_search_tier`, …) so the provider
-    registry, news/screener/macro, and the agent search tools shape data + ground
-    web context for the user's locale + chosen tier (FR-060/080). Pure ASGI (not
+    preference as ``X-Vysted-Research-Tier`` / ``X-Vysted-Searxng-Url`` on every
+    sidecar request (the same per-request transport BYOK secrets use). This
+    middleware reads them into per-request ContextVars (:func:`config.get_region`,
+    :func:`config.get_effective_research_tier`, …) so the provider registry,
+    news/screener/macro, and the agent search tools shape data + ground web
+    context for the user's locale + chosen tier (FR-060/080). Pure ASGI (not
     ``BaseHTTPMiddleware``) so the ContextVar set runs in the same task as the
-    endpoint and is reliably visible to it. Absent the headers, region defaults to
-    ``US`` and the tier to ``native`` — every existing caller behaves as before. The
-    Exa key is a secret: held in process memory for the request only, reset on exit.
+    endpoint and is reliably visible to it. Absent the headers, region defaults
+    to ``US`` and the tier to ``tier_a`` — never a surprise paid route.
 
-    R7 (Track R, Component 3) adds the research search-tier selection on the same
-    transport: ``X-Vysted-Research-Tier`` (``t1_local`` / ``t2_searxng`` /
-    ``t3_hosted``; absent → no explicit selection, callers floor to t1),
-    ``X-Vysted-Openrouter-Key`` (the t3 BYOK secret — same never-persisted,
-    never-logged handling as the Exa key), and ``X-Vysted-Search-Engine`` (the
-    hosted engine choice; Firecrawl default applied downstream).
+    R9 (Track A) two-tier contract on this transport:
+
+    - ``X-Vysted-Research-Tier`` — ``tier_a`` (Unlimited Local, the default) or
+      ``tier_b`` (hosted research model); legacy R7/R8 spellings normalize in
+      :func:`config.normalize_research_search_tier`.
+    - ``X-Vysted-Openrouter-Key`` — the tier_b BYOK secret: process-memory for
+      the request only, reset on exit, never logged or persisted.
+    - ``X-Vysted-Research-Models`` — the tier_b per-stop model map
+      (``normal=…,deep=…,ultra=…``), parsed defensively in
+      :func:`config.parse_research_models`.
+    - ``X-Vysted-Search-Tier`` — the LEGACY pre-R8 header, still parsed as
+      MIGRATION INPUT only (``byok-exa`` → tier_b-with-key else tier_a; the Exa
+      key header is dead and no longer read).
     """
 
     def __init__(self, app: Any) -> None:
@@ -234,37 +240,32 @@ class _RegionMiddleware:
             return
         region: str | None = None
         tier: str | None = None
-        exa_key: str | None = None
         searxng_url: str | None = None
         research_tier: str | None = None
         openrouter_key: str | None = None
-        search_engine: str | None = None
+        research_models: str | None = None
         for key, value in scope.get("headers", []):
             if key == b"x-vysted-region":
                 region = value.decode("latin-1")
             elif key == b"x-vysted-search-tier":
                 tier = value.decode("latin-1")
-            elif key == b"x-vysted-exa-key":
-                exa_key = value.decode("latin-1")
             elif key == b"x-vysted-searxng-url":
                 searxng_url = value.decode("latin-1")
             elif key == b"x-vysted-research-tier":
                 research_tier = value.decode("latin-1")
             elif key == b"x-vysted-openrouter-key":
                 openrouter_key = value.decode("latin-1")
-            elif key == b"x-vysted-search-engine":
-                search_engine = value.decode("latin-1")
+            elif key == b"x-vysted-research-models":
+                research_models = value.decode("latin-1")
         region_token = config.set_request_region(region)
-        search_tokens = config.set_request_search(
-            tier=tier, exa_key=exa_key, searxng_url=searxng_url
-        )
+        search_tokens = config.set_request_search(tier=tier, searxng_url=searxng_url)
         research_tier_token = config.set_request_research_search_tier(research_tier)
         openrouter_token = config.set_request_openrouter_search_key(openrouter_key)
-        engine_token = config.set_request_hosted_search_engine(search_engine)
+        models_token = config.set_request_research_models(research_models)
         try:
             await self.app(scope, receive, send)
         finally:
-            config.reset_request_hosted_search_engine(engine_token)
+            config.reset_request_research_models(models_token)
             config.reset_request_openrouter_search_key(openrouter_token)
             config.reset_request_research_search_tier(research_tier_token)
             config.reset_request_search(search_tokens)
