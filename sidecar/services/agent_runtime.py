@@ -719,8 +719,10 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
         "web_reason": web_reason,
         # R9: the engine's honest backend id rides the synthetic publish so the
         # brief panel can render the keyless-fallback nudge / name the Tier B
-        # research model (gates 2-4 evidence). Verbatim passthrough.
-        "backend": payload.get("backend"),
+        # research model (gates 2-4 evidence). A FAST bundle has no engine-level
+        # id — lift the web round's retrieval id (the web_search tool stamps
+        # keyless-fallback there) so a NORMAL run nudges honestly too.
+        "backend": payload.get("backend") or (web.get("backend") if web else None),
     }
     return LLMToolUseEvent(
         tool_call_id=f"{tool_call.tool_call_id}__autobrief",

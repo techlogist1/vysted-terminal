@@ -154,3 +154,23 @@ def test_auto_publish_forwards_the_backend_id() -> None:
     event2 = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(bundle))
     assert event2 is not None
     assert event2.input["backend"] == "research-model:perplexity/sonar"
+
+
+def test_auto_publish_lifts_fast_web_round_backend() -> None:
+    """A NORMAL (FAST) bundle carries no engine-level backend — the web round's
+    retrieval id (where the web_search tool stamps keyless-fallback) is lifted
+    so the nudge fires on quick research too."""
+    fast_bundle = {
+        "ok": True,
+        "query": "TCS",
+        "symbol": "TCS",
+        "structured": {"price": {"ok": True}},
+        "web": {
+            "available": True,
+            "backend": "keyless-fallback",
+            "citations": [{"url": "https://example.com/a", "title": "t"}],
+        },
+    }
+    event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(fast_bundle))
+    assert event is not None
+    assert event.input["backend"] == "keyless-fallback"
