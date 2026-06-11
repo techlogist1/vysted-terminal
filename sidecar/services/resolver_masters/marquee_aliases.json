@@ -1,0 +1,25 @@
+{
+  "comment": "R10 marquee alias table (E1). A bare family name either maps to its canonical primary (alternatives ride as candidates) or forces a curated disambiguation — marquee families never bind silently. Every symbol is verified against the NSE master at test time. TMCV/TMPV replace the delisted TATAMOTORS (2025 demerger).",
+  "aliases": {
+    "reliance": {
+      "primary": "RELIANCE",
+      "alternatives": ["RPOWER", "RELINFRA"]
+    },
+    "mahindra": {
+      "primary": "M&M",
+      "alternatives": ["TECHM", "M&MFIN"]
+    },
+    "tata": {
+      "candidates": ["TCS", "TMCV", "TATASTEEL", "TATAPOWER", "TATACONSUM", "TITAN"]
+    },
+    "bajaj": {
+      "candidates": ["BAJFINANCE", "BAJAJFINSV", "BAJAJ-AUTO", "BAJAJHLDNG"]
+    },
+    "adani": {
+      "candidates": ["ADANIENT", "ADANIPORTS", "ADANIGREEN", "ADANIPOWER", "ADANIENSOL"]
+    },
+    "birla": {
+      "candidates": ["GRASIM", "ULTRACEMCO", "ABCAPITAL", "ABFRL", "HINDALCO"]
+    }
+  }
+}

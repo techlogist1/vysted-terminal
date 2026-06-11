@@ -34,7 +34,9 @@ export const REGIONS: readonly RegionConfig[] = [
   { id: "GLOBAL", label: "Global", locale: "en-US", currency: "USD" },
 ];
 
-export const DEFAULT_REGION: Region = "US";
+// R10 (E1): India-first default, mirroring the sidecar's `config._DEFAULT_REGION`
+// — flip both in the same commit. User Settings still override.
+export const DEFAULT_REGION: Region = "IN";
 
 /** Type guard for restoring a persisted region (older/garbled blobs → default). */
 export function isRegion(value: unknown): value is Region {

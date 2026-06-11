@@ -50,14 +50,14 @@ def test_resolve_goldbees_in_locale(client: TestClient) -> None:
     assert len(body["candidates"]) >= 1
 
 
-def test_resolve_aapl_defaults_to_us(client: TestClient) -> None:
-    # No region param + no header → request region defaults to US; AAPL resolves
-    # to the US listing.
+def test_resolve_aapl_defaults_to_in_region(client: TestClient) -> None:
+    # R10 (E1): the default request region is now IN (India-first product);
+    # AAPL still resolves to its US listing — an exact ticker is decisive.
     resp = client.get("/resolve", params={"q": "AAPL"})
     assert resp.status_code == 200
     body = resp.json()
     assert body["ok"] is True
-    assert body["region"] == "US"
+    assert body["region"] == "IN"
     resolved = body["resolved"]
     assert resolved["symbol"] == "AAPL"
     assert resolved["exchange"] == "US"
@@ -114,11 +114,12 @@ def test_resolve_garbage_is_ok_false_not_500(
     assert body["candidates"] == []
 
 
-def test_resolve_normalizes_bad_region_to_us(client: TestClient) -> None:
-    # A garbage region override must never break the request — it normalizes.
+def test_resolve_normalizes_bad_region_to_default(client: TestClient) -> None:
+    # A garbage region override must never break the request — it normalizes
+    # to the R10 IN default (the product is India-first).
     resp = client.get("/resolve", params={"q": "AAPL", "region": "nonsense"})
     assert resp.status_code == 200
-    assert resp.json()["region"] == "US"
+    assert resp.json()["region"] == "IN"
 
 
 def test_resolve_is_read_only_get(client: TestClient) -> None:

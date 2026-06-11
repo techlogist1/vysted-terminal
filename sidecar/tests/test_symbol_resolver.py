@@ -140,12 +140,43 @@ def test_live_lookup_bo_suffix_maps_to_bse_exchange(monkeypatch) -> None:  # noq
     import yfinance as yf
 
     monkeypatch.setattr(yf, "Search", _FakeSearch)
-    inst = symbol_resolver._live_lookup("Something", "IN")
-    assert inst is not None
+    # R10: the live lookup returns ALL hits as candidates (a list).
+    rows = symbol_resolver._live_lookup("Something", "IN")
+    assert len(rows) == 1
+    inst = rows[0]
     assert inst.exchange == "BSE"
     assert inst.yahoo_symbol == "SOMETHING.BO"
     assert inst.symbol == "SOMETHING"
     assert inst.score == 0.6
+
+
+def test_live_lookup_collects_all_quotes_india_first_and_never_binds(monkeypatch) -> None:  # noqa: ANN001
+    """R10 (E1): the live fallback collects EVERY hit (not just the first),
+    ranks .NS/.BO first under an IN session, and every row rides 0.6 — which
+    the resolution policy maps to disambiguate, never bound."""
+
+    class _FakeSearch:
+        quotes = [
+            {"symbol": "SOMETHING", "shortname": "Something Inc", "exchange": "NMS"},
+            {"symbol": "SOMETHING.BO", "shortname": "Something Ltd"},
+            {"symbol": "SOMETHING.NS", "shortname": "Something Ltd"},
+        ]
+
+        def __init__(self, *_a: object, **_k: object) -> None: ...
+
+    import yfinance as yf
+
+    from services.resolution_policy import decide
+
+    monkeypatch.setattr(yf, "Search", _FakeSearch)
+    rows = symbol_resolver._live_lookup("Something", "IN")
+    assert [r.yahoo_symbol for r in rows] == ["SOMETHING.BO", "SOMETHING.NS", "SOMETHING"]
+    assert all(r.score == 0.6 for r in rows)
+    resolution = symbol_resolver.Resolution(query="Something", best=rows[0], candidates=rows)
+    assert decide(resolution).outcome == "disambiguate"
+    # A US session keeps the engine's own ranking.
+    us_rows = symbol_resolver._live_lookup("Something", "US")
+    assert us_rows[0].yahoo_symbol == "SOMETHING"
 
 
 def test_exchange_agrees_with_yahoo_suffix_across_full_masters() -> None:
@@ -210,6 +241,80 @@ def test_autocomplete_surfaces_bse_only_microcaps() -> None:
     assert rows[0].symbol == "ICONIKSPEV"
     assert rows[0].exchange == "BSE"
     assert rows[0].yahoo_symbol == "ICONIKSPEV.BO"
+
+
+# ---------------------------------------------------------------------------
+# R10 (E1) — band tie-break, first-token normalization, fuzzy demotion.
+# ---------------------------------------------------------------------------
+
+
+def test_first_token_normalization_lands_same_band_locale_breaks_tie() -> None:
+    """US "RELIANCE, INC." and NSE "Reliance Industries Limited" must land in
+    the SAME band for a one-word query (trailing punctuation + corporate
+    suffixes stripped) — so locale, not punctuation, breaks the tie."""
+    from services.resolution_policy import BAND_FIRST_WORD
+
+    us = symbol_resolver._name_score("reliance", "reliance, inc.", 1)
+    nse = symbol_resolver._name_score("reliance", "reliance industries limited", 1)
+    assert us == (BAND_FIRST_WORD, 0.97)
+    assert nse == (BAND_FIRST_WORD, 0.97)
+
+
+def test_band_beats_locale_cross_locale_higher_band_wins(monkeypatch) -> None:  # noqa: ANN001
+    """A cross-locale higher band ALWAYS beats a same-locale lower band: under
+    an IN session "Apple" still resolves to AAPL (US, first-word band) — never
+    an Indian fuzzy hit promoted by the old additive locale bonus."""
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", _raise_if_network)
+    r = symbol_resolver.resolve("Apple", "IN")
+    assert r.best is not None
+    assert r.best.symbol == "AAPL"
+    assert r.best.region == "US"
+    # Reported confidence is the RAW band score — no bonus, no clamp.
+    assert r.best.score == 0.97
+
+
+def test_reported_scores_are_never_inflated(monkeypatch) -> None:  # noqa: ANN001
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", _raise_if_network)
+    for query, region in (("Tata Steel", "IN"), ("Apple", "US"), ("Reliance Industries", "IN")):
+        r = symbol_resolver.resolve(query, region)
+        assert r.best is not None
+        assert all(c.score <= 1.0 for c in r.candidates), (query, region)
+
+
+def test_whole_query_fuzzy_disabled_beyond_four_words(monkeypatch) -> None:  # noqa: ANN001
+    """A >4-word query never scores via whole-string SequenceMatcher — the
+    Phase-0 "Reliance Industries Q4 FY26 results"→LNKS class. Such a query
+    resolves to nothing here (the research prefix loop handles the binding)."""
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", lambda query, region: [])
+    r = symbol_resolver.resolve("Reliance Industries Q4 FY26 results announced", "IN")
+    assert all(c.band != 0 for c in r.candidates)  # no fuzzy rows at >4 words
+
+
+def test_query_cleaning_strips_lead_verbs_and_trailing_punctuation(monkeypatch) -> None:  # noqa: ANN001
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", _raise_if_network)
+    # "research Reliance" cleans to "Reliance" — the exact NSE ticker, never a
+    # fuzzy hit on the verb (REFR, "Research Frontiers Inc" was the live bind).
+    r = symbol_resolver.resolve("research Reliance", "IN")
+    assert r.best is not None and r.best.symbol == "RELIANCE" and r.best.exchange == "NSE"
+    # Trailing punctuation never blocks an exact hit.
+    r2 = symbol_resolver.resolve("reliance,", "IN")
+    assert r2.best is not None and r2.best.symbol == "RELIANCE"
+
+
+def test_marquee_alias_two_word_generic_key(monkeypatch) -> None:  # noqa: ANN001
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", _raise_if_network)
+    r = symbol_resolver.resolve("tata stock", "IN")
+    assert r.best is not None
+    assert r.best.band == 5  # marquee
+    assert r.needs_disambiguation
+    assert [c.symbol for c in r.candidates][:2] == ["TCS", "TMCV"]
+
+
+def test_marquee_skipped_for_us_region(monkeypatch) -> None:  # noqa: ANN001
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", lambda query, region: [])
+    r = symbol_resolver.resolve("tata", "US")
+    # No marquee under US: whatever matches is band-scored, never the curated list.
+    assert r.best is None or r.best.band != 5
 
 
 def test_autocomplete_stays_keystroke_fast_over_full_masters() -> None:
