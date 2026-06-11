@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { KEYCHAIN_NAMESPACES, deleteSecret, getSecret, setSecret } from "@/lib/keychain";
+import {
+  KEYCHAIN_NAMESPACES,
+  deleteSecret,
+  devKeystoreMigrationAccounts,
+  getSecret,
+  migrateDevKeystore,
+  setSecret,
+} from "@/lib/keychain";
 
 const invokeMock = vi.hoisted(() => vi.fn());
 
@@ -72,5 +79,44 @@ describe("keychain wrappers", () => {
     expect(invokeMock).toHaveBeenCalledWith("keychain_delete", {
       account: "llm-provider:gemini",
     });
+  });
+});
+
+describe("migrateDevKeystore (R9 dev keystore)", () => {
+  it("invokes keychain_migrate with the candidate account list and returns the report", async () => {
+    invokeMock.mockResolvedValueOnce({ backend: "dev-keystore", migrated: 2, already_done: false });
+    const report = await migrateDevKeystore();
+    expect(report).toEqual({ backend: "dev-keystore", migrated: 2, already_done: false });
+    const [cmd, args] = invokeMock.mock.calls.at(-1)!;
+    expect(cmd).toBe("keychain_migrate");
+    const accounts = (args as { accounts: string[] }).accounts;
+    // The four named items the operator listed are always swept.
+    expect(accounts).toContain("llm-provider:deepseek");
+    expect(accounts).toContain("llm-provider:openrouter");
+    expect(accounts).toContain("broker:_meta:first-launch-tos");
+    expect(accounts).toContain("app-meta:onboarding-complete");
+    // No duplicates (the assembler dedupes via a Set).
+    expect(new Set(accounts).size).toBe(accounts.length);
+  });
+
+  it("swallows a migration failure (denied dialog) and returns null — never breaks boot", async () => {
+    invokeMock.mockRejectedValueOnce(new Error("user denied"));
+    await expect(migrateDevKeystore()).resolves.toBeNull();
+  });
+
+  it("the candidate list covers every LLM provider id", () => {
+    const accounts = devKeystoreMigrationAccounts();
+    for (const id of [
+      "anthropic",
+      "openai",
+      "gemini",
+      "groq",
+      "ollama",
+      "deepseek",
+      "xai",
+      "openrouter",
+    ]) {
+      expect(accounts).toContain(`llm-provider:${id}`);
+    }
   });
 });

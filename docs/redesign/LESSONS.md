@@ -92,3 +92,33 @@ Consulted before each phase; appended as the run learns.
 - The autosave-blob PRUNE trick (keep settings-class fields, drop session debris)
   resets the cockpit but the provider default may demote through restore guards —
   set `defaultProviderId` on the FULL post-boot blob with the app stopped.
+
+## Learned during the R9 keychain dev-keystore work
+
+- The partition-list wildcard (`-S "apple:,apple-tool:,codesign:,cdhash:"`) does NOT remove
+  the per-cdhash SecurityAgent dialog for a self-signed identity (no Team ID → bare
+  `cdhash:` isn't a wildcard). Measured: a fresh dev cdhash still flashed, once for ~77s
+  (past the 60s "regression" line). The fix is to leave the keychain in dev, not to keep
+  tuning the ACL.
+- DEV SECRETS NOW LIVE IN A FILE: `keychain.rs` has a `cfg(debug_assertions)` file backend
+  (`<app-data-dir>/dev-keystore.json`, 0600, git-ignored). `keychain_set/get/delete` →
+  file in dev, OS keychain in release. The ONLY keychain call site is `keychain.rs`; the
+  sidecars never read it (zero python `keyring` imports). `keychain_migrate` copies
+  keychain→file once (guard checked BEFORE any read — putting it after re-raised the dialog
+  every boot). To re-run migration: delete `dev-keystore.json` and reboot dev.
+- A keychain read SELF-DISMISSES-AS-ALLOW only while the app is IDLE on the keychain. A
+  background watcher polling `CGWindowListCopyWindowInfo` / `screencapture` during the
+  dialog makes the read return `errSecUserCanceled` ("User canceled the operation")
+  instead. When verifying keychain reads, STOP the prompt-watcher during the read and poll
+  only the filesystem; re-arm the watcher afterward (post-migration there are no reads, so
+  it can't interfere).
+- `spawn_blocking` for a keychain read returns errors where an inline async-command read
+  succeeds — the macOS auth context differs by thread. Read keychain inline on the command.
+- macOS `errUserCanceled` is -128; a hostile/early read surfaces as
+  `"Platform secure storage failure: User canceled the operation."` via keyring v3.
+- `cargo test --release` runs the dev-keystore release-path assertion
+  (`release_never_uses_dev_keystore`); ci-local's `cargo test` (debug) does not exercise
+  the release arm, so run the release test separately when changing the backend split.
+- After a `tauri dev` relaunch the WKWebView can paint WHITE (occlusion-throttled). Surface
+  it: bring frontmost, click the Dock tile if minimized, or RESIZE the window (forces a
+  WKWebView relayout/repaint) — then drive it.

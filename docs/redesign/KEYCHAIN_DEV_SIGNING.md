@@ -1,13 +1,118 @@
 # Keychain Dev Signing — Runbook
 
-**Status (2026-06-11, verified post-grant): DONE — password prompts cured.** Every dev
-build (app + all three sidecars) auto-signs with the stable identity before first exec; the
-four keychain items each hold exactly one valid trusted-application entry with the stable
-requirement (dead entries pruned); two consecutive fresh-rebuild boots read all keys with
-zero human input. Residual: a transient SELF-DISMISSING dialog (~10–50s) on the first key
-read of each never-executed binary — structural to self-signed identities (cdhash-pinned
-`partition_id`), needs no interaction; see FINAL VERDICT below. **Never type the password
-into these dialogs again.**
+**Status (2026-06-11): SOLVED by the dev-keystore — dev builds no longer touch the macOS
+keychain, so there are ZERO dialogs of any kind on rebuild.** The long saga (stable
+signing → keychain ACL grants → partition-list wildcard) is closed; every approach short
+of leaving the keychain failed to remove the per-cdhash SecurityAgent dialog. The fix:
+in DEBUG builds, `keychain_set/get/delete` route to a git-ignored local file
+(`<app-data-dir>/dev-keystore.json`, `0600`) instead of the OS keychain. A one-time
+migration copies existing secrets keychain→file on first dev boot (one final dialog, then
+never again). Release builds are unchanged (OS keychain, bit-for-bit). See
+**DEV KEYSTORE — THE FIX (verified)** below. The chapters under it are the historical
+record of why everything else was insufficient.
+
+---
+
+## DEV KEYSTORE — THE FIX (2026-06-11, implemented + verified on screen)
+
+`src-tauri/src/keychain.rs` now has two backends chosen at BUILD time:
+
+- **Release** (`cfg(not(debug_assertions))`): the OS keychain via `keyring`, exactly as
+  before — service `vysted-terminal`, the same accounts, no behaviour change. A test,
+  `release_never_uses_dev_keystore` (run under `cargo test --release`), asserts the dev
+  file path can never be reached in a release build; the `dev_keystore` module is
+  `#[cfg(debug_assertions)]`, so its code does not even exist in a release binary.
+- **Dev** (`cfg(debug_assertions)`): a JSON file at **`<app-data-dir>/dev-keystore.json`**
+  (on this Mac: `~/Library/Application Support/com.vysted.terminal/dev-keystore.json`),
+  perms `0600`, git-ignored (`.gitignore`: `dev-keystore.json`, `**/dev-keystore.json`).
+  `keychain_set/get/delete` read and write this file — the OS keychain is never touched,
+  so a fresh dev cdhash raises no SecurityAgent evaluation.
+
+**Audit (every keychain call site):** the ONLY code that touches the OS keychain is
+`keychain.rs` (the three commands + the migration). The renderer reaches it solely through
+`src/lib/keychain.ts`; the Python sidecars NEVER read the keychain (zero `keyring`
+imports — they receive secrets in request headers). So redirecting `keychain.rs` covers
+100% of dev key/meta reads and writes, from both the app and the sidecars.
+
+**One-time migration (`keychain_migrate`, dev-only; renderer calls it once at boot via
+`migrateDevKeystore()`):** copies the candidate accounts from the OS keychain into the
+file, idempotent via a `migrated` flag (the guard is checked BEFORE any keychain read, so
+every boot after the first does ZERO keychain reads — the bug that re-raised the dialog on
+each boot until it was moved ahead of the reads). Values are copied keychain→file entirely
+in Rust, never returned to JS. The migration uses a **read → idle ~140s → re-read** pass:
+the first read of an existing item triggers the one cdhash ACL evaluation, which only
+self-dismisses-as-allow while the app is IDLE on the keychain, after which the re-read
+returns the value. If it fails (the operator denies it, or the keychain stays hostile),
+the keystore is left empty and the user re-adds keys via Settings — `migrated` is still
+set, so the keychain is never retried.
+
+**Verified on screen (2026-06-11):**
+
+- One migration boot: the four existing items (`llm-provider:deepseek`,
+  `llm-provider:openrouter`, `broker:_meta:first-launch-tos`,
+  `app-meta:onboarding-complete`) copied into the file; this is the ONE final dialog.
+- **THREE consecutive from-scratch rebuilds** (app + all sidecars force-rebuilt, each a
+  genuinely new cdhash: `932790c9…`, `3c0bec1d…`, `0aca12ec…`), each booted and exercised
+  with a live chat call (SPY $728.34 / QQQ / NVDA $202.40 — real tool-backed answers):
+  a continuous 0.5s SecurityAgent watcher logged **0 dialogs** across all three, and the
+  migration command did **0 keychain reads** per boot.
+- Settings reads the migrated key live (DeepSeek shows "✓ Key configured" from the
+  keystore); the "Add key" dialog opens dialog-free and validates input (a dummy Groq key
+  was correctly rejected as unauthorized). `keychain_set/get/delete` against the file are
+  unit-pinned (`roundtrip_set_get_delete_against_the_file`), plus the once-only guard
+  (`migrate_collecting_reads_keychain_zero_times_once_migrated`) and the 0600-perms and
+  no-clobber tests. ci-local green; PyInstaller builds and boots (smoke incl. ICONIKSPEV).
+
+**Caveat (harness, not the product):** the migration read self-dismisses-as-allow only
+when nothing polls the window list / screenshots during the dialog — the verification's
+own watcher initially CANCELED the read ("User canceled the operation."), which is why the
+migration runs a patient idle re-read and falls back to Settings if it still can't read.
+On a normal interactive boot the one migration dialog allows and the keys carry over.
+
+---
+
+## WILDCARD EXPERIMENT — VERIFIED FAILED (2026-06-11, operator-run + measured)
+
+The operator ran the partition-list wildcard one-liner from a plain Terminal against all
+four items: `security set-generic-password-partition-list -S
+"apple:,apple-tool:,codesign:,cdhash:" -s vysted-terminal -a <acct> -k <pw>` (four `ok`
+lines returned). It did NOT eliminate the per-cdhash transient dialog.
+
+**Method:** a continuous Quartz watcher (0.5s cadence) logged every visible SecurityAgent
+window across two from-scratch rebuild+boot rounds, each forcing a GENUINELY NEW cdhash
+(a throwaway comment in `src-tauri/src/main.rs` → real recompile → fresh signature,
+reverted after). Each round booted and exercised a real key-reading flow (one chat call).
+
+**Result — both fresh cdhashes still flashed; the key read succeeded each time:**
+
+| Round | cdhash      | dialog first → last seen                       | duration                         | chat answered? |
+| ----- | ----------- | ---------------------------------------------- | -------------------------------- | -------------- |
+| A     | `c52d0890…` | 18:28:15.985 → 18:29:33.049 (gone by 18:30:13) | **~77–117s** (past the 60s line) | yes            |
+| B     | `3a94b5f9…` | 18:32:03.222 → 18:32:20.302                    | ~17s                             | yes            |
+
+The dialog still self-dismisses as ALLOW (the cert-based trusted-app entry validates; both
+chats answered with live data), but **persistence is variable and at least once exceeded
+the 60-second "regression" threshold** — so "ignore it, it vanishes in ~10–50s" no longer
+holds as a guarantee. The bare `cdhash:` prefix is NOT honored as a wildcard: a self-signed
+identity has no Apple Team ID, so the item's `partition_id` cannot express "any cdhash
+under team X," and securityd runs one evaluation pass per never-before-seen cdhash. The
+prior FINAL VERDICT's "optional experiment may remove even the transient" is now resolved:
+**it does not.** Note the running dev binary confirms the cause — `codesign -dvvv`:
+`Authority=Vysted Terminal Dev Signing`, `TeamIdentifier=not set`.
+
+## NEXT STEP (now done) — the dev-keystore approach
+
+This section recommended the dev-keystore (option 1 below); it was IMPLEMENTED this session
+— see **DEV KEYSTORE — THE FIX** at the top. Option 2 remains the only way to also get
+zero dialogs in RELEASE-signed local runs, if ever needed.
+
+1. **Dev-only file keystore (DONE).** `keychain.rs` stores dev secrets in a `0600`
+   git-ignored file gated behind `cfg(debug_assertions)`; no per-app/per-cdhash ACL, so no
+   SecurityAgent evaluation, zero dialogs. Release keeps the OS keychain unchanged.
+2. **Apple Developer ID Application certificate (not needed for dev).** A Team ID would let
+   the `partition_id` grant the whole team so every cdhash validates without a per-build
+   evaluation — the only path to zero dialogs for a RELEASE-signed binary read locally.
+   Irrelevant to `tauri dev` now that the dev keystore bypasses the keychain entirely.
 
 ---
 

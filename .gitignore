@@ -53,3 +53,9 @@ src-tauri/capabilities/dev-tools.json
 
 # Playwright MCP transient artifacts (snapshots/console logs)
 .playwright-mcp/
+
+# Dev-only local keystore (BYOK secrets in tauri dev — never committed; replaces
+# the OS keychain so dev rebuilds raise no SecurityAgent dialog). See
+# docs/redesign/KEYCHAIN_DEV_SIGNING.md.
+dev-keystore.json
+**/dev-keystore.json

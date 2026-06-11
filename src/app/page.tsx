@@ -9,6 +9,7 @@ import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { PanelHost } from "@/components/PanelHost";
 import { useDesktopNotificationBridge } from "@/lib/desktop-notification";
 import { initDevMcpBridge } from "@/lib/dev-mcp-bridge";
+import { migrateDevKeystore } from "@/lib/keychain";
 import { initMenuBridge } from "@/lib/menu-bridge";
 import { bootstrapPlugins } from "@/lib/plugin-bootstrap";
 import { autosaveLayout } from "@/lib/workspace";
@@ -29,6 +30,7 @@ import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelCatalogStore } from "@/store/model-catalog";
 import { useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
+import { useProviderKeysStore } from "@/store/provider-keys";
 import { useSearchSettingsStore } from "@/store/search-settings";
 import { useSymbolsStore } from "@/store/symbols";
 import { usePortfoliosStore } from "@/store/portfolios";
@@ -48,6 +50,16 @@ export default function Page() {
     useModulesStore.getState().registerModules(vystedModules);
     useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
     void useAppStore.getState().connectSidecar();
+
+    // One-time dev-keystore migration (R9): in a dev build, copy existing
+    // secrets from the OS keychain into the git-ignored local keystore so
+    // `tauri dev` never reads the keychain again — no per-cdhash SecurityAgent
+    // dialog. The one migration read may raise ONE final dialog; idempotent and
+    // a pure no-op in release. Re-probe provider keys after so migrated keys
+    // show immediately. Best-effort: never throws into boot.
+    void migrateDevKeystore().then(() => {
+      void useProviderKeysStore.getState().refresh();
+    });
 
     // Warm the default provider's LIVE model catalog up front so the model pickers
     // are populated from the full live list (e.g. OpenRouter's hundreds) before the
