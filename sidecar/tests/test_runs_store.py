@@ -137,3 +137,96 @@ def test_reset_for_tests_clears_rows() -> None:
     assert len(runs_store.list_runs()) == 1
     runs_store.reset_for_tests()
     assert runs_store.list_runs() == []
+
+
+# ---------------------------------------------------------------------------
+# R10 — non-secret options persistence (research_depth / region re-thread)
+# ---------------------------------------------------------------------------
+
+
+def test_options_round_trip_is_allowlisted() -> None:
+    """Only research_depth/region persist; anything else (a rogue key, an
+    object) is dropped by the allow-list — NEVER stored (R10)."""
+    runs_store.create_run(
+        run_id="run-1",
+        agent_id="x",
+        agent_name="X",
+        budget=RunBudget(),
+        options={
+            "research_depth": "deep",
+            "region": "IN",
+            "api_key": "sk-must-not-persist",  # not allow-listed
+            "history": [{"role": "user", "content": "x"}],  # not a string
+        },
+        now=1000,
+    )
+    assert runs_store.get_options("run-1") == {"research_depth": "deep", "region": "IN"}
+    # The rogue key is nowhere in the database file's row.
+    import sqlite3
+
+    from config import get_data_dir
+
+    conn = sqlite3.connect(str(get_data_dir() / runs_store.DB_FILENAME))
+    try:
+        row = conn.execute("SELECT options_json FROM runs WHERE id = 'run-1'").fetchone()
+    finally:
+        conn.close()
+    assert "sk-must-not-persist" not in (row[0] or "")
+
+
+def test_options_default_empty() -> None:
+    runs_store.create_run(
+        run_id="run-1", agent_id="x", agent_name="X", budget=RunBudget(), now=1000
+    )
+    assert runs_store.get_options("run-1") == {}
+    assert runs_store.get_options("ghost") == {}
+
+
+def test_options_column_migrates_an_older_database() -> None:
+    """A pre-R10 database (no options_json column) gains it via the ALTER
+    guard on first connect — additive, no data loss."""
+    import sqlite3
+
+    from config import get_data_dir
+
+    db_path = str(get_data_dir() / runs_store.DB_FILENAME)
+    conn = sqlite3.connect(db_path)
+    conn.execute(
+        """
+        CREATE TABLE runs (
+            id TEXT PRIMARY KEY,
+            agent_id TEXT NOT NULL,
+            agent_name TEXT NOT NULL,
+            mode TEXT NOT NULL DEFAULT 'delegate',
+            status TEXT NOT NULL,
+            budget_json TEXT NOT NULL DEFAULT '{}',
+            cost_json TEXT NOT NULL DEFAULT '{}',
+            detail TEXT,
+            question TEXT,
+            checkpoint_json TEXT,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+        )
+        """
+    )
+    conn.execute(
+        "INSERT INTO runs (id, agent_id, agent_name, status, created_at, updated_at) "
+        "VALUES ('legacy-1', 'x', 'X', 'done', 1000, 1000)"
+    )
+    conn.commit()
+    conn.close()
+
+    # First store access migrates; the legacy row survives with empty options.
+    assert runs_store.get_options("legacy-1") == {}
+    legacy = runs_store.get_run("legacy-1")
+    assert legacy is not None and legacy.status == "done"
+    # And new writes land in the migrated column.
+    runs_store.create_run(
+        run_id="run-2",
+        agent_id="x",
+        agent_name="X",
+        budget=RunBudget(),
+        options={"research_depth": "ultra", "region": "US"},
+        now=2000,
+    )
+    assert runs_store.get_options("run-2") == {"research_depth": "ultra", "region": "US"}
