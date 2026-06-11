@@ -143,7 +143,10 @@ PROFILES: dict[str, DepthProfile] = {
         researchers=3,
         angles=3,
         report_char_cap=9000,
-        wall_seconds=240,
+        # 240 -> 360 (R9, V14): two live ULTRA runs showed the heavy panel
+        # consuming the wall and the cross-check round honestly skipping; the
+        # verification round is ULTRA's point, so it gets real headroom.
+        wall_seconds=360,
         min_web_domains=2,
         cross_check=True,
         site_bias=True,
