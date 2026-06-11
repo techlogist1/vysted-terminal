@@ -123,7 +123,9 @@ def test_legacy_payload_without_status_binds_only_at_accept() -> None:
     # 0.5 floor that silently bound research to the wrong company.
     assert target_from_payload(_payload("CMTL", confidence=0.5, status=None)) is None
     assert target_from_payload(_payload("CMTL", confidence=ACCEPT - 0.01, status=None)) is None
-    assert isinstance(target_from_payload(_payload("CMTL", confidence=ACCEPT, status=None)), ResearchTarget)
+    assert isinstance(
+        target_from_payload(_payload("CMTL", confidence=ACCEPT, status=None)), ResearchTarget
+    )
 
 
 def test_disambiguate_status_builds_the_explicit_chooser() -> None:
@@ -246,9 +248,7 @@ def test_curated_disambiguation_beats_an_incidental_fuzzy_one() -> None:
         q = args["query"]
         if q == "Tata stock price today":
             junk = _disambiguation_payload(q, reason="score 0.64 in the disambiguation band")
-            junk["candidates"] = [
-                {"symbol": "FRLCY", "name": "Freelancer Ltd", "confidence": 0.64}
-            ]
+            junk["candidates"] = [{"symbol": "FRLCY", "name": "Freelancer Ltd", "confidence": 0.64}]
             return junk
         if q == "Tata stock":
             return _disambiguation_payload(q, reason="marquee family name")
