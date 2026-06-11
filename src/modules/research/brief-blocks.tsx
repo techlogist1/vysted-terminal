@@ -43,7 +43,13 @@ import {
 import { loadSymbolIntoChart } from "@/lib/host-actions";
 import { staggerChild, staggerParent } from "@/lib/motion";
 import { useSymbolsStore } from "@/store/symbols";
-import type { BriefStructured, ResearchBriefData } from "../../../types/brief";
+import type {
+  BriefDerivedMetrics,
+  BriefDerivedValue,
+  BriefMetricConflict,
+  BriefStructured,
+  ResearchBriefData,
+} from "../../../types/brief";
 import type { Fundamentals, Quote } from "../../../types/data";
 
 // --- formatters (mirror EquityOverviewPanel's battle-tested conventions) -----
@@ -99,6 +105,8 @@ function formatSigned(value: number | null | undefined): string {
 interface MetricItem {
   label: string;
   value: string;
+  /** Tooltip detail (the derived leg's formula/basis), when present. */
+  title?: string;
 }
 
 interface MetricsModel {
@@ -112,6 +120,9 @@ interface MetricsModel {
   /** The metric family the card set was branched on (equity / crypto / etf / fx). */
   assetClass: BriefAssetClass;
   items: MetricItem[];
+  /** Cross-source disagreements the pipeline FLAGGED instead of silently
+   *  picking (R10 E8) — rendered as a caption flag row, never reconciled here. */
+  conflicts: string[];
 }
 
 function isLeg(
@@ -143,6 +154,94 @@ function pushRange(
   if (typeof lo === "number" && typeof hi === "number") {
     push("52w range", `${formatNumber(lo, 0)}–${formatNumber(hi, 0)}`);
   }
+}
+
+// --- derived semantics leg (R10 E8/D37) --------------------------------------
+
+/** A signed percent from a FRACTION (0.124 → "+12.40%"). */
+function formatSignedFractionPct(value: number): string {
+  return `${value >= 0 ? "+" : ""}${(value * 100).toFixed(2)}%`;
+}
+
+/** Format one derived value by its declared unit. `signed` adds the +/− cue
+ *  for direction-carrying figures (52w change, growth). */
+function formatDerived(v: BriefDerivedValue, signed: boolean): string {
+  const value = v.value as number; // callers guard null
+  if (v.unit === "percent") {
+    return signed ? formatSignedFractionPct(value) : formatFractionPct(value);
+  }
+  if (v.unit === "currency") {
+    return formatNumber(value);
+  }
+  return formatNumber(value);
+}
+
+/** Append the measurement basis so a number never travels label-less (E8):
+ *  "+12.40% · FY/FY". Skipped when the label already names it. */
+function withBasis(formatted: string, v: BriefDerivedValue): string {
+  const basis = (v.basis ?? "").trim();
+  if (!basis || v.label.toLowerCase().includes(basis.toLowerCase())) {
+    return formatted;
+  }
+  return `${formatted} · ${basis}`;
+}
+
+/**
+ * The semantics-leg cards (R10 E8) — rendered FIRST, before the raw provider
+ * grid, because these are the values with explicit labels/bases/formulas:
+ * drawdown-from-high and 52w-change as SEPARATE cards (the conflation the
+ * operator caught), dividend with its basis, growth with its basis suffix.
+ * A null value renders nothing — never a fabricated figure (Constitution VI).
+ */
+function derivedItems(derived: BriefDerivedMetrics): MetricItem[] {
+  const items: MetricItem[] = [];
+  const push = (v: BriefDerivedValue | undefined, format: (v: BriefDerivedValue) => string) => {
+    if (!v || typeof v.value !== "number" || Number.isNaN(v.value)) {
+      return;
+    }
+    items.push({
+      label: v.label,
+      value: withBasis(format(v), v),
+      title: v.formula ?? v.basis,
+    });
+  };
+  // Drawdown reads as a NEGATIVE magnitude ("below the high"), whatever sign
+  // the wire carried — it can never wear 52w-change's upward-looking label.
+  push(derived.drawdown_from_high, (v) => formatFractionPct(-Math.abs(v.value as number)));
+  push(derived.fifty_two_week_change, (v) => formatDerived(v, true));
+  push(derived.dividend_yield, (v) => formatDerived(v, false));
+  push(derived.dividend_per_share, (v) => formatDerived(v, false));
+  push(derived.revenue_growth, (v) => formatDerived(v, true));
+  push(derived.earnings_growth, (v) => formatDerived(v, true));
+  return items;
+}
+
+/** One human line per flagged conflict — provenance-named values + the
+ *  pipeline's note, never silently reconciled (R10 E8). */
+function conflictLines(conflicts: readonly BriefMetricConflict[] | undefined): string[] {
+  if (!Array.isArray(conflicts)) {
+    return [];
+  }
+  const lines: string[] = [];
+  for (const conflict of conflicts) {
+    if (!conflict || typeof conflict !== "object") {
+      continue;
+    }
+    const field = String(conflict.field ?? "").replace(/_/g, " ");
+    const values = Array.isArray(conflict.sources)
+      ? conflict.sources
+          .filter((s): s is BriefMetricConflict["sources"][number] => !!s && typeof s === "object")
+          .map((s) => `${s.value} (${s.provider})`)
+          .join(" vs ")
+      : "";
+    const note = (conflict.note ?? "").trim();
+    const detail = [values, note].filter(Boolean).join(" — ");
+    if (!field && !detail) {
+      continue;
+    }
+    lines.push(field ? `Sources disagree on ${field}: ${detail}` : detail);
+  }
+  return lines;
 }
 
 /** Equity / single-name metric set — the full valuation + quality + growth grid. */
@@ -240,14 +339,21 @@ export function deriveMetrics(structured: BriefStructured | undefined): MetricsM
   const priceLeg = isLeg(structured.price) && structured.price.ok ? structured.price : null;
   const fundLeg =
     isLeg(structured.fundamentals) && structured.fundamentals.ok ? structured.fundamentals : null;
+  const derivedLeg =
+    isLeg(structured.derived) && structured.derived.ok ? structured.derived : null;
   const quote = (priceLeg?.data ?? undefined) as Quote | undefined;
   const fund = (fundLeg?.data ?? undefined) as Fundamentals | undefined;
-  if (!quote && !fund) {
+  const derived = (derivedLeg?.data ?? undefined) as BriefDerivedMetrics | undefined;
+  // The semantics leg renders FIRST (R10 E8): its values carry explicit
+  // labels/bases, so they lead the grid; the raw provider grid follows.
+  const semantic = derived ? derivedItems(derived) : [];
+  const conflicts = conflictLines(derived?.conflicts);
+  if (!quote && !fund && semantic.length === 0 && conflicts.length === 0) {
     return null;
   }
 
   const assetClass = deriveAssetClass(structured);
-  const items =
+  const rawItems =
     assetClass === "crypto"
       ? cryptoItems(fund, quote)
       : assetClass === "etf"
@@ -255,6 +361,17 @@ export function deriveMetrics(structured: BriefStructured | undefined): MetricsM
         : assetClass === "fx"
           ? fxItems(fund, quote)
           : equityItems(fund, quote);
+  // The derived card owns its semantic — drop a raw card that would repeat a
+  // weaker, basis-less version of the same figure (the E8 conflation class).
+  const shadowed = new Set<string>();
+  if (derived?.dividend_yield?.value != null) {
+    shadowed.add("Div yield");
+    shadowed.add("Yield");
+  }
+  if (derived?.revenue_growth?.value != null) {
+    shadowed.add("Rev growth");
+  }
+  const items = [...semantic, ...rawItems.filter((item) => !shadowed.has(item.label))];
 
   const freshness: Freshness | undefined =
     quote?.freshness === "live" || quote?.freshness === "stale" || quote?.freshness === "eod"
@@ -271,6 +388,7 @@ export function deriveMetrics(structured: BriefStructured | undefined): MetricsM
     currency: quote?.currency,
     assetClass,
     items,
+    conflicts,
   };
 }
 
@@ -582,13 +700,30 @@ function MetricsBlock({ model }: { model: MetricsModel }) {
               <span className="hud-label">{item.label}</span>
               <span
                 className="text-charcoal-100 text-body truncate font-mono tabular-nums"
-                title={item.value}
+                title={item.title ? `${item.value} — ${item.title}` : item.value}
               >
                 {item.value}
               </span>
             </div>
           ))}
         </div>
+      ) : null}
+      {/* Cross-source conflicts (R10 E8) — flagged, never silently reconciled:
+          a quiet caption flag row under the grid, warning-tinted edge only. */}
+      {model.conflicts.length > 0 ? (
+        <ul
+          className="border-charcoal-800 flex flex-col gap-1 border-t px-3 py-2"
+          aria-label="Source conflicts"
+        >
+          {model.conflicts.map((line, i) => (
+            <li
+              key={i}
+              className="border-warning/40 text-caption text-charcoal-300 border-l-2 pl-2 leading-relaxed"
+            >
+              {line}
+            </li>
+          ))}
+        </ul>
       ) : null}
     </section>
   );
@@ -797,9 +932,13 @@ function knownTickersOf(brief: ResearchBriefData, watchlist: string[]): Set<stri
 export function BriefBody({
   brief,
   onCite,
+  dimMetrics = false,
 }: {
   brief: ResearchBriefData;
   onCite: (n: number) => void;
+  /** ARCHIVED rendering (R10 D39): the metric cards drop to reduced opacity so
+   *  yesterday's numbers can never read as live ones. */
+  dimMetrics?: boolean;
 }) {
   const watchlist = useSymbolsStore((s) => s.entries);
   const reduced = useReducedMotion();
@@ -829,7 +968,7 @@ export function BriefBody({
   return (
     <motion.div className="flex flex-col gap-3 px-3 pt-3 pb-4" {...parentProps}>
       {metrics ? (
-        <motion.div {...childProps}>
+        <motion.div {...childProps} className={dimMetrics ? "opacity-60" : undefined}>
           <MetricsBlock model={metrics} />
         </motion.div>
       ) : null}

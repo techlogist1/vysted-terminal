@@ -6,18 +6,23 @@ vi.mock("@/lib/sidecar-client", () => ({
 
 import {
   applyHostAction,
+  applyHostActionAsync,
   describeHostAction,
   HOST_ACTION_NAMES,
   isHostActionMutation,
+  publishAckStatus,
   routeOrderProposal,
 } from "@/lib/host-actions";
 import { composeBriefMarkdown } from "@/lib/brief-ingest";
-import { useBriefStore } from "@/store/brief";
+import { resetBriefStoreForTests, useBriefStore } from "@/store/brief";
 import { useBrokersStore } from "@/store/brokers";
 import { useChartCommandStore } from "@/store/chart-command";
 import { resetEquityCommandStoreForTests, useEquityCommandStore } from "@/store/equity-command";
+import { useNotesStore } from "@/store/notes";
 import { useOrdersStore } from "@/store/orders";
+import { usePortfoliosStore } from "@/store/portfolios";
 import { useScreenerStore } from "@/store/screener";
+import { resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 
@@ -854,5 +859,262 @@ describe("shrink guard blocks source-less prose re-publishes", () => {
     });
     expect(msg).toMatch(/Kept the richer/);
     expect(useBriefStore.getState().brief?.sourceCount).toBe(1);
+  });
+});
+
+// ── R10: execution-derived depth + disambiguation + lifecycle publishes ─────
+
+describe("briefFromInput execution truth (R10 D38/E2)", () => {
+  beforeEach(() => {
+    resetBriefStoreForTests();
+  });
+
+  it("derives mode/depth from the loop that RAN — the wire mode is ignored", () => {
+    applyHostAction("publish_brief", {
+      query: "reliance",
+      symbol: "RELIANCE.NS",
+      mode: "fast", // the E2 lie — payload-derived FAST
+      markdown: "## Deep report\nCited [1].",
+      sources: [{ url: "https://nseindia.com/x", title: "filing" }],
+      execution: { run_id: "run-d", requested_depth: "deep", loop: "iter" },
+    });
+    const brief = useBriefStore.getState().brief;
+    expect(brief?.depth).toBe("deep");
+    expect(brief?.mode).toBe("DEEP");
+    expect(brief?.execution?.runId).toBe("run-d");
+  });
+
+  it("research-model lane is stop-based: ultra requested → heavy tier", () => {
+    applyHostAction("publish_brief", {
+      query: "hdfc",
+      markdown: "## Tier B report",
+      sources: [],
+      execution: { run_id: "run-t", requested_depth: "ultra", loop: "research-model" },
+    });
+    expect(useBriefStore.getState().brief?.depth).toBe("heavy");
+  });
+
+  it("a disambiguation-only publish is accepted and rides the brief", () => {
+    const label = applyHostAction("publish_brief", {
+      query: "reliance",
+      disambiguation: {
+        query: "reliance",
+        candidates: [
+          { symbol: "RELIANCE", name: "Reliance Industries", exchange: "NSE", yahoo_symbol: "RELIANCE.NS" },
+          { symbol: "RPOWER", name: "Reliance Power", exchange: "NSE", yahoo_symbol: "RPOWER.NS" },
+        ],
+      },
+      execution: { run_id: "run-dis", requested_depth: "normal", loop: "fast" },
+    });
+    expect(label).toMatch(/Published/);
+    const brief = useBriefStore.getState().brief;
+    expect(brief?.disambiguation?.candidates).toHaveLength(2);
+    expect(brief?.markdown).toBe("");
+  });
+
+  it("a publish from a DIFFERENT run never replaces the run in flight (E3.2)", () => {
+    useBriefStore.getState().beginRun({ runId: "run-live", query: "q", depth: "deep" });
+    const label = applyHostAction("publish_brief", {
+      query: "stale",
+      markdown: "## Stale artifact",
+      sources: [],
+      execution: { run_id: "run-old", requested_depth: "normal", loop: "fast" },
+    });
+    expect(label).toMatch(/Kept the run in flight/);
+    expect(useBriefStore.getState().panel.phase).toBe("in_flight");
+  });
+
+  it("publishAckStatus maps the apply label onto the ack vocabulary (D39 §4)", () => {
+    expect(publishAckStatus(null)).toBe("failed");
+    expect(publishAckStatus("Kept the richer research brief already on screen")).toBe(
+      "kept_previous",
+    );
+    expect(publishAckStatus("Kept the run in flight — this publish belonged to a different run")).toBe(
+      "kept_previous",
+    );
+    expect(publishAckStatus("Published the DEEP research brief")).toBe("applied");
+  });
+});
+
+// ── R10: data-write / settings host actions (E6, D41/D45) ───────────────────
+
+describe("portfolio host actions (E6 — paper portfolio writes)", () => {
+  beforeEach(() => {
+    usePortfoliosStore.getState().setAll([], undefined);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: true, json: async () => ({}) })) as unknown as typeof fetch,
+    );
+  });
+
+  afterEach(() => {
+    usePortfoliosStore.getState().setAll([], undefined);
+    vi.unstubAllGlobals();
+  });
+
+  function activeHoldings() {
+    const s = usePortfoliosStore.getState();
+    return (s.portfolios.find((p) => p.id === s.activeId) ?? s.portfolios[0]).holdings;
+  }
+
+  it("describe renders the human diff with kind data-write", () => {
+    const diff = describeHostAction("portfolio_add_position", {
+      symbol: "RELIANCE",
+      quantity: 5,
+      cost_basis: 1263,
+    });
+    expect(diff.kind).toBe("data-write");
+    expect(diff.title).toMatch(/Add 5 RELIANCE @ .?1,263 to the paper portfolio/);
+    expect(diff.after).toContain("+RELIANCE ×5");
+  });
+
+  it("add: POSTs the sidecar ledger and lands the holding in the store", async () => {
+    const label = await applyHostActionAsync("portfolio_add_position", {
+      symbol: "reliance",
+      quantity: 5,
+      cost_basis: 1263,
+    });
+    expect(label).toMatch(/Added 5 RELIANCE/);
+    expect(activeHoldings()).toHaveLength(1);
+    expect(activeHoldings()[0]).toMatchObject({ symbol: "RELIANCE", quantity: 5, costBasis: 1263 });
+    const fetchMock = globalThis.fetch as unknown as { mock: { calls: [string, RequestInit][] } };
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(String(url)).toContain("/portfolio/positions");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(String(init.body))).toMatchObject({
+      symbol: "RELIANCE",
+      quantity: 5,
+      cost_basis: 1263,
+    });
+  });
+
+  it("update: resolves the holding by id-then-symbol and PUTs the ledger", async () => {
+    await applyHostActionAsync("portfolio_add_position", {
+      symbol: "RELIANCE",
+      quantity: 5,
+      cost_basis: 1263,
+    });
+    const id = activeHoldings()[0].id;
+    const label = await applyHostActionAsync("portfolio_update_position", {
+      position_id: id,
+      symbol: "RELIANCE",
+      quantity: 8,
+      cost_basis: 1300,
+    });
+    expect(label).toMatch(/Updated RELIANCE: ×8/);
+    expect(activeHoldings()[0]).toMatchObject({ quantity: 8, costBasis: 1300 });
+  });
+
+  it("delete: removes the matched holding; an unmatched target is an honest null", async () => {
+    await applyHostActionAsync("portfolio_add_position", {
+      symbol: "RELIANCE",
+      quantity: 5,
+      cost_basis: 1263,
+    });
+    expect(await applyHostActionAsync("portfolio_delete_position", { symbol: "TSLA" })).toBeNull();
+    const label = await applyHostActionAsync("portfolio_delete_position", { symbol: "RELIANCE.NS" });
+    expect(label).toMatch(/Removed RELIANCE/);
+    expect(activeHoldings()).toHaveLength(0);
+  });
+
+  it("add with no symbol / non-positive quantity is an honest null", async () => {
+    expect(
+      await applyHostActionAsync("portfolio_add_position", { quantity: 5, cost_basis: 1 }),
+    ).toBeNull();
+    expect(
+      await applyHostActionAsync("portfolio_add_position", { symbol: "X", quantity: 0 }),
+    ).toBeNull();
+  });
+});
+
+describe("write_note / remove_from_watchlist / set_region / save_screen (R10)", () => {
+  afterEach(() => {
+    useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: "" });
+    resetSettingsStoreForTests();
+  });
+
+  it("write_note replaces or appends, scoped to General or a ticker", () => {
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    expect(applyHostAction("write_note", { scope: "general", text: "First take." })).toMatch(
+      /Wrote the General note/,
+    );
+    expect(useNotesStore.getState().general).toBe("First take.");
+    applyHostAction("write_note", { scope: "general", text: "Second take.", mode: "append" });
+    expect(useNotesStore.getState().general).toBe("First take.\n\nSecond take.");
+    applyHostAction("write_note", { scope: "reliance", text: "Q4 beat." });
+    expect(useNotesStore.getState().bySymbol.RELIANCE).toBe("Q4 beat.");
+    // Empty text is an honest null.
+    expect(applyHostAction("write_note", { scope: "general", text: "  " })).toBeNull();
+    const diff = describeHostAction("write_note", { scope: "RELIANCE", text: "x", mode: "append" });
+    expect(diff.kind).toBe("data-write");
+  });
+
+  it("remove_from_watchlist removes a tracked symbol and is idempotent-honest", () => {
+    useSymbolsStore.setState({ entries: [] });
+    useSymbolsStore.getState().addSymbol("TSLA", "equity");
+    const diff = describeHostAction("remove_from_watchlist", { symbol: "TSLA" });
+    expect(diff.kind).toBe("watchlist");
+    expect(applyHostAction("remove_from_watchlist", { symbol: "tsla" })).toMatch(/Removed TSLA/);
+    expect(useSymbolsStore.getState().entries).toHaveLength(0);
+    expect(applyHostAction("remove_from_watchlist", { symbol: "TSLA" })).toMatch(
+      /was not on your watchlist/,
+    );
+  });
+
+  it("set_region drives the ONE agent-drivable setting (D45) and rejects junk", () => {
+    expect(describeHostAction("set_region", { region: "IN" }).kind).toBe("settings");
+    expect(applyHostAction("set_region", { region: "in" })).toBe("Set the region to IN");
+    expect(useSettingsStore.getState().region).toBe("IN");
+    expect(applyHostAction("set_region", { region: "MARS" })).toBeNull();
+    expect(useSettingsStore.getState().region).toBe("IN");
+  });
+
+  it("save_screen delegates to the screener store's saveScreen when it ships", () => {
+    const saveScreen = vi.fn();
+    useScreenerStore.setState({ saveScreen } as never);
+    const label = applyHostAction("save_screen", {
+      name: "IT value",
+      criteria: [{ field: "pe_ratio", operator: "lt", value: 15 }],
+      universe: "nse-all",
+    });
+    expect(label).toBe('Saved the screen as "IT value"');
+    expect(saveScreen).toHaveBeenCalledWith("IT value", {
+      criteria: [{ field: "pe_ratio", operator: "lt", value: 15 }],
+      universe: "nse-all",
+    });
+    expect(describeHostAction("save_screen", { name: "IT value" }).kind).toBe("data-write");
+  });
+
+  it("save_screen is an honest null until the saved-screens API lands", () => {
+    useScreenerStore.setState({ saveScreen: undefined } as never);
+    expect(applyHostAction("save_screen", { name: "IT value" })).toBeNull();
+  });
+
+  it("save_layout is an honest null when the layout has not mounted", async () => {
+    useWorkspaceStore.setState({ dockviewApi: null } as never);
+    expect(describeHostAction("save_layout", { name: "My desk" }).kind).toBe("data-write");
+    expect(await applyHostActionAsync("save_layout", { name: "My desk" })).toBeNull();
+  });
+
+  it("write_screener_filters passes formula + run through to applyFilters", () => {
+    useScreenerStore.getState().__resetForTests();
+    const applyFilters = vi.fn();
+    useScreenerStore.setState({ applyFilters } as never);
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    const label = applyHostAction("write_screener_filters", {
+      criteria: [{ field: "roe", operator: "gt", value: 0.18 }],
+      universe: "india-all",
+      formula: "roe > 0.18 and pe_ratio < 30",
+      run: true,
+    });
+    expect(label).toMatch(/running/);
+    expect(applyFilters).toHaveBeenCalledWith(
+      expect.objectContaining({
+        universe: "india-all",
+        formula: "roe > 0.18 and pe_ratio < 30",
+        run: true,
+      }),
+    );
+    useScreenerStore.getState().__resetForTests();
   });
 });

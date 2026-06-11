@@ -1,19 +1,22 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
+  Archive,
   ChevronDown,
   ChevronRight,
   ClipboardCopy,
   ExternalLink,
   FlaskConical,
   Globe,
+  RefreshCw,
   Telescope,
   X,
 } from "lucide-react";
 
 import type {
   BriefDepth,
+  BriefDisambiguation,
   BriefSource,
   BriefSourceType,
   BriefStep,
@@ -30,8 +33,11 @@ import {
   formatBriefTokens,
   nextBriefDepth,
 } from "@/lib/brief-ingest";
-import { useBriefStore } from "@/store/brief";
+import { formatElapsed, ResearchActivity } from "@/modules/chat/ResearchActivity";
+import { researchDepthPrompt, useAgentCommandStore } from "@/store/agent-command";
+import { useBriefStore, type BriefPanelState } from "@/store/brief";
 import { useWorkspaceStore } from "@/store/workspace";
+import type { ResearchStepView } from "@/store/chat-history";
 import { BriefBody } from "./brief-blocks";
 
 const IS_DEV = process.env.NODE_ENV !== "production";
@@ -370,6 +376,154 @@ function KeylessFallbackNudge({ onDismiss }: { onDismiss: () => void }) {
   );
 }
 
+// --- lifecycle surfaces (R10 D39) -------------------------------------------
+
+/** The in-flight run as the chat trace's view shape. */
+function stepsToViews(steps: BriefStep[]): ResearchStepView[] {
+  return steps.map((step, i) => ({
+    stepKind: step.kind,
+    detail: step.detail,
+    latencyMs: step.latencyMs,
+    status: step.status,
+    index: i + 1,
+  }));
+}
+
+/**
+ * IN-FLIGHT — a designed working state, never a broken empty panel mid-run:
+ * pulsing zinc skeleton blocks on the 8pt grid, the live "Researching — DEEP ·
+ * 42s" caption (real elapsed time, the run's true depth), and the live
+ * research-step trace. Each tick also feeds the store's watchdog so a run
+ * that outlived its depth wall settles to archived instead of spinning.
+ */
+function InFlightView({ run }: { run: Extract<BriefPanelState, { phase: "in_flight" }> }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => {
+      setNow(Date.now());
+      useBriefStore.getState().watchdogTick();
+    }, 1_000);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div className="bg-charcoal-900 flex h-full w-full flex-col gap-4 overflow-y-auto px-4 py-4">
+      <p className="text-caption text-charcoal-300 font-mono" aria-live="polite">
+        Researching — {DEPTH_LABEL[run.depth]} ·{" "}
+        <span className="tabular-nums">{formatElapsed(Math.max(0, now - run.startedAt))}</span>
+      </p>
+      {(run.query || run.symbol) && (
+        <p className="text-charcoal-100 text-panel-title leading-snug">
+          {run.query || run.symbol}
+        </p>
+      )}
+      {/* Skeleton: a metric-grid ghost + reading-line ghosts, all on the 8pt
+          grid — the shape the published brief will take. */}
+      <div className="grid grid-cols-2 gap-2" aria-hidden>
+        {Array.from({ length: 4 }, (_, i) => (
+          <div key={i} className="bg-charcoal-850 h-12 animate-pulse" />
+        ))}
+      </div>
+      <div className="flex flex-col gap-2" aria-hidden>
+        <div className="bg-charcoal-850 h-4 w-3/4 animate-pulse" />
+        <div className="bg-charcoal-850 h-4 w-full animate-pulse" />
+        <div className="bg-charcoal-850 h-4 w-5/6 animate-pulse" />
+      </div>
+      {run.steps.length > 0 && (
+        <ResearchActivity steps={stepsToViews(run.steps)} active startedAt={run.startedAt} />
+      )}
+    </div>
+  );
+}
+
+/**
+ * ARCHIVED — a quiet provenance strip over the brief: the micro eyebrow names
+ * WHEN the artifact was produced (a restored/superseded/failed-run brief can
+ * never read as current — E3), and Refresh re-runs the SAME subject at the
+ * brief's own depth through the one agent send path.
+ */
+function ArchivedBanner({ brief }: { brief: ResearchBriefData }) {
+  const refresh = useCallback(() => {
+    const subject = brief.symbol || brief.query;
+    if (!subject) {
+      return;
+    }
+    const depth = briefDepthTier(brief);
+    useAgentCommandStore.getState().send(researchDepthPrompt(subject, depth), depth);
+  }, [brief]);
+  const produced = new Date(brief.createdAt).toLocaleString(undefined, {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return (
+    <div className="border-charcoal-700 bg-charcoal-925 mx-3 mt-3 flex items-center gap-2 border px-3 py-2">
+      <Archive className="text-charcoal-400 size-3 shrink-0" aria-hidden />
+      <span className="text-micro text-charcoal-400 min-w-0 flex-1 truncate font-mono">
+        Archived · produced {produced}
+      </span>
+      <button
+        type="button"
+        onClick={refresh}
+        title="Re-run this research now (same depth)"
+        className="border-charcoal-700 text-charcoal-300 hover:text-lume rounded-control text-micro flex h-6 shrink-0 cursor-pointer items-center gap-1 border px-2 font-mono transition-colors"
+      >
+        <RefreshCw className="size-3" aria-hidden /> Refresh
+      </button>
+    </div>
+  );
+}
+
+/**
+ * DISAMBIGUATION — the honest "which did you mean?" (D37): candidate chips
+ * (symbol + name + exchange) instead of a guessed brief; a click re-runs the
+ * research bound to the chosen quote-routable symbol at the brief's depth.
+ */
+function DisambiguationView({
+  brief,
+  disambiguation,
+}: {
+  brief: ResearchBriefData;
+  disambiguation: BriefDisambiguation;
+}) {
+  const depth = briefDepthTier(brief);
+  const choose = useCallback(
+    (target: string) => {
+      if (!target) {
+        return;
+      }
+      useAgentCommandStore.getState().send(researchDepthPrompt(target, depth), depth);
+    },
+    [depth],
+  );
+  return (
+    <div className="flex flex-col gap-3 px-4 py-4">
+      <p className="text-charcoal-100 text-panel-title leading-snug">Which did you mean?</p>
+      <p className="text-charcoal-400 text-caption leading-relaxed">
+        “{disambiguation.query || brief.query}” matched more than one instrument — pick one to
+        research it.
+      </p>
+      <ul className="flex flex-col gap-2">
+        {disambiguation.candidates.map((candidate) => (
+          <li key={`${candidate.symbol}-${candidate.exchange ?? ""}`}>
+            <button
+              type="button"
+              onClick={() => choose(candidate.yahooSymbol ?? candidate.symbol)}
+              className="border-charcoal-700 bg-charcoal-850 hover:border-charcoal-600 text-caption flex w-full cursor-pointer items-baseline gap-2 border px-3 py-2 text-left font-mono transition-colors"
+            >
+              <span className="text-charcoal-100 shrink-0 font-medium">{candidate.symbol}</span>
+              <span className="text-charcoal-300 min-w-0 flex-1 truncate">{candidate.name}</span>
+              {candidate.exchange ? (
+                <span className="text-micro text-charcoal-500 shrink-0">{candidate.exchange}</span>
+              ) : null}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 // --- empty / no-web states -------------------------------------------------
 
 function EmptyState() {
@@ -395,7 +549,13 @@ function EmptyState() {
  * it says so honestly rather than faking an error or an empty result.
  */
 export function BriefPanel() {
+  const panel = useBriefStore((s) => s.panel);
   const brief = useBriefStore((s) => s.brief);
+  // ARCHIVED rendering (D39): an archived phase, or any brief WITHOUT an
+  // execution record (no record = archival by definition — pre-R10 artifacts,
+  // workspace restores of older blobs).
+  const archived =
+    panel.phase === "archived" || (panel.phase !== "in_flight" && !!brief && !brief.execution);
 
   // Map a source index to its rendered <li> so a `[n]` chip can scroll it into
   // view + flash it. A ref map (not state) — purely imperative, no re-render.
@@ -463,8 +623,23 @@ export function BriefPanel() {
     window.setTimeout(() => el.classList.remove("bg-charcoal-875"), 1200);
   }, []);
 
+  // IN-FLIGHT (D39): the working skeleton — never a broken empty panel mid-run.
+  if (panel.phase === "in_flight") {
+    return <InFlightView run={panel} />;
+  }
+
   if (!brief) {
     return <EmptyState />;
+  }
+
+  // DISAMBIGUATION (D37): the chooser renders INSTEAD of a researched body —
+  // the two never co-exist for one run.
+  if (brief.disambiguation && !brief.markdown.trim()) {
+    return (
+      <div className="bg-charcoal-900 flex h-full w-full flex-col overflow-y-auto">
+        <DisambiguationView brief={brief} disambiguation={brief.disambiguation} />
+      </div>
+    );
   }
 
   // `noWeb` is the honest no-web state, already reconciled in briefFromInput with
@@ -518,6 +693,9 @@ export function BriefPanel() {
         <div className="bg-charcoal-900 flex flex-col">
           <MetaHeader brief={brief} />
 
+          {/* ARCHIVED strip (D39): provenance eyebrow + the Refresh re-run. */}
+          {archived && <ArchivedBanner brief={brief} />}
+
           {showKeylessNudge && (
             <KeylessFallbackNudge onDismiss={() => setNudgeDismissedFor(brief.createdAt)} />
           )}
@@ -558,7 +736,7 @@ export function BriefPanel() {
             </p>
           ) : null}
 
-          <BriefBody brief={brief} onCite={scrollToSource} />
+          <BriefBody brief={brief} onCite={scrollToSource} dimMetrics={archived} />
         </div>
 
         {sources.length > 0 ? (

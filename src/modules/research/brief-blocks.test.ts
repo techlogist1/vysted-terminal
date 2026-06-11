@@ -3,7 +3,7 @@ import { createElement } from "react";
 import { describe, expect, it } from "vitest";
 
 import { deriveMetrics, MarkdownBody } from "@/modules/research/brief-blocks";
-import type { BriefStructured } from "../../../types/brief";
+import type { BriefDerivedMetrics, BriefStructured } from "../../../types/brief";
 import type { Fundamentals, Quote } from "../../../types/data";
 
 /** Render MarkdownBody to static HTML for content assertions (no DOM needed). */
@@ -204,5 +204,96 @@ describe("MarkdownBody — the shared typed-block renderer", () => {
     const html = renderBody("A claim [1] and another [2].");
     expect(html).toContain("Jump to source 1");
     expect(html).toContain("Jump to source 2");
+  });
+});
+
+// ── derived semantics leg (R10 E8) ───────────────────────────────────────────
+
+function derivedLeg(data: BriefDerivedMetrics): BriefStructured["derived"] {
+  return { ok: true, provider: "derived", data };
+}
+
+describe("deriveMetrics — the derived semantics leg leads the grid (E8)", () => {
+  it("renders drawdown and 52w-change as SEPARATE leading cards", () => {
+    const model = deriveMetrics(
+      structured("equity", {
+        derived: derivedLeg({
+          drawdown_from_high: {
+            value: 0.216,
+            label: "Below 52-week high",
+            basis: "vs 52w high",
+            formula: "(52w high − price) / 52w high",
+            unit: "percent",
+          },
+          fifty_two_week_change: {
+            value: 0.34,
+            label: "52-week change",
+            unit: "percent",
+          },
+        }),
+      }),
+    );
+    const items = model?.items ?? [];
+    expect(items[0].label).toBe("Below 52-week high");
+    // Drawdown reads as a NEGATIVE magnitude — never 52w-change's upward look.
+    expect(items[0].value).toContain("-21.60%");
+    expect(items[0].title).toContain("(52w high − price)");
+    expect(items[1].label).toBe("52-week change");
+    expect(items[1].value).toBe("+34.00%");
+  });
+
+  it("dividend + growth carry their basis suffix; nulls render nothing", () => {
+    const model = deriveMetrics(
+      structured("equity", {
+        derived: derivedLeg({
+          dividend_yield: { value: 0.0055, label: "Dividend yield", basis: "of price", unit: "percent" },
+          dividend_per_share: { value: 1, label: "Dividend / share", basis: "INR", unit: "currency" },
+          revenue_growth: { value: 0.124, label: "Revenue growth", basis: "FY/FY", unit: "percent" },
+          earnings_growth: { value: null, label: "Earnings growth", unit: "percent" },
+        }),
+      }),
+    );
+    const byLabel = Object.fromEntries((model?.items ?? []).map((i) => [i.label, i.value]));
+    expect(byLabel["Dividend yield"]).toBe("0.55% · of price");
+    expect(byLabel["Dividend / share"]).toBe("1.00 · INR");
+    expect(byLabel["Revenue growth"]).toBe("+12.40% · FY/FY");
+    expect(byLabel["Earnings growth"]).toBeUndefined(); // null → no card, never fabricated
+    // The derived dividend/growth cards SHADOW the raw basis-less duplicates.
+    expect(byLabel["Div yield"]).toBeUndefined();
+    expect(byLabel["Rev growth"]).toBeUndefined();
+  });
+
+  it("conflicts render as flag lines and never silently reconcile", () => {
+    const model = deriveMetrics(
+      structured("equity", {
+        derived: derivedLeg({
+          conflicts: [
+            {
+              field: "dividend_yield",
+              sources: [
+                { provider: "yield", value: "0.55%" },
+                { provider: "per-share", value: "₹1/share" },
+              ],
+              note: "not reconciled",
+            },
+          ],
+        }),
+      }),
+    );
+    expect(model?.conflicts).toEqual([
+      "Sources disagree on dividend yield: 0.55% (yield) vs ₹1/share (per-share) — not reconciled",
+    ]);
+  });
+
+  it("a derived-only bundle (raw legs failed) still yields a model", () => {
+    const model = deriveMetrics({
+      price: { ok: false },
+      fundamentals: { ok: false },
+      derived: derivedLeg({
+        drawdown_from_high: { value: 0.1, label: "Below 52-week high", unit: "percent" },
+      }),
+    });
+    expect(model).not.toBeNull();
+    expect(model?.items[0].label).toBe("Below 52-week high");
   });
 });

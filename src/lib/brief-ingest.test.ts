@@ -5,8 +5,12 @@ import {
   briefSlug,
   composeBriefMarkdown,
   dedupeSources,
+  depthFromExecution,
+  depthTierToWire,
   deriveAssetClass,
   deriveSourceType,
+  disambiguationFromWire,
+  executionFromWire,
   formatBriefSpend,
   formatBriefTokens,
   isAcceptableBriefMode,
@@ -331,5 +335,118 @@ describe("composeBriefMarkdown — marker truth (R8)", () => {
     );
     expect(md).toContain("CUDA leads [1].");
     expect(md).not.toContain("[7]");
+  });
+});
+
+// ── execution / disambiguation wire ingest (R10, D38/D37) ───────────────────
+
+describe("executionFromWire", () => {
+  it("maps a snake_case wire record onto the camelCase contract", () => {
+    const execution = executionFromWire({
+      run_id: "abc123",
+      requested_depth: "deep",
+      loop: "iter",
+      backend: "searxng",
+      started_at: 1_000,
+      finished_at: 9_000,
+      degraded_reason: null,
+    });
+    expect(execution).toEqual({
+      runId: "abc123",
+      requestedDepth: "deep",
+      loop: "iter",
+      backend: "searxng",
+      startedAt: 1_000,
+      finishedAt: 9_000,
+      degradedReason: null,
+    });
+  });
+
+  it("accepts an already-camelCase record (a persisted brief round-trips)", () => {
+    const execution = executionFromWire({
+      runId: "abc123",
+      requestedDepth: "ultra",
+      loop: "heavy",
+    });
+    expect(execution?.runId).toBe("abc123");
+    expect(execution?.loop).toBe("heavy");
+    expect(execution?.requestedDepth).toBe("ultra");
+  });
+
+  it("rejects records without a run_id or with an unknown loop (no execution truth)", () => {
+    expect(executionFromWire({ loop: "iter", requested_depth: "deep" })).toBeUndefined();
+    expect(
+      executionFromWire({ run_id: "x", loop: "warp-drive", requested_depth: "deep" }),
+    ).toBeUndefined();
+    expect(executionFromWire("not an object")).toBeUndefined();
+    expect(executionFromWire(undefined)).toBeUndefined();
+  });
+
+  it("defaults an unknown requested depth to normal", () => {
+    expect(executionFromWire({ run_id: "x", loop: "fast", requested_depth: "??" })?.requestedDepth).toBe(
+      "normal",
+    );
+  });
+});
+
+describe("depthFromExecution — the loop that RAN is the truth (E2)", () => {
+  const base = { runId: "r", backend: null } as const;
+  it("fast→quick, iter→deep, heavy→heavy regardless of the requested stop", () => {
+    expect(depthFromExecution({ ...base, requestedDepth: "ultra", loop: "fast" })).toBe("quick");
+    expect(depthFromExecution({ ...base, requestedDepth: "normal", loop: "iter" })).toBe("deep");
+    expect(depthFromExecution({ ...base, requestedDepth: "deep", loop: "heavy" })).toBe("heavy");
+  });
+
+  it("research-model is stop-based (it has no internal loop)", () => {
+    expect(depthFromExecution({ ...base, requestedDepth: "normal", loop: "research-model" })).toBe(
+      "quick",
+    );
+    expect(depthFromExecution({ ...base, requestedDepth: "deep", loop: "research-model" })).toBe(
+      "deep",
+    );
+    expect(depthFromExecution({ ...base, requestedDepth: "ultra", loop: "research-model" })).toBe(
+      "heavy",
+    );
+  });
+});
+
+describe("depthTierToWire — the refresh escalation's options floor (E2 UI leg)", () => {
+  it("maps quick→normal, deep→deep, heavy→ultra", () => {
+    expect(depthTierToWire("quick")).toBe("normal");
+    expect(depthTierToWire("deep")).toBe("deep");
+    expect(depthTierToWire("heavy")).toBe("ultra");
+  });
+});
+
+describe("disambiguationFromWire", () => {
+  it("maps candidates, dropping symbol-less rows", () => {
+    const d = disambiguationFromWire({
+      query: "reliance",
+      candidates: [
+        {
+          symbol: "RELIANCE",
+          name: "Reliance Industries",
+          exchange: "NSE",
+          score: 0.69,
+          yahoo_symbol: "RELIANCE.NS",
+        },
+        { name: "No symbol — dropped" },
+      ],
+    });
+    expect(d?.query).toBe("reliance");
+    expect(d?.candidates).toHaveLength(1);
+    expect(d?.candidates[0]).toMatchObject({
+      symbol: "RELIANCE",
+      name: "Reliance Industries",
+      exchange: "NSE",
+      score: 0.69,
+      yahooSymbol: "RELIANCE.NS",
+    });
+  });
+
+  it("yields undefined for an empty/absent candidate list (nothing to choose)", () => {
+    expect(disambiguationFromWire({ query: "x", candidates: [] })).toBeUndefined();
+    expect(disambiguationFromWire({ query: "x" })).toBeUndefined();
+    expect(disambiguationFromWire(null)).toBeUndefined();
   });
 });
