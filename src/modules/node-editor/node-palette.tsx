@@ -81,7 +81,7 @@ export function NodePalette({ registry }: NodePaletteProps) {
         </span>
       </header>
       {registry.length > SEARCH_THRESHOLD && (
-        <div className="border-charcoal-800 border-b px-2 py-1.5">
+        <div className="border-charcoal-800 border-b px-2 py-2">
           <input
             type="search"
             aria-label="Search nodes"
@@ -149,7 +149,7 @@ function PaletteCard({ entry }: PaletteCardProps) {
       data-testid={`palette-card-${spec.id}`}
       onDragStart={handleDragStart}
       className={cn(
-        "border-charcoal-700 bg-charcoal-850 rounded-control text-caption cursor-grab border px-2 py-1.5 font-mono select-none",
+        "border-charcoal-700 bg-charcoal-850 rounded-control text-caption cursor-grab border px-2 py-1 font-mono select-none",
         "hover:border-charcoal-500 hover:bg-charcoal-700/5 active:cursor-grabbing",
       )}
     >

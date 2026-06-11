@@ -207,7 +207,11 @@ export function WorkflowRunOverlay({ state, onClose, onRerun }: WorkflowRunOverl
               <span className="text-negative text-micro font-mono">{node.error}</span>
             )}
             {node.outputs !== undefined && Object.keys(node.outputs).length > 0 && (
-              <pre className="bg-charcoal-850 text-charcoal-300 text-micro max-h-48 overflow-x-auto overflow-y-hidden rounded-none p-1 font-mono leading-snug whitespace-pre-wrap">
+              <pre
+                className={
+                  "bg-charcoal-850 text-charcoal-300 text-micro max-h-48 overflow-x-auto overflow-y-hidden rounded-none p-1 font-mono leading-snug whitespace-pre-wrap" /* tokens-ok: node-output scroll cap - layout */
+                }
+              >
                 {formatOutputs(node.outputs)}
               </pre>
             )}
@@ -220,7 +224,7 @@ export function WorkflowRunOverlay({ state, onClose, onRerun }: WorkflowRunOverl
           <button
             type="button"
             onClick={onRerun}
-            className="bg-charcoal-800 hover:bg-charcoal-700 text-charcoal-100 rounded-control text-caption w-full py-1.5 font-mono"
+            className="bg-charcoal-800 hover:bg-charcoal-700 text-charcoal-100 rounded-control text-caption flex h-7 w-full items-center justify-center font-mono"
           >
             Run again
           </button>
@@ -235,7 +239,7 @@ function RunStatusBadge({ status }: { status: RunOverlayState["status"] }) {
     <span
       data-testid={`run-status-${status}`}
       className={cn(
-        "rounded-control text-micro border px-1.5 py-0.5 font-mono uppercase",
+        "rounded-control text-micro border px-1 py-0.5 font-mono uppercase",
         status === "running" && "border-amber-500 bg-amber-500/10 text-amber-300",
         status === "ok" && "border-positive bg-positive/10 text-positive",
         status === "error" && "border-negative bg-negative/10 text-negative",
@@ -252,7 +256,7 @@ function NodeStatusBadge({ status }: { status: NodeRunState["status"] }) {
     <span
       data-testid={`node-status-${status}`}
       className={cn(
-        "rounded-control text-micro border px-1.5 py-0.5 font-mono uppercase",
+        "rounded-control text-micro border px-1 py-0.5 font-mono uppercase",
         status === "running" && "border-amber-500 bg-amber-500/10 text-amber-300",
         status === "ok" && "border-positive bg-positive/10 text-positive",
         status === "error" && "border-negative bg-negative/10 text-negative",

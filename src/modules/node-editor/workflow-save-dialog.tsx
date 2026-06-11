@@ -127,7 +127,7 @@ function WorkflowSaveDialogBody({
             onChange={(event) => setDescription(event.target.value)}
             placeholder="Fetch quote + history; compute RSI; run researcher; log."
             rows={3}
-            className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 min-h-[3rem] resize-y p-2 font-mono leading-relaxed outline-none focus:ring-1"
+            className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 min-h-12 resize-y p-2 font-mono leading-relaxed outline-none focus:ring-1"
           />
         </label>
         {error !== null && error !== undefined && (
