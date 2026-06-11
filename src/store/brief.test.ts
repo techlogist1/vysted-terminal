@@ -185,7 +185,9 @@ describe("brief lifecycle state machine (R10 D39)", () => {
     useBriefStore.getState().beginRun({ runId: "run-2", query: "q", depth: "deep" });
     const stale = useBriefStore
       .getState()
-      .publish(published({ execution: { runId: "run-OLD", requestedDepth: "deep", loop: "iter" } }));
+      .publish(
+        published({ execution: { runId: "run-OLD", requestedDepth: "deep", loop: "iter" } }),
+      );
     expect(stale).toBe("stale_run");
     expect(useBriefStore.getState().panel.phase).toBe("in_flight");
 

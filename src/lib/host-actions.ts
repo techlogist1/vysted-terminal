@@ -170,7 +170,9 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
   // the loop that ran (fast→quick, iter→deep, heavy→heavy, research-model→
   // stop-based) — the wire `mode` is ignored. Legacy inputs keep the explicit
   // depth/mode derivation with the same-symbol MAX-tier carry (#5).
-  const depth: BriefDepth = execution ? depthFromExecution(execution) : carryBriefDepth(input, symbol);
+  const depth: BriefDepth = execution
+    ? depthFromExecution(execution)
+    : carryBriefDepth(input, symbol);
   const mode = normalizeBriefMode(depth === "quick" ? "fast" : "deep");
   const cost =
     typeof input.cost === "object" && input.cost !== null
@@ -762,9 +764,10 @@ export function describeHostAction(
       const count = activePortfolio()?.holdings.length ?? 0;
       return {
         kind: "data-write",
-        title: `Add ${qty || ""} ${symbol}${cost ? ` @ ${formatPrice(cost)}` : ""} to the paper portfolio`
-          .replace(/\s+/g, " ")
-          .trim(),
+        title:
+          `Add ${qty || ""} ${symbol}${cost ? ` @ ${formatPrice(cost)}` : ""} to the paper portfolio`
+            .replace(/\s+/g, " ")
+            .trim(),
         before: `Portfolio: ${count} position${count === 1 ? "" : "s"}`,
         after: `Portfolio: +${symbol} ×${qty} (${count + 1} total)`,
       };
@@ -1256,9 +1259,8 @@ function positionBody(input: Record<string, unknown>, fallback?: Holding) {
   const quantity = typeof input.quantity === "number" ? input.quantity : (fallback?.quantity ?? 0);
   const costBasis =
     typeof input.cost_basis === "number" ? input.cost_basis : (fallback?.costBasis ?? 0);
-  const assetClass: AssetClass = (input.asset_class ?? fallback?.assetClass) === "crypto"
-    ? "crypto"
-    : "equity";
+  const assetClass: AssetClass =
+    (input.asset_class ?? fallback?.assetClass) === "crypto" ? "crypto" : "equity";
   const note = str(input, "note") || fallback?.note;
   return { symbol, quantity, costBasis, assetClass, note };
 }

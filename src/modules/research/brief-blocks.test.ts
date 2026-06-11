@@ -246,9 +246,24 @@ describe("deriveMetrics — the derived semantics leg leads the grid (E8)", () =
     const model = deriveMetrics(
       structured("equity", {
         derived: derivedLeg({
-          dividend_yield: { value: 0.0055, label: "Dividend yield", basis: "of price", unit: "percent" },
-          dividend_per_share: { value: 1, label: "Dividend / share", basis: "INR", unit: "currency" },
-          revenue_growth: { value: 0.124, label: "Revenue growth", basis: "FY/FY", unit: "percent" },
+          dividend_yield: {
+            value: 0.0055,
+            label: "Dividend yield",
+            basis: "of price",
+            unit: "percent",
+          },
+          dividend_per_share: {
+            value: 1,
+            label: "Dividend / share",
+            basis: "INR",
+            unit: "currency",
+          },
+          revenue_growth: {
+            value: 0.124,
+            label: "Revenue growth",
+            basis: "FY/FY",
+            unit: "percent",
+          },
           earnings_growth: { value: null, label: "Earnings growth", unit: "percent" },
         }),
       }),

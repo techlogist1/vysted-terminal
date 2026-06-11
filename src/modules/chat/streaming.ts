@@ -348,12 +348,8 @@ function normalizeEvent(payload: Record<string, unknown>): LLMStreamEvent | null
     const frame: StreamErrorFrame = {
       kind: "error",
       message: String(payload.message ?? "unknown error"),
-      ...(typeof payload.action === "string" && payload.action
-        ? { action: payload.action }
-        : {}),
-      ...(typeof payload.detail === "string" && payload.detail
-        ? { detail: payload.detail }
-        : {}),
+      ...(typeof payload.action === "string" && payload.action ? { action: payload.action } : {}),
+      ...(typeof payload.detail === "string" && payload.detail ? { detail: payload.detail } : {}),
       ...(typeof payload.code === "string" && payload.code ? { code: payload.code } : {}),
     };
     return frame;

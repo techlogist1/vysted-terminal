@@ -900,7 +900,12 @@ describe("briefFromInput execution truth (R10 D38/E2)", () => {
       disambiguation: {
         query: "reliance",
         candidates: [
-          { symbol: "RELIANCE", name: "Reliance Industries", exchange: "NSE", yahoo_symbol: "RELIANCE.NS" },
+          {
+            symbol: "RELIANCE",
+            name: "Reliance Industries",
+            exchange: "NSE",
+            yahoo_symbol: "RELIANCE.NS",
+          },
           { symbol: "RPOWER", name: "Reliance Power", exchange: "NSE", yahoo_symbol: "RPOWER.NS" },
         ],
       },
@@ -929,9 +934,9 @@ describe("briefFromInput execution truth (R10 D38/E2)", () => {
     expect(publishAckStatus("Kept the richer research brief already on screen")).toBe(
       "kept_previous",
     );
-    expect(publishAckStatus("Kept the run in flight — this publish belonged to a different run")).toBe(
-      "kept_previous",
-    );
+    expect(
+      publishAckStatus("Kept the run in flight — this publish belonged to a different run"),
+    ).toBe("kept_previous");
     expect(publishAckStatus("Published the DEEP research brief")).toBe("applied");
   });
 });
@@ -1012,7 +1017,9 @@ describe("portfolio host actions (E6 — paper portfolio writes)", () => {
       cost_basis: 1263,
     });
     expect(await applyHostActionAsync("portfolio_delete_position", { symbol: "TSLA" })).toBeNull();
-    const label = await applyHostActionAsync("portfolio_delete_position", { symbol: "RELIANCE.NS" });
+    const label = await applyHostActionAsync("portfolio_delete_position", {
+      symbol: "RELIANCE.NS",
+    });
     expect(label).toMatch(/Removed RELIANCE/);
     expect(activeHoldings()).toHaveLength(0);
   });

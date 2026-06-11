@@ -383,9 +383,9 @@ describe("executionFromWire", () => {
   });
 
   it("defaults an unknown requested depth to normal", () => {
-    expect(executionFromWire({ run_id: "x", loop: "fast", requested_depth: "??" })?.requestedDepth).toBe(
-      "normal",
-    );
+    expect(
+      executionFromWire({ run_id: "x", loop: "fast", requested_depth: "??" })?.requestedDepth,
+    ).toBe("normal");
   });
 });
 

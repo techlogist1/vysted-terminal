@@ -193,9 +193,7 @@ describe("proposed-changes store — the diff/accept trust gate (FR-010)", () =>
       webAvailable: false,
       createdAt: Date.now(),
     });
-    useBriefStore
-      .getState()
-      .beginRun({ runId: "run-1", query: "next", depth: "deep" });
+    useBriefStore.getState().beginRun({ runId: "run-1", query: "next", depth: "deep" });
     const id = enqueue("publish_brief", { markdown: "## next" });
     useProposedChangesStore.getState().reject(id);
     const panel = useBriefStore.getState().panel;

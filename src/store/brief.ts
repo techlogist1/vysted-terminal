@@ -169,7 +169,8 @@ export const useBriefStore = create<BriefState>((set, get) => {
       // run never produced anything worth carrying. Transient state: no
       // autosave churn mid-run (the publish/fail transition persists).
       const current = get().panel;
-      const prior = current.phase === "in_flight" ? current.prior : (mirrorOf(current) ?? undefined);
+      const prior =
+        current.phase === "in_flight" ? current.prior : (mirrorOf(current) ?? undefined);
       transition(
         {
           phase: "in_flight",

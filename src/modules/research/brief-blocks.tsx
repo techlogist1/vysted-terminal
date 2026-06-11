@@ -228,12 +228,13 @@ function conflictLines(conflicts: readonly BriefMetricConflict[] | undefined): s
       continue;
     }
     const field = String(conflict.field ?? "").replace(/_/g, " ");
-    const values = Array.isArray(conflict.sources)
+    const sources: BriefMetricConflict["sources"] = Array.isArray(conflict.sources)
       ? conflict.sources
-          .filter((s): s is BriefMetricConflict["sources"][number] => !!s && typeof s === "object")
-          .map((s) => `${s.value} (${s.provider})`)
-          .join(" vs ")
-      : "";
+      : [];
+    const values = sources
+      .filter((s) => s && typeof s === "object")
+      .map((s) => `${s.value} (${s.provider})`)
+      .join(" vs ");
     const note = (conflict.note ?? "").trim();
     const detail = [values, note].filter(Boolean).join(" — ");
     if (!field && !detail) {
@@ -339,8 +340,7 @@ export function deriveMetrics(structured: BriefStructured | undefined): MetricsM
   const priceLeg = isLeg(structured.price) && structured.price.ok ? structured.price : null;
   const fundLeg =
     isLeg(structured.fundamentals) && structured.fundamentals.ok ? structured.fundamentals : null;
-  const derivedLeg =
-    isLeg(structured.derived) && structured.derived.ok ? structured.derived : null;
+  const derivedLeg = isLeg(structured.derived) && structured.derived.ok ? structured.derived : null;
   const quote = (priceLeg?.data ?? undefined) as Quote | undefined;
   const fund = (fundLeg?.data ?? undefined) as Fundamentals | undefined;
   const derived = (derivedLeg?.data ?? undefined) as BriefDerivedMetrics | undefined;

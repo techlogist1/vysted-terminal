@@ -931,9 +931,7 @@ export function ChatSidebar() {
           if (brief.panel.phase === "in_flight") {
             const publishPending = useProposedChangesStore
               .getState()
-              .changes.some(
-                (c) => c.status === "pending" && c.action.name === "publish_brief",
-              );
+              .changes.some((c) => c.status === "pending" && c.action.name === "publish_brief");
             if (!publishPending) {
               brief.failRun();
             }

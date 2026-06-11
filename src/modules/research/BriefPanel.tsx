@@ -412,9 +412,7 @@ function InFlightView({ run }: { run: Extract<BriefPanelState, { phase: "in_flig
         <span className="tabular-nums">{formatElapsed(Math.max(0, now - run.startedAt))}</span>
       </p>
       {(run.query || run.symbol) && (
-        <p className="text-charcoal-100 text-panel-title leading-snug">
-          {run.query || run.symbol}
-        </p>
+        <p className="text-charcoal-100 text-panel-title leading-snug">{run.query || run.symbol}</p>
       )}
       {/* Skeleton: a metric-grid ghost + reading-line ghosts, all on the 8pt
           grid — the shape the published brief will take. */}
