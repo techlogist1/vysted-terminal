@@ -28,6 +28,8 @@ from models.llm import (
     LLMUsage,
 )
 
+from services.errors import humanize
+
 from .base import LLMProvider, LLMStreamEvent
 
 #: Conservative default — anthropic SDK requires ``max_tokens`` on every call.
@@ -134,9 +136,11 @@ class AnthropicProvider(LLMProvider):
                     finish_reason=getattr(final, "stop_reason", None),
                 )
         except anthropic.AnthropicError as exc:  # pragma: no cover — network path
-            yield LLMErrorEvent(message=str(exc))
+            h = humanize("anthropic", exc)
+            yield LLMErrorEvent(message=h.message, action=h.action, detail=h.detail, code=h.code)
         except Exception as exc:  # pragma: no cover — defensive
-            yield LLMErrorEvent(message=f"anthropic stream failed: {exc}")
+            h = humanize("anthropic", exc)
+            yield LLMErrorEvent(message=h.message, action=h.action, detail=h.detail, code=h.code)
 
     async def validate_key(self, api_key: str | None = None) -> bool:
         """Probe ``/v1/models`` — the cheapest authenticated request."""

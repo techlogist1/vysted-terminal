@@ -172,8 +172,8 @@ def _api_key() -> str:
     key = os.environ.get(_API_KEY_ENV)
     if not key:
         raise ProviderError(
-            f"FRED provider requires the {_API_KEY_ENV} environment variable. "
-            "Sign up for a free key at https://fred.stlouisfed.org/docs/api/api_key.html."
+            "Add a FRED key in Settings to unlock macro data. "
+            "(Sign up free at https://fred.stlouisfed.org/docs/api/api_key.html.)"
         )
     return key
 

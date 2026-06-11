@@ -30,6 +30,8 @@ from models.llm import (
     LLMUsage,
 )
 
+from services.errors import humanize
+
 from .base import LLMProvider, LLMStreamEvent
 
 
@@ -204,9 +206,11 @@ class OpenAIProvider(LLMProvider):
                 yield event
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
         except openai.OpenAIError as exc:  # pragma: no cover — network path
-            yield LLMErrorEvent(message=f"{self._provider_id} stream failed: {exc}")
+            h = humanize(self._provider_id, exc)
+            yield LLMErrorEvent(message=h.message, action=h.action, detail=h.detail, code=h.code)
         except Exception as exc:  # pragma: no cover — defensive
-            yield LLMErrorEvent(message=f"{self._provider_id} stream failed: {exc}")
+            h = humanize(self._provider_id, exc)
+            yield LLMErrorEvent(message=h.message, action=h.action, detail=h.detail, code=h.code)
 
     async def validate_key(self, api_key: str | None = None) -> bool:
         """Probe ``/v1/models`` — works for OpenAI, DeepSeek, and xAI alike."""

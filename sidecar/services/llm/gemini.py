@@ -28,6 +28,8 @@ from models.llm import (
     LLMUsage,
 )
 
+from services.errors import humanize
+
 from .base import LLMProvider, LLMStreamEvent
 
 
@@ -160,9 +162,11 @@ class GeminiProvider(LLMProvider):
                     )
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
         except genai_errors.APIError as exc:  # pragma: no cover — network path
-            yield LLMErrorEvent(message=f"gemini stream failed: {exc}")
+            h = humanize("gemini", exc)
+            yield LLMErrorEvent(message=h.message, action=h.action, detail=h.detail, code=h.code)
         except Exception as exc:  # pragma: no cover — defensive
-            yield LLMErrorEvent(message=f"gemini stream failed: {exc}")
+            h = humanize("gemini", exc)
+            yield LLMErrorEvent(message=h.message, action=h.action, detail=h.detail, code=h.code)
 
     async def validate_key(self, api_key: str | None = None) -> bool:
         """Probe ``models.list`` — the cheapest authenticated call."""
