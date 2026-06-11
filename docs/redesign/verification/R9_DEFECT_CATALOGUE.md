@@ -59,3 +59,25 @@ over `src/` before the kill; old blob values are silently dropped on restore
 - **Plus-menu inline truncated hints** — "Every change waits f…" mid-sentence clips; hints now stack as full second lines.
 - **Persona drill bare section header over an empty roster** (sidecar down) — headers render only with rows; honest "No personas available yet" otherwise.
 - Audited and KEPT (work + earn their place): spaces tab strip (thread switching), AgentsRail (live runs only), BudgetConfig (delegate ceiling), ProposedChangesReview gate, brief "Copy markdown", DepthMirror (read-only echo), dev-only StepLog.
+
+### Team E (proportion track) — partition sweep, 2026-06-11
+
+Wiring audit over the whole E partition (every module except chat/research; all
+`src/components` except SettingsPanel; plugins): every `opensPanel` target
+resolves to a registered panel id, every `PanelSpec.component` has a
+`panelComponents` mapping (and vice versa), and every marketplace catalogue
+`pluginId` resolves to a bundled plugin. No dead menu entries, orphaned panels,
+or commands registered to missing panel ids found (the R7 "screener" drift
+class is clear).
+
+| Item | Verdict | Rationale |
+|---|---|---|
+| Tradesa amber CTA (`bg-amber-500` Open Settings / Save & Connect) + `shadow-sm` | **Fixed** (replaced) | Accent is reserved for live agent activity (R9 §4); CTAs now ride the shared monochrome Button primitive |
+| Tradesa LLM-cost div-bar `bg-amber-500` fill | **Fixed** (neutral `charcoal-500`) | Data-vis bar shouting in the scarce accent — R9 §4 misuse |
+| Tradesa dead type sizes (`text-xs/sm/base/lg/[11px]`, 35+41+15 call sites) | **Fixed** (mapped to §2 roles) | 12/14px die under the one-scale law |
+| `broker-connect` chips `py-[1px]` (off-grid arbitrary) | **Fixed** (`py-0.5` micro-chip pattern) | §1 quarter-step is for optical gaps only |
+| `TradesaSettingsDialog.openSettingsDialog` export (never imported) | **Kept, on record** | Documented future-glue seam (docstring: slash-command path deferred to v0.6.6, lead owns index.ts); not rendered UI, zero user-facing surface |
+| `useMarketplaceStore.stateFor` selector (read only by tests) | **Kept, on record** | Test seam, not UI debris; killing it breaks the store contract tests for nothing |
+
+No UI control in the partition is rendered without a working handler; nothing
+further to kill.

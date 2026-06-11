@@ -367,7 +367,7 @@
   --dv-drag-over-border-color: var(--color-charcoal-500, #8a8a8a);
   /* R8: pinned to the type-scale token (caption — the chrome-label step), not
      a literal, so a scale change re-values the tab strip with it. */
-  --dv-tab-font-size: var(--text-caption, 0.75rem);
+  --dv-tab-font-size: var(--text-caption, 0.8125rem);
 }
 
 /* The active tab wears a NEUTRAL underline tick along its bottom edge -- the lit
@@ -385,6 +385,18 @@
      this floor a tab is unreadable — hold it and let the strip overflow into
      dockview's dropdown instead. */
   min-width: 96px;
+}
+
+/* R9 V7 — the minimum-tab-width law's second half. dockview 6.x has no
+   `minimumTabWidth` option: tabs hold the 96px floor above, the STRIP scrolls,
+   and a partially-scrolled tab used to hard-clip to a 2–3 char fragment right
+   beside the overflow chip. Fade the strip's trailing edge instead (Cursor's
+   treatment): the partial tab reads as a designed continuation into the "N
+   more" dropdown, never a broken fragment. Mask only — no layout change, so
+   dockview's overflow measurement is untouched. */
+.dockview-theme-vysted .dv-tabs-container {
+  mask-image: linear-gradient(to right, black calc(100% - 24px), transparent);
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent);
 }
 
 /* R8 §3.1 — dockview's default tab content sets text-overflow on the PARENT

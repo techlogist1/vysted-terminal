@@ -94,7 +94,11 @@ export function FirstLaunchTosDialog() {
             Please review the operating terms before connecting a broker.
           </DialogDescription>
         </DialogHeader>
-        <pre className="text-charcoal-400 text-caption max-h-64 overflow-y-auto leading-snug whitespace-pre-wrap">
+        <pre
+          className={
+            "text-charcoal-400 text-caption max-h-64 overflow-y-auto leading-snug whitespace-pre-wrap" /* tokens-ok: TOS-body scroll cap — layout */
+          }
+        >
           {TOS_BODY}
         </pre>
         {ackError !== null && (

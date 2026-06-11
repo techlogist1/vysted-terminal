@@ -349,18 +349,18 @@ function SimpleCriteriaEditor() {
           variant="outline"
           onClick={() => add({ field: "pe_ratio", operator: "lt", value: 20 })}
         >
-          <Plus className="mr-1 size-3.5" />
+          <Plus className="mr-1" />
           Add criterion
         </Button>
       </div>
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         {criteria.length === 0 ? (
           <p className="border-border text-muted-foreground text-body rounded-none border border-dashed p-3 text-center">
             No criteria — every universe member will match.
           </p>
         ) : (
           criteria.map((c, i) => (
-            <div key={i} className="space-y-1.5">
+            <div key={i} className="space-y-2">
               {i > 0 ? (
                 <div className="text-muted-foreground text-micro pl-2 tracking-widest uppercase">
                   {combinator === "or" ? "or" : "and"}

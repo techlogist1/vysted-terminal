@@ -514,7 +514,7 @@ function NodeEditorPanelInner() {
               setWorkflowName(event.target.value);
               setIsDirty(true);
             }}
-            className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus:ring-charcoal-500 h-8 max-w-xs flex-1 border px-2 font-mono outline-none focus:ring-1"
+            className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus:ring-charcoal-500 h-7 max-w-xs flex-1 border px-2 font-mono outline-none focus:ring-1"
           />
           {isDirty && (
             <span className="text-charcoal-400 text-micro font-mono uppercase">unsaved</span>
@@ -712,7 +712,7 @@ function PropertiesForm({
         <FreeFormConfigEditor config={node.data.config} onReplace={onPatch} />
       )}
       <div className="mt-2 flex justify-end">
-        <Button size="sm" variant="ghost" onClick={onDelete}>
+        <Button variant="ghost" onClick={onDelete}>
           Delete node
         </Button>
       </div>
@@ -760,7 +760,7 @@ function ConfigFieldEditor({
         onChange={(event) => onChange(event.target.value)}
         rows={4}
         placeholder={field.placeholder}
-        className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 min-h-[4rem] resize-y p-2 font-mono outline-none focus:ring-1"
+        className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 min-h-16 resize-y p-2 font-mono outline-none focus:ring-1"
       />
     );
   } else if (field.kind === "boolean") {
@@ -829,10 +829,10 @@ function FreeFormConfigEditor({
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
         rows={6}
-        className="bg-charcoal-800 text-charcoal-100 rounded-control text-micro min-h-[6rem] resize-y p-2 font-mono outline-none"
+        className="bg-charcoal-800 text-charcoal-100 rounded-control text-micro min-h-24 resize-y p-2 font-mono outline-none"
       />
       {error !== null && <span className="text-negative text-micro font-mono">{error}</span>}
-      <Button size="sm" variant="outline" onClick={apply}>
+      <Button variant="outline" onClick={apply}>
         Apply
       </Button>
     </div>
@@ -901,7 +901,11 @@ function LoadDialog({ summaries, loadingList, error, onClose, onPick }: LoadDial
         ) : summaries.length === 0 ? (
           <p className="text-charcoal-400 text-caption font-mono">No saved workflows yet.</p>
         ) : (
-          <ul className="flex max-h-72 flex-col gap-1 overflow-y-auto">
+          <ul
+            className={
+              "flex max-h-72 flex-col gap-1 overflow-y-auto" /* tokens-ok: saved-workflow list scroll cap - layout */
+            }
+          >
             {summaries.map((s) => (
               <li key={s.id}>
                 <button
@@ -909,7 +913,7 @@ function LoadDialog({ summaries, loadingList, error, onClose, onPick }: LoadDial
                   onClick={() => onPick(s.id)}
                   className={cn(
                     "border-charcoal-700 hover:border-charcoal-500 hover:bg-charcoal-700/5",
-                    "rounded-control text-caption w-full border px-2 py-1.5 text-left font-mono",
+                    "rounded-control text-caption w-full border px-2 py-2 text-left font-mono",
                   )}
                 >
                   <div className="text-charcoal-100">{s.name}</div>

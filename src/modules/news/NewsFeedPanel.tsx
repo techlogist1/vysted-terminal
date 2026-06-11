@@ -65,7 +65,7 @@ function SentimentBadge({ item }: { item: NewsItem }) {
   const scored = item.sentiment_label !== null;
   return (
     <span
-      className={`text-micro flex shrink-0 items-center gap-1.5 whitespace-nowrap ${color}`}
+      className={`text-micro flex shrink-0 items-center gap-1 whitespace-nowrap ${color}`}
       title={score !== null ? `Sentiment score ${score.toFixed(2)}` : "No sentiment score"}
       data-testid="sentiment-badge"
     >
@@ -76,8 +76,8 @@ function SentimentBadge({ item }: { item: NewsItem }) {
         aria-hidden="true"
         className={
           scored
-            ? "size-1.5 shrink-0 rounded-full bg-current"
-            : "size-1.5 shrink-0 rounded-full border border-current bg-transparent"
+            ? "size-2 shrink-0 rounded-full bg-current"
+            : "size-2 shrink-0 rounded-full border border-current bg-transparent"
         }
       />
       <span className="tracking-wide uppercase">{label}</span>
@@ -117,7 +117,7 @@ function NewsRow({
         rel="noreferrer"
         onMouseEnter={() => onFocus(item.id)}
         onFocus={() => onFocus(item.id)}
-        className="hover:bg-charcoal-850 flex flex-col gap-1.5 px-4 py-3 transition-colors"
+        className="hover:bg-charcoal-850 flex flex-col gap-2 px-4 py-3 transition-colors"
       >
         <p className="text-charcoal-100 text-body leading-snug">{item.title}</p>
         {/* Meta row (R8 §3.4): the source truncates honestly, the sentiment
@@ -126,7 +126,7 @@ function NewsRow({
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           <span className="text-charcoal-500 text-caption min-w-0 flex-1 basis-32 truncate">
             {item.source}
-            <span className="text-charcoal-600 mx-1.5">·</span>
+            <span className="text-charcoal-600 mx-2">·</span>
             {relativeTime(item.published_at)}
           </span>
           <SentimentBadge item={item} />
@@ -136,7 +136,7 @@ function NewsRow({
             {item.symbols.map((symbol) => (
               <span
                 key={symbol}
-                className="bg-charcoal-800 rounded-control text-micro text-charcoal-300 px-1.5 py-0.5"
+                className="bg-charcoal-800 rounded-control text-micro text-charcoal-300 px-1 py-0.5"
               >
                 {symbol}
               </span>
@@ -276,12 +276,12 @@ export function NewsFeedPanel() {
           {Array.from({ length: 6 }).map((_, i) => (
             <li
               key={i}
-              className="border-charcoal-800 flex animate-pulse flex-col gap-1.5 border-b px-4 py-3"
+              className="border-charcoal-800 flex animate-pulse flex-col gap-2 border-b px-4 py-3"
             >
-              <div className="bg-charcoal-800 h-3.5 w-3/4 rounded-none" />
+              <div className="bg-charcoal-800 h-4 w-3/4 rounded-none" />
               <div className="flex gap-3">
-                <div className="bg-charcoal-800 h-2.5 w-1/3 rounded-none" />
-                <div className="bg-charcoal-800 ml-auto h-2.5 w-1/5 rounded-none" />
+                <div className="bg-charcoal-800 h-3 w-1/3 rounded-none" />
+                <div className="bg-charcoal-800 ml-auto h-3 w-1/5 rounded-none" />
               </div>
             </li>
           ))}

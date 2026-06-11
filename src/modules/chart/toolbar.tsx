@@ -24,6 +24,9 @@ import { pointsRequired } from "./drawings/factory";
 import { indicatorsByCategory, type IndicatorDef } from "./indicators";
 import type { DrawingKind } from "../../../types/drawings";
 
+/** The toolbar's ONE icon size — every svg on the chart toolbar is 14px. */
+export const TOOLBAR_ICON_CLASS = "size-3.5"; // tokens-ok: 14px icon — R9 §3 rung for h-7 controls
+
 // ---------------------------------------------------------------------------
 // Draw tool catalog — full names for the popover, terse labels for chips
 // ---------------------------------------------------------------------------
@@ -85,19 +88,35 @@ function ToggleMarker({ on }: { on: boolean }) {
 interface ToolbarDisclosureProps {
   /** Visible trigger label ("Draw", "Indicators", ...). */
   label: string;
+  /** 14px leading icon — the R9 §3 rung; one icon size across the toolbar. */
+  icon?: ReactNode;
+  /**
+   * Collapse step (R8 §3.4): icon-only trigger. The label survives as the
+   * accessible name (aria-label) and a hover tooltip (title).
+   */
+  iconOnly?: boolean;
+  /**
+   * Popover edge anchoring. Triggers that sit toward the panel's right edge
+   * (Compare/Sync, the narrow-step overflow) anchor "right" so the raised
+   * surface never clips outside a narrow panel.
+   */
+  align?: "left" | "right";
   /** Active-item count rendered after the label when > 0. */
   count?: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Accessible name for the popover region. */
   menuLabel: string;
-  /** Tailwind width class for the popover ("w-72", "w-96", ...). */
+  /** Tailwind width class for the popover ("w-72", "w-80", ...). */
   widthClass: string;
   children: ReactNode;
 }
 
 export function ToolbarDisclosure({
   label,
+  icon,
+  iconOnly = false,
+  align = "left",
   count,
   open,
   onOpenChange,
@@ -136,14 +155,17 @@ export function ToolbarDisclosure({
   const hasCount = typeof count === "number" && count > 0;
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className="relative shrink-0">
       <button
         type="button"
         onClick={() => onOpenChange(!open)}
         aria-expanded={open}
         aria-haspopup="true"
+        aria-label={label}
+        title={iconOnly ? label : undefined}
         className={cn(
-          "rounded-control text-caption flex h-6 items-center gap-1 px-2 font-mono transition-colors",
+          "rounded-control text-caption flex h-7 items-center font-mono transition-colors",
+          iconOnly ? "w-7 justify-center" : "gap-1 px-2",
           open
             ? "bg-charcoal-875 text-charcoal-100"
             : hasCount
@@ -151,18 +173,17 @@ export function ToolbarDisclosure({
               : "text-charcoal-400 hover:bg-charcoal-875 hover:text-charcoal-100",
         )}
       >
-        {label}
-        {hasCount ? <span className="text-charcoal-200">{count}</span> : null}
-        <span aria-hidden className="text-charcoal-500">
-          ▾
-        </span>
+        {icon}
+        {iconOnly ? null : label}
+        {hasCount && !iconOnly ? <span className="text-charcoal-200">{count}</span> : null}
       </button>
       {open ? (
         <div
           role="group"
           aria-label={menuLabel}
           className={cn(
-            "rounded-control bg-charcoal-875 absolute top-full left-0 z-30 mt-1 border p-1",
+            "rounded-control bg-charcoal-875 absolute top-full z-30 mt-1 border p-1",
+            align === "right" ? "right-0" : "left-0",
             widthClass,
           )}
           style={{ borderColor: "var(--hairline-strong)" }}
@@ -257,7 +278,7 @@ export function IndicatorsMenu({
         spellCheck={false}
         className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-body placeholder:text-charcoal-500 focus-visible:border-charcoal-500 mb-1 h-7 w-full border px-2 font-mono outline-none"
       />
-      <div className="max-h-80 overflow-y-auto">
+      <div className={cn("max-h-80 overflow-y-auto" /* tokens-ok: popover scroll cap — layout */)}>
         {groups.length === 0 ? (
           <p className="text-charcoal-500 text-caption px-2 py-2 font-mono">
             No indicators match &ldquo;{query}&rdquo;
@@ -334,9 +355,10 @@ export function CompareMenu({ value, onChange, onSubmit }: CompareMenuProps) {
           spellCheck={false}
           className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 rounded-control text-body placeholder:text-charcoal-500 focus-visible:border-charcoal-500 h-7 min-w-0 flex-1 border px-2 font-mono uppercase outline-none"
         />
+        {/* Sibling of the h-7 field — same toolbar rung, so the pair never misaligns. */}
         <button
           type="submit"
-          className="rounded-control bg-charcoal-850 text-charcoal-200 hover:bg-charcoal-800 hover:text-charcoal-100 text-caption h-6 shrink-0 px-2 font-mono whitespace-nowrap transition-colors"
+          className="rounded-control bg-charcoal-850 text-charcoal-200 hover:bg-charcoal-800 hover:text-charcoal-100 text-caption h-7 shrink-0 px-2 font-mono whitespace-nowrap transition-colors"
         >
           Add
         </button>

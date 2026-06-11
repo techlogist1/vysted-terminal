@@ -105,7 +105,7 @@ export function CodeNodeInspector({ config, onPatch }: CodeNodeInspectorProps) {
           rows={5}
           spellCheck={false}
           placeholder="a + b * 2"
-          className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 min-h-[5rem] resize-y p-2 font-mono leading-snug outline-none focus:ring-1"
+          className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 min-h-20 resize-y p-2 font-mono leading-snug outline-none focus:ring-1"
         />
       </label>
       {!compile.ok && compile.error !== undefined && (

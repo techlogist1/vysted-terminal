@@ -320,9 +320,7 @@ function PathCard({
         <span className="text-charcoal-100 text-body font-mono font-medium">{title}</span>
         <span className="text-micro text-charcoal-500 ml-auto font-mono">{tag}</span>
       </div>
-      <p className="text-charcoal-400 text-caption min-h-[5.5rem] font-mono leading-relaxed">
-        {body}
-      </p>
+      <p className="text-charcoal-400 text-caption min-h-24 font-mono leading-relaxed">{body}</p>
       <Button
         size="sm"
         variant={primary ? "default" : "outline"}
@@ -382,7 +380,7 @@ function CloudStep({ onBack, onDone }: { onBack: () => void; onDone: () => void 
         onClick={() => void openExternal(OPENROUTER_KEYS_URL)}
         className="border-charcoal-700 bg-charcoal-900 text-charcoal-200 rounded-control text-caption hover:border-charcoal-500/40 hover:text-charcoal-100 flex items-center gap-2 border px-3 py-2 font-mono transition-colors"
       >
-        <ExternalLink className="size-3.5" aria-hidden="true" />
+        <ExternalLink size={14} aria-hidden="true" />
         Get a key — openrouter.ai/keys
       </button>
 
@@ -424,7 +422,7 @@ function CloudStep({ onBack, onDone }: { onBack: () => void; onDone: () => void 
           <Button type="submit" size="sm" disabled={status === "validating" || !key.trim()}>
             {status === "validating" ? (
               <>
-                <Loader2 className="size-3.5 animate-spin" aria-hidden="true" /> Validating…
+                <Loader2 size={14} className="animate-spin" aria-hidden="true" /> Validating…
               </>
             ) : (
               "Save & continue →"
@@ -517,7 +515,7 @@ function LocalStep({
 
       {loading && (
         <div className="text-charcoal-400 text-caption flex items-center gap-2 py-6 font-mono">
-          <Loader2 className="size-3.5 animate-spin" aria-hidden="true" /> Detecting your hardware…
+          <Loader2 size={14} className="animate-spin" aria-hidden="true" /> Detecting your hardware…
         </div>
       )}
 
@@ -576,7 +574,7 @@ function LocalStep({
                     onClick={() => void openExternal(OLLAMA_DOWNLOAD_URL)}
                     className="border-charcoal-700 bg-charcoal-800 text-charcoal-200 rounded-control text-caption hover:border-charcoal-500/40 hover:text-charcoal-100 flex items-center gap-2 self-start border px-3 py-2 font-mono transition-colors"
                   >
-                    <ExternalLink className="size-3.5" aria-hidden="true" />
+                    <ExternalLink size={14} aria-hidden="true" />
                     Download Ollama — ollama.com/download
                   </button>
                   <code className="text-charcoal-400 bg-charcoal-950 border-charcoal-800 text-caption rounded-control border px-2 py-1 font-mono">
@@ -595,13 +593,13 @@ function LocalStep({
 
               {ollama && ollama.running && installed && (
                 <Button size="sm" onClick={() => activate(model)} className="self-start">
-                  <Check className="size-3.5" aria-hidden="true" /> Use {model}
+                  <Check aria-hidden="true" /> Use {model}
                 </Button>
               )}
 
               {ollama && ollama.running && !installed && !pulling && (
                 <Button size="sm" onClick={() => void pull(model)} className="self-start">
-                  <Download className="size-3.5" aria-hidden="true" /> Download &amp; use {model}
+                  <Download aria-hidden="true" /> Download &amp; use {model}
                 </Button>
               )}
 
@@ -683,7 +681,7 @@ function DoneStep({
         </p>
       </div>
       <Button size="sm" onClick={onClose} className="mt-1">
-        <Sparkles className="size-3.5" aria-hidden="true" /> Start exploring
+        <Sparkles aria-hidden="true" /> Start exploring
       </Button>
     </div>
   );

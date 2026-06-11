@@ -30,7 +30,7 @@ function SideBadge({ side }: { side: TradesaTrade["side"] }) {
   return (
     <span
       data-testid={`tradesa-side-${side}`}
-      className={`text-micro inline-flex items-center gap-1 rounded border px-1.5 py-0.5 font-semibold tracking-wide uppercase ${cls}`}
+      className={`text-micro rounded-control inline-flex items-center gap-1 border px-1 py-0.5 font-semibold tracking-wide uppercase ${cls}`}
     >
       {side}
     </span>
@@ -42,10 +42,10 @@ function PositionsTable({ rows }: { rows: readonly TradesaTrade[] }) {
     return (
       <div
         data-testid="tradesa-positions-empty"
-        className="text-charcoal-500 flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-sm"
+        className="text-charcoal-500 text-body flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center"
       >
         <p>No open positions.</p>
-        <p className="text-charcoal-400 text-xs">
+        <p className="text-charcoal-400 text-caption">
           The bot opens positions when the Director LLM signals OPEN_LONG / OPEN_SHORT.
         </p>
       </div>
@@ -55,16 +55,16 @@ function PositionsTable({ rows }: { rows: readonly TradesaTrade[] }) {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="overflow-auto">
-        <table className="w-full text-sm">
+        <table className="text-body w-full">
           <thead className="bg-charcoal-925 sticky top-0 z-10">
-            <tr className="border-charcoal-700 text-charcoal-500 border-b text-left text-[11px] font-medium tracking-wide uppercase">
-              <th className="px-3 py-2">Instrument</th>
-              <th className="px-3 py-2">Side</th>
-              <th className="px-3 py-2 text-right">Qty</th>
-              <th className="px-3 py-2 text-right">Entry</th>
-              <th className="px-3 py-2 text-right">Stop-Loss</th>
-              <th className="px-3 py-2 text-right">Leverage</th>
-              <th className="px-3 py-2 text-right">Opened</th>
+            <tr className="border-charcoal-700 text-charcoal-500 text-micro border-b text-left font-medium tracking-wide uppercase">
+              <th className="px-3 py-1">Instrument</th>
+              <th className="px-3 py-1">Side</th>
+              <th className="px-3 py-1 text-right">Qty</th>
+              <th className="px-3 py-1 text-right">Entry</th>
+              <th className="px-3 py-1 text-right">Stop-Loss</th>
+              <th className="px-3 py-1 text-right">Leverage</th>
+              <th className="px-3 py-1 text-right">Opened</th>
             </tr>
           </thead>
           <tbody>
@@ -74,26 +74,26 @@ function PositionsTable({ rows }: { rows: readonly TradesaTrade[] }) {
                 data-testid="tradesa-position-row"
                 className="border-charcoal-800 hover:bg-charcoal-800/40 border-b transition-colors"
               >
-                <td className="px-3 py-2">
-                  <span className="bg-charcoal-800 text-charcoal-200 inline-flex rounded px-1.5 py-0.5 font-mono text-xs">
+                <td className="px-3 py-1">
+                  <span className="bg-charcoal-800 text-charcoal-200 rounded-control text-caption inline-flex px-1 py-0.5 font-mono">
                     {trade.instrument}
                   </span>
                 </td>
-                <td className="px-3 py-2">
+                <td className="px-3 py-1">
                   <SideBadge side={trade.side} />
                 </td>
-                <td className="text-charcoal-200 px-3 py-2 text-right font-mono text-xs">
+                <td className="text-charcoal-200 text-caption px-3 py-1 text-right font-mono">
                   {formatNumber(trade.qty, 4)}
                 </td>
-                <td className="text-charcoal-200 px-3 py-2 text-right font-mono text-xs">
+                <td className="text-charcoal-200 text-caption px-3 py-1 text-right font-mono">
                   {formatNumber(trade.entry_price, 2)}
                 </td>
-                <td className="text-warning px-3 py-2 text-right font-mono text-xs">
+                <td className="text-warning text-caption px-3 py-1 text-right font-mono">
                   {formatNumber(trade.stop_loss_price, 2)}
                 </td>
-                <td className="px-3 py-2 text-right">
+                <td className="px-3 py-1 text-right">
                   <span
-                    className={`text-micro inline-flex rounded px-1.5 py-0.5 font-mono ${
+                    className={`text-micro rounded-control inline-flex px-1 py-0.5 font-mono ${
                       trade.leverage > 4
                         ? "text-negative bg-negative/15"
                         : "bg-charcoal-800 text-charcoal-400"
@@ -102,7 +102,7 @@ function PositionsTable({ rows }: { rows: readonly TradesaTrade[] }) {
                     {trade.leverage}x
                   </span>
                 </td>
-                <td className="text-charcoal-400 px-3 py-2 text-right text-xs">
+                <td className="text-charcoal-400 text-caption px-3 py-1 text-right">
                   {formatRelativeIso(trade.opened_at)}
                 </td>
               </tr>

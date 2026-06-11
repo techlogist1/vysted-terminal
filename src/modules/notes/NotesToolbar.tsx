@@ -2,9 +2,10 @@
 
 /**
  * Notes formatting toolbar — the visible editor chrome (PRODUCT_DESIGN_DECISIONS
- * §12). A min-h-12 wrapping bar of 32px icon buttons (14px icons — the Notes
- * surface's ONE icon size, R8 §2) in hairline-separated groups: Headings ·
- * Inline · Lists · Blocks · Link · [[wikilink]].
+ * §12). A wrapping bar of h-7 (28px) icon buttons with 14px icons — the Notes
+ * surface's ONE icon ladder (R9 §3; the header pencil and exports match) — in
+ * hairline-separated groups: Headings · Inline · Lists · Blocks · Link ·
+ * [[wikilink]].
  *
  * Each control reads `editor.isActive(x)` for its active state (amber TEXT, not a
  * fill) and runs `editor.chain().focus().toggleX().run()`. Active reads are
@@ -97,16 +98,19 @@ function ToolbarButton({
       onMouseDown={(e) => e.preventDefault()} // keep editor selection on click
       onClick={onClick}
       className={cn(
-        "rounded-control flex size-8 items-center justify-center transition-colors",
+        "rounded-control flex size-7 items-center justify-center transition-colors",
         "disabled:pointer-events-none disabled:opacity-40",
         active
           ? "text-charcoal-300"
           : "text-charcoal-400 hover:bg-charcoal-800 hover:text-charcoal-100",
       )}
     >
-      {/* ONE icon ladder for the whole Notes surface (R8 §2): 14px inside the
-          32px control — the header pencil and export icons match. */}
-      <Icon className="size-3.5" strokeWidth={active ? 2.25 : 2} />
+      {/* ONE icon ladder for the whole Notes surface (R9 §3): 14px inside the
+          28px control — the header pencil and export icons match. */}
+      <Icon
+        className={cn("size-3.5" /* tokens-ok: 14px icon — R9 §3 rung for h-7 controls */)}
+        strokeWidth={active ? 2.25 : 2}
+      />
     </button>
   );
 }
@@ -129,7 +133,12 @@ export function NotesToolbar({ editor }: { editor: Editor | null }) {
   useEditorTick(editor);
 
   if (!editor) {
-    return <div className="border-charcoal-800 h-12 border-b" aria-hidden />;
+    // Placeholder matches the real bar's box (py-1 + h-7 row) — no layout jump.
+    return (
+      <div className="border-charcoal-800 flex items-center border-b px-3 py-1" aria-hidden>
+        <span className="h-7" />
+      </div>
+    );
   }
 
   const setLink = () => {
@@ -149,9 +158,9 @@ export function NotesToolbar({ editor }: { editor: Editor | null }) {
   };
 
   return (
-    // min-h (not fixed h) + wrap: at a narrow panel the groups flow to a
-    // second row instead of clipping or overlapping (law §3.3/§3.4).
-    <div className="border-charcoal-800 flex min-h-12 flex-wrap items-center gap-2 border-b px-3 py-1">
+    // Content-sized (py, not fixed h) + wrap: at a narrow panel the groups
+    // flow to a second row instead of clipping or overlapping (law §3.3/§3.4).
+    <div className="border-charcoal-800 flex flex-wrap items-center gap-2 border-b px-3 py-1">
       {/* Headings */}
       <Group>
         <ToolbarButton

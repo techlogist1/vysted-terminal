@@ -117,7 +117,11 @@ function ResultSkeleton() {
     <div className="flex animate-pulse flex-col gap-8" data-testid="yield-curve-skeleton">
       <div className="border-charcoal-700 rounded-none border p-6">
         <div className="bg-charcoal-800 h-3 w-40 rounded-none" />
-        <div className="bg-charcoal-800 mt-3 h-56 w-full rounded-none" />
+        <div
+          className={
+            "bg-charcoal-800 mt-3 h-56 w-full rounded-none" /* tokens-ok: skeleton mirrors the chart canvas height - layout */
+          }
+        />
       </div>
       <div className="border-charcoal-700 rounded-none border p-6">
         {Array.from({ length: 4 }).map((_, i) => (
@@ -331,7 +335,6 @@ export function YieldCurvePanel() {
           type="button"
           onClick={handleBootstrap}
           disabled={isRunning || validationError !== null}
-          size="sm"
           variant="default"
           className="mt-auto"
           data-testid="bootstrap-curve"
@@ -371,7 +374,13 @@ export function YieldCurvePanel() {
                 Zero curve (continuously compounded, %)
               </h3>
               <div className="p-3">
-                <div ref={containerRef} className="h-72 w-full" data-testid="yield-curve-chart" />
+                <div
+                  ref={containerRef}
+                  className={
+                    "h-72 w-full" /* tokens-ok: chart canvas height - layout, not rhythm */
+                  }
+                  data-testid="yield-curve-chart"
+                />
               </div>
             </div>
 

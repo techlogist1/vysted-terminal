@@ -127,7 +127,7 @@ export function NotesPanel() {
     content: "",
     editorProps: {
       attributes: {
-        class: "notes-prose max-w-none min-h-48 p-3 outline-none focus:outline-none",
+        class: "notes-prose max-w-none min-h-24 p-4 outline-none focus:outline-none",
       },
     },
     onUpdate({ editor: e }) {
@@ -255,12 +255,16 @@ export function NotesPanel() {
   return (
     <>
       <div className="notes-print-root bg-charcoal-950 flex h-full flex-col">
-        {/* Panel header — identity + exports */}
-        <div className="notes-toolbar border-charcoal-800 flex h-12 items-center justify-between border-b px-3">
+        {/* Panel header — identity + exports, on the app-wide px-3 py-2 chrome. */}
+        <div className="notes-toolbar border-charcoal-800 flex items-center justify-between border-b px-3 py-2">
           <div className="flex items-center gap-2">
-            {/* ONE icon ladder across the Notes surface (R8 §2): every icon —
+            {/* ONE icon ladder across the Notes surface (R9 §3): every icon —
                 header pencil, formatting toolbar, exports — sits at 14px. */}
-            <Pencil className="text-charcoal-400 size-3.5" />
+            <Pencil
+              className={cn(
+                "text-charcoal-400 size-3.5" /* tokens-ok: 14px icon — Notes' one ladder */,
+              )}
+            />
             <span className="text-panel-title text-charcoal-200">Notes</span>
           </div>
           <div className="flex items-center gap-1">
@@ -310,8 +314,8 @@ export function NotesPanel() {
           </div>
         )}
 
-        {/* Scope chips — chrome rhythm (law §4): caption chips, h-6, gap-1.5. */}
-        <div className="notes-scope-bar border-charcoal-800 flex flex-wrap items-center gap-1.5 border-b px-3 py-1">
+        {/* Scope chips — chrome rhythm (law §7): caption chips, h-6, gap-2. */}
+        <div className="notes-scope-bar border-charcoal-800 flex flex-wrap items-center gap-2 border-b px-3 py-1">
           <ScopeChip
             label="General"
             active={scope === ""}

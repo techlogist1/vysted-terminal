@@ -172,8 +172,10 @@ export function EarningsCalendarPanel() {
             aria-label="Window in days"
           />
         </label>
-        <label className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="text-charcoal-500 text-micro">Watchlist (comma-separated)</span>
+        <label className="flex min-w-0 flex-1 flex-col gap-1" title="Comma-separated symbols">
+          {/* Short eyebrow — the placeholder demonstrates the comma format, so
+              the label never wraps at narrow panel widths (law §3.1). */}
+          <span className="text-charcoal-500 text-micro">Watchlist</span>
           <input
             type="text"
             value={watchlistDraft}
@@ -183,7 +185,9 @@ export function EarningsCalendarPanel() {
             aria-label="Watchlist"
           />
         </label>
-        <Button type="submit" size="sm" variant="outline" disabled={upcomingStatus === "loading"}>
+        {/* Default (h-8) size — the Apply button shares the form rung with its
+            sibling h-8 inputs so the row never misaligns. */}
+        <Button type="submit" variant="outline" disabled={upcomingStatus === "loading"}>
           <Calendar />
           Apply
         </Button>
@@ -283,7 +287,7 @@ export function EarningsCalendarPanel() {
             </colgroup>
             <thead>
               <tr className="border-charcoal-800 border-b text-left">
-                <th aria-hidden className="px-1 py-1.5" />
+                <th aria-hidden className="px-1 py-1" />
                 <SortableHeader
                   label="Symbol"
                   active={sortKey === "symbol"}
@@ -333,30 +337,30 @@ export function EarningsCalendarPanel() {
                       className="border-charcoal-800 hover:bg-charcoal-800/50 text-body cursor-pointer border-b"
                       data-testid={`earnings-row-${event.symbol}`}
                     >
-                      <td className="text-charcoal-400 px-1 py-1.5">
+                      <td className="text-charcoal-400 px-1 py-1">
                         {isExpanded ? (
                           <ChevronDown className="size-3" />
                         ) : (
                           <ChevronRight className="size-3" />
                         )}
                       </td>
-                      <td className="text-charcoal-100 px-3 py-1.5 font-medium">{event.symbol}</td>
-                      <td className="text-charcoal-100 px-3 py-1.5">
+                      <td className="text-charcoal-100 px-3 py-1 font-medium">{event.symbol}</td>
+                      <td className="text-charcoal-100 px-3 py-1">
                         {fmtDate(event.scheduled_date)}
                       </td>
                       <td
-                        className="text-charcoal-200 truncate px-3 py-1.5"
+                        className="text-charcoal-200 truncate px-3 py-1"
                         title={event.company_name ?? ""}
                       >
                         {event.company_name ?? "—"}
                       </td>
-                      <td className="text-charcoal-200 px-3 py-1.5">
+                      <td className="text-charcoal-200 px-3 py-1">
                         {TIME_OF_DAY_LABEL[event.time_of_day] ?? event.time_of_day}
                       </td>
-                      <td className="text-charcoal-100 px-3 py-1.5 text-right tabular-nums">
+                      <td className="text-charcoal-100 px-3 py-1 text-right tabular-nums">
                         {fmt(event.eps_estimate_mean)}
                       </td>
-                      <td className="text-charcoal-200 px-3 py-1.5 text-right tabular-nums">
+                      <td className="text-charcoal-200 px-3 py-1 text-right tabular-nums">
                         {fmt(event.eps_estimate_stddev, 3)} / {event.estimate_analyst_count}
                       </td>
                     </tr>
@@ -463,7 +467,7 @@ function SortableHeader({
 }) {
   return (
     <th
-      className={`text-micro text-charcoal-400 px-3 py-1.5 ${
+      className={`text-micro text-charcoal-400 px-3 py-1 ${
         align === "right" ? "text-right" : "text-left"
       } ${disabled ? "cursor-default" : "hover:text-charcoal-200 cursor-pointer select-none"}`}
       onClick={disabled ? undefined : onSort}

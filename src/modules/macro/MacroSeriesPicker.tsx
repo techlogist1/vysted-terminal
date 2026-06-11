@@ -94,7 +94,7 @@ export function MacroSeriesPicker({ provider, onProviderChange, onSelect }: Prop
       className="border-charcoal-800 flex shrink-0 flex-col gap-2 border-b p-3"
       data-testid="macro-picker"
     >
-      <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Macro provider">
+      <div className="flex flex-wrap gap-2" role="tablist" aria-label="Macro provider">
         {PROVIDERS.map((p) => {
           const active = p.id === provider;
           return (
@@ -123,7 +123,9 @@ export function MacroSeriesPicker({ provider, onProviderChange, onSelect }: Prop
       />
 
       <div
-        className="border-charcoal-800 bg-charcoal-950 flex max-h-48 flex-col overflow-y-auto rounded-none border md:max-h-72"
+        className={
+          "border-charcoal-800 bg-charcoal-950 flex max-h-48 flex-col overflow-y-auto rounded-none border md:max-h-72" /* tokens-ok: results scroll cap */
+        }
         role="listbox"
         aria-label="Macro series results"
       >
@@ -180,7 +182,7 @@ export function MacroSeriesPicker({ provider, onProviderChange, onSelect }: Prop
               key={`${row.provider}:${row.series_id}`}
               type="button"
               onClick={() => onSelect(row.provider, row.series_id)}
-              className="border-charcoal-900 hover:bg-charcoal-800 border-b px-3 py-1.5 text-left"
+              className="border-charcoal-900 hover:bg-charcoal-800 border-b px-3 py-1 text-left"
               data-testid={`macro-result-${row.series_id}`}
             >
               <div className="text-charcoal-100 text-caption">{row.title}</div>

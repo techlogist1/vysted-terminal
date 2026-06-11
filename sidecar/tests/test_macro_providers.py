@@ -97,8 +97,12 @@ def test_fred_get_series_maps_pandas_into_extended_shape(fake_fred: _FakeFred) -
 
 def test_fred_get_series_raises_without_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("FRED_API_KEY", raising=False)
-    with pytest.raises(ProviderError, match="FRED_API_KEY"):
+    # R9 V8: the keyless detail is user-facing product copy — it must speak
+    # Settings-language (free key, where to get it, keyless alternatives),
+    # never the raw env-var name.
+    with pytest.raises(ProviderError, match="needs a free API key") as excinfo:
         fred_provider.get_series("DGS10")
+    assert "FRED_API_KEY" not in str(excinfo.value)
 
 
 def test_fred_get_series_wraps_upstream_errors(fake_fred: _FakeFred) -> None:

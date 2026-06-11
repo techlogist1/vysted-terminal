@@ -775,7 +775,11 @@ export function EquityOverviewPanel() {
             className="bg-charcoal-850 border-charcoal-700 text-charcoal-100 placeholder:text-charcoal-500 text-body rounded-control focus:border-charcoal-500 h-8 w-full truncate border px-3 outline-none"
           />
           {acOpen && candidates.length > 0 && (
-            <ul className="border-charcoal-700 bg-charcoal-875 absolute top-full right-0 left-0 z-20 mt-1 max-h-64 overflow-y-auto rounded-none border py-1">
+            <ul
+              className={
+                "border-charcoal-700 bg-charcoal-875 absolute top-full right-0 left-0 z-20 mt-1 max-h-64 overflow-y-auto rounded-none border py-1" /* tokens-ok: dropdown scroll cap */
+              }
+            >
               {candidates.map((candidate, idx) => (
                 <li key={`${candidate.symbol}:${candidate.exchange}`}>
                   <button

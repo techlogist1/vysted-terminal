@@ -335,8 +335,8 @@ export function CriterionGroupEditor({
       data-testid={`group-editor-${depth}`}
       className={
         depth > 0
-          ? "border-border/80 bg-charcoal-875 space-y-1.5 rounded-none border border-dashed p-2"
-          : "space-y-1.5"
+          ? "border-border/80 bg-charcoal-875 space-y-2 rounded-none border border-dashed p-2"
+          : "space-y-2"
       }
     >
       <div className="flex items-center justify-between gap-2">
@@ -368,14 +368,14 @@ export function CriterionGroupEditor({
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <Button size="sm" variant="outline" onClick={addLeaf} aria-label="add criterion">
-            <Plus className="mr-1 size-3.5" />
+            <Plus className="mr-1" />
             Criterion
           </Button>
           {depth < MAX_DEPTH ? (
             <Button size="sm" variant="outline" onClick={addGroup} aria-label="add group">
-              <FolderPlus className="mr-1 size-3.5" />
+              <FolderPlus className="mr-1" />
               Group
             </Button>
           ) : null}
@@ -392,9 +392,9 @@ export function CriterionGroupEditor({
           Empty group — every universe member will match. Add a criterion or group.
         </p>
       ) : (
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {group.criteria.map((child, i) => (
-            <div key={i} className="space-y-1.5">
+            <div key={i} className="space-y-2">
               {i > 0 ? (
                 <div className="text-muted-foreground text-micro pl-2 tracking-widest uppercase">
                   {group.combinator}

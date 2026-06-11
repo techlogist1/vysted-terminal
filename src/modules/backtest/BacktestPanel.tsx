@@ -161,7 +161,7 @@ export function BacktestPanel() {
             loading={catalogueStatus === "loading"}
           />
           {catalogueStatus === "error" && (
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-2">
               <p className="text-negative text-caption font-mono">
                 {catalogueError ?? "Failed to load strategies"}
               </p>
@@ -188,7 +188,7 @@ export function BacktestPanel() {
               />
             ))}
 
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-2">
             <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
               Universe
             </span>
@@ -259,11 +259,11 @@ export function BacktestPanel() {
         </div>
         {/* Sticky footer — Run button always visible */}
         <div className="border-charcoal-700 shrink-0 border-t p-3">
+          {/* Form rung (R9 §3): Run joins the rail's sibling h-8 inputs. */}
           <Button
             type="button"
             onClick={handleRun}
             disabled={!canRun}
-            size="sm"
             variant="default"
             aria-label="Run backtest"
             className={cn("w-full", !canRun && "cursor-not-allowed")}

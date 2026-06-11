@@ -20,8 +20,8 @@ export { cn };
  * derives the display string). The component owns the design law:
  *
  *  - Header cells: `text-micro` (11px) · weight-510 · `charcoal-400` · uppercase ·
- *    `px-3 py-1.5`. Numeric headers are right-aligned to their column.
- *  - Body cells: `text-caption` (12px — the R8 §1 data-cell step) · `px-3 py-1.5`
+ *    `px-3 py-1` (28px data rows, R9 §3). Numeric headers are right-aligned to their column.
+ *  - Body cells: `text-caption` (13px — the R9 §2 data-cell step) · `px-3 py-1`
  *    (one rhythm for every dense table). Numeric cells are
  *    `text-right whitespace-nowrap tabular-nums`.
  *  - Three text tiers via the `tier` prop, never via colour-as-emphasis:
@@ -145,9 +145,7 @@ function BodyCell<R, K extends string>({ col, row }: { col: DataColumn<R, K>; ro
   // An action column is chrome, not data: no tint, no alignment-as-number.
   if (col.action) {
     return (
-      <td className="px-3 py-1.5 text-right whitespace-nowrap">
-        {col.cell ? col.cell(row) : null}
-      </td>
+      <td className="px-3 py-1 text-right whitespace-nowrap">{col.cell ? col.cell(row) : null}</td>
     );
   }
 
@@ -164,7 +162,7 @@ function BodyCell<R, K extends string>({ col, row }: { col: DataColumn<R, K>; ro
   return (
     <td
       className={cn(
-        "text-caption px-3 py-1.5",
+        "text-caption px-3 py-1",
         isNull ? "text-charcoal-600" : tier,
         col.numeric && "text-right whitespace-nowrap tabular-nums",
         col.truncate && !col.numeric && "max-w-0 truncate",
@@ -254,7 +252,7 @@ export function DataTable<R, K extends string = string>({
                 }
                 onClick={sortable ? () => onSort?.(col.key) : undefined}
                 className={cn(
-                  "text-micro text-charcoal-400 px-3 py-1.5",
+                  "text-micro text-charcoal-400 px-3 py-1",
                   col.numeric ? "text-right" : "text-left",
                   sortable && "hover:text-charcoal-200 cursor-pointer select-none",
                 )}
@@ -278,7 +276,7 @@ export function DataTable<R, K extends string = string>({
                   <th
                     scope="colgroup"
                     colSpan={columns.length}
-                    className="text-micro text-charcoal-500 bg-charcoal-900/40 px-3 py-1.5 text-left"
+                    className="text-micro text-charcoal-500 bg-charcoal-900/40 px-3 py-1 text-left"
                   >
                     {section.label}
                   </th>
@@ -289,7 +287,7 @@ export function DataTable<R, K extends string = string>({
           : (rows ?? []).map((row, i) => renderRow(row, i))}
         {footnote && (
           <tr>
-            <td colSpan={columns.length} className="text-caption text-charcoal-500 px-3 py-1.5">
+            <td colSpan={columns.length} className="text-caption text-charcoal-500 px-3 py-1">
               {footnote}
             </td>
           </tr>

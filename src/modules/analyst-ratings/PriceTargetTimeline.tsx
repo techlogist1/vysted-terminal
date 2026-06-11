@@ -124,7 +124,10 @@ export function PriceTargetTimeline({ history }: Props) {
   }
 
   return (
-    <div className="h-64 w-full" data-testid="price-target-timeline-chart">
+    <div
+      className={"h-64 w-full" /* tokens-ok: chart canvas height — layout, not rhythm */}
+      data-testid="price-target-timeline-chart"
+    >
       <div ref={containerRef} className="h-full w-full" />
     </div>
   );

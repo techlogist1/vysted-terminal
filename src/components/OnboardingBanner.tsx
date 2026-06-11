@@ -64,7 +64,7 @@ export function OnboardingBanner() {
               onClick={() => setDismissed(true)}
               className="text-charcoal-500 hover:text-charcoal-200 rounded-control shrink-0 p-1"
             >
-              <X className="size-3.5" aria-hidden="true" />
+              <X className="size-4" aria-hidden="true" />
             </button>
           </div>
         </motion.div>

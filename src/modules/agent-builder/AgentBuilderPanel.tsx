@@ -305,7 +305,7 @@ export function AgentBuilderPanel() {
             onChange={(e) => setField("systemPrompt", e.target.value)}
             placeholder="You are a macro quant analyst. Reason from regime first; cite drawdown statistics when answering."
             rows={8}
-            className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 min-h-[8rem] resize-y p-2 font-mono leading-relaxed outline-none focus:ring-1"
+            className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 min-h-24 resize-y p-2 font-mono leading-relaxed outline-none focus:ring-1"
           />
           {errors.systemPrompt !== undefined && (
             <p className="text-negative text-micro font-mono">{errors.systemPrompt}</p>
@@ -389,19 +389,18 @@ export function AgentBuilderPanel() {
         </label>
 
         {/* Save / cancel row */}
-        <div className="flex flex-col gap-1.5 pt-2">
+        <div className="flex flex-col gap-2 pt-2">
           <div className="flex items-center gap-2">
             <Button
               type="submit"
-              size="sm"
               variant="outline"
               disabled={saveStatus === "saving" || !liveValidation.ok}
             >
-              {saveStatus === "saving" && <Loader2 className="size-3 animate-spin" />}
+              {saveStatus === "saving" && <Loader2 className="animate-spin" />}
               {saveStatus === "saving" ? "Saving…" : isEditing ? "Save changes" : "Create agent"}
             </Button>
             {isEditing && (
-              <Button type="button" size="sm" variant="ghost" onClick={handleCancelEdit}>
+              <Button type="button" variant="ghost" onClick={handleCancelEdit}>
                 Cancel
               </Button>
             )}

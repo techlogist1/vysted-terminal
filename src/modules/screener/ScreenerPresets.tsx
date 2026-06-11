@@ -132,7 +132,7 @@ export function ScreenerPresets() {
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <div className="flex flex-wrap items-center gap-2">
       {/* Design law: ASCII bracket markers lead group labels — no decorative
           lucide icon on an idle chrome row. */}
       <span className="text-muted-foreground text-micro shrink-0 tracking-wide uppercase">

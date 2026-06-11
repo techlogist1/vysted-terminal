@@ -136,12 +136,12 @@ export function InsiderTradingTable({ identifier }: InsiderTradingTableProps) {
   return (
     <div className="flex h-full flex-col" data-testid="insider-trading-table">
       <header className="border-charcoal-700 flex items-center gap-3 border-b px-3 py-2">
-        <label className="text-micro flex items-center gap-1.5">
+        <label className="text-micro flex items-center gap-2">
           <span className="text-charcoal-400">Form</span>
           <select
             value={form}
             onChange={(e) => setForm(e.target.value as FormFilter)}
-            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 text-caption rounded-control h-6 border px-1.5"
+            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 text-caption rounded-control h-6 border px-1"
             data-testid="insider-form-filter"
           >
             <option value="all">All</option>

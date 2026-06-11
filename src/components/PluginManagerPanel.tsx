@@ -197,7 +197,7 @@ function PluginRow({ plugin, runtimeReady }: PluginRowProps) {
             </span>
             <span
               data-testid={`plugin-state-${plugin.manifest.id}`}
-              className={`rounded-control text-micro px-1.5 py-0.5 uppercase ${STATE_TONE[plugin.state]}`}
+              className={`rounded-control text-micro px-1 py-0.5 uppercase ${STATE_TONE[plugin.state]}`}
             >
               {stateLabel}
             </span>

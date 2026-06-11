@@ -42,17 +42,17 @@ export function TradesaBotStatusStrip() {
       aria-label="Tradesa V2 bot status"
       data-tone={tone}
       data-testid="tradesa-status-strip"
-      className="border-charcoal-700 bg-charcoal-925/80 text-charcoal-300 flex shrink-0 items-center gap-2 border-b px-3 py-2 text-xs"
+      className="border-charcoal-700 bg-charcoal-925/80 text-charcoal-300 text-caption flex shrink-0 items-center gap-2 border-b px-3 py-2"
     >
       <span aria-hidden className={`inline-block size-2 rounded-full ${dotClass}`} />
-      <span className={`rounded border px-1.5 py-0.5 font-medium ${toneClasses(tone)}`}>
+      <span className={`rounded-control border px-1 py-0.5 font-medium ${toneClasses(tone)}`}>
         {label}
       </span>
 
       {state?.bot_mode && (
         <span
           aria-label={`Mode: ${state.bot_mode}`}
-          className={`text-micro rounded border px-1.5 py-0.5 font-semibold tracking-wide uppercase ${modeClass}`}
+          className={`text-micro rounded-control border px-1 py-0.5 font-semibold tracking-wide uppercase ${modeClass}`}
         >
           {state.bot_mode}
         </span>
@@ -65,7 +65,7 @@ export function TradesaBotStatusStrip() {
       )}
 
       {state?.kill_switch_engaged === true && (
-        <span className="border-negative bg-negative/15 text-negative text-micro rounded border px-1.5 py-0.5 font-semibold tracking-wide uppercase">
+        <span className="border-negative bg-negative/15 text-negative text-micro rounded-control border px-1 py-0.5 font-semibold tracking-wide uppercase">
           Kill Switch
         </span>
       )}
@@ -78,9 +78,9 @@ export function TradesaBotStatusStrip() {
         type="button"
         aria-label="Reload bot status"
         onClick={() => void refresh()}
-        className="text-charcoal-400 hover:bg-charcoal-700 hover:text-charcoal-200 ml-auto inline-flex size-6 items-center justify-center rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+        className="text-charcoal-400 hover:bg-charcoal-700 hover:text-charcoal-200 rounded-control focus-visible:ring-charcoal-500 ml-auto inline-flex size-6 items-center justify-center transition-colors focus:outline-none focus-visible:ring-1"
       >
-        <RefreshCw className="size-3.5" />
+        <RefreshCw className="size-3" />
       </button>
     </div>
   );

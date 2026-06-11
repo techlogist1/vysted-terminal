@@ -34,7 +34,7 @@ function SideBadge({ side }: { side: TradesaTrade["side"] }) {
       : "text-negative bg-negative/15 border-negative/40";
   return (
     <span
-      className={`text-micro inline-flex rounded border px-1.5 py-0.5 font-semibold tracking-wide uppercase ${cls}`}
+      className={`text-micro rounded-control inline-flex border px-1 py-0.5 font-semibold tracking-wide uppercase ${cls}`}
     >
       {side}
     </span>
@@ -46,7 +46,7 @@ function PnlCell({ value }: { value: number | null }) {
   const cls = value >= 0 ? "text-positive" : "text-negative";
   const sign = value > 0 ? "+" : "";
   return (
-    <span className={`font-mono text-xs ${cls}`}>
+    <span className={`text-caption font-mono ${cls}`}>
       {sign}
       {formatUsd(value)}
     </span>
@@ -91,16 +91,16 @@ function computeSummary(rows: readonly TradesaTrade[]): SummaryStats {
 }
 
 function SummaryCard({ stats }: { stats: SummaryStats }) {
-  const tile = "border-charcoal-800 bg-charcoal-900/40 rounded-md border px-3 py-2";
+  const tile = "border-charcoal-800 bg-charcoal-900/40 rounded-none border px-3 py-2";
   return (
     <div
       data-testid="tradesa-trade-summary"
-      className="border-charcoal-800 bg-charcoal-925/60 grid shrink-0 grid-cols-2 gap-2 border-b p-3 text-xs sm:grid-cols-4"
+      className="border-charcoal-800 bg-charcoal-925/60 text-caption grid shrink-0 grid-cols-2 gap-2 border-b p-3 sm:grid-cols-4"
     >
       <div className={tile}>
         <div className="text-charcoal-500 text-micro tracking-wide uppercase">Today P&amp;L</div>
         <div
-          className={`mt-0.5 font-mono text-sm ${stats.todayPnl >= 0 ? "text-positive" : "text-negative"}`}
+          className={`text-body mt-0.5 font-mono ${stats.todayPnl >= 0 ? "text-positive" : "text-negative"}`}
         >
           {stats.todayPnl >= 0 ? "+" : ""}
           {formatUsd(stats.todayPnl)}
@@ -109,7 +109,7 @@ function SummaryCard({ stats }: { stats: SummaryStats }) {
       <div className={tile}>
         <div className="text-charcoal-500 text-micro tracking-wide uppercase">7d P&amp;L</div>
         <div
-          className={`mt-0.5 font-mono text-sm ${stats.weekPnl >= 0 ? "text-positive" : "text-negative"}`}
+          className={`text-body mt-0.5 font-mono ${stats.weekPnl >= 0 ? "text-positive" : "text-negative"}`}
         >
           {stats.weekPnl >= 0 ? "+" : ""}
           {formatUsd(stats.weekPnl)}
@@ -117,11 +117,11 @@ function SummaryCard({ stats }: { stats: SummaryStats }) {
       </div>
       <div className={tile}>
         <div className="text-charcoal-500 text-micro tracking-wide uppercase">Closed</div>
-        <div className="text-charcoal-200 mt-0.5 font-mono text-sm">{stats.totalCount}</div>
+        <div className="text-charcoal-200 text-body mt-0.5 font-mono">{stats.totalCount}</div>
       </div>
       <div className={tile}>
         <div className="text-charcoal-500 text-micro tracking-wide uppercase">Win-rate</div>
-        <div className="text-charcoal-200 mt-0.5 font-mono text-sm">
+        <div className="text-charcoal-200 text-body mt-0.5 font-mono">
           {(stats.winRate * 100).toFixed(0)}%
           <span className="text-charcoal-500 text-micro ml-1">
             {stats.winCount}W / {stats.lossCount}L
@@ -175,7 +175,7 @@ function TradesTable({ rows }: { rows: readonly TradesaTrade[] }) {
     return (
       <div
         data-testid="tradesa-trade-history-empty"
-        className="text-charcoal-500 flex flex-1 items-center justify-center p-6 text-sm"
+        className="text-charcoal-500 text-body flex flex-1 items-center justify-center p-6"
       >
         No closed trades yet.
       </div>
@@ -185,29 +185,29 @@ function TradesTable({ rows }: { rows: readonly TradesaTrade[] }) {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="overflow-auto">
-        <table className="w-full text-sm">
+        <table className="text-body w-full">
           <thead className="bg-charcoal-925 sticky top-0 z-10">
-            <tr className="border-charcoal-700 text-charcoal-500 border-b text-left text-[11px] font-medium tracking-wide uppercase">
-              <th className="px-3 py-2">Instrument</th>
-              <th className="px-3 py-2">Side</th>
-              <th className="px-3 py-2 text-right">Qty</th>
-              <th className="px-3 py-2 text-right">Entry</th>
-              <th className="px-3 py-2 text-right">Exit</th>
-              <th className="px-3 py-2 text-right">
+            <tr className="border-charcoal-700 text-charcoal-500 text-micro border-b text-left font-medium tracking-wide uppercase">
+              <th className="px-3 py-1">Instrument</th>
+              <th className="px-3 py-1">Side</th>
+              <th className="px-3 py-1 text-right">Qty</th>
+              <th className="px-3 py-1 text-right">Entry</th>
+              <th className="px-3 py-1 text-right">Exit</th>
+              <th className="px-3 py-1 text-right">
                 <button
                   type="button"
-                  className="text-charcoal-400 hover:text-charcoal-200 inline-flex items-center text-[11px] font-medium tracking-wide uppercase"
+                  className="text-charcoal-400 hover:text-charcoal-200 text-micro inline-flex items-center font-medium tracking-wide uppercase"
                   onClick={() => onSort("realized_pnl")}
                 >
                   P&amp;L
                   <SortIcon active={sortKey === "realized_pnl"} dir={sortDir} />
                 </button>
               </th>
-              <th className="px-3 py-2 text-right">Duration</th>
-              <th className="px-3 py-2 text-right">
+              <th className="px-3 py-1 text-right">Duration</th>
+              <th className="px-3 py-1 text-right">
                 <button
                   type="button"
-                  className="text-charcoal-400 hover:text-charcoal-200 inline-flex items-center text-[11px] font-medium tracking-wide uppercase"
+                  className="text-charcoal-400 hover:text-charcoal-200 text-micro inline-flex items-center font-medium tracking-wide uppercase"
                   onClick={() => onSort("closed_at")}
                 >
                   Closed
@@ -223,30 +223,30 @@ function TradesTable({ rows }: { rows: readonly TradesaTrade[] }) {
                 data-testid="tradesa-trade-row"
                 className="border-charcoal-800 hover:bg-charcoal-800/40 border-b transition-colors"
               >
-                <td className="px-3 py-2">
-                  <span className="bg-charcoal-800 text-charcoal-200 inline-flex rounded px-1.5 py-0.5 font-mono text-xs">
+                <td className="px-3 py-1">
+                  <span className="bg-charcoal-800 text-charcoal-200 rounded-control text-caption inline-flex px-1 py-0.5 font-mono">
                     {trade.instrument}
                   </span>
                 </td>
-                <td className="px-3 py-2">
+                <td className="px-3 py-1">
                   <SideBadge side={trade.side} />
                 </td>
-                <td className="text-charcoal-300 px-3 py-2 text-right font-mono text-xs">
+                <td className="text-charcoal-300 text-caption px-3 py-1 text-right font-mono">
                   {formatNumber(trade.qty, 4)}
                 </td>
-                <td className="text-charcoal-400 px-3 py-2 text-right font-mono text-xs">
+                <td className="text-charcoal-400 text-caption px-3 py-1 text-right font-mono">
                   {formatNumber(trade.entry_price, 2)}
                 </td>
-                <td className="text-charcoal-400 px-3 py-2 text-right font-mono text-xs">
+                <td className="text-charcoal-400 text-caption px-3 py-1 text-right font-mono">
                   {formatNumber(trade.exit_price, 2)}
                 </td>
-                <td className="px-3 py-2 text-right">
+                <td className="px-3 py-1 text-right">
                   <PnlCell value={trade.realized_pnl} />
                 </td>
-                <td className="text-charcoal-400 px-3 py-2 text-right text-xs">
+                <td className="text-charcoal-400 text-caption px-3 py-1 text-right">
                   {formatDuration(trade.opened_at, trade.closed_at)}
                 </td>
-                <td className="text-charcoal-400 px-3 py-2 text-right text-xs">
+                <td className="text-charcoal-400 text-caption px-3 py-1 text-right">
                   {formatRelativeIso(trade.closed_at)}
                 </td>
               </tr>

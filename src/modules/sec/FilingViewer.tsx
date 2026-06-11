@@ -164,7 +164,7 @@ export function FilingViewer({ accession, identifier, onClose }: FilingViewerPro
                     type="button"
                     onClick={() => setActiveSectionId(section.id)}
                     className={cn(
-                      "hover:bg-charcoal-800 text-caption w-full px-3 py-1.5 text-left",
+                      "hover:bg-charcoal-800 text-caption w-full px-3 py-1 text-left",
                       (activeSectionId ?? detail.sections[0]?.id) === section.id
                         ? "bg-charcoal-800 text-charcoal-100 border-l-charcoal-500 border-l-2"
                         : "text-charcoal-300",
