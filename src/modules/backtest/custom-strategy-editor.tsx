@@ -162,7 +162,7 @@ export function CustomStrategyEditor({
         aria-label={`${rule} rule`}
         data-testid={`custom-rule-${rule}`}
         className={cn(
-          "bg-charcoal-850 text-charcoal-100 rounded-control text-caption focus-visible:border-charcoal-500 resize-y border px-2 py-1.5 font-mono outline-none disabled:opacity-50",
+          "bg-charcoal-850 text-charcoal-100 rounded-control text-caption focus-visible:border-charcoal-500 resize-y border px-2 py-2 font-mono outline-none disabled:opacity-50",
           errorByRule.has(rule) ? "border-negative/60" : "border-charcoal-700",
         )}
       />
@@ -173,7 +173,7 @@ export function CustomStrategyEditor({
   );
 
   return (
-    <div className="flex flex-col gap-1.5" data-testid="custom-strategy-editor">
+    <div className="flex flex-col gap-2" data-testid="custom-strategy-editor">
       <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
         Definition
       </span>

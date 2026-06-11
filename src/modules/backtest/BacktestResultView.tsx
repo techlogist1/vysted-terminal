@@ -234,13 +234,17 @@ function TradeTable({ trades }: TradeTableProps) {
   // Auto table layout + nowrap cells: every column takes the width its widest
   // value needs — no fixed <colgroup> widths clipping prices mid-number.
   return (
-    <div className="max-h-64 overflow-x-auto overflow-y-auto">
+    <div
+      className={
+        "max-h-64 overflow-x-auto overflow-y-auto" /* tokens-ok: trade-log scroll cap - layout, not rhythm */
+      }
+    >
       <table className="w-full border-collapse">
         <thead className="bg-charcoal-900 sticky top-0">
           <tr className="text-charcoal-400 border-charcoal-700 text-micro border-b text-left font-mono whitespace-nowrap uppercase">
             <th
               className={cn(
-                "cursor-pointer px-3 py-1.5 font-medium",
+                "cursor-pointer px-3 py-1 font-medium",
                 sortKey === "symbol" ? "text-charcoal-100" : "text-charcoal-400",
               )}
               onClick={() => handleSort("symbol")}
@@ -248,18 +252,18 @@ function TradeTable({ trades }: TradeTableProps) {
               Symbol
               {sortKey === "symbol" ? (
                 direction === "asc" ? (
-                  <ArrowUp className="ml-0.5 inline size-2.5" />
+                  <ArrowUp className="ml-0.5 inline size-3" />
                 ) : (
-                  <ArrowDown className="ml-0.5 inline size-2.5" />
+                  <ArrowDown className="ml-0.5 inline size-3" />
                 )
               ) : (
                 <span className="text-charcoal-600 ml-0.5">↕</span>
               )}
             </th>
-            <th className="px-3 py-1.5 font-medium">Side</th>
+            <th className="px-3 py-1 font-medium">Side</th>
             <th
               className={cn(
-                "cursor-pointer px-3 py-1.5 font-medium",
+                "cursor-pointer px-3 py-1 font-medium",
                 sortKey === "enteredAt" ? "text-charcoal-100" : "text-charcoal-400",
               )}
               onClick={() => handleSort("enteredAt")}
@@ -267,21 +271,21 @@ function TradeTable({ trades }: TradeTableProps) {
               Entered
               {sortKey === "enteredAt" ? (
                 direction === "asc" ? (
-                  <ArrowUp className="ml-0.5 inline size-2.5" />
+                  <ArrowUp className="ml-0.5 inline size-3" />
                 ) : (
-                  <ArrowDown className="ml-0.5 inline size-2.5" />
+                  <ArrowDown className="ml-0.5 inline size-3" />
                 )
               ) : (
                 <span className="text-charcoal-600 ml-0.5">↕</span>
               )}
             </th>
-            <th className="px-3 py-1.5 font-medium">Exited</th>
-            <th className="px-3 py-1.5 text-right font-medium">Entry</th>
-            <th className="px-3 py-1.5 text-right font-medium">Exit</th>
-            <th className="px-3 py-1.5 text-right font-medium">Qty</th>
+            <th className="px-3 py-1 font-medium">Exited</th>
+            <th className="px-3 py-1 text-right font-medium">Entry</th>
+            <th className="px-3 py-1 text-right font-medium">Exit</th>
+            <th className="px-3 py-1 text-right font-medium">Qty</th>
             <th
               className={cn(
-                "cursor-pointer px-3 py-1.5 text-right font-medium",
+                "cursor-pointer px-3 py-1 text-right font-medium",
                 sortKey === "pnl" ? "text-charcoal-100" : "text-charcoal-400",
               )}
               onClick={() => handleSort("pnl")}
@@ -289,9 +293,9 @@ function TradeTable({ trades }: TradeTableProps) {
               P&amp;L
               {sortKey === "pnl" ? (
                 direction === "asc" ? (
-                  <ArrowUp className="ml-0.5 inline size-2.5" />
+                  <ArrowUp className="ml-0.5 inline size-3" />
                 ) : (
-                  <ArrowDown className="ml-0.5 inline size-2.5" />
+                  <ArrowDown className="ml-0.5 inline size-3" />
                 )
               ) : (
                 <span className="text-charcoal-600 ml-0.5">↕</span>
@@ -308,26 +312,26 @@ function TradeTable({ trades }: TradeTableProps) {
                 key={trade.id}
                 className="border-charcoal-800 hover:bg-charcoal-800/40 text-caption border-b font-mono"
               >
-                <td className="text-charcoal-100 px-3 py-1.5 whitespace-nowrap">{trade.symbol}</td>
-                <td className="text-charcoal-300 px-3 py-1.5 whitespace-nowrap">{trade.side}</td>
-                <td className="text-charcoal-300 px-3 py-1.5 whitespace-nowrap tabular-nums">
+                <td className="text-charcoal-100 px-3 py-1 whitespace-nowrap">{trade.symbol}</td>
+                <td className="text-charcoal-300 px-3 py-1 whitespace-nowrap">{trade.side}</td>
+                <td className="text-charcoal-300 px-3 py-1 whitespace-nowrap tabular-nums">
                   {trade.enteredAt.slice(0, 10)}
                 </td>
-                <td className="text-charcoal-300 px-3 py-1.5 whitespace-nowrap tabular-nums">
+                <td className="text-charcoal-300 px-3 py-1 whitespace-nowrap tabular-nums">
                   {trade.exitedAt ? trade.exitedAt.slice(0, 10) : "—"}
                 </td>
-                <td className="text-charcoal-300 px-3 py-1.5 text-right whitespace-nowrap tabular-nums">
+                <td className="text-charcoal-300 px-3 py-1 text-right whitespace-nowrap tabular-nums">
                   {trade.entryPrice.toFixed(2)}
                 </td>
-                <td className="text-charcoal-300 px-3 py-1.5 text-right whitespace-nowrap tabular-nums">
+                <td className="text-charcoal-300 px-3 py-1 text-right whitespace-nowrap tabular-nums">
                   {trade.exitPrice ? trade.exitPrice.toFixed(2) : "—"}
                 </td>
-                <td className="text-charcoal-300 px-3 py-1.5 text-right whitespace-nowrap tabular-nums">
+                <td className="text-charcoal-300 px-3 py-1 text-right whitespace-nowrap tabular-nums">
                   {trade.quantity.toLocaleString("en-US")}
                 </td>
                 <td
                   className={cn(
-                    "px-3 py-1.5 text-right whitespace-nowrap tabular-nums",
+                    "px-3 py-1 text-right whitespace-nowrap tabular-nums",
                     pnl === null
                       ? "text-charcoal-400"
                       : positive

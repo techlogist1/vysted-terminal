@@ -31,7 +31,7 @@ export function StrategyPicker({
   const empty = strategies.length === 0;
 
   return (
-    <div className="flex flex-col gap-1.5" data-testid="strategy-picker">
+    <div className="flex flex-col gap-2" data-testid="strategy-picker">
       <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
         Strategy
       </span>
@@ -57,7 +57,7 @@ export function StrategyPicker({
                   disabled={disabled}
                   aria-pressed={active}
                   className={cn(
-                    "rounded-control w-full border px-2 py-1.5 text-left transition-colors",
+                    "rounded-control w-full border px-2 py-2 text-left transition-colors",
                     active
                       ? "bg-charcoal-875 text-charcoal-100 border-charcoal-600 border"
                       : "border-charcoal-700 text-charcoal-200 hover:border-charcoal-600",
@@ -125,7 +125,7 @@ export function ParamsForm({ schema, values, onChange, disabled }: ParamsFormPro
     return null;
   }
   return (
-    <div className="flex flex-col gap-1.5" data-testid="params-form">
+    <div className="flex flex-col gap-2" data-testid="params-form">
       <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
         Params
       </span>
