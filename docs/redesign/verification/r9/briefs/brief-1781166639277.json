@@ -1,0 +1,30 @@
+{
+ "query": "HDFC Bank",
+ "symbol": "HDFCBANK.NS",
+ "mode": "FAST",
+ "depth": "quick",
+ "markdown": "## HDFC Bank ($HDFCBANK) \u2014 India's Largest Private Sector Bank\n\n**Price: \u20b9746.85** (+1.15% today) | MCap: \u20b911.5L Cr | **52w Range: \u20b9727\u2013\u20b91,021**\n\n### Key Metrics\n| Metric | Value |\n|---|---|\n| **P/E (TTM)** | **16.7\u00d7** \u2014 historically reasonable for a bank of this calibre |\n| **Forward P/E** | **11.9\u00d7** \u2014 priced for ~40% earnings growth |\n| **P/B** | **1.96\u00d7** \u2014 well below the 3-4\u00d7 it traded pre-2023 |\n| **ROE** | **13.8%** \u2014 solid, though subdued vs its 15-18% historical range |\n| **Profit Margin** | **26.8%** \u2014 best-in-class for Indian private banks |\n| **Dividend Yield** | **1.74%** |\n| **Beta** | **0.43** \u2014 defensive; moves less than the market |\n\n### The Story\n\nHDFC Bank is India's largest private sector bank by assets and market cap, formed after the landmark **HDFC Ltd. merger in July 2023**.[1][8] It services the full spectrum \u2014 wholesale, retail, cards, payments, and wealth \u2014 with an unmatched branch network.\n\n### Valuation Note\n\nThe stock has had a rough 12 months (**-23% from its 52w high** of \u20b91,021). The post-merger integration, NIM compression from the rate cycle, and the recent **RBI watchlist-driven provisions** have weighed on sentiment. But at **16.7\u00d7 TTM earnings and just 1.96\u00d7 book**, it's the cheapest it has been in years \u2014 the forward P/E of **11.9\u00d7** leaves room if earnings ramp up.\n\n### What to Watch\n- **NIM trajectory** \u2014 merger cost synergies flow through\n- **Loan growth** \u2014 India's credit cycle\n- **Provisions** \u2014 any RBI regulatory overhang\n- The stock is **\u20b920 off its 52w low** \u2014 potential double-bottom setup on the chart\n\n---\n\n*Click any $TICKER in this brief to load its chart. Want a deeper dive \u2014 earnings history, analyst targets, or the competitive landscape?*\n",
+ "sources": [
+  {
+   "url": "https://en.wikipedia.org/wiki/HDFC_Bank",
+   "title": "HDFC Bank - Wikipedia",
+   "excerpt": "",
+   "domain": "wikipedia.org"
+  },
+  {
+   "url": "https://www.hdfc.bank.in/about-us",
+   "title": "About Us - HDFC Bank",
+   "excerpt": "",
+   "domain": "hdfc.bank.in"
+  },
+  {
+   "url": "https://www.screener.in/company/HDFCBANK/consolidated/",
+   "title": "HDFC Bank Ltd share price - Screener",
+   "excerpt": "",
+   "domain": "screener.in"
+  }
+ ],
+ "sourceCount": 3,
+ "webAvailable": true,
+ "createdAt": 1781166639277
+}

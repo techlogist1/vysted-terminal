@@ -1,0 +1,48 @@
+{
+ "query": "Hindustan Unilever Limited \u2014 Quick Research Brief",
+ "symbol": "HINDUNILVR",
+ "mode": "FAST",
+ "depth": "quick",
+ "markdown": "# Hindustan Unilever Ltd ($HINDUNILVR) \u2014 Quick Research Brief\n\n**Sector:** Consumer Defensive \u2014 Household & Personal Products  \n**Price (NSE):** \u20b92,169.50 \u25b2 +1.72% (Jun 10 close) \u2014 above the 52w low of \u20b92,022.50, well off the 52w high of \u20b92,750 [1]\n\n---\n\n## Key Metrics\n\n| Metric | Value |\n|---|---|\n| **Market Cap** | \u20b95.06 Lakh Crore |\n| **P/E (TTM)** | 47.5\u00d7 |\n| **Forward P/E** | 40.1\u00d7 |\n| **PEG Ratio** | 3.69 |\n| **Price / Book** | 10.4\u00d7 |\n| **EV / EBITDA** | 34.7\u00d7 |\n| **Dividend Yield** | 2.03% (\u20b944/share) |\n\n## Profitability & Quality\n\n| Metric | Value |\n|---|---|\n| **Gross Margin** | 50.6% |\n| **Operating Margin** | 21.1% |\n| **Profit Margin** | 23.3% |\n| **ROE** | 21.6% |\n| **ROA** | 10.7% |\n| **Debt / Equity** | 0.03 (nearly debt-free) |\n\n## Financial Health\n\n- **Revenue (TTM):** \u20b964,468 Cr  \n- **Net Income (TTM):** \u20b910,633 Cr  \n- **Free Cash Flow:** \u20b96,525 Cr  \n- **Revenue Growth (YoY):** +4.3%  \n- **Earnings Growth (YoY):** +21.4%  \n- **Current Ratio:** 1.22 | **Quick Ratio:** 0.70  \n- **Beta:** 0.36 (very low volatility)  \n\n## Ownership\n\n- **Promoters / Insiders:** 62.3%  \n- **Institutions:** 20.8%  \n\n## What It Tells You\n\n**India's biggest FMCG company** \u2014 brands like Surf Excel, Dove, Lifebuoy, Knorr, Lux, and Ponds give it unmatched distribution depth. The nearly debt-free balance sheet (D/E 0.03) and FCF of \u20b96,525 Cr underscore pricing power and cash conversion.\n\n**The valuation premium is the story** \u2014 at 47.5\u00d7 trailing earnings it trades above most global consumer peers. The PEG of 3.69 suggests the growth rate (mid-single-digit revenue, low-double-digit EPS) doesn't fully justify the multiple on a strict PEG basis. The 21.6% ROE is excellent, but P/B of 10.4\u00d7 means most of that return is already priced in.\n\n**Watch the 52w range:** at \u20b92,170 it's 21% below the high (\u20b92,750) and 7% above the low (\u20b92,022) \u2014 a classic mean-reversion setup for a quality compounder that's had a rough 12 months (-7% 52w change) [2].\n\n**Dividend angle:** 2.03% yield with \u20b944/share DPS is steady, not spectacular \u2014 more of a quality signal than an income play.\n\n---\n\n*Data sourced from NSE direct feed & fundamentals. Brief is a quick first pass \u2014 want to go deeper? Ask me to dig into earnings, analyst targets, or competitive positioning.* [3]\n",
+ "sources": [
+  {
+   "url": "https://www.nseindia.com/get-quotes/equity?symbol=HINDUNILVR",
+   "title": "NSE India \u2014 HINDUNILVR Quote",
+   "excerpt": "Live NSE price data for Hindustan Unilever Limited",
+   "domain": "nseindia.com"
+  },
+  {
+   "url": "https://economictimes.indiatimes.com/hindustan-unilever-ltd/stocksupdate/companyid-13616.cms",
+   "title": "Hindustan Unilever News \u2014 Economic Times",
+   "excerpt": "Latest news and updates on Hindustan Unilever",
+   "domain": "economictimes.indiatimes.com"
+  },
+  {
+   "url": "https://www.hul.co.in/",
+   "title": "Hindustan Unilever \u2014 Official Site",
+   "excerpt": "India's largest FMCG company \u2014 brand portfolio and investor info",
+   "domain": "hul.co.in"
+  }
+ ],
+ "sourceCount": 3,
+ "webAvailable": true,
+ "structured": {
+  "price": {
+   "symbol": "HINDUNILVR",
+   "price": 2169.5,
+   "change": 36.7,
+   "change_percent": 1.72,
+   "currency": "INR"
+  },
+  "fundamentals": {
+   "market_cap": 5056320503808,
+   "pe_ratio": 47.46,
+   "roe": 0.216,
+   "profit_margin": 0.233,
+   "debt_to_equity": 0.03,
+   "dividend_yield": 0.0203
+  }
+ },
+ "backend": "keyless-fallback",
+ "createdAt": 1781166355748
+}
