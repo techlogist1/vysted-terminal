@@ -73,6 +73,10 @@ _LLM_CALL_TIMEOUT_SECS = 60.0
 #: ``services.research.depth.PROFILES`` (the ONE knob table).
 _MIN_HEAVY_ANGLES = 2
 
+#: Reserved wall (seconds) for the ULTRA cross-check round — carved OUT of the
+#: profile wall so the heavy panel can never starve the verification round.
+_CROSS_CHECK_RESERVE_SECS = 90
+
 _PERPLEXITY_NEEDS_KEY = (
     "Perplexity deep research needs an API key (opt-in, paid). Add it in "
     "Settings, or use the built-in deep research."
@@ -220,10 +224,15 @@ async def _run_loop(
 
     heavy = profile.angles >= _MIN_HEAVY_ANGLES
     step_factor = profile.angles if heavy else 1
+    # R9 (V14, third live skip): the cross-check round gets a RESERVED wall
+    # slice — under a shared pot the heavy panel always consumed it and the
+    # verification round (ULTRA's point) skipped honestly every run. The panel
+    # runs against wall minus the reserve; the cross-check gets its own guard.
+    cross_reserve = _CROSS_CHECK_RESERVE_SECS if (heavy and profile.cross_check) else 0
     budget = BudgetGuard(
         max_steps=step_factor * rounds * (profile.researchers + 2)
         + (2 if profile.cross_check else 0),
-        max_wall_seconds=wall,
+        max_wall_seconds=max(60, wall - cross_reserve),
     )
     region = config.get_region()
     on_step = config.get_step_sink()
@@ -257,7 +266,7 @@ async def _run_loop(
                 region=region,
                 tool_call=agent_tools.invoke_tool,
                 llm_call=llm_call,
-                budget=budget,
+                budget=BudgetGuard(max_steps=6, max_wall_seconds=_CROSS_CHECK_RESERVE_SECS),
                 on_step=on_step,
                 min_domains=max(2, profile.min_web_domains),
                 # R9 B4 (lead integration): the tier_a dual-channel cross-verify.
