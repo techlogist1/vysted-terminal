@@ -208,6 +208,12 @@ async def _web_round(tool_call: ToolCall, web_query: str) -> dict[str, Any]:
         "citations": web_res.get("citations", []) if web_ok else [],
         "results": web_res.get("results", []) if web_ok else [],
     }
+    # R9 gate 2: carry the retrieval backend id through the rewrap — the
+    # web_search tool stamps "keyless-fallback" here and the published brief's
+    # nudge banner keys on it (auto-publish lifts web.backend onto the brief).
+    backend = web_res.get("backend")
+    if backend:
+        web["backend"] = backend
     if not web_ok:
         reason = web_res.get("reason")
         web["reason"] = reason

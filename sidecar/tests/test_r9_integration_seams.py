@@ -174,3 +174,22 @@ def test_auto_publish_lifts_fast_web_round_backend() -> None:
     event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(fast_bundle))
     assert event is not None
     assert event.input["backend"] == "keyless-fallback"
+
+
+def test_fast_web_round_carries_retrieval_backend(monkeypatch) -> None:
+    """The FAST bundle's web section keeps the tool's backend id through the
+    rewrap (keyless-fallback must reach the published brief on NORMAL runs)."""
+    from services.research import fast
+
+    async def fake_tool(name: str, args: dict) -> dict:
+        assert name == "web_search"
+        return {
+            "ok": True,
+            "backend": "keyless-fallback",
+            "citations": [{"url": "https://example.com", "title": "t"}],
+            "results": [],
+        }
+
+    web = asyncio.run(fast._web_round(fake_tool, "tcs news"))
+    assert web["backend"] == "keyless-fallback"
+    assert web["available"] is True

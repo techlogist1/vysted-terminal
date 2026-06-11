@@ -1,0 +1,83 @@
+{
+ "query": "Tata Consultancy Services quick research",
+ "symbol": "TCS.NS",
+ "mode": "FAST",
+ "depth": "quick",
+ "markdown": "## Tata Consultancy Services ($TCS.NS) \u2014 Quick Look\n\n**Price:** \u20b92,153.90 (+0.13%) \u00b7 Market cap: \u20b977.2 lakh Cr ($929B)  \n**52-wk range:** \u20b92,110 \u2013 \u20b93,538 (near the floor: ~37% off the high)\n\n### Valuation & Quality\n\n| Metric | Value | Take |\n|---|---|---|\n| P/E (TTM) | 15.7x | Modest for a blue-chip IT name |\n| Forward P/E | 12.9x | Compressed \u2014 implies earnings growth is priced in |\n| ROE | 48.4% | Stellar \u2014 among the best in Indian large-caps |\n| Operating Margin | 25.3% | Industry-leading profitability |\n| Debt/Equity | 0.10 | Near-debtless balance sheet |\n| Dividend Yield | 5.76% | High \u2014 \u20b9124/share annualised |\n\n### Recent Developments\n\n- **TCS \u00d7 Anthropic:** Announced a global partnership to equip 50,000 associates with Claude AI models, targeting regulated industries requiring accuracy and governance [1].\n- **IT sector pressure:** Nifty IT fell ~2.4% today on hotter-than-expected US inflation (CPI) and US-Iran tensions spiking oil, raising macro uncertainty for Indian IT's US-heavy revenue base [2].\n- **Share price near 52-wk low:** At \u20b92,154, the stock trades just ~2% above its 52-week floor \u2014 a zone that has historically attracted value buying.\n\n### Key Stats\n\n- **Revenue (TTM):** \u20b92.67 lakh Cr | **Net Income:** \u20b949,210 Cr | **FCF:** \u20b937,060 Cr\n- **Revenue growth:** 9.6% YoY | **Earnings growth:** 12.2% YoY\n- **Promoter holding:** 71.8% | **Institutional:** 17.9%\n- **Beta:** 0.23 \u2014 significantly less volatile than the broader market\n\n### Bottom Line\n\nTCS combines a fortress balance sheet, near-50% ROE, and a 5.8% dividend yield at a 15.7x P/E \u2014 not demanding by its own history. The stock is down ~37% from its all-time high, and the Anthropic AI partnership signals it isn't standing still on the AI front. The key risk is the macro overhang (US rates, oil) weighing on the IT sector's near-term outlook.\n\n**Want a deeper dive?** Tell me to go deeper and I'll run multi-round research on TCS's competitive positioning, analyst consensus, and earnings trajectory.\n\n---\n**Sources**  \n[1] NDTV Profit \u2014 *TCS Ties Up With Anthropic To Scale AI, To Equip 50,000 Associates With Claude* (Jun 11, 2026)  \n[2] Economic Times \u2014 *Infosys, HCL Tech, other IT stocks tumble up to 3%* (Jun 11, 2026)  \nPrice, fundamentals, and filings data via NSE Direct / Yahoo Finance (Jun 10-11, 2026)\n",
+ "sources": [
+  {
+   "url": "https://www.ndtvprofit.com/business/tcs-announces-global-strategic-partnership-with-anthropic-11621029",
+   "title": "TCS Ties Up With Anthropic To Scale AI, To Equip 50,000 Associates With Claude",
+   "excerpt": "TCS has partnered with Anthropic to integrate Claude AI models for enterprise adoption, focusing on regulated industries requiring accuracy and governance.",
+   "domain": "ndtvprofit.com"
+  },
+  {
+   "url": "https://economictimes.indiatimes.com/markets/stocks/news/infosys-hcl-tech-other-it-stocks-tumble-up-to-3-whats-spooking-investors/articleshow/131652754.cms",
+   "title": "Infosys, HCL Tech, other IT stocks tumble up to 3%. What's spooking investors?",
+   "excerpt": "Indian IT stocks fell as hotter-than-expected US inflation fuelled concerns over prolonged higher interest rates.",
+   "domain": "economictimes.indiatimes.com"
+  }
+ ],
+ "sourceCount": 2,
+ "webAvailable": true,
+ "structured": {
+  "price": {
+   "ok": true,
+   "provider": "nse_direct",
+   "data": {
+    "symbol": "TCS",
+    "price": 2153.9,
+    "change": 2.900000000000091,
+    "change_percent": 0.1348210134821056,
+    "volume": 2848650,
+    "currency": "INR",
+    "market_state": "REGULAR",
+    "timestamp": "2026-06-10T00:00:00Z",
+    "provider": "nse_direct"
+   }
+  },
+  "fundamentals": {
+   "ok": true,
+   "provider": "yfinance",
+   "data": {
+    "symbol": "TCS.NS",
+    "name": "Tata Consultancy Services Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "currency": "INR",
+    "market_cap": 7720998535168,
+    "pe_ratio": 15.701567,
+    "forward_pe": 12.899646,
+    "peg_ratio": 2.335,
+    "price_to_book": 7.1997304,
+    "price_to_sales": 2.8915322,
+    "ev_to_ebitda": 10.626,
+    "book_value": 296.4,
+    "dividend_yield": 0.0576,
+    "dividend_per_share": 124,
+    "eps": 135.91,
+    "beta": 0.227,
+    "fifty_two_week_high": 3538,
+    "fifty_two_week_low": 2110,
+    "fifty_two_week_change": -0.3728088,
+    "roe": 0.48395002,
+    "roa": 0.24436001,
+    "gross_margin": 0.40307,
+    "operating_margin": 0.25288,
+    "profit_margin": 0.18429,
+    "debt_to_equity": 0.10389,
+    "current_ratio": 2.228,
+    "quick_ratio": 1.974,
+    "revenue_ttm": 2670210056192,
+    "net_income_ttm": 492099993600,
+    "free_cash_flow": 370597494784,
+    "shares_outstanding": 3618087518,
+    "revenue_growth": 0.096,
+    "earnings_growth": 0.122,
+    "held_percent_insiders": 0.71795,
+    "held_percent_institutions": 0.1785
+   }
+  }
+ },
+ "createdAt": 1781165120762
+}
