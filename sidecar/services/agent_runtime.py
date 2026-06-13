@@ -24,6 +24,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import time
 from collections.abc import AsyncIterator, Callable
 from datetime import UTC, datetime
 from pathlib import Path
@@ -125,27 +126,11 @@ SCHEMA_PATH = AGENTS_DIR / "_schema.json"
 _RESERVED = {"_schema.json"}
 
 
-def _host_action_tool_ids() -> tuple[str, ...]:
-    """Every host-action capability id, PROJECTED from the catalog.
-
-    Constitution Principle II: the capability catalog is the one source of
-    truth — this is a projection (``kind == "host_action"``), never a
-    hand-maintained list, so a new host action reaches the whole first-party
-    roster the moment it lands in the catalog.
-    """
-    return tuple(c.id for c in catalog.CAPABILITY_CATALOG.values() if c.kind == "host_action")
-
-
-#: Non-host-action tools every first-party agent also gets (D21): the ONE
-#: research capability, so a persona can ground its lens in the same cited
-#: research pipeline the copilot uses.
-_FIRST_PARTY_EXTRA_TOOLS: tuple[str, ...] = ("research",)
-
 #: Shared terminal-capabilities preamble appended to every first-party agent's
 #: system prompt at LOAD time (D21 deliverable 2 — the persona JSON keeps its
 #: voice; the loader tells it about its hands). Mirrors what the copilot's own
 #: prompt teaches: the agent CAN drive the cockpit, and it must narrate
-#: applied-vs-proposed truthfully so chat claims always match real panel state.
+#: dispatched-vs-proposed truthfully so chat claims always match real panel state.
 TERMINAL_CAPABILITIES_PREAMBLE = (
     "## Terminal capabilities\n"
     "You are operating inside the Vysted terminal, and your analysis comes with "
@@ -156,13 +141,20 @@ TERMINAL_CAPABILITIES_PREAMBLE = (
     "symbol into the chart (set_chart_symbol), apply chart indicators "
     "(set_chart_indicators), open a company's full overview (open_company_overview "
     "— always pass the symbol), arrange the cockpit layout (arrange_layout), add "
-    "symbols to the watchlist (add_to_watchlist), publish a research brief "
-    "(publish_brief), stage screener filters for the user to review and run "
-    "(write_screener_filters), and run the research tool for a grounded, cited "
-    "workup. When showing something on screen would help the user, do it.\n"
+    "or remove watchlist symbols (add_to_watchlist / remove_from_watchlist), "
+    "publish a research brief (publish_brief), stage screener filters for the "
+    "user to review and run (write_screener_filters), save a screen or the "
+    "layout (save_screen / save_layout), maintain the user's LOCAL paper "
+    "portfolio (portfolio_add_position / portfolio_update_position / "
+    "portfolio_delete_position — a tracking ledger, never a broker order), "
+    "write notes (write_note), switch the market region (set_region), and run "
+    "the research tool for a grounded, cited workup. When showing something on "
+    "screen would help the user, do it.\n"
     "Narrate these actions truthfully, matching each tool result: a result that "
-    "says applied means the change ALREADY landed — say so in past tense; a result "
-    "that says awaiting_user_review means it is STAGED for the user's review — say "
+    "says dispatched means the action was SENT to the panel — verify with "
+    "get_terminal_state before claiming completion (panel state is "
+    "authoritative, never your tool call); a result that says "
+    "awaiting_user_review means it is STAGED for the user's review — say "
     "you proposed it, never claim it is done; a result that reports a failure "
     "means it did NOT happen — say plainly what could not be done. Orders are "
     "never placed by you: propose_order only ever stages an order behind the "
@@ -171,14 +163,17 @@ TERMINAL_CAPABILITIES_PREAMBLE = (
 
 
 def _grant_first_party_hands(spec: AgentSpec) -> AgentSpec:
-    """Union a first-party agent's tools with the copilot's terminal hands.
+    """Union a first-party agent's tools with the catalog's default grant.
 
-    Lead decision D21 (locked): persona = voice + analytical style ONLY. The
-    JSON files keep each persona's voice/specialty tools; at LOAD time every
-    first-party agent's effective allow-list is unioned with the catalog's
-    host-action ids (projected above) plus the ``research`` tool — so a
-    persona never again declares "I don't have the ability to open panels"
-    while the copilot drives the terminal freely.
+    Lead decision D21 (locked) + R10 E5: persona = voice + analytical style
+    ONLY. The JSON files keep each persona's voice/specialty tools; at LOAD
+    time every first-party agent's effective allow-list is unioned with the
+    catalog's :func:`~services.agent_tools.catalog.default_grant_tool_ids`
+    projection — the FULL internal capability set, not a hand-picked
+    host-actions+research slice — so correctness never again depends on an
+    agent JSON staying in sync with the catalog (the E5 "I don't have a
+    backtesting tool" drift). Custom agents (the agents_store fallback in
+    :func:`get_agent`) are NOT unioned; their authors pick tools.
 
     §6.5 is untouched: this widens the ALLOW-list only. ``propose_order``
     still rides the proposed-changes gate and the confirm-before-place dialog
@@ -187,7 +182,7 @@ def _grant_first_party_hands(spec: AgentSpec) -> AgentSpec:
     """
     merged = list(spec.tools)
     seen = set(merged)
-    for tool_id in (*_host_action_tool_ids(), *_FIRST_PARTY_EXTRA_TOOLS):
+    for tool_id in catalog.default_grant_tool_ids():
         if tool_id not in seen:
             seen.add(tool_id)
             merged.append(tool_id)
@@ -497,6 +492,48 @@ _RESEARCH_TOOLS = ("research",)
 
 LocalToolHandler = Any  # async (dict) -> dict, bound per-invocation
 
+#: Headroom (seconds) the research outer guard adds above the engine's own
+#: wall budget (E7) — the guard is a backstop for a WEDGED engine, never a
+#: second scheduler racing a healthy run.
+_RESEARCH_GUARD_EXTRA_SECONDS = 90.0
+
+#: Per-depth wall floors for the research guard, covering BOTH engines: the
+#: tier_a depth-profile walls (deep 120 / ultra 360) AND the tier_b hosted
+#: research-model walls (normal 120 / deep 300 / ultra 480) — the guard takes
+#: the max so it can never fire before a legitimately-running engine finishes.
+_RESEARCH_WALL_FLOOR_SECONDS = {"normal": 120.0, "deep": 300.0, "ultra": 480.0}
+
+
+def _research_guard_seconds(args: Any) -> float:
+    """The research tool's outer timeout: ``wall_seconds + 90`` from its args.
+
+    Resolves the effective depth exactly as the handler does (the MAX of the
+    model's arg and the composer-slider floor), takes the larger of the
+    explicit ``wall_seconds`` arg, the depth profile's wall, and the per-depth
+    engine floor, then adds the guard headroom.
+    """
+    from services.research import depth as depth_mod
+
+    arg_map = args if isinstance(args, dict) else {}
+    rank = {depth_mod.DEPTH_NORMAL: 0, depth_mod.DEPTH_DEEP: 1, depth_mod.DEPTH_ULTRA: 2}
+    model_depth = depth_mod.normalize_depth(arg_map.get("depth"))
+    slider_depth = depth_mod.normalize_depth(config.get_request_research_depth())
+    depth = model_depth if rank[model_depth] >= rank[slider_depth] else slider_depth
+    try:
+        wall = float(arg_map.get("wall_seconds"))
+    except (TypeError, ValueError):
+        wall = 0.0
+    profile_wall = float(depth_mod.profile_for(depth).wall_seconds)
+    floor = _RESEARCH_WALL_FLOOR_SECONDS.get(depth, 120.0)
+    return max(wall, profile_wall, floor) + _RESEARCH_GUARD_EXTRA_SECONDS
+
+
+def _tool_timeout_seconds(event: LLMToolUseEvent) -> float | None:
+    """The dispatch wall budget for one registry tool call (E7); ``None`` = none."""
+    if event.name == "research":
+        return _research_guard_seconds(event.input)
+    return catalog.timeout_for(event.name)
+
 
 async def _dispatch_tool(
     event: LLMToolUseEvent,
@@ -509,6 +546,12 @@ async def _dispatch_tool(
     they ride the existing :class:`LLMMessage` ``content`` field. A handler that
     raises (or an unregistered tool) surfaces a structured error so the model
     recovers gracefully on the next turn rather than crashing the stream.
+
+    R10 (E7): registry tools run under their catalog ``timeout_seconds`` (the
+    ``research`` guard derives from its args) via ``asyncio.wait_for`` — a
+    timed-out tool returns an honest message with a per-domain next step and
+    the loop CONTINUES; host-action locals + per-invocation reads are exempt
+    (frontend round-trips / in-memory).
     """
     name = event.name
     # WS8 Step 1: the adapter could not parse/validate/repair this call's
@@ -525,7 +568,23 @@ async def _dispatch_tool(
         if local_tools and name in local_tools:
             payload: dict[str, Any] = await local_tools[name](event.input)
         elif agent_tools.is_registered(name):
-            payload = await agent_tools.invoke_tool(name, event.input)
+            timeout = _tool_timeout_seconds(event)
+            if timeout is not None:
+                try:
+                    payload = await asyncio.wait_for(
+                        agent_tools.invoke_tool(name, event.input), timeout
+                    )
+                except TimeoutError:
+                    payload = {
+                        "ok": False,
+                        "error": "timeout",
+                        "message": (
+                            f"{name} timed out after {int(timeout)}s — "
+                            f"{catalog.timeout_hint_for(name)}"
+                        ),
+                    }
+            else:
+                payload = await agent_tools.invoke_tool(name, event.input)
         else:
             payload = {"ok": False, "error": f"tool {name!r} is not available in this build"}
     except Exception as exc:  # noqa: BLE001 — surface failures to the model
@@ -623,6 +682,35 @@ async def _dispatch_tool_with_progress(
         config.reset_step_sink(token)
 
 
+#: ``ResearchExecution.loop`` → the brief's (mode, depth) badges (R10, E2). The
+#: stamp derives from the loop that RAN — never the result payload's ``mode``
+#: (the old ``raw_mode`` read that stamped a DEEP run "FAST" whenever a payload
+#: omitted the field). ``research-model`` maps per REQUESTED stop below.
+_LOOP_TO_MODE_DEPTH: dict[str, tuple[str, str]] = {
+    "fast": ("fast", "quick"),
+    "iter": ("deep", "deep"),
+    "heavy": ("deep", "heavy"),
+}
+
+#: The research-model (Tier B) lane maps per requested stop: only a NORMAL
+#: request renders as the quick tier; deep/ultra requests render at the deep
+#: tier they bought (heavy for ultra so "Go deeper" stays honest).
+_RESEARCH_MODEL_STOP_TO_MODE_DEPTH: dict[str, tuple[str, str]] = {
+    "normal": ("fast", "quick"),
+    "deep": ("deep", "deep"),
+    "ultra": ("deep", "heavy"),
+}
+
+
+def _mode_depth_from_execution(execution: dict[str, Any]) -> tuple[str, str]:
+    """The brief's (mode, depth) derived ONLY from the execution record."""
+    loop = str(execution.get("loop") or "")
+    if loop == "research-model":
+        requested = str(execution.get("requested_depth") or "normal")
+        return _RESEARCH_MODEL_STOP_TO_MODE_DEPTH.get(requested, ("deep", "deep"))
+    return _LOOP_TO_MODE_DEPTH.get(loop, ("fast", "quick"))
+
+
 def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolUseEvent | None:
     """Build a synthetic ``publish_brief`` host-action from a research result.
 
@@ -636,6 +724,12 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
     trust gate), and is idempotent with a model-issued publish (``setBrief``
     replaces). Returns ``None`` on a malformed/failed result so a broken run
     never half-publishes — the live research trace still animated.
+
+    R10 (E2): a payload WITHOUT an ``execution`` record is malformed and never
+    auto-publishes — the brief's mode/depth derive from the loop that RAN,
+    never from the payload's ``mode`` field or a default. A
+    ``needs_disambiguation`` result publishes the candidate CHOOSER instead of
+    a guessed brief (D37).
     """
     try:
         payload = json.loads(result_str)
@@ -643,6 +737,31 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
         return None
     if not isinstance(payload, dict) or not payload.get("ok"):
         return None
+    execution = payload.get("execution")
+    if not isinstance(execution, dict) or not execution.get("run_id"):
+        logger.warning(
+            "research result without an execution record — auto-publish suppressed "
+            "(tool_call_id=%s)",
+            tool_call.tool_call_id,
+        )
+        return None
+    # Honest disambiguation (D37): publish the chooser, nothing else — no
+    # markdown, no structured, no guessed entity. The panel renders the
+    # candidate picker keyed on the run's execution record.
+    if payload.get("needs_disambiguation"):
+        query = payload.get("query", "")
+        return LLMToolUseEvent(
+            tool_call_id=f"{tool_call.tool_call_id}__autobrief",
+            name="publish_brief",
+            input={
+                "query": query,
+                "disambiguation": {
+                    "query": query,
+                    "candidates": payload.get("candidates") or [],
+                },
+                "execution": execution,
+            },
+        )
     markdown = payload.get("markdown")
     structured = payload.get("structured")
     has_markdown = isinstance(markdown, str) and bool(markdown.strip())
@@ -697,19 +816,20 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
         web_reason = web.get("reason")
         if not note:
             note = web.get("note") or web.get("detail")
-    # The true depth TIER the run reached (FR-115): the result's ``mode`` is "fast"
-    # (quick gather) / "deep" (iter loop) / "heavy" (panel). Map it to the brief's
-    # ``depth`` so the panel's "Go deeper" affordance knows the NEXT tier; the FAST
-    # bundle has no ``mode``, so a missing/"fast" value is the quick tier.
-    raw_mode = str(payload.get("mode") or "fast").strip().lower()
-    depth = raw_mode if raw_mode in ("deep", "heavy") else "quick"
+    # The true depth TIER the run reached (FR-115/E2): derived ONLY from the
+    # execution record's loop — never from the payload's ``mode`` (the old read
+    # stamped any mode-less payload "FAST", so a DEEP run rendered as quick).
+    mode, depth = _mode_depth_from_execution(execution)
     # Forward only the fields the publish_brief host-action consumes (snake_case,
     # exactly as the frontend's briefFromInput reads them).
     brief_input: dict[str, Any] = {
         "query": payload.get("query", ""),
         "symbol": payload.get("symbol", ""),
-        "mode": payload.get("mode", "fast"),
+        "mode": mode,
         "depth": depth,
+        # R10 (D38): the verbatim execution record rides the publish so the
+        # panel's badges + run-scoped carry key on what actually RAN.
+        "execution": execution,
         "markdown": markdown if isinstance(markdown, str) else "",
         "sources": sources,
         "structured": structured,
@@ -731,6 +851,61 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
     )
 
 
+#: End-of-stream ack grace (E3.3): the frontend's ``POST /agents/actions/ack``
+#: is an async HTTP round-trip racing the stream's close, so the divergence
+#: check polls the ledger briefly before declaring a publish unconfirmed.
+#: Module-level so tests can shrink it to ~0.
+_ACK_GRACE_SECONDS = 0.8
+_ACK_POLL_SECONDS = 0.1
+
+
+async def _publish_divergence_notices(publish_calls: list[str]) -> list[LLMResearchStepEvent]:
+    """The end-of-stream read-back (E3.3): one quiet notice per publish whose
+    panel outcome DIVERGED from the dispatched optimism.
+
+    Checks the ack ledger for every ``publish_brief`` tool call of this turn:
+    no ack → "the panel did not confirm"; ``kept_previous`` → the D33 shrink
+    guard kept the richer brief; ``failed`` → the apply failed. Rides the
+    existing ``research_step`` event vocabulary (the step/notice channel) — the
+    frontend renders these as quiet system chips (Team FRONTEND-BRIEF).
+    """
+    from services import action_ledger
+
+    deadline = time.monotonic() + _ACK_GRACE_SECONDS
+    pending = {cid for cid in publish_calls if action_ledger.get(cid) is None}
+    while pending and time.monotonic() < deadline:
+        await asyncio.sleep(_ACK_POLL_SECONDS)
+        pending = {cid for cid in pending if action_ledger.get(cid) is None}
+    notices: list[LLMResearchStepEvent] = []
+    for index, call_id in enumerate(publish_calls, start=1):
+        entry = action_ledger.get(call_id)
+        if entry is None:
+            detail = (
+                "The brief panel did not confirm the publish — treat it as NOT "
+                "rendered until get_terminal_state shows it."
+            )
+            status = "error"
+        elif entry.get("status") == "kept_previous":
+            detail = "The panel kept the previous, richer brief."
+            status = "ok"
+        elif entry.get("status") == "failed":
+            detail = "The brief panel reported the publish failed."
+            status = "error"
+        else:  # applied — the optimistic dispatch was right; nothing to say.
+            continue
+        notices.append(
+            LLMResearchStepEvent(
+                tool_call_id=call_id,
+                tool="publish_brief",
+                step_kind="engine",
+                detail=detail,
+                status=status,
+                index=index,
+            )
+        )
+    return notices
+
+
 def _build_local_tools(
     snapshot: AgentContextSnapshot | None,
     autonomy: str | None = None,
@@ -740,16 +915,19 @@ def _build_local_tools(
     ``get_terminal_state`` / ``get_portfolio`` return state passed in the request
     (the sidecar can't read the frontend's stores). The host-action tools return
     a synthetic result carrying a ``host_action`` directive whose narration tracks
-    the user's autonomy: with ``autonomy="auto"`` a NON-ORDER action is applied
-    immediately (the frontend's auto-apply lands it), so the result says
-    ``applied`` and the model narrates it in PAST tense; otherwise (``ask`` /
-    unknown) the action is STAGED in the diff/accept trust gate (FR-010), reports
-    ``awaiting_user_review``, and the model must say it *proposed* the change, not
-    that it happened. ``propose_order`` is EXEMPT from the auto path (§6.5): it
-    always returns ``awaiting_user_review`` in EVERY mode — the AI has no path to
-    ``confirm_and_place``. The frontend honours the same split (orders are excluded
-    from the auto-apply branch in proposed-changes), so this narration matches what
-    actually lands.
+    the user's autonomy: with ``autonomy="auto"`` a NON-ORDER action is
+    DISPATCHED to the panel (the frontend's auto-apply lands it asynchronously),
+    so the result says ``dispatched`` and tells the model to VERIFY with
+    ``get_terminal_state`` before claiming completion — panel state is
+    authoritative, never the tool call (E3.3: the old "applied … past tense"
+    optimism preceded ``applyHostAction``, whose guards can keep prior state).
+    Otherwise (``ask`` / unknown) the action is STAGED in the diff/accept trust
+    gate (FR-010), reports ``awaiting_user_review``, and the model must say it
+    *proposed* the change, not that it happened. ``propose_order`` is EXEMPT
+    from the auto path (§6.5): it always returns ``awaiting_user_review`` in
+    EVERY mode — the AI has no path to ``confirm_and_place``. The frontend
+    honours the same split (orders are excluded from the auto-apply branch in
+    proposed-changes), so this narration matches what actually lands.
     """
     from services.agent_tools.schemas import HOST_ACTION_TOOLS
 
@@ -782,14 +960,15 @@ def _build_local_tools(
                     "host_action": {"type": tool_id, "args": args},
                 }
             if autonomy == "auto":
-                # NON-ORDER action with auto-apply on: the frontend lands it
-                # immediately. Narrate it in past tense.
+                # NON-ORDER action with auto-apply on: the frontend WILL land
+                # it — but it has not confirmed yet (E3.3: the old "applied …
+                # past tense" claim preceded applyHostAction, whose guards can
+                # keep prior state). Honest narration: dispatched, verify.
                 return {
                     "ok": True,
-                    "status": "applied",
-                    "applied": True,
-                    "note": "Applied immediately (auto-apply is on). "
-                    "Tell the user it is done, in past tense.",
+                    "status": "dispatched",
+                    "note": "Dispatched to the panel — verify with get_terminal_state "
+                    "before claiming completion; panel state is authoritative.",
                     "host_action": {"type": tool_id, "args": args},
                 }
             return {  # ask / unknown -> current behavior
@@ -975,6 +1154,15 @@ async def invoke_agent(
 
     rounds = 0
     web_search_calls = 0  # per-run cap on the BYOK/local web_search tool (FR-081)
+    # R10 (E2): the latest research execution record of THIS invoke. When the
+    # model issues its own publish_brief without an ``execution`` (it almost
+    # never echoes the big record), the tracked record is injected so the
+    # panel's mode/depth badges always key on what actually ran.
+    last_research_execution: dict[str, Any] | None = None
+    # R10 (E3.3): every publish_brief tool_call_id of this turn (model-issued
+    # AND synthetic) — checked against the ack ledger at end-of-stream so a
+    # publish the panel never confirmed gets an honest divergence notice.
+    publish_brief_calls: list[str] = []
     while True:
         pending_tools: list[LLMToolUseEvent] = []
         # WS8 Step 4: accumulate this round's reasoning_content (DeepSeek-reasoner
@@ -995,6 +1183,18 @@ async def invoke_agent(
                 yield event
                 continue
             if isinstance(event, LLMToolUseEvent):
+                # R10 (E2): a model-issued publish_brief without an execution
+                # record inherits the run's tracked record before anything
+                # downstream (frontend, dispatch) sees the event.
+                if (
+                    event.name == "publish_brief"
+                    and isinstance(event.input, dict)
+                    and "execution" not in event.input
+                    and last_research_execution is not None
+                ):
+                    event.input["execution"] = last_research_execution
+                if event.name == "publish_brief":
+                    publish_brief_calls.append(event.tool_call_id)
                 pending_tools.append(event)
                 yield event
                 continue
@@ -1011,12 +1211,21 @@ async def invoke_agent(
                 # needs it.
                 if pending_tools and rounds < _MAX_TOOL_ROUNDS:
                     break
+                # E3.3 end-of-stream read-back: under AUTO autonomy a publish
+                # was DISPATCHED optimistically — surface any divergence the
+                # panel acked (or never acked) before the terminator.
+                if autonomy == "auto" and publish_brief_calls:
+                    for notice in await _publish_divergence_notices(publish_brief_calls):
+                        yield notice
                 yield event
                 return
             yield event
         if not seen_done:
             # Provider closed without a terminator — emit one so the SSE
             # framing stays well-formed for the consumer.
+            if autonomy == "auto" and publish_brief_calls:
+                for notice in await _publish_divergence_notices(publish_brief_calls):
+                    yield notice
             yield LLMDoneEvent()
             return
         if not pending_tools:
@@ -1101,8 +1310,17 @@ async def invoke_agent(
             # never calls it — riding the existing review/AUTO gate. The model is
             # told (in its prompt) it need not publish; a duplicate is idempotent.
             if tool_call.name in _RESEARCH_TOOLS:
+                try:
+                    _research_payload = json.loads(result_str)
+                except (json.JSONDecodeError, ValueError, TypeError):
+                    _research_payload = None
+                if isinstance(_research_payload, dict) and isinstance(
+                    _research_payload.get("execution"), dict
+                ):
+                    last_research_execution = _research_payload["execution"]
                 auto_brief = _auto_publish_event(tool_call, result_str)
                 if auto_brief is not None:
+                    publish_brief_calls.append(auto_brief.tool_call_id)
                     yield auto_brief
         rounds += 1
         if rounds >= _MAX_TOOL_ROUNDS:

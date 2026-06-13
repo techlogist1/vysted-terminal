@@ -303,3 +303,58 @@ def test_answer_unknown_run_raises() -> None:
 def test_resume_unknown_run_raises() -> None:
     with pytest.raises(run_manager.RunManagerError):
         run_manager.resume_run("ghost")
+
+
+# ---------------------------------------------------------------------------
+# R10 — resume re-threads the persisted depth floor + region
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_resume_rethreads_persisted_depth_and_region(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The E2 durable-run tail: a resumed run used to rebuild options BARE, so
+    the research-depth ContextVar floor silently reset to NORMAL (and the
+    region to the resume request's default). Launch under depth=deep/region=IN,
+    resume, and assert the spawned driver sees both again."""
+    import config
+
+    _patch(monkeypatch, _OneShotProvider())
+    region_token = config.set_request_region("IN")
+    try:
+        run_id = run_manager.launch_run(
+            agent_id="copilot",
+            prompt="research NVDA deeply",
+            api_key="sk-test",
+            options={"research_depth": "deep"},
+        )
+    finally:
+        config.reset_request_region(region_token)
+    await _await_terminal(run_id)
+    # The allow-listed options persisted (depth from the caller, region from
+    # the LAUNCH request) — and nothing else.
+    assert runs_store.get_options(run_id) == {"research_depth": "deep", "region": "IN"}
+
+    captured: dict[str, Any] = {}
+
+    def _capture_invoke(**kwargs: Any) -> Any:
+        async def _gen() -> Any:
+            captured.update(kwargs)
+            # The detached task re-threads the persisted region (the resume
+            # request's middleware scope is the WRONG one).
+            captured["region_at_invoke"] = config.get_region()
+            from models.llm import LLMDoneEvent
+
+            yield LLMDoneEvent()
+
+        return _gen()
+
+    monkeypatch.setattr(agent_runtime, "invoke_agent", _capture_invoke)
+    assert run_manager.resume_run(run_id, api_key="sk-test") is True
+    row = await _await_terminal(run_id)
+    assert row is not None and row.status == "done"
+    assert captured["options"]["research_depth"] == "deep"
+    # region rides the ContextVar, never an adapter kwarg (popped in the task).
+    assert "region" not in captured["options"]
+    assert captured["region_at_invoke"] == "IN"

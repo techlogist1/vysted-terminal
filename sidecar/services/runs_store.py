@@ -26,6 +26,11 @@ Columns mirror the run lifecycle:
 - ``question`` — an outstanding human-in-the-loop question (FR-028) or NULL.
 - ``checkpoint_json`` — the accumulated messages list at the last checkpoint, so
   a paused/aborted run can be resumed (FR-028).
+- ``options_json`` — the NON-SECRET launch options that must survive a resume
+  (R10, E2 tail: ``research_depth`` + ``region``). Resume re-merges them into
+  the spawned driver so the depth ContextVar floor / region are re-threaded
+  instead of silently resetting to defaults mid-conversation. Allow-listed
+  keys only — NEVER an api key.
 - ``created_at`` / ``updated_at`` — epoch seconds.
 
 The BYOK ``api_key`` is NEVER persisted here — it lives only on the in-memory
@@ -58,15 +63,43 @@ CREATE TABLE IF NOT EXISTS runs (
     detail TEXT,
     question TEXT,
     checkpoint_json TEXT,
+    options_json TEXT,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
 )
 """
 
+#: The ONLY launch-option keys persisted to ``options_json`` (R10): the
+#: research-depth floor and the locale. Allow-list, never a block-list — a
+#: future secret-bearing option can never leak into SQLite by omission.
+_PERSISTED_OPTION_KEYS = ("research_depth", "region")
+
+
+def _persistable_options(options: dict[str, Any] | None) -> dict[str, str]:
+    """Filter launch options down to the persisted allow-list (strings only)."""
+    if not options:
+        return {}
+    return {
+        key: value
+        for key, value in options.items()
+        if key in _PERSISTED_OPTION_KEYS and isinstance(value, str) and value
+    }
+
 
 def _db_path() -> str:
     """Resolve the runs database path under the current data directory."""
     return str(get_data_dir() / DB_FILENAME)
+
+
+def _ensure_options_column(conn: sqlite3.Connection) -> None:
+    """Additive migration: older databases predate ``options_json`` (R10).
+
+    ``CREATE TABLE IF NOT EXISTS`` covers a fresh file; an existing table needs
+    the ALTER guard. PRAGMA is cheap enough to run per-connection.
+    """
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(runs)")}
+    if "options_json" not in columns:
+        conn.execute("ALTER TABLE runs ADD COLUMN options_json TEXT")
 
 
 @contextmanager
@@ -76,6 +109,7 @@ def _connect() -> Iterator[sqlite3.Connection]:
     conn.row_factory = sqlite3.Row
     try:
         conn.execute(_SCHEMA)
+        _ensure_options_column(conn)
         yield conn
         conn.commit()
     finally:
@@ -159,19 +193,26 @@ def create_run(
     budget: RunBudget,
     mode: str = "delegate",
     status: RunStatus = "running",
+    options: dict[str, Any] | None = None,
     now: int | None = None,
 ) -> RunSummary:
-    """Insert a new run row (status ``running`` by default) and return it."""
+    """Insert a new run row (status ``running`` by default) and return it.
+
+    ``options`` is filtered through the :data:`_PERSISTED_OPTION_KEYS`
+    allow-list (research_depth, region) — NEVER a key/secret (R10).
+    """
     timestamp = now if now is not None else int(time.time())
     budget_json = json.dumps(budget.model_dump(mode="json"))
     cost_json = json.dumps(RunCost().model_dump(mode="json"))
+    persisted = _persistable_options(options)
+    options_json = json.dumps(persisted) if persisted else None
     with _connect() as conn:
         conn.execute(
             """
             INSERT INTO runs
                 (id, agent_id, agent_name, mode, status, budget_json, cost_json,
-                 detail, question, checkpoint_json, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 detail, question, checkpoint_json, options_json, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 run_id,
@@ -184,6 +225,7 @@ def create_run(
                 None,
                 None,
                 None,
+                options_json,
                 timestamp,
                 timestamp,
             ),
@@ -270,3 +312,20 @@ def get_checkpoint(run_id: str) -> list[Any]:
         return []
     decoded = json.loads(row["checkpoint_json"])
     return decoded if isinstance(decoded, list) else []
+
+
+def get_options(run_id: str) -> dict[str, str]:
+    """Return the persisted non-secret launch options (``{}`` if none).
+
+    Resume/answer re-merge these into the spawned driver's options so the
+    research-depth ContextVar floor and the run's region are re-threaded
+    (R10 — a resumed run no longer silently resets to NORMAL/default).
+    """
+    with _connect() as conn:
+        row = conn.execute("SELECT options_json FROM runs WHERE id = ?", (run_id,)).fetchone()
+    if row is None or not row["options_json"]:
+        return {}
+    decoded = json.loads(row["options_json"])
+    if not isinstance(decoded, dict):
+        return {}
+    return {k: v for k, v in decoded.items() if isinstance(v, str)}

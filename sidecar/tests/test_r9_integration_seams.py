@@ -145,6 +145,8 @@ def test_auto_publish_forwards_the_backend_id() -> None:
         "markdown": "## Brief\nText [1].",
         "sources": [{"url": "https://nseindia.com/x", "title": "t"}],
         "backend": "keyless-fallback",
+        # R10 (E2): a payload without an execution record never auto-publishes.
+        "execution": {"run_id": "r1", "requested_depth": "deep", "loop": "iter"},
     }
     event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(bundle))
     assert event is not None
@@ -165,6 +167,8 @@ def test_auto_publish_lifts_fast_web_round_backend() -> None:
         "query": "TCS",
         "symbol": "TCS",
         "structured": {"price": {"ok": True}},
+        # R10 (E2): a payload without an execution record never auto-publishes.
+        "execution": {"run_id": "r2", "requested_depth": "normal", "loop": "fast"},
         "web": {
             "available": True,
             "backend": "keyless-fallback",

@@ -64,6 +64,10 @@ _TF_ENUM = ["1d", "1h", "1wk", "1mo"]
 _ASSET_ENUM = ["equity", "crypto"]
 _MACRO_PROVIDERS = ["fred", "ecb", "imf", "world-bank"]
 _DATE = {"type": "string", "description": "ISO date, YYYY-MM-DD"}
+# R10 (D40): the screener universes, including the full-market India universes
+# resolved from the bundled resolver masters. Mirrors ScreenerUniverseId in
+# models/screener.py / types/screener.ts (the contracts commit) — keep in sync.
+_UNIVERSE_ENUM = ["sp500", "nifty50", "crypto-top50", "nse-all", "bse-all", "india-all", "custom"]
 
 
 def _obj(properties: dict[str, Any], required: list[str] | None = None) -> dict[str, Any]:
@@ -90,6 +94,16 @@ class Capability:
     #: Aliases an external consumer may already know this capability by. Lets the
     #: MCP projection keep a familiar name while the internal name stays canonical.
     aliases: tuple[str, ...] = field(default_factory=tuple)
+    #: Granted to every FIRST-PARTY agent at load time (R10, E5): the loader
+    #: unions each first-party spec's tools with :func:`default_grant_tool_ids`,
+    #: so a tool can never fall out of the belt by agent-JSON drift. Custom
+    #: agents stay author-picked.
+    default_grant: bool = True
+    #: Per-dispatch wall budget (R10, E7) enforced at the runtime's tool
+    #: boundary via ``asyncio.wait_for``. ``None`` = no timeout (host actions /
+    #: per-invocation locals are exempt; ``research`` carries its own outer
+    #: guard computed from its args).
+    timeout_seconds: float | None = None
 
 
 def _cap(
@@ -103,6 +117,8 @@ def _cap(
     internal: bool = True,
     mcp: bool = False,
     aliases: tuple[str, ...] = (),
+    default_grant: bool = True,
+    timeout_seconds: float | None = None,
 ) -> tuple[str, Capability]:
     return id, Capability(
         id=id,
@@ -114,6 +130,8 @@ def _cap(
         internal=internal,
         mcp=mcp,
         aliases=aliases,
+        default_grant=default_grant,
+        timeout_seconds=timeout_seconds,
     )
 
 
@@ -146,6 +164,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="quotes",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=15.0,
         ),
         _cap(
             "resolve_symbol",
@@ -174,6 +193,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="quotes",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=15.0,
         ),
         _cap(
             "compare_symbols",
@@ -198,6 +218,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="quotes",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=15.0,
         ),
         # --- fundamentals ----------------------------------------------------
         _cap(
@@ -213,6 +234,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="fundamentals",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=15.0,
         ),
         # --- news ------------------------------------------------------------
         _cap(
@@ -234,6 +256,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="news",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=20.0,
         ),
         _cap(
             "market_overview",
@@ -258,6 +281,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="news",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=20.0,
         ),
         # --- web search (Pass B / Pillar C) ----------------------------------
         _cap(
@@ -286,6 +310,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="research",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=25.0,
         ),
         _cap(
             "research",
@@ -387,7 +412,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                     },
                     "universe": {
                         "type": "string",
-                        "enum": ["sp500", "nifty50", "crypto-top50", "custom"],
+                        "enum": _UNIVERSE_ENUM,
                     },
                     "criteria": {
                         "type": "array",
@@ -419,6 +444,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="screener",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=150.0,
         ),
         # --- macro -----------------------------------------------------------
         _cap(
@@ -444,6 +470,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="macro",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=20.0,
         ),
         _cap(
             "macro_search",
@@ -459,6 +486,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="macro",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=20.0,
         ),
         # --- earnings --------------------------------------------------------
         _cap(
@@ -484,6 +512,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="earnings",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=20.0,
         ),
         _cap(
             "earnings_history",
@@ -492,6 +521,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="earnings",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=20.0,
         ),
         _cap(
             "earnings_estimates",
@@ -500,6 +530,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="earnings",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=20.0,
         ),
         # --- analyst ratings -------------------------------------------------
         _cap(
@@ -509,6 +540,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="analyst",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=20.0,
         ),
         _cap(
             "analyst_individual",
@@ -517,6 +549,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="analyst",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=20.0,
         ),
         _cap(
             "price_target_history",
@@ -525,6 +558,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="analyst",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=20.0,
         ),
         # --- SEC filings -----------------------------------------------------
         _cap(
@@ -554,6 +588,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="filings",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=30.0,
         ),
         _cap(
             "sec_filing_content",
@@ -574,6 +609,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="filings",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=30.0,
         ),
         _cap(
             "sec_insider_transactions",
@@ -602,6 +638,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="filings",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=30.0,
         ),
         # --- India corporate disclosures (NSE+BSE) ----------------------------
         _cap(
@@ -633,6 +670,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="filings",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=30.0,
         ),
         _cap(
             "shareholding_pattern",
@@ -655,6 +693,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="filings",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=30.0,
         ),
         # --- quant (QuantLib pricing) ---------------------------------------
         _cap(
@@ -701,6 +740,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="quant",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=30.0,
         ),
         _cap(
             "compute_greeks",
@@ -732,6 +772,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="quant",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=30.0,
         ),
         _cap(
             "price_bond",
@@ -758,6 +799,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="quant",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=30.0,
         ),
         _cap(
             "yield_curve_value",
@@ -784,6 +826,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="quant",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=30.0,
         ),
         # --- backtest --------------------------------------------------------
         _cap(
@@ -799,6 +842,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="workflows",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=15.0,
         ),
         _cap(
             "run_custom_backtest",
@@ -850,6 +894,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="workflows",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=120.0,
         ),
         # --- brokers (read-only) --------------------------------------------
         _cap(
@@ -871,6 +916,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="brokers",
             read_only=True,
             kind="read_handler",
+            timeout_seconds=20.0,
         ),
         # --- per-invocation reads (resolved in invoke_agent) -----------------
         _cap(
@@ -1208,9 +1254,25 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                             "supersedes the flat criteria. A child may itself be a group."
                         ),
                     },
+                    "formula": {
+                        "type": "string",
+                        "description": (
+                            "Optional boolean formula evaluated server-side per symbol, "
+                            "AND-combined with the criteria — same grammar as "
+                            "screener_run's formula (e.g. 'pe < 15 and roe > 0.2')."
+                        ),
+                    },
+                    "run": {
+                        "type": "boolean",
+                        "description": (
+                            "When true, ask the panel to RUN the staged screen "
+                            "immediately after the user's gate applies it (instead of "
+                            "waiting for a manual Run click)."
+                        ),
+                    },
                     "universe": {
                         "type": "string",
-                        "enum": ["sp500", "nifty50", "crypto-top50", "custom"],
+                        "enum": _UNIVERSE_ENUM,
                         "description": "Optional universe to screen.",
                     },
                     "limit": {
@@ -1221,6 +1283,162 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 ["criteria"],
             ),
             domain="screener",
+            read_only=False,
+            kind="host_action",
+        ),
+        # --- data-write host actions (R10 E6/D41/D45) — paper portfolio, notes,
+        # saved screens/layouts, region. Each is a `data-write`/`settings`
+        # proposed change on the frontend: auto-applicable under AUTO autonomy,
+        # staged for review otherwise. NONE of these touch the §6.5 order path —
+        # propose_order remains the ONE broker action and it never auto-applies.
+        _cap(
+            "portfolio_add_position",
+            description=(
+                "Add a position to the user's LOCAL (manually-tracked) portfolio — "
+                "symbol, quantity, and per-share cost basis. This edits the paper "
+                "portfolio ledger only; it is NOT a broker order and never places "
+                "one. Use when the user says they bought/hold something and want "
+                "it tracked."
+            ),
+            input_schema=_obj(
+                {
+                    "symbol": {"type": "string"},
+                    "quantity": {"type": "number"},
+                    "cost_basis": {
+                        "type": "number",
+                        "description": "Per-share cost in the listing currency.",
+                    },
+                    "asset_class": {"type": "string", "enum": _ASSET_ENUM, "default": "equity"},
+                    "note": {"type": "string", "description": "Optional free-form note."},
+                    "purchased_at": _DATE,
+                },
+                ["symbol", "quantity", "cost_basis"],
+            ),
+            domain="portfolio",
+            read_only=False,
+            kind="host_action",
+        ),
+        _cap(
+            "portfolio_update_position",
+            description=(
+                "Update an existing LOCAL portfolio position by its id (quantity, "
+                "cost basis, note, …). Read the current positions first with "
+                "get_portfolio to learn the position_id. Paper ledger only — "
+                "never a broker order."
+            ),
+            input_schema=_obj(
+                {
+                    "position_id": {"type": "string"},
+                    "symbol": {"type": "string"},
+                    "quantity": {"type": "number"},
+                    "cost_basis": {
+                        "type": "number",
+                        "description": "Per-share cost in the listing currency.",
+                    },
+                    "asset_class": {"type": "string", "enum": _ASSET_ENUM},
+                    "note": {"type": "string"},
+                    "purchased_at": _DATE,
+                },
+                ["position_id"],
+            ),
+            domain="portfolio",
+            read_only=False,
+            kind="host_action",
+        ),
+        _cap(
+            "portfolio_delete_position",
+            description=(
+                "Delete a LOCAL portfolio position by its id (from get_portfolio). "
+                "Paper ledger only — never touches a broker."
+            ),
+            input_schema=_obj({"position_id": {"type": "string"}}, ["position_id"]),
+            domain="portfolio",
+            read_only=False,
+            kind="host_action",
+        ),
+        _cap(
+            "write_note",
+            description=(
+                "Write to the user's notes surface. `scope` names the note bucket "
+                "(e.g. 'global', or a symbol like 'NVDA' for that company's research "
+                "note); mode 'append' adds to the existing note, 'replace' overwrites "
+                "it. Use to capture analysis takeaways the user asks you to save."
+            ),
+            input_schema=_obj(
+                {
+                    "scope": {
+                        "type": "string",
+                        "description": "Note bucket — 'global' or a symbol, e.g. 'NVDA'.",
+                    },
+                    "text": {"type": "string"},
+                    "mode": {"type": "string", "enum": ["replace", "append"], "default": "append"},
+                },
+                ["scope", "text"],
+            ),
+            domain="workspace",
+            read_only=False,
+            kind="host_action",
+        ),
+        _cap(
+            "remove_from_watchlist",
+            description="Remove a symbol from the user's watchlist.",
+            input_schema=_obj({"symbol": {"type": "string"}}, ["symbol"]),
+            domain="portfolio",
+            read_only=False,
+            kind="host_action",
+        ),
+        _cap(
+            "save_layout",
+            description=(
+                "Save the CURRENT cockpit layout as a named workspace the user can "
+                "restore later. Omit `name` to update the active saved layout."
+            ),
+            input_schema=_obj({"name": {"type": "string"}}),
+            domain="workspace",
+            read_only=False,
+            kind="host_action",
+        ),
+        _cap(
+            "save_screen",
+            description=(
+                "Save a screener configuration (criteria/group/formula + universe) "
+                "under a name so the user can re-run it later. Use after a screen "
+                "the user likes — it persists the recipe, it does not run it."
+            ),
+            input_schema=_obj(
+                {
+                    "name": {"type": "string"},
+                    "criteria": {
+                        "type": "array",
+                        "items": {"type": "object"},
+                        "description": "Flat AND-combined leaf criteria.",
+                    },
+                    "group": {
+                        "type": "object",
+                        "description": "Optional nested AND/OR tree (supersedes criteria).",
+                    },
+                    "formula": {"type": "string", "description": "Optional boolean formula."},
+                    "universe": {"type": "string", "enum": _UNIVERSE_ENUM},
+                },
+                ["name"],
+            ),
+            domain="screener",
+            read_only=False,
+            kind="host_action",
+        ),
+        _cap(
+            "set_region",
+            description=(
+                "Switch the terminal's active market region (US / IN / GLOBAL) — "
+                "drives locale-aware resolution, indices, and data routing. A "
+                "settings change staged through the user's trust gate; use it only "
+                "when the user asks to switch markets."
+            ),
+            input_schema=_obj(
+                {"region": {"type": "string", "enum": ["US", "IN", "GLOBAL"]}},
+                ["region"],
+            ),
+            domain="terminal",
             read_only=False,
             kind="host_action",
         ),
@@ -1296,6 +1514,18 @@ def agent_selectable_tool_ids() -> frozenset[str]:
     return frozenset(internal_tool_ids())
 
 
+def default_grant_tool_ids() -> list[str]:
+    """Ids granted to every FIRST-PARTY agent at load time (R10, E5).
+
+    The loader (:func:`services.agent_runtime._grant_first_party_hands`) unions
+    each first-party spec's tools with this projection — capability maximization
+    is catalog-driven, so a tool registered+catalogued can never silently fall
+    out of an agent's belt by JSON drift (the E5 regression). Custom agents
+    (the agents_store path) stay exactly author-picked.
+    """
+    return [c.id for c in internal_capabilities() if c.default_grant]
+
+
 def domain_of(tool_id: str) -> Domain | None:
     cap = CAPABILITY_CATALOG.get(tool_id)
     return cap.domain if cap else None
@@ -1306,13 +1536,55 @@ def is_read_only(tool_id: str) -> bool | None:
     return cap.read_only if cap else None
 
 
+def timeout_for(tool_id: str) -> float | None:
+    """Per-dispatch wall budget for a tool (R10, E7); ``None`` = no timeout.
+
+    Enforced by the runtime's ``_dispatch_tool`` via ``asyncio.wait_for`` for
+    registry-backed tools only — host-action locals are frontend round-trips
+    and per-invocation reads are in-memory, both exempt. ``research`` declares
+    no budget here: the runtime computes its outer guard from the call's own
+    ``wall_seconds``/depth args.
+    """
+    cap = CAPABILITY_CATALOG.get(tool_id)
+    return cap.timeout_seconds if cap else None
+
+
+#: Per-domain "what next" lines appended to the honest timeout message (E7) —
+#: the model relays them so a timed-out turn ends with a step, never a shrug.
+TIMEOUT_HINTS: dict[str, str] = {
+    "quotes": "retry, or check the symbol spelling/exchange suffix",
+    "fundamentals": "retry, or check the symbol — coverage gaps look like hangs",
+    "news": "retry with fewer symbols or a smaller limit",
+    "research": "narrow the query or retry at a lighter depth",
+    "screener": "narrow the universe or criteria, then run again",
+    "macro": "check the series id/provider and retry",
+    "earnings": "retry shortly — the provider may be slow",
+    "analyst": "retry shortly — the provider may be slow",
+    "filings": "retry with a smaller limit or a specific form type",
+    "quant": "reduce the instrument count, steps, or paths and retry",
+    "brokers": "check the broker connection in Settings and retry",
+    "workflows": "narrow the date range or symbol list and retry",
+}
+
+#: Fallback hint for a domain not listed above.
+DEFAULT_TIMEOUT_HINT = "try again — if it keeps timing out, narrow the request"
+
+
+def timeout_hint_for(tool_id: str) -> str:
+    """The per-domain next-step hint for a tool's timeout message."""
+    return TIMEOUT_HINTS.get(domain_of(tool_id) or "", DEFAULT_TIMEOUT_HINT)
+
+
 __all__ = [
     "CAPABILITY_CATALOG",
     "Capability",
+    "DEFAULT_TIMEOUT_HINT",
     "Domain",
     "FORBIDDEN_TOOL_SUBSTRINGS",
+    "TIMEOUT_HINTS",
     "ToolKind",
     "agent_selectable_tool_ids",
+    "default_grant_tool_ids",
     "domain_of",
     "internal_capabilities",
     "internal_tool_ids",
@@ -1320,4 +1592,6 @@ __all__ = [
     "mcp_capabilities",
     "mcp_tool_ids",
     "read_handler_ids",
+    "timeout_for",
+    "timeout_hint_for",
 ]

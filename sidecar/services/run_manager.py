@@ -45,6 +45,7 @@ import logging
 import uuid
 from typing import Any
 
+import config
 from models.agent import AgentContextSnapshot
 from models.llm import LLMMessage, LLMProviderId, LLMUsage
 from models.run import RunBudget, RunCost
@@ -113,6 +114,15 @@ async def _drive_run(
         max_steps=budget.max_steps,
     )
     provider_str = str(provider or "")
+    options = dict(options)
+    # R10: a resumed run re-threads its persisted region INSIDE the detached
+    # task (the resume HTTP request's middleware set a region for the WRONG
+    # request scope). Popped here so an unknown kwarg never leaks into the
+    # adapter call; ``research_depth`` stays in options — invoke_agent pops it
+    # into the depth ContextVar floor itself.
+    region = options.pop("region", None)
+    if isinstance(region, str) and region:
+        config.set_request_region(region)
     transcript: list[dict[str, Any]] = []
     if resume_messages:
         transcript.extend(m.model_dump() for m in resume_messages)
@@ -247,11 +257,16 @@ def launch_run(
 
     run_budget = budget or RunBudget()
     run_id = uuid.uuid4().hex
+    # R10: persist the NON-SECRET options a resume must re-thread — the
+    # caller's research_depth plus the LAUNCH request's active region (the
+    # store's allow-list filters; a key can never land in SQLite).
+    persisted_options = {**dict(options or {}), "region": config.get_region()}
     runs_store.create_run(
         run_id=run_id,
         agent_id=agent_id,
         agent_name=spec.name,
         budget=run_budget,
+        options=persisted_options,
     )
     _spawn(
         run_id,
@@ -369,7 +384,13 @@ def resume_run(
         raise RunManagerError(f"run {run_id!r} has no checkpoint to resume from")
 
     resume_budget = budget or run.budget
-    options = {"history": [m.model_dump() for m in history]} if history else {}
+    # R10: re-merge the persisted non-secret options (research_depth, region)
+    # so the depth ContextVar floor / locale re-thread into the resumed loop —
+    # previously a resume rebuilt options bare and the floor silently reset to
+    # NORMAL mid-conversation (E2's durable-run tail).
+    options: dict[str, Any] = dict(runs_store.get_options(run_id))
+    if history:
+        options["history"] = [m.model_dump() for m in history]
     runs_store.update_run(
         run_id,
         status="running",

@@ -852,14 +852,18 @@ def test_invocation_request_round_trips_autonomy() -> None:
 
 
 @pytest.mark.asyncio
-async def test_auto_autonomy_applies_non_order_host_action() -> None:
-    """With autonomy='auto' a NON-ORDER host-action reports it APPLIED (the
-    frontend auto-applies it) so the model narrates it in past tense."""
+async def test_auto_autonomy_dispatches_non_order_host_action() -> None:
+    """R10 E3.3: with autonomy='auto' a NON-ORDER host-action reports it
+    DISPATCHED (not 'applied … past tense' — the synthesized result used to
+    claim completion BEFORE the frontend ran applyHostAction, whose guards can
+    keep prior state). The model must verify via get_terminal_state."""
     local = agent_runtime._build_local_tools(None, autonomy="auto")
     result = await local["set_chart_symbol"]({"symbol": "SPY"})
     assert result["ok"] is True
-    assert result["status"] == "applied"
-    assert result["applied"] is True
+    assert result["status"] == "dispatched"
+    assert "applied" not in result  # no premature completion claim
+    assert "verify with get_terminal_state" in result["note"]
+    assert "authoritative" in result["note"]
     assert result["host_action"] == {"type": "set_chart_symbol", "args": {"symbol": "SPY"}}
 
 
@@ -956,6 +960,20 @@ class _StubToolCall:
         self.tool_call_id = tool_call_id
 
 
+def _execution(loop: str = "fast", requested: str = "normal") -> dict[str, Any]:
+    """A well-formed R10 execution record — every auto-publishable payload
+    must carry one (E2: no execution → no auto-publish)."""
+    return {
+        "run_id": "run-exec-1",
+        "requested_depth": requested,
+        "loop": loop,
+        "backend": None,
+        "started_at": 1.0,
+        "finished_at": 2.0,
+        "degraded_reason": None,
+    }
+
+
 def test_auto_publish_maps_fast_web_round_into_brief_sources() -> None:
     """The keyless '0 sources / structured only' bug: a FAST bundle strands its web
     round under web.{citations,results} (no top-level `sources`). The synthetic
@@ -965,6 +983,7 @@ def test_auto_publish_maps_fast_web_round_into_brief_sources() -> None:
         "ok": True,
         "query": "NVDA",
         "symbol": "NVDA",
+        "execution": _execution(),  # R10: auto-publish requires the record
         "structured": {"price": {"ok": True}},
         "web": {
             "available": True,
@@ -991,6 +1010,7 @@ def test_auto_publish_passes_through_deep_sources_and_honest_no_web() -> None:
     deep_bundle = {
         "ok": True,
         "query": "AAPL",
+        "execution": _execution(loop="iter", requested="deep"),
         "markdown": "## Brief\nText [1].",
         "sources": [{"url": "https://sec.gov/x", "title": "10-K", "domain": "sec"}],
         "web_available": True,
@@ -1003,6 +1023,7 @@ def test_auto_publish_passes_through_deep_sources_and_honest_no_web() -> None:
     no_web = {
         "ok": True,
         "query": "AAPL",
+        "execution": _execution(),
         "structured": {"price": {"ok": True}},
         "web": {"available": False, "citations": [], "note": "structured only"},
     }
@@ -1022,6 +1043,7 @@ def test_auto_publish_forwards_transient_rate_limit_reason() -> None:
     throttled = {
         "ok": True,
         "query": "AAPL",
+        "execution": _execution(),
         "structured": {"price": {"ok": True}},
         "web": {
             "available": False,
@@ -1047,6 +1069,7 @@ def test_auto_publish_reconciles_web_available_with_sources() -> None:
     sourced_but_flagged_no_web = {
         "ok": True,
         "query": "AAPL",
+        "execution": _execution(loop="iter", requested="deep"),
         "markdown": "## Brief\nText [1].",
         "sources": [{"url": "https://sec.gov/x", "title": "10-K", "domain": "sec"}],
         "web_available": False,
@@ -1061,6 +1084,7 @@ def test_auto_publish_reconciles_web_available_with_sources() -> None:
     sourceless = {
         "ok": True,
         "query": "AAPL",
+        "execution": _execution(),
         "structured": {"price": {"ok": True}},
         "web": {"available": False, "citations": []},
     }
@@ -1070,24 +1094,203 @@ def test_auto_publish_reconciles_web_available_with_sources() -> None:
     assert sourceless_event.input["web_available"] is False  # honest no-web survives
 
 
-def test_auto_publish_maps_depth_tier_from_result_mode() -> None:
-    """FR-115: the auto-publish carries the true depth TIER so the brief panel's
-    'Go deeper' affordance knows the next tier. A FAST bundle (no mode) → 'quick';
-    a deep run → 'deep'; a heavy run → 'heavy'."""
-    fast = {"ok": True, "query": "NVDA", "structured": {"price": {"ok": True}}}
+def test_auto_publish_maps_depth_tier_from_execution_loop() -> None:
+    """FR-115 + R10 E2: mode/depth derive ONLY from the execution record's loop
+    (what RAN) — never from the payload's ``mode`` field, which the old read
+    defaulted to 'fast' and stamped a DEEP run "Mode: FAST". A payload whose
+    mode CONTRADICTS its loop renders the loop's truth."""
+    fast = {
+        "ok": True,
+        "query": "NVDA",
+        "execution": _execution(loop="fast"),
+        "structured": {"price": {"ok": True}},
+    }
     fast_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(fast))
     assert fast_event is not None
     assert fast_event.input["depth"] == "quick"
+    assert fast_event.input["mode"] == "fast"
 
-    deep = {"ok": True, "query": "NVDA", "markdown": "x", "mode": "deep"}
+    # The E2 repro: a deep run whose payload LACKS a mode field — the loop wins.
+    deep = {
+        "ok": True,
+        "query": "NVDA",
+        "markdown": "x",
+        "execution": _execution(loop="iter", requested="deep"),
+    }
     deep_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(deep))
     assert deep_event is not None
     assert deep_event.input["depth"] == "deep"
+    assert deep_event.input["mode"] == "deep"
 
-    heavy = {"ok": True, "query": "NVDA", "markdown": "x", "mode": "heavy"}
+    heavy = {
+        "ok": True,
+        "query": "NVDA",
+        "markdown": "x",
+        "mode": "fast",  # contradicting payload mode — the loop's truth wins
+        "execution": _execution(loop="heavy", requested="ultra"),
+    }
     heavy_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(heavy))
     assert heavy_event is not None
     assert heavy_event.input["depth"] == "heavy"
+    assert heavy_event.input["mode"] == "deep"
+    # The verbatim record rides the publish for the panel's badges/carry.
+    assert heavy_event.input["execution"]["loop"] == "heavy"
+
+
+def test_auto_publish_requires_an_execution_record() -> None:
+    """R10 E2: a research payload WITHOUT an execution record is malformed and
+    never auto-publishes — the depth stamp can no longer be guessed."""
+    legacy = {"ok": True, "query": "NVDA", "markdown": "x", "mode": "deep"}
+    assert agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(legacy)) is None
+
+
+def test_auto_publish_disambiguation_publishes_the_chooser() -> None:
+    """R10 D37: a needs_disambiguation result publishes the candidate chooser —
+    {query, disambiguation, execution} and NOTHING else (no markdown, no
+    structured, no guessed entity)."""
+    payload = {
+        "ok": True,
+        "needs_disambiguation": True,
+        "query": "tata",
+        "candidates": [
+            {"symbol": "TCS", "name": "Tata Consultancy", "exchange": "NSE", "score": 0.6},
+            {"symbol": "TATAMOTORS", "name": "Tata Motors", "exchange": "NSE", "score": 0.58},
+        ],
+        "message": "Which Tata did you mean?",
+        "execution": _execution(),
+    }
+    event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(payload))
+    assert event is not None
+    assert event.name == "publish_brief"
+    assert set(event.input) == {"query", "disambiguation", "execution"}
+    assert event.input["disambiguation"]["query"] == "tata"
+    assert [c["symbol"] for c in event.input["disambiguation"]["candidates"]] == [
+        "TCS",
+        "TATAMOTORS",
+    ]
+
+
+# ---------------------------------------------------------------------------
+# R10 E3.3 — end-of-stream publish read-back (the ack ledger divergence check)
+# ---------------------------------------------------------------------------
+
+
+class _PublishThenAnswerProvider:
+    """Round 1 issues a model publish_brief; round 2 streams the final text."""
+
+    def __init__(self) -> None:
+        self._round = 0
+
+    async def stream_chat(
+        self,
+        messages: list[LLMMessage],
+        model: str,
+        api_key: str | None = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[Any]:
+        if self._round == 0:
+            self._round += 1
+            yield LLMToolUseEvent(
+                tool_call_id="pub-1", name="publish_brief", input={"markdown": "## x"}
+            )
+            yield LLMDoneEvent(usage=LLMUsage(input_tokens=5, output_tokens=1))
+            return
+        yield LLMDeltaEvent(text="Published.")
+        yield LLMDoneEvent(usage=LLMUsage(input_tokens=3, output_tokens=2))
+
+
+async def _collect_auto_publish_events(monkeypatch: pytest.MonkeyPatch) -> list[Any]:
+    agent_runtime.reload()
+    _patch_provider(monkeypatch, _PublishThenAnswerProvider())
+    monkeypatch.setattr(agent_runtime, "_ACK_GRACE_SECONDS", 0.0)  # no grace wait in tests
+    events: list[Any] = []
+    async for event in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="publish a brief",
+        api_key="sk-test",
+        mode="edit",
+        autonomy="auto",
+    ):
+        events.append(event)
+    return events
+
+
+def _notice_details(events: list[Any]) -> list[str]:
+    return [
+        e.detail
+        for e in events
+        if getattr(e, "kind", None) == "research_step"
+        and getattr(e, "tool", None) == "publish_brief"
+    ]
+
+
+@pytest.mark.asyncio
+async def test_unconfirmed_publish_yields_divergence_notice(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """No ack in the ledger → an honest 'panel did not confirm' notice rides the
+    step channel BEFORE the terminal done (E3.3: publish claims are read back,
+    never assumed)."""
+    from services import action_ledger
+
+    action_ledger.reset_for_tests()
+    events = await _collect_auto_publish_events(monkeypatch)
+    details = _notice_details(events)
+    assert any("did not confirm" in d for d in details)
+    # The notice precedes the terminator.
+    kinds = [e.kind for e in events]
+    assert kinds[-1] == "done"
+    assert kinds.index("research_step") < len(kinds) - 1
+
+
+@pytest.mark.asyncio
+async def test_kept_previous_ack_yields_kept_notice(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A kept_previous ack (the D33 shrink guard kept the richer brief) surfaces
+    as its own quiet notice — the agent can stop claiming the new one rendered."""
+    from services import action_ledger
+
+    action_ledger.reset_for_tests()
+    action_ledger.record("pub-1", "kept_previous")
+    events = await _collect_auto_publish_events(monkeypatch)
+    details = _notice_details(events)
+    assert any("kept the previous" in d for d in details)
+    action_ledger.reset_for_tests()
+
+
+@pytest.mark.asyncio
+async def test_applied_ack_yields_no_notice(monkeypatch: pytest.MonkeyPatch) -> None:
+    """An 'applied' ack means the optimistic dispatch was right — no notice."""
+    from services import action_ledger
+
+    action_ledger.reset_for_tests()
+    action_ledger.record("pub-1", "applied")
+    events = await _collect_auto_publish_events(monkeypatch)
+    assert _notice_details(events) == []
+    action_ledger.reset_for_tests()
+
+
+@pytest.mark.asyncio
+async def test_no_divergence_check_outside_auto_autonomy(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Under ask/review autonomy the publish is STAGED (the model already says
+    'proposed') — the ledger read-back is an AUTO-mode honesty device only."""
+    from services import action_ledger
+
+    action_ledger.reset_for_tests()
+    agent_runtime.reload()
+    _patch_provider(monkeypatch, _PublishThenAnswerProvider())
+    monkeypatch.setattr(agent_runtime, "_ACK_GRACE_SECONDS", 0.0)
+    events: list[Any] = []
+    async for event in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="publish a brief",
+        api_key="sk-test",
+        mode="edit",
+        autonomy="ask",
+    ):
+        events.append(event)
+    assert _notice_details(events) == []
 
 
 # ---------------------------------------------------------------------------
@@ -1197,6 +1400,163 @@ async def test_non_reasoner_reconstructed_turn_stays_empty(
     turn = _reconstructed_assistant_turn(provider.round_messages[1])
     assert turn is not None
     assert turn.content == ""
+
+
+# ---------------------------------------------------------------------------
+# R10 E7 — per-tool dispatch timeouts (honest message, loop continues)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_dispatch_timeout_returns_honest_message(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A registry tool that exceeds its budget returns the honest timeout
+    payload (error='timeout', message naming the tool, the budget, and a next
+    step) — never an unbounded silent hang (E7)."""
+    import asyncio as _asyncio
+
+    from services import agent_tools
+    from services.agent_tools import catalog
+
+    async def _slow(_args: dict[str, Any]) -> dict[str, Any]:
+        await _asyncio.sleep(5)
+        return {"ok": True}  # pragma: no cover — never reached
+
+    agent_tools.register_tool("slow_probe_tool", _slow)
+    try:
+        monkeypatch.setattr(
+            catalog, "timeout_for", lambda tid: 0.05 if tid == "slow_probe_tool" else None
+        )
+        event = LLMToolUseEvent(tool_call_id="call-slow", name="slow_probe_tool", input={})
+        result = json.loads(await agent_runtime._dispatch_tool(event))
+    finally:
+        agent_tools.reset_for_tests()
+        agent_tools.register_v0_5_0_tools()
+        agent_tools.register_v0_6_0_tools()
+    assert result["ok"] is False
+    assert result["error"] == "timeout"
+    assert "slow_probe_tool timed out after 0s" in result["message"]
+    assert "—" in result["message"]  # the per-domain hint rides the message
+
+
+@pytest.mark.asyncio
+async def test_dispatch_timeout_loop_continues(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The E7 core: a timed-out tool round does NOT kill the stream — the
+    result reaches the model as a relayable error and the loop finishes the
+    turn normally."""
+    import asyncio as _asyncio
+
+    from services import agent_tools
+    from services.agent_tools import catalog
+
+    async def _slow(_args: dict[str, Any]) -> dict[str, Any]:
+        await _asyncio.sleep(5)
+        return {"ok": True}  # pragma: no cover — never reached
+
+    agent_tools.register_tool("slow_probe_tool", _slow)
+    monkeypatch.setattr(
+        catalog, "timeout_for", lambda tid: 0.05 if tid == "slow_probe_tool" else None
+    )
+
+    class _SlowToolProvider:
+        def __init__(self) -> None:
+            self._round = 0
+            self.round_messages: list[list[LLMMessage]] = []
+
+        async def stream_chat(
+            self,
+            messages: list[LLMMessage],
+            model: str,
+            api_key: str | None = None,
+            **kwargs: Any,
+        ) -> AsyncIterator[Any]:
+            self.round_messages.append(list(messages))
+            if self._round == 0:
+                self._round += 1
+                yield LLMToolUseEvent(tool_call_id="call-1", name="slow_probe_tool", input={})
+                yield LLMDoneEvent(usage=LLMUsage(input_tokens=5, output_tokens=1))
+                return
+            yield LLMDeltaEvent(text="That tool timed out; here is what I know.")
+            yield LLMDoneEvent(usage=LLMUsage(input_tokens=3, output_tokens=2))
+
+    agent_runtime.reload()
+    provider = _SlowToolProvider()
+    _patch_provider(monkeypatch, provider)
+    events: list[Any] = []
+    try:
+        async for event in agent_runtime.invoke_agent(
+            agent_id="copilot",
+            prompt="probe",
+            api_key="sk-test",
+            mode="edit",
+        ):
+            events.append(event)
+    finally:
+        agent_tools.reset_for_tests()
+        agent_tools.register_v0_5_0_tools()
+        agent_tools.register_v0_6_0_tools()
+    # The stream completed (loop continued past the timeout)…
+    assert [e.kind for e in events][-1] == "done"
+    # …and the model's second round saw the honest timeout result.
+    tool_turns = [m for m in provider.round_messages[1] if m.role == "tool"]
+    assert len(tool_turns) == 1
+    timeout_payload = json.loads(tool_turns[0].content)
+    assert timeout_payload["error"] == "timeout"
+    assert "timed out" in timeout_payload["message"]
+
+
+def test_research_guard_scales_with_args_and_depth() -> None:
+    """The research outer guard = max(arg wall, profile wall, engine floor) + 90
+    — it can never fire before a legitimately-running engine (tier_a profile
+    walls AND tier_b research-model walls both fit under it)."""
+    event_cls = LLMToolUseEvent
+    # normal: floor 120 + 90.
+    assert (
+        agent_runtime._tool_timeout_seconds(
+            event_cls(tool_call_id="c", name="research", input={"query": "x"})
+        )
+        == 210.0
+    )
+    # deep: tier_b research-model wall 300 beats the 120 profile wall.
+    assert (
+        agent_runtime._tool_timeout_seconds(
+            event_cls(tool_call_id="c", name="research", input={"query": "x", "depth": "deep"})
+        )
+        == 390.0
+    )
+    # ultra: 480 floor (tier_b) beats the 360 profile wall.
+    assert (
+        agent_runtime._tool_timeout_seconds(
+            event_cls(tool_call_id="c", name="research", input={"query": "x", "depth": "ultra"})
+        )
+        == 570.0
+    )
+    # An explicit wall_seconds above every floor wins.
+    assert (
+        agent_runtime._tool_timeout_seconds(
+            event_cls(
+                tool_call_id="c",
+                name="research",
+                input={"query": "x", "depth": "deep", "wall_seconds": 600},
+            )
+        )
+        == 690.0
+    )
+
+
+def test_host_actions_and_per_invocation_tools_have_no_timeout() -> None:
+    """Host-action locals (frontend round-trips) and per-invocation reads are
+    EXEMPT from dispatch timeouts; every registry read tool carries one."""
+    from services.agent_tools import catalog
+
+    for cap in catalog.CAPABILITY_CATALOG.values():
+        if cap.kind in ("host_action", "per_invocation"):
+            assert cap.timeout_seconds is None, f"{cap.id}: locals must be exempt"
+        elif cap.kind == "read_handler" and cap.id != "research":
+            assert cap.timeout_seconds is not None, f"{cap.id}: registry tool needs a budget"
+    # research's guard is computed from args, not the catalog.
+    assert catalog.timeout_for("research") is None
 
 
 @pytest.mark.asyncio

@@ -115,14 +115,21 @@ def test_copilot_grants_b2_actions() -> None:
 
 
 def test_copilot_grants_market_overview_and_roster_count() -> None:
-    """WS1: market_overview is wired into the copilot's tool roster, which now
-    totals 37 tools (34 + the R7 corporate_announcements/shareholding_pattern
-    + the R7 open_company_overview host action)."""
+    """WS1: market_overview is wired into the copilot's tool roster. R10 (E5):
+    copilot.json now documents the FULL catalog default grant — the count is
+    asserted against the projection, not a hand-pinned integer, because the
+    loader's catalog-driven union (not this JSON) is what grants tools."""
+    from services.agent_tools.catalog import default_grant_tool_ids
+
     tools = _copilot_tools()
     assert "market_overview" in tools, (
         "copilot.json 'tools' is missing 'market_overview' — the copilot cannot reach it"
     )
-    assert len(tools) == 37, f"copilot tool roster expected 37, got {len(tools)}"
+    # 37 -> the full default grant (50 at R10): the quant four +
+    # run_custom_backtest + the 8 data-write host actions joined the belt.
+    assert sorted(tools) == sorted(default_grant_tool_ids()), (
+        "copilot.json drifted from the catalog default grant (documentation parity)"
+    )
 
 
 def test_copilot_and_researcher_grant_disclosure_tools() -> None:
