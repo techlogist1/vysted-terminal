@@ -24,15 +24,13 @@ describe("marketplace catalog (FR-050/FR-051/FR-052/SC-013)", () => {
   it("ships pre-installed plugins across multiple categories — one lifecycle (SC-013)", () => {
     const preinstalled = MARKETPLACE_CATALOG.filter((e) => e.preinstalled);
     // Data + agent first-party plugins prove the ONE install/enable/configure
-    // lifecycle spans categories. (R10: Tradesa V2 — the bundled `panel`-category
-    // exemplar — was removed; the panel CAPABILITY still lives in the plugin
-    // contract (`contributesPanels`) and the example plugin proves it, but no
-    // bundled marketplace entry now carries category "panel".)
+    // lifecycle spans categories. (R10: the bundled panel-category exemplar was
+    // removed; the panel capability still lives in the plugin contract
+    // `contributesPanels` and the example plugin proves it, but no bundled
+    // marketplace entry now carries category "panel".)
     expect(preinstalled.some((e) => e.category === "data")).toBe(true);
     expect(preinstalled.some((e) => e.category === "agent")).toBe(true);
     expect(new Set(preinstalled.map((e) => e.category)).size).toBeGreaterThanOrEqual(2);
-    // No bundled plugin is the removed Tradesa.
-    expect(CATALOG_BY_ID["tradesa-v2"]).toBeUndefined();
     // yfinance is the keyless data default, pre-installed (works out of the box).
     expect(CATALOG_BY_ID["vysted-yfinance"]?.entry.preinstalled).toBe(true);
     expect(CATALOG_BY_ID["vysted-yfinance"]?.entry.credentialFields ?? []).toHaveLength(0);
