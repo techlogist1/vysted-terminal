@@ -28,6 +28,7 @@ from models.llm import (
     LLMToolUseEvent,
     LLMUsage,
 )
+from services.errors import humanize
 
 from .base import LLMProvider, LLMStreamEvent, is_chat_model
 
@@ -182,9 +183,15 @@ class GroqProvider(LLMProvider):
                 )
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
         except groq.GroqError as exc:  # pragma: no cover — network path
-            yield LLMErrorEvent(message=f"groq stream failed: {exc}")
+            _h = humanize("groq", exc)
+            yield LLMErrorEvent(
+                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
+            )
         except Exception as exc:  # pragma: no cover — defensive
-            yield LLMErrorEvent(message=f"groq stream failed: {exc}")
+            _h = humanize("groq", exc)
+            yield LLMErrorEvent(
+                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
+            )
 
     async def validate_key(self, api_key: str | None = None) -> bool:
         """Probe ``/openai/v1/models`` — the cheapest authenticated call."""

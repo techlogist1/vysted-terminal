@@ -28,6 +28,7 @@ from models.llm import (
     LLMToolUseEvent,
     LLMUsage,
 )
+from services.errors import humanize
 
 from .base import LLMProvider, LLMStreamEvent
 from .native_search import DEFAULT_WEB_SEARCH_MAX_USES, anthropic_web_search_tool
@@ -144,9 +145,15 @@ class AnthropicProvider(LLMProvider):
                     finish_reason=getattr(final, "stop_reason", None),
                 )
         except anthropic.AnthropicError as exc:  # pragma: no cover — network path
-            yield LLMErrorEvent(message=str(exc))
+            _h = humanize("anthropic", exc)
+            yield LLMErrorEvent(
+                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
+            )
         except Exception as exc:  # pragma: no cover — defensive
-            yield LLMErrorEvent(message=f"anthropic stream failed: {exc}")
+            _h = humanize("anthropic", exc)
+            yield LLMErrorEvent(
+                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
+            )
 
     async def validate_key(self, api_key: str | None = None) -> bool:
         """Probe ``/v1/models`` — the cheapest authenticated request."""

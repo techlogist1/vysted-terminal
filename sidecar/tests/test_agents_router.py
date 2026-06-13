@@ -109,9 +109,10 @@ def test_action_ledger_entries_expire(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_invoke_last_resort_guard_yields_human_error_frame(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """E9 seam: the router's last-resort guard emits an error frame through the
-    humanizer hook (str(exc) fallback until services.errors.humanize lands) and
-    still closes the stream with a done frame."""
+    """E9 seam: the router's last-resort guard humanizes the crash — a plain
+    ``message`` + ``action`` + machine ``code``, with the RAW text in ``detail``
+    (behind the UI's "Show details" toggle), never a naked blob in the message —
+    and still closes the stream with a done frame."""
 
     async def _boom(**_kwargs: object):  # noqa: ANN202
         raise RuntimeError("provider exploded mid-stream")
@@ -128,7 +129,13 @@ def test_invoke_last_resort_guard_yields_human_error_frame(
         if line.strip()
     ]
     assert [f["kind"] for f in frames] == ["error", "done"]
-    assert "provider exploded mid-stream" in frames[0]["message"]
+    err = frames[0]
+    # Plain-language message — NOT the raw provider blob.
+    assert err["message"] and "provider exploded mid-stream" not in err["message"]
+    assert err["action"]  # a next step is offered
+    assert err["code"]  # a stable machine tag
+    # The raw text is preserved for the "Show details" toggle.
+    assert "provider exploded mid-stream" in err["detail"]
 
 
 def test_invoke_streams_sse_frames(

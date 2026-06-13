@@ -33,35 +33,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from models.agent import AgentInvocationRequest, AgentSummary
 from services import action_ledger, agent_runtime
+from services.errors import error_frame as _human_error_frame
 from services.llm.base import LLMStreamEvent
-
-try:  # Team ERRORS ships services.errors.humanize in the same wave (E9).
-    from services.errors import humanize as _humanize_error
-except ImportError:  # pragma: no cover — until their branch merges
-
-    def _humanize_error(exc: BaseException) -> str:
-        return str(exc)
-
-
-def _human_error_message(exc: BaseException) -> str:
-    """One human line for the last-resort guard — never a naked provider blob.
-
-    Tolerates either ``humanize`` shape (a plain string or a structured
-    classification carrying ``message``) so this guard works before AND after
-    Team ERRORS' classifier lands.
-    """
-    try:
-        humanized = _humanize_error(exc)
-    except Exception:  # noqa: BLE001 — the guard must never raise
-        return str(exc)
-    if isinstance(humanized, str):
-        return humanized
-    if isinstance(humanized, dict):
-        message = humanized.get("message")
-        if isinstance(message, str) and message:
-            return message
-    return str(exc)
-
 
 logger = logging.getLogger(__name__)
 
@@ -127,8 +100,8 @@ async def invoke_agent(agent_id: str, payload: AgentInvocationRequest) -> Stream
         except Exception as exc:  # noqa: BLE001 — last-resort guard
             logger.exception("agent invoke crashed: %s", exc)
             # E9: the last-resort guard humanizes too — chat never renders a
-            # naked provider blob (str(exc) only until services.errors lands).
-            yield _encode_event_dict({"kind": "error", "message": _human_error_message(exc)})
+            # naked provider blob; message + action + detail + code all flow.
+            yield _encode_event_dict(_human_error_frame(exc))
             yield _encode_event_dict({"kind": "done"})
 
     return StreamingResponse(_generator(), media_type="text/event-stream")

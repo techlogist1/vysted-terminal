@@ -218,10 +218,21 @@ class LLMDoneEvent(BaseModel):
 
 
 class LLMErrorEvent(BaseModel):
-    """Stream aborted; human-readable detail surfaced to the chat sidebar."""
+    """Stream aborted; human-readable detail surfaced to the chat sidebar.
+
+    ``message`` is the plain-language sentence shown directly to the user.
+    ``action`` is an optional next-step hint. ``detail`` is the raw provider
+    text hidden behind a "Show details" toggle. ``code`` is a stable machine
+    tag for frontend branching (e.g. ``"provider_402"``, ``"auth"``). All extra
+    fields default to ``None`` so existing constructors that only set
+    ``message`` continue to work unchanged (R10, E9).
+    """
 
     kind: Literal["error"] = "error"
     message: str
+    action: str | None = None
+    detail: str | None = None
+    code: str | None = None
 
 
 # ---------------------------------------------------------------------------

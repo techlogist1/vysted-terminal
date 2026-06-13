@@ -139,3 +139,32 @@ async def test_validate_key_false_on_auth_error(monkeypatch: pytest.MonkeyPatch)
     _patch(monkeypatch, models=_FakeModels(raise_error=err))
     provider = GroqProvider()
     assert await provider.validate_key("bad") is False
+
+
+@pytest.mark.asyncio
+async def test_stream_chat_humanizes_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    """E9: a stream crash routes through humanize — plain message + machine code,
+    raw text behind detail, never a naked provider blob."""
+
+    class _Boom(_FakeCompletions):
+        async def create(self, **_: Any) -> Any:
+            raise RuntimeError("groq exploded: 429 rate limit")
+
+    def _factory(**_: Any) -> Any:
+        client = _FakeGroq()
+        client.chat = _FakeChat(_Boom([]))
+        return client
+
+    monkeypatch.setattr(groq, "AsyncGroq", _factory)
+    provider = GroqProvider()
+    out = [
+        e
+        async for e in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="hi")],
+            model="llama-3.3-70b-versatile",
+        )
+    ]
+    err = next(e for e in out if e.kind == "error")
+    assert err.message and "groq exploded" not in err.message
+    assert err.detail is not None and "groq exploded" in err.detail
+    assert err.code is not None

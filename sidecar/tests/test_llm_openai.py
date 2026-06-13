@@ -227,6 +227,12 @@ async def test_stream_chat_emits_error_on_openai_error(monkeypatch: pytest.Monke
     ):
         out.append(event)
     assert any(e.kind == "error" for e in out)
+    err = next(e for e in out if e.kind == "error")
+    # E9: the adapter routed through humanize — raw text behind detail,
+    # a stable machine code, and a plain message (not the raw blob).
+    assert err.detail is not None
+    assert err.code is not None
+    assert err.message
 
 
 # ---------------------------------------------------------------------------

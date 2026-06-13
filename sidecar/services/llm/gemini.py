@@ -28,6 +28,7 @@ from models.llm import (
     LLMToolUseEvent,
     LLMUsage,
 )
+from services.errors import humanize
 
 from .base import LLMProvider, LLMStreamEvent
 from .native_search import gemini_google_search_tool
@@ -172,9 +173,15 @@ class GeminiProvider(LLMProvider):
                     )
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
         except genai_errors.APIError as exc:  # pragma: no cover — network path
-            yield LLMErrorEvent(message=f"gemini stream failed: {exc}")
+            _h = humanize("gemini", exc)
+            yield LLMErrorEvent(
+                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
+            )
         except Exception as exc:  # pragma: no cover — defensive
-            yield LLMErrorEvent(message=f"gemini stream failed: {exc}")
+            _h = humanize("gemini", exc)
+            yield LLMErrorEvent(
+                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
+            )
 
     async def validate_key(self, api_key: str | None = None) -> bool:
         """Probe ``models.list`` — the cheapest authenticated call."""

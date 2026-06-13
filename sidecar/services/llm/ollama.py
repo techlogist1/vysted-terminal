@@ -28,6 +28,7 @@ from models.llm import (
     LLMToolUseEvent,
     LLMUsage,
 )
+from services.errors import humanize
 
 from .base import LLMProvider, LLMStreamEvent
 
@@ -155,10 +156,16 @@ class OllamaProvider(LLMProvider):
                     **kwargs,
                 )
             except ollama.ResponseError as exc:  # pragma: no cover — network path
-                yield LLMErrorEvent(message=f"ollama stream failed: {exc}")
+                _h = humanize("ollama", exc)
+                yield LLMErrorEvent(
+                    message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
+                )
                 return
             except Exception as exc:  # pragma: no cover — defensive
-                yield LLMErrorEvent(message=f"ollama stream failed: {exc}")
+                _h = humanize("ollama", exc)
+                yield LLMErrorEvent(
+                    message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
+                )
                 return
 
         try:
@@ -197,9 +204,15 @@ class OllamaProvider(LLMProvider):
                     )
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
         except ollama.ResponseError as exc:  # pragma: no cover — network path
-            yield LLMErrorEvent(message=f"ollama stream failed: {exc}")
+            _h = humanize("ollama", exc)
+            yield LLMErrorEvent(
+                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
+            )
         except Exception as exc:  # pragma: no cover — defensive
-            yield LLMErrorEvent(message=f"ollama stream failed: {exc}")
+            _h = humanize("ollama", exc)
+            yield LLMErrorEvent(
+                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
+            )
 
     async def validate_key(self, api_key: str | None = None) -> bool:  # noqa: ARG002
         """Ollama needs no key — a successful ``list`` proves the daemon is reachable."""

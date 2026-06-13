@@ -92,3 +92,27 @@ async def test_validate_key_false_when_daemon_unreachable(monkeypatch: pytest.Mo
     _patch(monkeypatch, list_raises=RuntimeError("connection refused"))
     provider = OllamaProvider()
     assert await provider.validate_key(None) is False
+
+
+@pytest.mark.asyncio
+async def test_stream_chat_humanizes_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    """E9: a stream crash routes through humanize — plain message + machine code,
+    raw text behind detail, never a naked provider blob."""
+
+    class _Boom(_FakeAsyncClient):
+        async def chat(self, **_: Any) -> Any:
+            raise RuntimeError("ollama exploded: connection refused")
+
+    monkeypatch.setattr(ollama, "AsyncClient", lambda **_: _Boom([]))
+    provider = OllamaProvider()
+    out = [
+        e
+        async for e in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="hi")],
+            model="qwen2.5:7b",
+        )
+    ]
+    err = next(e for e in out if e.kind == "error")
+    assert err.message and "ollama exploded" not in err.message
+    assert err.detail is not None and "ollama exploded" in err.detail
+    assert err.code is not None

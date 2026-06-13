@@ -34,6 +34,7 @@ from models.llm import (
     LLMProviderInfo,
 )
 from services import model_registry
+from services.errors import error_frame
 from services.llm import get_provider, list_provider_info
 from services.llm.base import LLMStreamEvent
 
@@ -139,7 +140,8 @@ async def chat_stream(payload: LLMChatRequest) -> StreamingResponse:
                 yield _encode_event(event)
         except Exception as exc:  # noqa: BLE001 — last-resort guard
             logger.exception("chat stream crashed: %s", exc)
-            yield _encode_event_dict({"kind": "error", "message": str(exc)})
+            # E9: humanize — plain message + action + code, raw text in detail.
+            yield _encode_event_dict(error_frame(exc))
             yield _encode_event_dict({"kind": "done"})
 
     return StreamingResponse(_generator(), media_type="text/event-stream")
