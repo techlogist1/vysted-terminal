@@ -15,6 +15,7 @@ No secrets ever ride this ledger.
 
 from __future__ import annotations
 
+import threading
 import time
 from typing import Any
 
@@ -28,9 +29,16 @@ KNOWN_STATUSES = ("applied", "kept_previous", "failed")
 
 # tool_call_id -> (expires_at_monotonic, entry)
 _LEDGER: dict[str, tuple[float, dict[str, Any]]] = {}
+# The ack route is a sync FastAPI handler (threadpool) while the runtime's
+# end-of-stream divergence check reads the ledger from the event loop — two
+# threads. This lock serializes every _LEDGER access so a concurrent ack POST
+# can never change the dict mid-iteration in _prune (the R10-review race). The
+# critical sections are microsecond dict ops, so blocking the loop is a non-event.
+_LOCK = threading.Lock()
 
 
-def _prune(now: float) -> None:
+def _prune_locked(now: float) -> None:
+    """Drop expired entries. Caller MUST hold :data:`_LOCK` (non-reentrant)."""
     expired = [cid for cid, (expires, _) in _LEDGER.items() if expires <= now]
     for cid in expired:
         _LEDGER.pop(cid, None)
@@ -44,28 +52,31 @@ def record(tool_call_id: str, status: str, brief_meta: dict[str, Any] | None = N
     divergence to surface — honest by default).
     """
     now = time.monotonic()
-    _prune(now)
-    _LEDGER[tool_call_id] = (
-        now + TTL_SECONDS,
-        {
-            "status": status,
-            "brief": dict(brief_meta) if brief_meta else None,
-            "recorded_at": time.time(),
-        },
-    )
+    with _LOCK:
+        _prune_locked(now)
+        _LEDGER[tool_call_id] = (
+            now + TTL_SECONDS,
+            {
+                "status": status,
+                "brief": dict(brief_meta) if brief_meta else None,
+                "recorded_at": time.time(),
+            },
+        )
 
 
 def get(tool_call_id: str) -> dict[str, Any] | None:
     """Return the recorded ack entry for ``tool_call_id``, or ``None``."""
     now = time.monotonic()
-    _prune(now)
-    found = _LEDGER.get(tool_call_id)
+    with _LOCK:
+        _prune_locked(now)
+        found = _LEDGER.get(tool_call_id)
     return found[1] if found else None
 
 
 def reset_for_tests() -> None:
     """Drop every entry (test isolation)."""
-    _LEDGER.clear()
+    with _LOCK:
+        _LEDGER.clear()
 
 
 __all__ = ["KNOWN_STATUSES", "TTL_SECONDS", "get", "record", "reset_for_tests"]
