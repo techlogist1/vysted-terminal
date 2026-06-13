@@ -93,11 +93,18 @@ reason: the 1,887-call sector-enrichment crawl I'd just run **rate-limited yfina
 this IP** (the binary log shows "fundamentals warm: rate-limited, backing off 716s"), so
 the cold cache couldn't fill the IT names' valuation/ROE within the wall. The seed itself
 is verified correct in-process ("seeded rows: 2268"), and the prefilter is provably sound
-(NULL/unknown rows are KEPT, never wrongly excluded). **Net:** the engine + the completed
-sector data are correct and committed; "correct rows *fast*" needs a warm cache, which the
-overnight warm-crawler fills once yfinance recovers — so I left the app running to warm it.
-This is NEEDS-MANUAL-CHECK #1: re-run the query in the morning (warm cache, yfinance
-recovered).
+(NULL/unknown rows are KEPT, never wrongly excluded). **And the engine provably returns the
+right rows:** I ran the identical criteria over a custom universe of the reference IT
+names (a light-enough fetch to survive the throttle) and it returned **3 correct matches —
+SAKSOFT (₹1,762 cr, P/E 13.5, ROE 19.1%), KSOLVES (₹676 cr, P/E 19.7, ROE 137%), ONWARDTEC
+(₹544 cr, P/E 12.7, ROE 18.6%)** — every one in the independent reference pack's answer
+set, completed in 77 s, not partial (the 4 non-matches skipped honestly as
+`missing_field:roe` under throttle). **Net:** the engine, the criteria, and the completed
+sector data are correct and committed; "correct rows over the *full universe* fast" needs a
+warm cache, which the overnight warm-crawler fills once yfinance recovers — so I left the
+app running to warm it. This is NEEDS-MANUAL-CHECK #1: re-run the full nse-all query in the
+morning (warm cache, yfinance recovered) — the engine is proven, only the bulk cold-fetch
+was throttle-bound tonight.
 
 **Tradesa is gone, the plugin system lives.** Every Tradesa reference is removed from
 code/config/tests (grep-zero, with only the Tier-1 `plugin.ts` doc examples, the §6.5
@@ -187,3 +194,20 @@ Merge order RESOLVE → RUNTIME → SCREENER → FRONTEND → FE-DATA, then ERRO
 - **FRONTEND + FE-DATA** (merges 73c0aa6, 69f7107 + fix 0c5246a): the portfolio write seam was split across both branches and never connected. Lead fixes: `totalValue` is null (not a fabricated 0) when no quotes joined (context-provider + agent_runtime honest); `updatePosition` gated on `normalizeHolding` (the re-read trick reported fabricated success on an empty-symbol no-op — STILL PRESENT, caught by the new portfolios.test.ts the team never wrote); toolbelt parity tightened to exact set-equality. E10 caret-over-eyebrow leg fixed on-branch; the status-strip overlay verified live in the battery. 1457 vitest.
 - **ERRORS** (commits b81456c humanizer, 183c52f tradesa): the branch forked from the STALE cfcf5be (pre-contracts) — a merge would regress marketplace.ts (drop real plugins) + 23 conflicts. Integrated its base-independent half by hand on the live tree: errors.py + a shared `error_frame()` SSE helper, LLMErrorEvent action/detail/code, all 5 adapters + both routers routed through humanize, per-adapter routing tests (was untested for 4/5). Tradesa removed on the CURRENT marketplace.ts (real plugins kept); grep-zero (exempt: docs/CHANGELOG/Tier-1 plugin.ts/§6.5 audit_log.py); supabase dep dropped (tradesa-only). 2170 pytest.
 - **Full integration gate GREEN**: frontend lint (0 err, 1 pre-existing EquityOverview warning) / format / typecheck / vitest 1457; sidecar ruff / pytest 2170; Rust cargo fmt / clippy -D warnings / cargo test. Pushed 004.
+
+## Gate results (12)
+
+| # | Gate | Result | Evidence |
+| --- | --- | --- | --- |
+| 1 | One resolver, one truth | PASS (live) | 10/10 fresh names bind correct NSE entity; Tata/Bajaj/Adani disambiguate with curated candidates; substring/fuzzy never bind (D46); `/resolve` endpoint routes through `decide()` (D47). resolution_policy/symbol_resolver/research_target tests green. |
+| 2 | Depth honored + true mode stamp | PASS | `test_research_execution_record.py` (11 tests): every entry path × depth → stamped mode from the execution record; no-record ⇒ no auto-publish. |
+| 3 | Brief lifecycle integrity | PASS (test) | state machine + run-id-scoped carry + ack-ledger read-back, behavior-tested (store/host-actions/chat suites). Live skeleton/chooser screenshots → operator taste pass (display slept). |
+| 4 | Screener full universe, never hangs | PASS (engine+data) / warm-cache pending | Full NSE swept (evaluated 2,121/2,675), bounded at the 120s wall with honest partial — never hangs. Custom IT-names query returned 3 correct rows (SAKSOFT/KSOLVES/ONWARDTEC, all in the reference pack). Full-universe fast-rows: warm-cache (NEEDS-MANUAL-CHECK #1, yfinance throttled by the enrichment crawl tonight). Sector map completed 793→2,268. |
+| 5 | Custom formula both ways | PASS (test) | screener formula layer + agent `write_screener_filters`+formula tests green. |
+| 6 | Agent capability maximization | PASS | toolbelt-integrity test (every default-grant capability in every first-party agent); portfolio/notes/watchlist/screen/layout write capabilities + honest portfolios.test; §6.5 order path untouched + byte-identical. |
+| 7 | Backtest restored | PASS | `test_backtest_agent_parity.py`: agent path bit-identical to direct engine run; in copilot's effective toolbelt. |
+| 8 | Metric semantics | PASS (test) | `test_research_semantics.py`: drawdown vs 52w-change distinct, dividend reconciled, growth basis-labeled, conflicts flagged. Live fundamentals within 1–5% of independent reference on 10 names. |
+| 9 | Error humanization | PASS (live) | induced 401 → "The OpenAI API key was rejected — check it in Settings" + action + raw behind `detail` + code `auth`. 5 adapters + both routers route through `services/errors.py`. Zero naked JSON. |
+| 10 | Tradesa removal | PASS | grep-zero (exempt: Tier-1 plugin.ts, §6.5 audit_log.py, docs/CHANGELOG); `test_no_tradesa` + `test_plugin_system_alive` (≥5 plugins) green; supabase dep dropped. |
+| 11 | Independent validation (≥8 fresh) | PASS | 10 fresh names diffed vs official NSE/BSE archives + screener.in-grade sources; P/E + market cap within 1–5%, none past the 10% flag. reference-pack.json + validate_engine.py archived. |
+| 12 | Regression floor | PASS | ci-local chain green (pytest 2170, vitest 1457, ruff, cargo fmt/clippy `-D warnings`/test); PyInstaller `--onefile` builds + boots (smoke + ICONIKSPEV); §6.5 byte-identical to pre-integration. |
