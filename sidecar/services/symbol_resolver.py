@@ -116,14 +116,14 @@ _MAX_CANDIDATES = 6
 # than one token remains, so a company genuinely named with one of these still
 # resolves on its remaining tokens.
 #
-# Known corner (un-briefed heuristic, R10 review): a company whose name BEGINS
-# with one of these verbs resolves only on its remaining tokens — "Lookup
-# Technologies" binds the substring hit on the leftover ("Technologies" → PLTR
-# at 0.8), and "Research Frontiers Inc" reaches band 1/0.8 instead of
-# name-exact. The pre-R10 resolver also misbound this class (via whole-string
-# fuzzy), so this is not a regression — the trade buys "research Reliance"
-# binding RELIANCE outright (band 5, exceeding the Phase-0 pin). A future fix
-# is to score the unstripped query too and keep the higher band.
+# A company whose name BEGINS with one of these verbs resolves only on its
+# remaining tokens — "Lookup Technologies" matches the substring hit on the
+# leftover ("Technologies" → PLTR at 0.8), and "Research Frontiers Inc" reaches
+# the substring band instead of name-exact. The R10 review hardening makes this
+# SAFE: a substring band (1) never binds outright (resolution_policy.decide
+# requires band >= prefix), so the leftover surfaces as a "did you mean?"
+# disambiguation, never a silent wrong-entity bind — while "research Reliance"
+# still binds RELIANCE (its leftover "Reliance" reaches first-word band 3).
 _LEAD_VERBS = frozenset(
     {"research", "analyze", "analyse", "investigate", "explore", "study", "review", "lookup"}
 )

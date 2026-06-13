@@ -12,11 +12,16 @@ acceptance threshold (a grep-style test pins this).
 
 Outcomes:
 
-  - ``bound``        — confidence >= :data:`ACCEPT` at a deterministic band
-                       (never the whole-string fuzzy rung).
+  - ``bound``        — confidence >= :data:`ACCEPT` at a STRONG band (exact
+                       ticker, marquee primary, name-exact, first-word, or
+                       prefix — band >= :data:`BAND_PREFIX`). A bare-substring
+                       or whole-string-fuzzy match NEVER binds: a query that is
+                       merely a word *inside* a longer name ("Technologies" →
+                       Palantir, "Steel" → one of many) is a guess, not an
+                       identity (R10 review hardening).
   - ``disambiguate`` — confidence in ``[REJECT, ACCEPT)``, a marquee family
-                       name, or ANY whole-string fuzzy match (a fuzzy hit may
-                       be offered as a "did you mean?", never auto-bound —
+                       name, or ANY substring / whole-string fuzzy match (it
+                       may be offered as a "did you mean?", never auto-bound —
                        the E1 wrong-entity class).
   - ``unresolved``   — nothing matched, or confidence < :data:`REJECT`.
 
@@ -65,8 +70,9 @@ def decide(resolution: Resolution) -> ResolutionDecision:
 
     Pure and deterministic: reads only the resolution's best/candidates/score
     and the best candidate's match band. A marquee family hit below ACCEPT is
-    a forced, curated disambiguation; a whole-string fuzzy hit is NEVER bound
-    no matter how high its SequenceMatcher ratio scored.
+    a forced, curated disambiguation; a substring or whole-string fuzzy hit is
+    NEVER bound no matter how high its score — only a STRONG band (>= prefix)
+    binds outright (R10 review: "Lookup Technologies" must not bind PLTR).
     """
     best = resolution.best
     if best is None:
@@ -81,14 +87,14 @@ def decide(resolution: Resolution) -> ResolutionDecision:
             candidates,
             "marquee family name — an explicit choice is required",
         )
-    if confidence >= ACCEPT and band > BAND_FUZZY:
+    if confidence >= ACCEPT and band >= BAND_PREFIX:
         return ResolutionDecision(
             "bound", best, candidates, f"score {confidence:.2f} >= accept at band {band}"
         )
     if confidence >= REJECT:
         reason = (
-            "whole-string fuzzy match — offered for disambiguation, never auto-bound"
-            if band == BAND_FUZZY and confidence >= ACCEPT
+            "substring/fuzzy match — offered for disambiguation, never auto-bound"
+            if band < BAND_PREFIX
             else f"score {confidence:.2f} in the disambiguation band"
         )
         return ResolutionDecision("disambiguate", None, candidates, reason)

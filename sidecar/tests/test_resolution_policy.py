@@ -30,6 +30,7 @@ from services.resolution_policy import (
     BAND_EXACT_TICKER,
     BAND_FUZZY,
     BAND_MARQUEE,
+    BAND_PREFIX,
     BAND_SUBSTRING,
     REJECT,
     decide,
@@ -78,14 +79,26 @@ def test_decide_thresholds() -> None:
 
 
 def test_decide_boundary_values_pin_accept_and_reject() -> None:
-    at_accept = _instrument("X", score=ACCEPT, band=BAND_SUBSTRING)
+    # The ACCEPT/REJECT numeric boundary is pinned with a STRONG (prefix) band —
+    # the band that legitimately binds at the threshold.
+    at_accept = _instrument("X", score=ACCEPT, band=BAND_PREFIX)
     assert decide(_resolution(at_accept)).outcome == "bound"
-    just_under = _instrument("X", score=ACCEPT - 0.001, band=BAND_SUBSTRING)
+    just_under = _instrument("X", score=ACCEPT - 0.001, band=BAND_PREFIX)
     assert decide(_resolution(just_under)).outcome == "disambiguate"
-    at_reject = _instrument("X", score=REJECT, band=BAND_SUBSTRING)
+    at_reject = _instrument("X", score=REJECT, band=BAND_PREFIX)
     assert decide(_resolution(at_reject)).outcome == "disambiguate"
-    under_reject = _instrument("X", score=REJECT - 0.001, band=BAND_SUBSTRING)
+    under_reject = _instrument("X", score=REJECT - 0.001, band=BAND_PREFIX)
     assert decide(_resolution(under_reject)).outcome == "unresolved"
+
+
+def test_decide_substring_band_never_binds() -> None:
+    # R10 review hardening: a bare-substring hit (band 1, always score 0.8 —
+    # "Technologies" inside "Palantir Technologies") must DISAMBIGUATE, never
+    # bind, even though 0.8 >= ACCEPT. Only band >= prefix binds outright.
+    substr = _instrument("PLTR", score=0.8, band=BAND_SUBSTRING, region="US")
+    verdict = decide(_resolution(substr))
+    assert verdict.outcome == "disambiguate"
+    assert verdict.instrument is None
 
 
 def test_decide_fuzzy_band_never_binds() -> None:
