@@ -48,7 +48,6 @@ from routers import (
     search_tiers,
     sec_filings,
     system,
-    tradesa_v2,
     workflow,
     workspace,
 )
@@ -94,7 +93,6 @@ _ROUTERS = (
     search_status,
     search_tiers,
     system,
-    tradesa_v2,
 )
 
 _log = logging.getLogger(__name__)
@@ -197,7 +195,7 @@ def _register_v0_6_0_runtime_extensions() -> None:
 
 
 def _register_v0_6_5_runtime_extensions() -> None:
-    """Wire v0.6.5 (Tradesa V2 wrapper) extensions.
+    """Wire v0.6.5 phase extensions.
 
     v0.6.5 ships READ-ONLY by operator decision — no agent tools are
     registered for the wrapper. The aggregator helper is invoked anyway
@@ -328,7 +326,7 @@ def create_app() -> FastAPI:
     # submodule uncomments its registration entry.
     _register_v0_6_0_runtime_extensions()
 
-    # v0.6.5 (Tradesa V2 wrapper) runtime extensions — read-only release,
+    # v0.6.5 phase runtime extensions — empty aggregator,
     # no agent tools registered. Aggregator slot reserved for v0.6.6+
     # when write capability is added per the operator-brief progression.
     _register_v0_6_5_runtime_extensions()

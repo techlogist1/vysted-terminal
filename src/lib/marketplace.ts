@@ -34,9 +34,6 @@ import oandaPlugin from "../../plugins/brokers/oanda";
 import oandaManifest from "../../plugins/brokers/oanda/manifest.json";
 import { openbbMcpPlugin } from "../../plugins/openbb-mcp";
 import openbbMcpManifest from "../../plugins/openbb-mcp/manifest.json";
-import { tradesaPlugin } from "../../plugins/tradesa-v2";
-import tradesaManifest from "../../plugins/tradesa-v2/manifest.json";
-import tradesaPanelComponents from "../../plugins/tradesa-v2/panels";
 import { lensesPlugin } from "../../plugins/vysted-lenses";
 import lensesManifest from "../../plugins/vysted-lenses/manifest.json";
 import { newsPlugin } from "../../plugins/vysted-news";
@@ -118,22 +115,6 @@ export const CATALOG_ROWS: CatalogRow[] = [
     },
     openbbMcpManifest,
     openbbMcpPlugin,
-  ),
-  row(
-    {
-      pluginId: "tradesa-v2",
-      name: "Tradesa V2 (read-only bot mirror)",
-      category: "panel",
-      description:
-        "Read-only mirror of a Tradesa bot — 7 panels + commands. The reference panel plugin.",
-      version: (tradesaManifest as PluginManifest).version,
-      author: "Vysted",
-      icon: "layout-dashboard",
-      preinstalled: true,
-    },
-    tradesaManifest,
-    tradesaPlugin,
-    tradesaPanelComponents,
   ),
   row(
     {

@@ -10,12 +10,12 @@ afterEach(() => {
 });
 
 const pluginNode: NodeSpec = {
-  id: "tradesa.wait-for-decision",
+  id: "example.wait-for-decision",
   label: "Wait for Decision",
   category: "trigger",
   inputs: [],
   outputs: [{ id: "decision", label: "Decision", type: "object" }],
-  description: "Block until Tradesa emits a decision event.",
+  description: "Block until an external source emits a decision event.",
 };
 
 describe("NodePalette", () => {

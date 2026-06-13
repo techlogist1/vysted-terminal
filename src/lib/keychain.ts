@@ -84,7 +84,7 @@ export interface KeychainMigrateReport {
  * Every account the dev keystore migration should sweep from the OS keychain on
  * first dev boot. Generous by design — reading a non-existent account is a
  * harmless `None`. Covers the four named items plus every provider, the known
- * brokers, and the plugin/news/tradesa secrets, so the operator's configured
+ * brokers, and the plugin/news secrets, so the operator's configured
  * keys carry over without a single extra dialog after the migration read.
  */
 export function devKeystoreMigrationAccounts(): string[] {
@@ -117,8 +117,6 @@ export function devKeystoreMigrationAccounts(): string[] {
   accounts.add(KEYCHAIN_NAMESPACES.appMeta("onboarding-complete"));
   // Plugin / external-service secrets that have shipped.
   accounts.add(KEYCHAIN_NAMESPACES.pluginSecret("vysted-news", "newsapi_key"));
-  accounts.add(KEYCHAIN_NAMESPACES.pluginSecret("tradesa-v2", "supabase_url"));
-  accounts.add(KEYCHAIN_NAMESPACES.pluginSecret("tradesa-v2", "supabase_service_key"));
   accounts.add(KEYCHAIN_NAMESPACES.mcpServer("openbb"));
   return [...accounts];
 }

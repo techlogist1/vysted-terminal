@@ -279,7 +279,7 @@ describe("NodeEditorPanel", () => {
         agents: [],
         nodes: [
           {
-            id: "tradesa.wait-for-decision",
+            id: "example.wait-for-decision",
             label: "Wait for Decision",
             category: "trigger",
             inputs: [],
@@ -290,6 +290,6 @@ describe("NodeEditorPanel", () => {
       });
     });
     render(<NodeEditorPanel />);
-    expect(screen.getByTestId("palette-card-tradesa.wait-for-decision")).toBeInTheDocument();
+    expect(screen.getByTestId("palette-card-example.wait-for-decision")).toBeInTheDocument();
   });
 });

@@ -60,7 +60,7 @@ def _register_runtime_extensions() -> None:
     agent_tools.register_v0_6_0_tools()
     workflow_nodes_v0_6_0.register_v0_6_0_nodes()
 
-    # v0.6.5 (Tradesa V2 wrapper) extensions — READ-ONLY release; the aggregator
+    # v0.6.5 phase extensions — empty aggregator; the function
     # stub registers no tools. The slot exists so v0.6.6+ write capability has a
     # per-release stamp matching v0.5.0 / v0.6.0 convention.
     from services.agent_tools import registry_v0_6_5 as _at_v0_6_5
