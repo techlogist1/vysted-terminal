@@ -19,7 +19,7 @@ import asyncio
 from fastapi import APIRouter, Query
 
 from config import get_region, normalize_region
-from services import symbol_resolver
+from services import resolution_policy, symbol_resolver
 
 router = APIRouter(prefix="/resolve", tags=["resolve"])
 
@@ -70,7 +70,13 @@ async def resolve_symbol(
 
     resolution = await asyncio.to_thread(symbol_resolver.resolve, query, active_region)
 
-    if resolution.best is None:
+    # ONE policy everywhere (R10, D37): the mention picker honors the SAME
+    # acceptance decision as the research target binding and every agent tool —
+    # an ambiguous marquee name ("Tata") offers a chooser, never a silent guess,
+    # and a substring/fuzzy hit is offered for disambiguation, never bound.
+    decision = resolution_policy.decide(resolution)
+
+    if decision.outcome == "unresolved":
         return {
             "ok": False,
             "query": query,
@@ -78,16 +84,20 @@ async def resolve_symbol(
             "message": f"No instrument matched {query!r}.",
             "resolved": None,
             "needs_disambiguation": False,
-            "candidates": [],
+            "candidates": [_instrument_payload(c) for c in decision.candidates],
         }
 
     return {
         "ok": True,
         "query": query,
         "region": active_region,
-        "resolved": _instrument_payload(resolution.best),
-        "needs_disambiguation": resolution.needs_disambiguation,
-        "candidates": [_instrument_payload(c) for c in resolution.candidates],
+        "resolved": (
+            _instrument_payload(decision.instrument)
+            if decision.outcome == "bound" and decision.instrument is not None
+            else None
+        ),
+        "needs_disambiguation": decision.outcome == "disambiguate",
+        "candidates": [_instrument_payload(c) for c in decision.candidates],
     }
 
 
