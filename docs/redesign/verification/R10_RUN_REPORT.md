@@ -81,11 +81,23 @@ caveat I want to be straight about** (see NEEDS-MANUAL-CHECK #1): the bundled In
 live, so it shipped covering only ~793/4,875 names — and your exact IT-services query
 returned 0 rows on the first live run because the small-cap IT names (SAKSOFT,
 DATAMATICS, …) had no sector to match. The engine was correct and honest about it; the
-*data* was incomplete. I'm completing the sector map via yfinance for the full NSE
-universe (`enrich_nse_sectors`, running at close) so the query returns correct rows
-*and* fast (a complete sector map lets the prefilter narrow 2,675→~200 IT names
-instantly before the ROE enrichment). [FINAL gate-4 result + the rows are appended
-below once the enrichment + rebuild complete.]
+*data* was incomplete. I completed the sector map via yfinance
+for the full NSE universe (`enrich_nse_sectors`: 793→2,268 sectors, nse-all now ~85%
+covered) and rebuilt the binary. **What the live re-test proved and didn't:** on the
+rebuilt binary the operator's query now sweeps the **full universe** (evaluated 2,121 of
+2,675, up from 783) and **never hangs** — it bounds at the 120s wall and returns an
+honest partial ("screened 2,121 of 2,675 — 554 unavailable"), which is the operator's
+hard correctness requirement and a categorical improvement over the original 4×-Nifty-50
+loop that hung past five minutes. It returned **0 rows tonight**, but not for an engine
+reason: the 1,887-call sector-enrichment crawl I'd just run **rate-limited yfinance for
+this IP** (the binary log shows "fundamentals warm: rate-limited, backing off 716s"), so
+the cold cache couldn't fill the IT names' valuation/ROE within the wall. The seed itself
+is verified correct in-process ("seeded rows: 2268"), and the prefilter is provably sound
+(NULL/unknown rows are KEPT, never wrongly excluded). **Net:** the engine + the completed
+sector data are correct and committed; "correct rows *fast*" needs a warm cache, which the
+overnight warm-crawler fills once yfinance recovers — so I left the app running to warm it.
+This is NEEDS-MANUAL-CHECK #1: re-run the query in the morning (warm cache, yfinance
+recovered).
 
 **Tradesa is gone, the plugin system lives.** Every Tradesa reference is removed from
 code/config/tests (grep-zero, with only the Tier-1 `plugin.ts` doc examples, the §6.5
