@@ -9,6 +9,9 @@
  */
 
 import type {
+  BriefCandidate,
+  BriefDisambiguation,
+  BriefExecution,
   BriefMode,
   BriefDepth,
   BriefSource,
@@ -93,6 +96,137 @@ export function nextBriefDepth(depth: BriefDepth): Exclude<BriefDepth, "quick"> 
     return "heavy";
   }
   return null;
+}
+
+// ── execution / disambiguation wire ingest (R10, D38/D37) ───────────────────
+
+const EXECUTION_LOOPS = new Set(["fast", "iter", "heavy", "research-model"]);
+const REQUESTED_DEPTHS = new Set(["normal", "deep", "ultra"]);
+
+function wireString(o: Record<string, unknown>, ...keys: string[]): string | undefined {
+  for (const key of keys) {
+    const v = o[key];
+    if (typeof v === "string" && v) {
+      return v;
+    }
+  }
+  return undefined;
+}
+
+function wireNumber(o: Record<string, unknown>, ...keys: string[]): number | undefined {
+  for (const key of keys) {
+    const v = o[key];
+    if (typeof v === "number" && Number.isFinite(v)) {
+      return v;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Map a wire `execution` record (snake_case from the sidecar, camelCase from a
+ * persisted brief) onto the {@link BriefExecution} contract. Returns undefined
+ * for anything without the load-bearing `run_id` + a recognised loop — a brief
+ * without a valid execution record renders as archival (D38: no record, no
+ * execution truth).
+ */
+export function executionFromWire(raw: unknown): BriefExecution | undefined {
+  if (typeof raw !== "object" || raw === null) {
+    return undefined;
+  }
+  const o = raw as Record<string, unknown>;
+  const runId = wireString(o, "run_id", "runId");
+  const loop = wireString(o, "loop");
+  const requestedRaw = wireString(o, "requested_depth", "requestedDepth") ?? "";
+  if (!runId || !loop || !EXECUTION_LOOPS.has(loop)) {
+    return undefined;
+  }
+  const requestedDepth = (
+    REQUESTED_DEPTHS.has(requestedRaw) ? requestedRaw : "normal"
+  ) as BriefExecution["requestedDepth"];
+  const backend = wireString(o, "backend");
+  const degradedReason = wireString(o, "degraded_reason", "degradedReason");
+  return {
+    runId,
+    requestedDepth,
+    loop: loop as BriefExecution["loop"],
+    backend: backend ?? null,
+    startedAt: wireNumber(o, "started_at", "startedAt"),
+    finishedAt: wireNumber(o, "finished_at", "finishedAt"),
+    degradedReason: degradedReason ?? null,
+  };
+}
+
+/**
+ * The depth TIER an execution record proves (D38): the loop that RAN is the
+ * truth — `fast`→quick, `iter`→deep, `heavy`→heavy; the hosted research-model
+ * lane is stop-based (it has no internal loop), so its tier follows the
+ * requested stop. The wire `mode` is never consulted.
+ */
+export function depthFromExecution(execution: BriefExecution): BriefDepth {
+  switch (execution.loop) {
+    case "iter":
+      return "deep";
+    case "heavy":
+      return "heavy";
+    case "research-model":
+      return execution.requestedDepth === "ultra"
+        ? "heavy"
+        : execution.requestedDepth === "deep"
+          ? "deep"
+          : "quick";
+    default:
+      return "quick";
+  }
+}
+
+/** Brief-tier → composer-wire depth (quick→normal, deep→deep, heavy→ultra) —
+ *  the refresh/go-deeper command rides the deterministic options floor (E2's
+ *  UI leg): the re-run's `research_depth` names the tier the brief reached. */
+export function depthTierToWire(depth: BriefDepth): "normal" | "deep" | "ultra" {
+  if (depth === "heavy") {
+    return "ultra";
+  }
+  if (depth === "deep") {
+    return "deep";
+  }
+  return "normal";
+}
+
+/**
+ * Map a wire `disambiguation` block (D37 — the honest "which did you mean?")
+ * onto {@link BriefDisambiguation}. Candidates missing a symbol are dropped;
+ * an empty candidate list yields undefined (nothing to choose from is not a
+ * disambiguation).
+ */
+export function disambiguationFromWire(raw: unknown): BriefDisambiguation | undefined {
+  if (typeof raw !== "object" || raw === null) {
+    return undefined;
+  }
+  const o = raw as Record<string, unknown>;
+  const rawCandidates = Array.isArray(o.candidates) ? o.candidates : [];
+  const candidates: BriefCandidate[] = [];
+  for (const item of rawCandidates) {
+    if (typeof item !== "object" || item === null) {
+      continue;
+    }
+    const c = item as Record<string, unknown>;
+    const symbol = wireString(c, "symbol");
+    if (!symbol) {
+      continue;
+    }
+    candidates.push({
+      symbol,
+      name: wireString(c, "name") ?? symbol,
+      exchange: wireString(c, "exchange") ?? null,
+      score: wireNumber(c, "score"),
+      yahooSymbol: wireString(c, "yahoo_symbol", "yahooSymbol"),
+    });
+  }
+  if (candidates.length === 0) {
+    return undefined;
+  }
+  return { query: wireString(o, "query") ?? "", candidates };
 }
 
 /**

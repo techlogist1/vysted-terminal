@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AGENT_DOCK_DEFAULT_WIDTH, useAgentDockStore } from "@/store/agent-dock";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
+import { resetBriefStoreForTests, useBriefStore } from "@/store/brief";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { resetChartCommandStoreForTests, useChartCommandStore } from "@/store/chart-command";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
@@ -732,12 +733,12 @@ describe("restoreLastSessionOrDefault — boot-crash guards", () => {
   it("skips to a clean default when the saved layout references an unregistered component", async () => {
     const api = createFakeDockviewApi(LAYOUT_A);
     useWorkspaceStore.setState({ dockviewApi: api as never });
-    // No modules registered → "tradesa-x" is an unknown panel component, the
-    // case where dockview's fromJSON would throw mid-deserialize and corrupt
-    // the grid. We must skip straight to applyDefaultLayout instead.
+    // No modules registered → "ghost-plugin-x" is an unknown panel component,
+    // the case where dockview's fromJSON would throw mid-deserialize and
+    // corrupt the grid. We must skip straight to applyDefaultLayout instead.
     stubFetchResolving({
       name: "x",
-      layout: { grid: { root: "a" }, panels: { p1: { contentComponent: "tradesa-x" } } },
+      layout: { grid: { root: "a" }, panels: { p1: { contentComponent: "ghost-plugin-x" } } },
       enabledModules: {},
     });
 
@@ -763,5 +764,61 @@ describe("restoreLastSessionOrDefault — boot-crash guards", () => {
     expect(restored).toBe(false);
     expect(api.clear).toHaveBeenCalled(); // clean grid before the default layout
     expect(api.addPanel).toHaveBeenCalled();
+  });
+});
+
+// ── brief restore is ALWAYS archival (R10 D39) ──────────────────────────────
+
+describe("workspace restore archives the brief (R10 D39)", () => {
+  it("a restored blob's brief lands archived('restored') — never as current", () => {
+    resetBriefStoreForTests();
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    deserializeWorkspace({
+      name: "x",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      brief: {
+        query: "reliance Q4",
+        symbol: "RELIANCE.NS",
+        mode: "DEEP",
+        depth: "deep",
+        markdown: "## report [1]",
+        sources: [{ url: "https://nseindia.com/x", title: "filing", excerpt: "" }],
+        sourceCount: 1,
+        webAvailable: true,
+        execution: { runId: "run-old", requestedDepth: "deep", loop: "iter" },
+        createdAt: 1_700_000_000_000,
+      },
+    });
+    const panel = useBriefStore.getState().panel;
+    expect(panel.phase).toBe("archived");
+    expect(panel.phase === "archived" && panel.reason).toBe("restored");
+    // The mirror still serves the artifact for legacy consumers + re-serialize.
+    expect(useBriefStore.getState().brief?.query).toBe("reliance Q4");
+    resetBriefStoreForTests();
+  });
+
+  it("an OLDER blob's brief (no execution record) restores fine — archived too", () => {
+    resetBriefStoreForTests();
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    deserializeWorkspace({
+      name: "x",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      brief: {
+        query: "legacy brief",
+        mode: "FAST",
+        markdown: "## old",
+        sources: [],
+        sourceCount: 0,
+        webAvailable: false,
+        createdAt: 1_600_000_000_000,
+      },
+    });
+    expect(useBriefStore.getState().panel.phase).toBe("archived");
+    expect(useBriefStore.getState().brief?.query).toBe("legacy brief");
+    resetBriefStoreForTests();
   });
 });

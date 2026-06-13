@@ -11,8 +11,15 @@
 
 import { create } from "zustand";
 
-import { applyHostAction, describeHostAction, routeOrderProposal } from "@/lib/host-actions";
+import {
+  ackPublishBrief,
+  applyHostActionAsync,
+  describeHostAction,
+  publishAckStatus,
+  routeOrderProposal,
+} from "@/lib/host-actions";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
+import { useBriefStore } from "@/store/brief";
 
 import type { ProposedChange } from "../../types/proposed-change";
 
@@ -20,6 +27,22 @@ let _seq = 0;
 function nextId(): string {
   _seq += 1;
   return `change-${_seq}`;
+}
+
+/**
+ * A REJECTED publish_brief settles the brief lifecycle (R10 D39): the run in
+ * flight will never publish, so the panel restores the prior brief as
+ * archived(run_failed) instead of spinning until the watchdog. No-op when no
+ * run is in flight (the rejection simply leaves the published brief standing).
+ */
+function settleRejectedPublishes(rejected: readonly ProposedChange[]): void {
+  if (!rejected.some((c) => c.action.name === "publish_brief")) {
+    return;
+  }
+  const brief = useBriefStore.getState();
+  if (brief.panel.phase === "in_flight") {
+    brief.failRun();
+  }
 }
 
 export interface EnqueueInput {
@@ -107,9 +130,17 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
       ok = result.ok;
       detail = result.error;
     } else {
-      ok = applyHostAction(change.action.name, change.action.input) !== null;
+      const label = await applyHostActionAsync(change.action.name, change.action.input);
+      ok = label !== null;
       if (!ok) {
         detail = "Could not apply this change — its arguments were incomplete.";
+      }
+      // Publish read-back (R10 D39 §4): the sidecar's action ledger learns how
+      // the panel REALLY resolved this publish (applied | kept_previous |
+      // failed) so the runtime's end-of-stream divergence check has truth to
+      // compare against. Fire-and-forget — never blocks the gate.
+      if (change.action.name === "publish_brief") {
+        ackPublishBrief(change.toolCallId, publishAckStatus(label));
       }
     }
     if (!ok) {
@@ -120,12 +151,17 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
     }
   },
 
-  reject: (id) =>
+  reject: (id) => {
+    const target = get().changes.find((c) => c.id === id && c.status === "pending");
     set((state) => ({
       changes: state.changes.map((c) =>
         c.id === id && c.status === "pending" ? { ...c, status: "rejected" } : c,
       ),
-    })),
+    }));
+    if (target) {
+      settleRejectedPublishes([target]);
+    }
+  },
 
   acceptBatch: async (batchId) => {
     // Sequential so changes apply in proposal order (open a panel before
@@ -139,12 +175,15 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
     }
   },
 
-  rejectBatch: (batchId) =>
+  rejectBatch: (batchId) => {
+    const targets = get().changes.filter((c) => c.batchId === batchId && c.status === "pending");
     set((state) => ({
       changes: state.changes.map((c) =>
         c.batchId === batchId && c.status === "pending" ? { ...c, status: "rejected" } : c,
       ),
-    })),
+    }));
+    settleRejectedPublishes(targets);
+  },
 
   acceptAll: async () => {
     const ids = get()
@@ -155,12 +194,15 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
     }
   },
 
-  rejectAll: () =>
+  rejectAll: () => {
+    const targets = get().changes.filter((c) => c.status === "pending");
     set((state) => ({
       changes: state.changes.map((c) =>
         c.status === "pending" ? { ...c, status: "rejected" } : c,
       ),
-    })),
+    }));
+    settleRejectedPublishes(targets);
+  },
 
   clear: () => set({ changes: [] }),
 

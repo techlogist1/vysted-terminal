@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import { usePanelContextBus } from "@/store/panel-context";
+import { usePortfoliosStore } from "@/store/portfolios";
 import type { PanelContextEvent } from "../../../types/panel-context";
 
 import { captureTerminalState } from "./context-provider";
@@ -126,17 +127,45 @@ describe("captureTerminalState — portfolio holdings (FR-110/111, SC-024)", () 
     expect(portfolio?.activePortfolioName).toBeUndefined();
   });
 
-  it("returns portfolio:null when no portfolio panel has published", () => {
+  it("falls back to the portfolios STORE when the panel has not published (E6)", () => {
     // Bus has a non-portfolio event so the snapshot is non-empty but carries
-    // no portfolio source.
+    // no portfolio source — the canonical store answers instead, WITH holding
+    // ids (the handle portfolio_update/delete_position echo back) and honest
+    // null market values (no quotes were joined).
     usePanelContextBus.getState().publish({
       source: "watchlist",
       kind: "snapshot",
       payload: { symbols: ["SPY"], selectedSymbol: "SPY" },
       emittedAt: Date.now(),
     });
+    const store = usePortfoliosStore.getState();
+    const active = store.portfolios.find((p) => p.id === store.activeId)!;
+    store.addHolding(active.id, {
+      symbol: "RELIANCE",
+      quantity: 5,
+      costBasis: 1263,
+      assetClass: "equity",
+    });
+    try {
+      const { portfolio } = captureTerminalState();
+      expect(portfolio).not.toBeNull();
+      expect(portfolio?.positionCount).toBe(1);
+      expect(portfolio?.holdings[0]).toMatchObject({
+        symbol: "RELIANCE",
+        quantity: 5,
+        costBasis: 1263,
+        marketValue: null,
+        pnl: null,
+      });
+      expect(typeof portfolio?.holdings[0].id).toBe("string");
+    } finally {
+      usePortfoliosStore.getState().setAll([], undefined);
+    }
+  });
 
-    expect(captureTerminalState().portfolio).toBeNull();
+  it("the bus payload still wins over the store fallback when published", () => {
+    publishPortfolio({ positionCount: 3, totalValue: 9_999, holdings: [] });
+    expect(captureTerminalState().portfolio?.positionCount).toBe(3);
   });
 
   it("drops malformed holding rows (missing symbol) defensively", () => {

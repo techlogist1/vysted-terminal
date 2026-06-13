@@ -1,6 +1,7 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { resetAgentCommandStoreForTests, useAgentCommandStore } from "@/store/agent-command";
 import { resetBriefStoreForTests, useBriefStore } from "@/store/brief";
 import { useWorkspaceStore } from "@/store/workspace";
 import type { ResearchBriefData } from "../../../types/brief";
@@ -91,5 +92,112 @@ describe("BriefPanel keyless-fallback nudge (R9 gate 2)", () => {
     } finally {
       useWorkspaceStore.setState({ openPanel: original });
     }
+  });
+});
+
+// ── lifecycle surfaces (R10 D39/D37) ─────────────────────────────────────────
+
+describe("BriefPanel lifecycle surfaces (R10)", () => {
+  beforeEach(() => {
+    resetBriefStoreForTests();
+    resetAgentCommandStoreForTests();
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("IN-FLIGHT renders the working skeleton — never a broken empty panel", () => {
+    useBriefStore.setState({
+      panel: {
+        phase: "in_flight",
+        runId: "run-1",
+        query: "reliance Q4 results",
+        depth: "deep",
+        startedAt: Date.now() - 42_000,
+        steps: [],
+      },
+      brief: null,
+    });
+    render(<BriefPanel />);
+    expect(screen.getByText(/Researching — DEEP/)).toBeInTheDocument();
+    expect(screen.getByText("reliance Q4 results")).toBeInTheDocument();
+    // No empty-state copy mid-run.
+    expect(screen.queryByText(/Ask JARVIS to research/)).toBeNull();
+  });
+
+  it("IN-FLIGHT shows the live research steps", () => {
+    useBriefStore.setState({
+      panel: {
+        phase: "in_flight",
+        runId: "run-1",
+        query: "q",
+        depth: "heavy",
+        startedAt: Date.now(),
+        steps: [{ kind: "search", detail: "scanning filings", status: "ok" }],
+      },
+      brief: null,
+    });
+    render(<BriefPanel />);
+    expect(screen.getByLabelText("Research activity")).toBeInTheDocument();
+    expect(screen.getByText("scanning filings")).toBeInTheDocument();
+  });
+
+  it("ARCHIVED renders the provenance strip and Refresh re-runs at the brief's depth", () => {
+    const brief = fixtureBrief();
+    useBriefStore.setState({
+      panel: { phase: "archived", brief, archivedAt: Date.now(), reason: "restored" },
+      brief,
+    });
+    render(<BriefPanel />);
+    expect(screen.getByText(/Archived · produced/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /refresh/i }));
+    const command = useAgentCommandStore.getState().command;
+    expect(command?.prompt).toBe("research SAKSOFT.NS at depth=deep");
+    expect(command?.depth).toBe("deep");
+  });
+
+  it("a brief WITHOUT an execution record renders ARCHIVED by definition (D38)", () => {
+    useBriefStore.setState({ brief: fixtureBrief() }); // legacy direct set, no panel phase
+    render(<BriefPanel />);
+    expect(screen.getByText(/Archived · produced/)).toBeInTheDocument();
+  });
+
+  it("a published brief WITH an execution record renders live (no archived strip)", () => {
+    const brief = fixtureBrief({
+      execution: { runId: "run-9", requestedDepth: "deep", loop: "iter" },
+    });
+    useBriefStore.setState({ panel: { phase: "published", brief }, brief });
+    render(<BriefPanel />);
+    expect(screen.queryByText(/Archived · produced/)).toBeNull();
+  });
+
+  it("DISAMBIGUATION renders the chooser instead of a body; a chip re-runs the research", () => {
+    const brief = fixtureBrief({
+      markdown: "",
+      sources: [],
+      sourceCount: 0,
+      disambiguation: {
+        query: "reliance",
+        candidates: [
+          {
+            symbol: "RELIANCE",
+            name: "Reliance Industries",
+            exchange: "NSE",
+            yahooSymbol: "RELIANCE.NS",
+          },
+          { symbol: "RPOWER", name: "Reliance Power", exchange: "NSE", yahooSymbol: "RPOWER.NS" },
+        ],
+      },
+      execution: { runId: "run-d", requestedDepth: "deep", loop: "iter" },
+    });
+    useBriefStore.setState({ panel: { phase: "published", brief }, brief });
+    render(<BriefPanel />);
+    expect(screen.getByText("Which did you mean?")).toBeInTheDocument();
+    expect(screen.queryByText(/Copy markdown/)).toBeNull(); // no body chrome
+    fireEvent.click(screen.getByRole("button", { name: /^RELIANCE.*Industries/ }));
+    const command = useAgentCommandStore.getState().command;
+    expect(command?.prompt).toBe("research RELIANCE.NS at depth=deep");
+    expect(command?.depth).toBe("deep");
   });
 });

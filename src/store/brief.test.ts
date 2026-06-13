@@ -147,3 +147,129 @@ describe("brief store", () => {
     expect(useBriefStore.getState().brief?.webReason).toBe("rate_limited");
   });
 });
+
+// ── lifecycle state machine (R10, D39) ──────────────────────────────────────
+
+describe("brief lifecycle state machine (R10 D39)", () => {
+  beforeEach(() => {
+    resetBriefStoreForTests();
+    autosaveMock.mockClear();
+  });
+
+  function published(overrides: Partial<ResearchBriefData> = {}): ResearchBriefData {
+    return sampleBrief({
+      execution: { runId: "run-1", requestedDepth: "deep", loop: "iter" },
+      ...overrides,
+    });
+  }
+
+  it("starts empty", () => {
+    expect(useBriefStore.getState().panel).toEqual({ phase: "empty" });
+  });
+
+  it("beginRun → in_flight, carrying the published brief as prior", () => {
+    useBriefStore.getState().publish(published());
+    useBriefStore.getState().beginRun({ runId: "run-2", query: "go deeper", depth: "heavy" });
+    const panel = useBriefStore.getState().panel;
+    expect(panel.phase).toBe("in_flight");
+    if (panel.phase === "in_flight") {
+      expect(panel.runId).toBe("run-2");
+      expect(panel.depth).toBe("heavy");
+      expect(panel.prior?.query).toBe(sampleBrief().query);
+    }
+    // The legacy mirror keeps serving the prior so unrelated surfaces render.
+    expect(useBriefStore.getState().brief?.query).toBe(sampleBrief().query);
+  });
+
+  it("a publish matching the in-flight run publishes; a mismatched one is stale", () => {
+    useBriefStore.getState().beginRun({ runId: "run-2", query: "q", depth: "deep" });
+    const stale = useBriefStore
+      .getState()
+      .publish(
+        published({ execution: { runId: "run-OLD", requestedDepth: "deep", loop: "iter" } }),
+      );
+    expect(stale).toBe("stale_run");
+    expect(useBriefStore.getState().panel.phase).toBe("in_flight");
+
+    const ok = useBriefStore
+      .getState()
+      .publish(published({ execution: { runId: "run-2", requestedDepth: "deep", loop: "iter" } }));
+    expect(ok).toBe("published");
+    expect(useBriefStore.getState().panel.phase).toBe("published");
+  });
+
+  it("a record-less publish while a run is in flight never replaces the live run", () => {
+    useBriefStore.getState().beginRun({ runId: "run-2", query: "q", depth: "deep" });
+    const result = useBriefStore.getState().publish(sampleBrief());
+    expect(result).toBe("stale_run");
+    expect(useBriefStore.getState().panel.phase).toBe("in_flight");
+  });
+
+  it("failRun restores the prior as archived(run_failed), or empties", () => {
+    useBriefStore.getState().publish(published());
+    useBriefStore.getState().beginRun({ runId: "run-2", query: "q", depth: "deep" });
+    useBriefStore.getState().failRun();
+    const panel = useBriefStore.getState().panel;
+    expect(panel.phase).toBe("archived");
+    if (panel.phase === "archived") {
+      expect(panel.reason).toBe("run_failed");
+      expect(panel.brief.query).toBe(sampleBrief().query);
+    }
+
+    resetBriefStoreForTests();
+    useBriefStore.getState().beginRun({ runId: "run-3", query: "q", depth: "quick" });
+    useBriefStore.getState().failRun();
+    expect(useBriefStore.getState().panel).toEqual({ phase: "empty" });
+  });
+
+  it("the watchdog archives a run older than its depth wall + slack", () => {
+    useBriefStore.getState().publish(published());
+    useBriefStore.getState().beginRun({ runId: "run-2", query: "q", depth: "deep" });
+    // Inside the budget — nothing settles.
+    useBriefStore.getState().watchdogTick(Date.now() + 60_000);
+    expect(useBriefStore.getState().panel.phase).toBe("in_flight");
+    // Past the 120s iter wall + 60s slack — the run is dead, the prior returns.
+    useBriefStore.getState().watchdogTick(Date.now() + 181_000);
+    const panel = useBriefStore.getState().panel;
+    expect(panel.phase).toBe("archived");
+    if (panel.phase === "archived") {
+      expect(panel.reason).toBe("run_failed");
+    }
+  });
+
+  it("appendRunStep feeds the in-flight trace and no-ops outside a run", () => {
+    useBriefStore
+      .getState()
+      .appendRunStep({ kind: "search", detail: "ignored — no run", status: "ok" });
+    expect(useBriefStore.getState().panel.phase).toBe("empty");
+
+    useBriefStore.getState().beginRun({ runId: "run-2", query: "q", depth: "deep" });
+    useBriefStore.getState().appendRunStep({ kind: "search", detail: "web round", status: "ok" });
+    const panel = useBriefStore.getState().panel;
+    expect(panel.phase === "in_flight" && panel.steps).toEqual([
+      { kind: "search", detail: "web round", status: "ok" },
+    ]);
+  });
+
+  it("fromBundle ALWAYS lands archived('restored') — a reboot never serves current", () => {
+    useBriefStore.getState().fromBundle(published());
+    const panel = useBriefStore.getState().panel;
+    expect(panel.phase).toBe("archived");
+    if (panel.phase === "archived") {
+      expect(panel.reason).toBe("restored");
+    }
+    // The mirror + bundle still round-trip the plain brief shape.
+    expect(useBriefStore.getState().brief?.query).toBe(sampleBrief().query);
+  });
+
+  it("a re-begin while in flight keeps the ORIGINAL prior (abandoned runs carry nothing)", () => {
+    useBriefStore.getState().publish(published());
+    useBriefStore.getState().beginRun({ runId: "run-2", query: "q2", depth: "deep" });
+    useBriefStore.getState().beginRun({ runId: "run-3", query: "q3", depth: "heavy" });
+    const panel = useBriefStore.getState().panel;
+    expect(panel.phase === "in_flight" && panel.runId).toBe("run-3");
+    expect(panel.phase === "in_flight" && panel.prior?.query).toBe(sampleBrief().query);
+    useBriefStore.getState().failRun();
+    expect(useBriefStore.getState().brief?.query).toBe(sampleBrief().query);
+  });
+});

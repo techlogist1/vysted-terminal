@@ -2,8 +2,11 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ChatSidebar } from "@/modules/chat/ChatSidebar";
+import { resetMessageNoticesForTests } from "@/modules/chat/message-notices";
+import { resetAgentCommandStoreForTests, useAgentCommandStore } from "@/store/agent-command";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { useAgentsStore, type AgentSummary } from "@/store/agents";
+import { resetBriefStoreForTests } from "@/store/brief";
 import { useChartSyncBus } from "@/store/chart-sync";
 import { useChatHistoryStore } from "@/store/chat-history";
 import { useChatPendingStore } from "@/store/chat-pending";
@@ -34,10 +37,16 @@ const streamAgentInvocationMock = vi.hoisted(() =>
   >(async () => undefined),
 );
 
-vi.mock("@/modules/chat/streaming", () => ({
-  streamChat: streamChatMock,
-  streamAgentInvocation: streamAgentInvocationMock,
-}));
+vi.mock("@/modules/chat/streaming", async () => {
+  const actual = await vi.importActual<typeof import("@/modules/chat/streaming")>(
+    "@/modules/chat/streaming",
+  );
+  return {
+    ...actual,
+    streamChat: streamChatMock,
+    streamAgentInvocation: streamAgentInvocationMock,
+  };
+});
 
 const getSecretMock = vi.hoisted(() => vi.fn(async () => "sk-cached"));
 
@@ -194,6 +203,9 @@ function seedStores() {
   useChartSyncBus.setState({ symbol: null });
   useChatPendingStore.setState({ queue: [] });
   resetResearchDepthStoreForTests();
+  resetAgentCommandStoreForTests();
+  resetMessageNoticesForTests();
+  resetBriefStoreForTests();
 }
 
 describe("ChatSidebar", () => {
@@ -593,5 +605,142 @@ describe("ChatSidebar", () => {
     expect(change.action).toEqual({ name: "set_chart_symbol", input: { symbol: "NVDA" } });
     // The mutation did NOT apply — the chart bus is untouched until acceptance.
     expect(useChartSyncBus.getState().symbol).toBeNull();
+  });
+});
+
+// ── R10: refresh depth override, structured errors, divergence chips, E10 ───
+
+describe("ChatSidebar — R10 brief/error honesty", () => {
+  beforeEach(() => {
+    seedStores();
+    streamChatMock.mockClear();
+    streamAgentInvocationMock.mockClear();
+    getSecretMock.mockClear();
+    getSecretMock.mockResolvedValue("sk-cached");
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("a depth-carrying agent command OVERRIDES the slider depth on the wire (E2 UI leg)", async () => {
+    // Slider sits at normal; the archived-brief Refresh / go-deeper escalates
+    // to heavy — the send must ride research_depth=ultra, not the slider.
+    render(<ChatSidebar />);
+    useAgentCommandStore.getState().send("research SAKSOFT at depth=heavy", "heavy");
+    await waitFor(() => expect(streamAgentInvocationMock).toHaveBeenCalledTimes(1));
+    const payload = (streamAgentInvocationMock.mock.calls[0] as unknown[])[1] as {
+      prompt: string;
+      options?: Record<string, unknown>;
+    };
+    expect(payload.prompt).toBe("research SAKSOFT at depth=heavy");
+    expect(payload.options?.researchDepth).toBe("ultra");
+    // The slider itself is untouched — the override was per-send.
+    expect(useResearchDepthStore.getState().depth).toBe("normal");
+  });
+
+  it("renders a STRUCTURED error frame as message + action + a Details disclosure (E9)", async () => {
+    streamAgentInvocationMock.mockImplementationOnce(
+      async (_id: unknown, _payload: unknown, handlers: { onEvent: (event: unknown) => void }) => {
+        handlers.onEvent({
+          kind: "error",
+          message: "Your DeepSeek balance is empty — top up or switch provider.",
+          action: "Top up or switch provider in Settings.",
+          detail: 'Error code: 402 - {"error":{"message":"Insufficient Balance"}}',
+          code: "provider_402",
+        });
+      },
+    );
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "research reliance" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() =>
+      expect(
+        screen.getByText("Your DeepSeek balance is empty — top up or switch provider."),
+      ).toBeInTheDocument(),
+    );
+    // The structured frame drops the legacy "Something went wrong —" prefix…
+    expect(screen.queryByText(/Something went wrong/)).toBeNull();
+    // …surfaces the next step…
+    expect(screen.getByText("Top up or switch provider in Settings.")).toBeInTheDocument();
+    // …and keeps the raw provider text behind the Details toggle.
+    expect(screen.queryByText(/Insufficient Balance/)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Details" }));
+    expect(screen.getByText(/Insufficient Balance/)).toBeInTheDocument();
+    // Retry survives.
+    expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+  });
+
+  it("a legacy plain-string error renders exactly as before (no Details)", async () => {
+    streamAgentInvocationMock.mockImplementationOnce(
+      async (_id: unknown, _payload: unknown, handlers: { onEvent: (event: unknown) => void }) => {
+        handlers.onEvent({ kind: "error", message: "boom" });
+      },
+    );
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "hello" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() =>
+      expect(screen.getByText(/Something went wrong — boom/)).toBeInTheDocument(),
+    );
+    expect(screen.queryByRole("button", { name: "Details" })).toBeNull();
+  });
+
+  it("renders the runtime's publish-divergence notice as a quiet chip, not a step row (D39)", async () => {
+    streamAgentInvocationMock.mockImplementationOnce(
+      async (_id: unknown, _payload: unknown, handlers: { onEvent: (event: unknown) => void }) => {
+        handlers.onEvent({
+          kind: "research_step",
+          toolCallId: "",
+          tool: "research",
+          stepKind: "engine",
+          detail: "The panel kept the previous, richer brief.",
+          status: "ok",
+          index: 1,
+        });
+        handlers.onEvent({ kind: "delta", text: "Here is the report." });
+        handlers.onEvent({ kind: "done" });
+      },
+    );
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "research reliance" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() =>
+      expect(screen.getByText("The panel kept the previous, richer brief.")).toBeInTheDocument(),
+    );
+    // It is a transcript chip — NOT a collapsed step-trace entry.
+    expect(screen.queryByRole("button", { name: /step trace/i })).toBeNull();
+  });
+
+  it("E10: the streaming caret never reaches over the message eyebrow on an empty body", () => {
+    useChatHistoryStore.setState({
+      messages: [{ id: "m1", role: "assistant", content: "", pending: true, createdAt: 0 }],
+      streamingMessageId: "m1",
+    });
+    render(<ChatSidebar />);
+    const caret = screen.getByTestId("stream-caret");
+    // No preceding body block → the gap-cancelling negative margin must be OFF
+    // (it used to pull the caret up over the "VYSTED COPILOT" eyebrow).
+    expect(caret.className).not.toContain("-mt-4");
+  });
+
+  it("E10: with rendered content the caret keeps its gap-cancelling margin", () => {
+    useChatHistoryStore.setState({
+      messages: [
+        {
+          id: "m2",
+          role: "assistant",
+          content: "Reading the filings now.",
+          pending: true,
+          createdAt: 0,
+        },
+      ],
+      streamingMessageId: "m2",
+    });
+    render(<ChatSidebar />);
+    expect(screen.getByTestId("stream-caret").className).toContain("-mt-4");
   });
 });
