@@ -59,6 +59,7 @@ docs/redesign/verification/r8/
 docs/redesign/verification/r9/briefs/
 docs/redesign/verification/r10/regression/
 docs/redesign/verification/r10/reference-pack.json
+docs/redesign/verification/r10/reference-pack-audit.md
 # Track brief docs for the R10 teams — byte-preserved spec text (Prettier's
 # markdown emphasis escaping mangles portfolio_db.py / quote_* underscores).
 docs/redesign/R10_TRACK_BRIEF_FE_BRIEF.md

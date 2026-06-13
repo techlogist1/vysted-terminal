@@ -127,24 +127,24 @@ def test_catalog_host_actions_are_the_final_r10_set() -> None:
 
 
 def test_frontend_host_action_names_match_catalog() -> None:
-    """Set-equality between src/lib/host-actions.ts HOST_ACTION_NAMES and the
-    catalog host-action ids.
+    """Exact set-equality between src/lib/host-actions.ts HOST_ACTION_NAMES and
+    the catalog host-action ids.
 
-    Integration-wave allowance: Team FRONTEND lands the 8 new names in the
-    same wave — until their branch merges the frontend may lag by EXACTLY the
-    R10 set (and nothing else). Once merged the diff is empty and any future
-    drift on either side fails here. Delete the allowance after integration.
+    The R10 integration wave is complete (Team FRONTEND merged), so the
+    allowance is gone: the two sets must match EXACTLY. Any drift on either
+    side — a catalog host action with no frontend apply case, or a frontend
+    name the catalog lacks — fails here. R10_NEW_HOST_ACTIONS is asserted to be
+    a subset of both, pinning the new write surface explicitly.
     """
     frontend = _frontend_host_action_names()
     backend = _catalog_host_action_ids()
-    # The frontend must never name an action the catalog lacks.
-    unknown = frontend - backend
-    assert unknown == frozenset(), f"frontend names unknown host actions: {sorted(unknown)}"
-    missing = backend - frontend
-    assert missing in (frozenset(), R10_NEW_HOST_ACTIONS), (
-        f"host-action drift between catalog and frontend: {sorted(missing)} — "
-        "only the full R10 integration-wave set may lag, nothing else"
+    assert frontend == backend, (
+        "host-action drift between catalog and frontend — "
+        f"catalog-only: {sorted(backend - frontend)}; frontend-only: {sorted(frontend - backend)}"
     )
+    # The 8 R10 write actions are present on both sides (named regression pin).
+    assert R10_NEW_HOST_ACTIONS <= backend
+    assert R10_NEW_HOST_ACTIONS <= frontend
 
 
 # ---------------------------------------------------------------------------

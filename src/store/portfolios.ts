@@ -252,14 +252,14 @@ export function updatePosition(holdingId: string, input: HoldingInput): boolean 
   if (!portfolio) return false;
   const exists = portfolio.holdings.some((h) => h.id === holdingId);
   if (!exists) return false;
+  // Gate on the SAME normalizer the store uses (we share its module): it
+  // returns null iff the input is rejected (empty/whitespace symbol). The
+  // re-read trick was fabricated-success — a rejected update no-ops, so the
+  // UNCHANGED original still exists and `!!updated` reads true (E3/E6). Reject
+  // up front so an invalid update reports false honestly.
+  if (normalizeHolding({ ...input, id: holdingId }) === null) return false;
   store.updateHolding(store.activeId, holdingId, input);
-  // updateHolding is a no-op if normalizeHolding returns null (empty symbol).
-  // Re-read to verify the update landed.
-  const updated = usePortfoliosStore
-    .getState()
-    .portfolios.find((p) => p.id === store.activeId)
-    ?.holdings.find((h) => h.id === holdingId);
-  return !!updated;
+  return true;
 }
 
 /** Remove a holding from the active portfolio by holding id. */

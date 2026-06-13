@@ -45,7 +45,13 @@ export interface TerminalHolding {
 /** The active portfolio's snapshot the copilot's get_portfolio reads. */
 export interface TerminalPortfolio {
   positionCount: number;
-  totalValue: number;
+  /**
+   * Mark-to-market total, or `null` when it could not be computed (the panel
+   * was closed so no live quotes were joined). NEVER 0 as a stand-in for
+   * unknown — a fabricated `$0` portfolio is the E3/E6 honesty defect; the
+   * agent must read `null` as "I don't have live values" and say so.
+   */
+  totalValue: number | null;
   activePortfolioId?: string;
   activePortfolioName?: string;
   holdings: TerminalHolding[];
@@ -149,7 +155,8 @@ function portfolioFromStore(): TerminalPortfolio | null {
   }
   return {
     positionCount: active.holdings.length,
-    totalValue: 0,
+    // No quotes were joined (panel closed) — the total is UNKNOWN, not zero.
+    totalValue: null,
     activePortfolioId: active.id,
     activePortfolioName: active.name,
     holdings: active.holdings.map((h) => ({
@@ -221,7 +228,9 @@ export function captureTerminalState(): TerminalState {
       const activePortfolioName = asString(payload.activePortfolioName);
       portfolio = {
         positionCount: Number(payload.positionCount ?? 0),
-        totalValue: Number(payload.totalValue ?? 0),
+        // Honest unknown: the panel publishes a real mark-to-market total when
+        // it joined quotes; absent → null, never a fabricated 0.
+        totalValue: payload.totalValue != null ? Number(payload.totalValue) : null,
         ...(activePortfolioId !== null ? { activePortfolioId } : {}),
         ...(activePortfolioName !== null ? { activePortfolioName } : {}),
         holdings: extractHoldings(payload.holdings),

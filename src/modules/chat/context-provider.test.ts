@@ -150,6 +150,9 @@ describe("captureTerminalState — portfolio holdings (FR-110/111, SC-024)", () 
       const { portfolio } = captureTerminalState();
       expect(portfolio).not.toBeNull();
       expect(portfolio?.positionCount).toBe(1);
+      // No quotes joined (panel closed) → the total is honestly null, NEVER a
+      // fabricated 0 (E3/E6).
+      expect(portfolio?.totalValue).toBeNull();
       expect(portfolio?.holdings[0]).toMatchObject({
         symbol: "RELIANCE",
         quantity: 5,

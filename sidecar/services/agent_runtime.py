@@ -338,10 +338,15 @@ def _render_terminal_preamble(ts: dict[str, Any]) -> str:
         lines.append("Watchlist: " + ", ".join(wl["symbols"][:12]) + ".")
     pf = ts.get("portfolio")
     if pf:
-        lines.append(
-            f"Portfolio: {pf.get('positionCount', 0)} positions, "
-            f"total value {pf.get('totalValue', 0)}."
+        tv = pf.get("totalValue")
+        # null total = the panel was closed so no live quotes were joined — say
+        # so honestly rather than reporting a fabricated 0 (E3/E6).
+        tv_str = (
+            f"total value {tv}"
+            if tv is not None
+            else "total value not marked-to-market (open the Portfolio panel for live values)"
         )
+        lines.append(f"Portfolio: {pf.get('positionCount', 0)} positions, {tv_str}.")
     if ts.get("openPanels"):
         lines.append("Open panels: " + ", ".join(ts["openPanels"]) + ".")
     vp = ts.get("viewport")
