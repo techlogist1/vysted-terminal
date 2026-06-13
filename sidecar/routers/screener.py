@@ -1,9 +1,14 @@
-"""Screener router — Phase 6 (Teammate Sc); R7 Pillar 3 formula layer.
+"""Screener router — Phase 6 (Teammate Sc); R7 Pillar 3 formula layer; R10 SSE.
 
-Three endpoints:
+Four endpoints:
 
-  - ``POST /screener/run``              — run the screener; returns
-    :class:`ScreenerResult`.
+  - ``POST /screener/run``              — run the screener (unary, now wall-
+    budget-bounded — D40); returns :class:`ScreenerResult`.
+  - ``POST /screener/run/stream``        — the same run as an SSE stream:
+    ``{"event":"progress",phase,done,total,detail}`` frames per engine
+    phase/chunk, then one ``{"event":"result", …ScreenerResult}``. A client
+    disconnect cancels the engine task; the engine finalizes its partial
+    (the store keeps every completed chunk) and stops.
   - ``GET  /screener/universe``          — resolve a universe by id; returns
     :class:`ScreenerUniverse`.
   - ``POST /screener/formula/validate``  — validate a custom formula against
@@ -20,7 +25,14 @@ ProviderError exception handler in :mod:`app`.
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
+import json
+import logging
+from collections.abc import AsyncIterator
+
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict
 
 from models.screener import (
@@ -32,6 +44,8 @@ from models.screener import (
 )
 from services import screener, screener_formula
 from services.errors import ProviderError
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/screener", tags=["screener"])
 
@@ -52,7 +66,10 @@ async def run_screener(request: ScreenerRequest) -> ScreenerResult:
     (custom universes use the request's ``custom_symbols``). Provider
     failures during the fan-out are swallowed per-symbol so a single
     upstream hiccup does not fail the whole run; if the universe itself
-    cannot be resolved the route returns 502.
+    cannot be resolved the route returns 502. The whole run is bounded by
+    the engine's 120 s wall budget (R10/D40) — a starved run returns an
+    honest partial (``partial`` / ``coverage`` / ``budget_exhausted``
+    skips), never a multi-minute hang.
 
     ``ScreenerRequest.universe`` is required (no default), so the universe is
     always explicit here — region-aware default selection (US→sp500, IN→nifty50,
@@ -69,6 +86,77 @@ async def run_screener(request: ScreenerRequest) -> ScreenerResult:
         # already enforces (e.g. an unknown universe id is a ValueError
         # in the engine).
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+def _sse_frame(payload: dict) -> bytes:
+    """One SSE ``data:`` frame (precedent ``routers/backtest.py``)."""
+    return f"data: {json.dumps(payload)}\n\n".encode()
+
+
+@router.post("/run/stream")
+async def run_screener_stream(request: ScreenerRequest) -> StreamingResponse:
+    """Run the screener with live progress over SSE (R10, D40).
+
+    Frames are ``{"event":"progress",phase,done,total,detail}`` (mirrors
+    ``ScreenerProgressFrame`` in ``types/screener.ts``) followed by one
+    ``{"event":"result", …ScreenerResult}``. An engine crash emits one
+    ``{"event":"error","message"}`` frame instead of the result (mirrors
+    ``ScreenerErrorFrame``; the message is a ProviderError's text — already
+    the unary route's 502 detail — or a sanitized one-liner, never raw
+    debug/provider output). The engine runs as a separate task; when the
+    client disconnects the generator is torn down and the task cancelled —
+    the engine catches the cancellation, finalizes an honest partial, and
+    stops (no orphaned sweep). The cancelled task is AWAITED before the
+    generator closes so a server shutdown never destroys a pending task.
+    """
+
+    async def _generator() -> AsyncIterator[bytes]:
+        queue: asyncio.Queue[dict | None] = asyncio.Queue()
+
+        def _on_progress(phase: str, done: int, total: int, detail: str) -> None:
+            frame = {"event": "progress", "phase": phase, "done": done, "total": total}
+            queue.put_nowait({**frame, "detail": detail})
+
+        async def _run() -> None:
+            try:
+                result = await screener.run_screener(request, on_progress=_on_progress)
+                await queue.put({"event": "result", **result.model_dump(mode="json")})
+            except asyncio.CancelledError:
+                raise
+            except ProviderError as exc:
+                # ProviderError text is the unary route's 502 detail — safe
+                # and meaningful to surface verbatim.
+                logger.exception("screener stream run failed")
+                await queue.put({"event": "error", "message": str(exc)})
+            except Exception as exc:  # noqa: BLE001 — surface a clean error frame
+                logger.exception("screener stream run crashed")
+                await queue.put(
+                    {
+                        "event": "error",
+                        "message": f"screener run failed ({type(exc).__name__}); see sidecar logs",
+                    }
+                )
+            finally:
+                queue.put_nowait(None)
+
+        task = asyncio.create_task(_run())
+        try:
+            while True:
+                frame = await queue.get()
+                if frame is None:
+                    break
+                yield _sse_frame(frame)
+        finally:
+            if not task.done():
+                task.cancel()
+            # The engine uncancels itself to finalize an honest partial, so a
+            # bare cancel() leaves it running detached — await it (suppressing
+            # teardown noise) so shutdown never logs "Task was destroyed but
+            # it is pending".
+            with contextlib.suppress(BaseException):
+                await task
+
+    return StreamingResponse(_generator(), media_type="text/event-stream")
 
 
 @router.post("/formula/validate", response_model=FormulaValidation)

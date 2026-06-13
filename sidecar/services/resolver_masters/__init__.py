@@ -10,4 +10,9 @@ deterministic, offline-first, and test-stable; PyInstaller ships them via an
 ``services.screener_universes``). The BSE master is a representative seed —
 ``regenerate_bse_master.py`` refreshes the full snapshot from the live BSE
 endpoint, mirroring how the NSE master is produced.
+
+``india_sector_map.json`` (R10, D40) rides the same package: the build-time
+India sector / shares_outstanding seed for the screener's fundamentals store
+(``regenerate_india_sectors.py`` refreshes it; the header's ``coverage``
+block is the honest census of how much of the market it classifies).
 """

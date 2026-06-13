@@ -34,7 +34,7 @@ from models.screener import (
     ScreenerUniverse,
     StringEqCriterion,
 )
-from services import data_cache, screener
+from services import data_cache, fundamentals_store, screener
 from services import yahoo_batch_provider as yb
 
 
@@ -42,9 +42,11 @@ from services import yahoo_batch_provider as yb
 def _isolated_cache(tmp_path: Path) -> None:
     """Point the data cache at a tmp file + reset the batch session per test."""
     data_cache.reset_for_tests(tmp_path / "screener_batch_cache.db")
+    fundamentals_store.reset_for_tests(tmp_path / "fundamentals_test.db")
     yb.reset_for_tests()
     yield
     data_cache.reset_for_tests(None)
+    fundamentals_store.reset_for_tests(None)
     yb.reset_for_tests()
 
 

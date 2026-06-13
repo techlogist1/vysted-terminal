@@ -10,15 +10,17 @@ import pytest
 
 from models.fundamentals import Fundamentals
 from models.market import Quote
-from services import data_cache, workflow_engine
+from services import data_cache, fundamentals_store, workflow_engine
 from services.workflow_nodes import screener_nodes
 
 
 @pytest.fixture(autouse=True)
 def _isolated_cache(tmp_path: Path) -> None:
     data_cache.reset_for_tests(tmp_path / "nodes_test_cache.db")
+    fundamentals_store.reset_for_tests(tmp_path / "fundamentals_test.db")
     yield
     data_cache.reset_for_tests(None)
+    fundamentals_store.reset_for_tests(None)
 
 
 def _make_fundamentals(symbol: str, **overrides: Any) -> Fundamentals:
