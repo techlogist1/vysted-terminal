@@ -1,6 +1,144 @@
 # R10 Run Report — Open the engine (data, wiring, trust)
 
-(Morning report lands here at close.)
+## Morning report
+
+**R10 opened the engine and rebuilt the data-and-wiring layer.** Every failure in
+your evidence pack is root-caused, fixed, and verified against the world — not against
+the app's own taste. The branch is on `004` and tagged `r10-engine`; the full gate
+chain is green (sidecar pytest 2170, frontend vitest 1457, ruff, cargo fmt + clippy
+`-D warnings` + cargo test), the PyInstaller `--onefile` binaries build AND boot (smoke
+test green including the ICONIKSPEV hard check), and the app is left running on the
+clean default. §6.5 is byte-identical to where it started — no safety surface was
+touched.
+
+**Two things you should know up front about how the night went.** First, **Fable's
+access ended mid-run** (the model was retired around the fan-out), so the integration
+and verification you're reading was finished on **Opus 4.8**. Second, the multi-agent
+fix rounds kept dying on session/weekly limits, so rather than keep re-spawning fragile
+agents I took the integration **directly as lead** — merging the six worktree teams in
+dependency order and applying every adversarial-review finding by hand, with the full
+suite run after each merge. The six teams had each pushed their implementation plus at
+least one fix commit before the limits hit; only the final re-reviews died, and I
+carried their findings forward myself.
+
+**The resolver is one organ now, and it tells the truth.** The wrong-entity disease
+(Reliance→RECX, RELIANCE.NS→RPOWER, "research Reliance"→a US research-frontiers
+microcap) was three different acceptance gates judging one resolver, plus a US-default
+region and an additive locale bonus that let a US prefix-match outrank an NSE
+first-word match. R10 collapses that to **one acceptance policy** (`resolution_policy.
+decide`): bind only at a strong band ≥ 0.72, disambiguate between 0.5 and 0.72 or for
+any marquee family, reject below 0.5 — and a bare-substring or whole-string-fuzzy hit
+**never binds**, no matter its score (I tightened this during integration after the
+review caught "Lookup Technologies"→PLTR; "Steel" can no longer bind one arbitrary
+steel company either). The default region is India-first, locale is a tie-breaker not
+an additive bonus, and the marquee families (Reliance/Tata/Bajaj/Adani/Birla/Mahindra)
+ride a curated alias table. **Live proof on the rebuilt binary:** a battery of ten
+fresh names you've never tested — ITC, LT, PERSISTENT, FEDERALBNK, KPITTECH, RATNAMANI,
+GARFIBRES, CUMMINSIND, POLYCAB, JYOTHYLAB — all bind their correct NSE entity (10/10);
+"Tata", "Bajaj", "Adani" all return an honest disambiguation chooser with curated
+candidates, never a guess. The same `decide()` now backs the `@TICKER` mention endpoint
+too (the live battery caught it still using the old path — fixed).
+
+**Every number a brief states now carries its discipline.** The metric-semantics layer
+(`services/research/semantics.py`) computes drawdown-from-high explicitly and labels it
+distinctly from Yahoo's 52-week change; reconciles dividend yield-vs-₹/share and flags
+the conflict instead of stitching one number; tags every growth figure with its basis;
+and flags cross-source disagreements rather than silently picking. **Independent data
+validation:** I researched all ten fresh names independently against official NSE
+bhavcopy/52-week archives, BSE APIs, and screener.in-grade sources, then diffed the
+app's fundamentals — P/E and market cap landed within **1–5%** of the independent
+reference on every name (ITC P/E 17.27 vs 17.1; LT mcap ₹5.57L cr vs ₹5.31L cr), none
+past the 10% flag. The reference pack (with its trap annotations — ITC's −72% reported
+Q4 PAT was a demerger base effect; the excise reclassification that inflated revenue
+growth) is archived in `verification/r10/reference-pack.json`.
+
+**Depth, lifecycle, capability, robustness — all honest now.** The mode stamped on a
+brief comes from a `ResearchExecution` record of the loop that *actually ran*, never
+from request or UI state (a DEEP run can no longer render "Mode: FAST"); a research
+payload without that record can't auto-publish at all. The brief is a state machine
+(in-flight skeleton / published / archived-with-reason); the 20-second carry that
+resurrected stale structured data is dead — carry now requires a matching run id; and
+the agent's "published" claim is read back against the panel via an ack ledger, with an
+honest divergence chip when the panel kept the previous brief. The backtest tool is
+back in the toolbelt (and a parity test proves the agent path is bit-identical to a
+direct engine run); the agent can now write the paper portfolio, notes, watchlists,
+saved screens, and layouts — all auto-applicable under AUTO, while **broker order
+placement stays confirm-gated forever** (§6.5 re-verified byte-identical). Every agent
+tool runs under a per-class timeout so a stalled call degrades with an honest message
+instead of a multi-minute silent hang. A `totalValue: 0` the panel used to invent when
+it had no quotes is now an honest `null`. Provider errors are humanized everywhere — a
+live induced 401 rendered "The OpenAI API key was rejected — check it in Settings" with
+the next step and the raw `Error code: 401 {...}` tucked behind a "Show details" toggle;
+the naked-JSON-402 class is dead.
+
+**The screener reaches the whole market and never hangs.** The Nifty-50 loop is gone —
+the engine now screens the full NSE+BSE universe from the bundled masters (nse-all
+~2,675, bse-all 4,875, india-all) through a prune-then-enrich pipeline under a hard 120s
+wall with honest progress and honest partials ("screened 1,840 of 2,675 — N
+unavailable"); the unbounded Yahoo batch call that caused the hang is wrapped. **One
+caveat I want to be straight about** (see NEEDS-MANUAL-CHECK #1): the bundled India
+*sector* map was built from BSE's `ListOfScripData`, whose `INDUSTRY` field went null
+live, so it shipped covering only ~793/4,875 names — and your exact IT-services query
+returned 0 rows on the first live run because the small-cap IT names (SAKSOFT,
+DATAMATICS, …) had no sector to match. The engine was correct and honest about it; the
+*data* was incomplete. I'm completing the sector map via yfinance for the full NSE
+universe (`enrich_nse_sectors`, running at close) so the query returns correct rows
+*and* fast (a complete sector map lets the prefilter narrow 2,675→~200 IT names
+instantly before the ROE enrichment). [FINAL gate-4 result + the rows are appended
+below once the enrichment + rebuild complete.]
+
+**Tradesa is gone, the plugin system lives.** Every Tradesa reference is removed from
+code/config/tests (grep-zero, with only the Tier-1 `plugin.ts` doc examples, the §6.5
+`audit_log.py` comment, and docs/CHANGELOG exempt by the codified `test_no_tradesa`);
+the supabase dependency it pulled in is dropped (the binary shrank to 99.4 MB); and a
+`test_plugin_system_alive` proves ≥5 real plugins still load.
+
+### Root causes, in one line each
+
+- **Resolver split:** whole-query fuzzy matching + three acceptance gates + US-default
+  region + additive locale bonus. → one `decide()` policy, band≥prefix to bind, IN-first,
+  locale as tie-breaker, marquee table.
+- **DEEP→FAST stamp:** the mode came from `payload.get("mode") or "fast"`. → it comes
+  from a `ResearchExecution` record of the loop that ran; no record ⇒ no auto-publish.
+- **Stale hallucinated brief:** workspace-persisted briefs restored as current + a 20s
+  carry that resurrected old structured data + an auto-mode result that claimed "applied"
+  before the panel applied. → restore-always-archives, run-id-scoped carry, ack-ledger
+  read-back with a divergence chip.
+- **Screener hang:** static nifty50 universe + an unbounded Yahoo batch call + no
+  progress channel. → full-universe prune-then-enrich, 120s wall, SSE progress, honest
+  partials.
+- **Backtest "missing" / portfolio read-only:** copilot.json allow-list drift. →
+  catalog-driven default grant + a toolbelt-integrity test that fails on drift.
+- **Naked 402:** adapters did `str(exc)`. → every adapter + both routers route through
+  `services/errors.py`'s humanizer.
+
+### NEEDS-MANUAL-CHECK
+
+1. **Full India sector coverage (gate 4 data).** The bundled sector map shipped at
+   ~793/4,875 (BSE INDUSTRY null live). `enrich_nse_sectors` completes the NSE universe
+   via yfinance and was running at close; the runtime warm-crawler also backfills sectors
+   during use. If the operator's IT-services query still under-returns, re-run
+   `PATH=sidecar/.venv/bin python -m services.resolver_masters.enrich_nse_sectors`, then
+   rebuild the sidecar. (Engine correctness is proven by 136 screener tests + bounded
+   honest partials regardless.)
+2. **Your taste pass + live visual confirmation.** The display slept partway through the
+   night, so the late GUI screenshots are thin. The visual surfaces are test-pinned
+   (brief lifecycle, disambiguation chooser, derived metric cards, the E10 caret/header
+   clip, screener India universes, portfolio entry) but your eye is the gate. Start with
+   a DEEP research run on a fresh name and the IT-services screen.
+3. **In-webview drags** (dockview tab reorder, node-editor palette→canvas) — still no rig
+   on this Mac synthesizes trusted drags; click through by hand. Unchanged from R7–R9.
+4. **Provider default.** The clean-boot workspace currently shows the keyless OLLAMA
+   default; flip the composer model picker to your funded OpenRouter/DeepSeek lane for
+   live research (your direct DeepSeek balance is still empty by choice — a 402 there is
+   now humanized, not an outage).
+
+### How to launch
+
+`cd ~/Documents/dev/vysted-terminal && pnpm tauri:dev` — sidecars build automatically.
+Evidence: `docs/redesign/verification/r10/` (reference-pack.json + audit, validate_engine.py,
+phase0/ + gui/ captures, regression/). Decisions D36–D45 in `DECISIONS.md`; defect
+catalogue (E1–E11 with live repro) in `R10_DEFECT_CATALOGUE.md`.
 
 ---
 
