@@ -211,3 +211,17 @@ Merge order RESOLVE → RUNTIME → SCREENER → FRONTEND → FE-DATA, then ERRO
 | 10 | Tradesa removal | PASS | grep-zero (exempt: Tier-1 plugin.ts, §6.5 audit_log.py, docs/CHANGELOG); `test_no_tradesa` + `test_plugin_system_alive` (≥5 plugins) green; supabase dep dropped. |
 | 11 | Independent validation (≥8 fresh) | PASS | 10 fresh names diffed vs official NSE/BSE archives + screener.in-grade sources; P/E + market cap within 1–5%, none past the 10% flag. reference-pack.json + validate_engine.py archived. |
 | 12 | Regression floor | PASS | ci-local chain green (pytest 2170, vitest 1457, ruff, cargo fmt/clippy `-D warnings`/test); PyInstaller `--onefile` builds + boots (smoke + ICONIKSPEV); §6.5 byte-identical to pre-integration. |
+
+## Telemetry (close-out)
+
+| Phase | Window | Notes |
+| ----- | ------ | ----- |
+| Plan + Phase 0–1 (Fable) | 2026-06-11 night | root-cause investigation (3 Explore + 2 Plan agents), defect catalogue E1–E11, contracts commit, reference-data workflow (12 agents, 10 fresh-stock packs + IT screen). |
+| Phase 2 fan-out (Fable) | — | 6 worktree teams (resolve/runtime/screener/frontend/fedata/errors), impl → adversarial review → fix; Fable access ended + limits killed the final re-reviews. |
+| Phase 3–5 integration + battery + close (Opus 4.8) | 2026-06-13/14 | lead merged 6 teams in dependency order, applied every review finding by hand; full gate chain green; resolver/fundamentals/error/screener live battery; sector map completed (yfinance enrichment); rebuilt + smoke; tagged r10-engine (6848580). |
+
+R10 gave the app its rebuilt engine — every wire traced, every part trusted, every number
+true. The one honest asterisk is the full-universe screener's *first cold run* needing a
+warm cache (yfinance was throttled tonight by the very crawl that completed the sector
+data); the engine, the criteria, and the data are proven correct, and the app is warming
+overnight. Everything else passed against the world, not against itself.
