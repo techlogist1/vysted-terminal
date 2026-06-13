@@ -31,18 +31,27 @@ Master hygiene (R7 Component 4)
     three instrument builders (the only places an :class:`Instrument` is made)
     and by the suffix mapping in the live fallback.
 
-Confidence model (the ``score`` carried on every candidate):
+Confidence + band model (R10 rebuild, E1):
 
-  * ``1.0``  — exact ticker hit in a bundled master (deterministic).
-  * ``0.97`` — query equals the company's first word ("apple" → "Apple Inc.").
-  * ``0.92`` — name prefix match;  ``0.8`` — name substring match.
-  * ``< 0.8``— ``SequenceMatcher`` ratio, floored at ``_MIN_NAME_SCORE`` (0.6).
-  * ``0.6``  — live ``yfinance.Search`` fallback (never master-deterministic).
+  Every candidate carries a match **band** (the rung that matched) and a raw
+  **score** (the reported confidence — never inflated, never clamped):
 
-  A small same-locale bonus (+0.08) breaks ties before reporting; reported
-  scores are clamped to ``[0, 1]``. Anything below
-  :data:`DISAMBIGUATION_THRESHOLD` (0.72) asks the agent to disambiguate
-  rather than act.
+  * band 6 exact-ticker  — score ``1.0`` (deterministic master hit).
+  * band 5 marquee       — curated family alias (``marquee_aliases.json``);
+    a primary binds at ``0.97``, a forced-disambiguation family rides ``0.6``.
+  * band 4 name-exact    — query equals the (corporate-suffix-stripped) name.
+  * band 3 first-word    — one-word query equals the name's first word (0.97).
+  * band 2 prefix        — name prefix match (0.92).
+  * band 1 substring     — name substring match (0.8).
+  * band 0 fuzzy         — ``SequenceMatcher`` ratio (floor 0.6), applied ONLY
+    to queries of <= 4 words after cleaning — a long keyword salad never
+    scores by whole-string similarity (the Reliance→FRLCY/LNKS class).
+
+  Ranking is the band tie-break ``(band, locale_match, score)`` — a
+  cross-locale higher band ALWAYS beats a same-locale lower band; the old
+  additive +0.08 locale bonus is gone. Acceptance is NOT decided here: the
+  ONE policy lives in :mod:`services.resolution_policy`
+  (:data:`DISAMBIGUATION_THRESHOLD` re-exports its ``ACCEPT``).
 
 Cheap, hot-path helpers — :func:`is_nse_symbol`, :func:`is_bse_symbol`,
 :func:`bse_scrip_code` and :func:`region_hint` — back the provider registry's
@@ -69,6 +78,19 @@ from services.locale import (
     region_for_suffix,
     strip_exchange_suffix,
 )
+from services.resolution_policy import (
+    ACCEPT as DISAMBIGUATION_THRESHOLD,  # the ONE threshold — re-exported, never redefined
+)
+from services.resolution_policy import (
+    BAND_EXACT_TICKER,
+    BAND_FIRST_WORD,
+    BAND_FUZZY,
+    BAND_MARQUEE,
+    BAND_NAME_EXACT,
+    BAND_PREFIX,
+    BAND_SUBSTRING,
+    decide,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -78,9 +100,61 @@ logger = logging.getLogger(__name__)
 # better to return "unresolved" (and let the live lookup / an honest message take
 # over) than to load the WRONG instrument on a weak coincidental match.
 _MIN_NAME_SCORE = 0.6
-# Confidence below which the agent should disambiguate rather than act.
-DISAMBIGUATION_THRESHOLD = 0.72
+# The fuzzy SequenceMatcher rung applies ONLY to queries of <= this many words
+# (after cleaning). A longer query scores via its leading-word prefixes (the
+# research-target prefix loop) — never via whole-string similarity (E1).
+_MAX_FUZZY_WORDS = 4
+# The score every non-deterministic candidate rides (live lookup rows, marquee
+# forced-disambiguation families) — inside [REJECT, ACCEPT), so the resolution
+# policy maps it to "disambiguate", never "bound".
+_DISAMBIGUATE_SCORE = 0.6
 _MAX_CANDIDATES = 6
+
+# Leading command verbs the models prepend to a company name ("research
+# Reliance") — stripped during query cleaning so the verb never fuzzy-binds an
+# unrelated company (REFR — "Research Frontiers Inc"). Only stripped while more
+# than one token remains, so a company genuinely named with one of these still
+# resolves on its remaining tokens.
+#
+# Known corner (un-briefed heuristic, R10 review): a company whose name BEGINS
+# with one of these verbs resolves only on its remaining tokens — "Lookup
+# Technologies" binds the substring hit on the leftover ("Technologies" → PLTR
+# at 0.8), and "Research Frontiers Inc" reaches band 1/0.8 instead of
+# name-exact. The pre-R10 resolver also misbound this class (via whole-string
+# fuzzy), so this is not a regression — the trade buys "research Reliance"
+# binding RELIANCE outright (band 5, exceeding the Phase-0 pin). A future fix
+# is to score the unstripped query too and keep the higher band.
+_LEAD_VERBS = frozenset(
+    {"research", "analyze", "analyse", "investigate", "explore", "study", "review", "lookup"}
+)
+_LEAD_FILLERS = frozenset({"on", "about", "into"})
+# Punctuation stripped from token EDGES during cleaning ("reliance," →
+# "reliance"). Deliberately excludes the dot when it ends an exchange suffix
+# (handled by tokenization order: suffixes like ".NS" keep their letters).
+_EDGE_PUNCT = ".,;:!?\"'()[]"
+
+# Generic second words that make a two-word query a marquee key by its leading
+# word ("tata stock" → "tata").
+_GENERIC_SECOND_WORDS = frozenset({"group", "stock", "stocks", "share", "shares"})
+
+# Corporate suffixes stripped from the END of a company name before comparison,
+# so "RELIANCE, INC." and "Reliance Industries Limited" both compare on their
+# distinctive tokens and locale (not punctuation) breaks the tie.
+_CORP_SUFFIXES = frozenset(
+    {
+        "limited",
+        "ltd",
+        "inc",
+        "incorporated",
+        "corp",
+        "corporation",
+        "company",
+        "co",
+        "plc",
+        "llc",
+        "lp",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -89,6 +163,9 @@ class Instrument:
 
     Invariant (master hygiene): ``exchange`` always agrees with the
     ``yahoo_symbol`` suffix — NSE ↔ ``.NS``, BSE ↔ ``.BO``, US ↔ no suffix.
+    ``band`` records the match rung (see :mod:`services.resolution_policy`);
+    ``score`` is the RAW reported confidence — never bonus-inflated, never
+    clamped.
     """
 
     symbol: str  # bare exchange symbol — GOLDBEES, AAPL, ICONIKSPEV
@@ -98,6 +175,7 @@ class Instrument:
     asset_class: str  # equity | etf
     yahoo_symbol: str  # GOLDBEES.NS, ICONIKSPEV.BO, AAPL
     score: float = 1.0
+    band: int = BAND_FUZZY
 
 
 @dataclass(frozen=True)
@@ -114,7 +192,9 @@ class Resolution:
 
     @property
     def needs_disambiguation(self) -> bool:
-        return self.best is not None and self.confidence < DISAMBIGUATION_THRESHOLD
+        # Delegates to the ONE policy so this surface and the agent tool can
+        # never disagree (the pre-R10 two-truths defect).
+        return self.best is not None and decide(self).outcome == "disambiguate"
 
 
 # ---------------------------------------------------------------------------
@@ -170,7 +250,16 @@ def _us_master() -> dict[str, str]:
     return out
 
 
-def _load_master(filename: str) -> dict:
+@lru_cache(maxsize=1)
+def _marquee_aliases() -> dict[str, dict]:
+    """The curated marquee alias table (R10, E1): family name → primary +
+    alternatives, or a forced-disambiguation candidate list."""
+    raw = _load_master("marquee_aliases.json", fallback={"aliases": {}})
+    aliases = raw.get("aliases")
+    return aliases if isinstance(aliases, dict) else {}
+
+
+def _load_master(filename: str, *, fallback: dict | None = None) -> dict:
     try:
         with (
             resources.files("services.resolver_masters")
@@ -180,7 +269,7 @@ def _load_master(filename: str) -> dict:
             return json.load(fp)
     except (FileNotFoundError, ModuleNotFoundError) as exc:  # pragma: no cover - bundling bug
         logger.error("symbol_resolver: missing bundled master %s: %s", filename, exc)
-        return {"instruments": []}
+        return fallback if fallback is not None else {"instruments": []}
 
 
 def reset_caches_for_tests() -> None:
@@ -188,6 +277,7 @@ def reset_caches_for_tests() -> None:
     _nse_master.cache_clear()
     _bse_master.cache_clear()
     _us_master.cache_clear()
+    _marquee_aliases.cache_clear()
 
 
 # ---------------------------------------------------------------------------
@@ -260,7 +350,7 @@ def _suffix_exchange(symbol: str) -> str | None:
     return None
 
 
-def _instrument_nse(symbol: str, score: float) -> Instrument:
+def _instrument_nse(symbol: str, score: float, band: int = BAND_FUZZY) -> Instrument:
     name, typ = _nse_master()[symbol]
     asset_class = "etf" if typ == "ETF" else "equity"
     return Instrument(
@@ -271,10 +361,11 @@ def _instrument_nse(symbol: str, score: float) -> Instrument:
         asset_class=asset_class,
         yahoo_symbol=f"{symbol}.NS",
         score=score,
+        band=band,
     )
 
 
-def _instrument_bse(symbol: str, score: float) -> Instrument:
+def _instrument_bse(symbol: str, score: float, band: int = BAND_FUZZY) -> Instrument:
     name, _group, _code = _bse_master()[symbol]
     return Instrument(
         symbol=symbol,
@@ -284,10 +375,11 @@ def _instrument_bse(symbol: str, score: float) -> Instrument:
         asset_class="equity",
         yahoo_symbol=f"{symbol}.BO",
         score=score,
+        band=band,
     )
 
 
-def _instrument_us(symbol: str, score: float) -> Instrument:
+def _instrument_us(symbol: str, score: float, band: int = BAND_FUZZY) -> Instrument:
     name = _us_master()[symbol]
     return Instrument(
         symbol=symbol,
@@ -297,47 +389,146 @@ def _instrument_us(symbol: str, score: float) -> Instrument:
         asset_class="equity",
         yahoo_symbol=symbol,
         score=score,
+        band=band,
     )
 
 
-def _locale_bonus(region: str, instrument_region: str) -> float:
-    """Small additive bonus so same-locale matches rank first on ties."""
+def _locale_rank(region: str, instrument_region: str) -> int:
+    """1 when the instrument is in the session's locale; GLOBAL prefers none.
+
+    A SORT KEY component only — never added to the reported score (the old
+    +0.08 additive bonus inflated a US prefix hit past an NSE first-word hit)."""
     if region == REGION_GLOBAL:
-        return 0.0
-    return 0.08 if instrument_region == region else 0.0
+        return 0
+    return 1 if instrument_region == region else 0
 
 
-def _name_score(query_lc: str, name_lc: str) -> float:
-    """Fuzzy name score — exact / first-word / prefix / substring boosted.
+def _clean_tokens(query: str) -> list[str]:
+    """Tokenize a query for matching: trim edge punctuation per token
+    ("reliance," → "reliance") and drop leading command verbs ("research
+    Reliance" → "Reliance") while more than one token remains."""
+    tokens = [t.strip(_EDGE_PUNCT) for t in query.strip().split()]
+    tokens = [t for t in tokens if t]
+    while len(tokens) > 1 and tokens[0].lower() in _LEAD_VERBS:
+        tokens = tokens[1:]
+        while len(tokens) > 1 and tokens[0].lower() in _LEAD_FILLERS:
+            tokens = tokens[1:]
+    return tokens
 
-    A query that exactly equals the company's *first word* ("apple" →
-    "Apple Inc.") beats a mere prefix/substring, so the prominence-ordered
-    masters (SEC market-cap order; nifty50-first NSE) then break ties toward the
-    well-known instrument — "Apple" → AAPL, not a microcap that also starts "Apple".
+
+def _strip_corporate_suffix(name_lc: str) -> str:
+    """Drop trailing corporate suffixes + edge punctuation from a name —
+    "reliance, inc." → "reliance", "tata steel limited" → "tata steel"."""
+    tokens = [t.strip(_EDGE_PUNCT) for t in name_lc.split()]
+    tokens = [t for t in tokens if t]
+    while len(tokens) > 1 and tokens[-1] in _CORP_SUFFIXES:
+        tokens.pop()
+    return " ".join(tokens)
+
+
+def _name_score(query_lc: str, name_lc: str, query_words: int) -> tuple[int, float] | None:
+    """Score a name match as ``(band, raw_score)``, or ``None`` for no match.
+
+    Comparisons run against the corporate-suffix-stripped name so US
+    "RELIANCE, INC." and NSE "Reliance Industries Limited" land in the SAME
+    band for a one-word query and locale breaks the tie. The fuzzy
+    SequenceMatcher rung fires ONLY for queries of <= ``_MAX_FUZZY_WORDS``
+    words — a long keyword salad never scores by whole-string similarity (E1).
     """
     if query_lc == name_lc:
-        return 1.0
-    first_word = name_lc.split(None, 1)[0] if name_lc else ""
-    if query_lc == first_word:
-        return 0.97
-    if name_lc.startswith(query_lc):
-        return 0.92
+        return BAND_NAME_EXACT, 1.0
+    stripped = _strip_corporate_suffix(name_lc)
+    if query_words > 1 and query_lc == stripped:
+        return BAND_NAME_EXACT, 1.0
+    if query_words == 1:
+        first_word = stripped.split(None, 1)[0] if stripped else ""
+        if query_lc == first_word:
+            return BAND_FIRST_WORD, 0.97
+    if name_lc.startswith(query_lc) or stripped.startswith(query_lc):
+        return BAND_PREFIX, 0.92
     if query_lc in name_lc:
-        return 0.8
-    return SequenceMatcher(None, query_lc, name_lc).ratio()
+        return BAND_SUBSTRING, 0.8
+    if query_words <= _MAX_FUZZY_WORDS:
+        ratio = SequenceMatcher(None, query_lc, name_lc).ratio()
+        if ratio >= _MIN_NAME_SCORE:
+            return BAND_FUZZY, ratio
+    return None
 
 
-def resolve(query: str, region: str | None = None) -> Resolution:
+def _marquee_resolution(query: str, cleaned: str, region: str) -> Resolution | None:
+    """The marquee alias stage (after exact-ticker, before fuzzy).
+
+    Applies under IN/GLOBAL when the cleaned query is a one-word family name —
+    or a two-word query whose second word is generic ("tata stock"). A primary
+    alias binds at 0.97 with its alternatives as candidates; a curated family
+    (tata/bajaj/adani/birla) rides ``_DISAMBIGUATE_SCORE`` so the policy FORCES
+    an explicit choice. Symbols missing from the masters are skipped (the test
+    suite verifies the bundled table against the NSE master).
+    """
+    if region not in (REGION_IN, REGION_GLOBAL):
+        return None
+    tokens = cleaned.split()
+    if len(tokens) == 1:
+        key = tokens[0].lower()
+    elif len(tokens) == 2 and tokens[1].lower() in _GENERIC_SECOND_WORDS:
+        key = tokens[0].lower()
+    else:
+        return None
+    entry = _marquee_aliases().get(key)
+    if not isinstance(entry, dict):
+        return None
+
+    def _inst(sym: str, score: float) -> Instrument | None:
+        sym = sym.strip().upper()
+        if sym in _nse_master():
+            return _instrument_nse(sym, score, band=BAND_MARQUEE)
+        if sym in _bse_master():
+            return _instrument_bse(sym, score, band=BAND_MARQUEE)
+        return None
+
+    primary_sym = entry.get("primary")
+    if isinstance(primary_sym, str) and primary_sym:
+        best = _inst(primary_sym, 0.97)
+        if best is None:
+            return None
+        candidates = [best]
+        for alt in entry.get("alternatives") or []:
+            inst = _inst(str(alt), _DISAMBIGUATE_SCORE)
+            if inst is not None:
+                candidates.append(inst)
+        return Resolution(query=query, best=best, candidates=candidates[:_MAX_CANDIDATES])
+
+    curated: list[Instrument] = []
+    for sym in entry.get("candidates") or []:
+        inst = _inst(str(sym), _DISAMBIGUATE_SCORE)
+        if inst is not None:
+            curated.append(inst)
+    if not curated:
+        return None
+    return Resolution(query=query, best=curated[0], candidates=curated[:_MAX_CANDIDATES])
+
+
+def resolve(query: str, region: str) -> Resolution:
     """Resolve ``query`` to an instrument + ranked candidates, locale-aware.
 
-    Exact-ticker matches win outright; otherwise names are fuzzy-matched across
-    both masters and ranked with a small same-locale bonus. ``region`` defaults
-    to ``US`` ordering when not given.
+    ``region`` is REQUIRED — callers pass ``config.get_region()`` (the old
+    silent ``US`` default mis-ranked every IN session). Brief §2 spelled the
+    signature ``resolve(query, *, region)``; ``region`` stays positional-or-
+    keyword (no bare ``*``) because the unowned ``routers/resolve.py`` calls
+    ``asyncio.to_thread(symbol_resolver.resolve, query, active_region)``
+    positionally — required-ness is the load-bearing half of the spec, and it
+    holds. Stages: exact ticker →
+    marquee aliases (IN/GLOBAL) → banded name match → live keyless fallback.
+    Ranking is ``(band, locale_match, raw_score)``; reported confidence is the
+    raw score — acceptance is the resolution policy's call, not this module's.
     """
-    region = region or REGION_US
-    cleaned = query.strip()
-    if not cleaned:
+    if region not in (REGION_US, REGION_IN, REGION_GLOBAL):
+        # An unknown region gets NO locale preference rather than a silent US one.
+        region = REGION_GLOBAL
+    tokens = _clean_tokens(query)
+    if not tokens:
         return Resolution(query=query, best=None, candidates=[])
+    cleaned = " ".join(tokens)
 
     upper = strip_exchange_suffix(cleaned)
     suffix_exchange = _suffix_exchange(cleaned)
@@ -346,76 +537,70 @@ def resolve(query: str, region: str | None = None) -> Resolution:
 
     # 1. Exact ticker hits (decisive). A .NS suffix pins the NSE identity, a
     #    .BO suffix pins BSE. A bare dual-listed ticker carries BOTH exchanges —
-    #    NSE appended first, so the stable sort keeps it preferred on the tied
-    #    score (trading data routes NSE; the BSE row is retained for BSE-only
+    #    NSE appended first, so the stable locale sort keeps it preferred
+    #    (trading data routes NSE; the BSE row is retained for BSE-only
     #    fundamentals/announcements).
     if upper in _nse_master() and suffix_exchange in (None, "NSE"):
-        candidates.append(_instrument_nse(upper, 1.0 + _locale_bonus(region, REGION_IN)))
+        candidates.append(_instrument_nse(upper, 1.0, band=BAND_EXACT_TICKER))
     if upper in _bse_master() and suffix_exchange in (None, "BSE"):
-        candidates.append(_instrument_bse(upper, 1.0 + _locale_bonus(region, REGION_IN)))
+        candidates.append(_instrument_bse(upper, 1.0, band=BAND_EXACT_TICKER))
     if upper in _us_master() and suffix_exchange is None:
-        candidates.append(_instrument_us(upper, 1.0 + _locale_bonus(region, REGION_US)))
+        candidates.append(_instrument_us(upper, 1.0, band=BAND_EXACT_TICKER))
 
     if candidates:
-        candidates.sort(key=lambda i: i.score, reverse=True)
-        best = candidates[0]
+        candidates.sort(key=lambda i: _locale_rank(region, i.region), reverse=True)
         return Resolution(
             query=query,
-            best=_clamp(best),
-            candidates=[_clamp(c) for c in candidates[:_MAX_CANDIDATES]],
+            best=candidates[0],
+            candidates=candidates[:_MAX_CANDIDATES],
         )
 
-    # 2. Fuzzy name match across the masters (locale-ranked). One canonical row
-    #    per instrument: a dual-listed symbol is represented by its NSE row only
+    # 2. Marquee aliases (curated; IN/GLOBAL only) — a family name either binds
+    #    its canonical primary or forces a curated disambiguation, never a
+    #    silent first-word guess ("Tata" → TCS at a clamped 1.0 was E1).
+    marquee = _marquee_resolution(query, cleaned, region)
+    if marquee is not None:
+        return marquee
+
+    # 3. Banded name match across the masters. One canonical row per
+    #    instrument: a dual-listed symbol is represented by its NSE row only
     #    (the BSE scan skips symbols the NSE master already carries), so a name
     #    never surfaces twice with two spellings of the same company.
     query_lc = cleaned.lower()
-    scored: list[Instrument] = []
+    n_words = len(tokens)
+    scored: list[tuple[int, int, float, Instrument]] = []
+
+    def _append(band_score: tuple[int, float] | None, build, sym: str) -> None:
+        if band_score is None:
+            return
+        band, s = band_score
+        inst = build(sym, s, band)
+        scored.append((band, _locale_rank(region, inst.region), s, inst))
+
     nse_symbols = _nse_master()
     for sym, (name, _typ) in nse_symbols.items():
-        s = _name_score(query_lc, name.lower())
-        if s >= _MIN_NAME_SCORE:
-            scored.append(_instrument_nse(sym, s + _locale_bonus(region, REGION_IN)))
+        _append(_name_score(query_lc, name.lower(), n_words), _instrument_nse, sym)
     for sym, (name, _group, _code) in _bse_master().items():
         if sym in nse_symbols:
             continue  # canonical row is the NSE instrument (dual-listed)
-        s = _name_score(query_lc, name.lower())
-        if s >= _MIN_NAME_SCORE:
-            scored.append(_instrument_bse(sym, s + _locale_bonus(region, REGION_IN)))
+        _append(_name_score(query_lc, name.lower(), n_words), _instrument_bse, sym)
     for sym, name in _us_master().items():
-        s = _name_score(query_lc, name.lower())
-        if s >= _MIN_NAME_SCORE:
-            scored.append(_instrument_us(sym, s + _locale_bonus(region, REGION_US)))
+        _append(_name_score(query_lc, name.lower(), n_words), _instrument_us, sym)
 
-    scored.sort(key=lambda i: i.score, reverse=True)
+    # Band tie-break: (band, locale, score) — stable, so the prominence-ordered
+    # masters break exact ties toward the well-known instrument.
+    scored.sort(key=lambda t: (t[0], t[1], t[2]), reverse=True)
     if scored:
-        return Resolution(
-            query=query,
-            best=_clamp(scored[0]),
-            candidates=[_clamp(c) for c in scored[:_MAX_CANDIDATES]],
-        )
+        ranked = [t[3] for t in scored]
+        return Resolution(query=query, best=ranked[0], candidates=ranked[:_MAX_CANDIDATES])
 
-    # 3. Live keyless fallback (best-effort; never blocks).
-    live = _live_lookup(cleaned, region)
+    # 4. Live keyless fallback (best-effort; never blocks; never binds — every
+    #    row rides _DISAMBIGUATE_SCORE, which the policy maps to disambiguate).
+    live = _live_lookup(cleaned, region) or []
     if live:
-        return Resolution(query=query, best=live, candidates=[live])
+        return Resolution(query=query, best=live[0], candidates=live[:_MAX_CANDIDATES])
 
     return Resolution(query=query, best=None, candidates=[])
-
-
-def _clamp(instrument: Instrument) -> Instrument:
-    """Clamp a possibly-bonus-inflated score to ``[0, 1]`` for reporting."""
-    if instrument.score <= 1.0:
-        return instrument
-    return Instrument(
-        symbol=instrument.symbol,
-        name=instrument.name,
-        exchange=instrument.exchange,
-        region=instrument.region,
-        asset_class=instrument.asset_class,
-        yahoo_symbol=instrument.yahoo_symbol,
-        score=1.0,
-    )
 
 
 def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[Instrument]:
@@ -427,7 +612,7 @@ def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[
     :func:`resolve` uses, so it stays a pure in-memory lookup fast enough to fire
     on every keystroke (<100ms over the bundled masters).
     """
-    region = region or REGION_US
+    region = region or REGION_GLOBAL
     bare = strip_exchange_suffix(query).strip()
     if not bare:
         return []
@@ -451,7 +636,7 @@ def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[
     for sym, (name, _typ) in nse_symbols.items():
         s = _score(sym, name)
         if s is not None:
-            out.append(_instrument_nse(sym, s + _locale_bonus(region, REGION_IN)))
+            out.append(_instrument_nse(sym, s))
     # BSE-only names (the micro-cap tail) — dual-listed symbols are skipped so
     # the canonical NSE row is the one (and only) candidate for that instrument,
     # keeping the list deduplicated and NSE-preferred without a second pass.
@@ -460,21 +645,24 @@ def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[
             continue
         s = _score(sym, name)
         if s is not None:
-            out.append(_instrument_bse(sym, s + _locale_bonus(region, REGION_IN)))
+            out.append(_instrument_bse(sym, s))
     for sym, name in _us_master().items():
         s = _score(sym, name)
         if s is not None:
-            out.append(_instrument_us(sym, s + _locale_bonus(region, REGION_US)))
-    out.sort(key=lambda i: i.score, reverse=True)
-    return [_clamp(c) for c in out[:limit]]
+            out.append(_instrument_us(sym, s))
+    # Locale breaks ties as a SORT KEY, never an additive score bonus.
+    out.sort(key=lambda i: (i.score, _locale_rank(region, i.region)), reverse=True)
+    return out[:limit]
 
 
-def _live_lookup(query: str, region: str) -> Instrument | None:
+def _live_lookup(query: str, region: str) -> list[Instrument]:
     """Guarded ``yfinance.Search`` fallback for symbols not in the masters.
 
-    Network/parse failures degrade to ``None`` (the caller surfaces an honest
-    "unresolved" — never raw JSON, never a guess). Kept best-effort so the
-    bundled-master path stays the fast, deterministic primary.
+    Collects ALL hits (up to 5) as candidates at :data:`_DISAMBIGUATE_SCORE` —
+    a live row is never master-deterministic, so the policy maps it to
+    "disambiguate", never "bound". Under an IN session the ``.NS``/``.BO``
+    rows rank first. Network/parse failures degrade to ``[]`` (the caller
+    surfaces an honest "unresolved" — never raw JSON, never a guess).
     """
     try:
         import yfinance as yf
@@ -483,8 +671,9 @@ def _live_lookup(query: str, region: str) -> Instrument | None:
         quotes = getattr(search, "quotes", None) or []
     except Exception as exc:  # noqa: BLE001 - any live-lookup failure is non-fatal
         logger.debug("symbol_resolver: live lookup failed for %r: %s", query, exc)
-        return None
+        return []
 
+    out: list[Instrument] = []
     for q in quotes:
         sym = str(q.get("symbol", "")).strip().upper()
         if not sym:
@@ -496,11 +685,16 @@ def _live_lookup(query: str, region: str) -> Instrument | None:
         exchange = _suffix_exchange(sym)
         if exchange:
             bare = strip_exchange_suffix(sym)
-            return Instrument(bare, name, exchange, REGION_IN, "equity", sym, 0.6)
+            out.append(
+                Instrument(bare, name, exchange, REGION_IN, "equity", sym, _DISAMBIGUATE_SCORE)
+            )
+            continue
         exch = str(q.get("exchange", "")).upper()
         if exch in {"NMS", "NYQ", "NGM", "ASE", "PCX", "BATS"}:
-            return Instrument(sym, name, "US", REGION_US, "equity", sym, 0.6)
-    return None
+            out.append(Instrument(sym, name, "US", REGION_US, "equity", sym, _DISAMBIGUATE_SCORE))
+    if region == REGION_IN:
+        out.sort(key=lambda i: i.region == REGION_IN, reverse=True)
+    return out
 
 
 __all__ = [

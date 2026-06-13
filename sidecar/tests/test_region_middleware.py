@@ -11,20 +11,24 @@ from app import _RegionMiddleware
 def test_normalize_region() -> None:
     assert config.normalize_region("IN") == "IN"
     assert config.normalize_region("in") == "IN"
+    assert config.normalize_region("US") == "US"
     assert config.normalize_region("GLOBAL") == "GLOBAL"
-    assert config.normalize_region("nonsense") == "US"
-    assert config.normalize_region(None) == "US"
-    assert config.normalize_region("") == "US"
+    # R10 (E1): the default region is IN — the product is India-first and the
+    # silent US default mis-ranked every resolver query without a header.
+    assert config.normalize_region("nonsense") == "IN"
+    assert config.normalize_region(None) == "IN"
+    assert config.normalize_region("") == "IN"
 
 
 def test_get_region_default_and_contextvar() -> None:
-    assert config.get_region() == "US"
-    token = config.set_request_region("IN")
+    # R10 (E1): IN is the default; an explicit request region still overrides.
+    assert config.get_region() == "IN"
+    token = config.set_request_region("US")
     try:
-        assert config.get_region() == "IN"
+        assert config.get_region() == "US"
     finally:
         config.reset_request_region(token)
-    assert config.get_region() == "US"
+    assert config.get_region() == "IN"
 
 
 def test_middleware_sets_region_for_the_request() -> None:
@@ -44,10 +48,10 @@ def test_middleware_sets_region_for_the_request() -> None:
     assert seen["region"] == "IN"
     asyncio.run(drive(b"US"))
     assert seen["region"] == "US"
-    asyncio.run(drive(None))  # no header → default US
-    assert seen["region"] == "US"
+    asyncio.run(drive(None))  # no header → the R10 IN default
+    assert seen["region"] == "IN"
     # The ContextVar is reset after the request — no leakage.
-    assert config.get_region() == "US"
+    assert config.get_region() == "IN"
 
 
 def test_middleware_passes_through_non_http() -> None:

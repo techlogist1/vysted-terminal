@@ -42,6 +42,7 @@ from services.research.fast import snapshot_structured
 from services.research.models import ResearchBrief, ResearchSource, ResearchStep
 from services.research.target import (
     NO_INSTRUMENT_NOTE,
+    ResearchDisambiguation,
     ResearchTarget,
     resolve_target,
     resolved_payload,
@@ -847,8 +848,10 @@ async def run_deep_research(
     site_bias: bool = False,
     target: ResearchTarget | None = None,
     bound: bool = False,
-) -> ResearchBrief:
-    """Run the DEEP bounded research loop for ``query``; return a brief.
+) -> ResearchBrief | dict[str, Any]:
+    """Run the DEEP bounded research loop for ``query``; return a brief — or,
+    R10 (D37), the honest needs-disambiguation payload when resolution lands
+    in the ambiguity band (no markdown, no structured pulls, no web spend).
 
     See the module docstring for the loop shape and the three invariants. The
     function ALWAYS returns a :class:`ResearchBrief` — a budget breach aborts to
@@ -872,12 +875,14 @@ async def run_deep_research(
     # every round + the web rounds use ONE clean symbol.
     if target is None and not bound:
         target = await resolve_target(tool_call, query, region=region)
+        if isinstance(target, ResearchDisambiguation):
+            return target.payload(query=query)
     symbol = target.symbol if target is not None else ""
     structured["resolved"] = resolved_payload(target)
     # Snapshot price + fundamentals so a DEEP brief backs the same native metric
     # cards as a FAST one (additive; a failed leg renders no card, never raises).
     if target is not None:
-        structured.update(await snapshot_structured(tool_call, target.symbol))
+        structured.update(await snapshot_structured(tool_call, target.symbol, region=region))
         record_snapshot_sources(findings, target.symbol, structured)
 
     async def abort_synthesize(reason: str) -> ResearchBrief:

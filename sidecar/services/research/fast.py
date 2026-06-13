@@ -173,23 +173,34 @@ def _structured_value(result: dict[str, Any], payload_key: str) -> dict[str, Any
     return value
 
 
-async def snapshot_structured(tool_call: ToolCall, symbol: str) -> dict[str, Any]:
+async def snapshot_structured(
+    tool_call: ToolCall, symbol: str, *, region: str | None = None
+) -> dict[str, Any]:
     """A price + fundamentals snapshot as provenance-tagged structured legs.
 
-    Shared by the FAST bundle and the DEEP/iter briefs so BOTH back the frontend
-    metric cards from the same uniform ``{ok, provider, data}`` shape. Each leg is
-    pre-wrapped (a single provider failure surfaces as ``ok: False`` in that slot,
-    never a crash), so this never raises — an empty/failed leg simply renders no
-    card.
+    Shared by the FAST bundle and the DEEP/iter/heavy briefs (and the Tier B
+    research-model lane) so ALL back the frontend metric cards from the same
+    uniform ``{ok, provider, data}`` shape. Each leg is pre-wrapped (a single
+    provider failure surfaces as ``ok: False`` in that slot, never a crash), so
+    this never raises — an empty/failed leg simply renders no card.
+
+    R10 (E8): the ONE metric-semantics hook — the ``derived`` leg
+    (:func:`services.research.semantics.derive_semantics`) rides every
+    snapshot, so labeled, basis-true metrics and flagged conflicts reach every
+    research path through this single seam.
     """
+    from services.research.semantics import derive_semantics
+
     price_res, fund_res = await asyncio.gather(
         _safe_call(tool_call, "price_data", {"symbol": symbol}),
         _safe_call(tool_call, "fundamentals", {"symbol": symbol}),
     )
-    return {
+    out = {
         "price": _structured_value(price_res, "quote"),
         "fundamentals": _structured_value(fund_res, "fundamentals"),
     }
+    out["derived"] = derive_semantics(out, region)
+    return out
 
 
 async def _web_round(tool_call: ToolCall, web_query: str) -> dict[str, Any]:
@@ -245,16 +256,32 @@ async def gather_fast(
     ``suggested_indicators`` hints.
 
     R8 target contract: resolution happens ONCE via
-    :func:`services.research.target.resolve_target` (confidence floor +
+    :func:`services.research.target.resolve_target` (policy verdict +
     symbol-shape gate). With NO bound target the bundle is WEB-ONLY: zero
     structured calls (a free-text query never rides a ``symbol`` arg),
     ``symbol = ""``, and the honest one-line :data:`NO_INSTRUMENT_NOTE`.
+    R10 (D37): an ambiguous resolution returns the explicit "which did you
+    mean?" payload instead — no structured pulls, no web spend, no guess.
     """
-    from services.research.target import NO_INSTRUMENT_NOTE, resolve_target, resolved_payload
+    from services.research.target import (
+        NO_INSTRUMENT_NOTE,
+        ResearchDisambiguation,
+        resolve_target,
+        resolved_payload,
+    )
 
     t0 = time.perf_counter()
     await _emit(on_step, ResearchStep("plan", f'resolving "{query}"'))
     target = await resolve_target(tool_call, query, region=region)
+
+    if isinstance(target, ResearchDisambiguation):
+        await _emit(
+            on_step,
+            ResearchStep("plan", "ambiguous instrument — asking which one was meant", _ms(t0)),
+        )
+        out = target.payload(query=query)
+        out["execution_loop"] = "fast"
+        return out
 
     if target is None:
         await _emit(
@@ -285,6 +312,7 @@ async def gather_fast(
             "note": NO_INSTRUMENT_NOTE,
             "suggested_layout": "research-cockpit",
             "suggested_indicators": _suggested_indicators(None),
+            "execution_loop": "fast",
         }
 
     resolved = resolved_payload(target)
@@ -295,22 +323,26 @@ async def gather_fast(
 
     # 2 — parallel structured fan-out. Each leg is pre-wrapped so a single
     # provider failure surfaces as ok:False in that slot, not a gather crash.
+    # Price + fundamentals ride snapshot_structured — the ONE seam that also
+    # computes the derived metric-semantics leg (R10, E8) for every path.
     t1 = time.perf_counter()
     await _emit(on_step, ResearchStep("tool", f"pulling market data for {symbol}"))
-    price_res, fundamentals_res, news_res, filings_res = await asyncio.gather(
-        _safe_call(tool_call, "price_data", {"symbol": symbol}),
-        _safe_call(tool_call, "fundamentals", {"symbol": symbol}),
+    news_res, filings_res, snapshot = await asyncio.gather(
         _safe_call(tool_call, "news", {"symbols": [symbol]}),
         _safe_call(tool_call, "sec_filings_list", {"symbol": symbol}),
+        snapshot_structured(tool_call, symbol, region=region),
     )
 
     structured = {
-        "price": _structured_value(price_res, "quote"),
-        "fundamentals": _structured_value(fundamentals_res, "fundamentals"),
+        **snapshot,
         "news": _structured_value(news_res, "news"),
         "filings": _structured_value(filings_res, "filings"),
     }
-    _ok_legs = sum(1 for v in structured.values() if v.get("ok"))
+    _ok_legs = sum(
+        1
+        for leg in ("price", "fundamentals", "news", "filings")
+        if (structured.get(leg) or {}).get("ok")
+    )
     await _emit(
         on_step,
         ResearchStep("tool", f"pulled {_ok_legs}/4 data sources", _ms(t1)),
@@ -343,6 +375,7 @@ async def gather_fast(
         "web": web,
         "suggested_layout": "research-cockpit",
         "suggested_indicators": _suggested_indicators(asset_class),
+        "execution_loop": "fast",
     }
 
 

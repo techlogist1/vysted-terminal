@@ -21,12 +21,69 @@ import httpx
 import pytest
 
 import config
+from services import agent_tools
 from services.agent_tools import deep_research
 from services.agent_tools.research import _research
 
 
 def _run(coro):
     return asyncio.run(coro)
+
+
+@pytest.fixture(autouse=True)
+def stub_invoke_tool(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R10 §4: the Tier B lane now binds a research target (resolve_symbol +
+    snapshot legs) BEFORE/AFTER the hosted call — stub the tool seam so these
+    tests stay offline and deterministic regardless of registry state."""
+
+    async def fake_invoke(name: str, args: dict[str, Any]) -> dict[str, Any]:
+        if name == "resolve_symbol":
+            q = str(args.get("query") or "").strip().lower()
+            if "nvda" in q:
+                return {
+                    "ok": True,
+                    "query": args.get("query"),
+                    "status": "bound",
+                    "reason": "exact ticker",
+                    "resolved": {
+                        "symbol": "NVDA",
+                        "name": "NVIDIA Corporation",
+                        "exchange": "NASDAQ",
+                        "region": "US",
+                        "asset_class": "equity",
+                        "yahoo_symbol": "NVDA",
+                        "confidence": 1.0,
+                    },
+                    "needs_disambiguation": False,
+                    "candidates": [],
+                }
+            if "tata" in q:
+                return {
+                    "ok": True,
+                    "query": args.get("query"),
+                    "status": "disambiguate",
+                    "reason": "marquee family name",
+                    "resolved": None,
+                    "needs_disambiguation": True,
+                    "candidates": [
+                        {
+                            "symbol": "TCS",
+                            "name": "Tata Consultancy Services Limited",
+                            "exchange": "NSE",
+                            "confidence": 0.6,
+                            "yahoo_symbol": "TCS.NS",
+                        }
+                    ],
+                    "message": "which did you mean?",
+                }
+            return {"ok": False, "status": "unresolved", "resolved": None, "candidates": []}
+        if name == "price_data":
+            return {"ok": True, "provider": "yfinance", "quote": {"symbol": "NVDA", "price": 100.0}}
+        if name == "fundamentals":
+            return {"ok": True, "fundamentals": {"symbol": "NVDA", "provider": "yfinance"}}
+        return {"ok": False, "error": f"unexpected tool {name}"}
+
+    monkeypatch.setattr(agent_tools, "invoke_tool", fake_invoke)
 
 
 @contextlib.contextmanager
@@ -220,6 +277,50 @@ def test_cost_is_a_flagged_estimate(stub_openrouter) -> None:
     assert out["cost"]["estimate"] is True
     assert out["cost"]["spend_usd"] > 0
     assert "OpenRouter" in out["cost"]["provider"]
+
+
+# --- R10 §4: Tier B binds the same target the tier_a lanes bind ---------------
+
+
+def test_tier_b_bound_target_pins_prompt_and_backs_structured(stub_openrouter) -> None:
+    with _request(openrouter_key="sk-or-1"):
+        out = _run(deep_research.run_research_model_brief("nvda outlook", depth="deep"))
+    assert out["ok"] is True
+    # The pin line precedes the user query in the ONE prompt message.
+    content = stub_openrouter.last["payload"]["messages"][0]["content"]
+    assert content.startswith("Research target: NVIDIA Corporation (NASDAQ: NVDA).")
+    assert "nvda outlook" in content
+    # The brief carries the real symbol + the same structured snapshot the
+    # tier_a lanes gather (resolved + price/fundamentals + derived).
+    assert out["symbol"] == "NVDA"
+    assert out["structured"]["resolved"]["resolved"]["symbol"] == "NVDA"
+    assert out["structured"]["price"]["ok"] is True
+    assert out["structured"]["derived"]["provider"] == "derived"
+    assert out["execution_loop"] == "research-model"
+
+
+def test_tier_b_disambiguation_returns_chooser_with_zero_http_spend(stub_openrouter) -> None:
+    stub_openrouter.last.pop("url", None)
+    with _request(openrouter_key="sk-or-1"):
+        out = _run(deep_research.run_research_model_brief("tata results", depth="deep"))
+    assert out["ok"] is True
+    assert out["needs_disambiguation"] is True
+    assert out["candidates"][0]["symbol"] == "TCS"
+    assert out["execution_loop"] == "research-model"
+    # The OpenRouter call never fired — zero HTTP spend on an ambiguous entity.
+    assert stub_openrouter.last.get("url") is None
+
+
+def test_tier_b_unresolved_query_stays_web_only_with_note(stub_openrouter) -> None:
+    with _request(openrouter_key="sk-or-1"):
+        out = _run(deep_research.run_research_model_brief("macro outlook q3", depth="deep"))
+    assert out["ok"] is True
+    assert out["symbol"] == ""
+    assert out["structured"] == {}
+    assert out["note"] == "No listed instrument matched this query — web evidence only."
+    # No pin line — the prompt is the bare query.
+    content = stub_openrouter.last["payload"]["messages"][0]["content"]
+    assert not content.startswith("Research target:")
 
 
 # --- The research tool boundary — tier_b owns ALL depth stops ------------------

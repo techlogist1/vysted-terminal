@@ -33,11 +33,14 @@ DATA_DIR_ENV = "VYSTED_DATA_DIR"
 # the per-request ContextVar below, so any code path the request reaches —
 # routers *and* the agent tool loop — sees the same region via :func:`get_region`.
 #
-# The default is ``"US"`` so every existing caller (and every test that does not
-# set a region) behaves exactly as before. ``VYSTED_REGION`` is a last-resort
-# env fallback for non-HTTP entrypoints (CLI / tests).
+# The default is ``"IN"`` (R10, E1): the operator's sessions are India-first
+# and the old silent ``US`` default mis-ranked every resolver query that
+# arrived without a region header. Mirrored by ``DEFAULT_REGION`` in
+# ``src/lib/region.ts`` — flip both in the same commit. User Settings still
+# override per request; ``VYSTED_REGION`` is a last-resort env fallback for
+# non-HTTP entrypoints (CLI / tests).
 REGION_ENV = "VYSTED_REGION"
-_DEFAULT_REGION = "US"
+_DEFAULT_REGION = "IN"
 _KNOWN_REGIONS = frozenset({"US", "IN", "GLOBAL"})
 
 # Sentinel: the ContextVar is "unset" until a request middleware sets it, which
@@ -48,7 +51,7 @@ _region_ctx: ContextVar[str] = ContextVar("vysted_region", default=_REGION_UNSET
 
 
 def normalize_region(value: str | None) -> str:
-    """Coerce an arbitrary value to a known region code, defaulting to ``US``.
+    """Coerce an arbitrary value to a known region code, defaulting to ``IN``.
 
     Unknown / empty values fall back to the default rather than raising — a
     malformed ``X-Vysted-Region`` header must never break a data request.
@@ -63,7 +66,7 @@ def get_region() -> str:
     """Return the active region for the current request/task.
 
     Reads the per-request ContextVar set by the region middleware; absent that
-    (non-HTTP entrypoints), falls back to ``VYSTED_REGION`` then ``"US"``. The
+    (non-HTTP entrypoints), falls back to ``VYSTED_REGION`` then ``"IN"``. The
     value is always a known region code (``US`` / ``IN`` / ``GLOBAL``).
     """
     current = _region_ctx.get()

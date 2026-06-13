@@ -66,8 +66,10 @@ from services.research.deep import (
 )
 from services.research.fast import snapshot_structured
 from services.research.models import ResearchBrief, ResearchSource, ResearchStep
+from services.research.semantics import prompt_block
 from services.research.target import (
     NO_INSTRUMENT_NOTE,
+    ResearchDisambiguation,
     ResearchTarget,
     resolve_target,
     resolved_payload,
@@ -215,6 +217,9 @@ async def _synthesis_from_report(
     Falls back to the raw report (then a terse stub) so a dead LLM still ships."""
     priority = finance.priority_note(findings.all_sources())
     snapshot = snapshot_context(structured or {})
+    # R10 (E8): the derived metric facts ride the prompt so the prose states
+    # figures under the SAME labels/bases the metric cards render.
+    metric_facts = prompt_block((structured or {}).get("derived"))
     body = await _safe_llm(
         llm_call,
         [
@@ -244,6 +249,7 @@ async def _synthesis_from_report(
                     f"Query: {query}\nSymbol: {symbol}\n\n"
                     f"Working report:\n{report.render()}\n\n"
                     + ((snapshot + "\n\n") if snapshot else "")
+                    + ((metric_facts + "\n\n") if metric_facts else "")
                     + f"Sources:\n{_numbered_sources(findings)}"
                 ),
             },
@@ -278,8 +284,10 @@ async def run_iter_research(
     snapshot: dict[str, Any] | None = None,
     citecheck: bool = True,
     evidence: dict[str, str] | None = None,
-) -> ResearchBrief:
-    """Run the IterResearch loop for ``query``; always returns a brief.
+) -> ResearchBrief | dict[str, Any]:
+    """Run the IterResearch loop for ``query``; always returns a brief — or,
+    R10 (D37), the honest needs-disambiguation payload when resolution lands
+    in the ambiguity band (no markdown, no structured pulls, no web spend).
 
     Per round: top-of-round breach → abort→synthesize; record one step; RECONSTRUCT
     the working context from ``{report + last round's evidence}`` (not the full
@@ -310,6 +318,8 @@ async def run_iter_research(
 
     if target is None and not bound:
         target = await resolve_target(tool_call, query, region=region)
+        if isinstance(target, ResearchDisambiguation):
+            return target.payload(query=query)
     symbol = target.symbol if target is not None else ""
     structured["resolved"] = resolved_payload(target)
     # Snapshot price + fundamentals so an iter/Heavy brief backs the same native
@@ -317,7 +327,7 @@ async def run_iter_research(
     # heavy panel passes ONE shared snapshot so explorers never re-pull it.
     if target is not None:
         if snapshot is None:
-            snapshot = await snapshot_structured(tool_call, target.symbol)
+            snapshot = await snapshot_structured(tool_call, target.symbol, region=region)
         structured.update(snapshot)
         record_snapshot_sources(findings, target.symbol, structured)
 
@@ -664,6 +674,7 @@ async def _webweaver_synthesis(
     panel: str,
     sources: list[ResearchSource],
     evidence: dict[str, str] | None = None,
+    metric_facts: str = "",
 ) -> str:
     """Outline-bound synthesis (WebWeaver-lite): plan sections bound to
     explicit source indices, then write each section against ONLY those
@@ -740,7 +751,8 @@ async def _webweaver_synthesis(
                     "role": "user",
                     "content": (
                         f"Task: {query}\nSection: {title}\n\n"
-                        f"Sources for THIS section:\n{_section_sources(indices)}"
+                        + ((metric_facts + "\n\n") if metric_facts else "")
+                        + f"Sources for THIS section:\n{_section_sources(indices)}"
                     ),
                 },
             ],
@@ -811,11 +823,13 @@ async def run_heavy_research(
     site_bias: bool = False,
     target: ResearchTarget | None = None,
     bound: bool = False,
-) -> ResearchBrief:
+) -> ResearchBrief | dict[str, Any]:
     """Heavy mode — N parallel iter explorers (each its own evolving report) → one
     synthesized, citation-backed brief. Shares ``budget`` across the panel so the
     whole run stays inside the same ceiling (a breach winds each explorer down to
     its partial brief, then synthesis merges the survivors). Never raises.
+    R10 (D37): an ambiguous resolution returns the needs-disambiguation payload
+    BEFORE any fan-out — zero explorer/web spend on a guess.
 
     R8 target contract: the panel resolves the CLEAN user ``query`` exactly ONCE
     (here, before the fan-out) and hands every explorer the SAME bound target +
@@ -836,9 +850,11 @@ async def run_heavy_research(
     # --- bind the ONE target on the CLEAN query, before any fan-out ----------
     if target is None and not bound:
         target = await resolve_target(tool_call, query, region=region)
+        if isinstance(target, ResearchDisambiguation):
+            return target.payload(query=query)
     snapshot: dict[str, Any] | None = None
     if target is not None:
-        snapshot = await snapshot_structured(tool_call, target.symbol)
+        snapshot = await snapshot_structured(tool_call, target.symbol, region=region)
 
     # --- panel plan: split into N distinct, non-overlapping angles -----------
     t0 = time.monotonic()
@@ -929,6 +945,9 @@ async def run_heavy_research(
     numbered = "\n".join(f"[{i + 1}] {s.title} — {s.url}" for i, s in enumerate(merged_sources))
     panel = "\n\n".join(f"## Angle {i + 1}\n{b.markdown}" for i, b in enumerate(good))
     priority = finance.priority_note(merged_sources)
+    # R10 (E8): the derived metric facts ride every synthesis prompt so the
+    # merged prose states figures under the cards' exact labels and bases.
+    metric_facts = prompt_block((snapshot or {}).get("derived"))
     budget.record(None, _ROUND_MODEL, _ROUND_PROVIDER)
     synth_t0 = time.monotonic()
 
@@ -951,6 +970,7 @@ async def run_heavy_research(
             panel=panel,
             sources=merged_sources,
             evidence=evidence,
+            metric_facts=metric_facts,
         )
         if markdown:
             synth_mode = "webweaver outline"
@@ -982,7 +1002,8 @@ async def run_heavy_research(
                     "role": "user",
                     "content": (
                         f"Task: {query}\n\nPanel reports:\n{panel}\n\n"
-                        f"Merged sources (use these [n] numbers):\n{numbered}"
+                        + ((metric_facts + "\n\n") if metric_facts else "")
+                        + f"Merged sources (use these [n] numbers):\n{numbered}"
                     ),
                 },
             ],

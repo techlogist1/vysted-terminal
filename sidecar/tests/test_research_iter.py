@@ -315,3 +315,140 @@ def test_heavy_never_raises_on_dead_llm() -> None:
     )
     assert isinstance(brief, ResearchBrief)
     assert brief.markdown.strip()
+
+
+async def _ambiguous_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
+    if name == "resolve_symbol":
+        return {
+            "ok": True,
+            "query": args.get("query"),
+            "status": "disambiguate",
+            "reason": "marquee family name",
+            "resolved": None,
+            "needs_disambiguation": True,
+            "candidates": [
+                {
+                    "symbol": "TCS",
+                    "name": "Tata Consultancy Services Limited",
+                    "exchange": "NSE",
+                    "confidence": 0.6,
+                    "yahoo_symbol": "TCS.NS",
+                }
+            ],
+            "message": "which did you mean?",
+        }
+    raise AssertionError(f"no tool but the resolver may run on an ambiguous query: {name}")
+
+
+def test_iter_disambiguation_returns_chooser_with_zero_spend() -> None:
+    # R10 (D37): the iter loop returns the chooser dict before any round runs.
+    out = _run(
+        run_iter_research(
+            "tata results",
+            region="IN",
+            tool_call=_ambiguous_tool,
+            llm_call=FakeLLM(),
+            budget=BudgetGuard(max_steps=10),
+        )
+    )
+    assert isinstance(out, dict)
+    assert out["ok"] is True and out["needs_disambiguation"] is True
+    assert out["candidates"][0]["symbol"] == "TCS"
+
+
+def test_heavy_disambiguation_returns_chooser_before_fanout() -> None:
+    out = _run(
+        run_heavy_research(
+            "tata results",
+            angles=3,
+            region="IN",
+            tool_call=_ambiguous_tool,
+            llm_call=FakeLLM(),
+            budget=BudgetGuard(max_steps=12),
+        )
+    )
+    assert isinstance(out, dict)
+    assert out["ok"] is True and out["needs_disambiguation"] is True
+    assert out["query"] == "tata results"
+
+
+def test_iter_synthesis_prompt_carries_metric_facts() -> None:
+    # R10 (E8): the derived METRIC FACTS block rides the synthesis prompt so
+    # the prose states figures under the cards' labels and bases.
+    class _RecordingLLM(FakeLLM):
+        def __init__(self) -> None:
+            super().__init__(reflect="complete")
+            self.synthesis_prompts: list[str] = []
+
+        async def __call__(self, messages: list[dict[str, Any]]) -> str:
+            system = messages[0]["content"].lower()
+            if "concise research brief" in system:
+                self.synthesis_prompts.append(messages[-1]["content"])
+            return await super().__call__(messages)
+
+    async def tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
+        if name == "resolve_symbol":
+            return {
+                "ok": True,
+                "status": "bound",
+                "resolved": {
+                    "symbol": "NVDA",
+                    "name": "NVIDIA Corporation",
+                    "exchange": "NASDAQ",
+                    "region": "US",
+                    "asset_class": "equity",
+                    "confidence": 1.0,
+                },
+            }
+        if name == "price_data":
+            return {"ok": True, "provider": "yfinance", "quote": {"price": 80.0}}
+        if name == "fundamentals":
+            return {
+                "ok": True,
+                "fundamentals": {"fifty_two_week_high": 100.0, "provider": "yfinance"},
+            }
+        return await fake_tool(name, args)
+
+    llm = _RecordingLLM()
+    brief = _run(
+        run_iter_research(
+            "NVDA outlook",
+            tool_call=tool,
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=2),
+        )
+    )
+    assert isinstance(brief, ResearchBrief)
+    assert brief.structured["derived"]["provider"] == "derived"
+    assert llm.synthesis_prompts, "synthesis never ran"
+    assert any("METRIC FACTS" in p and "Below 52-week high" in p for p in llm.synthesis_prompts)
+
+
+def test_run_loop_deep_fallback_is_never_silent(monkeypatch):
+    """R10 review (E2 — stamp what RAN): if ``run_iter_research`` ever raises,
+    ``_run_loop`` drops to the single-pass ``run_deep_research`` fallback. The
+    closed EXECUTION_LOOPS enum has no label for that path, so the degradation
+    must ride the brief's never-silent ``note`` channel."""
+    from services.agent_tools import deep_research as deep_research_tool
+    from services.research import deep
+    from services.research.depth import profile_for
+
+    async def boom(query: str, **kwargs: Any) -> ResearchBrief:
+        raise RuntimeError("iter exploded")
+
+    async def fake_deep(query: str, **kwargs: Any) -> ResearchBrief:
+        return ResearchBrief(query=query, symbol="", mode="deep", markdown="fallback brief")
+
+    monkeypatch.setattr(iter_research, "run_iter_research", boom)
+    monkeypatch.setattr(deep, "run_deep_research", fake_deep)
+
+    async def llm(messages: list[dict[str, Any]]) -> str:
+        return "unused"
+
+    brief = _run(
+        deep_research_tool._run_loop(
+            profile=profile_for("deep"), query="q", llm_call=llm, rounds=1, wall=120
+        )
+    )
+    assert isinstance(brief, ResearchBrief)
+    assert brief.note is not None and "fallback" in brief.note

@@ -1,7 +1,7 @@
 /**
  * Region / locale — the minimal foundation seam (Pass A item 8).
  *
- * A single region setting (default `US`) drives locale-aware formatting today and
+ * A single region setting (default `IN` since R10 E1) drives locale-aware formatting today and
  * is the registration point a later pass uses to make data + feeds region-first
  * (e.g. India-first quotes/news, INR + FX). This module is PURE (no store import)
  * so it can be read anywhere without a cycle; the ACTIVE region lives in the
@@ -34,7 +34,9 @@ export const REGIONS: readonly RegionConfig[] = [
   { id: "GLOBAL", label: "Global", locale: "en-US", currency: "USD" },
 ];
 
-export const DEFAULT_REGION: Region = "US";
+// R10 (E1): India-first default, mirroring the sidecar's `config._DEFAULT_REGION`
+// — flip both in the same commit. User Settings still override.
+export const DEFAULT_REGION: Region = "IN";
 
 /** Type guard for restoring a persisted region (older/garbled blobs → default). */
 export function isRegion(value: unknown): value is Region {

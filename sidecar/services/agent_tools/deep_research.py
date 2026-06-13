@@ -258,6 +258,9 @@ async def _run_loop(
     }
     if heavy:
         brief = await iter_research.run_heavy_research(query, angles=profile.angles, **common)
+        if isinstance(brief, dict):
+            # R10 (D37): needs-disambiguation pass-through — nothing to verify.
+            return brief
         if profile.cross_check:
             from services.research.verify import cross_check
 
@@ -277,12 +280,20 @@ async def _run_loop(
         return brief
     try:
         return await iter_research.run_iter_research(query, **common)
-    except Exception:  # pragma: no cover — iter never raises; fall back regardless
+    except Exception:  # iter never raises by design; fall back regardless
         # The NAMED single-pass fallback (S-9): not a parallel user-reachable
         # loop, only the catch-all so the deep path can never error out. It takes
         # the shared researcher/coverage knobs but has no working report to cap.
         common.pop("report_char_cap", None)
-        return await deep.run_deep_research(query, **common)
+        brief = await deep.run_deep_research(query, **common)
+        # R10 review (E2 — stamp what RAN): the closed EXECUTION_LOOPS enum
+        # ("fast"/"iter"/"heavy"/"research-model", frozen contract) has no
+        # label for this fallback, so the caller's "iter" stamp would be a
+        # silent lie on its own — the degradation rides the brief's
+        # never-silent note channel instead.
+        if not isinstance(brief, dict) and brief.note is None:
+            brief.note = "iter loop raised; the single-pass deep fallback ran"
+        return brief
 
 
 def _engine_label(provider: str, model: str, profile: DepthProfile) -> str:
@@ -343,8 +354,16 @@ async def _run_native(query: str, profile: DepthProfile, rounds: int, wall: int)
         wall=wall,
         native_search=native_search,
     )
+    # The execution-loop hint (R10, D38): which loop ACTUALLY ran — Team
+    # RUNTIME builds the full ResearchExecution from it at the tool boundary.
+    loop_label = "heavy" if profile.angles >= _MIN_HEAVY_ANGLES else "iter"
+    if isinstance(brief, dict):
+        # R10 (D37): needs-disambiguation pass-through — zero web spend.
+        brief.setdefault("execution_loop", loop_label)
+        return brief
     out = brief.to_dict()
     out["ok"] = True
+    out["execution_loop"] = loop_label
     # The honest backend id: "native" names the chat-model engine; when ANY
     # retrieval in the run was served by the keyless floor the brief carries
     # "keyless-fallback" instead — the UI's setup-Unlimited nudge keys on it.
@@ -417,9 +436,16 @@ async def run_deep_brief(
     )
 
     if resolved_backend == "perplexity":
-        return await _run_perplexity(query, api_key)
+        out = await _run_perplexity(query, api_key)
+        if out.get("ok"):
+            # Execution-loop hint (R10, D38): a hosted one-call vendor lane.
+            out.setdefault("execution_loop", "research-model")
+        return out
     if resolved_backend in ("sonar", "openrouter-sonar"):
-        return await _run_sonar(query, api_key)
+        out = await _run_sonar(query, api_key)
+        if out.get("ok"):
+            out.setdefault("execution_loop", "research-model")
+        return out
     return await _run_native(query, profile, rounds_i, wall)
 
 
@@ -621,6 +647,26 @@ async def run_research_model_brief(
     backend_id = f"{RESEARCH_MODEL_BACKEND_PREFIX}{resolved_model}"
     wall = _RESEARCH_MODEL_WALL_SECONDS.get(stop, _RESEARCH_MODEL_WALL_SECONDS["normal"])
 
+    # R10 (E1 §4): Tier B binds the SAME target Tier A binds, BEFORE any HTTP
+    # spend — the hosted model's prose can no longer be the only entity
+    # identity. A disambiguation returns the honest chooser with ZERO spend; a
+    # bound target pins the prompt and backs the brief's structured legs; None
+    # proceeds web-only with the no-instrument note.
+    from services import agent_tools
+    from services.research.fast import snapshot_structured
+    from services.research.target import (
+        NO_INSTRUMENT_NOTE,
+        ResearchDisambiguation,
+        resolve_target,
+        resolved_payload,
+    )
+
+    target = await resolve_target(agent_tools.invoke_tool, text, region=config.get_region())
+    if isinstance(target, ResearchDisambiguation):
+        out = target.payload(query=text)
+        out["execution_loop"] = "research-model"
+        return out
+
     sink = config.get_step_sink()
     steps: list[Any] = []
 
@@ -646,9 +692,19 @@ async def run_research_model_brief(
             elapsed = int(time.monotonic() - started)
             _step("engine", f"{backend_id} — still researching ({elapsed}s elapsed)")
 
+    # A bound target pins the prompt: every claim must concern this exact
+    # listed entity — the model can no longer drift to a same-name company.
+    prompt = text
+    if target is not None:
+        exchange = target.exchange or "Listed"
+        prompt = (
+            f"Research target: {target.name} ({exchange}: {target.symbol}). "
+            f"Every claim must concern this exact listed entity.\n\n{text}"
+        )
+
     payload: dict[str, Any] = {
         "model": resolved_model,
-        "messages": [{"role": "user", "content": text}],
+        "messages": [{"role": "user", "content": prompt}],
     }
     headers = {
         "Authorization": f"Bearer {key}",
@@ -684,16 +740,32 @@ async def run_research_model_brief(
     elapsed_total = int(time.monotonic() - started)
     _step("synthesize", f"{backend_id} — brief synthesised ({elapsed_total}s)")
 
+    # A bound target backs the brief with the SAME structured snapshot the
+    # tier_a lanes gather (incl. the derived metric-semantics leg) — the Tier B
+    # brief carries a real symbol and provenance-tagged metric cards.
+    structured: dict[str, Any] = {}
+    symbol = ""
+    note: str | None = None
+    if target is not None:
+        snap = await snapshot_structured(
+            agent_tools.invoke_tool, target.symbol, region=config.get_region()
+        )
+        structured = {"resolved": resolved_payload(target), **snap}
+        symbol = target.symbol
+    else:
+        note = NO_INSTRUMENT_NOTE
+
     from services.research.models import ResearchBrief
 
     brief = ResearchBrief(
         query=text,
-        symbol="",
+        symbol=symbol,
         # ``mode`` keeps the legacy fast/deep naming the brief contract renders;
         # ``depth`` (below) carries the per-stop truth for new consumers.
         mode="fast" if stop == "normal" else "deep",
         markdown=markdown,
         sources=sources,
+        structured=structured,
         steps=steps,
         source_count=len(sources),
         cost={
@@ -704,12 +776,13 @@ async def run_research_model_brief(
             "provider": _RESEARCH_MODEL_PROVENANCE,
         },
         web_available=bool(sources),
-        note=None,
+        note=note,
     )
     out = brief.to_dict()
     out["ok"] = True
     out["backend"] = backend_id
     out["depth"] = stop
+    out["execution_loop"] = "research-model"
     return out
 
 

@@ -457,3 +457,48 @@ def test_web_source_titles_are_sanitized_inline() -> None:
     assert "\n" not in src.title and "\r" not in src.title
     assert GUARD_CLOSE not in src.title
     assert "\n" not in src.excerpt
+
+
+def test_deep_disambiguation_returns_chooser_before_any_research() -> None:
+    """R10 (D37): an ambiguous resolution returns the explicit chooser dict —
+    no rounds, no structured pulls, no web spend."""
+
+    class _Ambiguous(_FakeToolCall):
+        async def __call__(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+            self.calls.append(name)
+            if name == "resolve_symbol":
+                return {
+                    "ok": True,
+                    "query": args.get("query"),
+                    "status": "disambiguate",
+                    "reason": "marquee family name",
+                    "resolved": None,
+                    "needs_disambiguation": True,
+                    "candidates": [
+                        {
+                            "symbol": "TCS",
+                            "name": "Tata Consultancy Services Limited",
+                            "exchange": "NSE",
+                            "confidence": 0.6,
+                            "yahoo_symbol": "TCS.NS",
+                        }
+                    ],
+                    "message": "which did you mean?",
+                }
+            return await super().__call__(name, args)
+
+    tools = _Ambiguous()
+    out = asyncio.run(
+        run_deep_research(
+            "tata results",
+            region="IN",
+            tool_call=tools,
+            llm_call=_FakeLLM(reflect_complete=True),
+            budget=BudgetGuard(max_steps=10),
+        )
+    )
+    assert isinstance(out, dict)
+    assert out["ok"] is True and out["needs_disambiguation"] is True
+    assert out["query"] == "tata results"
+    assert out["candidates"][0]["symbol"] == "TCS"
+    assert set(tools.calls) == {"resolve_symbol"}  # zero research spend
