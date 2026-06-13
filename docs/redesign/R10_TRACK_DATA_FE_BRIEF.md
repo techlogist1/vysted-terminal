@@ -11,7 +11,7 @@ constant already updated in the contracts commit — extend freely beyond it),
 `src/store/notes.ts`, `src/store/portfolios.ts` (or the portfolio client module —
 whatever the panel uses), `src/modules/portfolio/**`, and their vitest files.
 Do NOT touch host-actions.ts / brief / chat (Team FRONTEND-BRIEF), marketplace/
-keychain (Team ERRORS), types/* (frozen), sidecar.
+keychain (Team ERRORS), types/\* (frozen), sidecar.
 
 ## 1. Streaming screener run — `src/store/screener.ts`
 

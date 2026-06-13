@@ -20,11 +20,21 @@ import { getSidecarBaseUrl, sidecarGet } from "@/lib/sidecar-client";
 import type {
   CriterionGroup,
   ScreenerCriterion,
+  ScreenerProgressFrame,
   ScreenerRequest,
   ScreenerResult,
   ScreenerUniverse,
   ScreenerUniverseId,
 } from "../../types/screener";
+
+// AbortController for the active streaming run. Module-level (singleton store)
+// so cancelRun() can abort without threading it through state.
+// IMPORTANT: every async path that reads this must capture it into a local
+// `controller` variable at the START of the run, then guard every state write
+// with `if (_runAbortController === controller)` so a superseded run (run B
+// started while A streams) never clobbers B's loading/progress state or nulls
+// B's controller.
+let _runAbortController: AbortController | null = null;
 
 /** Strip empty sub-groups so a serialized tree never carries dead nodes that
  * the server would treat as "matches everything". Returns null when the whole
@@ -55,6 +65,82 @@ export type ScreenerStatus = "idle" | "loading" | "ready" | "error";
  * "and" = match ALL, "or" = match ANY. Maps to the `group` boolean tree. */
 export type ScreenerCombinator = "and" | "or";
 
+/** One saved screen — persisted by the store, wired to workspace by the lead. */
+export interface SavedScreen {
+  name: string;
+  universe: ScreenerUniverseId;
+  criteria: ScreenerCriterion[];
+  group?: CriterionGroup | null;
+  formula?: string;
+  combinator: ScreenerCombinator;
+}
+
+// Serialization helpers — EXPORTED so the lead can wire them into workspace.ts.
+export function serializeSavedScreens(screens: SavedScreen[]): string {
+  return JSON.stringify(screens);
+}
+
+export function deserializeSavedScreens(raw: string | null | undefined): SavedScreen[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter(
+        (s): s is Record<string, unknown> =>
+          s !== null &&
+          typeof s === "object" &&
+          typeof (s as Record<string, unknown>).name === "string" &&
+          typeof (s as Record<string, unknown>).universe === "string",
+      )
+      .map((s): SavedScreen => {
+        // Ensure criteria is a valid array; corrupt/missing entries default to [].
+        const rawCriteria = s.criteria;
+        const criteria: ScreenerCriterion[] = Array.isArray(rawCriteria)
+          ? (rawCriteria as unknown[]).filter(
+              (c): c is ScreenerCriterion =>
+                c !== null && typeof c === "object" && "field" in (c as object),
+            )
+          : [];
+        // Ensure combinator is valid; default to "and".
+        const combinator: import("./screener").ScreenerCombinator =
+          s.combinator === "or" ? "or" : "and";
+        // Validate group shape: must be null, or an object with a valid
+        // combinator string and an array criteria field.  A group with an
+        // unexpected shape (e.g. `group: "junk"`) is silently dropped to null
+        // so loadScreen never passes a corrupt value to hasNestedGroup.
+        let group: CriterionGroup | null | undefined;
+        if (s.group === null || s.group === undefined) {
+          group = s.group as null | undefined;
+        } else if (
+          (typeof s.group === "object" &&
+            (s.group as Record<string, unknown>).combinator === "and") ||
+          (typeof s.group === "object" && (s.group as Record<string, unknown>).combinator === "or")
+        ) {
+          const rawGroup = s.group as Record<string, unknown>;
+          if (Array.isArray(rawGroup.criteria)) {
+            group = s.group as CriterionGroup;
+          } else {
+            group = null;
+          }
+        } else {
+          // Corrupt/unexpected shape — drop to null.
+          group = null;
+        }
+        return {
+          name: s.name as string,
+          universe: s.universe as SavedScreen["universe"],
+          criteria,
+          combinator,
+          ...(group !== undefined ? { group } : {}),
+          ...(typeof s.formula === "string" && s.formula ? { formula: s.formula } : {}),
+        };
+      });
+  } catch {
+    return [];
+  }
+}
+
 // In-flight universe fetches, deduped by id. Two concurrent loadUniverse(id)
 // calls both missed the cache and fired duplicate requests (Phase 9.5); a
 // module-level map (the store is a singleton) coalesces them without changing
@@ -84,10 +170,15 @@ interface ScreenerState {
   lastResult: ScreenerResult | null;
   status: ScreenerStatus;
   error: string | null;
+  /** R10 (D40): live streaming progress from /screener/run/stream. Null when idle. */
+  progress: Pick<ScreenerProgressFrame, "phase" | "done" | "total" | "detail"> | null;
 
   // --- universes ------------------------------------------------------
   universeMeta: Record<string, ScreenerUniverse>;
   universeStatus: Record<string, ScreenerStatus>;
+
+  // --- saved screens --------------------------------------------------
+  savedScreens: SavedScreen[];
 
   // --- public API -----------------------------------------------------
   setUniverse: (id: ScreenerUniverseId) => void;
@@ -107,14 +198,32 @@ interface ScreenerState {
   /** Write a full filter set at once (the agent's `write_screener_filters`
    * host action lands here). Sets criteria, the optional nested group, the
    * optional universe/limit, and clears the formula (the agent owns criteria;
-   * the user keeps their custom formula). */
+   * the user keeps their custom formula). `formula` overrides the formula field
+   * when provided. When `run` is true, the caller MUST follow up with runScreener()
+   * (the host-action path is responsible for chaining). */
   applyFilters: (input: {
     criteria: ScreenerCriterion[];
     group?: CriterionGroup | null;
     universe?: ScreenerUniverseId;
+    formula?: string;
+    run?: boolean;
   }) => void;
   runScreener: (limit?: number) => Promise<ScreenerResult | null>;
+  /** Cancel the in-flight streaming run (if any). Disconnecting aborts the
+   * server-side engine per the R10 SSE contract. */
+  cancelRun: () => void;
   loadUniverse: (id: ScreenerUniverseId) => Promise<ScreenerUniverse | null>;
+  /** Save the current filter set under a name. Replaces any existing screen with
+   * the same name. */
+  saveScreen: (name: string) => void;
+  /** Delete a saved screen by name. */
+  deleteScreen: (name: string) => void;
+  /** Load a saved screen into the active draft (restores universe, criteria,
+   * group, formula, combinator). Does NOT auto-run. */
+  loadScreen: (name: string) => void;
+  /** Replace the full savedScreens list atomically — used by the workspace
+   * restore path (deserializeWorkspace) to rehydrate persisted screens. */
+  setSavedScreens: (screens: SavedScreen[]) => void;
   __resetForTests: () => void;
 }
 
@@ -165,8 +274,10 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
   lastResult: null,
   status: "idle",
   error: null,
+  progress: null,
   universeMeta: {},
   universeStatus: {},
+  savedScreens: [],
 
   setUniverse: (id) => set({ universe: id }),
   setCustomSymbols: (raw) => set({ customSymbols: raw }),
@@ -188,7 +299,7 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
   setGroup: (group) => set({ group }),
   setAdvanced: (advanced) => set({ advanced }),
   setFormula: (formula) => set({ formula }),
-  applyFilters: ({ criteria, group, universe }) =>
+  applyFilters: ({ criteria, group, universe, formula }) =>
     set((state) => ({
       criteria,
       group: group ?? null,
@@ -197,6 +308,8 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       // simple builder reflects it; a nested one drives advanced mode.
       combinator: group && group.combinator === "or" && !hasNestedGroup(group) ? "or" : "and",
       universe: universe ?? state.universe,
+      // `formula` overrides when provided; omitting it leaves the user's own formula.
+      ...(formula !== undefined ? { formula } : {}),
     })),
 
   runScreener: async (limit = 200) => {
@@ -223,7 +336,18 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
         return null;
       }
     }
-    set({ status: "loading", error: null });
+    // Abort any in-flight run before starting a new one.
+    _runAbortController?.abort();
+    const controller = new AbortController();
+    _runAbortController = controller;
+    set({ status: "loading", error: null, progress: null });
+
+    /** Guard: only the CURRENT run may touch status/progress or null the slot.
+     *  Run B aborting run A must not let A's cleanup clobber B's state. */
+    function isCurrent(): boolean {
+      return _runAbortController === controller;
+    }
+
     // Three shapes for the boolean tree, in precedence:
     //   1. ADVANCED nested tree (the recursive group editor) — pruned, supersedes
     //      everything when it carries real nesting (server evaluates it).
@@ -249,19 +373,201 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       ...(trimmedFormula ? { formula: trimmedFormula } : {}),
       ...(universe === "custom" ? { custom_symbols: parseCustomSymbols(customSymbols) } : {}),
     };
+    // --- Attempt streaming via POST /screener/run/stream (R10 D40) ----------
+    // Falls back to the unary endpoint on 404 (older sidecar builds). Disconnect
+    // (cancel) aborts the server-side engine per the SSE contract.
+    // Wire format: SSE (text/event-stream) — frames are `data: {json}\n\n`
+    // (precedent: routers/backtest.py:195, _encode_event). The parser strips the
+    // `data:` prefix and tolerates bare NDJSON for resilience.
+    const base = await getSidecarBaseUrl();
+    const streamUrl = new URL("/screener/run/stream", base).toString();
+    let streamResponse: Response | null = null;
     try {
-      const result = await postJson<ScreenerRequest, ScreenerResult>("/screener/run", req);
-      set({
-        lastResult: result,
-        status: "ready",
-        error: null,
+      streamResponse = await fetch(streamUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(req),
+        signal: controller.signal,
       });
-      return result;
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "screener run failed";
-      set({ status: "error", error: message });
+    } catch (fetchErr) {
+      if (controller.signal.aborted) {
+        if (isCurrent()) {
+          set({ status: "idle", progress: null });
+          _runAbortController = null;
+        }
+        return null;
+      }
+      // Network error before any response (sidecar down / cold-boot).
+      // Attempt the unary fallback — it may work if the sidecar just came up.
+      try {
+        const result = await postJson<ScreenerRequest, ScreenerResult>("/screener/run", req);
+        if (!controller.signal.aborted && isCurrent()) {
+          set({ lastResult: result, status: "ready", error: null, progress: null });
+          _runAbortController = null;
+        }
+        return controller.signal.aborted ? null : result;
+      } catch {
+        if (isCurrent()) {
+          const fetchErrMsg = fetchErr instanceof Error ? fetchErr.message : "sidecar unreachable";
+          set({
+            status: "error",
+            error: `Sidecar unreachable: ${fetchErrMsg}`,
+            progress: null,
+          });
+          _runAbortController = null;
+        }
+        return null;
+      }
+    }
+    if (streamResponse.status === 404) {
+      // Older sidecar: fall back to unary /screener/run.
+      try {
+        const result = await postJson<ScreenerRequest, ScreenerResult>("/screener/run", req);
+        if (!controller.signal.aborted && isCurrent()) {
+          set({ lastResult: result, status: "ready", error: null, progress: null });
+          _runAbortController = null;
+        }
+        return controller.signal.aborted ? null : result;
+      } catch (err: unknown) {
+        if (isCurrent()) {
+          if (controller.signal.aborted) {
+            set({ status: "idle", progress: null });
+          } else {
+            const message = err instanceof Error ? err.message : "screener run failed";
+            set({ status: "error", error: message, progress: null });
+          }
+          _runAbortController = null;
+        }
+        return null;
+      }
+    }
+    if (!streamResponse.ok) {
+      if (!isCurrent()) return null;
+      let detail = streamResponse.statusText;
+      try {
+        const parsed = (await streamResponse.json()) as { detail?: string };
+        if (parsed.detail) detail = parsed.detail;
+      } catch {
+        // Not JSON — keep status text.
+      }
+      if (isCurrent()) {
+        set({
+          status: "error",
+          error: `POST /screener/run/stream failed (${streamResponse.status}): ${detail}`,
+          progress: null,
+        });
+        _runAbortController = null;
+      }
       return null;
     }
+    // Consume the SSE stream.
+    // The sidecar emits `data: {json}\n\n` per frame (backtest.py:195 precedent).
+    // We split on `\n\n` event boundaries and strip the `data:` prefix from each
+    // line before JSON.parse. Bare NDJSON (no `data:` prefix) is also tolerated
+    // for resilience during development / older intermediary builds.
+    const body = streamResponse.body;
+    if (!body) {
+      if (isCurrent()) {
+        set({ status: "error", error: "Stream body was empty", progress: null });
+        _runAbortController = null;
+      }
+      return null;
+    }
+    const reader = body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let finalResult: ScreenerResult | null = null;
+
+    /** Parse one SSE data line or bare NDJSON line into a frame object, or null. */
+    function parseLine(raw: string): Record<string, unknown> | null {
+      const trimmed = raw.trim();
+      if (!trimmed || trimmed.startsWith(":")) return null; // blank or comment
+      // Strip `data:` prefix (SSE format).
+      const jsonStr = trimmed.startsWith("data:") ? trimmed.slice(5).trim() : trimmed;
+      if (!jsonStr) return null;
+      try {
+        return JSON.parse(jsonStr) as Record<string, unknown>;
+      } catch {
+        return null;
+      }
+    }
+
+    function processFrame(frame: Record<string, unknown>) {
+      if (!isCurrent()) return;
+      if (frame.event === "progress") {
+        set({
+          progress: {
+            phase: String(frame.phase ?? ""),
+            done: Number(frame.done ?? 0),
+            total: Number(frame.total ?? 0),
+            detail: String(frame.detail ?? ""),
+          },
+        });
+      } else if (frame.event === "result") {
+        // The result frame carries the full ScreenerResult fields inline.
+        // Strip the envelope key so the shape matches ScreenerResult exactly.
+        const { event: _e, ...resultFields } = frame;
+        finalResult = resultFields as unknown as ScreenerResult;
+      }
+    }
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          // Flush the trailing decoder buffer (final frame without a trailing newline).
+          buffer += decoder.decode();
+          break;
+        }
+        if (controller.signal.aborted) break;
+        buffer += decoder.decode(value, { stream: true });
+        // Split on event boundaries. SSE uses \n\n; NDJSON uses \n. We handle both
+        // by splitting on \n and processing each data: line individually. Empty lines
+        // (the \n\n separator) are skipped by parseLine.
+        const lines = buffer.split("\n");
+        // The last element may be an incomplete line — keep it in the buffer.
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          const frame = parseLine(line);
+          if (frame) processFrame(frame);
+        }
+      }
+      // Process any remainder left in the buffer (final frame without trailing newline).
+      if (buffer.trim()) {
+        const frame = parseLine(buffer);
+        if (frame) processFrame(frame);
+        buffer = "";
+      }
+    } catch (readErr) {
+      if (!controller.signal.aborted && isCurrent()) {
+        const message = readErr instanceof Error ? readErr.message : "stream read failed";
+        set({ status: "error", error: message, progress: null });
+        _runAbortController = null;
+        return null;
+      }
+    } finally {
+      reader.releaseLock();
+    }
+    if (!isCurrent()) return null;
+    if (controller.signal.aborted) {
+      set({ status: "idle", progress: null });
+      _runAbortController = null;
+      return null;
+    }
+    if (!finalResult) {
+      set({ status: "error", error: "Stream ended without a result frame", progress: null });
+      _runAbortController = null;
+      return null;
+    }
+    set({ lastResult: finalResult, status: "ready", error: null, progress: null });
+    _runAbortController = null;
+    return finalResult;
+  },
+
+  cancelRun: () => {
+    _runAbortController?.abort();
+    _runAbortController = null;
+    set({ status: "idle", progress: null, error: null });
   },
 
   loadUniverse: async (id) => {
@@ -303,6 +609,46 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
     return request;
   },
 
+  saveScreen: (name) => {
+    const { universe, criteria, group, formula, combinator } = get();
+    const screen: SavedScreen = {
+      name,
+      universe,
+      criteria,
+      group: group ?? null,
+      formula: formula || undefined,
+      combinator,
+    };
+    set((state) => ({
+      savedScreens: [
+        // Replace any existing screen with the same name.
+        ...state.savedScreens.filter((s) => s.name !== name),
+        screen,
+      ],
+    }));
+  },
+
+  deleteScreen: (name) => {
+    set((state) => ({
+      savedScreens: state.savedScreens.filter((s) => s.name !== name),
+    }));
+  },
+
+  setSavedScreens: (screens) => set({ savedScreens: screens }),
+
+  loadScreen: (name) => {
+    const screen = get().savedScreens.find((s) => s.name === name);
+    if (!screen) return;
+    set({
+      universe: screen.universe,
+      criteria: screen.criteria,
+      group: screen.group ?? null,
+      formula: screen.formula ?? "",
+      combinator: screen.combinator,
+      advanced: hasNestedGroup(screen.group ?? null),
+    });
+  },
+
   __resetForTests: () =>
     set({
       universe: "sp500",
@@ -315,7 +661,9 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       lastResult: null,
       status: "idle",
       error: null,
+      progress: null,
       universeMeta: {},
       universeStatus: {},
+      savedScreens: [],
     }),
 }));

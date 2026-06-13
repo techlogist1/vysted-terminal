@@ -59,15 +59,54 @@ const RESULT_SAMPLE: ScreenerResult = {
   duration_ms: 320.0,
 };
 
+/** SSE streaming result — carries partial + freshness to verify header rendering. */
+const RESULT_WITH_PARTIAL: ScreenerResult = {
+  ...RESULT_SAMPLE,
+  partial: true,
+  coverage: "screened 100 of 500 — 400 unavailable",
+  freshness: {
+    quotes_as_of: 1_700_000_000,
+    valuation_as_of: 1_699_980_000,
+    deep_as_of: 1_699_400_000,
+  },
+};
+
+/** Real SSE wire format: `data: {json}\n\n` (backtest.py:195 precedent). */
+function makeStreamResponse(result: ScreenerResult): Response {
+  const progressFrame = `data: ${JSON.stringify({ event: "progress", phase: "sweep", done: 50, total: 100, detail: "sweeping quotes 50/100" })}\n\n`;
+  const resultFrame = `data: ${JSON.stringify({ event: "result", ...result })}\n\n`;
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encoder.encode(progressFrame));
+      controller.enqueue(encoder.encode(resultFrame));
+      controller.close();
+    },
+  });
+  return new Response(stream, {
+    status: 200,
+    headers: { "Content-Type": "text/event-stream" },
+  });
+}
+
+/** Fallback mock: /stream returns 404 (older sidecar), /screener/run returns the result.
+ *  Matches the streaming-first architecture added in R10. */
+function mockFetchFallback(result: ScreenerResult) {
+  return vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+    if (String(url).includes("/stream")) {
+      return new Response(null, { status: 404 });
+    }
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  });
+}
+
 beforeEach(() => {
   useScreenerStore.getState().__resetForTests();
   vi.mocked(sidecarGet).mockResolvedValue(UNIVERSE_SAMPLE);
-  vi.spyOn(globalThis, "fetch").mockResolvedValue(
-    new Response(JSON.stringify(RESULT_SAMPLE), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    }),
-  );
+  mockFetchFallback(RESULT_SAMPLE);
 });
 
 afterEach(() => {
@@ -118,5 +157,122 @@ describe("ScreenerPanel", () => {
     await waitFor(() => {
       expect(screen.getByText(/universe unreachable/)).toBeInTheDocument();
     });
+  });
+
+  it("Run button morphs to Cancel while the screener is running", async () => {
+    // Never-resolving stream: keeps the panel in loading state.
+    const neverStream = new ReadableStream({ start() {} });
+    vi.spyOn(globalThis, "fetch").mockReturnValue(
+      Promise.resolve(
+        new Response(neverStream, {
+          status: 200,
+          headers: { "Content-Type": "text/event-stream" },
+        }),
+      ),
+    );
+
+    render(<ScreenerPanel />);
+    expect(screen.getByTestId("run-screener-button")).toBeInTheDocument();
+    expect(screen.queryByTestId("cancel-screener-button")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("run-screener-button"));
+
+    await waitFor(() => {
+      expect(screen.queryByTestId("run-screener-button")).not.toBeInTheDocument();
+      expect(screen.getByTestId("cancel-screener-button")).toBeInTheDocument();
+    });
+  });
+
+  it("progress detail and bar render while the screener is loading", async () => {
+    // Stream that emits a progress frame then hangs (so we can assert the bar).
+    const encoder = new TextEncoder();
+    const progressFrame = `data: ${JSON.stringify({ event: "progress", phase: "sweep", done: 50, total: 100, detail: "sweeping quotes 50/100" })}\n\n`;
+    let streamController: ReadableStreamDefaultController<Uint8Array>;
+    const stream = new ReadableStream<Uint8Array>({
+      start(ctrl) {
+        streamController = ctrl;
+        ctrl.enqueue(encoder.encode(progressFrame));
+        // Do NOT close — hang so we can assert the loading state.
+      },
+    });
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(stream, { status: 200, headers: { "Content-Type": "text/event-stream" } }),
+    );
+
+    render(<ScreenerPanel />);
+    fireEvent.click(screen.getByTestId("run-screener-button"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("screener-progress")).toBeInTheDocument();
+      expect(screen.getByText(/sweeping quotes 50\/100/i)).toBeInTheDocument();
+    });
+
+    // Clean up the hanging stream.
+    streamController!.close();
+  });
+
+  it("result with partial=true renders the PARTIAL badge and coverage line", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(makeStreamResponse(RESULT_WITH_PARTIAL));
+    render(<ScreenerPanel />);
+    fireEvent.click(screen.getByTestId("run-screener-button"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("partial-badge")).toBeInTheDocument();
+      expect(screen.getByText(/screened 100 of 500/)).toBeInTheDocument();
+    });
+  });
+
+  it("partial=true without coverage still shows the PARTIAL badge", async () => {
+    const resultPartialNoCoverage: ScreenerResult = {
+      ...RESULT_SAMPLE,
+      partial: true,
+      coverage: null,
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(makeStreamResponse(resultPartialNoCoverage));
+    render(<ScreenerPanel />);
+    fireEvent.click(screen.getByTestId("run-screener-button"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("partial-badge")).toBeInTheDocument();
+    });
+  });
+
+  it("result with freshness renders all three tiers with correct labels", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(makeStreamResponse(RESULT_WITH_PARTIAL));
+    render(<ScreenerPanel />);
+    fireEvent.click(screen.getByTestId("run-screener-button"));
+
+    await waitFor(() => {
+      // All three freshness labels must appear.
+      expect(screen.getByText(/quotes .* ago/)).toBeInTheDocument();
+      expect(screen.getByText(/valuation .* ago/)).toBeInTheDocument();
+      expect(screen.getByText(/deep fields .* ago/)).toBeInTheDocument();
+    });
+  });
+
+  it("saved-screens strip: save, load, and delete a screen", async () => {
+    render(<ScreenerPanel />);
+    // Open the save input.
+    fireEvent.click(screen.getByTestId("open-save-screen"));
+    const input = screen.getByTestId("save-screen-input");
+    fireEvent.change(input, { target: { value: "My Value Screen" } });
+    fireEvent.click(screen.getByTestId("save-screen-confirm"));
+
+    // The saved chip appears.
+    await waitFor(() => {
+      expect(screen.getByTestId("load-screen-My Value Screen")).toBeInTheDocument();
+    });
+
+    // Load it back.
+    fireEvent.click(screen.getByTestId("load-screen-My Value Screen"));
+    // The store reflects the loaded screen name.
+    expect(useScreenerStore.getState().savedScreens[0]!.name).toBe("My Value Screen");
+
+    // Delete it.
+    fireEvent.click(screen.getByTestId("delete-screen-My Value Screen"));
+    await waitFor(() => {
+      expect(screen.queryByTestId("load-screen-My Value Screen")).not.toBeInTheDocument();
+    });
+    expect(useScreenerStore.getState().savedScreens).toHaveLength(0);
   });
 });

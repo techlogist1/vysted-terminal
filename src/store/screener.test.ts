@@ -1,14 +1,18 @@
 /**
- * Screener store tests — Phase 6 (Teammate Sc backend; v0.6.1 lead-completed frontend).
+ * Screener store tests — R10 update (Phase 6 original; v0.6.1 lead-completed frontend).
  *
- * The store's runs go through ``fetch`` (POST /screener/run) and
- * ``sidecarGet`` (GET /screener/universe). Both are mocked at the
- * module boundary.
+ * The store's runs now try POST /screener/run/stream first (R10 streaming
+ * contract), then fall back to POST /screener/run when the stream endpoint
+ * returns 404 (older sidecar). Tests mock fetch to return 404 on the stream
+ * endpoint and 200 on the unary endpoint so the fallback path is exercised;
+ * a separate streaming test wires up newline-delimited JSON frames. sidecarGet
+ * is still mocked for GET /screener/universe.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ScreenerResult, ScreenerUniverse } from "../../types/screener";
+import { deserializeSavedScreens, serializeSavedScreens, type SavedScreen } from "./screener";
 
 vi.mock("@/lib/sidecar-client", () => ({
   getSidecarBaseUrl: vi.fn().mockResolvedValue("http://127.0.0.1:9000"),
@@ -51,6 +55,13 @@ const RESULT_SAMPLE: ScreenerResult = {
     },
   ],
   duration_ms: 280.0,
+  partial: true,
+  coverage: "screened 100 of 500 — 400 unavailable",
+  freshness: {
+    quotes_as_of: 1_700_000_000,
+    valuation_as_of: 1_699_980_000,
+    deep_as_of: 1_699_400_000,
+  },
 };
 
 const UNIVERSE_SAMPLE: ScreenerUniverse = {
@@ -59,6 +70,44 @@ const UNIVERSE_SAMPLE: ScreenerUniverse = {
   symbols: ["AAPL", "MSFT", "NVDA"],
   asset_class: "equity",
 };
+
+/** Mock fetch so /screener/run/stream returns 404 (older sidecar simulation)
+ *  and /screener/run returns the given body. This exercises the fallback path. */
+function mockFetchFallback(result: ScreenerResult) {
+  return vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+    if (String(url).includes("/stream")) {
+      return new Response(null, { status: 404 });
+    }
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  });
+}
+
+/**
+ * Build a ReadableStream that yields real SSE frames: `data: {json}\n\n`
+ * matching the sidecar wire format (routers/backtest.py:195 _encode_event
+ * precedent: `f"data: {json}\n\n".encode()`).
+ *
+ * Emits one progress frame then one result frame.
+ */
+function makeStreamResponse(result: ScreenerResult): Response {
+  const progressFrame = `data: ${JSON.stringify({ event: "progress", phase: "sweep", done: 50, total: 100, detail: "sweeping quotes 50/100" })}\n\n`;
+  const resultFrame = `data: ${JSON.stringify({ event: "result", ...result })}\n\n`;
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encoder.encode(progressFrame));
+      controller.enqueue(encoder.encode(resultFrame));
+      controller.close();
+    },
+  });
+  return new Response(stream, {
+    status: 200,
+    headers: { "Content-Type": "text/event-stream" },
+  });
+}
 
 beforeEach(() => {
   useScreenerStore.getState().__resetForTests();
@@ -99,61 +148,194 @@ describe("useScreenerStore", () => {
   });
 
   describe("runScreener", () => {
-    it("posts /screener/run with the current draft and stores the result", async () => {
-      const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-        new Response(JSON.stringify(RESULT_SAMPLE), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        }),
-      );
+    it("falls back to /screener/run when /screener/run/stream returns 404 (older sidecar)", async () => {
+      const fetchMock = mockFetchFallback(RESULT_SAMPLE);
 
       const result = await useScreenerStore.getState().runScreener();
       expect(result).toEqual(RESULT_SAMPLE);
       expect(useScreenerStore.getState().lastResult).toEqual(RESULT_SAMPLE);
       expect(useScreenerStore.getState().status).toBe("ready");
 
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-      const [url, init] = fetchMock.mock.calls[0]!;
-      expect(String(url)).toContain("/screener/run");
+      // Two fetch calls: first /stream (404), then /screener/run (200).
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const [streamUrl] = fetchMock.mock.calls[0]!;
+      const [unaryUrl, init] = fetchMock.mock.calls[1]!;
+      expect(String(streamUrl)).toContain("/screener/run/stream");
+      expect(String(unaryUrl)).toContain("/screener/run");
       const body = JSON.parse(String(init!.body));
       expect(body.universe).toBe("sp500");
       expect(body.criteria).toHaveLength(3);
       expect(body.limit).toBe(200);
     });
 
+    it("consumes the streaming SSE endpoint: progress frame populates state, result frame finalizes", async () => {
+      // Capture progress state during the stream by spying on set before the run.
+      let capturedProgress: unknown = undefined;
+      const unsubscribe = useScreenerStore.subscribe((state) => {
+        if (state.progress !== null && capturedProgress === undefined) {
+          capturedProgress = { ...state.progress };
+        }
+      });
+
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(makeStreamResponse(RESULT_SAMPLE));
+
+      const result = await useScreenerStore.getState().runScreener();
+
+      unsubscribe();
+
+      // Result is correct.
+      expect(result).toEqual(RESULT_SAMPLE);
+      expect(useScreenerStore.getState().lastResult).toEqual(RESULT_SAMPLE);
+      expect(useScreenerStore.getState().status).toBe("ready");
+      // Progress clears after run.
+      expect(useScreenerStore.getState().progress).toBeNull();
+
+      // Progress frame WAS populated during the stream (not silently skipped).
+      expect(capturedProgress).toMatchObject({
+        phase: "sweep",
+        done: 50,
+        total: 100,
+        detail: "sweeping quotes 50/100",
+      });
+    });
+
+    it("streaming result exposes partial, coverage, and freshness on lastResult", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(makeStreamResponse(RESULT_SAMPLE));
+      await useScreenerStore.getState().runScreener();
+      const last = useScreenerStore.getState().lastResult;
+      expect(last?.partial).toBe(true);
+      expect(last?.coverage).toBe("screened 100 of 500 — 400 unavailable");
+      expect(last?.freshness?.quotes_as_of).toBe(1_700_000_000);
+      expect(last?.freshness?.valuation_as_of).toBe(1_699_980_000);
+      expect(last?.freshness?.deep_as_of).toBe(1_699_400_000);
+    });
+
+    it("cancelRun aborts the in-flight stream and sets status to idle", async () => {
+      // Use a controllable stream: we capture the abort signal from the fetch call
+      // and resolve a hanging read promise when abort fires.
+      let capturedSignal: AbortSignal | undefined;
+      let resolveHang!: () => void;
+      const hangPromise = new Promise<ReadableStreamReadResult<Uint8Array>>((resolve) => {
+        resolveHang = () => resolve({ done: true, value: undefined });
+      });
+
+      const stream = new ReadableStream<Uint8Array>({
+        pull(ctrl) {
+          // Enqueue one empty chunk so the stream looks open, then hang.
+          ctrl.enqueue(new Uint8Array(0));
+          // Return the hanging promise — the reader will block here.
+          return hangPromise.then(() => {});
+        },
+        cancel() {
+          resolveHang();
+        },
+      });
+
+      vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) => {
+        capturedSignal = (init as RequestInit | undefined)?.signal as AbortSignal | undefined;
+        if (capturedSignal) {
+          capturedSignal.addEventListener("abort", () => resolveHang());
+        }
+        return new Response(stream, {
+          status: 200,
+          headers: { "Content-Type": "text/event-stream" },
+        });
+      });
+
+      // Start the run but do not await it yet.
+      const runPromise = useScreenerStore.getState().runScreener();
+      // Yield to let the run kick off and reach the stream reader.
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(useScreenerStore.getState().status).toBe("loading");
+
+      // Cancel.
+      useScreenerStore.getState().cancelRun();
+      await runPromise;
+
+      expect(useScreenerStore.getState().status).toBe("idle");
+      expect(useScreenerStore.getState().progress).toBeNull();
+    }, 10000);
+
+    it("run B starting while run A is in flight does not let A clobber B's loading state", async () => {
+      // Run A: stream that hangs until its abort signal fires.
+      let resolveRunA!: () => void;
+      const runAHang = new Promise<void>((r) => {
+        resolveRunA = r;
+      });
+
+      const makeHangStream = (onAbort: () => void) => {
+        const stream = new ReadableStream<Uint8Array>({
+          pull(ctrl) {
+            ctrl.enqueue(new Uint8Array(0));
+            return runAHang.then(() => {});
+          },
+          cancel() {
+            onAbort();
+          },
+        });
+        return new Response(stream, {
+          status: 200,
+          headers: { "Content-Type": "text/event-stream" },
+        });
+      };
+
+      let runAFetchCount = 0;
+      vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) => {
+        runAFetchCount++;
+        if (runAFetchCount === 1) {
+          // Run A — hanging stream.
+          const signal = (init as RequestInit | undefined)?.signal as AbortSignal | undefined;
+          if (signal) signal.addEventListener("abort", () => resolveRunA());
+          return makeHangStream(() => resolveRunA());
+        }
+        // Run B — fast SSE result.
+        return makeStreamResponse(RESULT_SAMPLE);
+      });
+
+      const runAPromise = useScreenerStore.getState().runScreener();
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      expect(useScreenerStore.getState().status).toBe("loading");
+
+      // Run B starts while A is streaming — aborts A, installs B.
+      const runBPromise = useScreenerStore.getState().runScreener();
+      await runBPromise;
+      await runAPromise;
+
+      // B completes successfully; A's cleanup did NOT clobber B's result.
+      expect(useScreenerStore.getState().status).toBe("ready");
+      expect(useScreenerStore.getState().lastResult).toEqual(RESULT_SAMPLE);
+    }, 10000);
+
     it("for the custom universe, serialises custom_symbols from the raw text", async () => {
-      vi.spyOn(globalThis, "fetch").mockResolvedValue(
-        new Response(JSON.stringify(RESULT_SAMPLE), { status: 200 }),
-      );
+      const fetchMock = mockFetchFallback(RESULT_SAMPLE);
 
       useScreenerStore.getState().setUniverse("custom");
       useScreenerStore.getState().setCustomSymbols("aapl, msft\nnvda");
       await useScreenerStore.getState().runScreener();
 
-      const fetchMock = vi.mocked(globalThis.fetch);
-      const [, init] = fetchMock.mock.calls[0]!;
+      // call[0] = /stream (404), call[1] = /screener/run (200)
+      const [, init] = fetchMock.mock.calls[1]!;
       const body = JSON.parse(String(init!.body));
       expect(body.custom_symbols).toEqual(["AAPL", "MSFT", "NVDA"]);
     });
 
     it("combinator='and' (default) sends no group; criteria stay flat", async () => {
-      const fetchMock = vi
-        .spyOn(globalThis, "fetch")
-        .mockResolvedValue(new Response(JSON.stringify(RESULT_SAMPLE), { status: 200 }));
+      const fetchMock = mockFetchFallback(RESULT_SAMPLE);
       await useScreenerStore.getState().runScreener();
-      const [, init] = fetchMock.mock.calls[0]!;
+      // call[0] = /stream (404), call[1] = /screener/run (200)
+      const [, init] = fetchMock.mock.calls[1]!;
       const body = JSON.parse(String(init!.body));
       expect(body.group).toBeUndefined();
       expect(body.criteria).toHaveLength(3);
     });
 
     it("combinator='or' sends a flat OR group over the same criteria", async () => {
-      const fetchMock = vi
-        .spyOn(globalThis, "fetch")
-        .mockResolvedValue(new Response(JSON.stringify(RESULT_SAMPLE), { status: 200 }));
+      const fetchMock = mockFetchFallback(RESULT_SAMPLE);
       useScreenerStore.getState().setCombinator("or");
       await useScreenerStore.getState().runScreener();
-      const [, init] = fetchMock.mock.calls[0]!;
+      // call[0] = /stream (404), call[1] = /screener/run (200)
+      const [, init] = fetchMock.mock.calls[1]!;
       const body = JSON.parse(String(init!.body));
       expect(body.group).toBeDefined();
       expect(body.group.combinator).toBe("or");
@@ -163,9 +345,7 @@ describe("useScreenerStore", () => {
     });
 
     it("advanced mode sends the NESTED group tree verbatim", async () => {
-      const fetchMock = vi
-        .spyOn(globalThis, "fetch")
-        .mockResolvedValue(new Response(JSON.stringify(RESULT_SAMPLE), { status: 200 }));
+      const fetchMock = mockFetchFallback(RESULT_SAMPLE);
       const s = useScreenerStore.getState();
       s.setAdvanced(true);
       s.setGroup({
@@ -182,7 +362,8 @@ describe("useScreenerStore", () => {
         ],
       });
       await useScreenerStore.getState().runScreener();
-      const [, init] = fetchMock.mock.calls[0]!;
+      // call[0] = /stream (404), call[1] = /screener/run (200)
+      const [, init] = fetchMock.mock.calls[1]!;
       const body = JSON.parse(String(init!.body));
       expect(body.group.combinator).toBe("or");
       expect(body.group.criteria).toHaveLength(2);
@@ -192,9 +373,7 @@ describe("useScreenerStore", () => {
     });
 
     it("advanced mode with NO nesting falls back to the flat path (no group)", async () => {
-      const fetchMock = vi
-        .spyOn(globalThis, "fetch")
-        .mockResolvedValue(new Response(JSON.stringify(RESULT_SAMPLE), { status: 200 }));
+      const fetchMock = mockFetchFallback(RESULT_SAMPLE);
       const s = useScreenerStore.getState();
       s.setAdvanced(true);
       // A flat group of leaves under AND — expressible without `group`.
@@ -203,29 +382,28 @@ describe("useScreenerStore", () => {
         criteria: [{ field: "pe_ratio", operator: "lt", value: 15 }],
       });
       await useScreenerStore.getState().runScreener();
-      const [, init] = fetchMock.mock.calls[0]!;
+      // call[0] = /stream (404), call[1] = /screener/run (200)
+      const [, init] = fetchMock.mock.calls[1]!;
       const body = JSON.parse(String(init!.body));
       expect(body.group).toBeUndefined();
     });
 
     it("a custom formula rides the request — evaluated SERVER-SIDE (R7 Pillar 3)", async () => {
-      const fetchMock = vi
-        .spyOn(globalThis, "fetch")
-        .mockResolvedValue(new Response(JSON.stringify(RESULT_SAMPLE), { status: 200 }));
+      const fetchMock = mockFetchFallback(RESULT_SAMPLE);
       useScreenerStore.getState().setFormula("pe < 33 and roe > 0.1");
       await useScreenerStore.getState().runScreener();
-      const [, init] = fetchMock.mock.calls[0]!;
+      // call[0] = /stream (404), call[1] = /screener/run (200)
+      const [, init] = fetchMock.mock.calls[1]!;
       const body = JSON.parse(String(init!.body));
       expect(body.formula).toBe("pe < 33 and roe > 0.1");
     });
 
     it("a blank formula is stripped from the request (no-op filter)", async () => {
-      const fetchMock = vi
-        .spyOn(globalThis, "fetch")
-        .mockResolvedValue(new Response(JSON.stringify(RESULT_SAMPLE), { status: 200 }));
+      const fetchMock = mockFetchFallback(RESULT_SAMPLE);
       useScreenerStore.getState().setFormula("   ");
       await useScreenerStore.getState().runScreener();
-      const [, init] = fetchMock.mock.calls[0]!;
+      // call[0] = /stream (404), call[1] = /screener/run (200)
+      const [, init] = fetchMock.mock.calls[1]!;
       const body = JSON.parse(String(init!.body));
       expect(body.formula).toBeUndefined();
     });
@@ -272,6 +450,69 @@ describe("useScreenerStore", () => {
     });
   });
 
+  describe("savedScreens (R10 §2)", () => {
+    it("saveScreen persists the current draft under a name", () => {
+      useScreenerStore.getState().setFormula("pe < 15");
+      useScreenerStore.getState().saveScreen("Value Filter");
+      const screens = useScreenerStore.getState().savedScreens;
+      expect(screens).toHaveLength(1);
+      expect(screens[0]!.name).toBe("Value Filter");
+      expect(screens[0]!.formula).toBe("pe < 15");
+      expect(screens[0]!.universe).toBe("sp500");
+      expect(screens[0]!.criteria).toHaveLength(3);
+    });
+
+    it("saveScreen replaces an existing screen with the same name", () => {
+      useScreenerStore.getState().saveScreen("My Screen");
+      useScreenerStore.getState().setFormula("roe > 0.2");
+      useScreenerStore.getState().saveScreen("My Screen");
+      const screens = useScreenerStore.getState().savedScreens;
+      expect(screens).toHaveLength(1);
+      expect(screens[0]!.formula).toBe("roe > 0.2");
+    });
+
+    it("deleteScreen removes the named screen", () => {
+      useScreenerStore.getState().saveScreen("Alpha");
+      useScreenerStore.getState().saveScreen("Beta");
+      expect(useScreenerStore.getState().savedScreens).toHaveLength(2);
+      useScreenerStore.getState().deleteScreen("Alpha");
+      const screens = useScreenerStore.getState().savedScreens;
+      expect(screens).toHaveLength(1);
+      expect(screens[0]!.name).toBe("Beta");
+    });
+
+    it("deleteScreen on a missing name is a no-op", () => {
+      useScreenerStore.getState().saveScreen("Exists");
+      useScreenerStore.getState().deleteScreen("Does Not Exist");
+      expect(useScreenerStore.getState().savedScreens).toHaveLength(1);
+    });
+
+    it("loadScreen restores universe, criteria, formula, and combinator", () => {
+      useScreenerStore.getState().setUniverse("nifty50");
+      useScreenerStore.getState().setFormula("pe < 20");
+      useScreenerStore.getState().setCombinator("or");
+      useScreenerStore.getState().saveScreen("India Value");
+
+      // Mutate state to something else.
+      useScreenerStore.getState().setUniverse("sp500");
+      useScreenerStore.getState().setFormula("");
+      useScreenerStore.getState().setCombinator("and");
+
+      // Load the saved screen.
+      useScreenerStore.getState().loadScreen("India Value");
+      const s = useScreenerStore.getState();
+      expect(s.universe).toBe("nifty50");
+      expect(s.formula).toBe("pe < 20");
+      expect(s.combinator).toBe("or");
+    });
+
+    it("loadScreen on a missing name is a no-op", () => {
+      const before = useScreenerStore.getState().universe;
+      useScreenerStore.getState().loadScreen("Ghost");
+      expect(useScreenerStore.getState().universe).toBe(before);
+    });
+  });
+
   describe("loadUniverse", () => {
     it("loads + caches the universe metadata", async () => {
       vi.mocked(sidecarGet).mockResolvedValueOnce(UNIVERSE_SAMPLE);
@@ -291,5 +532,43 @@ describe("useScreenerStore", () => {
       expect(out).toBeNull();
       expect(sidecarGet).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe("serializeSavedScreens / deserializeSavedScreens (R10 workspace.ts seam)", () => {
+  const SAMPLE: SavedScreen[] = [
+    {
+      name: "Tech Value",
+      universe: "sp500",
+      criteria: [{ field: "pe_ratio", operator: "lt", value: 20 }],
+      combinator: "and",
+      formula: "roe > 0.15",
+    },
+  ];
+
+  it("round-trips cleanly through JSON", () => {
+    const raw = serializeSavedScreens(SAMPLE);
+    expect(deserializeSavedScreens(raw)).toEqual(SAMPLE);
+  });
+
+  it("deserializeSavedScreens returns [] for null/undefined/empty", () => {
+    expect(deserializeSavedScreens(null)).toEqual([]);
+    expect(deserializeSavedScreens(undefined)).toEqual([]);
+    expect(deserializeSavedScreens("")).toEqual([]);
+  });
+
+  it("deserializeSavedScreens drops entries missing name or universe", () => {
+    const garbage = JSON.stringify([
+      { name: "ok", universe: "sp500", criteria: [], combinator: "and" },
+      { universe: "sp500", criteria: [] }, // no name → dropped
+      { name: "x" }, // no universe → dropped
+    ]);
+    const result = deserializeSavedScreens(garbage);
+    expect(result).toHaveLength(1);
+    expect(result[0]!.name).toBe("ok");
+  });
+
+  it("deserializeSavedScreens returns [] on malformed JSON", () => {
+    expect(deserializeSavedScreens("{not valid json")).toEqual([]);
   });
 });

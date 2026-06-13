@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
-import { Play, AlertCircle } from "lucide-react";
+import { useCallback, useState } from "react";
+import { Play, Square, AlertCircle, BookmarkPlus, BookmarkX, FolderOpen } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
@@ -22,11 +22,22 @@ const UNIVERSE_LABELS: Record<ScreenerUniverseId, string> = {
   "india-all": "India — NSE + BSE",
 };
 
+/** Format an epoch-seconds timestamp as a human-ago string (e.g. "4m ago"). */
+function fmtAgo(epochSec: number): string {
+  const diffSec = Math.max(0, Math.floor(Date.now() / 1000) - epochSec);
+  if (diffSec < 60) return `${diffSec}s ago`;
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24) return `${diffH}h ago`;
+  return `${Math.floor(diffH / 24)}d ago`;
+}
+
 /**
- * Screener panel — Phase 6 (Teammate Sc backend / lead-completed frontend).
+ * Screener panel — R10 rebuild.
  *
- * Layout: universe picker (top row) + criteria builder (middle) +
- * "Run screener" action + results table (bottom). Default criteria
+ * Layout: universe picker (top row) + saved-screens strip + criteria builder +
+ * "Run / Cancel" action + results table (bottom). Default criteria
  * (P/E < 20 AND market cap > 100B AND sector = "Technology") are seeded
  * so the panel renders in a populated-state shape on first mount.
  */
@@ -39,21 +50,24 @@ export function ScreenerPanel() {
   const universeStatus = useScreenerStore((s) => s.universeStatus);
   const loadUniverse = useScreenerStore((s) => s.loadUniverse);
   const runScreener = useScreenerStore((s) => s.runScreener);
+  const cancelRun = useScreenerStore((s) => s.cancelRun);
   const status = useScreenerStore((s) => s.status);
   const error = useScreenerStore((s) => s.error);
+  const progress = useScreenerStore((s) => s.progress);
+  const lastResult = useScreenerStore((s) => s.lastResult);
+  const savedScreens = useScreenerStore((s) => s.savedScreens);
+  const saveScreen = useScreenerStore((s) => s.saveScreen);
+  const deleteScreen = useScreenerStore((s) => s.deleteScreen);
+  const loadScreen = useScreenerStore((s) => s.loadScreen);
+
+  const [saveName, setSaveName] = useState("");
+  const [showSaveInput, setShowSaveInput] = useState(false);
 
   // Load the selected universe's ticker metadata. Auto-retries on a cold-boot
   // sidecar bind (and re-arms on reconnect) so a panel mounted before the
   // sidecar was ready self-heals instead of latching a dead universe count.
-  // Re-arms per `universe` so switching universe loads the new one. The
-  // "custom" universe has no metadata to fetch, so it always resolves. The
-  // user-driven "Run screener" stays a separate explicit action.
-  // `loadUniverse` swallows its error into `universeStatus[id]` — re-throw on
-  // the error status to drive the retry hook.
   const loadDefault = useCallback(async () => {
-    if (universe === "custom") {
-      return;
-    }
+    if (universe === "custom") return;
     await loadUniverse(universe);
     if (useScreenerStore.getState().universeStatus[universe] === "error") {
       throw new Error(`Failed to load universe ${universe}`);
@@ -62,9 +76,35 @@ export function ScreenerPanel() {
   useRetryOnSidecarReady(loadDefault, [universe]);
 
   const universeInfo = universeMeta[universe];
+  const isRunning = status === "loading";
+
+  // Freshness label — three tiers with correct labels per the frozen contract:
+  //   quotes_as_of   → "quotes"       (600s quote tier)
+  //   valuation_as_of → "valuation"   (6h v7 valuation tier)
+  //   deep_as_of     → "deep fields"  (7d .info deep tier — ROE, margins, growth)
+  // Brief example: "quotes 4m ago · deep fields 2d ago" maps "deep fields"
+  // to deep_as_of, NOT valuation_as_of.
+  function freshnessLine(): string | null {
+    const f = lastResult?.freshness;
+    if (!f) return null;
+    const parts: string[] = [];
+    if (f.quotes_as_of) parts.push(`quotes ${fmtAgo(f.quotes_as_of)}`);
+    if (f.valuation_as_of) parts.push(`valuation ${fmtAgo(f.valuation_as_of)}`);
+    if (f.deep_as_of) parts.push(`deep fields ${fmtAgo(f.deep_as_of)}`);
+    return parts.length > 0 ? parts.join(" · ") : null;
+  }
+
+  const handleSave = () => {
+    const trimmed = saveName.trim();
+    if (!trimmed) return;
+    saveScreen(trimmed);
+    setSaveName("");
+    setShowSaveInput(false);
+  };
 
   return (
     <div className="flex h-full flex-col gap-3 overflow-hidden p-3">
+      {/* ── Universe picker row ─────────────────────────────────────────── */}
       <div className="border-border flex flex-wrap items-end gap-3 border-b pb-3">
         <div className="flex flex-col gap-1">
           <label
@@ -120,29 +160,68 @@ export function ScreenerPanel() {
         {universe === "custom" && customSymbols.trim() === "" && (
           <span className="text-warning text-micro">Enter at least one ticker to screen.</span>
         )}
+        {/* Run / Cancel morph button */}
         <div className="ml-auto">
-          <Button
-            onClick={() => void runScreener()}
-            disabled={
-              status === "loading" || (universe === "custom" && customSymbols.trim() === "")
-            }
-            data-testid="run-screener-button"
-          >
-            <Play className="mr-1" />
-            {status === "loading" ? "Running…" : "Run screener"}
-          </Button>
+          {isRunning ? (
+            <Button onClick={cancelRun} variant="outline" data-testid="cancel-screener-button">
+              <Square className="mr-1 size-3.5" />
+              Cancel
+            </Button>
+          ) : (
+            <Button
+              onClick={() => void runScreener()}
+              disabled={universe === "custom" && customSymbols.trim() === ""}
+              data-testid="run-screener-button"
+            >
+              <Play className="mr-1 size-3.5" />
+              Run screener
+            </Button>
+          )}
         </div>
       </div>
 
+      {/* ── Progress line (R10 D40: honest, not spinner-forever) ────────── */}
+      {isRunning && (
+        <div className="shrink-0 space-y-1" data-testid="screener-progress">
+          <div className="text-muted-foreground text-caption tabular-nums">
+            {progress
+              ? progress.detail
+              : // No progress frames yet — be honest: we are sending the request.
+                // On the streaming path this resolves quickly; on the unary fallback
+                // progress stays null for the entire run so we label it accordingly.
+                "Sending request…"}
+          </div>
+          {/* Determinate 2px progress bar — zinc-700 track, lume fill.
+              When progress is null (e.g. unary path), show a thin indeterminate
+              pulse rather than a 0% bar that falsely implies 0% done. */}
+          {progress ? (
+            <div className="bg-charcoal-700 h-0.5 w-full overflow-hidden rounded-none">
+              <div
+                className="bg-lume h-full transition-[width] duration-300"
+                style={{
+                  width:
+                    progress.total > 0
+                      ? `${Math.min(100, (progress.done / progress.total) * 100).toFixed(1)}%`
+                      : "0%",
+                }}
+              />
+            </div>
+          ) : (
+            <div className="bg-charcoal-700 h-0.5 w-full overflow-hidden rounded-none">
+              <div className="bg-lume h-full w-1/3 animate-pulse transition-[width] duration-300" />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Error banner ──────────────────────────────────────────────────── */}
       {error && (
-        // Design law: signal colors are text + a 1px marker, never a filled
-        // background — the destructive tone rides the border and the copy only.
         <div className="border-destructive/40 text-destructive text-body flex items-center gap-2 rounded-none border px-3 py-2">
           <AlertCircle className="size-4 shrink-0" />
           <span className="flex-1">
-            {error.startsWith("POST /screener/run failed")
+            {error.startsWith("POST /screener/run")
               ? "Screener failed: " +
-                error.replace(/^POST \/screener\/run failed \(\d+\):\s*/, "").slice(0, 120)
+                error.replace(/^POST \/screener\/run\S* failed \(\d+\):\s*/, "").slice(0, 120)
               : error.slice(0, 120)}
           </span>
           <button
@@ -152,6 +231,118 @@ export function ScreenerPanel() {
           >
             Retry
           </button>
+        </div>
+      )}
+
+      {/* ── Saved-screens strip ───────────────────────────────────────────── */}
+      <div className="shrink-0 space-y-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-muted-foreground text-micro shrink-0 tracking-wide uppercase">
+            {">"} Saved
+          </span>
+          {savedScreens.length === 0 && (
+            <span className="text-muted-foreground text-micro">No saved screens</span>
+          )}
+          {savedScreens.map((screen) => (
+            <div key={screen.name} className="flex items-center">
+              <button
+                type="button"
+                onClick={() => loadScreen(screen.name)}
+                className="border-border bg-charcoal-850 text-muted-foreground rounded-control text-micro hover:border-charcoal-500 hover:text-charcoal-100 border px-2 py-0.5 transition-colors"
+                data-testid={`load-screen-${screen.name}`}
+              >
+                <FolderOpen className="mr-1 inline size-3" />
+                {screen.name}
+              </button>
+              <button
+                type="button"
+                onClick={() => deleteScreen(screen.name)}
+                aria-label={`Delete saved screen ${screen.name}`}
+                className="text-muted-foreground hover:text-destructive ml-0.5 p-0.5 transition-colors"
+                data-testid={`delete-screen-${screen.name}`}
+              >
+                <BookmarkX className="size-3" />
+              </button>
+            </div>
+          ))}
+          {/* Save current screen — inline name input, not a modal */}
+          {showSaveInput ? (
+            <div className="flex items-center gap-1">
+              <input
+                type="text"
+                value={saveName}
+                onChange={(e) => setSaveName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSave();
+                  if (e.key === "Escape") {
+                    setShowSaveInput(false);
+                    setSaveName("");
+                  }
+                }}
+                placeholder="Screen name…"
+                autoFocus
+                className="border-border bg-charcoal-850 rounded-control text-caption h-6 border px-2"
+                data-testid="save-screen-input"
+              />
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saveName.trim() === ""}
+                className="text-micro text-muted-foreground hover:text-charcoal-100 disabled:opacity-40"
+                data-testid="save-screen-confirm"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSaveInput(false);
+                  setSaveName("");
+                }}
+                className="text-micro text-muted-foreground hover:text-charcoal-100"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowSaveInput(true)}
+              className="border-border bg-charcoal-850 text-muted-foreground rounded-control text-micro hover:border-charcoal-500 hover:text-charcoal-100 border px-2 py-0.5 transition-colors"
+              data-testid="open-save-screen"
+            >
+              <BookmarkPlus className="mr-1 inline size-3" />
+              Save screen
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── Result header: coverage + PARTIAL badge + freshness ───────────── */}
+      {lastResult && (
+        <div className="shrink-0 space-y-0.5">
+          {/* PARTIAL badge: shown whenever partial=true, independent of coverage.
+              VYSTED_DESIGN.md:458 — signal colors appear as text or 1px markers,
+              never a filled background. Badge is text-only (text-warning), no bg. */}
+          {lastResult.partial && (
+            <div className="text-caption flex items-center gap-2">
+              <span
+                className="text-warning text-micro border-warning/50 rounded-none border px-1 py-0.5 font-medium tracking-wide uppercase"
+                data-testid="partial-badge"
+              >
+                PARTIAL
+              </span>
+              {lastResult.coverage && (
+                <span className="text-muted-foreground">{lastResult.coverage}</span>
+              )}
+            </div>
+          )}
+          {!lastResult.partial && lastResult.coverage && (
+            <div className="text-muted-foreground text-caption">{lastResult.coverage}</div>
+          )}
+          {freshnessLine() && (
+            <div className="text-muted-foreground text-micro">{freshnessLine()}</div>
+          )}
         </div>
       )}
 

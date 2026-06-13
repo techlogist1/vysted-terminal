@@ -205,3 +205,72 @@ export const usePortfoliosStore = create<PortfoliosState>((set) => ({
       return { portfolios: cleaned, activeId: valid };
     }),
 }));
+
+// ---------------------------------------------------------------------------
+// Typed client for the host-action apply path (R10 §4 / E6).
+// Team FRONTEND-BRIEF's portfolio_add/update/delete_position apply cases import
+// from here. Holdings are stored locally (workspace blob) — no sidecar CRUD.
+// ---------------------------------------------------------------------------
+
+/**
+ * Add a position to the active portfolio.
+ *
+ * Returns the genuine holding id of the appended position, or `null` when the
+ * add was a no-op (e.g. empty/whitespace symbol rejected by normalizeHolding).
+ * The host-action apply path MUST check for null and report an honest failure
+ * rather than narrating a write that never landed (E3/E6 defect class).
+ */
+export function addPosition(input: HoldingInput): string | null {
+  const { activeId, addHolding } = usePortfoliosStore.getState();
+  // Snapshot the holdings count before the mutation.
+  const before =
+    usePortfoliosStore.getState().portfolios.find((p) => p.id === activeId)?.holdings.length ?? 0;
+  addHolding(activeId, input);
+  // Re-read after mutation.
+  const after = usePortfoliosStore.getState().portfolios.find((p) => p.id === activeId);
+  if (!after || after.holdings.length <= before) {
+    // normalizeHolding rejected the input — nothing was appended.
+    return null;
+  }
+  // The last holding is the one just appended (store appends to the end).
+  return after.holdings[after.holdings.length - 1]!.id;
+}
+
+/**
+ * Update an existing holding in the active portfolio by holding id.
+ *
+ * The caller MUST supply the full HoldingInput (symbol, quantity, costBasis,
+ * assetClass). Missing fields are NOT merged over the existing holding —
+ * normalizeHolding coerces missing numerics to 0. Merge from existing state
+ * before calling if a partial update is needed. Returns true when the holding
+ * was found and updated, false when not found or normalizeHolding rejected the
+ * input (e.g. empty symbol). A false return means no state change occurred.
+ */
+export function updatePosition(holdingId: string, input: HoldingInput): boolean {
+  const store = usePortfoliosStore.getState();
+  const portfolio = store.portfolios.find((p) => p.id === store.activeId);
+  if (!portfolio) return false;
+  const exists = portfolio.holdings.some((h) => h.id === holdingId);
+  if (!exists) return false;
+  store.updateHolding(store.activeId, holdingId, input);
+  // updateHolding is a no-op if normalizeHolding returns null (empty symbol).
+  // Re-read to verify the update landed.
+  const updated = usePortfoliosStore
+    .getState()
+    .portfolios.find((p) => p.id === store.activeId)
+    ?.holdings.find((h) => h.id === holdingId);
+  return !!updated;
+}
+
+/** Remove a holding from the active portfolio by holding id. */
+export function deletePosition(holdingId: string): void {
+  const store = usePortfoliosStore.getState();
+  store.removeHolding(store.activeId, holdingId);
+}
+
+/** No-op refresh — holdings are local-state; the panel subscribes reactively.
+ *  Exported to satisfy the host-action apply path's expected typed surface. */
+export function refresh(): void {
+  // Local-state portfolio — React subscribers update synchronously on any store
+  // mutation. No async fetch needed.
+}
