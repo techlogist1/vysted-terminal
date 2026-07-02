@@ -1,0 +1,1433 @@
+[
+ {
+  "symbol": "ASIANPAINT",
+  "entity_identity": {
+   "true_company_name": "Asian Paints Ltd",
+   "matches_expected": true,
+   "note": "NSE:ASIANPAINT correctly maps to Asian Paints Ltd, India's largest decorative-paints/home-decor company. No demerger or ticker reassignment. Face value Re 1; ~95.9 cr shares outstanding. Confirmed via screener.in, finology, NSE quote page, and FY26 result filings."
+  },
+  "figures": [
+   {
+    "field": "price",
+    "in_app": "2747.4",
+    "external": "2747.40",
+    "source": "finology/screener.in/groww, NSE close as-of 12 Jun 2026 (last trading day)",
+    "delta_note": "0% delta. Exact match to last NSE close Fri 12-Jun-2026.",
+    "flag": "ok"
+   },
+   {
+    "field": "mcap_cr",
+    "in_app": "263377.9",
+    "external": "263530",
+    "source": "screener.in & finology, as-of 12 Jun 2026",
+    "delta_note": "+0.06% delta (~152 cr). Trivial rounding diff in share-count assumption. price 2747.4 x ~95.87 cr shares = 263,378 cr, internally consistent.",
+    "flag": "ok"
+   },
+   {
+    "field": "pe_ratio",
+    "in_app": "60.97",
+    "external": "59.4 (screener) / 62.07-62.09 (finology, marketscreener)",
+    "source": "screener.in & finology, as-of 12 Jun 2026",
+    "delta_note": "App 60.97 sits between independent TTM-P/E reads of 59.4 and 62.1; within ~2-3%. Differences are TTM-EPS denominator conventions.",
+    "flag": "ok"
+   },
+   {
+    "field": "price_to_book",
+    "in_app": "12.32",
+    "external": "12.3 (screener) / 12.72 (finology)",
+    "source": "screener.in & finology, as-of 12 Jun 2026; book value ~Rs 215-223",
+    "delta_note": "+0.2% vs screener, -3.1% vs finology. Within tolerance.",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_per_share",
+    "in_app": "27.5",
+    "external": "27.50",
+    "source": "upstox/whalesbook FY26 result filing: Rs 23 final + Rs 4.50 interim (Nov 2025) = Rs 27.50",
+    "delta_note": "0% delta. Exact match to total FY26 declared dividend.",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_yield",
+    "in_app": "0.01 (1.00%)",
+    "external": "1.00%",
+    "source": "screener.in & finology, as-of 12 Jun 2026",
+    "delta_note": "0% delta. 27.50/2747.4 = 1.00%. Matches.",
+    "flag": "ok"
+   },
+   {
+    "field": "eps",
+    "in_app": "45.06",
+    "external": "45.09-45.12 (FY26 annual, screener/whalesbook); 44.25 (finology TTM)",
+    "source": "screener.in (Mar-2026 annual EPS 45.09), whalesbook FY26 EPS 45.12; finology TTM 44.25",
+    "delta_note": "-0.07% vs FY26 annual EPS. Essentially exact (app value matches full-year FY26 EPS, not the slightly lower TTM). PAT 4325 cr / 95.9 cr sh = ~45.1.",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_high",
+    "in_app": "2985.7",
+    "external": "2985.70",
+    "source": "nseindia/moneycontrol/finology, as-of 12 Jun 2026",
+    "delta_note": "0% delta. Exact match.",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_low",
+    "in_app": "2115",
+    "external": "2115.00",
+    "source": "nseindia/finology, as-of 12 Jun 2026",
+    "delta_note": "0% delta. Exact match.",
+    "flag": "ok"
+   },
+   {
+    "field": "roe",
+    "in_app": "0.2089 (20.89%)",
+    "external": "21.8% (screener latest) / 21.41% (finology)",
+    "source": "screener.in & finology, as-of 12 Jun 2026",
+    "delta_note": "-4.2% to -2.4% vs independent reads (21.4-21.8%). Within tolerance; minor methodology diff (avg vs year-end equity).",
+    "flag": "ok"
+   },
+   {
+    "field": "revenue_growth",
+    "in_app": "0.106 (10.6%)",
+    "external": "FY26 full-year revenue growth ~4.9-5.1% (35,583 cr vs 33,906 cr). 10.6% is the Q4-FY26 YoY revenue figure, NOT annual.",
+    "source": "whalesbook/upstox FY26 result filing & screener.in annual P&L",
+    "delta_note": "MISLABEL: app's 10.6% equals Q4 FY26 quarterly YoY revenue growth (9,247 cr +10.6%), not the latest ANNUAL growth which is ~4.9-5.1%. As an annual-growth field it overstates by ~2x (delta ~+108%).",
+    "flag": "MISMATCH"
+   },
+   {
+    "field": "earnings_growth",
+    "in_app": "0.692 (69.2%)",
+    "external": "FY26 full-year PAT growth ~16.6% (4,325 cr vs 3,710 cr). 69.2% is the Q4-FY26 YoY PAT figure (+69.3%), NOT annual.",
+    "source": "univest/groww/whalesbook FY26 result filing & screener.in annual P&L",
+    "delta_note": "MISLABEL: app's 69.2% equals Q4 FY26 quarterly YoY PAT growth (+69.3%), not the latest ANNUAL earnings growth which is ~16.6%. As an annual-growth field it overstates by ~4x (delta ~+317%).",
+    "flag": "MISMATCH"
+   }
+  ],
+  "biggest_discrepancies": [
+   "earnings_growth 0.692 (69.2%) is the Q4-FY26 quarterly YoY PAT jump (+69.3%), mislabeled as annual earnings growth; true FY26 full-year PAT growth is ~16.6% (4,325 cr vs 3,710 cr). Overstated ~4x.",
+   "revenue_growth 0.106 (10.6%) is the Q4-FY26 quarterly YoY revenue figure, mislabeled as annual; true FY26 full-year revenue growth is ~4.9-5.1% (35,583 cr vs 33,906 cr). Overstated ~2x.",
+   "Both growth errors share a single root cause: the data pipeline is taking the most-recent QUARTER's YoY growth and presenting it as the latest ANNUAL growth. Asian Paints had a depressed Q4-FY25 base, so the Q4 jump looks dramatic and is misleading at the annual level."
+  ],
+  "net_verdict": "Entity identity is correct (Asian Paints Ltd, NSE:ASIANPAINT, no demerger issue). 10 of 12 numeric fields are accurate and tightly match independent sources (screener.in, finology, NSE, FY26 result filings): price 2747.4, mcap 263,378 cr, P/E ~61, P/B 12.3, dividend 27.5/1.00% yield, EPS 45.06, 52wk high 2985.7, 52wk low 2115, ROE ~21%. Market-cap sanity check passes (price x ~95.9 cr shares = reported mcap; EPS x shares = FY26 PAT). The TWO failures are both growth fields: earnings_growth (69.2%) and revenue_growth (10.6%) are actually the latest QUARTER's (Q4-FY26) YoY figures masquerading as ANNUAL growth. True full-year FY26 growth is ~16.6% PAT and ~5% revenue. This is a systematic quarterly-vs-annual mislabel in the source pipeline, not random noise, and it materially overstates the company's growth trajectory (Asian Paints is in a low-single-digit-revenue-growth phase, not a 10%+ grower). Net: valuation/price data is reliable; treat the two growth metrics as wrong.",
+  "sources_used": [
+   "screener.in/company/ASIANPAINT/consolidated (as-of 12 Jun 2026): mcap, P/E 59.4, P/B 12.3, book value ~223, EPS 45.09, ROE 21.8%, annual sales growth 4.9%",
+   "ticker.finology.in/company/ASIANPAINT (as-of 12 Jun 2026): mcap 263,530 cr, P/E 62.09, P/B 12.72, ROE 21.41%, EPS TTM 44.25, div 27.5/1.00%, 52wk hi/lo, profit growth 18.29% / sales growth 4.12%",
+   "upstox.com & whalesbook.com FY26 result filings: final dividend Rs 23 + interim Rs 4.50 = Rs 27.50; Q4-FY26 PAT +69.3%, Q4 revenue +10.6%; FY26 revenue 35,583 cr, PAT 4,325 cr, EPS ~45.12; FY25 revenue 33,906 cr, PAT 3,710 cr",
+   "univest.in & groww.in Q4-FY26 result coverage: PAT 1,172 cr up 69%, final dividend Rs 23",
+   "nseindia / moneycontrol / kotakneo: 52-week high 2985.70, low 2115.00, last NSE price 2747.40"
+  ]
+ },
+ {
+  "symbol": "TITAN (NSE)",
+  "entity_identity": {
+   "true_company_name": "Titan Company Ltd",
+   "matches_expected": true,
+   "note": "NSE:TITAN correctly maps to Titan Company Ltd (Tata Group jewellery/watches/eyewear, large-cap, market rank ~19). No demerger or symbol-change issue. Confirmed via screener.in, tickertape, stockanalysis (all non-Yahoo). Note one screener fetch labeled the close date '12 June 2025' but paired it with FY2026 financials and the FY26 close price, so that is a date-label typo; the as-of close is Fri 12-Jun-2026."
+  },
+  "figures": [
+   {
+    "field": "current_price",
+    "in_app": "4184",
+    "external": "~4184 (also 4111.60 / ~4025 intraday-or-prior quotes seen)",
+    "source": "stockanalysis.com + tickertape.in, close 12-Jun-2026 3:30pm IST",
+    "delta_note": "0% vs primary independent close of 4184 on 12-Jun-2026. Some sources showed 4111-4025 (intraday/prior-day timestamps); the 4184 close is corroborated by 3 non-Yahoo sources. Stock was up ~3.95% on the day.",
+    "flag": "ok"
+   },
+   {
+    "field": "market_cap_cr",
+    "in_app": "371139.7",
+    "external": "371139-371450 Cr (tickertape 371139; screener 371450)",
+    "source": "tickertape.in / screener.in, 12-Jun-2026",
+    "delta_note": "~0% vs 371139 Cr. Sanity check: 371139.7cr / 4184 = ~88.7 cr shares, consistent with Titan's ~88.77 cr shares outstanding. Internally consistent.",
+    "flag": "ok"
+   },
+   {
+    "field": "pe_ratio",
+    "in_app": "72.99",
+    "external": "72.2-73.27 (screener 72.2; tickertape 73.16; stockanalysis 73.27)",
+    "source": "screener.in / tickertape.in / stockanalysis.com, 11-12 Jun 2026",
+    "delta_note": "<1% delta. Check: 4184/57.32 EPS = 73.0, internally consistent. (Screener's 70.44 figure from earlier search was at the lower 11-Jun price of ~4025.)",
+    "flag": "ok"
+   },
+   {
+    "field": "price_to_book",
+    "in_app": "23.66",
+    "external": "22.76-23.6 (screener 23.6x at book value ~177; businesstoday 22.76 at 11-Jun lower price)",
+    "source": "screener.in, 12-Jun-2026 (book value ~177)",
+    "delta_note": "~0-4% delta. Check: 4184/177 book value = 23.64, internally consistent. (Tickertape's 31.93 PB is an outlier/erroneous; screener and direct calc both give ~23.6.)",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_per_share",
+    "in_app": "11",
+    "external": "11.00 (record date 08-Jul-2025); FY26 final of 15.00 declared but record/payment after 29-Jun-2026, not yet in TTM",
+    "source": "choiceindia.com dividend history + stockanalysis.com DPS(TTM), Jun 2026",
+    "delta_note": "0% as a trailing figure. The 11 is the actual paid dividend (TTM). Titan declared a HIGHER 15/share final for FY26 at Q4 results, but its ex/record date falls later so it is correctly not yet reflected. Forward-looking users should note 15 is coming.",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_yield",
+    "in_app": "0.0026",
+    "external": "0.26% (=0.0026)",
+    "source": "stockanalysis.com / screener.in, 12-Jun-2026",
+    "delta_note": "Exact match. 11/4184 = 0.263%. Consistent.",
+    "flag": "ok"
+   },
+   {
+    "field": "eps",
+    "in_app": "57.32",
+    "external": "57.14-57.19 (screener 57.14; tickertape 57.19; stockanalysis 57.16)",
+    "source": "screener.in / tickertape.in / stockanalysis.com, Jun 2026 (FY26 TTM)",
+    "delta_note": "<0.4% delta. All independent sources cluster at 57.1-57.2 vs app 57.32. Effectively identical.",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_high",
+    "in_app": "4605",
+    "external": "4605.00",
+    "source": "screener.in / tickertape.in / stockanalysis.com, Jun 2026",
+    "delta_note": "Exact match across all sources.",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_low",
+    "in_app": "3303.1",
+    "external": "3303.10 (screener showed 3301)",
+    "source": "tickertape.in / stockanalysis.com, Jun 2026",
+    "delta_note": "~0% delta (3303.10 vs 3303.1; screener rounded to 3301). Match.",
+    "flag": "ok"
+   },
+   {
+    "field": "roe",
+    "in_app": "0.3713",
+    "external": "37.7%",
+    "source": "screener.in, Jun 2026",
+    "delta_note": "~0.5% delta (37.13% app vs 37.7% screener). Match.",
+    "flag": "ok"
+   },
+   {
+    "field": "revenue_growth",
+    "in_app": "0.805",
+    "external": "~44.9% (FY26 sales 87,584 Cr vs FY25 60,456 Cr = +44.87%)",
+    "source": "screener.in / stockanalysis.com FY26 annuals",
+    "delta_note": "App 80.5% vs independent ~44.9% latest ANNUAL revenue growth = ~79% overstatement, MISMATCH. App figure likely a TTM-vs-stale base, a quarterly YoY (e.g. a single segment/quarter), or a yfinance revenueGrowth field artifact. No independent source supports 80.5% annual revenue growth.",
+    "flag": "MISMATCH"
+   },
+   {
+    "field": "earnings_growth",
+    "in_app": "0.351",
+    "external": "~52% (FY26 PAT 5,073 Cr vs FY25 3,337 Cr = +52.0%); Q4FY26 PAT +35.36%",
+    "source": "screener.in / univest / stockanalysis FY26 annuals + Q4 result",
+    "delta_note": "App 35.1% does NOT match full-year FY26 PAT growth of ~52%. It DOES closely match the Q4-FY26 standalone-or-consolidated net-profit growth of +35.36% reported at results. So the app appears to be reporting a QUARTERLY earnings growth, not annual. Flagged watch: right ballpark but wrong period vs the requested 'latest annual'.",
+    "flag": "watch"
+   }
+  ],
+  "net_verdict": "STRONG OVERALL MATCH on price-driven and balance-sheet figures; TWO growth-rate problems. Identity is correct: NSE:TITAN = Titan Company Ltd, no demerger/symbol issue. 10 of 12 figures verify cleanly against non-Yahoo sources (screener.in, tickertape, stockanalysis, choiceindia) as of 11-12 Jun 2026: price 4184, mcap ~371,140 Cr, PE ~73, PB ~23.6, EPS ~57.2, 52w high 4605, 52w low 3303.1, ROE ~37.7%, dividend 11/share, yield 0.26%. Internal consistency holds (price/EPS=PE, price/BV=PB, mcap/price=~88.7cr shares = actual share count). The dividend 11 is the correct TTM figure even though a larger 15/share FY26 final has been declared (record date after 29-Jun-2026, not yet in TTM). The two real discrepancies: (1) revenue_growth 80.5% is a hard MISMATCH \u2014 true FY26 annual revenue growth is ~44.9%; the 80.5% is not supported by any independent source and looks like a TTM/quarterly/yfinance artifact. (2) earnings_growth 35.1% is a period mismatch \u2014 true FY26 annual PAT growth is ~52%, but 35.1% matches the Q4-FY26 net-profit growth of +35.36%, so the app is showing quarterly rather than annual earnings growth. Both growth fields should be treated with caution.",
+  "biggest_discrepancies": [
+   "revenue_growth: app 80.5% vs independent FY26 annual ~44.9% \u2014 MISMATCH (~79% overstated), unsupported by any source, likely a yfinance/TTM artifact",
+   "earnings_growth: app 35.1% vs FY26 annual PAT growth ~52% \u2014 but 35.1% matches Q4-FY26 net profit growth of +35.36%, so it is a quarterly figure mislabeled as latest-annual",
+   "dividend_per_share: app 11 is correct as TTM, but note a larger FY26 final dividend of 15/share has been declared (record date after 29-Jun-2026) and will raise the trailing figure soon"
+  ],
+  "sources_used": [
+   "screener.in/company/TITAN/consolidated (11-12 Jun 2026)",
+   "tickertape.in/stocks/titan-company-TITN (12 Jun 2026)",
+   "stockanalysis.com/quote/nse/TITAN (12 Jun 2026 3:30pm IST close)",
+   "choiceindia.com dividend history (Jun 2026)",
+   "businesstoday.in stocks/titan (11 Jun 2026)",
+   "univest.in Titan Q4 FY26 results",
+   "valueresearchonline / equitybulls (dividend Rs 15 FY26 declaration)"
+  ]
+ },
+ {
+  "symbol": "SUNPHARMA",
+  "entity_identity": {
+   "true_company_name": "Sun Pharmaceutical Industries Ltd",
+   "matches_expected": true,
+   "note": "NSE ticker SUNPHARMA correctly maps to Sun Pharmaceutical Industries Ltd, India's largest pharma company. No demerger/symbol change. Confirmed via screener.in, tickertape, businesstoday, and company FY26 press release (sunpharma.com)."
+  },
+  "figures": [
+   {
+    "field": "price",
+    "in_app": "1807.7",
+    "external": "1807.70",
+    "source": "tickertape.in + indmoney + businesstoday, as-of 2026-06-12 (last NSE trading day)",
+    "delta_note": "0% \u2014 exact match",
+    "flag": "ok"
+   },
+   {
+    "field": "mcap_cr",
+    "in_app": "433727.8",
+    "external": "433727.78 cr",
+    "source": "tickertape.in / indmoney, as-of 2026-06-12",
+    "delta_note": "0% \u2014 exact match",
+    "flag": "ok"
+   },
+   {
+    "field": "pe_ratio",
+    "in_app": "37.88",
+    "external": "34.8 (screener.in, EPS ~51.9 basis) to 37.78 (tickertape, EPS ~47.8 basis)",
+    "source": "screener.in & tickertape.in, as-of 2026-06-12",
+    "delta_note": "App 37.88 vs tickertape 37.78 = +0.3%; vs screener 34.8 = +8.8%. Spread driven by which EPS the source uses. All within ~10%.",
+    "flag": "ok"
+   },
+   {
+    "field": "price_to_book",
+    "in_app": "5.2",
+    "external": "5.15-5.2",
+    "source": "screener.in (5.2, book value ~348) & tickertape (P/B section), as-of 2026-06-12",
+    "delta_note": "~0-1% \u2014 match. (One scrape returned 5.98 but that conflicts with screener's explicit BV \u20b9348 -> 5.2; treating 5.15-5.2 as the reliable figure.)",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_yield",
+    "in_app": "0.0089 (0.89%)",
+    "external": "0.89%",
+    "source": "tickertape.in / indmoney, as-of 2026-06-12",
+    "delta_note": "0% \u2014 exact match (DPS 16 / price 1807.7 = 0.885%, internally consistent)",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_per_share",
+    "in_app": "16",
+    "external": "16.00 (\u20b911 interim + \u20b95 final, FY26)",
+    "source": "businesstoday.in (FY26 final dividend) + outlookbusiness + psuconnect (Q3 \u20b911 interim), as-of FY26 / record date 2026-06",
+    "delta_note": "0% \u2014 exact match; full-year FY26 total confirmed \u20b916",
+    "flag": "ok"
+   },
+   {
+    "field": "eps",
+    "in_app": "47.72",
+    "external": "46.76 (FY26 reported) to 47.80 (tickertape TTM); screener shows 51.92",
+    "source": "tickertape.in (47.80 TTM), FY26 results (46.76), screener.in (51.92), as-of 2026-06-12 / FY26",
+    "delta_note": "App 47.72 ~ matches tickertape 47.80 (-0.2%) and FY26 ~46.76 (+2%). Screener's 51.92 is ~9% higher (likely a different TTM/consolidated basis). Within ~10% of the consensus cluster.",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_high",
+    "in_app": "1916.6",
+    "external": "1916.60 (~1917)",
+    "source": "tickertape.in / indmoney, as-of 2026-06-12",
+    "delta_note": "0% \u2014 exact match",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_low",
+    "in_app": "1548",
+    "external": "1547-1548",
+    "source": "tickertape.in (1548) / screener (1547), as-of 2026-06-12",
+    "delta_note": "~0% \u2014 match (\u20b91 rounding diff)",
+    "flag": "ok"
+   },
+   {
+    "field": "roe",
+    "in_app": "0.1472 (14.72%)",
+    "external": "~16.0% (screener) / 16.8% (gurufocus, older) / 17.81% current per gurufocus",
+    "source": "screener.in (16.0%) & gurufocus.com, as-of FY26 / 2026",
+    "delta_note": "App 14.72% vs screener 16.0% = -8% relative; vs gurufocus current 17.81% = -17%. Sits at the low end; app slightly understates. Borderline ok/watch \u2014 flagging watch given spread to current readings.",
+    "flag": "watch"
+   },
+   {
+    "field": "revenue_growth",
+    "in_app": "0.128 (12.8%)",
+    "external": "~11.2% (screener) to 11.9% (tickertape/indianpharmapost: \u20b958,220 cr vs \u20b952,041 cr FY25)",
+    "source": "screener.in, tickertape.in, indianpharmapost.com (FY26 results), as-of FY26",
+    "delta_note": "App 12.8% vs ~11.9% actual = +0.9pp (+7.6% relative). Within ~10%.",
+    "flag": "ok"
+   },
+   {
+    "field": "earnings_growth",
+    "in_app": "0.256 (25.6%)",
+    "external": "~5.0% FY26 PAT growth (\u20b911,479 cr vs \u20b910,929 cr FY25)",
+    "source": "indianpharmapost.com, scanx.trade, tickertape.in, screener.in (all FY26 annual), as-of FY26",
+    "delta_note": "MAJOR MISMATCH. Actual FY26 annual PAT growth is ~5.0%, not 25.6%. App's 25.6% appears to conflate the Q4FY26-only YoY profit jump (~+26%) with full-year growth, or is a stale Yahoo TTM artifact. Delta ~+412% relative / +20.6pp absolute.",
+    "flag": "MISMATCH"
+   }
+  ],
+  "net_verdict": "SUNPHARMA identity is correct (Sun Pharmaceutical Industries Ltd, NSE) and 11 of 12 figures verify cleanly against non-Yahoo sources (screener.in, tickertape, businesstoday, indianpharmapost, scanx, outlookbusiness). Price \u20b91807.70, mcap \u20b9433,728 cr, DPS \u20b916, div yield 0.89%, 52wk band \u20b91548-1916.6, P/E ~37, P/B ~5.2, EPS ~47.7 all match. Internal market-cap sanity holds: ~239.9 cr shares \u00d7 EPS 47.72 \u2248 \u20b911,448 cr PAT, consistent with the reported \u20b911,479 cr. The ONE serious error is earnings_growth: the app reports 25.6% but FY26 annual PAT actually grew only ~5.0% to \u20b911,479 cr (vs \u20b910,929 cr in FY25). The 25.6% almost certainly comes from mistaking the Q4FY26 quarterly profit jump (+26% YoY) for the full-year figure, or a stale Yahoo TTM number. ROE is a softer flag \u2014 app's 14.72% sits below the ~16-17.8% range independent sources currently show (watch). Everything else is solid.",
+  "sources_used": [
+   "screener.in/company/SUNPHARMA (as-of 2026-06-12)",
+   "tickertape.in/stocks/sun-pharmaceutical-industries-SUN (as-of 2026-06-12)",
+   "indmoney.com Sun Pharmaceutical share price page (2026-06-12)",
+   "businesstoday.in - Sun Pharma FY26 final dividend record/payment dates (2026-06-11)",
+   "outlookbusiness.com - Sun Pharma Q4FY26 results, \u20b95 final dividend",
+   "psuconnect.in - Sun Pharma Q3FY26 \u20b911 interim dividend",
+   "indianpharmapost.com - Sun Pharma FY26 revenue \u20b958,220 cr, net profit \u20b911,479 cr",
+   "scanx.trade - Sun Pharma FY26 net profit +5% to \u20b9114,794 million",
+   "gurufocus.com - SUNPHARMA ROE history",
+   "trendlyne.com - SUNPHARMA dividend history"
+  ],
+  "biggest_discrepancies": [
+   "earnings_growth: app 25.6% vs actual FY26 annual PAT growth ~5.0% (\u20b911,479 cr vs \u20b910,929 cr) \u2014 MISMATCH; app likely used the Q4FY26 quarterly +26% jump or a stale Yahoo TTM figure as the annual number",
+   "roe: app 14.72% vs independently-found ~16-17.8% \u2014 app understates by ~8-17% relative (watch)",
+   "Minor source spread on EPS/P-E: screener shows EPS \u20b951.92 / P/E 34.8 while tickertape shows EPS \u20b947.80 / P/E 37.78 (different TTM-consolidation basis); app's 47.72 / 37.88 aligns with the tickertape basis"
+  ]
+ },
+ {
+  "symbol": "NESTLEIND",
+  "entity_identity": {
+   "true_company_name": "Nestle India Limited",
+   "matches_expected": true,
+   "note": "NESTLEIND on NSE (ISIN INE239A01024) is correctly Nestle India Ltd, confirmed via screener.in, tickertape and NSE/Business Standard filings. No demerger/symbol-change issue. Key corporate-action context: 1:1 BONUS issue allotted Aug 2025 (96,41,57,160 new shares), doubling paid-up shares to 1,928,314,320 (192.83 cr). This is the crux of the lead's note (see figures)."
+  },
+  "figures": [
+   {
+    "field": "price",
+    "in_app": "1375.7",
+    "external": "1375.70 (tickertape); ~1376 (screener.in)",
+    "source": "tickertape.in / screener.in, as-of Fri 2026-06-12 close",
+    "delta_note": "Exact match (0%). Both show -3.29% on the day.",
+    "flag": "ok"
+   },
+   {
+    "field": "mcap_cr",
+    "in_app": "265278.2",
+    "external": "2,65,278 cr",
+    "source": "screener.in & tickertape.in, as-of 2026-06-12",
+    "delta_note": "Exact match (0%). Reconciles: 1375.7 x 192.83cr shares = 265278.2 cr. App mcap is CORRECT.",
+    "flag": "ok"
+   },
+   {
+    "field": "pe_ratio",
+    "in_app": "75.75",
+    "external": "75.81 (tickertape); 76.9 (screener); 76.45 (June 8)",
+    "source": "tickertape.in / screener.in, as-of 2026-06-12",
+    "delta_note": "~0.1-1.5% delta; price/EPS = 1375.7/18.16 = 75.75 internally consistent.",
+    "flag": "ok"
+   },
+   {
+    "field": "price_to_book",
+    "in_app": "51.44",
+    "external": "51.44 (tickertape); 50.0 (screener, BV/share Rs27.5)",
+    "source": "tickertape.in / screener.in, as-of 2026-06-12",
+    "delta_note": "Exact match vs tickertape; ~3% vs screener. (Note: one stale source quoted 68.79 pre-bonus-adjustment; ignored.)",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_yield",
+    "in_app": "0.0087 (0.87%)",
+    "external": "0.87%",
+    "source": "tickertape.in / screener.in, as-of 2026-06-12",
+    "delta_note": "Exact match. 12/1375.7 = 0.87%.",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_per_share",
+    "in_app": "12",
+    "external": "Rs 12 total FY26 (Rs 7 interim Feb 2026 + Rs 5 final, record date Jul 10 2026)",
+    "source": "Univest/AngelOne/Business Standard Q4 FY26 results, Apr 2026",
+    "delta_note": "Match. Trailing 12-mo dividend = Rs 12/share (post-bonus, FV Re 1).",
+    "flag": "ok"
+   },
+   {
+    "field": "eps",
+    "in_app": "18.16",
+    "external": "18.15 (tickertape TTM); 17.90 (screener); 18.38 (FY26 PAT 3544.6cr / 192.83cr shares)",
+    "source": "tickertape.in / screener.in / Business Standard FY26 results",
+    "delta_note": "<1.5% across sources. Consistent with post-bonus share count.",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_high",
+    "in_app": "1498.1",
+    "external": "1498.10 (tickertape); ~1499 (screener)",
+    "source": "tickertape.in / screener.in, as-of 2026-06-12",
+    "delta_note": "Exact match.",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_low",
+    "in_app": "1084.7",
+    "external": "1084.70 (tickertape); ~1085 (screener)",
+    "source": "tickertape.in / screener.in, as-of 2026-06-12",
+    "delta_note": "Exact match.",
+    "flag": "ok"
+   },
+   {
+    "field": "roe",
+    "in_app": "0.7634 (76.34%)",
+    "external": "73.2% (screener.in)",
+    "source": "screener.in, as-of 2026-06-12",
+    "delta_note": "~4% relative delta (76.34% vs 73.2%); within tolerance. Nestle India runs structurally very high ROE due to low equity base, so 70s% is plausible.",
+    "flag": "ok"
+   },
+   {
+    "field": "revenue_growth",
+    "in_app": "0.23 (23%)",
+    "external": "Q4 FY26 YoY: +22.6% to +23.4% (sales 6747.8cr vs 5503.9cr). FULL-YEAR FY26: +14.9-15% (23071cr vs 20078cr).",
+    "source": "Business Standard / Univest Q4 FY26 results, Apr 2026",
+    "delta_note": "App 0.23 matches the MOST-RECENT-QUARTER YoY (yfinance revenueGrowth is quarterly-YoY, not annual). Correct for that definition; would MISMATCH if read as full-year (true FY ~15%). Label is ambiguous.",
+    "flag": "ok"
+   },
+   {
+    "field": "earnings_growth",
+    "in_app": "0.274 (27.4%)",
+    "external": "Q4 FY26 PAT YoY: +27.18% to +27.2% (1110.9cr vs ~873cr). FULL-YEAR FY26 PAT: +9.1% (3499cr vs 3208cr) standalone / ~10.5% consolidated.",
+    "source": "Business Standard consolidated Q4 FY26 results, 2026-04-21",
+    "delta_note": "App 0.274 matches MOST-RECENT-QUARTER PAT YoY (yfinance earningsGrowth = quarterly-YoY). Correct for that field; would MISMATCH if read as full-year (true FY ~9-10%).",
+    "flag": "ok"
+   }
+  ],
+  "net_verdict": "App figures for NESTLEIND are accurate and internally consistent \u2014 this is a clean dataset. The lead's note is WRONG and BACKWARDS: it feared a possible 2x mcap OVERSTATEMENT using ~96.4cr shares. In reality Nestle India did a 1:1 BONUS issue (allotted ~96.41cr new shares in Aug 2025), doubling shares outstanding to 192.83cr. The 96.4cr figure the lead anchored on is the bonus tranche / pre-bonus count, not current shares. Correct current share count = 192.83cr; 1375.7 x 192.83cr = 265,278.2cr = exactly the app's reported mcap (0.0% delta). Using the lead's 96.4cr would have HALVED mcap to ~1.33L cr (an understatement), so the app is right and the note's premise is inverted. Price, mcap, PE, PB, div yield, DPS, EPS, 52wk hi/lo all match independent sources within ~1-4%. ROE 76.3% vs screener 73.2% (~4%, ok). The only soft spot: revenue_growth (0.23) and earnings_growth (0.274) are the most-recent-quarter (Q4 FY26) YoY values, NOT full-year FY26 (which were ~15% rev and ~9-10% PAT). These are the standard yfinance quarterly-YoY fields and are numerically correct, but anyone interpreting them as 'latest annual growth' would be misled \u2014 full-year growth is far lower. No identity, sign, or magnitude errors. Net: data is trustworthy; fix only the growth-field labeling/definition.",
+  "sources_used": [
+   "screener.in/company/NESTLEIND (as-of 2026-06-12)",
+   "tickertape.in/stocks/nestle-india-NEST (as-of 2026-06-12)",
+   "Business Standard - Nestle India consolidated net profit rises 27.18% March 2026 quarter (2026-04-21)",
+   "Business Standard - Nestle India allots 96.41 cr equity shares under bonus issue (Aug 2025)",
+   "Univest / AngelOne / Goodreturns - Nestle India Q4 FY26 results & Rs 5 final dividend (Apr 2026)",
+   "NuFoods Spectrum - Nestle net profit Rs 3544.6 Cr FY26"
+  ],
+  "biggest_discrepancies": [
+   "LEAD'S NOTE IS INVERTED: feared 2x mcap overstatement from ~96.4cr shares, but Nestle did a 1:1 BONUS (Aug 2025) -> 192.83cr shares now. App mcap 265278.2cr = price x 192.83cr exactly (correct). Using 96.4cr would UNDERSTATE mcap by half.",
+   "revenue_growth 0.23 and earnings_growth 0.274 are Q4 FY26 QUARTERLY-YoY, not full-year. True FY26 full-year growth: revenue ~15%, PAT ~9-10%. Big gap if these are interpreted as 'annual' growth.",
+   "ROE: app 76.34% vs screener 73.2% (~4% relative; both very high due to Nestle's thin equity base, within tolerance)."
+  ]
+ },
+ {
+  "symbol": "COFORGE",
+  "entity_identity": {
+   "true_company_name": "Coforge Limited",
+   "matches_expected": true,
+   "note": "NSE:COFORGE correctly maps to Coforge Ltd (formerly NIIT Technologies), a mid/large-cap Indian IT services company. Confirmed across screener.in, tickertape, trendlyne, Business Standard. No demerger/symbol-change issue. NOTE on lead's bonus claim: the 2025 corporate action was a 5:1 STOCK SPLIT (face value Rs 10 -> Rs 2), record date 04-Jun-2025, NOT a 1:5 bonus. Source: ICICIdirect, Business Standard. Effect on adjusted share count is identical to a 1:4 bonus, so the lead's directional intuition holds even though the instrument is mislabeled."
+  },
+  "figures": [
+   {
+    "field": "price",
+    "in_app": "1367.2",
+    "external": "1367.20 (NSE close, Fri 12-Jun-2026)",
+    "source": "tickertape + trendlyne + finology, as-of 12-Jun-2026",
+    "delta_note": "Exact match to the paise. App's 'price' is the 12-Jun close, the last trading day before today's 14-Jun weekend.",
+    "flag": "ok"
+   },
+   {
+    "field": "mcap_cr",
+    "in_app": "60522.1",
+    "external": "60522.05 Cr (tickertape/finology, 12-Jun-2026). screener.in shows 58790 Cr (slightly lower share count/snapshot).",
+    "source": "tickertape + finology, as-of 12-Jun-2026",
+    "delta_note": "Matches tickertape almost exactly (delta <0.01%). Sanity check: 1367.2 x 44.27 cr shares (post-Cigniti allotment 03-Jun-2026) = ~60,526 Cr -> internally consistent. Screener's 58,790 Cr is ~2.9% lower, likely pre-allotment share count.",
+    "flag": "ok"
+   },
+   {
+    "field": "pe_ratio",
+    "in_app": "31.15",
+    "external": "35.8 (screener.in stock P/E, 12-Jun-2026); range across sources 30.4 (gurufocus TTM, May) to 40.2",
+    "source": "screener.in, as-of 12-Jun-2026",
+    "delta_note": "App 31.15 vs screener 35.8 = -13% understated. App is internally consistent (1367.2/43.89 EPS = 31.15) but uses a higher EPS than screener's trailing basis. Wide cross-source spread reflects rapid PAT changes post-Cigniti and TTM-vs-FY basis differences.",
+    "flag": "watch"
+   },
+   {
+    "field": "price_to_book",
+    "in_app": "4.81",
+    "external": "4.81 (screener: book value Rs 284, 1367/284 = 4.81; tickertape P/B 4.81)",
+    "source": "screener.in + tickertape, as-of 12-Jun-2026",
+    "delta_note": "Exact match. (Disregarded finology's 2.37 and an outlier 7.27/7.69 reading as scraping errors / standalone-vs-consolidated mismatch.)",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_yield",
+    "in_app": "0.0117 (1.17%)",
+    "external": "1.11% (screener.in + tickertape, 12-Jun-2026)",
+    "source": "screener.in + tickertape, as-of 12-Jun-2026",
+    "delta_note": "App 1.17% vs 1.11% = ~+5% relative. Both consistent with ~Rs 16 TTM dividend on ~1367 price. Within tolerance.",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_per_share",
+    "in_app": "16",
+    "external": "~16 (four interim dividends of Rs 4 each declared through FY25-26, post-split FV Rs 2 basis); indmoney cites Rs 31 mixing pre/post-split entries",
+    "source": "Business Standard + screener dividend history, FY25-26",
+    "delta_note": "App's Rs 16 = 4 x Rs 4 quarterly interims, the clean post-split TTM figure, and ties out with the 1.11-1.17% yield. The indmoney 'Rs 31' double-counts pre-split-basis payouts. Rs 16 is the correct independent value.",
+    "flag": "ok"
+   },
+   {
+    "field": "eps",
+    "in_app": "43.89",
+    "external": "~38-46 (screener stock-P/E implies TTM EPS ~38.2; screener FY26 EPS ~46.3; tickertape EPS-TTM 46.44)",
+    "source": "screener.in + tickertape, as-of 12-Jun-2026",
+    "delta_note": "App 43.89 sits between the trailing (~38) and full-FY26 (~46) bases; within ~12% of either. Divergence driven by Cigniti share-count timing (1.27 cr shares added 03-Jun-2026) and TTM vs FY basis. No independent source reproduces 43.89 exactly, but it is plausible and bracketed.",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_high",
+    "in_app": "1994",
+    "external": "1994 (tickertape, trendlyne, screener, 52-week, split-adjusted)",
+    "source": "screener.in + tickertape, as-of 12-Jun-2026",
+    "delta_note": "Exact match. Split-adjusted (post 5:1 split) consistent with current ~1367 price scale -> lead's split-consistency concern is resolved: both 1994 and 1367 are on the same post-split basis.",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_low",
+    "in_app": "1008.1",
+    "external": "1008.10 (tickertape, trendlyne, screener)",
+    "source": "tickertape + trendlyne, as-of 12-Jun-2026",
+    "delta_note": "Exact match, split-adjusted.",
+    "flag": "ok"
+   },
+   {
+    "field": "roe",
+    "in_app": "0.186 (18.6%)",
+    "external": "~20-21% (screener: 3yr ROE 20%, last-year ROE 21%; tickertape 20.6%)",
+    "source": "screener.in + tickertape, as-of 12-Jun-2026",
+    "delta_note": "App 18.6% vs ~20.6% = ~10% relative understatement, right at the ok/watch boundary. App likely on a trailing/blended basis. Direction and magnitude broadly correct.",
+    "flag": "ok"
+   },
+   {
+    "field": "revenue_growth",
+    "in_app": "0.305 (30.5%)",
+    "external": "FY26 consolidated revenue +35.86% YoY (Rs 16,402.7 Cr vs Rs 12,073.3 Cr); Q4FY26 revenue +30.05% YoY",
+    "source": "screener.in / Business Standard FY26 results, year ended Mar-2026",
+    "delta_note": "App 30.5% matches the Q4FY26 YoY figure (30.05%) almost exactly, not the full-year 35.86%. As an 'annual' growth metric it understates full-year by ~15% relative. Likely yfinance picked a quarterly/TTM-edge basis. Reasonable but mislabeled basis.",
+    "flag": "watch"
+   },
+   {
+    "field": "earnings_growth",
+    "in_app": "1.34 (134%)",
+    "external": "FY26 consolidated PAT +91.57% YoY (Rs 1,555.7 Cr vs Rs 812.1 Cr). The 134% figure equals Q4FY26 PAT YoY (+134.42%, Rs 612.3 Cr vs Rs 261.2 Cr).",
+    "source": "screener.in / Business Standard FY26 results, year ended Mar-2026",
+    "delta_note": "App's 134% is the QUARTERLY (Q4FY26) PAT growth, NOT annual PAT growth (which is ~92%). As an annual earnings-growth field it overstates the true full-year figure by ~46% relative. Sign correct, magnitude materially off due to wrong (quarterly) basis.",
+    "flag": "MISMATCH"
+   }
+  ],
+  "net_verdict": "Entity identity is correct: NSE:COFORGE = Coforge Ltd, no symbol/demerger issue. The bulk of figures are accurate and independently confirmed: price (1367.2 exact, 12-Jun close), market cap (60,522 Cr, matches tickertape and ties out vs 44.27 cr shares post-Cigniti allotment), P/B 4.81 (exact), 52w high 1994 / low 1008.1 (exact), dividend Rs 16 and yield ~1.1-1.2%, EPS ~44 (bracketed by trailing/FY bases), and ROE ~19-21%. LEAD'S NOTE RESOLVED: the 2025 action was a 5:1 STOCK SPLIT (FV 10->2, record date 04-Jun-2025), not a 1:5 bonus as labeled; regardless, price 1367 and 52w-high 1994 are BOTH on the same post-split basis, so they are split-adjusted consistently with each other (no scale mismatch). Two real problems, both from yfinance using a quarterly basis where an annual field is expected: (1) earnings_growth 134% is actually the Q4FY26 PAT YoY, not the full-year PAT growth of ~92% -> MISMATCH; (2) revenue_growth 30.5% matches Q4FY26 YoY rather than the full-year +35.9% -> watch. P/E 31.15 also runs ~13% below screener's 35.8 (watch) because the app's EPS is on a richer basis. Net: prices and balance-sheet ratios are trustworthy; treat the growth fields (especially earnings_growth) as quarterly-basis artifacts that overstate annual momentum. Note finology's scraped fundamentals (P/B 2.37, ROE 11.96, P/E 43.44) were outliers and discarded in favor of screener.in/tickertape, which agree.",
+  "sources_used": [
+   "screener.in/company/COFORGE/consolidated (as-of 12-Jun-2026)",
+   "tickertape.in/stocks/coforge-COFO (as-of 12-Jun-2026)",
+   "trendlyne.com/equity/942/COFORGE (price/52w, 12-Jun-2026)",
+   "Business Standard - Coforge FY26 results & stock split coverage",
+   "ICICIdirect - Coforge 5:1 stock split, record date 04-Jun-2025",
+   "ticker.finology.in/company/COFORGE (shares outstanding 44.27 cr; other fundamentals discarded as outliers)",
+   "whalesbook / Business Standard - Coforge FY26 revenue 16,402 Cr and PAT",
+   "tipranks/business-standard - Cigniti share allotment 03-Jun-2026 (44.27 cr shares)"
+  ],
+  "biggest_discrepancies": [
+   "earnings_growth 1.34 (134%) is the Q4FY26 QUARTERLY PAT YoY, not the FY26 annual PAT growth of ~92% -> MISMATCH (overstates annual earnings momentum by ~46% relative)",
+   "revenue_growth 30.5% matches the Q4FY26 quarterly YoY rather than the full-year FY26 figure of +35.9% -> understates annual growth (watch)",
+   "pe_ratio 31.15 runs ~13% below screener.in's 35.8 because the app's EPS (43.89) is on a richer basis than screener's trailing EPS (~38) -> watch",
+   "LABEL ERROR in lead's note: 2025 action was a 5:1 stock split, not a 1:5 bonus; price 1367 and 52w-high 1994 are both correctly split-adjusted to the same basis (no scale inconsistency)"
+  ]
+ },
+ {
+  "symbol": "SUPREMEIND",
+  "entity_identity": {
+   "true_company_name": "The Supreme Industries Limited",
+   "matches_expected": true,
+   "note": "SUPREMEIND on NSE (ISIN INE195A01028) is indeed Supreme Industries Ltd, India's leading plastics manufacturer (piping systems, packaging films, molded furniture, industrial components, composite LPG cylinders). Confirmed via screener.in and tickertape. No demerger/symbol remap. The app's 'mid' (mid-cap) descriptor is debatable \u2014 at ~Rs 44,000 cr mcap it sits at the large-cap/mid-cap boundary, but identity is correct."
+  },
+  "figures": [
+   {
+    "field": "price",
+    "in_app": "3485",
+    "external": "3485 (Fri 12-Jun-2026 close); ~3450.6 on 11-Jun per 5paisa",
+    "source": "screener.in & tickertape, as-of 12-Jun-2026",
+    "delta_note": "0% \u2014 exact match to last trading day close",
+    "flag": "ok"
+   },
+   {
+    "field": "mcap_cr",
+    "in_app": "44288",
+    "external": "44268-44269 cr (screener/tickertape 12-Jun); 44512 cr as-of 19-May",
+    "source": "screener.in & tickertape, 12-Jun-2026",
+    "delta_note": "+0.04% vs 44269 \u2014 match",
+    "flag": "ok"
+   },
+   {
+    "field": "pe_ratio",
+    "in_app": "46.51",
+    "external": "46.40 (tickertape) / 47.5 (screener) / 46.36-46.66 (5paisa)",
+    "source": "tickertape & screener.in, 12-Jun-2026",
+    "delta_note": "~0.2% vs tickertape; within rounding of all sources",
+    "flag": "ok"
+   },
+   {
+    "field": "price_to_book",
+    "in_app": "7.18",
+    "external": "7.18 (screener & tickertape); 7.86 (5paisa, likely standalone/different basis)",
+    "source": "screener.in & tickertape, 12-Jun-2026",
+    "delta_note": "0% vs primary sources; 5paisa's 7.86 is an outlier",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_yield",
+    "in_app": "0.0103 (1.03%)",
+    "external": "1.03%",
+    "source": "screener.in & tickertape, 12-Jun-2026",
+    "delta_note": "0% \u2014 exact match",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_per_share",
+    "in_app": "36",
+    "external": "Rs 36 (trailing 12m total; FY26 declared)",
+    "source": "screener.in & tickertape, 12-Jun-2026",
+    "delta_note": "0% \u2014 match. (Note an interim of Rs 25 with ex-date 25-Jun-2026 is separate/upcoming)",
+    "flag": "ok"
+   },
+   {
+    "field": "eps",
+    "in_app": "74.93",
+    "external": "75.10 (tickertape) / 75.64 (screener) / 75.10 TTM",
+    "source": "tickertape & screener.in, 12-Jun-2026",
+    "delta_note": "-0.2% vs tickertape, -0.9% vs screener \u2014 match within rounding",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_high",
+    "in_app": "4739",
+    "external": "4739 (tickertape) / 4740 (screener)",
+    "source": "tickertape & screener.in, 12-Jun-2026",
+    "delta_note": "0% \u2014 match",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_low",
+    "in_app": "3182",
+    "external": "3182",
+    "source": "screener.in & tickertape, 12-Jun-2026",
+    "delta_note": "0% \u2014 exact match",
+    "flag": "ok"
+   },
+   {
+    "field": "roe",
+    "in_app": "0.1613 (16.13%)",
+    "external": "15.8% (screener) / 16.13% (tickertape TTM)",
+    "source": "tickertape & screener.in, 12-Jun-2026",
+    "delta_note": "0% vs tickertape, +2% vs screener \u2014 match (different period basis)",
+    "flag": "ok"
+   },
+   {
+    "field": "revenue_growth",
+    "in_app": "0.165 (16.5%)",
+    "external": "~7% YoY FY26 (rev Rs 11,218 cr vs Rs 10,446 cr = +7.4%); volume growth 12%",
+    "source": "screener.in + Q4FY26 results (scanx/marketsmojo), FY26",
+    "delta_note": "App 16.5% vs actual ~7.4% \u2014 overstated by ~2.2x. App may be using TTM/quarterly or stale/forward figure",
+    "flag": "MISMATCH"
+   },
+   {
+    "field": "earnings_growth",
+    "in_app": "0.475 (47.5%)",
+    "external": "Annual FY26 PAT growth ~ -0.7% (consol, 954 vs 961 cr) to +1.6% (standalone, 911 vs 897 cr). The 47.5% is the Q4 FY26 QUARTERLY consolidated net profit jump, NOT annual",
+    "source": "screener.in + Q4FY26 result analysis (marketsmojo/scanx), FY26",
+    "delta_note": "App's 47.5% = single-quarter YoY spike, not annual earnings growth. Annual PAT was roughly flat. Major basis error",
+    "flag": "MISMATCH"
+   }
+  ],
+  "net_verdict": "10 of 12 figures are clean matches \u2014 price, mcap, P/E, P/B, dividend (yield + DPS), EPS, both 52-week bounds, and ROE all reconcile across screener.in and tickertape (as-of 12-Jun-2026) within rounding. Entity identity is correct: SUPREMEIND = The Supreme Industries Ltd, the plastics/piping manufacturer; no demerger remap. Market-cap sanity check passes: price 3485 x ~12.7 cr shares \u2248 44,270 cr, matching reported mcap (internally consistent). The two failures are both GROWTH metrics and both look like the data pipeline grabbed the wrong period. (1) revenue_growth 16.5% vs true ~7.4% annual FY26 \u2014 overstated ~2.2x. (2) earnings_growth 47.5% is actually the Q4 FY26 quarterly consolidated PAT jump, whereas full-year FY26 PAT was roughly FLAT (-0.7% consol to +1.6% standalone) \u2014 a quarterly-vs-annual conflation that materially misrepresents the company's growth (the headline 'Q4 net profit rises 47.50%' wording appears verbatim in result coverage, confirming the source of the bad number). A user reading earnings_growth = 47.5% would wildly overestimate this stock's actual flat-earnings reality, which is the more dangerous of the two errors.",
+  "sources_used": [
+   "screener.in/company/SUPREMEIND/consolidated/ (as-of 12-Jun-2026): price 3485, mcap 44269 cr, P/E 47.5, P/B 7.18, book value 486, EPS 75.64, ROE 15.8%, div yield 1.03%, FY26 sales +7.4%, FY26 net profit -0.7%",
+   "tickertape.in/stocks/supreme-industries-SUPI (as-of 12-Jun-2026): price 3485, mcap 44268 cr, P/E 46.40, P/B 7.18, div yield 1.03%, DPS 36, EPS 75.10, 52w high 4739, 52w low 3182, ROE 16.13%",
+   "5paisa.com/stocks/supremeind-share-price (11-19 May/Jun 2026): price ~3450.6, mcap 44512 cr (19-May), P/E 46.36, P/B 7.86, 52w 4739/3182",
+   "scanx.trade + marketsmojo.com Q4 FY26 result analysis: FY26 revenue Rs 11,217.67 cr vs Rs 10,446.25 cr (+7%), FY26 net profit Rs 911.29 cr (standalone) vs Rs 896.80 cr (+1.62%); Q4 FY26 consolidated net profit +47.50% (quarterly)",
+   "icicidirect Q4FY26 research note (corroborating FY26 annual figures)"
+  ]
+ },
+ {
+  "symbol": "ASTRAL (NSE)",
+  "entity_identity": {
+   "true_company_name": "Astral Limited (formerly Astral Poly Technik Ltd; NSE: ASTRAL, BSE: 532830)",
+   "matches_expected": true,
+   "note": "Confirmed. NSE symbol ASTRAL maps to Astral Limited, the pipes/water-tanks and adhesives maker (face value Re 1). The legacy name was Astral Poly Technik (tickertape internal slug still 'astral-poly-technik-ASPT'); the company was renamed Astral Limited, no demerger/symbol reassignment. Not to be confused with 'Astral Laboratories' (a different, unrelated pharma entity that appears in some news feeds). App description 'Astral (mid, NSE)' is correct - it is an NSE-listed midcap."
+  },
+  "figures": [
+   {
+    "field": "price",
+    "in_app": "1508.6",
+    "external": "1508.60 (close Fri 12-Jun-2026)",
+    "source": "tickertape / groww / trendlyne, as-of 12-Jun-2026",
+    "delta_note": "Exact match (0%). Multiple independent sources show 1508.60 close on 12-Jun; screener rounds to 1509.",
+    "flag": "ok"
+   },
+   {
+    "field": "mcap_cr",
+    "in_app": "40528.6",
+    "external": "~40,526-40,529 cr",
+    "source": "screener.in (40,529) / tickertape (40,526.23), as-of 12-Jun-2026",
+    "delta_note": "Match (<0.01%). Sanity check: 268,634,740 shares x Rs1508.6 = Rs40,528.4 cr - price x shares ties to reported mcap. Internally consistent.",
+    "flag": "ok"
+   },
+   {
+    "field": "pe_ratio",
+    "in_app": "75.77",
+    "external": "73.5-75.79 (TTM)",
+    "source": "tickertape (75.79) / groww (75.73) / screener (73.5), as-of 12-Jun-2026",
+    "delta_note": "Match (~0-3%). Cluster ~75.7 on tickertape/groww; screener's 73.5 uses a slightly different EPS basis. Within tolerance.",
+    "flag": "ok"
+   },
+   {
+    "field": "price_to_book",
+    "in_app": "9.99",
+    "external": "9.98-10.0",
+    "source": "screener.in (9.99) / groww (9.98), as-of 12-Jun-2026",
+    "delta_note": "Exact match (book value ~Rs151/sh, FV Re1). Tickertape's 10.97 and one stray 140.75 figure are outliers/errors; consensus is ~9.99.",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_per_share",
+    "in_app": "3.75",
+    "external": "FY26 total declared = 4.00 (1.50 interim + 2.50 final)",
+    "source": "zeebiz / company Q4 FY26 board announcement, as-of May-2026",
+    "delta_note": "~6% low. App's 3.75 is a trailing/TTM blend (FY25 final 2.25 + FY26 interim 1.50); the freshly-declared FY26 total is 4.00. Final 2.50 not yet ex-date/paid, so 3.75 is a defensible TTM trailing figure. Minor.",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_yield",
+    "in_app": "0.0025 (0.25%)",
+    "external": "0.25%",
+    "source": "screener.in / tickertape, as-of 12-Jun-2026",
+    "delta_note": "Match. 3.75/1508.6 = 0.249%, internally consistent. (Some live tickers show 0.17% using only the most recent single payout; screener's 0.25% matches the app.)",
+    "flag": "ok"
+   },
+   {
+    "field": "eps",
+    "in_app": "19.91",
+    "external": "19.90 (TTM)",
+    "source": "tickertape (19.98) / groww (19.90) / screener (19.90), as-of 12-Jun-2026",
+    "delta_note": "Match (<0.5%). Consolidated TTM EPS ~19.9 (FY26 PAT Rs534.7cr / ~26.86cr shares).",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_high",
+    "in_app": "1768.7",
+    "external": "1768.70",
+    "source": "tickertape / groww / screener, as-of 12-Jun-2026",
+    "delta_note": "Exact match (0%).",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_low",
+    "in_app": "1263.7",
+    "external": "1263.70",
+    "source": "tickertape / groww / screener, as-of 12-Jun-2026",
+    "delta_note": "Exact match (0%).",
+    "flag": "ok"
+   },
+   {
+    "field": "roe",
+    "in_app": "0.138 (13.8%)",
+    "external": "13.2-14.4%",
+    "source": "groww (13.18% / trailing 13.49%) / tickertape (latest Mar-2026 14.4%), as-of 2026",
+    "delta_note": "Match (within ~4%). App's 13.8% sits inside the trailing-vs-latest band. 3-year avg ROE is higher (~16-18%).",
+    "flag": "ok"
+   },
+   {
+    "field": "revenue_growth",
+    "in_app": "0.242 (24.2%)",
+    "external": "Q4 FY26 YoY +24% (full-year FY26 +12.6%)",
+    "source": "freepressjournal/zeebiz Q4 FY26 results (revenue 2088.5cr vs 1681.4cr = +24%); screener full-year +12.6%, as-of May-2026",
+    "delta_note": "Matches the QUARTERLY YoY (+24%), which is the yfinance 'revenueGrowth' basis - NOT full-year. Full-year FY26 revenue grew only ~13%. App figure is correct for its definition but represents the hot Q4, not the annual trend. Flag noted.",
+    "flag": "ok"
+   },
+   {
+    "field": "earnings_growth",
+    "in_app": "0.189 (18.9%)",
+    "external": "Q4 FY26 PAT YoY +20% (full-year FY26 +3.0%)",
+    "source": "zeebiz/freepressjournal Q4 FY26 (PAT 213.0cr vs 178.1cr = +19.6%); screener full-year PAT +3.0%, as-of May-2026",
+    "delta_note": "Matches QUARTERLY YoY (+19.6%), the yfinance 'earningsGrowth' basis. Full-year FY26 PAT grew only ~3% (534.7cr vs 518.9cr). App figure correct for the quarterly definition but materially overstates the annual earnings trend.",
+    "flag": "ok"
+   }
+  ],
+  "net_verdict": "CLEAN BILL OF HEALTH - the app's ASTRAL data is accurate and internally consistent across the board. Entity is correctly Astral Limited (NSE: ASTRAL, the pipes/adhesives maker; ex-Astral Poly Technik), no demerger/identity issue. Price (1508.6), mcap (40,528.6 cr), P/E (75.77), P/B (9.99), EPS (19.91), 52w high/low (1768.7/1263.7), dividend yield (0.25%) and ROE (13.8%) all match independent sources (screener.in, tickertape, groww, trendlyne) as of the 12-Jun-2026 close - many to the decimal. Market-cap math ties out: 268.63m shares x 1508.6 = 40,528 cr. Two items deserve a footnote rather than a flag: (1) dividend_per_share 3.75 is a TTM-trailing figure; Astral's freshly-declared FY26 total dividend is 4.00 (1.50 interim + 2.50 final, final not yet paid), so 3.75 is defensible but slightly stale. (2) revenue_growth 24.2% and earnings_growth 18.9% are QUARTERLY (Q4 FY26 YoY) figures - they match the Q4 print exactly, but the FULL-YEAR FY26 trend was far softer (revenue +13%, PAT +3%). A user reading these as annual growth would be misled, though the values themselves are not wrong for the yfinance quarterly-YoY definition. No MISMATCH, no unverified, no fabrication. Sources are current (mid-June 2026).",
+  "sources_used": [
+   "screener.in/company/ASTRAL/consolidated (as-of 12-Jun-2026): price 1509, mcap 40529cr, P/E 73.5, P/B 9.99, BV 151, ROE 14.4% latest/16% 3yr, EPS 19.90, FY26 sales +12.6%/PAT +3.1%",
+   "tickertape.in/stocks/astral-poly-technik-ASPT (12-Jun-2026): price 1508.60, mcap 40526.23cr, P/E 75.79, EPS 19.98, 52w 1768.70/1263.70, div yield 0.25%",
+   "groww.in/stocks/astral-poly-technik-ltd (12-Jun-2026): price 1508.60, mcap 40486cr, P/E 75.73, P/B 9.98, EPS 19.90, ROE 13.18%",
+   "freepressjournal.in / zeebiz.com - Astral Q4 FY26 results: Q4 revenue 2088.5cr (+24% YoY), Q4 PAT 213.0cr (+20% YoY), FY26 revenue 6568.6cr (+13%), FY26 PAT 534.7cr (+3%), final dividend Rs2.50, interim Rs1.50 (total Rs4.00)",
+   "trendlyne.com/fundamentals/financials/122/ASTRAL (12-Jun-2026): confirms NSE:ASTRAL / BSE:532830, price 1508.60",
+   "shares outstanding 268,634,740 (used for mcap sanity check)"
+  ]
+ },
+ {
+  "symbol": "ABBOTINDIA",
+  "entity_identity": {
+   "true_company_name": "Abbott India Limited",
+   "matches_expected": true,
+   "note": "Confirmed independently: NSE symbol ABBOTINDIA = Abbott India Ltd (BSE: 500488), a midcap MNC pharma company (est. 1944), majority-owned by Abbott group. No demerger or post-spinoff symbol remapping found. ~2.12 crore (21,249,302) shares outstanding. App description 'Abbott India (mid, NSE)' is accurate."
+  },
+  "figures": [
+   {
+    "field": "current_price",
+    "in_app": "26280",
+    "external": "26280 (NSE close)",
+    "source": "screener.in / tickertape / trendlyne / stockanalysis.com, as of Fri 2026-06-12 close",
+    "delta_note": "0% delta. Exact match across all sources; this was the last NSE trading day before the 2026-06-14 weekend.",
+    "flag": "ok"
+   },
+   {
+    "field": "market_cap_cr",
+    "in_app": "55843.2",
+    "external": "~55843-55845 Cr",
+    "source": "screener.in (55,845 Cr) / tickertape (55,843 Cr) / stockanalysis.com (558.26B = 55,826 Cr), as of 2026-06-12",
+    "delta_note": "<0.1% delta. Sanity check: price 26,280 x ~2.125 cr shares = ~55,845 Cr. Internally consistent. (Note: one search snippet showed a garbled '21249302 CR' which is actually the share COUNT, not mcap.)",
+    "flag": "ok"
+   },
+   {
+    "field": "pe_ratio",
+    "in_app": "35.97",
+    "external": "35.97-36.0",
+    "source": "stockanalysis.com (35.97) / tickertape (35.98) / screener.in (36.0), as of 2026-06-12",
+    "delta_note": "~0% delta. Cross-check: EPS 730.36 x 35.97 = 26,271 ~ price. Consistent.",
+    "flag": "ok"
+   },
+   {
+    "field": "price_to_book",
+    "in_app": "11.7",
+    "external": "11.7x",
+    "source": "screener.in (11.7x, book value Rs 2,247), as of 2026-06-12",
+    "delta_note": "0% delta vs screener. Internally consistent: book value 2,247 x 11.7 = 26,290 ~ price. NOTE: tickertape reports PB 13.19 and an older search snippet said 13.07 - those use a lower/stale book value. App's 11.7 matches screener's current book value and is the most defensible figure.",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_per_share",
+    "in_app": "525",
+    "external": "525 final dividend; but TOTAL FY26 dividend = 656 (525 final + 131 special)",
+    "source": "FY26 results / scanx / whalesbook / marketsmojo, FY ended Mar 2026",
+    "delta_note": "App's 525 = only the FINAL dividend. Board recommended final Rs 525 + special Rs 131 = Rs 656 total for FY26. If the intended field is total annual DPS, app UNDERSTATES by 131 (-20%). If it means the regular/final dividend only, it matches yfinance convention. Flagging watch because most data providers (screener, stockanalysis) also list 525 as the headline DPS, so the discrepancy is definitional, not a hard error.",
+    "flag": "watch"
+   },
+   {
+    "field": "dividend_yield",
+    "in_app": "0.02 (2.0%)",
+    "external": "~1.99-2.0% (on 525 DPS); ~2.50% if using total 656",
+    "source": "screener.in (2.00%) / stockanalysis.com (1.99%) / tickertape (1.81%), as of 2026-06-12",
+    "delta_note": "App 2.0% matches the 525-DPS basis (525/26,280 = 2.0%) and screener/stockanalysis. Consistent with its own DPS figure. (True total-dividend yield incl. special would be ~2.5%, but app is self-consistent.)",
+    "flag": "ok"
+   },
+   {
+    "field": "eps",
+    "in_app": "730.58",
+    "external": "730.36 (TTM/FY26)",
+    "source": "screener.in (730.39) / tickertape (730.36) / stockanalysis.com (730.36), as of 2026-06-12",
+    "delta_note": "+0.03% delta. Essentially exact; rounding-level difference. FY26 net profit 1,552.02 Cr / 2.125 cr shares = ~730.4 EPS confirms.",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_high",
+    "in_app": "37000",
+    "external": "37000",
+    "source": "screener.in / tickertape / trendlyne / stockanalysis.com, as of 2026-06-12",
+    "delta_note": "0% delta. Exact match across all sources.",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_low",
+    "in_app": "25150",
+    "external": "25150",
+    "source": "screener.in / tickertape / trendlyne / stockanalysis.com, as of 2026-06-12",
+    "delta_note": "0% delta. Exact match across all sources. Stock currently trades near the 52w low (26,280 vs 25,150 low).",
+    "flag": "ok"
+   },
+   {
+    "field": "roe_pct",
+    "in_app": "0.3446 (34.46%)",
+    "external": "34.5%",
+    "source": "screener.in (ROE 34.5%; ROCE 44.9%), as of 2026-06-12",
+    "delta_note": "<0.2% delta. Matches screener's 34.5%. Consistent with high-return, near-debt-free pharma profile.",
+    "flag": "ok"
+   },
+   {
+    "field": "revenue_growth",
+    "in_app": "0.065 (6.5%)",
+    "external": "~8.1% (revenue from ops); 7.97% (total income)",
+    "source": "FY26 results: rev from ops 6,929.05 Cr vs 6,409.15 Cr = +8.11% (screener/stockanalysis/whalesbook), FY ended Mar 2026",
+    "delta_note": "App 6.5% is LOW. Actual FY26 revenue-from-operations growth is 8.1% (or 7.97% on total income). Delta = -1.6pp / ~-20% relative understatement. Likely yfinance computed a different/TTM window or used a partially different revenue line. Flagging watch.",
+    "flag": "watch"
+   },
+   {
+    "field": "earnings_growth",
+    "in_app": "0.076 (7.6%)",
+    "external": "9.73% (net profit/PAT growth, FY26)",
+    "source": "FY26 results: PAT 1,552.02 Cr vs prior, +9.73% (screener/stockanalysis/whalesbook/scanx), FY ended Mar 2026",
+    "delta_note": "App 7.6% vs actual 9.73% PAT growth. Delta = -2.1pp / ~-22% relative understatement. Just inside the watch band. Difference likely reflects a TTM vs reported-FY window or a normalization (Q4 carried a one-time labour-code regulatory cost that depressed reported quarterly profit). Flagging watch.",
+    "flag": "watch"
+   }
+  ],
+  "net_verdict": "Identity is solid: ABBOTINDIA = Abbott India Ltd, no demerger/symbol remap. The price-and-valuation block (price 26,280, mcap ~55,843 Cr, P/E 35.97, P/B 11.7, EPS 730.58, 52w high 37,000, 52w low 25,150, ROE 34.46%, div yield 2.0%) is EXCELLENT - all within ~0-0.5% of independent sources (screener.in, tickertape, stockanalysis.com, trendlyne) as of the 2026-06-12 close, and internally consistent (EPS x P/E = price; book x P/B = price; price x shares = mcap). Three softer issues, all 'watch' not 'mismatch': (1) dividend_per_share 525 captures only the FY26 final dividend - the board also declared a Rs 131 special, so total FY26 DPS is 656; app's value matches the common yfinance/screener headline convention but understates total payout by ~20%. (2) revenue_growth 6.5% understates the actual FY26 revenue-from-ops growth of ~8.1% (~-20% relative). (3) earnings_growth 7.6% understates actual FY26 PAT growth of 9.73% (~-22% relative). The two growth figures are the weakest numbers - directionally correct but materially low, probably from a TTM-vs-reported-FY window mismatch in yfinance and the one-time labour-code cost distorting recent quarters. No fabricated externals; everything is sourced to non-Yahoo providers. Net: trustworthy snapshot with two growth metrics that lean low and a dividend field that omits the special dividend.",
+  "sources_used": [
+   "screener.in/company/ABBOTINDIA (as of 2026-06-12 close): price, mcap 55,845 Cr, PE 36.0, book value 2,247, P/B 11.7x, div yield 2.0%, EPS 730.39, 52w 37,000/25,150, ROE 34.5%, ROCE 44.9%, sales growth 8.1%, profit growth 9.7%",
+   "tickertape.in/stocks/abbott-india-ABOT (2026-06-12): price 26,280, mcap 55,843 Cr, PE 35.98, PB 13.19, div yield 1.81%, EPS 730.36",
+   "stockanalysis.com/quote/nse/ABBOTINDIA (2026-06-12 15:29 IST): price 26,280, mcap 558.26B, PE 35.97, EPS 730.36, div yield 1.99%, DPS 525, 52w 37,000/25,150, revenue growth +8.1%, earnings growth +9.7%",
+   "trendlyne.com/equity/18/ABBOTINDIA (2026-06-12 15:31 IST): price 26,280, 52w low 25,150, upcoming dividend Rs 525 due 24 Jul 2026, analyst target 32,563",
+   "whalesbook.com / scanx.trade / marketsmojo / investywise FY26 results: total income 7,217.19 Cr (+7.97%), rev from ops 6,929.05 vs 6,409.15 Cr (+8.11%), PAT 1,552.02 Cr (+9.73%), EPS 730.36, dividend final 525 + special 131 = 656"
+  ],
+  "biggest_discrepancies": [
+   "earnings_growth: app 7.6% vs actual FY26 PAT growth 9.73% (~-22% relative, watch) - likely TTM-vs-FY window + one-time Q4 labour-code regulatory cost",
+   "revenue_growth: app 6.5% vs actual FY26 revenue-from-ops growth ~8.1% / total income 7.97% (~-20% relative, watch)",
+   "dividend_per_share: app 525 omits the Rs 131 special dividend; total FY26 DPS is 656 (app understates total payout by ~20%, definitional)",
+   "price_to_book: app/screener 11.7 vs tickertape 13.19 and a stale 13.07 snippet - app's 11.7 is correct against current book value 2,247 and is internally consistent (book x 11.7 = price); tickertape uses an older book value"
+  ]
+ },
+ {
+  "symbol": "FINEORG",
+  "entity_identity": {
+   "true_company_name": "Fine Organic Industries Limited",
+   "matches_expected": true,
+   "note": "FINEORG on NSE is correctly Fine Organic Industries Ltd (specialty oleochemical additives, Materials/Specialty Chemicals sector, face value Rs 5). Confirmed via screener.in, tickertape, trendlyne (security id 92286), NSE. No demerger/symbol remap. Ticker maps to the expected company."
+  },
+  "figures": [
+   {
+    "field": "price",
+    "in_app": "4724.7",
+    "external": "4724.70 (NSE close Fri 2026-06-12)",
+    "source": "tickertape.in + trendlyne.com, as-of 2026-06-12 15:31 IST",
+    "delta_note": "0% delta; exact match to last trading day close.",
+    "flag": "ok"
+   },
+   {
+    "field": "mcap_cr",
+    "in_app": "14485.9",
+    "external": "~14486 cr",
+    "source": "screener.in + tickertape.in, as-of 2026-06-12",
+    "delta_note": "<0.1% delta. Sanity check: 14486 cr / 4724.70 = 3.066 cr shares; EPS 136.03 x 3.066 cr = 417 cr PAT (matches reported FY26 PAT). Internally consistent.",
+    "flag": "ok"
+   },
+   {
+    "field": "pe_ratio",
+    "in_app": "34.72",
+    "external": "~34.7 (consolidated TTM); screener shows 42.4 on standalone basis",
+    "source": "computed from tickertape price 4724.70 / scanx consolidated EPS 136.03; screener.in standalone 42.4, as-of 2026-06-12",
+    "delta_note": "App matches CONSOLIDATED P/E (4724.70/136.03=34.7). Note screener.in headline P/E of 42.4 is STANDALONE (standalone EPS ~111). Within 10% of consolidated basis; choice of basis explains the screener gap.",
+    "flag": "ok"
+   },
+   {
+    "field": "price_to_book",
+    "in_app": "5.44",
+    "external": "~5.5-5.8 (screener book value ~820/sh -> 5.76; tickertape shows 5.44 and elsewhere 6.05-6.31)",
+    "source": "screener.in (BV ~820), tickertape.in, trendlyne, as-of 2026-06-12 / 19-May-2026",
+    "delta_note": "Sources cluster 5.4-6.3 depending on book-value date and standalone/consolidated. App 5.44 sits at the low end but within ~10% of the screener 5.76. Implied book value ~868/sh.",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_yield",
+    "in_app": "0.0023",
+    "external": "0.0023 (0.23%)",
+    "source": "tickertape.in + screener.in (Div Yield 0.23%), as-of 2026-06-12",
+    "delta_note": "Exact match. Cross-check: Rs 11 final div / 4724.70 price = 0.233%.",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_per_share",
+    "in_app": "11",
+    "external": "11 (FY26 final dividend recommended, face value Rs 5)",
+    "source": "scanx.trade / investywise FY26 results + trendlyne dividend history, as-of FY26 results (May 2026)",
+    "delta_note": "0% delta. FY26 final dividend of Rs 11/share confirmed across results coverage.",
+    "flag": "ok"
+   },
+   {
+    "field": "eps",
+    "in_app": "136.07",
+    "external": "136.03 (FY26 consolidated EPS; FY25 was 133.89)",
+    "source": "scanx.trade FY26 results, as-of FY26 (year ended Mar-2026)",
+    "delta_note": "<0.1% delta. Matches consolidated FY26 EPS almost exactly.",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_high",
+    "in_app": "5494",
+    "external": "5494",
+    "source": "tickertape.in + trendlyne.com + businesstoday, as-of 2026-06-12",
+    "delta_note": "0% delta; exact match.",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_low",
+    "in_app": "3856",
+    "external": "3856",
+    "source": "tickertape.in + trendlyne.com + businesstoday, as-of 2026-06-12",
+    "delta_note": "0% delta; exact match.",
+    "flag": "ok"
+   },
+   {
+    "field": "roe",
+    "in_app": "0.1682",
+    "external": "screener.in 14.4%; tickertape ~16.6%",
+    "source": "screener.in (ROE 14.4%) + tickertape.in (16.6%), as-of 2026-06-12",
+    "delta_note": "App 16.82% matches tickertape (~16.6%, ~1% off) but is ~17% above screener's 14.4% (likely standalone/different equity base). Sources disagree by basis; app aligns with the higher consolidated read. Borderline ok vs tickertape.",
+    "flag": "ok"
+   },
+   {
+    "field": "revenue_growth",
+    "in_app": "0.024",
+    "external": "0.043 (FY26 rev 2365.80 cr vs FY25 2269.15 cr = +4.3%)",
+    "source": "whalesbook + investywise + scanx FY26 consolidated results, as-of FY26 (Mar-2026)",
+    "delta_note": "App 2.4% vs actual 4.3% latest-annual consolidated growth -> ~44% relative understatement. App likely reflects a different/older period (or TTM-vs-annual blend). screener TTM sales growth ~3%. Real FY26 YoY is 4.3%.",
+    "flag": "MISMATCH"
+   },
+   {
+    "field": "earnings_growth",
+    "in_app": "0.21",
+    "external": "0.016 (FY26 PAT 417.07 cr vs FY25 410.50 cr = +1.6%)",
+    "source": "whalesbook + scanx FY26 consolidated results, as-of FY26 (Mar-2026)",
+    "delta_note": "App 21% is wildly off. Actual latest-annual PAT growth is just +1.6% (essentially flat; profit margin compressed on higher freight/gratuity provision). screener even shows NEGATIVE TTM profit growth (-12%). The 21% figure is not supported by any independent source.",
+    "flag": "MISMATCH"
+   }
+  ],
+  "net_verdict": "Entity is correct: FINEORG = Fine Organic Industries Ltd, no symbol remap. Nine of eleven figures are accurate (price, mcap, EPS, dividend, yield, 52w hi/lo all match to <0.1%; P/E and P/B match on a consolidated basis; ROE matches tickertape's ~16.6% though screener reports a lower 14.4%). Market-cap sanity check passes: 14486 cr / 4724.70 = 3.066 cr shares, and EPS x shares reconciles to the reported ~417 cr FY26 PAT. The two real failures are the GROWTH metrics. earnings_growth is reported as 21% but actual FY26 PAT growth is only +1.6% (PAT essentially flat YoY; screener even shows -12% TTM) \u2014 a gross overstatement, MISMATCH. revenue_growth is reported as 2.4% but actual FY26 revenue growth is +4.3% \u2014 understated by ~44%, MISMATCH. Both growth fields appear to come from a stale or mis-mapped period in the yfinance feed and should not be trusted; everything else is reliable.",
+  "biggest_discrepancies": [
+   "earnings_growth: app 21% vs actual FY26 PAT growth +1.6% (PAT flat YoY; screener shows -12% TTM) \u2014 gross overstatement, MISMATCH",
+   "revenue_growth: app 2.4% vs actual FY26 revenue growth +4.3% \u2014 understated ~44%, MISMATCH",
+   "ROE/P-E basis ambiguity: screener.in reports ROE 14.4% and P/E 42.4 on a STANDALONE basis vs the app's consolidated-aligned 16.82% ROE and 34.72 P/E \u2014 not errors, but a reminder the app is on consolidated and screener headlines on standalone"
+  ],
+  "sources_used": [
+   "tickertape.in/stocks/fine-organic-industries-FINO (price, mcap, P/E, P/B, EPS, 52w, div yield, ROE; as-of 2026-06-12)",
+   "screener.in/company/FINEORG/ (mcap, book value, ROE 14.4%, ROCE, sales/profit growth TTM & 3yr, P/E 42.4 standalone)",
+   "trendlyne.com/equity/92286/FINEORG (price 4724.70, dividend Rs 11, 52w range)",
+   "whalesbook.com (FY26 consolidated revenue 2365.8 cr, PAT 417.1 cr, FY25 2269.1 cr / 410.5 cr)",
+   "scanx.trade FY26 results (consolidated PAT 417.07 cr, EPS 136.03, FY25 EPS 133.89, dividend 11)",
+   "investywise.com FY26 results (revenue 236579.78 lakh, PAT 41707.40 lakh, dividend Rs 11 face value 5)",
+   "businesstoday.in FINEORG (52w high/low corroboration)"
+  ]
+ },
+ {
+  "symbol": "CARTRADE (NSE)",
+  "entity_identity": {
+   "true_company_name": "CarTrade Tech Limited",
+   "matches_expected": true,
+   "note": "NSE symbol CARTRADE confirmed as CarTrade Tech Ltd (auto-classifieds / remarketing / OLX India parent), small/mid-cap. No demerger or symbol remap. Independently confirmed on tickertape, screener.in, NSE and business-standard. App description 'CarTrade Tech (small, NSE)' is correct."
+  },
+  "figures": [
+   {
+    "field": "price",
+    "in_app": "2345.30",
+    "external": "2345 / 2345.30",
+    "source": "tickertape + screener.in, as-of 12-Jun-2026 close (last trading day)",
+    "delta_note": "0% \u2014 exact match to last NSE close Fri 12-Jun-2026",
+    "flag": "ok"
+   },
+   {
+    "field": "market_cap_cr",
+    "in_app": "11262.8",
+    "external": "11262.84 (tickertape) / 11263 (screener)",
+    "source": "tickertape + screener.in, as-of 12-Jun-2026",
+    "delta_note": "~0% \u2014 exact match. Bajaj quoted 11,749 Cr on 11-Jun intraday but settled lower; tickertape/screener confirm ~11,263 Cr",
+    "flag": "ok"
+   },
+   {
+    "field": "pe_ratio_trailing",
+    "in_app": "52.63",
+    "external": "49.4 (screener) / 50.51 (tickertape) / 42.09 (Bajaj 8-Jun)",
+    "source": "screener.in + tickertape, as-of 12-Jun-2026",
+    "delta_note": "App 52.63 vs ~49-50.5 independent = +4% to +7%. App PE is a touch high (consistent with its slightly-low EPS input) but within tolerance",
+    "flag": "ok"
+   },
+   {
+    "field": "price_to_book",
+    "in_app": "4.52",
+    "external": "4.52 (screener) / 4.84 (tickertape)",
+    "source": "screener.in + tickertape, as-of 12-Jun-2026",
+    "delta_note": "Screener identical at 4.52; tickertape 4.84 (+7%). Book value/share ~519. Confirmed",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_per_share",
+    "in_app": "null",
+    "external": "0 / none",
+    "source": "tickertape + screener.in (dividend yield 0.00%), as-of 12-Jun-2026",
+    "delta_note": "Confirmed \u2014 CarTrade Tech pays no dividend. App null is correct",
+    "flag": "ok"
+   },
+   {
+    "field": "dividend_yield",
+    "in_app": "null",
+    "external": "0.00%",
+    "source": "tickertape + screener.in, as-of 12-Jun-2026",
+    "delta_note": "Confirmed zero/no dividend. App null correct",
+    "flag": "ok"
+   },
+   {
+    "field": "eps_ttm",
+    "in_app": "44.56",
+    "external": "46.58 (screener) / 47.01 (tickertape)",
+    "source": "screener.in + tickertape, as-of 12-Jun-2026",
+    "delta_note": "App 44.56 vs ~46.6-47.0 independent = -4% to -5%. App EPS slightly low (drives its slightly-high PE). Within tolerance",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_high",
+    "in_app": "3290.5",
+    "external": "3290.50 / 3291",
+    "source": "tickertape + screener.in + business-standard (all-time high ~Jul-2025), as-of 12-Jun-2026",
+    "delta_note": "0% \u2014 exact match",
+    "flag": "ok"
+   },
+   {
+    "field": "fifty_two_week_low",
+    "in_app": "1557",
+    "external": "1557 (tickertape/NSE) / 1523 (screener)",
+    "source": "tickertape/NSE + screener.in, as-of 12-Jun-2026",
+    "delta_note": "Matches tickertape/NSE figure exactly (1557). Screener shows 1523 (~2% lower, intraday-low basis). Effectively confirmed",
+    "flag": "ok"
+   },
+   {
+    "field": "roe_pct",
+    "in_app": "9.85%",
+    "external": "9.69% (screener last-year ROE)",
+    "source": "screener.in, FY26 / as-of 12-Jun-2026",
+    "delta_note": "App 9.85% vs 9.69% = +1.6%. Essentially identical. (Screener 3-yr median ROE is lower at 5.65%, but trailing/last-year basis matches app)",
+    "flag": "ok"
+   },
+   {
+    "field": "revenue_growth_annual",
+    "in_app": "19.8%",
+    "external": "~21.5%-22% FY26 YoY (operating revenue 641->779 Cr; total income 22%)",
+    "source": "screener.in + business-standard/whalesbook FY26 results filing, FY26 (yr ended Mar-2026)",
+    "delta_note": "App 19.8% vs ~21.5-22% independent = ~2pp lower / ~9-10% relative gap. Right magnitude; app modestly understates. At ok/watch boundary, called ok",
+    "flag": "ok"
+   },
+   {
+    "field": "earnings_growth_annual",
+    "in_app": "57.3%",
+    "external": "~65.6%-68% FY26 PAT YoY (PAT ~134.65->223 Cr standalone basis ~65.6%; consolidated ~145->244 Cr ~68%)",
+    "source": "screener.in + business-standard + corporate FY26 results filing, FY26",
+    "delta_note": "App 57.3% vs ~66-68% independent = ~9-11pp lower, ~16-19% relative gap. App materially understates PAT growth (likely a different period/base or pre-final-results figure). Flagged watch",
+    "flag": "watch"
+   }
+  ],
+  "net_verdict": "CARTRADE is correctly identified as CarTrade Tech Ltd on NSE \u2014 no entity/demerger error. The app's figures are largely accurate and internally consistent: price (2345.3), market cap (11,262.8 Cr), P/B (4.52), 52w high (3290.5), 52w low (1557), ROE (~9.85%) and the null dividend all match independent sources (screener.in, tickertape, NSE) as-of the 12-Jun-2026 close. Minor, mutually-consistent drift: app EPS is ~4-5% low (44.56 vs ~46.6-47.0) which mechanically pushes its trailing P/E ~5-7% high (52.63 vs ~49-50.5) \u2014 both still 'ok'. Revenue growth (19.8% vs ~22%) is slightly understated but acceptable. The one figure worth watching is annual earnings/PAT growth: app reports 57.3% while CarTrade's FY26 filing and screener show PAT up ~66-68% YoY \u2014 a ~16-19% relative understatement, likely from a stale base or pre-final-results snapshot. Mcap sanity check passes: EPS ~46.6 x PE ~50.5 \u2248 price 2345, and price 2345 x ~4.8 cr shares \u2248 11,263 Cr. No fabricated values; everything independently sourced off non-Yahoo Indian sites. Net: clean, trustworthy data with one watch on earnings-growth.",
+  "biggest_discrepancies": [
+   "Earnings/PAT growth: app 57.3% vs FY26 actual ~66-68% (screener + company filing) \u2014 ~16-19% relative understatement, WATCH",
+   "Trailing P/E: app 52.63 vs 49.4 (screener) / 50.51 (tickertape) \u2014 app ~5-7% high, a direct consequence of its slightly-low EPS input",
+   "EPS TTM: app 44.56 vs 46.58 (screener) / 47.01 (tickertape) \u2014 app ~4-5% low",
+   "Revenue growth: app 19.8% vs ~21.5-22% FY26 YoY \u2014 app ~2pp / ~10% low (at ok/watch boundary)"
+  ],
+  "sources_used": [
+   "screener.in/company/CARTRADE/consolidated (as-of 12-Jun-2026): price 2345, mcap 11,263 Cr, PE 49.4, PB 4.52, EPS 46.58, BV/sh 519, ROE 9.69%, 52w 3291/1523, sales +22%, PAT +68%",
+   "tickertape.in/stocks/cartrade-tech-CART (as-of 12-Jun-2026): price 2345.30, mcap 11,262.84 Cr, PE 50.51, PB 4.84, EPS 47.01, div yield n/a, 52w high 3290.50, 52w low 1557",
+   "business-standard.com (CarTrade Tech FY26 results / 52w high reporting): revenue 641->779 Cr, PAT 134.65->223 Cr standalone (+65.61%); all-time/52w high 3290.50",
+   "whalesbook.com / investywise.com (CarTrade Tech FY26 audited results filing): total income +22% to ~870 Cr, PAT +68% to 243.51 Cr (consolidated)",
+   "NSE India get-quotes/CARTRADE (symbol & 52-week low 1557 confirmation)",
+   "bajajfinserv.in cross-check (8-Jun: PE 42.09, PB 4.03 \u2014 earlier/lower snapshot, used only as directional cross-check)"
+  ]
+ },
+ {
+  "symbol": "HOMEFIRST",
+  "entity_identity": {
+   "true_company_name": "Home First Finance Company India Ltd",
+   "matches_expected": true,
+   "note": "HOMEFIRST on NSE confirmed as Home First Finance Company India Ltd, a technology-driven affordable housing finance company (small/mid-cap, BFSI/housing finance). No demerger or ticker remap. ISIN/listing stable; trendlyne entity id 407835, screener slug HOMEFIRST, tickertape slug home-first-finance-company-india-HOM all resolve to the same company. Promoter holding has fallen sharply (~6.98% as of Mar-2026 vs ~30% in 2023) with FIIs ~45.7%, but this is an ownership shift, not an identity change."
+  },
+  "figures": [
+   {
+    "field": "Current price (INR)",
+    "in_app": "1109.3",
+    "external": "1109.30",
+    "source": "screener.in / tickertape / trendlyne, close as-of 2026-06-12 (last NSE trading day)",
+    "delta_note": "0.0% delta \u2014 exact match to the Fri 12-Jun-2026 close.",
+    "flag": "ok"
+   },
+   {
+    "field": "Market cap (Rs cr)",
+    "in_app": "11587.6",
+    "external": "11587.58 (tickertape); 11588 (screener)",
+    "source": "tickertape / screener.in, as-of 2026-06-12",
+    "delta_note": "~0.0% delta. Sanity: 11587.58cr / 1109.30 = ~10.45cr shares outstanding, internally consistent.",
+    "flag": "ok"
+   },
+   {
+    "field": "Trailing P/E",
+    "in_app": "21.51",
+    "external": "21.44 (tickertape); 21.4 (screener)",
+    "source": "tickertape / screener.in, as-of 2026-06-12",
+    "delta_note": "~0.3% delta. Match.",
+    "flag": "ok"
+   },
+   {
+    "field": "Price-to-book",
+    "in_app": "2.65",
+    "external": "2.66",
+    "source": "tickertape / screener.in, as-of 2026-06-12 (book value ~Rs 418/sh)",
+    "delta_note": "~0.4% delta. Match. (An earlier search snippet showed a stale/garbled P/B 4.65 & BV 386 \u2014 disregarded; the live 2026-06-12 figure is 2.66.)",
+    "flag": "ok"
+   },
+   {
+    "field": "Dividend per share (INR)",
+    "in_app": "5.2",
+    "external": "5.20",
+    "source": "screener.in, as-of 2026-06-12",
+    "delta_note": "0% delta. Exact match.",
+    "flag": "ok"
+   },
+   {
+    "field": "Dividend yield",
+    "in_app": "0.0047 (0.47%)",
+    "external": "0.47%",
+    "source": "screener.in / tickertape, as-of 2026-06-12",
+    "delta_note": "0% delta. Exact match.",
+    "flag": "ok"
+   },
+   {
+    "field": "EPS (TTM, INR)",
+    "in_app": "51.58",
+    "external": "51.80",
+    "source": "screener.in / tickertape, as-of 2026-06-12",
+    "delta_note": "~0.4% delta. Match. (FY26 PAT Rs 540cr / ~10.45cr shares \u2248 Rs 51.7 confirms.)",
+    "flag": "ok"
+   },
+   {
+    "field": "52-week high (INR)",
+    "in_app": "1519",
+    "external": "1519",
+    "source": "screener.in / tickertape / trendlyne, as-of 2026-06-12",
+    "delta_note": "0% delta. Exact match.",
+    "flag": "ok"
+   },
+   {
+    "field": "52-week low (INR)",
+    "in_app": "893.7",
+    "external": "893.70 (tickertape); ~894 (screener)",
+    "source": "tickertape / screener.in, as-of 2026-06-12",
+    "delta_note": "0% delta. Exact match.",
+    "flag": "ok"
+   },
+   {
+    "field": "ROE %",
+    "in_app": "0.1571 (15.71%)",
+    "external": "15.7% (FY26 reported RoE; pre-money ~16.8%)",
+    "source": "FY26 results coverage (marketsmojo/investywise/icicidirect, FY26 annual results, reported May-2026); screener trailing ~16%",
+    "delta_note": "~0.06% delta. Exact match to the FY26 reported RoE of 15.7%.",
+    "flag": "ok"
+   },
+   {
+    "field": "Latest annual revenue growth %",
+    "in_app": "0.306 (30.6%)",
+    "external": "~24.9-25.1% (FY26 total income Rs ~1,908-1,923cr vs FY25 Rs ~1,526-1,539cr); AUM growth also 24.9%",
+    "source": "tickertape (25.08%) / screener (25% TTM) / FY26 results coverage, FY26 vs FY25 (results dated May-2026)",
+    "delta_note": "+22% relative overstatement vs total-income growth (30.6% app vs ~25% actual). The app figure likely reflects net interest income growth (HFC NII typically grows faster than total income) rather than total income/sales; under the standard 'revenue = total income' definition this is too high. Falls in the 10-25% band.",
+    "flag": "watch"
+   },
+   {
+    "field": "Latest annual earnings/PAT growth %",
+    "in_app": "0.24 (24%)",
+    "external": "41.4% (FY26 PAT Rs 540cr vs FY25 Rs 382cr; Q4 PAT +42.7% YoY)",
+    "source": "FY26 results coverage (whalesbook/marketsmojo/investywise/scanx, reported May-2026); tickertape net-profit growth 41.43%",
+    "delta_note": "App understates badly: 24% vs ~41% actual (~42% relative gap). The 24% likely reflects a stale interim/FY25 figure or a partial-year number; FY26 full-year PAT growth is unambiguously ~41%. >25% error.",
+    "flag": "MISMATCH"
+   }
+  ],
+  "net_verdict": "Strongly trustworthy on price/market data, one real fundamentals error. HOMEFIRST is correctly identified as Home First Finance Company India Ltd (housing finance) \u2014 no identity/demerger issue. Ten of twelve figures (price, mcap, P/E, P/B, dividend/share, dividend yield, EPS, 52wk high, 52wk low, ROE) match independent sources (screener.in, tickertape, trendlyne) as of the 2026-06-12 close to within ~0.5% \u2014 these are clean. Market-cap sanity checks out: 11,587.58cr / Rs1,109.30 \u2248 10.45cr shares. TWO growth figures are off: (1) earnings/PAT growth is a clear MISMATCH \u2014 app says 24% but FY26 PAT grew ~41.4% (Rs 382cr\u2192Rs 540cr), unanimously reported; the app value looks stale or partial. (2) Revenue growth (app 30.6%) is a 'watch' \u2014 total income/AUM grew ~25%, so 30.6% is overstated under the standard definition, though it may be capturing net interest income growth. Bottom line: market snapshot is reliable; do not trust the app's earnings-growth field, and treat its revenue-growth field with caution.",
+  "sources_used": [
+   "screener.in/company/HOMEFIRST/ (as-of 2026-06-12)",
+   "tickertape.in/stocks/home-first-finance-company-india-HOM (as-of 2026-06-12)",
+   "trendlyne.com HOMEFIRST equity 407835 (as-of 2026-06-12, price)",
+   "FY26 results coverage: marketsmojo.com, investywise.com, whalesbook.com, scanx.trade, icicidirect.com rapid-results (FY26 annual results, reported May-2026)"
+  ],
+  "biggest_discrepancies": [
+   "Earnings/PAT growth MISMATCH: app 24% vs actual FY26 PAT growth ~41.4% (Rs 382cr\u2192Rs 540cr) \u2014 app figure is stale/wrong, the single most material error.",
+   "Revenue growth overstated: app 30.6% vs ~25% total-income/AUM growth (likely the app is reporting NII growth, not total income).",
+   "All price/valuation/market figures (price, mcap, P/E, P/B, EPS, dividend, 52wk hi/lo, ROE) match independent sources within ~0.5% as of 2026-06-12 \u2014 no issues there."
+  ]
+ },
+ {
+  "symbol": "KSCL (NSE) / Kaveri Seed Company Ltd",
+  "entity_identity": {
+   "true_company_name": "Kaveri Seed Company Limited",
+   "matches_expected": true,
+   "note": "NSE symbol KSCL (ISIN INE455I01029, BSE 532899) maps to Kaveri Seed Company Ltd, a hybrid-seed company (cotton, maize, rice, vegetables) HQ'd in Hyderabad. Face value Rs 2. No demerger / symbol-change confusion found; ticker identity is clean and matches the app's 'Kaveri Seed' description. Note it is a small-cap (~Rs 4,500 Cr), not micro-cap."
+  },
+  "figures": [
+   {
+    "field": "Current price (INR)",
+    "in_app": "878.85",
+    "external": "879 (Fri 12-Jun-2026 close); tickertape 878.85",
+    "source": "screener.in & tickertape.in, as-of 12-Jun-2026 close",
+    "delta_note": "~0%. Exact match across screener, tickertape, groww.",
+    "flag": "ok"
+   },
+   {
+    "field": "Market cap (Rs crore)",
+    "in_app": "4485.7",
+    "external": "screener ~4,521; tickertape 4,485.73; groww 4,519",
+    "source": "tickertape.in / screener.in / groww.in, 12-Jun-2026",
+    "delta_note": "Within 0-0.8% of all three sources; tickertape matches to the rupee. Internally consistent: 4485.7/879 = ~5.10 Cr shares.",
+    "flag": "ok"
+   },
+   {
+    "field": "Trailing P/E",
+    "in_app": "15.43",
+    "external": "screener 15.3; tickertape 15.16; groww 15.28; moneyworks4me 15.55",
+    "source": "screener.in / tickertape.in / groww.in, 12-Jun-2026",
+    "delta_note": "All sources cluster 15.16-15.55; app's 15.43 sits in the middle. <2% off.",
+    "flag": "ok"
+   },
+   {
+    "field": "Price-to-book",
+    "in_app": "2.12",
+    "external": "~2.57 (screener & groww: price 879 / book value ~342 = 2.57; groww BV/share 341.53)",
+    "source": "screener.in & groww.in, 12-Jun-2026",
+    "delta_note": "App 2.12 is ~17% BELOW the independent consensus of 2.57. Book value/share ~Rs 342 implies P/B 2.57, not 2.12. App figure understates P/B. (tickertape showed an outlier 2.98 \u2014 disregarded.)",
+    "flag": "watch"
+   },
+   {
+    "field": "Dividend yield",
+    "in_app": "0.0057 (0.57%)",
+    "external": "0.57%",
+    "source": "screener.in / tickertape.in / groww.in, 12-Jun-2026",
+    "delta_note": "Exact match across all sources.",
+    "flag": "ok"
+   },
+   {
+    "field": "Dividend per share (INR)",
+    "in_app": "5",
+    "external": "~5 (implied: 0.57% yield x Rs 879 = Rs 5.01)",
+    "source": "derived from yield x price (screener/tickertape), 12-Jun-2026",
+    "delta_note": "Consistent with the 0.57% yield at this price. Could not isolate an explicit trailing DPS line independently, but the math corroborates ~Rs 5 (paid on Rs 2 face value).",
+    "flag": "ok"
+   },
+   {
+    "field": "EPS (TTM)",
+    "in_app": "56.95",
+    "external": "57.39-57.51",
+    "source": "screener.in / tickertape.in / groww.in, 12-Jun-2026",
+    "delta_note": "~1% below the 57.4-57.5 consensus. Consistent with FY26 PAT ~Rs 282-296 Cr over ~5.1 Cr shares.",
+    "flag": "ok"
+   },
+   {
+    "field": "52-week high (INR)",
+    "in_app": "1338.5",
+    "external": "1,338 (screener, businesstoday); NOTE: tickertape/groww show 1,420, one source 1,495",
+    "source": "screener.in & businesstoday.in, 12-Jun-2026",
+    "delta_note": "App matches the screener/NSE figure of ~1,338 exactly. The 1,420/1,495 figures (tickertape/groww) likely reflect BSE or a different lookback window. Against the screener/NSE reference: OK. If the 1,420 figure is the true NSE 52wk high, app would be ~6% low \u2014 still within tolerance either way.",
+    "flag": "ok"
+   },
+   {
+    "field": "52-week low (INR)",
+    "in_app": "705.1",
+    "external": "705 / 705.10 / 705.8",
+    "source": "screener.in / tickertape.in / groww.in, 12-Jun-2026",
+    "delta_note": "Unanimous ~Rs 705; tickertape matches 705.10 exactly.",
+    "flag": "ok"
+   },
+   {
+    "field": "ROE %",
+    "in_app": "0.1816 (18.16%)",
+    "external": "screener 18.2% & moneyworks4me 18.78% (trailing); BUT FY26 audited annual ROE ~16.84-16.88% (groww & FY26 results)",
+    "source": "screener.in / moneyworks4me.com (trailing) vs Business Standard FY26 results, May-Jun 2026",
+    "delta_note": "App 18.16% matches screener's trailing ROE (18.2%) almost exactly. However the latest FY2025-26 audited annual ROE is lower at ~16.9% (groww shows 16.84%). App is OK vs screener's trailing basis but on the high side of the newest annual figure (~7% above 16.9%).",
+    "flag": "ok"
+   },
+   {
+    "field": "Latest annual revenue growth %",
+    "in_app": "0.187 (18.7%)",
+    "external": "+15.75% FY26 (standalone sales Rs 1,394.76 Cr vs Rs 1,204.97 Cr FY25); screener TTM sales growth 16%",
+    "source": "Business Standard FY26 results (board-approved 26-May-2026) & screener.in",
+    "delta_note": "App 18.7% vs actual FY26 ~15.75% (screener TTM 16%). App overstates revenue growth by ~18-19% relative to the 15.75% reported figure. Right sign/direction, magnitude inflated.",
+    "flag": "watch"
+   },
+   {
+    "field": "Latest annual earnings/PAT growth %",
+    "in_app": "null",
+    "external": "+5.16% FY26 standalone (PAT Rs 295.84 Cr vs Rs 281.33 Cr FY25); consolidated PAT ~Rs 282.28 Cr",
+    "source": "Business Standard FY26 results (board-approved 26-May-2026)",
+    "delta_note": "App reports null/missing. True latest annual PAT growth is modestly positive (~+5%). Not a wrong number, but an omission \u2014 the data exists and is publicly available. Note Q4 FY26 alone was a seasonal loss of Rs 27.81 Cr (normal for this business).",
+    "flag": "watch"
+   }
+  ],
+  "net_verdict": "Entity identity is clean: KSCL on NSE is unambiguously Kaveri Seed Company Ltd (small-cap, not micro-cap as the app labels it). The price/market-cap/P/E/dividend-yield/EPS/52wk-low block is solid \u2014 all within ~1% of independent screener.in, tickertape and groww data as of the 12-Jun-2026 close, and the market-cap-vs-(price x ~5.1 Cr shares) sanity check holds. Three issues worth flagging: (1) PRICE-TO-BOOK 2.12 is ~17% too low \u2014 independent book value/share of ~Rs 342 implies P/B ~2.57, so the app understates it (watch). (2) REVENUE GROWTH 18.7% overstates the actual FY26 figure of ~15.75% (screener TTM 16%) by ~18% (watch). (3) EARNINGS/PAT GROWTH is null in the app but is publicly available at ~+5.16% for FY26 \u2014 an omission, not a fabrication (watch). ROE (18.16%) matches the trailing screener basis but is ~7% above the newest FY26 audited annual ROE of ~16.9%, and the 52wk high (1,338.5) matches NSE/screener though some portals show 1,420 (likely BSE). No MISMATCH-level or sign/identity errors found. Net: figures are broadly trustworthy with three minor-to-moderate discrepancies, the P/B being the most material valuation distortion.",
+  "sources_used": [
+   "screener.in/company/KSCL/consolidated (price/mcap/PE/PB/ROE/52wk/EPS/growth, 12-Jun-2026)",
+   "tickertape.in/stocks/kaveri-seed-company-KVRI (price 878.85, mcap 4,485.73, 52wk low 705.10, 12-Jun-2026)",
+   "groww.in/stocks/kaveri-seed-company-ltd (PB 2.57, BV/share 341.53, ROE 16.84%, 12-Jun-2026)",
+   "moneyworks4me.com Kaveri Seed company-info (PE 15.55, ROE 18.78%, mcap 4,403.7 as-of 01-Jun-2026)",
+   "business-standard.com FY26 results (sales +15.75% to Rs 1,394.76 Cr; PAT +5.16% to Rs 295.84 Cr; Q4 loss Rs 27.81 Cr; board-approved 26-May-2026)",
+   "businesstoday.in KSCL share page (52wk high reference)"
+  ]
+ }
+]

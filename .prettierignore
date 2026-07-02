@@ -60,6 +60,13 @@ docs/redesign/verification/r9/briefs/
 docs/redesign/verification/r10/regression/
 docs/redesign/verification/r10/reference-pack.json
 docs/redesign/verification/r10/reference-pack-audit.md
+# R10 gate-4 evidence captures (V7: committed in 7b27a47 without an ignore entry
+# — broke `prettier --check` at HEAD) + the R10-VERIFY census evidence tree +
+# the R11 evidence tree. Captured artifacts, never reformatted.
+docs/redesign/verification/r10/gate4-it-names-3rows-PASS.json
+docs/redesign/verification/r10/gate4-itquery-result.json
+docs/redesign/verification/r10-verify/
+docs/redesign/verification/r11/
 # Track brief docs for the R10 teams — byte-preserved spec text (Prettier's
 # markdown emphasis escaping mangles portfolio_db.py / quote_* underscores).
 docs/redesign/R10_TRACK_BRIEF_FE_BRIEF.md

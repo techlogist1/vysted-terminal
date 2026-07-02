@@ -1,0 +1,1286 @@
+{
+ "research Reliance": {
+  "ok": true,
+  "query": "research Reliance",
+  "region": "IN",
+  "resolved": {
+   "symbol": "RELIANCE",
+   "name": "Reliance Industries Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "RELIANCE.NS",
+   "confidence": 1.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "RELIANCE",
+    "name": "Reliance Industries Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "RELIANCE.NS",
+    "confidence": 1.0
+   },
+   {
+    "symbol": "RELIANCE",
+    "name": "Reliance Industries Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "RELIANCE.BO",
+    "confidence": 1.0
+   }
+  ]
+ },
+ "Reliance Q4 results": {
+  "ok": true,
+  "query": "Reliance Q4 results",
+  "region": "IN",
+  "resolved": null,
+  "needs_disambiguation": true,
+  "candidates": [
+   {
+    "symbol": "RELIANCE",
+    "name": "Reliance Industries Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "RELIANCE.NS",
+    "confidence": 0.6087
+   },
+   {
+    "symbol": "FRLCY",
+    "name": "Freelancer Ltd",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "FRLCY",
+    "confidence": 0.6061
+   },
+   {
+    "symbol": "FLNCF",
+    "name": "Freelancer Ltd",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "FLNCF",
+    "confidence": 0.6061
+   }
+  ]
+ },
+ "Reliance Industries Q4 FY26 results": {
+  "ok": false,
+  "query": "Reliance Industries Q4 FY26 results",
+  "region": "IN",
+  "message": "No instrument matched 'Reliance Industries Q4 FY26 results'.",
+  "resolved": null,
+  "needs_disambiguation": false,
+  "candidates": []
+ },
+ "RELIANCE.NS": {
+  "ok": true,
+  "query": "RELIANCE.NS",
+  "region": "IN",
+  "resolved": {
+   "symbol": "RELIANCE",
+   "name": "Reliance Industries Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "RELIANCE.NS",
+   "confidence": 1.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "RELIANCE",
+    "name": "Reliance Industries Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "RELIANCE.NS",
+    "confidence": 1.0
+   }
+  ]
+ },
+ "Tata": {
+  "ok": true,
+  "query": "Tata",
+  "region": "IN",
+  "resolved": null,
+  "needs_disambiguation": true,
+  "candidates": [
+   {
+    "symbol": "TCS",
+    "name": "Tata Consultancy Services Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "TCS.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "TMCV",
+    "name": "Tata Motors Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "TMCV.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "TATASTEEL",
+    "name": "Tata Steel Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "TATASTEEL.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "TATAPOWER",
+    "name": "Tata Power Company Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "TATAPOWER.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "TATACONSUM",
+    "name": "TATA CONSUMER PRODUCTS LIMITED",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "TATACONSUM.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "TITAN",
+    "name": "Titan Company Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "TITAN.NS",
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Tata Motors": {
+  "ok": true,
+  "query": "Tata Motors",
+  "region": "IN",
+  "resolved": {
+   "symbol": "TMCV",
+   "name": "Tata Motors Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "TMCV.NS",
+   "confidence": 1.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "TMCV",
+    "name": "Tata Motors Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "TMCV.NS",
+    "confidence": 1.0
+   },
+   {
+    "symbol": "TMPV",
+    "name": "Tata Motors Passenger Vehicles Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "TMPV.NS",
+    "confidence": 0.92
+   },
+   {
+    "symbol": "MOTOUR",
+    "name": "MOTILALAMC - MOTOUR",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "etf",
+    "yahoo_symbol": "MOTOUR.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "LAD",
+    "name": "LITHIA MOTORS INC",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "LAD",
+    "confidence": 0.6429
+   },
+   {
+    "symbol": "TM",
+    "name": "TOYOTA MOTOR CORP/",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "TM",
+    "confidence": 0.6207
+   },
+   {
+    "symbol": "SEV",
+    "name": "Aptera Motors Corp",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "SEV",
+    "confidence": 0.6207
+   }
+  ]
+ },
+ "Tata Steel": {
+  "ok": true,
+  "query": "Tata Steel",
+  "region": "IN",
+  "resolved": {
+   "symbol": "TATASTEEL",
+   "name": "Tata Steel Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "TATASTEEL.NS",
+   "confidence": 1.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "TATASTEEL",
+    "name": "Tata Steel Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "TATASTEEL.NS",
+    "confidence": 1.0
+   },
+   {
+    "symbol": "ECSTSTL",
+    "name": "Eastcoast Steel Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "ECSTSTL.BO",
+    "confidence": 0.6207
+   },
+   {
+    "symbol": "SID",
+    "name": "NATIONAL STEEL CO",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "SID",
+    "confidence": 0.6667
+   }
+  ]
+ },
+ "TCS": {
+  "ok": true,
+  "query": "TCS",
+  "region": "IN",
+  "resolved": {
+   "symbol": "TCS",
+   "name": "Tata Consultancy Services Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "TCS.NS",
+   "confidence": 1.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "TCS",
+    "name": "Tata Consultancy Services Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "TCS.NS",
+    "confidence": 1.0
+   },
+   {
+    "symbol": "TCS",
+    "name": "Tata Consultancy Services Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "TCS.BO",
+    "confidence": 1.0
+   }
+  ]
+ },
+ "Tata Consultancy Services": {
+  "ok": true,
+  "query": "Tata Consultancy Services",
+  "region": "IN",
+  "resolved": {
+   "symbol": "TCS",
+   "name": "Tata Consultancy Services Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "TCS.NS",
+   "confidence": 1.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "TCS",
+    "name": "Tata Consultancy Services Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "TCS.NS",
+    "confidence": 1.0
+   },
+   {
+    "symbol": "DHRUV",
+    "name": "Dhruv Consultancy Services Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "DHRUV.NS",
+    "confidence": 0.7119
+   },
+   {
+    "symbol": "CITYONLINE",
+    "name": "City Online Services Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "CITYONLINE.BO",
+    "confidence": 0.6122
+   },
+   {
+    "symbol": "AJCON",
+    "name": "Ajcon Global Services Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "AJCON.BO",
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Bajaj": {
+  "ok": true,
+  "query": "Bajaj",
+  "region": "IN",
+  "resolved": null,
+  "needs_disambiguation": true,
+  "candidates": [
+   {
+    "symbol": "BAJFINANCE",
+    "name": "Bajaj Finance Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "BAJFINANCE.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "BAJAJFINSV",
+    "name": "Bajaj Finserv Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "BAJAJFINSV.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "BAJAJ-AUTO",
+    "name": "Bajaj Auto Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "BAJAJ-AUTO.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "BAJAJHLDNG",
+    "name": "Bajaj Holdings & Investment Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "BAJAJHLDNG.NS",
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Bajaj Finance": {
+  "ok": true,
+  "query": "Bajaj Finance",
+  "region": "IN",
+  "resolved": {
+   "symbol": "BAJFINANCE",
+   "name": "Bajaj Finance Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "BAJFINANCE.NS",
+   "confidence": 1.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "BAJFINANCE",
+    "name": "Bajaj Finance Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "BAJFINANCE.NS",
+    "confidence": 1.0
+   },
+   {
+    "symbol": "BANASFN",
+    "name": "Banas Finance Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "BANASFN.BO",
+    "confidence": 0.7333
+   },
+   {
+    "symbol": "ANJANIFIN",
+    "name": "Anjani Finance Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "ANJANIFIN.BO",
+    "confidence": 0.7097
+   },
+   {
+    "symbol": "KAPILRAJ",
+    "name": "Kapil Raj Finance Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "KAPILRAJ.BO",
+    "confidence": 0.6471
+   },
+   {
+    "symbol": "CEEJAY",
+    "name": "Ceejay Finance Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "CEEJAY.BO",
+    "confidence": 0.6452
+   },
+   {
+    "symbol": "GALADAFIN",
+    "name": "Galada Finance Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "GALADAFIN.BO",
+    "confidence": 0.6452
+   }
+  ]
+ },
+ "Bajaj Auto": {
+  "ok": true,
+  "query": "Bajaj Auto",
+  "region": "IN",
+  "resolved": {
+   "symbol": "BAJAJ-AUTO",
+   "name": "Bajaj Auto Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "BAJAJ-AUTO.NS",
+   "confidence": 1.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "BAJAJ-AUTO",
+    "name": "Bajaj Auto Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "BAJAJ-AUTO.NS",
+    "confidence": 1.0
+   },
+   {
+    "symbol": "BAJGLOB",
+    "name": "Bajaj Global Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "BAJGLOB.BO",
+    "confidence": 0.6154
+   }
+  ]
+ },
+ "Adani": {
+  "ok": true,
+  "query": "Adani",
+  "region": "IN",
+  "resolved": null,
+  "needs_disambiguation": true,
+  "candidates": [
+   {
+    "symbol": "ADANIENT",
+    "name": "Adani Enterprises Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "ADANIENT.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "ADANIPORTS",
+    "name": "Adani Ports and Special Economic Zone Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "ADANIPORTS.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "ADANIGREEN",
+    "name": "Adani Green Energy Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "ADANIGREEN.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "ADANIPOWER",
+    "name": "Adani Power Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "ADANIPOWER.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "ADANIENSOL",
+    "name": "Adani Energy Solutions Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "ADANIENSOL.NS",
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Adani Enterprises": {
+  "ok": true,
+  "query": "Adani Enterprises",
+  "region": "IN",
+  "resolved": {
+   "symbol": "ADANIENT",
+   "name": "Adani Enterprises Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "ADANIENT.NS",
+   "confidence": 1.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "ADANIENT",
+    "name": "Adani Enterprises Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "ADANIENT.NS",
+    "confidence": 1.0
+   },
+   {
+    "symbol": "YAANENT",
+    "name": "Yaan Enterprises Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "YAANENT.BO",
+    "confidence": 0.8108
+   },
+   {
+    "symbol": "AEL",
+    "name": "Amba Enterprises Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "AEL.BO",
+    "confidence": 0.7568
+   },
+   {
+    "symbol": "VADILENT",
+    "name": "Vadilal Enterprises Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "VADILENT.BO",
+    "confidence": 0.75
+   },
+   {
+    "symbol": "IFL",
+    "name": "IFL Enterprises Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "IFL.BO",
+    "confidence": 0.7222
+   },
+   {
+    "symbol": "VAPIENTER",
+    "name": "Vapi Enterprise Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "VAPIENTER.BO",
+    "confidence": 0.7222
+   }
+  ]
+ },
+ "Adani Ports": {
+  "ok": true,
+  "query": "Adani Ports",
+  "region": "IN",
+  "resolved": {
+   "symbol": "ADANIPORTS",
+   "name": "Adani Ports and Special Economic Zone Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "ADANIPORTS.NS",
+   "confidence": 0.92
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "ADANIPORTS",
+    "name": "Adani Ports and Special Economic Zone Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "ADANIPORTS.NS",
+    "confidence": 0.92
+   },
+   {
+    "symbol": "ADANIPOWER",
+    "name": "Adani Power Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "ADANIPOWER.NS",
+    "confidence": 0.6667
+   }
+  ]
+ },
+ "Birla": {
+  "ok": true,
+  "query": "Birla",
+  "region": "IN",
+  "resolved": null,
+  "needs_disambiguation": true,
+  "candidates": [
+   {
+    "symbol": "GRASIM",
+    "name": "Grasim Industries Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "GRASIM.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "ULTRACEMCO",
+    "name": "UltraTech Cement Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "ULTRACEMCO.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "ABCAPITAL",
+    "name": "Aditya Birla Capital Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "ABCAPITAL.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "ABFRL",
+    "name": "Aditya Birla Fashion and Retail Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "ABFRL.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "HINDALCO",
+    "name": "Hindalco Industries Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "HINDALCO.NS",
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Mahindra": {
+  "ok": true,
+  "query": "Mahindra",
+  "region": "IN",
+  "resolved": {
+   "symbol": "M&M",
+   "name": "Mahindra & Mahindra Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "M&M.NS",
+   "confidence": 0.97
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "M&M",
+    "name": "Mahindra & Mahindra Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "M&M.NS",
+    "confidence": 0.97
+   },
+   {
+    "symbol": "TECHM",
+    "name": "Tech Mahindra Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "TECHM.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "M&MFIN",
+    "name": "Mahindra & Mahindra Financial Services Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "M&MFIN.NS",
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Jindal": {
+  "ok": true,
+  "query": "Jindal",
+  "region": "IN",
+  "resolved": {
+   "symbol": "JINDALPHOT",
+   "name": "Jindal Photo Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "JINDALPHOT.NS",
+   "confidence": 0.97
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "JINDALPHOT",
+    "name": "Jindal Photo Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "JINDALPHOT.NS",
+    "confidence": 0.97
+   },
+   {
+    "symbol": "JINDALPOLY",
+    "name": "Jindal Poly Films Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "JINDALPOLY.NS",
+    "confidence": 0.97
+   },
+   {
+    "symbol": "JINDALSAW",
+    "name": "Jindal Saw Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "JINDALSAW.NS",
+    "confidence": 0.97
+   },
+   {
+    "symbol": "JINDALSTEL",
+    "name": "JINDAL STEEL LIMITED",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "JINDALSTEL.NS",
+    "confidence": 0.97
+   },
+   {
+    "symbol": "JINDRILL",
+    "name": "Jindal Drilling And Industries Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "JINDRILL.NS",
+    "confidence": 0.97
+   },
+   {
+    "symbol": "JINDWORLD",
+    "name": "Jindal Worldwide Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "JINDWORLD.NS",
+    "confidence": 0.97
+   }
+  ]
+ },
+ "Godrej": {
+  "ok": true,
+  "query": "Godrej",
+  "region": "IN",
+  "resolved": {
+   "symbol": "GODREJAGRO",
+   "name": "Godrej Agrovet Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "GODREJAGRO.NS",
+   "confidence": 0.97
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "GODREJAGRO",
+    "name": "Godrej Agrovet Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "GODREJAGRO.NS",
+    "confidence": 0.97
+   },
+   {
+    "symbol": "GODREJCP",
+    "name": "Godrej Consumer Products Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "GODREJCP.NS",
+    "confidence": 0.97
+   },
+   {
+    "symbol": "GODREJIND",
+    "name": "Godrej Industries Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "GODREJIND.NS",
+    "confidence": 0.97
+   },
+   {
+    "symbol": "GODREJPROP",
+    "name": "Godrej Properties Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "GODREJPROP.NS",
+    "confidence": 0.97
+   }
+  ]
+ },
+ "HDFC": {
+  "ok": true,
+  "query": "HDFC",
+  "region": "IN",
+  "resolved": {
+   "symbol": "HDFCBANK",
+   "name": "HDFC Bank Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "HDFCBANK.NS",
+   "confidence": 0.97
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "HDFCBANK",
+    "name": "HDFC Bank Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "HDFCBANK.NS",
+    "confidence": 0.97
+   },
+   {
+    "symbol": "HDFCLIFE",
+    "name": "HDFC Life Insurance Company Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "HDFCLIFE.NS",
+    "confidence": 0.97
+   },
+   {
+    "symbol": "HDFCAMC",
+    "name": "HDFC Asset Management Company Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "HDFCAMC.NS",
+    "confidence": 0.97
+   },
+   {
+    "symbol": "HDB",
+    "name": "HDFC BANK LTD",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "HDB",
+    "confidence": 0.97
+   },
+   {
+    "symbol": "HDFCBSE500",
+    "name": "HDFCAMC-HDFCBSE500",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "etf",
+    "yahoo_symbol": "HDFCBSE500.NS",
+    "confidence": 0.92
+   },
+   {
+    "symbol": "HDFCGOLD",
+    "name": "HDFCGoldETF",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "etf",
+    "yahoo_symbol": "HDFCGOLD.NS",
+    "confidence": 0.92
+   }
+  ]
+ },
+ "HDFC Bank": {
+  "ok": true,
+  "query": "HDFC Bank",
+  "region": "IN",
+  "resolved": {
+   "symbol": "HDFCBANK",
+   "name": "HDFC Bank Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "HDFCBANK.NS",
+   "confidence": 1.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "HDFCBANK",
+    "name": "HDFC Bank Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "HDFCBANK.NS",
+    "confidence": 1.0
+   },
+   {
+    "symbol": "HDB",
+    "name": "HDFC BANK LTD",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "HDB",
+    "confidence": 1.0
+   },
+   {
+    "symbol": "UCOBANK",
+    "name": "UCO Bank",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "UCOBANK.NS",
+    "confidence": 0.7059
+   },
+   {
+    "symbol": "CANBK",
+    "name": "Canara Bank",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "CANBK.NS",
+    "confidence": 0.6
+   },
+   {
+    "symbol": "INDIANB",
+    "name": "Indian Bank",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "INDIANB.NS",
+    "confidence": 0.6
+   }
+  ]
+ },
+ "HDFCBANK": {
+  "ok": true,
+  "query": "HDFCBANK",
+  "region": "IN",
+  "resolved": {
+   "symbol": "HDFCBANK",
+   "name": "HDFC Bank Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "HDFCBANK.NS",
+   "confidence": 1.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "HDFCBANK",
+    "name": "HDFC Bank Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "HDFCBANK.NS",
+    "confidence": 1.0
+   },
+   {
+    "symbol": "HDFCBANK",
+    "name": "HDFC Bank Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "HDFCBANK.BO",
+    "confidence": 1.0
+   }
+  ]
+ },
+ "HDFCLIFE": {
+  "ok": true,
+  "query": "HDFCLIFE",
+  "region": "IN",
+  "resolved": {
+   "symbol": "HDFCLIFE",
+   "name": "HDFC Life Insurance Company Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "HDFCLIFE.NS",
+   "confidence": 1.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "HDFCLIFE",
+    "name": "HDFC Life Insurance Company Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "HDFCLIFE.NS",
+    "confidence": 1.0
+   },
+   {
+    "symbol": "HDFCLIFE",
+    "name": "HDFC Life Insurance Company Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "HDFCLIFE.BO",
+    "confidence": 1.0
+   }
+  ]
+ },
+ "HDFCAMC": {
+  "ok": true,
+  "query": "HDFCAMC",
+  "region": "IN",
+  "resolved": {
+   "symbol": "HDFCAMC",
+   "name": "HDFC Asset Management Company Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "HDFCAMC.NS",
+   "confidence": 1.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "HDFCAMC",
+    "name": "HDFC Asset Management Company Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "HDFCAMC.NS",
+    "confidence": 1.0
+   },
+   {
+    "symbol": "HDFCAMC",
+    "name": "HDFC Asset Management Company Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "HDFCAMC.BO",
+    "confidence": 1.0
+   }
+  ]
+ },
+ "L&T": {
+  "ok": true,
+  "query": "L&T",
+  "region": "IN",
+  "resolved": {
+   "symbol": "LTF",
+   "name": "L&T Finance Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "LTF.NS",
+   "confidence": 0.97
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "LTF",
+    "name": "L&T Finance Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "LTF.NS",
+    "confidence": 0.97
+   },
+   {
+    "symbol": "LTTS",
+    "name": "L&T Technology Services Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "LTTS.NS",
+    "confidence": 0.97
+   }
+  ]
+ },
+ "LT": {
+  "ok": true,
+  "query": "LT",
+  "region": "IN",
+  "resolved": {
+   "symbol": "LT",
+   "name": "Larsen & Toubro Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "LT.NS",
+   "confidence": 1.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "LT",
+    "name": "Larsen & Toubro Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "LT.NS",
+    "confidence": 1.0
+   },
+   {
+    "symbol": "LT",
+    "name": "Larsen & Toubro Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "LT.BO",
+    "confidence": 1.0
+   }
+  ]
+ },
+ "Larsen & Toubro": {
+  "ok": true,
+  "query": "Larsen & Toubro",
+  "region": "IN",
+  "resolved": {
+   "symbol": "LT",
+   "name": "Larsen & Toubro Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "LT.NS",
+   "confidence": 1.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "LT",
+    "name": "Larsen & Toubro Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "LT.NS",
+    "confidence": 1.0
+   }
+  ]
+ },
+ "Larsen and Toubro": {
+  "ok": true,
+  "query": "Larsen and Toubro",
+  "region": "IN",
+  "resolved": null,
+  "needs_disambiguation": true,
+  "candidates": [
+   {
+    "symbol": "LT",
+    "name": "Larsen & Toubro Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "LT.NS",
+    "confidence": 0.7
+   },
+   {
+    "symbol": "LAND",
+    "name": "GLADSTONE LAND Corp",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "LAND",
+    "confidence": 0.6111
+   },
+   {
+    "symbol": "LANDP",
+    "name": "GLADSTONE LAND Corp",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "LANDP",
+    "confidence": 0.6111
+   },
+   {
+    "symbol": "LANDO",
+    "name": "GLADSTONE LAND Corp",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "LANDO",
+    "confidence": 0.6111
+   }
+  ]
+ }
+}
