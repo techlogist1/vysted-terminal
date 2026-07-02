@@ -120,9 +120,21 @@ export interface Fundamentals {
   shares_outstanding: number | null;
   revenue_growth: number | null;
   earnings_growth: number | null;
+  /**
+   * Basis of the growth fields above (R11 / D55). yfinance's growth figures
+   * are MOST-RECENT-QUARTER vs the same quarter a year ago ("mrq_yoy") — NOT
+   * annual/TTM growth. Every surface rendering growth must disclose this.
+   */
+  growth_basis?: string | null;
   // Ownership (fractions)
   held_percent_insiders: number | null;
   held_percent_institutions: number | null;
+  /**
+   * Trailing-12-month dividends ACTUALLY PAID per share (summed corporate-action
+   * history, in `currency`) — the deterministic cross-check for
+   * `dividend_per_share` (R11 / D56). `null` when history was unavailable.
+   */
+  dividend_per_share_ttm?: number | null;
   provider: string;
 }
 

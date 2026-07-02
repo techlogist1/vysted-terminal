@@ -24,7 +24,20 @@ from typing import Any
 
 
 class ProviderError(RuntimeError):
-    """Raised when a data provider cannot satisfy a request."""
+    """Raised when a data provider cannot satisfy a request.
+
+    ``kind`` optionally classifies the failure so callers can react to a
+    throttle differently than to genuine absence (R11 / D53):
+
+      - ``"rate_limited"`` — the upstream throttled the request (HTTP 429 /
+        ``YFRateLimitError``). Callers should back off / consult the circuit
+        breaker and report the skip as ``rate_limited``, never ``no_data``.
+      - ``None`` — unclassified (the pre-R11 behaviour, handled as before).
+    """
+
+    def __init__(self, message: str, *, kind: str | None = None) -> None:
+        super().__init__(message)
+        self.kind = kind
 
 
 # ---------------------------------------------------------------------------

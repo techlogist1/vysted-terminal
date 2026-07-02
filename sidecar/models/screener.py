@@ -272,6 +272,17 @@ class ScreenerResultRow(BaseModel):
     change_percent_1d: float | None = None
     volume: float | None = None
     matched_criteria: list[int] = []
+    # --- R11 (D52/D57) honest-basis block — additive, defaulted for back-compat.
+    #: Listing currency of the currency-denominated fields (market_cap, price).
+    currency: str | None = None
+    #: Which serving basis produced this row's values: ``"live"`` — every field
+    #: came from a fresh tier this run; ``"mixed"`` — some fields fresh, some
+    #: stale/snapshot; ``"snapshot"`` — served from the bundled seed pack or
+    #: stale cache tiers (see ``data_as_of``). ``None`` on pre-R11 payloads.
+    data_basis: str | None = None
+    #: Epoch seconds of the OLDEST stamp among the fields this screen used —
+    #: the honest "as of" for the row when ``data_basis != "live"``.
+    data_as_of: float | None = None
 
 
 class SkipDetail(BaseModel):
@@ -342,7 +353,16 @@ class ScreenerResult(BaseModel):
     # before the whole universe was evaluated; ``coverage`` is the one human
     # line the UI/agent surface ("screened 1,840 of 2,100 — 260 unavailable");
     # ``freshness`` stamps the data tiers the rows were served from (epoch
-    # seconds: {"quotes_as_of": …, "valuation_as_of": …, "deep_as_of": …}).
+    # seconds: {"quotes_as_of": …, "valuation_as_of": …, "deep_as_of": …};
+    # R11/D52 adds "seed_as_of" when any row served from the bundled snapshot).
     partial: bool = False
     coverage: str | None = None
     freshness: dict[str, float] | None = None
+    # --- R11 (D52/D53) honest-basis block — additive, defaulted for back-compat.
+    #: Result rows per serving basis ({"live": N, "mixed": M, "snapshot": K}) —
+    #: the machine-readable companion to ``coverage``.
+    basis_counts: dict[str, int] | None = None
+    #: True when the run detected upstream throttling (majority-rate-limited
+    #: sweep or an open circuit breaker) and degraded to stale/snapshot basis —
+    #: the UI surfaces an honest "provider throttled this IP" notice.
+    throttled: bool = False

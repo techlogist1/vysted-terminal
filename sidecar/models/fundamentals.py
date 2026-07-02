@@ -59,9 +59,21 @@ class Fundamentals(BaseModel):
     shares_outstanding: float | None = None
     revenue_growth: float | None = None
     earnings_growth: float | None = None
+    #: Basis of the growth fields above (R11 / D55). yfinance's
+    #: ``revenueGrowth``/``earningsGrowth`` are MOST-RECENT-QUARTER vs the same
+    #: quarter a year ago — NOT annual/TTM growth. Every surface rendering the
+    #: growth fields must disclose this basis; a provider supplying a different
+    #: basis must set this field accordingly.
+    growth_basis: str | None = "mrq_yoy"
     # --- Ownership (fractions) — promoter / institutional proxies (esp. IN) ---
     held_percent_insiders: float | None = None
     held_percent_institutions: float | None = None
+    #: Trailing-12-month dividends ACTUALLY PAID per share (summed from the
+    #: corporate-action history, in ``currency``) — the deterministic
+    #: cross-check for ``dividend_per_share`` (R11 / D56): Yahoo's
+    #: ``dividendRate`` can omit a special dividend; the paid history cannot.
+    #: ``None`` when the history was unavailable.
+    dividend_per_share_ttm: float | None = None
     provider: str
 
 

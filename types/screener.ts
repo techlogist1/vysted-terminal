@@ -174,6 +174,18 @@ export interface ScreenerResultRow {
   /** Per-criterion match scores keyed by criterion index — surfaced in the
    * results table for column hover-explain. */
   matched_criteria: number[];
+  // --- R11 (D52/D57) honest-basis block — optional for older payloads. ---
+  /** Listing currency of the currency-denominated fields (market_cap, price). */
+  currency?: string | null;
+  /**
+   * Serving basis of this row's values: "live" — every field fresh this run;
+   * "mixed" — some fields fresh, some stale/snapshot; "snapshot" — served from
+   * the bundled seed pack or stale cache tiers (see `data_as_of`).
+   */
+  data_basis?: string | null;
+  /** Epoch seconds of the OLDEST stamp among the fields the screen used —
+   * the honest "as of" for the row when `data_basis !== "live"`. */
+  data_as_of?: number | null;
 }
 
 /**
@@ -248,7 +260,17 @@ export interface ScreenerResult {
     quotes_as_of?: number;
     valuation_as_of?: number;
     deep_as_of?: number;
+    /** R11 (D52): present when any row served from the bundled snapshot. */
+    seed_as_of?: number;
   } | null;
+  /**
+   * R11 (D52/D53) honest-basis block — optional for older payloads.
+   * `basis_counts` = result rows per serving basis ({live, mixed, snapshot});
+   * `throttled` = the run detected upstream throttling and degraded to
+   * stale/snapshot basis (the UI surfaces an honest notice).
+   */
+  basis_counts?: Record<string, number> | null;
+  throttled?: boolean;
 }
 
 /**
