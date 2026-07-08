@@ -462,8 +462,9 @@ const FIELD_HINTS: Record<ScreenerNumericField, string> = {
   debt_to_equity: "Debt / Equity",
   current_ratio: "Current ratio",
   quick_ratio: "Quick ratio",
-  revenue_growth: "Revenue growth (frac)",
-  earnings_growth: "Earnings growth (frac)",
+  // D55: growth fields are quarterly YoY (MRQ) — the docs disclose the basis.
+  revenue_growth: "Revenue growth (MRQ YoY, frac)",
+  earnings_growth: "Earnings growth (MRQ YoY, frac)",
   fifty_two_week_high: "52w high",
   fifty_two_week_low: "52w low",
   fifty_two_week_change: "1y change (frac)",

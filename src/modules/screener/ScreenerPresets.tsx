@@ -23,7 +23,7 @@ const PRESETS: ScreenerPreset[] = [
   {
     id: "quality",
     label: "Quality compounders",
-    description: "High ROE + net margin + revenue growth, low debt, large cap",
+    description: "High ROE + net margin + revenue growth (MRQ YoY), low debt, large cap",
     universe: "sp500",
     criteria: [
       { field: "roe", operator: "gt", value: 0.18 },
@@ -48,7 +48,7 @@ const PRESETS: ScreenerPreset[] = [
   {
     id: "garp",
     label: "GARP",
-    description: "Growth at a reasonable price — PEG < 1 with real growth + returns",
+    description: "Growth at a reasonable price — PEG < 1 with real growth (MRQ YoY) + returns",
     universe: "sp500",
     criteria: [
       { field: "peg_ratio", operator: "gt", value: 0 },
