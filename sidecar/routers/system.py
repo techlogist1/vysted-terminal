@@ -193,3 +193,41 @@ async def pull_ollama_model(
             yield f"data: {json.dumps({'error': str(exc), 'done': True})}\n\n".encode()
 
     return StreamingResponse(_generator(), media_type="text/event-stream")
+
+
+# ---------------------------------------------------------------------------
+# Provider health (R11 / D53) — the Yahoo-family circuit breaker, observable.
+# ---------------------------------------------------------------------------
+
+
+@router.get("/provider-health")
+async def get_provider_health() -> dict:
+    """Observable circuit-breaker state for the Yahoo upstream family.
+
+    Loopback-only like every sidecar route; surfaces the same numbers the
+    logs carry so the UI/rig can see WHY the screener degraded to its
+    stale/seed basis."""
+    from services import provider_health
+
+    return {"yahoo": provider_health.status(provider_health.YAHOO)}
+
+
+@router.post("/provider-health/trip")
+async def trip_provider_health(payload: dict | None = None) -> dict:
+    """Force the Yahoo circuit OPEN (verification rig / induced-throttle
+    drills). Loopback-only; the circuit self-heals through its normal
+    half-open path, or POST /system/provider-health/reset closes it."""
+    from services import provider_health
+
+    weight = float((payload or {}).get("weight", 3.0))
+    provider_health.record_rate_limited(provider_health.YAHOO, weight=weight)
+    return {"yahoo": provider_health.status(provider_health.YAHOO)}
+
+
+@router.post("/provider-health/reset")
+async def reset_provider_health() -> dict:
+    """Close the Yahoo circuit (verification rig cleanup)."""
+    from services import provider_health
+
+    provider_health.record_success(provider_health.YAHOO)
+    return {"yahoo": provider_health.status(provider_health.YAHOO)}

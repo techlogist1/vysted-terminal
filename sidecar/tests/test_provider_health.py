@@ -78,3 +78,19 @@ def test_families_are_independent() -> None:
     provider_health.record_rate_limited("yahoo", weight=3.0)
     assert provider_health.is_open("yahoo") is True
     assert provider_health.is_open("some-other-upstream") is False
+
+
+# ---------------------------------------------------------------------------
+# /system/provider-health — observable + rig-trippable (loopback-only)
+# ---------------------------------------------------------------------------
+
+
+def test_system_provider_health_routes(client) -> None:
+    body = client.get("/system/provider-health").json()
+    assert body["yahoo"]["open"] is False
+
+    tripped = client.post("/system/provider-health/trip", json={"weight": 3.0}).json()
+    assert tripped["yahoo"]["open"] is True
+
+    closed = client.post("/system/provider-health/reset").json()
+    assert closed["yahoo"]["open"] is False
