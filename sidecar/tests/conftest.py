@@ -23,6 +23,28 @@ def client() -> TestClient:
     return TestClient(create_app())
 
 
+@pytest.fixture(autouse=True)
+def _no_network_dividend_history(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Keep the R11/D56 dividend-history cross-check off the network.
+
+    ``snapshot_structured`` now calls ``dividend_history.get_dividend_ttm`` on
+    every research snapshot (a yfinance ``.dividends`` pull); the research tests
+    inject a fake ``tool_call`` but not a fake yfinance, so without this the new
+    seam would reach the live network. Stub it to ``None`` (no cross-check card)
+    for every test EXCEPT ``test_dividend_history`` — the module that exercises
+    the real function with ``yf.Ticker`` mocked directly."""
+    if request.module.__name__.rsplit(".", 1)[-1] == "test_dividend_history":
+        return
+    from services import dividend_history
+
+    async def _stub(_symbol: str) -> None:
+        return None
+
+    monkeypatch.setattr(dividend_history, "get_dividend_ttm", _stub)
+
+
 # --------------------------------------------------------------------------
 # yfinance fakes
 # --------------------------------------------------------------------------

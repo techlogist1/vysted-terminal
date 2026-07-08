@@ -109,16 +109,62 @@ def test_unverifiable_lone_yield_is_withheld_when_unit_ambiguous() -> None:
     assert data2["dividend_yield"]["value"] == 0.012
 
 
-def test_growth_metrics_carry_yoy_basis() -> None:
+def test_growth_metrics_carry_quarterly_mrq_yoy_basis() -> None:
+    # D55: yfinance revenueGrowth/earningsGrowth are MOST-RECENT-QUARTER vs the
+    # same quarter a year ago — the basis must say so, not a bare "yoy" that
+    # reads as annual.
     data = _derived(_structured(fund={"revenue_growth": 0.18, "earnings_growth": -0.05}))
     assert data["revenue_growth"] == {
         "value": 0.18,
         "label": "Revenue growth",
-        "basis": "yoy",
+        "basis": "quarterly YoY (MRQ)",
         "unit": "percent",
     }
     assert data["earnings_growth"]["value"] == -0.05
-    assert data["earnings_growth"]["basis"] == "yoy"
+    assert data["earnings_growth"]["basis"] == "quarterly YoY (MRQ)"
+
+
+def test_dividend_ttm_divergence_flags_conflict_and_carries_paid_figure() -> None:
+    # D56, the ABBOTINDIA shape: dividendRate reports Rs 525 (final only) while
+    # the trailing-12m paid history sums to Rs 656 (525 final + 131 special).
+    # >10% divergence flags a conflict AND surfaces the 656 paid figure.
+    data = _derived(
+        _structured(fund={"dividend_per_share": 525.0, "dividend_per_share_ttm": 656.0})
+    )
+    ttm = data["dividend_per_share_ttm"]
+    assert ttm["value"] == 656.0
+    assert ttm["label"] == "Dividend/share (trailing 12m paid)"
+    assert ttm["basis"] == "corporate-action history"
+    conflict_fields = [c["field"] for c in data["conflicts"]]
+    assert "dividend_per_share" in conflict_fields
+    div_conflict = next(c for c in data["conflicts"] if c["field"] == "dividend_per_share")
+    assert {s["value"] for s in div_conflict["sources"]} == {525.0, 656.0}
+
+
+def test_dividend_ttm_agreeing_emits_no_extra_card() -> None:
+    # dividendRate and the paid history agree (525 == 525) → no conflict, no
+    # extra fact.
+    data = _derived(
+        _structured(fund={"dividend_per_share": 525.0, "dividend_per_share_ttm": 525.0})
+    )
+    assert "dividend_per_share_ttm" not in data
+    assert all(c["field"] != "dividend_per_share" for c in data["conflicts"])
+
+
+def test_dividend_ttm_within_tolerance_emits_no_extra_card() -> None:
+    # A <=10% gap (rounding / timing, not an omitted special) does not flag.
+    data = _derived(
+        _structured(fund={"dividend_per_share": 525.0, "dividend_per_share_ttm": 550.0})
+    )
+    assert "dividend_per_share_ttm" not in data
+    assert all(c["field"] != "dividend_per_share" for c in data["conflicts"])
+
+
+def test_dividend_ttm_absent_scalar_emits_no_card() -> None:
+    # Paid history present but no dividendRate to diverge from → nothing to flag.
+    data = _derived(_structured(fund={"dividend_per_share_ttm": 656.0}))
+    assert "dividend_per_share_ttm" not in data
+    assert all(c["field"] != "dividend_per_share" for c in data["conflicts"])
 
 
 def test_market_cap_cross_check_flags_beyond_five_percent() -> None:

@@ -99,3 +99,20 @@ def test_missing_symbol_is_rejected_without_a_provider_call(
     monkeypatch.setattr(provider_registry, "get_fundamentals", explode)
     out = asyncio.run(fundamentals_tool._fundamentals({}))
     assert out["ok"] is False
+
+
+def test_tool_result_carries_growth_basis(monkeypatch: pytest.MonkeyPatch) -> None:
+    """D55: the agent tool returns the raw Fundamentals dump, which now carries
+    ``growth_basis`` — so a copilot consuming growth via the tool sees the MRQ
+    truth, not a bare 'yoy'."""
+    from models.fundamentals import Fundamentals
+
+    async def real(symbol: str):  # noqa: ANN202
+        return Fundamentals(
+            symbol="AAPL", provider="yfinance", revenue_growth=0.18, earnings_growth=-0.05
+        )
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", real)
+    out = asyncio.run(fundamentals_tool._fundamentals({"symbol": "AAPL"}))
+    assert out["ok"] is True
+    assert out["fundamentals"]["growth_basis"] == "mrq_yoy"

@@ -18,6 +18,42 @@ def test_get_fundamentals(client: TestClient, mock_yfinance: object) -> None:
     # ``dividend_yield`` field carries a true fraction.
     assert body["dividend_yield"] == pytest.approx(0.0044)
     assert body["provider"] == "yfinance"
+    # D55: the growth-basis truth rides the raw REST response (the panel/agent
+    # bypass semantics.py, so the contract itself must carry it).
+    assert body["growth_basis"] == "mrq_yoy"
+
+
+def test_get_fundamentals_provider_error_is_502(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A provider failure is an honest 502, never an unhandled 500."""
+    from services import provider_registry
+    from services.errors import ProviderError
+
+    async def boom(symbol: str):  # noqa: ANN202
+        raise ProviderError("yfinance fundamentals failed for 'AAPL': upstream 500")
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", boom)
+    resp = client.get("/fundamentals/AAPL")
+    assert resp.status_code == 502
+    assert "upstream 500" in resp.json()["detail"]
+
+
+def test_get_fundamentals_rate_limited_is_429(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A throttle (ProviderError.kind == 'rate_limited') is a 429 with a human
+    'try again shortly' detail — not a 502 or a no-data masquerade."""
+    from services import provider_registry
+    from services.errors import ProviderError
+
+    async def throttled(symbol: str):  # noqa: ANN202
+        raise ProviderError("429 Too Many Requests", kind="rate_limited")
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", throttled)
+    resp = client.get("/fundamentals/AAPL")
+    assert resp.status_code == 429
+    assert "throttled" in resp.json()["detail"].lower()
 
 
 def test_get_fundamentals_dividend_yield_missing(

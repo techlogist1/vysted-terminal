@@ -43,8 +43,22 @@ _TTL_RATINGS = 6 * 60 * 60  # 6 hours
 
 @router.get("/{symbol}")
 async def get_fundamentals(symbol: str) -> Fundamentals:
-    """Return valuation ratios and a company profile for ``symbol``."""
-    return await provider_registry.get_fundamentals(symbol)
+    """Return valuation ratios and a company profile for ``symbol``.
+
+    A provider failure surfaces as an honest 502 (mirroring the ratings
+    endpoints) rather than an unhandled 500; a throttle (R11 ``ProviderError``
+    ``kind='rate_limited'``) is a 429 so the client backs off instead of reading
+    it as a permanent no-data miss.
+    """
+    try:
+        return await provider_registry.get_fundamentals(symbol)
+    except ProviderError as exc:
+        if exc.kind == "rate_limited":
+            raise HTTPException(
+                status_code=429,
+                detail="Data provider is throttled — try again shortly.",
+            ) from exc
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
 # ---------------------------------------------------------------------------
