@@ -30,6 +30,7 @@ import asyncio
 import contextlib
 import logging
 import random
+import time
 
 from config import get_region
 from services import (
@@ -45,6 +46,10 @@ logger = logging.getLogger(__name__)
 
 #: v7 sweep interval for the India full-market universe.
 _SWEEP_INTERVAL_SECONDS = 15 * 60.0
+#: Bhavcopy EOD refresh cadence (R11 / D54) — the file is daily; the module's
+#: same-day cache makes an extra cycle nearly free, and the short cadence
+#: picks the fresh file up within hours of NSE publishing it (~16:30 IST).
+_BHAVCOPY_INTERVAL_SECONDS = 6 * 60 * 60.0
 #: Idle re-check interval while the region is not IN (cheap clock check).
 _REGION_RECHECK_SECONDS = 60.0
 #: Deep-crawler batch per cycle (info_priority limit).
@@ -239,6 +244,77 @@ async def _sweep_loop() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Bhavcopy EOD lane (R11 / D54) — exchange-direct, one request per trading day
+# ---------------------------------------------------------------------------
+
+
+async def bhavcopy_refresh_once() -> int:
+    """One bhavcopy EOD refresh over the NSE universe into the store.
+
+    Exchange-direct (nsearchives) — a DIFFERENT upstream from the Yahoo
+    family, so this runs regardless of the Yahoo circuit state; it is exactly
+    what keeps prices one-trading-day fresh on a Yahoo-blocked IP. Derived
+    market cap (close × shares_outstanding) is written ONLY where the row's
+    v7 valuation tier is stale/missing — a fresh v7 mcap is never downgraded
+    to a derivation. Returns rows updated (0 when the archive is unreachable
+    — the caller degrades, never raises)."""
+    from services import nse_bhavcopy, screener_universe_india
+
+    result = await nse_bhavcopy.fetch_latest()
+    if result is None:
+        return 0
+    universe = screener_universe_india.load_india_universe("nse-all")
+    store_rows = await fundamentals_store.fetch_rows(universe.symbols)
+    now = time.time()
+    trade_iso = result.trade_date.isoformat()
+    items: list[dict[str, object]] = []
+    for key in universe.symbols:
+        bhav = result.rows.get(key[:-3])
+        if bhav is None:
+            continue
+        row = store_rows.get(key.upper()) or {}
+        item: dict[str, object] = {
+            "symbol": key,
+            "price": bhav.close,
+            "prev_close": bhav.prev_close,
+            "volume": bhav.volume,
+            "trade_date_iso": trade_iso,
+        }
+        v7_at = row.get("v7_updated_at")
+        if v7_at is None or now - v7_at > fundamentals_store.TTL_V7_SECONDS:
+            item["market_cap"] = nse_bhavcopy.derive_market_cap(
+                bhav.close, row.get("shares_outstanding")
+            )
+        items.append(item)
+    await fundamentals_store.upsert_eod_batch(items, provider=nse_bhavcopy.PROVIDER)
+    logger.info(
+        "fundamentals warm: bhavcopy EOD applied to %d NSE rows (trade date %s)",
+        len(items),
+        trade_iso,
+    )
+    return len(items)
+
+
+async def _bhavcopy_loop() -> None:
+    """Bhavcopy refresh at boot, then on a slow cadence — region-gated."""
+    try:
+        while True:
+            if get_region() != "IN":
+                await asyncio.sleep(_REGION_RECHECK_SECONDS)
+                continue
+            try:
+                await bhavcopy_refresh_once()
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:  # noqa: BLE001 — a refresh cycle is best-effort
+                logger.debug("fundamentals warm: bhavcopy cycle failed: %s", exc)
+            await asyncio.sleep(_BHAVCOPY_INTERVAL_SECONDS)
+    except asyncio.CancelledError:
+        logger.debug("fundamentals warm: bhavcopy loop cancelled")
+        raise
+
+
+# ---------------------------------------------------------------------------
 # Deep .info crawler loop
 # ---------------------------------------------------------------------------
 
@@ -321,6 +397,7 @@ async def _crawl_loop() -> None:
 
 _sweep_task: asyncio.Task[None] | None = None
 _crawl_task: asyncio.Task[None] | None = None
+_bhavcopy_task: asyncio.Task[None] | None = None
 
 
 def start_warm_fundamentals() -> None:
@@ -330,7 +407,7 @@ def start_warm_fundamentals() -> None:
     seed pack, zero network) is scheduled IMMEDIATELY for an IN region — a
     user opening the screener seconds after a fresh install must hit a seeded
     store, not wait for the sweep loop's first cycle to get around to it."""
-    global _sweep_task, _crawl_task
+    global _sweep_task, _crawl_task, _bhavcopy_task
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
@@ -349,22 +426,29 @@ def start_warm_fundamentals() -> None:
         _sweep_task = loop.create_task(_sweep_loop())
     if _crawl_task is None or _crawl_task.done():
         _crawl_task = loop.create_task(_crawl_loop())
+    if _bhavcopy_task is None or _bhavcopy_task.done():
+        _bhavcopy_task = loop.create_task(_bhavcopy_loop())
 
 
 async def stop_warm_fundamentals() -> None:
-    """Cancel + await both warm workers (lifespan finally — no leaked tasks)."""
-    global _sweep_task, _crawl_task
-    tasks = [t for t in (_sweep_task, _crawl_task) if t is not None]
+    """Cancel + await the warm workers (lifespan finally — no leaked tasks)."""
+    global _sweep_task, _crawl_task, _bhavcopy_task
+    tasks = [t for t in (_sweep_task, _crawl_task, _bhavcopy_task) if t is not None]
     _sweep_task = None
     _crawl_task = None
+    _bhavcopy_task = None
     for task in tasks:
         task.cancel()
     for task in tasks:
         with contextlib.suppress(asyncio.CancelledError, Exception):
             await task
+    from services import nse_bhavcopy
+
+    await nse_bhavcopy.aclose()
 
 
 __all__ = [
+    "bhavcopy_refresh_once",
     "foreground_screen_running",
     "reset_for_tests",
     "screen_finished",

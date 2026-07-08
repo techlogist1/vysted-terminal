@@ -276,3 +276,103 @@ async def test_start_is_idempotent() -> None:
     fundamentals_warm.start_warm_fundamentals()
     assert fundamentals_warm._sweep_task is first
     await fundamentals_warm.stop_warm_fundamentals()
+
+
+# ---------------------------------------------------------------------------
+# R11 (D54) — bhavcopy EOD wiring
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_bhavcopy_refresh_writes_eod_and_derives_mcap_only_when_v7_stale(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The bhavcopy lane fills EOD price/volume for the NSE universe and
+    derives market cap (close × seeded shares) ONLY where the v7 valuation
+    tier is stale/missing — a fresh v7 mcap is never downgraded."""
+    from datetime import date
+
+    from models.fundamentals import Fundamentals
+    from services import nse_bhavcopy
+    from services.nse_bhavcopy import BhavcopyResult, BhavRow
+
+    # Two store rows: STALECO has only seeded shares (v7 never fetched);
+    # FRESHCO has a FRESH v7 mcap that must survive.
+    await fundamentals_store.seed_fundamentals(
+        [
+            {
+                "symbol": "STALECO.NS",
+                "seed_as_of": 1.0,
+                "shares_outstanding": 1_000_000.0,
+            }
+        ]
+    )
+    await fundamentals_store.upsert_v7(
+        "FRESHCO.NS",
+        Fundamentals(
+            symbol="FRESHCO.NS",
+            market_cap=9e9,
+            shares_outstanding=2_000_000.0,
+            provider="t",
+        ),
+        None,
+    )
+
+    fake = BhavcopyResult(
+        trade_date=date(2026, 7, 8),
+        rows={
+            "STALECO": BhavRow(
+                close=50.0, prev_close=48.0, volume=1000.0, high=None, low=None, series="EQ"
+            ),
+            "FRESHCO": BhavRow(
+                close=100.0, prev_close=99.0, volume=2000.0, high=None, low=None, series="EQ"
+            ),
+        },
+    )
+
+    async def _fake_fetch(max_lookback_days: int = 7):
+        return fake
+
+    monkeypatch.setattr(nse_bhavcopy, "fetch_latest", _fake_fetch)
+
+    def _fake_universe_local(universe_id):
+        from models.screener import ScreenerUniverse
+
+        return ScreenerUniverse(
+            id="nse-all",
+            label="t",
+            symbols=["STALECO.NS", "FRESHCO.NS", "NOTINBHAV.NS"],
+            asset_class="equity",
+        )
+
+    from services import screener_universe_india
+
+    monkeypatch.setattr(screener_universe_india, "load_india_universe", _fake_universe_local)
+
+    updated = await fundamentals_warm.bhavcopy_refresh_once()
+    assert updated == 2  # NOTINBHAV had no bhavcopy row
+
+    rows = await fundamentals_store.fetch_rows(["STALECO.NS", "FRESHCO.NS"])
+    stale = rows["STALECO.NS"]
+    assert stale["quote_price"] == 50.0
+    assert stale["quote_timestamp"] == "2026-07-08"
+    assert stale["market_cap"] == 50.0 * 1_000_000.0  # derived: v7 was missing
+    assert stale["eod_updated_at"] is not None
+    assert stale["v7_updated_at"] is None  # the EOD lane never fakes v7
+
+    fresh = rows["FRESHCO.NS"]
+    assert fresh["quote_price"] == 100.0
+    assert fresh["market_cap"] == 9e9  # fresh v7 mcap kept, not derived-over
+
+
+@pytest.mark.asyncio
+async def test_bhavcopy_refresh_degrades_to_zero_on_unreachable_archive(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services import nse_bhavcopy
+
+    async def _fake_fetch(max_lookback_days: int = 7):
+        return None
+
+    monkeypatch.setattr(nse_bhavcopy, "fetch_latest", _fake_fetch)
+    assert await fundamentals_warm.bhavcopy_refresh_once() == 0
