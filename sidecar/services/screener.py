@@ -689,8 +689,13 @@ async def _finalize(
         else fundamentals_store.TTL_QUOTE_CURATED_SECONDS
     )
     formula_fields = compiled_formula.fields if compiled_formula is not None else frozenset()
+    # Basis is judged over the fields the screen USED plus the two every row
+    # displays regardless (the sort key and the price column) — a row whose
+    # only price is a stale one must not read as "live".
     basis_fields = (
-        _criteria_fields(list(req.criteria), req.group) | set(formula_fields) | {"market_cap"}
+        _criteria_fields(list(req.criteria), req.group)
+        | set(formula_fields)
+        | {"market_cap", "price"}
     )
 
     pairs_by_symbol: dict[str, tuple[Fundamentals, Quote | None]] = {}
