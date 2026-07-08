@@ -20,10 +20,23 @@ Outcomes:
                        Palantir, "Steel" → one of many) is a guess, not an
                        identity (R10 review hardening).
   - ``disambiguate`` — confidence in ``[REJECT, ACCEPT)``, a marquee family
-                       name, or ANY substring / whole-string fuzzy match (it
+                       name, ANY substring / whole-string fuzzy match (it
                        may be offered as a "did you mean?", never auto-bound —
-                       the E1 wrong-entity class).
+                       the E1 wrong-entity class), or a RESIDUAL TIE (R11,
+                       D58b): the top candidates are DISTINCT instruments tied
+                       EXACTLY in ``(band, score)`` with nothing left to
+                       separate them — the 'jindal'/'godrej' class, where a
+                       first-word tie used to bind whichever iterated first in
+                       the master, an arbitrary guess.
   - ``unresolved``   — nothing matched, or confidence < :data:`REJECT`.
+
+Residual-tie semantics (D58b): two rows of the SAME bare symbol (an NSE/BSE
+dual listing, an India+US ADR) are one instrument, never a tie. Distinct
+instruments in DIFFERENT regions tied in ``(band, score)`` were separated by
+the resolver's locale rank (region is real ranking evidence there), so that
+bind stands. Only distinct SAME-REGION instruments tied exactly in
+``(band, score)`` are residual — the ranking has genuinely nothing left, and a
+bind would be dict-iteration luck.
 
 The band vocabulary lives here (the resolver imports it) so the policy can
 read a candidate's match band without a circular import: this module imports
@@ -65,6 +78,24 @@ class ResolutionDecision:
     reason: str
 
 
+def _residual_tie(best: Instrument, candidates: list[Instrument]) -> bool:
+    """True when the nearest DISTINCT instrument ties ``best`` exactly (D58b).
+
+    Walks the ranked candidates past every row of ``best``'s own bare symbol
+    (a dual listing / ADR is the same instrument) to the first genuinely
+    different instrument. An exact ``(band, score)`` tie there, in the SAME
+    region, means the resolver's ranking had nothing left to separate the two
+    and the winner is master-iteration order — a residual tie. A cross-region
+    tie is NOT residual: region is the separating evidence (the locale rank),
+    so the bind stands.
+    """
+    for cand in candidates:
+        if cand.symbol == best.symbol:
+            continue
+        return cand.band == best.band and cand.score == best.score and cand.region == best.region
+    return False
+
+
 def decide(resolution: Resolution) -> ResolutionDecision:
     """Map a resolver :class:`Resolution` to the ONE acceptance decision.
 
@@ -73,6 +104,9 @@ def decide(resolution: Resolution) -> ResolutionDecision:
     a forced, curated disambiguation; a substring or whole-string fuzzy hit is
     NEVER bound no matter how high its score — only a STRONG band (>= prefix)
     binds outright (R10 review: "Lookup Technologies" must not bind PLTR).
+    R11 (D58b): even a strong band never binds through a residual tie — when
+    the top candidates are distinct same-region instruments tied exactly in
+    ``(band, score)``, the honest outcome is an explicit choice.
     """
     best = resolution.best
     if best is None:
@@ -88,6 +122,14 @@ def decide(resolution: Resolution) -> ResolutionDecision:
             "marquee family name — an explicit choice is required",
         )
     if confidence >= ACCEPT and band >= BAND_PREFIX:
+        if _residual_tie(best, candidates):
+            return ResolutionDecision(
+                "disambiguate",
+                None,
+                candidates,
+                f"top candidates tie exactly at band {band} — "
+                "an explicit choice is required, never an arbitrary bind",
+            )
         return ResolutionDecision(
             "bound", best, candidates, f"score {confidence:.2f} >= accept at band {band}"
         )

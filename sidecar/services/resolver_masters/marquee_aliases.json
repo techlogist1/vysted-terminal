@@ -1,5 +1,5 @@
 {
-  "comment": "R10 marquee alias table (E1). A bare family name either maps to its canonical primary (alternatives ride as candidates) or forces a curated disambiguation — marquee families never bind silently. Every symbol is verified against the NSE master at test time. TMCV replaces the delisted TATAMOTORS (2025 demerger; the passenger-vehicle sibling TMPV is also NSE-listed but the curated list carries one Tata Motors entry).",
+  "comment": "R10 marquee alias table (E1), extended R11 (D58a). A bare family name either maps to its canonical primary (alternatives ride as candidates) or forces a curated disambiguation — marquee families never bind silently. Every symbol is verified against the NSE master at test time. TMCV replaces the delisted TATAMOTORS (2025 demerger; the passenger-vehicle sibling TMPV is also NSE-listed but the curated list carries one Tata Motors entry). l&t/larsen carry the flagship LT as primary (the V3 defect was 'L&T' silently binding LTF); LTIMindtree is deliberately absent from the alternatives because LTIM is not in the bundled NSE master. jindal/godrej are curated choosers (the V4 first-word-tie defect); jindal is capped at the six major names (_MAX_CANDIDATES) — 'jindal photo' still resolves JINDALPHOT by name. A bare 'lt' needs no entry: LT is an exact NSE ticker and binds deterministically before the marquee stage.",
   "aliases": {
     "reliance": {
       "primary": "RELIANCE",
@@ -8,6 +8,14 @@
     "mahindra": {
       "primary": "M&M",
       "alternatives": ["TECHM", "M&MFIN"]
+    },
+    "l&t": {
+      "primary": "LT",
+      "alternatives": ["LTF", "LTTS"]
+    },
+    "larsen": {
+      "primary": "LT",
+      "alternatives": ["LTF", "LTTS"]
     },
     "tata": {
       "candidates": ["TCS", "TMCV", "TATASTEEL", "TATAPOWER", "TATACONSUM", "TITAN"]
@@ -20,6 +28,12 @@
     },
     "birla": {
       "candidates": ["GRASIM", "ULTRACEMCO", "ABCAPITAL", "ABFRL", "HINDALCO"]
+    },
+    "jindal": {
+      "candidates": ["JINDALSTEL", "JSL", "JINDALSAW", "JINDALPOLY", "JINDWORLD", "JINDRILL"]
+    },
+    "godrej": {
+      "candidates": ["GODREJCP", "GODREJPROP", "GODREJIND", "GODREJAGRO"]
     }
   }
 }

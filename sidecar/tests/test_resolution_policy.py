@@ -213,6 +213,136 @@ def test_marquee_primary_aliases_bind_their_canonical_instrument() -> None:
     assert isinstance(mahindra, ResearchTarget) and mahindra.symbol == "M&M"
 
 
+# --- D58a (R11): marquee table extensions — l&t / larsen / jindal / godrej ---
+
+
+def test_lnt_binds_larsen_and_toubro_never_ltf() -> None:
+    # V3 repro: "L&T" used to bind LTF (L&T Finance) at first-word 0.97 because
+    # "Larsen & Toubro Limited" contains no literal "l&t" for the name matcher.
+    # The marquee primary now binds the flagship — same shape as "reliance".
+    for query in ("L&T", "l&t", "L&T stock", "larsen", "Larsen"):
+        outcome = _target(query)
+        assert isinstance(outcome, ResearchTarget), query
+        assert outcome.symbol == "LT", query
+        assert outcome.exchange == "NSE", query
+    resolution = symbol_resolver.resolve("L&T", "IN")
+    verdict = decide(resolution)
+    assert verdict.outcome == "bound"
+    assert verdict.instrument is not None and verdict.instrument.symbol == "LT"
+    # The family alternatives ride the candidate list (LTIM is deliberately
+    # absent: LTIMindtree is not in the bundled NSE master).
+    others = [c.symbol for c in resolution.candidates]
+    assert others[0] == "LT"
+    assert {"LTF", "LTTS"} <= set(others)
+
+
+def test_jindal_and_godrej_disambiguate_with_curated_candidates() -> None:
+    # V4 repro: bare "jindal" (7-way first-word tie) bound JINDALPHOT and bare
+    # "godrej" (4-way) bound GODREJAGRO — whichever iterated first. Both now
+    # force the curated marquee chooser.
+    expected = {
+        "jindal": ["JINDALSTEL", "JSL", "JINDALSAW", "JINDALPOLY", "JINDWORLD", "JINDRILL"],
+        "godrej": ["GODREJCP", "GODREJPROP", "GODREJIND", "GODREJAGRO"],
+    }
+    for query, curated in expected.items():
+        outcome = _target(query.capitalize())
+        assert isinstance(outcome, ResearchDisambiguation), query
+        assert outcome.curated is True, query
+        assert [c["symbol"] for c in outcome.candidates] == curated, query
+        resolution = symbol_resolver.resolve(query, "IN")
+        verdict = decide(resolution)
+        assert verdict.outcome == "disambiguate", query
+        assert verdict.instrument is None, query
+        assert [c.symbol for c in verdict.candidates] == curated, query
+
+
+# --- D58b (R11): the engine-level residual-tie guard --------------------------
+
+
+def test_residual_tie_disambiguates_never_arbitrary_binds() -> None:
+    # Two DISTINCT same-region instruments tied exactly in (band, score) at a
+    # strong band: the pre-D58b policy bound whichever iterated first in the
+    # master (dict-order luck). The tie guard forces an explicit choice.
+    from services.resolution_policy import BAND_FIRST_WORD
+
+    a = _instrument("AKME", score=0.97, band=BAND_FIRST_WORD)
+    b = _instrument("AKMB", score=0.97, band=BAND_FIRST_WORD)
+    verdict = decide(_resolution(a, [a, b]))
+    assert verdict.outcome == "disambiguate"
+    assert verdict.instrument is None
+    assert "tie" in verdict.reason
+    # The reason must NOT read as a curated marquee chooser (research target
+    # keys `curated` off the word "marquee").
+    assert "marquee" not in verdict.reason
+
+
+def test_locale_separated_tie_still_binds() -> None:
+    # A cross-region (band, score) tie was separated by the resolver's locale
+    # rank — region is real evidence, so the bind stands (never regress the
+    # legitimate same-band-cross-locale case).
+    from services.resolution_policy import BAND_FIRST_WORD
+
+    best_in = _instrument("RELIANCE", score=0.97, band=BAND_FIRST_WORD, region="IN")
+    tied_us = _instrument("RELI", score=0.97, band=BAND_FIRST_WORD, region="US")
+    verdict = decide(_resolution(best_in, [best_in, tied_us]))
+    assert verdict.outcome == "bound"
+    assert verdict.instrument is not None and verdict.instrument.symbol == "RELIANCE"
+
+
+def test_dual_listing_rows_are_one_instrument_not_a_tie() -> None:
+    # RELIANCE (NSE) + RELIANCE (BSE) both ride exact-ticker 1.0 — the same
+    # bare symbol is ONE instrument (a dual listing), never a residual tie.
+    nse = _instrument("RELIANCE", score=1.0, band=BAND_EXACT_TICKER)
+    bse = Instrument(
+        symbol="RELIANCE",
+        name="Reliance Industries Ltd",
+        exchange="BSE",
+        region="IN",
+        asset_class="equity",
+        yahoo_symbol="RELIANCE.BO",
+        score=1.0,
+        band=BAND_EXACT_TICKER,
+    )
+    verdict = decide(_resolution(nse, [nse, bse]))
+    assert verdict.outcome == "bound"
+    assert verdict.instrument is not None and verdict.instrument.exchange == "NSE"
+
+
+def test_tie_guard_end_to_end_non_curated_families_disambiguate() -> None:
+    # The census reproduced the class BEYOND the curated table: 'jsw' (6-way)
+    # and 'kirloskar' (6-way) first-word ties through the REAL resolver must
+    # now disambiguate — the tie guard covers what the table does not.
+    for query in ("jsw", "kirloskar"):
+        resolution = symbol_resolver.resolve(query, "IN")
+        assert resolution.best is not None, query
+        verdict = decide(resolution)
+        assert verdict.outcome == "disambiguate", (query, verdict.reason)
+        assert verdict.instrument is None, query
+
+
+def test_tie_guard_keeps_prominent_unique_binds(monkeypatch: pytest.MonkeyPatch) -> None:
+    # No regression on legitimate binds: exact tickers, unique names, marquee
+    # primaries and dual-listings all still bind through the REAL resolver.
+    monkeypatch.setattr(
+        symbol_resolver,
+        "_live_lookup",
+        lambda *_a, **_k: pytest.fail("live lookup must not fire for bundled symbols"),
+    )
+    for query, expected in (
+        ("GOLDBEES", "GOLDBEES"),
+        ("RELIANCE", "RELIANCE"),
+        ("Tata Steel", "TATASTEEL"),
+        ("ICONIKSPEV", "ICONIKSPEV"),
+        ("reliance", "RELIANCE"),
+        ("mahindra", "M&M"),
+        ("L&T", "LT"),
+    ):
+        resolution = symbol_resolver.resolve(query, "IN")
+        verdict = decide(resolution)
+        assert verdict.outcome == "bound", (query, verdict.reason)
+        assert verdict.instrument is not None and verdict.instrument.symbol == expected
+
+
 # --- marquee property: region IN => every marquee row is IN-listed -----------
 
 
