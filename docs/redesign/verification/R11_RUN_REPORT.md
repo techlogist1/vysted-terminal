@@ -11,7 +11,116 @@ Sacred-file hashes at start (must be byte-identical at close):
 
 ## Morning report
 
-*(written at close — see the bottom of the run for the gate-by-gate evidence that backs it)*
+**R11 shipped the thing this sprint existed for: data that never runs dry.** A fresh
+install on a hard-blocked IP now answers your exact IT-services screen — completely,
+correctly, and honestly — in seconds, not hours. I proved it the strong way: I DELETED
+your fundamentals cache and re-ran the query on this IP while Yahoo was genuinely
+throttling it (the breaker logged 126 throttle events and 4 circuit opens at boot).
+The app answered **23 correct rows in 9.6 seconds** — SAKSOFT in the set — with
+today's exchange-direct closing prices, fundamentals honestly dated to their snapshot,
+and the UI saying exactly what happened: a PARTIAL badge, "DATA PROVIDER IS THROTTLING
+THIS IP — SHOWING CACHED/SNAPSHOT VALUES", "15 LIVE · 8 MIXED", "250 UNAVAILABLE —
+250 MISSING ROE", and a per-tier freshness line. Compare R10's close: the same query
+needed a warm cache and returned 0 rows cold.
+
+**How it holds (D52/D53/D54, the three-legged stool):** (1) a **bundled seed pack** —
+5,050 india-all rows of full fundamentals exported from your own warm store, shipped
+in the binary (717 KB), loaded at boot, stamped with per-row as-of dates and NEVER
+allowed to masquerade as live data; the screener's new serve-with-label ladder
+evaluates stale/seed values instead of dropping them and labels every row
+live/mixed/snapshot with its true age. (2) a **Yahoo-family circuit breaker** — 429s
+are now classified everywhere (they used to hide inside no_data/correctness_gate),
+three consecutive throttles open the circuit, and an open circuit spends ZERO calls
+(test-proven) while everything serves from the labeled basis; warm loops pause during
+your foreground screens and no longer poison the crawler's 24-hour retry rotation.
+(3) an **NSE bhavcopy lane** — one exchange-direct request per trading day fetches
+closing prices for the whole NSE (live-verified: 2,646 symbols in 0.52 s), so even a
+fully Yahoo-blocked install has prices no older than one trading day, plus derived
+market caps where the valuation tier is stale.
+
+**The twelve-stock battery says the data is screener.in-grade — and twice found the
+app RIGHTER than the aggregators.** Twelve fresh names (MARUTI → WENDT, plus BSE-only
+TANFACIND and ACGL), independently researched by twelve web agents, every figure
+diffed: **identity 12/12, 95 ok / 19 watch / 6 mismatches — and zero app fabrications.**
+Every mismatch was adversarially verified: WENDT's EPS/PE/growth and CROMPTON's ROE
+are the app being correct on its stated consolidated/reported basis while screener.in's
+own ratio panels were stale (CROMPTON's real FY26 ROE is negative — the ₹716 Cr
+Butterfly impairment — and the app says so); the dividend gaps are declared-but-unpaid
+finals the app correctly excludes from a paid basis. The one true data wart — Yahoo's
+dividendRate quirk on WENDT (₹20 where ₹40 was actually paid) — was caught LIVE by the
+new deterministic dividend reconciliation: the deep brief's Conflict Note reads
+"the provider's standard dividend rate lists ₹20.00 per share, which omits special
+dividends; the ₹40.00 trailing paid figure represents the complete distributed
+amount." That's D56 doing exactly what it was built for, on a real case, unprompted.
+
+**V1 (the growth mislabel) is dead end-to-end**: every surface now says "quarterly
+YoY (MRQ)" — the raw endpoint and agent tool carry `growth_basis`, the brief cards
+label it, the screener criteria builder says "(MRQ YoY, frac)", and the narrative
+prompt labels its facts. The WENDT brief rendered "-60.50% · quarterly YoY" — the
+exact consolidated figure the independent verifier computed. **V2 is dispositioned
+with a machine-readable cause**: DeepSeek V4 Flash returns `finish_reason=
+content_filter` (zero tool calls) on some asks, while glm-5.1 and kimi-k2.6 on your
+same OpenRouter key drive every tool correctly — it's the model, not your app; and the
+app now says so honestly in chat instead of showing an unexplained Chinese refusal.
+The error battery: live 401 → "The OpenAI API key was rejected — check it in
+Settings."; live 402 → "Your DeepSeek balance is empty — top up or switch provider";
+and a NEW catch — garbage symbols used to serve an all-null 200; they now answer an
+honest 404 ("No instrument matches … — check the symbol"), which also stops the deep
+crawler stamping Yahoo-uncovered scrips as enriched. The resolver got the V3/V4/V5
+sweep (L&T→Larsen & Toubro; Jindal/Godrej get curated choosers; an engine-level tie
+guard kills the arbitrary-tiebreak class beyond the curated table) and the sector map
+now tells the truth about itself (5,010-record honest header, orphaned industry values
+migrated, all 135 NSE-only rows carry shares).
+
+**Agent capability (the Jarvis stretch), driven live**: the copilot configured your
+exact screen from one sentence (write_screener_filters applied to the panel — you can
+see the criteria sitting there), ran it with live SSE progress streaming in chat,
+disclosed its 254 skips honestly, loaded the chart with a fresh symbol, published a
+DEEP-stamped 24-source brief (mode from the execution record, "EOD AS OF 2026-07-08"
+chip, NSE_DIRECT provider chip), and applied portfolio adds under AUTO with the panel
+ACKING the apply (the E3.3 read-back closing in the sidecar log). §6.5 is
+**byte-identical to the pre-R10 base** (empty diff over the whole broker/order/audit
+surface) and the 40-test safety suite + AI-order-gate audit ran green in every full
+suite pass of this sprint.
+
+**What I could not finish, and why — NEEDS-MANUAL-CHECK:** you came back to the
+machine mid-drive (~22:00; I stopped all UI driving the moment your Chrome came up —
+nothing leaked into your Luminfaber session; the in-flight message had already landed
+in Vysted, verified by the ack logs). Cut short: (1) the live §6.5 order-dialog
+click-through (suite-level re-verification is green + byte-diff; one manual "buy X" →
+see the review dialog stage, never auto-place); (2) the narrow-width/clipped-text
+sweep; (3) in-webview drags (unchanged since R7 — no rig can synthesize them);
+(4) your taste pass. Also left for you: the chat tab holds the battery conversation,
+and the paper portfolio carries the two TEST holdings the agent-drive added
+(10 WENDT @ 7,500 · 5 MARUTI @ 14,300) — pruned from the blob automatically if I got
+to restart the app clean (see close-out below), otherwise two clicks to delete.
+
+**How to launch:** `cd ~/Documents/dev/vysted-terminal && pnpm tauri:dev`. Evidence:
+`docs/redesign/verification/r11/` (cold-start proofs, GUI captures, error battery,
+v2-redrive, data-battery with reference packs + diff rounds + BATTERY_VERDICT.md).
+Decisions D52–D61; final gate numbers in the close-out block below.
+
+
+## Close-out (2026-07-08, late evening)
+
+- **FINAL GATE CHAIN GREEN** (`pnpm ci-local`, byte-for-byte CI mirror, app stopped):
+  install → ensure-all-sidecars (rebuilt with all R11 code) → eslint (0 errors) →
+  prettier → tsc → cargo fmt → clippy `-D warnings` → ruff check+format →
+  **vitest 1478** → cargo test → **pytest 2237 passed, 1 skipped**.
+  Baseline was 2175/1457 — R11 added **62 sidecar + 21 frontend test pins**.
+- **PyInstaller onefile builds AND boots**: `smoke-test-sidecars.mjs` fully green on the
+  final binaries (screener universe, ICONIKSPEV deterministic BSE identity, all 3
+  sidecars + MCP subprocesses, BSE bhavcopy + NSE direct probes).
+- **§6.5**: `git diff 393e8e5 HEAD` over the whole broker/order/audit/kill-switch
+  surface → EMPTY. Byte-identical through R10 + R11. Safety suite green inside every
+  full pytest run of the sprint.
+- **Sacred files**: `enrich_nse_sectors.py` SHA-256 ends `…286abdbe` — byte-identical
+  to the run's start; `kill-switch-benchmark.json` regenerated by the mandated pytest
+  runs (by design), left uncommitted as always.
+- **Clean default**: test holdings absent from the autosave blob (the in-memory agent
+  adds never flushed — the ack log is the apply proof); portfolio boots empty; app
+  relaunched and left running.
+- Tagged **r11-data**; 004 pushed.
 
 ## Telemetry (running)
 
@@ -51,9 +160,9 @@ Sacred-file hashes at start (must be byte-identical at close):
 | E1–E7, E9–E11 | RESOLVED by R10, re-confirmed by R10-VERIFY | Re-verified via full-suite green at every R11 checkpoint; E-series pins all passing (2216 pytest). Live re-drive of E2/E3/E9/E10 rides Phase 4. |
 | E8 | was PARTIAL (→V1) | **CLOSED by D55** (SEM, merged 3f4fe07): basis "quarterly YoY (MRQ)" in semantics + narrative labels + growth_basis on every raw surface; screener UI labels ride FE. |
 | V1 | MAJOR | **FIXED** (D55, merged; test-pinned incl. renamed semantics pin + REST/tool growth_basis assertions). Annual-growth derivation deliberately NOT shipped: no current research leg carries statement data; adding a per-snapshot statement fetch was forbidden-cost (SEM report). |
-| V2 | MAJOR | StatusChrome readiness-honesty half rides FE (D60); the DeepSeek-refusal half is a Phase 4 live re-drive → disposition with evidence. |
-| V3/V4/V5 | MINOR | RES team in flight (D58: marquee l&t/jindal/godrej + tie guard + region tie-break). |
-| V6 | MINOR | FE team in flight (D57 currency threading + mixed-currency honesty). |
+| V2 | MAJOR | **DISPOSITIONED (model-lane) + APP HONESTY SHIPPED**: live captures show `finish_reason=content_filter` on the DeepSeek lane with zero tool calls, while glm-5.1/kimi-k2.6 on the same OpenRouter key drive `portfolio_add_position` correctly; the app now explains a content-filter finish honestly (test-pinned + captured live in chat, `gui-15`), and StatusChrome renders provider reachability honestly (FE, test-pinned). |
+| V3/V4/V5 | MINOR | **FIXED** (RES, merged 44ea6b0): marquee l&t/larsen→LT + jindal/godrej choosers; engine residual-tie guard kills the arbitrary-tiebreak class beyond the table (jsw/kirloskar/bare-'apple' now disambiguate); V5 ordering was already correct — now lock-in-pinned. 13 new resolver tests. |
+| V6 | MINOR | **FIXED** (FE, merged 8f4bd96): instrument currency threaded to every money cell (₹1,293 renders ₹ even under region US — test-pinned); mixed-currency portfolios render per-currency subtotals and publish totalValue:null + reason (never a cross-currency sum); the two defect-pinning tests rewritten to assert correctness. |
 | V7 | MINOR | **FIXED** (46e6c43): .prettierignore; ci-local byte-green again. |
 | V8 | NOTE | **NOT-A-DEFECT**: the /resolve endpoint is the @mention picker (symbols/short names), the research path owns salad-cleaning — by design (R10-VERIFY's own reading); the suite pins the research path. No change. |
 | V9 | COSMETIC | **FIXED** with V1 (the basis string now says quarterly explicitly). |
