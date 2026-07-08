@@ -2,7 +2,17 @@
 
 from __future__ import annotations
 
-from services import symbol_resolver
+import pytest
+
+from services import provider_health, symbol_resolver
+
+
+@pytest.fixture(autouse=True)
+def _fresh_live_lookup_budget():
+    """The D58d live-lookup LRU/cooldown must never leak between tests."""
+    symbol_resolver._reset_live_lookup_for_tests()
+    yield
+    symbol_resolver._reset_live_lookup_for_tests()
 
 
 def test_region_hint_decisive_and_ambiguous() -> None:
@@ -315,6 +325,149 @@ def test_marquee_skipped_for_us_region(monkeypatch) -> None:  # noqa: ANN001
     r = symbol_resolver.resolve("tata", "US")
     # No marquee under US: whatever matches is band-scored, never the curated list.
     assert r.best is None or r.best.band != 5
+
+
+# ---------------------------------------------------------------------------
+# R11 (D58c) — region tie-break in chooser candidate ordering (V5).
+# ---------------------------------------------------------------------------
+
+
+def test_in_region_chooser_never_ranks_foreign_above_in_at_equal_band(monkeypatch) -> None:  # noqa: ANN001
+    """V5: 'Reliance Q4 results' (region IN) listed [RELIANCE, FRLCY(US), FLNCF]
+    in its chooser. The candidate ordering must never let a foreign ticker
+    outrank an IN-listed candidate at the same band under an IN session."""
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", lambda *_a, **_k: [])
+    for query in ("Reliance Q4 results", "Larsen and Toubro", "Tata Steel results"):
+        r = symbol_resolver.resolve(query, "IN")
+        assert r.best is not None, query
+        assert r.best.region == "IN", (query, r.best)
+        for i, earlier in enumerate(r.candidates):
+            for later in r.candidates[i + 1 :]:
+                if earlier.band == later.band and earlier.region != "IN":
+                    assert later.region != "IN", (
+                        f"{query!r}: foreign {earlier.symbol} outranks IN "
+                        f"{later.symbol} at band {earlier.band}"
+                    )
+
+
+# ---------------------------------------------------------------------------
+# R11 (D58d) — the live-lookup budget: LRU cache + failure cooldown +
+# provider-health reporting.
+# ---------------------------------------------------------------------------
+
+
+class _CountingSearch:
+    """A yfinance.Search stand-in that counts constructions."""
+
+    calls = 0
+    quotes = [{"symbol": "SOMETHING.NS", "shortname": "Something Ltd"}]
+
+    def __init__(self, *_a: object, **_k: object) -> None:
+        type(self).calls += 1
+
+
+def test_live_lookup_caches_repeated_queries(monkeypatch) -> None:  # noqa: ANN001
+    import yfinance as yf
+
+    _CountingSearch.calls = 0
+    monkeypatch.setattr(yf, "Search", _CountingSearch)
+    first = symbol_resolver._live_lookup("Something Unlisted", "IN")
+    second = symbol_resolver._live_lookup("Something Unlisted", "IN")
+    assert _CountingSearch.calls == 1, "a repeated (query, region) must not re-hit the network"
+    assert [i.yahoo_symbol for i in first] == [i.yahoo_symbol for i in second]
+    # A different region is a different cache key — it MAY fetch again.
+    symbol_resolver._live_lookup("Something Unlisted", "US")
+    assert _CountingSearch.calls == 2
+
+
+def test_live_lookup_caches_successful_empty_results(monkeypatch) -> None:  # noqa: ANN001
+    import yfinance as yf
+
+    class _EmptySearch(_CountingSearch):
+        quotes: list[dict] = []
+
+    _EmptySearch.calls = 0
+    monkeypatch.setattr(yf, "Search", _EmptySearch)
+    assert symbol_resolver._live_lookup("zzz nothing zzz", "IN") == []
+    assert symbol_resolver._live_lookup("zzz nothing zzz", "IN") == []
+    assert _EmptySearch.calls == 1, "a successful empty search is a cacheable negative"
+
+
+def test_live_lookup_failure_opens_cooldown_and_skips_network(monkeypatch) -> None:  # noqa: ANN001
+    import yfinance as yf
+
+    class _ExplodingSearch:
+        calls = 0
+
+        def __init__(self, *_a: object, **_k: object) -> None:
+            type(self).calls += 1
+            raise RuntimeError("connection reset")
+
+    monkeypatch.setattr(yf, "Search", _ExplodingSearch)
+    assert symbol_resolver._live_lookup("first failing query", "IN") == []
+    assert _ExplodingSearch.calls == 1
+    # Inside the cooldown window EVERY live lookup — any query — short-circuits.
+    assert symbol_resolver._live_lookup("a different query", "IN") == []
+    assert symbol_resolver._live_lookup("yet another", "US") == []
+    assert _ExplodingSearch.calls == 1, "cooldown must skip the network entirely"
+    # After the cooldown lapses the live rung probes again.
+    symbol_resolver._live_cooldown_until = 0.0
+    assert symbol_resolver._live_lookup("post-cooldown query", "IN") == []
+    assert _ExplodingSearch.calls == 2
+
+
+def test_live_lookup_reports_rate_limit_to_provider_health(monkeypatch) -> None:  # noqa: ANN001
+    import yfinance as yf
+    from yfinance.exceptions import YFRateLimitError
+
+    provider_health.reset_for_tests()
+
+    class _ThrottledSearch:
+        def __init__(self, *_a: object, **_k: object) -> None:
+            raise YFRateLimitError()
+
+    monkeypatch.setattr(yf, "Search", _ThrottledSearch)
+    assert symbol_resolver._live_lookup("throttled query", "IN") == []
+    status = provider_health.status()
+    assert status["throttles_total"] >= 1, "a YFRateLimitError must reach provider_health"
+
+    # A healthy round-trip reports success — the family streak fully resets.
+    symbol_resolver._reset_live_lookup_for_tests()
+    monkeypatch.setattr(yf, "Search", _CountingSearch)
+    symbol_resolver._live_lookup("healthy query", "IN")
+    status = provider_health.status()
+    assert status["consecutive_throttles"] == 0
+    assert not status["open"]
+    provider_health.reset_for_tests()
+
+
+def test_live_lookup_non_rate_limit_failure_does_not_count_as_throttle(monkeypatch) -> None:  # noqa: ANN001
+    import yfinance as yf
+
+    provider_health.reset_for_tests()
+
+    class _BrokenSearch:
+        def __init__(self, *_a: object, **_k: object) -> None:
+            raise ValueError("bad JSON")
+
+    monkeypatch.setattr(yf, "Search", _BrokenSearch)
+    assert symbol_resolver._live_lookup("parse-broken query", "IN") == []
+    assert provider_health.status()["throttles_total"] == 0
+    provider_health.reset_for_tests()
+
+
+def test_live_lookup_cache_is_bounded_lru(monkeypatch) -> None:  # noqa: ANN001
+    import yfinance as yf
+
+    _CountingSearch.calls = 0
+    monkeypatch.setattr(yf, "Search", _CountingSearch)
+    limit = symbol_resolver._LIVE_CACHE_MAX_ENTRIES
+    for i in range(limit + 10):
+        symbol_resolver._live_lookup(f"query number {i}", "IN")
+    assert len(symbol_resolver._live_cache) == limit, "the LRU must stay bounded"
+    # The oldest entries were evicted; the newest are still cached.
+    assert ("query number 0", "IN") not in symbol_resolver._live_cache
+    assert (f"query number {limit + 9}", "IN") in symbol_resolver._live_cache
 
 
 def test_autocomplete_stays_keystroke_fast_over_full_masters() -> None:

@@ -66,11 +66,15 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
+import time
+from collections import OrderedDict
 from dataclasses import dataclass, field
 from difflib import SequenceMatcher
 from functools import lru_cache
 from importlib import resources
 
+from services import provider_health
 from services.locale import (
     REGION_GLOBAL,
     REGION_IN,
@@ -109,6 +113,19 @@ _MAX_FUZZY_WORDS = 4
 # policy maps it to "disambiguate", never "bound".
 _DISAMBIGUATE_SCORE = 0.6
 _MAX_CANDIDATES = 6
+
+# --- live-lookup budget (R11, D58d) -----------------------------------------
+# The live yfinance.Search fallback is the ONE runtime network touchpoint in
+# the resolver. It gets (a) a small in-process LRU keyed on (query, region) so
+# an agent iterating the same unresolved names never re-hits the network, and
+# (b) a failure cooldown — after ANY lookup failure the live rung is skipped
+# entirely for a short window (returning [] immediately) instead of hammering
+# a throttled/blocked upstream once per unresolved query.
+_LIVE_CACHE_MAX_ENTRIES = 128
+_LIVE_FAILURE_COOLDOWN_SECONDS = 60.0
+_live_cache: OrderedDict[tuple[str, str], list[Instrument]] = OrderedDict()
+_live_cache_lock = threading.Lock()
+_live_cooldown_until = 0.0  # monotonic deadline; 0 = no cooldown
 
 # Leading command verbs the models prepend to a company name ("research
 # Reliance") — stripped during query cleaning so the verb never fuzzy-binds an
@@ -273,11 +290,20 @@ def _load_master(filename: str, *, fallback: dict | None = None) -> dict:
 
 
 def reset_caches_for_tests() -> None:
-    """Drop the in-process master caches (test helper)."""
+    """Drop the in-process master caches + the live-lookup budget (test helper)."""
     _nse_master.cache_clear()
     _bse_master.cache_clear()
     _us_master.cache_clear()
     _marquee_aliases.cache_clear()
+    _reset_live_lookup_for_tests()
+
+
+def _reset_live_lookup_for_tests() -> None:
+    """Drop the live-lookup LRU + cooldown only (cheaper than a master reload)."""
+    global _live_cooldown_until
+    with _live_cache_lock:
+        _live_cache.clear()
+        _live_cooldown_until = 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -588,7 +614,11 @@ def resolve(query: str, region: str) -> Resolution:
         _append(_name_score(query_lc, name.lower(), n_words), _instrument_us, sym)
 
     # Band tie-break: (band, locale, score) — stable, so the prominence-ordered
-    # masters break exact ties toward the well-known instrument.
+    # masters break exact ties toward the well-known instrument. The locale
+    # component IS the chooser's region tie-break (R11, D58c / V5): under an IN
+    # session a foreign row can never outrank an IN row at the same band, so a
+    # disambiguation list for "Reliance Q4 results" leads with RELIANCE (NSE),
+    # never FRLCY/FLNCF (US OTC).
     scored.sort(key=lambda t: (t[0], t[1], t[2]), reverse=True)
     if scored:
         ranked = [t[3] for t in scored]
@@ -663,15 +693,38 @@ def _live_lookup(query: str, region: str) -> list[Instrument]:
     "disambiguate", never "bound". Under an IN session the ``.NS``/``.BO``
     rows rank first. Network/parse failures degrade to ``[]`` (the caller
     surfaces an honest "unresolved" — never raw JSON, never a guess).
+
+    Budgeted (R11, D58d): results — including a successful empty search — are
+    LRU-cached per ``(query, region)`` so repeated unresolved queries never
+    re-hit the network; ANY failure opens a short module-level cooldown during
+    which the live rung returns ``[]`` immediately. Rate-limit-shaped failures
+    (``YFRateLimitError``) are reported to :mod:`services.provider_health`
+    (the Yahoo family shares one IP reputation across every yfinance path);
+    a healthy round-trip reports success.
     """
+    global _live_cooldown_until
+    key = (query, region)
+    with _live_cache_lock:
+        cached = _live_cache.get(key)
+        if cached is not None:
+            _live_cache.move_to_end(key)
+            return list(cached)
+        if time.monotonic() < _live_cooldown_until:
+            return []
+
     try:
         import yfinance as yf
 
         search = yf.Search(query, max_results=5, news_count=0)
         quotes = getattr(search, "quotes", None) or []
     except Exception as exc:  # noqa: BLE001 - any live-lookup failure is non-fatal
+        with _live_cache_lock:
+            _live_cooldown_until = time.monotonic() + _LIVE_FAILURE_COOLDOWN_SECONDS
+        if type(exc).__name__ == "YFRateLimitError":
+            provider_health.record_rate_limited()
         logger.debug("symbol_resolver: live lookup failed for %r: %s", query, exc)
         return []
+    provider_health.record_success()
 
     out: list[Instrument] = []
     for q in quotes:
@@ -694,6 +747,11 @@ def _live_lookup(query: str, region: str) -> list[Instrument]:
             out.append(Instrument(sym, name, "US", REGION_US, "equity", sym, _DISAMBIGUATE_SCORE))
     if region == REGION_IN:
         out.sort(key=lambda i: i.region == REGION_IN, reverse=True)
+    with _live_cache_lock:
+        _live_cache[key] = list(out)
+        _live_cache.move_to_end(key)
+        while len(_live_cache) > _LIVE_CACHE_MAX_ENTRIES:
+            _live_cache.popitem(last=False)
     return out
 
 
