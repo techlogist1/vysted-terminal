@@ -58,6 +58,11 @@ async def get_fundamentals(symbol: str) -> Fundamentals:
                 status_code=429,
                 detail="Data provider is throttled — try again shortly.",
             ) from exc
+        if exc.kind == "not_found":
+            raise HTTPException(
+                status_code=404,
+                detail=f"No instrument matches {symbol!r} — check the symbol.",
+            ) from exc
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 

@@ -217,6 +217,15 @@ def get_fundamentals(symbol: str) -> Fundamentals:
         raise _provider_error("fundamentals", symbol, exc) from exc
 
     provider_health.record_success(provider_health.YAHOO)
+    # An unknown/garbage symbol comes back as an EMPTY info dict, not an
+    # exception — serving it as an all-null 200 reads as "instrument exists,
+    # no data" (a dishonest shape; R11 gate-7 catch) and lets the deep
+    # crawler stamp uncovered scrips as freshly enriched. Say the truth.
+    if not isinstance(info, dict) or not any(
+        info.get(key) is not None
+        for key in ("longName", "shortName", "regularMarketPrice", "marketCap", "currency")
+    ):
+        raise ProviderError(f"yfinance has no instrument data for {symbol!r}", kind="not_found")
     # yfinance 1.3.0 returns ``dividendYield`` as a percentage number (e.g.
     # ``0.36`` for AAPL, ``6.01`` for VZ) — not a fraction. The contract is a
     # fraction (the panel ×100s it). Guard against negative / absurd (>200%)

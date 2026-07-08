@@ -104,3 +104,20 @@ def test_get_analyst_rating(client: TestClient, mock_yfinance: object) -> None:
     assert body["hold"] == 8
     assert body["consensus"] == "buy"
     assert body["target_mean"] == 225.0
+
+
+def test_get_fundamentals_unknown_symbol_is_honest_404(client, monkeypatch) -> None:
+    """R11 gate-7 catch: a garbage symbol used to serve an all-null 200 (a
+    dishonest 'instrument exists, no data' shape). yfinance returns an EMPTY
+    info dict for unknown symbols — the provider now raises kind="not_found"
+    and the route answers an honest 404 with a human message."""
+    from services import yfinance_provider
+
+    class _EmptyTicker:
+        def __init__(self, symbol: str) -> None:
+            self.info = {}
+
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _EmptyTicker)
+    resp = client.get("/fundamentals/NOTAREALSYMBOL123")
+    assert resp.status_code == 404
+    assert "check the symbol" in resp.json()["detail"]

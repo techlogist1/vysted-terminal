@@ -524,7 +524,9 @@ async def _fetch_pair(
         return None, "timeout"
     except ProviderError as exc:
         logger.debug("screener: fundamentals failed for %s: %s", symbol, exc)
-        return None, "rate_limited" if exc.kind == "rate_limited" else "correctness_gate"
+        if exc.kind == "rate_limited":
+            return None, "rate_limited"
+        return None, "not_found" if exc.kind == "not_found" else "correctness_gate"
     except Exception as exc:  # noqa: BLE001
         logger.warning("screener: unexpected fundamentals error for %s: %s", symbol, exc)
         return None, "no_data"
