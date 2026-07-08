@@ -9,6 +9,7 @@ import { useAppStore } from "@/store/app";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelForProvider } from "@/store/model-selection";
 import { useProviderKeysStore } from "@/store/provider-keys";
+import type { LLMProviderId } from "../../types/ai";
 
 /** Designed word forms for model-id tokens (law §3.1 — short forms live at the
  *  formatter, never CSS truncation). Unknown tokens fall back to Title-case. */
@@ -56,6 +57,16 @@ export function __resetProviderProbeCacheForTests(): void {
   probeCache.clear();
 }
 
+/** A cache entry that is still within its TTL (positives live longer). */
+function freshCacheEntry(provider: string): { ok: boolean; at: number } | undefined {
+  const cached = probeCache.get(provider);
+  if (!cached) {
+    return undefined;
+  }
+  const ttl = cached.ok ? PROBE_TTL_OK_MS : PROBE_TTL_FAIL_MS;
+  return Date.now() - cached.at < ttl ? cached : undefined;
+}
+
 /**
  * Reachability of the active default lane (D60), probed fire-and-forget so the
  * chip renders instantly and downgrades only on a CONFIRMED failure:
@@ -64,32 +75,27 @@ export function __resetProviderProbeCacheForTests(): void {
  *   - BYOK providers → the keychain key-status store ("missing" = not set up;
  *     "unknown" — e.g. outside the Tauri shell — never raises a false alarm).
  * Returns `true`/`null` for "render today's confident chip", `false` for the
- * honest muted state.
+ * honest muted state. The truth lives in the module cache; state only forces a
+ * re-render when an async probe lands (no synchronous setState in the effect).
  */
-function useProviderReady(provider: string | null | undefined, requiresKey: boolean): boolean | null {
+function useProviderReady(
+  provider: LLMProviderId | null | undefined,
+  requiresKey: boolean,
+): boolean | null {
   const sidecarStatus = useAppStore((state) => state.sidecarStatus);
   const keyStatus = useProviderKeysStore((s) => (provider ? s.status[provider] : undefined));
-  const [reachable, setReachable] = useState<boolean | null>(null);
+  const [, setProbeTick] = useState(0);
 
   useEffect(() => {
-    if (!provider || requiresKey) {
-      setReachable(null);
+    if (!provider || requiresKey || freshCacheEntry(provider)) {
       return;
     }
-    const cached = probeCache.get(provider);
-    if (cached && Date.now() - cached.at < (cached.ok ? PROBE_TTL_OK_MS : PROBE_TTL_FAIL_MS)) {
-      setReachable(cached.ok);
-      return;
-    }
-    // Unknown while the probe is in flight — the chip stays confident (never
-    // an alarmist flash) and downgrades only on a confirmed failure.
-    setReachable(null);
     let cancelled = false;
     // Fire-and-forget: never blocks render; validateProvider never throws.
     void validateProvider(provider).then((ok) => {
       probeCache.set(provider, { ok, at: Date.now() });
       if (!cancelled) {
-        setReachable(ok);
+        setProbeTick((t) => t + 1);
       }
     });
     return () => {
@@ -105,7 +111,7 @@ function useProviderReady(provider: string | null | undefined, requiresKey: bool
   if (requiresKey) {
     return keyStatus === "missing" ? false : null;
   }
-  return reachable;
+  return freshCacheEntry(provider)?.ok ?? null;
 }
 
 /**
@@ -230,8 +236,8 @@ export function StatusChrome() {
           >
             <span className="bg-charcoal-600 size-2 shrink-0 rounded-full" aria-hidden />
             <span className="hidden whitespace-nowrap min-[880px]:inline">
-              {providerLabel} ·{" "}
-              {providerMeta?.requiresKey ? "no API key" : "not running"} — set up in Settings
+              {providerLabel} · {providerMeta?.requiresKey ? "no API key" : "not running"} — set up
+              in Settings
             </span>
           </span>
         </>

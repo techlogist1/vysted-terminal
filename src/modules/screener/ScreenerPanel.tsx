@@ -138,7 +138,12 @@ export function ScreenerPanel() {
     if (!counts) return null;
     const seedAsOf = lastResult?.freshness?.seed_as_of;
     const order = ["live", "mixed", "snapshot"];
-    const keys = [...order.filter((k) => k in counts), ...Object.keys(counts).filter((k) => !order.includes(k)).sort()];
+    const keys = [
+      ...order.filter((k) => k in counts),
+      ...Object.keys(counts)
+        .filter((k) => !order.includes(k))
+        .sort(),
+    ];
     const parts: string[] = [];
     for (const key of keys) {
       const n = counts[key];
@@ -239,7 +244,7 @@ export function ScreenerPanel() {
         <div className="ml-auto">
           {isRunning ? (
             <Button onClick={cancelRun} variant="outline" data-testid="cancel-screener-button">
-              <Square className="mr-1 size-3.5" />
+              <Square className={"mr-1 size-3.5" /* tokens-ok: 14px icon — R9 §3 rung for h-8 */} />
               Cancel
             </Button>
           ) : (
@@ -248,7 +253,7 @@ export function ScreenerPanel() {
               disabled={universe === "custom" && customSymbols.trim() === ""}
               data-testid="run-screener-button"
             >
-              <Play className="mr-1 size-3.5" />
+              <Play className={"mr-1 size-3.5" /* tokens-ok: 14px icon — R9 §3 rung for h-8 */} />
               Run screener
             </Button>
           )}
