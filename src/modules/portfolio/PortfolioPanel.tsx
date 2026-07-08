@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Briefcase, Check, Download, FolderPlus, Pencil, Plus, Trash2, X } from "lucide-react";
 
 import { DataTable, type DataColumn } from "@/components/DataTable";
@@ -37,6 +37,11 @@ interface PortfolioTableRow extends PositionRow {
 function fmtQuantity(quantity: number): string {
   if (Math.abs(quantity) >= 1000) return formatUnit(quantity);
   return quantity.toLocaleString("en-US", { maximumFractionDigits: 8 });
+}
+
+/** The P&L signal tone — green/red by direction, quiet neutral at zero. */
+function pnlTone(pnl: number): string {
+  return pnl > 0 ? "text-positive" : pnl < 0 ? "text-negative" : "text-charcoal-200";
 }
 
 /**
@@ -159,6 +164,7 @@ export function PortfolioPanel() {
   }, [quotesKey, quotesNonce]);
 
   const summary = useMemo(() => buildPortfolioSummary(positions, quotes), [positions, quotes]);
+  const mixedCurrencies = summary.mixedCurrencies;
 
   // Clear a save/validation error as soon as the user edits any field.
   const formKey = `${form.symbol}|${form.quantity}|${form.costBasis}|${form.assetClass}|${form.note}`;
@@ -188,7 +194,17 @@ export function PortfolioPanel() {
   const publishPanelContext = usePanelContextBus((s) => s.publish);
   const unregisterPanelContext = usePanelContextBus((s) => s.unregisterSource);
   const positionCount = summary.rows.length;
-  const totalValue = summary.totalMarketValue;
+  // D57: a cross-currency sum is a fabricated number — when the resolved
+  // holdings span more than one quote currency the published total is null
+  // with a stated reason, never a made-up aggregate (the D50 `totalValue: 0`
+  // class). Per-holding marketValue/pnl stay honest (each is in its own
+  // listing currency).
+  const totalValue = summary.mixedCurrencies ? null : summary.totalMarketValue;
+  const totalValueNote = summary.mixedCurrencies
+    ? `holdings span multiple currencies (${summary.byCurrency
+        .map((b) => b.currency || "unknown")
+        .join(", ")}) — no cross-currency total; read per-holding values`
+    : null;
   const activePortfolioId = active?.id ?? null;
   const activePortfolioName = active?.name ?? null;
   // Serialise the published holdings as a stable string so the publish effect
@@ -213,6 +229,7 @@ export function PortfolioPanel() {
       payload: {
         positionCount,
         totalValue,
+        totalValueNote,
         activePortfolioId,
         activePortfolioName,
         holdings: publishedHoldings,
@@ -226,6 +243,7 @@ export function PortfolioPanel() {
     publishPanelContext,
     positionCount,
     totalValue,
+    totalValueNote,
     activePortfolioId,
     activePortfolioName,
     holdingsKey,
@@ -337,7 +355,10 @@ export function PortfolioPanel() {
         numeric: true,
         tier: "secondary",
         width: HOLDING_TRACKS.cost,
-        format: (r) => formatMoney(r.position.cost_basis),
+        // D57: cost basis is entered in the instrument's LISTING currency, so
+        // it renders with the quote's currency when one resolved; the region
+        // default applies only while no quote has identified the instrument.
+        format: (r) => formatMoney(r.position.cost_basis, r.quote?.currency),
       });
     }
     if (showPrice) {
@@ -347,7 +368,7 @@ export function PortfolioPanel() {
         numeric: true,
         tier: "secondary",
         width: HOLDING_TRACKS.price,
-        format: (r) => (r.quote !== null ? formatMoney(r.quote.price) : null),
+        format: (r) => (r.quote !== null ? formatMoney(r.quote.price, r.quote.currency) : null),
       });
     }
     cols.push(
@@ -356,7 +377,8 @@ export function PortfolioPanel() {
         header: "Mkt val",
         numeric: true,
         width: HOLDING_TRACKS.marketValue,
-        format: (r) => (r.marketValue !== null ? formatCompactMoney(r.marketValue) : null),
+        format: (r) =>
+          r.marketValue !== null ? formatCompactMoney(r.marketValue, r.quote?.currency) : null,
       },
       {
         key: "pnl",
@@ -370,12 +392,14 @@ export function PortfolioPanel() {
                 r.pnl > 0 ? "text-positive" : r.pnl < 0 ? "text-negative" : "text-charcoal-200"
               }
             >
-              {`${formatSignedMoney(r.pnl, true)} (${r.pnlPercent !== null ? formatPercent(r.pnlPercent) : "—"})`}
+              {`${formatSignedMoney(r.pnl, true, r.quote?.currency)} (${r.pnlPercent !== null ? formatPercent(r.pnlPercent) : "—"})`}
             </span>
           ),
       },
     );
-    if (showWeight) {
+    // D57: weight is a share of the SUMMED market value — a corrupted ratio
+    // when holdings span currencies, so the column drops with the total.
+    if (showWeight && !mixedCurrencies) {
       cols.push({
         key: "weight",
         header: "Wt",
@@ -414,9 +438,9 @@ export function PortfolioPanel() {
     });
     return cols;
     // handleEdit/handleDelete are stable enough across renders; the table only
-    // rebuilds when the drop ladder moves.
+    // rebuilds when the drop ladder or the mixed-currency state moves.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showQty, showCost, showPrice, showWeight]);
+  }, [showQty, showCost, showPrice, showWeight, mixedCurrencies]);
 
   const submitPfName = () => {
     const name = pfName.trim();
@@ -692,36 +716,68 @@ export function PortfolioPanel() {
 
       {summary.rows.length > 0 && (
         <div className="border-charcoal-700 text-charcoal-200 text-caption flex flex-wrap items-center gap-x-3 gap-y-1 border-b px-3 py-2 tabular-nums">
+          {/* D57: single-currency portfolios sum exactly as before (with the
+              instrument's currency threaded); mixed-currency portfolios render
+              one subtotal PER currency — a cross-currency total is a fabricated
+              number and never appears. */}
           <span className="whitespace-nowrap">
             Market value:{" "}
             <span className="text-charcoal-100">
-              {formatCompactMoney(summary.totalMarketValue)}
+              {summary.mixedCurrencies
+                ? summary.byCurrency
+                    .map((b) => formatCompactMoney(b.marketValue, b.currency))
+                    .join(" + ")
+                : formatCompactMoney(summary.totalMarketValue, summary.byCurrency[0]?.currency)}
             </span>
           </span>
           <span aria-hidden="true" className="text-charcoal-600">
             ·
           </span>
-          <span className="whitespace-nowrap">
+          <span>
             Total P&amp;L:{" "}
-            <span
-              className={
-                summary.totalPnl > 0
-                  ? "text-positive"
-                  : summary.totalPnl < 0
-                    ? "text-negative"
-                    : "text-charcoal-200"
-              }
-            >
-              {formatSignedMoney(summary.totalPnl, true)} ({formatPercent(summary.totalPnlPercent)})
-            </span>
+            {summary.mixedCurrencies ? (
+              summary.byCurrency.map((b, i) => (
+                <Fragment key={b.currency || "unknown"}>
+                  {i > 0 && <span className="text-charcoal-400"> + </span>}
+                  <span className={`whitespace-nowrap ${pnlTone(b.pnl)}`}>
+                    {formatSignedMoney(b.pnl, true, b.currency)} ({formatPercent(b.pnlPercent)})
+                  </span>
+                </Fragment>
+              ))
+            ) : (
+              <span className={`whitespace-nowrap ${pnlTone(summary.totalPnl)}`}>
+                {formatSignedMoney(summary.totalPnl, true, summary.byCurrency[0]?.currency)} (
+                {formatPercent(summary.totalPnlPercent)})
+              </span>
+            )}
           </span>
-          <span aria-hidden="true" className="text-charcoal-600">
-            ·
-          </span>
-          <span className="whitespace-nowrap">
-            Concentration:{" "}
-            <span className="text-charcoal-100">{(summary.concentration * 100).toFixed(1)}%</span>
-          </span>
+          {/* Concentration is a share of the SUMMED market value — meaningless
+              across mixed currencies, so it yields to an honest note instead. */}
+          {summary.mixedCurrencies ? (
+            <>
+              <span aria-hidden="true" className="text-charcoal-600">
+                ·
+              </span>
+              <span
+                className="text-charcoal-400 whitespace-nowrap"
+                title="Holdings are quoted in different currencies — totals are shown per currency; no cross-currency sum or concentration is computed."
+              >
+                mixed currencies — totals per currency
+              </span>
+            </>
+          ) : (
+            <>
+              <span aria-hidden="true" className="text-charcoal-600">
+                ·
+              </span>
+              <span className="whitespace-nowrap">
+                Concentration:{" "}
+                <span className="text-charcoal-100">
+                  {(summary.concentration * 100).toFixed(1)}%
+                </span>
+              </span>
+            </>
+          )}
           {summary.unresolvedCount > 0 && (
             <>
               <span aria-hidden="true" className="text-charcoal-600">

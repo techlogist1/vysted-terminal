@@ -47,8 +47,10 @@ const NUMERIC_FIELDS: { value: ScreenerNumericField; label: string }[] = [
   { value: "debt_to_equity", label: "Debt / Equity (ratio)" },
   { value: "current_ratio", label: "Current ratio" },
   { value: "quick_ratio", label: "Quick ratio" },
-  { value: "revenue_growth", label: "Revenue growth (frac)" },
-  { value: "earnings_growth", label: "Earnings growth (frac)" },
+  // D55: yfinance growth is most-recent-quarter vs the year-ago quarter — the
+  // basis is disclosed at every surface, never presented as annual growth.
+  { value: "revenue_growth", label: "Revenue growth (MRQ YoY, frac)" },
+  { value: "earnings_growth", label: "Earnings growth (MRQ YoY, frac)" },
   { value: "fifty_two_week_high", label: "52w high" },
   { value: "fifty_two_week_low", label: "52w low" },
   { value: "fifty_two_week_change", label: "1y change (frac)" },

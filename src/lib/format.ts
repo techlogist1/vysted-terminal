@@ -75,8 +75,11 @@ export function formatMoney(value: number, currency?: string | null): string {
  * The active currency's symbol (e.g. `$`, `₹`), derived from Intl so the compact
  * path never hardcodes `$`. Extracts the part either side of the magnitude in a
  * formatted sample; falls back to the ISO code if the locale renders no symbol.
+ * Exported (R11 / D57) for money cells that must keep a NON-currency mantissa
+ * format (e.g. sub-unit prices with significant digits) yet still carry the
+ * instrument's symbol — the one Intl-derived affix source app-wide.
  */
-function currencyAffix(currency?: string | null): { prefix: string; suffix: string } {
+export function currencyAffix(currency?: string | null): { prefix: string; suffix: string } {
   const code = resolveCurrency(currency);
   const formatted = (1).toLocaleString(activeLocale(), {
     style: "currency",

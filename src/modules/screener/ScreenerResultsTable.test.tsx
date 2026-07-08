@@ -35,6 +35,7 @@ const RESULT: ScreenerResult = {
       change_percent_1d: 1.5,
       volume: 51_000_000,
       matched_criteria: [0, 1, 2],
+      currency: "USD",
     },
     {
       symbol: "MSFT",
@@ -47,6 +48,7 @@ const RESULT: ScreenerResult = {
       change_percent_1d: -0.5,
       volume: 22_000_000,
       matched_criteria: [0, 1, 2],
+      currency: "USD",
     },
     {
       symbol: "GOOGL",
@@ -59,17 +61,36 @@ const RESULT: ScreenerResult = {
       change_percent_1d: 0.3,
       volume: 18_000_000,
       matched_criteria: [0, 1, 2],
+      currency: "USD",
     },
   ],
   duration_ms: 320.0,
 };
 
+/** An INR row (R11 / D57) — rendered under region US it must still read ₹.
+ *  data_basis "snapshot" pins the D52 staleness marker (as of Jun 16, 2026). */
+const INR_SNAPSHOT_ROW = {
+  symbol: "RELIANCE.NS",
+  name: "Reliance Industries",
+  sector: "Energy",
+  industry: "Oil & Gas",
+  market_cap: 17_500_000_000_000,
+  pe_ratio: 28.1,
+  price: 1293.0,
+  change_percent_1d: 0.6,
+  volume: 5_400_000,
+  matched_criteria: [0],
+  currency: "INR",
+  data_basis: "snapshot",
+  data_as_of: 1_781_611_200, // 2026-06-16T12:00Z (mid-day: "Jun 16" in any test TZ)
+};
+
 beforeEach(() => {
   useScreenerStore.getState().__resetForTests();
-  // R10 (E1): the shipped region default flipped US→IN; screener rows carry no
-  // currency, so market-cap falls back to the region currency. The fixture is
-  // the sp500 universe (USD) — pin US so the cell-formatter assertions stay
-  // about wiring, not the region default.
+  // R11 (D57): money cells format in the ROW's currency; the region is only
+  // the locale (grouping) + the legacy fallback for rows without a currency.
+  // Region is pinned US so grouping is deterministic (en-US) AND so the INR
+  // assertions below prove the instrument's currency wins over the region.
   useSettingsStore.setState({ region: "US" });
 });
 
@@ -112,6 +133,53 @@ describe("ScreenerResultsTable", () => {
     fireEvent.click(screen.getByTestId("column-pe_ratio"));
     firstRow = screen.getAllByRole("row")[1];
     expect(within(firstRow!).getByText("AAPL")).toBeInTheDocument();
+  });
+
+  it("money cells render in the ROW's currency, never the region's (D57 — V6)", () => {
+    useScreenerStore.setState({
+      lastResult: { ...RESULT, rows: [...RESULT.rows, INR_SNAPSHOT_ROW], result_count: 4 },
+      status: "ready",
+    });
+    render(<ScreenerResultsTable />);
+
+    // USD rows: the price cell is a REAL money format now (was a bare number).
+    expect(screen.getByText("$192.50")).toBeInTheDocument();
+    // The INR row renders ₹ even under region US — V6 live-confirmed exactly
+    // this figure rendering as $1,293.
+    expect(screen.getByText("₹1,293.00")).toBeInTheDocument();
+    expect(screen.getByText("₹17.5T")).toBeInTheDocument();
+  });
+
+  it("a snapshot-basis row carries the quiet staleness marker + as-of (D52)", () => {
+    useScreenerStore.setState({
+      lastResult: { ...RESULT, rows: [...RESULT.rows, INR_SNAPSHOT_ROW], result_count: 4 },
+      status: "ready",
+    });
+    render(<ScreenerResultsTable />);
+
+    const marker = screen.getByTestId("basis-marker-RELIANCE.NS");
+    expect(marker).toHaveTextContent("snap");
+    expect(marker.title).toContain("Snapshot basis");
+    expect(marker.title).toContain("as of Jun 16");
+    // Live rows carry no marker — a snapshot row must never look identical,
+    // but a live row must stay unadorned.
+    expect(screen.queryByTestId("basis-marker-AAPL")).not.toBeInTheDocument();
+  });
+
+  it("a mixed-basis row is marked 'mixed'; live/absent basis renders nothing (D52)", () => {
+    const rows = [
+      { ...RESULT.rows[0], data_basis: "live" },
+      { ...RESULT.rows[1], data_basis: "mixed", data_as_of: 1_781_611_200 },
+      RESULT.rows[2], // no basis fields at all — an older payload
+    ];
+    useScreenerStore.setState({ lastResult: { ...RESULT, rows }, status: "ready" });
+    render(<ScreenerResultsTable />);
+
+    expect(screen.queryByTestId("basis-marker-AAPL")).not.toBeInTheDocument();
+    const marker = screen.getByTestId("basis-marker-MSFT");
+    expect(marker).toHaveTextContent("mixed");
+    expect(marker.title).toContain("Mixed basis");
+    expect(screen.queryByTestId("basis-marker-GOOGL")).not.toBeInTheDocument();
   });
 
   it("shows a loading placeholder while status === 'loading'", () => {

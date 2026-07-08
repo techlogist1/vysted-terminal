@@ -1,10 +1,24 @@
-import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { formatModelLabel, StatusChrome } from "@/components/StatusChrome";
+import {
+  __resetProviderProbeCacheForTests,
+  formatModelLabel,
+  StatusChrome,
+} from "@/components/StatusChrome";
 import { useAgentRunsStore } from "@/store/agent-runs";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { resetModelSelectionStoreForTests, useModelSelectionStore } from "@/store/model-selection";
+import { useProviderKeysStore } from "@/store/provider-keys";
+
+vi.mock("@/lib/sidecar-client", () => ({
+  validateProvider: vi.fn().mockResolvedValue(true),
+  getSidecarBaseUrl: vi.fn().mockResolvedValue("http://127.0.0.1:9000"),
+  sidecarGet: vi.fn(),
+}));
+
+const sidecarClient = await import("@/lib/sidecar-client");
+const mockValidateProvider = vi.mocked(sidecarClient.validateProvider);
 
 describe("formatModelLabel", () => {
   it("brand-cases and spaces a hyphenated id (the operator's defect case)", () => {
@@ -39,6 +53,13 @@ describe("formatModelLabel", () => {
 });
 
 describe("StatusChrome", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockValidateProvider.mockResolvedValue(true);
+    __resetProviderProbeCacheForTests();
+    useProviderKeysStore.setState({ status: {}, probed: false });
+  });
+
   afterEach(() => {
     cleanup();
     useAgentRunsStore.setState({ runs: [] });
@@ -56,6 +77,88 @@ describe("StatusChrome", () => {
     expect(screen.getByText("DeepSeek V4 Flash")).toBeInTheDocument();
     // …and the tooltip carries the exact raw id.
     expect(screen.getByTitle(/deepseek-v4-flash/)).toBeInTheDocument();
+  });
+
+  it("an unreachable keyless default renders the honest muted state (D60)", async () => {
+    mockValidateProvider.mockResolvedValue(false);
+    useLLMProvidersStore.setState({
+      providers: [{ id: "ollama", label: "Ollama (local)", requiresKey: false }],
+      defaultProviderId: "ollama",
+    });
+    useModelSelectionStore.setState({ overrides: { ollama: "qwen2.5:7b" } });
+    render(<StatusChrome />);
+
+    // The probe is fire-and-forget: the confident chip renders first, then
+    // downgrades on the CONFIRMED failure.
+    const chip = await screen.findByTestId("provider-not-ready");
+    expect(chip).toHaveTextContent("Ollama (local) · not running — set up in Settings");
+    expect(chip.title).toContain("isn't ready");
+    // The model claim the app cannot back disappears with it.
+    expect(screen.queryByText(/Qwen2\.5 7B/)).not.toBeInTheDocument();
+    expect(mockValidateProvider).toHaveBeenCalledWith("ollama");
+  });
+
+  it("a reachable keyless default keeps exactly today's confident chip (D60)", async () => {
+    mockValidateProvider.mockResolvedValue(true);
+    useLLMProvidersStore.setState({
+      providers: [{ id: "ollama", label: "Ollama (local)", requiresKey: false }],
+      defaultProviderId: "ollama",
+    });
+    useModelSelectionStore.setState({ overrides: { ollama: "qwen2.5:7b" } });
+    render(<StatusChrome />);
+
+    await waitFor(() => {
+      expect(mockValidateProvider).toHaveBeenCalledWith("ollama");
+    });
+    expect(screen.getByText("Ollama (local) · Qwen2.5 7B")).toBeInTheDocument();
+    expect(screen.queryByTestId("provider-not-ready")).not.toBeInTheDocument();
+  });
+
+  it("a BYOK default with a MISSING key renders 'no API key' without probing (D60)", () => {
+    useLLMProvidersStore.setState({
+      providers: [{ id: "deepseek", label: "DeepSeek", requiresKey: true }],
+      defaultProviderId: "deepseek",
+    });
+    useProviderKeysStore.setState({ status: { deepseek: "missing" }, probed: true });
+    render(<StatusChrome />);
+
+    const chip = screen.getByTestId("provider-not-ready");
+    expect(chip).toHaveTextContent("DeepSeek · no API key — set up in Settings");
+    // BYOK keys live in the OS keychain the probe cannot read — probing would
+    // false-negative a configured provider, so it must not fire.
+    expect(mockValidateProvider).not.toHaveBeenCalled();
+  });
+
+  it("a BYOK default with UNKNOWN key status never raises a false alarm (D60)", () => {
+    useLLMProvidersStore.setState({
+      providers: [{ id: "deepseek", label: "DeepSeek", requiresKey: true }],
+      defaultProviderId: "deepseek",
+    });
+    // Outside the Tauri shell the keychain probe reports "unknown" — the chip
+    // must stay confident rather than accuse a possibly-configured provider.
+    useProviderKeysStore.setState({ status: { deepseek: "unknown" }, probed: true });
+    useModelSelectionStore.setState({ overrides: { deepseek: "deepseek-v4-flash" } });
+    render(<StatusChrome />);
+
+    expect(screen.getByText("DeepSeek V4 Flash")).toBeInTheDocument();
+    expect(screen.queryByTestId("provider-not-ready")).not.toBeInTheDocument();
+    expect(mockValidateProvider).not.toHaveBeenCalled();
+  });
+
+  it("the probe result is cached — a re-mount does not re-probe (D60)", async () => {
+    mockValidateProvider.mockResolvedValue(false);
+    useLLMProvidersStore.setState({
+      providers: [{ id: "ollama", label: "Ollama (local)", requiresKey: false }],
+      defaultProviderId: "ollama",
+    });
+    const first = render(<StatusChrome />);
+    await screen.findByTestId("provider-not-ready");
+    first.unmount();
+
+    render(<StatusChrome />);
+    expect(await screen.findByTestId("provider-not-ready")).toBeInTheDocument();
+    // One live probe total — the second mount served from the module cache.
+    expect(mockValidateProvider).toHaveBeenCalledTimes(1);
   });
 
   it("the active-runs chip names the runs it counts (the '+N' tooltip)", () => {

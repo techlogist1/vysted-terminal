@@ -163,24 +163,44 @@ function formatSignedFractionPct(value: number): string {
   return `${value >= 0 ? "+" : ""}${(value * 100).toFixed(2)}%`;
 }
 
+/**
+ * Prefix the instrument's ISO code for a currency-denominated card (R11/D55) —
+ * the SAME convention as the price line at the top of the metrics block: the
+ * code (never a symbol), and only when it isn't USD, so USD briefs stay
+ * byte-identical. A "—" placeholder never gains a unit.
+ */
+function withCode(formatted: string, currency: string | null | undefined): string {
+  if (formatted === "—" || !currency || currency === "USD") {
+    return formatted;
+  }
+  return `${currency} ${formatted}`;
+}
+
 /** Format one derived value by its declared unit. `signed` adds the +/− cue
- *  for direction-carrying figures (52w change, growth). */
-function formatDerived(v: BriefDerivedValue, signed: boolean): string {
+ *  for direction-carrying figures (52w change, growth); `currency` (the
+ *  structured price leg's code) marks currency-unit values (R11/D55 — a bare
+ *  "1.00" dividend is ambiguous against a USD one). */
+function formatDerived(v: BriefDerivedValue, signed: boolean, currency?: string | null): string {
   const value = v.value as number; // callers guard null
   if (v.unit === "percent") {
     return signed ? formatSignedFractionPct(value) : formatFractionPct(value);
   }
   if (v.unit === "currency") {
-    return formatNumber(value);
+    return withCode(formatNumber(value), currency);
   }
   return formatNumber(value);
 }
 
 /** Append the measurement basis so a number never travels label-less (E8):
- *  "+12.40% · FY/FY". Skipped when the label already names it. */
+ *  "+12.40% · quarterly YoY (MRQ)". Skipped when the label — or the formatted
+ *  value itself (e.g. an "INR 1.00" whose basis is "INR") — already names it. */
 function withBasis(formatted: string, v: BriefDerivedValue): string {
   const basis = (v.basis ?? "").trim();
-  if (!basis || v.label.toLowerCase().includes(basis.toLowerCase())) {
+  if (
+    !basis ||
+    v.label.toLowerCase().includes(basis.toLowerCase()) ||
+    formatted.toLowerCase().includes(basis.toLowerCase())
+  ) {
     return formatted;
   }
   return `${formatted} · ${basis}`;
@@ -193,7 +213,7 @@ function withBasis(formatted: string, v: BriefDerivedValue): string {
  * operator caught), dividend with its basis, growth with its basis suffix.
  * A null value renders nothing — never a fabricated figure (Constitution VI).
  */
-function derivedItems(derived: BriefDerivedMetrics): MetricItem[] {
+function derivedItems(derived: BriefDerivedMetrics, currency?: string | null): MetricItem[] {
   const items: MetricItem[] = [];
   const push = (v: BriefDerivedValue | undefined, format: (v: BriefDerivedValue) => string) => {
     if (!v || typeof v.value !== "number" || Number.isNaN(v.value)) {
@@ -210,7 +230,7 @@ function derivedItems(derived: BriefDerivedMetrics): MetricItem[] {
   push(derived.drawdown_from_high, (v) => formatFractionPct(-Math.abs(v.value as number)));
   push(derived.fifty_two_week_change, (v) => formatDerived(v, true));
   push(derived.dividend_yield, (v) => formatDerived(v, false));
-  push(derived.dividend_per_share, (v) => formatDerived(v, false));
+  push(derived.dividend_per_share, (v) => formatDerived(v, false, currency));
   push(derived.revenue_growth, (v) => formatDerived(v, true));
   push(derived.earnings_growth, (v) => formatDerived(v, true));
   return items;
@@ -245,11 +265,18 @@ function conflictLines(conflicts: readonly BriefMetricConflict[] | undefined): s
   return lines;
 }
 
-/** Equity / single-name metric set — the full valuation + quality + growth grid. */
-function equityItems(fund: Fundamentals | undefined, quote: Quote | undefined): MetricItem[] {
+/** Equity / single-name metric set — the full valuation + quality + growth grid.
+ *  `currency` (R11/D55): currency-SIZED cards (Market cap, Revenue) carry the
+ *  instrument's ISO code the way the price line does — "Market cap 4.48T" on an
+ *  NSE stock is ambiguous against a USD mega-cap without it. */
+function equityItems(
+  fund: Fundamentals | undefined,
+  quote: Quote | undefined,
+  currency?: string | null,
+): MetricItem[] {
   const { items, push } = makeItems();
   if (fund) {
-    push("Market cap", formatLarge(fund.market_cap));
+    push("Market cap", withCode(formatLarge(fund.market_cap), currency));
     push("P/E", formatNumber(fund.pe_ratio));
     push("Fwd P/E", formatNumber(fund.forward_pe));
     push("PEG", formatNumber(fund.peg_ratio));
@@ -266,7 +293,7 @@ function equityItems(fund: Fundamentals | undefined, quote: Quote | undefined): 
     push("Net margin", formatFractionPct(fund.profit_margin));
     push("Debt/Equity", formatNumber(fund.debt_to_equity));
     push("Rev growth", formatFractionPct(fund.revenue_growth));
-    push("Revenue", formatLarge(fund.revenue_ttm));
+    push("Revenue", withCode(formatLarge(fund.revenue_ttm), currency));
     pushRange(push, fund);
   }
   if (quote && typeof quote.volume === "number") {
@@ -277,10 +304,14 @@ function equityItems(fund: Fundamentals | undefined, quote: Quote | undefined): 
 
 /** Crypto metric set — no earnings/valuation ratios (meaningless for a coin);
  *  lead on market cap, 24h volume, range, and beta when present. */
-function cryptoItems(fund: Fundamentals | undefined, quote: Quote | undefined): MetricItem[] {
+function cryptoItems(
+  fund: Fundamentals | undefined,
+  quote: Quote | undefined,
+  currency?: string | null,
+): MetricItem[] {
   const { items, push } = makeItems();
   if (fund) {
-    push("Market cap", formatLarge(fund.market_cap));
+    push("Market cap", withCode(formatLarge(fund.market_cap), currency));
   }
   if (quote && typeof quote.volume === "number") {
     push("24h volume", formatLarge(quote.volume));
@@ -294,10 +325,14 @@ function cryptoItems(fund: Fundamentals | undefined, quote: Quote | undefined): 
 
 /** ETF / fund metric set — AUM (market cap), expense proxy via yield, beta,
  *  range, volume; no single-company quality ratios. */
-function etfItems(fund: Fundamentals | undefined, quote: Quote | undefined): MetricItem[] {
+function etfItems(
+  fund: Fundamentals | undefined,
+  quote: Quote | undefined,
+  currency?: string | null,
+): MetricItem[] {
   const { items, push } = makeItems();
   if (fund) {
-    push("Net assets", formatLarge(fund.market_cap));
+    push("Net assets", withCode(formatLarge(fund.market_cap), currency));
     if (typeof fund.dividend_yield === "number" && fund.dividend_yield * 100 < 25) {
       push("Yield", formatFractionPct(fund.dividend_yield));
     }
@@ -344,9 +379,14 @@ export function deriveMetrics(structured: BriefStructured | undefined): MetricsM
   const quote = (priceLeg?.data ?? undefined) as Quote | undefined;
   const fund = (fundLeg?.data ?? undefined) as Fundamentals | undefined;
   const derived = (derivedLeg?.data ?? undefined) as BriefDerivedMetrics | undefined;
+  // The instrument's currency (R11/D55): the structured price leg's code — the
+  // same source the price line reads — with the fundamentals leg's code as the
+  // fallback when only fundamentals resolved. Threaded into currency-sized
+  // cards so "Market cap 4.48T" on an NSE stock is never unit-ambiguous.
+  const currencyCode = quote?.currency ?? fund?.currency ?? undefined;
   // The semantics leg renders FIRST (R10 E8): its values carry explicit
   // labels/bases, so they lead the grid; the raw provider grid follows.
-  const semantic = derived ? derivedItems(derived) : [];
+  const semantic = derived ? derivedItems(derived, currencyCode) : [];
   const conflicts = conflictLines(derived?.conflicts);
   if (!quote && !fund && semantic.length === 0 && conflicts.length === 0) {
     return null;
@@ -355,12 +395,12 @@ export function deriveMetrics(structured: BriefStructured | undefined): MetricsM
   const assetClass = deriveAssetClass(structured);
   const rawItems =
     assetClass === "crypto"
-      ? cryptoItems(fund, quote)
+      ? cryptoItems(fund, quote, currencyCode)
       : assetClass === "etf"
-        ? etfItems(fund, quote)
+        ? etfItems(fund, quote, currencyCode)
         : assetClass === "fx"
           ? fxItems(fund, quote)
-          : equityItems(fund, quote);
+          : equityItems(fund, quote, currencyCode);
   // The derived card owns its semantic — drop a raw card that would repeat a
   // weaker, basis-less version of the same figure (the E8 conflation class).
   const shadowed = new Set<string>();
