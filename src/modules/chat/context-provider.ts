@@ -47,11 +47,16 @@ export interface TerminalPortfolio {
   positionCount: number;
   /**
    * Mark-to-market total, or `null` when it could not be computed (the panel
-   * was closed so no live quotes were joined). NEVER 0 as a stand-in for
-   * unknown — a fabricated `$0` portfolio is the E3/E6 honesty defect; the
-   * agent must read `null` as "I don't have live values" and say so.
+   * was closed so no live quotes were joined, OR the holdings span multiple
+   * currencies so no honest cross-currency sum exists — R11/D57, see
+   * {@link totalValueNote}). NEVER 0 as a stand-in for unknown — a fabricated
+   * `$0` portfolio is the E3/E6 honesty defect; the agent must read `null` as
+   * "I don't have a total" and say so.
    */
   totalValue: number | null;
+  /** WHY `totalValue` is null when the panel itself published the null (D57:
+   *  mixed currencies). Absent when a numeric total was published. */
+  totalValueNote?: string;
   activePortfolioId?: string;
   activePortfolioName?: string;
   holdings: TerminalHolding[];
@@ -226,11 +231,16 @@ export function captureTerminalState(): TerminalState {
     } else if (source === "portfolio") {
       const activePortfolioId = asString(payload.activePortfolioId);
       const activePortfolioName = asString(payload.activePortfolioName);
+      const totalValueNote = asString(payload.totalValueNote);
       portfolio = {
         positionCount: Number(payload.positionCount ?? 0),
         // Honest unknown: the panel publishes a real mark-to-market total when
-        // it joined quotes; absent → null, never a fabricated 0.
+        // it joined quotes; absent/null → null, never a fabricated 0. The
+        // panel publishes null DELIBERATELY for mixed-currency portfolios
+        // (D57) and says why via totalValueNote — thread the reason through so
+        // the agent can state it instead of guessing.
         totalValue: payload.totalValue != null ? Number(payload.totalValue) : null,
+        ...(totalValueNote !== null ? { totalValueNote } : {}),
         ...(activePortfolioId !== null ? { activePortfolioId } : {}),
         ...(activePortfolioName !== null ? { activePortfolioName } : {}),
         holdings: extractHoldings(payload.holdings),
