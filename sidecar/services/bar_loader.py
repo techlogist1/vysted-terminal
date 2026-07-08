@@ -151,17 +151,28 @@ async def _load_one_symbol(
     return _to_bars(symbol, list(series.bars), start, end)
 
 
+#: Concurrency cap on the per-symbol history fan-out (R11 / D53). Unbounded
+#: ``gather`` over a large basket was the one call site most likely to
+#: self-trigger a Yahoo block with zero mitigation.
+_LOAD_CONCURRENCY = 8
+
+
 async def load_bars(symbols: list[str], start: str, end: str) -> list[Bar]:
     """Load OHLCV bars for every symbol across the date window.
 
-    Symbols are loaded concurrently. The result list is the concatenation
-    of every per-symbol series; the engine sorts by
+    Symbols are loaded concurrently under a semaphore. The result list is
+    the concatenation of every per-symbol series; the engine sorts by
     ``(timestamp, symbol)`` itself.
     """
     if not symbols:
         return []
-    coros = [_load_one_symbol(symbol, start, end, "1d") for symbol in symbols]
-    series_lists = await asyncio.gather(*coros)
+    sem = asyncio.Semaphore(_LOAD_CONCURRENCY)
+
+    async def _one(symbol: str) -> list[Bar]:
+        async with sem:
+            return await _load_one_symbol(symbol, start, end, "1d")
+
+    series_lists = await asyncio.gather(*(_one(s) for s in symbols))
     out: list[Bar] = []
     for series in series_lists:
         out.extend(series)
