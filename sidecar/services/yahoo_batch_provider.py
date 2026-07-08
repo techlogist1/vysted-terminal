@@ -52,6 +52,7 @@ import httpx
 
 from models.fundamentals import Fundamentals
 from models.market import Quote
+from services import provider_health
 
 logger = logging.getLogger(__name__)
 
@@ -266,6 +267,16 @@ async def _fetch_chunk(
     results: dict[str, dict[str, Any]] = {}
     failures: dict[str, str] = {}
 
+    # R11 (D53): while the Yahoo-family circuit is OPEN, spend nothing — the
+    # chunk short-circuits as rate_limited and the caller serves its stale /
+    # seed basis. Half-open recovery is automatic: once the cooldown lapses
+    # this check passes, ONE real request flows, and its outcome either
+    # closes the circuit (record_success) or re-opens it longer.
+    if provider_health.is_open(provider_health.YAHOO):
+        for sym in chunk:
+            failures[sym] = "rate_limited"
+        return results, failures
+
     async with sem:
         client = await _session.client()
         attempted_refresh = False
@@ -307,6 +318,7 @@ async def _fetch_chunk(
                     )
                     await asyncio.sleep(sleep_s)
                     continue
+                provider_health.record_rate_limited(provider_health.YAHOO)
                 for sym in chunk:
                     failures[sym] = "rate_limited"
                 return results, failures
@@ -329,6 +341,7 @@ async def _fetch_chunk(
                 _session.invalidate()
                 attempted_refresh = True
                 continue
+            provider_health.record_success(provider_health.YAHOO)
             rows = quote_response.get("result") or []
             for row in rows:
                 sym = str(row.get("symbol", "")).upper()

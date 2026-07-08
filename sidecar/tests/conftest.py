@@ -15,6 +15,17 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import create_app
+from services import provider_health
+
+
+@pytest.fixture(autouse=True)
+def _reset_provider_health() -> None:
+    """The Yahoo-family circuit breaker (R11/D53) is process-global state —
+    a 429 storm simulated by one test must never leak an open circuit into
+    the next."""
+    provider_health.reset_for_tests()
+    yield
+    provider_health.reset_for_tests()
 
 
 @pytest.fixture

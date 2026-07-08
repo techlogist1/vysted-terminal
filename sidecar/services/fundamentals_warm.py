@@ -32,7 +32,14 @@ import logging
 import random
 
 from config import get_region
-from services import fundamentals_store, provider_registry, yahoo_batch_provider
+from services import (
+    fundamentals_seed,
+    fundamentals_store,
+    provider_health,
+    provider_registry,
+    yahoo_batch_provider,
+)
+from services.errors import ProviderError
 
 logger = logging.getLogger(__name__)
 
@@ -126,6 +133,17 @@ async def seed_india_store() -> int:
     rows = await asyncio.to_thread(_build_rows)
     touched = await fundamentals_store.seed_universe(rows)
     logger.info("fundamentals warm: seeded %d india rows", touched)
+    # R11 (D52): the bundled fundamentals seed pack lands right behind the
+    # identity seed — NULL-fill only, stamped ``seed_updated_at``, so a fresh
+    # install screens the full universe instantly on an honest labeled basis.
+    pack_rows = await asyncio.to_thread(fundamentals_seed.load_seed_rows)
+    if pack_rows:
+        seeded_numerics = await fundamentals_store.seed_fundamentals(pack_rows)
+        logger.info(
+            "fundamentals warm: seed pack applied to %d rows (%s)",
+            seeded_numerics,
+            fundamentals_seed.pack_info().get("_generated", "unknown vintage"),
+        )
     return touched
 
 
@@ -183,6 +201,17 @@ async def _sweep_loop() -> None:
                     seeded = True
                 except Exception as exc:  # noqa: BLE001 — seed is best-effort
                     logger.warning("fundamentals warm: seed failed: %s", exc)
+            # R11 (D53): never sweep beside a foreground screen (the user's
+            # run owns the upstream) and never sweep into an open circuit.
+            await _idle_event.wait()
+            if provider_health.is_open(provider_health.YAHOO):
+                await asyncio.sleep(
+                    min(
+                        _SWEEP_INTERVAL_SECONDS,
+                        max(60.0, provider_health.cooldown_remaining(provider_health.YAHOO)),
+                    )
+                )
+                continue
             try:
                 throttled = await _sweep_once()
             except asyncio.CancelledError:
@@ -219,6 +248,9 @@ async def _crawl_once() -> int:
     registry ``.info`` path into the store. Returns symbols fetched."""
     from services import screener_universe_india
 
+    if provider_health.is_open(provider_health.YAHOO):
+        # D53: open circuit — a crawl cycle now would only deepen the block.
+        return 0
     universe = screener_universe_india.load_india_universe("india-all")
     batch = await fundamentals_store.info_priority(universe.symbols, _CRAWL_BATCH)
     if not batch:
@@ -230,6 +262,8 @@ async def _crawl_once() -> int:
         nonlocal fetched
         # Pause point: a foreground screen owns the upstream while it runs.
         await _idle_event.wait()
+        if provider_health.is_open(provider_health.YAHOO):
+            return  # the circuit opened mid-cycle — stop spending
         async with sem:
             try:
                 rich = await asyncio.wait_for(
@@ -238,6 +272,11 @@ async def _crawl_once() -> int:
                 )
             except Exception as exc:  # noqa: BLE001 — the crawler shrugs and moves on
                 logger.debug("fundamentals warm: crawl %s failed: %s", symbol, exc)
+                if isinstance(exc, ProviderError) and exc.kind == "rate_limited":
+                    # A throttle is NOT absence (D53): the 24 h retry rotation
+                    # is for symbols Yahoo genuinely has no data for; stamping
+                    # it here would silently stall coverage for a whole day.
+                    return
                 # Stamp the failure so the symbol rotates out of the priority
                 # head — without this a batch of never-succeeding symbols
                 # (e.g. BSE scrips Yahoo doesn't cover) wedges the crawler:
@@ -285,13 +324,27 @@ _crawl_task: asyncio.Task[None] | None = None
 
 
 def start_warm_fundamentals() -> None:
-    """Start the India warm workers (idempotent; detached — never blocks boot)."""
+    """Start the India warm workers (idempotent; detached — never blocks boot).
+
+    R11 (D52): the local-only boot seed (identity + sector map + fundamentals
+    seed pack, zero network) is scheduled IMMEDIATELY for an IN region — a
+    user opening the screener seconds after a fresh install must hit a seeded
+    store, not wait for the sweep loop's first cycle to get around to it."""
     global _sweep_task, _crawl_task
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
         logger.debug("fundamentals warm: no running loop; workers not started")
         return
+    if get_region() == "IN":
+
+        async def _boot_seed() -> None:
+            try:
+                await seed_india_store()
+            except Exception as exc:  # noqa: BLE001 — seed is best-effort
+                logger.warning("fundamentals warm: boot seed failed: %s", exc)
+
+        loop.create_task(_boot_seed())
     if _sweep_task is None or _sweep_task.done():
         _sweep_task = loop.create_task(_sweep_loop())
     if _crawl_task is None or _crawl_task.done():

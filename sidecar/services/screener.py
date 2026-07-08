@@ -65,6 +65,7 @@ import random
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from importlib import resources
 from typing import Any
 
@@ -89,6 +90,7 @@ from models.screener import (
 from services import (
     data_cache,
     fundamentals_store,
+    provider_health,
     provider_registry,
     screener_formula,
     screener_universe_india,
@@ -509,6 +511,9 @@ async def _fetch_pair(
     and ``skip_reason`` is a ledger reason. A fundamentals failure is fatal for
     the symbol; a quote failure only drops the price-derived fields.
     """
+    if provider_health.is_open(provider_health.YAHOO):
+        # D53: the Yahoo family is inside an open cooldown — spend nothing.
+        return None, "rate_limited"
     try:
         fundamentals = await asyncio.wait_for(
             provider_registry.get_fundamentals(symbol),
@@ -519,7 +524,7 @@ async def _fetch_pair(
         return None, "timeout"
     except ProviderError as exc:
         logger.debug("screener: fundamentals failed for %s: %s", symbol, exc)
-        return None, "correctness_gate"
+        return None, "rate_limited" if exc.kind == "rate_limited" else "correctness_gate"
     except Exception as exc:  # noqa: BLE001
         logger.warning("screener: unexpected fundamentals error for %s: %s", symbol, exc)
         return None, "no_data"
@@ -567,6 +572,8 @@ class _RunState:
     skip_reasons: dict[str, str] = field(default_factory=dict)
     #: True once any phase was cut short (budget / cancellation).
     partial: bool = False
+    #: True once any phase observed upstream throttling (R11 / D53).
+    throttled_seen: bool = False
 
 
 def _progress_emitter(on_progress: ProgressFn | None) -> ProgressFn:
@@ -585,6 +592,80 @@ def _progress_emitter(on_progress: ProgressFn | None) -> ProgressFn:
     return emit
 
 
+#: Quote-tier fields (the trio the store keys off ``quote_*`` columns).
+_QUOTE_TRIO = frozenset({"price", "change_percent_1d", "volume"})
+#: Fields that are static master/seed truth — always servable, never aged.
+_STATIC_FIELDS = frozenset({"sector", "industry", "symbol", "currency"})
+#: The v7 valuation tier's field set (mirrors the store's write vocabulary).
+_V7_FIELD_SET = frozenset(fundamentals_store._V7_NUMERIC_FIELDS)
+
+
+def _field_serving(
+    row: dict[str, Any],
+    field_name: str,
+    now: float,
+    quote_ttl: float,
+) -> tuple[bool, float | None, bool]:
+    """How a NON-NULL ``field_name`` value on ``row`` is being served (D52).
+
+    Returns ``(is_live, age_stamp, used_seed)``:
+      - ``is_live`` — the value's own tier stamp is within its serving TTL
+        (an exchange-direct EOD stamp counts as live for the quote trio and
+        ``market_cap`` — it is today's close, honestly timestamped).
+      - ``age_stamp`` — the epoch stamp that dates the value (``None`` for
+        static fields or a value with no recorded stamp).
+      - ``used_seed`` — the value's only provenance is the bundled snapshot.
+    """
+    if field_name in _STATIC_FIELDS:
+        return True, None, False
+    v7_at = row.get("v7_updated_at")
+    info_at = row.get("info_updated_at")
+    seed_at = row.get("seed_updated_at")
+    eod_at = row.get("eod_updated_at")
+    quote_at = row.get("quote_updated_at")
+
+    if field_name in _QUOTE_TRIO:
+        if quote_at is not None and now - quote_at <= quote_ttl:
+            return True, quote_at, False
+        if eod_at is not None and now - eod_at <= fundamentals_store.TTL_EOD_SECONDS:
+            return True, eod_at, False
+        stamp = quote_at or eod_at or seed_at
+        return False, stamp, quote_at is None and eod_at is None and seed_at is not None
+    if field_name in _V7_FIELD_SET:
+        if v7_at is not None and now - v7_at <= fundamentals_store.TTL_V7_SECONDS:
+            return True, v7_at, False
+        if (
+            field_name == "market_cap"
+            and eod_at is not None
+            and now - eod_at <= fundamentals_store.TTL_EOD_SECONDS
+        ):
+            # The bhavcopy lane refreshes market_cap (close × shares) daily.
+            return True, eod_at, False
+        stamp = v7_at or seed_at
+        return False, stamp, v7_at is None and seed_at is not None
+    # Deep .info tier.
+    if info_at is not None and now - info_at <= fundamentals_store.TTL_INFO_SECONDS:
+        return True, info_at, False
+    stamp = info_at or seed_at
+    return False, stamp, info_at is None and seed_at is not None
+
+
+def _row_has_any_data(row: dict[str, Any]) -> bool:
+    """True when the row carries at least one data tier (live, EOD, or seed)
+    — an identity-only row (name/sector but zero numerics provenance) is not
+    servable and stays itemized exactly as before D52."""
+    return any(
+        row.get(stamp) is not None
+        for stamp in (
+            "v7_updated_at",
+            "info_updated_at",
+            "quote_updated_at",
+            "eod_updated_at",
+            "seed_updated_at",
+        )
+    )
+
+
 async def _finalize(
     req: ScreenerRequest,
     state: _RunState,
@@ -592,21 +673,39 @@ async def _finalize(
     needed_fields: set[str],
     started_at: float,
 ) -> ScreenerResult:
-    """Materialize the result from the store — works mid-run for partials."""
+    """Materialize the result from the store — works mid-run for partials.
+
+    R11 (D52) serve-with-label ladder: a row whose live tiers are stale (or
+    never fetched) is no longer dropped when its values are still present from
+    an earlier fetch or the bundled seed pack — it is EVALUATED and served
+    with an honest ``data_basis``/``data_as_of`` label. Only rows with zero
+    data provenance, or NULL values for a field the screen references, are
+    itemized as skips."""
     rows_by_symbol = await fundamentals_store.fetch_rows(state.candidates)
     now = time.time()
+    quote_ttl = (
+        fundamentals_store.TTL_QUOTE_FULL_SECONDS
+        if screener_universe_india.is_india_universe(req.universe)
+        else fundamentals_store.TTL_QUOTE_CURATED_SECONDS
+    )
+    formula_fields = compiled_formula.fields if compiled_formula is not None else frozenset()
+    basis_fields = (
+        _criteria_fields(list(req.criteria), req.group) | set(formula_fields) | {"market_cap"}
+    )
+
     pairs_by_symbol: dict[str, tuple[Fundamentals, Quote | None]] = {}
+    #: Per-symbol honesty labels for rows that reach evaluation.
+    row_basis: dict[str, str] = {}
+    row_as_of: dict[str, float | None] = {}
+    seed_stamps_used: list[float] = []
     for sym in state.candidates:
         key = sym.upper()
         row = rows_by_symbol.get(key)
-        v7_at = row.get("v7_updated_at") if row is not None else None
-        if v7_at is None or now - v7_at > fundamentals_store.TTL_V7_SECONDS:
-            # Never fetched (or identity-only seed row), or the stored v7
-            # tier is staler than its serving TTL — counting a row this run
-            # never refreshed as "screened" would overstate coverage, so it
-            # is itemized instead. A reason recorded during the sweep /
-            # fallback sticks; otherwise a partial run owns the miss
-            # (budget_exhausted), a complete one is no_data.
+        if row is None or not _row_has_any_data(row):
+            # Never fetched and not in the seed pack — itemized, never served.
+            # A reason recorded during the sweep / fallback sticks; otherwise
+            # a partial run owns the miss (budget_exhausted), a complete one
+            # is no_data.
             state.skip_reasons.setdefault(key, "budget_exhausted" if state.partial else "no_data")
             continue
         absent = next(
@@ -616,6 +715,29 @@ async def _finalize(
         if absent is not None:
             state.skip_reasons[key] = f"missing_field:{absent}"
             continue
+        live_count = 0
+        aged = 0
+        stale_stamps: list[float] = []
+        for field_name in basis_fields:
+            if field_name in _STATIC_FIELDS:
+                continue
+            column = fundamentals_store._field_column(field_name)
+            if row.get(column) is None:
+                continue
+            is_live, age_stamp, used_seed = _field_serving(row, field_name, now, quote_ttl)
+            aged += 1
+            if is_live:
+                live_count += 1
+            elif age_stamp is not None:
+                stale_stamps.append(age_stamp)
+                if used_seed:
+                    seed_stamps_used.append(age_stamp)
+        if aged == 0 or live_count == aged:
+            row_basis[key] = "live"
+            row_as_of[key] = None
+        else:
+            row_basis[key] = "mixed" if live_count > 0 else "snapshot"
+            row_as_of[key] = min(stale_stamps) if stale_stamps else None
         pairs_by_symbol[key] = fundamentals_store.row_to_pair(row)
         state.skip_reasons.pop(key, None)
 
@@ -641,6 +763,18 @@ async def _finalize(
     limit = max(1, min(int(req.limit), _MAX_LIMIT))
     rows = matched[:limit]
 
+    # R11 (D52/D57): stamp every served row with its honesty labels — the
+    # listing currency and the serving basis computed above.
+    basis_counts: dict[str, int] = {}
+    for result_row in rows:
+        key = result_row.symbol.upper()
+        store_row = rows_by_symbol.get(key) or {}
+        result_row.currency = store_row.get("currency") or store_row.get("quote_currency")
+        result_row.data_basis = row_basis.get(key)
+        result_row.data_as_of = row_as_of.get(key)
+        if result_row.data_basis:
+            basis_counts[result_row.data_basis] = basis_counts.get(result_row.data_basis, 0) + 1
+
     # Itemized skip ledger (SC-034 — zero silent drops). A symbol is skipped
     # iff it neither produced an evaluable pair nor failed a fresh prune.
     evaluated = set(pairs_by_symbol) | state.pruned_failed
@@ -654,7 +788,22 @@ async def _finalize(
     evaluated_count = len(pairs_by_symbol) + len(state.pruned_failed)
     total = len(state.universe.symbols)
     coverage = f"screened {evaluated_count:,} of {total:,} — {len(skip_details):,} unavailable"
+    not_live = basis_counts.get("snapshot", 0) + basis_counts.get("mixed", 0)
+    stale_as_of = [stamp for stamp in row_as_of.values() if stamp is not None]
+    if not_live and stale_as_of:
+        oldest = datetime.fromtimestamp(min(stale_as_of), tz=UTC).date().isoformat()
+        coverage += f" · {not_live:,} rows on stale/snapshot basis (oldest {oldest})"
     freshness = await fundamentals_store.freshness(list(pairs_by_symbol)) or None
+    if seed_stamps_used:
+        freshness = dict(freshness or {})
+        freshness["seed_as_of"] = min(seed_stamps_used)
+
+    # ``partial`` now means "rows remain UNEVALUATED": a budget-cut run whose
+    # every row still served (live or labeled stale/snapshot) evaluated the
+    # whole universe — the honesty rides ``data_basis``/``throttled``, not a
+    # contradictory partial flag (D52).
+    partial = state.partial and bool(skip_details)
+    throttled = state.throttled_seen or provider_health.is_open(provider_health.YAHOO)
 
     duration_ms = (time.monotonic() - started_at) * 1000.0
     return ScreenerResult(
@@ -665,9 +814,11 @@ async def _finalize(
         result_count=len(rows),
         rows=rows,
         duration_ms=duration_ms,
-        partial=state.partial,
+        partial=partial,
         coverage=coverage,
         freshness=freshness,
+        basis_counts=basis_counts or None,
+        throttled=throttled,
     )
 
 
@@ -701,6 +852,8 @@ async def _sweep_v7(
         nonlocal done
         async with sem:
             rows, failures = await yahoo_batch_provider.fetch_quotes_batch(chunk)
+        if any(reason == "rate_limited" for reason in failures.values()):
+            state.throttled_seen = True
         items: list[tuple[str, Fundamentals, Quote | None]] = []
         for sym in chunk:
             key = sym.upper()
@@ -761,6 +914,8 @@ async def _fallback_retry(
             state.skip_reasons.pop(key, None)
         elif reason is not None:
             state.skip_reasons[key] = reason
+            if reason == "rate_limited":
+                state.throttled_seen = True
         done += 1
         if done % 25 == 0 or done == total:
             emit("sweep", done, total, f"retrying misses {done:,}/{total:,}")
@@ -808,6 +963,12 @@ async def _enrich_survivors(
     async def _one(sym: str) -> None:
         nonlocal done
         key = sym.upper()
+        if provider_health.is_open(provider_health.YAHOO):
+            # D53: open circuit — the field stays missing and the serve-with-
+            # label ladder covers the row from stale/seed basis instead.
+            state.throttled_seen = True
+            done += 1
+            return
         async with sem:
             try:
                 rich = await asyncio.wait_for(
@@ -815,6 +976,8 @@ async def _enrich_survivors(
                     timeout=_INFO_TIMEOUT_SECONDS,
                 )
             except (TimeoutError, Exception) as exc:  # noqa: BLE001 — field stays missing
+                if isinstance(exc, ProviderError) and exc.kind == "rate_limited":
+                    state.throttled_seen = True
                 logger.debug("screener: enrichment failed for %s: %s", key, exc)
                 done += 1
                 return
@@ -1070,11 +1233,22 @@ def _warm_sleep_seconds(base: float, consecutive_throttles: int) -> float:
 
 
 async def _warm_loop(interval: float) -> None:
-    """Background loop: warm immediately, then re-warm with adaptive backoff."""
+    """Background loop: warm immediately, then re-warm with adaptive backoff.
+
+    R11 (D53): a cycle is skipped outright while a foreground screen is
+    running (the user's run owns the upstream — warming beside it was
+    self-inflicted throttle pressure) or while the Yahoo circuit is open."""
+    from services import fundamentals_warm
+
     global _warm_consecutive_throttles
     _warm_consecutive_throttles = 0
     try:
         while True:
+            if fundamentals_warm.foreground_screen_running() or provider_health.is_open(
+                provider_health.YAHOO
+            ):
+                await asyncio.sleep(_warm_sleep_seconds(interval, 0))
+                continue
             try:
                 throttled = await _warm_once()
             except asyncio.CancelledError:

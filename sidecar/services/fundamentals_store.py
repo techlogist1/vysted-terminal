@@ -142,6 +142,8 @@ CREATE TABLE IF NOT EXISTS fundamentals (
     v7_updated_at REAL,
     info_updated_at REAL,
     info_failed_at REAL,
+    seed_updated_at REAL,
+    eod_updated_at REAL,
     provider TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_fundamentals_sector ON fundamentals(sector);
@@ -171,7 +173,11 @@ def _migrate(conn: sqlite3.Connection) -> None:
     """Additive column migration — ``CREATE TABLE IF NOT EXISTS`` never alters
     an existing table, so a DB created before a column landed gets it here."""
     have = {row[1] for row in conn.execute("PRAGMA table_info(fundamentals)")}
-    for column, decl in (("info_failed_at", "REAL"),):
+    for column, decl in (
+        ("info_failed_at", "REAL"),
+        ("seed_updated_at", "REAL"),
+        ("eod_updated_at", "REAL"),
+    ):
         if column not in have:
             conn.execute(f"ALTER TABLE fundamentals ADD COLUMN {column} {decl}")
 
@@ -245,6 +251,52 @@ async def seed_universe(rows: list[dict[str, Any]]) -> int:
                 touched += cur.rowcount
             conn.commit()
             return touched
+
+    async with _lock:
+        return await asyncio.to_thread(_work)
+
+
+async def seed_fundamentals(rows: list[dict[str, Any]]) -> int:
+    """Seed NUMERIC fundamentals (+ sector/name/currency) from the bundled
+    snapshot pack (R11 / D52).
+
+    For each row: every ``_NUMERIC_FIELDS`` value present in the row (plus
+    ``name``/``currency``/``sector``/``industry``) fills ONLY columns that are
+    currently NULL — a seed value NEVER clobbers a fetched one and never
+    stamps a live tier. ``seed_updated_at`` records the snapshot's per-row
+    as-of (``row["seed_as_of"]``, epoch seconds) so serving code can label the
+    basis honestly; it too fills-if-NULL (re-seeding cannot re-date data a
+    fresher pack did not replace). Returns rows touched."""
+    if not rows:
+        return 0
+    seedable = ("name", "currency", "sector", "industry", *_NUMERIC_FIELDS)
+
+    def _work() -> int:
+        touched = 0
+        with contextlib.closing(_connect()) as conn:
+            for row in rows:
+                symbol = str(row.get("symbol") or "").strip().upper()
+                if not symbol:
+                    continue
+                cols: dict[str, Any] = {c: row[c] for c in seedable if row.get(c) is not None}
+                if not cols:
+                    continue
+                if row.get("sector") is not None and row.get("sector_source"):
+                    cols["sector_source"] = row["sector_source"]
+                cols["seed_updated_at"] = row.get("seed_as_of")
+                names = list(cols)
+                assignments = ", ".join(
+                    f"{c} = COALESCE(fundamentals.{c}, excluded.{c})" for c in names
+                )
+                cur = conn.execute(
+                    f"INSERT INTO fundamentals (symbol, {', '.join(names)}) "
+                    f"VALUES (?, {', '.join('?' for _ in names)}) "
+                    f"ON CONFLICT(symbol) DO UPDATE SET {assignments}",
+                    [symbol, *[cols[c] for c in names]],
+                )
+                touched += cur.rowcount
+            conn.commit()
+        return touched
 
     async with _lock:
         return await asyncio.to_thread(_work)
@@ -349,6 +401,65 @@ async def upsert_info(symbol: str, fundamentals: Fundamentals) -> None:
         if value is not None:
             cols[field] = value
     await _upsert(symbol, cols)
+
+
+#: How long an exchange-direct EOD row (bhavcopy) serves the quote/mcap fields
+#: before it is considered stale — one trading day plus overnight headroom.
+TTL_EOD_SECONDS = 36 * 60 * 60.0
+
+
+async def upsert_eod_batch(
+    items: list[dict[str, Any]],
+    *,
+    provider: str,
+) -> None:
+    """Write exchange-direct EOD rows (R11 / D54 — the bhavcopy lane).
+
+    Each item: ``{symbol, price, prev_close?, volume?, market_cap?,
+    trade_date_iso}``. Writes the quote columns (change/percent derived from
+    ``prev_close``; ``market_state="CLOSED"``; ``quote_timestamp`` = the TRADE
+    DATE, so the EOD basis is visible) + ``market_cap`` when supplied, and
+    stamps ``quote_updated_at`` + ``eod_updated_at``. Deliberately NEVER
+    stamps ``v7_updated_at`` — bhavcopy is not the v7 tier and must not make
+    stale P/E ride a fresh valuation stamp."""
+    now = time.time()
+    rows: list[tuple[str, dict[str, Any]]] = []
+    for item in items:
+        key = str(item.get("symbol") or "").strip().upper()
+        price = item.get("price")
+        if not key or price is None:
+            continue
+        prev = item.get("prev_close")
+        change = (price - prev) if prev else None
+        cols: dict[str, Any] = {
+            "quote_price": price,
+            "quote_change": change,
+            "quote_change_percent": (change / prev * 100.0)
+            if change is not None and prev
+            else None,
+            "quote_volume": item.get("volume"),
+            "quote_currency": item.get("currency") or "INR",
+            "quote_market_state": "CLOSED",
+            "quote_timestamp": item.get("trade_date_iso"),
+            "quote_updated_at": now,
+            "eod_updated_at": now,
+            "provider": provider,
+        }
+        if item.get("market_cap") is not None:
+            cols["market_cap"] = item["market_cap"]
+        rows.append((key, cols))
+    if not rows:
+        return
+
+    def _work() -> None:
+        with contextlib.closing(_connect()) as conn:
+            for key, cols in rows:
+                sql, values = _upsert_sql(key, cols)
+                conn.execute(sql, values)
+            conn.commit()
+
+    async with _lock:
+        await asyncio.to_thread(_work)
 
 
 async def mark_info_failure(symbol: str) -> None:
@@ -704,6 +815,7 @@ async def freshness(symbols: list[str]) -> dict[str, float]:
 
 __all__ = [
     "DB_FILENAME",
+    "TTL_EOD_SECONDS",
     "TTL_INFO_RETRY_SECONDS",
     "TTL_INFO_SECONDS",
     "TTL_QUOTE_CURATED_SECONDS",
@@ -717,8 +829,10 @@ __all__ = [
     "query",
     "reset_for_tests",
     "row_to_pair",
+    "seed_fundamentals",
     "seed_universe",
     "stale_symbols",
+    "upsert_eod_batch",
     "upsert_info",
     "upsert_v7",
     "upsert_v7_batch",

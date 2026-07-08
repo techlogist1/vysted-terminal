@@ -423,13 +423,16 @@ async def test_wall_expiry_keeps_completed_chunks(monkeypatch: pytest.MonkeyPatc
 
 
 @pytest.mark.asyncio
-async def test_budget_expiry_itemizes_stale_cached_rows_instead_of_serving(
+async def test_budget_expiry_serves_stale_cached_rows_with_honest_labels(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """A candidate whose chunk never ran but that has an OLD store row (v7
-    stamp beyond the 6 h serving TTL) is itemized ``budget_exhausted`` at
-    finalize — counting a 20 h-old row as 'screened' would overstate what
-    this run actually evaluated."""
+    """R11 (D52) — the deliberate successor to the R10 pin that DROPPED stale
+    rows. A candidate whose chunk never ran but that has an OLD store row (v7
+    stamp beyond the 6 h serving TTL) is now EVALUATED and served on the
+    labeled stale/snapshot basis — never presented as fresh: ``data_basis``
+    is not "live", ``data_as_of`` dates the values at the old stamp, the
+    coverage line discloses the basis, and nothing remains unevaluated (so
+    ``partial`` is False — every symbol was screened, honestly labeled)."""
     import contextlib as _ctx
     import sqlite3
     import time as _time
@@ -450,22 +453,32 @@ async def test_budget_expiry_itemizes_stale_cached_rows_instead_of_serving(
         ),
     )
     twenty_hours = 20 * 3600
+    stale_stamp = _time.time() - twenty_hours
     with _ctx.closing(sqlite3.connect(fundamentals_store._db_path())) as conn:
         conn.execute(
             "UPDATE fundamentals SET v7_updated_at = ?, quote_updated_at = ? WHERE symbol = ?",
-            (_time.time() - twenty_hours, _time.time() - twenty_hours, "OLD.NS"),
+            (stale_stamp, stale_stamp, "OLD.NS"),
         )
         conn.commit()
     yb.reset_for_tests(_HangingTransport())  # this run's sweep never lands
 
     request = ScreenerRequest(universe="nse-all", criteria=[], limit=100)
     result = await screener.run_screener(request, wall_budget_s=0.3)
-    assert result.partial is True
-    assert result.rows == []  # the 20 h-old row is NOT served as screened
-    assert result.evaluated_count == 0
-    assert result.skipped_count == len(result.skip_details) == 1
-    assert result.skip_details[0].reason == "budget_exhausted"
-    assert result.coverage == "screened 0 of 1 — 1 unavailable"
+    assert result.evaluated_count == 1
+    assert result.result_count == 1
+    row = result.rows[0]
+    assert row.symbol == "OLD.NS"
+    assert row.data_basis == "snapshot"  # nothing about this row is fresh
+    assert row.data_as_of is not None and abs(row.data_as_of - stale_stamp) < 5.0
+    assert row.currency == "INR"
+    assert result.basis_counts == {"snapshot": 1}
+    assert result.skip_details == []
+    # Every symbol was evaluated (on a labeled basis) — partial would claim
+    # rows remain unevaluated, which is no longer true.
+    assert result.partial is False
+    assert result.coverage is not None
+    assert result.coverage.startswith("screened 1 of 1 — 0 unavailable")
+    assert "stale/snapshot basis" in result.coverage
 
 
 @pytest.mark.asyncio
@@ -641,3 +654,164 @@ async def test_sse_stream_engine_crash_emits_sanitized_error_frame(
     assert error["event"] == "error"
     assert "gobbledygook" not in error["message"]  # debug-ish provider text stays in the logs
     assert "RuntimeError" in error["message"]
+
+
+# ---------------------------------------------------------------------------
+# R11 (D52/D53) — cold-cache seed serving + circuit-breaker short-circuit
+# ---------------------------------------------------------------------------
+
+
+class _RateLimitedTransport(httpx.AsyncBaseTransport):
+    """A v7 endpoint hard-blocking this IP: every quote call answers 429."""
+
+    def __init__(self) -> None:
+        self.quote_calls = 0
+
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        if "getcrumb" in request.url.path:
+            return httpx.Response(200, text="crumb")
+        if "/v7/finance/quote" in request.url.path:
+            self.quote_calls += 1
+            return httpx.Response(429)
+        return httpx.Response(200, text="")
+
+
+async def _seed_three_it_names() -> float:
+    """Seed pack rows for a 3-name IT universe; returns the pack as-of."""
+    as_of = __import__("time").time() - 16 * 24 * 3600  # a 16-day-old snapshot
+    await fundamentals_store.seed_fundamentals(
+        [
+            {
+                "symbol": "SEEDIT1.NS",
+                "name": "Seed IT One",
+                "currency": "INR",
+                "sector": "Technology",
+                "sector_source": "seed-pack",
+                "seed_as_of": as_of,
+                "market_cap": 17e9,
+                "pe_ratio": 13.5,
+                "roe": 0.19,
+            },
+            {
+                "symbol": "SEEDIT2.NS",
+                "name": "Seed IT Two",
+                "currency": "INR",
+                "sector": "Technology",
+                "sector_source": "seed-pack",
+                "seed_as_of": as_of,
+                "market_cap": 6.7e9,
+                "pe_ratio": 19.7,
+                "roe": 1.37,
+            },
+            {
+                "symbol": "SEEDFIN.NS",
+                "name": "Seed Financial",
+                "currency": "INR",
+                "sector": "Financial Services",
+                "sector_source": "seed-pack",
+                "seed_as_of": as_of,
+                "market_cap": 50e9,
+                "pe_ratio": 8.0,
+                "roe": 0.12,
+            },
+        ]
+    )
+    return as_of
+
+
+def _operator_it_criteria() -> list:
+    return [
+        StringEqCriterion(field="sector", operator="eq", value="Technology"),
+        NumericThresholdCriterion(field="market_cap", operator="lt", value=50e9),
+        NumericThresholdCriterion(field="pe_ratio", operator="lt", value=20.0),
+        NumericThresholdCriterion(field="roe", operator="gt", value=0.15),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_cold_cache_throttled_ip_serves_correct_rows_from_seed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The R11 flagship guarantee: a FRESH install on a HARD-BLOCKED IP still
+    answers the operator's IT-services query — complete, correct rows served
+    from the bundled seed pack, honestly labeled, with the throttle disclosed.
+    Never a hang, never a lie, never 0 rows."""
+    from services import provider_health
+
+    symbols = ["SEEDIT1.NS", "SEEDIT2.NS", "SEEDFIN.NS"]
+    monkeypatch.setattr(screener, "resolve_universe", _fake_universe("nse-all", symbols))
+    as_of = await _seed_three_it_names()
+    transport = _RateLimitedTransport()
+    yb.reset_for_tests(transport)
+
+    async def _throttled_fundamentals(symbol: str):
+        from services.errors import ProviderError
+
+        raise ProviderError(f"throttled {symbol}", kind="rate_limited")
+
+    monkeypatch.setattr(screener.provider_registry, "get_fundamentals", _throttled_fundamentals)
+
+    request = ScreenerRequest(universe="nse-all", criteria=_operator_it_criteria(), limit=100)
+    result = await screener.run_screener(request, wall_budget_s=20.0)
+
+    assert result.result_count == 2
+    assert {r.symbol for r in result.rows} == {"SEEDIT1.NS", "SEEDIT2.NS"}
+    assert all(r.data_basis == "snapshot" for r in result.rows)
+    assert all(r.currency == "INR" for r in result.rows)
+    assert all(r.data_as_of is not None and abs(r.data_as_of - as_of) < 5.0 for r in result.rows)
+    assert result.throttled is True
+    assert result.basis_counts == {"snapshot": 2}
+    assert result.freshness is not None
+    assert result.freshness.get("seed_as_of") == pytest.approx(as_of, abs=5.0)
+    # Everything evaluated (SEEDFIN failed the criteria honestly) — no skips.
+    assert result.evaluated_count == 3
+    assert result.skip_details == []
+    assert result.partial is False
+    assert "stale/snapshot basis" in (result.coverage or "")
+    provider_health.reset_for_tests()
+
+
+@pytest.mark.asyncio
+async def test_open_circuit_short_circuits_the_sweep_instantly(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """With the Yahoo circuit OPEN, a screen never spends its wall on doomed
+    calls — the sweep short-circuits without a single HTTP request and the
+    result serves from the seed basis in well under the budget."""
+    from services import provider_health
+
+    symbols = ["SEEDIT1.NS", "SEEDIT2.NS", "SEEDFIN.NS"]
+    monkeypatch.setattr(screener, "resolve_universe", _fake_universe("nse-all", symbols))
+    await _seed_three_it_names()
+    transport = _RateLimitedTransport()
+    yb.reset_for_tests(transport)
+    provider_health.record_rate_limited(weight=3.0)  # OPEN before the run
+    assert provider_health.is_open() is True
+
+    request = ScreenerRequest(universe="nse-all", criteria=_operator_it_criteria(), limit=100)
+    result = await screener.run_screener(request, wall_budget_s=120.0)
+
+    assert transport.quote_calls == 0, "an open circuit must not spend a single v7 call"
+    assert result.duration_ms < 10_000
+    assert result.throttled is True
+    assert result.result_count == 2
+    assert all(r.data_basis == "snapshot" for r in result.rows)
+    provider_health.reset_for_tests()
+
+
+@pytest.mark.asyncio
+async def test_sustained_429_storm_opens_the_circuit_mid_sweep() -> None:
+    """Chunk-level 429 concessions feed the breaker: a sweep over a blocked
+    IP opens the circuit so later chunks stop spending."""
+    from services import provider_health
+
+    transport = _RateLimitedTransport()
+    yb.reset_for_tests(transport)
+    for _ in range(3):
+        await yb.fetch_quotes_batch(["AAA.NS"])  # each concedes rate_limited
+    assert provider_health.is_open() is True
+    before = transport.quote_calls
+    rows, failures = await yb.fetch_quotes_batch(["BBB.NS", "CCC.NS"])
+    assert transport.quote_calls == before, "open circuit spends nothing"
+    assert failures == {"BBB.NS": "rate_limited", "CCC.NS": "rate_limited"}
+    provider_health.reset_for_tests()

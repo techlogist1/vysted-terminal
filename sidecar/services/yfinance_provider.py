@@ -28,10 +28,41 @@ from models.fundamentals import (
     StatementLine,
 )
 from models.market import OHLCVBar, OHLCVSeries, Quote
-from services import symbol_resolver
+from services import provider_health, symbol_resolver
 from services.errors import ProviderError
 
 PROVIDER = "yfinance"
+
+
+def _is_rate_limited(exc: BaseException) -> bool:
+    """True when ``exc`` (or any exception in its cause/context chain) is a
+    yfinance rate-limit — matched by type NAME so this module never imports
+    ``yfinance.exceptions`` at call time (test mocks replace ``yf`` wholesale).
+    """
+    seen: set[int] = set()
+    node: BaseException | None = exc
+    while node is not None and id(node) not in seen:
+        seen.add(id(node))
+        if type(node).__name__ == "YFRateLimitError" or "Too Many Requests" in str(node):
+            return True
+        node = node.__cause__ or node.__context__
+    return False
+
+
+def _provider_error(action: str, symbol: str, exc: BaseException) -> ProviderError:
+    """Wrap a yfinance failure as a classified :class:`ProviderError` (R11/D53).
+
+    A rate-limit is reported to the Yahoo-family circuit breaker and carries
+    ``kind="rate_limited"`` so callers stop mislabelling throttles as
+    ``no_data``/``correctness_gate``."""
+    if _is_rate_limited(exc):
+        provider_health.record_rate_limited(provider_health.YAHOO)
+        return ProviderError(
+            f"yfinance {action} rate-limited for {symbol!r}: {exc}",
+            kind="rate_limited",
+        )
+    return ProviderError(f"yfinance {action} failed for {symbol!r}: {exc}")
+
 
 # Public timeframe -> (yfinance interval, default lookback period).
 _TIMEFRAME_MAP: dict[str, tuple[str, str]] = {
@@ -125,8 +156,9 @@ def get_quote(symbol: str) -> Quote:
         volume = getattr(fast, "last_volume", None)
         currency = getattr(fast, "currency", None) or "USD"
     except Exception as exc:  # noqa: BLE001 - any yfinance failure is a provider error
-        raise ProviderError(f"yfinance quote failed for {symbol!r}: {exc}") from exc
+        raise _provider_error("quote", symbol, exc) from exc
 
+    provider_health.record_success(provider_health.YAHOO)
     change = price - prev
     change_percent = (change / prev * 100.0) if prev else 0.0
     return Quote(
@@ -153,7 +185,7 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
     try:
         frame = yf.Ticker(normalized).history(period=period, interval=interval)
     except Exception as exc:  # noqa: BLE001
-        raise ProviderError(f"yfinance history failed for {symbol!r}: {exc}") from exc
+        raise _provider_error("history", symbol, exc) from exc
 
     bars: list[OHLCVBar] = []
     for index, row in frame.iterrows():
@@ -182,8 +214,9 @@ def get_fundamentals(symbol: str) -> Fundamentals:
     try:
         info = yf.Ticker(yahoo).info
     except Exception as exc:  # noqa: BLE001
-        raise ProviderError(f"yfinance fundamentals failed for {symbol!r}: {exc}") from exc
+        raise _provider_error("fundamentals", symbol, exc) from exc
 
+    provider_health.record_success(provider_health.YAHOO)
     # yfinance 1.3.0 returns ``dividendYield`` as a percentage number (e.g.
     # ``0.36`` for AAPL, ``6.01`` for VZ) — not a fraction. The contract is a
     # fraction (the panel ×100s it). Guard against negative / absurd (>200%)
@@ -261,7 +294,7 @@ def get_income_statement(symbol: str) -> IncomeStatement:
     try:
         frame = yf.Ticker(normalized).income_stmt
     except Exception as exc:  # noqa: BLE001
-        raise ProviderError(f"yfinance income statement failed for {symbol!r}: {exc}") from exc
+        raise _provider_error("income statement", symbol, exc) from exc
     periods, lines = _statement_lines(frame)
     return IncomeStatement(
         symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER
@@ -274,7 +307,7 @@ def get_balance_sheet(symbol: str) -> BalanceSheet:
     try:
         frame = yf.Ticker(normalized).balance_sheet
     except Exception as exc:  # noqa: BLE001
-        raise ProviderError(f"yfinance balance sheet failed for {symbol!r}: {exc}") from exc
+        raise _provider_error("balance sheet", symbol, exc) from exc
     periods, lines = _statement_lines(frame)
     return BalanceSheet(symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER)
 
@@ -285,7 +318,7 @@ def get_cash_flow(symbol: str) -> CashFlowStatement:
     try:
         frame = yf.Ticker(normalized).cashflow
     except Exception as exc:  # noqa: BLE001
-        raise ProviderError(f"yfinance cash flow failed for {symbol!r}: {exc}") from exc
+        raise _provider_error("cash flow", symbol, exc) from exc
     periods, lines = _statement_lines(frame)
     return CashFlowStatement(
         symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER
@@ -300,7 +333,7 @@ def get_analyst_rating(symbol: str) -> AnalystRating:
         recommendations = ticker.recommendations
         targets = ticker.analyst_price_targets
     except Exception as exc:  # noqa: BLE001
-        raise ProviderError(f"yfinance analyst rating failed for {symbol!r}: {exc}") from exc
+        raise _provider_error("analyst rating", symbol, exc) from exc
 
     counts = {"strongBuy": 0, "buy": 0, "hold": 0, "sell": 0, "strongSell": 0}
     if recommendations is not None and not recommendations.empty:
