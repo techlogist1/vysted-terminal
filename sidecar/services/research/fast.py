@@ -188,7 +188,15 @@ async def snapshot_structured(
     (:func:`services.research.semantics.derive_semantics`) rides every
     snapshot, so labeled, basis-true metrics and flagged conflicts reach every
     research path through this single seam.
+
+    R11 (D56): the fundamentals leg is augmented with
+    ``dividend_per_share_ttm`` — the trailing-12-month dividends actually paid
+    (:func:`services.dividend_history.get_dividend_ttm`) — so the derived leg
+    can reconcile it against Yahoo's ``dividendRate`` and flag an omitted
+    special dividend. The cross-check never raises (it swallows every failure to
+    ``None``); an absent figure simply means no reconciliation card.
     """
+    from services.dividend_history import get_dividend_ttm
     from services.research.semantics import derive_semantics
 
     price_res, fund_res = await asyncio.gather(
@@ -199,6 +207,16 @@ async def snapshot_structured(
         "price": _structured_value(price_res, "quote"),
         "fundamentals": _structured_value(fund_res, "fundamentals"),
     }
+    # Cross-check the dividend scalar against corporate-action history. Use the
+    # symbol the fundamentals leg actually resolved to (its ``symbol`` carries
+    # the Yahoo listing form) so the paid history matches the same dividendRate.
+    fund_leg = out["fundamentals"]
+    fund_data = fund_leg.get("data") if fund_leg.get("ok") else None
+    if isinstance(fund_data, dict):
+        resolved = fund_data.get("symbol")
+        ttm = await get_dividend_ttm(resolved if isinstance(resolved, str) and resolved else symbol)
+        if ttm is not None:
+            fund_data["dividend_per_share_ttm"] = ttm
     out["derived"] = derive_semantics(out, region)
     return out
 

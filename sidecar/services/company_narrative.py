@@ -297,8 +297,10 @@ def _build_facts(fundamentals: Fundamentals | None, quote: Quote | None) -> list
             ("Revenue (TTM)", _fmt(f.revenue_ttm, money=True)),
             ("Net income (TTM)", _fmt(f.net_income_ttm, money=True)),
             ("Free cash flow", _fmt(f.free_cash_flow, money=True)),
-            ("Revenue growth", _fmt(f.revenue_growth, pct=True)),
-            ("Earnings growth", _fmt(f.earnings_growth, pct=True)),
+            # D55: yfinance growth is MRQ-YoY, not annual — label the basis so
+            # the LLM never narrates it as full-year growth.
+            ("Revenue growth (quarterly YoY)", _fmt(f.revenue_growth, pct=True)),
+            ("Earnings growth (quarterly YoY)", _fmt(f.earnings_growth, pct=True)),
             ("1Y price change", _fmt(f.fifty_two_week_change, pct=True)),
         ]
         facts.extend(f"{label}: {val}" for label, val in pairs if val != "n/a")
