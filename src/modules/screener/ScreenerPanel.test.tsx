@@ -71,6 +71,27 @@ const RESULT_WITH_PARTIAL: ScreenerResult = {
   },
 };
 
+/** R11 (D52/D53) honest-basis result — basis mix + throttle + itemized skips. */
+const RESULT_WITH_BASIS: ScreenerResult = {
+  ...RESULT_SAMPLE,
+  skipped_count: 6,
+  skip_details: [
+    { symbol: "S1", reason: "rate_limited" },
+    { symbol: "S2", reason: "rate_limited" },
+    { symbol: "S3", reason: "rate_limited" },
+    { symbol: "S4", reason: "missing_field:roe" },
+    { symbol: "S5", reason: "missing_field:roe" },
+    { symbol: "S6", reason: "not_found" },
+  ],
+  basis_counts: { live: 1900, snapshot: 775 },
+  throttled: true,
+  freshness: {
+    quotes_as_of: 1_700_000_000,
+    // 2026-06-16T12:00Z (mid-day so "Jun 16" holds in any test timezone).
+    seed_as_of: 1_781_611_200,
+  },
+};
+
 /** Real SSE wire format: `data: {json}\n\n` (backtest.py:195 precedent). */
 function makeStreamResponse(result: ScreenerResult): Response {
   const progressFrame = `data: ${JSON.stringify({ event: "progress", phase: "sweep", done: 50, total: 100, detail: "sweeping quotes 50/100" })}\n\n`;
@@ -247,6 +268,81 @@ describe("ScreenerPanel", () => {
       expect(screen.getByText(/quotes .* ago/)).toBeInTheDocument();
       expect(screen.getByText(/valuation .* ago/)).toBeInTheDocument();
       expect(screen.getByText(/deep fields .* ago/)).toBeInTheDocument();
+    });
+  });
+
+  it("basis_counts render as the serving-basis mix with the seed as-of (D52)", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(makeStreamResponse(RESULT_WITH_BASIS));
+    render(<ScreenerPanel />);
+    fireEvent.click(screen.getByTestId("run-screener-button"));
+
+    await waitFor(() => {
+      const line = screen.getByTestId("basis-counts");
+      // "1,900 live · 775 snapshot (as of Jun 16)" — the snapshot count wears
+      // the seed pack's honest date, derived from freshness.seed_as_of.
+      expect(line).toHaveTextContent("1,900 live");
+      expect(line).toHaveTextContent("775 snapshot (as of Jun 16");
+    });
+  });
+
+  it("throttled=true renders the honest throttle notice (D53)", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(makeStreamResponse(RESULT_WITH_BASIS));
+    render(<ScreenerPanel />);
+    fireEvent.click(screen.getByTestId("run-screener-button"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("throttle-notice")).toHaveTextContent(
+        /throttling this IP — showing cached\/snapshot values/,
+      );
+    });
+  });
+
+  it("throttled absent/false renders no throttle notice", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(makeStreamResponse(RESULT_WITH_PARTIAL));
+    render(<ScreenerPanel />);
+    fireEvent.click(screen.getByTestId("run-screener-button"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("partial-badge")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("throttle-notice")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("basis-counts")).not.toBeInTheDocument();
+  });
+
+  it("skip_details aggregate into a reason breakdown, most-common first (D53)", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(makeStreamResponse(RESULT_WITH_BASIS));
+    render(<ScreenerPanel />);
+    fireEvent.click(screen.getByTestId("run-screener-button"));
+
+    await waitFor(() => {
+      const line = screen.getByTestId("skip-breakdown");
+      expect(line).toHaveTextContent(
+        "6 unavailable — 3 rate-limited · 2 missing roe · 1 not found",
+      );
+    });
+  });
+
+  it("more than three skip reasons collapse the tail into 'other' (D53)", async () => {
+    const manyReasons: ScreenerResult = {
+      ...RESULT_SAMPLE,
+      skipped_count: 10,
+      skip_details: [
+        ...Array.from({ length: 4 }, (_, i) => ({ symbol: `R${i}`, reason: "rate_limited" })),
+        ...Array.from({ length: 3 }, (_, i) => ({ symbol: `M${i}`, reason: "missing_field:roe" })),
+        { symbol: "T1", reason: "timeout" },
+        { symbol: "T2", reason: "timeout" },
+        { symbol: "N1", reason: "no_data" },
+      ],
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(makeStreamResponse(manyReasons));
+    render(<ScreenerPanel />);
+    fireEvent.click(screen.getByTestId("run-screener-button"));
+
+    await waitFor(() => {
+      const line = screen.getByTestId("skip-breakdown");
+      expect(line).toHaveTextContent(
+        "10 unavailable — 4 rate-limited · 3 missing roe · 2 timed out · 1 other",
+      );
     });
   });
 

@@ -5,7 +5,14 @@ import { Download, SlidersHorizontal, FilterX, Loader2 } from "lucide-react";
 
 import { cn, DataTable, type DataColumn, type DataTableSort } from "@/components/DataTable";
 import { EmptyState } from "@/components/EmptyState";
-import { formatCompactMoney, formatPercent, formatPrice, formatUnit } from "@/lib/format";
+import {
+  currencyAffix,
+  formatCompactMoney,
+  formatMoney,
+  formatPercent,
+  formatPrice,
+  formatUnit,
+} from "@/lib/format";
 import { loadSymbolIntoChart, openCompanyOverview } from "@/lib/host-actions";
 import { useScreenerStore } from "@/store/screener";
 
@@ -33,9 +40,29 @@ function fmtFractionPct(value: number | null | undefined): string | null {
   return value == null || Number.isNaN(value) ? null : formatPercent(value * 100).replace("+", "");
 }
 
-/** A bare price/ratio (P/E, D/E, price) — 2dp, graceful null. */
+/** A bare price/ratio (P/E, D/E) — 2dp, graceful null. */
 function fmtNumber(value: number | null | undefined): string | null {
   return value == null || Number.isNaN(value) ? null : formatPrice(value, 2);
+}
+
+/**
+ * A money cell in the ROW's currency (R11 / D57 — the V6 fix: ₹1,293 must
+ * never render as $1,293). Sub-unit magnitudes (micro-cap crypto) keep
+ * significant digits with the instrument's Intl-derived symbol instead of
+ * collapsing to "$0.00"; everything else is the standard money format. A row
+ * without a currency (older payload) falls back to the region default,
+ * byte-identical to before.
+ */
+function fmtMoneyCell(
+  value: number | null | undefined,
+  currency: string | null | undefined,
+): string | null {
+  if (value == null || Number.isNaN(value)) return null;
+  if (value !== 0 && Math.abs(value) < 1) {
+    const { prefix, suffix } = currencyAffix(currency);
+    return `${prefix}${formatPrice(value)}${suffix}`;
+  }
+  return formatMoney(value, currency);
 }
 
 /** Display label for a routed symbol — strips the Yahoo `.NS`/`.BO` suffix so the
@@ -43,6 +70,31 @@ function fmtNumber(value: number | null | undefined): string | null {
  *  while the routed `row.symbol` is kept for the click handler. */
 function displaySymbol(symbol: string): string {
   return symbol.replace(/\.(NS|BO)$/i, "");
+}
+
+/** Epoch seconds → a short "as of" date ("Jun 16", year appended when not the
+ *  current year) for staleness titles. */
+function fmtAsOfDate(epochSec: number): string {
+  const d = new Date(epochSec * 1000);
+  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+  if (d.getFullYear() !== new Date().getFullYear()) {
+    opts.year = "numeric";
+  }
+  return d.toLocaleDateString("en-US", opts);
+}
+
+/** True when the row's values were served from a non-live basis (D52). */
+function isStaleBasis(r: ScreenerResultRow): boolean {
+  return r.data_basis === "snapshot" || r.data_basis === "mixed";
+}
+
+/** The staleness marker's hover text — names the basis and the honest as-of. */
+function basisTitle(r: ScreenerResultRow): string {
+  const what =
+    r.data_basis === "snapshot"
+      ? "Snapshot basis — served from cached/seed data"
+      : "Mixed basis — some fields cached/seed, some live";
+  return r.data_as_of ? `${what}, as of ${fmtAsOfDate(r.data_as_of)}` : what;
 }
 
 // The screener columns, expressed once for both the table and the CSV. Numeric
@@ -54,8 +106,24 @@ const COLUMNS: DataColumn<ScreenerResultRow, SortKey>[] = [
     sortable: true,
     truncate: true,
     width: "104px",
-    cell: (r) => <span className="text-charcoal-100 font-medium">{displaySymbol(r.symbol)}</span>,
-    title: (r) => r.symbol,
+    // D52: a row served from a stale/seed basis carries a quiet text-micro
+    // marker ("snap"/"mixed") whose title states the basis + honest as-of —
+    // a snapshot row must never look identical to a live one.
+    cell: (r) => (
+      <span className="flex items-baseline gap-1">
+        <span className="text-charcoal-100 truncate font-medium">{displaySymbol(r.symbol)}</span>
+        {isStaleBasis(r) && (
+          <span
+            className="text-charcoal-500 text-micro shrink-0"
+            title={basisTitle(r)}
+            data-testid={`basis-marker-${r.symbol}`}
+          >
+            {r.data_basis === "snapshot" ? "snap" : "mixed"}
+          </span>
+        )}
+      </span>
+    ),
+    title: (r) => (isStaleBasis(r) ? `${r.symbol} — ${basisTitle(r)}` : r.symbol),
   },
   {
     key: "name",
@@ -80,7 +148,8 @@ const COLUMNS: DataColumn<ScreenerResultRow, SortKey>[] = [
     numeric: true,
     sortable: true,
     width: "116px",
-    format: (r) => (r.market_cap == null ? null : formatCompactMoney(r.market_cap)),
+    // D57: money formats in the ROW's listing currency, never the region's.
+    format: (r) => (r.market_cap == null ? null : formatCompactMoney(r.market_cap, r.currency)),
   },
   {
     key: "pe_ratio",
@@ -127,8 +196,10 @@ const COLUMNS: DataColumn<ScreenerResultRow, SortKey>[] = [
     header: "Price",
     numeric: true,
     sortable: true,
-    width: "72px",
-    format: (r) => fmtNumber(r.price),
+    width: "84px",
+    // D57: a real money format in the row's currency (was a bare number with
+    // no symbol at all — the V6 ambiguity).
+    format: (r) => fmtMoneyCell(r.price, r.currency),
   },
   {
     key: "change_percent_1d",
@@ -156,6 +227,8 @@ const COLUMNS: DataColumn<ScreenerResultRow, SortKey>[] = [
 
 // CSV header order mirrors the on-wire fields (incl. Industry, which is exported
 // but not shown). Kept independent of COLUMNS so the export shape never drifts.
+// Money values export as RAW numbers; the trailing Currency column (D57) names
+// their unit so a mixed-currency universe export is never ambiguous.
 const CSV_HEADERS = [
   "Symbol",
   "Name",
@@ -170,6 +243,7 @@ const CSV_HEADERS = [
   "Price",
   "1d %",
   "Volume",
+  "Currency",
 ];
 
 /** Serialise the current result rows to CSV (RFC-4180 quoting) for Excel/Sheets. */
@@ -195,6 +269,7 @@ function rowsToCsv(rows: ScreenerResultRow[]): string {
         r.price,
         r.change_percent_1d,
         r.volume,
+        r.currency,
       ]
         .map(esc)
         .join(","),
@@ -238,7 +313,7 @@ function compareValue(
 
 // Sum of the fixed-px columns plus a floor for the percentage text columns. Below
 // this the panel scrolls horizontally; above it the % columns absorb the slack.
-const TABLE_MIN_WIDTH = "min-w-[920px]";
+const TABLE_MIN_WIDTH = "min-w-[932px]";
 
 export function ScreenerResultsTable() {
   const result = useScreenerStore((s) => s.lastResult);

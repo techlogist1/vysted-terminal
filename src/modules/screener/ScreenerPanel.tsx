@@ -33,6 +33,41 @@ function fmtAgo(epochSec: number): string {
   return `${Math.floor(diffH / 24)}d ago`;
 }
 
+/** Epoch seconds → a short "as of" date ("Jun 16"; year appended when it is
+ *  not the current year) for the snapshot-basis label (D52). */
+function fmtAsOfDate(epochSec: number): string {
+  const d = new Date(epochSec * 1000);
+  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+  if (d.getFullYear() !== new Date().getFullYear()) {
+    opts.year = "numeric";
+  }
+  return d.toLocaleDateString("en-US", opts);
+}
+
+/** Designed short forms for the machine-readable skip reasons (D53) — a raw
+ *  wire token never reaches the coverage line. Unknown reasons de-snake. */
+function skipReasonLabel(reason: string): string {
+  if (reason.startsWith("missing_field:")) {
+    return `missing ${reason.slice("missing_field:".length)}`;
+  }
+  switch (reason) {
+    case "rate_limited":
+      return "rate-limited";
+    case "not_found":
+      return "not found";
+    case "no_data":
+      return "no data";
+    case "timeout":
+      return "timed out";
+    case "correctness_gate":
+      return "unverifiable";
+    default:
+      return reason.replace(/_/g, " ");
+  }
+}
+
+const N = (n: number): string => n.toLocaleString("en-US");
+
 /**
  * Screener panel — R10 rebuild.
  *
@@ -92,6 +127,46 @@ export function ScreenerPanel() {
     if (f.valuation_as_of) parts.push(`valuation ${fmtAgo(f.valuation_as_of)}`);
     if (f.deep_as_of) parts.push(`deep fields ${fmtAgo(f.deep_as_of)}`);
     return parts.length > 0 ? parts.join(" · ") : null;
+  }
+
+  // D52: the serving-basis mix — "1,900 live · 775 snapshot (as of Jun 16)".
+  // Known bases render in a fixed order; an unexpected basis key still renders
+  // (never silently dropped). The snapshot count carries the seed pack's honest
+  // as-of date from freshness.seed_as_of when present.
+  function basisLine(): string | null {
+    const counts = lastResult?.basis_counts;
+    if (!counts) return null;
+    const seedAsOf = lastResult?.freshness?.seed_as_of;
+    const order = ["live", "mixed", "snapshot"];
+    const keys = [...order.filter((k) => k in counts), ...Object.keys(counts).filter((k) => !order.includes(k)).sort()];
+    const parts: string[] = [];
+    for (const key of keys) {
+      const n = counts[key];
+      if (typeof n !== "number" || n <= 0) continue;
+      const asOf = key === "snapshot" && seedAsOf ? ` (as of ${fmtAsOfDate(seedAsOf)})` : "";
+      parts.push(`${N(n)} ${key}${asOf}`);
+    }
+    return parts.length > 0 ? parts.join(" · ") : null;
+  }
+
+  // D53: aggregate the itemized skip ledger into a compact reason breakdown —
+  // "554 unavailable — 300 rate-limited · 254 missing roe" (top 3 reasons,
+  // tail collapsed into "other") so a user can tell "throttled, retry" from
+  // "permanently absent" without reading a raw ledger.
+  function skipBreakdown(): string | null {
+    const details = lastResult?.skip_details;
+    if (!details || details.length === 0) return null;
+    const counts = new Map<string, number>();
+    for (const d of details) {
+      counts.set(d.reason, (counts.get(d.reason) ?? 0) + 1);
+    }
+    const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    const parts = sorted.slice(0, 3).map(([reason, n]) => `${N(n)} ${skipReasonLabel(reason)}`);
+    const tail = sorted.slice(3).reduce((sum, [, n]) => sum + n, 0);
+    if (tail > 0) {
+      parts.push(`${N(tail)} other`);
+    }
+    return `${N(details.length)} unavailable — ${parts.join(" · ")}`;
   }
 
   const handleSave = () => {
@@ -339,6 +414,27 @@ export function ScreenerPanel() {
           )}
           {!lastResult.partial && lastResult.coverage && (
             <div className="text-muted-foreground text-caption">{lastResult.coverage}</div>
+          )}
+          {/* D53: an honest, quiet one-liner when the run detected upstream
+              throttling and degraded to cached/snapshot basis — text-only
+              (signal colors never fill a background). */}
+          {lastResult.throttled && (
+            <div className="text-warning text-micro" data-testid="throttle-notice">
+              Data provider is throttling this IP — showing cached/snapshot values; they refresh
+              automatically.
+            </div>
+          )}
+          {/* D52: the serving-basis mix for the returned rows. */}
+          {basisLine() && (
+            <div className="text-muted-foreground text-micro" data-testid="basis-counts">
+              {basisLine()}
+            </div>
+          )}
+          {/* D53: WHY symbols were unavailable, not just how many. */}
+          {skipBreakdown() && (
+            <div className="text-muted-foreground text-micro" data-testid="skip-breakdown">
+              {skipBreakdown()}
+            </div>
           )}
           {freshnessLine() && (
             <div className="text-muted-foreground text-micro">{freshnessLine()}</div>
