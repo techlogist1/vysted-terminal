@@ -1603,3 +1603,46 @@ async def test_invalid_args_sentinel_dispatches_graceful_error_not_empty() -> No
     result = json.loads(result_str)
     assert result["ok"] is False
     assert "invalid arguments for price_data" in result["error"]
+
+
+# ---------------------------------------------------------------------------
+# R11 — a provider content-filter finish is explained honestly (V2 evidence)
+# ---------------------------------------------------------------------------
+
+
+class _ContentFilterProvider:
+    """Adapter emitting an unexplained refusal + finish_reason=content_filter —
+    the live DeepSeek-V4-Flash behaviour on host-action asks (captured in
+    verification/r11/v2-redrive/)."""
+
+    async def stream_chat(
+        self,
+        messages: list[LLMMessage],
+        model: str,
+        api_key: str | None = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[Any]:
+        yield LLMDeltaEvent(text="你好，我无法给到相关内容。")
+        yield LLMDoneEvent(usage=LLMUsage(), finish_reason="content_filter")
+
+
+@pytest.mark.asyncio
+async def test_content_filter_finish_yields_honest_error_frame(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    agent_runtime.reload()
+    _patch_provider(monkeypatch, _ContentFilterProvider())
+    events: list[Any] = []
+    async for event in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="Add 5 RELIANCE at 1400 to my portfolio",
+        api_key="sk-test",
+    ):
+        events.append(event)
+    kinds = [e.kind for e in events]
+    assert kinds == ["delta", "error", "done"], kinds
+    error = events[1]
+    assert error.code == "content_filter"
+    assert "declined" in error.message
+    assert error.action and "switch" in error.action
+    assert "content_filter" in (error.detail or "")

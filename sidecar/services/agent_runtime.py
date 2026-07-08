@@ -1222,6 +1222,22 @@ async def invoke_agent(
                 if autonomy == "auto" and publish_brief_calls:
                     for notice in await _publish_divergence_notices(publish_brief_calls):
                         yield notice
+                # R11 (V2 evidence): a provider content-filter finish leaves
+                # the user with an unexplained refusal (DeepSeek V4 Flash
+                # answers host-action asks with a foreign-language refusal +
+                # finish_reason "content_filter" and zero tool calls — live
+                # capture in verification/r11/v2-redrive/). Say so honestly.
+                if event.finish_reason == "content_filter":
+                    yield LLMErrorEvent(
+                        message=(
+                            "The model declined this request — its provider flagged the content."
+                        ),
+                        action=(
+                            "Rephrase the request, or switch the composer to a different model."
+                        ),
+                        detail=f"finish_reason=content_filter from {resolved_model}",
+                        code="content_filter",
+                    )
                 yield event
                 return
             yield event
