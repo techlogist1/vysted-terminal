@@ -62,11 +62,14 @@
 | 10 | REGRESSION FLOOR | **non-destructive half GREEN** (eslint 0-err, prettier, tsc, ruff, cargo fmt, clippy -D warnings all clean on head 8f967a4). Pending: hardening merge → final ci-local pytest/vitest + PyInstaller build+boot + smoke(ICONIKSPEV) — needs operator-away to stop app |
 | 11 | DELIVERABLES | **DRAFTED** — R12_HAND_TESTING_GUIDE.md committed; morning report drafted (scratchpad), finalized into R12_RUN_REPORT.md at close with final numbers |
 
-## REMAINING TO CLOSE (blocked signals)
-1. Hardening agent (5 verifier defects: legacy-symbol candidate rename, Yahoo junk-row 404, numeric BSE-code resolve, extreme-growth prompt formatting, invoke-options scrub) → merge + integration pytest.
-2. Operator-away ≥25min → stop app → full ci-local (pytest/vitest final numbers) + PyInstaller --onefile build AND boot + smoke-test-sidecars (ICONIKSPEV hard check).
-3. Finalize morning report atop R12_RUN_REPORT.md with the closing chain numbers.
-4. Commit, push, tag r12-finisher. Relaunch app on clean default, leave running.
+## REMAINING TO CLOSE (one item, one signal)
+DONE since last: hardening merged (2311/1); full ci-local GREEN (pytest 2311/1, vitest 1481/134); PyInstaller --onefile build+boot proven manually (105MB, boots 20s, ICONIKSPEV→BSE conf 1.0, seed pack loaded — r12/regression/onefile-boot-proof.md); morning report + run report finalized (R12_RUN_REPORT.md); §6.5 byte-identical; sacred files intact; all pushed to 468ec3f.
+
+ONLY REMAINING (blocked on operator-away ≥25min, because it kills all vysted processes):
+1. Full `node scripts/smoke-test-sidecars.mjs` — the belt-and-suspenders MCP-subprocess-survival check on top of my manual main-sidecar boot proof. WELL DE-RISKED: R12 changed only the main sidecar (boot-proven); openbb/sec-edgar MCP binaries are byte-identical to R11's already-smoke-tested ones (ci-local logged "present and fresh — skipping build").
+2. Then: tag r12-finisher, push tag. Relaunch app on a clean default workspace, leave running.
+
+Gates 1–9 HOLD with committed evidence; gate 10 is green except the confirmatory smoke test above; gate 11 deliverables written. The run is durable in git at every checkpoint.
 
 ## OPERATOR-PRESENCE PROTOCOL (D63)
 - 00:07 operator ACTIVE at machine (his Claude session frontmost; idle 0.04s). He closed the relaunched app window (exit 143) — evidence he doesn't want GUI intrusion.
