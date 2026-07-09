@@ -1,0 +1,2688 @@
+data: {"kind": "agent_plan", "goal": "Author a stock screen for NSE IT services companies with market cap under 5000 crore rupees, P/E below 20, and ROE above 15 percent \u2014 set it up in the screener panel and run it, then tell me the top rows.", "steps": [{"action": "open_panel", "args": {"panel": "screener"}, "rationale": "Open the screener panel to configure and run the stock screen.", "staged": true}, {"action": "research", "args": {"query": "Screen NSE IT services companies with market cap under 5000 crore INR, P/E below 20, and ROE above 15%", "depth": "quick"}, "rationale": "Execute the screener query with the specified filters to retrieve matching stocks.", "staged": false}, {"action": "answer", "args": {}, "rationale": "Present the top rows from the screener results to the user.", "staged": false}], "note": null}
+
+data: {"kind": "thinking", "text": "The"}
+
+data: {"kind": "thinking", "text": " user"}
+
+data: {"kind": "thinking", "text": " wants me to create"}
+
+data: {"kind": "thinking", "text": " a stock"}
+
+data: {"kind": "thinking", "text": " screen"}
+
+data: {"kind": "thinking", "text": " for N"}
+
+data: {"kind": "thinking", "text": "SE IT"}
+
+data: {"kind": "thinking", "text": " services"}
+
+data: {"kind": "thinking", "text": " companies with"}
+
+data: {"kind": "thinking", "text": " specific"}
+
+data: {"kind": "thinking", "text": " criteria and"}
+
+data: {"kind": "thinking", "text": " run"}
+
+data: {"kind": "thinking", "text": " it."}
+
+data: {"kind": "thinking", "text": " Let me break"}
+
+data: {"kind": "thinking", "text": " down the"}
+
+data: {"kind": "thinking", "text": " requirements"}
+
+data: {"kind": "thinking", "text": ":\n\n1. Universe"}
+
+data: {"kind": "thinking", "text": ": NSE ("}
+
+data: {"kind": "thinking", "text": "n"}
+
+data: {"kind": "thinking", "text": "se-all"}
+
+data: {"kind": "thinking", "text": ")\n"}
+
+data: {"kind": "thinking", "text": "2. Market cap"}
+
+data: {"kind": "thinking", "text": " under 500"}
+
+data: {"kind": "thinking", "text": "0 crore"}
+
+data: {"kind": "thinking", "text": " rupees\n3"}
+
+data: {"kind": "thinking", "text": ". P"}
+
+data: {"kind": "thinking", "text": "/E below"}
+
+data: {"kind": "thinking", "text": " 20\n4"}
+
+data: {"kind": "thinking", "text": ". ROE above"}
+
+data: {"kind": "thinking", "text": " 15% ("}
+
+data: {"kind": "thinking", "text": "0"}
+
+data: {"kind": "thinking", "text": ".15)\n\n"}
+
+data: {"kind": "thinking", "text": "I need to use"}
+
+data: {"kind": "thinking", "text": " write"}
+
+data: {"kind": "thinking", "text": "_screener_filters"}
+
+data: {"kind": "thinking", "text": " to stage the criteria"}
+
+data: {"kind": "thinking", "text": ", but"}
+
+data: {"kind": "thinking", "text": " the user also wants"}
+
+data: {"kind": "thinking", "text": " me to run"}
+
+data: {"kind": "thinking", "text": " it and tell"}
+
+data: {"kind": "thinking", "text": " them the top"}
+
+data: {"kind": "thinking", "text": " rows. So I"}
+
+data: {"kind": "thinking", "text": " should use scre"}
+
+data: {"kind": "thinking", "text": "ener_run"}
+
+data: {"kind": "thinking", "text": " to actually execute"}
+
+data: {"kind": "thinking", "text": " the screen"}
+
+data: {"kind": "thinking", "text": " and get results"}
+
+data: {"kind": "thinking", "text": ".\n\n"}
+
+data: {"kind": "thinking", "text": "Let"}
+
+data: {"kind": "thinking", "text": " me think"}
+
+data: {"kind": "thinking", "text": " about the market"}
+
+data: {"kind": "thinking", "text": " cap -"}
+
+data: {"kind": "thinking", "text": " 5000 crore"}
+
+data: {"kind": "thinking", "text": " rupees. Market"}
+
+data: {"kind": "thinking", "text": " cap in the"}
+
+data: {"kind": "thinking", "text": " screener is"}
+
+data: {"kind": "thinking", "text": " typically in ru"}
+
+data: {"kind": "thinking", "text": "pees,"}
+
+data: {"kind": "thinking", "text": " so 5000"}
+
+data: {"kind": "thinking", "text": " crore = 50"}
+
+data: {"kind": "thinking", "text": ",000,000"}
+
+data: {"kind": "thinking", "text": ",000 ="}
+
+data: {"kind": "thinking", "text": " 5"}
+
+data: {"kind": "thinking", "text": "e10"}
+
+data: {"kind": "thinking", "text": ". Wait"}
+
+data: {"kind": "thinking", "text": ", let"}
+
+data: {"kind": "thinking", "text": " me think about this"}
+
+data: {"kind": "thinking", "text": " more"}
+
+data: {"kind": "thinking", "text": " carefully. "}
+
+data: {"kind": "thinking", "text": "1"}
+
+data: {"kind": "thinking", "text": " crore = 10"}
+
+data: {"kind": "thinking", "text": " million"}
+
+data: {"kind": "thinking", "text": " ="}
+
+data: {"kind": "thinking", "text": " 10,000"}
+
+data: {"kind": "thinking", "text": ",000."}
+
+data: {"kind": "thinking", "text": " So 500"}
+
+data: {"kind": "thinking", "text": "0 crore = "}
+
+data: {"kind": "thinking", "text": "500"}
+
+data: {"kind": "thinking", "text": "0 * 10"}
+
+data: {"kind": "thinking", "text": ",000,000"}
+
+data: {"kind": "thinking", "text": " = 50,"}
+
+data: {"kind": "thinking", "text": "000,000,"}
+
+data: {"kind": "thinking", "text": "000 ="}
+
+data: {"kind": "thinking", "text": " 5"}
+
+data: {"kind": "thinking", "text": "e10.\n\nActually"}
+
+data: {"kind": "thinking", "text": ", I need to"}
+
+data: {"kind": "thinking", "text": " check"}
+
+data: {"kind": "thinking", "text": " what unit"}
+
+data: {"kind": "thinking", "text": " the scre"}
+
+data: {"kind": "thinking", "text": "ener uses"}
+
+data: {"kind": "thinking", "text": " for market_cap."}
+
+data: {"kind": "thinking", "text": " It might be in"}
+
+data: {"kind": "thinking", "text": " cro"}
+
+data: {"kind": "thinking", "text": "res already"}
+
+data: {"kind": "thinking", "text": ", or in"}
+
+data: {"kind": "thinking", "text": " absolute rupees."}
+
+data: {"kind": "thinking", "text": " Let me just use"}
+
+data: {"kind": "thinking", "text": " the"}
+
+data: {"kind": "thinking", "text": " value"}
+
+data: {"kind": "thinking", "text": " as "}
+
+data: {"kind": "thinking", "text": "5000 and"}
+
+data: {"kind": "thinking", "text": " see"}
+
+data: {"kind": "thinking", "text": " if"}
+
+data: {"kind": "thinking", "text": " the screener expects"}
+
+data: {"kind": "thinking", "text": " cro"}
+
+data: {"kind": "thinking", "text": "res. Actually,"}
+
+data: {"kind": "thinking", "text": " looking"}
+
+data: {"kind": "thinking", "text": " at the screener"}
+
+data: {"kind": "thinking", "text": " documentation"}
+
+data: {"kind": "thinking", "text": ", it says"}
+
+data: {"kind": "thinking", "text": " \"numeric"}
+
+data: {"kind": "thinking", "text": " scre"}
+
+data: {"kind": "thinking", "text": "ener fields ("}
+
+data: {"kind": "thinking", "text": "pe"}
+
+data: {"kind": "thinking", "text": "_ratio"}
+
+data: {"kind": "thinking", "text": ", market_cap,"}
+
+data: {"kind": "thinking", "text": " roe, ...)"}
+
+data: {"kind": "thinking", "text": "\". I"}
+
+data: {"kind": "thinking", "text": "'m not sure of"}
+
+data: {"kind": "thinking", "text": " the unit"}
+
+data: {"kind": "thinking", "text": ". Let me try"}
+
+data: {"kind": "thinking", "text": " with market_cap value"}
+
+data: {"kind": "thinking", "text": " of 500"}
+
+data: {"kind": "thinking", "text": "000"}
+
+data: {"kind": "thinking", "text": "00000 (500"}
+
+data: {"kind": "thinking", "text": "0 crore"}
+
+data: {"kind": "thinking", "text": " in absolute"}
+
+data: {"kind": "thinking", "text": " rupees) but"}
+
+data: {"kind": "thinking", "text": " that"}
+
+data: {"kind": "thinking", "text": " might be wrong.\n\n"}
+
+data: {"kind": "thinking", "text": "Actually, for"}
+
+data: {"kind": "thinking", "text": " Indian stocks"}
+
+data: {"kind": "thinking", "text": ", market"}
+
+data: {"kind": "thinking", "text": "_cap"}
+
+data: {"kind": "thinking", "text": " in"}
+
+data: {"kind": "thinking", "text": " screen"}
+
+data: {"kind": "thinking", "text": "ers is"}
+
+data: {"kind": "thinking", "text": " often expressed"}
+
+data: {"kind": "thinking", "text": " in cro"}
+
+data: {"kind": "thinking", "text": "res. But"}
+
+data: {"kind": "thinking", "text": " I'm not sure"}
+
+data: {"kind": "thinking", "text": " about"}
+
+data: {"kind": "thinking", "text": " this"}
+
+data: {"kind": "thinking", "text": " specific screener's"}
+
+data: {"kind": "thinking", "text": " convention"}
+
+data: {"kind": "thinking", "text": ". Let me try"}
+
+data: {"kind": "thinking", "text": " both approaches"}
+
+data: {"kind": "thinking", "text": " -"}
+
+data: {"kind": "thinking", "text": " I'll use write"}
+
+data: {"kind": "thinking", "text": "_screener_filters"}
+
+data: {"kind": "thinking", "text": " to stage it"}
+
+data: {"kind": "thinking", "text": " ("}
+
+data: {"kind": "thinking", "text": "for"}
+
+data: {"kind": "thinking", "text": " the user to review"}
+
+data: {"kind": "thinking", "text": ") and also use"}
+
+data: {"kind": "thinking", "text": " screener_run to"}
+
+data: {"kind": "thinking", "text": " actually"}
+
+data: {"kind": "thinking", "text": " get results"}
+
+data: {"kind": "thinking", "text": ".\n\nFor"}
+
+data: {"kind": "thinking", "text": " RO"}
+
+data: {"kind": "thinking", "text": "E above"}
+
+data: {"kind": "thinking", "text": " 15%,"}
+
+data: {"kind": "thinking", "text": " that's 0"}
+
+data: {"kind": "thinking", "text": ".15 as a"}
+
+data: {"kind": "thinking", "text": " fraction.\n\nLet me"}
+
+data: {"kind": "thinking", "text": " think"}
+
+data: {"kind": "thinking", "text": " about the N"}
+
+data: {"kind": "thinking", "text": "SE IT services aspect"}
+
+data: {"kind": "thinking", "text": " -"}
+
+data: {"kind": "thinking", "text": " the scre"}
+
+data: {"kind": "thinking", "text": "ener doesn"}
+
+data: {"kind": "thinking", "text": "'t have a sector"}
+
+data: {"kind": "thinking", "text": " filter explicitly"}
+
+data: {"kind": "thinking", "text": " mentioned"}
+
+data: {"kind": "thinking", "text": ", but I can"}
+
+data: {"kind": "thinking", "text": " use"}
+
+data: {"kind": "thinking", "text": " the n"}
+
+data: {"kind": "thinking", "text": "se-all universe and"}
+
+data: {"kind": "thinking", "text": " hope there"}
+
+data: {"kind": "thinking", "text": "'s a sector field"}
+
+data: {"kind": "thinking", "text": ". Actually"}
+
+data: {"kind": "thinking", "text": ", the"}
+
+data: {"kind": "thinking", "text": " criteria"}
+
+data: {"kind": "thinking", "text": " fields"}
+
+data: {"kind": "thinking", "text": " available"}
+
+data: {"kind": "thinking", "text": " aren"}
+
+data: {"kind": "thinking", "text": "'t fully"}
+
+data: {"kind": "thinking", "text": " documented"}
+
+data: {"kind": "thinking", "text": ". Let me just"}
+
+data: {"kind": "thinking", "text": " try with"}
+
+data: {"kind": "thinking", "text": " the basic"}
+
+data: {"kind": "thinking", "text": " numeric"}
+
+data: {"kind": "thinking", "text": " criteria and see what"}
+
+data: {"kind": "thinking", "text": " comes back."}
+
+data: {"kind": "thinking", "text": " I"}
+
+data: {"kind": "thinking", "text": " might need to filter"}
+
+data: {"kind": "thinking", "text": " by sector"}
+
+data: {"kind": "thinking", "text": " if"}
+
+data: {"kind": "thinking", "text": " available.\n\nActually,"}
+
+data: {"kind": "thinking", "text": " looking"}
+
+data: {"kind": "thinking", "text": " at the scre"}
+
+data: {"kind": "thinking", "text": "ener parameters"}
+
+data: {"kind": "thinking", "text": ", there's no"}
+
+data: {"kind": "thinking", "text": " explicit sector"}
+
+data: {"kind": "thinking", "text": " filter mentioned. The"}
+
+data: {"kind": "thinking", "text": " user"}
+
+data: {"kind": "thinking", "text": " wants \""}
+
+data: {"kind": "thinking", "text": "NSE"}
+
+data: {"kind": "thinking", "text": " IT services companies"}
+
+data: {"kind": "thinking", "text": "\" - I"}
+
+data: {"kind": "thinking", "text": " could use"}
+
+data: {"kind": "thinking", "text": " a"}
+
+data: {"kind": "thinking", "text": " custom universe with"}
+
+data: {"kind": "thinking", "text": " specific"}
+
+data: {"kind": "thinking", "text": " IT service tick"}
+
+data: {"kind": "thinking", "text": "ers, but"}
+
+data: {"kind": "thinking", "text": " that's impr"}
+
+data: {"kind": "thinking", "text": "actical. Let me"}
+
+data: {"kind": "thinking", "text": " use"}
+
+data: {"kind": "thinking", "text": " n"}
+
+data: {"kind": "thinking", "text": "se-all universe"}
+
+data: {"kind": "thinking", "text": " with"}
+
+data: {"kind": "thinking", "text": " the numeric criteria,"}
+
+data: {"kind": "thinking", "text": " and then"}
+
+data: {"kind": "thinking", "text": " from"}
+
+data: {"kind": "thinking", "text": " the results"}
+
+data: {"kind": "thinking", "text": ", identify"}
+
+data: {"kind": "thinking", "text": " which ones"}
+
+data: {"kind": "thinking", "text": " are IT services"}
+
+data: {"kind": "thinking", "text": " companies.\n\nLet"}
+
+data: {"kind": "thinking", "text": " me proceed"}
+
+data: {"kind": "thinking", "text": " with:\n"}
+
+data: {"kind": "thinking", "text": "1. write_s"}
+
+data: {"kind": "thinking", "text": "creener_filters to"}
+
+data: {"kind": "thinking", "text": " stage the criteria for"}
+
+data: {"kind": "thinking", "text": " the user\n"}
+
+data: {"kind": "thinking", "text": "2. screener"}
+
+data: {"kind": "thinking", "text": "_run to actually"}
+
+data: {"kind": "thinking", "text": " execute"}
+
+data: {"kind": "thinking", "text": " and get results"}
+
+data: {"kind": "thinking", "text": "\n\nFor"}
+
+data: {"kind": "thinking", "text": " market_cap"}
+
+data: {"kind": "thinking", "text": ", I'll assume"}
+
+data: {"kind": "thinking", "text": " it's"}
+
+data: {"kind": "thinking", "text": " in the local"}
+
+data: {"kind": "thinking", "text": " currency unit"}
+
+data: {"kind": "thinking", "text": ". For"}
+
+data: {"kind": "thinking", "text": " Indian stocks, if"}
+
+data: {"kind": "thinking", "text": " market"}
+
+data: {"kind": "thinking", "text": "_cap is in ru"}
+
+data: {"kind": "thinking", "text": "pees, "}
+
+data: {"kind": "thinking", "text": "5000 crore ="}
+
+data: {"kind": "thinking", "text": " 50,000"}
+
+data: {"kind": "thinking", "text": ",000,000"}
+
+data: {"kind": "thinking", "text": ". But many"}
+
+data: {"kind": "thinking", "text": " Indian"}
+
+data: {"kind": "thinking", "text": " screeners express"}
+
+data: {"kind": "thinking", "text": " market cap"}
+
+data: {"kind": "thinking", "text": " in cro"}
+
+data: {"kind": "thinking", "text": "res directly"}
+
+data: {"kind": "thinking", "text": ". I"}
+
+data: {"kind": "thinking", "text": "'ll try with"}
+
+data: {"kind": "thinking", "text": " 500"}
+
+data: {"kind": "thinking", "text": "0"}
+
+data: {"kind": "thinking", "text": " crore"}
+
+data: {"kind": "thinking", "text": " ="}
+
+data: {"kind": "thinking", "text": " 500"}
+
+data: {"kind": "thinking", "text": "00000000 and"}
+
+data: {"kind": "thinking", "text": " see.\n\n"}
+
+data: {"kind": "thinking", "text": "Hmm"}
+
+data: {"kind": "thinking", "text": ", actually let"}
+
+data: {"kind": "thinking", "text": " me just try"}
+
+data: {"kind": "thinking", "text": " both"}
+
+data: {"kind": "thinking", "text": ". I"}
+
+data: {"kind": "thinking", "text": "'ll use "}
+
+data: {"kind": "thinking", "text": "50000000000"}
+
+data: {"kind": "thinking", "text": " (absolute"}
+
+data: {"kind": "thinking", "text": ")"}
+
+data: {"kind": "thinking", "text": " first"}
+
+data: {"kind": "thinking", "text": "."}
+
+data: {"kind": "thinking", "text": " If results"}
+
+data: {"kind": "thinking", "text": " look"}
+
+data: {"kind": "thinking", "text": " wrong, I'll"}
+
+data: {"kind": "thinking", "text": " adjust.\n\nWait -"}
+
+data: {"kind": "thinking", "text": " actually, I should"}
+
+data: {"kind": "thinking", "text": " be"}
+
+data: {"kind": "thinking", "text": " more careful. Let"}
+
+data: {"kind": "thinking", "text": " me just use"}
+
+data: {"kind": "thinking", "text": " the"}
+
+data: {"kind": "thinking", "text": " value"}
+
+data: {"kind": "thinking", "text": " 5000"}
+
+data: {"kind": "thinking", "text": " for"}
+
+data: {"kind": "thinking", "text": " market"}
+
+data: {"kind": "thinking", "text": "_cap if"}
+
+data: {"kind": "thinking", "text": " it"}
+
+data: {"kind": "thinking", "text": "'s in crores"}
+
+data: {"kind": "thinking", "text": ", or "}
+
+data: {"kind": "thinking", "text": "50000000000"}
+
+data: {"kind": "thinking", "text": " if in absolute"}
+
+data: {"kind": "thinking", "text": " rupees. Since"}
+
+data: {"kind": "thinking", "text": " I'm"}
+
+data: {"kind": "thinking", "text": " not sure, let"}
+
+data: {"kind": "thinking", "text": " me try"}
+
+data: {"kind": "thinking", "text": " 500000000"}
+
+data: {"kind": "thinking", "text": "00 first"}
+
+data: {"kind": "thinking", "text": ".\n\n"}
+
+data: {"kind": "thinking", "text": "Actually, for"}
+
+data: {"kind": "thinking", "text": " RO"}
+
+data: {"kind": "thinking", "text": "E -"}
+
+data: {"kind": "thinking", "text": " \""}
+
+data: {"kind": "thinking", "text": "above 15 percent"}
+
+data: {"kind": "thinking", "text": "\" - the description"}
+
+data: {"kind": "thinking", "text": " says \"fra"}
+
+data: {"kind": "thinking", "text": "ctions for ratios"}
+
+data: {"kind": "thinking", "text": " e.g. ro"}
+
+data: {"kind": "thinking", "text": "e 0"}
+
+data: {"kind": "thinking", "text": ".2"}
+
+data: {"kind": "thinking", "text": " = 20"}
+
+data: {"kind": "thinking", "text": "%\". So RO"}
+
+data: {"kind": "thinking", "text": "E >"}
+
+data: {"kind": "thinking", "text": " 0.15"}
+
+data: {"kind": "thinking", "text": ".\n\nLet me fire"}
+
+data: {"kind": "thinking", "text": " both"}
+
+data: {"kind": "thinking", "text": " calls"}
+
+data: {"kind": "thinking", "text": "."}
+
+data: {"kind": "delta", "text": "I"}
+
+data: {"kind": "delta", "text": "'ll stage"}
+
+data: {"kind": "delta", "text": " the screen"}
+
+data: {"kind": "delta", "text": " in the screener"}
+
+data: {"kind": "delta", "text": " panel AND"}
+
+data: {"kind": "delta", "text": " run it simultaneously"}
+
+data: {"kind": "delta", "text": " so you get"}
+
+data: {"kind": "delta", "text": " both"}
+
+data: {"kind": "delta", "text": " the saved"}
+
+data: {"kind": "delta", "text": " recipe"}
+
+data: {"kind": "delta", "text": " and the live results"}
+
+data: {"kind": "delta", "text": ". F"}
+
+data: {"kind": "delta", "text": "iring both"}
+
+data: {"kind": "delta", "text": " now"}
+
+data: {"kind": "delta", "text": ":"}
+
+data: {"kind": "tool_use", "tool_call_id": "call_662c5de720c54131b7289b14", "name": "write_screener_filters", "input": {"criteria": [{"field": "market_cap", "operator": "lt", "value": 50000000000}, {"field": "pe_ratio", "operator": "lt", "value": 20}, {"field": "roe", "operator": "gt", "value": 0.15}], "limit": 200, "run": true, "universe": "nse-all"}}
+
+data: {"kind": "tool_use", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "name": "screener_run", "input": {"criteria": [{"field": "market_cap", "operator": "lt", "value": 50000000000}, {"field": "pe_ratio", "operator": "lt", "value": 20}, {"field": "roe", "operator": "gt", "value": 0.15}], "limit": 200, "universe": "nse-all"}}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: NSE (all listed): 2,675 symbols", "latency_ms": null, "status": "ok", "index": 1}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: prefilter kept 2,352 of 2,675", "latency_ms": null, "status": "ok", "index": 2}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 50/2,351", "latency_ms": null, "status": "ok", "index": 3}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 100/2,351", "latency_ms": null, "status": "ok", "index": 4}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 150/2,351", "latency_ms": null, "status": "ok", "index": 5}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 200/2,351", "latency_ms": null, "status": "ok", "index": 6}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 250/2,351", "latency_ms": null, "status": "ok", "index": 7}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 300/2,351", "latency_ms": null, "status": "ok", "index": 8}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 350/2,351", "latency_ms": null, "status": "ok", "index": 9}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 400/2,351", "latency_ms": null, "status": "ok", "index": 10}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 450/2,351", "latency_ms": null, "status": "ok", "index": 11}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 500/2,351", "latency_ms": null, "status": "ok", "index": 12}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 550/2,351", "latency_ms": null, "status": "ok", "index": 13}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 600/2,351", "latency_ms": null, "status": "ok", "index": 14}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 650/2,351", "latency_ms": null, "status": "ok", "index": 15}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 700/2,351", "latency_ms": null, "status": "ok", "index": 16}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 750/2,351", "latency_ms": null, "status": "ok", "index": 17}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 800/2,351", "latency_ms": null, "status": "ok", "index": 18}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 850/2,351", "latency_ms": null, "status": "ok", "index": 19}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 900/2,351", "latency_ms": null, "status": "ok", "index": 20}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 950/2,351", "latency_ms": null, "status": "ok", "index": 21}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,000/2,351", "latency_ms": null, "status": "ok", "index": 22}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,050/2,351", "latency_ms": null, "status": "ok", "index": 23}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,100/2,351", "latency_ms": null, "status": "ok", "index": 24}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,150/2,351", "latency_ms": null, "status": "ok", "index": 25}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,200/2,351", "latency_ms": null, "status": "ok", "index": 26}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,250/2,351", "latency_ms": null, "status": "ok", "index": 27}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,300/2,351", "latency_ms": null, "status": "ok", "index": 28}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,350/2,351", "latency_ms": null, "status": "ok", "index": 29}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,400/2,351", "latency_ms": null, "status": "ok", "index": 30}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,450/2,351", "latency_ms": null, "status": "ok", "index": 31}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,500/2,351", "latency_ms": null, "status": "ok", "index": 32}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,550/2,351", "latency_ms": null, "status": "ok", "index": 33}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,600/2,351", "latency_ms": null, "status": "ok", "index": 34}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,650/2,351", "latency_ms": null, "status": "ok", "index": 35}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,700/2,351", "latency_ms": null, "status": "ok", "index": 36}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,750/2,351", "latency_ms": null, "status": "ok", "index": 37}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,800/2,351", "latency_ms": null, "status": "ok", "index": 38}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,850/2,351", "latency_ms": null, "status": "ok", "index": 39}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,900/2,351", "latency_ms": null, "status": "ok", "index": 40}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 1,950/2,351", "latency_ms": null, "status": "ok", "index": 41}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 2,000/2,351", "latency_ms": null, "status": "ok", "index": 42}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 2,001/2,351", "latency_ms": null, "status": "ok", "index": 43}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 2,051/2,351", "latency_ms": null, "status": "ok", "index": 44}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 2,101/2,351", "latency_ms": null, "status": "ok", "index": 45}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 2,151/2,351", "latency_ms": null, "status": "ok", "index": 46}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 2,201/2,351", "latency_ms": null, "status": "ok", "index": 47}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 2,251/2,351", "latency_ms": null, "status": "ok", "index": 48}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 2,301/2,351", "latency_ms": null, "status": "ok", "index": 49}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 2,351/2,351", "latency_ms": null, "status": "ok", "index": 50}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: post-sweep prune kept 2,339", "latency_ms": null, "status": "ok", "index": 51}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 25/2,339", "latency_ms": null, "status": "ok", "index": 52}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 50/2,339", "latency_ms": null, "status": "ok", "index": 53}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 75/2,339", "latency_ms": null, "status": "ok", "index": 54}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 100/2,339", "latency_ms": null, "status": "ok", "index": 55}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 125/2,339", "latency_ms": null, "status": "ok", "index": 56}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 150/2,339", "latency_ms": null, "status": "ok", "index": 57}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 175/2,339", "latency_ms": null, "status": "ok", "index": 58}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 200/2,339", "latency_ms": null, "status": "ok", "index": 59}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 225/2,339", "latency_ms": null, "status": "ok", "index": 60}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 250/2,339", "latency_ms": null, "status": "ok", "index": 61}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 275/2,339", "latency_ms": null, "status": "ok", "index": 62}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 300/2,339", "latency_ms": null, "status": "ok", "index": 63}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 325/2,339", "latency_ms": null, "status": "ok", "index": 64}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 350/2,339", "latency_ms": null, "status": "ok", "index": 65}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 375/2,339", "latency_ms": null, "status": "ok", "index": 66}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 400/2,339", "latency_ms": null, "status": "ok", "index": 67}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 425/2,339", "latency_ms": null, "status": "ok", "index": 68}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 450/2,339", "latency_ms": null, "status": "ok", "index": 69}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 475/2,339", "latency_ms": null, "status": "ok", "index": 70}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 500/2,339", "latency_ms": null, "status": "ok", "index": 71}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 525/2,339", "latency_ms": null, "status": "ok", "index": 72}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 550/2,339", "latency_ms": null, "status": "ok", "index": 73}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 575/2,339", "latency_ms": null, "status": "ok", "index": 74}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 600/2,339", "latency_ms": null, "status": "ok", "index": 75}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 625/2,339", "latency_ms": null, "status": "ok", "index": 76}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 650/2,339", "latency_ms": null, "status": "ok", "index": 77}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 675/2,339", "latency_ms": null, "status": "ok", "index": 78}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 700/2,339", "latency_ms": null, "status": "ok", "index": 79}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 725/2,339", "latency_ms": null, "status": "ok", "index": 80}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 750/2,339", "latency_ms": null, "status": "ok", "index": 81}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 775/2,339", "latency_ms": null, "status": "ok", "index": 82}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 800/2,339", "latency_ms": null, "status": "ok", "index": 83}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 825/2,339", "latency_ms": null, "status": "ok", "index": 84}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 850/2,339", "latency_ms": null, "status": "ok", "index": 85}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 875/2,339", "latency_ms": null, "status": "ok", "index": 86}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 900/2,339", "latency_ms": null, "status": "ok", "index": 87}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 925/2,339", "latency_ms": null, "status": "ok", "index": 88}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 950/2,339", "latency_ms": null, "status": "ok", "index": 89}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 975/2,339", "latency_ms": null, "status": "ok", "index": 90}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,000/2,339", "latency_ms": null, "status": "ok", "index": 91}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,025/2,339", "latency_ms": null, "status": "ok", "index": 92}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,050/2,339", "latency_ms": null, "status": "ok", "index": 93}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,075/2,339", "latency_ms": null, "status": "ok", "index": 94}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,100/2,339", "latency_ms": null, "status": "ok", "index": 95}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,125/2,339", "latency_ms": null, "status": "ok", "index": 96}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,150/2,339", "latency_ms": null, "status": "ok", "index": 97}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,175/2,339", "latency_ms": null, "status": "ok", "index": 98}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,200/2,339", "latency_ms": null, "status": "ok", "index": 99}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,225/2,339", "latency_ms": null, "status": "ok", "index": 100}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,250/2,339", "latency_ms": null, "status": "ok", "index": 101}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,275/2,339", "latency_ms": null, "status": "ok", "index": 102}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,300/2,339", "latency_ms": null, "status": "ok", "index": 103}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,325/2,339", "latency_ms": null, "status": "ok", "index": 104}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,350/2,339", "latency_ms": null, "status": "ok", "index": 105}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,375/2,339", "latency_ms": null, "status": "ok", "index": 106}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,400/2,339", "latency_ms": null, "status": "ok", "index": 107}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,425/2,339", "latency_ms": null, "status": "ok", "index": 108}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,450/2,339", "latency_ms": null, "status": "ok", "index": 109}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,475/2,339", "latency_ms": null, "status": "ok", "index": 110}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,500/2,339", "latency_ms": null, "status": "ok", "index": 111}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,525/2,339", "latency_ms": null, "status": "ok", "index": 112}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,550/2,339", "latency_ms": null, "status": "ok", "index": 113}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,575/2,339", "latency_ms": null, "status": "ok", "index": 114}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,600/2,339", "latency_ms": null, "status": "ok", "index": 115}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,625/2,339", "latency_ms": null, "status": "ok", "index": 116}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,650/2,339", "latency_ms": null, "status": "ok", "index": 117}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,675/2,339", "latency_ms": null, "status": "ok", "index": 118}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,700/2,339", "latency_ms": null, "status": "ok", "index": 119}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,725/2,339", "latency_ms": null, "status": "ok", "index": 120}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,750/2,339", "latency_ms": null, "status": "ok", "index": 121}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,775/2,339", "latency_ms": null, "status": "ok", "index": 122}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,800/2,339", "latency_ms": null, "status": "ok", "index": 123}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,825/2,339", "latency_ms": null, "status": "ok", "index": 124}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,850/2,339", "latency_ms": null, "status": "ok", "index": 125}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,875/2,339", "latency_ms": null, "status": "ok", "index": 126}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,900/2,339", "latency_ms": null, "status": "ok", "index": 127}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,925/2,339", "latency_ms": null, "status": "ok", "index": 128}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,950/2,339", "latency_ms": null, "status": "ok", "index": 129}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 1,975/2,339", "latency_ms": null, "status": "ok", "index": 130}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 2,000/2,339", "latency_ms": null, "status": "ok", "index": 131}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 2,025/2,339", "latency_ms": null, "status": "ok", "index": 132}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 2,050/2,339", "latency_ms": null, "status": "ok", "index": 133}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 2,075/2,339", "latency_ms": null, "status": "ok", "index": 134}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 2,100/2,339", "latency_ms": null, "status": "ok", "index": 135}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 2,125/2,339", "latency_ms": null, "status": "ok", "index": 136}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 2,150/2,339", "latency_ms": null, "status": "ok", "index": 137}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 2,175/2,339", "latency_ms": null, "status": "ok", "index": 138}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 2,200/2,339", "latency_ms": null, "status": "ok", "index": 139}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 2,225/2,339", "latency_ms": null, "status": "ok", "index": 140}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 2,250/2,339", "latency_ms": null, "status": "ok", "index": 141}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 2,275/2,339", "latency_ms": null, "status": "ok", "index": 142}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 2,300/2,339", "latency_ms": null, "status": "ok", "index": 143}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 2,325/2,339", "latency_ms": null, "status": "ok", "index": 144}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 2,339/2,339", "latency_ms": null, "status": "ok", "index": 145}
+
+data: {"kind": "research_step", "tool_call_id": "call_bbf616b48dea4bbdb980e89b", "tool": "screener_run", "step_kind": "tool", "detail": "screener: evaluating 2,339 candidates", "latency_ms": null, "status": "ok", "index": 146}
+
+data: {"kind": "thinking", "text": "The"}
+
+data: {"kind": "thinking", "text": " screen"}
+
+data: {"kind": "thinking", "text": " returned"}
+
+data: {"kind": "thinking", "text": " 154"}
+
+data: {"kind": "thinking", "text": " matches"}
+
+data: {"kind": "thinking", "text": " across all N"}
+
+data: {"kind": "thinking", "text": "SE sectors"}
+
+data: {"kind": "thinking", "text": ","}
+
+data: {"kind": "thinking", "text": " but"}
+
+data: {"kind": "thinking", "text": " the user specifically"}
+
+data: {"kind": "thinking", "text": " asked for IT"}
+
+data: {"kind": "thinking", "text": " services"}
+
+data: {"kind": "thinking", "text": " companies. Let me"}
+
+data: {"kind": "thinking", "text": " filter the results for"}
+
+data: {"kind": "thinking", "text": " IT"}
+
+data: {"kind": "thinking", "text": "/"}
+
+data: {"kind": "thinking", "text": "Technology sector"}
+
+data: {"kind": "thinking", "text": " companies,"}
+
+data: {"kind": "thinking", "text": " specifically \""}
+
+data: {"kind": "thinking", "text": "Information Technology Services"}
+
+data: {"kind": "thinking", "text": "\" industry"}
+
+data: {"kind": "thinking", "text": ".\n\nFrom"}
+
+data: {"kind": "thinking", "text": " the results,"}
+
+data: {"kind": "thinking", "text": " let"}
+
+data: {"kind": "thinking", "text": " me identify the IT"}
+
+data: {"kind": "thinking", "text": " services companies ("}
+
+data: {"kind": "thinking", "text": "sector ="}
+
+data: {"kind": "thinking", "text": " Technology"}
+
+data: {"kind": "thinking", "text": ", industry"}
+
+data: {"kind": "thinking", "text": " = Information"}
+
+data: {"kind": "thinking", "text": " Technology Services or"}
+
+data: {"kind": "thinking", "text": " similar):\n\n1."}
+
+data: {"kind": "thinking", "text": " SAKSO"}
+
+data: {"kind": "thinking", "text": "FT.N"}
+
+data: {"kind": "thinking", "text": "S - Sak"}
+
+data: {"kind": "thinking", "text": "soft Limited"}
+
+data: {"kind": "thinking", "text": " - Technology"}
+
+data: {"kind": "thinking", "text": " /"}
+
+data: {"kind": "thinking", "text": " Information Technology Services"}
+
+data: {"kind": "thinking", "text": " - M"}
+
+data: {"kind": "thinking", "text": "Cap"}
+
+data: {"kind": "thinking", "text": " 21"}
+
+data: {"kind": "thinking", "text": ",129"}
+
+data: {"kind": "thinking", "text": " Cr"}
+
+data: {"kind": "thinking", "text": ","}
+
+data: {"kind": "thinking", "text": " P/E"}
+
+data: {"kind": "thinking", "text": " 13"}
+
+data: {"kind": "thinking", "text": ".53"}
+
+data: {"kind": "thinking", "text": ", RO"}
+
+data: {"kind": "thinking", "text": "E 19"}
+
+data: {"kind": "thinking", "text": ".07"}
+
+data: {"kind": "thinking", "text": "%\n2"}
+
+data: {"kind": "thinking", "text": ". MC"}
+
+data: {"kind": "thinking", "text": "LOUD"}
+
+data: {"kind": "thinking", "text": ".NS - Mag"}
+
+data: {"kind": "thinking", "text": "ellanic"}
+
+data: {"kind": "thinking", "text": " Cloud Limited"}
+
+data: {"kind": "thinking", "text": " - Technology / Information"}
+
+data: {"kind": "thinking", "text": " Technology Services - M"}
+
+data: {"kind": "thinking", "text": "Cap 17"}
+
+data: {"kind": "thinking", "text": ",448"}
+
+data: {"kind": "thinking", "text": " Cr, P/E"}
+
+data: {"kind": "thinking", "text": " 12.63"}
+
+data: {"kind": "thinking", "text": ", ROE "}
+
+data: {"kind": "thinking", "text": "18.97"}
+
+data: {"kind": "thinking", "text": "%\n3"}
+
+data: {"kind": "thinking", "text": ". D"}
+
+data: {"kind": "thinking", "text": "SSL"}
+
+data: {"kind": "thinking", "text": ".NS - Dyn"}
+
+data: {"kind": "thinking", "text": "acons"}
+
+data: {"kind": "thinking", "text": " Systems"}
+
+data: {"kind": "thinking", "text": " &"}
+
+data: {"kind": "thinking", "text": " Solutions - Technology"}
+
+data: {"kind": "thinking", "text": " / Information"}
+
+data: {"kind": "thinking", "text": " Technology Services - M"}
+
+data: {"kind": "thinking", "text": "Cap 16"}
+
+data: {"kind": "thinking", "text": ",435"}
+
+data: {"kind": "thinking", "text": " Cr, P/E"}
+
+data: {"kind": "thinking", "text": " 19.27"}
+
+data: {"kind": "thinking", "text": ", ROE "}
+
+data: {"kind": "thinking", "text": "31.04"}
+
+data: {"kind": "thinking", "text": "%\n4"}
+
+data: {"kind": "thinking", "text": ". I"}
+
+data: {"kind": "thinking", "text": "VALUE"}
+
+data: {"kind": "thinking", "text": ".NS - I"}
+
+data: {"kind": "thinking", "text": "value Infos"}
+
+data: {"kind": "thinking", "text": "olutions - Technology"}
+
+data: {"kind": "thinking", "text": " / Information Technology Services"}
+
+data: {"kind": "thinking", "text": " - MCap "}
+
+data: {"kind": "thinking", "text": "15,7"}
+
+data: {"kind": "thinking", "text": "99 Cr"}
+
+data: {"kind": "thinking", "text": ", P/E "}
+
+data: {"kind": "thinking", "text": "13.02,"}
+
+data: {"kind": "thinking", "text": " ROE 19"}
+
+data: {"kind": "thinking", "text": ".12"}
+
+data: {"kind": "thinking", "text": "%\n5"}
+
+data: {"kind": "thinking", "text": ". EX"}
+
+data: {"kind": "thinking", "text": "PLE"}
+
+data: {"kind": "thinking", "text": "OSOL"}
+
+data: {"kind": "thinking", "text": ".NS - Ex"}
+
+data: {"kind": "thinking", "text": "pleo Solutions"}
+
+data: {"kind": "thinking", "text": " - Technology"}
+
+data: {"kind": "thinking", "text": " / Information Technology Services"}
+
+data: {"kind": "thinking", "text": " - MCap "}
+
+data: {"kind": "thinking", "text": "12,856"}
+
+data: {"kind": "thinking", "text": " Cr, P/E"}
+
+data: {"kind": "thinking", "text": " 9.82"}
+
+data: {"kind": "thinking", "text": ", ROE "}
+
+data: {"kind": "thinking", "text": "17.56"}
+
+data: {"kind": "thinking", "text": "%\n6"}
+
+data: {"kind": "thinking", "text": ". INFO"}
+
+data: {"kind": "thinking", "text": "BE"}
+
+data: {"kind": "thinking", "text": "AN.N"}
+
+data: {"kind": "thinking", "text": "S - Info"}
+
+data: {"kind": "thinking", "text": "Beans Technologies"}
+
+data: {"kind": "thinking", "text": " - Technology"}
+
+data: {"kind": "thinking", "text": " / Software -"}
+
+data: {"kind": "thinking", "text": " Application -"}
+
+data: {"kind": "thinking", "text": " MCap 15"}
+
+data: {"kind": "thinking", "text": ",114"}
+
+data: {"kind": "thinking", "text": " Cr, P/E"}
+
+data: {"kind": "thinking", "text": " 19.01"}
+
+data: {"kind": "thinking", "text": ", ROE "}
+
+data: {"kind": "thinking", "text": "23.24"}
+
+data: {"kind": "thinking", "text": "%\n7"}
+
+data: {"kind": "thinking", "text": ". X"}
+
+data: {"kind": "thinking", "text": "CH"}
+
+data: {"kind": "thinking", "text": "ANGING.N"}
+
+data: {"kind": "thinking", "text": "S - X"}
+
+data: {"kind": "thinking", "text": "changing Solutions"}
+
+data: {"kind": "thinking", "text": " - Technology / Information"}
+
+data: {"kind": "thinking", "text": " Technology Services - M"}
+
+data: {"kind": "thinking", "text": "Cap 6,"}
+
+data: {"kind": "thinking", "text": "961 Cr,"}
+
+data: {"kind": "thinking", "text": " P/E 11"}
+
+data: {"kind": "thinking", "text": ".81"}
+
+data: {"kind": "thinking", "text": ", RO"}
+
+data: {"kind": "thinking", "text": "E 15"}
+
+data: {"kind": "thinking", "text": ".75"}
+
+data: {"kind": "thinking", "text": "%\n8"}
+
+data: {"kind": "thinking", "text": ". ON"}
+
+data: {"kind": "thinking", "text": "WARD"}
+
+data: {"kind": "thinking", "text": "TE"}
+
+data: {"kind": "thinking", "text": "C.N"}
+
+data: {"kind": "thinking", "text": "S - On"}
+
+data: {"kind": "thinking", "text": "ward Technologies"}
+
+data: {"kind": "thinking", "text": " - Technology / Information"}
+
+data: {"kind": "thinking", "text": " Technology Services - M"}
+
+data: {"kind": "thinking", "text": "Cap 6,"}
+
+data: {"kind": "thinking", "text": "378 Cr"}
+
+data: {"kind": "thinking", "text": ", P/E "}
+
+data: {"kind": "thinking", "text": "12.71"}
+
+data: {"kind": "thinking", "text": ", ROE "}
+
+data: {"kind": "thinking", "text": "18.55"}
+
+data: {"kind": "thinking", "text": "%\n9"}
+
+data: {"kind": "thinking", "text": ". KS"}
+
+data: {"kind": "thinking", "text": "OL"}
+
+data: {"kind": "thinking", "text": "VES.N"}
+
+data: {"kind": "thinking", "text": "S - K"}
+
+data: {"kind": "thinking", "text": "solves India"}
+
+data: {"kind": "thinking", "text": " - Technology"}
+
+data: {"kind": "thinking", "text": " / Software - Application"}
+
+data: {"kind": "thinking", "text": " - MCap "}
+
+data: {"kind": "thinking", "text": "6,70"}
+
+data: {"kind": "thinking", "text": "3 Cr"}
+
+data: {"kind": "thinking", "text": ", P/E "}
+
+data: {"kind": "thinking", "text": "19.69"}
+
+data: {"kind": "thinking", "text": ", ROE "}
+
+data: {"kind": "thinking", "text": "136.94"}
+
+data: {"kind": "thinking", "text": "%\n10"}
+
+data: {"kind": "thinking", "text": ". INS"}
+
+data: {"kind": "thinking", "text": "PIR"}
+
+data: {"kind": "thinking", "text": "ISYS.N"}
+
+data: {"kind": "thinking", "text": "S - Insp"}
+
+data: {"kind": "thinking", "text": "iris"}
+
+data: {"kind": "thinking", "text": "ys Solutions"}
+
+data: {"kind": "thinking", "text": " - Technology / Information"}
+
+data: {"kind": "thinking", "text": " Technology Services - M"}
+
+data: {"kind": "thinking", "text": "Cap 4,"}
+
+data: {"kind": "thinking", "text": "087 Cr"}
+
+data: {"kind": "thinking", "text": ", P/E "}
+
+data: {"kind": "thinking", "text": "11.32"}
+
+data: {"kind": "thinking", "text": ", RO"}
+
+data: {"kind": "thinking", "text": "E 48"}
+
+data: {"kind": "thinking", "text": ".96"}
+
+data: {"kind": "thinking", "text": "%\n11"}
+
+data: {"kind": "thinking", "text": ". SIGMA.N"}
+
+data: {"kind": "thinking", "text": "S - Sigma"}
+
+data: {"kind": "thinking", "text": " Solve"}
+
+data: {"kind": "thinking", "text": " - Technology / Information"}
+
+data: {"kind": "thinking", "text": " Technology Services - M"}
+
+data: {"kind": "thinking", "text": "Cap 3,"}
+
+data: {"kind": "thinking", "text": "961 Cr"}
+
+data: {"kind": "thinking", "text": ", P/E "}
+
+data: {"kind": "thinking", "text": "17.52"}
+
+data: {"kind": "thinking", "text": ", ROE "}
+
+data: {"kind": "thinking", "text": "37.78"}
+
+data: {"kind": "thinking", "text": "%\n12"}
+
+data: {"kind": "thinking", "text": ". DR"}
+
+data: {"kind": "thinking", "text": "CS"}
+
+data: {"kind": "thinking", "text": "YSTEMS.N"}
+
+data: {"kind": "thinking", "text": "S - D"}
+
+data: {"kind": "thinking", "text": "RC Systems India"}
+
+data: {"kind": "thinking", "text": " - Technology"}
+
+data: {"kind": "thinking", "text": " / Information Technology Services"}
+
+data: {"kind": "thinking", "text": " - MCap "}
+
+data: {"kind": "thinking", "text": "1,98"}
+
+data: {"kind": "thinking", "text": "7 Cr"}
+
+data: {"kind": "thinking", "text": ", P/E "}
+
+data: {"kind": "thinking", "text": "10.12"}
+
+data: {"kind": "thinking", "text": ", ROE "}
+
+data: {"kind": "thinking", "text": "21.82"}
+
+data: {"kind": "thinking", "text": "%\n13"}
+
+data: {"kind": "thinking", "text": ". DEV"}
+
+data: {"kind": "thinking", "text": "IT"}
+
+data: {"kind": "thinking", "text": ".NS - Dev"}
+
+data: {"kind": "thinking", "text": " Information Technology - Technology"}
+
+data: {"kind": "thinking", "text": " / Information Technology Services"}
+
+data: {"kind": "thinking", "text": " - MCap "}
+
+data: {"kind": "thinking", "text": "1,557"}
+
+data: {"kind": "thinking", "text": " Cr, P/E"}
+
+data: {"kind": "thinking", "text": " 2.06"}
+
+data: {"kind": "thinking", "text": ", ROE "}
+
+data: {"kind": "thinking", "text": "84.91"}
+
+data: {"kind": "thinking", "text": "%\n14"}
+
+data: {"kind": "thinking", "text": ". WE"}
+
+data: {"kind": "thinking", "text": "WIN"}
+
+data: {"kind": "thinking", "text": ".NS - WE"}
+
+data: {"kind": "thinking", "text": " WIN"}
+
+data: {"kind": "thinking", "text": " LIMITED"}
+
+data: {"kind": "thinking", "text": " - Technology / Information"}
+
+data: {"kind": "thinking", "text": " Technology Services - M"}
+
+data: {"kind": "thinking", "text": "Cap 483"}
+
+data: {"kind": "thinking", "text": " Cr, P/E"}
+
+data: {"kind": "thinking", "text": " 17.73"}
+
+data: {"kind": "thinking", "text": ", ROE "}
+
+data: {"kind": "thinking", "text": "15.14"}
+
+data: {"kind": "thinking", "text": "%\n\nAlso"}
+
+data: {"kind": "thinking", "text": " there are some in"}
+
+data: {"kind": "thinking", "text": " \""}
+
+data: {"kind": "thinking", "text": "Technology"}
+
+data: {"kind": "thinking", "text": "\" sector"}
+
+data: {"kind": "thinking", "text": " but other"}
+
+data: {"kind": "thinking", "text": " industries like"}
+
+data: {"kind": "thinking", "text": " \""}
+
+data: {"kind": "thinking", "text": "Communication Equipment"}
+
+data: {"kind": "thinking", "text": "\" (P"}
+
+data: {"kind": "thinking", "text": "ACED"}
+
+data: {"kind": "thinking", "text": "IG"}
+
+data: {"kind": "thinking", "text": "ITK"}
+
+data: {"kind": "thinking", "text": ", DL"}
+
+data: {"kind": "thinking", "text": "INK"}
+
+data: {"kind": "thinking", "text": "IND"}
+
+data: {"kind": "thinking", "text": "IA), \""}
+
+data: {"kind": "thinking", "text": "Solar\""}
+
+data: {"kind": "thinking", "text": " (WEBELS"}
+
+data: {"kind": "thinking", "text": "OL"}
+
+data: {"kind": "thinking", "text": "AR, INA"}
+
+data: {"kind": "thinking", "text": ", SO"}
+
+data: {"kind": "thinking", "text": "LEX"}
+
+data: {"kind": "thinking", "text": ", SOL"}
+
+data: {"kind": "thinking", "text": "ARW"}
+
+data: {"kind": "thinking", "text": "ORLD,"}
+
+data: {"kind": "thinking", "text": " WAARE"}
+
+data: {"kind": "thinking", "text": "EIND"}
+
+data: {"kind": "thinking", "text": "O), \"Elect"}
+
+data: {"kind": "thinking", "text": "ronics &"}
+
+data: {"kind": "thinking", "text": " Computer Distribution"}
+
+data: {"kind": "thinking", "text": "\" (CN"}
+
+data: {"kind": "thinking", "text": "L)."}
+
+data: {"kind": "thinking", "text": " These"}
+
+data: {"kind": "thinking", "text": " are not IT"}
+
+data: {"kind": "thinking", "text": " services per"}
+
+data: {"kind": "thinking", "text": " se.\n\nAnd"}
+
+data: {"kind": "thinking", "text": " some"}
+
+data: {"kind": "thinking", "text": " in other"}
+
+data: {"kind": "thinking", "text": " sectors but"}
+
+data: {"kind": "thinking", "text": " IT"}
+
+data: {"kind": "thinking", "text": "-"}
+
+data: {"kind": "thinking", "text": "adjacent like"}
+
+data: {"kind": "thinking", "text": ":\n"}
+
+data: {"kind": "thinking", "text": "- MPS"}
+
+data: {"kind": "thinking", "text": "L"}
+
+data: {"kind": "thinking", "text": "TD"}
+
+data: {"kind": "thinking", "text": ".NS - MPS"}
+
+data: {"kind": "thinking", "text": " Limited - Communication"}
+
+data: {"kind": "thinking", "text": " Services"}
+
+data: {"kind": "thinking", "text": " / Publishing -"}
+
+data: {"kind": "thinking", "text": " this"}
+
+data: {"kind": "thinking", "text": " is more"}
+
+data: {"kind": "thinking", "text": " publishing"}
+
+data: {"kind": "thinking", "text": "\n- QUE"}
+
+data: {"kind": "thinking", "text": "SS"}
+
+data: {"kind": "thinking", "text": ".NS - Qu"}
+
+data: {"kind": "thinking", "text": "ess"}
+
+data: {"kind": "thinking", "text": " Corp - Industri"}
+
+data: {"kind": "thinking", "text": "als /"}
+
+data: {"kind": "thinking", "text": " Staffing\n"}
+
+data: {"kind": "thinking", "text": "- ALL"}
+
+data: {"kind": "thinking", "text": "DIG"}
+
+data: {"kind": "thinking", "text": "I.N"}
+
+data: {"kind": "thinking", "text": "S - Al"}
+
+data: {"kind": "thinking", "text": "ldigi"}
+
+data: {"kind": "thinking", "text": " Tech -"}
+
+data: {"kind": "thinking", "text": " Industrials / Specialty"}
+
+data: {"kind": "thinking", "text": " Business"}
+
+data: {"kind": "thinking", "text": " Services"}
+
+data: {"kind": "thinking", "text": "\n\nThe"}
+
+data: {"kind": "thinking", "text": " user asked specifically"}
+
+data: {"kind": "thinking", "text": " for \"IT services"}
+
+data: {"kind": "thinking", "text": " companies.\""}
+
+data: {"kind": "thinking", "text": " I"}
+
+data: {"kind": "thinking", "text": " should present"}
+
+data: {"kind": "thinking", "text": " the ones in"}
+
+data: {"kind": "thinking", "text": " Technology"}
+
+data: {"kind": "thinking", "text": " sector"}
+
+data: {"kind": "thinking", "text": " with IT"}
+
+data: {"kind": "thinking", "text": " services /"}
+
+data: {"kind": "thinking", "text": " software application"}
+
+data: {"kind": "thinking", "text": " industry.\n\nLet me"}
+
+data: {"kind": "thinking", "text": " note"}
+
+data: {"kind": "thinking", "text": ":"}
+
+data: {"kind": "thinking", "text": " market"}
+
+data: {"kind": "thinking", "text": " cap values"}
+
+data: {"kind": "thinking", "text": " are in ru"}
+
+data: {"kind": "thinking", "text": "pees (absolute"}
+
+data: {"kind": "thinking", "text": "), so"}
+
+data: {"kind": "thinking", "text": " "}
+
+data: {"kind": "thinking", "text": "5000 crore"}
+
+data: {"kind": "thinking", "text": " = 50"}
+
+data: {"kind": "thinking", "text": ",000,000"}
+
+data: {"kind": "thinking", "text": ",000 (50"}
+
+data: {"kind": "thinking", "text": " billion rupees)."}
+
+data: {"kind": "thinking", "text": " The"}
+
+data: {"kind": "thinking", "text": " user said \"under"}
+
+data: {"kind": "thinking", "text": " 5000 crore"}
+
+data: {"kind": "thinking", "text": "\" so"}
+
+data: {"kind": "thinking", "text": " market"}
+
+data: {"kind": "thinking", "text": " cap <"}
+
+data: {"kind": "thinking", "text": " 50,000"}
+
+data: {"kind": "thinking", "text": ",000,000"}
+
+data: {"kind": "thinking", "text": " INR. All"}
+
+data: {"kind": "thinking", "text": " these"}
+
+data: {"kind": "thinking", "text": " are under"}
+
+data: {"kind": "thinking", "text": " that"}
+
+data: {"kind": "thinking", "text": ".\n\nLet me also"}
+
+data: {"kind": "thinking", "text": " note the"}
+
+data: {"kind": "thinking", "text": " screen"}
+
+data: {"kind": "thinking", "text": " I"}
+
+data: {"kind": "thinking", "text": " set"}
+
+data: {"kind": "thinking", "text": " up didn"}
+
+data: {"kind": "thinking", "text": "'t have"}
+
+data: {"kind": "thinking", "text": " a sector"}
+
+data: {"kind": "thinking", "text": " filter"}
+
+data: {"kind": "thinking", "text": " -"}
+
+data: {"kind": "thinking", "text": " it"}
+
+data: {"kind": "thinking", "text": " screened"}
+
+data: {"kind": "thinking", "text": " all"}
+
+data: {"kind": "thinking", "text": " NSE stocks"}
+
+data: {"kind": "thinking", "text": ". But"}
+
+data: {"kind": "thinking", "text": " the user asked specifically"}
+
+data: {"kind": "thinking", "text": " for IT services companies"}
+
+data: {"kind": "thinking", "text": ". The"}
+
+data: {"kind": "thinking", "text": " screener doesn"}
+
+data: {"kind": "thinking", "text": "'t have a sector"}
+
+data: {"kind": "thinking", "text": "/industry filter"}
+
+data: {"kind": "thinking", "text": " in"}
+
+data: {"kind": "thinking", "text": " the criteria."}
+
+data: {"kind": "thinking", "text": " So"}
+
+data: {"kind": "thinking", "text": " the"}
+
+data: {"kind": "thinking", "text": " screen"}
+
+data: {"kind": "thinking", "text": " returned 154 results"}
+
+data: {"kind": "thinking", "text": " across all sectors,"}
+
+data: {"kind": "thinking", "text": " and I need to"}
+
+data: {"kind": "thinking", "text": " manually"}
+
+data: {"kind": "thinking", "text": " filter for"}
+
+data: {"kind": "thinking", "text": " IT services.\n\n"}
+
+data: {"kind": "thinking", "text": "Actually"}
+
+data: {"kind": "thinking", "text": ", I"}
+
+data: {"kind": "thinking", "text": " should be"}
+
+data: {"kind": "thinking", "text": " transparent"}
+
+data: {"kind": "thinking", "text": " about this"}
+
+data: {"kind": "thinking", "text": ". The scre"}
+
+data: {"kind": "thinking", "text": "ener doesn"}
+
+data: {"kind": "thinking", "text": "'t seem"}
+
+data: {"kind": "thinking", "text": " to have a sector"}
+
+data: {"kind": "thinking", "text": " filter"}
+
+data: {"kind": "thinking", "text": " I"}
+
+data: {"kind": "thinking", "text": " can apply"}
+
+data: {"kind": "thinking", "text": "."}
+
+data: {"kind": "thinking", "text": " Let me present"}
+
+data: {"kind": "thinking", "text": " the IT"}
+
+data: {"kind": "thinking", "text": " services ones"}
+
+data: {"kind": "thinking", "text": " from the results"}
+
+data: {"kind": "thinking", "text": ".\n\nLet me convert"}
+
+data: {"kind": "thinking", "text": " market"}
+
+data: {"kind": "thinking", "text": " caps to crore"}
+
+data: {"kind": "thinking", "text": " for"}
+
+data: {"kind": "thinking", "text": " readability"}
+
+data: {"kind": "thinking", "text": ":\n- "}
+
+data: {"kind": "thinking", "text": "1 crore"}
+
+data: {"kind": "thinking", "text": " = 10"}
+
+data: {"kind": "thinking", "text": ",000,000"}
+
+data: {"kind": "thinking", "text": " ("}
+
+data: {"kind": "thinking", "text": "10 million)\n"}
+
+data: {"kind": "thinking", "text": "- So market"}
+
+data: {"kind": "thinking", "text": " cap in crore"}
+
+data: {"kind": "thinking", "text": " ="}
+
+data: {"kind": "thinking", "text": " market_cap / "}
+
+data: {"kind": "thinking", "text": "10,000,"}
+
+data: {"kind": "thinking", "text": "000\n\nSA"}
+
+data: {"kind": "thinking", "text": "KSOFT:"}
+
+data: {"kind": "thinking", "text": " 21,128"}
+
+data: {"kind": "thinking", "text": ",750"}
+
+data: {"kind": "thinking", "text": ",000 /"}
+
+data: {"kind": "thinking", "text": " 10,000"}
+
+data: {"kind": "thinking", "text": ",000 = "}
+
+data: {"kind": "thinking", "text": "2,112"}
+
+data: {"kind": "thinking", "text": ".875"}
+
+data: {"kind": "thinking", "text": " crore"}
+
+data: {"kind": "thinking", "text": " \u2192 ~"}
+
+data: {"kind": "thinking", "text": "\u20b92,"}
+
+data: {"kind": "thinking", "text": "113 Cr"}
+
+data: {"kind": "thinking", "text": "\nMC"}
+
+data: {"kind": "thinking", "text": "LOUD: 17"}
+
+data: {"kind": "thinking", "text": ",448,"}
+
+data: {"kind": "thinking", "text": "225,0"}
+
+data: {"kind": "thinking", "text": "24 / 10"}
+
+data: {"kind": "thinking", "text": "M"}
+
+data: {"kind": "thinking", "text": " = 1"}
+
+data: {"kind": "thinking", "text": ",744"}
+
+data: {"kind": "thinking", "text": ".8 Cr"}
+
+data: {"kind": "thinking", "text": "\n"}
+
+data: {"kind": "thinking", "text": "DSSL: "}
+
+data: {"kind": "thinking", "text": "16,434"}
+
+data: {"kind": "thinking", "text": ",700"}
+
+data: {"kind": "thinking", "text": ",774"}
+
+data: {"kind": "thinking", "text": " / 10M"}
+
+data: {"kind": "thinking", "text": " = 1"}
+
+data: {"kind": "thinking", "text": ",643."}
+
+data: {"kind": "thinking", "text": "5 Cr\nIVAL"}
+
+data: {"kind": "thinking", "text": "UE"}
+
+data: {"kind": "thinking", "text": ": 15,"}
+
+data: {"kind": "thinking", "text": "799,07"}
+
+data: {"kind": "thinking", "text": "5,240"}
+
+data: {"kind": "thinking", "text": " / 10M"}
+
+data: {"kind": "thinking", "text": " = 1,"}
+
+data: {"kind": "thinking", "text": "579.9"}
+
+data: {"kind": "thinking", "text": " Cr\nINFO"}
+
+data: {"kind": "thinking", "text": "BEAN: "}
+
+data: {"kind": "thinking", "text": "15,113"}
+
+data: {"kind": "thinking", "text": ",531"}
+
+data: {"kind": "thinking", "text": ",30"}
+
+data: {"kind": "thinking", "text": "7 / 10"}
+
+data: {"kind": "thinking", "text": "M = 1"}
+
+data: {"kind": "thinking", "text": ",5"}
+
+data: {"kind": "thinking", "text": "11.4"}
+
+data: {"kind": "thinking", "text": " Cr\nEX"}
+
+data: {"kind": "thinking", "text": "PLEOSOL:"}
+
+data: {"kind": "thinking", "text": " 12,8"}
+
+data: {"kind": "thinking", "text": "55,824"}
+
+data: {"kind": "thinking", "text": ",673"}
+
+data: {"kind": "thinking", "text": " / 10M"}
+
+data: {"kind": "thinking", "text": " = 1,"}
+
+data: {"kind": "thinking", "text": "285."}
+
+data: {"kind": "thinking", "text": "6 Cr"}
+
+data: {"kind": "thinking", "text": "\nKSOLVES"}
+
+data: {"kind": "thinking", "text": ": 6"}
+
+data: {"kind": "thinking", "text": ",703,"}
+
+data: {"kind": "thinking", "text": "355,36"}
+
+data: {"kind": "thinking", "text": "7 / 10"}
+
+data: {"kind": "thinking", "text": "M = 6"}
+
+data: {"kind": "thinking", "text": "70.3 Cr"}
+
+data: {"kind": "thinking", "text": "\nX"}
+
+data: {"kind": "thinking", "text": "CHANGING:"}
+
+data: {"kind": "thinking", "text": " 6,9"}
+
+data: {"kind": "thinking", "text": "60,5"}
+
+data: {"kind": "thinking", "text": "23,232 /"}
+
+data: {"kind": "thinking", "text": " 10M ="}
+
+data: {"kind": "thinking", "text": " 696."}
+
+data: {"kind": "thinking", "text": "1 Cr\nON"}
+
+data: {"kind": "thinking", "text": "WARDTEC:"}
+
+data: {"kind": "thinking", "text": " 6,37"}
+
+data: {"kind": "thinking", "text": "7,576"}
+
+data: {"kind": "thinking", "text": ",160"}
+
+data: {"kind": "thinking", "text": " / 10M"}
+
+data: {"kind": "thinking", "text": " = 6"}
+
+data: {"kind": "thinking", "text": "37.8"}
+
+data: {"kind": "thinking", "text": " Cr\nINS"}
+
+data: {"kind": "thinking", "text": "PIRISYS"}
+
+data: {"kind": "thinking", "text": ": 4,"}
+
+data: {"kind": "thinking", "text": "086,9"}
+
+data: {"kind": "thinking", "text": "13,34"}
+
+data: {"kind": "thinking", "text": "3 / 10"}
+
+data: {"kind": "thinking", "text": "M"}
+
+data: {"kind": "thinking", "text": " = 40"}
+
+data: {"kind": "thinking", "text": "8.7 Cr"}
+
+data: {"kind": "thinking", "text": "\nSIG"}
+
+data: {"kind": "thinking", "text": "MA:"}
+
+data: {"kind": "thinking", "text": " 3,9"}
+
+data: {"kind": "thinking", "text": "60,9"}
+
+data: {"kind": "thinking", "text": "48,500 /"}
+
+data: {"kind": "thinking", "text": " 10M ="}
+
+data: {"kind": "thinking", "text": " 396."}
+
+data: {"kind": "thinking", "text": "1 Cr"}
+
+data: {"kind": "thinking", "text": "\nDRCSYSTEM"}
+
+data: {"kind": "thinking", "text": "S: 1"}
+
+data: {"kind": "thinking", "text": ",986"}
+
+data: {"kind": "thinking", "text": ",846"}
+
+data: {"kind": "thinking", "text": ",127 /"}
+
+data: {"kind": "thinking", "text": " 10M ="}
+
+data: {"kind": "thinking", "text": " 198.7"}
+
+data: {"kind": "thinking", "text": " Cr\nDEV"}
+
+data: {"kind": "thinking", "text": "IT: 1"}
+
+data: {"kind": "thinking", "text": ",557,"}
+
+data: {"kind": "thinking", "text": "318,33"}
+
+data: {"kind": "thinking", "text": "8 / 10"}
+
+data: {"kind": "thinking", "text": "M = 155"}
+
+data: {"kind": "thinking", "text": ".7 Cr"}
+
+data: {"kind": "thinking", "text": "\nWE"}
+
+data: {"kind": "thinking", "text": "WIN:"}
+
+data: {"kind": "thinking", "text": " 482"}
+
+data: {"kind": "thinking", "text": ",5"}
+
+data: {"kind": "thinking", "text": "88,868"}
+
+data: {"kind": "thinking", "text": " / 10M"}
+
+data: {"kind": "thinking", "text": " = 48"}
+
+data: {"kind": "thinking", "text": ".3"}
+
+data: {"kind": "thinking", "text": " Cr\n\nWait"}
+
+data: {"kind": "thinking", "text": ", let"}
+
+data: {"kind": "thinking", "text": " me double"}
+
+data: {"kind": "thinking", "text": " check"}
+
+data: {"kind": "thinking", "text": ": "}
+
+data: {"kind": "thinking", "text": "5000 crore ="}
+
+data: {"kind": "thinking", "text": " 500"}
+
+data: {"kind": "thinking", "text": "0 * 10"}
+
+data: {"kind": "thinking", "text": ",000,000"}
+
+data: {"kind": "thinking", "text": " = 50"}
+
+data: {"kind": "thinking", "text": ",000,000"}
+
+data: {"kind": "thinking", "text": ",000 ="}
+
+data: {"kind": "thinking", "text": " 50 billion"}
+
+data: {"kind": "thinking", "text": " rupees. So"}
+
+data: {"kind": "thinking", "text": " the filter"}
+
+data: {"kind": "thinking", "text": " was"}
+
+data: {"kind": "thinking", "text": " market"}
+
+data: {"kind": "thinking", "text": "_cap"}
+
+data: {"kind": "thinking", "text": " < 50,"}
+
+data: {"kind": "thinking", "text": "000,000,"}
+
+data: {"kind": "thinking", "text": "000. Yes"}
+
+data: {"kind": "thinking", "text": ", correct"}
+
+data: {"kind": "thinking", "text": ".\n\nNow"}
+
+data: {"kind": "thinking", "text": " the"}
+
+data: {"kind": "thinking", "text": " scre"}
+
+data: {"kind": "thinking", "text": "ener was"}
+
+data: {"kind": "thinking", "text": " dispatched"}
+
+data: {"kind": "thinking", "text": " to the panel"}
+
+data: {"kind": "thinking", "text": "."}
+
+data: {"kind": "thinking", "text": " Let me also"}
+
+data: {"kind": "thinking", "text": " save"}
+
+data: {"kind": "thinking", "text": " this"}
+
+data: {"kind": "thinking", "text": " screen"}
+
+data: {"kind": "thinking", "text": " for the"}
+
+data: {"kind": "thinking", "text": " user.\n\nActually"}
+
+data: {"kind": "thinking", "text": ", I"}
+
+data: {"kind": "thinking", "text": " should note that the"}
+
+data: {"kind": "thinking", "text": " screener doesn't"}
+
+data: {"kind": "thinking", "text": " have a sector"}
+
+data: {"kind": "thinking", "text": "/industry filter,"}
+
+data: {"kind": "thinking", "text": " so the"}
+
+data: {"kind": "thinking", "text": " screen"}
+
+data: {"kind": "thinking", "text": " returned all"}
+
+data: {"kind": "thinking", "text": " sectors"}
+
+data: {"kind": "thinking", "text": ". I"}
+
+data: {"kind": "thinking", "text": " should be"}
+
+data: {"kind": "thinking", "text": " transparent about this and"}
+
+data: {"kind": "thinking", "text": " present the IT-services"}
+
+data: {"kind": "thinking", "text": " filtered"}
+
+data: {"kind": "thinking", "text": " subset"}
+
+data: {"kind": "thinking", "text": ".\n\nLet me present"}
+
+data: {"kind": "thinking", "text": " the top"}
+
+data: {"kind": "thinking", "text": " IT services rows"}
+
+data: {"kind": "thinking", "text": " sorted"}
+
+data: {"kind": "thinking", "text": " by market"}
+
+data: {"kind": "thinking", "text": " cap (descending"}
+
+data: {"kind": "thinking", "text": ")."}
+
+data: {"kind": "delta", "text": "The"}
+
+data: {"kind": "delta", "text": " screen is staged"}
+
+data: {"kind": "delta", "text": " in"}
+
+data: {"kind": "delta", "text": " your"}
+
+data: {"kind": "delta", "text": " screener panel"}
+
+data: {"kind": "delta", "text": " and the"}
+
+data: {"kind": "delta", "text": " run completed"}
+
+data: {"kind": "delta", "text": " \u2014"}
+
+data: {"kind": "delta", "text": " 154"}
+
+data: {"kind": "delta", "text": " names"}
+
+data: {"kind": "delta", "text": " matched"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " three numeric"}
+
+data: {"kind": "delta", "text": " filters across"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " entire"}
+
+data: {"kind": "delta", "text": " NSE. Since"}
+
+data: {"kind": "delta", "text": " the scre"}
+
+data: {"kind": "delta", "text": "ener doesn"}
+
+data: {"kind": "delta", "text": "'t have a sector"}
+
+data: {"kind": "delta", "text": "/industry filter,"}
+
+data: {"kind": "delta", "text": " it"}
+
+data: {"kind": "delta", "text": " swept"}
+
+data: {"kind": "delta", "text": " all sectors"}
+
+data: {"kind": "delta", "text": ";"}
+
+data: {"kind": "delta", "text": " I've"}
+
+data: {"kind": "delta", "text": " pulled out the **"}
+
+data: {"kind": "delta", "text": "IT services**"}
+
+data: {"kind": "delta", "text": " names"}
+
+data: {"kind": "delta", "text": " (Technology"}
+
+data: {"kind": "delta", "text": " sector"}
+
+data: {"kind": "delta", "text": ", IT"}
+
+data: {"kind": "delta", "text": " Services"}
+
+data: {"kind": "delta", "text": " / Software-"}
+
+data: {"kind": "delta", "text": "Application industry"}
+
+data: {"kind": "delta", "text": ") from the results"}
+
+data: {"kind": "delta", "text": " for you.\n\n"}
+
+data: {"kind": "delta", "text": "Here"}
+
+data: {"kind": "delta", "text": " are the **"}
+
+data: {"kind": "delta", "text": "IT"}
+
+data: {"kind": "delta", "text": " services matches"}
+
+data: {"kind": "delta", "text": "**,"}
+
+data: {"kind": "delta", "text": " ranked"}
+
+data: {"kind": "delta", "text": " by market cap:\n\n"}
+
+data: {"kind": "delta", "text": "| #"}
+
+data: {"kind": "delta", "text": " | T"}
+
+data: {"kind": "delta", "text": "icker | Company"}
+
+data: {"kind": "delta", "text": " | MCap ("}
+
+data: {"kind": "delta", "text": "\u20b9 Cr"}
+
+data: {"kind": "delta", "text": ") | P"}
+
+data: {"kind": "delta", "text": "/E | RO"}
+
+data: {"kind": "delta", "text": "E | Price"}
+
+data: {"kind": "delta", "text": " (\u20b9)"}
+
+data: {"kind": "delta", "text": " |\n|---"}
+
+data: {"kind": "delta", "text": "|--------"}
+
+data: {"kind": "delta", "text": "|---------"}
+
+data: {"kind": "delta", "text": "|------------"}
+
+data: {"kind": "delta", "text": "|-----"}
+
+data: {"kind": "delta", "text": "|-----"}
+
+data: {"kind": "delta", "text": "|-----------"}
+
+data: {"kind": "delta", "text": "|\n| 1"}
+
+data: {"kind": "delta", "text": " | $"}
+
+data: {"kind": "delta", "text": "SAKSOFT"}
+
+data: {"kind": "delta", "text": " | Sak"}
+
+data: {"kind": "delta", "text": "soft Ltd"}
+
+data: {"kind": "delta", "text": " | ~"}
+
+data: {"kind": "delta", "text": "2,113 |"}
+
+data: {"kind": "delta", "text": " 13.5"}
+
+data: {"kind": "delta", "text": " | 19."}
+
+data: {"kind": "delta", "text": "1% | "}
+
+data: {"kind": "delta", "text": "169."}
+
+data: {"kind": "delta", "text": "03"}
+
+data: {"kind": "delta", "text": " |\n| 2"}
+
+data: {"kind": "delta", "text": " | $MCLOUD"}
+
+data: {"kind": "delta", "text": " | Mag"}
+
+data: {"kind": "delta", "text": "ellanic Cloud Ltd"}
+
+data: {"kind": "delta", "text": " | ~1"}
+
+data: {"kind": "delta", "text": ",745"}
+
+data: {"kind": "delta", "text": " | 12"}
+
+data: {"kind": "delta", "text": ".6 | "}
+
+data: {"kind": "delta", "text": "19.0%"}
+
+data: {"kind": "delta", "text": " | 29"}
+
+data: {"kind": "delta", "text": ".62"}
+
+data: {"kind": "delta", "text": " |\n| 3"}
+
+data: {"kind": "delta", "text": " | $D"}
+
+data: {"kind": "delta", "text": "SSL | Dyn"}
+
+data: {"kind": "delta", "text": "acons Systems & Solutions"}
+
+data: {"kind": "delta", "text": " | ~1"}
+
+data: {"kind": "delta", "text": ",643 |"}
+
+data: {"kind": "delta", "text": " 19.3"}
+
+data: {"kind": "delta", "text": " | 31"}
+
+data: {"kind": "delta", "text": ".0% |"}
+
+data: {"kind": "delta", "text": " 1,290"}
+
+data: {"kind": "delta", "text": ".30"}
+
+data: {"kind": "delta", "text": " |\n| 4"}
+
+data: {"kind": "delta", "text": " | $IVAL"}
+
+data: {"kind": "delta", "text": "UE | I"}
+
+data: {"kind": "delta", "text": "value Infosolutions Ltd"}
+
+data: {"kind": "delta", "text": " | ~1"}
+
+data: {"kind": "delta", "text": ",580 |"}
+
+data: {"kind": "delta", "text": " 13.0"}
+
+data: {"kind": "delta", "text": " | 19"}
+
+data: {"kind": "delta", "text": ".1%"}
+
+data: {"kind": "delta", "text": " | 28"}
+
+data: {"kind": "delta", "text": "9.20"}
+
+data: {"kind": "delta", "text": " |\n|"}
+
+data: {"kind": "delta", "text": " 5 | $"}
+
+data: {"kind": "delta", "text": "INFOBEAN |"}
+
+data: {"kind": "delta", "text": " InfoBeans Technologies |"}
+
+data: {"kind": "delta", "text": " ~1,5"}
+
+data: {"kind": "delta", "text": "11 | 19"}
+
+data: {"kind": "delta", "text": ".0 | "}
+
+data: {"kind": "delta", "text": "23.2"}
+
+data: {"kind": "delta", "text": "% | 155"}
+
+data: {"kind": "delta", "text": ".85"}
+
+data: {"kind": "delta", "text": " |\n| 6"}
+
+data: {"kind": "delta", "text": " | $EX"}
+
+data: {"kind": "delta", "text": "PLEOSOL |"}
+
+data: {"kind": "delta", "text": " Expleo Solutions"}
+
+data: {"kind": "delta", "text": " Ltd | ~1"}
+
+data: {"kind": "delta", "text": ",286 |"}
+
+data: {"kind": "delta", "text": " 9.8"}
+
+data: {"kind": "delta", "text": " | 17"}
+
+data: {"kind": "delta", "text": ".6% |"}
+
+data: {"kind": "delta", "text": " 828."}
+
+data: {"kind": "delta", "text": "35 |\n"}
+
+data: {"kind": "delta", "text": "| 7"}
+
+data: {"kind": "delta", "text": " | $X"}
+
+data: {"kind": "delta", "text": "CHANGING |"}
+
+data: {"kind": "delta", "text": " Xchanging Solutions Ltd"}
+
+data: {"kind": "delta", "text": " | ~6"}
+
+data: {"kind": "delta", "text": "96 | 11"}
+
+data: {"kind": "delta", "text": ".8 | "}
+
+data: {"kind": "delta", "text": "15.8"}
+
+data: {"kind": "delta", "text": "% | 62"}
+
+data: {"kind": "delta", "text": ".48"}
+
+data: {"kind": "delta", "text": " |\n| 8"}
+
+data: {"kind": "delta", "text": " | $KS"}
+
+data: {"kind": "delta", "text": "OLVES | K"}
+
+data: {"kind": "delta", "text": "solves India Ltd"}
+
+data: {"kind": "delta", "text": " | ~6"}
+
+data: {"kind": "delta", "text": "70 | 19"}
+
+data: {"kind": "delta", "text": ".7 |"}
+
+data: {"kind": "delta", "text": " 136.9"}
+
+data: {"kind": "delta", "text": "% | "}
+
+data: {"kind": "delta", "text": "282.60"}
+
+data: {"kind": "delta", "text": " |\n| 9"}
+
+data: {"kind": "delta", "text": " | $ONWARD"}
+
+data: {"kind": "delta", "text": "TEC | On"}
+
+data: {"kind": "delta", "text": "ward Technologies Ltd"}
+
+data: {"kind": "delta", "text": " | ~6"}
+
+data: {"kind": "delta", "text": "38 | 12"}
+
+data: {"kind": "delta", "text": ".7"}
+
+data: {"kind": "delta", "text": " | 18"}
+
+data: {"kind": "delta", "text": ".6"}
+
+data: {"kind": "delta", "text": "% | 280"}
+
+data: {"kind": "delta", "text": ".20 |\n"}
+
+data: {"kind": "delta", "text": "| 10"}
+
+data: {"kind": "delta", "text": " | $INS"}
+
+data: {"kind": "delta", "text": "PIRISYS"}
+
+data: {"kind": "delta", "text": " | Insp"}
+
+data: {"kind": "delta", "text": "irisys Solutions"}
+
+data: {"kind": "delta", "text": " Ltd | ~40"}
+
+data: {"kind": "delta", "text": "9 | 11"}
+
+data: {"kind": "delta", "text": ".3 | "}
+
+data: {"kind": "delta", "text": "49.0%"}
+
+data: {"kind": "delta", "text": " | 103"}
+
+data: {"kind": "delta", "text": ".16 |\n"}
+
+data: {"kind": "delta", "text": "| 11 |"}
+
+data: {"kind": "delta", "text": " $SIG"}
+
+data: {"kind": "delta", "text": "MA | Sigma Solve"}
+
+data: {"kind": "delta", "text": " Ltd | ~39"}
+
+data: {"kind": "delta", "text": "6 | 17"}
+
+data: {"kind": "delta", "text": ".5"}
+
+data: {"kind": "delta", "text": " | 37."}
+
+data: {"kind": "delta", "text": "8% | "}
+
+data: {"kind": "delta", "text": "38.54"}
+
+data: {"kind": "delta", "text": " |\n| 12"}
+
+data: {"kind": "delta", "text": " | $DR"}
+
+data: {"kind": "delta", "text": "CSYSTEMS |"}
+
+data: {"kind": "delta", "text": " DRC Systems India"}
+
+data: {"kind": "delta", "text": " Ltd | ~199"}
+
+data: {"kind": "delta", "text": " | 10"}
+
+data: {"kind": "delta", "text": ".1 | "}
+
+data: {"kind": "delta", "text": "21.8"}
+
+data: {"kind": "delta", "text": "% | 13"}
+
+data: {"kind": "delta", "text": ".79"}
+
+data: {"kind": "delta", "text": " |\n| 13"}
+
+data: {"kind": "delta", "text": " | $DEVIT"}
+
+data: {"kind": "delta", "text": " | Dev Information Technology"}
+
+data: {"kind": "delta", "text": " | ~156"}
+
+data: {"kind": "delta", "text": " | 2."}
+
+data: {"kind": "delta", "text": "1 | 84"}
+
+data: {"kind": "delta", "text": ".9% |"}
+
+data: {"kind": "delta", "text": " 27.63"}
+
+data: {"kind": "delta", "text": " |\n| 14"}
+
+data: {"kind": "delta", "text": " | $WEWIN"}
+
+data: {"kind": "delta", "text": " | WE"}
+
+data: {"kind": "delta", "text": " WIN"}
+
+data: {"kind": "delta", "text": " Ltd"}
+
+data: {"kind": "delta", "text": " | ~48"}
+
+data: {"kind": "delta", "text": " | 17"}
+
+data: {"kind": "delta", "text": ".7 | "}
+
+data: {"kind": "delta", "text": "15.1%"}
+
+data: {"kind": "delta", "text": " | 47"}
+
+data: {"kind": "delta", "text": ".49"}
+
+data: {"kind": "delta", "text": " |\n\nAll"}
+
+data: {"kind": "delta", "text": " 14 sit"}
+
+data: {"kind": "delta", "text": " comfortably"}
+
+data: {"kind": "delta", "text": " under \u20b9"}
+
+data: {"kind": "delta", "text": "5,000 Cr"}
+
+data: {"kind": "delta", "text": " market cap, with"}
+
+data: {"kind": "delta", "text": " P/E below"}
+
+data: {"kind": "delta", "text": " 20 and RO"}
+
+data: {"kind": "delta", "text": "E above 15"}
+
+data: {"kind": "delta", "text": "%. A"}
+
+data: {"kind": "delta", "text": " few standouts:"}
+
+data: {"kind": "delta", "text": " **Ex"}
+
+data: {"kind": "delta", "text": "pleo Solutions**"}
+
+data: {"kind": "delta", "text": " (P"}
+
+data: {"kind": "delta", "text": "/E 9."}
+
+data: {"kind": "delta", "text": "8, RO"}
+
+data: {"kind": "delta", "text": "E 17"}
+
+data: {"kind": "delta", "text": ".6"}
+
+data: {"kind": "delta", "text": "%, negligible"}
+
+data: {"kind": "delta", "text": " debt)"}
+
+data: {"kind": "delta", "text": " and **"}
+
+data: {"kind": "delta", "text": "S"}
+
+data: {"kind": "delta", "text": "aksoft**"}
+
+data: {"kind": "delta", "text": " (P/E"}
+
+data: {"kind": "delta", "text": " 13.5"}
+
+data: {"kind": "delta", "text": ", ROE "}
+
+data: {"kind": "delta", "text": "19%,"}
+
+data: {"kind": "delta", "text": " clean"}
+
+data: {"kind": "delta", "text": " balance"}
+
+data: {"kind": "delta", "text": " sheet) look"}
+
+data: {"kind": "delta", "text": " like the most"}
+
+data: {"kind": "delta", "text": " balanced value"}
+
+data: {"kind": "delta", "text": "-and"}
+
+data: {"kind": "delta", "text": "-quality"}
+
+data: {"kind": "delta", "text": " names"}
+
+data: {"kind": "delta", "text": ". **"}
+
+data: {"kind": "delta", "text": "Dev IT"}
+
+data: {"kind": "delta", "text": "** shows"}
+
+data: {"kind": "delta", "text": " an unusually"}
+
+data: {"kind": "delta", "text": " low P/E of"}
+
+data: {"kind": "delta", "text": " 2.1"}
+
+data: {"kind": "delta", "text": " with "}
+
+data: {"kind": "delta", "text": "85"}
+
+data: {"kind": "delta", "text": "% RO"}
+
+data: {"kind": "delta", "text": "E \u2014 worth"}
+
+data: {"kind": "delta", "text": " investigating"}
+
+data: {"kind": "delta", "text": " why it"}
+
+data: {"kind": "delta", "text": "'s so"}
+
+data: {"kind": "delta", "text": " cheap. Click"}
+
+data: {"kind": "delta", "text": " any ticker"}
+
+data: {"kind": "delta", "text": " to load"}
+
+data: {"kind": "delta", "text": " its"}
+
+data: {"kind": "delta", "text": " chart and"}
+
+data: {"kind": "delta", "text": " dig"}
+
+data: {"kind": "delta", "text": " in.\n\nWant"}
+
+data: {"kind": "delta", "text": " me to save"}
+
+data: {"kind": "delta", "text": " this screen for re"}
+
+data: {"kind": "delta", "text": "-running later"}
+
+data: {"kind": "delta", "text": ", or set"}
+
+data: {"kind": "delta", "text": " up a research"}
+
+data: {"kind": "delta", "text": " brief"}
+
+data: {"kind": "delta", "text": " on any"}
+
+data: {"kind": "delta", "text": " of these"}
+
+data: {"kind": "delta", "text": " names?"}
+
+data: {"kind": "done", "usage": {"input_tokens": 55516, "output_tokens": 2318, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop"}
+

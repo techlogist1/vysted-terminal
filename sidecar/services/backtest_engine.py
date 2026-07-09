@@ -293,12 +293,19 @@ async def _run_single_slice(
     bars: list[Bar],
     initial_capital: float,
     fees: BacktestFeeModel,
-) -> tuple[list[BacktestTrade], list[EquityCurvePoint]]:
-    """Run one (non-walk-forward) backtest slice; return trades + curve."""
+) -> tuple[list[BacktestTrade], list[EquityCurvePoint], int, float]:
+    """Run one (non-walk-forward) backtest slice.
+
+    Returns ``(trades, equity_curve, skipped_buys, worst_shortfall)`` — the
+    last two feed the result's ``warnings`` so an unaffordable position size
+    reads as "N signals skipped", never as a silent 0-trade run.
+    """
     portfolio = SimPortfolio(cash=initial_capital)
     trades: list[BacktestTrade] = []
     closed_lookup: dict[str, BacktestTrade] = {}
     equity_curve: list[EquityCurvePoint] = []
+    skipped_buys = 0
+    worst_shortfall = 0.0
 
     last_close_per_symbol: dict[str, float] = {}
     peak_equity = initial_capital
@@ -319,6 +326,8 @@ async def _run_single_slice(
                 if portfolio.cash < cost:
                     # Skip the order, but log it — a silent skip looked like a
                     # filled order in the curve with no trace of why (Phase 9.5).
+                    skipped_buys += 1
+                    worst_shortfall = max(worst_shortfall, cost - portfolio.cash)
                     logger.warning(
                         "backtest: insufficient cash for %s %s @ %.2f "
                         "(have %.2f, need %.2f) — order skipped",
@@ -389,7 +398,7 @@ async def _run_single_slice(
 
     # Replace closed-trade records with their updated versions.
     trades = [closed_lookup.get(t.id, t) for t in trades]
-    return trades, equity_curve
+    return trades, equity_curve, skipped_buys, worst_shortfall
 
 
 async def run_backtest(
@@ -435,10 +444,17 @@ async def run_backtest(
 
     # Full unsliced run for the headline metrics + equity curve + trade log.
     strategy = strategy_cls(request.params)
-    trades, equity_curve = await _run_single_slice(
+    trades, equity_curve, skipped_buys, worst_shortfall = await _run_single_slice(
         strategy, bars_sorted, request.initial_capital, fees
     )
     metrics = _compute_metrics(equity_curve, trades, request.initial_capital)
+    warnings: list[str] | None = None
+    if skipped_buys:
+        warnings = [
+            f"{skipped_buys} buy signal(s) skipped — the position size cost more "
+            f"than available cash (largest shortfall {worst_shortfall:,.0f}). "
+            "Reduce position_size or raise initial_capital."
+        ]
 
     # Walk-forward slices, if requested.
     walk_forward_slices: list[WalkForwardSlice] | None = None
@@ -451,7 +467,7 @@ async def run_backtest(
             if not slice_bars:
                 continue
             slice_strategy = strategy_cls(request.params)
-            slice_trades, slice_curve = await _run_single_slice(
+            slice_trades, slice_curve, _, _ = await _run_single_slice(
                 slice_strategy, slice_bars, request.initial_capital, fees
             )
             slice_metrics = _compute_metrics(slice_curve, slice_trades, request.initial_capital)
@@ -477,6 +493,7 @@ async def run_backtest(
         walkForwardSlices=walk_forward_slices,
         startedAt=started_at,
         durationMs=duration_ms,
+        warnings=warnings,
     )
 
     await _emit(on_event, BacktestRunEvent(kind="run-complete", runId=run_id, result=result))

@@ -163,3 +163,23 @@ def test_read_only_tags_are_coherent() -> None:
             assert not cap.read_only, f"{cap.id}: a host-action mutation must not be read_only"
     # propose_order is the one broker mutation; it is gated, never read-only.
     assert CAPABILITY_CATALOG["propose_order"].read_only is False
+
+
+# --- D64 (R12): screener tool schemas must document the FULL criterion union ---
+# GLM-5.2 read the numeric-only example, concluded "no sector filter exists", and
+# post-filtered a limit-capped sweep client-side — silently lossy. The prose IS
+# the contract the model sees; pin sector-eq + the India universes into both.
+
+
+def test_screener_run_schema_documents_string_criteria() -> None:
+    desc = TOOL_SCHEMAS["screener_run"]["input_schema"]["properties"]["criteria"]["description"]
+    assert '"field":"sector"' in desc and '"operator":"eq"' in desc
+    assert "between" in desc and '"operator":"in"' in desc
+    assert "post-filtering" in desc  # the anti-lossy-sweep instruction
+
+
+def test_write_screener_filters_documents_string_criteria_and_india_universes() -> None:
+    desc = CAPABILITY_CATALOG["write_screener_filters"].description
+    assert '"field":"sector"' in desc
+    for universe in ("nse-all", "bse-all", "india-all"):
+        assert universe in desc, f"stale universe list: {universe} missing"

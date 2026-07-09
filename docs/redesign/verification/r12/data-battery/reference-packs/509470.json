@@ -1,0 +1,205 @@
+{
+  "meta": {
+    "bse_code": "509470",
+    "compiled_by": "independent web research (no localhost/Vysted API touched)",
+    "compiled_as_of": "2026-07-10",
+    "last_market_close_used": "2026-07-09",
+    "sources_used": [
+      "https://www.screener.in/company/509470/",
+      "https://ticker.finology.in/company/SCRIP-109470",
+      "https://www.indmoney.com/stocks/bombay-oxygen-investments-ltd-share-price",
+      "https://stockanalysis.com/quote/bom/509470/",
+      "https://www.equitypandit.com/historical-data/509470",
+      "https://trendlyne.com/equity/Dividend/BOMOXY-B1/4434/bombay-oxygen-investments-ltd-dividend/",
+      "https://scanx.trade/stock-market-news/companies/bombay-oxygen-reports-fy26-net-loss-declares-dividend/41423946",
+      "https://upstox.com/stocks/bombay-oxygen-investments-limi-share-price/INE01TL01014/",
+      "https://cbonds.com/stocks/INE01TL01014/",
+      "https://www.marketscreener.com/quote/stock/BOMBAY-OXYGEN-INVESTMENTS-64309852/company/",
+      "https://5paisa.com/stocks/bomoxy-b1-share-price (search snippet only, page itself 403'd)"
+    ]
+  },
+  "identity": {
+    "legal_name": "Bombay Oxygen Investments Limited",
+    "formerly": "Bombay Oxygen Corporation Limited (renamed Oct 2018)",
+    "isin": "INE01TL01014",
+    "bse_code": "509470",
+    "bse_symbol": "BOMOXY-B1 (also seen as BOMOXY)",
+    "nse_symbol": null,
+    "registered_office": "22/B, Mittal Tower, 210, Nariman Point, Mumbai, Maharashtra 400021",
+    "incorporated": 1960,
+    "business": "Non-banking financial company (NBFC) — invests in mutual funds, listed equities and other financial instruments. Formerly manufactured industrial gases (oxygen, nitrogen, compressed air, acetylene, medicinal oxygen); that business was discontinued 1 Aug 2019.",
+    "face_value_inr": 100,
+    "shares_outstanding_est": 150000,
+    "shares_outstanding_basis": "Derived: equity capital Rs 1.50 Cr / face value Rs 100 = 150,000 shares. Cross-checked against market cap / price (283 Cr / 18,853 ≈ 150,082, consistent within rounding).",
+    "exchange_listings": "Listed on BSE only (code 509470, symbol BOMOXY-B1). NOT listed on NSE — confirmed by multiple broker pages (ICICI Direct, Kotak Neo, Groww, Bajaj) explicitly noting no NSE listing; 'NSE/BSE' in page titles is templated boilerplate, not an actual NSE listing."
+  },
+  "price_and_valuation": {
+    "latest_close": {
+      "value_inr": 18853.00,
+      "as_of": "2026-07-09 16:01 IST",
+      "basis": "BSE closing price",
+      "source": "ticker.finology.in and indmoney.com — both show identical price and identical timestamp (09 Jul 2026, 4:01 PM IST)",
+      "cross_check_note": "screener.in independently showed Rs 18,861 'as of 09 Jul' (same date, no intraday timestamp given) — a Rs 8 (0.04%) variance, immaterial and likely a rounding/snapshot-timing difference. An unrelated web-search snippet surfaced a figure of Rs 19,155 with no clear date attached; this could not be corroborated by any dated source and is treated as unreliable/stale rather than a genuine disagreement."
+    },
+    "market_cap": {
+      "value": "Rs 283 Cr (screener) / Rs 282.8 Cr (finology) / Rs 281.14 Cr (indmoney)",
+      "as_of": "2026-07-09",
+      "basis": "full market cap, standalone share count (150,000 shares)",
+      "source": "screener.in, ticker.finology.in, indmoney.com",
+      "disagreement_note": "Three sources cluster within ~0.7% of Rs 283 Cr; indmoney's Rs 281.14 Cr is the low outlier, likely a slightly different share-count or rounding basis. Not material to the overall picture."
+    },
+    "pe_ttm": {
+      "value": "Not meaningful (NM) — trailing 12-month EPS is negative",
+      "as_of": "TTM through Q4 FY26 (Mar 2026)",
+      "basis": "standalone",
+      "source": "screener.in shows blank/'Stock P/E' not shown; consistent with negative EPS TTM",
+      "disagreement_note": "indmoney and stockanalysis.com surfaced conflicting P/E figures (indmoney: 18.93 in one field and -87.28 in another; separately 107.67 in a different fetch) that are internally inconsistent with their own quoted EPS TTM figures and with each other. These are treated as stale/unreliable rather than a genuine second data point, given screener + finology (the two most internally-consistent sources) agree the trailing year is a net loss, making P/E NM."
+    },
+    "eps_ttm": {
+      "value_inr": -216.00,
+      "as_of": "TTM through Q4 FY26 (Mar 2026, i.e. FY26 full year since fiscal year end = Mar)",
+      "basis": "standalone",
+      "source": "screener.in (annual P&L table, Mar-2026 column: EPS -216.00) and ticker.finology.in (EPS TTM: Rs -216), corroborated by stockanalysis.com (EPS TTM -216.04)",
+      "computation_check": "Sum of last 4 reported quarterly EPS (screener): Jun'25 1615.33 + Sep'25 -348.00 + Dec'25 610.67 + Mar'26 -2094.00 = -216.00. Internally consistent."
+    },
+    "book_value_per_share_inr": {
+      "value": 31509,
+      "as_of": "2026-03-31 (FY26 year-end)",
+      "basis": "standalone",
+      "source": "screener.in (31,509) and ticker.finology.in (31,508.4) — near-exact agreement",
+      "disagreement_note": "indmoney showed an unrelated/stale figure of Rs 13,370.67, inconsistent with all other sources and with total-equity back-of-envelope math (equity capital Rs 1.5 Cr + reserves Rs 471.13 Cr = Rs 472.63 Cr / 150,000 shares ≈ Rs 31,509/share, which matches screener/finology, not indmoney). Treated as a stale outlier."
+    },
+    "52_week_high": {
+      "value_inr": 31998,
+      "as_of_window": "trailing 12 months to 2026-07-09",
+      "source": "screener.in, ticker.finology.in, indmoney.com (all agree on 31,998)",
+      "disagreement_note": "equitypandit's historical-data series implied a slightly higher 52w high of ~32,538 around late Aug 2025. Given three independent sources agree on 31,998 and only one diverges (and that one's date-tagging for other stats was found to be unreliable/possibly stale, see 52-week low note), 31,998 is treated as primary."
+    },
+    "52_week_low": {
+      "value_inr": 18500.35,
+      "as_of_window": "trailing 12 months to 2026-07-09",
+      "source": "screener.in (18,500), ticker.finology.in and indmoney.com (18,500.35) — agree",
+      "disagreement_note": "equitypandit's series implied a low of ~18,670.90 around 24 Mar 2026, about 1% higher than the 18,500.35 consensus figure. indmoney separately tagged the high/low with dates of Aug 2024 / Apr 2024, which fall outside any 52-week window as of Jul 2026 and are judged stale/leftover metadata, not evidence against the 31,998/18,500 values themselves (which indmoney's own headline numbers match)."
+    },
+    "drawdown_from_52w_high_pct": {
+      "value_pct": -41.08,
+      "computation": "(18853 - 31998) / 31998 = -0.4108",
+      "as_of": "2026-07-09 close vs trailing-12-month high",
+      "note": "Using the alternate equitypandit high of 32,538: (18853-32538)/32538 = -42.06%. Both computations point to the stock trading roughly 41-42% below its 52-week high."
+    },
+    "52_week_price_change_pct": {
+      "value_pct": -25.77,
+      "computation": "(18853.00 - 25398.95) / 25398.95 = -0.2577, using equitypandit historical close of Rs 25,398.95 on 2026-07-09's prior-year same calendar date (2025-07-09)",
+      "as_of": "2025-07-09 to 2026-07-09",
+      "source": "equitypandit historical data table (2025-07-08: 25,343.00; 2025-07-09: 25,398.95; 2025-07-10: 25,018.00)",
+      "disagreement_note": "Using 2025-07-10 close (Rs 25,018) instead gives -24.64%. A separate, differently-dated snapshot (5paisa search result, 'as of 07 May 2026') stated the stock was down 7.13% over the trailing year to that date — not directly comparable since the reference date differs by ~2 months, but flagged to show how much the reported 1-year change swings depending on snapshot date for this illiquid, high-volatility name. Best estimate: approximately -25% to -26% over the trailing 12 months to 2026-07-09."
+    }
+  },
+  "dividends_detail": {
+    "face_value_inr": 100,
+    "paid_trailing_12_months": [
+      {
+        "type": "Final dividend (FY2024-25)",
+        "amount_per_share_inr": 35.00,
+        "ex_date": "2025-07-08",
+        "record_date": "2025-07-08",
+        "source": "trendlyne.com dividend history table"
+      }
+    ],
+    "declared_not_yet_paid": [
+      {
+        "type": "Final dividend (FY2025-26), board-recommended, subject to shareholder approval",
+        "amount_per_share_inr": 25.00,
+        "record_date": "2026-08-18",
+        "agm_date": "2026-08-25",
+        "status": "Recommended by board (results announced 2026-05-27); not yet paid as of compilation date 2026-07-10. Expected to be paid within statutory window after AGM approval (~Sept 2026).",
+        "source": "scanx.trade news article on Q4/FY26 results; record date corroborated independently by trendlyne.com"
+      }
+    ],
+    "dividend_yield_pct": {
+      "value": 0.19,
+      "basis": "trailing 12-month paid dividend (Rs 35/share) / current price (Rs 18,853)",
+      "computation_check": "35 / 18853 = 0.1857% ~ 0.19%, matches screener.in's stated 0.19%",
+      "source": "screener.in",
+      "disagreement_note": "ticker.finology.in and stockanalysis.com show 0.13% (35 replaced by 25: 25/18853=0.133%, i.e. those sites appear to still be using the prior Rs 25 dividend rather than the latest Rs 35 paid dividend — a staleness issue, not a true disagreement on the underlying facts). indmoney shows 0% dividend yield, which is simply stale/unpopulated data."
+    },
+    "historical_dividends_per_share_inr": [
+      { "ex_date": "2021-07-20", "amount": 20.00, "type": "Final" },
+      { "ex_date": "2022-07-25", "amount": 20.00, "type": "Final" },
+      { "ex_date": "2023-06-27", "amount": 15.00, "type": "Final" },
+      { "ex_date": "2024-08-06", "amount": 25.00, "type": "Final" },
+      { "ex_date": "2025-07-08", "amount": 35.00, "type": "Final" }
+    ],
+    "specials_in_trailing_12_months": "None identified — all dividends in the trailing-12-month window and the historical series are labeled 'Final' dividends (no interim or special dividends found)."
+  },
+  "quarterly_detail": {
+    "basis": "Standalone, Rs Crore (company has no meaningful subsidiaries; screener.in presents standalone figures only)",
+    "latest_reported_quarter": {
+      "period_label": "Q4 FY26 (quarter ended 31 Mar 2026)",
+      "revenue_cr": -36,
+      "net_profit_cr": -31,
+      "eps_inr": -2094.00,
+      "results_announced": "2026-05-27",
+      "source": "screener.in quarterly results table; announcement date from scanx.trade article",
+      "note": "Revenue/net-loss driven by net loss on fair-value changes of financial-asset investments (this is an NBFC/investment holding company, so 'revenue' includes mark-to-market gains/losses on its equity and mutual-fund portfolio, not operating sales)."
+    },
+    "same_quarter_prior_year": {
+      "period_label": "Q4 FY25 (quarter ended 31 Mar 2025)",
+      "revenue_cr": -14,
+      "net_profit_cr": -12,
+      "eps_inr": -820.00,
+      "source": "screener.in quarterly results table"
+    },
+    "revenue_growth_yoy_mrq_pct": {
+      "value": -157.1,
+      "computation": "(-36 - (-14)) / abs(-14) = -157.14%",
+      "caveat": "Both base and current-period revenue are negative (mark-to-market driven), so a standard %-growth figure is not economically meaningful — it mechanically reflects that losses widened, not a revenue decline in the usual operating sense."
+    },
+    "earnings_growth_yoy_mrq_pct": {
+      "value": -158.3,
+      "computation": "(-31 - (-12)) / abs(-12) = -158.33%",
+      "caveat": "Same caveat as revenue growth — both quarters are loss-making; the negative-base % is directionally 'losses widened YoY' rather than a clean growth-rate comparison."
+    },
+    "annual_trend_for_context_rs_cr": [
+      { "fy_end": "2023-03-31", "revenue": 2.62, "net_profit": 4.92, "eps_inr": 328.00 },
+      { "fy_end": "2024-03-31", "revenue": 72.22, "net_profit": 57.60, "eps_inr": 3840.00 },
+      { "fy_end": "2025-03-31", "revenue": 20.21, "net_profit": 17.51, "eps_inr": 1167.33 },
+      { "fy_end": "2026-03-31", "revenue": -1.96, "net_profit": -3.24, "eps_inr": -216.00 }
+    ]
+  },
+  "profitability_and_holding": {
+    "roe_latest_fy_pct": {
+      "value": -0.68,
+      "as_of": "FY26 (year ended 2026-03-31)",
+      "basis": "standalone",
+      "source": "screener.in",
+      "disagreement_note": "screener also separately shows a 3-year-average ROE of 5.30% (reflecting the profitable FY24/FY25 years before FY26's loss). ticker.finology.in shows ROE of 3.7%, which does not match either screener figure precisely — likely a differently-windowed or differently-computed (e.g. trailing-period-average) ROE. Flagged as a disagreement rather than reconciled."
+    },
+    "roce_pct": {
+      "value": -0.81,
+      "as_of": "TTM/latest FY",
+      "source": "screener.in"
+    },
+    "book_value_per_share_inr": 31509,
+    "promoter_holding_pct": {
+      "value": 73.29,
+      "as_of": "quarter ended 2026-06-30",
+      "source": "screener.in, ticker.finology.in, indmoney.com — all three agree exactly",
+      "other_holders": {
+        "public_pct": 26.65,
+        "dii_pct": 0.06,
+        "fii_pct": "not separately disclosed / negligible",
+        "shareholder_count": 3051
+      }
+    }
+  },
+  "notes": [
+    "This is a very thinly-traded, illiquid BSE-only small-cap NBFC/investment holding company (share price ~Rs 18,800, only 150,000 shares outstanding, ~3,051 shareholders). Aggregator sites frequently disagree by small-to-moderate margins and some carry visibly stale cached data (e.g. indmoney's 52-week high/low date tags from 2024, several sites still quoting the prior Rs 25 dividend instead of the latest Rs 35 paid dividend). Where sources disagreed, the disagreement is noted per-field above rather than silently resolved.",
+    "The company's 'revenue' and 'net profit' lines are dominated by fair-value gains/losses on its investment portfolio (shares, mutual funds), not operating sales — this makes YoY revenue/earnings growth percentages, especially quarter-over-quarter, prone to large and not-very-meaningful swings when the base period is also negative.",
+    "P/E TTM is not meaningful because trailing-12-month EPS is negative (FY26 full-year loss of Rs 216/share), driven almost entirely by a large mark-to-market loss in the Mar-2026 quarter (EPS -2,094 that quarter alone).",
+    "A dividend of Rs 25/share for FY2025-26 has been recommended by the board (record date 18-Aug-2026, AGM 25-Aug-2026) but is NOT YET PAID as of this pack's compilation date (2026-07-10) — it is excluded from the trailing-12-month 'paid' dividend total and listed separately under declared-not-yet-paid.",
+    "Company is BSE-listed only (code 509470); it is not listed on NSE, despite many aggregator page titles generically saying 'NSE/BSE'.",
+    "ISIN INE01TL01014 was corroborated across three independent sources (Upstox, Cbonds, MarketScreener) plus the search-engine snippet; no source contradicted it.",
+    "This pack was compiled entirely from live web sources (screener.in, finology, indmoney, stockanalysis.com, equitypandit, trendlyne, scanx.trade, upstox, cbonds, marketscreener); no localhost or Vysted internal API was queried."
+  ]
+}

@@ -1,0 +1,193 @@
+{
+  "generated_at": "2026-07-10",
+  "generated_by": "independent-web-research (no localhost/Vysted API touched)",
+  "company": {
+    "legal_name": "The Ruby Mills Limited",
+    "common_name": "Ruby Mills",
+    "isin": "INE301D01026",
+    "incorporated": "1917",
+    "sector": "Textiles (composite mill - yarn/fabric/interlining/apparel) + Real Estate (Mumbai commercial property)",
+    "exchange_listings": {
+      "nse": { "symbol": "RUBYMILLS", "series": "EQ" },
+      "bse": { "scrip_code": "503169" },
+      "notes": "Primary listings NSE + BSE (dual-listed, as expected for BOTH). Registered office: Ruby House, J K Sawant Marg, Dadar (West), Mumbai-400028."
+    }
+  },
+  "price_and_valuation": {
+    "last_close": {
+      "value": 366.00,
+      "basis": "NSE/BSE, end-of-day 9 Jul 2026 (stock rallied +5.00% intraday, closing at/near a fresh 52-week high)",
+      "as_of": "2026-07-09",
+      "source": "screener.in (https://www.screener.in/company/RUBYMILLS/consolidated/)",
+      "cross_check": [
+        { "value": 365.55, "as_of": "2026-07-09 15:28 IST", "source": "upstox.com (https://upstox.com/stocks/the-ruby-mills-ltd-share-price/INE301D01026/)" },
+        { "value": 365.55, "as_of": "2026-07-09", "source": "tickertape.in (https://www.tickertape.in/stocks/ruby-mills-RUBY)" },
+        { "value": 365.55, "as_of": "2026-07-09 15:31 IST", "note": "trendlyne.com confirms same price, flags it explicitly as a 'New 52W High today', up +5.00% (+₹17.40) on the day, NSE+BSE combined volume 59,510 shares", "source": "trendlyne.com (https://trendlyne.com/equity/1154/RUBYMILLS/ruby-mills-ltd/)" }
+      ],
+      "disagreement_note": "Three independent sources (upstox, tickertape, trendlyne) agree exactly at 365.55; screener.in shows a rounded 366.00. Spread is trivial (~0.12%) and consistent with screener rounding to whole rupees vs the others reporting to paise. Not a genuine conflict. A stale search snippet dated 29-Jun-2026 (325.45/326.00) was also seen but is a full 10 trading days older and was excluded as non-current."
+    },
+    "market_cap": {
+      "value_cr": 1218,
+      "basis": "INR crore, full market cap, consolidated share count",
+      "as_of": "2026-07-09",
+      "source": "screener.in",
+      "cross_check": [
+        { "value_cr": 1222.40, "as_of": "2026-07-09", "source": "tickertape.in" },
+        { "value_cr": 1146.16, "as_of": "2026-07-09 15:28 IST", "source": "upstox.com", "flag": "OUTLIER" }
+      ],
+      "disagreement_note": "screener.in (1,218 Cr) and tickertape.in (1,222.40 Cr) agree within ~0.4%, both consistent with an implied share count of ~3.33-3.35 Cr shares (equity capital ~Rs17 Cr / face value Rs5) at the ~365-366 last close. upstox.com's 1,146.16 Cr is a clear outlier (~6% low) - dividing it by the same price implies only ~3.14 Cr shares, which doesn't reconcile with upstox's own quoted face-value/equity-capital data, and its dividend-yield figure (0.73%, see dividends section) likewise looks computed off a stale/lower price. Treated as a stale-cache artifact on upstox's side, not silently averaged away - both figures are reported here."
+    },
+    "pe_ttm": {
+      "consolidated": { "value": 28.0, "as_of": "2026-07-09", "source": "screener.in consolidated view" },
+      "standalone": { "value": 28.0, "as_of": "2026-07-09", "source": "screener.in standalone (default) view" },
+      "third_party": { "value": 28.07, "as_of": "2026-07-09", "source": "tickertape.in" },
+      "fourth_party": { "value": 26.30, "source": "upstox.com", "flag": "inconsistent with upstox's own quoted price/EPS (365.55/13.03=28.05); likely stale P/E cached from an earlier lower-EPS TTM window" }
+    },
+    "eps_ttm": {
+      "consolidated": { "value": 13.03, "currency": "INR", "as_of": "FY26 TTM (through Mar 2026 quarter)", "source": "screener.in consolidated" },
+      "standalone": { "value": 13.03, "source": "screener.in standalone" },
+      "cross_check": { "value": 13.03, "source": "tickertape.in, upstox.com - all agree" }
+    },
+    "week52_high": {
+      "value": 367.00,
+      "alt_value": 365.55,
+      "as_of_high_date": "2026-07-09 (today's own close/intraday price IS the new 52-week high per trendlyne.com, which explicitly flags 'New 52W High today')",
+      "source": "screener.in (rounded 367) vs tickertape.in/upstox.com/trendlyne.com (365.55, i.e. equal to last close) - trivial rounding-level disagreement given the high was set today"
+    },
+    "week52_low": {
+      "value": 169.02,
+      "source": "screener.in, tickertape.in, upstox.com - all in agreement"
+    },
+    "drawdown_from_52w_high_pct": {
+      "value_pct": 0.0,
+      "formula": "(close - 52w_high) / 52w_high",
+      "inputs_used_primary": { "close": 365.55, "week52_high": 365.55, "result_pct": 0.0 },
+      "inputs_used_screener_basis": { "close": 366.00, "week52_high": 367.00, "result_pct": -0.27 },
+      "as_of": "2026-07-09",
+      "note": "Stock made a fresh 52-week high on the reference date itself, so drawdown is ~0% (screener's slightly-lagged rounded high of 367 vs its own 366 close implies a nominal -0.27%, but same-source same-day pairs from upstox/tickertape/trendlyne all show exactly 0% since price==high today)."
+    },
+    "week52_price_change_pct": {
+      "reported_values": [
+        { "value_pct": 47.0, "source": "screener.in (labelled 'Stock Price CAGR 1yr')" },
+        { "value_pct": 47.22, "source": "tickertape.in / upstox.com aggregation (search-summarized)" }
+      ],
+      "disagreement_note": "Sources agree closely (~47.0%-47.2%) as of 9 Jul 2026. A stale search snippet (businesstoday.in / hdfcsec.com aggregation) cited 40.38% but was dated 29-Jun-2026, 10 trading days earlier and before the recent rally - excluded as non-current, not blended in."
+    }
+  },
+  "dividends": {
+    "face_value_inr": 5.00,
+    "dividend_yield_pct": {
+      "value": 0.48,
+      "alt_values": [
+        { "value": 0.52, "source": "stockanalysis.com" },
+        { "value": 0.73, "source": "upstox.com", "flag": "outlier - appears computed against a stale/lower price or against the declared-but-unpaid Rs2.50 dividend rather than the Rs1.75 TTM-paid figure" }
+      ],
+      "source": "screener.in (0.48%, = Rs1.75 paid / ~Rs366 price)"
+    },
+    "paid_trailing_12_months": [
+      {
+        "type": "Final dividend, FY2024-25 (only dividend paid in the TTM window - company pays annually, no interims found)",
+        "amount_per_share_inr": 1.75,
+        "record_date": "2025-09-04",
+        "ex_date": "2025-09-04",
+        "pay_date": "2025-10-09",
+        "status": "PAID",
+        "source": "stockanalysis.com dividend history (https://stockanalysis.com/quote/bom/503169/dividend/); upstox.com corroborates ex-date Sep 4, 2025 at same amount"
+      }
+    ],
+    "declared_not_yet_paid": [
+      {
+        "type": "Final dividend, FY2025-26",
+        "amount_per_share_inr": 2.50,
+        "board_approval_date": "2026-05-28",
+        "status": "DECLARED, NOT YET PAID - recommended by the board on 28 May 2026 alongside Q4FY26/FY26 results; subject to shareholder approval at the AGM. No record/ex/pay date surfaced yet by any source consulted.",
+        "yoy_change": "+42.9% vs prior year's Rs1.75 final dividend",
+        "source": "marketscreener.com (\"The Ruby Mills Limited Recommends the Final Dividend for the Financial Year 2025-26\"); corroborated via web search aggregation"
+      }
+    ],
+    "specials_in_ttm": "None identified - Rs1.75 paid in the TTM window was an ordinary annual final dividend, not flagged as special by any source. Prior years' dividend history (stockanalysis.com) also shows only single annual finals: Rs1.75 (Sep 2024), Rs1.25 (Sep 2023), Rs1.50 (Aug 2022) - a consistent single-payment-per-year pattern, no interims/specials in recent history.",
+    "note": "Company appears to pay dividends on an annual (final-only) cadence, historically ex-dated in Aug/Sep with pay dates in Oct. Only Rs1.75/share actually crossed the TTM PAID window as of the reference date; the larger Rs2.50/share is declared but not yet paid, reported separately per instructions."
+  },
+  "latest_quarter": {
+    "period_label": "Q4 FY26 (quarter ended 31 Mar 2026)",
+    "basis": "standalone (screener.in standalone view); consolidated figures from screener.in consolidated view are essentially identical for this company",
+    "revenue_cr": 123,
+    "revenue_cr_precise": 123.38,
+    "net_profit_cr": 11,
+    "net_profit_cr_precise": 11.07,
+    "eps_inr": 3.31,
+    "consolidated_cross_check": { "revenue_cr": 123, "operating_profit_cr": 34, "net_profit_cr": 11, "eps_inr": 3.30, "source": "screener.in consolidated" },
+    "source": "screener.in standalone (https://www.screener.in/company/RUBYMILLS/); precise lakh-denominated figures corroborated via web-search aggregation of scanx.trade coverage of the Q4FY26 results release (converted from Rs12,338.34 lakh / Rs110.67 lakh)"
+  },
+  "same_quarter_prior_year": {
+    "period_label": "Q4 FY25 (quarter ended 31 Mar 2025)",
+    "basis": "standalone",
+    "revenue_cr": 82,
+    "revenue_cr_precise": 81.56,
+    "net_profit_cr": 16,
+    "net_profit_cr_precise": 16.01,
+    "eps_inr": 4.79,
+    "source": "screener.in standalone; corroborated by business-standard.com Capital Market News (\"Ruby Mills standalone net profit declines 1.17% in the March 2025 quarter\" - Rs16.01 Cr vs Rs16.20 Cr in Mar 2024) and scanx.trade's precise Rs8,155.85 lakh revenue figure for Q4FY25"
+  },
+  "growth_mrq_yoy": {
+    "revenue_growth_pct": 50.0,
+    "revenue_growth_pct_precise": 51.28,
+    "revenue_growth_check": "rounded Cr basis (123-82)/82=50.0%; precise lakh basis (12338.34-8155.85)/8155.85=51.28% per scanx.trade coverage - both point the same direction, minor spread from rounding",
+    "earnings_growth_pct": -31.25,
+    "earnings_growth_pct_precise": -30.86,
+    "earnings_growth_check": "rounded Cr basis (11-16)/16=-31.25%; precise basis (11.07-16.01)/16.01=-30.86% per web-search aggregation of the results release - consistent net profit DECLINE YoY at the quarter level despite strong revenue growth (margin compression: interest cost Rs9 Cr + depreciation Rs14 Cr in Q4FY26 per screener consolidated breakdown)",
+    "basis": "standalone, MRQ (Q4 FY26) vs same quarter prior year (Q4 FY25)",
+    "source": "screener.in + business-standard.com + scanx.trade (cross-checked, all consistent once units reconciled)"
+  },
+  "annual_context_not_strictly_requested": {
+    "fy26_consolidated": { "revenue_cr": 359, "net_profit_cr": 44, "eps_inr": 13.03, "source": "screener.in consolidated" },
+    "fy25": { "revenue_cr_approx": 245, "net_profit_cr": 42.31, "source": "business-standard.com Capital Market News: FY25 net profit Rs42.31 Cr vs FY24 Rs44.54 Cr, a 5.01% YoY decline (standalone)" },
+    "note": "Included for context only; not one of the explicitly-requested figures."
+  },
+  "profitability_and_balance_sheet": {
+    "roe_latest_fy_pct": {
+      "consolidated": 6.46,
+      "standalone": 6.65,
+      "as_of": "FY26 (year ended Mar 2026)",
+      "source": "screener.in",
+      "note": "Small consolidated vs standalone difference, not a data conflict."
+    },
+    "book_value_inr": {
+      "consolidated": 202,
+      "standalone": 202,
+      "source": "screener.in - both bases agree"
+    }
+  },
+  "shareholding": {
+    "promoter_holding_pct": 74.91,
+    "fii_pct": 0.00,
+    "public_pct": 25.11,
+    "as_of": "quarter ended Mar 2026",
+    "prior_quarter_check": { "promoter_holding_pct": 74.91, "public_pct": 25.09, "as_of": "quarter ended Dec 2025" },
+    "source": "screener.in shareholding pattern; tickertape.in corroborates 74.90% as of Mar 2026"
+  },
+  "sources_used": [
+    "https://www.screener.in/company/RUBYMILLS/consolidated/",
+    "https://www.screener.in/company/RUBYMILLS/",
+    "https://upstox.com/stocks/the-ruby-mills-ltd-share-price/INE301D01026/",
+    "https://www.tickertape.in/stocks/ruby-mills-RUBY",
+    "https://trendlyne.com/equity/1154/RUBYMILLS/ruby-mills-ltd/",
+    "https://stockanalysis.com/quote/bom/503169/dividend/",
+    "https://www.business-standard.com/markets/capital-market-news/ruby-mills-standalone-net-profit-declines-1-17-in-the-march-2025-quarter-125052700310_1.html",
+    "https://scanx.trade/stock-market-news/companies/ruby-mills-board-to-meet-on-may-28-to-consider-fy26-results/41064106 (via web-search aggregation)",
+    "https://www.marketscreener.com/news/the-ruby-mills-limited-reports-earnings-results-for-the-fourth-quarter-ended-march-31-2026-ce7f5ddbdd89f524 (via web-search aggregation)",
+    "https://www.marketscreener.com/news/the-ruby-mills-limited-recommends-the-final-dividend-for-the-financial-year-2025-26-ce7f5dd8da8ff325 (via web-search aggregation)",
+    "web search aggregation for ISIN/BSE-code cross-check (upstox.com, m.bseindia.com, nirmalbang.com, anandrathi.com, business-standard.com)",
+    "moneycontrol.com attempted directly - fetch blocked/unavailable in this environment, relied on screener.in + other sources instead",
+    "nseindia.com attempted directly - request timed out, relied on cached/aggregated citations of NSE data instead",
+    "bseindia.com attempted directly - page returned only header/no market data, relied on cross-checked third-party sources instead"
+  ],
+  "known_data_gaps_and_caveats": [
+    "Could not directly fetch moneycontrol.com (blocked) or live nseindia.com/bseindia.com quote pages (timeout / JS-rendered, no data in fetched HTML) - relied on screener.in, upstox.com, tickertape.in, trendlyne.com, stockanalysis.com and web-search aggregation instead.",
+    "Market cap shows a real ~6% disagreement: screener.in (1,218 Cr) and tickertape.in (1,222.40 Cr) agree closely; upstox.com (1,146.16 Cr) is an outlier inconsistent with its own quoted price/EPS/P-E - flagged, not silently averaged.",
+    "Dividend yield shows a real spread (0.48% / 0.52% / 0.73%) - the 0.73% (upstox.com) looks like it's computed off a stale price or the unpaid Rs2.50 dividend rather than the Rs1.75 actually paid in the TTM window.",
+    "Exact 52-week high/low DATES were not surfaced by any source except that the 52-week HIGH was explicitly confirmed to be set on the reference date itself (2026-07-09) by trendlyne.com.",
+    "Full 12-quarter historical table on screener.in was not fully renderable via automated fetch (page is JS-heavy); the last 7 quarters (Sep 2024 through Mar 2026) were successfully extracted from the standalone view and are internally consistent with press-release figures for Q4FY26/Q4FY25.",
+    "Web-search-summarized press coverage (scanx.trade, marketscreener.com) exhibited repeated crore/lakh unit-labelling errors in the AI-generated snippets (e.g. labelling Rs12,338.34 lakh as 'Rs1,233.83 crore'); all such figures were cross-checked against screener.in's clean, internally-consistent Cr-denominated figures and reconciled by a consistent /10 correction before being trusted."
+  ]
+}

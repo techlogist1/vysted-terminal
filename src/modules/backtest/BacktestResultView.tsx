@@ -503,6 +503,11 @@ export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewPr
             </>
           )}
         </div>
+        {run.result?.warnings?.map((warning) => (
+          <div key={warning} className="text-warning text-micro mt-1" data-testid="run-warning">
+            {warning}
+          </div>
+        ))}
         {metrics && (
           <div className="mt-1 flex items-center justify-between">
             <span className="text-charcoal-500">

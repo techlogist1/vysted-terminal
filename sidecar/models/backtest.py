@@ -129,6 +129,9 @@ class BacktestResult(BaseModel):
     )
     started_at: int = Field(alias="startedAt")
     duration_ms: float = Field(alias="durationMs")
+    # Honest-degradation notes (e.g. entries skipped for insufficient cash);
+    # absent on a clean run. Mirrored in types/backtest.ts.
+    warnings: list[str] | None = None
 
 
 class BacktestRunEvent(BaseModel):

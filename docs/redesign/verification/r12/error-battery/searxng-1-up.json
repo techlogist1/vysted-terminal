@@ -1,0 +1,1 @@
+{"state":"ready","detail":"SearXNG serving JSON search at http://127.0.0.1:8888","reason":null,"port":8888,"url":"http://127.0.0.1:8888","container":"running","container_name":"vysted-searxng","image":"searxng/searxng","docker":{"cli_present":true,"daemon_running":true,"runtime":"Docker Engine - Community"}}

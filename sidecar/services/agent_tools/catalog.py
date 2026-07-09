@@ -417,8 +417,18 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                     "criteria": {
                         "type": "array",
                         "description": (
-                            "Discriminated-union filters, AND-combined, e.g. "
-                            '[{"field":"pe_ratio","operator":"lt","value":15}]'
+                            "Discriminated-union filters, AND-combined. Four shapes: "
+                            'numeric threshold {"field":"pe_ratio","operator":"lt","value":15} '
+                            "(gt|lt|gte|lte; fractions for ratios — roe 0.15 = 15%); numeric "
+                            'between {"field":"pe_ratio","operator":"between",'
+                            '"value":{"min":10,"max":20}}; '
+                            "string equality on sector/industry/currency "
+                            '{"field":"sector","operator":"eq","value":"Technology"}; set '
+                            'membership {"field":"symbol","operator":"in","value":["A","B"]} '
+                            "(set fields: symbol|sector|industry). For a sector-scoped screen "
+                            "ALWAYS filter server-side via the sector/industry criterion — "
+                            "post-filtering a limit-capped sweep client-side can silently "
+                            "drop matches."
                         ),
                         "items": {"type": "object"},
                     },
@@ -1232,11 +1242,15 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 "Pass a flat `criteria` list (each: {field, operator, value} where "
                 "operator is gt|lt|gte|lte|between|eq|in; numeric fields like pe_ratio, "
                 "market_cap, roe, dividend_yield, debt_to_equity, price, volume — "
-                "fractions for ratios e.g. roe 0.2 = 20%). For OR / nested logic, pass a "
+                "fractions for ratios e.g. roe 0.2 = 20%; string fields sector/industry/"
+                'currency take operator "eq", e.g. {"field":"sector","operator":"eq",'
+                '"value":"Technology"} — filter sector-scoped screens server-side '
+                "instead of post-filtering rows). For OR / nested logic, pass a "
                 "`group` tree {combinator:'and'|'or', criteria:[... leaf or nested group]} "
                 "which supersedes the flat list. Optionally set `universe` "
-                "(sp500|nifty50|crypto-top50|custom) and `limit`. Use when the user asks "
-                "to screen/scan for stocks by fundamentals."
+                "(sp500|nifty50|crypto-top50|nse-all|bse-all|india-all|custom) and "
+                "`limit`. Use when the user asks to screen/scan for stocks by "
+                "fundamentals."
             ),
             input_schema=_obj(
                 {

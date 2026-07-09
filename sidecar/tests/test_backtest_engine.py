@@ -214,3 +214,43 @@ async def test_backtest_summary_returns_digest_for_real_run() -> None:
     assert "worstTrades" in summary
     # No raw equity_curve — keep the agent prompt compact.
     assert "equityCurve" not in summary
+
+
+@pytest.mark.asyncio
+async def test_unaffordable_position_surfaces_warning_not_silent_zero() -> None:
+    """D65 (R12): entries the portfolio cannot afford must be DISCLOSED.
+
+    A position size costing more than initial capital used to produce a
+    confident all-zero result (logger-only warning). The result now carries
+    a ``warnings`` entry with the skip count and shortfall.
+    """
+    backtest_engine.register_strategy("buy_and_hold_poor", BuyAndHoldDay2)
+    request = BacktestRequest(
+        strategyId="buy_and_hold_poor",
+        params={},
+        symbols=["AAPL"],
+        startDate="2025-01-01",
+        endDate="2025-12-31",
+        initialCapital=100.0,  # 100 shares @ ~100 needs ~10,000 — never affordable
+    )
+    result = await backtest_engine.run_backtest(request, bar_loader=_loader)
+    assert result.metrics.trade_count == 0
+    assert result.trades == []
+    assert result.warnings is not None and len(result.warnings) == 1
+    assert "skipped" in result.warnings[0]
+    assert "position size" in result.warnings[0]
+
+
+@pytest.mark.asyncio
+async def test_clean_run_carries_no_warnings() -> None:
+    backtest_engine.register_strategy("buy_sell_clean", SellOnLast)
+    request = BacktestRequest(
+        strategyId="buy_sell_clean",
+        params={"total_bars": 5},
+        symbols=["AAPL"],
+        startDate="2025-01-01",
+        endDate="2025-12-31",
+        initialCapital=100_000.0,
+    )
+    result = await backtest_engine.run_backtest(request, bar_loader=_loader)
+    assert result.warnings is None

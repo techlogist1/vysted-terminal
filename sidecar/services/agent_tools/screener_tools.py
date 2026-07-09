@@ -30,7 +30,7 @@ async def _screener_run(args: dict[str, Any]) -> dict[str, Any]:
     Args (passed via the model's tool-call payload):
 
       - ``universe`` (str, required) — one of ``"sp500" | "nifty50" |
-        "crypto-top50" | "custom"``.
+        "crypto-top50" | "nse-all" | "bse-all" | "india-all" | "custom"``.
       - ``criteria`` (list[dict], required) — discriminated-union
         criterion list. Each entry is shaped as the corresponding
         :class:`ScreenerCriterion` variant.

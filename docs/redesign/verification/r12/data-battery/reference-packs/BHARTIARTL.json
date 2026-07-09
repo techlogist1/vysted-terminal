@@ -1,0 +1,180 @@
+{
+  "symbol": "BHARTIARTL",
+  "legal_name": "Bharti Airtel Limited",
+  "isin": "INE397D01024",
+  "cin": "L74899HR1995PLC095967",
+  "exchange_listings": {
+    "nse_symbol": "BHARTIARTL",
+    "bse_code": "532454",
+    "listing_date": "2002-02-15",
+    "note": "Dual-listed on NSE and BSE only (BOTH). No ADR/GDR identified. Partly-paid equity shares also trade separately (approx. 1,110,668 partly-paid shares with outstanding call money as of Jul 2026, per stockanalysis.com search snippet) - not part of this pack's price/mcap figures, which refer to the regular fully-paid equity line."
+  },
+  "as_of_market_close": "2026-07-09",
+  "collected_on": "2026-07-10",
+  "price_and_market_cap": {
+    "last_close_price_inr": 1931.10,
+    "price_change_pct_on_day": 2.28,
+    "market_cap_inr_cr": 1175584,
+    "basis": "consolidated, live equity quote",
+    "as_of": "2026-07-09 (NSE/BSE close)",
+    "cross_check": [
+      {"source": "screener.in", "price": 1931, "market_cap_inr_cr": 1175584},
+      {"source": "indmoney.com", "price": 1931.10, "market_cap_inr_cr": 1150472.08},
+      {"source": "stockanalysis.com", "price": 1935.10, "market_cap_inr_cr": "~1176000 (stated as 11.76 trillion)"},
+      {"source": "web aggregate (companiesmarketcap.com per search snippet)", "market_cap_inr_cr": 1176673.20}
+    ],
+    "disagreement_note": "Price consensus is tight (₹1,931.10 per screener.in, indmoney.com, and a general web quote snapshot all timestamped 09-Jul-2026 16:01 IST close; stockanalysis.com showed ₹1,935.10, ~0.2% higher, likely a later intraday/different snapshot). Market cap has a real outlier: indmoney.com shows ₹11,50,472.08 Cr, about 2.1% below the ₹11,75,584 Cr figure that screener.in, stockanalysis.com (~₹11.76 trillion) and companiesmarketcap.com (₹11,76,673.20 Cr) cluster around. Three independent sources agree closely (~₹11.75-11.77 lakh crore); indmoney is treated as the outlier but is reported here rather than silently discarded."
+  },
+  "valuation": {
+    "pe_ttm": {
+      "value": 40.9,
+      "basis": "consolidated TTM",
+      "as_of": "2026-07-09",
+      "source": "screener.in",
+      "cross_check": [
+        {"source": "indmoney.com", "value": 41.91},
+        {"source": "stockanalysis.com", "value": 44.04},
+        {"source": "stockanalysis.com forward P/E", "value": 30.39}
+      ]
+    },
+    "eps_ttm_inr": {
+      "value": 45.99,
+      "basis": "consolidated; computed as sum of last 4 quarterly consolidated EPS reported by screener.in (Jun'25: 10.43 + Sep'25: 11.91 + Dec'25: 11.63 + Mar'26: 12.02 = 45.99)",
+      "as_of": "quarter ended 2026-03-31 (TTM through Q4 FY26)",
+      "source": "screener.in (derived)",
+      "cross_check": [
+        {"source": "screener.in P/E-implied (price 1931 / P/E 40.9)", "value": 47.21},
+        {"source": "stockanalysis.com", "value": 44.37, "note": "stated -20.8% YoY"},
+        {"source": "indmoney.com", "value": 64.62, "note": "significant outlier, inconsistent with its own stated P/E of 41.91 at price 1931.10 (implies EPS ~46.07, not 64.62) - likely a data/methodology error on indmoney's page; not used as primary"}
+      ],
+      "disagreement_note": "EPS TTM converges around ₹45-47 across screener-derived sum-of-quarters, screener's own P/E-implied value, and stockanalysis.com. indmoney.com's stated EPS TTM (₹64.62) is internally inconsistent with its own displayed P/E and price, and is flagged as unreliable rather than used."
+    },
+    "book_value_per_share_inr": {
+      "value": 245.80,
+      "basis": "consolidated",
+      "as_of": "FY26 (year ended 2026-03-31)",
+      "source": "screener.in (₹245 headline figure; ₹245.80 per a screener-derived web snippet using P/B 7.89x on price ₹1,941.60)",
+      "cross_check": [
+        {"source": "indmoney.com", "value": 194.66, "note": "P/B ratio shown as 7.16, but 1931.10/194.66 = 9.92, internally inconsistent"},
+        {"source": "screener.in standalone (entity-only, not consolidated)", "value": 263}
+      ],
+      "disagreement_note": "Consolidated book value clusters near ₹245-246 (screener.in, corroborated by an independent price/book snapshot). indmoney.com's ₹194.66 figure is both lower than consensus and internally inconsistent with its own stated P/B ratio, so it is noted but not used as the primary figure. The standalone-entity book value (₹263, Bharti Airtel Ltd only, excluding subsidiaries) is a different basis and reported separately, not blended in."
+    },
+    "roe_latest_fy_pct": {
+      "value": 21.9,
+      "basis": "consolidated, latest FY (FY26)",
+      "as_of": "FY26 (year ended 2026-03-31)",
+      "source": "screener.in",
+      "cross_check": [{"source": "web snippet (screener-derived)", "value": 23.12}],
+      "note": "Standalone-entity ROE is materially lower (~10.7% latest year, ~9.88% 3-yr avg per screener.in standalone page) because the standalone entity excludes profitable subsidiaries (Bharti Hexacom, Airtel Africa stake economics, Indus Towers economics) that lift consolidated equity returns. Consolidated basis used here as the more representative group figure."
+    },
+    "dividend_yield_pct": {
+      "value": 0.83,
+      "basis": "trailing dividend (₹16.00 paid) / last close price",
+      "as_of": "2026-07-09",
+      "source": "screener.in, stockanalysis.com (both 0.83%)",
+      "cross_check": [{"source": "indmoney.com", "value": 0.89}]
+    },
+    "face_value_inr": 5.00
+  },
+  "52_week": {
+    "high_inr": 2174.50,
+    "low_inr": 1740.50,
+    "as_of": "2026-07-09",
+    "source": "consensus across screener.in, indmoney.com, stockanalysis.com (all agree to the rupee)",
+    "drawdown_from_52w_high_pct": -11.19,
+    "drawdown_calc": "(1931.10 - 2174.50) / 2174.50 = -11.19%",
+    "price_change_52w_pct": {
+      "value_a": -0.46,
+      "source_a": "indmoney.com / general web aggregate snapshot",
+      "value_b": -4.67,
+      "source_b": "stockanalysis.com",
+      "disagreement_note": "Two sources disagree materially on trailing-12-month total price return (-0.46% vs -4.67%), likely due to different snapshot dates for the 'year-ago' comparison price or dividend-adjustment treatment. Both figures reported; not silently resolved."
+    }
+  },
+  "dividends": {
+    "paid_trailing_12_months": [
+      {
+        "per_share_inr": 16.00,
+        "type": "final dividend, FY25 (year ended 2025-03-31)",
+        "special": false,
+        "declared_on": "2025-05-13",
+        "ex_date_record_date": "2025-07-18",
+        "payment_date": "on/around 2025-08 to 2025-09 (within 30 days of AGM; sources vary: one cites 2025-08-11, stockanalysis.com cites 2025-09-07)",
+        "basis": "consolidated / per fully-paid equity share, face value ₹5",
+        "source": "indmoney.com dividend history table, cross-checked with hdfcsky.com news and angelone.in"
+      }
+    ],
+    "declared_not_yet_paid": [
+      {
+        "per_share_inr_fully_paid": 24.00,
+        "per_share_inr_partly_paid": 6.00,
+        "type": "final dividend, FY26 (year ended 2026-03-31)",
+        "special": false,
+        "declared_on": "2026-05-13",
+        "status": "recommended by board; subject to shareholder approval at 31st AGM scheduled 2026-08-03; not yet paid as of collection date (2026-07-10)",
+        "ex_date_record_date": "not yet fixed at time of collection per available sources (one low-quality aggregator listing showed 'ex-date 2026-07-20 / pay-date 2026-08-13' for a garbled '₹4' figure that is almost certainly a truncation/OCR error for '₹24' - flagged, not relied upon for the date)",
+        "source": "businesstoday.in, indiaipo.in, angelone.in, tipranks.com, equitybulls.com (all corroborate ₹24 fully-paid / ₹6 partly-paid, declared 2026-05-13)"
+      }
+    ],
+    "note": "Airtel has historically paid one dividend per year (final dividend only, no interims, in each of the last several years: ₹4 FY23, ₹8 FY24, ₹16 FY25, ₹24 FY26 proposed) so the trailing-12-month PAID figure (₹16.00) and the newly declared-but-unpaid FY26 figure (₹24.00) are correctly treated as separate, non-overlapping items per the collection instructions."
+  },
+  "latest_quarter": {
+    "period_label": "Q4 FY26 (quarter ended 2026-03-31)",
+    "revenue_inr_cr": 55383,
+    "net_profit_inr_cr": 9247,
+    "eps_inr": 12.02,
+    "basis": "consolidated",
+    "source": "screener.in",
+    "cross_check_net_profit_alternate": {
+      "value_inr_cr": 7325,
+      "source": "goodreturns.in headline ('profit falls 34% to Rs 7,325 crore') and stockanalysis.com financials page (net income 73,251 million = ₹7,325.1 Cr)",
+      "disagreement_note": "Two materially different 'net profit' figures are being reported in the wild for the same quarter: ₹9,247 Cr (screener.in, businesstoday.in - 'net profit slips 26%') vs ₹7,325 Cr (stockanalysis.com, goodreturns.in - 'profit falls 34%'). This is consistent with the two figures being profit-attributable-to-owners-after-minority-interest vs. a different profit line (e.g., pre-exceptional-item or a different NCI treatment) rather than a data error by either source. Both are reported here; the ₹9,247 Cr figure is used as primary since it reconciles with screener.in's own quarterly EPS (12.02) and TTM net profit (₹33,823 Cr) figures used elsewhere in this pack."
+    }
+  },
+  "same_quarter_prior_year": {
+    "period_label": "Q4 FY25 (quarter ended 2025-03-31)",
+    "revenue_inr_cr": 47876,
+    "net_profit_inr_cr": 12476,
+    "eps_inr": 16.34,
+    "basis": "consolidated",
+    "source": "screener.in"
+  },
+  "growth": {
+    "revenue_growth_yoy_mrq_pct": 15.7,
+    "revenue_growth_calc": "(55383 - 47876) / 47876 = 15.68%, rounds to screener.in's stated 15.7%; corroborated by press coverage citing '16% rise'",
+    "earnings_growth_yoy_mrq_pct": -25.9,
+    "earnings_growth_calc": "(9247 - 12476) / 12476 = -25.88%, rounds to screener.in's stated -25.9%; corroborated by press coverage citing 'net profit slips 26%'",
+    "basis": "consolidated, MRQ",
+    "source": "screener.in, cross-checked against businesstoday.in coverage"
+  },
+  "ttm_consolidated_check": {
+    "ttm_revenue_inr_cr": 210973,
+    "ttm_net_profit_inr_cr": 33823,
+    "calc": "Sum of last 4 reported quarters (Jun'25 49463 + Sep'25 52145 + Dec'25 53982 + Mar'26 55383 = 210973 revenue; Jun'25 7422 + Sep'25 8651 + Dec'25 8503 + Mar'26 9247 = 33823 net profit)",
+    "source": "screener.in quarterly table, self-computed sum, cross-checked against an independent web snippet stating identical TTM revenue/profit figures for Bharti Airtel's screener consolidated page"
+  },
+  "shareholding": {
+    "promoter_holding_pct": 50.07,
+    "as_of": "2026-06-30 (Jun 2026 quarter-end shareholding pattern)",
+    "source": "screener.in",
+    "cross_check": {
+      "source": "stockanalysis.com",
+      "value_pct": 48.87,
+      "as_of": "Jun 2026",
+      "disagreement_note": "screener.in (50.07%) and stockanalysis.com (48.87%) disagree by ~1.2pp on promoter holding for the same Jun-2026 period, likely due to different treatment of promoter-group entities or partly-paid shares in the denominator. Both reported."
+    },
+    "other_holders_screener": {
+      "FII_pct": 26.51,
+      "DII_pct": 20.64,
+      "public_pct": 2.61
+    }
+  },
+  "notes": [
+    "Primary source used throughout is screener.in's CONSOLIDATED view (https://www.screener.in/company/BHARTIARTL/consolidated/); Bharti Airtel's standalone-entity figures (also on screener.in) differ substantially because the standalone entity excludes major subsidiaries (Bharti Hexacom, Airtel Africa economics, Indus Towers, Nxtra, etc.) - e.g., standalone P/E 73.0, standalone book value ₹263, standalone ROE ~10.7%, standalone Q4 FY26 revenue only ₹31,296 Cr vs consolidated ₹55,383 Cr. Do not mix standalone and consolidated figures.",
+    "moneycontrol.com could not be fetched directly in this session (tool returned 'unable to fetch'); moneycontrol data is therefore not included as a distinct cross-check source in this pack. All other named primary sources (screener.in, NSE, indmoney.com, stockanalysis.com, plus several secondary aggregators for dividend corroboration) were used instead.",
+    "NSE's own quote page (nseindia.com) timed out on direct fetch during collection; NSE-listed identifiers (symbol BHARTIARTL, ISIN INE397D01024) were corroborated via NSE-attributed search snippets and multiple broker pages that cite NSE data directly, so exchange identifiers are still considered reliable despite the fetch failure.",
+    "All INR crore (Cr) figures = 10 million INR each; 1 lakh crore = 1 trillion INR (approx, for scale reference).",
+    "Data collected 2026-07-10 for market state as of last close 2026-07-09 (Thursday). No newer close was available at collection time."
+  ]
+}

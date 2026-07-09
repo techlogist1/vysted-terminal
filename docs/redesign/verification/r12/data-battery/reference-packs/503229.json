@@ -1,0 +1,218 @@
+{
+  "meta": {
+    "bse_code": "503229",
+    "compiled_by": "independent web research (no localhost/Vysted API touched)",
+    "compiled_as_of": "2026-07-10",
+    "last_market_close_used": "2026-07-09",
+    "sources_used": [
+      "https://www.screener.in/company/503229/",
+      "https://www.screener.in/company/503229/consolidated/",
+      "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?scripcode=503229 (BSE official quote widget backend)",
+      "https://api.bseindia.com/BseIndiaAPI/api/StockReachGraph/w?scripcode=503229 (BSE official intraday tick feed)",
+      "https://groww.in/stocks/simplex-realty-ltd",
+      "https://www.tickertape.in/stocks/simplex-realty-SIMPX",
+      "https://upstox.com/stocks/dividend-stocks/simplex-realty-ltd/",
+      "https://upstox.com/stocks/simplex-realty-ltd-share-price/INE167H01014/",
+      "https://scanx.trade/stock-market-news/companies/simplex-realty-posts-net-loss-of-360-64-lakh-in-fy26/40821625",
+      "https://www.whalesbook.com/corporate-news/English/real-estate/Simplex-Realty-Resubmits-FY26-Results-Adds-Two-Directors-to-Board/6a0dc61e81d22035d81dce51",
+      "https://scanx.trade/stock-market-news/companies/simplex-realty-closes-trading-window-from-july-1-for-q1fy27-results/43679520",
+      "https://in.marketscreener.com/quote/stock/SIMPLEX-REALTY-LIMITED-20704421/company/",
+      "trendlyne.com shareholding-pattern page (search-snippet only)"
+    ]
+  },
+  "identity": {
+    "legal_name": "Simplex Realty Limited",
+    "formerly": "The Simplex Mills Company Limited (incorporated 1912 as a composite textile mill; went public Sept 1992; demerged Paper & Textile divisions in 2005 into Simplex Papers Ltd and other entities, renamed Simplex Realty Limited)",
+    "isin": "INE167H01014",
+    "bse_code": "503229",
+    "bse_symbol": "SIMPLXREA",
+    "nse_symbol": null,
+    "registered_office": "30, Keshavrao Khadye Marg, Sant Gadge Maharaj Chowk, Mumbai-400011, Maharashtra",
+    "incorporated": "1912-11-06",
+    "ipo_listed": "September 1992",
+    "business": "Real estate development (single reporting segment) — residential and commercial projects concentrated in Mumbai. Key projects: Planet Godrej (5-tower residential/commercial development, joint development with Godrej Properties Ltd), Simplex Khushaangan (retail + residential enclave, Malad), Casas-Na-Colina (villas, Nachinolla, Goa).",
+    "face_value_inr": 10.0,
+    "shares_outstanding_est": 3000000,
+    "shares_outstanding_basis": "Derived: FY26/FY25/FY24 net profit divided by reported EPS is internally consistent at ~30,00,000 shares each year (e.g. FY25 standalone net profit Rs 1.32 Cr / EPS Rs 4.40 = 30,00,000 shares almost exactly). Cross-checked loosely against market-cap/price ratios from multiple vendors (implied share counts ranged 28.7–31.6 lakh depending on which cached price/mcap pair was used — see price_and_valuation disagreement notes), so 30,00,000 is treated as the reliable central estimate, not an exact filed figure (no source stated the raw shares-outstanding number directly).",
+    "exchange_listings": "Listed on BSE only (code 503229, symbol SIMPLXREA). NOT listed on NSE — confirmed by a dedicated web search return ('Simplex Realty Ltd is not listed on NSE, but it is listed on the BSE') and by the complete absence of any NSE-specific quote data across all sources checked; generic 'NSE/BSE' phrasing in many aggregator page titles is templated boilerplate, not an actual second listing (same pattern seen on other BSE-only small-caps)."
+  },
+  "price_and_valuation": {
+    "latest_close": {
+      "value_inr": 138.50,
+      "as_of": "2026-07-09 (BSE trading session)",
+      "basis": "BSE closing price",
+      "source": "tickertape.in (explicit 'as of July 9, 2026' tag) corroborated by BSE India's own official intraday tick-data feed (api.bseindia.com StockReachGraph for scripcode 503229), which shows repeated prints of 138.50 from 15:22:53 IST through market close (16:01:22)",
+      "cross_check_note": "Two other independently-fetched sources — screener.in and groww.in — both show Rs 133.00 / 133.05 for the SAME date (prev close 139.80, day range 133.00-140.85, -4.83%), and BSE's OWN quote-summary widget (getScripHeaderData) ALSO shows LTP 133.05 tagged 'Ason: 09 Jul 26 | 16:00'. This is a genuine same-day disagreement, not resolved with full confidence: BSE's own tick-level graph shows continuous-session prints of 133.00 from 09:36 through ~15:19 (with real volume: 150, 56, 96 shares etc.), a single odd-lot print of 139.95 at 13:16 (volume 1), and then 138.50 from 15:22:53 onward (zero volume on most repeats, suggesting a snapped/held closing value rather than fresh trades). 138.50 is treated as primary here because it is the LATEST timestamped value in BSE's own granular feed and independently matches tickertape.in, but the widely-repeated 133.00-133.05 figure (screener.in, groww.in, BSE's own summary widget) is flagged rather than silently discarded — for a stock this thinly traded, either could be defensible as 'the close'."
+    },
+    "market_cap": {
+      "value": "Rs 39.8 Cr (screener.in) / Rs 42 Cr (groww.in, rounded) / Rs 39.80 Cr (tickertape.in — but tickertape pairs this with ITS OWN price of Rs 138.50, which is internally inconsistent: Rs 39.80 Cr / Rs 138.50 implies only ~28.7 lakh shares vs. the ~30 lakh implied elsewhere)",
+      "as_of": "2026-07-09",
+      "basis": "full market cap, standalone share count (~30,00,000 shares est.)",
+      "source": "screener.in, groww.in, tickertape.in",
+      "disagreement_note": "Computed check using the ~30,00,000-share estimate: at the primary close of Rs 138.50, market cap ~ Rs 41.6 Cr; at the alternate close of Rs 133.05, market cap ~ Rs 39.9 Cr (matches screener.in's Rs 39.8 Cr almost exactly). The mcap figures each source quotes appear tied to whichever price that same source was showing, so the mcap disagreement is downstream of the price disagreement above, not an independent second discrepancy."
+    },
+    "pe_ttm": {
+      "value": "Not meaningful (NM) — trailing 12-month EPS is negative",
+      "as_of": "TTM through Q4 FY26 (quarter ended 2026-03-31)",
+      "basis": "standalone",
+      "source": "screener.in and groww.in both show blank / '--' for Stock P/E, consistent with a negative trailing EPS",
+      "disagreement_note": "tickertape.in computed a literal negative P/E of -10.61, which does not exactly reconcile with its own quoted price (138.50) and TTM EPS (-12.47) (138.50 / -12.47 = -11.11, not -10.61) — treated as an internally-inconsistent outlier rather than a genuine second data point. Given a loss-making TTM, P/E is reported as NM."
+    },
+    "eps_ttm": {
+      "value_inr": -12.03,
+      "as_of": "TTM through Q4 FY26 (i.e. FY26 full year, since fiscal year end = March)",
+      "basis": "standalone",
+      "source": "screener.in annual P&L table (Mar-2026 column, EPS -12.03)",
+      "computation_check": "Sum of last 4 standalone quarterly EPS (screener.in): Jun'25 -3.77 + Sep'25 -0.83 + Dec'25 -1.17 + Mar'26 -6.27 = -12.04, matching the -12.03 annual figure within rounding.",
+      "disagreement_note": "Consolidated basis TTM EPS is -12.50 (screener.in consolidated). groww.in shows -12.71 TTM and tickertape.in shows -12.47 TTM — both in the same -12 to -13 range but not exact matches, likely differing TTM windows or share-count assumptions. All sources agree the TTM EPS is meaningfully negative."
+    },
+    "book_value_per_share_inr": {
+      "value_standalone": 390,
+      "value_consolidated": 375,
+      "as_of": "2026-03-31 (FY26 year-end)",
+      "source": "screener.in (standalone view: Rs 390; consolidated view: Rs 375)",
+      "disagreement_note": "groww.in shows Rs 375.82, matching the consolidated figure rather than standalone. The ~Rs 15/share gap between standalone and consolidated book value reflects consolidation adjustments (the group includes an associate, Simplex Papers Ltd, whose auditors flagged a fully-eroded net worth as of FY26 year-end — see notes)."
+    },
+    "52_week_high": {
+      "value_inr": 206.80,
+      "as_of_window": "trailing 12 months to 2026-07-09",
+      "source": "groww.in and tickertape.in (exact agreement at 206.80); screener.in shows a rounded Rs 207",
+      "disagreement_note": "Multiple stale/differently-dated web snippets showed materially higher 52-week highs (Rs 243, Rs 243.35, Rs 300) attributed to Jan/Feb 2026 or 'as of Jul 31, 2025' snapshots. These are not treated as contradictions: as the trailing-12-month window has rolled forward from early/mid-2026 to July 2026, an old intra-year peak (above Rs 240, even briefly near Rs 300 per one now-stale source) has rolled OUT of the current 52-week window, which is consistent with a stock in a sustained multi-month downtrend. 206.80 is the current (as-of-Jul-2026) figure and is the one reported as primary."
+    },
+    "52_week_low": {
+      "value_inr": 117.70,
+      "as_of_window": "trailing 12 months to 2026-07-09",
+      "source": "groww.in and tickertape.in (exact agreement at 117.70); screener.in shows a rounded Rs 118",
+      "disagreement_note": "One stray snippet showed a low of Rs 131.35/Rs 133.10/Rs 142.40 attached to unclear or differently-dated snapshots — likely reflecting a mid-window low print before the true 52-week low (117.70) was reached, or simply stale caching. Rs 117.70 is corroborated by two independent live sources and is used as primary."
+    },
+    "drawdown_from_52w_high_pct": {
+      "value_pct": -33.03,
+      "computation": "(138.50 - 206.80) / 206.80 = -0.3303, using the primary close (Rs 138.50) vs. the primary 52-week high (Rs 206.80)",
+      "as_of": "2026-07-09 close vs trailing-12-month high",
+      "note": "Using the alternate close of Rs 133.05 instead: (133.05 - 206.80) / 206.80 = -35.66%. Either way the stock is trading roughly one-third below its 52-week high."
+    },
+    "52_week_price_change_pct": {
+      "value_pct": -30.14,
+      "computation": "As directly stated by tickertape.in's '1-Year Price Return' field (not independently re-derivable from a single verified anchor price, since no source gave an exact, clearly-dated closing price for 2025-07-09 specifically)",
+      "as_of": "trailing 12 months to 2026-07-09",
+      "source": "tickertape.in",
+      "disagreement_note": "A rough independent check: a dated news/aggregator snapshot put Simplex Realty's close at Rs 179.80 on 2025-07-31 (with 52-week high/low of Rs 300 / Rs 151.05 and market cap Rs 53.78 Cr as of that date). Using that anchor: (138.50-179.80)/179.80 = -22.98%, or (133.05-179.80)/179.80 = -26.00%, depending on which of the two current-price candidates is used, and the anchor date (Jul 31) is ~3 weeks off from the true 1-year mark (Jul 9). All estimates agree on the direction and rough magnitude (roughly -23% to -30% over the trailing year); tickertape's -30.14% is reported as the primary sourced figure but should be read as approximate given this stock's thin liquidity and the lack of a precisely-dated one-year-ago close."
+    }
+  },
+  "dividends_detail": {
+    "face_value_inr": 10.0,
+    "paid_trailing_12_months": [],
+    "declared_not_yet_paid": [],
+    "dividend_yield_pct": {
+      "value": 0.00,
+      "basis": "trailing 12-month paid dividend (Rs 0/share, see paid_trailing_12_months) / current price",
+      "source": "screener.in, groww.in, tickertape.in — all three independently show 0.00% dividend yield",
+      "note": "Unanimous across every source checked: no dividend has been paid in the trailing 12 months, and none has been declared/recommended for payment as of the compilation date. Consistent with FY26 (year ended Mar 2026) being a loss-making year at both standalone and consolidated levels."
+    },
+    "historical_dividends_per_share_inr": [
+      {
+        "announcement_date": "2024-05-21",
+        "ex_date": "2024-07-31",
+        "type": "Final",
+        "amount_inr": 1.00,
+        "pct_of_face_value": "10.00%",
+        "source": "upstox.com dividend-history page, which states this is the company's only dividend event 'since August 29, 2023' and confirms a Rs 0.00 payout in the trailing 12 months as of the page's fetch date"
+      }
+    ],
+    "specials_in_trailing_12_months": "None — no dividend of any kind (interim, final, or special) was paid in the trailing 12 months to 2026-07-09. The only dividend found in any source's history is the FY2023-24 final dividend of Rs 1.00/share (ex-date 2024-07-31), which falls well outside the trailing-12-month window from the compilation date."
+  },
+  "quarterly_detail": {
+    "basis": "Both standalone and consolidated reported; standalone used as primary (screener.in default view), consolidated cross-checked separately",
+    "latest_reported_quarter": {
+      "period_label": "Q4 FY26 (quarter ended 2026-03-31)",
+      "revenue_cr_standalone": 8.86,
+      "net_profit_cr_standalone": -1.88,
+      "eps_inr_standalone": -6.27,
+      "revenue_cr_consolidated": 8.86,
+      "net_profit_cr_consolidated": -2.04,
+      "eps_inr_consolidated": -6.63,
+      "results_announced": "2026-05-20",
+      "source": "screener.in quarterly results table (both standalone and consolidated views); announcement date and FY26 full-year figures corroborated by scanx.trade and whalesbook.com news articles",
+      "note": "Board approved audited FY26/Q4 results on 2026-05-20. Per whalesbook.com, the company RESUBMITTED these results shortly after the initial filing 'to correct an error in the initial filing' (specific line item not disclosed in the source). The figures used here are from screener.in (which reflects the corrected filing) and independently match the press-release figures in the FY26 annual note below, so are treated as reliable, but the resubmission itself is flagged as a data-quality caveat — see notes."
+    },
+    "same_quarter_prior_year": {
+      "period_label": "Q4 FY25 (quarter ended 2025-03-31)",
+      "revenue_cr_standalone": 0.26,
+      "net_profit_cr_standalone": -0.30,
+      "eps_inr_standalone": -1.00,
+      "revenue_cr_consolidated": 0.26,
+      "net_profit_cr_consolidated": -0.30,
+      "eps_inr_consolidated": -1.00,
+      "source": "screener.in quarterly results table (standalone and consolidated views agree for this quarter)"
+    },
+    "revenue_growth_yoy_mrq_pct": {
+      "value": 3207.7,
+      "computation": "(8.86 - 0.26) / 0.26 = 3207.69%, standalone",
+      "caveat": "Base-period revenue (Rs 0.26 Cr) is unusually small even by this company's own volatile quarterly standards, so the resulting YoY% is extreme and not representative of a stable growth trend — see the multi-quarter series below for context (quarterly revenue has ranged from ~Rs 0.2 Cr to ~Rs 9 Cr with no clear seasonal pattern)."
+    },
+    "earnings_growth_yoy_mrq_pct": {
+      "value": -526.7,
+      "computation": "(-1.88 - (-0.30)) / abs(-0.30) = -526.67%, standalone",
+      "caveat": "Both the current and base-period quarters are net losses, so this is a widening-loss metric ('losses grew ~5.3x YoY'), not an earnings-growth rate in the conventional sense."
+    },
+    "annual_trend_for_context_rs_cr": [
+      { "fy_end": "2023-03-31", "revenue_standalone": 1.58, "net_profit_standalone": 1.30, "eps_inr_standalone": 4.33 },
+      { "fy_end": "2024-03-31", "revenue_standalone": 1.76, "net_profit_standalone": 5.18, "eps_inr_standalone": 17.27 },
+      { "fy_end": "2025-03-31", "revenue_standalone": 4.79, "net_profit_standalone": 1.32, "eps_inr_standalone": 4.40, "revenue_consolidated": 4.79, "net_profit_consolidated": 1.30, "eps_inr_consolidated": 4.33 },
+      { "fy_end": "2026-03-31", "revenue_standalone": 12.90, "net_profit_standalone": -3.61, "eps_inr_standalone": -12.03, "revenue_consolidated": 12.90, "net_profit_consolidated": -3.80, "eps_inr_consolidated": -12.50 }
+    ],
+    "fy26_vs_fy25_press_release_cross_check": {
+      "fy26_revenue_from_operations_lakh": 1290.32,
+      "fy26_total_income_lakh": 1577.18,
+      "fy26_net_loss_lakh_standalone": 360.64,
+      "fy26_net_loss_lakh_consolidated": 380.09,
+      "fy25_revenue_from_operations_lakh": 479.53,
+      "fy25_total_income_lakh": 1259.97,
+      "fy25_net_profit_lakh": 131.64,
+      "source": "scanx.trade and whalesbook.com news articles on the 2026-05-20 board-approved results",
+      "reconciliation": "1290.32 lakh = Rs 12.90 Cr and 360.64 lakh = Rs 3.6064 Cr (standalone) and 380.09 lakh = Rs 3.8009 Cr (consolidated) — both match the screener.in annual table exactly (12.90 / -3.61 / -3.80), confirming the figures used in this pack reflect the corrected/final filing."
+    }
+  },
+  "profitability_and_holding": {
+    "roe_latest_fy_pct": {
+      "value_standalone": -3.04,
+      "value_consolidated": -3.28,
+      "as_of": "FY26 (year ended 2026-03-31)",
+      "source": "screener.in",
+      "disagreement_note": "screener.in separately shows a 3-year-average standalone ROE of about +1.1% to +1.3% (search-snippet AI summary quoted 1.10% and 1.26% in two separate fetches), reflecting the profitable FY24/FY25 years before FY26's loss. The single-year FY26 figure is the negative one reported above."
+    },
+    "roce_pct": {
+      "value_standalone": -0.15,
+      "value_consolidated": -0.32,
+      "as_of": "TTM/latest FY (FY26)",
+      "source": "screener.in"
+    },
+    "book_value_per_share_inr": {
+      "standalone": 390,
+      "consolidated": 375
+    },
+    "promoter_holding_pct": {
+      "value": 55.10,
+      "as_of": "quarter ended 2026-03-31",
+      "source": "screener.in",
+      "trend_context": "A separate search-indexed snapshot (trendlyne.com-derived summary) put promoter holding at 55.11% as of Dec-2025 and 54.91% as of Mar-2025 — consistent with screener's 55.10% for Mar-2026 and showing a slow, steady increase in promoter stake over the past year (not a disagreement, just a close-but-not-identical Dec-2025 vs Mar-2026 data point).",
+      "other_holders": {
+        "dii_pct": 15.08,
+        "public_pct": 29.80,
+        "fii_pct": "not separately broken out / negligible",
+        "shareholder_count": 3087
+      }
+    }
+  },
+  "notes": [
+    "This is a very thinly-traded, BSE-only micro-cap real-estate developer (~30 lakh shares outstanding, share price in the low hundreds of rupees, individual trades of only 1-150 shares seen in BSE's own intraday tick data for 2026-07-09). At this liquidity level, 'the closing price' is genuinely ambiguous between aggregator caches — see the detailed price disagreement documented in price_and_valuation.latest_close, which is the most material cross-check finding in this pack (screener.in/groww.in/BSE's own summary widget show Rs 133.00-133.05 vs. BSE's own granular tick feed and tickertape.in showing Rs 138.50, for the identical date).",
+    "FY26 (year ended 2026-03-31) results were approved by the board on 2026-05-20 and then RESUBMITTED to correct an error in the initial filing, per whalesbook.com. The corrected figures (standalone net loss Rs 3.61 Cr / consolidated net loss Rs 3.80 Cr) are what screener.in now shows and what this pack uses throughout; they reconcile exactly against the press-release lakh-figures (Rs 360.64 lakh / Rs 380.09 lakh). Flagged as a data-quality caveat in case any other source is still showing the pre-correction figures.",
+    "Q1 FY27 (quarter ended 2026-06-30) results have NOT yet been announced as of this pack's compilation date (2026-07-10) — the company closed its insider trading window from 2026-07-01 pending the board meeting for these results (date 'to be intimated'), per scanx.trade. The 113th AGM is scheduled for 2026-08-05. Therefore the 'latest reported quarter' throughout this pack is Q4 FY26 (Mar-2026), not Jun-2026 — an earlier automated fetch mislabeled the Jun-2025 column as 'Jun-2026' in one intermediate pull during this research; that mislabeling was caught and corrected via a verbatim re-transcription of screener.in's tables plus corroboration against the Q1FY27-pending news, and does not appear in the figures reported here.",
+    "The auditors' report on the FY26 results flagged that Simplex Papers Limited — an associate company spun off from the same corporate group in the 2005 demerger — had fully eroded its net worth as of 2026-03-31, though management disputes whether an impairment charge is required. This is a relevant contingent risk factor for the group given the consolidated-vs-standalone book value gap noted above, but was not independently verified beyond the single whalesbook.com source.",
+    "Two new directors (Ms. Geeta Prabhakaran, Non-Executive Director; Smt. Sita Sunil, Independent Non-Executive Director) were appointed to the board effective 2026-05-20, per whalesbook.com.",
+    "No dividend has been paid in the trailing 12 months (yield 0.00% across all sources). The only dividend found in any source's history is a Rs 1.00/share (10% of face value) final dividend for FY2023-24, ex-date 2024-07-31 — well outside the trailing-12-month window. No dividend has been declared or recommended for FY2025-26 (consistent with the loss-making year).",
+    "ISIN INE167H01014 and BSE code/symbol (503229 / SIMPLXREA) were corroborated across multiple independent sources (Upstox, mStock, MarketScreener, BSE's own API) with no contradictions found.",
+    "Company is confirmed BSE-listed only; not listed on NSE (see identity.exchange_listings for sourcing).",
+    "This pack was compiled entirely from live web sources (screener.in, BSE India's own public API endpoints, groww.in, tickertape.in, upstox.com, scanx.trade, whalesbook.com, marketscreener.com); no localhost or Vysted internal API was queried."
+  ]
+}

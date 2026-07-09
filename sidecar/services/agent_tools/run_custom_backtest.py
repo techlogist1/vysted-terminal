@@ -44,6 +44,7 @@ def _digest(result: Any) -> dict[str, Any]:
         "startDate": result.request.start_date,
         "endDate": result.request.end_date,
         "metrics": result.metrics.model_dump(by_alias=True),
+        "warnings": result.warnings,
         "recentTrades": [
             t.model_dump(by_alias=True) for t in result.trades[-_MAX_TRADES_RETURNED:]
         ],

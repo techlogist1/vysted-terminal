@@ -53,6 +53,7 @@ async def _backtest_summary(args: dict[str, Any]) -> dict[str, Any]:
         "startDate": result.request.start_date,
         "endDate": result.request.end_date,
         "metrics": result.metrics.model_dump(by_alias=True),
+        "warnings": result.warnings,
         "recentTrades": [t.model_dump(by_alias=True) for t in recent],
         "bestTrades": [t.model_dump(by_alias=True) for t in best],
         "worstTrades": [t.model_dump(by_alias=True) for t in worst],

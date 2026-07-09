@@ -404,3 +404,43 @@ describe("BacktestPanel", () => {
     expect(screen.getByText("1,234,567")).toBeInTheDocument();
   });
 });
+
+// D65 (R12): a run whose entries were skipped for insufficient cash must
+// surface the engine's warnings strip — never a silent all-zero result.
+describe("BacktestPanel warnings (D65)", () => {
+  it("renders result.warnings as a warning strip", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: SAMPLE_STRATEGIES });
+    render(<BacktestPanel />);
+    await waitFor(() => screen.getByText("Mean Reversion"));
+
+    const warnedResult = {
+      ...SAMPLE_RESULT,
+      trades: [],
+      warnings: [
+        "37 buy signal(s) skipped — the position size cost more than available cash (largest shortfall 52,340). Reduce position_size or raise initial_capital.",
+      ],
+    };
+    useBacktestStore.setState({
+      runs: {
+        "run-w": {
+          runId: "run-w",
+          request: SAMPLE_RESULT.request,
+          status: "complete",
+          barsProcessed: 250,
+          totalBars: 250,
+          trades: [],
+          result: warnedResult,
+          error: null,
+          startedAt: SAMPLE_RESULT.startedAt,
+          finishedAt: SAMPLE_RESULT.startedAt + 320,
+        },
+      },
+      activeRunId: "run-w",
+    });
+
+    await waitFor(() => {
+      const strip = screen.getByTestId("run-warning");
+      expect(strip).toHaveTextContent("37 buy signal(s) skipped");
+    });
+  });
+});

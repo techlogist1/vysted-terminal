@@ -1,0 +1,220 @@
+{
+  "symbol": "ICICIBANK",
+  "legal_name": "ICICI Bank Limited",
+  "isin": "INE090A01021",
+  "exchange_listings": "NSE: ICICIBANK; BSE: 532174; also ADR on NYSE under ticker IBN. Primary listing venues for INR-denominated equity are NSE and BSE (dual-listed, identical INR price by SEBI regulation).",
+  "as_of_collection_date": "2026-07-09/2026-07-10",
+  "figures": [
+    {
+      "metric": "Latest closing price",
+      "value": "₹1,381.00",
+      "basis": "NSE/BSE closing price (INR per share)",
+      "as_of": "2026-07-09 (close)",
+      "source": "screener.in (primary). Cross-check via WebSearch aggregation showed ₹1,381.60, ₹1,382.60, ₹1,378.20 (various portals) and stockanalysis.com ₹1,384.00 same day — all within a ~₹6 band, see notes."
+    },
+    {
+      "metric": "Market capitalisation",
+      "value": "₹9,90,207 Cr (≈₹9.90 lakh crore / ₹9.90 trillion)",
+      "basis": "Current price × total shares outstanding, INR Crore",
+      "as_of": "2026-07-09",
+      "source": "screener.in; cross-checked against stockanalysis.com (₹9.90 trillion — matches). One WebSearch aggregator snippet showed ₹10,01,254.70 Cr — flagged as an outlier/disagreement in notes."
+    },
+    {
+      "metric": "P/E (TTM) — consolidated",
+      "value": "18.3",
+      "basis": "consolidated, TTM",
+      "as_of": "2026-07-09",
+      "source": "screener.in/company/ICICIBANK/consolidated/"
+    },
+    {
+      "metric": "P/E (TTM) — standalone",
+      "value": "19.8",
+      "basis": "standalone, TTM",
+      "as_of": "2026-07-09",
+      "source": "screener.in/company/ICICIBANK/. Note: stockanalysis.com reports 18.47 (basis/EPS source not fully disclosed on that page) — see notes."
+    },
+    {
+      "metric": "EPS (TTM) — consolidated",
+      "value": "₹75.71 (FY26 full-year EPS, i.e. trailing 4 quarters through Mar 2026)",
+      "basis": "consolidated, TTM/FY26",
+      "as_of": "FY26 (ended Mar 2026), reported 2026-04-18",
+      "source": "screener.in consolidated. Sum of last 4 quarterly EPS (Jun25 19.00 + Sep25 18.70 + Dec25 17.53 + Mar26 20.61 = 75.84) is directionally consistent."
+    },
+    {
+      "metric": "EPS (TTM) — standalone",
+      "value": "₹70.04 (FY26 full-year EPS)",
+      "basis": "standalone, TTM/FY26",
+      "as_of": "FY26 (ended Mar 2026)",
+      "source": "screener.in standalone. Sum of last 4 quarterly EPS (17.89+17.30+15.83+19.14=70.16) is directionally consistent. stockanalysis.com shows ₹74.77 TTM EPS, closer to the consolidated figure — see notes."
+    },
+    {
+      "metric": "52-week high",
+      "value": "₹1,500.00",
+      "basis": "intraday/closing high over trailing 52 weeks",
+      "as_of": "as of 2026-07-09",
+      "source": "screener.in; corroborated by stockanalysis.com and multiple WebSearch aggregator snippets — fully consistent across sources."
+    },
+    {
+      "metric": "52-week low",
+      "value": "₹1,187.60",
+      "basis": "intraday/closing low over trailing 52 weeks",
+      "as_of": "as of 2026-07-09",
+      "source": "screener.in; corroborated by stockanalysis.com and multiple WebSearch aggregator snippets — fully consistent across sources."
+    },
+    {
+      "metric": "Drawdown from 52-week high",
+      "value": "-7.93%",
+      "basis": "computed as (close − 52w high) / 52w high = (1381 − 1500) / 1500",
+      "as_of": "2026-07-09",
+      "source": "Derived by this researcher from screener.in close (₹1,381) and 52w high (₹1,500)."
+    },
+    {
+      "metric": "52-week price change %",
+      "value": "-4.02% (primary); disagreement noted — alternate readings of -3.44% and mcap change of -3.58% seen elsewhere",
+      "basis": "1-year total price return, INR",
+      "as_of": "2026-07-09",
+      "source": "stockanalysis.com quote page (direct fetch, -4.02%). A separate WebSearch aggregation (likely tickertape/marketsmojo-type snippet, not independently fetched) reported -3.44% price / -3.58% market-cap change — see notes for disagreement."
+    },
+    {
+      "metric": "Dividend paid in trailing 12 months (incl. specials)",
+      "value": "₹11.00 per share (single payment; no specials identified)",
+      "basis": "per share, INR, actually paid (not merely declared)",
+      "as_of": "ex-date/record date 2025-08-12; payment date reported as either 2025-09-29 (stockanalysis.com) or 2025-09-03 (a separate WebSearch snippet) — conflicting payment dates, see notes",
+      "source": "stockanalysis.com dividend history table; cross-checked against businesstoday.in / WebSearch aggregator snippets."
+    },
+    {
+      "metric": "Dividend declared but NOT yet paid",
+      "value": "₹12.00 per share (FY26 final dividend)",
+      "basis": "per share, INR, declared only — excluded from trailing-12-month paid figure above",
+      "as_of": "declared 2026-04-18 (with Q4/FY26 results); record date 2026-08-03; AGM 2026-08-21; payment date not yet fixed by the company (stockanalysis.com projects ~2026-09-20, unconfirmed)",
+      "source": "businesstoday.in (2026-07-01 article on record date announcement); stockanalysis.com dividend table."
+    },
+    {
+      "metric": "Face value",
+      "value": "₹2.00 per share",
+      "basis": "nominal/face value",
+      "as_of": "current",
+      "source": "screener.in; confirmed by multiple broker pages (Upstox, InvestOnline) in ISIN cross-check search."
+    },
+    {
+      "metric": "Dividend yield",
+      "value": "0.80% (trailing-paid basis) / 0.87–0.88% (forward, using newly declared ₹12 unpaid dividend)",
+      "basis": "trailing paid ₹11 ÷ price vs. declared ₹12 ÷ price — two legitimate but different bases, not a data error",
+      "as_of": "2026-07-09",
+      "source": "screener.in (0.80%, trailing); stockanalysis.com / other aggregators (0.87–0.88%, forward on declared dividend)."
+    },
+    {
+      "metric": "Latest reported quarter — standalone (Q4 FY26, period Jan–Mar 2026)",
+      "value": "Revenue ₹43,275 Cr; Net Profit ₹13,702 Cr; EPS ₹19.14",
+      "basis": "standalone, MRQ",
+      "as_of": "quarter ended 2026-03-31, reported 2026-04-18",
+      "source": "screener.in/company/ICICIBANK/ quarterly results table (explicit column headers verified)."
+    },
+    {
+      "metric": "Same quarter prior year — standalone (Q4 FY25, period Jan–Mar 2025)",
+      "value": "Revenue ₹42,431 Cr; Net Profit ₹12,630 Cr; EPS ₹17.73",
+      "basis": "standalone, MRQ prior-year comp",
+      "as_of": "quarter ended 2025-03-31",
+      "source": "screener.in/company/ICICIBANK/ quarterly results table."
+    },
+    {
+      "metric": "Latest reported quarter — consolidated (Q4 FY26, period Jan–Mar 2026)",
+      "value": "Revenue ₹49,594 Cr; Net Profit ₹15,681 Cr; EPS ₹20.61",
+      "basis": "consolidated, MRQ",
+      "as_of": "quarter ended 2026-03-31, reported 2026-04-18",
+      "source": "screener.in/company/ICICIBANK/consolidated/ quarterly results table (explicit column headers verified)."
+    },
+    {
+      "metric": "Same quarter prior year — consolidated (Q4 FY25, period Jan–Mar 2025)",
+      "value": "Revenue ₹48,387 Cr; Net Profit ₹14,354 Cr; EPS ₹18.96",
+      "basis": "consolidated, MRQ prior-year comp",
+      "as_of": "quarter ended 2025-03-31",
+      "source": "screener.in/company/ICICIBANK/consolidated/ quarterly results table."
+    },
+    {
+      "metric": "Revenue growth quarterly YoY (MRQ) — standalone",
+      "value": "+1.99%",
+      "basis": "standalone; (43,275 − 42,431) / 42,431",
+      "as_of": "Q4 FY26 vs Q4 FY25",
+      "source": "Derived by this researcher from screener.in standalone quarterly table."
+    },
+    {
+      "metric": "Revenue growth quarterly YoY (MRQ) — consolidated",
+      "value": "+2.49%",
+      "basis": "consolidated; (49,594 − 48,387) / 48,387",
+      "as_of": "Q4 FY26 vs Q4 FY25",
+      "source": "Derived by this researcher from screener.in consolidated quarterly table."
+    },
+    {
+      "metric": "Earnings (net profit) growth quarterly YoY (MRQ) — standalone",
+      "value": "+8.49% (net profit); EPS growth +7.95%",
+      "basis": "standalone; (13,702 − 12,630) / 12,630",
+      "as_of": "Q4 FY26 vs Q4 FY25",
+      "source": "Derived by this researcher from screener.in standalone quarterly table."
+    },
+    {
+      "metric": "Earnings (net profit) growth quarterly YoY (MRQ) — consolidated",
+      "value": "+9.25% (net profit); EPS growth +8.70%",
+      "basis": "consolidated; (15,681 − 14,354) / 14,354",
+      "as_of": "Q4 FY26 vs Q4 FY25",
+      "source": "Derived by this researcher from screener.in consolidated quarterly table."
+    },
+    {
+      "metric": "ROE (latest FY) — standalone",
+      "value": "16.0%",
+      "basis": "standalone, FY26 (ended Mar 2026)",
+      "as_of": "FY26",
+      "source": "screener.in/company/ICICIBANK/"
+    },
+    {
+      "metric": "ROE (latest FY) — consolidated",
+      "value": "16.1%",
+      "basis": "consolidated, FY26 (ended Mar 2026)",
+      "as_of": "FY26",
+      "source": "screener.in/company/ICICIBANK/consolidated/"
+    },
+    {
+      "metric": "Book value per share — standalone",
+      "value": "₹467",
+      "basis": "standalone",
+      "as_of": "latest reported (FY26/Mar 2026)",
+      "source": "screener.in/company/ICICIBANK/"
+    },
+    {
+      "metric": "Book value per share — consolidated",
+      "value": "₹503",
+      "basis": "consolidated",
+      "as_of": "latest reported (FY26/Mar 2026)",
+      "source": "screener.in/company/ICICIBANK/consolidated/"
+    },
+    {
+      "metric": "Promoter holding",
+      "value": "0.00% (no promoter/promoter group)",
+      "basis": "shareholding pattern",
+      "as_of": "Mar 2026 (latest disclosed quarter)",
+      "source": "screener.in shareholding table (no promoter line item present); confirmed explicitly at 0.00% via WebSearch cross-check (choiceindia/trendlyne-type aggregator). ICICI Bank has had no promoter since the 2002 reverse merger of erstwhile ICICI Ltd into the bank."
+    },
+    {
+      "metric": "Shareholding pattern breakdown (non-promoter)",
+      "value": "FII 34.48%; DII (combined) 39.94% [or, per alternate source's finer split: Mutual Funds 27.83% + Insurance 8.12% + DII residual 4.18% = 40.13%]; Public/Retail ~25.36% [alternate source: ~7.40% retail, remainder in other categories]; Government 0.22%",
+      "basis": "shareholding pattern, %",
+      "as_of": "Mar 2026",
+      "source": "screener.in (combined DII bucket) vs. a WebSearch aggregator snippet (finer MF/Insurance/DII split) — both agree on FII 34.48% and Promoter 0.00%; granularity differs, not a true disagreement."
+    }
+  ],
+  "quarterly_detail": "Latest reported quarter is Q4 FY26 (Jan–Mar 2026), reported 2026-04-18 alongside full FY26 annual results. As of the data-collection date (2026-07-09/10), Q1 FY27 (Apr–Jun 2026) results had NOT yet been published — ICICI Bank typically reports Q1 in mid-to-late July. Standalone quarterly trend (Rs Cr, EPS Rs): Mar25 42,431/12,630/17.73 → Jun25 42,947/12,768/17.89 → Sep25 41,758/12,359/17.30 → Dec25 41,966/11,318/15.83 → Mar26 43,275/13,702/19.14. Consolidated quarterly trend: Mar25 48,387/14,354/18.96 → Jun25 49,080/14,456/19.00 → Sep25 48,181/14,318/18.70 → Dec25 48,364/13,481/17.53 → Mar26 49,594/15,681/20.61. Note the Dec25 quarter dipped sequentially on both bases before Mar26 recovered strongly — consistent across both consolidated and standalone tables, so likely a real seasonal/one-off effect (e.g., treasury/provisioning) rather than a data error.",
+  "dividends_detail": "ICICI Bank pays a single annual (final) dividend rather than quarterly/interim dividends. Trailing-12-month PAID dividend (the figure to use for TTM dividend/yield purposes): Rs 11.00/share, ex-date & record date 2025-08-12, payment date reported inconsistently as either 2025-09-29 (stockanalysis.com) or 2025-09-03 (a separate aggregator snippet) — both agree on the Rs 11.00 amount and Aug 12 ex-date; the pay-date conflict should be resolved against the company's own investor-relations filing if exact settlement date matters. Separately, ICICI Bank declared a Rs 12.00/share final dividend for FY26 on 2026-04-18 (with record date 2026-08-03 and AGM 2026-08-21) — this is DECLARED BUT NOT YET PAID as of the data-collection date and must not be added to the trailing-12-month paid total. No special/one-off dividends were identified in either period. Face value Rs 2.00 throughout.",
+  "model_self_report": "I am Claude (Sonnet 5), acting as an independent researcher subagent. I used WebSearch and WebFetch exclusively against live internet sources — primarily screener.in (both standalone and consolidated pages, explicitly re-fetched to get raw quarterly-table column headers after an initial fetch mislabeled quarters), plus stockanalysis.com (direct successful fetch), businesstoday.in (direct fetch, dividend record-date article), and multiple WebSearch query aggregations (which surface snippets from tickertape, business-standard, trendlyne, choiceindia, marketsmojo, upstox, investonline, etc., without me independently fetching each underlying page). I attempted direct fetches of NSE (timed out after 60s, likely anti-bot/JS-rendering), BSE (returned only a generic page shell, no data — likely JS-rendered SPA that WebFetch's HTML-to-markdown conversion cannot execute), and MoneyControl (blocked outright by the fetch tool, 'unable to fetch'). This is a real methodological limitation: my NSE/BSE/MoneyControl 'cross-checks' are WebSearch-snippet-level, not independently-fetched primary-page-level, for those three sources. I did NOT touch any localhost or Vysted API. Where sources disagreed (price by up to ~₹6, market cap by ~1%, 52-week return by ~0.6pp, dividend payment date by ~26 days), I recorded both readings rather than silently picking one, per instructions. All growth-rate and drawdown figures were computed by me from the raw quarterly/price figures rather than quoted from a portal, and the arithmetic is shown inline for auditability. Confidence: high on price/mcap/52w-range/quarterly-financials/dividend-amounts/promoter-holding (multi-source agreement); medium on the exact 52-week return % and the exact FY25 dividend pay-date (genuine source conflicts noted above, unresolved).",
+  "notes": [
+    "PRICE DISAGREEMENT: screener.in shows ₹1,381.00 (close, 2026-07-09); stockanalysis.com direct fetch shows ₹1,384.00; WebSearch aggregator snippets showed ₹1,381.60, ₹1,382.60 and ₹1,378.20 for the same/adjacent dates. All within a ~₹6 (0.4%) band — treated as normal cross-portal timing/rounding noise, not a material discrepancy. Used screener.in's ₹1,381.00 as the canonical reference price throughout this pack.",
+    "MARKET CAP DISAGREEMENT: screener.in and stockanalysis.com agree at ~₹9.90 lakh crore, but one WebSearch aggregator snippet reported ₹10,01,254.70 Cr (~1.1% higher) — likely a stale or differently-timed share-count basis at that aggregator. Flagged rather than silently reconciled.",
+    "P/E DISAGREEMENT: screener.in shows 18.3 (consolidated) / 19.8 (standalone) TTM; stockanalysis.com shows 18.47. The stockanalysis.com figure sits between the two screener figures and its exact EPS basis (standalone vs consolidated vs blended) is not disclosed on that page.",
+    "52-WEEK RETURN DISAGREEMENT: stockanalysis.com (direct fetch) states -4.02% 1-year return; a separate WebSearch aggregation (snippet-only, source portal unclear — likely tickertape/marketsmojo-style) states -3.44% price return / -3.58% market-cap change. Genuine unresolved conflict of ~0.6pp; both are plausible year-on-year figures given the 52w range of 1,187.60–1,500.00.",
+    "DIVIDEND PAY-DATE DISAGREEMENT: the Rs 11.00 FY25 final dividend's ex-date/record date (2025-08-12) is consistent everywhere, but the actual payment date is given as 2025-09-29 by stockanalysis.com and 2025-09-03 by a separate WebSearch snippet. Not resolved — recommend checking ICICI Bank's own investor-relations page or an exchange corporate-action filing if the exact settlement date is load-bearing.",
+    "DIVIDEND YIELD 'DISAGREEMENT' IS NOT AN ERROR: screener's 0.80% uses the trailing PAID Rs 11 dividend; other portals' 0.87–0.88% use the newly DECLARED (unpaid) Rs 12 dividend annualized against the current price. Both are internally consistent given their stated basis — flagged for basis clarity, not as a data quality issue.",
+    "METHODOLOGY LIMITATION: direct WebFetch of nseindia.com timed out (likely bot-protection/JS rendering), bseindia.com returned only a generic non-data page shell, and moneycontrol.com was blocked outright by the fetch tool ('unable to fetch'). Cross-checks against NSE/BSE/MoneyControl in this pack are therefore via WebSearch snippet aggregation only, not independent primary-page fetches. screener.in and stockanalysis.com were the only two sources independently, directly fetched and read in full.",
+    "QUARTER-LABELING CAUTION: an initial WebFetch of screener.in's quarterly table mislabeled the most recent column as 'Q3 FY26 – Dec 2024' (an internally inconsistent label — Dec 2024 is actually Q3 FY25). This was an artifact of the WebFetch tool's summarizing sub-model, not of screener.in itself. It was caught and corrected by re-fetching with an explicit request for raw column headers, which confirmed columns run through Mar 2026 (Q4 FY26) and that Q1 FY27 has not yet been reported as of 2026-07-09/10.",
+    "PROMOTER HOLDING: ICICI Bank has held 0.00% promoter shareholding since its 2002 reverse merger with erstwhile ICICI Limited (and associated entities); this is a structural feature of the bank, not a data gap. Confirmed consistently across screener.in and WebSearch cross-check.",
+    "Both standalone and consolidated figures are provided throughout because ICICI Bank's consolidated financials include large insurance (ICICI Prudential Life/ICICI Lombard) and asset-management subsidiaries that materially change revenue, net profit, EPS, book value and ROE versus the standalone (bank-only) financials. Neither basis is 'wrong' — pick per use case; this pack defaults to presenting both side by side rather than silently choosing one."
+  ]
+}

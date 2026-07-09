@@ -151,6 +151,8 @@ export interface BacktestResult {
   walkForwardSlices?: WalkForwardSlice[];
   startedAt: number;
   durationMs: number;
+  /** Honest-degradation notes (e.g. entries skipped for insufficient cash). */
+  warnings?: string[] | null;
 }
 
 // ---------------------------------------------------------------------------
