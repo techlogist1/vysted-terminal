@@ -102,3 +102,34 @@ describe("buildPortfolioSummary", () => {
     expect(s.mixedCurrencies).toBe(true);
   });
 });
+
+// R12 Gate 6: the operator's exact scenario — 5 RELIANCE + 5 INFY + 5 TATASTEEL,
+// all INR (NSE). One currency bucket, a REAL non-zero totalValue (never the
+// totalValue:0 fabrication D50 killed), correct per-symbol cost bases.
+describe("Gate 6 — INR portfolio scenario (R12)", () => {
+  it("5 RELIANCE + 5 INFY + 5 TATASTEEL yields correct cost bases and a non-zero INR total", () => {
+    const positions = [
+      pos("RELIANCE", 5, 1279.8),
+      pos("INFY", 5, 1620.5),
+      pos("TATASTEEL", 5, 165.3),
+    ];
+    const quotes = new Map([
+      ["RELIANCE", quote("RELIANCE", 1279.8, "INR")],
+      ["INFY", quote("INFY", 1620.5, "INR")],
+      ["TATASTEEL", quote("TATASTEEL", 165.3, "INR")],
+    ]);
+    const s = buildPortfolioSummary(positions, quotes);
+    // cost basis = qty x cost, summed: 5*(1279.8+1620.5+165.3) = 15328.0
+    expect(s.totalCost).toBeCloseTo(15328.0, 2);
+    expect(s.resolvedCost).toBeCloseTo(15328.0, 2);
+    // a real, NON-ZERO market value — the gate's headline requirement
+    expect(s.totalMarketValue).toBeCloseTo(15328.0, 2);
+    expect(s.totalMarketValue).toBeGreaterThan(0);
+    expect(s.unresolvedCount).toBe(0);
+    // one INR bucket, no cross-currency fabrication
+    expect(s.mixedCurrencies).toBe(false);
+    expect(s.byCurrency).toHaveLength(1);
+    expect(s.byCurrency[0].currency).toBe("INR");
+    expect(s.byCurrency[0].marketValue).toBeCloseTo(15328.0, 2);
+  });
+});
