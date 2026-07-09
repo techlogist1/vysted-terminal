@@ -89,6 +89,23 @@ _READ_SAFE_PANEL_ACTIONS = frozenset(
 #: preamble-driven loop with NO plan surface (graceful degrade, not a worse run).
 _PLANNER_PROVIDERS = frozenset({"anthropic", "openai", "gemini", "xai", "openrouter", "deepseek"})
 
+#: Option keys the runtime forwards VERBATIM into the LLM adapter's stream_chat
+#: (``**opts``): provider tuning params + the runtime's own web-search flags.
+#: Everything the runtime itself consumes (history, modelWebSearch,
+#: deepResearchBackend, research_depth, depth) is popped before this gate; any
+#: OTHER leftover key is scrubbed so an unknown option (a mis-sent ``depth``, a
+#: bogus key) can never reach the provider SDK and TypeError the round.
+_ADAPTER_OPTION_KEYS = frozenset(
+    {
+        "temperature",
+        "top_p",
+        "max_tokens",
+        "web_search",
+        "web_search_max_uses",
+        "config",  # Gemini generation-config passthrough
+    }
+)
+
 
 def _planner_enabled(provider_id: str, mode: str) -> bool:
     """True when the visible plan-then-execute pre-pass should run for this turn."""
@@ -1124,10 +1141,29 @@ async def invoke_agent(
     # (normal|deep|ultra). Popped so it never leaks into adapter kwargs
     # (OpenAI-shaped clients TypeError on unknown kwargs) and published as the
     # run's DEFAULT research depth — an explicit model-passed depth still wins.
+    # ``depth`` is a TOLERANT ALIAS (a composer/older-client spelling): pop it
+    # too so it can never ride ``**opts`` into the SDK and crash the whole round
+    # ("AsyncCompletions.create() got an unexpected keyword argument depth"); the
+    # explicit ``research_depth`` wins when both are present.
     req_depth = opts.pop("research_depth", None)
+    depth_alias = opts.pop("depth", None)
+    effective_depth = req_depth if isinstance(req_depth, str) and req_depth.strip() else depth_alias
     config.set_request_research_depth(
-        req_depth.strip().lower() if isinstance(req_depth, str) and req_depth.strip() else None,
+        effective_depth.strip().lower()
+        if isinstance(effective_depth, str) and effective_depth.strip()
+        else None,
     )
+    # Scrub any option key the LLM adapter does not consume BEFORE it reaches
+    # stream_chat: the runtime pops everything it owns above (history, the
+    # web-search / deep-research / depth options), but a caller-supplied unknown
+    # key would ride ``**opts`` into the provider SDK and TypeError the round.
+    # Keep only provider tuning params + the runtime's own web-search flags;
+    # log-warn whatever is dropped so a mis-sent option is visible, not silent.
+    dropped = sorted(k for k in opts if k not in _ADAPTER_OPTION_KEYS)
+    for key in dropped:
+        opts.pop(key)
+    if dropped:
+        logger.warning("invoke_agent: dropped unsupported option key(s): %s", ", ".join(dropped))
 
     # --- Visible plan-then-execute pre-pass (Track 6 #2) ---------------------
     # For a COMPOUND request on a capable model, decompose the goal into an
