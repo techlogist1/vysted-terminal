@@ -247,9 +247,29 @@ def test_growth_conflict_reaches_the_prompt_block() -> None:
         "IN",
     )
     block = prompt_block(leg)
-    assert "Revenue growth: 66.90%" in block  # the provider value, unreplaced
-    assert "Revenue growth (computed from quarterly statements): 2.00%" in block
+    # Growth renders as a SIGNED percent (D67) so an extreme fraction can never be
+    # misread as an already-percent number.
+    assert "Revenue growth: +66.9%" in block  # the provider value, unreplaced, signed
+    assert "Revenue growth (computed from quarterly statements): +2.0%" in block
     assert "CONFLICT (revenue_growth):" in block
+
+
+def test_prompt_block_renders_extreme_growth_fraction_signed_with_caution() -> None:
+    """D67: SIMPLXREA revenue_growth=32.863 is a FRACTION (+3286.3%) that the
+    narration halved to "+32.9%", reading the raw number as an already-percent.
+    The prompt block must render growth as a formatted SIGNED percent ("+3286.3%")
+    and, for an extreme magnitude, append a tiny-prior-year-base caution — never
+    the bare "32.863"."""
+    leg = derive_semantics(_structured(fund={"revenue_growth": 32.863}), "IN")
+    block = prompt_block(leg)
+    assert "+3286.3%" in block
+    assert "extreme figure" in block
+    assert "verify before quoting" in block
+    assert "32.863" not in block  # the raw fraction never leaks
+    # A normal-magnitude growth stays signed but carries NO extreme caution.
+    normal = prompt_block(derive_semantics(_structured(fund={"revenue_growth": 0.18}), "IN"))
+    assert "Revenue growth: +18.0%" in normal
+    assert "extreme figure" not in normal
 
 
 def test_market_cap_cross_check_flags_beyond_five_percent() -> None:

@@ -468,19 +468,44 @@ _PROMPT_KEYS = (
     "earnings_growth_computed",
 )
 
+#: Growth keys rendered as a SIGNED percent in the prompt block (D67): a raw
+#: fraction like ``32.863`` means +3286.3% (a tiny prior-year base), and the
+#: narration leg halved it to "+32.9%" reading the number as an already-percent.
+#: A signed, formatted percent ("+3286.3%") plus a small-base caution makes an
+#: extreme figure unmistakable so the prose never mis-states it.
+_GROWTH_PROMPT_KEYS = frozenset(
+    {"revenue_growth", "earnings_growth", "revenue_growth_computed", "earnings_growth_computed"}
+)
 
-def _render(item: dict[str, Any]) -> str | None:
-    """One prompt line for a derived value, or ``None`` when the value is null."""
+#: |growth fraction| above which the figure rides a tiny prior-year base — a
+#: +3286% is arithmetically real but misleading quoted without the caveat.
+_EXTREME_GROWTH_FRACTION = 5.0
+_EXTREME_GROWTH_CAUTION = "extreme figure — tiny prior-year base; verify before quoting"
+
+
+def _render(item: dict[str, Any], *, growth: bool = False) -> str | None:
+    """One prompt line for a derived value, or ``None`` when the value is null.
+
+    Growth values (``growth=True``) render as a SIGNED percent so an extreme
+    fraction reads unmistakably as growth (``32.863`` → ``+3286.3%``, never the
+    bare ``32.863`` the narration halved to ``+32.9%``); when the fraction's
+    magnitude is extreme a small-base caution is appended.
+    """
     value = item.get("value")
     if not isinstance(value, (int, float)) or isinstance(value, bool):
         return None
     unit = item.get("unit")
-    rendered = f"{value * 100:.2f}%" if unit == "percent" else f"{value:,.2f}"
+    if unit == "percent":
+        rendered = f"{value * 100:+.1f}%" if growth else f"{value * 100:.2f}%"
+    else:
+        rendered = f"{value:,.2f}"
     line = f"- {item.get('label')}: {rendered}"
     if item.get("basis"):
         line += f" (basis: {item['basis']})"
     if item.get("formula"):
         line += f" [= {item['formula']}]"
+    if growth and abs(value) > _EXTREME_GROWTH_FRACTION:
+        line += f" — {_EXTREME_GROWTH_CAUTION}"
     return line
 
 
@@ -500,7 +525,7 @@ def prompt_block(derived: dict[str, Any] | None) -> str:
     for key in _PROMPT_KEYS:
         item = data.get(key)
         if isinstance(item, dict):
-            line = _render(item)
+            line = _render(item, growth=key in _GROWTH_PROMPT_KEYS)
             if line:
                 lines.append(line)
     for conflict in data.get("conflicts") or []:

@@ -72,6 +72,27 @@ def test_old_name_resolves_to_current_symbol() -> None:
     _assert_renamed_to_gujenergy(r.best)
 
 
+def test_dual_listed_old_ticker_collapses_the_stale_bse_candidate() -> None:
+    """D67 gap: GUJGASLTD is dual-listed (NSE + BSE, same company/ISIN). The
+    rename post-processing rewrote only the NSE row, stranding the BSE row as a
+    stale "Gujarat Gas" candidate at confidence 1.0 with NO provenance — which
+    also forced a spurious residual-tie disambiguation. Applying the rename to the
+    candidate list too rewrites the BSE row to the current identity, dedupes it
+    against the already-current NSE row, and lets the query bind cleanly."""
+    r = symbol_resolver.resolve("GUJGASLTD", "IN")
+    assert r.best is not None
+    _assert_renamed_to_gujenergy(r.best)
+    # No stale GUJGASLTD survives on ANY exchange (the pre-fix bug left the BSE row).
+    assert all(c.symbol != "GUJGASLTD" for c in r.candidates)
+    # Every surviving candidate is the current identity and carries provenance.
+    assert r.candidates and all(
+        c.symbol == "GUJENERGY" and c.rename is not None for c in r.candidates
+    )
+    # Collapsed to a single clean candidate → binds, never a disambiguation.
+    assert len(r.candidates) == 1
+    assert not r.needs_disambiguation
+
+
 def test_no_rename_when_map_empty() -> None:
     """A cold app with no symbol-change data answers exactly as before (stale but
     honest — never a fabricated rename)."""

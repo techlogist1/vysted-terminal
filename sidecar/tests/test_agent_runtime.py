@@ -663,6 +663,39 @@ async def test_invoke_openrouter_none_model_keeps_local_tool(
 
 
 @pytest.mark.asyncio
+async def test_invoke_scrubs_unknown_options_and_aliases_depth(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A stray option key used to crash the whole round: POST /invoke with
+    options {"depth": "normal"} rode ``depth`` into the OpenAI SDK
+    ("AsyncCompletions.create() got an unexpected keyword argument depth"). The
+    runtime now (a) treats ``depth`` as a tolerant alias for ``research_depth``
+    and (b) scrubs any other non-whitelisted option key before the adapter call —
+    so an unknown key can never reach the SDK."""
+    import config
+
+    agent_runtime.reload()
+    provider = _FakeProvider()
+    _patch_provider(monkeypatch, provider)
+    async for _ in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="what is AAPL doing?",
+        provider="openai",
+        model="gpt-4.1-mini",
+        api_key="sk-test",
+        mode="ask",
+        options={"depth": "deep", "bogus_key": 1},
+    ):
+        pass  # no TypeError — the stray keys never reach the adapter
+    kwargs = provider.captured_kwargs
+    assert kwargs is not None
+    assert "depth" not in kwargs
+    assert "bogus_key" not in kwargs
+    # ``depth`` resolved as the research-depth alias.
+    assert config.get_request_research_depth() == "deep"
+
+
+@pytest.mark.asyncio
 async def test_invoke_openai_provider_level_native_search(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
