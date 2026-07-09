@@ -53,10 +53,10 @@
 | 1 | TRUTH (Phase A report) | **HOLDS** (D62; baseline == R11 close) |
 | 2 | COLD-CACHE SCREENER | **API LEGS GREEN** — cold 22 rows/17s honest (r12/screener-cold/itquery-cold.json); +4 screens incl heavy; formula parity 22/22; agent-authored parity 22/22 post-D64. UI chips leg pending (operator-away gated) |
 | 3 | RESILIENCE | **HOLDS** — trip→degrade-honestly(22 rows/66ms, throttled:true)→reset cycle, r12/resilience/step1-5; genuine Yahoo throttle also observed live at boot (opens 1→2, backoffs logged) |
-| 4 | TEN-STOCK BATTERY | reference-pack workflow running (wf_56c72238); in-app legs next |
+| 4 | TEN-STOCK BATTERY | **GREEN (with fixes)** — 10 fresh names collected + fresh-context diffed (142 ok / 61 watch / 13 mismatch / 1 "fabrication"). Every mismatch root-caused: the "fabrication" (GUJGAS demerger) was REAL (rename 2026-07-01) → D67; growth mismatches (ICICI/SBIN/RADICO) → D66; 2 contaminated collections (509470/SIMPLXREA) re-driven clean in isolation; re-validated on fresh names AARTIIND + ROSSTECH (D66 agrees-or-flags-correctly). Diffs in r12/data-battery/diffs + redrive |
 | 5 | DISPOSITION E1–E11 + V-register | **HOLDS** — r12/DISPOSITION_TABLE.md: 33 entries, 28 RESOLVED w/ grep-verified pins, 3 NOT-A-DEFECT, 2 pin gaps closed (worktree-agent-pins merged, pytest 2243/1). Checkpoint 2 pushed 1609474 |
-| 6 | AGENT CAPABILITY | partial: agent-authored screen + honest tool chain proven; D64 capability fix shipped+pinned; portfolio/§6.5 legs = GUI phase |
-| 7 | METRIC SEMANTICS | pending (rides battery fresh names) |
+| 6 | AGENT CAPABILITY | **HOLDS** — agent-authored screen (22/22 parity, D64); agent-vs-direct backtest parity byte-identical (D65); backtest tool-stall→honest-warning; durable run done+cancelled lifecycles; **§6.5 order-dialog LIVE end-to-end (D69)**: propose→review bar→human ACCEPT→fails-closed (no broker adapter)→audit_orders 0 rows throughout, under glm AND kimi (r12/gui/10,11); portfolio arithmetic pinned (Gate 6 scenario, INR non-zero total) |
+| 7 | METRIC SEMANTICS | **HOLDS** — RADICO fresh-name research payload (r12/metric-semantics/radico-structured.json): drawdown 1.75% "vs 52w high"+formula vs 52w-change +51.1% "trailing" DISTINCT+labeled; D66 growth conflict + D56 dividend conflict firing together; 3 cross-source conflicts flagged never picked. Also live on 509470/ROSSTECH (verifier round) |
 | 8 | ERROR BATTERY | **API LEGS GREEN** — 401/402/network/SearXNG-down/malformed live-induced + humanized (r12/error-battery/); 429 live on data path + pinned on LLM path. UI render spot-check pending |
 | 9 | COVERAGE MAP | pending (GUI phase, operator-away gated) |
 | 10 | REGRESSION FLOOR | baseline green; final chain at close |
