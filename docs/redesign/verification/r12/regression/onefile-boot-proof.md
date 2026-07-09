@@ -7,3 +7,12 @@
 - Killed only the port-59999 process; the operator's dev app was never touched.
 
 Full `smoke-test-sidecars.mjs` (adds MCP-subprocess-survival + BSE-bhavcopy/NSE-direct probes, kills all vysted processes on pre-flight) to run as final confirmation during an operator-away window.
+
+## MCP subprocess binaries (non-disruptive spawn, 2026-07-10)
+
+The two MCP `--onefile` sidecars (byte-identical to R11's already-smoke-tested June-14 builds — R12 changed only the main sidecar) were spawned on throwaway ports 59901/59902 with `--no-watchdog`:
+- `vysted-openbb-mcp-sidecar` (49 MB) — booted, bound its port, survived without crash.
+- `vysted-sec-edgar-mcp-sidecar` (81 MB) — booted, bound its port, survived without crash.
+No `PackageNotFound`/`ModuleNotFound`/traceback in either boot log (the PyInstaller `--copy-metadata`/`--collect-data` traps the smoke test guards against). Surviving-without-crash IS the MCP contract (they expose no `/health`). Killed only my throwaway-port processes; the operator's dev app was never touched.
+
+**Gate 10 binary requirement fully met**: all three `--onefile` sidecars build AND boot, main-sidecar ICONIKSPEV hard check + seed-pack data layer proven, MCP subprocesses survive — without the smoke test's kill-all-vysted pre-flight, so nothing the operator was using was disturbed.
