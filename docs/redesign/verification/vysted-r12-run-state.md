@@ -88,6 +88,9 @@
 - Seeded cross-source conflict drill (Gate 7) — blocked on battery collectors finishing (store mutation would contaminate diffs).
 - PyInstaller build+boot + smoke test (Gate 10) — blocked on battery workflow (smoke pre-flight kills vysted processes incl. my headless sidecar).
 
+## ORDER-SURFACE SCOPE ACK (operator clarification, mid-run — D70)
+What I was doing with the order surface: staging a test "buy 5 RELIANCE" order for the SOLE purpose of proving §6.5 blocks it (Gate 6 / D69) — the order halted at the human-review proposal bar, an explicit ACCEPT failed closed ("no broker adapter"), and audit_orders stayed at 0 rows. That is point 3(a), "exactly right; continue." What I corrected: nothing to revert. Verified §6.5 surface byte-identical to pre-R10 base (0-line diff) and no R12 commit touched any order/broker/execution path. D68 (order verbs in the intent classifier) is a general NL-classification fix that only restores reachability of the PRE-EXISTING proposal path — no new order UI/route/execution — and is what makes the in-scope §6.5 proof possible. No teammate is/was building order functionality. Preservation posture on existing order-proposal + safety code honored. Paper-portfolio writes remain agent-completable.
+
 ## INCIDENT LOG
 - **Sacred-file commit slip (caught + corrected within minutes)**: checkpoint-3's `git add -A -- sidecar/services …` swept `enrich_nse_sectors.py` into 7e8da03 (pushed). Working bytes were never touched. Corrected by ccf4e76: committed copy restored to the pre-R12 convention, working copy verified byte-identical before/after (sha256 5cb28e0d…abbe), file dirty-uncommitted again. Lesson applied: all further commits stage explicit paths, never `-A` over sidecar/services.
 - **Privacy near-miss (D63)**: one Quartz region capture caught the operator's private session; deleted immediately, never committed; all captures since use window-id capture (only the app's own contents).
