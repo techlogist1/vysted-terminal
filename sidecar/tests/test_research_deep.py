@@ -502,3 +502,30 @@ def test_deep_disambiguation_returns_chooser_before_any_research() -> None:
     assert out["query"] == "tata results"
     assert out["candidates"][0]["symbol"] == "TCS"
     assert set(tools.calls) == {"resolve_symbol"}  # zero research spend
+
+
+def test_final_synthesis_prompt_carries_the_corporate_action_directive() -> None:
+    """R12: the final-synthesis system prompt (the one that writes the actual
+    brief narrative) carries the corporate-action date/filing discipline line —
+    the battery finding was a narrative that invented five specific filing
+    dates matching no real filing, with the same confidence as cited data."""
+    llm = _RecordingLLM()
+    brief = asyncio.run(
+        run_deep_research(
+            "Apple",
+            region="US",
+            tool_call=_FakeToolCall(web_ok=True),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=50),
+        )
+    )
+    assert isinstance(brief, ResearchBrief)
+    synthesis_prompts = [
+        str(m[0].get("content", ""))
+        for m in llm.seen
+        if m and "write a concise research brief" in str(m[0].get("content", "")).lower()
+    ]
+    assert synthesis_prompts, "no final-synthesis prompt was issued"
+    assert all("CORPORATE ACTIONS" in p for p in synthesis_prompts)
+    assert all("filing number" in p for p in synthesis_prompts)
+    assert all("unverified in this run" in p for p in synthesis_prompts)

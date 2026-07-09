@@ -197,6 +197,29 @@ def date_directive() -> str:
     )
 
 
+def corporate_action_directive() -> str:
+    """The corporate-action date/filing discipline line every synthesis
+    prompt carries (R12: a narrative invented five specific filing dates
+    matching no real filing, one of them chronologically impossible, stated
+    with the same confidence as real cited data).
+
+    Distinct from each synthesis prompt's general PROVENANCE GUARANTEE (every
+    numeric/dated claim needs a ``[n]`` citation): a fabricated corporate-
+    action story reads as ordinary prose, not a bare figure, and can slip
+    past a citation check aimed at numbers — so corporate actions get their
+    own explicit, harder line.
+    """
+    return (
+        "CORPORATE ACTIONS: a specific date, filing number, record date, or "
+        "other corporate-action detail (a split, buyback, rights issue, "
+        "merger, delisting) may be stated ONLY when a numbered source above "
+        "states it. If you suspect a corporate action but no source here "
+        "confirms its specifics, say so plainly ('a corporate action may be "
+        "pending; unverified in this run') rather than asserting dates, "
+        "filing numbers, or record dates you were not given."
+    )
+
+
 __all__ = [
     "PRESS_DOMAINS",
     "PRIMARY_DOMAINS",
@@ -204,6 +227,7 @@ __all__ = [
     "TIER_PRESS",
     "TIER_PRIMARY",
     "bias_query",
+    "corporate_action_directive",
     "date_directive",
     "domain_of",
     "domain_tier",

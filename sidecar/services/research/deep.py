@@ -806,6 +806,8 @@ async def _final_synthesis(
                     "plus a final dividend), state the assembled total with ALL "
                     "component citations.\n"
                     + finance.date_directive()
+                    + "\n"
+                    + finance.corporate_action_directive()
                     + (("\n" + priority) if priority else "")
                 ),
             },

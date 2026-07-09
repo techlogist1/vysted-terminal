@@ -424,6 +424,75 @@ def test_iter_synthesis_prompt_carries_metric_facts() -> None:
     assert any("METRIC FACTS" in p and "Below 52-week high" in p for p in llm.synthesis_prompts)
 
 
+def test_iter_synthesis_prompt_carries_the_corporate_action_directive() -> None:
+    """R12: the DEEP-tier (``run_iter_research``) final-synthesis system
+    prompt — the one that writes the actual brief narrative from the working
+    report — carries the corporate-action date/filing discipline line. The
+    battery finding was a narrative that invented five specific filing dates
+    matching no real filing, one chronologically impossible, stated with the
+    same confidence as real cited data."""
+
+    class _RecordingSystemLLM(FakeLLM):
+        def __init__(self) -> None:
+            super().__init__(reflect="complete")
+            self.synthesis_systems: list[str] = []
+
+        async def __call__(self, messages: list[dict[str, Any]]) -> str:
+            system = messages[0]["content"]
+            if "concise research brief" in system.lower():
+                self.synthesis_systems.append(system)
+            return await super().__call__(messages)
+
+    llm = _RecordingSystemLLM()
+    brief = _run(
+        run_iter_research(
+            "research NVDA",
+            tool_call=fake_tool,
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=2),
+        )
+    )
+    assert isinstance(brief, ResearchBrief)
+    assert llm.synthesis_systems, "synthesis never ran"
+    assert all("CORPORATE ACTIONS" in s for s in llm.synthesis_systems)
+    assert all("filing number" in s for s in llm.synthesis_systems)
+    assert all("unverified in this run" in s for s in llm.synthesis_systems)
+
+
+def test_heavy_synthesis_prompt_carries_the_corporate_action_directive() -> None:
+    """R12: the ULTRA-tier (``run_heavy_research``) lead-synthesist fallback
+    prompt (the single-call merge path the webweaver outline falls back to)
+    ALSO carries the corporate-action directive — every depth tier that
+    writes brief prose must hold to the same date/filing discipline."""
+
+    class _RecordingSystemLLM(FakeLLM):
+        def __init__(self) -> None:
+            super().__init__(reflect="complete")
+            self.lead_synthesist_systems: list[str] = []
+
+        async def __call__(self, messages: list[dict[str, Any]]) -> str:
+            system = messages[0]["content"]
+            if "lead synthesist" in system.lower():
+                self.lead_synthesist_systems.append(system)
+            return await super().__call__(messages)
+
+    llm = _RecordingSystemLLM()
+    brief = _run(
+        run_heavy_research(
+            "investment thesis for NVDA",
+            angles=3,
+            tool_call=fake_tool,
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=12),
+        )
+    )
+    assert isinstance(brief, ResearchBrief)
+    assert llm.lead_synthesist_systems, "the lead-synthesist fallback never ran"
+    assert all("CORPORATE ACTIONS" in s for s in llm.lead_synthesist_systems)
+    assert all("filing number" in s for s in llm.lead_synthesist_systems)
+    assert all("unverified in this run" in s for s in llm.lead_synthesist_systems)
+
+
 def test_run_loop_deep_fallback_is_never_silent(monkeypatch):
     """R10 review (E2 — stamp what RAN): if ``run_iter_research`` ever raises,
     ``_run_loop`` drops to the single-pass ``run_deep_research`` fallback. The
