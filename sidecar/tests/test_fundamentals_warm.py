@@ -22,6 +22,7 @@ from models.market import Quote
 from models.screener import ScreenerUniverse
 from services import fundamentals_store, fundamentals_warm
 from services import yahoo_batch_provider as yb
+from services.errors import ProviderError
 
 
 @pytest.fixture(autouse=True)
@@ -244,6 +245,38 @@ async def test_crawl_failures_rotate_out_and_never_wedge(
     # The next cycle selects an EMPTY batch — zero re-fetches of the failures.
     assert await fundamentals_warm._crawl_once() == 0
     assert len(calls) == 2, "wedge: the crawler re-selected permanently-failing symbols"
+
+
+@pytest.mark.asyncio
+async def test_crawl_rate_limit_does_not_mark_failure_but_generic_error_does(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A throttle (``ProviderError`` ``kind="rate_limited"``) must NOT stamp
+    ``info_failed_at`` — that field drives the 24 h retry rotation, which is
+    for symbols Yahoo genuinely has no data for, not ones merely throttled
+    this cycle; stamping a throttle would silently stall coverage for a
+    whole day. A non-throttle failure still stamps as before."""
+    from services import screener_universe_india
+
+    monkeypatch.setattr(
+        screener_universe_india,
+        "load_india_universe",
+        _tiny_universe(["THROTTLED.NS", "BROKEN.NS"]),
+    )
+    monkeypatch.setattr(fundamentals_warm, "_CRAWL_JITTER_RANGE", (0.0, 0.001))
+    await fundamentals_store.seed_universe([{"symbol": "THROTTLED.NS"}, {"symbol": "BROKEN.NS"}])
+
+    async def flaky(symbol: str) -> Fundamentals:
+        if symbol == "THROTTLED.NS":
+            raise ProviderError("yahoo throttled us", kind="rate_limited")
+        raise RuntimeError("yahoo has never heard of this scrip")
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", flaky)
+
+    assert await fundamentals_warm._crawl_once() == 0
+    rows = await fundamentals_store.fetch_rows(["THROTTLED.NS", "BROKEN.NS"])
+    assert rows["THROTTLED.NS"]["info_failed_at"] is None
+    assert rows["BROKEN.NS"]["info_failed_at"] is not None
 
 
 # ---------------------------------------------------------------------------

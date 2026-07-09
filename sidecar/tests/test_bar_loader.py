@@ -7,12 +7,14 @@ calls are mocked here — no test makes a live network request.
 
 from __future__ import annotations
 
+import asyncio
 from datetime import UTC, datetime
 
 import pytest
 
 from models.market import OHLCVBar, OHLCVSeries
 from services import bar_loader
+from services.backtest_engine import Bar
 from services.errors import ProviderError
 
 
@@ -130,6 +132,35 @@ async def test_load_bars_concatenates_multiple_symbols(
 async def test_load_bars_empty_symbol_list_returns_empty() -> None:
     bars = await bar_loader.load_bars([], "2025-01-01", "2025-12-31")
     assert bars == []
+
+
+@pytest.mark.asyncio
+async def test_load_bars_never_exceeds_semaphore_bound(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The history fan-out (R11 / D53 ``Semaphore(8)``) must never run more
+    than ``_LOAD_CONCURRENCY`` per-symbol fetches concurrently, however large
+    the basket — the one call site most likely to self-trigger a Yahoo block."""
+    current = 0
+    max_seen = 0
+    processed: list[str] = []
+
+    async def fake_load_one_symbol(symbol: str, start: str, end: str, timeframe: str) -> list[Bar]:
+        nonlocal current, max_seen
+        current += 1
+        max_seen = max(max_seen, current)
+        await asyncio.sleep(0)
+        current -= 1
+        processed.append(symbol)
+        return []
+
+    monkeypatch.setattr(bar_loader, "_load_one_symbol", fake_load_one_symbol)
+
+    symbols = [f"SYM{i}" for i in range(32)]
+    bars = await bar_loader.load_bars(symbols, "2025-01-01", "2025-12-31")
+
+    assert bars == []
+    assert sorted(processed) == sorted(symbols)
+    assert max_seen == bar_loader._LOAD_CONCURRENCY
+    assert max_seen <= 8
 
 
 @pytest.mark.parametrize(
