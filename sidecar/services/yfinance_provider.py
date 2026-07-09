@@ -124,6 +124,29 @@ def _yahoo_symbol(symbol: str) -> str:
     return s.replace(".", "-")
 
 
+def _is_junk_fundamentals_name(name: str | None, yahoo_symbol: str) -> bool:
+    """True when Yahoo returned a fund-ish JUNK record instead of a real company.
+
+    A numeric ``.BO`` scrip code (``509470.BO``) makes Yahoo answer a garbled,
+    comma-joined blob for the name — e.g. ``"509470.BO,0P0000BN3V,31"`` — carrying
+    the queried symbol and/or an ``0P``-prefixed Morningstar/OTC fund id, never a
+    real company name. The R11 honest-404 misses these because ``info`` is
+    non-empty. Conservative by construction: a legitimate name (even one with a
+    comma, ``"Reliance Industries, Inc."``) contains NONE of these signatures, so
+    it is never wrongly rejected.
+    """
+    if not name or not name.strip():
+        return True
+    fragments = [f.strip().upper() for f in name.split(",")]
+    if len(fragments) < 2:
+        return False  # a real name may carry one comma (", Inc.") — that alone is fine
+    query = yahoo_symbol.strip().upper()
+    bare = query[:-3] if query.endswith((".BO", ".NS")) else query
+    if query in fragments or bare in fragments:
+        return True  # the queried symbol appears as its own comma-fragment
+    return any(f.startswith("0P0") for f in fragments)  # a Morningstar/OTC fund id
+
+
 def _num(value: Any) -> float | None:
     """Coerce a possibly-missing/NaN value to ``float | None``."""
     if value is None:
@@ -226,6 +249,16 @@ def get_fundamentals(symbol: str) -> Fundamentals:
         for key in ("longName", "shortName", "regularMarketPrice", "marketCap", "currency")
     ):
         raise ProviderError(f"yfinance has no instrument data for {symbol!r}", kind="not_found")
+    # A numeric .BO scrip code makes Yahoo return a JUNK fund-ish record with a
+    # non-empty but garbled name ("509470.BO,0P0000BN3V,31") — it passes the
+    # empty-info gate above but is NOT a real instrument. Reject it as an honest
+    # 404 rather than serving fabricated PE/mcap/52w against a nonsense name.
+    name = info.get("longName") or info.get("shortName")
+    if _is_junk_fundamentals_name(name, yahoo):
+        raise ProviderError(
+            f"yfinance returned a non-company (fund-id) record for {symbol!r}",
+            kind="not_found",
+        )
     # yfinance 1.3.0 returns ``dividendYield`` as a percentage number (e.g.
     # ``0.36`` for AAPL, ``6.01`` for VZ) — not a fraction. The contract is a
     # fraction (the panel ×100s it). Guard against negative / absurd (>200%)
@@ -243,7 +276,7 @@ def get_fundamentals(symbol: str) -> Fundamentals:
 
     return Fundamentals(
         symbol=yahoo,
-        name=info.get("longName") or info.get("shortName"),
+        name=name,
         sector=info.get("sector"),
         industry=info.get("industry"),
         currency=info.get("currency") or info.get("financialCurrency"),

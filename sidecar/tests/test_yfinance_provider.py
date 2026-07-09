@@ -196,3 +196,67 @@ def test_get_history_passes_bse_suffix_through(recording_ticker: type[_Recording
     series = yfinance_provider.get_history("532837.BO", "1d")
     assert recording_ticker.instances == ["532837.BO"]
     assert series.symbol == "532837.BO"
+
+
+# --- junk fund-id records for numeric .BO codes (honest 404, R12) -------------
+
+
+def _info_ticker(info: dict) -> type:
+    """A yf.Ticker stand-in whose ``.info`` returns a fixed dict."""
+
+    class _T:
+        def __init__(self, symbol: str) -> None:
+            self.symbol = symbol
+
+        @property
+        def info(self) -> dict:
+            return info
+
+    return _T
+
+
+def test_get_fundamentals_rejects_yahoo_junk_symbol_fragment(monkeypatch) -> None:  # noqa: ANN001
+    """A numeric ``.BO`` scrip code makes Yahoo return a garbled fund-ish record
+    whose name carries the queried symbol as a comma-fragment
+    ("509470.BO,0P0000BN3V,31"). It passes the empty-info gate (info is
+    non-empty), so it must be caught by the junk-name signature → honest 404,
+    never fabricated PE/mcap served against a nonsense name."""
+    from services.errors import ProviderError
+
+    junk = {
+        "shortName": "509470.BO,0P0000BN3V,31",
+        "marketCap": 31,
+        "trailingPE": 12.0,
+    }
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(junk))
+    with pytest.raises(ProviderError) as excinfo:
+        yfinance_provider.get_fundamentals("509470.BO")
+    assert excinfo.value.kind == "not_found"
+
+
+def test_get_fundamentals_rejects_yahoo_fund_id_name(monkeypatch) -> None:  # noqa: ANN001
+    """The other junk shape: the name carries an ``0P``-prefixed Morningstar fund
+    id even when the queried symbol itself is absent — also a non-company record
+    → honest 404."""
+    from services.errors import ProviderError
+
+    junk = {"longName": "SOMEFUND,0P0000C9ZK", "marketCap": 31}
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(junk))
+    with pytest.raises(ProviderError) as excinfo:
+        yfinance_provider.get_fundamentals("503229.BO")
+    assert excinfo.value.kind == "not_found"
+
+
+def test_get_fundamentals_accepts_a_legitimate_bse_name(monkeypatch) -> None:  # noqa: ANN001
+    """Conservative: a real company name (even one carrying a comma, ", Ltd.")
+    passes the junk gate untouched — the guard never rejects a legitimate name."""
+    legit = {
+        "longName": "Reliance Industries, Ltd.",
+        "currency": "INR",
+        "marketCap": 1_800_000_000_000,
+        "trailingPE": 24.0,
+    }
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(legit))
+    fundamentals = yfinance_provider.get_fundamentals("RELIANCE.BO")
+    assert fundamentals.name == "Reliance Industries, Ltd."
+    assert fundamentals.pe_ratio == 24.0
