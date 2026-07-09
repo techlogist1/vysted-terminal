@@ -1,0 +1,179 @@
+{
+  "meta": {
+    "task": "R12 isolated redrive — battery name Simplex Realty (BSE 503229, SIMPLXREA)",
+    "run_at": "2026-07-10",
+    "sidecar": "http://127.0.0.1:50534",
+    "sidecar_health": {
+      "status": "ok",
+      "service": "vysted-sidecar",
+      "version": "0.8.0",
+      "ohlcv": "ccxt (nse_direct, nse, bse, yfinance fallback)",
+      "quote": "ccxt (nse_direct, nse, bse, yfinance fallback)",
+      "fundamentals": "openbb-mcp (yfinance fallback)"
+    },
+    "model_used": "z-ai/glm-5.2 via openrouter",
+    "reference_pack": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r12/data-battery/reference-packs/503229.json",
+    "evidence_files_in_scratchpad": [
+      "simplxrea-redrive_resolve_name.json",
+      "simplxrea-redrive_resolve_code.json",
+      "simplxrea-redrive_fundamentals.json",
+      "simplxrea-redrive_narrative.json",
+      "simplxrea-redrive_invoke_payload2.json",
+      "simplxrea-redrive_invoke_raw_sse2.txt",
+      "simplxrea-redrive_final_assistant_text.txt"
+    ]
+  },
+
+  "step1_resolve_by_name": {
+    "query": "Simplex Realty",
+    "result": {
+      "ok": true,
+      "resolved": {
+        "symbol": "SIMPLXREA",
+        "name": "Simplex Realty Ltd",
+        "exchange": "BSE",
+        "yahoo_symbol": "SIMPLXREA.BO",
+        "confidence": 1.0
+      },
+      "needs_disambiguation": false,
+      "candidates_count": 5
+    },
+    "verdict": "PASS — clean single-match resolve, correct exchange (BSE), correct yahoo_symbol suffix supplied for downstream use."
+  },
+
+  "step2_resolve_by_bse_code": {
+    "query_variants_tried": ["503229", "BSE:503229", "Simplex Realty 503229"],
+    "results": {
+      "\"503229\" bare": { "ok": false, "resolved": null, "message": "No instrument matched '503229'." },
+      "\"BSE:503229\"": { "ok": false, "resolved": null, "message": "No instrument matched 'BSE:503229'." },
+      "\"Simplex Realty 503229\"": { "ok": true, "resolved": null, "needs_disambiguation": true, "candidates": [{"symbol":"SIMPLXREA","confidence":0.7692}] }
+    },
+    "verdict": "FAIL (unfixed gap, not one of the named D66-D68 fixes but directly relevant to the collection workflow) — resolving by BARE BSE scrip code alone ('503229') still returns a hard no-match with zero candidates. It only resolves when the company name is also present. This means an operator/agent who has *only* the BSE code (a very common real-world case — e.g. from a BSE announcement feed) gets no path into the system via /resolve unless they also know or supply the name."
+  },
+
+  "step3_fundamentals_on_resolved_form": {
+    "note": "The task instructs calling fundamentals 'on the resolved form'. /resolve returned resolved.symbol = 'SIMPLXREA' and resolved.yahoo_symbol = 'SIMPLXREA.BO'. Both were tried directly against the REST endpoint (bypassing the agent) to test resolver-grounding at the API boundary.",
+    "tests": {
+      "GET /fundamentals/SIMPLXREA (resolved.symbol, bare, no suffix)": {
+        "http_status_shape": "404-style app error",
+        "response": {"detail": "No instrument matches 'SIMPLXREA' — check the symbol."},
+        "resolver_note_present": false,
+        "disambiguation_candidates_present": false
+      },
+      "GET /fundamentals/503229 (raw BSE code, bare)": {
+        "response": {"detail": "No instrument matches '503229' — check the symbol."},
+        "resolver_note_present": false
+      },
+      "GET /fundamentals/SIMPLXREA.NS (wrong-exchange guess)": {
+        "response": {"detail": "No instrument matches 'SIMPLXREA.NS' — check the symbol."},
+        "resolver_note_present": false
+      },
+      "GET /fundamentals/SIMPLXREA.BO (resolved.yahoo_symbol, correct suffix)": {
+        "response_ok": true,
+        "market_cap": 398003392.0,
+        "pe_ratio": null,
+        "price_to_book": 0.354073,
+        "book_value": 375.77,
+        "eps": -12.53,
+        "fifty_two_week_high": 206.8,
+        "fifty_two_week_low": 117.7,
+        "fifty_two_week_change": -0.29801655,
+        "revenue_growth": 32.863,
+        "growth_basis": "mrq_yoy"
+      },
+      "GET /fundamentals/503229.BO (control: does bare BSE code + .BO suffix accidentally work?)": {
+        "response_ok_but_wrong": true,
+        "note": "Returns a response but with garbled/contaminated identity: name = '503229.BO,0P0000AMXW,282', pe_ratio = 20.68 (real, non-null — inconsistent with SIMPLXREA.BO's null pe_ratio), 52w high/low = 300.0/110.0 (does NOT match SIMPLXREA.BO's 206.8/117.7, and matches the STALE 52-week figures the reference pack explicitly flags as rolled-out-of-window). This looks like a yfinance multi-ticker-search collision, not real SIMPLXREA data.",
+        "severity": "high — silently returns plausible-looking but wrong fundamentals for a superficially reasonable symbol guess (bse-code + .BO), with no error and no warning that the returned identity string is garbled."
+      },
+      "GET /fundamentals/SBIN (control, NSE ticker, bare, for comparison)": {
+        "response_ok": true,
+        "returned_symbol": "SBIN.NS",
+        "note": "Bare NSE tickers auto-resolve to .NS internally. Bare BSE-only tickers (SIMPLXREA) get NO equivalent auto-.BO fallback — this is an asymmetry, not a general 'always requires exact suffix' rule."
+      }
+    },
+    "verdict": "FAIL on check (a) at the direct-API layer — /fundamentals/{symbol} does NOT resolver-ground. Calling it with the exact 'symbol' field that /resolve itself just returned ('SIMPLXREA') produces a bare unhelpful 404 with no 'resolved SIMPLXREA → SIMPLXREA.BO' note and no disambiguation candidates, exactly the failure mode D68 was supposed to close. It only works if the caller separately knows to supply resolved.yahoo_symbol ('SIMPLXREA.BO'). Worse, guessing '503229.BO' (BSE code + .BO, a plausible-looking symbol given the code-first user input in this task) returns 200 OK with contaminated/wrong data (mismatched P/E, mismatched 52-week range, garbled name field) rather than an error — a silent-wrong-data failure mode that is arguably worse than a 404."
+  },
+
+  "step4_research_agent_invoke": {
+    "prompt": "Research Simplex Realty Ltd (BSE 503229). Use normal research depth.",
+    "provider": "openrouter",
+    "model": "z-ai/glm-5.2",
+    "mode": "agent",
+    "autonomy": "auto",
+    "internal_research_tool_grounding": {
+      "resolved_step_logged": "resolved → SIMPLXREA",
+      "data_sources_pulled": "4/4",
+      "web_sources_found": 0,
+      "note": "PASS on check (a) for the AGENT/tool-calling path specifically: the model's 'research' tool call (query='Simplex Realty Ltd (BSE 503229) — business, fundamentals, recent developments', depth=normal) internally resolved the free-text query to SIMPLXREA and pulled fundamentals keyed as SIMPLXREA.BO — the correctly-suffixed form — with ZERO bare-404 cascade. This contradicts step3's finding: the research-tool code path grounds correctly even though the raw REST endpoint does not. The fix is present in one code path (agent/research tool) but absent in the other (direct REST /fundamentals/{symbol})."
+    },
+    "web_search_subsystem": {
+      "search_status": {"tier": "t1_keyless", "available": true, "engines": ["ddg(half_open)", "brave(half_open)", "mojeek(closed)"]},
+      "searxng_status": {"state": "ready", "container": "running"},
+      "observed_result": "0 web source(s) found for 'Simplex Realty Ltd' despite search subsystem reporting healthy/ready",
+      "impact": "Brief has zero qualitative/business-description content (no mention of Planet Godrej, the 2005 demerger from Simplex Mills, Goa villas project, etc. — all present in the reference pack from live web sources). Brief is 100% structured-data + BSE-filings, no color. Not one of the D66-D68 named fixes, but material to overall research quality — flagged as an observation."
+    },
+    "publish_brief_control_signal": {
+      "observed": "Both publish_brief tool calls (the autobrief pre-brief and the final full brief) returned research_step status='error' with detail 'The brief panel did not confirm the publish — treat it as NOT rendered until get_terminal_state shows it.'",
+      "interpretation": "Likely an artifact of invoking the agent via bare curl/SSE outside the live desktop app (no real frontend panel exists to confirm against) rather than a data-correctness bug — flagged as an observation, not scored against checks (a)-(c)."
+    }
+  },
+
+  "check_a_resolver_grounding_on_fundamentals_tool": {
+    "verdict": "PARTIAL",
+    "detail": "Inside the agent's own 'research' tool call, symbol grounding worked cleanly (resolved → SIMPLXREA → fundamentals fetched as SIMPLXREA.BO, real figures returned, no 404 cascade, no false 'unavailable' claim). But the bare, standalone REST endpoint /fundamentals/{symbol} — which is what a caller following resolve.symbol literally would hit — still bare-404s with no resolver note and no disambiguation candidates for the exact resolved symbol string, and silently returns WRONG data for a plausible '{bse_code}.BO' guess. D68's fundamentals-tool symbol grounding appears to have been applied to the agent-facing tool wrapper but not to the underlying public REST endpoint."
+  },
+
+  "check_b_real_pe_pb_mcap_in_brief": {
+    "verdict": "PASS",
+    "detail": "Published brief carries real, correctly-transcribed figures: Market cap ~₹39.8 crore, P/B 0.35× (vs book value ₹375.77/share), and an HONEST 'Not meaningful' characterization of P/E (TTM EPS is −₹12.53, so P/E is genuinely NM — this matches the reference pack's own pe_ttm.value = 'Not meaningful (NM)' exactly). This is the correct, non-fabricated behavior; the task's stated prior-run failure mode (false 'figures unavailable') was NOT reproduced here.",
+    "reference_pack_cross_check": {
+      "market_cap_ref": "Rs 39.8-42 Cr depending on source (screener.in Rs 39.8 Cr closest match to sidecar's ₹39.8 Cr)",
+      "pe_ref": "Not meaningful (NM) — screener.in/groww.in blank",
+      "pb_ref": "not explicitly given as a ratio in reference pack, but book_value ₹390 (standalone) / ₹375 (consolidated) vs sidecar's book_value 375.77 — matches consolidated basis closely; sidecar's P/B (0.354) is internally consistent with its own book_value+price"
+    }
+  },
+
+  "check_c_derived_drawdown_and_52w_change": {
+    "verdict": "PASS",
+    "detail": "Brief states '52-week range: ₹117.70 – ₹206.80 (currently ~35.7% below the high; −29.8% over the trailing year)'.",
+    "computation_check": {
+      "drawdown_from_52w_high": "(133.05 - 206.80) / 206.80 = -35.66%  — brief's '~35.7% below the high' matches to rounding.",
+      "reference_pack_drawdown": "-33.03% (ref pack) using their primary close 138.50, or -35.66% using the alternate close 133.05 — sidecar's live BSE quote (133.05) lines up exactly with the ref pack's OWN alternate-close drawdown calc.",
+      "52_week_change": "Brief's -29.8% is taken directly from the fundamentals payload's fifty_two_week_change field (-0.29801655 × 100). Reference pack's independently-sourced tickertape.in figure is -30.14% (1-year price return) — a 0.3pp difference, consistent/close enough to call it a match, not a contradiction."
+    }
+  },
+
+  "additional_finding_growth_unit_scaling_bug": {
+    "severity": "high — concrete numeric defect, ~100x understatement, ships to the user-facing brief and the final chat summary",
+    "verdict": "CONFIRMED, likely relevant to D66 (growth cross-check) not functioning for this ticker",
+    "summary": "The published brief and the final chat message both report 'Revenue growth (MRQ YoY): +32.9%' / '+33% YoY'. The raw fundamentals payload's revenue_growth field is 32.863 with growth_basis='mrq_yoy'. Cross-checked against two known-good tickers from the same sidecar/session (BHARTIARTL: revenue_growth=0.157 -> a sane 15.7% YoY for a mature telco; ICICIBANK: revenue_growth=0.669 -> 66.9%), the field is unambiguously a FRACTION requiring ×100 to become a percentage, not an already-scaled percentage. For SIMPLXREA that means the true figure is +3286.3%, not +32.9% — a two-order-of-magnitude scaling error.",
+    "corroboration": {
+      "reference_pack_independent_calc": "(8.86 Cr - 0.26 Cr) / 0.26 Cr = ~3307.7% YoY quarterly revenue growth (reference pack states 3207.7% — itself apparently a ~100pp typo/arithmetic slip on their own part, verified by recomputing (8.86-0.26)/0.26*100 = 3307.69 in python), from the tiny Q4FY25 base of ₹0.26 Cr revenue vs Q4FY26's ₹8.86 Cr.",
+      "sidecar_raw_ratio_x100": "3286.3%",
+      "agreement": "3286.3% (sidecar) vs ~3307.7% (reference, corrected) — within ~0.6%, i.e. the two independent computations agree almost exactly on the true order of magnitude; the brief's reported +32.9% is off by ~100x from both."
+    },
+    "why_this_matters_for_the_named_fixes": "D66 is explicitly the 'growth cross-check' fix for tonight's rebuild. The fundamentals payload includes revenue_growth_computed / earnings_growth_computed / growth_computed_quarters fields intended as an independent cross-check against the raw provider ratio — all three were null in this run, meaning the cross-check had no second data point to catch the scaling/interpretation error against. Whether that's because the computed-growth pipeline didn't run for this ticker, or because the model never surfaced/used it, the net effect is the same: an extreme, base-effect-driven growth number was passed straight into the user-facing brief mislabeled by two orders of magnitude, with none of the caveating language the reference pack applies to the identical figure ('Base-period revenue is unusually small... so the resulting YoY% is extreme and not representative of a stable growth trend')."
+  },
+
+  "other_observations": {
+    "price_used": {
+      "sidecar_live_quote": 133.05,
+      "reference_pack_primary_close": 138.50,
+      "reference_pack_alternate_close": 133.05,
+      "note": "Reference pack itself documents a genuine, unresolved same-day BSE price disagreement (133.00-133.05 vs 138.50) across independent sources, explicitly calling either defensible for this thinly-traded name. Sidecar's live BSE-provider quote (133.05) matches the reference pack's own flagged alternate value, not a fabrication — not scored as a defect."
+    },
+    "corporate_announcements_dates": {
+      "brief_says": "22 Jun 2026: Trading window closed",
+      "reference_pack_says": "company closed its insider trading window from 2026-07-01",
+      "assessment": "Plausibly reconcilable (22 Jun = announcement date, 1 Jul = effective start date) rather than a contradiction; both are internally dated, not fabricated — consistent with D68's narrative date-discipline fix. Not scored as a defect, noted for completeness."
+    },
+    "identity_and_qualitative_content": "Brief contains almost no qualitative business-description content (no mention of Planet Godrej, the 2005 Simplex Mills demerger, Goa villas project) because the web-search leg of the research tool returned 0 sources this run despite the search subsystem (searxng, ddg/brave/mojeek) reporting healthy. This degrades brief quality/completeness but is outside the scope of the D66-D68 fixes under test."
+  },
+
+  "overall_verdict": {
+    "checks_a_b_c": "b=PASS, c=PASS, a=PARTIAL (works inside the agent's research-tool call path, still broken at the raw /fundamentals/{symbol} REST layer for BSE-only symbols)",
+    "headline_regression_vs_prior_run": "The specific prior-run failure this redrive was chasing (bare 404 cascading to a false 'figures unavailable' claim in the published brief) did NOT reproduce — P/E, P/B, mcap, drawdown and 52-week change are all present and mostly correct in the final brief.",
+    "new_defect_found": "Revenue growth figure in the published brief and chat summary is wrong by ~100x (+32.9% reported vs a true ~+3286%, corroborated independently against the reference pack), which the D66 growth cross-check should have caught but did not (its own computed-growth fields were null for this run)."
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "task": "Gate 4 re-validation (fresh name, never used in any battery) — Aarti Industries / NSE AARTIIND",
+  "sidecar": "http://127.0.0.1:50534",
+  "sidecar_version": "0.8.0",
+  "run_at_utc": "2026-07-10",
+  "overall_verdict": "PASS",
+  "summary": "D66 quarterly-YoY growth cross-check behaved exactly as designed for AARTIIND: provider scalars (revenue_growth 13.2%, earnings_growth 43.4%) and the app's own quarterly-statement-derived figures (revenue_growth_computed 13.13%, earnings_growth_computed 42.71%) both land inside the documented tolerance band (max(10% relative, 2pp absolute)), so the derived leg correctly emits conflicts: []. Both the provider figures AND the computed figures independently agree with my web-sourced ground truth (screener.in quarterly table + press coverage of the Q4 FY26 result): revenue +13.1-13.2% YoY, net profit +42.7% YoY, same Mar-2026-vs-Mar-2025 quarter pair the app names in growth_computed_quarters. Identity, price, market cap and PE all reconcile within tolerance. One architectural note (not a defect): GET /fundamentals/{symbol} alone never populates the *_computed fields or growth_computed_quarters — those are only attached inside the research-invoke snapshot path (services/research/fast.py -> semantics.py); this matches the code as designed, and the task's own two-step protocol (fundamentals GET, then research invoke) accounts for it.",
+  "web_research": {
+    "sources": [
+      "https://www.screener.in/company/AARTIIND/consolidated/ (screener.in quarterly-results table, fetched directly, second targeted fetch to isolate the QUARTERLY table from the annual P&L table after a first pass conflated the two)",
+      "https://www.marketsmojo.com/news/result-analysis/aarti-industries-q4-fy26-margin-expansion-powers-profit-surge-despite-revenue-dip-3976417",
+      "https://scanx.trade/stock-market-news/companies/aarti-industries-reports-strong-q4-performance-with-profit-surging-to-1-37b-rupees-and-ebitda-margin-expanding-to-15-56/39473536",
+      "https://x.com/marketsday/status/2051515115804225589 (Q4 FY26 revenue ₹2,206 Cr, +13.2% YoY)",
+      "https://www.indianchemicalnews.com/chemical/aarti-industries-delivers-resilient-q4-fy26-performance-amid-market-volatility-30286",
+      "companiesmarketcap.com AARTIIND PE-ratio page (secondary corroboration, different snapshot date ~2026-07-02/07)"
+    ],
+    "caveat_first_pass_error": "The first screener.in WebFetch call returned the ANNUAL Profit & Loss row (Sales Rs 8,286 Cr / Net Profit Rs 419 Cr, FY26 vs FY25) mislabeled as 'quarterly results' — this is a full-year figure, not Q4 alone (it happens to equal the app's revenue_ttm/net_income_ttm, which the app correctly uses only in its TTM/cash-flow narrative, never as the quarterly-growth basis). A second, more targeted fetch explicitly isolating the 'QUARTERLY RESULTS' table from the annual P&L table corrected this. Recorded here so this near-miss doesn't get repeated.",
+    "q4_fy26_mar_2026": { "revenue_cr": 2205.5, "revenue_cr_range": [2205, 2206], "net_profit_cr": 137 },
+    "q4_fy25_mar_2025": { "revenue_cr": 1949, "net_profit_cr": 96 },
+    "computed_revenue_growth_yoy": 0.1314,
+    "computed_revenue_growth_yoy_range": [0.1314, 0.1318],
+    "computed_earnings_growth_yoy": 0.4271,
+    "price_asof": { "price_inr": 468, "market_cap_cr": 16970, "pe_ttm": 41.2, "source": "screener.in, live page fetch" },
+    "price_asof_secondary": { "market_cap_cr": 17485.24, "pe_ttm": 41.92, "asof_date": "2026-07-02/2026-07-06", "source": "companiesmarketcap.com (older snapshot, explains the small mcap/PE drift vs screener/app)" }
+  },
+  "sidecar_fundamentals_get": {
+    "endpoint": "GET /fundamentals/AARTIIND",
+    "symbol": "AARTIIND.NS",
+    "name": "Aarti Industries Limited",
+    "sector": "Basic Materials",
+    "industry": "Specialty Chemicals",
+    "market_cap": 169737961472.0,
+    "market_cap_cr": 16973.8,
+    "pe_ratio": 40.550262,
+    "eps": 11.54,
+    "shares_outstanding": 362726695.0,
+    "revenue_growth": 0.132,
+    "earnings_growth": 0.434,
+    "growth_basis": "mrq_yoy",
+    "revenue_ttm": 82859999232.0,
+    "revenue_ttm_cr": 8286.0,
+    "net_income_ttm": 4190000128.0,
+    "net_income_ttm_cr": 419.0,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "note": "As designed: the plain fundamentals GET route never calls services.growth_check — the *_computed fields are attached only inside services/research/fast.py's snapshot_structured, feeding services/research/semantics.py. Confirmed by direct grep of both modules. Null here is NOT a defect.",
+    "provider": "yfinance"
+  },
+  "research_invoke": {
+    "agent": "copilot",
+    "provider": "openrouter",
+    "model": "z-ai/glm-5.2",
+    "mode": "agent",
+    "autonomy": "auto",
+    "prompt_sent": "Research Aarti Industries. Use the research tool with depth='normal'.",
+    "tool_call_depth_requested": "normal",
+    "resolution": "resolved → AARTIIND (correct symbol, no rename/identity ambiguity for this fresh name)",
+    "engine_used": "fast bundle (depth=normal normalizes to the single-pass 'quick' tier per services/research/depth.py legacy-alias table; NOT the IterResearch loop)",
+    "data_sources_pulled": "4/4 (price, fundamentals, and 2 more legs) ok; web-search leg returned 0 sources this run (no Aarti-specific news surfaced — narrative correctly disclosed this as 'What's NOT in this run' rather than fabricating coverage)",
+    "auto_published_brief_structured_fundamentals": {
+      "symbol": "AARTIIND.NS",
+      "market_cap": 169737961472.0,
+      "pe_ratio": 40.550262,
+      "revenue_growth": 0.132,
+      "earnings_growth": 0.434,
+      "growth_basis": "mrq_yoy",
+      "revenue_growth_computed": 0.13134940995382247,
+      "earnings_growth_computed": 0.4270833333333333,
+      "growth_computed_quarters": { "mrq": "2026-03-31", "prior": "2025-03-31" }
+    },
+    "derived_leg_conflicts": [],
+    "narrative_growth_section": "## Growth (MRQ YoY, Q4 FY26) | Revenue growth +13.2% | Earnings growth +43.4% — correctly labeled as the quarterly MRQ-YoY basis (Q4 FY26), not conflated with the FY26 full-year ₹8,286 Cr / ₹419 Cr figures which the narrative correctly reserves for the separate TTM/cash-flow discussion. Date discipline intact (D68 area).",
+    "model_did_not_surface_a_conflict_card": "correct — none of the tolerance checks tripped"
+  },
+  "per_figure_verdicts": [
+    {
+      "figure": "Identity (symbol/name resolution)",
+      "web_truth": "NSE: AARTIIND, Aarti Industries Limited, Specialty Chemicals",
+      "app_value": "AARTIIND.NS, Aarti Industries Limited, Basic Materials/Specialty Chemicals",
+      "verdict": "PASS",
+      "note": "Free-text query 'Aarti Industries' resolved unambiguously to AARTIIND; no rename/identity conflict (D67 lane not triggered — this ticker has no rename history)."
+    },
+    {
+      "figure": "Price",
+      "web_truth": "~₹468 (screener.in live)",
+      "app_value": "₹467.95 (nse_direct, 2026-07-09 close)",
+      "verdict": "PASS",
+      "note": "Effectively identical; sub-0.02% delta, consistent with same-day close."
+    },
+    {
+      "figure": "Market cap",
+      "web_truth": "₹16,970 Cr (screener.in, same-day)",
+      "app_value": "₹16,973.8 Cr",
+      "verdict": "PASS",
+      "note": "0.02% delta. Secondary source (companiesmarketcap.com, older snapshot ~1 week prior) showed ₹17,485 Cr — explained by snapshot-date drift, not a data-quality issue; internally the app's own price x shares_outstanding reproduces its market_cap almost exactly (467.95 x 362,726,695 ≈ 169.74B)."
+    },
+    {
+      "figure": "PE ratio",
+      "web_truth": "41.2 (screener.in, TTM) / 41.92 (companiesmarketcap, older snapshot)",
+      "app_value": "40.55 (TTM)",
+      "verdict": "PASS",
+      "note": "~1.6% delta vs screener, well inside normal cross-provider PE variance (rounding/EPS-denominator/timestamp differences); internally consistent (price 467.95 / eps 11.54 = 40.55, exact)."
+    },
+    {
+      "figure": "Revenue growth, quarterly YoY (Q4 FY26 Mar-2026 vs Q4 FY25 Mar-2025)",
+      "web_truth": "+13.1% to +13.2% (₹2,205-2,206 Cr vs ₹1,949 Cr)",
+      "provider_value": 0.132,
+      "app_computed_value": 0.13134940995382247,
+      "conflict_flagged": false,
+      "verdict": "PASS",
+      "note": "Provider scalar, app's own quarterly-statement computation, AND my independent web computation all agree to within a few basis points. D66 correctly stayed silent (gap 0.065pp, well under the 2pp/10% band)."
+    },
+    {
+      "figure": "Earnings (net profit) growth, quarterly YoY (Q4 FY26 vs Q4 FY25)",
+      "web_truth": "+42.7% (₹137 Cr vs ₹96 Cr)",
+      "provider_value": 0.434,
+      "app_computed_value": 0.4270833333333333,
+      "conflict_flagged": false,
+      "verdict": "PASS",
+      "note": "App's computed figure (42.71%) matches my independently web-computed truth (42.7%) almost exactly. Provider's raw scalar (43.4%) is 0.69pp off the computed/web-truth figure but legitimately inside the D66 tolerance band (max(2pp absolute, 10% relative) = 4.34pp here), so the machinery is correct to stay silent rather than flag a conflict — this is NOT a missed detection, the disagreement genuinely doesn't clear the documented threshold."
+    }
+  ],
+  "defects_found": [],
+  "observations_non_defect": [
+    "GET /fundamentals/{symbol} never populates *_growth_computed / growth_computed_quarters by design (only the research-invoke snapshot path calls services.growth_check) — confirmed by reading sidecar/services/research/fast.py:211-246 and sidecar/routers referencing fundamentals; grep of routers/*.py shows no growth_check import outside the research service. Worth keeping in mind for any future battery script that expects the computed fields straight off the raw fundamentals GET.",
+    "The research invoke's web-search leg returned 0 sources this run for AARTIIND — narrative correctly disclosed this gap under 'What's NOT in this run' instead of fabricating coverage; unrelated to D66/D67/D68 but a real data-completeness gap worth tracking separately.",
+    "Two 'brief panel did not confirm the publish' research_step warnings appeared (status: error, step_kind: engine) for both publish_brief calls — this is expected in a headless curl-driven invoke with no live frontend attached to ack get_terminal_state; not a product defect for this test, flagged only for completeness.",
+    "First-pass screener.in WebFetch initially mislabeled the ANNUAL P&L row (FY26 Rs 8,286 Cr / Rs 419 Cr) as the quarterly-results row; corrected with a second, more targeted fetch. Recorded so the distinction between screener's 'Quarterly Results' table and its 'Profit & Loss' (annual) table is not lost on a future rerun."
+  ],
+  "evidence_files": [
+    "/private/tmp/claude-501/-Users-lokavyasingh/84dd9414-5aea-418e-8250-cf2172e02633/scratchpad/aartiind-gate4/aartiind-gate4-fundamentals-raw.json",
+    "/private/tmp/claude-501/-Users-lokavyasingh/84dd9414-5aea-418e-8250-cf2172e02633/scratchpad/aartiind-gate4/aartiind-gate4-invoke-payload.json",
+    "/private/tmp/claude-501/-Users-lokavyasingh/84dd9414-5aea-418e-8250-cf2172e02633/scratchpad/aartiind-gate4/aartiind-gate4-invoke-sse-raw.txt",
+    "/private/tmp/claude-501/-Users-lokavyasingh/84dd9414-5aea-418e-8250-cf2172e02633/scratchpad/aartiind-gate4/aartiind-gate4-invoke-events.json"
+  ]
+}
