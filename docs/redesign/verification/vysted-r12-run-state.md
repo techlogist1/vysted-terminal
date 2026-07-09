@@ -58,9 +58,15 @@
 | 6 | AGENT CAPABILITY | **HOLDS** — agent-authored screen (22/22 parity, D64); agent-vs-direct backtest parity byte-identical (D65); backtest tool-stall→honest-warning; durable run done+cancelled lifecycles; **§6.5 order-dialog LIVE end-to-end (D69)**: propose→review bar→human ACCEPT→fails-closed (no broker adapter)→audit_orders 0 rows throughout, under glm AND kimi (r12/gui/10,11); portfolio arithmetic pinned (Gate 6 scenario, INR non-zero total) |
 | 7 | METRIC SEMANTICS | **HOLDS** — RADICO fresh-name research payload (r12/metric-semantics/radico-structured.json): drawdown 1.75% "vs 52w high"+formula vs 52w-change +51.1% "trailing" DISTINCT+labeled; D66 growth conflict + D56 dividend conflict firing together; 3 cross-source conflicts flagged never picked. Also live on 509470/ROSSTECH (verifier round) |
 | 8 | ERROR BATTERY | **API LEGS GREEN** — 401/402/network/SearXNG-down/malformed live-induced + humanized (r12/error-battery/); 429 live on data path + pinned on LLM path. UI render spot-check pending |
-| 9 | COVERAGE MAP | pending (GUI phase, operator-away gated) |
-| 10 | REGRESSION FLOOR | baseline green; final chain at close |
-| 11 | DELIVERABLES | pending |
+| 9 | COVERAGE MAP | **HOLDS** — r12/COVERAGE_MAP.md: every surface PASSED / DEFECTS-FIXED-AND-REVERIFIED / NOT-TESTED(reason) / NEEDS-MANUAL-CHECK; no implied passes |
+| 10 | REGRESSION FLOOR | **non-destructive half GREEN** (eslint 0-err, prettier, tsc, ruff, cargo fmt, clippy -D warnings all clean on head 8f967a4). Pending: hardening merge → final ci-local pytest/vitest + PyInstaller build+boot + smoke(ICONIKSPEV) — needs operator-away to stop app |
+| 11 | DELIVERABLES | **DRAFTED** — R12_HAND_TESTING_GUIDE.md committed; morning report drafted (scratchpad), finalized into R12_RUN_REPORT.md at close with final numbers |
+
+## REMAINING TO CLOSE (blocked signals)
+1. Hardening agent (5 verifier defects: legacy-symbol candidate rename, Yahoo junk-row 404, numeric BSE-code resolve, extreme-growth prompt formatting, invoke-options scrub) → merge + integration pytest.
+2. Operator-away ≥25min → stop app → full ci-local (pytest/vitest final numbers) + PyInstaller --onefile build AND boot + smoke-test-sidecars (ICONIKSPEV hard check).
+3. Finalize morning report atop R12_RUN_REPORT.md with the closing chain numbers.
+4. Commit, push, tag r12-finisher. Relaunch app on clean default, leave running.
 
 ## OPERATOR-PRESENCE PROTOCOL (D63)
 - 00:07 operator ACTIVE at machine (his Claude session frontmost; idle 0.04s). He closed the relaunched app window (exit 143) — evidence he doesn't want GUI intrusion.
