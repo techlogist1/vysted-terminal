@@ -1,5 +1,15 @@
 # VYSTED R12 — THE FINISHER — RUN STATE
 
+## ✅ RUN COMPLETE — tagged r12-finisher @ 14d05b6, 004 pushed
+All 11 acceptance gates hold with committed evidence (scoreboard below). Final chain: pytest 2311/1, vitest 1481/134, all lint/format/type/clippy/cargo clean; all three --onefile sidecars build+boot (surgical smoke equivalent, ICONIKSPEV deterministic, MCP survival); §6.5 byte-identical (0-line diff, D70); sacred files intact. Fixes D64–D68 + growth/identity/narrative/hardening + 52w guard, all test-pinned. Version 0.8.0, no merge to main.
+
+**Workspace**: the app is left RUNNING (operator was actively present at close — I did not force a clean-default restart into his live session). Portfolio is empty (test position added+deleted, RELIANCE proposal rejected — audit_orders 0 rows). The chat tab holds tonight's drive conversation (informational carryover, prunable with one click — R11 precedent). No pending proposals, no debris in the autosave blob.
+
+**Optional operator formality**: the canonical `node scripts/smoke-test-sidecars.mjs` (kills all vysted processes on pre-flight) can be run at leisure as a formality — its contract (3-binary boot + ICONIKSPEV + MCP survival) is already proven surgically this run.
+
+---
+
+
 **Started:** 2026-07-09 (overnight autonomous, lead: Fable 5 advisor-orchestrator)
 **Branch:** 004-r4-experience-rebuild @ 1a095b7 (= origin, = tag r11-data). Version 0.8.0.
 **Mandate:** truth first → data never runs dry → Jarvis complete → total proof → gates 1–11 with evidence → tag r12-finisher.
