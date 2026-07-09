@@ -387,3 +387,18 @@ describe("deriveMetrics — the derived semantics leg leads the grid (E8)", () =
     expect(model?.items[0].label).toBe("Below 52-week high");
   });
 });
+
+// R12: a zero-filled 52w range is provider ABSENCE — the card must not render
+// a fabricated-looking "0–0" (seen live on a BSE-only scrip's archived brief).
+describe("52w range zero-guard (R12)", () => {
+  it("renders no range card when the provider zero-fills the bounds", () => {
+    const zeroed = structured("equity", {
+      fundamentals: {
+        ok: true,
+        provider: "bse",
+        data: { ...fundamentals(), fifty_two_week_low: 0, fifty_two_week_high: 0 },
+      },
+    });
+    expect(labels(zeroed)).not.toContain("52w range");
+  });
+});

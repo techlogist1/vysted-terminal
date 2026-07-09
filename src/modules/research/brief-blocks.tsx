@@ -151,7 +151,9 @@ function pushRange(
 ): void {
   const lo = fund?.fifty_two_week_low;
   const hi = fund?.fifty_two_week_high;
-  if (typeof lo === "number" && typeof hi === "number") {
+  // A zero bound is provider absence, not a price — a "0–0" card reads as
+  // fabricated data (R12, BSE-only scrips whose range the provider zero-fills).
+  if (typeof lo === "number" && typeof hi === "number" && lo > 0 && hi >= lo) {
     push("52w range", `${formatNumber(lo, 0)}–${formatNumber(hi, 0)}`);
   }
 }
