@@ -100,6 +100,34 @@ def test_iconikspev_resolves_deterministically_to_bse(monkeypatch) -> None:  # n
     assert symbol_resolver.region_hint("ICONIKSPEV") == "IN"
 
 
+def test_bare_bse_scrip_code_resolves(monkeypatch) -> None:  # noqa: ANN001
+    """A bare all-digit BSE scrip code (the header endpoint's native id) binds the
+    one BSE row carrying it, exactly and with full confidence — a numeric code
+    never appears in the alphabetic NSE/US masters, so it is unambiguous. Before
+    this lane, ``/resolve?q=509470`` returned no match at all."""
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", _raise_if_network)
+    r = symbol_resolver.resolve("509470", "IN")
+    assert r.best is not None
+    assert r.best.exchange == "BSE"
+    assert r.best.symbol == "BOMOXY-B1"  # Bombay Oxygen Investments (BSE-only)
+    assert r.best.yahoo_symbol == "BOMOXY-B1.BO"
+    assert r.confidence >= 0.99
+    assert not r.needs_disambiguation
+    # Round-trips to the same scrip code regardless of the exact symbol spelling.
+    assert symbol_resolver.bse_scrip_code(r.best.symbol) == "509470"
+    # The explicit ``.BO`` form of the numeric code resolves the same way.
+    r_bo = symbol_resolver.resolve("509470.BO", "IN")
+    assert r_bo.best is not None and r_bo.best.symbol == "BOMOXY-B1"
+
+
+def test_non_scrip_numeric_query_does_not_false_bind(monkeypatch) -> None:  # noqa: ANN001
+    """A numeric query that matches no BSE scrip code stays unresolved — the lane
+    binds only an EXACT code hit, never a nearest guess."""
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", lambda *_a, **_k: [])
+    r = symbol_resolver.resolve("999999", "IN")
+    assert r.best is None
+
+
 def test_dual_listed_carries_both_exchanges_nse_preferred(monkeypatch) -> None:  # noqa: ANN001
     """A dual-listed name (RELIANCE) resolves best to NSE (trading data) but the
     BSE row rides along as a candidate (retained for BSE-only fundamentals)."""

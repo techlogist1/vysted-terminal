@@ -273,6 +273,23 @@ def _bse_master() -> dict[str, tuple[str, str, str]]:
 
 
 @lru_cache(maxsize=1)
+def _bse_scrip_index() -> dict[str, str]:
+    """``{SCRIP_CODE: SYMBOL}`` for BSE equities (the numeric-code resolve lane).
+
+    A bare all-digit query (a BSE scrip code like ``509470``) is the header
+    endpoint's native instrument id — EXACT and unambiguous, since a numeric code
+    never appears in the alphabetic NSE/US masters — so it binds the one BSE row
+    that carries that code. Built once from the loaded master (which already
+    carries the scrip code per row); on a duplicate code the first row wins.
+    """
+    out: dict[str, str] = {}
+    for sym, (_name, _group, code) in _bse_master().items():
+        if code and code not in out:
+            out[code] = sym
+    return out
+
+
+@lru_cache(maxsize=1)
 def _us_master() -> dict[str, str]:
     """``{TICKER: name}`` for US-listed companies (SEC snapshot)."""
     raw = _load_master("us_instruments.json")
@@ -311,6 +328,7 @@ def reset_caches_for_tests() -> None:
     """Drop the in-process master caches + the live-lookup budget (test helper)."""
     _nse_master.cache_clear()
     _bse_master.cache_clear()
+    _bse_scrip_index.cache_clear()
     _us_master.cache_clear()
     _marquee_aliases.cache_clear()
     _reset_live_lookup_for_tests()
@@ -601,6 +619,20 @@ def _resolve_masters(query: str, region: str) -> Resolution:
     if upper in _us_master() and suffix_exchange is None:
         candidates.append(_instrument_us(upper, 1.0, band=BAND_EXACT_TICKER))
 
+    # 1b. Bare BSE scrip-code hit — an all-digit 5-6-digit query (optionally a
+    #     ``.BO`` form) is the BSE header endpoint's native instrument id: exact
+    #     and unambiguous (a numeric code never appears in the alphabetic NSE/US
+    #     masters), so it binds the one BSE row carrying that code at band 6.
+    if (
+        not candidates
+        and upper.isdigit()
+        and 5 <= len(upper) <= 6
+        and suffix_exchange in (None, "BSE")
+    ):
+        scrip_symbol = _bse_scrip_index().get(upper)
+        if scrip_symbol:
+            candidates.append(_instrument_bse(scrip_symbol, 1.0, band=BAND_EXACT_TICKER))
+
     if candidates:
         candidates.sort(key=lambda i: _locale_rank(region, i.region), reverse=True)
         return Resolution(
@@ -667,15 +699,21 @@ def _resolve_masters(query: str, region: str) -> Resolution:
 
 
 def _rename_instrument(inst: Instrument) -> Instrument:
-    """Rewrite a retired NSE symbol to its current one, annotated; else unchanged.
+    """Rewrite a retired Indian symbol to its CURRENT NSE identity, annotated.
 
-    Only NSE instruments are considered — ``symbolchange.csv`` is the NSE master
-    (a BSE row keeps its own identity). The rename applies only when the change's
-    effective date has passed; an empty rename map (cold app / no network) is an
-    honest no-op, so this returns ``inst`` unchanged and the resolver behaves
-    exactly as it did before the lane existed.
+    The rename master is NSE's ``symbolchange.csv``, so the current symbol is
+    always an NSE listing. A retired symbol can surface as EITHER its NSE row or
+    its dual-listed BSE row (same company, same ISIN) — BOTH rewrite to the ONE
+    current NSE identity so the candidate list COLLAPSES to a single clean row
+    (R12, D67) instead of stranding a stale same-ticker BSE candidate that still
+    carries full confidence and no provenance. Only Indian instruments are
+    considered (a US ticker that happens to equal an NSE old symbol keeps its own
+    identity — the NSE master governs Indian listings only). The rename applies
+    only when the change's effective date has passed; an empty rename map (cold
+    app / no network) is an honest no-op, so this returns ``inst`` unchanged and
+    the resolver behaves exactly as it did before the lane existed.
     """
-    if inst.exchange != "NSE":
+    if inst.region != REGION_IN:
         return inst
     applied = nse_symbol_change.lookup_current(inst.symbol)
     if applied is None:
@@ -687,8 +725,8 @@ def _rename_instrument(inst: Instrument) -> Instrument:
     return Instrument(
         symbol=new_symbol,
         name=applied.new_name or inst.name,
-        exchange=inst.exchange,
-        region=inst.region,
+        exchange="NSE",
+        region=REGION_IN,
         asset_class=inst.asset_class,
         yahoo_symbol=f"{new_symbol}.NS",
         score=inst.score,
