@@ -68,8 +68,24 @@
 - Privacy: one region capture caught his private session — deleted immediately, never committed.
 - GUI phase queue (on away signal): relaunch full app → screener UI chips evidence → §6.5 order-dialog click-through w/ audit log → portfolio scenario w/ panel ACKs → narrow-width sweep → coverage map drives → error-frame UI render checks.
 
+## PHASE LOG
+- 00:0x caffeinate armed; git truth established; baseline ci-local launched; 7-reader census launched.
+- 00:2x BASELINE GREEN (pytest 2237/1, vitest 1478/134 — byte-match R11 close). Census landed (all Sonnet 5, 623k tok). Phase A closed as D62.
+- 00:3x Gate 2 cold drive: app stopped, cache backed up + deleted, stack relaunched. Cold IT query 22 rows/17s honest. +4 screens, formula parity 22/22. Gate 3 trip/recover cycle complete.
+- 00:07 OPERATOR ACTIVE detected (D63) — GUI legs suspended, idle monitor armed; operator closed the relaunched app (exit 143); pivoted to HEADLESS sidecar (source venv, stdin-held).
+- 00:1x–00:4x Error battery API legs green (401/402/network/SearXNG/malformed live; 429 data-path live + LLM-path pinned). Agent-authored screen exposed **D64** (numeric-only tool schema → model post-filtered lossily); fixed catalog prose, 2 pins, re-drive = 22/22 parity.
+- 00:4x–01:0x Backtest leg exposed **D65** (silent all-zero on unaffordable position, 162 skipped signals); engine warnings + TS mirror + digests + panel strip, 3 pins, live pre/post proof. Agent-vs-direct backtest parity byte-identical (CIPLA size 10).
+- 01:0x **CHECKPOINT 1 committed 41ab707 + pushed** (pytest 2241/1, vitest 1479/134, full chain green). Battery: reference packs landed (10 fresh names: SBIN ICICIBANK BHARTIARTL DEEPAKNTR RADICO GUJGASLTD RUBYMILLS MOL 509470 503229 + 6 reserves); in-app collect+diff workflow launched (wf_6691c294). Disposition-table teammate dispatched. E11 evidence: SC-013 green, 7 plugins registered/6 enabled. Durable runs: done + cancelled lifecycles proven.
+
+## QUEUED (blocked on a signal)
+- GUI phase — blocked on OPERATOR-AWAY (idle ≥25 min): app relaunch, screener UI chips, §6.5 click-through w/ audit log, portfolio scenario w/ ACKs, narrow-width sweep, error-frame renders, coverage-map drives.
+- Seeded cross-source conflict drill (Gate 7) — blocked on battery collectors finishing (store mutation would contaminate diffs).
+- PyInstaller build+boot + smoke test (Gate 10) — blocked on battery workflow (smoke pre-flight kills vysted processes incl. my headless sidecar).
+
 ## STRATEGY-CHANGE LOG (no-progress rule)
-- (none yet)
+- Workflow args arrived as a JSON string not an object (battery workflow died on arrival) → script now parses args defensively; resumed clean. (One occurrence — no identical retry.)
+- Headless sidecar exited instantly on stdin EOF (documented watchdog) → relaunched with stdin held open per the documented recipe.
+- Operator-active discovery → whole GUI track re-sequenced behind an idle monitor instead of retrying GUI work.
 
 ## LOOP TELEMETRY
 - Lead: Fable 5 (advisor-orchestrator; never spawns Fable teammates — all agent() calls carry explicit model routing).
