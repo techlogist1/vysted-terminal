@@ -74,7 +74,7 @@ from difflib import SequenceMatcher
 from functools import lru_cache
 from importlib import resources
 
-from services import provider_health
+from services import nse_symbol_change, provider_health
 from services.locale import (
     REGION_GLOBAL,
     REGION_IN,
@@ -175,6 +175,21 @@ _CORP_SUFFIXES = frozenset(
 
 
 @dataclass(frozen=True)
+class RenameAnnotation:
+    """Why an instrument's symbol was answered as its CURRENT (renamed) form.
+
+    Attached (R12, D66) when the NSE symbol-change lane rewrote a retired old
+    symbol to its current one — e.g. GUJGASLTD → GUJENERGY effective 2026-07-01.
+    ``effective_date`` is an ISO ``YYYY-MM-DD`` string.
+    """
+
+    renamed_from: str
+    renamed_to: str
+    effective_date: str
+    note: str
+
+
+@dataclass(frozen=True)
 class Instrument:
     """One resolved instrument candidate.
 
@@ -182,7 +197,9 @@ class Instrument:
     ``yahoo_symbol`` suffix — NSE ↔ ``.NS``, BSE ↔ ``.BO``, US ↔ no suffix.
     ``band`` records the match rung (see :mod:`services.resolution_policy`);
     ``score`` is the RAW reported confidence — never bonus-inflated, never
-    clamped.
+    clamped. ``rename`` is set only when the symbol-change lane answered the
+    CURRENT symbol for a retired one (never a silent swap — the provenance is
+    explicit).
     """
 
     symbol: str  # bare exchange symbol — GOLDBEES, AAPL, ICONIKSPEV
@@ -193,6 +210,7 @@ class Instrument:
     yahoo_symbol: str  # GOLDBEES.NS, ICONIKSPEV.BO, AAPL
     score: float = 1.0
     band: int = BAND_FUZZY
+    rename: RenameAnnotation | None = None
 
 
 @dataclass(frozen=True)
@@ -547,7 +565,17 @@ def resolve(query: str, region: str) -> Resolution:
     marquee aliases (IN/GLOBAL) → banded name match → live keyless fallback.
     Ranking is ``(band, locale_match, raw_score)``; reported confidence is the
     raw score — acceptance is the resolution policy's call, not this module's.
+
+    The banded result then passes through the NSE symbol-change lane (R12, D66):
+    a resolved OLD symbol whose change date has passed is answered as its CURRENT
+    symbol with an explicit :class:`RenameAnnotation` — never a silent swap, and
+    an honest no-op when the rename master is unavailable.
     """
+    return _annotate_renamed_symbols(_resolve_masters(query, region))
+
+
+def _resolve_masters(query: str, region: str) -> Resolution:
+    """The banded, locale-ranked master resolution (pre-rename-annotation)."""
     if region not in (REGION_US, REGION_IN, REGION_GLOBAL):
         # An unknown region gets NO locale preference rather than a silent US one.
         region = REGION_GLOBAL
@@ -631,6 +659,75 @@ def resolve(query: str, region: str) -> Resolution:
         return Resolution(query=query, best=live[0], candidates=live[:_MAX_CANDIDATES])
 
     return Resolution(query=query, best=None, candidates=[])
+
+
+# ---------------------------------------------------------------------------
+# NSE symbol-change lane (R12, D66) — answer the CURRENT symbol, never stale.
+# ---------------------------------------------------------------------------
+
+
+def _rename_instrument(inst: Instrument) -> Instrument:
+    """Rewrite a retired NSE symbol to its current one, annotated; else unchanged.
+
+    Only NSE instruments are considered — ``symbolchange.csv`` is the NSE master
+    (a BSE row keeps its own identity). The rename applies only when the change's
+    effective date has passed; an empty rename map (cold app / no network) is an
+    honest no-op, so this returns ``inst`` unchanged and the resolver behaves
+    exactly as it did before the lane existed.
+    """
+    if inst.exchange != "NSE":
+        return inst
+    applied = nse_symbol_change.lookup_current(inst.symbol)
+    if applied is None:
+        return inst
+    new_symbol = applied.renamed_to.strip().upper()
+    if not new_symbol or new_symbol == inst.symbol:
+        return inst
+    effective = applied.effective_date.isoformat()
+    return Instrument(
+        symbol=new_symbol,
+        name=applied.new_name or inst.name,
+        exchange=inst.exchange,
+        region=inst.region,
+        asset_class=inst.asset_class,
+        yahoo_symbol=f"{new_symbol}.NS",
+        score=inst.score,
+        band=inst.band,
+        rename=RenameAnnotation(
+            renamed_from=inst.symbol,
+            renamed_to=new_symbol,
+            effective_date=effective,
+            note=(
+                f"{inst.symbol} was renamed to {new_symbol} on NSE "
+                f"(effective {effective}); the resolver answers the current symbol."
+            ),
+        ),
+    )
+
+
+def _annotate_renamed_symbols(resolution: Resolution) -> Resolution:
+    """Apply the rename lane to a resolution's best + candidates, deduped.
+
+    Rewriting can collapse two rows onto the same current symbol (an old ticker
+    and its new one); duplicates are dropped keeping first-seen order so the best
+    stays first. A no-op when nothing was renamed.
+    """
+    if resolution.best is None:
+        return resolution
+    best = _rename_instrument(resolution.best)
+    seen: set[tuple[str, str]] = set()
+    candidates: list[Instrument] = []
+    for cand in [best, *(_rename_instrument(c) for c in resolution.candidates)]:
+        key = (cand.symbol, cand.exchange)
+        if key in seen:
+            continue
+        seen.add(key)
+        candidates.append(cand)
+    return Resolution(
+        query=resolution.query,
+        best=best,
+        candidates=candidates[:_MAX_CANDIDATES],
+    )
 
 
 def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[Instrument]:
@@ -758,6 +855,7 @@ def _live_lookup(query: str, region: str) -> list[Instrument]:
 __all__ = [
     "DISAMBIGUATION_THRESHOLD",
     "Instrument",
+    "RenameAnnotation",
     "Resolution",
     "autocomplete",
     "bse_scrip_code",

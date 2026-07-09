@@ -19,14 +19,14 @@ import asyncio
 from fastapi import APIRouter, Query
 
 from config import get_region, normalize_region
-from services import resolution_policy, symbol_resolver
+from services import nse_symbol_change, resolution_policy, symbol_resolver
 
 router = APIRouter(prefix="/resolve", tags=["resolve"])
 
 
 def _instrument_payload(instrument: symbol_resolver.Instrument) -> dict[str, object]:
     """Project an :class:`Instrument` to the wire shape the picker consumes."""
-    return {
+    payload: dict[str, object] = {
         "symbol": instrument.symbol,
         "name": instrument.name,
         "exchange": instrument.exchange,
@@ -35,6 +35,16 @@ def _instrument_payload(instrument: symbol_resolver.Instrument) -> dict[str, obj
         "yahoo_symbol": instrument.yahoo_symbol,
         "confidence": round(instrument.score, 4),
     }
+    # R12 (D66): a symbol answered as its CURRENT form carries explicit rename
+    # provenance — the picker can badge "renamed from …", never a silent swap.
+    if instrument.rename is not None:
+        payload["rename"] = {
+            "renamed_from": instrument.rename.renamed_from,
+            "renamed_to": instrument.rename.renamed_to,
+            "effective_date": instrument.rename.effective_date,
+            "note": instrument.rename.note,
+        }
+    return payload
 
 
 @router.get("")
@@ -67,6 +77,11 @@ async def resolve_symbol(
             "needs_disambiguation": False,
             "candidates": [],
         }
+
+    # Self-activate the rename lane: a cheap, once-per-day, non-blocking refresh
+    # of the symbol-change map (no network on the hot path). See the module for
+    # the recommended lifespan hook that also covers the agent/search paths.
+    await nse_symbol_change.schedule_refresh()
 
     resolution = await asyncio.to_thread(symbol_resolver.resolve, query, active_region)
 
@@ -115,6 +130,7 @@ async def autocomplete_symbols(
     query = q.strip()
     if not query:
         return {"query": q, "region": active_region, "candidates": []}
+    await nse_symbol_change.schedule_refresh()
     candidates = await asyncio.to_thread(symbol_resolver.autocomplete, query, active_region, limit)
     return {
         "query": query,
