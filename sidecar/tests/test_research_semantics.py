@@ -167,6 +167,91 @@ def test_dividend_ttm_absent_scalar_emits_no_card() -> None:
     assert all(c["field"] != "dividend_per_share" for c in data["conflicts"])
 
 
+def test_growth_divergence_flags_conflict_and_never_replaces_provider_value() -> None:
+    # D66, the ICICIBANK shape: yfinance revenueGrowth claims +66.9% MRQ YoY
+    # while the quarterly income statements compute +2.0% on the same basis.
+    # Beyond tolerance → a conflict carrying both values, bases, and the
+    # quarter labels — and the provider value stays UNCHANGED (disclosure,
+    # never substitution).
+    data = _derived(
+        _structured(
+            fund={
+                "revenue_growth": 0.669,
+                "revenue_growth_computed": 0.02,
+                "growth_computed_quarters": {"mrq": "2026-03-31", "prior": "2025-03-31"},
+            }
+        )
+    )
+    assert data["revenue_growth"]["value"] == 0.669  # provider value never replaced
+    computed = data["revenue_growth_computed"]
+    assert computed["value"] == 0.02
+    assert computed["label"] == "Revenue growth (computed from quarterly statements)"
+    assert computed["basis"] == "quarterly YoY (MRQ)"
+    conflict = next(c for c in data["conflicts"] if c["field"] == "revenue_growth")
+    assert {s["value"] for s in conflict["sources"]} == {0.669, 0.02}
+    bases = {s["provider"]: s["basis"] for s in conflict["sources"]}
+    assert bases["yfinance (revenueGrowth)"] == "mrq_yoy (provider-claimed)"
+    assert bases["derived (quarterly income statement)"] == "quarterly YoY (MRQ)"
+    assert conflict["quarters"] == {"mrq": "2026-03-31", "prior": "2025-03-31"}
+    assert "2026-03-31 vs 2025-03-31" in conflict["note"]
+
+
+def test_growth_sign_flip_flags_earnings_conflict() -> None:
+    # D66, the SBIN shape: provider says earnings shrank (-3.1%) while the
+    # statements compute +5.6% — an 8.7pp gap past the 2pp floor.
+    data = _derived(
+        _structured(fund={"earnings_growth": -0.031, "earnings_growth_computed": 0.056})
+    )
+    assert data["earnings_growth"]["value"] == -0.031
+    conflict = next(c for c in data["conflicts"] if c["field"] == "earnings_growth")
+    assert {s["value"] for s in conflict["sources"]} == {-0.031, 0.056}
+    # No quarter labels attached upstream → none fabricated in the payload.
+    assert "quarters" not in conflict
+
+
+def test_growth_within_relative_tolerance_emits_nothing_extra() -> None:
+    # 0.50 vs 0.46: Δ = 4pp but ≤ 10% of the larger magnitude (5pp) → agree.
+    data = _derived(_structured(fund={"revenue_growth": 0.50, "revenue_growth_computed": 0.46}))
+    assert "revenue_growth_computed" not in data
+    assert all(c["field"] != "revenue_growth" for c in data["conflicts"])
+
+
+def test_growth_within_absolute_floor_emits_nothing_extra() -> None:
+    # 1.0% vs 2.5%: relative gap is 60% but Δ = 1.5pp ≤ the 2pp absolute floor
+    # ("whichever is larger") — small-base noise never flags.
+    data = _derived(_structured(fund={"earnings_growth": 0.010, "earnings_growth_computed": 0.025}))
+    assert "earnings_growth_computed" not in data
+    assert all(c["field"] != "earnings_growth" for c in data["conflicts"])
+
+
+def test_growth_missing_either_leg_is_a_no_op() -> None:
+    # No computed figure → nothing to check; no provider scalar → nothing to
+    # check either. Absence is honest — no conflict is fabricated.
+    data = _derived(_structured(fund={"revenue_growth": 0.18}))
+    assert "revenue_growth_computed" not in data
+    assert data["conflicts"] == []
+    data2 = _derived(_structured(fund={"revenue_growth_computed": 0.02}))
+    assert "revenue_growth_computed" not in data2
+    assert data2["conflicts"] == []
+
+
+def test_growth_conflict_reaches_the_prompt_block() -> None:
+    leg = derive_semantics(
+        _structured(
+            fund={
+                "revenue_growth": 0.669,
+                "revenue_growth_computed": 0.02,
+                "growth_computed_quarters": {"mrq": "2026-03-31", "prior": "2025-03-31"},
+            }
+        ),
+        "IN",
+    )
+    block = prompt_block(leg)
+    assert "Revenue growth: 66.90%" in block  # the provider value, unreplaced
+    assert "Revenue growth (computed from quarterly statements): 2.00%" in block
+    assert "CONFLICT (revenue_growth):" in block
+
+
 def test_market_cap_cross_check_flags_beyond_five_percent() -> None:
     # price 80 x 1e9 shares = 8e10; provider says 1e11 → >5% out → conflict.
     data = _derived(_structured(fund={"market_cap": 1e11, "shares_outstanding": 1e9}))

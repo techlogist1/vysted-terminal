@@ -56,6 +56,28 @@ def _no_network_dividend_history(
     monkeypatch.setattr(dividend_history, "get_dividend_ttm", _stub)
 
 
+@pytest.fixture(autouse=True)
+def _no_network_growth_check(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Keep the R12/D66 quarterly-growth cross-check off the network.
+
+    ``snapshot_structured`` calls ``growth_check.get_quarterly_yoy`` (a
+    yfinance ``.quarterly_income_stmt`` pull) whenever the fundamentals leg
+    carries provider growth scalars — same seam-vs-network shape as the D56
+    dividend stub above. Stub it to ``None`` (no computed figure, no conflict)
+    for every test EXCEPT ``test_growth_check`` — the module that exercises the
+    real function with ``yf.Ticker`` mocked directly."""
+    if request.module.__name__.rsplit(".", 1)[-1] == "test_growth_check":
+        return
+    from services import growth_check
+
+    async def _stub(_symbol: str) -> None:
+        return None
+
+    monkeypatch.setattr(growth_check, "get_quarterly_yoy", _stub)
+
+
 # --------------------------------------------------------------------------
 # yfinance fakes
 # --------------------------------------------------------------------------

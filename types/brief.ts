@@ -80,10 +80,19 @@ export interface BriefDerivedValue {
 export interface BriefMetricConflict {
   /** The metric in conflict (e.g. "dividend_yield", "market_cap"). */
   field: string;
-  /** The disagreeing values with their provenance. */
-  sources: { provider: string; value: number | string }[];
+  /**
+   * The disagreeing values with their provenance. `basis` names each side's
+   * measurement basis when the conflict is basis-bearing (R12 / D66 growth
+   * cross-check: provider-claimed mrq_yoy vs statement-computed quarterly YoY).
+   */
+  sources: { provider: string; value: number | string; basis?: string }[];
   /** One human line on why this is flagged and what would reconcile it. */
   note: string;
+  /**
+   * The quarter-end pair (ISO dates) a statement-computed figure compared
+   * (R12 / D66) — present only on the growth cross-check conflicts.
+   */
+  quarters?: { mrq: string; prior: string };
 }
 
 /** The semantics leg's payload — derived, labeled metrics + flagged conflicts. */
@@ -100,6 +109,14 @@ export interface BriefDerivedMetrics {
   revenue_growth?: BriefDerivedValue;
   /** Earnings growth with its basis named. */
   earnings_growth?: BriefDerivedValue;
+  /**
+   * Growth computed from the provider's own quarterly income statements
+   * (R12 / D66) — present ONLY when it diverges from the provider scalar
+   * beyond tolerance (an agreeing figure emits no extra card). The provider
+   * values above are never replaced.
+   */
+  revenue_growth_computed?: BriefDerivedValue;
+  earnings_growth_computed?: BriefDerivedValue;
   /** Cross-source disagreements — flagged, never silently resolved. */
   conflicts?: BriefMetricConflict[];
 }

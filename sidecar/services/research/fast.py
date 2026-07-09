@@ -195,7 +195,16 @@ async def snapshot_structured(
     can reconcile it against Yahoo's ``dividendRate`` and flag an omitted
     special dividend. The cross-check never raises (it swallows every failure to
     ``None``); an absent figure simply means no reconciliation card.
+
+    R12 (D66): the same pattern for growth — when the provider claims MRQ-YoY
+    growth scalars, ``revenue_growth_computed``/``earnings_growth_computed``
+    (+ ``growth_computed_quarters``) are computed deterministically from the
+    provider's own QUARTERLY income statements
+    (:func:`services.growth_check.get_quarterly_yoy`) so the derived leg can
+    flag a scalar that contradicts the statements. Disclosure only — the
+    provider values are never replaced; missing statements attach nothing.
     """
+    from services import growth_check
     from services.dividend_history import get_dividend_ttm
     from services.research.semantics import derive_semantics
 
@@ -207,16 +216,30 @@ async def snapshot_structured(
         "price": _structured_value(price_res, "quote"),
         "fundamentals": _structured_value(fund_res, "fundamentals"),
     }
-    # Cross-check the dividend scalar against corporate-action history. Use the
-    # symbol the fundamentals leg actually resolved to (its ``symbol`` carries
-    # the Yahoo listing form) so the paid history matches the same dividendRate.
+    # Cross-check the dividend scalar against corporate-action history and the
+    # growth scalars against the quarterly income statements. Use the symbol
+    # the fundamentals leg actually resolved to (its ``symbol`` carries the
+    # Yahoo listing form) so both checks reconcile against the SAME scalars.
     fund_leg = out["fundamentals"]
     fund_data = fund_leg.get("data") if fund_leg.get("ok") else None
     if isinstance(fund_data, dict):
         resolved = fund_data.get("symbol")
-        ttm = await get_dividend_ttm(resolved if isinstance(resolved, str) and resolved else symbol)
+        listing = resolved if isinstance(resolved, str) and resolved else symbol
+
+        async def _yoy() -> growth_check.QuarterlyYoY | None:
+            if not growth_check.should_cross_check(fund_data):
+                return None
+            return await growth_check.get_quarterly_yoy(listing)
+
+        ttm, yoy = await asyncio.gather(get_dividend_ttm(listing), _yoy())
         if ttm is not None:
             fund_data["dividend_per_share_ttm"] = ttm
+        if yoy is not None:
+            if yoy.revenue_growth is not None:
+                fund_data["revenue_growth_computed"] = yoy.revenue_growth
+            if yoy.earnings_growth is not None:
+                fund_data["earnings_growth_computed"] = yoy.earnings_growth
+            fund_data["growth_computed_quarters"] = {"mrq": yoy.mrq, "prior": yoy.prior}
     out["derived"] = derive_semantics(out, region)
     return out
 

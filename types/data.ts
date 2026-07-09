@@ -135,6 +135,18 @@ export interface Fundamentals {
    * `dividend_per_share` (R11 / D56). `null` when history was unavailable.
    */
   dividend_per_share_ttm?: number | null;
+  /**
+   * MRQ-YoY growth deterministically COMPUTED from the provider's own
+   * QUARTERLY income statements (R12 / D66) — the cross-check for the opaque
+   * `revenue_growth`/`earnings_growth` scalars. Populated only on the research
+   * snapshot path; `null`/absent when quarterly statements were unavailable.
+   * These NEVER replace the provider values — a divergence surfaces as a
+   * conflict, not a substitution.
+   */
+  revenue_growth_computed?: number | null;
+  earnings_growth_computed?: number | null;
+  /** The quarter-end pair (ISO dates) the computed growth compared. */
+  growth_computed_quarters?: { mrq: string; prior: string } | null;
   provider: string;
 }
 

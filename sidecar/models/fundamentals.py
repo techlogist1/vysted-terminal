@@ -8,6 +8,14 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 
 
+class GrowthQuarters(BaseModel):
+    """The quarter-end pair (ISO dates) behind the computed growth cross-check
+    (R12 / D66) — MRQ vs the same quarter a year earlier."""
+
+    mrq: str
+    prior: str
+
+
 class Fundamentals(BaseModel):
     """Snapshot of valuation ratios, profitability, health, and profile for one
     symbol. All new screener-grade fields are optional (``None`` when the source
@@ -74,6 +82,17 @@ class Fundamentals(BaseModel):
     #: ``dividendRate`` can omit a special dividend; the paid history cannot.
     #: ``None`` when the history was unavailable.
     dividend_per_share_ttm: float | None = None
+    #: MRQ-YoY growth deterministically COMPUTED from the provider's own
+    #: QUARTERLY income statements (R12 / D66) — the cross-check for the opaque
+    #: ``revenue_growth``/``earnings_growth`` scalars, which can be materially
+    #: wrong on their claimed ``mrq_yoy`` basis. Populated only on the research
+    #: snapshot path; ``None`` when quarterly statements were unavailable
+    #: (absence is honest). These NEVER replace the provider values — a
+    #: divergence surfaces as a conflict, not a substitution.
+    revenue_growth_computed: float | None = None
+    earnings_growth_computed: float | None = None
+    #: The quarter-end pair the computed growth compared, for disclosure.
+    growth_computed_quarters: GrowthQuarters | None = None
     provider: str
 
 

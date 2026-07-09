@@ -37,6 +37,31 @@ _DIVIDEND_TTM_DIVERGENCE = 0.10
 #: basis string says so at every surface that renders these figures.
 _GROWTH_BASIS_MRQ_YOY = "quarterly YoY (MRQ)"
 
+#: Growth cross-check tolerance (R12 / D66): the provider scalar and the value
+#: computed from the quarterly income statements AGREE when their gap is within
+#: 10% relative OR 2 percentage points absolute, whichever band is LARGER (the
+#: absolute floor keeps small-base growth from flagging on noise; the relative
+#: band keeps large growth honest). Beyond it the disagreement is a conflict —
+#: disclosed, never resolved by replacing the provider value.
+_GROWTH_RELATIVE_TOLERANCE = 0.10
+_GROWTH_ABSOLUTE_TOLERANCE = 0.02
+
+#: (provider field, computed field, provider scalar name, computed fact label).
+_GROWTH_CHECKS = (
+    (
+        "revenue_growth",
+        "revenue_growth_computed",
+        "revenueGrowth",
+        "Revenue growth (computed from quarterly statements)",
+    ),
+    (
+        "earnings_growth",
+        "earnings_growth_computed",
+        "earningsGrowth",
+        "Net-profit growth (computed from quarterly statements)",
+    ),
+)
+
 #: Relative tolerance for the market-cap cross-check against
 #: price x shares outstanding; beyond it the disagreement is flagged.
 _MARKET_CAP_TOLERANCE = 0.05
@@ -140,6 +165,81 @@ def _dividend_ttm_leg(
     }
     _ = currency  # currency rides the dps fact's basis; noted here for symmetry
     return fact, [conflict]
+
+
+def _growth_agrees(provider_value: float, computed: float) -> bool:
+    """The D66 tolerance gate: |Δ| within max(10% relative, 2pp absolute)."""
+    band = max(
+        _GROWTH_RELATIVE_TOLERANCE * max(abs(provider_value), abs(computed)),
+        _GROWTH_ABSOLUTE_TOLERANCE,
+    )
+    return abs(provider_value - computed) <= band
+
+
+def _growth_leg(fund: dict[str, Any], provider: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Cross-check the provider growth scalars against the quarterly-statement
+    computation (R12 / D66).
+
+    Returns ``(facts, conflicts)``. Both the provider scalar and the computed
+    figure (``*_growth_computed``, attached upstream by
+    :func:`services.research.fast.snapshot_structured`) must be present; a gap
+    past the :func:`_growth_agrees` band flags a conflict AND surfaces the
+    computed figure as its own labeled fact — the provider value is NEVER
+    replaced (its ``data`` entry is emitted unchanged elsewhere; this is
+    disclosure, not substitution). Agreement — or an absent leg — emits
+    nothing extra: absence is honest.
+    """
+    quarters = fund.get("growth_computed_quarters")
+    quarters = quarters if isinstance(quarters, dict) else None
+    facts: dict[str, Any] = {}
+    conflicts: list[dict[str, Any]] = []
+    for provider_key, computed_key, scalar_name, label in _GROWTH_CHECKS:
+        provider_value = _num(fund, provider_key)
+        computed = _num(fund, computed_key)
+        if provider_value is None or computed is None:
+            continue
+        if _growth_agrees(provider_value, computed):
+            continue
+        facts[computed_key] = _value(
+            computed,
+            label,
+            basis=_GROWTH_BASIS_MRQ_YOY,
+            formula="(MRQ - same quarter prior year) / |same quarter prior year|",
+            unit="percent",
+        )
+        quarter_note = (
+            f" ({quarters.get('mrq')} vs {quarters.get('prior')})"
+            if quarters and quarters.get("mrq") and quarters.get("prior")
+            else ""
+        )
+        conflict: dict[str, Any] = {
+            "field": provider_key,
+            "sources": [
+                {
+                    "provider": f"{provider} ({scalar_name})",
+                    "value": provider_value,
+                    "basis": "mrq_yoy (provider-claimed)",
+                },
+                {
+                    "provider": "derived (quarterly income statement)",
+                    "value": round(computed, 4),
+                    "basis": _GROWTH_BASIS_MRQ_YOY,
+                },
+            ],
+            "note": (
+                f"The provider's {provider_key.replace('_', ' ')} scalar claims "
+                "MRQ YoY but disagrees with the figure computed from its own "
+                f"quarterly income statements{quarter_note} beyond tolerance — "
+                "the statement-derived figure reconciles against reported "
+                "quarterly results; the scalar may ride a different line "
+                "definition (bank revenue) or a restated base quarter. The "
+                "provider value is shown unchanged."
+            ),
+        }
+        if quarters:
+            conflict["quarters"] = dict(quarters)
+        conflicts.append(conflict)
+    return facts, conflicts
 
 
 def _dividend_leg(
@@ -302,6 +402,13 @@ def derive_semantics(structured: dict[str, Any], region: str | None) -> dict[str
         unit="percent",
     )
 
+    # D66: only present when the quarterly-statement computation diverges from
+    # the provider scalar — an agreeing figure emits no extra card, and the
+    # provider values above are NEVER replaced (disclosure, not substitution).
+    growth_facts, growth_conflicts = _growth_leg(fund, provider)
+    data.update(growth_facts)
+    conflicts.extend(growth_conflicts)
+
     market_cap = _num(fund, "market_cap")
     shares = _num(fund, "shares_outstanding")
     if market_cap is not None and shares is not None and price is not None:
@@ -341,6 +448,8 @@ _PROMPT_KEYS = (
     "dividend_per_share_ttm",
     "revenue_growth",
     "earnings_growth",
+    "revenue_growth_computed",
+    "earnings_growth_computed",
 )
 
 
