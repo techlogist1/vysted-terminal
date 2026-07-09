@@ -20,6 +20,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from services import identity_crosscheck
+
 #: Relative divergence above which the provider dividend yield and the implied
 #: yield (dividend per share / price) are a CONFLICT — flagged, and no single
 #: dividend value is emitted (the 55%-yield-next-to-Rs-1 defect).
@@ -337,7 +339,13 @@ def _dividend_leg(
     )
 
 
-def derive_semantics(structured: dict[str, Any], region: str | None) -> dict[str, Any]:
+def derive_semantics(
+    structured: dict[str, Any],
+    region: str | None,
+    *,
+    canonical_name: str | None = None,
+    symbol: str | None = None,
+) -> dict[str, Any]:
     """Compute the ``derived`` structured leg from the price/fundamentals legs.
 
     Returns ``{"ok": True, "provider": "derived", "data": {...}}`` per the
@@ -434,6 +442,14 @@ def derive_semantics(structured: dict[str, Any], region: str | None) -> dict[str
                     ),
                 }
             )
+
+    # R12 (D67): the resolver's canonical name vs the provider's company name —
+    # a material disagreement (rename/mis-resolution) is FLAGGED, never picked.
+    identity = identity_crosscheck.identity_conflict(
+        canonical_name, fund.get("name"), provider=provider, symbol=symbol
+    )
+    if identity is not None:
+        conflicts.append(identity)
 
     data["conflicts"] = conflicts
     return {"ok": True, "provider": "derived", "data": data}

@@ -882,7 +882,11 @@ async def run_deep_research(
     # Snapshot price + fundamentals so a DEEP brief backs the same native metric
     # cards as a FAST one (additive; a failed leg renders no card, never raises).
     if target is not None:
-        structured.update(await snapshot_structured(tool_call, target.symbol, region=region))
+        structured.update(
+            await snapshot_structured(
+                tool_call, target.symbol, region=region, canonical_name=target.name
+            )
+        )
         record_snapshot_sources(findings, target.symbol, structured)
 
     async def abort_synthesize(reason: str) -> ResearchBrief:

@@ -1,0 +1,719 @@
+{
+  "resolved_identity": {
+    "query_name_search": {
+      "ok": true,
+      "query": "Meghmani Organics",
+      "region": "IN",
+      "resolved": {
+        "symbol": "MOL",
+        "name": "Meghmani Organics Limited",
+        "exchange": "NSE",
+        "region": "IN",
+        "asset_class": "equity",
+        "yahoo_symbol": "MOL.NS",
+        "confidence": 1.0
+      },
+      "needs_disambiguation": false,
+      "candidates": [
+        {
+          "symbol": "MOL",
+          "name": "Meghmani Organics Limited",
+          "exchange": "NSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "MOL.NS",
+          "confidence": 1.0
+        },
+        {
+          "symbol": "TECHNICHEM",
+          "name": "Technichem Organics Ltd",
+          "exchange": "BSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "TECHNICHEM.BO",
+          "confidence": 0.65
+        },
+        {
+          "symbol": "SMRUTHIORG",
+          "name": "Smruthi Organics Ltd",
+          "exchange": "BSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "SMRUTHIORG.BO",
+          "confidence": 0.6486
+        },
+        {
+          "symbol": "UNIQUEO",
+          "name": "Unique Organics Ltd",
+          "exchange": "BSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "UNIQUEO.BO",
+          "confidence": 0.6111
+        },
+        {
+          "symbol": "GAYATRIBI",
+          "name": "Gayatri BioOrganics Ltd",
+          "exchange": "BSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "GAYATRIBI.BO",
+          "confidence": 0.6
+        }
+      ]
+    },
+    "query_symbol_search": {
+      "ok": true,
+      "query": "MOL",
+      "region": "IN",
+      "resolved": {
+        "symbol": "MOL",
+        "name": "Meghmani Organics Limited",
+        "exchange": "NSE",
+        "region": "IN",
+        "asset_class": "equity",
+        "yahoo_symbol": "MOL.NS",
+        "confidence": 1.0
+      },
+      "needs_disambiguation": false,
+      "candidates": [
+        {
+          "symbol": "MOL",
+          "name": "Meghmani Organics Limited",
+          "exchange": "NSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "MOL.NS",
+          "confidence": 1.0
+        },
+        {
+          "symbol": "MOL",
+          "name": "Meghmani Organics Ltd",
+          "exchange": "BSE",
+          "region": "IN",
+          "asset_class": "equity",
+          "yahoo_symbol": "MOL.BO",
+          "confidence": 1.0
+        }
+      ]
+    },
+    "notes": "Both /resolve?q=Meghmani%20Organics and /resolve?q=MOL bind unambiguously (confidence 1.0, needs_disambiguation=false) to symbol MOL / 'Meghmani Organics Limited', NSE, yahoo_symbol MOL.NS. The raw-symbol query also surfaces a secondary BSE candidate (MOL / 'Meghmani Organics Ltd' / MOL.BO) at confidence 1.0 -- same company, dual-listed NSE+BSE, not a different entity. No disambiguation chooser was ever presented; both queries resolved cleanly on first try."
+  },
+  "fundamentals": {
+    "symbol": "MOL.NS",
+    "name": "Meghmani Organics Limited",
+    "sector": "Basic Materials",
+    "industry": "Agricultural Inputs",
+    "currency": "INR",
+    "market_cap": 11797636096.0,
+    "pe_ratio": 41.053097,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 0.7536839,
+    "price_to_sales": 0.54268056,
+    "ev_to_ebitda": 10.563,
+    "book_value": 61.551,
+    "dividend_yield": null,
+    "dividend_per_share": null,
+    "eps": 1.13,
+    "beta": 0.564,
+    "fifty_two_week_high": 106.3,
+    "fifty_two_week_low": 36.5,
+    "fifty_two_week_change": -0.5410261,
+    "roe": 0.01878,
+    "roa": 0.011770001,
+    "gross_margin": 0.38998002,
+    "operating_margin": -0.02025,
+    "profit_margin": 0.01322,
+    "debt_to_equity": 0.46995,
+    "current_ratio": 1.072,
+    "quick_ratio": 0.57,
+    "revenue_ttm": 21739558912.0,
+    "net_income_ttm": 287395008.0,
+    "free_cash_flow": 950409856.0,
+    "shares_outstanding": 254314211.0,
+    "revenue_growth": -0.143,
+    "earnings_growth": -0.59,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": 0.50337005,
+    "held_percent_institutions": 0.01038,
+    "dividend_per_share_ttm": null,
+    "provider": "yfinance"
+  },
+  "quote": {
+    "symbol": "MOL",
+    "price": 46.39,
+    "change": 0.4100000000000037,
+    "change_percent": 0.8916920400174069,
+    "volume": 351864.0,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-07-09T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": "eod"
+  },
+  "research_normal": {
+    "depth_requested": "normal",
+    "note_single_depth": "This name runs single-depth (normal) research only -- no deep/multi-round tier was invoked or available in this run.",
+    "tool_names_in_order": [
+      "resolve_symbol",
+      "research",
+      "publish_brief",
+      "fundamentals",
+      "corporate_announcements",
+      "price_data",
+      "web_search",
+      "web_search",
+      "web_search",
+      "web_search",
+      "web_search",
+      "web_search",
+      "web_search",
+      "arrange_layout",
+      "set_chart_symbol",
+      "set_chart_indicators",
+      "publish_brief"
+    ],
+    "resolve_symbol_tool_call": {
+      "query": "Meghmani Organics",
+      "region": "IN"
+    },
+    "research_steps": [
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_8db82dd19aa740f0b31f6ae5",
+        "tool": "research",
+        "step_kind": "engine",
+        "detail": "research:begin 31409d61111d4e2197c4b4e5ae400b70 depth=normal query=Meghmani Organics \u2014 fundamentals, valuation, dividends, latest quarterly results",
+        "latency_ms": null,
+        "status": "ok",
+        "index": 1
+      },
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_8db82dd19aa740f0b31f6ae5",
+        "tool": "research",
+        "step_kind": "plan",
+        "detail": "resolving \"Meghmani Organics \u2014 fundamentals, valuation, dividends, latest quarterly results\"",
+        "latency_ms": null,
+        "status": "ok",
+        "index": 2
+      },
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_8db82dd19aa740f0b31f6ae5",
+        "tool": "research",
+        "step_kind": "plan",
+        "detail": "resolved \u2192 MOL",
+        "latency_ms": 1127,
+        "status": "ok",
+        "index": 3
+      },
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_8db82dd19aa740f0b31f6ae5",
+        "tool": "research",
+        "step_kind": "tool",
+        "detail": "pulling market data for MOL",
+        "latency_ms": null,
+        "status": "ok",
+        "index": 4
+      },
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_8db82dd19aa740f0b31f6ae5",
+        "tool": "research",
+        "step_kind": "tool",
+        "detail": "pulled 3/4 data sources",
+        "latency_ms": 3971,
+        "status": "ok",
+        "index": 5
+      },
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_8db82dd19aa740f0b31f6ae5",
+        "tool": "research",
+        "step_kind": "search",
+        "detail": "searching the web for Meghmani Organics Limited",
+        "latency_ms": null,
+        "status": "ok",
+        "index": 6
+      },
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_8db82dd19aa740f0b31f6ae5",
+        "tool": "research",
+        "step_kind": "search",
+        "detail": "0 web source(s)",
+        "latency_ms": 2046,
+        "status": "ok",
+        "index": 7
+      },
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_8db82dd19aa740f0b31f6ae5",
+        "tool": "research",
+        "step_kind": "synthesize",
+        "detail": "assembling the research bundle",
+        "latency_ms": null,
+        "status": "ok",
+        "index": 8
+      },
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_8db82dd19aa740f0b31f6ae5__autobrief",
+        "tool": "publish_brief",
+        "step_kind": "engine",
+        "detail": "The brief panel did not confirm the publish \u2014 treat it as NOT rendered until get_terminal_state shows it.",
+        "latency_ms": null,
+        "status": "error",
+        "index": 1
+      },
+      {
+        "kind": "research_step",
+        "tool_call_id": "call_1678fe0931cd491794a6f322",
+        "tool": "publish_brief",
+        "step_kind": "engine",
+        "detail": "The brief panel did not confirm the publish \u2014 treat it as NOT rendered until get_terminal_state shows it.",
+        "latency_ms": null,
+        "status": "error",
+        "index": 2
+      }
+    ],
+    "first_publish_brief_input": {
+      "query": "Meghmani Organics \u2014 fundamentals, valuation, dividends, latest quarterly results",
+      "symbol": "MOL",
+      "mode": "fast",
+      "depth": "quick",
+      "execution": {
+        "run_id": "31409d61111d4e2197c4b4e5ae400b70",
+        "requested_depth": "normal",
+        "loop": "fast",
+        "backend": null,
+        "started_at": 1783624858.166173,
+        "finished_at": 1783624865.3120441,
+        "degraded_reason": null
+      },
+      "markdown": "",
+      "sources": [],
+      "structured": {
+        "price": {
+          "ok": true,
+          "provider": "nse_direct",
+          "data": {
+            "symbol": "MOL",
+            "price": 46.39,
+            "change": 0.4100000000000037,
+            "change_percent": 0.8916920400174069,
+            "volume": 351864.0,
+            "currency": "INR",
+            "market_state": "CLOSED",
+            "timestamp": "2026-07-09T00:00:00Z",
+            "provider": "nse_direct",
+            "freshness": null
+          }
+        },
+        "fundamentals": {
+          "ok": true,
+          "provider": "yfinance",
+          "data": {
+            "symbol": "MOL.NS",
+            "name": "Meghmani Organics Limited",
+            "sector": "Basic Materials",
+            "industry": "Agricultural Inputs",
+            "currency": "INR",
+            "market_cap": 11797636096.0,
+            "pe_ratio": 41.053097,
+            "forward_pe": null,
+            "peg_ratio": null,
+            "price_to_book": 0.7536839,
+            "price_to_sales": 0.54268056,
+            "ev_to_ebitda": 10.563,
+            "book_value": 61.551,
+            "dividend_yield": null,
+            "dividend_per_share": null,
+            "eps": 1.13,
+            "beta": 0.564,
+            "fifty_two_week_high": 106.3,
+            "fifty_two_week_low": 36.5,
+            "fifty_two_week_change": -0.5410261,
+            "roe": 0.01878,
+            "roa": 0.011770001,
+            "gross_margin": 0.38998002,
+            "operating_margin": -0.02025,
+            "profit_margin": 0.01322,
+            "debt_to_equity": 0.46995,
+            "current_ratio": 1.072,
+            "quick_ratio": 0.57,
+            "revenue_ttm": 21739558912.0,
+            "net_income_ttm": 287395008.0,
+            "free_cash_flow": 950409856.0,
+            "shares_outstanding": 254314211.0,
+            "revenue_growth": -0.143,
+            "earnings_growth": -0.59,
+            "growth_basis": "mrq_yoy",
+            "held_percent_insiders": 0.50337005,
+            "held_percent_institutions": 0.01038,
+            "dividend_per_share_ttm": null,
+            "provider": "yfinance"
+          }
+        },
+        "derived": {
+          "ok": true,
+          "provider": "derived",
+          "data": {
+            "drawdown_from_high": {
+              "value": 0.5635936030103481,
+              "label": "Below 52-week high",
+              "basis": "vs 52w high",
+              "formula": "(52w high - price) / 52w high",
+              "unit": "percent"
+            },
+            "fifty_two_week_change": {
+              "value": -0.5410261,
+              "label": "52-week price change (Yahoo)",
+              "basis": "trailing 52 weeks",
+              "unit": "percent"
+            },
+            "dividend_yield": {
+              "value": null,
+              "label": "Dividend yield",
+              "basis": "fraction of price",
+              "unit": "percent"
+            },
+            "dividend_per_share": {
+              "value": null,
+              "label": "Dividend per share",
+              "basis": "per share, INR",
+              "unit": "currency"
+            },
+            "revenue_growth": {
+              "value": -0.143,
+              "label": "Revenue growth",
+              "basis": "quarterly YoY (MRQ)",
+              "unit": "percent"
+            },
+            "earnings_growth": {
+              "value": -0.59,
+              "label": "Earnings growth",
+              "basis": "quarterly YoY (MRQ)",
+              "unit": "percent"
+            },
+            "conflicts": []
+          }
+        },
+        "news": {
+          "ok": true,
+          "provider": "rss",
+          "count": 134
+        },
+        "filings": {
+          "ok": false,
+          "provider": null,
+          "error": "sec-edgar-mcp is not available \u2014 the subprocess did not bind a port this launch (relaunch to retry)"
+        }
+      },
+      "cost": null,
+      "web_available": true,
+      "note": null,
+      "web_reason": null,
+      "backend": "searxng"
+    },
+    "final_publish_brief_input": {
+      "depth": "quick",
+      "markdown": "# Meghmani Organics Ltd (MOL.NS) \u2014 Quick Research Brief\n\n**As of close, 9 Jul 2026 | Sector: Basic Materials \u2014 Agricultural Inputs | Currency: INR**\n\n## Snapshot\n| Metric | Value |\n|---|---|\n| Last price | \u20b946.39 (+0.89% on the day) |\n| Market cap | ~\u20b91,180 crore |\n| Shares outstanding | ~25.4 crore |\n| 52-week range | \u20b936.50 \u2013 \u20b9106.30 |\n| Drawdown from 52w high | ~56% |\n\n$MOL is a small-cap agri-inputs / specialty chemicals player headquartered in Gujarat. The stock has had a punishing 12 months \u2014 down ~54% over the trailing 52 weeks and currently sitting in the lower third of its yearly range, not far off the \u20b936.50 March 2026 low.\n\n## Valuation \u2014 cheap on assets, expensive on earnings\n| Ratio | Value | Read |\n|---|---|---|\n| P/E (TTM) | ~41.1x | Optically very expensive \u2014 but distorted by a near-collapse in earnings (see below) |\n| P/B | ~0.75x | **Below book value**; book value per share \u2248 \u20b961.55 vs price \u20b946.39 |\n| P/S | ~0.54x | Trading at under 0.6x trailing revenue |\n| EV/EBITDA | ~10.6x | Reasonable for a cyclical chemicals name once earnings normalise |\n| EPS (TTM) | \u20b91.13 | Thin; the high P/E is an artifact of depressed net income, not a rich price |\n| Forward P/E | n/a | Not provided by the data feed |\n| Dividend yield | **None reported** | No DPS / yield in the feed \u2014 MOL does not currently appear to be paying a regular dividend (see Dividends section) |\n\n**The headline tension:** the stock is cheap on book and sales but optically dear on earnings. That gap is explained by the collapse in profitability over the last year.\n\n## Profitability & Quality \u2014 deeply cyclical, currently in a trough\n| Metric | Value |\n|---|---|\n| ROE | ~1.88% (TTM) |\n| ROA | ~1.18% |\n| Gross margin | ~39.0% |\n| Operating margin | **\u22122.0%** (TTM, i.e. operating loss) |\n| Net profit margin | ~1.3% |\n| Revenue (TTM) | ~\u20b92,174 crore |\n| Net income (TTM) | ~\u20b928.7 crore |\n| Free cash flow (TTM) | ~\u20b995.0 crore (positive \u2014 a relative bright spot) |\n| Debt / equity | ~0.47x (moderate) |\n| Current ratio | ~1.07 (tight) |\n| Quick ratio | ~0.57 (low \u2014 inventory-heavy working capital) |\n\nMargins have inverted \u2014 the company is running at a **trailing operating loss** while still eking out a tiny net profit thanks to other income / finance-cost structure. ROE under 2% tells you the current earnings power is minimal. The positive trailing FCF (~\u20b995 cr) versus ~\u20b929 cr net income suggests depreciation-heavy capex accounting and/or working-capital release \u2014 worth checking in the cash-flow statement directly.\n\n## Growth \u2014 both legs negative\n| Metric | Value (MRQ YoY) |\n|---|---|\n| Revenue growth | **\u221214.3%** |\n| Earnings growth | **\u221259.0%** |\n\nThis is the core fundamental problem: revenue is shrinking double-digit YoY and earnings have been more than halved. For an agri-inputs/specialty-chemicals name this reads like a cyclical downswing (likely pigment/chemical pricing and demand softness) rather than a structural break, but the trough is clearly deep.\n\n## Dividends\n- The data provider reports **no dividend per share and no dividend yield** for MOL (both `null` in fundamentals and derived fields). There is no evidence in the feed of a current regular cash dividend.\n- **Honest caveat:** I could not pull a detailed historical dividend history from the structured feed, and the web search backend returned no results to corroborate a specific recent payout. Treat the \"no dividend\" reading as a data-feed signal, not a definitive statement \u2014 verify directly via the company's investor-relations page or the NSE/BSE corporate-action history before relying on it for an income thesis.\n\n## Latest Quarter \u2014 Q4 FY2026 (announced 14 May 2026)\n- MOL released its **Q4 FY26 financial results on 14 May 2026** [1], with a newspaper publication on 15 May [2] and an earnings call transcript filed on 19 May [3].\n- The YoY MRQ growth figures above (revenue \u221214.3%, earnings \u221259.0%) are the most recent-quarter readings the fundamentals provider carries, and they align directionally with the weak full-year TTM picture. The earnings call transcript (Q4 FY26) is available on the NSE archives for a line-item breakdown [3].\n- **I could not retrieve the granular Q4 line items (revenue/EBITDA/PAT/EPS) from the structured feed or corroborate them via web search** (the search backend returned zero results for the query, and web-search capacity was capped for this run). For exact quarterly numbers, open the press release PDF or transcript directly:\n  - Press release (14 May 2026): [NSE PDF](https://nsearchives.nseindia.com/corporate/MOL_14052026165235_PressRelease.pdf) [1]\n  - Earnings call transcript (Q4 FY26): [NSE PDF](https://nsearchives.nseindia.com/corporate/MOL_19052026102404_TRANSCRIPT_Q4FY26.pdf) [3]\n\n## Corporate-action context \u2014 ongoing restructuring (important)\nSeveral recent NSE/BSE filings point to a **significant scheme of arrangement (likely a demerger/restructuring)** currently being executed through the NCLT route [4][5][6][7][8][9][10]:\n- Court/NCLT-convened meetings of **equity shareholders, secured creditors, and unsecured creditors** were held on **6 June 2026**, with voting results and scrutinizer's reports filed on 9 June [4][5][6].\n- The trading window was closed on 29 June 2026 ahead of the Q1 FY27 results window [11][12].\n- A **SEBI takeover-regulation disclosure** was filed on 30 June 2026 [13], suggesting a possible change/clarification in promoter or substantial-shareholder holdings tied to the scheme.\n\n**Read:** MOL is mid-restructuring. A demerger-type scheme that has cleared creditor and shareholder votes is a material catalyst \u2014 it can unlock value (the 0.75x P/B looks even cheaper if a separate entity holds valuable assets) but also creates near-term overhang and accounting noise. The 54% drawdown and the depressed margins are occurring *against this restructuring backdrop*, so the headline multiples are not a clean read on the operating business.\n\n## Price action \u2014 1-year daily\n- The stock fell from the \u20b950s in Feb 2026 to a **\u20b936.50 low on 30 Mar 2026**, then ripped to **\u20b961.50 on 6 May 2026** (on very heavy volume \u2014 ~29.7M shares on 5 May, vs typical 0.3\u20131.5M) \u2014 consistent with a positive restructuring/corporate-action catalyst.\n- Since that May spike it has bled back to **\u20b946.39**, consolidating in a \u20b945\u201353 range through June\u2013early July. The stock is now ~25% off its May rebound high and ~56% off the 52-week high of \u20b9106.30.\n- Beta is low (~0.56), so the drawdown is idiosyncratic / company-specific, not a market-beta artifact.\n\n## Bear case vs. Bull case\n| Bear | Bull |\n|---|---|\n| Operating margin negative; revenue \u221214% YoY, earnings \u221259% | Trading **below book** (0.75x P/B) and under 0.6x sales \u2014 asset-cheap |\n| ROE under 2%; quality of earnings currently poor | Positive **FCF (~\u20b995 cr)** despite the profit trough |\n| Quick ratio 0.57 \u2014 tight liquidity, inventory-heavy | Low leverage (D/E ~0.47x); balance sheet has room to weather the cycle |\n| No visible dividend; income investors get nothing | Demerger/scheme of arrangement could unlock value in separable businesses |\n| Restructuring adds uncertainty and noise | Low beta (0.56); idiosyncratic downside may be largely priced in at 56% off the high |\n\n## What I'd want to confirm before any view\n1. **Q4 FY26 line items** \u2014 open the press-release PDF [1] and the earnings transcript [3] for revenue, EBITDA margin, PAT, and segment split (pigments vs. agri-inputs vs. basic chemicals).\n2. **The scheme of arrangement** \u2014 what exactly is being demerged/restructured, and into what entity. The NCLT meeting votes [4][5][6] are the key disclosure; the 30 Jun SEBI takeover filing [13] may signal a promoter-stake adjustment.\n3. **Dividend history** \u2014 confirm via NSE/BSE corporate-action records whether MOL has paid any dividend in recent years (the feed shows none, but verify independently).\n4. **Segment-level cyclicality** \u2014 is the \u221214% revenue / \u221259% earnings a pricing-driven chemical-cycle trough or a structural share loss?\n\n## Sources\n[1] MOL \u2014 Press Release on Financial Results for Q4 FY 2026 (NSE, 14 May 2026): https://nsearchives.nseindia.com/corporate/MOL_14052026165235_PressRelease.pdf\n[2] MOL \u2014 Copy of Newspaper Publication for Q4 FY 26 Financial Results (NSE, 15 May 2026): https://nsearchives.nseindia.com/corporate/MOL_15052026161956_NespaperPublicationMay2026.pdf\n[3] MOL \u2014 Q4 FY26 Earnings Call Transcript (NSE, 19 May 2026): https://nsearchives.nseindia.com/corporate/MOL_19052026102404_TRANSCRIPT_Q4FY26.pdf\n[4] MOL \u2014 Voting Result, Court-Convened Meeting of Equity Shareholders (NSE, 9 Jun 2026): https://nsearchives.nseindia.com/corporate/MOL_09062026192732_Voting_Result_Equity.pdf\n[5] MOL \u2014 Scrutinizer's Report, Meeting of Unsecured Creditors (NSE, 9 Jun 2026): https://nsearchives.nseindia.com/corporate/MOL_09062026190138_Voting_Result_Unsecured.pdf\n[6] MOL \u2014 Scrutinizer's Report, Meeting of Secured Creditors (NSE, 9 Jun 2026): https://nsearchives.nseindia.com/corporate/MOL_09062026185445_Voting_Result_Secured.pdf\n[7] MOL \u2014 Proceedings of NCLT Convened Meeting of Unsecured Creditors, 6 Jun 2026 (NSE): https://nsearchives.nseindia.com/corporate/MOL_06062026200622_PROCEEDING_UNSECURED.pdf\n[8] MOL \u2014 Proceedings of NCLT Convened Meeting of Secured Creditors, 6 Jun 2026 (NSE): https://nsearchives.nseindia.com/corporate/MOL_06062026195808_PROCEEDING_SECURED.pdf\n[9] MOL \u2014 Proceedings of NCLT Convened Shareholders Meeting, 6 Jun 2026 (NSE): https://nsearchives.nseindia.com/corporate/MOL_06062026194643_PROCEEDING_EQUITY.pdf\n[10] MOL \u2014 Voting Results, Equity Shareholders Meeting (NSE, 9 Jun 2026): https://nsearchives.nseindia.com/corporate/MOL_09062026184215_Voting_Result_Equity.pdf\n[11] MOL \u2014 Trading Window Closure (NSE, 29 Jun 2026): https://nsearchives.nseindia.com/corporate/MOL_29062026172232_TWCLOSUREQ1.pdf\n[12] MOL \u2014 Closure of Trading Window (BSE, 29 Jun 2026): https://www.bseindia.com/xml-data/corpfiling/AttachLive/8eab5560-d348-44b4-b24a-3df5f08dca1b.pdf\n[13] MOL \u2014 Disclosure under Reg 31(4) SEBI (SAST) Regulations (NSE, 30 Jun 2026): https://nsearchives.nseindia.com/corporate/team_bbodade_23062026165056_MOL.pdf\n\n*Structured price/fundamentals/announcements data sourced from NSE-direct and yfinance feeds. Web search was available but returned no matching results for the MOL-specific queries; the Q4 numbers and scheme-of-arrangement details above are drawn from the structured announcements feed (NSE/BSE filings) and the fundamentals provider. Verify line-item quarterly figures against the primary-source PDFs linked above.*",
+      "mode": "FAST",
+      "note": "SearXNG web search returned no results for MOL-specific queries; structured price/fundamentals from NSE-direct + yfinance; corporate announcements from NSE/BSE. Q4 FY26 line items not available in structured feed \u2014 linked primary-source PDFs (press release + transcript) for verification. Dividend data is null in the feed; verify independently.",
+      "query": "Meghmani Organics (MOL) \u2014 fundamentals, valuation, dividends, latest quarter",
+      "sources": [
+        {
+          "domain": "nsearchives.nseindia.com",
+          "excerpt": "Press Release on Financial Results for Q4 FY 2026",
+          "title": "MOL \u2014 Press Release on Financial Results for Q4 FY 2026 (NSE, 14 May 2026)",
+          "url": "https://nsearchives.nseindia.com/corporate/MOL_14052026165235_PressRelease.pdf"
+        },
+        {
+          "domain": "nsearchives.nseindia.com",
+          "excerpt": "Copy of Newspaper Publication for Q4 FY 26 Financial Results",
+          "title": "MOL \u2014 Newspaper Publication for Q4 FY 26 Financial Results (NSE, 15 May 2026)",
+          "url": "https://nsearchives.nseindia.com/corporate/MOL_15052026161956_NespaperPublicationMay2026.pdf"
+        },
+        {
+          "domain": "nsearchives.nseindia.com",
+          "excerpt": "Q4 FY26 earnings call transcript",
+          "title": "MOL \u2014 Q4 FY26 Earnings Call Transcript (NSE, 19 May 2026)",
+          "url": "https://nsearchives.nseindia.com/corporate/MOL_19052026102404_TRANSCRIPT_Q4FY26.pdf"
+        },
+        {
+          "domain": "nsearchives.nseindia.com",
+          "excerpt": "Voting results, Court-Convened Meeting of Equity Shareholders",
+          "title": "MOL \u2014 Voting Result, Court-Convened Meeting of Equity Shareholders (NSE, 9 Jun 2026)",
+          "url": "https://nsearchives.nseindia.com/corporate/MOL_09062026192732_Voting_Result_Equity.pdf"
+        },
+        {
+          "domain": "nsearchives.nseindia.com",
+          "excerpt": "Scrutinizer's report, Meeting of Unsecured Creditors",
+          "title": "MOL \u2014 Scrutinizer's Report, Meeting of Unsecured Creditors (NSE, 9 Jun 2026)",
+          "url": "https://nsearchives.nseindia.com/corporate/MOL_09062026190138_Voting_Result_Unsecured.pdf"
+        },
+        {
+          "domain": "nsearchives.nseindia.com",
+          "excerpt": "Scrutinizer's report, Meeting of Secured Creditors",
+          "title": "MOL \u2014 Scrutinizer's Report, Meeting of Secured Creditors (NSE, 9 Jun 2026)",
+          "url": "https://nsearchives.nseindia.com/corporate/MOL_09062026185445_Voting_Result_Secured.pdf"
+        },
+        {
+          "domain": "nsearchives.nseindia.com",
+          "excerpt": "Proceedings of NCLT Convened Meeting of Unsecured Creditors, 6 Jun 2026",
+          "title": "MOL \u2014 Proceedings of NCLT Convened Meeting of Unsecured Creditors (NSE, 6 Jun 2026)",
+          "url": "https://nsearchives.nseindia.com/corporate/MOL_06062026200622_PROCEEDING_UNSECURED.pdf"
+        },
+        {
+          "domain": "nsearchives.nseindia.com",
+          "excerpt": "Proceedings of NCLT Convened Meeting of Secured Creditors, 6 Jun 2026",
+          "title": "MOL \u2014 Proceedings of NCLT Convened Meeting of Secured Creditors (NSE, 6 Jun 2026)",
+          "url": "https://nsearchives.nseindia.com/corporate/MOL_06062026195808_PROCEEDING_SECURED.pdf"
+        },
+        {
+          "domain": "nsearchives.nseindia.com",
+          "excerpt": "Proceedings of NCLT Convened Shareholders Meeting, 6 Jun 2026",
+          "title": "MOL \u2014 Proceedings of NCLT Convened Shareholders Meeting (NSE, 6 Jun 2026)",
+          "url": "https://nsearchives.nseindia.com/corporate/MOL_06062026194643_PROCEEDING_EQUITY.pdf"
+        },
+        {
+          "domain": "nsearchives.nseindia.com",
+          "excerpt": "Voting Results, Equity Shareholders Meeting",
+          "title": "MOL \u2014 Voting Results, Equity Shareholders Meeting (NSE, 9 Jun 2026)",
+          "url": "https://nsearchives.nseindia.com/corporate/MOL_09062026184215_Voting_Result_Equity.pdf"
+        },
+        {
+          "domain": "nsearchives.nseindia.com",
+          "excerpt": "Trading Window Closure",
+          "title": "MOL \u2014 Trading Window Closure (NSE, 29 Jun 2026)",
+          "url": "https://nsearchives.nseindia.com/corporate/MOL_29062026172232_TWCLOSUREQ1.pdf"
+        },
+        {
+          "domain": "bseindia.com",
+          "excerpt": "Closure of Trading Window",
+          "title": "MOL \u2014 Closure of Trading Window (BSE, 29 Jun 2026)",
+          "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/8eab5560-d348-44b4-b24a-3df5f08dca1b.pdf"
+        },
+        {
+          "domain": "nsearchives.nseindia.com",
+          "excerpt": "Disclosure under Reg 31(4) SEBI (SAST) Regulations",
+          "title": "MOL \u2014 Disclosure under Reg 31(4) SEBI (SAST) Regulations (NSE, 30 Jun 2026)",
+          "url": "https://nsearchives.nseindia.com/corporate/team_bbodade_23062026165056_MOL.pdf"
+        }
+      ],
+      "structured": {
+        "price": {
+          "ok": true,
+          "provider": "nse_direct",
+          "data": {
+            "symbol": "MOL",
+            "price": 46.39,
+            "change": 0.41,
+            "change_percent": 0.8916920400174069,
+            "volume": 351864.0,
+            "currency": "INR",
+            "market_state": "CLOSED",
+            "timestamp": "2026-07-09T00:00:00Z"
+          }
+        },
+        "fundamentals": {
+          "ok": true,
+          "provider": "yfinance",
+          "data": {
+            "symbol": "MOL.NS",
+            "name": "Meghmani Organics Limited",
+            "sector": "Basic Materials",
+            "industry": "Agricultural Inputs",
+            "currency": "INR",
+            "market_cap": 11797636096.0,
+            "pe_ratio": 41.053097,
+            "forward_pe": null,
+            "peg_ratio": null,
+            "price_to_book": 0.7536839,
+            "price_to_sales": 0.54268056,
+            "ev_to_ebitda": 10.563,
+            "book_value": 61.551,
+            "dividend_yield": null,
+            "dividend_per_share": null,
+            "eps": 1.13,
+            "beta": 0.564,
+            "fifty_two_week_high": 106.3,
+            "fifty_two_week_low": 36.5,
+            "fifty_two_week_change": -0.5410261,
+            "roe": 0.01878,
+            "roa": 0.011770001,
+            "gross_margin": 0.38998002,
+            "operating_margin": -0.02025,
+            "profit_margin": 0.01322,
+            "debt_to_equity": 0.46995,
+            "current_ratio": 1.072,
+            "quick_ratio": 0.57,
+            "revenue_ttm": 21739558912.0,
+            "net_income_ttm": 287395008.0,
+            "free_cash_flow": 950409856.0,
+            "shares_outstanding": 254314211.0,
+            "revenue_growth": -0.143,
+            "earnings_growth": -0.59,
+            "growth_basis": "mrq_yoy",
+            "held_percent_insiders": 0.50337005,
+            "held_percent_institutions": 0.01038,
+            "dividend_per_share_ttm": null
+          }
+        },
+        "derived": {
+          "ok": true,
+          "provider": "derived",
+          "data": {
+            "drawdown_from_high": {
+              "value": 0.5635936030103481,
+              "label": "Below 52-week high"
+            },
+            "fifty_two_week_change": {
+              "value": -0.5410261,
+              "label": "52-week price change"
+            },
+            "dividend_yield": {
+              "value": null,
+              "label": "Dividend yield"
+            },
+            "revenue_growth": {
+              "value": -0.143,
+              "label": "Revenue growth (MRQ YoY)"
+            },
+            "earnings_growth": {
+              "value": -0.59,
+              "label": "Earnings growth (MRQ YoY)"
+            }
+          }
+        },
+        "symbol": "MOL",
+        "web_available": true
+      },
+      "symbol": "MOL",
+      "web_available": true,
+      "execution": {
+        "run_id": "31409d61111d4e2197c4b4e5ae400b70",
+        "requested_depth": "normal",
+        "loop": "fast",
+        "backend": null,
+        "started_at": 1783624858.166173,
+        "finished_at": 1783624865.3120441,
+        "degraded_reason": null
+      }
+    },
+    "structured": {
+      "price": {
+        "ok": true,
+        "provider": "nse_direct",
+        "data": {
+          "symbol": "MOL",
+          "price": 46.39,
+          "change": 0.41,
+          "change_percent": 0.8916920400174069,
+          "volume": 351864.0,
+          "currency": "INR",
+          "market_state": "CLOSED",
+          "timestamp": "2026-07-09T00:00:00Z"
+        }
+      },
+      "fundamentals": {
+        "ok": true,
+        "provider": "yfinance",
+        "data": {
+          "symbol": "MOL.NS",
+          "name": "Meghmani Organics Limited",
+          "sector": "Basic Materials",
+          "industry": "Agricultural Inputs",
+          "currency": "INR",
+          "market_cap": 11797636096.0,
+          "pe_ratio": 41.053097,
+          "forward_pe": null,
+          "peg_ratio": null,
+          "price_to_book": 0.7536839,
+          "price_to_sales": 0.54268056,
+          "ev_to_ebitda": 10.563,
+          "book_value": 61.551,
+          "dividend_yield": null,
+          "dividend_per_share": null,
+          "eps": 1.13,
+          "beta": 0.564,
+          "fifty_two_week_high": 106.3,
+          "fifty_two_week_low": 36.5,
+          "fifty_two_week_change": -0.5410261,
+          "roe": 0.01878,
+          "roa": 0.011770001,
+          "gross_margin": 0.38998002,
+          "operating_margin": -0.02025,
+          "profit_margin": 0.01322,
+          "debt_to_equity": 0.46995,
+          "current_ratio": 1.072,
+          "quick_ratio": 0.57,
+          "revenue_ttm": 21739558912.0,
+          "net_income_ttm": 287395008.0,
+          "free_cash_flow": 950409856.0,
+          "shares_outstanding": 254314211.0,
+          "revenue_growth": -0.143,
+          "earnings_growth": -0.59,
+          "growth_basis": "mrq_yoy",
+          "held_percent_insiders": 0.50337005,
+          "held_percent_institutions": 0.01038,
+          "dividend_per_share_ttm": null
+        }
+      },
+      "derived": {
+        "ok": true,
+        "provider": "derived",
+        "data": {
+          "drawdown_from_high": {
+            "value": 0.5635936030103481,
+            "label": "Below 52-week high"
+          },
+          "fifty_two_week_change": {
+            "value": -0.5410261,
+            "label": "52-week price change"
+          },
+          "dividend_yield": {
+            "value": null,
+            "label": "Dividend yield"
+          },
+          "revenue_growth": {
+            "value": -0.143,
+            "label": "Revenue growth (MRQ YoY)"
+          },
+          "earnings_growth": {
+            "value": -0.59,
+            "label": "Earnings growth (MRQ YoY)"
+          }
+        }
+      },
+      "symbol": "MOL",
+      "web_available": true
+    },
+    "narration_tail_2000_chars": "I'll resolve the symbol and kick off a quick research pass in parallel.Now let me set up the cockpit and publish the brief.",
+    "narration_full_char_count": 123,
+    "sse_done_event": {
+      "kind": "done",
+      "usage": {
+        "input_tokens": 48950,
+        "output_tokens": 5048,
+        "cache_read_input_tokens": null,
+        "cache_creation_input_tokens": null
+      },
+      "finish_reason": "tool_calls"
+    },
+    "anomaly_publish_not_confirmed": "Both publish_brief tool calls (the autobrief after the 'research' tool, and the final explicit publish_brief) received a host-side research_step error: \"The brief panel did not confirm the publish \u2014 treat it as NOT rendered until get_terminal_state shows it.\" The SSE stream then ended with finish_reason='tool_calls' (not 'stop') and only a short narration ('I'll resolve the symbol and kick off a quick research pass in parallel.Now let me set up the cockpit and publish the brief.') -- i.e. the agent never delivered a final closing narrative summarizing findings to the user in this single-turn capture; the substantive research content lives entirely in the final publish_brief's markdown/structured payload, not in the narration deltas. This looks like a genuine app-side quirk (brief-panel-confirmation coupled with a tool-call-budget/turn-ending condition) rather than a resolution failure -- the underlying data resolved to MOL/Meghmani Organics correctly throughout, and the brief content itself is accurate and detailed."
+  },
+  "collection_timestamps": {
+    "note": "Two full collection passes were run. The first pass used generic, non-unique scratch filenames in a scratchpad directory shared concurrently by sibling data-collection subagents processing other tickers in the same R12 data-battery run; those files were overwritten mid-task by sibling processes (evidence: sibling artifacts for RADICO, SBIN, ICICIBANK, BOMOXY-B1/509470, SIMPLXREA etc. found alongside in the same directory), producing a corrupted intermediate capture that appeared to show the copilot agent misidentifying MOL as 'Bombay Oxygen Investments (509470)'. That corrupted capture was DISCARDED and is NOT reflected in this file. A second, clean pass was run using a collision-proof unique subdirectory (timestamped + PID token) for all intermediate files; all data in this JSON (resolved_identity, fundamentals, quote, research_normal) comes from that clean second pass, and cross-checked as internally consistent (fundamentals/quote match exactly between the direct API calls and the values embedded in the copilot agent's own publish_brief payload).",
+    "sidecar_direct_calls_completed_utc": "2026-07-10T00:00:00Z_approx (see resolve/fundamentals/quote JSON bodies for provider-side timestamps, e.g. quote.timestamp=2026-07-09T00:00:00Z EOD)",
+    "copilot_invoke_execution_window": {
+      "started_at_unix": 1783624858.166173,
+      "finished_at_unix": 1783624865.3120441,
+      "note": "from execution.started_at/finished_at inside the first (research-tool autobrief) publish_brief payload; this covers only the initial fast research-tool pass, not the full multi-tool-call SSE turn duration"
+    }
+  }
+}

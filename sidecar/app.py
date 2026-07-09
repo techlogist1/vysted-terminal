@@ -9,6 +9,7 @@ runs under uvicorn and what tests build a ``TestClient`` against.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -57,6 +58,7 @@ from services import (
     fundamentals_warm,
     mcp_client,
     mcp_server,
+    nse_symbol_change,
     run_manager,
     searxng_manager,
 )
@@ -126,6 +128,10 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
         # The region-aware India fundamentals warming (boot seed + 15-min v7
         # sweep + deep .info crawler — R10/D40). Detached; never blocks boot.
         fundamentals_warm.start_warm_fundamentals()
+        # NSE symbol-change map (R12/D67): daily rename master so a renamed scrip
+        # (GUJGASLTD → GUJENERGY) resolves to its CURRENT identity on every path,
+        # not just after the first /resolve. Fire-and-forget; never blocks boot.
+        asyncio.ensure_future(nse_symbol_change.schedule_refresh())
         try:
             yield
         finally:

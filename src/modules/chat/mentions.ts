@@ -198,6 +198,14 @@ interface ResolveInstrument {
   asset_class: string;
   yahoo_symbol: string;
   confidence: number;
+  /** R12/D67: present when the exchange renamed this scrip — the answer is the
+   * CURRENT symbol with explicit provenance, never a silent swap. */
+  rename?: {
+    renamed_from: string;
+    renamed_to: string;
+    effective_date: string;
+    note: string;
+  };
 }
 
 /** The `/resolve` response shape (mirrors `sidecar/routers/resolve.py`). */

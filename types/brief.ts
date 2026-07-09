@@ -93,6 +93,12 @@ export interface BriefMetricConflict {
    * (R12 / D66) — present only on the growth cross-check conflicts.
    */
   quarters?: { mrq: string; prior: string };
+  /** Conflict class discriminator (R12 / D67) — e.g. "identity_conflict". */
+  kind?: string;
+  /** Token-set similarity behind an identity conflict (R12 / D67). */
+  similarity?: number;
+  /** The instrument the conflict names, when symbol-specific (R12 / D67). */
+  symbol?: string;
 }
 
 /** The semantics leg's payload — derived, labeled metrics + flagged conflicts. */

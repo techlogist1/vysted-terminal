@@ -174,7 +174,11 @@ def _structured_value(result: dict[str, Any], payload_key: str) -> dict[str, Any
 
 
 async def snapshot_structured(
-    tool_call: ToolCall, symbol: str, *, region: str | None = None
+    tool_call: ToolCall,
+    symbol: str,
+    *,
+    region: str | None = None,
+    canonical_name: str | None = None,
 ) -> dict[str, Any]:
     """A price + fundamentals snapshot as provenance-tagged structured legs.
 
@@ -240,7 +244,7 @@ async def snapshot_structured(
             if yoy.earnings_growth is not None:
                 fund_data["earnings_growth_computed"] = yoy.earnings_growth
             fund_data["growth_computed_quarters"] = {"mrq": yoy.mrq, "prior": yoy.prior}
-    out["derived"] = derive_semantics(out, region)
+    out["derived"] = derive_semantics(out, region, canonical_name=canonical_name, symbol=symbol)
     return out
 
 
@@ -371,7 +375,7 @@ async def gather_fast(
     news_res, filings_res, snapshot = await asyncio.gather(
         _safe_call(tool_call, "news", {"symbols": [symbol]}),
         _safe_call(tool_call, "sec_filings_list", {"symbol": symbol}),
-        snapshot_structured(tool_call, symbol, region=region),
+        snapshot_structured(tool_call, symbol, region=region, canonical_name=target.name),
     )
 
     structured = {

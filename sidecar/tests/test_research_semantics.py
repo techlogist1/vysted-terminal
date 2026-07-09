@@ -333,3 +333,39 @@ def test_snapshot_structured_attaches_the_derived_leg() -> None:
     assert set(snap) == {"price", "fundamentals", "derived"}
     assert snap["derived"]["provider"] == "derived"
     assert snap["derived"]["data"]["drawdown_from_high"]["value"] == 0.2
+
+
+def test_identity_conflict_rides_derived_conflicts() -> None:
+    """D67 wire-up: a materially different provider name vs the resolver's
+    canonical name surfaces as an identity conflict in derived.conflicts."""
+    structured = {
+        "price": {"ok": True, "provider": "nse", "data": {"price": 100.0}},
+        "fundamentals": {
+            "ok": True,
+            "provider": "yfinance",
+            "data": {"name": "Gujarat Energy Limited"},
+        },
+    }
+    derived = derive_semantics(
+        structured, "IN", canonical_name="Gujarat Gas Limited", symbol="GUJGASLTD.NS"
+    )
+    kinds = [c.get("kind") for c in derived["data"]["conflicts"]]
+    assert "identity_conflict" in kinds
+    conflict = next(c for c in derived["data"]["conflicts"] if c.get("kind") == "identity_conflict")
+    assert conflict["symbol"] == "GUJGASLTD.NS"
+    assert any("Gujarat Energy Limited" in str(s["value"]) for s in conflict["sources"])
+
+
+def test_identity_agreement_stays_silent() -> None:
+    structured = {
+        "price": {"ok": True, "provider": "nse", "data": {"price": 100.0}},
+        "fundamentals": {
+            "ok": True,
+            "provider": "yfinance",
+            "data": {"name": "Deepak Nitrite Ltd"},
+        },
+    }
+    derived = derive_semantics(
+        structured, "IN", canonical_name="Deepak Nitrite Limited", symbol="DEEPAKNTR.NS"
+    )
+    assert all(c.get("kind") != "identity_conflict" for c in derived["data"]["conflicts"])

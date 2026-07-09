@@ -327,7 +327,9 @@ async def run_iter_research(
     # heavy panel passes ONE shared snapshot so explorers never re-pull it.
     if target is not None:
         if snapshot is None:
-            snapshot = await snapshot_structured(tool_call, target.symbol, region=region)
+            snapshot = await snapshot_structured(
+                tool_call, target.symbol, region=region, canonical_name=target.name
+            )
         structured.update(snapshot)
         record_snapshot_sources(findings, target.symbol, structured)
 
@@ -854,7 +856,9 @@ async def run_heavy_research(
             return target.payload(query=query)
     snapshot: dict[str, Any] | None = None
     if target is not None:
-        snapshot = await snapshot_structured(tool_call, target.symbol, region=region)
+        snapshot = await snapshot_structured(
+            tool_call, target.symbol, region=region, canonical_name=target.name
+        )
 
     # --- panel plan: split into N distinct, non-overlapping angles -----------
     t0 = time.monotonic()

@@ -748,7 +748,10 @@ async def run_research_model_brief(
     note: str | None = None
     if target is not None:
         snap = await snapshot_structured(
-            agent_tools.invoke_tool, target.symbol, region=config.get_region()
+            agent_tools.invoke_tool,
+            target.symbol,
+            region=config.get_region(),
+            canonical_name=target.name,
         )
         structured = {"resolved": resolved_payload(target), **snap}
         symbol = target.symbol

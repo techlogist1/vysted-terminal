@@ -54,7 +54,7 @@
 | 2 | COLD-CACHE SCREENER | **API LEGS GREEN** — cold 22 rows/17s honest (r12/screener-cold/itquery-cold.json); +4 screens incl heavy; formula parity 22/22; agent-authored parity 22/22 post-D64. UI chips leg pending (operator-away gated) |
 | 3 | RESILIENCE | **HOLDS** — trip→degrade-honestly(22 rows/66ms, throttled:true)→reset cycle, r12/resilience/step1-5; genuine Yahoo throttle also observed live at boot (opens 1→2, backoffs logged) |
 | 4 | TEN-STOCK BATTERY | reference-pack workflow running (wf_56c72238); in-app legs next |
-| 5 | DISPOSITION E1–E11 + V-register | five hand-fixes verified pinned; table assembly pending |
+| 5 | DISPOSITION E1–E11 + V-register | **HOLDS** — r12/DISPOSITION_TABLE.md: 33 entries, 28 RESOLVED w/ grep-verified pins, 3 NOT-A-DEFECT, 2 pin gaps closed (worktree-agent-pins merged, pytest 2243/1). Checkpoint 2 pushed 1609474 |
 | 6 | AGENT CAPABILITY | partial: agent-authored screen + honest tool chain proven; D64 capability fix shipped+pinned; portfolio/§6.5 legs = GUI phase |
 | 7 | METRIC SEMANTICS | pending (rides battery fresh names) |
 | 8 | ERROR BATTERY | **API LEGS GREEN** — 401/402/network/SearXNG-down/malformed live-induced + humanized (r12/error-battery/); 429 live on data path + pinned on LLM path. UI render spot-check pending |
