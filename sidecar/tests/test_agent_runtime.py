@@ -254,6 +254,22 @@ def test_capabilities_preamble_is_loader_level_not_in_the_json_files() -> None:
     assert "Mr. Market" in graham["systemPrompt"]
 
 
+def test_copilot_prompt_carries_the_corporate_action_directive() -> None:
+    """R12: the copilot is the FAST-tier (depth='quick') brief narrator — that
+    tier has no internal LLM synthesis call of its own (see
+    ``services.research.fast`` and its NORMAL-depth PROFILE), so the copilot's
+    OWN system prompt is the only guardrail against inventing a corporate
+    action. The battery finding was a narrative that invented five specific
+    filing dates matching no real filing, one chronologically impossible,
+    stated with the same confidence as real cited data."""
+    copilot = json.loads((agent_runtime.AGENTS_DIR / "copilot.json").read_text(encoding="utf-8"))
+    prompt = copilot["systemPrompt"]
+    assert "CORPORATE ACTIONS" in prompt
+    assert "filing number" in prompt
+    assert "record date" in prompt
+    assert "unverified in this run" in prompt
+
+
 def test_custom_agents_are_not_unioned_with_host_actions(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

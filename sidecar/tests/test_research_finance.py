@@ -10,6 +10,7 @@ server-date recency directive. No network, no LLM.
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from pathlib import Path
 
 from services.research import finance
 from services.research.models import ResearchSource
@@ -123,3 +124,36 @@ def test_date_directive_carries_the_server_date_and_recency_preference() -> None
     assert datetime.now(UTC).strftime("%Y-%m-%d") in line
     assert "Server date" in line
     assert "recently dated" in line
+
+
+# --- corporate_action_directive (R12) -------------------------------------------
+
+
+def test_corporate_action_directive_forbids_uncited_specifics() -> None:
+    """R12: the confabulated-corporate-action battery finding — a narrative
+    invented five specific filing dates matching no real filing (one
+    chronologically impossible), stated with the same confidence as real
+    cited data. Every synthesis prompt now carries this line: a date, filing
+    number, or record date is stated ONLY when a numbered source gives it,
+    and a suspected-but-unsourced corporate action must be called out as
+    unverified rather than asserted."""
+    line = finance.corporate_action_directive()
+    assert "CORPORATE ACTIONS" in line
+    assert "filing number" in line
+    assert "record date" in line
+    assert "ONLY when a numbered source" in line
+    assert "unverified in this run" in line
+
+
+def test_corporate_action_directive_is_wired_into_every_synthesis_prompt() -> None:
+    """Every narrative-synthesis call site — across ALL three depth tiers
+    (NORMAL has no LLM synthesis of its own; DEEP and ULTRA each have one
+    primary path plus ULTRA's per-section webweaver path and its single-call
+    fallback) — references the shared directive. Four call sites total, so a
+    future fifth synthesis prompt that forgets to wire it in is caught here
+    rather than shipping a narrative with a date/filing-discipline gap."""
+    research_dir = Path(finance.__file__).resolve().parent
+    deep_src = (research_dir / "deep.py").read_text(encoding="utf-8")
+    iter_src = (research_dir / "iter.py").read_text(encoding="utf-8")
+    assert deep_src.count("finance.corporate_action_directive()") == 1  # _final_synthesis
+    assert iter_src.count("finance.corporate_action_directive()") == 3  # report/section/heavy
