@@ -74,6 +74,14 @@ _BUILD_SIGNALS = (
     r"\bone .* (here|left|right|top|bottom).* (other|another|one)",
 )
 _EDIT_SIGNALS = (
+    # §6.5-adjacent (R12): an explicit order ask MUST classify as an action
+    # intent — classifying "buy X" as read stripped propose_order (the
+    # prepare-for-REVIEW tool; placement stays human-only regardless) and made
+    # the order-review dialog unreachable from chat.
+    r"\bbuy(ing)?\b",
+    r"\bsell(ing)?\b",
+    r"\b(market|limit|stop) order\b",
+    r"\bplace (an? )?order\b",
     r"\badd\b",
     r"\bremove\b",
     r"\bchange\b",

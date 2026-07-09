@@ -82,6 +82,10 @@
 - Seeded cross-source conflict drill (Gate 7) — blocked on battery collectors finishing (store mutation would contaminate diffs).
 - PyInstaller build+boot + smoke test (Gate 10) — blocked on battery workflow (smoke pre-flight kills vysted processes incl. my headless sidecar).
 
+## INCIDENT LOG
+- **Sacred-file commit slip (caught + corrected within minutes)**: checkpoint-3's `git add -A -- sidecar/services …` swept `enrich_nse_sectors.py` into 7e8da03 (pushed). Working bytes were never touched. Corrected by ccf4e76: committed copy restored to the pre-R12 convention, working copy verified byte-identical before/after (sha256 5cb28e0d…abbe), file dirty-uncommitted again. Lesson applied: all further commits stage explicit paths, never `-A` over sidecar/services.
+- **Privacy near-miss (D63)**: one Quartz region capture caught the operator's private session; deleted immediately, never committed; all captures since use window-id capture (only the app's own contents).
+
 ## STRATEGY-CHANGE LOG (no-progress rule)
 - Workflow args arrived as a JSON string not an object (battery workflow died on arrival) → script now parses args defensively; resumed clean. (One occurrence — no identical retry.)
 - Headless sidecar exited instantly on stdin EOF (documented watchdog) → relaunched with stdin held open per the documented recipe.

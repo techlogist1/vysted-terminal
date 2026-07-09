@@ -140,3 +140,25 @@ def test_decompose_empty_request_is_not_ok() -> None:
 
     plan = _run(decompose("   ", llm_call=fake_llm))
     assert not plan.ok
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Buy 5 shares of RELIANCE at market price.",
+        "sell half my INFY position",
+        "place an order for 10 TATASTEEL",
+        "set a limit order on WENDT at 7200",
+    ],
+)
+def test_order_asks_classify_as_action_never_read(text: str) -> None:
+    """R12/D68: an explicit order ask must keep the action toolset — classifying
+    it as read stripped propose_order and made the §6.5 review dialog
+    unreachable from chat (placement stays human-gated in every mode)."""
+    result = classify_intent(text)
+    assert result.intent != "read"
+    assert result.mutates
+
+
+def test_plain_questions_still_classify_read() -> None:
+    assert classify_intent("what's the market cap of AAPL?").intent == "read"
