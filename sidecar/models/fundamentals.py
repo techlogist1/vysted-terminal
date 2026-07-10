@@ -127,6 +127,14 @@ class Fundamentals(BaseModel):
     #: it, and an absent map never changes how the value fields are read.
     field_meta: dict[str, FieldMeta] | None = None
     provider: str
+    #: R13 ledger #8 (bounded, additive): a plain-language note when the
+    #: resolver's canonical master name and THIS provider's company name
+    #: disagree past the identity cross-check threshold
+    #: (:mod:`services.identity_crosscheck`) — e.g. an exchange rename the
+    #: bundled provider has not caught up with yet. ``None`` when the names
+    #: agree or the symbol did not resolve. Never a swap — ``name`` above
+    #: always stays the PROVIDER's own value; this is a disclosure only.
+    identity_note: str | None = None
 
 
 class StatementLine(BaseModel):

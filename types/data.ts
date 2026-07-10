@@ -154,6 +154,16 @@ export interface Fundamentals {
    */
   field_meta?: Record<string, FieldMeta> | null;
   provider: string;
+  /**
+   * R13 ledger #8 (bounded, additive): a plain-language note when the
+   * resolver's canonical master name and THIS provider's company name
+   * disagree past the identity cross-check threshold (mirrors
+   * `sidecar/services/identity_crosscheck.py`) — e.g. an exchange rename the
+   * bundled provider has not caught up with yet. `null`/absent when the names
+   * agree or the symbol did not resolve. Never a swap — `name` above always
+   * stays the provider's own value; this is a disclosure only.
+   */
+  identity_note?: string | null;
 }
 
 /**

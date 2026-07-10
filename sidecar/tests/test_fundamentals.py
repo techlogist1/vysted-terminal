@@ -21,6 +21,9 @@ def test_get_fundamentals(client: TestClient, mock_yfinance: object) -> None:
     # D55: the growth-basis truth rides the raw REST response (the panel/agent
     # bypass semantics.py, so the contract itself must carry it).
     assert body["growth_basis"] == "mrq_yoy"
+    # R13 ledger #8: AAPL's provider name ("Apple Inc.") agrees with the
+    # bundled master's canonical name — no identity_note.
+    assert body["identity_note"] is None
 
 
 def test_get_fundamentals_provider_error_is_502(
@@ -186,3 +189,107 @@ def test_field_meta_roundtrips_all_three_statuses() -> None:
     assert back.field_meta["dividend_yield"].status == "withheld"
     assert back.field_meta["dividend_yield"].reason == "ambiguous unit"
     assert back.field_meta["beta"].status == "unavailable"
+
+
+# ---------------------------------------------------------------------------
+# R13 ledger #8 (bounded) — the additive identity_note cross-check
+# ---------------------------------------------------------------------------
+
+
+def test_get_fundamentals_identity_note_flags_a_rename(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """CDG-shaped fixture (R13 battery, ledger #8): ``/resolve`` says "CDG
+    Petchem Ltd" (the bundled master's canonical name) while ``/fundamentals``
+    says "Jujhar Logistics Limited" (the provider's, post-rename) — the
+    disagreement now rides an additive ``identity_note``, never a silent swap
+    of either name."""
+    from models.fundamentals import Fundamentals
+    from services import provider_registry, symbol_resolver
+    from services.resolution_policy import BAND_EXACT_TICKER
+    from services.symbol_resolver import Instrument, Resolution
+
+    async def fake_fundamentals(symbol: str) -> Fundamentals:  # noqa: ARG001
+        return Fundamentals(
+            symbol="CDG.BO", name="Jujhar Logistics Limited", provider="yfinance", pe_ratio=34.7
+        )
+
+    def fake_resolve(query: str, region: str) -> Resolution:  # noqa: ARG001
+        instrument = Instrument(
+            symbol="CDG",
+            name="CDG Petchem Ltd",
+            exchange="BSE",
+            region="IN",
+            asset_class="equity",
+            yahoo_symbol="CDG.BO",
+            score=1.0,
+            band=BAND_EXACT_TICKER,
+        )
+        return Resolution(query=query, best=instrument, candidates=[instrument])
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", fake_fundamentals)
+    monkeypatch.setattr(symbol_resolver, "resolve", fake_resolve)
+
+    body = client.get("/fundamentals/CDG").json()
+    assert body["name"] == "Jujhar Logistics Limited"  # the provider's name is NEVER swapped
+    assert body["identity_note"] is not None
+    assert "Jujhar Logistics Limited" in body["identity_note"]
+    assert "CDG Petchem Ltd" in body["identity_note"]
+
+
+def test_get_fundamentals_identity_note_absent_when_names_agree(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The resolver and the provider naming the SAME company (mere suffix
+    wording aside — "Ltd" vs "Limited") never trips the note."""
+    from models.fundamentals import Fundamentals
+    from services import provider_registry, symbol_resolver
+    from services.resolution_policy import BAND_EXACT_TICKER
+    from services.symbol_resolver import Instrument, Resolution
+
+    async def fake_fundamentals(symbol: str) -> Fundamentals:  # noqa: ARG001
+        return Fundamentals(
+            symbol="TCS.NS", name="Tata Consultancy Services Ltd", provider="yfinance"
+        )
+
+    def fake_resolve(query: str, region: str) -> Resolution:  # noqa: ARG001
+        instrument = Instrument(
+            symbol="TCS",
+            name="Tata Consultancy Services Limited",
+            exchange="NSE",
+            region="IN",
+            asset_class="equity",
+            yahoo_symbol="TCS.NS",
+            score=1.0,
+            band=BAND_EXACT_TICKER,
+        )
+        return Resolution(query=query, best=instrument, candidates=[instrument])
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", fake_fundamentals)
+    monkeypatch.setattr(symbol_resolver, "resolve", fake_resolve)
+
+    body = client.get("/fundamentals/TCS").json()
+    assert body["identity_note"] is None
+
+
+def test_get_fundamentals_identity_note_absent_when_resolver_cannot_bind(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An identity cross-check must never break the endpoint it rides — an
+    unresolvable symbol simply leaves the note absent (never a 500)."""
+    from models.fundamentals import Fundamentals
+    from services import provider_registry, symbol_resolver
+    from services.symbol_resolver import Resolution
+
+    async def fake_fundamentals(symbol: str) -> Fundamentals:  # noqa: ARG001
+        return Fundamentals(symbol="XXXX", name="Some Provider Name", provider="yfinance")
+
+    def fake_resolve(query: str, region: str) -> Resolution:  # noqa: ARG001
+        return Resolution(query=query, best=None, candidates=[])
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", fake_fundamentals)
+    monkeypatch.setattr(symbol_resolver, "resolve", fake_resolve)
+
+    resp = client.get("/fundamentals/XXXX")
+    assert resp.status_code == 200
+    assert resp.json()["identity_note"] is None
