@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 // The diff gate's apply/route side effects live in `@/lib/host-actions`; mock
 // them so this suite tests the gate's state machine (stage → accept/reject →
 // apply-once) in isolation. `host-actions.test.ts` covers the real apply.
-const { applyHostActionMock, routeOrderProposalMock, describeHostActionMock, ackPublishBriefMock } =
+const { applyHostActionMock, routeOrderProposalMock, describeHostActionMock, ackHostActionMock } =
   vi.hoisted(() => ({
     applyHostActionMock: vi.fn<
       (name: string, input: Record<string, unknown>) => Promise<string | null>
@@ -17,7 +17,7 @@ const { applyHostActionMock, routeOrderProposalMock, describeHostActionMock, ack
       before: "before",
       after: "after",
     })),
-    ackPublishBriefMock: vi.fn(),
+    ackHostActionMock: vi.fn(),
   }));
 
 vi.mock("@/lib/host-actions", () => ({
@@ -25,7 +25,12 @@ vi.mock("@/lib/host-actions", () => ({
   applyHostActionAsync: applyHostActionMock,
   routeOrderProposal: routeOrderProposalMock,
   describeHostAction: describeHostActionMock,
-  ackPublishBrief: ackPublishBriefMock,
+  ackHostAction: ackHostActionMock,
+  hostActionAckDetail: (name: string, input: Record<string, unknown>) => ({
+    action: name,
+    ...(typeof input.symbol === "string" && input.symbol ? { symbol: input.symbol } : {}),
+    ...(typeof input.panel === "string" && input.panel ? { panel: input.panel } : {}),
+  }),
   publishAckStatus: (label: string | null) =>
     label === null ? "failed" : label.startsWith("Kept") ? "kept_previous" : "applied",
 }));
@@ -52,6 +57,7 @@ describe("proposed-changes store — the diff/accept trust gate (FR-010)", () =>
     resetAgentAutonomyStoreForTests();
     applyHostActionMock.mockClear();
     routeOrderProposalMock.mockClear();
+    ackHostActionMock.mockClear();
   });
 
   it("enqueue stages a pending change with the described old→new diff", () => {
@@ -155,31 +161,54 @@ describe("proposed-changes store — the diff/accept trust gate (FR-010)", () =>
   // --- publish read-back + lifecycle settlement (R10 D39) --------------------
 
   it("acks a publish_brief accept with the apply outcome (read-back, D39 §4)", async () => {
-    ackPublishBriefMock.mockClear();
+    ackHostActionMock.mockClear();
     applyHostActionMock.mockResolvedValueOnce("Published the DEEP research brief");
     const id = enqueue("publish_brief", { markdown: "## x" });
     await useProposedChangesStore.getState().accept(id);
-    expect(ackPublishBriefMock).toHaveBeenCalledWith("tc-publish_brief", "applied");
+    expect(ackHostActionMock).toHaveBeenCalledWith("tc-publish_brief", "applied", {
+      action: "publish_brief",
+    });
   });
 
   it("acks kept_previous when the apply kept the richer brief", async () => {
-    ackPublishBriefMock.mockClear();
+    ackHostActionMock.mockClear();
     applyHostActionMock.mockResolvedValueOnce("Kept the richer research brief already on screen");
     const id = enqueue("publish_brief", { markdown: "## x" });
     await useProposedChangesStore.getState().accept(id);
-    expect(ackPublishBriefMock).toHaveBeenCalledWith("tc-publish_brief", "kept_previous");
+    expect(ackHostActionMock).toHaveBeenCalledWith("tc-publish_brief", "kept_previous", {
+      action: "publish_brief",
+    });
   });
 
-  it("acks failed when the publish could not apply (and never acks other actions)", async () => {
-    ackPublishBriefMock.mockClear();
+  it("acks failed when the publish could not apply", async () => {
+    ackHostActionMock.mockClear();
     applyHostActionMock.mockResolvedValueOnce(null);
     const id = enqueue("publish_brief", {});
     await useProposedChangesStore.getState().accept(id);
-    expect(ackPublishBriefMock).toHaveBeenCalledWith("tc-publish_brief", "failed");
-    ackPublishBriefMock.mockClear();
-    const other = enqueue("open_panel", { panel: "news" });
-    await useProposedChangesStore.getState().accept(other);
-    expect(ackPublishBriefMock).not.toHaveBeenCalled();
+    expect(ackHostActionMock).toHaveBeenCalledWith("tc-publish_brief", "failed", {
+      action: "publish_brief",
+    });
+  });
+
+  it("acks EVERY host action on accept — not just publish_brief (R13 JARVIS 1a)", async () => {
+    ackHostActionMock.mockClear();
+    applyHostActionMock.mockResolvedValueOnce("Loaded SPY into the chart");
+    const id = enqueue("set_chart_symbol", { symbol: "SPY" });
+    await useProposedChangesStore.getState().accept(id);
+    expect(ackHostActionMock).toHaveBeenCalledWith("tc-set_chart_symbol", "applied", {
+      action: "set_chart_symbol",
+      symbol: "SPY",
+    });
+  });
+
+  it("acks a rejected non-order host action as failed (R13 JARVIS 1a)", () => {
+    ackHostActionMock.mockClear();
+    const id = enqueue("open_panel", { panel: "news" });
+    useProposedChangesStore.getState().reject(id);
+    expect(ackHostActionMock).toHaveBeenCalledWith("tc-open_panel", "failed", {
+      action: "open_panel",
+      panel: "news",
+    });
   });
 
   it("rejecting a publish_brief settles an in-flight brief run (archived run_failed)", () => {

@@ -44,12 +44,24 @@ def _prune_locked(now: float) -> None:
         _LEDGER.pop(cid, None)
 
 
-def record(tool_call_id: str, status: str, brief_meta: dict[str, Any] | None = None) -> None:
+def record(
+    tool_call_id: str,
+    status: str,
+    brief_meta: dict[str, Any] | None = None,
+    detail: dict[str, Any] | None = None,
+) -> None:
     """Record the frontend's ack for one host-action ``tool_call_id``.
 
     ``status`` is one of :data:`KNOWN_STATUSES`; an unknown spelling is stored
     verbatim (the reader treats anything that is not ``applied`` as a
     divergence to surface — honest by default).
+
+    ``brief_meta`` is the applied-brief identity ({run_id, created_at, symbol,
+    source_count}) for a ``publish_brief`` ack (R10, E3.3). ``detail`` is the
+    generic host-action descriptor ({action, symbol/panel}) the read-back now
+    carries for EVERY host action (R13 JARVIS): the in-loop grounded tool-result
+    names WHAT resolved so the model's next narration tracks the real outcome,
+    not the optimistic dispatch. Both are optional and additive.
     """
     now = time.monotonic()
     with _LOCK:
@@ -59,6 +71,7 @@ def record(tool_call_id: str, status: str, brief_meta: dict[str, Any] | None = N
             {
                 "status": status,
                 "brief": dict(brief_meta) if brief_meta else None,
+                "detail": dict(detail) if detail else None,
                 "recorded_at": time.time(),
             },
         )

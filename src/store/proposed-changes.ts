@@ -12,9 +12,10 @@
 import { create } from "zustand";
 
 import {
-  ackPublishBrief,
+  ackHostAction,
   applyHostActionAsync,
   describeHostAction,
+  hostActionAckDetail,
   publishAckStatus,
   routeOrderProposal,
 } from "@/lib/host-actions";
@@ -42,6 +43,21 @@ function settleRejectedPublishes(rejected: readonly ProposedChange[]): void {
   const brief = useBriefStore.getState();
   if (brief.panel.phase === "in_flight") {
     brief.failRun();
+  }
+}
+
+/**
+ * Ack every REJECTED non-order host action as `failed` (R13 JARVIS 1a): the
+ * user declined it, so the sidecar's action ledger reflects the change did NOT
+ * land and any read-back reads the honest outcome. Orders never ack here — they
+ * route through the §6.5 confirm dialog. Fire-and-forget.
+ */
+function ackRejectedHostActions(rejected: readonly ProposedChange[]): void {
+  for (const c of rejected) {
+    if (c.kind === "order") {
+      continue;
+    }
+    ackHostAction(c.toolCallId, "failed", hostActionAckDetail(c.action.name, c.action.input));
   }
 }
 
@@ -135,13 +151,16 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
       if (!ok) {
         detail = "Could not apply this change — its arguments were incomplete.";
       }
-      // Publish read-back (R10 D39 §4): the sidecar's action ledger learns how
-      // the panel REALLY resolved this publish (applied | kept_previous |
-      // failed) so the runtime's end-of-stream divergence check has truth to
-      // compare against. Fire-and-forget — never blocks the gate.
-      if (change.action.name === "publish_brief") {
-        ackPublishBrief(change.toolCallId, publishAckStatus(label));
-      }
+      // Read-back (R10 D39 §4, generalized in R13 JARVIS 1a): the sidecar's
+      // action ledger learns how the panel REALLY resolved EVERY host action
+      // (applied | kept_previous | failed) so the runtime's grounded
+      // tool-result + divergence check compare against ground truth, not the
+      // optimistic "dispatched". Fire-and-forget — never blocks the gate.
+      ackHostAction(
+        change.toolCallId,
+        publishAckStatus(label),
+        hostActionAckDetail(change.action.name, change.action.input),
+      );
     }
     if (!ok) {
       // Re-pend so the user sees the failure and can retry; the change did NOT land.
@@ -160,6 +179,7 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
     }));
     if (target) {
       settleRejectedPublishes([target]);
+      ackRejectedHostActions([target]);
     }
   },
 
@@ -183,6 +203,7 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
       ),
     }));
     settleRejectedPublishes(targets);
+    ackRejectedHostActions(targets);
   },
 
   acceptAll: async () => {
@@ -202,6 +223,7 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
       ),
     }));
     settleRejectedPublishes(targets);
+    ackRejectedHostActions(targets);
   },
 
   clear: () => set({ changes: [] }),
