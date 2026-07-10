@@ -487,7 +487,17 @@ def test_distill_demands_the_structured_progress_state() -> None:
 
 
 def test_planner_is_told_to_respect_dead_ends() -> None:
-    llm = _RoutePromptLLM()
+    # R13: round 1 seeds its fan-out (no planning turn), so drive a MULTI-round
+    # run — reflect never completes — to exercise the round-2+ planner and assert
+    # its system prompt carries the dead-ends discipline.
+    class _NeverCompleteLLM(_RoutePromptLLM):
+        async def __call__(self, messages: list[dict[str, Any]]) -> str:
+            if "reflect on research coverage" in str(messages[0]["content"]).lower():
+                self.prompts.append((str(messages[0]["content"]), str(messages[-1]["content"])))
+                return "GAP: dividends still unverified"
+            return await super().__call__(messages)
+
+    llm = _NeverCompleteLLM()
     _route_iter(llm)
     plan_systems = [s for s, _ in llm.prompts if "planning the next round" in s.lower()]
     assert plan_systems and "dead ends" in plan_systems[0].lower()

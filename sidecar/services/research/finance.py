@@ -28,6 +28,7 @@ network, no LLM, fully unit-testable.
 
 from __future__ import annotations
 
+import re
 from datetime import UTC, datetime
 from urllib.parse import urlparse
 
@@ -83,6 +84,25 @@ _SITE_HINTS_BY_REGION: dict[str, str] = {
 #: Researcher dimensions whose answers live on the primary-record domains —
 #: the only dims that get a ``site:`` filter (news/general keep full recall).
 _BIASED_DIMS = frozenset({"fundamentals", "filings"})
+
+#: Sub-question shapes where an INDUSTRY token sharpens the web query — a
+#: fundamentals/valuation question benefits from the sector context, a bare
+#: price/news question does not (the industry term would only dilute recall).
+_FUNDAMENTALS_QUERY_KEYWORDS = (
+    "fundamental",
+    "valuation",
+    "earnings",
+    "revenue",
+    "profit",
+    "margin",
+    "debt",
+    "cash flow",
+    "balance sheet",
+    "dividend",
+    "growth",
+    "financial",
+    "book value",
+)
 
 
 def domain_of(url_or_domain: str) -> str:
@@ -172,6 +192,15 @@ def bias_query(query: str, *, dim: str, region: str | None = None) -> str:
     answers genuinely live on the regulator/exchange domains); every other dim
     returns the query unchanged so recall never suffers — press preference is
     applied at ranking time instead.
+
+    R13 note — news/general dims are DELIBERATELY not ``site:``-anchored: the
+    exchange hosts (nseindia/bseindia) are poor NEWS sources, so a ``site:``
+    filter there would starve the round. The entity anchoring news dims DO need
+    (the exchange qualifier that pins "KSE" to the Indian listing, not Karachi)
+    is applied UPSTREAM in :func:`anchor_tokens` — a query token, not a
+    ``site:`` filter — since only the query builder holds the bound target's
+    exchange. This function stays purely about the primary-record ``site:``
+    filter for the two record-shaped dims.
     """
     if dim not in _BIASED_DIMS:
         return query
@@ -179,6 +208,75 @@ def bias_query(query: str, *, dim: str, region: str | None = None) -> str:
     if not hint:
         hint = _SITE_HINTS_BY_REGION["US"]
     return f"{query} {hint}"
+
+
+def _exchange_qualifier(region: str | None, exchange: str | None) -> str:
+    """The one-word exchange token that anchors an Indian listing (BSE/NSE).
+
+    Empty for a non-Indian target — its quoted display name already pins the
+    entity, and a spurious exchange token would only narrow recall.
+    """
+    ex = (exchange or "").strip().upper()
+    if ex in ("NSE", "BSE"):
+        return ex
+    if (region or "").strip().upper() == "IN":
+        return "NSE"
+    return ""
+
+
+def _industry_query_token(industry: str | None) -> str:
+    """A concise 1-word anchor from a verbose industry label.
+
+    ``"Oil, Gas & Consumable Fuels / Refineries & Marketing"`` → ``"Refineries"``
+    (the most-specific segment's leading word). Empty when the label is absent —
+    an uncovered micro-cap (KSE) simply contributes no industry token.
+    """
+    text = (industry or "").strip()
+    if not text:
+        return ""
+    segment = text.split("/")[-1].strip()  # most-specific classification
+    for chunk in re.split(r"[,&/]", segment):
+        words = chunk.split()
+        if words:
+            return words[0]
+    return ""
+
+
+def is_fundamentals_shaped(sub_question: str) -> bool:
+    """Is this sub-question about the company's financials/valuation?"""
+    low = (sub_question or "").lower()
+    return any(k in low for k in _FUNDAMENTALS_QUERY_KEYWORDS)
+
+
+def anchor_tokens(
+    *,
+    region: str | None,
+    exchange: str | None,
+    industry: str | None = None,
+    sub_question: str = "",
+) -> str:
+    """The corroborating identity token(s) a DEEP/ULTRA researcher web query
+    carries BEYOND the quoted display name (R13).
+
+    - The exchange qualifier (``BSE`` / ``NSE``) for an Indian listing — the one
+      token that pins a ≤3-char ticker to the Indian exchange instead of its
+      famous foreign namesake ("KSE" → the BSE micro-cap, not the Karachi index).
+    - A concise industry term additionally, but ONLY when the sub-question is
+      fundamentals-shaped AND the industry is known — a sector word sharpens a
+      valuation query without diluting a news/price query.
+
+    Empty for a target that needs no anchor (US names, no exchange). Kept SHORT
+    on purpose: keyless engines choke on long queries.
+    """
+    tokens: list[str] = []
+    qualifier = _exchange_qualifier(region, exchange)
+    if qualifier:
+        tokens.append(qualifier)
+    if industry and is_fundamentals_shaped(sub_question):
+        industry_token = _industry_query_token(industry)
+        if industry_token:
+            tokens.append(industry_token)
+    return " ".join(tokens)
 
 
 def date_directive() -> str:
@@ -226,11 +324,13 @@ __all__ = [
     "TIER_GENERAL",
     "TIER_PRESS",
     "TIER_PRIMARY",
+    "anchor_tokens",
     "bias_query",
     "corporate_action_directive",
     "date_directive",
     "domain_of",
     "domain_tier",
+    "is_fundamentals_shaped",
     "priority_note",
     "rank_sources",
     "source_tier",

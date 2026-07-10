@@ -277,3 +277,104 @@ def test_other_companys_filing_title_is_never_evidence() -> None:
         "excerpt": "Q4 results",
     }
     assert relevance.entity_match(own, target=target) >= relevance.MATCH_FLOOR
+
+
+# --- R13 collision-proofing: ≤3-char tickers shadowed by foreign entities -----
+
+
+def _kse():
+    return _target(symbol="KSE", name="KSE Ltd", exchange="BSE")
+
+
+def _itc():
+    return _target(symbol="ITC", name="ITC Limited", exchange="NSE")
+
+
+def test_karachi_titles_rejected_for_kse() -> None:
+    """The live collision: KSE Ltd (BSE-only microcap, formerly Kerala Solvent
+    Extractions) is shadowed on the open web by Karachi's KSE-100. A bare
+    ≤3-char symbol match on a foreign-market row must NOT count."""
+    kse = _kse()
+    rows = [
+        _row("https://tribune.com.pk/kse", "KSE-100 index falls 2% amid selloff"),
+        _row("https://dawn.com/business", "Karachi Stock Exchange hits record high"),
+        _row("https://example.com/psx", "Pakistan Stock Exchange KSE-100 rallies 500 points"),
+        _row("https://example.com/idx", "KSE 100 closes higher on foreign inflows"),
+    ]
+    for row in rows:
+        assert relevance.entity_match(row, target=kse) < relevance.MATCH_FLOOR, row["title"]
+        assert not relevance.row_relevant(row, target=kse), row["title"]
+
+
+def test_legit_indian_kse_rows_are_kept() -> None:
+    """A real KSE Ltd row on an Indian finance host (or ₹-context) IS kept —
+    the corroboration gate must not starve the true company's coverage."""
+    kse = _kse()
+    rows = [
+        _row(
+            "https://www.moneycontrol.com/india/stockpricequote/kse",
+            "KSE Ltd Q4 results: net profit rises on cattle-feed demand",
+            "KSE Ltd reported quarterly numbers",
+        ),
+        _row(
+            "https://example.com/microcap",
+            "KSE Ltd board approves dividend",
+            "The BSE-listed company declared ₹5 per share",
+        ),
+    ]
+    for row in rows:
+        assert relevance.row_relevant(row, target=kse), row["title"]
+    # Exchange-filing provenance still passes outright (verified_symbol).
+    filing = {
+        "url": "https://www.bseindia.com/xml-data/corpfiling/kse.pdf",
+        "title": "Outcome of Board Meeting",
+        "verified_symbol": "KSE",
+    }
+    assert relevance.entity_match(filing, target=kse) == 1.0
+
+
+def test_short_symbol_itc_kept_on_indian_finance_host() -> None:
+    """A legit short Indian ticker (ITC) titled with the bare symbol on a known
+    Indian finance host is corroborated and kept — the gate must not break the
+    ITC/SBI/M&M class the brief calls out."""
+    itc = _itc()
+    rows = [
+        _row("https://www.moneycontrol.com/itc", "ITC Q4 results: PAT up 19.7%"),
+        _row(
+            "https://economictimes.indiatimes.com/itc",
+            "ITC share price rises on FMCG growth",
+        ),
+        _row("https://www.nseindia.com/get-quotes/equity?symbol=ITC", "ITC — NSE quote"),
+    ]
+    for row in rows:
+        assert relevance.row_relevant(row, target=itc), row["title"]
+
+
+def test_short_symbol_foreign_namesake_rejected_for_itc() -> None:
+    """ITC on the NYSE (ITC Holdings, a US utility) must NOT count for the Indian
+    ITC — an uncorroborated short-symbol match with no India context is dropped."""
+    itc = _itc()
+    row = _row(
+        "https://us-utilities.example/itc-holdings",
+        "ITC Holdings reports Q3 transmission earnings",
+        "ITC Holdings, the US electricity transmission utility, said…",
+    )
+    assert relevance.entity_match(row, target=itc) < relevance.MATCH_FLOOR
+    assert not relevance.row_relevant(row, target=itc)
+
+
+def test_marker_lists_are_data_driven_constants() -> None:
+    """The gate is driven by module constants, not a KSE special-case."""
+    assert "moneycontrol.com" in relevance.INDIA_FINANCE_HOSTS
+    assert "kse-100" in relevance.FOREIGN_MARKET_MARKERS
+    assert "karachi" in relevance.FOREIGN_MARKET_MARKERS
+    assert {"bse", "nse", "₹"} <= relevance.INDIA_CONTEXT_MARKERS
+
+
+def test_long_indian_symbols_unaffected_by_the_gate() -> None:
+    """Distinctive names (ROUTE, RELIANCE) still score on their own — the
+    corroboration gate is scoped strictly to the ≤3-char collision class."""
+    reliance = _target(symbol="RELIANCE", name="Reliance Industries Limited")
+    # A press row with no Indian-host and no ₹ marker is STILL kept (long brand).
+    row = _row("https://www.bloomberg.com/x", "Reliance Industries Q4 profit beats estimates")
+    assert relevance.row_relevant(row, target=reliance)

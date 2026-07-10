@@ -393,11 +393,21 @@ async def gather_fast(
         ResearchStep("tool", f"pulled {_ok_legs}/4 data sources", _ms(t1)),
     )
 
-    # 3 — ONE web round. The query frames the instrument by display name so a
-    # web backend ranks on the company, not the bare ticker.
+    # 3 — ONE web round. The query anchors the instrument: the QUOTED display
+    # name pins the engine on the company + the bare ticker for the exact-symbol
+    # hits (R13 — the unquoted "{name} {query}" let a famous foreign namesake
+    # shadow a ≤3-char ticker). Kept short: no exchange/industry token here (the
+    # NORMAL path favours a keyless-engine-friendly query — the DEEP/ULTRA
+    # researcher queries carry the exchange anchor). ``name == symbol`` (no
+    # display name) drops the redundant quoted duplicate.
     t2 = time.perf_counter()
     await _emit(on_step, ResearchStep("search", f"searching the web for {name}"))
-    web = await _web_round(tool_call, f"{name} {query} news outlook")
+    web_query = (
+        f'"{name}" {symbol} {query} news outlook'
+        if name and name.upper() != symbol
+        else f"{symbol} {query} news outlook"
+    )
+    web = await _web_round(tool_call, web_query)
     web_ok = web["available"]
     _hits = len(web["citations"]) or len(web["results"])
     await _emit(

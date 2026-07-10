@@ -212,6 +212,94 @@ RELAXED_FLOOR = 0.2
 #: :data:`MATCH_FLOOR` so it can NEVER count as a source.
 WEAK_MATCH_CEILING = 0.25
 
+#: A symbol shorter than this is COLLISION-PRONE: a bare ≤3-char ticker (KSE,
+#: ITC, M&M) is routinely also a famous foreign index/company, so a title/host
+#: match on it alone is NOT decisive — it needs India/finance corroboration for
+#: an Indian target (R13). A symbol this long or longer (ROUTE, SAKSOFT) is
+#: distinctive enough to stand on its own.
+_SHORT_SYMBOL_LEN = 4
+
+#: Known Indian finance hosts — a row on one of these IS about the Indian
+#: market, so it corroborates a short-symbol match (R13). A focused set of the
+#: outlets that actually cover listed Indian equities.
+INDIA_FINANCE_HOSTS: frozenset[str] = frozenset(
+    {
+        "moneycontrol.com",
+        "economictimes.indiatimes.com",
+        "livemint.com",
+        "business-standard.com",
+        "thehindubusinessline.com",
+        "financialexpress.com",
+        "cnbctv18.com",
+        "ndtvprofit.com",
+        "zeebiz.com",
+        "screener.in",
+        "trendlyne.com",
+        "tickertape.in",
+        "equitymaster.com",
+        "chittorgarh.com",
+        "bseindia.com",
+        "nseindia.com",
+        "sebi.gov.in",
+        "rbi.org.in",
+    }
+)
+
+#: India/finance CONTEXT markers — any one, word-bounded in a row's title/snippet
+#: (or currency glyph), marks the row as about the Indian market and corroborates
+#: a short-symbol match (R13). NOT entity identity (that still comes from the
+#: title/host/url naming the target) — just "is this the Indian ₹ market?".
+INDIA_CONTEXT_MARKERS: frozenset[str] = frozenset(
+    {
+        "₹",
+        "inr",
+        "rs",
+        "rupee",
+        "rupees",
+        "crore",
+        "lakh",
+        "sensex",
+        "nifty",
+        "sebi",
+        "bse",
+        "nse",
+        "india",
+        "indian",
+    }
+)
+
+#: FOREIGN-market markers — a row carrying one of these (Karachi's KSE-100,
+#: Pakistan's exchange) is EXPLICIT negative evidence for an Indian target: the
+#: colliding foreign namesake, not the Indian listing (R13). Data-driven and
+#: general (a list of foreign markets that shadow short Indian tickers), NOT a
+#: KSE special-case. Substring-matched — these tokens are distinctive.
+FOREIGN_MARKET_MARKERS: frozenset[str] = frozenset(
+    {
+        "karachi",
+        "pakistan stock",
+        "pakistan's stock",
+        "psx-100",
+        "kse-100",
+        "kse 100",
+        "kmi-30",
+        "kmi 30",
+        "colombo stock",
+        "dhaka stock",
+        "nairobi securities",
+        "nepal stock",
+    }
+)
+
+#: Foreign finance hosts that shadow Indian tickers (Pakistan/regional press).
+FOREIGN_MARKET_HOSTS: frozenset[str] = frozenset(
+    {
+        "psx.com.pk",
+        "brecorder.com",
+        "dawn.com",
+        "tribune.com.pk",
+    }
+)
+
 _TOKEN_RE = re.compile(r"[a-z0-9][a-z0-9.&-]*")
 
 
@@ -283,41 +371,144 @@ def _bounded(token: str, text: str) -> bool:
     return bool(re.search(rf"(?<![a-z0-9]){re.escape(token)}(?![a-z0-9])", text))
 
 
-def _strong_entity_score(target: ResearchTarget, *, title_lc: str, host: str, url_lc: str) -> float:
-    """The STRONG-channel score: does the title/host/url itself name the target?
+def is_india_target(target: ResearchTarget) -> bool:
+    """Does the bound instrument trade on an Indian exchange?"""
+    if (target.region or "").strip().upper() == "IN":
+        return True
+    return (target.exchange or "").strip().upper() in ("NSE", "BSE")
 
-    Strong signals (any one suffices — the R9 V11 contract that an off-entity
-    source never counts):
 
-    - the SYMBOL, word-bounded in the title, as a host substring, or bounded in
-      the url path/query (``/ROUTE`` / ``symbol=ROUTE``) — 1.0 (0.6 for short
-      3-char symbols, which collide more);
-    - a BRAND name token (sector descriptors excluded) word-bounded in the
-      title, or inside the host (``routemobile.com``) — 1.0;
-    - ALL distinctive name tokens together in the title (covers names whose
-      every token is generic) — 1.0.
+def _marker_present(marker: str, text: str) -> bool:
+    """A context marker in ``text`` — word-bounded for alnum tokens (so ``rs``
+    never matches inside ``rise``), substring for glyphs like ``₹``."""
+    if marker.isalnum():
+        return _bounded(marker, text)
+    return marker in text
 
-    Snippets are deliberately NOT consulted here: a snippet passing-mention is
-    the leak shape (roundups, peer lists, prospectus mentions).
+
+def _india_context(text_lc: str, host: str) -> bool:
+    """Is this row about the Indian ₹ market? — a known Indian finance host, or
+    any India/finance marker word-bounded in the title/snippet. This CORROBORATES
+    a short-symbol match; it is never entity identity on its own (R13)."""
+    if _host_matches(host, INDIA_FINANCE_HOSTS):
+        return True
+    return any(_marker_present(m, text_lc) for m in INDIA_CONTEXT_MARKERS)
+
+
+def _foreign_shadow(text_lc: str, host: str) -> bool:
+    """Explicit foreign-market negative evidence (R13): a Karachi/Pakistan-exchange
+    marker or host means a short-ticker match is the FOREIGN namesake, not the
+    Indian listing — the KSE-100 index, not KSE Ltd on the BSE."""
+    if any(m in text_lc for m in FOREIGN_MARKET_MARKERS):
+        return True
+    return _host_matches(host, FOREIGN_MARKET_HOSTS)
+
+
+def _symbol_only_in_index_form(symbol: str, title_lc: str) -> bool:
+    """True when EVERY bounded occurrence of ``symbol`` in the title is actually
+    part of a larger index token (``KSE-100``, ``KSE 100``) — i.e. the title
+    names a foreign INDEX, not the company. A single standalone occurrence not
+    followed by an index-style numeric suffix makes this False (a real match)."""
+    index_tail = re.compile(r"[\s-]?\d{2,3}(?![a-z0-9])")
+    saw_occurrence = False
+    for m in re.finditer(rf"(?<![a-z0-9]){re.escape(symbol)}(?![a-z0-9])", title_lc):
+        saw_occurrence = True
+        if not index_tail.match(title_lc, m.end()):
+            return False
+    return saw_occurrence
+
+
+def _entity_signals(
+    target: ResearchTarget, *, title_lc: str, host: str, url_lc: str
+) -> tuple[bool, bool]:
+    """Classify how strongly the title/host/url NAMES the target as
+    ``(distinctive, short_only)``:
+
+    - ``distinctive`` — a signal from a ≥4-char symbol/brand token, or all
+      distinctive name tokens together (ROUTE, SAKSOFT, "Global Industries"):
+      strong enough to stand alone.
+    - ``short_only`` — the ONLY signal is a ≤3-char symbol/brand token (KSE,
+      ITC, M&M): collision-prone, so it needs corroboration for an Indian
+      target. A symbol that appears ONLY inside a foreign index token
+      (``KSE-100``) is NOT counted as a signal at all.
     """
     symbol = target.symbol.lower()
-    if len(symbol) >= 3 and (
-        _bounded(symbol, title_lc)
-        or symbol in host
-        or re.search(rf"[/=]{re.escape(symbol)}(?![a-z0-9])", url_lc)
-    ):
-        return 1.0 if len(symbol) >= 4 else 0.6
+    distinctive_sig = False
+    short_sig = False
+
+    if len(symbol) >= 3:
+        sym_in_title = _bounded(symbol, title_lc) and not _symbol_only_in_index_form(
+            symbol, title_lc
+        )
+        sym_hit = (
+            sym_in_title
+            or symbol in host
+            or bool(re.search(rf"[/=]{re.escape(symbol)}(?![a-z0-9])", url_lc))
+        )
+        if sym_hit:
+            if len(symbol) >= _SHORT_SYMBOL_LEN:
+                distinctive_sig = True
+            else:
+                short_sig = True
+
     branded = brand_tokens(target.name)
-    if any(_bounded(t, title_lc) for t in branded):
-        return 1.0
-    if any(len(t) >= 4 and t in host for t in branded):
-        return 1.0
+    for token in branded:
+        if _bounded(token, title_lc) or (len(token) >= 4 and token in host):
+            if len(token) >= _SHORT_SYMBOL_LEN:
+                distinctive_sig = True
+            else:
+                short_sig = True
+
     distinctive = name_tokens(target.name)
     if distinctive and all(_bounded(t, title_lc) for t in distinctive):
-        return 1.0
+        # A single short distinctive token is still short; ≥2 together, or any
+        # long one, is distinctive (covers "Global Industries").
+        if len(distinctive) >= 2 or any(len(t) >= _SHORT_SYMBOL_LEN for t in distinctive):
+            distinctive_sig = True
+        else:
+            short_sig = True
     if not branded and distinctive and all(len(t) >= 4 and t in host for t in distinctive):
         # All-generic name compressed into the host (globalindustries.com).
+        distinctive_sig = True
+
+    return distinctive_sig, short_sig
+
+
+def _strong_entity_score(
+    target: ResearchTarget, *, title_lc: str, host: str, url_lc: str, text_lc: str
+) -> float:
+    """The STRONG-channel score: does the title/host/url itself name the target?
+
+    A DISTINCTIVE signal (a ≥4-char symbol/brand token, or all distinctive name
+    tokens together) scores 1.0 outright — the R9 V11 contract, unchanged for
+    the names it always protected (ROUTE, SAKSOFT, RELIANCE).
+
+    A SHORT-ONLY signal — the only anchor is a ≤3-char ticker/brand token (KSE,
+    ITC, M&M), the collision-prone class — is corroboration-gated for an INDIAN
+    target (R13): it keeps 0.6 ONLY when the row also carries India/finance
+    context (a known Indian finance host, ₹/INR/BSE/NSE/Sensex/Nifty/India), and
+    drops to 0 outright on explicit foreign-market evidence (Karachi / KSE-100 /
+    Pakistan). An uncorroborated short match falls through to the WEAK ceiling —
+    so "KSE-100 index falls 2%" can never count for KSE Ltd, while "ITC Q4 —
+    Moneycontrol" still does for ITC. A non-Indian short symbol keeps the prior
+    0.6 (the collision class the gate targets is IN tickers shadowed abroad).
+
+    Snippets are consulted ONLY for the India/foreign CONTEXT judgement, never
+    for entity identity (a snippet passing-mention is still the leak shape).
+    """
+    distinctive_sig, short_sig = _entity_signals(
+        target, title_lc=title_lc, host=host, url_lc=url_lc
+    )
+    if distinctive_sig:
         return 1.0
+    if not short_sig:
+        return 0.0
+    if not is_india_target(target):
+        return 0.6
+    if _foreign_shadow(text_lc, host):
+        return 0.0
+    if _india_context(text_lc, host):
+        return 0.6
     return 0.0
 
 
@@ -375,9 +566,17 @@ def entity_match(
             return 1.0
         return _token_score(tokens, text, host)
 
-    strong = _strong_entity_score(target, title_lc=title.lower(), host=host, url_lc=url_lc)
+    strong = _strong_entity_score(
+        target, title_lc=title.lower(), host=host, url_lc=url_lc, text_lc=text
+    )
     if strong > 0.0:
         return min(strong, 1.0)
+    # Explicit foreign-market negative evidence (R13): for an Indian target with
+    # no distinctive entity signal, a Karachi/Pakistan-exchange marker means the
+    # row is the colliding foreign namesake — hard 0, never a weak sub-floor
+    # score that could drift toward the keep floor.
+    if is_india_target(target) and _foreign_shadow(text, host):
+        return 0.0
     # Weak channel: the target appears only in the snippet (or via generic
     # tokens). Kept as a sub-floor score for debugging — never a kept source.
     weak = _token_score(name_tokens(target.name), text, host)
@@ -397,12 +596,17 @@ def row_relevant(
 
 __all__ = [
     "CRYPTO_HOSTS",
+    "FOREIGN_MARKET_HOSTS",
+    "FOREIGN_MARKET_MARKERS",
+    "INDIA_CONTEXT_MARKERS",
+    "INDIA_FINANCE_HOSTS",
     "JUNK_HOSTS",
     "MATCH_FLOOR",
     "RELAXED_FLOOR",
     "WEAK_MATCH_CEILING",
     "brand_tokens",
     "entity_match",
+    "is_india_target",
     "name_tokens",
     "query_tokens",
     "row_relevant",

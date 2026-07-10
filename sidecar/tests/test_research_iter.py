@@ -136,7 +136,11 @@ def test_iter_starved_wall_winds_down_cleanly_not_an_abort() -> None:
 
 def test_iter_context_is_reconstructed_not_appended() -> None:
     """The KEY IterResearch property: a later round's plan context carries the
-    distilled report + only the latest round's evidence — NOT the full history."""
+    distilled report + only the latest round's evidence — NOT the full history.
+
+    R13: round 1 is seeded deterministically (no planning turn), so 3 rounds
+    produce 2 planning turns — the reconstruction property is asserted on round 3
+    (the last plan turn)."""
     llm = FakeLLM(distill="DISTILLED_REPORT", reflect="gaps remain")  # never "complete"
     _run(
         run_iter_research(
@@ -146,8 +150,9 @@ def test_iter_context_is_reconstructed_not_appended() -> None:
             budget=BudgetGuard(max_steps=3),  # exactly 3 rounds, then abort→synthesize
         )
     )
-    assert len(llm.plan_prompts) == 3
-    round3 = llm.plan_prompts[2]
+    # Round 1 seeds its fan-out (no plan turn); rounds 2 + 3 plan → 2 prompts.
+    assert len(llm.plan_prompts) == 2
+    round3 = llm.plan_prompts[-1]
     # Round 3 sees the distilled report …
     assert "DISTILLED_REPORT" in round3
     # … and the LATEST round's findings (round 2 = FIND#4..6) …
@@ -168,8 +173,9 @@ def test_iter_report_render_is_capped() -> None:
             budget=BudgetGuard(max_steps=2),
         )
     )
-    # The round-2 plan prompt embeds report.render(); it must be bounded.
-    assert len(llm.plan_prompts[1]) < _REPORT_CHAR_CAP * 2
+    # The round-2 plan prompt (the FIRST plan turn — round 1 is seeded, R13)
+    # embeds report.render(); it must be bounded.
+    assert len(llm.plan_prompts[0]) < _REPORT_CHAR_CAP * 2
 
 
 def test_iter_distill_empty_keeps_shipping() -> None:
@@ -521,3 +527,161 @@ def test_run_loop_deep_fallback_is_never_silent(monkeypatch):
     )
     assert isinstance(brief, ResearchBrief)
     assert brief.note is not None and "fallback" in brief.note
+
+
+# --- R13 filings floor: never "No findings" when structured data exists --------
+
+
+class _DeadLLM:
+    """Every completion is blank — forces the deterministic fallback path so the
+    structured floor is what ships (the live wind-down failure mode)."""
+
+    async def __call__(self, messages: list[Any]) -> str:
+        return ""
+
+
+def _kse_floor_tool_factory():
+    """A tool_call for a KSE-shaped IN target: web_search returns EMPTY, but the
+    price snapshot and corporate_announcements carry real data."""
+
+    async def _tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
+        if name == "resolve_symbol":
+            return {
+                "ok": True,
+                "status": "bound",
+                "resolved": {
+                    "symbol": "KSE",
+                    "name": "KSE Ltd",
+                    "exchange": "BSE",
+                    "region": "IN",
+                    "asset_class": "equity",
+                    "confidence": 1.0,
+                    "isin": "INE953E01022",
+                    "bse_code": "519421",
+                    "industry": None,
+                },
+            }
+        if name == "web_search":
+            return {"ok": True, "citations": [], "results": []}  # thin web — the whole point
+        if name == "price_data":
+            return {"ok": True, "provider": "bse", "quote": {"symbol": "KSE", "price": 142.5}}
+        if name == "fundamentals":
+            return {"ok": False, "error": "no fundamentals provider covers this micro-cap"}
+        if name == "corporate_announcements":
+            return {
+                "ok": True,
+                "announcements": [
+                    {
+                        "ts": "2026-06-30",
+                        "category": "Trading Window",
+                        "headline": "Closure of trading window",
+                        "attachment_url": None,
+                    },
+                    {
+                        "ts": "2026-06-17",
+                        "category": "Board Meeting",
+                        "headline": "Outcome of board meeting",
+                        "attachment_url": "https://www.bseindia.com/xml/kse_bm.pdf",
+                        "exchange": "BSE",
+                    },
+                    {
+                        "ts": "2026-07-03",
+                        "category": "Certificate",
+                        "headline": "SEBI Regulation 74(5) certificate",
+                        "attachment_url": None,
+                    },
+                ],
+            }
+        return {"ok": True, "provider": "test"}
+
+    return _tool
+
+
+def test_filings_floor_replaces_no_findings_when_structured_data_exists() -> None:
+    """The live failure: DEEP round-1 planning ate the wall, the run wound down,
+    and the brief said 'No findings were gathered before the run ended' — while
+    the price snapshot and BSE announcements HAD real data. The floor now builds
+    the brief from those structured legs; the bare 'No findings' line is
+    unreachable whenever a structured leg returned data."""
+    brief = _run(
+        run_iter_research(
+            "KSE outlook",
+            region="IN",
+            tool_call=_kse_floor_tool_factory(),
+            llm_call=_DeadLLM(),
+            budget=BudgetGuard(max_steps=1),  # breach immediately → wind down
+        )
+    )
+    assert isinstance(brief, ResearchBrief)
+    md = brief.markdown
+    assert "No findings were gathered before the run ended" not in md
+    # Built from the structured legs + exchange filings, explicitly framed.
+    assert "exchange data and filings" in md
+    assert "Price & action" in md
+    assert "Outcome of board meeting" in md  # a dated BSE filing reached the body
+    assert "2026-06-17" in md
+    # The floor is honest about the absent fundamentals feed.
+    assert "No fundamentals feed covered this instrument this run" in md
+
+
+def test_filings_floor_wants_disclosures_floor_fires_for_any_indian_target() -> None:
+    from services.research import disclosures
+    from services.research.target import target_from_payload
+
+    kse = target_from_payload(
+        {
+            "ok": True,
+            "resolved": {
+                "symbol": "KSE",
+                "name": "KSE Ltd",
+                "exchange": "BSE",
+                "region": "IN",
+                "asset_class": "equity",
+                "confidence": 1.0,
+            },
+        }
+    )
+    # Fires for ANY India target regardless of sub-question shape…
+    assert disclosures.wants_disclosures_floor(kse) is True
+    # …but a US target never triggers the floor pull.
+    us = target_from_payload(
+        {
+            "ok": True,
+            "resolved": {
+                "symbol": "NVDA",
+                "name": "NVIDIA Corporation",
+                "exchange": "NASDAQ",
+                "region": "US",
+                "asset_class": "equity",
+                "confidence": 1.0,
+            },
+        }
+    )
+    assert disclosures.wants_disclosures_floor(us) is False
+    assert disclosures.wants_disclosures_floor(None) is False
+
+
+# --- R13 depth integrity: round-1 planning skip -------------------------------
+
+
+def test_round_one_skips_the_planning_llm_turn() -> None:
+    """R13: round 1 has nothing to plan against — it seeds its fan-out
+    deterministically (no planning LLM turn), reclaiming the ~60s the funded lane
+    spent planning while its researchers starved. The plan step still traces."""
+    llm = FakeLLM(reflect="complete")
+    brief = _run(
+        run_iter_research(
+            "research NVDA",
+            tool_call=fake_tool,
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=1),  # exactly one round runs, then abort
+        )
+    )
+    assert isinstance(brief, ResearchBrief)
+    # No planning turn was issued for round 1 (the fan-out was seeded).
+    assert llm.plan_prompts == []
+    # …but the plan STEP is still traced, marked as seeded.
+    plan_steps = [s for s in brief.steps if s.kind == "plan"]
+    assert plan_steps and "seeded" in plan_steps[0].detail
+    # Researchers still ran on the seed (findings/sources gathered).
+    assert any(s.kind == "tool" and "researcher" in s.detail for s in brief.steps)

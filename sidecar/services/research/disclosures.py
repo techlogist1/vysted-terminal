@@ -124,6 +124,52 @@ def wants_disclosures(target: ResearchTarget | None, sub_question: str) -> bool:
     return is_india_target(target) and is_disclosure_question(sub_question)
 
 
+def wants_disclosures_floor(target: ResearchTarget | None) -> bool:
+    """The RUN-LEVEL floor trigger (R13): pull the exchange feeds for ANY
+    India-listed target at DEEP/ULTRA, regardless of sub-question shape.
+
+    The per-researcher :func:`wants_disclosures` gate stays sub-question-shaped
+    (a results question consults the feeds; a price question does not). But when
+    web coverage is starving — a thin micro-cap (KSE) whose open-web results are
+    all its foreign namesake, or a run whose planning ate the wall before any
+    researcher fired — the run STILL owes the user the dated exchange filings it
+    can pull deterministically. So the loop pulls announcements ONCE up front for
+    every Indian listing and feeds them to the structured floor
+    (:func:`services.research.deep.build_structured_floor`). Design note: this is
+    a coarse always-on trigger by DESIGN — the feed call is cheap, the data is
+    always relevant for an Indian listing, and it is the difference between a
+    "No findings" brief and one grounded in real filings."""
+    return is_india_target(target)
+
+
+async def gather_floor(
+    tool_call: Any, *, target: ResearchTarget, limit: int = _ANNOUNCEMENT_LIMIT
+) -> dict[str, Any]:
+    """Up-front exchange-announcements pull for the structured floor (R13).
+
+    Returns ``{"ok", "announcements", "rows"}``: ``announcements`` is the raw
+    dated feed (for the floor's brief body), ``rows`` are citable/visitable
+    attachment sources (folded into the run's findings so the floor's brief
+    carries real ``[n]`` sources). Never raises — a feed miss is ``ok: False``
+    with empty lists.
+    """
+    try:
+        announcements = await tool_call(
+            "corporate_announcements", {"symbol": target.symbol, "limit": limit}
+        )
+    except Exception as exc:  # noqa: BLE001 — a feed miss is soft
+        announcements = {"ok": False, "error": f"corporate_announcements failed: {exc}"}
+    if not isinstance(announcements, dict):
+        announcements = {"ok": False, "error": "non-dict corporate_announcements result"}
+    ok = bool(announcements.get("ok"))
+    items = announcements.get("announcements") if ok else []
+    return {
+        "ok": ok,
+        "announcements": items if isinstance(items, list) else [],
+        "rows": announcement_rows(announcements, symbol=target.symbol),
+    }
+
+
 def plan_hint(target: ResearchTarget | None) -> str:
     """One planner-prompt line telling the model the disclosure feeds exist."""
     if not is_india_target(target):
@@ -286,9 +332,11 @@ __all__ = [
     "announcement_rows",
     "fetch_results_calendar",
     "gather",
+    "gather_floor",
     "is_disclosure_question",
     "is_earnings_date_question",
     "is_india_target",
     "plan_hint",
     "wants_disclosures",
+    "wants_disclosures_floor",
 ]

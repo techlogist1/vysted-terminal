@@ -131,7 +131,14 @@ PROFILES: dict[str, DepthProfile] = {
         researchers=3,
         angles=1,
         report_char_cap=6000,
-        wall_seconds=120,
+        # 120 -> 180 (R13): a live DEEP run on the funded OpenRouter lane spent
+        # 60s of its first 90s round slice on PLANNING alone, starving the
+        # researchers; the run wound down with "no findings". The round-1 planning
+        # LLM turn is now skipped (iter seeds the fan-out deterministically) AND
+        # the round slice adapts to observed LLM latency — this wall bump gives
+        # those two fixes real headroom for a genuine second round. Report cap
+        # unchanged (the brief length is the same; only the time budget grew).
+        wall_seconds=180,
         min_web_domains=1,
         cross_check=False,
         site_bias=True,

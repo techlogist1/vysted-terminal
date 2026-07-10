@@ -57,6 +57,7 @@ from services.research.deep import (
     _safe_llm,
     _split_subquestions,
     _synthesize_brief,
+    build_structured_floor,
     coverage_floor_met,
     finalize_markdown,
     record_snapshot_sources,
@@ -262,6 +263,12 @@ async def _synthesis_from_report(
     rendered = report.render()
     if rendered and rendered != "(no findings distilled yet)":
         return f"# Research brief: {query}\n\nSymbol: {symbol}\n\n{rendered}"
+    # R13 filings floor: a dead-LLM wind-down with no distilled report still
+    # ships a brief built from the structured legs + exchange filings — never the
+    # bare "No findings" line when price/announcements/fundamentals were gathered.
+    floor = build_structured_floor(query=query, symbol=symbol, structured=structured or {})
+    if floor is not None:
+        return floor
     return (
         f"# Research brief: {query}\n\nSymbol: {symbol}\n\n"
         "_No findings were gathered before the run ended._"
@@ -334,8 +341,31 @@ async def run_iter_research(
             )
         structured.update(snapshot)
         record_snapshot_sources(findings, target.symbol, structured)
+        # R13 filings floor: pull exchange announcements up front for ANY Indian
+        # listing (wants_disclosures_floor) so a thin-web name still has dated
+        # filings even if planning eats the wall before a researcher fires. Shared
+        # by the heavy panel via the snapshot dict, so guard on absence to pull once.
+        from services.research import disclosures as _disclosures
+
+        if _disclosures.wants_disclosures_floor(target) and structured.get("disclosures") is None:
+            floor = await _disclosures.gather_floor(tool_call, target=target)
+            structured["disclosures"] = {
+                "ok": floor["ok"],
+                "announcements": floor["announcements"],
+                "rows": floor["rows"],
+            }
+            if floor["rows"]:
+                _record_web(
+                    findings,
+                    {"ok": True, "citations": floor["rows"], "results": []},
+                    target=target,
+                    query=query,
+                )
 
     last_round_findings: list[str] = []
+    #: The slowest LLM turn seen so far (seconds) — drives the ADAPTIVE round
+    #: slice (R13) so a slow lane's researchers are not choked by the flat cap.
+    observed_latency = 0.0
 
     async def abort_synthesize(reason: str) -> ResearchBrief:
         from services.research.citecheck import ensure_citation_integrity
@@ -387,52 +417,68 @@ async def run_iter_research(
         Extracted so the round runs under a per-round ``asyncio.timeout`` guard (a
         single slow round can't outlive the wall budget) while still mutating the
         shared ``report``/``findings``/``steps`` accumulators in place."""
-        nonlocal last_round_findings
+        nonlocal last_round_findings, observed_latency
         fan_out = researchers if researchers is not None else max_researchers
         round_visit = visit if allow_visit else None
         report.round += 1
 
-        # --- RECONSTRUCT WORKSPACE: plan from {report + latest evidence} ------
+        # --- plan the round's sub-questions -----------------------------------
         from services.research import disclosures as disclosures_mod
 
-        disclosure_hint = disclosures_mod.plan_hint(target)
-        t0 = time.monotonic()
-        plan_text = await _safe_llm(
-            llm_call,
-            [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are planning the next round of a research run. Based on "
-                        "the working report and the latest evidence, list the open "
-                        "sub-questions STILL unanswered, one per line. Be specific and "
-                        "non-redundant with what the report already covers. Never "
-                        "re-plan a lookup the report's 'Dead ends' section already "
-                        "rules out.\n"
-                        + finance.date_directive()
-                        + (("\n" + disclosure_hint) if disclosure_hint else "")
-                    ),
-                },
-                {
-                    "role": "user",
-                    "content": (
-                        f"Task: {query}\nSymbol: {symbol}\n\n"
-                        f"Working report:\n{report.render()}\n\n"
-                        "Latest evidence:\n"
-                        + ("\n".join(f"- {f}" for f in last_round_findings) or "(first round)")
-                        + f"\n\nCoverage so far: {findings.coverage}"
-                    ),
-                },
-            ],
-        )
-        open_questions = _split_subquestions(plan_text, limit=fan_out) or _default_questions(
-            symbol or query, fan_out
-        )
-        plan_step = ResearchStep(
-            "plan",
-            f"round {report.round}: rebuilt workspace → {len(open_questions)} sub-question(s)",
-            latency_ms=int((time.monotonic() - t0) * 1000),
-        )
+        if report.round == 1:
+            # R13 depth integrity: round 1 has NOTHING to plan against (no findings
+            # yet), yet on the funded lane the separate planning LLM turn ate ~60s
+            # of the 90s slice and STARVED the researchers ("no findings" wind-down).
+            # Seed the fan-out deterministically and spend the whole slice on real
+            # research — the user's query still rides every researcher's web query,
+            # and rounds 2+ plan against the accumulated report where a plan turn
+            # earns its keep.
+            open_questions = _default_questions(symbol or query, fan_out)
+            plan_step = ResearchStep(
+                "plan",
+                f"round 1: seeded {len(open_questions)} sub-question(s) (planning rides round 2)",
+                latency_ms=0,
+            )
+        else:
+            disclosure_hint = disclosures_mod.plan_hint(target)
+            t0 = time.monotonic()
+            plan_text = await _safe_llm(
+                llm_call,
+                [
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are planning the next round of a research run. Based on "
+                            "the working report and the latest evidence, list the open "
+                            "sub-questions STILL unanswered, one per line. Be specific and "
+                            "non-redundant with what the report already covers. Never "
+                            "re-plan a lookup the report's 'Dead ends' section already "
+                            "rules out.\n"
+                            + finance.date_directive()
+                            + (("\n" + disclosure_hint) if disclosure_hint else "")
+                        ),
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Task: {query}\nSymbol: {symbol}\n\n"
+                            f"Working report:\n{report.render()}\n\n"
+                            "Latest evidence:\n"
+                            + ("\n".join(f"- {f}" for f in last_round_findings) or "(first round)")
+                            + f"\n\nCoverage so far: {findings.coverage}"
+                        ),
+                    },
+                ],
+            )
+            observed_latency = max(observed_latency, time.monotonic() - t0)
+            open_questions = _split_subquestions(plan_text, limit=fan_out) or _default_questions(
+                symbol or query, fan_out
+            )
+            plan_step = ResearchStep(
+                "plan",
+                f"round {report.round}: rebuilt workspace → {len(open_questions)} sub-question(s)",
+                latency_ms=int((time.monotonic() - t0) * 1000),
+            )
         steps.append(plan_step)
         await _emit(on_step, plan_step)
 
@@ -480,6 +526,7 @@ async def run_iter_research(
             round_findings=last_round_findings,
             findings=findings,
         )
+        observed_latency = max(observed_latency, time.monotonic() - distill_t0)
         if new_body.strip():
             report.body = new_body.strip()  # else KEEP the prior report — never blank
         distill_step = ResearchStep(
@@ -513,6 +560,7 @@ async def run_iter_research(
                 },
             ],
         )
+        observed_latency = max(observed_latency, time.monotonic() - reflect_t0)
         reflect_step = ResearchStep(
             "reflect", "assessed coverage", latency_ms=int((time.monotonic() - reflect_t0) * 1000)
         )
@@ -557,7 +605,7 @@ async def run_iter_research(
         # abort — with findings in hand and wall to spare, ONE constrained
         # wind-down round (a single researcher, no page visits) runs, then the
         # loop closes CLEANLY.
-        limit = _round_wall_limit(budget)
+        limit = _round_wall_limit(budget, observed_latency=observed_latency)
         try:
             async with asyncio.timeout(limit):
                 done = await _run_round()
@@ -574,7 +622,7 @@ async def run_iter_research(
                 report.body.strip() or last_round_findings or findings.all_sources()
             )
             if has_findings and (wall_left is None or wall_left >= MIN_ROUND_WALL_SECS):
-                retry_limit = _round_wall_limit(budget)
+                retry_limit = _round_wall_limit(budget, observed_latency=observed_latency)
                 retry_step = ResearchStep(
                     "plan", "one wind-down round (1 researcher, visits off)", status="ok"
                 )
@@ -864,6 +912,18 @@ async def run_heavy_research(
         snapshot = await snapshot_structured(
             tool_call, target.symbol, region=region, canonical_name=target.name
         )
+        # R13 filings floor: pull exchange announcements ONCE for the whole panel
+        # and share via the snapshot dict — every angle's structured floor (and
+        # each explorer that winds down thin) then carries the same dated filings.
+        from services.research import disclosures as _disclosures
+
+        if _disclosures.wants_disclosures_floor(target):
+            floor = await _disclosures.gather_floor(tool_call, target=target)
+            snapshot["disclosures"] = {
+                "ok": floor["ok"],
+                "announcements": floor["announcements"],
+                "rows": floor["rows"],
+            }
 
     # --- panel plan: split into N distinct, non-overlapping angles -----------
     t0 = time.monotonic()

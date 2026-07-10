@@ -157,3 +157,48 @@ def test_corporate_action_directive_is_wired_into_every_synthesis_prompt() -> No
     iter_src = (research_dir / "iter.py").read_text(encoding="utf-8")
     assert deep_src.count("finance.corporate_action_directive()") == 1  # _final_synthesis
     assert iter_src.count("finance.corporate_action_directive()") == 3  # report/section/heavy
+
+
+# --- R13 entity-anchoring: the corroborating identity token(s) --------------
+
+
+def test_anchor_tokens_indian_listing_gets_exchange_qualifier() -> None:
+    # A BSE-listed target gets the exchange token; NSE gets NSE.
+    assert finance.anchor_tokens(region="IN", exchange="BSE", sub_question="news") == "BSE"
+    assert finance.anchor_tokens(region="IN", exchange="NSE", sub_question="news") == "NSE"
+    # Region IN with no explicit exchange still anchors (defaults to NSE listing).
+    assert finance.anchor_tokens(region="IN", exchange=None, sub_question="news") == "NSE"
+
+
+def test_anchor_tokens_us_target_is_empty() -> None:
+    # A US name needs no exchange token — its quoted display name pins it.
+    assert finance.anchor_tokens(region="US", exchange="US", sub_question="revenue") == ""
+    assert finance.anchor_tokens(region=None, exchange=None, sub_question="revenue") == ""
+
+
+def test_anchor_tokens_industry_only_on_fundamentals_questions() -> None:
+    industry = "Oil, Gas & Consumable Fuels / Refineries & Marketing"
+    # Fundamentals-shaped → exchange + a concise industry token.
+    assert (
+        finance.anchor_tokens(
+            region="IN", exchange="NSE", industry=industry, sub_question="revenue growth"
+        )
+        == "NSE Refineries"
+    )
+    # News/price-shaped → exchange only (the industry word would dilute recall).
+    assert (
+        finance.anchor_tokens(
+            region="IN", exchange="NSE", industry=industry, sub_question="recent news"
+        )
+        == "NSE"
+    )
+
+
+def test_anchor_tokens_absent_industry_contributes_nothing() -> None:
+    # KSE's industry is genuinely None — the anchor is just the exchange token.
+    assert (
+        finance.anchor_tokens(
+            region="IN", exchange="BSE", industry=None, sub_question="quarterly earnings"
+        )
+        == "BSE"
+    )

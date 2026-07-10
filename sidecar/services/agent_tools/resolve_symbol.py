@@ -31,6 +31,13 @@ def _instrument_dict(instrument: Any) -> dict[str, Any]:
         "asset_class": instrument.asset_class,
         "yahoo_symbol": instrument.yahoo_symbol,
         "confidence": round(instrument.score, 3),
+        # R13 additive identity enrichment — carried so the research target
+        # (target.py) can anchor web queries + relevance on the ISIN / exchange /
+        # industry, not just a colliding ≤3-char ticker. Null, never fabricated.
+        "isin": instrument.isin,
+        "bse_code": instrument.bse_code,
+        "industry": instrument.industry,
+        "former_name": instrument.former_name,
     }
 
 

@@ -529,3 +529,107 @@ def test_final_synthesis_prompt_carries_the_corporate_action_directive() -> None
     assert all("CORPORATE ACTIONS" in p for p in synthesis_prompts)
     assert all("filing number" in p for p in synthesis_prompts)
     assert all("unverified in this run" in p for p in synthesis_prompts)
+
+
+# --- R13 entity-anchored researcher web query -------------------------------
+
+
+def _kse_target():
+    from services.research.target import target_from_payload
+
+    return target_from_payload(
+        {
+            "ok": True,
+            "resolved": {
+                "symbol": "KSE",
+                "name": "KSE Ltd",
+                "exchange": "BSE",
+                "region": "IN",
+                "asset_class": "equity",
+                "confidence": 1.0,
+                "isin": "INE953E01022",
+                "bse_code": "519421",
+                "industry": None,
+            },
+        }
+    )
+
+
+def test_researcher_web_query_anchors_kse_on_bse() -> None:
+    """A ≤3-char BSE ticker (KSE, shadowed by Karachi's KSE-100) is anchored by
+    its quoted display name PLUS the BSE exchange token — never the bare ticker
+    that let the Karachi index shadow it."""
+    kse = _kse_target()
+    q = deep._researcher_web_query("recent news and catalysts", target=kse, query="KSE")
+    assert q == '"KSE Ltd" KSE BSE recent news and catalysts'
+    # Fundamentals-shaped: still BSE-anchored (KSE has no industry to add).
+    q2 = deep._researcher_web_query(
+        "what the latest earnings and revenue show", target=kse, query="KSE"
+    )
+    assert q2 == '"KSE Ltd" KSE BSE what the latest earnings and revenue show'
+
+
+def test_researcher_web_query_adds_industry_on_fundamentals() -> None:
+    from services.research.target import target_from_payload
+
+    rel = target_from_payload(
+        {
+            "ok": True,
+            "resolved": {
+                "symbol": "RELIANCE",
+                "name": "Reliance Industries Limited",
+                "exchange": "NSE",
+                "region": "IN",
+                "asset_class": "equity",
+                "confidence": 1.0,
+                "industry": "Oil, Gas & Consumable Fuels / Refineries & Marketing",
+            },
+        }
+    )
+    q = deep._researcher_web_query("revenue growth and margin trend", target=rel, query="Reliance")
+    assert q == (
+        '"Reliance Industries Limited" RELIANCE NSE Refineries revenue growth and margin trend'
+    )
+
+
+def test_researcher_web_query_web_only_target_unanchored() -> None:
+    # No bound instrument → the clean query + sub-question, no anchor tokens.
+    q = deep._researcher_web_query("what is the outlook", target=None, query="some theme")
+    assert q == "some theme what is the outlook"
+
+
+# --- R13 structured floor unit contract -------------------------------------
+
+
+def test_build_structured_floor_none_when_no_structured_data() -> None:
+    from services.research.deep import build_structured_floor
+
+    assert build_structured_floor(query="x", symbol="", structured={}) is None
+    empty = {"price": {"ok": False}, "fundamentals": {"ok": False}}
+    assert build_structured_floor(query="x", symbol="KSE", structured=empty) is None
+
+
+def test_build_structured_floor_renders_price_and_dated_filings() -> None:
+    from services.research.deep import build_structured_floor
+
+    structured = {
+        "price": {"ok": True, "provider": "bse", "data": {"quote": {"price": 142.5}}},
+        "fundamentals": {"ok": False},
+        "disclosures": {
+            "ok": True,
+            "announcements": [
+                {
+                    "ts": "2026-06-17",
+                    "category": "Board Meeting",
+                    "headline": "Outcome of board meeting",
+                },
+            ],
+            "rows": [],
+        },
+    }
+    md = build_structured_floor(query="KSE outlook", symbol="KSE", structured=structured)
+    assert md is not None
+    assert "exchange data and filings" in md
+    assert "142.5" in md
+    assert "2026-06-17" in md and "Outcome of board meeting" in md
+    assert "No findings" not in md

@@ -34,6 +34,13 @@ def _instrument_payload(instrument: symbol_resolver.Instrument) -> dict[str, obj
         "asset_class": instrument.asset_class,
         "yahoo_symbol": instrument.yahoo_symbol,
         "confidence": round(instrument.score, 4),
+        # R13 additive identity enrichment — read-only ISIN / scrip / industry
+        # join. Null when the bundled data does not carry it (US names, an
+        # uncovered micro-cap), never fabricated.
+        "isin": instrument.isin,
+        "bse_code": instrument.bse_code,
+        "industry": instrument.industry,
+        "former_name": instrument.former_name,
     }
     # R12 (D66): a symbol answered as its CURRENT form carries explicit rename
     # provenance — the picker can badge "renamed from …", never a silent swap.
