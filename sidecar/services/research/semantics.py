@@ -312,6 +312,7 @@ def _growth_leg(fund: dict[str, Any], provider: str) -> tuple[dict[str, Any], li
     """
     quarters = fund.get("growth_computed_quarters")
     quarters = quarters if isinstance(quarters, dict) else None
+    financial = _is_financial_sector(fund)
     facts: dict[str, Any] = {}
     conflicts: list[dict[str, Any]] = []
     for provider_key, computed_key, scalar_name, label in _GROWTH_CHECKS:
@@ -333,8 +334,23 @@ def _growth_leg(fund: dict[str, Any], provider: str) -> tuple[dict[str, Any], li
             if quarters and quarters.get("mrq") and quarters.get("prior")
             else ""
         )
+        # The bank-revenue case (D69): a financial-sector REVENUE divergence rides
+        # different revenue-line definitions (interest income vs total income),
+        # a known DEFINITIONAL mismatch — not a data contradiction. Earnings, and
+        # any non-financial revenue divergence, stay data_conflict.
+        bank_revenue = provider_key == "revenue_growth" and financial
+        line_note = (
+            "the scalar rides the bank/financial revenue-line definition "
+            "(interest income vs total income), which differs from the computed "
+            "figure by construction"
+            if bank_revenue
+            else "the scalar may ride a different line definition (bank revenue) "
+            "or a restated base quarter"
+        )
         conflict: dict[str, Any] = {
             "field": provider_key,
+            "kind": "growth_conflict",
+            "conflict_kind": _CONFLICT_DEFINITIONAL if bank_revenue else _CONFLICT_DATA,
             "sources": [
                 {
                     "provider": f"{provider} ({scalar_name})",
@@ -352,15 +368,28 @@ def _growth_leg(fund: dict[str, Any], provider: str) -> tuple[dict[str, Any], li
                 "MRQ YoY but disagrees with the figure computed from its own "
                 f"quarterly income statements{quarter_note} beyond tolerance — "
                 "the statement-derived figure reconciles against reported "
-                "quarterly results; the scalar may ride a different line "
-                "definition (bank revenue) or a restated base quarter. The "
-                "provider value is shown unchanged."
+                f"quarterly results; {line_note}. The provider value is shown "
+                "unchanged."
             ),
         }
         if quarters:
             conflict["quarters"] = dict(quarters)
         conflicts.append(conflict)
     return facts, conflicts
+
+
+#: yfinance ``sector`` labels whose "revenue" is definitionally ambiguous — a
+#: bank/financial reports interest income vs total income vs net interest
+#: income, so ``revenueGrowth`` (scalar) and the statement-computed figure ride
+#: DIFFERENT revenue lines. A revenue-growth divergence for these is a
+#: DEFINITIONAL mismatch (D69), not a data contradiction.
+_FINANCIAL_SECTORS = frozenset({"financial services", "financials", "financial"})
+
+
+def _is_financial_sector(fund: dict[str, Any]) -> bool:
+    """True when the fundamentals leg reports a bank/financial sector."""
+    sector = fund.get("sector")
+    return isinstance(sector, str) and sector.strip().lower() in _FINANCIAL_SECTORS
 
 
 def _diverges_by_factor(a: float, b: float, factor: float) -> bool:
@@ -721,6 +750,13 @@ def derive_semantics(
     )
     if identity is not None:
         conflicts.append(identity)
+
+    # D69: every conflict carries a NATURE discriminator. The ownership/dividend/
+    # growth legs set it explicitly; a builder that didn't (dividend_yield,
+    # market_cap, identity) defaults to data_conflict — a genuine cross-source
+    # contradiction — so existing readers are unchanged and every entry is typed.
+    for conflict in conflicts:
+        conflict.setdefault("conflict_kind", _CONFLICT_DATA)
 
     data["conflicts"] = conflicts
     return {"ok": True, "provider": "derived", "data": data}

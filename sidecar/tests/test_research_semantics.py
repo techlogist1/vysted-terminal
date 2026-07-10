@@ -618,3 +618,74 @@ def test_dividend_declared_absent_leaves_ttm_label_lowercase() -> None:
     )
     assert data["dividend_per_share_ttm"]["label"] == "Dividend/share (trailing 12m paid)"
     assert not any(c.get("kind") == "dividend_reconciliation" for c in data["conflicts"])
+
+
+# --- conflict kinds: definitional vs data (R13 / D69) -----------------------
+
+
+def test_bank_revenue_growth_divergence_is_definitional_expected() -> None:
+    # A financial-sector (bank) revenue-growth divergence rides different revenue
+    # lines (interest income vs total income) — a DEFINITIONAL mismatch.
+    data = _derived(
+        _structured(
+            fund={
+                "sector": "Financial Services",
+                "revenue_growth": 0.669,
+                "revenue_growth_computed": 0.02,
+            }
+        )
+    )
+    conflict = next(c for c in data["conflicts"] if c["field"] == "revenue_growth")
+    assert conflict["conflict_kind"] == "definitional_expected"
+    assert conflict["kind"] == "growth_conflict"
+
+
+def test_bank_earnings_growth_divergence_stays_data_conflict() -> None:
+    # Earnings (net income) is not definitionally ambiguous the way bank revenue
+    # is — even for a financial, an earnings divergence stays a data_conflict.
+    data = _derived(
+        _structured(
+            fund={
+                "sector": "Financial Services",
+                "earnings_growth": -0.031,
+                "earnings_growth_computed": 0.056,
+            }
+        )
+    )
+    conflict = next(c for c in data["conflicts"] if c["field"] == "earnings_growth")
+    assert conflict["conflict_kind"] == "data_conflict"
+
+
+def test_non_bank_revenue_growth_divergence_is_data_conflict() -> None:
+    data = _derived(
+        _structured(
+            fund={
+                "sector": "Technology",
+                "revenue_growth": 0.669,
+                "revenue_growth_computed": 0.02,
+            }
+        )
+    )
+    conflict = next(c for c in data["conflicts"] if c["field"] == "revenue_growth")
+    assert conflict["conflict_kind"] == "data_conflict"
+
+
+def test_market_cap_conflict_defaults_to_data_conflict() -> None:
+    # price 80 x shares 10 = 800 implied vs provider market_cap 2000 → >5% gap.
+    data = _derived(
+        _structured(price=80.0, fund={"market_cap": 2000.0, "shares_outstanding": 10.0})
+    )
+    conflict = next(c for c in data["conflicts"] if c["field"] == "market_cap")
+    assert conflict["conflict_kind"] == "data_conflict"
+
+
+def test_identity_conflict_keeps_its_type_and_defaults_nature_to_data() -> None:
+    leg = derive_semantics(
+        _structured(fund={"name": "Gujarat Energy Limited"}),
+        "IN",
+        canonical_name="Gujarat Gas Limited",
+        symbol="GUJGASLTD",
+    )
+    identity = next(c for c in leg["data"]["conflicts"] if c["field"] == "identity")
+    assert identity["kind"] == "identity_conflict"  # TYPE discriminator preserved
+    assert identity["conflict_kind"] == "data_conflict"  # NATURE default (orthogonal)
