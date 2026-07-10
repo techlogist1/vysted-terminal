@@ -42,6 +42,18 @@ class _FakeBackend:
         )
 
 
+class _EmptyBackend:
+    """An UP backend that answers ``ok: True`` with ZERO results — the live
+    R13 bug shape: a managed SearXNG whose upstream engines are all dead still
+    serves HTTP 200 with ``results: []`` for every query."""
+
+    def __init__(self, backend: str = "searxng") -> None:
+        self.backend = backend
+
+    async def search(self, query: str, *, options=None) -> SearchResponse:  # noqa: ANN001
+        return SearchResponse(results=[], citations=[], backend=self.backend, query=query)
+
+
 def _run(coro):
     return asyncio.run(coro)
 
@@ -303,6 +315,99 @@ def test_ddg_defensive_floor_is_stamped_as_fallback(
     assert out["ok"] is True
     assert out["backend"] == KEYLESS_FALLBACK_BACKEND_ID
     assert out["results"][0]["url"] == "https://x.com/a"
+
+
+# --- Up-but-empty SearXNG cross-check (D25 extension, live R13 fix) -----------
+#
+# LIVE ROOT CAUSE: the managed SearXNG container's upstream engines were all
+# dead (CAPTCHA-suspended/timeouts) but it served HTTP 200 with
+# ``results: []`` for EVERY query — a false "no web sources found" claim. An
+# ``ok: True`` zero-result SearXNG answer is now cross-checked against the
+# keyless floor once before being accepted, mirroring the keyless tier's own
+# internal doctrine (rotate to cross-check before declaring "found nothing",
+# services/search/keyless.py).
+
+
+def test_searxng_ok_empty_cross_checks_floor_and_serves_its_rows(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(a) SearXNG ok+empty, floor has rows → the floor's rows are served,
+    stamped ``keyless-fallback``, and the run's keyless_fallback telemetry is
+    incremented (same accounting as the search-time-failure degrade)."""
+    from services.search import registry
+
+    def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+        if active_id == "searxng" and kw.get("searxng_url"):
+            return _EmptyBackend("searxng")
+        if active_id == "keyless":
+            return _FakeBackend("keyless")
+        return None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, True)
+
+    telemetry = config.begin_search_telemetry()
+    with _request(r7="tier_a"):
+        out = _run(_web_search({"query": '"KSE Ltd" KSE news outlook'}))
+
+    assert out["ok"] is True
+    assert out["backend"] == KEYLESS_FALLBACK_BACKEND_ID
+    assert out["results"][0]["url"] == "https://x.com/a"
+    assert telemetry["keyless_fallback_searches"] == 1
+
+
+def test_searxng_ok_empty_and_floor_also_empty_stays_honest_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(b) SearXNG ok+empty, floor ALSO ok+empty → the SearXNG empty answer
+    stands as ``ok: True`` with no results — a genuine "no results" is not an
+    error and the floor is never faked into having found something."""
+    from services.search import registry
+
+    def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+        if active_id == "searxng" and kw.get("searxng_url"):
+            return _EmptyBackend("searxng")
+        if active_id == "keyless":
+            return _EmptyBackend("keyless")
+        return None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, True)
+
+    with _request(r7="tier_a"):
+        out = _run(_web_search({"query": '"KSE Ltd" KSE news outlook'}))
+
+    assert out["ok"] is True
+    assert out["backend"] == "searxng"
+    assert out["results"] == []
+
+
+def test_searxng_with_results_never_consults_the_floor(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(c) SearXNG answering WITH results is trusted as-is — the cross-check
+    floor is never even resolved."""
+    from services.search import registry
+
+    calls: list[str] = []
+
+    def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+        calls.append(active_id)
+        if active_id == "searxng" and kw.get("searxng_url"):
+            return _FakeBackend("searxng")
+        if active_id == "keyless":
+            return _FakeBackend("keyless")
+        return None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, True)
+
+    with _request(r7="tier_a"):
+        out = _run(_web_search({"query": "x"}))
+
+    assert out["ok"] is True
+    assert out["backend"] == "searxng"
+    assert "keyless" not in calls and "ddg" not in calls
 
 
 # --- Existing contract — unchanged behaviours ---------------------------------
