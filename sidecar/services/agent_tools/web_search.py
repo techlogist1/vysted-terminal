@@ -19,6 +19,19 @@ dead custom URL) degrades the same way: one retry on the keyless floor, stamped
 ``keyless-fallback`` — same local/keyless privacy class, no key/cost boundary
 crossed, and the honest id means no banner can claim SearXNG served the run.
 
+D25's semantics now extend to a SearXNG instance that is UP but EMPTY: a
+container whose upstream engines are all dead (CAPTCHA-suspended, timing out)
+can still answer HTTP 200 with ``results: []`` for every query — indistinguishable
+at the transport layer from a genuinely-empty answer, and left unchecked it
+silently starves every research run. So an ``ok: True`` zero-result SearXNG
+answer is cross-checked against the keyless floor ONCE before being accepted —
+same local/keyless privacy class as the other degrades, and mirroring the
+keyless tier's own internal doctrine (rotate to cross-check before declaring
+"found nothing", :mod:`services.search.keyless`). Rows on the floor: served,
+stamped ``keyless-fallback``. Floor also empty or unavailable: the SearXNG
+empty answer stands (that's an honest "no results", not a silent floor).
+SearXNG answering WITH results is trusted as-is — the floor is never consulted.
+
 Legacy headers map per the R9 migration (``config.get_effective_research_tier``
 folds them); the dead R7/R8 lanes (Exa-direct, the OpenRouter web-plugin
 hosted scraper) are GONE — no legacy lane reaches a paid backend from here.
@@ -100,7 +113,10 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
     or, when nothing can serve / the backend fails, ``{"ok": False,
     "message": <human reason>}`` — never raw JSON, never a fabricated source.
     A SearXNG backend that fails at search time degrades ONCE to the keyless
-    floor (stamped ``keyless-fallback``) instead of erring.
+    floor (stamped ``keyless-fallback``) instead of erring. A SearXNG backend
+    that answers ``ok: True`` with ZERO results is cross-checked against the
+    keyless floor ONCE (D25 extends to up-but-empty) before the empty answer
+    is accepted — a live-but-content-dead SearXNG never silently starves a run.
     """
     query = args.get("query")
     if not isinstance(query, str) or not query.strip():
@@ -127,6 +143,26 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
         if floor is not None:
             out = await _dispatch(floor, query, num_results, category, region)
             label = KEYLESS_FALLBACK_BACKEND_ID
+
+    # An UP-BUT-EMPTY SearXNG (HTTP 200, zero results) is indistinguishable at
+    # the transport layer from a genuinely-empty answer — but when every
+    # upstream engine behind the container is dead (CAPTCHA-suspended,
+    # timing out) it answers this way for EVERY query, silently starving the
+    # run. Cross-check the keyless floor ONCE before accepting "no results" —
+    # the same doctrine the keyless tier applies to itself (rotate to
+    # cross-check before declaring found-nothing, services/search/keyless.py
+    # ``no results`` handling). ``label is None`` ⟺ a SearXNG lane just
+    # served (never re-enters after the unreachable-degrade above already
+    # relabeled it); SearXNG WITH results skips this entirely.
+    if out.get("ok") is True and label is None and not out.get("results"):
+        floor = await _keyless_floor(region)
+        if floor is not None:
+            floor_out = await _dispatch(floor, query, num_results, category, region)
+            if floor_out.get("ok") is True and floor_out.get("results"):
+                out = floor_out
+                label = KEYLESS_FALLBACK_BACKEND_ID
+            # Floor also empty or errored: keep the SearXNG empty answer —
+            # that's an honest "no results", not a silent floor.
 
     if out.get("ok") is True and label is None:
         # A SearXNG-served search: record it so the run's brief stamp can tell
