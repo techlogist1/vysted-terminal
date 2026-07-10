@@ -250,7 +250,12 @@ def test_results_calendar_parses_and_sorts(monkeypatch: pytest.MonkeyPatch) -> N
 
 
 def test_shareholding_parses_quarters_newest_first(monkeypatch: pytest.MonkeyPatch) -> None:
+    from services import bse_provider
+
     monkeypatch.setattr(nse_provider, "get_shareholding_master", lambda symbol: _NSE_SHAREHOLDING)
+    # The BSE split-enrich lane carries nothing this run — the labeled NSE
+    # patterns stand, split honestly None (never fabricated).
+    monkeypatch.setattr(bse_provider, "get_shareholding", lambda symbol: [])
 
     response = corporate_disclosures.get_shareholding("RELIANCE")
     assert response.symbol == "RELIANCE"
@@ -259,15 +264,122 @@ def test_shareholding_parses_quarters_newest_first(monkeypatch: pytest.MonkeyPat
     assert latest.quarter_end == date(2026, 3, 31)
     assert latest.promoter_percent == 50.0
     assert latest.public_percent == 50.0
+    # The NSE "public" bucket folds institutions in — it is labeled as such and
+    # the non-institutional slice stays None until the BSE XBRL supplies it.
+    assert latest.public_basis == "incl. institutions"
+    assert latest.public_non_institutional_percent is None
     assert latest.employee_trusts_percent == 0.0
     # NSE-first for a dual-listed name — the source label + honest None FII/DII.
     assert latest.source == "NSE"
     assert latest.fii_percent is None and latest.dii_percent is None
     assert latest.institutions_percent is None
+    assert latest.split_source is None and latest.split_as_of is None
     assert latest.xbrl_url and latest.xbrl_url.startswith("https://nsearchives.nseindia.com/")
     assert latest.submission_date == date(2026, 4, 21)
     assert prior.quarter_end == date(2025, 12, 31)
     assert prior.promoter_percent == 50.01
+
+
+def test_shareholding_dual_listed_recovers_bse_split(monkeypatch: pytest.MonkeyPatch) -> None:
+    """SIL-shaped: a dual-listed NSE name whose NSE master carries no FII/DII split
+    and folds institutions into the public bucket (public 79.69) recovers the true
+    split (FII 38.86 / DII 4.04 / institutions 42.90) + the non-institutional public
+    (36.79) from the BSE SEBI XBRL for the matching quarter."""
+    from services import bse_provider
+
+    monkeypatch.setattr(
+        nse_provider,
+        "get_shareholding_master",
+        lambda symbol: [
+            {
+                "symbol": "SIL",
+                "date": "31-MAR-2026",
+                "pr_and_prgrp": "20.31",
+                "public_val": "79.69",
+                "employeeTrusts": "0.0",
+                "submissionDate": "05-Apr-2026",
+                "xbrl": "https://nsearchives.nseindia.com/sil_SP.xml",
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        bse_provider,
+        "get_shareholding",
+        lambda symbol: [
+            {
+                "quarter_end": date(2026, 3, 31),
+                "submission_date": date(2026, 4, 5),
+                "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/sil_SP.html",
+                "source": "BSE",
+                "promoter_percent": 20.31,
+                "public_percent": 79.69,
+                "public_non_institutional_percent": 36.79,
+                "institutions_percent": 42.9,
+                "fii_percent": 38.86,
+                "dii_percent": 4.04,
+            }
+        ],
+    )
+    response = corporate_disclosures.get_shareholding("SIL")
+    latest = response.patterns[0]
+    # The NSE master still serves the pattern (source NSE) with its labeled public.
+    assert latest.source == "NSE"
+    assert latest.public_percent == 79.69
+    assert latest.public_basis == "incl. institutions"
+    # ...but the FII/DII split + the true non-institutional public are recovered.
+    assert latest.fii_percent == 38.86
+    assert latest.dii_percent == 4.04
+    assert latest.institutions_percent == 42.9
+    assert latest.public_non_institutional_percent == 36.79
+    # Provenance of the merged split is honest: from BSE, as-of the same quarter.
+    assert latest.split_source == "BSE"
+    assert latest.split_as_of == date(2026, 3, 31)
+
+
+def test_shareholding_dual_listed_split_nearest_quarter(monkeypatch: pytest.MonkeyPatch) -> None:
+    """RBA/UFO-shaped: the NSE lane carries a mid-quarter EVENT filing (2026-06-02)
+    that has no exact BSE match — the split is merged from the NEAREST BSE quarter
+    (2026-03-31) and stamped ``split_as_of`` so the as-of is never silently aligned."""
+    from services import bse_provider
+
+    monkeypatch.setattr(
+        nse_provider,
+        "get_shareholding_master",
+        lambda symbol: [
+            {
+                "symbol": "RBA",
+                "date": "02-JUN-2026",  # event-driven mid-quarter filing
+                "pr_and_prgrp": "9.22",
+                "public_val": "90.78",
+                "submissionDate": "03-Jun-2026",
+                "xbrl": "https://nsearchives.nseindia.com/rba_SP.xml",
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        bse_provider,
+        "get_shareholding",
+        lambda symbol: [
+            {
+                "quarter_end": date(2026, 3, 31),
+                "source": "BSE",
+                "promoter_percent": 11.26,
+                "public_percent": 88.74,
+                "public_non_institutional_percent": 42.6,
+                "institutions_percent": 48.18,
+                "fii_percent": 8.19,
+                "dii_percent": 39.98,
+            }
+        ],
+    )
+    response = corporate_disclosures.get_shareholding("RBA")
+    latest = response.patterns[0]
+    assert latest.quarter_end == date(2026, 6, 2)
+    assert latest.dii_percent == 39.98 and latest.fii_percent == 8.19
+    assert latest.institutions_percent == 48.18
+    # The split came from the nearest BSE quarter, honestly as-of-labeled.
+    assert latest.split_source == "BSE"
+    assert latest.split_as_of == date(2026, 3, 31)
 
 
 def test_shareholding_bse_only_symbol_routes_to_bse_lane(
@@ -396,7 +508,10 @@ def test_corporate_announcements_tool_surfaces_provider_error(
 def test_shareholding_pattern_tool_round_trip(
     monkeypatch: pytest.MonkeyPatch, _registered_tools: Any
 ) -> None:
+    from services import bse_provider
+
     monkeypatch.setattr(nse_provider, "get_shareholding_master", lambda symbol: _NSE_SHAREHOLDING)
+    monkeypatch.setattr(bse_provider, "get_shareholding", lambda symbol: [])
 
     result = asyncio.run(agent_tools.invoke_tool("shareholding_pattern", {"symbol": "RELIANCE"}))
     assert result["ok"] is True
@@ -405,6 +520,7 @@ def test_shareholding_pattern_tool_round_trip(
     assert result["patterns"][0]["quarter_end"] == "2026-03-31"
     assert result["patterns"][0]["promoter_percent"] == 50.0
     assert result["patterns"][0]["fii_percent"] is None
+    assert result["patterns"][0]["public_basis"] == "incl. institutions"
     assert "xbrl_url" in result["note"]
 
 
