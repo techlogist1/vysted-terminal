@@ -260,3 +260,107 @@ def test_get_fundamentals_accepts_a_legitimate_bse_name(monkeypatch) -> None:  #
     fundamentals = yfinance_provider.get_fundamentals("RELIANCE.BO")
     assert fundamentals.name == "Reliance Industries, Ltd."
     assert fundamentals.pe_ratio == 24.0
+
+
+# --- R13 deliverable 1: BSE-only bare tickers must map to .BO (not .NS) --------
+
+
+@pytest.mark.parametrize(
+    ("bare", "expected"),
+    [
+        ("KSE", "KSE.BO"),  # BSE-only listing (BSE 519421, never on NSE) → .BO
+        ("GOLDBEES", "GOLDBEES.NS"),  # NSE-only → .NS
+        ("RELIANCE", "RELIANCE.NS"),  # dual NSE+BSE — the INR NSE listing wins
+        ("TCS", "TCS.NS"),  # dual NSE+BSE → .NS
+        ("INFY", "INFY.NS"),  # dual + US ADR — an IN session still takes NSE
+        ("ZZUNKNOWNXQ", "ZZUNKNOWNXQ.NS"),  # in no master → honest .NS (Yahoo 404s)
+    ],
+)
+def test_yahoo_symbol_routes_bse_only_to_bo(bare: str, expected: str) -> None:
+    """A bare IN ticker resolves to the exchange it actually lists on: NSE for an
+    NSE/dual name, ``.BO`` for a BSE-ONLY scrip (the KSE root cause — Yahoo serves
+    a nameless husk on KSE.NS but the full profile on KSE.BO), and an honest
+    ``.NS`` for a name in neither master (Yahoo 404s an unknown symbol)."""
+    import config
+
+    token = config.set_request_region("IN")
+    try:
+        assert yfinance_provider._yahoo_symbol(bare) == expected
+    finally:
+        config.reset_request_region(token)
+
+
+def test_get_fundamentals_bse_only_ticker_fetches_bo(
+    recording_ticker: type[_RecordingTicker],
+) -> None:
+    """End-to-end: get_fundamentals('KSE') must construct a Yahoo Ticker for
+    ``KSE.BO`` (the BSE listing), not ``KSE.NS`` — every fundamentals call routes
+    through the same ``_yahoo_symbol`` mapper the pinning test above covers."""
+    import config
+
+    token = config.set_request_region("IN")
+    try:
+        fundamentals = yfinance_provider.get_fundamentals("KSE")
+    finally:
+        config.reset_request_region(token)
+    assert recording_ticker.instances == ["KSE.BO"]
+    assert fundamentals.symbol == "KSE.BO"
+
+
+# --- R13 deliverable 2: honest husk vs fund-id-blob messages ------------------
+
+
+def test_get_fundamentals_nameless_husk_says_no_company_record(monkeypatch) -> None:  # noqa: ANN001
+    """A NAMELESS husk (Yahoo answers keys but NO company name — the ``KSE.NS``
+    43-key shell a bare BSE-only ticker used to hit) reports 'Yahoo has no company
+    record', NOT the misleading 'non-company (fund-id) record' the old code gave
+    for every empty-named husk."""
+    from services.errors import ProviderError
+
+    husk = {"currency": "INR", "exchange": "NSI", "quoteType": "EQUITY"}  # no name
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(husk))
+    with pytest.raises(ProviderError) as excinfo:
+        yfinance_provider.get_fundamentals("KSE.NS")
+    assert excinfo.value.kind == "not_found"
+    message = str(excinfo.value)
+    assert "no company record" in message
+    assert "KSE.NS" in message
+    assert "fund-id" not in message
+
+
+def test_get_fundamentals_fund_id_blob_says_non_company_record(monkeypatch) -> None:  # noqa: ANN001
+    """The OTHER junk shape — a garbled comma-blob name carrying the queried
+    symbol / an 0P Morningstar id — still reports the 'non-company (fund-id)
+    record' message (kept for real fund-id blobs)."""
+    from services.errors import ProviderError
+
+    blob = {"shortName": "509470.BO,0P0000BN3V,31", "marketCap": 31, "trailingPE": 12.0}
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(blob))
+    with pytest.raises(ProviderError) as excinfo:
+        yfinance_provider.get_fundamentals("509470.BO")
+    assert excinfo.value.kind == "not_found"
+    assert "non-company (fund-id) record" in str(excinfo.value)
+
+
+# --- R13 deliverable 5: per-field provenance population -----------------------
+
+
+def test_get_fundamentals_populates_field_meta_provenance(
+    recording_ticker: type[_RecordingTicker],
+) -> None:
+    """Every non-null DATA field yfinance serves carries an 'ok' FieldMeta with
+    provider='yfinance' + an as_of (the info fetch time); identity/metadata fields
+    (symbol/provider/growth_basis) do NOT get an entry."""
+    fundamentals = yfinance_provider.get_fundamentals("BRK.B")
+    meta = fundamentals.field_meta
+    assert meta is not None
+    for field_name in ("pe_ratio", "market_cap", "name", "beta"):
+        assert meta[field_name].status == "ok"
+        assert meta[field_name].provider == "yfinance"
+        assert meta[field_name].as_of  # a non-empty ISO timestamp
+    # Identity / metadata fields never get a provenance entry.
+    assert "symbol" not in meta
+    assert "provider" not in meta
+    assert "growth_basis" not in meta
+    # A field the source did not carry (no revenue) has no entry either.
+    assert "revenue_ttm" not in meta

@@ -23,6 +23,7 @@ from models.fundamentals import (
     AnalystRating,
     BalanceSheet,
     CashFlowStatement,
+    FieldMeta,
     Fundamentals,
     IncomeStatement,
     StatementLine,
@@ -109,15 +110,27 @@ def _yahoo_symbol(symbol: str) -> str:
     s = symbol.strip().upper()
     if s.endswith((".NS", ".BO")):
         return s
-    # Region-aware NSE resolution. The symbol's intrinsic hint wins; else the
-    # active session region. In an IN context a bare (dot-free) ticker takes the
-    # NSE listing — this covers (a) in-master NSE names, (b) DUAL-listed names like
-    # INFY where the IN user wants the INR NSE listing, not the US ADR, and (c)
-    # names NOT in the bundled master (Yahoo 404s an unknown .NS, surfacing an
-    # honest "unavailable" rather than silently serving a wrong/empty US row). A
-    # dotted US quirk ticker (BRK.B) is left to the dash path below.
+    # Region-aware India resolution. The symbol's intrinsic hint wins; else the
+    # active session region. In an IN context a bare (dot-free) ticker picks the
+    # exchange the instrument actually lists on — NSE by default, BUT a BSE-ONLY
+    # listing must take ``.BO``:
+    #   (a) an in-master NSE name (or a DUAL-listed name like INFY, where the IN
+    #       user wants the INR NSE listing, not the US ADR) → ``.NS``;
+    #   (b) a BSE-ONLY listing (KSE = BSE 519421, never on NSE) → ``.BO`` — Yahoo
+    #       answers a bare-``.NS`` BSE-only ticker with a NAMELESS husk (KSE.NS is
+    #       a 43-key shell, NOT a 404), while KSE.BO carries the full KSE Limited
+    #       profile; forcing ``.NS`` here silently killed the fundamentals of
+    #       every alphabetic BSE-only scrip (R13 root cause);
+    #   (c) a name in NEITHER master → keep ``.NS`` so Yahoo 404s an unknown
+    #       symbol, surfacing an honest "unavailable" rather than a wrong/empty
+    #       US row.
+    # A dotted US quirk ticker (BRK.B) is left to the dash path below.
     region = symbol_resolver.region_hint(s) or config.get_region()
     if region == "IN" and "." not in s:
+        if symbol_resolver.is_nse_symbol(s):
+            return f"{s}.NS"
+        if symbol_resolver.is_bse_symbol(s):
+            return f"{s}.BO"
         return f"{s}.NS"
     if symbol_resolver.is_nse_symbol(s) and not symbol_resolver.is_us_symbol(s):
         return f"{s}.NS"
@@ -145,6 +158,27 @@ def _is_junk_fundamentals_name(name: str | None, yahoo_symbol: str) -> bool:
     if query in fragments or bare in fragments:
         return True  # the queried symbol appears as its own comma-fragment
     return any(f.startswith("0P0") for f in fragments)  # a Morningstar/OTC fund id
+
+
+# Fundamentals fields that are identity / metadata, not served data VALUES —
+# excluded from the per-field provenance map (R13, deliverable 5).
+_PROVENANCE_EXCLUDED_FIELDS = frozenset({"symbol", "provider", "growth_basis", "field_meta"})
+
+
+def _served_field_meta(fund: Fundamentals, as_of: str) -> dict[str, FieldMeta]:
+    """Per-field provenance for every DATA field yfinance actually served.
+
+    One ``status="ok"`` entry per non-null data field, tagging the provider and
+    the ``info`` fetch time (``as_of``). Identity/metadata fields
+    (symbol/provider/growth_basis/field_meta) are excluded. The correctness gate
+    MERGES its withheld/flag entries onto this map downstream, so a field it nulls
+    flips from ``ok`` to ``withheld`` while the rest keep their yfinance provenance.
+    """
+    return {
+        name: FieldMeta(status="ok", provider=PROVIDER, as_of=as_of)
+        for name in type(fund).model_fields
+        if name not in _PROVENANCE_EXCLUDED_FIELDS and getattr(fund, name, None) is not None
+    }
 
 
 def _num(value: Any) -> float | None:
@@ -240,6 +274,7 @@ def get_fundamentals(symbol: str) -> Fundamentals:
         raise _provider_error("fundamentals", symbol, exc) from exc
 
     provider_health.record_success(provider_health.YAHOO)
+    fetched_at = _utcnow().isoformat()  # the info snapshot's as_of for field_meta
     # An unknown/garbage symbol comes back as an EMPTY info dict, not an
     # exception — serving it as an all-null 200 reads as "instrument exists,
     # no data" (a dishonest shape; R11 gate-7 catch) and lets the deep
@@ -249,11 +284,23 @@ def get_fundamentals(symbol: str) -> Fundamentals:
         for key in ("longName", "shortName", "regularMarketPrice", "marketCap", "currency")
     ):
         raise ProviderError(f"yfinance has no instrument data for {symbol!r}", kind="not_found")
-    # A numeric .BO scrip code makes Yahoo return a JUNK fund-ish record with a
-    # non-empty but garbled name ("509470.BO,0P0000BN3V,31") — it passes the
-    # empty-info gate above but is NOT a real instrument. Reject it as an honest
-    # 404 rather than serving fabricated PE/mcap/52w against a nonsense name.
+    # Two DISTINCT junk shapes reach here (both pass the empty-info gate because
+    # SOME identity key is set), and the error must say which actually happened:
+    #   * a NAMELESS husk — Yahoo answered with keys but NO company name (the
+    #     ``KSE.NS`` 43-key shell a bare BSE-only ticker used to hit): there is no
+    #     company record for this symbol, full stop;
+    #   * a garbled fund-id BLOB — a non-empty but nonsense name carrying the
+    #     queried symbol / an ``0P``-Morningstar id ("509470.BO,0P0000BN3V,31"),
+    #     which a numeric ``.BO`` scrip code provokes.
+    # Both are an honest 404, but the OLD code reported the nameless husk as a
+    # "non-company (fund-id) record" — a misleading message that pointed at the
+    # wrong failure mode.
     name = info.get("longName") or info.get("shortName")
+    if not name or not str(name).strip():
+        raise ProviderError(
+            f"Yahoo has no company record for {yahoo!r}",
+            kind="not_found",
+        )
     if _is_junk_fundamentals_name(name, yahoo):
         raise ProviderError(
             f"yfinance returned a non-company (fund-id) record for {symbol!r}",
@@ -274,7 +321,7 @@ def get_fundamentals(symbol: str) -> Fundamentals:
     raw_de = _num(info.get("debtToEquity"))
     debt_to_equity = (raw_de / 100.0) if raw_de is not None else None
 
-    return Fundamentals(
+    fund = Fundamentals(
         symbol=yahoo,
         name=name,
         sector=info.get("sector"),
@@ -318,6 +365,10 @@ def get_fundamentals(symbol: str) -> Fundamentals:
         held_percent_institutions=_num(info.get("heldPercentInstitutions")),
         provider=PROVIDER,
     )
+    # R13: stamp per-field provenance for every value actually served (the gate
+    # then merges its withheld/flag entries on top).
+    fund.field_meta = _served_field_meta(fund, fetched_at)
+    return fund
 
 
 def _statement_lines(frame: pd.DataFrame) -> tuple[list[str], list[StatementLine]]:

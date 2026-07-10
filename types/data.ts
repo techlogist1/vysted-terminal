@@ -147,7 +147,30 @@ export interface Fundamentals {
   earnings_growth_computed?: number | null;
   /** The quarter-end pair (ISO dates) the computed growth compared. */
   growth_computed_quarters?: { mrq: string; prior: string } | null;
+  /**
+   * Per-field provenance / coverage metadata (R13), keyed by data-field name.
+   * Additive — absent on providers that do not populate it, and an absent map
+   * never changes how the value fields above are read.
+   */
+  field_meta?: Record<string, FieldMeta> | null;
   provider: string;
+}
+
+/**
+ * Per-field provenance / coverage metadata riding a `Fundamentals` payload (R13).
+ *
+ * - `status: "ok"` — the field carries a real value the named `provider` served
+ *   (`as_of` records when). A `reason` may still be present as a soft flag.
+ * - `status: "withheld"` — a value existed but the correctness gate nulled it as
+ *   implausible; `reason` says why and the field on the payload is `null`.
+ * - `status: "unavailable"` — the source carried no value.
+ */
+export interface FieldMeta {
+  status: "ok" | "withheld" | "unavailable";
+  provider?: string | null;
+  as_of?: string | null;
+  reason?: string | null;
+  label?: string | null;
 }
 
 /** One labelled row of a financial statement, keyed by period label. */
