@@ -3,7 +3,13 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 
 import { SidecarError } from "@/lib/sidecar-client";
 import { resetEquityCommandStoreForTests, useEquityCommandStore } from "@/store/equity-command";
-import type { AnalystRating, FinancialStatement, Fundamentals, Quote } from "../../../types/data";
+import type {
+  AnalystRating,
+  FieldMeta,
+  FinancialStatement,
+  Fundamentals,
+  Quote,
+} from "../../../types/data";
 import { EquityOverviewPanel } from "./EquityOverviewPanel";
 import type { EquityOverview } from "./api";
 
@@ -29,7 +35,7 @@ function quote(): Quote {
   };
 }
 
-function fundamentals(): Fundamentals {
+function fundamentals(overrides: Partial<Fundamentals> = {}): Fundamentals {
   return {
     symbol: "AAPL",
     name: "Apple Inc.",
@@ -68,6 +74,7 @@ function fundamentals(): Fundamentals {
     held_percent_insiders: 0.0007,
     held_percent_institutions: 0.61,
     provider: "yfinance",
+    ...overrides,
   };
 }
 
@@ -104,6 +111,7 @@ function overview(overrides: Partial<EquityOverview> = {}): EquityOverview {
     symbol: "AAPL",
     quote: quote(),
     fundamentals: fundamentals(),
+    fundamentalsError: null,
     income: statement(),
     balance: statement(),
     cashFlow: statement(),
@@ -329,5 +337,120 @@ describe("EquityOverviewPanel", () => {
     await flushCommandTick();
     expect(mockLoad).toHaveBeenCalledTimes(2);
     expect(mockLoad).toHaveBeenLastCalledWith("AAPL");
+  });
+
+  // --- R13: honest fundamentals coverage — never a silent blank --------------
+
+  describe("R13 — honest fundamentals coverage", () => {
+    it("still renders an all-null group's field rows instead of hiding the section", async () => {
+      // Ownership is entirely null (no field_meta) — the group used to vanish;
+      // it must now still render its section header AND both field rows, each
+      // showing the bare glyph (no field_meta -> no reason chip).
+      const f = fundamentals({ held_percent_insiders: null, held_percent_institutions: null });
+      mockLoad.mockResolvedValue(overview({ fundamentals: f }));
+      render(<EquityOverviewPanel />);
+      await loadSymbol();
+
+      expect(screen.getByText("Ownership")).toBeInTheDocument();
+      expect(screen.getByText("Insiders")).toBeInTheDocument();
+      expect(screen.getByText("Institutions")).toBeInTheDocument();
+      // Both rows fall back to the plain glyph — no fabricated reason chip.
+      expect(screen.queryByText("withheld — implausible")).toBeNull();
+      expect(screen.queryByText("unavailable")).toBeNull();
+    });
+
+    it("shows a withheld field's short reason chip and the full reason on hover", async () => {
+      const reason =
+        "84.55 is outside the valid ownership fraction range [0, 1] (8455% — likely a " +
+        "percent served as a fraction or a bad source value); withheld";
+      const meta: Record<string, FieldMeta> = {
+        held_percent_insiders: {
+          status: "withheld",
+          provider: "yfinance",
+          reason,
+        },
+      };
+      const f = fundamentals({ held_percent_insiders: null, field_meta: meta });
+      mockLoad.mockResolvedValue(overview({ fundamentals: f }));
+      render(<EquityOverviewPanel />);
+      await loadSymbol();
+
+      // The dense, always-visible chip — never the full sentence inline.
+      const chip = screen.getByText("withheld — implausible");
+      expect(chip).toBeInTheDocument();
+      // The full backend reason rides the cell's hover tooltip.
+      const cell = chip.closest("td");
+      expect(cell?.getAttribute("title")).toBe(reason);
+    });
+
+    it("an unavailable field with a 'not published' reason chips that phrase; otherwise the generic one", async () => {
+      const meta: Record<string, FieldMeta> = {
+        peg_ratio: {
+          status: "unavailable",
+          reason: "PEG is not published for this listing's exchange.",
+        },
+        price_to_sales: { status: "unavailable" },
+      };
+      const f = fundamentals({ peg_ratio: null, price_to_sales: null, field_meta: meta });
+      mockLoad.mockResolvedValue(overview({ fundamentals: f }));
+      render(<EquityOverviewPanel />);
+      await loadSymbol();
+
+      expect(screen.getByText("not published")).toBeInTheDocument();
+      expect(screen.getByText("unavailable")).toBeInTheDocument();
+    });
+
+    it("a served ('ok') field's tooltip states provider · as-of", async () => {
+      const meta: Record<string, FieldMeta> = {
+        pe_ratio: { status: "ok", provider: "yfinance", as_of: "2026-07-09T12:00:00Z" },
+      };
+      const f = fundamentals({ field_meta: meta });
+      mockLoad.mockResolvedValue(overview({ fundamentals: f }));
+      render(<EquityOverviewPanel />);
+      await loadSymbol();
+
+      const cell = screen.getByText("31.20").closest("td");
+      expect(cell?.getAttribute("title")).toBe("yfinance · 2026-07-09T12:00:00Z");
+    });
+
+    it("a flagged-but-kept ('ok' + reason) field's tooltip states the reason, not provider · as-of", async () => {
+      const flagReason =
+        "market cap 3,000,000,000,000 diverges more than 5% from price x shares " +
+        "outstanding; kept, flagged";
+      const meta: Record<string, FieldMeta> = {
+        market_cap: { status: "ok", provider: "yfinance", reason: flagReason },
+      };
+      const f = fundamentals({ field_meta: meta });
+      mockLoad.mockResolvedValue(overview({ fundamentals: f }));
+      render(<EquityOverviewPanel />);
+      await loadSymbol();
+
+      const cell = screen.getByText("$3.00T").closest("td");
+      expect(cell?.getAttribute("title")).toBe(flagReason);
+    });
+
+    it("shows the API rejection reason when fundamentals 404s, not a bare 'unavailable'", async () => {
+      mockLoad.mockResolvedValue(
+        overview({ fundamentals: null, fundamentalsError: "No fundamentals found for ZZZZ." }),
+      );
+      render(<EquityOverviewPanel />);
+      await loadSymbol("zzzz");
+
+      expect(screen.getByText("No fundamentals found for ZZZZ.")).toBeInTheDocument();
+    });
+
+    it("falls back to the fundamentals snapshot's as-of date when the quote carries no freshness", async () => {
+      // This file's quote() fixture already omits `freshness` (optional on the
+      // wire) — the default case the badge must still handle honestly.
+      const meta: Record<string, FieldMeta> = {
+        pe_ratio: { status: "ok", provider: "yfinance", as_of: "2026-07-08T09:30:00Z" },
+      };
+      const f = fundamentals({ field_meta: meta });
+      mockLoad.mockResolvedValue(overview({ fundamentals: f }));
+      render(<EquityOverviewPanel />);
+      await loadSymbol();
+
+      expect(screen.getByText(/as of 2026-07-08/)).toBeInTheDocument();
+    });
   });
 });

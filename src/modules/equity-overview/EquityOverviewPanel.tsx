@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Building2, FileSpreadsheet, Loader2, Search, Sparkles, Star } from "lucide-react";
 
 import { cn, DataTable, type DataColumn, type DataSection } from "@/components/DataTable";
@@ -17,6 +17,7 @@ import { useEquityCommandStore } from "@/store/equity-command";
 import { usePanelContextBus } from "@/store/panel-context";
 import type {
   CompanyNarrative,
+  FieldMeta,
   FinancialStatement,
   Fundamentals,
   Quote,
@@ -78,8 +79,9 @@ interface FieldGroup {
 }
 
 // Screener-grade fundamentals, grouped the way a trader reads a stock page. Labels
-// are curated (never snake_case). A whole group is hidden when every field in it is
-// null (e.g. ownership for an index fund) so the page never shows a wall of dashes.
+// are curated (never snake_case). Every group ALWAYS renders (R13) — a group that
+// happens to be all-null (e.g. ownership for an index fund) still shows its field
+// rows, each with an honest em-dash + reason chip, never a silently-hidden section.
 const FIELD_GROUPS: FieldGroup[] = [
   {
     title: "Valuation",
@@ -168,11 +170,73 @@ function formatField(
   }
 }
 
-/** One fundamentals row — a curated label + its formatted value. */
+/** One fundamentals row — a curated label + its formatted value + the field's
+ *  provenance/coverage record (R13), when the provider shipped one. */
 interface FundamentalRow {
   label: string;
   value: string | null;
   headline: boolean;
+  meta?: FieldMeta;
+}
+
+/**
+ * The always-visible reason a NULL field carries (R13 — never a silent blank):
+ * `withheld` reads as "withheld — implausible" (every current withhold reason is
+ * a plausibility-gate rejection); `unavailable` reads as "not published" when the
+ * sidecar's reason says so, else the plain "unavailable". Absent `field_meta`
+ * (older providers, or a field the gate never touched) → `null`, so the cell
+ * falls back to the table's own quiet "—" glyph with no chip.
+ */
+function fieldReasonChip(meta: FieldMeta | undefined): string | null {
+  if (!meta) {
+    return null;
+  }
+  if (meta.status === "withheld") {
+    return "withheld — implausible";
+  }
+  if (meta.status === "unavailable") {
+    const reason = (meta.reason ?? "").toLowerCase();
+    return reason.includes("not published") ? "not published" : "unavailable";
+  }
+  return null;
+}
+
+/** The field-level hover tooltip (R13): a served ("ok") field states its
+ *  provider + as-of date; a withheld/flagged field states its recorded reason
+ *  instead (a flagged-but-kept field is `status: "ok"` WITH a reason — the
+ *  reason wins). No `field_meta` → no tooltip (the table's default applies). */
+function fieldTitle(meta: FieldMeta | undefined): string | undefined {
+  if (!meta) {
+    return undefined;
+  }
+  if (meta.reason) {
+    return meta.reason;
+  }
+  if (meta.status === "ok") {
+    const bits = [meta.provider, meta.as_of].filter((b): b is string => Boolean(b));
+    return bits.length > 0 ? bits.join(" · ") : undefined;
+  }
+  return undefined;
+}
+
+/** The fundamentals "Value" column cell — a served value (headline/secondary
+ *  tier per {@link FundamentalRow.headline}), or an honest absence: an em-dash
+ *  plus its reason chip, never a bare hidden row (R13). */
+function FundamentalValueCell({ row }: { row: FundamentalRow }) {
+  if (row.value !== null) {
+    return <span className={row.headline ? undefined : "text-charcoal-400"}>{row.value}</span>;
+  }
+  const chip = fieldReasonChip(row.meta);
+  return (
+    <span className="inline-flex items-center justify-end gap-1">
+      <span className="text-charcoal-600">—</span>
+      {chip !== null && (
+        <span className="text-micro text-charcoal-500 border-charcoal-800 rounded-control border px-1 py-px tracking-wide uppercase">
+          {chip}
+        </span>
+      )}
+    </span>
+  );
 }
 
 const FUNDAMENTAL_COLUMNS: DataColumn<FundamentalRow>[] = [
@@ -182,15 +246,43 @@ const FUNDAMENTAL_COLUMNS: DataColumn<FundamentalRow>[] = [
     header: "Value",
     numeric: true,
     width: "45%",
-    // Headline metrics keep the primary tier; supporting ratios drop to secondary.
-    cell: (r) =>
-      r.value === null ? null : (
-        <span className={r.headline ? undefined : "text-charcoal-400"}>{r.value}</span>
-      ),
+    // Headline metrics keep the primary tier; supporting ratios drop to secondary;
+    // a null value never returns bare null (that was the SILENT BLANK the design
+    // gate would flag) — it always renders the honest cell above.
+    cell: (r) => <FundamentalValueCell row={r} />,
+    title: (r) => fieldTitle(r.meta),
   },
 ];
 
-/** Provenance + freshness chip — which source served the data, and how fresh. */
+/** The fundamentals snapshot's as-of date (R13): every field a provider actually
+ *  SERVED shares one fetch timestamp (the sidecar stamps the whole snapshot at
+ *  once), so the first `status: "ok"` entry's `as_of` names the whole payload's
+ *  freshness. `null` when the provider shipped no per-field provenance at all. */
+function fundamentalsAsOf(fundamentals: Fundamentals | null): string | null {
+  const meta = fundamentals?.field_meta;
+  if (!meta) {
+    return null;
+  }
+  for (const entry of Object.values(meta)) {
+    if (entry?.as_of) {
+      return entry.as_of;
+    }
+  }
+  return null;
+}
+
+/** ISO timestamp → the bare date ("2026-07-10") — dense, unambiguous, and
+ *  consistent with how the rest of the app states raw ISO dates (e.g. the
+ *  brief's declared-dividend record dates) rather than a locale-formatted one. */
+function shortDate(iso: string): string {
+  return iso.slice(0, 10);
+}
+
+/** Provenance + freshness chip — which source served the data, and how fresh.
+ *  A live quote's `freshness` (live/stale/eod) leads; when there is none (a
+ *  fundamentals-only load, or a quote leg that failed) the fundamentals
+ *  snapshot's own as-of date (R13) fills in — the badge never goes silent on
+ *  staleness just because there was no quote to ask. */
 function ProvenanceBadge({
   quote,
   fundamentals,
@@ -204,16 +296,19 @@ function ProvenanceBadge({
   }
   const freshness = quote?.freshness ?? null;
   const stale = freshness === "stale";
+  const asOf = freshness === null ? fundamentalsAsOf(fundamentals) : null;
+  const asOfLabel = asOf !== null ? `as of ${shortDate(asOf)}` : null;
   return (
     <span
       className={cn(
         "border-charcoal-700 text-charcoal-400 text-micro rounded-control inline-flex items-center gap-1 border px-2 py-1",
         stale && "border-warning/40 text-warning",
       )}
-      title={`Source: ${provider}${freshness ? ` · ${freshness}` : ""}`}
+      title={`Source: ${provider}${freshness ? ` · ${freshness}` : asOfLabel ? ` · ${asOfLabel}` : ""}`}
     >
       <span>{provider}</span>
       {freshness && <span className="text-charcoal-500">· {freshness}</span>}
+      {!freshness && asOfLabel && <span className="text-charcoal-500">· {asOfLabel}</span>}
     </span>
   );
 }
@@ -601,39 +696,15 @@ export function EquityOverviewPanel() {
     return () => clearTimeout(handle);
   }, [draft]);
 
-  const doLoad = async (symbol: string) => {
-    // Any caller that loads a symbol has (or will) put it in the draft —
-    // suppress the autocomplete pass for that exact value.
-    programmaticDraftRef.current = symbol;
-    submittedSymbolRef.current = symbol;
-    setLoading(true);
-    setError(null);
-    setData(null);
-    setNarrative(null);
-    setNarrativeLoading(false);
-    setAcOpen(false);
-    try {
-      const overview = await loadEquityOverview(symbol);
-      if (overview.allFailed) {
-        setData(null);
-        setError(`No data available for ${symbol}`);
-      } else {
-        setData(overview);
-        void fetchNarrative(symbol);
-      }
-    } catch (err) {
-      setData(null);
-      setError(err instanceof SidecarError ? err.message : `Failed to load ${symbol}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Fetch the AI narrative for a freshly-loaded symbol. Sequence-guarded so a
   // slow narrative for a previous symbol never lands on the current one. Any
   // transport failure resolves to a quiet "unavailable" narrative rather than a
   // thrown error — the section degrades, the rest of the panel is unaffected.
-  const fetchNarrative = async (symbol: string) => {
+  // `useCallback([])`: every dependency (the seq ref, the state setters) is
+  // referentially stable, so this is a permanently-stable function — which lets
+  // `doLoad` below (and, through it, the external-command effect) depend on it
+  // without an eslint-disable or a re-subscribing effect.
+  const fetchNarrative = useCallback(async (symbol: string) => {
     const seq = ++narrativeSeqRef.current;
     setNarrativeLoading(true);
     try {
@@ -660,7 +731,42 @@ export function EquityOverviewPanel() {
         setNarrativeLoading(false);
       }
     }
-  };
+  }, []);
+
+  // `useCallback([fetchNarrative])`: stable across renders (fetchNarrative is
+  // itself stable) so the external-command effect below can list it as a real
+  // dependency instead of carrying the R10-era `react-hooks/exhaustive-deps`
+  // warning — the honest fix, not a suppressed one.
+  const doLoad = useCallback(
+    async (symbol: string) => {
+      // Any caller that loads a symbol has (or will) put it in the draft —
+      // suppress the autocomplete pass for that exact value.
+      programmaticDraftRef.current = symbol;
+      submittedSymbolRef.current = symbol;
+      setLoading(true);
+      setError(null);
+      setData(null);
+      setNarrative(null);
+      setNarrativeLoading(false);
+      setAcOpen(false);
+      try {
+        const overview = await loadEquityOverview(symbol);
+        if (overview.allFailed) {
+          setData(null);
+          setError(`No data available for ${symbol}`);
+        } else {
+          setData(overview);
+          void fetchNarrative(symbol);
+        }
+      } catch (err) {
+        setData(null);
+        setError(err instanceof SidecarError ? err.message : `Failed to load ${symbol}`);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchNarrative],
+  );
 
   const selectCandidate = async (candidate: SymbolCandidate) => {
     setDraft(candidate.symbol);
@@ -722,7 +828,7 @@ export function EquityOverviewPanel() {
       void doLoad(symbol);
     }, 0);
     return () => clearTimeout(handle);
-  }, [equityCommand]);
+  }, [equityCommand, doLoad]);
 
   const quote = data?.quote ?? null;
   const fundamentals = data?.fundamentals ?? null;
@@ -732,22 +838,23 @@ export function EquityOverviewPanel() {
   // quote currency is the fallback.
   const instrumentCurrency = fundamentals?.currency ?? quote?.currency ?? null;
 
-  // Which grouped sections have at least one populated field (hide empty groups),
-  // projected to DataTable sections with each value pre-formatted through format.ts.
+  // EVERY group, EVERY field, ALWAYS (R13) — a null field is never a hidden row;
+  // it carries its `field_meta` so the cell can render an honest absence instead
+  // of silently vanishing. Projected to DataTable sections with each value
+  // pre-formatted through format.ts.
   const fundamentalSections = useMemo<DataSection<FundamentalRow>[]>(() => {
     if (fundamentals === null) {
       return [];
     }
     return FIELD_GROUPS.map((group) => {
-      const rows: FundamentalRow[] = group.fields
-        .map((f) => ({
-          label: f.label,
-          value: formatField(fieldValue(fundamentals, f.key), f.kind, instrumentCurrency),
-          headline: f.headline ?? false,
-        }))
-        .filter((r) => r.value !== null);
+      const rows: FundamentalRow[] = group.fields.map((f) => ({
+        label: f.label,
+        value: formatField(fieldValue(fundamentals, f.key), f.kind, instrumentCurrency),
+        headline: f.headline ?? false,
+        meta: fundamentals.field_meta?.[f.key],
+      }));
       return { label: group.title, rows };
-    }).filter((s) => s.rows.length > 0);
+    });
   }, [fundamentals, instrumentCurrency]);
 
   return (
@@ -937,20 +1044,10 @@ export function EquityOverviewPanel() {
                   icon={Building2}
                   dense
                   headline="Fundamentals unavailable"
-                  hint="The provider returned no fundamentals for this symbol."
-                  className="pt-4"
-                />
-              </section>
-            ) : fundamentalSections.length === 0 ? (
-              <section className="border-charcoal-700 rounded-none border">
-                <h3 className="text-charcoal-200 border-charcoal-700 text-micro border-b px-3 py-2">
-                  Fundamentals
-                </h3>
-                <EmptyState
-                  icon={Building2}
-                  dense
-                  headline="No fundamentals resolved"
-                  hint="This symbol may be newly listed, renamed, or delisted. Try the search above to pick the exact listing."
+                  hint={
+                    data.fundamentalsError ??
+                    "The provider returned no fundamentals for this symbol."
+                  }
                   className="pt-4"
                 />
               </section>
