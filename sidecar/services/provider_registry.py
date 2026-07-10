@@ -260,6 +260,31 @@ def _fundamentals_screener_complete(result: Any) -> bool:
     return any(getattr(result, field, None) is not None for field in _SCREENER_GRADE_FIELDS)
 
 
+# The identity / metadata fields that are NOT real data. A Fundamentals whose
+# every OTHER field is None is an all-null SHELL (openbb-mcp's every-field-None
+# case for an uncovered symbol) — never a real result.
+_FUNDAMENTALS_IDENTITY_FIELDS: frozenset[str] = frozenset(
+    {"symbol", "provider", "growth_basis", "field_meta"}
+)
+
+
+def _fundamentals_has_data(result: Any) -> bool:
+    """True when a fundamentals result carries at least one non-null DATA field.
+
+    Guards against serving an all-null shell as success (FR-063 / R13 D3): the
+    accept-fallback keeps the highest-ranked INCOMPLETE result when no provider is
+    screener-complete, but a result with ZERO non-null data fields (everything
+    None except symbol/provider/growth_basis/field_meta) is not real data at all —
+    it must degrade to the last provider error, not a dishonest all-null 200. A
+    partial-but-real result (even one non-null field) is still servable."""
+    fields = getattr(type(result), "model_fields", None)
+    names = fields.keys() if fields else ()
+    return any(
+        name not in _FUNDAMENTALS_IDENTITY_FIELDS and getattr(result, name, None) is not None
+        for name in names
+    )
+
+
 def _effective_region(symbol: str | None, region: str | None) -> str:
     """Resolve the region a request should route to.
 
@@ -349,6 +374,7 @@ async def _resolve_async(
     /,
     *args: Any,
     accept: Acceptor | None = None,
+    fallback_ok: Acceptor | None = None,
 ) -> Any:
     """Walk providers for ``model_key`` in preference order, awaiting async
     accessors and calling sync ones inline (these resolvers back fundamentals/
@@ -361,6 +387,12 @@ async def _resolve_async(
     (richer) provider; the first such partial is returned only if no later
     provider yields an accepted result. ``accept=None`` preserves the original
     "first valid wins" behaviour for every other model-key.
+
+    ``fallback_ok`` (optional) gates the LAST-RESORT partial: if every provider
+    was merely incomplete and ``fallback_ok(best_incomplete)`` is False (e.g. an
+    all-null fundamentals shell), the incomplete result is NOT served — the last
+    provider error (or an honest not_found) is raised instead (R13 D3). A missing
+    ``fallback_ok`` keeps the previous "any incomplete beats an error" behaviour.
 
     Provenance is left untouched (see :func:`_resolve_sync`)."""
     candidates = _candidates(model_key, asset_class, region)
@@ -394,7 +426,16 @@ async def _resolve_async(
                 model_key,
             )
     if have_incomplete:
-        return best_incomplete
+        if fallback_ok is None or fallback_ok(best_incomplete):
+            return best_incomplete
+        # The only survivor is an unusable shell (e.g. an all-null fundamentals
+        # result) — degrade honestly rather than serve it as a 200 (R13 D3).
+        if last_exc is not None:
+            raise last_exc
+        raise ProviderError(
+            f"no provider returned usable {model_key!r} data for the request",
+            kind="not_found",
+        )
     assert last_exc is not None
     raise last_exc
 
@@ -434,7 +475,11 @@ async def get_fundamentals(symbol: str, region: str | None = None) -> Fundamenta
     through to yfinance both on a ProviderError AND when openbb returns a result
     with no screener-grade fields (roe/margins/debt/growth) — see
     :func:`_fundamentals_screener_complete`. This is what fills the screener,
-    the equity overview, and the curated presets with real ratios."""
+    the equity overview, and the curated presets with real ratios.
+
+    ``fallback_ok=_fundamentals_has_data`` refuses to serve an all-null shell as
+    success (R13 D3): if the only surviving result is empty of real data, the
+    last provider error (or an honest not_found → 404) is raised instead."""
     eff = _effective_region(symbol, region)
     return await _resolve_async(
         "fundamentals",
@@ -443,6 +488,7 @@ async def get_fundamentals(symbol: str, region: str | None = None) -> Fundamenta
         _fundamentals_validator(symbol, eff),
         symbol,
         accept=_fundamentals_screener_complete,
+        fallback_ok=_fundamentals_has_data,
     )
 
 

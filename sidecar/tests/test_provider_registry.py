@@ -61,8 +61,12 @@ def test_fundamentals_prefers_openbb_then_falls_through_to_yfinance(
         raise ProviderError("openbb-mcp down")
 
     monkeypatch.setattr(openbb_mcp_provider, "get_fundamentals", openbb_boom)
+    # A real yfinance fundamentals is never an all-null shell — give it a real
+    # field so the fall-through serves data (R13 D3 rejects only empty shells).
     monkeypatch.setattr(
-        yfinance_provider, "get_fundamentals", lambda symbol: _fundamentals("yfinance")
+        yfinance_provider,
+        "get_fundamentals",
+        lambda symbol: _fundamentals("yfinance", pe_ratio=25.0),
     )
 
     result = asyncio.run(provider_registry.get_fundamentals("AAPL"))
@@ -132,6 +136,72 @@ def test_fundamentals_returns_partial_when_every_provider_is_sparse(
 
     result = asyncio.run(provider_registry.get_fundamentals("AAPL"))
     # openbb is rank-10 (higher than yfinance); its partial is the one kept.
+    assert result.provider == "openbb-mcp"
+    assert result.pe_ratio == 30.0
+
+
+def test_fundamentals_all_null_shell_plus_failing_yfinance_raises_not_a_shell(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R13 D3: an all-null openbb shell (every data field None) + a failing
+    yfinance must NOT be served as a 200 null payload — the registry raises the
+    last provider error (here a not_found) instead of the shell."""
+    from services import openbb_mcp_provider, yfinance_provider
+
+    monkeypatch.setattr(openbb_mcp_provider, "is_available", lambda: True)
+
+    async def openbb_null_shell(symbol: str) -> Fundamentals:
+        return _fundamentals("openbb-mcp")  # symbol=AAPL, every data field None
+
+    def yfinance_boom(symbol: str) -> Fundamentals:
+        raise ProviderError("Yahoo has no company record for 'AAPL.NS'", kind="not_found")
+
+    monkeypatch.setattr(openbb_mcp_provider, "get_fundamentals", openbb_null_shell)
+    monkeypatch.setattr(yfinance_provider, "get_fundamentals", yfinance_boom)
+
+    with pytest.raises(ProviderError) as excinfo:
+        asyncio.run(provider_registry.get_fundamentals("AAPL"))
+    assert excinfo.value.kind == "not_found"
+
+
+def test_fundamentals_all_null_everywhere_raises_synthetic_not_found(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R13 D3: when EVERY provider returns an all-null shell (no error raised), the
+    registry still refuses to serve a shell — it raises a synthetic not_found."""
+    from services import openbb_mcp_provider, yfinance_provider
+
+    monkeypatch.setattr(openbb_mcp_provider, "is_available", lambda: True)
+
+    async def openbb_null(symbol: str) -> Fundamentals:
+        return _fundamentals("openbb-mcp")
+
+    monkeypatch.setattr(openbb_mcp_provider, "get_fundamentals", openbb_null)
+    monkeypatch.setattr(
+        yfinance_provider, "get_fundamentals", lambda symbol: _fundamentals("yfinance")
+    )
+
+    with pytest.raises(ProviderError) as excinfo:
+        asyncio.run(provider_registry.get_fundamentals("AAPL"))
+    assert excinfo.value.kind == "not_found"
+
+
+def test_fundamentals_partial_but_real_is_still_served(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R13 D3 guard is data-aware, not completeness-aware: a partial result with
+    even ONE real field (openbb pe_ratio) is still served, never dropped."""
+    from services import openbb_mcp_provider, yfinance_provider
+
+    monkeypatch.setattr(openbb_mcp_provider, "is_available", lambda: True)
+
+    async def openbb_partial(symbol: str) -> Fundamentals:
+        return _fundamentals("openbb-mcp", pe_ratio=30.0)  # one real field
+
+    monkeypatch.setattr(openbb_mcp_provider, "get_fundamentals", openbb_partial)
+    monkeypatch.setattr(
+        yfinance_provider, "get_fundamentals", lambda symbol: _fundamentals("yfinance")
+    )
+
+    result = asyncio.run(provider_registry.get_fundamentals("AAPL"))
     assert result.provider == "openbb-mcp"
     assert result.pe_ratio == 30.0
 

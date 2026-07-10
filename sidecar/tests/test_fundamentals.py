@@ -123,6 +123,28 @@ def test_get_fundamentals_unknown_symbol_is_honest_404(client, monkeypatch) -> N
     assert "check the symbol" in resp.json()["detail"]
 
 
+def test_get_fundamentals_all_null_shell_degrades_to_404(client, monkeypatch) -> None:  # noqa: ANN001
+    """R13 D3 end-to-end: an all-null openbb shell + a failing yfinance must reach
+    the router as a 404, never a dishonest all-null 200 payload."""
+    from models.fundamentals import Fundamentals
+    from services import openbb_mcp_provider, yfinance_provider
+    from services.errors import ProviderError
+
+    monkeypatch.setattr(openbb_mcp_provider, "is_available", lambda: True)
+
+    async def openbb_null(symbol: str) -> Fundamentals:
+        return Fundamentals(symbol="AAPL", provider="openbb-mcp")  # all data fields None
+
+    def yfinance_boom(symbol: str) -> Fundamentals:
+        raise ProviderError("Yahoo has no company record for 'AAPL.NS'", kind="not_found")
+
+    monkeypatch.setattr(openbb_mcp_provider, "get_fundamentals", openbb_null)
+    monkeypatch.setattr(yfinance_provider, "get_fundamentals", yfinance_boom)
+
+    resp = client.get("/fundamentals/AAPL")
+    assert resp.status_code == 404
+
+
 # ---------------------------------------------------------------------------
 # R13 — the additive field_meta contract (per-field provenance / coverage)
 # ---------------------------------------------------------------------------
