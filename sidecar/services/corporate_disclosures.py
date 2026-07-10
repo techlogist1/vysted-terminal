@@ -511,7 +511,11 @@ def _merge_bse_split(
     """
     try:
         bse_patterns = _bse_shareholding(bare)
-    except ProviderError as exc:
+    except Exception as exc:  # noqa: BLE001 — best-effort enrichment over an
+        # already-successful NSE lane must never break it (same doctrine as the
+        # dividend cross-check, services.dividend_history) — a bug/timeout deep
+        # in the BSE lane (e.g. an unexpected KeyError from bse_provider) must
+        # degrade to "no split enrichment", never surface as a 500.
         logger.debug("disclosures: BSE split enrich unavailable for %s: %s", bare, exc)
         return nse_patterns
     with_split = [p for p in bse_patterns if _pattern_has_split(p)]

@@ -280,6 +280,33 @@ def test_shareholding_parses_quarters_newest_first(monkeypatch: pytest.MonkeyPat
     assert prior.promoter_percent == 50.01
 
 
+def test_shareholding_bse_split_enrich_unexpected_error_never_breaks_nse(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The BSE split-enrich lane is best-effort over an already-successful NSE
+    lane (R13 hardening): even an UNEXPECTED bug deep in the BSE lane (not a
+    clean ``ProviderError`` — e.g. a ``KeyError`` from a malformed row) must
+    degrade to "no split enrichment", never break the NSE-served result."""
+    from services import bse_provider
+
+    monkeypatch.setattr(nse_provider, "get_shareholding_master", lambda symbol: _NSE_SHAREHOLDING)
+
+    def _explode(symbol: str) -> list[dict[str, object]]:  # noqa: ARG001
+        raise KeyError("promoter_percent")
+
+    monkeypatch.setattr(bse_provider, "get_shareholding", _explode)
+
+    response = corporate_disclosures.get_shareholding("RELIANCE")
+    assert response.symbol == "RELIANCE"
+    assert response.count == 2
+    latest = response.patterns[0]
+    assert latest.source == "NSE"
+    assert latest.promoter_percent == 50.0
+    assert latest.fii_percent is None and latest.dii_percent is None
+    assert latest.institutions_percent is None
+    assert latest.split_source is None and latest.split_as_of is None
+
+
 def test_shareholding_dual_listed_recovers_bse_split(monkeypatch: pytest.MonkeyPatch) -> None:
     """SIL-shaped: a dual-listed NSE name whose NSE master carries no FII/DII split
     and folds institutions into the public bucket (public 79.69) recovers the true
