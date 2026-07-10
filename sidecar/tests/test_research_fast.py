@@ -308,9 +308,38 @@ def test_fast_one_leg_failure_is_non_fatal() -> None:
     assert bundle["ok"] is True
     assert bundle["structured"]["fundamentals"]["ok"] is False
     assert "error" in bundle["structured"]["fundamentals"]
+    # R13 JARVIS 2a: the failed leg names its CAUSE (provider_error) so the model
+    # narrates OUR feed's gap, not a silent absence it can call a world-absence.
+    assert bundle["structured"]["fundamentals"]["reason"] == "provider_error"
     # The other legs still came through.
     assert bundle["structured"]["price"]["ok"] is True
     assert bundle["structured"]["news"]["ok"] is True
+
+
+def test_structured_value_classifies_failed_leg_reason() -> None:
+    """R13 JARVIS 2a: the leg wrapper stamps a closed-vocabulary reason — an
+    explicit token is honoured, else inferred from the error text; an ok leg
+    carries no reason."""
+    from services.research.fast import _structured_value
+
+    provider_err = _structured_value(
+        {"ok": False, "error": "unexpected error: boom"}, "fundamentals"
+    )
+    assert provider_err["ok"] is False
+    assert provider_err["reason"] == "provider_error"
+
+    explicit = _structured_value(
+        {"ok": False, "reason": "rate_limited", "error": "429"}, "fundamentals"
+    )
+    assert explicit["reason"] == "rate_limited"
+
+    not_found = _structured_value({"ok": False, "error": "SYM not found"}, "fundamentals")
+    assert not_found["reason"] == "not_found"
+
+    ok_leg = _structured_value(
+        {"ok": True, "fundamentals": {"symbol": "X"}, "provider": "yfinance"}, "fundamentals"
+    )
+    assert "reason" not in ok_leg
 
 
 # --- R13 entity-anchored NORMAL (fast-path) web query -----------------------

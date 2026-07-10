@@ -20,6 +20,36 @@ from services.agent_tools import register_tool
 #: rendered it. A second attempt half a second later usually succeeds.
 _RETRY_BACKOFF_SECS = 0.5
 
+#: Closed reason vocabulary for a fundamentals-leg failure (R13 JARVIS 2a) — so
+#: the model narrates the CAUSE, never a bare "unavailable" it can round up to a
+#: world-absence claim. ``rate_limited``: the provider throttled THIS run (retry
+#: helps); ``not_found``: the symbol did not resolve to a covered instrument;
+#: ``provider_error``: an app-side / provider fetch failure — OUR feed's gap,
+#: never proof the world does not publish the data.
+_REASON_RATE_LIMITED = "rate_limited"
+_REASON_NOT_FOUND = "not_found"
+_REASON_PROVIDER_ERROR = "provider_error"
+
+_RATE_LIMIT_MARKERS = (
+    "rate limit",
+    "rate-limit",
+    "ratelimit",
+    "429",
+    "too many requests",
+    "throttl",
+)
+_NOT_FOUND_MARKERS = ("not found", "no data", "no such", "unknown symbol", "delisted", "404")
+
+
+def _classify_reason(error_text: str | None) -> str:
+    """Map a provider/registry error string onto the closed reason vocabulary."""
+    text = (error_text or "").lower()
+    if any(marker in text for marker in _RATE_LIMIT_MARKERS):
+        return _REASON_RATE_LIMITED
+    if any(marker in text for marker in _NOT_FOUND_MARKERS):
+        return _REASON_NOT_FOUND
+    return _REASON_PROVIDER_ERROR
+
 
 @dataclass(frozen=True)
 class _FetchResult:
@@ -107,6 +137,7 @@ def _canonicalize(symbol: str) -> _Canonicalization:
                 "error": (
                     f"{symbol!r} did not resolve to one known instrument — did you mean: {listed}?"
                 ),
+                "reason": _REASON_NOT_FOUND,
                 "candidates": candidates,
             },
             candidates=candidates,
@@ -177,7 +208,7 @@ async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
             }
         last_error = corrected.error
 
-    return {"ok": False, "error": last_error}
+    return {"ok": False, "error": last_error, "reason": _classify_reason(last_error)}
 
 
 def register() -> None:

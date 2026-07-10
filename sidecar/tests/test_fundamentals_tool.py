@@ -71,6 +71,36 @@ def test_double_failure_is_honest_after_exactly_two_attempts(
     assert attempts["n"] == 2  # one retry, never an unbounded loop
 
 
+def test_provider_failure_carries_provider_error_reason(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R13 JARVIS 2a: an app-side provider failure carries reason=provider_error
+    so the model narrates OUR feed's gap, never 'the world doesn't publish it'."""
+    _patch_backoff(monkeypatch)
+
+    async def dead(symbol: str):  # noqa: ANN202
+        raise ProviderError("provider down")
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", dead)
+    out = asyncio.run(fundamentals_tool._fundamentals({"symbol": "AAPL"}))
+    assert out["ok"] is False
+    assert out["reason"] == "provider_error"
+
+
+def test_rate_limited_failure_is_classified(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R13 JARVIS 2a: a throttled fetch classifies as rate_limited (retry helps),
+    distinct from a genuine provider_error."""
+    _patch_backoff(monkeypatch)
+
+    async def throttled(symbol: str):  # noqa: ANN202
+        raise ProviderError("429 too many requests")
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", throttled)
+    out = asyncio.run(fundamentals_tool._fundamentals({"symbol": "AAPL"}))
+    assert out["ok"] is False
+    assert out["reason"] == "rate_limited"
+
+
 def test_unexpected_exception_also_gets_the_retry(monkeypatch: pytest.MonkeyPatch) -> None:
     _patch_backoff(monkeypatch)
     attempts = {"n": 0}

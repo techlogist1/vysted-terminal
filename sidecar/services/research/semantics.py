@@ -132,8 +132,14 @@ def _value(
     basis: str | None = None,
     formula: str | None = None,
     unit: str | None = None,
+    reason: str | None = None,
 ) -> dict[str, Any]:
-    """One ``BriefDerivedValue`` wire dict — ``value`` may honestly be null."""
+    """One ``BriefDerivedValue`` wire dict — ``value`` may honestly be null.
+
+    ``reason`` (R13 JARVIS 2a) states WHY a null value is null — a withheld/
+    unavailable ``field_meta`` note or a leg-level gap — so a null metric never
+    reads as a silent absence the narration can round up to "the world doesn't
+    publish X". Only attached when set (additive; absent on a real value)."""
     out: dict[str, Any] = {"value": value, "label": label}
     if basis:
         out["basis"] = basis
@@ -141,7 +147,34 @@ def _value(
         out["formula"] = formula
     if unit:
         out["unit"] = unit
+    if reason:
+        out["reason"] = reason
     return out
+
+
+def _field_reason(fund: dict[str, Any], field: str) -> str | None:
+    """The ``field_meta`` reason for one fundamentals field (R13 JARVIS 2a).
+
+    Reads ``fund["field_meta"][field]`` (the yfinance + correctness-gate
+    provenance map): a ``withheld`` field states the withhold reason (a value
+    existed but the gate nulled it as implausible); ``unavailable`` states the
+    source carried none; an ``ok`` field with a soft flag surfaces that flag.
+    Returns ``None`` when the map or entry is absent — an absent map never
+    fabricates a reason.
+    """
+    meta = fund.get("field_meta")
+    if not isinstance(meta, dict):
+        return None
+    entry = meta.get(field)
+    if not isinstance(entry, dict):
+        return None
+    status = entry.get("status")
+    reason = entry.get("reason") if isinstance(entry.get("reason"), str) else None
+    if status == "withheld":
+        return reason or "provider value withheld as implausible"
+    if status == "unavailable":
+        return reason or "the provider did not carry this field"
+    return reason  # an ``ok`` field may still carry a soft flag reason
 
 
 def _relative_divergence(a: float, b: float) -> float:
@@ -563,6 +596,10 @@ def _dividend_leg(
         "unit": "percent",
     }
     dps_kwargs: dict[str, Any] = {"basis": dps_basis, "unit": "currency"}
+    # field_meta reasons (R13 JARVIS 2a) so a null dividend value states WHY — a
+    # provider-nulled/withheld field carries its reason; a genuine gap says so.
+    yield_field_reason = _field_reason(fund, "dividend_yield")
+    dps_field_reason = _field_reason(fund, "dividend_per_share")
 
     if implied is not None and reported is not None:
         # Pick the provider-unit interpretation (fraction vs percent) closest
@@ -597,8 +634,24 @@ def _dividend_leg(
             ),
         }
         return (
-            _value(None, "Dividend yield", **yield_kwargs),
-            _value(None, "Dividend per share", **dps_kwargs),
+            _value(
+                None,
+                "Dividend yield",
+                reason=(
+                    yield_field_reason
+                    or "withheld — provider yield disagrees with dividend/share ÷ price"
+                ),
+                **yield_kwargs,
+            ),
+            _value(
+                None,
+                "Dividend per share",
+                reason=(
+                    dps_field_reason
+                    or "withheld — cannot reconcile with the provider dividend yield"
+                ),
+                **dps_kwargs,
+            ),
             ttm_facts,
             [conflict, *ttm_conflicts],
         )
@@ -613,19 +666,31 @@ def _dividend_leg(
 
     if reported is not None:
         # No dividend-per-share to verify against: emit only when the figure is
-        # plausible as a fraction of price; an ambiguous-unit number is withheld
-        # (null), never guessed into a unit.
+        # plausible as a fraction of price; an ambiguous-unit number is WITHHELD
+        # (null), never guessed into a unit — and the null states so (2b).
         plausible = 0 <= reported < _PLAUSIBLE_YIELD_FRACTION
         return (
-            _value(reported if plausible else None, "Dividend yield", **yield_kwargs),
-            _value(None, "Dividend per share", **dps_kwargs),
+            _value(
+                reported if plausible else None,
+                "Dividend yield",
+                reason=(
+                    None
+                    if plausible
+                    else (
+                        yield_field_reason
+                        or "provider value withheld as implausible as a fraction of price"
+                    )
+                ),
+                **yield_kwargs,
+            ),
+            _value(None, "Dividend per share", reason=dps_field_reason, **dps_kwargs),
             ttm_facts,
             list(ttm_conflicts),
         )
 
     return (
-        _value(None, "Dividend yield", **yield_kwargs),
-        _value(None, "Dividend per share", **dps_kwargs),
+        _value(None, "Dividend yield", reason=yield_field_reason, **yield_kwargs),
+        _value(None, "Dividend per share", reason=dps_field_reason, **dps_kwargs),
         ttm_facts,
         list(ttm_conflicts),
     )
@@ -660,6 +725,11 @@ def derive_semantics(
     drawdown = None
     if price is not None and high is not None and high > 0:
         drawdown = (high - price) / high
+    # When a value is null, state WHY from the fundamentals field_meta (R13
+    # JARVIS 2a) — a withheld/unavailable field carries its reason — so a null
+    # metric never reads as a silent absence. ``high`` backs the drawdown, so its
+    # field_meta reason explains a null drawdown-from-high.
+    fifty_two_change = _num(fund, "fifty_two_week_change")
     data: dict[str, Any] = {
         "drawdown_from_high": _value(
             drawdown,
@@ -667,12 +737,18 @@ def derive_semantics(
             basis="vs 52w high",
             formula="(52w high - price) / 52w high",
             unit="percent",
+            reason=(None if drawdown is not None else _field_reason(fund, "fifty_two_week_high")),
         ),
         "fifty_two_week_change": _value(
-            _num(fund, "fifty_two_week_change"),
+            fifty_two_change,
             "52-week price change (Yahoo)",
             basis="trailing 52 weeks",
             unit="percent",
+            reason=(
+                None
+                if fifty_two_change is not None
+                else _field_reason(fund, "fifty_two_week_change")
+            ),
         ),
     }
 
@@ -688,18 +764,27 @@ def derive_semantics(
     conflicts.extend(dividend_conflicts)
 
     # D55: yfinance's growth is MRQ-YoY, not annual — label the basis so no
-    # surface narrates a single strong quarter as full-year growth.
+    # surface narrates a single strong quarter as full-year growth. A null scalar
+    # states its field_meta reason (R13 JARVIS 2a) rather than a silent gap.
+    revenue_growth_value = _num(fund, "revenue_growth")
+    earnings_growth_value = _num(fund, "earnings_growth")
     data["revenue_growth"] = _value(
-        _num(fund, "revenue_growth"),
+        revenue_growth_value,
         "Revenue growth",
         basis=_GROWTH_BASIS_MRQ_YOY,
         unit="percent",
+        reason=(
+            None if revenue_growth_value is not None else _field_reason(fund, "revenue_growth")
+        ),
     )
     data["earnings_growth"] = _value(
-        _num(fund, "earnings_growth"),
+        earnings_growth_value,
         "Earnings growth",
         basis=_GROWTH_BASIS_MRQ_YOY,
         unit="percent",
+        reason=(
+            None if earnings_growth_value is not None else _field_reason(fund, "earnings_growth")
+        ),
     )
 
     # D66: only present when the quarterly-statement computation diverges from
@@ -794,15 +879,24 @@ _EXTREME_GROWTH_CAUTION = "extreme figure — tiny prior-year base; verify befor
 
 
 def _render(item: dict[str, Any], *, growth: bool = False) -> str | None:
-    """One prompt line for a derived value, or ``None`` when the value is null.
+    """One prompt line for a derived value, or ``None`` when the value is null
+    AND carries no reason.
 
     Growth values (``growth=True``) render as a SIGNED percent so an extreme
     fraction reads unmistakably as growth (``32.863`` → ``+3286.3%``, never the
     bare ``32.863`` the narration halved to ``+32.9%``); when the fraction's
     magnitude is extreme a small-base caution is appended.
+
+    A NULL value that carries a ``reason`` (R13 JARVIS 2a) renders a
+    "not available — {reason}" line so the synthesis prompt states WHY the metric
+    is missing — a withheld/unavailable gap the prose must name honestly, never a
+    silent absence it can round up to "the world doesn't publish X".
     """
     value = item.get("value")
     if not isinstance(value, (int, float)) or isinstance(value, bool):
+        reason = item.get("reason")
+        if isinstance(reason, str) and reason:
+            return f"- {item.get('label')}: not available — {reason}"
         return None
     unit = item.get("unit")
     if unit == "percent":

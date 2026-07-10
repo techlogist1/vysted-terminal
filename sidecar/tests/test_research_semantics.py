@@ -69,6 +69,76 @@ def test_missing_inputs_yield_null_never_fabricated() -> None:
     assert data["conflicts"] == []
 
 
+# --- R13 JARVIS 2a: field_meta reasons on null derived metrics ----------------
+
+
+def test_withheld_field_surfaces_reason_on_null_metric_and_prompt_block() -> None:
+    """A field the correctness gate WITHHELD (nulled as implausible) carries its
+    reason onto the derived null value AND into the synthesis prompt — never a
+    silent absence the prose can round up to a world-absence claim."""
+    structured = _structured(
+        fund={
+            "dividend_yield": None,
+            "field_meta": {
+                "dividend_yield": {
+                    "status": "withheld",
+                    "provider": "yfinance",
+                    "reason": "dividend yield 55% implausible as a fraction of price",
+                }
+            },
+        }
+    )
+    dy = _derived(structured)["dividend_yield"]
+    assert dy["value"] is None
+    assert dy["reason"] == "dividend yield 55% implausible as a fraction of price"
+    block = prompt_block(derive_semantics(structured, "IN"))
+    assert "not available — dividend yield 55% implausible" in block
+
+
+def test_withheld_growth_states_reason_on_null() -> None:
+    data = _derived(
+        _structured(
+            fund={
+                "revenue_growth": None,
+                "field_meta": {
+                    "revenue_growth": {"status": "withheld", "reason": "growth 3286x implausible"}
+                },
+            }
+        )
+    )
+    assert data["revenue_growth"]["value"] is None
+    assert data["revenue_growth"]["reason"] == "growth 3286x implausible"
+
+
+def test_withheld_without_reason_text_gets_default_withheld_phrase() -> None:
+    data = _derived(
+        _structured(
+            fund={
+                "fifty_two_week_change": None,
+                "field_meta": {"fifty_two_week_change": {"status": "withheld"}},
+            }
+        )
+    )
+    assert data["fifty_two_week_change"]["reason"] == "provider value withheld as implausible"
+
+
+def test_unavailable_field_states_a_gap_reason() -> None:
+    data = _derived(
+        _structured(
+            fund={
+                "earnings_growth": None,
+                "field_meta": {"earnings_growth": {"status": "unavailable"}},
+            }
+        )
+    )
+    assert data["earnings_growth"]["reason"] == "the provider did not carry this field"
+
+
+def test_real_value_carries_no_reason() -> None:
+    data = _derived(_structured(fund={"fifty_two_week_change": -0.35}))
+    assert "reason" not in data["fifty_two_week_change"]
+
+
 def test_dividend_yield_reconciles_fraction_form() -> None:
     data = _derived(_structured(fund={"dividend_yield": 0.0125, "dividend_per_share": 1.0}))
     dy = data["dividend_yield"]
