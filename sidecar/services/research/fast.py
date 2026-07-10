@@ -207,8 +207,18 @@ async def snapshot_structured(
     (:func:`services.growth_check.get_quarterly_yoy`) so the derived leg can
     flag a scalar that contradicts the statements. Disclosure only — the
     provider values are never replaced; missing statements attach nothing.
+
+    R13 (D68/D57): two more disclosure-only cross-checks ride the same fan-out.
+    ``ownership_exchange`` (:func:`services.ownership_check.get_exchange_ownership`)
+    is the latest NSE/BSE shareholding pattern, reconciled against yfinance's
+    ``heldPercentInsiders``/``heldPercentInstitutions`` (which drift materially
+    from the exchange filing). ``dividend_declared``
+    (:func:`services.dividend_actions.get_declared_unpaid_dividend`) is the
+    nearest declared-but-not-yet-paid dividend, separated from the D56 TTM-paid
+    figure so a future record date never collapses into "paid". Both never raise
+    (every failure becomes ``None``); an absent figure attaches nothing.
     """
-    from services import growth_check
+    from services import dividend_actions, growth_check, ownership_check
     from services.dividend_history import get_dividend_ttm
     from services.research.semantics import derive_semantics
 
@@ -235,7 +245,17 @@ async def snapshot_structured(
                 return None
             return await growth_check.get_quarterly_yoy(listing)
 
-        ttm, yoy = await asyncio.gather(get_dividend_ttm(listing), _yoy())
+        async def _own() -> ownership_check.ExchangeOwnership | None:
+            if not ownership_check.should_cross_check(fund_data):
+                return None
+            return await ownership_check.get_exchange_ownership(listing)
+
+        ttm, yoy, own, declared = await asyncio.gather(
+            get_dividend_ttm(listing),
+            _yoy(),
+            _own(),
+            dividend_actions.get_declared_unpaid_dividend(listing),
+        )
         if ttm is not None:
             fund_data["dividend_per_share_ttm"] = ttm
         if yoy is not None:
@@ -244,6 +264,10 @@ async def snapshot_structured(
             if yoy.earnings_growth is not None:
                 fund_data["earnings_growth_computed"] = yoy.earnings_growth
             fund_data["growth_computed_quarters"] = {"mrq": yoy.mrq, "prior": yoy.prior}
+        if own is not None:
+            fund_data[ownership_check.OWNERSHIP_KEY] = own.as_wire()
+        if declared is not None:
+            fund_data[dividend_actions.DECLARED_KEY] = declared.as_wire()
     out["derived"] = derive_semantics(out, region, canonical_name=canonical_name, symbol=symbol)
     return out
 

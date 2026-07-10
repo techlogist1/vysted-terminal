@@ -430,9 +430,12 @@ async def run_iter_research(
             # yet), yet on the funded lane the separate planning LLM turn ate ~60s
             # of the 90s slice and STARVED the researchers ("no findings" wind-down).
             # Seed the fan-out deterministically and spend the whole slice on real
-            # research — the user's query still rides every researcher's web query,
-            # and rounds 2+ plan against the accumulated report where a plan turn
-            # earns its keep.
+            # research — for a bound target, round 1's web queries ride the name +
+            # symbol + anchor + these generic sub-questions, NOT the user's literal
+            # query text (the researcher's web query only substitutes the raw query
+            # when no target is bound); the user's specific question first shapes the
+            # plan from round 2, where the plan LLM turn is prompted with `Task:
+            # {query}` against the accumulated report and earns its keep.
             open_questions = _default_questions(symbol or query, fan_out)
             plan_step = ResearchStep(
                 "plan",

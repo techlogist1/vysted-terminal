@@ -78,6 +78,50 @@ def _no_network_growth_check(
     monkeypatch.setattr(growth_check, "get_quarterly_yoy", _stub)
 
 
+@pytest.fixture(autouse=True)
+def _no_network_ownership_check(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Keep the R13/D68 exchange-ownership cross-check off the network.
+
+    ``snapshot_structured`` calls ``ownership_check.get_exchange_ownership`` when
+    the fundamentals leg carries a provider ownership scalar — same seam-vs-
+    network shape as the D56/D66 stubs above. Stub it to ``None`` (no exchange
+    facts) for every test EXCEPT ``test_ownership_check`` — the module that
+    exercises the real function with ``corporate_disclosures.get_shareholding``
+    mocked directly."""
+    if request.module.__name__.rsplit(".", 1)[-1] == "test_ownership_check":
+        return
+    from services import ownership_check
+
+    async def _stub(_symbol: str) -> None:
+        return None
+
+    monkeypatch.setattr(ownership_check, "get_exchange_ownership", _stub)
+
+
+@pytest.fixture(autouse=True)
+def _no_network_dividend_actions(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Keep the R13/D57 declared-unpaid-dividend cross-check off the network.
+
+    ``snapshot_structured`` calls ``dividend_actions.get_declared_unpaid_dividend``
+    on every research snapshot (an NSE corporate-actions pull) — same seam-vs-
+    network shape as the D56/D66 stubs above. Stub it to ``None`` (no declared
+    figure) for every test EXCEPT ``test_dividend_actions`` — the module that
+    exercises the real function with ``nse_provider.get_corporate_actions``
+    mocked directly."""
+    if request.module.__name__.rsplit(".", 1)[-1] == "test_dividend_actions":
+        return
+    from services import dividend_actions
+
+    async def _stub(_symbol: str) -> None:
+        return None
+
+    monkeypatch.setattr(dividend_actions, "get_declared_unpaid_dividend", _stub)
+
+
 # --------------------------------------------------------------------------
 # yfinance fakes
 # --------------------------------------------------------------------------
