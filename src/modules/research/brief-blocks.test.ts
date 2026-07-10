@@ -2,8 +2,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { createElement } from "react";
 import { describe, expect, it } from "vitest";
 
-import { deriveMetrics, MarkdownBody } from "@/modules/research/brief-blocks";
-import type { BriefDerivedMetrics, BriefStructured } from "../../../types/brief";
+import { BriefBody, deriveMetrics, MarkdownBody } from "@/modules/research/brief-blocks";
+import type { BriefDerivedMetrics, BriefStructured, ResearchBriefData } from "../../../types/brief";
 import type { Fundamentals, Quote } from "../../../types/data";
 
 /** Render MarkdownBody to static HTML for content assertions (no DOM needed). */
@@ -353,7 +353,7 @@ describe("deriveMetrics — the derived semantics leg leads the grid (E8)", () =
     expect(byLabel["Dividend / share"]).toBe("INR 1.00");
   });
 
-  it("conflicts render as flag lines and never silently reconcile", () => {
+  it("conflicts render as flag lines and never silently reconcile (absent conflict_kind = data_conflict)", () => {
     const model = deriveMetrics(
       structured("equity", {
         derived: derivedLeg({
@@ -371,7 +371,10 @@ describe("deriveMetrics — the derived semantics leg leads the grid (E8)", () =
       }),
     );
     expect(model?.conflicts).toEqual([
-      "Sources disagree on dividend yield: 0.55% (yield) vs ₹1/share (per-share) — not reconciled",
+      {
+        text: "Sources disagree on dividend yield: 0.55% (yield) vs ₹1/share (per-share) — not reconciled",
+        kind: "data_conflict",
+      },
     ]);
   });
 
@@ -385,6 +388,176 @@ describe("deriveMetrics — the derived semantics leg leads the grid (E8)", () =
     });
     expect(model).not.toBeNull();
     expect(model?.items[0].label).toBe("Below 52-week high");
+  });
+});
+
+// ── conflict presentation tiers (R13 / D69) ──────────────────────────────────
+
+describe("deriveMetrics — conflict_kind presentation tiers (R13)", () => {
+  it("an explicit data_conflict keeps the 'Sources disagree' warning framing", () => {
+    const model = deriveMetrics(
+      structured("equity", {
+        derived: derivedLeg({
+          conflicts: [
+            {
+              field: "held_percent_institutions",
+              conflict_kind: "data_conflict",
+              sources: [
+                { provider: "yfinance (heldPercentInstitutions)", value: 12.5 },
+                { provider: "NSE shareholding filing", value: 40.1 },
+              ],
+              note: "the provider scalar is unreliable for this listing; both are shown, neither replaced.",
+            },
+          ],
+        }),
+      }),
+    );
+    expect(model?.conflicts).toEqual([
+      {
+        text:
+          "Sources disagree on held percent institutions: 12.5 (yfinance (heldPercentInstitutions)) " +
+          "vs 40.1 (NSE shareholding filing) — the provider scalar is unreliable for this listing; " +
+          "both are shown, neither replaced.",
+        kind: "data_conflict",
+      },
+    ]);
+  });
+
+  it("a definitional_expected conflict reads as an expected-difference note, not a warning", () => {
+    const model = deriveMetrics(
+      structured("equity", {
+        derived: derivedLeg({
+          conflicts: [
+            {
+              field: "held_percent_insiders",
+              conflict_kind: "definitional_expected",
+              sources: [
+                { provider: "yfinance (heldPercentInsiders)", value: 74.5, basis: "insiders" },
+                {
+                  provider: "NSE shareholding filing",
+                  value: 73.29,
+                  basis: "promoter group, 2026-06-30",
+                },
+              ],
+              note: "Insiders and promoter-group are different by definition; both figures are shown, neither replaced.",
+            },
+          ],
+        }),
+      }),
+    );
+    const conflicts = model?.conflicts ?? [];
+    expect(conflicts).toHaveLength(1);
+    expect(conflicts[0].kind).toBe("definitional_expected");
+    // The lead-in reads as an EXPECTED difference, never "Sources disagree".
+    expect(conflicts[0].text).toContain("expected definitional difference");
+    expect(conflicts[0].text).not.toContain("Sources disagree");
+    expect(conflicts[0].text).toContain("Insiders and promoter-group are different by definition");
+  });
+
+  it("MetricsBlock renders the two tiers with distinct chips and never conflates them", () => {
+    // Render the full brief body (metrics + markdown) via BriefBody so the
+    // MetricsBlock's chip markup is exercised end-to-end.
+    const brief: ResearchBriefData = {
+      query: "ICICIBANK",
+      symbol: "ICICIBANK",
+      mode: "FAST",
+      markdown: "",
+      sources: [],
+      sourceCount: 0,
+      webAvailable: true,
+      createdAt: Date.now(),
+      structured: structured("equity", {
+        derived: derivedLeg({
+          conflicts: [
+            {
+              field: "held_percent_insiders",
+              conflict_kind: "definitional_expected",
+              sources: [{ provider: "yfinance", value: 74.5 }],
+              note: "different by definition",
+            },
+            {
+              field: "market_cap",
+              conflict_kind: "data_conflict",
+              sources: [{ provider: "yfinance", value: 100 }],
+              note: "diverges from price x shares",
+            },
+          ],
+        }),
+      }),
+    };
+    const body = renderToStaticMarkup(createElement(BriefBody, { brief, onCite: () => {} }));
+    expect(body).toContain("DEFINITIONAL");
+    expect(body).toContain("CONFLICT");
+    expect(body).toContain("different by definition");
+    expect(body).toContain("diverges from price x shares");
+  });
+});
+
+// ── the derived leg surfaces facts it doesn't statically name (R13) ─────────
+
+describe("deriveMetrics — derived-leg facts flow through generically (R13)", () => {
+  it("renders the R13 ownership cross-check facts (promoter/institutions) with no per-field code", () => {
+    const model = deriveMetrics(
+      structured("equity", {
+        derived: derivedLeg({
+          drawdown_from_high: { value: 0.1, label: "Below 52-week high", unit: "percent" },
+          // These two keys are NOT named in the BriefDerivedMetrics interface —
+          // they arrive on the wire exactly like this (sidecar/services/research/
+          // semantics.py _ownership_leg) and must still render, labels intact.
+          ...({
+            promoter_percent_exchange: {
+              value: 0.7329,
+              label: "Promoter group (exchange filing)",
+              basis: "NSE shareholding filing, 2026-06-30",
+              unit: "percent",
+            },
+            institutions_percent_exchange: {
+              value: 0.401,
+              label: "Institutional holding (exchange filing)",
+              basis: "NSE shareholding filing, 2026-06-30",
+              unit: "percent",
+            },
+          } as Partial<BriefDerivedMetrics>),
+        }),
+      }),
+    );
+    const byLabel = Object.fromEntries((model?.items ?? []).map((i) => [i.label, i.value]));
+    expect(byLabel["Promoter group (exchange filing)"]).toBe(
+      "73.29% · NSE shareholding filing, 2026-06-30",
+    );
+    expect(byLabel["Institutional holding (exchange filing)"]).toBe(
+      "40.10% · NSE shareholding filing, 2026-06-30",
+    );
+    // Unsigned — a holding percentage is a level, not a directional change.
+    expect(byLabel["Promoter group (exchange filing)"]).not.toContain("+");
+  });
+
+  it("renders the D56/D57 declared-dividend facts the same generic way", () => {
+    const model = deriveMetrics(
+      structured("equity", {
+        derived: derivedLeg({
+          ...({
+            dividend_per_share_ttm: {
+              value: 1.5,
+              label: "Dividend/share (trailing 12m PAID)",
+              basis: "corporate-action history",
+              unit: "currency",
+            },
+            dividend_declared: {
+              value: 2.0,
+              label: "Declared, not yet paid (record date 2026-07-15)",
+              basis: "NSE corporate action",
+              unit: "currency",
+            },
+          } as Partial<BriefDerivedMetrics>),
+        }),
+      }),
+    );
+    const byLabel = Object.fromEntries((model?.items ?? []).map((i) => [i.label, i.value]));
+    expect(byLabel["Dividend/share (trailing 12m PAID)"]).toBe("1.50 · corporate-action history");
+    expect(byLabel["Declared, not yet paid (record date 2026-07-15)"]).toBe(
+      "2.00 · NSE corporate action",
+    );
   });
 });
 
