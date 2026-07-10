@@ -15,7 +15,7 @@
     "https://insights.dsij.in/dsijarticledetail/top-performing-liquor-stocks-by-1-year-3-year-and-5-year-returns-radico-khaitan-united-spirits-tilaknagar-industries-lead-the-charts-58150"
   ],
   "reference": {
-    "price_close_recent": {"value": 448.0, "as_of": "2026-07-10"},
+    "price_close_recent": { "value": 448.0, "as_of": "2026-07-10" },
     "market_cap_cr": 11089.0,
     "pe": 43.9,
     "pb": 3.7,
@@ -28,7 +28,7 @@
       "promoter_pct": 31.71,
       "fii_pct": 16.87,
       "dii_pct": 5.92,
-      "public_pct": 45.50,
+      "public_pct": 45.5,
       "as_of_quarter": "Mar 2026"
     },
     "latest_quarter": {
@@ -37,10 +37,13 @@
       "period": "Q4 FY26"
     },
     "recent_filings": [
-      {"date": "2026-07-01", "title": "Trading window closure notification"},
-      {"date": "2026-06-26", "title": "Investment in Bartisans Trading & Consulting Pvt Ltd, raising stake to 41.45%"},
-      {"date": "2026-06-24", "title": "Record June 2026 sales of 3.4 million cases"},
-      {"date": "2026-05-30", "title": "Transcript of Q4 & FY26 earnings conference call"}
+      { "date": "2026-07-01", "title": "Trading window closure notification" },
+      {
+        "date": "2026-06-26",
+        "title": "Investment in Bartisans Trading & Consulting Pvt Ltd, raising stake to 41.45%"
+      },
+      { "date": "2026-06-24", "title": "Record June 2026 sales of 3.4 million cases" },
+      { "date": "2026-05-30", "title": "Transcript of Q4 & FY26 earnings conference call" }
     ],
     "peers": [
       "United Spirits Ltd",

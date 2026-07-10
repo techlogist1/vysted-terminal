@@ -17,10 +17,10 @@
     "https://en.wikipedia.org/wiki/Tele-Communications_Inc."
   ],
   "reference": {
-    "price_close_recent": {"value": 937, "as_of": "2026-07-10"},
+    "price_close_recent": { "value": 937, "as_of": "2026-07-10" },
     "market_cap_cr": 7198,
     "pe": 15.9,
-    "pb": 2.80,
+    "pb": 2.8,
     "roe_pct": 19.2,
     "dividend_yield_pct": 1.06,
     "dividend_declared_vs_paid_note": "No specific declared-vs-paid date discrepancy found; screener shows historical dividend payout ratio in the 10-17% range but no distinct record/payment date breakdown for the most recent dividend.",
@@ -33,11 +33,14 @@
       "public_pct": 15.37,
       "as_of_quarter": "Mar 2026"
     },
-    "latest_quarter": {"revenue_cr": 1324, "net_profit_cr": 124, "period": "Q4 FY26"},
+    "latest_quarter": { "revenue_cr": 1324, "net_profit_cr": 124, "period": "Q4 FY26" },
     "recent_filings": [
-      {"date": "2026-07-06", "title": "FY2025-26 Annual Report filed"},
-      {"date": "2026-07-06", "title": "Business Responsibility and Sustainability Report (BRSR) filed"},
-      {"date": "2026-07-30", "title": "31st Annual General Meeting notice issued"}
+      { "date": "2026-07-06", "title": "FY2025-26 Annual Report filed" },
+      {
+        "date": "2026-07-06",
+        "title": "Business Responsibility and Sustainability Report (BRSR) filed"
+      },
+      { "date": "2026-07-30", "title": "31st Annual General Meeting notice issued" }
     ],
     "peers": ["Allcargo Logistics", "VRL Logistics"]
   },

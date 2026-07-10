@@ -12,23 +12,38 @@
     "https://www.whalesbook.com/news/English/media-and-entertainment/Baba-Arts-Open-Offer-Skybridge-Interactive-to-Acquire-2532percent-Stake-at-indian-rupee6/699f03eb04a25a58c85495b9"
   ],
   "reference": {
-    "price_close_recent": {"value": 16.7, "as_of": "2026-07-10"},
+    "price_close_recent": { "value": 16.7, "as_of": "2026-07-10" },
     "market_cap_cr": 87.8,
     "pe": 135,
-    "pb": 3.10,
-    "roe_pct": 2.40,
-    "dividend_yield_pct": 0.00,
+    "pb": 3.1,
+    "roe_pct": 2.4,
+    "dividend_yield_pct": 0.0,
     "dividend_declared_vs_paid_note": null,
     "52w_high": 17.2,
     "52w_low": 6.01,
-    "shareholding": {"promoter_pct": 74.68, "fii_pct": 0.00, "dii_pct": null, "public_pct": 25.31, "as_of_quarter": "Mar 2026"},
-    "latest_quarter": {"revenue_cr": 5.16, "net_profit_cr": 0.10, "period": "Q4 FY26"},
+    "shareholding": {
+      "promoter_pct": 74.68,
+      "fii_pct": 0.0,
+      "dii_pct": null,
+      "public_pct": 25.31,
+      "as_of_quarter": "Mar 2026"
+    },
+    "latest_quarter": { "revenue_cr": 5.16, "net_profit_cr": 0.1, "period": "Q4 FY26" },
     "recent_filings": [
-      {"date": "2026-07-06", "title": "Compliances - Certificate under Reg. 74(5) of SEBI (DP) Regulations, 2018"},
-      {"date": "2026-06-23", "title": "Closure of Trading Window"},
-      {"date": "2026-06-08", "title": "Updates on Open Offer"},
-      {"date": "2026-06-05", "title": "Recommendation of the Committee of Independent Directors (IDC) on Skybridge Interactive LLP open offer"},
-      {"date": "2026-06-01", "title": "Letter of Offer - Skybridge Interactive LLP open offer at Rs 6.00/share for 25.32% stake"}
+      {
+        "date": "2026-07-06",
+        "title": "Compliances - Certificate under Reg. 74(5) of SEBI (DP) Regulations, 2018"
+      },
+      { "date": "2026-06-23", "title": "Closure of Trading Window" },
+      { "date": "2026-06-08", "title": "Updates on Open Offer" },
+      {
+        "date": "2026-06-05",
+        "title": "Recommendation of the Committee of Independent Directors (IDC) on Skybridge Interactive LLP open offer"
+      },
+      {
+        "date": "2026-06-01",
+        "title": "Letter of Offer - Skybridge Interactive LLP open offer at Rs 6.00/share for 25.32% stake"
+      }
     ],
     "peers": []
   },

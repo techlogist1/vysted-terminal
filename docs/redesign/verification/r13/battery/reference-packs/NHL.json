@@ -12,7 +12,7 @@
     "https://www.bseindia.com/stock-share-price/naturewings-holidays-ltd/nhl/544245/"
   ],
   "reference": {
-    "price_close_recent": {"value": 80.5, "as_of": "2026-07-02"},
+    "price_close_recent": { "value": 80.5, "as_of": "2026-07-02" },
     "market_cap_cr": 28.6,
     "pe": 18.5,
     "pb": 2.24,
@@ -21,14 +21,27 @@
     "dividend_declared_vs_paid_note": null,
     "52w_high": 98.8,
     "52w_low": 56.8,
-    "shareholding": {"promoter_pct": 59.49, "fii_pct": 0.31, "dii_pct": null, "public_pct": 40.19, "as_of_quarter": "Mar 2026"},
-    "latest_quarter": {"revenue_cr": 30.27, "net_profit_cr": 1.55, "period": "FY2026 annual audited results - separate Q4-only breakout not published for this SME issuer"},
+    "shareholding": {
+      "promoter_pct": 59.49,
+      "fii_pct": 0.31,
+      "dii_pct": null,
+      "public_pct": 40.19,
+      "as_of_quarter": "Mar 2026"
+    },
+    "latest_quarter": {
+      "revenue_cr": 30.27,
+      "net_profit_cr": 1.55,
+      "period": "FY2026 annual audited results - separate Q4-only breakout not published for this SME issuer"
+    },
     "recent_filings": [
-      {"date": "2026-06-11", "title": "GST Notice - demand of Rs 66.33 lakh across multiple FYs"},
-      {"date": "2026-05-29", "title": "Change in Management / Auditor Appointments"},
-      {"date": "2026-05-29", "title": "Statement of Deviation - Rs 9.46 lakh unutilized IPO proceeds"},
-      {"date": "2026-05-29", "title": "FY2026 Audited Results Approval"},
-      {"date": "2026-05-29", "title": "FY26 Results & Director Appointments"}
+      { "date": "2026-06-11", "title": "GST Notice - demand of Rs 66.33 lakh across multiple FYs" },
+      { "date": "2026-05-29", "title": "Change in Management / Auditor Appointments" },
+      {
+        "date": "2026-05-29",
+        "title": "Statement of Deviation - Rs 9.46 lakh unutilized IPO proceeds"
+      },
+      { "date": "2026-05-29", "title": "FY2026 Audited Results Approval" },
+      { "date": "2026-05-29", "title": "FY26 Results & Director Appointments" }
     ],
     "peers": []
   },

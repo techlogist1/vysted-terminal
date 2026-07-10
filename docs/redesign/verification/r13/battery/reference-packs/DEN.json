@@ -12,22 +12,37 @@
     "https://tickertape.in/stocks/den-networks-DENN/peers"
   ],
   "reference": {
-    "price_close_recent": {"value": 29.2, "as_of": "2026-07-10"},
+    "price_close_recent": { "value": 29.2, "as_of": "2026-07-10" },
     "market_cap_cr": 1394,
     "pe": 8.42,
     "pb": 0.36,
     "roe_pct": 4.48,
-    "dividend_yield_pct": 0.00,
+    "dividend_yield_pct": 0.0,
     "dividend_declared_vs_paid_note": null,
     "52w_high": 42.8,
     "52w_low": 22.5,
-    "shareholding": {"promoter_pct": 74.90, "fii_pct": 0.46, "dii_pct": 0.14, "public_pct": 24.42, "as_of_quarter": "Mar 2026"},
-    "latest_quarter": {"revenue_cr": 241, "net_profit_cr": 36, "period": "Q4 FY26"},
+    "shareholding": {
+      "promoter_pct": 74.9,
+      "fii_pct": 0.46,
+      "dii_pct": 0.14,
+      "public_pct": 24.42,
+      "as_of_quarter": "Mar 2026"
+    },
+    "latest_quarter": { "revenue_cr": 241, "net_profit_cr": 36, "period": "Q4 FY26" },
     "recent_filings": [
-      {"date": "2026-07-14", "title": "Board Meeting Intimation for Consideration and Approval of Standalone and Consolidated Unaudited Financial Results (scheduled, Q1 FY27)"},
-      {"date": "2026-06-30", "title": "Closure of Trading Window"},
-      {"date": "2026-06-16", "title": "Clarification With Respect To Increase In The Volume Of Shares"},
-      {"date": "2026-06-15", "title": "Newspaper Clippings - Special Window For Transfer And Dematerialization (Demat) Of Physical Shares"}
+      {
+        "date": "2026-07-14",
+        "title": "Board Meeting Intimation for Consideration and Approval of Standalone and Consolidated Unaudited Financial Results (scheduled, Q1 FY27)"
+      },
+      { "date": "2026-06-30", "title": "Closure of Trading Window" },
+      {
+        "date": "2026-06-16",
+        "title": "Clarification With Respect To Increase In The Volume Of Shares"
+      },
+      {
+        "date": "2026-06-15",
+        "title": "Newspaper Clippings - Special Window For Transfer And Dematerialization (Demat) Of Physical Shares"
+      }
     ],
     "peers": ["GTPL Hathway", "Hathway Cable and Datacom", "Siti Networks"]
   },

@@ -2951,12 +2951,7 @@
         "backend": "keyless-fallback"
       },
       "suggested_layout": "research-cockpit",
-      "suggested_indicators": [
-        "ma",
-        "volume",
-        "rsi",
-        "macd"
-      ],
+      "suggested_indicators": ["ma", "volume", "rsi", "macd"],
       "execution_loop": "fast"
     }
   }

@@ -14,10 +14,10 @@
     "https://www.indiainfoline.com/company/restaurant-brands-asia-ltd/peer-comparison"
   ],
   "reference": {
-    "price_close_recent": {"value": 72.7, "as_of": "2026-07-10"},
+    "price_close_recent": { "value": 72.7, "as_of": "2026-07-10" },
     "market_cap_cr": 4236.0,
     "pe": null,
-    "pb": 5.90,
+    "pb": 5.9,
     "roe_pct": -22.7,
     "dividend_yield_pct": 0.0,
     "dividend_declared_vs_paid_note": "No dividend declared or paid; company has been posting losses (trailing ROE -22.7%), consistent with zero trailing dividend yield (not a timing artifact).",
@@ -27,7 +27,7 @@
       "promoter_pct": 9.22,
       "fii_pct": 8.19,
       "dii_pct": 39.98,
-      "public_pct": 42.60,
+      "public_pct": 42.6,
       "as_of_quarter": "Jun 2026"
     },
     "latest_quarter": {
@@ -36,9 +36,18 @@
       "period": "Q4 FY26"
     },
     "recent_filings": [
-      {"date": "2026-06-30", "title": "Penalty of Rs 1,15,000 imposed by Additional District Magistrate, Agra for Food Safety and Standards Act violation"},
-      {"date": "2026-06-08", "title": "Mandatory open offer opens: Lenexis Foodworks Pvt Ltd and other acquirers, up to 26.00% at Rs 70.39/share (offer closed 2026-06-19)"},
-      {"date": "2026-07-08", "title": "F&B Asia Ventures (Singapore) Pte Ltd off-market disposal of 1 equity share disclosed"}
+      {
+        "date": "2026-06-30",
+        "title": "Penalty of Rs 1,15,000 imposed by Additional District Magistrate, Agra for Food Safety and Standards Act violation"
+      },
+      {
+        "date": "2026-06-08",
+        "title": "Mandatory open offer opens: Lenexis Foodworks Pvt Ltd and other acquirers, up to 26.00% at Rs 70.39/share (offer closed 2026-06-19)"
+      },
+      {
+        "date": "2026-07-08",
+        "title": "F&B Asia Ventures (Singapore) Pte Ltd off-market disposal of 1 equity share disclosed"
+      }
     ],
     "peers": [
       "Jubilant Foodworks Ltd",

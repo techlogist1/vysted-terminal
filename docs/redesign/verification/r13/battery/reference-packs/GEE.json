@@ -14,22 +14,32 @@
     "https://www.business-standard.com/company/gee-1663.html"
   ],
   "reference": {
-    "price_close_recent": {"value": 105, "as_of": "2026-07-10"},
+    "price_close_recent": { "value": 105, "as_of": "2026-07-10" },
     "market_cap_cr": 546,
     "pe": 35.7,
     "pb": 2.54,
     "roe_pct": 7.48,
-    "dividend_yield_pct": 0.00,
+    "dividend_yield_pct": 0.0,
     "dividend_declared_vs_paid_note": "Screener shows trailing dividend yield of 0.00% — no dividend appears to have been declared/paid in the recent trailing period.",
     "52w_high": 127,
     "52w_low": 53.6,
-    "shareholding": {"promoter_pct": 63.97, "fii_pct": 1.37, "dii_pct": 0.00, "public_pct": 34.68, "as_of_quarter": "Mar 2026"},
-    "latest_quarter": {"revenue_cr": 112.16, "net_profit_cr": 3.54, "period": "Q4 FY26 (quarter ended Mar 2026)"},
+    "shareholding": {
+      "promoter_pct": 63.97,
+      "fii_pct": 1.37,
+      "dii_pct": 0.0,
+      "public_pct": 34.68,
+      "as_of_quarter": "Mar 2026"
+    },
+    "latest_quarter": {
+      "revenue_cr": 112.16,
+      "net_profit_cr": 3.54,
+      "period": "Q4 FY26 (quarter ended Mar 2026)"
+    },
     "recent_filings": [
-      {"date": "2026-06-02", "title": "Dematerialisation certificate confirmation"},
-      {"date": "2026-06-22", "title": "Navy warship tri-commissioning supply announcement"},
-      {"date": "2026-06-25", "title": "Trading window closure notice"},
-      {"date": "2026-06-25", "title": "Investor/analyst one-on-one meetings announced"}
+      { "date": "2026-06-02", "title": "Dematerialisation certificate confirmation" },
+      { "date": "2026-06-22", "title": "Navy warship tri-commissioning supply announcement" },
+      { "date": "2026-06-25", "title": "Trading window closure notice" },
+      { "date": "2026-06-25", "title": "Investor/analyst one-on-one meetings announced" }
     ],
     "peers": []
   },

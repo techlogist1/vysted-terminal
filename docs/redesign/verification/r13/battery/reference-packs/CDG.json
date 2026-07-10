@@ -14,22 +14,35 @@
     "https://www.investing.com/equities/pankaj-polypack-bo"
   ],
   "reference": {
-    "price_close_recent": {"value": 287, "as_of": "2026-07-10"},
+    "price_close_recent": { "value": 287, "as_of": "2026-07-10" },
     "market_cap_cr": 265,
     "pe": 60.1,
     "pb": 4.84,
     "roe_pct": 17.2,
-    "dividend_yield_pct": 0.00,
+    "dividend_yield_pct": 0.0,
     "dividend_declared_vs_paid_note": "Screener shows trailing dividend yield of 0.00% — no dividend appears to have been declared/paid in the recent trailing period.",
     "52w_high": 289,
     "52w_low": 52.6,
-    "shareholding": {"promoter_pct": 73.75, "fii_pct": null, "dii_pct": 0.70, "public_pct": 25.55, "as_of_quarter": "Mar 2026"},
-    "latest_quarter": {"revenue_cr": 52.22, "net_profit_cr": 5.32, "period": "Q4 FY26 (quarter ended Mar 2026)"},
+    "shareholding": {
+      "promoter_pct": 73.75,
+      "fii_pct": null,
+      "dii_pct": 0.7,
+      "public_pct": 25.55,
+      "as_of_quarter": "Mar 2026"
+    },
+    "latest_quarter": {
+      "revenue_cr": 52.22,
+      "net_profit_cr": 5.32,
+      "period": "Q4 FY26 (quarter ended Mar 2026)"
+    },
     "recent_filings": [
-      {"date": "2026-05-30", "title": "Audited financials for Q4 FY26"},
-      {"date": "2026-06-01", "title": "FY26 full-year results: Rs 74.88 Cr revenue, Rs 7.67 Cr PAT"},
-      {"date": "2026-06-26", "title": "Trading window closure notice"},
-      {"date": "2026-07-02", "title": "Company name change to Jujhar Logistics Limited effective"}
+      { "date": "2026-05-30", "title": "Audited financials for Q4 FY26" },
+      {
+        "date": "2026-06-01",
+        "title": "FY26 full-year results: Rs 74.88 Cr revenue, Rs 7.67 Cr PAT"
+      },
+      { "date": "2026-06-26", "title": "Trading window closure notice" },
+      { "date": "2026-07-02", "title": "Company name change to Jujhar Logistics Limited effective" }
     ],
     "peers": []
   },

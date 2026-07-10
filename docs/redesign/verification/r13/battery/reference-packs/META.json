@@ -12,23 +12,44 @@
     "https://www.indmoney.com/stocks/string-metaverse-ltd-share-price"
   ],
   "reference": {
-    "price_close_recent": {"value": 6.65, "as_of": "2026-07-10"},
+    "price_close_recent": { "value": 6.65, "as_of": "2026-07-10" },
     "market_cap_cr": 811,
     "pe": 265,
     "pb": 5.82,
     "roe_pct": 2.21,
-    "dividend_yield_pct": 0.00,
+    "dividend_yield_pct": 0.0,
     "dividend_declared_vs_paid_note": null,
     "52w_high": 26.54,
     "52w_low": 5.89,
-    "shareholding": {"promoter_pct": 74.94, "fii_pct": null, "dii_pct": null, "public_pct": 25.06, "as_of_quarter": "Jun 2026"},
-    "latest_quarter": {"revenue_cr": 12.94, "net_profit_cr": 3.06, "period": "Q4 FY26"},
+    "shareholding": {
+      "promoter_pct": 74.94,
+      "fii_pct": null,
+      "dii_pct": null,
+      "public_pct": 25.06,
+      "as_of_quarter": "Jun 2026"
+    },
+    "latest_quarter": { "revenue_cr": 12.94, "net_profit_cr": 3.06, "period": "Q4 FY26" },
     "recent_filings": [
-      {"date": "2026-06-29", "title": "Closure of Trading Window (from 1 July 2026 until 48 hours after Q1 FY27 results)"},
-      {"date": "2026-06-22", "title": "Bonus Share Allotment - 5,55,86,661 bonus shares allotted to shareholders"},
-      {"date": "2026-06-22", "title": "Update on Undertaking - bonus share allotment, record date 19 June 2026"},
-      {"date": "2026-06-22", "title": "Board Meeting Outcome - bonus allotment raised public shareholding to 25.06%"},
-      {"date": "2026-06-22", "title": "Announcement under Regulation 30 - allotment of 5,55,86,661 bonus shares"}
+      {
+        "date": "2026-06-29",
+        "title": "Closure of Trading Window (from 1 July 2026 until 48 hours after Q1 FY27 results)"
+      },
+      {
+        "date": "2026-06-22",
+        "title": "Bonus Share Allotment - 5,55,86,661 bonus shares allotted to shareholders"
+      },
+      {
+        "date": "2026-06-22",
+        "title": "Update on Undertaking - bonus share allotment, record date 19 June 2026"
+      },
+      {
+        "date": "2026-06-22",
+        "title": "Board Meeting Outcome - bonus allotment raised public shareholding to 25.06%"
+      },
+      {
+        "date": "2026-06-22",
+        "title": "Announcement under Regulation 30 - allotment of 5,55,86,661 bonus shares"
+      }
     ],
     "peers": []
   },

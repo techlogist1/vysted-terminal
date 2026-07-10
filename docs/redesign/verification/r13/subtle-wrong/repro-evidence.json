@@ -71,8 +71,16 @@
         "yf_heldPercentInsiders": 0.41714,
         "yf_heldPercentInsiders_pct": 41.714,
         "yf_major_holders_insidersPercentHeld": 0.41714,
-        "nse_promoter_percent_latest": {"quarter_end": "2026-04-11", "value": 41.71, "submission_date": "2026-04-13"},
-        "nse_promoter_percent_prior_quarter": {"quarter_end": "2026-03-31", "value": 36.72, "submission_date": "2026-04-06"},
+        "nse_promoter_percent_latest": {
+          "quarter_end": "2026-04-11",
+          "value": 41.71,
+          "submission_date": "2026-04-13"
+        },
+        "nse_promoter_percent_prior_quarter": {
+          "quarter_end": "2026-03-31",
+          "value": 36.72,
+          "submission_date": "2026-04-06"
+        },
         "drift_vs_latest_pp": 0.004,
         "drift_vs_prior_quarter_pp": 4.994,
         "note": "STRIKING as-of-date-skew evidence: the NSE shareholding master carries an off-cycle amendment dated 2026-04-11 (submitted 2026-04-13, promoter jumped 36.72% -> 41.71%, presumably a creeping-acquisition/open-offer event). yfinance's insider ROSTER (t.insider_roster_holders) shows the promoter-family rows individually dated 2026-04-11 -- i.e. yfinance's heldPercentInsiders (41.714%) matches the FRESH post-event filing almost exactly, not the 'official' quarter-end (2026-03-31) figure. Comparing against the wrong NSE snapshot manufactures a fake ~5pp 'drift' that is actually just two different, both-correct, as-of dates. The insider roster ALSO mixes entries from wildly different dates in one scalar (Lotus Global Investments Ltd. dated 2024-08-21 sits alongside rows dated 2026-04-11) -- heldPercentInsiders is not a coherent point-in-time cross-section the way the NSE quarterly master is."
@@ -82,7 +90,11 @@
         "company": "Thirumalai Chemicals Limited",
         "yf_heldPercentInsiders": 0.41946,
         "yf_heldPercentInsiders_pct": 41.946,
-        "nse_promoter_percent_latest": {"quarter_end": "2026-03-31", "value": 37.13, "submission_date": "2026-04-21"},
+        "nse_promoter_percent_latest": {
+          "quarter_end": "2026-03-31",
+          "value": 37.13,
+          "submission_date": "2026-04-21"
+        },
         "drift_pp": 4.816,
         "insider_roster_positions": "10 holders, ALL labeled 'Promoter' (individuals + family trusts + Ultramarine & Pigments Ltd.) -- no date column populated, so no as-of-skew evidence available for this name, but the roster composition still overstates the strict NSE promoter-group percentage."
       },
@@ -91,7 +103,11 @@
         "company": "Orient Bell Limited",
         "yf_heldPercentInsiders": 0.71287,
         "yf_heldPercentInsiders_pct": 71.287,
-        "nse_promoter_percent_latest": {"quarter_end": "2026-03-31", "value": 65.92, "submission_date": "2026-04-06"},
+        "nse_promoter_percent_latest": {
+          "quarter_end": "2026-03-31",
+          "value": 65.92,
+          "submission_date": "2026-04-06"
+        },
         "drift_pp": 5.367,
         "insider_roster_positions": "roster mixes 'Promoter'-labeled rows with 'UNREPORTED'-position rows (e.g. Agarwal (Anil), Gupta (Sanjeev)) -- heldPercentInsiders is not filtered to promoter-labeled rows only, a likely definitional-mismatch driver."
       },
@@ -100,7 +116,11 @@
         "company": "Gokaldas Exports Limited",
         "yf_heldPercentInsiders": 0.12639,
         "yf_heldPercentInsiders_pct": 12.639,
-        "nse_promoter_percent_latest": {"quarter_end": "2026-03-31", "value": 9.15, "submission_date": "2026-04-21"},
+        "nse_promoter_percent_latest": {
+          "quarter_end": "2026-03-31",
+          "value": 9.15,
+          "submission_date": "2026-04-21"
+        },
         "drift_pp": 3.489,
         "insider_roster_positions": "single 'UNREPORTED'-position holder listed"
       }
@@ -129,9 +149,9 @@
         "yf_trailingAnnualDividendRate": 8.25,
         "repo_computed_ttm_paid_via_dividend_history.get_dividend_ttm": 10.0,
         "ex_dated_dividends_trailing_365d": [
-          {"ex_date": "2025-08-08", "amount": 3.0},
-          {"ex_date": "2025-12-18", "amount": 5.0},
-          {"ex_date": "2026-03-12", "amount": 2.0}
+          { "ex_date": "2025-08-08", "amount": 3.0 },
+          { "ex_date": "2025-12-18", "amount": 5.0 },
+          { "ex_date": "2026-03-12", "amount": 2.0 }
         ],
         "relative_divergence": 0.175,
         "D56_result": {
@@ -159,15 +179,15 @@
         "yf_trailingAnnualDividendRate": 18.55,
         "repo_computed_ttm_paid_via_dividend_history.get_dividend_ttm": 14.6,
         "ex_dated_dividends_trailing_365d": [
-          {"ex_date": "2025-08-18", "amount": 3.70},
-          {"ex_date": "2025-11-26", "amount": 3.65},
-          {"ex_date": "2026-02-20", "amount": 4.00},
-          {"ex_date": "2026-03-23", "amount": 3.25}
+          { "ex_date": "2025-08-18", "amount": 3.7 },
+          { "ex_date": "2025-11-26", "amount": 3.65 },
+          { "ex_date": "2026-02-20", "amount": 4.0 },
+          { "ex_date": "2026-03-23", "amount": 3.25 }
         ],
         "arithmetic_check": "14.6 (repo-computed TTM paid) + 3.95 (declared-not-yet-paid final dividend) = 18.55, which EXACTLY equals yf trailingAnnualDividendRate. This is a clean, exact reproduction of the hypothesized conflation -- but on trailingAnnualDividendRate, not dividendRate.",
         "dividendRate_vs_ttm_paid": {
           "relative_divergence": 0.0759,
-          "threshold": 0.10,
+          "threshold": 0.1,
           "verdict": "BELOW threshold -- D56 does not fire on the field the repo actually uses"
         },
         "D56_result_live_call": {

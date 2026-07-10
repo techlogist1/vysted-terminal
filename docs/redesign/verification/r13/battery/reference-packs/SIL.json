@@ -14,7 +14,7 @@
     "https://business-standard.com/company/standard-inds-529/information/company-history"
   ],
   "reference": {
-    "price_close_recent": {"value": 16.6, "as_of": "2026-07-10"},
+    "price_close_recent": { "value": 16.6, "as_of": "2026-07-10" },
     "market_cap_cr": 107,
     "pe": null,
     "pb": 0.92,
@@ -23,13 +23,35 @@
     "dividend_declared_vs_paid_note": "Screener's own fetch showed trailing dividend yield of 3.33%, but an earlier-cached aggregator snapshot (dated on/around 8 Jul 2026) showed 1.6% for the same metric — likely a stale cache or a standalone-vs-consolidated difference; treat the 3.33% figure (direct 10 Jul consolidated-page fetch) as more current, but this discrepancy was not fully reconciled.",
     "52w_high": 21.7,
     "52w_low": 11.7,
-    "shareholding": {"promoter_pct": 20.31, "fii_pct": 38.86, "dii_pct": 4.04, "public_pct": 36.79, "as_of_quarter": "Mar 2026"},
-    "latest_quarter": {"revenue_cr": 9.72, "net_profit_cr": -7.21, "period": "Q4 FY26 (quarter ended Mar 2026)"},
+    "shareholding": {
+      "promoter_pct": 20.31,
+      "fii_pct": 38.86,
+      "dii_pct": 4.04,
+      "public_pct": 36.79,
+      "as_of_quarter": "Mar 2026"
+    },
+    "latest_quarter": {
+      "revenue_cr": 9.72,
+      "net_profit_cr": -7.21,
+      "period": "Q4 FY26 (quarter ended Mar 2026)"
+    },
     "recent_filings": [
-      {"date": "2026-05-13", "title": "Submission of newspaper clippings of extract of statement of audited financial results (quarter and year ended 31 Mar 2026)"},
-      {"date": "2026-05-14", "title": "Assignment / Transfer of Development Rights of Freehold Land and Building — Dadar land development rights deed executed (Rs 169.5 Cr plus four flats)"},
-      {"date": "2026-05-14", "title": "Compliances-Reg.24(A) — Annual Secretarial Compliance Report for FY2025-26, no non-compliances reported"},
-      {"date": "2026-06-24", "title": "Closure of Trading Window (from 1 Jul 2026 until 48 hours after Q1 FY27 results)"}
+      {
+        "date": "2026-05-13",
+        "title": "Submission of newspaper clippings of extract of statement of audited financial results (quarter and year ended 31 Mar 2026)"
+      },
+      {
+        "date": "2026-05-14",
+        "title": "Assignment / Transfer of Development Rights of Freehold Land and Building — Dadar land development rights deed executed (Rs 169.5 Cr plus four flats)"
+      },
+      {
+        "date": "2026-05-14",
+        "title": "Compliances-Reg.24(A) — Annual Secretarial Compliance Report for FY2025-26, no non-compliances reported"
+      },
+      {
+        "date": "2026-06-24",
+        "title": "Closure of Trading Window (from 1 Jul 2026 until 48 hours after Q1 FY27 results)"
+      }
     ],
     "peers": []
   },

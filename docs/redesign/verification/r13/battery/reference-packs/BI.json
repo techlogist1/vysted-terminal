@@ -13,23 +13,42 @@
     "https://www.equitymaster.com/share-price/BIIN/526853/BILCARE-Share-Price"
   ],
   "reference": {
-    "price_close_recent": {"value": 62.6, "as_of": "2026-07-10"},
+    "price_close_recent": { "value": 62.6, "as_of": "2026-07-10" },
     "market_cap_cr": 147,
     "pe": 26.7,
     "pb": 0.76,
     "roe_pct": 1.66,
-    "dividend_yield_pct": 0.00,
+    "dividend_yield_pct": 0.0,
     "dividend_declared_vs_paid_note": "Screener shows trailing dividend yield of 0.00% — no dividend appears to have been declared/paid in the recent trailing period, consistent with the company's post-NCLT distressed financial history.",
     "52w_high": 116,
     "52w_low": 50.0,
-    "shareholding": {"promoter_pct": 30.01, "fii_pct": 0.04, "dii_pct": 0.00, "public_pct": 69.95, "as_of_quarter": "Mar 2026"},
-    "latest_quarter": {"revenue_cr": 187.66, "net_profit_cr": 7.85, "period": "Q4 FY26 (quarter ended Mar 2026)"},
+    "shareholding": {
+      "promoter_pct": 30.01,
+      "fii_pct": 0.04,
+      "dii_pct": 0.0,
+      "public_pct": 69.95,
+      "as_of_quarter": "Mar 2026"
+    },
+    "latest_quarter": {
+      "revenue_cr": 187.66,
+      "net_profit_cr": 7.85,
+      "period": "Q4 FY26 (quarter ended Mar 2026)"
+    },
     "recent_filings": [
-      {"date": "2026-06-12", "title": "NCLT directive regarding Rs 2.52 Cr fixed-deposit repayment to IEPF by 15 Jul 2026"},
-      {"date": "2026-06-22", "title": "Postal ballot notice for independent director appointment"},
-      {"date": "2026-06-23", "title": "Newspaper publication announcement regarding postal ballot"},
-      {"date": "2026-06-26", "title": "Trading window closure notice"},
-      {"date": "2026-07-02", "title": "Compliance certificate filing under SEBI regulations"}
+      {
+        "date": "2026-06-12",
+        "title": "NCLT directive regarding Rs 2.52 Cr fixed-deposit repayment to IEPF by 15 Jul 2026"
+      },
+      {
+        "date": "2026-06-22",
+        "title": "Postal ballot notice for independent director appointment"
+      },
+      {
+        "date": "2026-06-23",
+        "title": "Newspaper publication announcement regarding postal ballot"
+      },
+      { "date": "2026-06-26", "title": "Trading window closure notice" },
+      { "date": "2026-07-02", "title": "Compliance certificate filing under SEBI regulations" }
     ],
     "peers": []
   },

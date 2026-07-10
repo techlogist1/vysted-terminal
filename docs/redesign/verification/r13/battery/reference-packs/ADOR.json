@@ -15,7 +15,7 @@
     "https://www.indiainfoline.com/company/ador-welding-ltd/peer-comparison"
   ],
   "reference": {
-    "price_close_recent": {"value": 1327, "as_of": "2026-07-10"},
+    "price_close_recent": { "value": 1327, "as_of": "2026-07-10" },
     "market_cap_cr": 2309,
     "pe": 27.5,
     "pb": 4.16,
@@ -31,12 +31,24 @@
       "public_pct": 33.26,
       "as_of_quarter": "Mar 2026"
     },
-    "latest_quarter": {"revenue_cr": 319, "net_profit_cr": 34, "period": "Q4 FY26"},
+    "latest_quarter": { "revenue_cr": 319, "net_profit_cr": 34, "period": "Q4 FY26" },
     "recent_filings": [
-      {"date": "2026-07-06", "title": "Record date fixed (16 July 2026) for Rs 23 final dividend FY26"},
-      {"date": "2026-07-23", "title": "73rd Annual General Meeting (virtual conference)"}
+      {
+        "date": "2026-07-06",
+        "title": "Record date fixed (16 July 2026) for Rs 23 final dividend FY26"
+      },
+      { "date": "2026-07-23", "title": "73rd Annual General Meeting (virtual conference)" }
     ],
-    "peers": ["ESAB India", "Inox India", "PTC Industries", "KRN Heat Exchanger", "Kirloskar Industries", "Diffusion Engineering", "Mallcom (India)", "Sealmatic India"]
+    "peers": [
+      "ESAB India",
+      "Inox India",
+      "PTC Industries",
+      "KRN Heat Exchanger",
+      "Kirloskar Industries",
+      "Diffusion Engineering",
+      "Mallcom (India)",
+      "Sealmatic India"
+    ]
   },
   "world_gaps": [
     "Cross-source price/market-cap snapshots for ADOR disagreed materially within the same week (observed range roughly Rs 1130-1327 and market cap Rs 1930-2309 Cr across screener.in, business-standard, indmoney and other aggregators dated between 12 Jun and 10 Jul 2026), likely reflecting aggregator caching lag rather than a single true tick; screener.in's own reported 'as of Jul 10, 3:30pm' figure was used as the reference point but should be treated as approximate, not a verified live NSE/BSE closing print.",
