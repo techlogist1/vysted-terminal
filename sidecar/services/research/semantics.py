@@ -804,10 +804,14 @@ def _market_cap_witness_leg(
     market_cap = _num(fund, "market_cap")
     shares = _num(witness, "shares_outstanding")
     source = witness.get("source") if isinstance(witness.get("source"), str) else "exchange master"
+    as_of = witness.get("as_of") if isinstance(witness.get("as_of"), str) else None
     if market_cap is None or price is None or shares is None or shares <= 0:
         return {}, []
     implied = price * shares
-    if implied <= 0 or _relative_divergence(market_cap, implied) <= _MARKET_CAP_WITNESS_TOLERANCE:
+    if implied <= 0:
+        return {}, []
+    divergence = _relative_divergence(market_cap, implied)
+    if divergence <= _MARKET_CAP_WITNESS_TOLERANCE:
         return {}, []
     facts = {
         "market_cap_witness": _value(
@@ -818,6 +822,23 @@ def _market_cap_witness_leg(
             unit="currency",
         )
     }
+    # Symmetric wording (R13 D-2): the witness share count is a POINT-IN-TIME
+    # snapshot (``as_of`` / the bundled master's ``_generated`` date), so a
+    # disagreement can equally mean the witness has gone stale (a split/bonus/
+    # buyback after that date moved the float) as it can mean the provider has.
+    # Never assert which side is wrong — name both counts, blame neither.
+    as_of_clause = f" (shares as of {as_of})" if as_of else ""
+    stale_clause = (
+        f" (post-{as_of} corporate actions make the witness stale)"
+        if as_of
+        else " (corporate actions since the witness snapshot make it stale)"
+    )
+    note = (
+        f"The provider market cap ({market_cap:,.0f}) and the exchange-master witness"
+        f"{as_of_clause} ({implied:,.0f}, price × exchange share count) disagree by "
+        f"{divergence:.0%} — one of the two share counts is stale{stale_clause}. "
+        "Both are shown, neither replaced."
+    )
     conflict = {
         "field": "market_cap",
         "kind": "market_cap_witness_conflict",
@@ -834,13 +855,7 @@ def _market_cap_witness_leg(
                 "basis": source,
             },
         ],
-        "note": (
-            f"The provider market cap ({market_cap:,.0f}) diverges more than 10% from price × "
-            f"the exchange master's share count ({implied:,.0f}) — the plain price×shares check "
-            "uses the provider's OWN share count (circular), so a stale provider count (e.g. "
-            "live promoter-stake churn) hides there; this NON-provider witness catches it. "
-            "Both are shown, neither replaced."
-        ),
+        "note": note,
     }
     return facts, [conflict]
 

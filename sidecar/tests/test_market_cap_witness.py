@@ -68,6 +68,33 @@ def test_rba_shape_returns_bse_derived_share_count(monkeypatch: pytest.MonkeyPat
     assert witness.as_wire()["shares_outstanding"] == 582876028.0
 
 
+# --- R13 D-2: the as-of date propagated from the bundled master's _generated ----
+
+
+def test_source_and_as_of_carry_the_bundled_masters_generated_date(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _patch_seed(monkeypatch, {"scrip_code": "543248", "shares_outstanding": 582876028})
+    monkeypatch.setattr(screener_universe_india, "sector_map_generated", lambda: "2026-06-11")
+    witness = asyncio.run(market_cap_witness.get_market_cap_witness("RBA"))
+    assert isinstance(witness, MarketCapWitness)
+    assert witness.as_of == "2026-06-11"
+    assert witness.source == "BSE ListOfScripData (bundled India master) (as of 2026-06-11)"
+    assert witness.as_wire()["as_of"] == "2026-06-11"
+
+
+def test_missing_generated_header_omits_the_as_of_suffix(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _patch_seed(monkeypatch, {"scrip_code": "543248", "shares_outstanding": 582876028})
+    monkeypatch.setattr(screener_universe_india, "sector_map_generated", lambda: None)
+    witness = asyncio.run(market_cap_witness.get_market_cap_witness("RBA"))
+    assert isinstance(witness, MarketCapWitness)
+    assert witness.as_of is None
+    assert witness.source == "BSE ListOfScripData (bundled India master)"
+    assert "as of" not in witness.source
+
+
 def test_nse_only_enrichment_row_is_excluded(monkeypatch: pytest.MonkeyPatch) -> None:
     # No BSE scrip_code → the share count is a yfinance backfill; using it would
     # reintroduce the circularity, so the witness declines.

@@ -212,3 +212,34 @@ def test_thin_returned_series_is_none(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     _patch_history(monkeypatch, series)
     assert asyncio.run(range_check.get_52w_range("BI")) is None
+
+
+# --- get_52w_range: the circularity guard (R13 D-1) ------------------------------
+
+
+def test_yfinance_served_series_declines_to_witness(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A yfinance-served fallback series must NOT be used to recompute the 52w
+    # range — witnessing yfinance against itself is a false negative by
+    # construction, and its auto-adjusted OHLC would manufacture false
+    # positives against the unadjusted 52w scalar it also serves.
+    series = OHLCVSeries(
+        symbol="BI",
+        timeframe="1d",
+        bars=_bars(days=360, high=116.0, low=50.0),
+        provider="yfinance",
+    )
+    _patch_history(monkeypatch, series)
+    assert asyncio.run(range_check.get_52w_range("BI")) is None
+
+
+def test_bse_served_series_with_coverage_computes(monkeypatch: pytest.MonkeyPatch) -> None:
+    # bse is exchange-direct — with adequate coverage it must compute, not decline.
+    series = OHLCVSeries(
+        symbol="BI",
+        timeframe="1d",
+        bars=_bars(days=360, high=116.0, low=50.0),
+        provider="bse",
+    )
+    _patch_history(monkeypatch, series)
+    rng = asyncio.run(range_check.get_52w_range("BI"))
+    assert rng == Range52w(high=116.0, low=50.0, coverage_days=359, bars=360, source="bse")

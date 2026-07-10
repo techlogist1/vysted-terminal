@@ -52,8 +52,13 @@ logger = logging.getLogger(__name__)
 MCAP_WITNESS_KEY = "market_cap_witness"
 
 #: Human label for the witness share-count source, carried into the conflict
-#: payload so a disagreement names its (non-provider) evidence.
-_SOURCE = "BSE ListOfScripData (bundled India master)"
+#: payload so a disagreement names its (non-provider) evidence. The bundled
+#: master's ``_generated`` build date is appended when known — e.g.
+#: ``"BSE ListOfScripData (as of 2026-06-11)"`` — so a conflict names exactly
+#: how stale the WITNESS itself may be (R13 D-2): the master is a point-in-time
+#: snapshot, so a corporate action after that date can make the witness share
+#: count the stale one, not the live provider's.
+_SOURCE_LABEL = "BSE ListOfScripData (bundled India master)"
 
 
 @dataclass(frozen=True)
@@ -64,12 +69,16 @@ class MarketCapWitness:
     offline from BSE ListOfScripData; ``scrip_code`` is the BSE code that
     guarantees the count is BSE-derived (an NSE-only enrichment row — yfinance
     share count — has no ``scrip_code`` and is excluded upstream). ``source`` is
-    the human label carried into the conflict payload.
+    the human label (as-of date folded in when known) carried into the conflict
+    payload; ``as_of`` is the same date as a plain ``"YYYY-MM-DD"`` string (or
+    ``None`` when the bundled master carries no ``_generated`` header) for
+    callers that want the raw value rather than parsing ``source``.
     """
 
     shares_outstanding: float
     source: str
     scrip_code: str
+    as_of: str | None = None
 
     def as_wire(self) -> dict[str, Any]:
         """The plain dict attached under :data:`MCAP_WITNESS_KEY`."""
@@ -118,10 +127,13 @@ def _lookup(symbol: str) -> MarketCapWitness | None:
         return None  # NSE-only enrichment row → share count is a yfinance backfill
     if isinstance(shares, bool) or not isinstance(shares, (int, float)) or shares <= 0:
         return None
+    as_of = screener_universe_india.sector_map_generated()
+    source = f"{_SOURCE_LABEL} (as of {as_of})" if as_of else _SOURCE_LABEL
     return MarketCapWitness(
         shares_outstanding=float(shares),
-        source=_SOURCE,
+        source=source,
         scrip_code=scrip_code,
+        as_of=as_of,
     )
 
 

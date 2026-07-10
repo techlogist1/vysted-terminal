@@ -134,6 +134,23 @@ def sector_map_coverage() -> dict[str, Any]:
     return coverage if isinstance(coverage, dict) else {}
 
 
+def sector_map_generated() -> str | None:
+    """The bundled sector map's ``_generated`` build date (``"YYYY-MM-DD"``), or
+    ``None`` when the master is missing or the header is absent.
+
+    Callers (R13 D-2: :mod:`services.market_cap_witness`) propagate this as the
+    witness's as-of date — the map is a point-in-time snapshot (regenerated
+    offline via ``regenerate_india_sectors.py``), so any corporate action after
+    this date (a split/bonus/buyback moving the float) makes the WITNESS share
+    count the stale one, not necessarily the live provider's."""
+    try:
+        raw = _load_master("india_sector_map.json")
+    except ProviderError:
+        return None
+    generated = raw.get("_generated")
+    return generated if isinstance(generated, str) and generated else None
+
+
 def reset_caches_for_tests() -> None:
     """Drop the in-process master caches (test helper)."""
     _nse_rows.cache_clear()
@@ -233,5 +250,6 @@ __all__ = [
     "load_india_universe",
     "reset_caches_for_tests",
     "sector_map_coverage",
+    "sector_map_generated",
     "sector_seed_for",
 ]

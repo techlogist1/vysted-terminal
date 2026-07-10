@@ -55,6 +55,20 @@ EXCHANGE_HISTORY = "exchange_history"
 #: that :func:`services.research.semantics.derive_semantics` reads.
 RANGE_KEY = "range_52w_exchange"
 
+#: Provider ids that count as an EXCHANGE-DIRECT history lane (mirrors the ids
+#: :mod:`services.provider_registry` assigns its India OHLCV providers:
+#: ``nse_direct`` (the anti-bot NSE lane), ``nse`` (the jugaad-data-backed
+#: default), ``bse`` (the BhavCopy cache) — plus ``jugaad`` as a defensive
+#: alias should that id ever be used directly). A series served by anything
+#: else (chiefly ``yfinance``, the last-resort fallback) must NOT be used to
+#: recompute the 52-week range (R13 D-1 hardening): a yfinance-served series
+#: witnesses yfinance against itself — a false negative by construction — and
+#: yfinance's auto-adjusted OHLC vs. the unadjusted 52w scalar it also serves
+#: would manufacture false positives. :func:`get_52w_range` gates on this set
+#: and declines (returns ``None``) rather than compute from an ineligible
+#: source.
+_EXCHANGE_DIRECT_PROVIDERS = frozenset({"nse_direct", "nse", "bse", "jugaad"})
+
 #: The 52-week window in calendar days (the reduction is taken over bars within
 #: this trailing window of the latest bar).
 _WINDOW_DAYS = 365
@@ -202,6 +216,17 @@ async def get_52w_range(symbol: str) -> Range52w | None:
     provider_health.record_success(EXCHANGE_HISTORY)
     bars = getattr(series, "bars", None)
     source = getattr(series, "provider", None) or "exchange"
+    if source not in _EXCHANGE_DIRECT_PROVIDERS:
+        # Circularity guard (R13 D-1): the served series fell through to a
+        # non-exchange-direct provider (e.g. yfinance) — recomputing from it
+        # would witness that provider against itself rather than cross-check
+        # it, so decline instead of computing. See _EXCHANGE_DIRECT_PROVIDERS.
+        logger.debug(
+            "52w range witness declined for %s: series provider %r is not exchange-direct",
+            symbol,
+            source,
+        )
+        return None
     return compute_range(bars, source)
 
 

@@ -958,8 +958,9 @@ def test_range_absent_leg_is_a_noop() -> None:
 
 _RBA_WITNESS = {
     "shares_outstanding": 582876028,
-    "source": "BSE ListOfScripData (bundled India master)",
+    "source": "BSE ListOfScripData (bundled India master) (as of 2026-06-11)",
     "scrip_code": "543248",
+    "as_of": "2026-06-11",
 }
 
 
@@ -976,7 +977,31 @@ def test_rba_shape_market_cap_witness_fires() -> None:
     assert mcw["conflict_kind"] == "data_conflict"
     assert mcw["sources"][0]["value"] == pytest.approx(round(5.233e10, 2))
     assert mcw["sources"][1]["value"] == pytest.approx(round(implied, 2))
-    assert "circular" in mcw["note"]
+    # R13 D-2: the note carries the witness as-of date and stays symmetric —
+    # it must name BOTH share counts as the possibly-stale one, never assert
+    # the provider's is the stale one.
+    assert "as of 2026-06-11" in mcw["note"]
+    assert "stale" in mcw["note"]
+    lowered = mcw["note"].lower()
+    assert "provider's own share count" not in lowered
+    assert "stale provider count" not in lowered
+    assert "one of the two share counts is stale" in lowered
+
+
+def test_market_cap_witness_note_without_as_of_stays_symmetric() -> None:
+    # A witness with no ``as_of`` (bundled master missing ``_generated``) still
+    # produces a symmetric note — no fabricated date, no provider-blaming claim.
+    witness = {k: v for k, v in _RBA_WITNESS.items() if k != "as_of"}
+    witness["source"] = "BSE ListOfScripData (bundled India master)"
+    data = _derived(
+        _structured(price=72.7, fund={"market_cap": 5.233e10, "market_cap_witness": witness})
+    )
+    mcw = next(c for c in data["conflicts"] if c.get("kind") == "market_cap_witness_conflict")
+    lowered = mcw["note"].lower()
+    assert "one of the two share counts is stale" in lowered
+    assert "as of" not in lowered
+    assert "provider's own share count" not in lowered
+    assert "stale provider count" not in lowered
 
 
 def test_agreeing_market_cap_witness_stays_silent() -> None:
