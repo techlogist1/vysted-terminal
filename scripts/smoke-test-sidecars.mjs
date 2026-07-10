@@ -15,30 +15,54 @@
 // tag pushed. This smoke-test fails the workflow if a similar
 // regression sneaks in again.
 //
+// ATTENDED-SAFE: this script is designed to run WHILE the operator's own
+// `vysted-terminal` dev/prod app is alive on the same machine. It NEVER
+// inspects, name-matches, or kills any process it did not itself spawn in
+// the current run — earlier revisions pre-flighted with a blanket
+// `pgrep -f vysted-.*sidecar` scan, which matches the operator's own live
+// app sidecars and forces a `pkill -9 -f vysted-.*sidecar` remediation
+// (i.e. kills the app you're using to read this message). That is gone.
+//
 // Strategy:
-//   1. Pre-flight: refuse to run if vysted-*sidecar* processes are
-//      already alive — a prior run leaked, and racing on the same
-//      binary file lock would produce noise.
+//   1. Pre-flight: reap only leaked children from a PRIOR RUN OF THIS
+//      SCRIPT — read the PID ledger this script itself wrote to a fixed
+//      state file, confirm each live PID still carries this script's own
+//      marker (env var on Linux; command-name match against the recorded
+//      binary elsewhere), and tree-kill ONLY those. A PID this script
+//      never recorded (e.g. the operator's running app) is never touched,
+//      even if its process name matches.
 //   2. Resolve the target triple via `rustc -vV` (matches existing
 //      ensure-*.mjs scripts).
 //   3. For the MAIN sidecar (vysted-sidecar):
-//      - Pick a free port, spawn with --port + --data-dir + open stdin
-//        (so its stdin-EOF watchdog does not fire and kill it).
-//      - Poll http://127.0.0.1:PORT/health for up to 60s.
+//      - Pick a fresh EPHEMERAL port (bind :0, read back the OS-assigned
+//        port, close, reuse — no other process, including the operator's
+//        app, can be using it), spawn with --port + --data-dir + a held
+//        stdin pipe (so its stdin-EOF watchdog does not fire and kill it)
+//        + this script's marker env var.
+//      - Poll http://127.0.0.1:PORT/health for up to MAIN_BOOT_TIMEOUT_MS.
 //      - 200 OK → PASS. Process exit / timeout → FAIL.
+//      - Then assert: /health version matches package.json, the screener
+//        universe endpoint, the ICONIKSPEV deterministic resolve, the
+//        /agents roster (count > 0), and /mcp/status (this binary's OWN
+//        embedded MCP integration reports ready).
 //   4. For each MCP subprocess sidecar (vysted-openbb-mcp-sidecar,
 //      vysted-sec-edgar-mcp-sidecar):
-//      - Spawn with --port (picked) + --no-watchdog (so closing our
-//        stdin does not kill it).
-//      - Wait ~10s and verify the process is still alive (exit code
-//        null). MCP servers don't expose /health; surviving without a
-//        crash is the contract.
+//      - Spawn on its own fresh ephemeral port + --no-watchdog (so closing
+//        our stdin does not kill it) + the marker env var.
+//      - TCP-probe the claimed port until it binds (up to
+//        MCP_BIND_TIMEOUT_MS) — process-alive is not enough, the UC1
+//        silent-non-bind failure needs an actual connect. Then confirm it
+//        survives a short settle window (catches bind-then-crash).
 //   5. Tree-kill every spawned process (Windows: taskkill /F /T /PID;
 //      POSIX: process group via `detached: true` + `process.kill(-pid,
-//      'SIGKILL')`). Without tree-kill the PyInstaller bootloader's
-//      worker survives — CLAUDE.md Gotcha "Smoke-testing the sidecar
-//      binary orphans a worker".
-//   6. Verify no orphans remain after kill; if any, surface a warning.
+//      'SIGKILL')`) — ONLY processes this run's PID ledger recorded.
+//      Without tree-kill the PyInstaller bootloader's worker survives —
+//      CLAUDE.md Gotcha "Smoke-testing the sidecar binary orphans a
+//      worker". Runs from `exit`/SIGINT/SIGTERM handlers too, so a crash
+//      or Ctrl+C still reaps this run's own children.
+//   6. Print an ATTENDED-SAFE summary naming every port/PID this run
+//      touched, so a diff against `ps aux | grep vysted` before/after
+//      proves zero interference with pre-existing processes.
 //   7. Exit non-zero on first failure with a clear error message
 //      naming the broken binary + a hint at the likely missing
 //      PyInstaller flag.
@@ -46,9 +70,9 @@
 // Run via: `node scripts/smoke-test-sidecars.mjs`
 
 import { spawn, execSync, execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer, connect as netConnect } from "node:net";
-import { join, resolve } from "node:path";
+import { basename, join, resolve } from "node:path";
 import { tmpdir, platform } from "node:os";
 import { mkdtemp, rm } from "node:fs/promises";
 import { setTimeout as sleep } from "node:timers/promises";
@@ -78,21 +102,75 @@ const MCP_BIND_TIMEOUT_MS = 90_000;
 // bind-then-immediately-crash).
 const MCP_SETTLE_MS = 3_000;
 
+// ATTENDED-SAFE marker: every child THIS script spawns carries this env var.
+// It is a fixed, stable string (not per-run) so a SUBSEQUENT invocation's
+// pre-flight can recognize "a process this script's family of runs spawned"
+// on the rare platform where env introspection of another PID is possible
+// (Linux `/proc/<pid>/environ`). The actual scoping guarantee, though,
+// comes from `_STATE_FILE` below — we only ever *inspect* a PID that this
+// exact script already wrote to that file itself; we never scan the system
+// process table by name.
+const _SMOKE_MARKER_ENV = "VYSTED_SMOKE_TEST_MARKER";
+const _SMOKE_MARKER = "vysted-smoke-test-v1";
+
+// Fixed (not per-run) path so a crashed prior run's ledger is discoverable
+// by the next run's pre-flight.
+const _STATE_DIR = join(tmpdir(), "vysted-smoke-test");
+const _STATE_FILE = join(_STATE_DIR, "live-children.json");
+
+/** Read the PID ledger; `[]` on any read/parse failure (never blocks a run). */
+function _readState() {
+  try {
+    const parsed = JSON.parse(readFileSync(_STATE_FILE, "utf8"));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Persist the PID ledger; best-effort — a write failure must never fail the run. */
+function _writeState(entries) {
+  try {
+    mkdirSync(_STATE_DIR, { recursive: true });
+    writeFileSync(_STATE_FILE, JSON.stringify(entries, null, 2));
+  } catch {
+    // Non-fatal — worst case a future run's scoped pre-flight misses this entry.
+  }
+}
+
+function _recordChild(pid, binaryBaseName) {
+  const entries = _readState();
+  entries.push({ pid, binary: binaryBaseName, marker: _SMOKE_MARKER, spawnedAt: Date.now() });
+  _writeState(entries);
+}
+
+function _forgetChild(pid) {
+  const entries = _readState().filter((e) => e.pid !== pid);
+  _writeState(entries);
+}
+
 /**
  * Track every spawned bootloader PID so the global cleanup handlers can
  * tree-kill them on script exit / SIGINT / SIGTERM. PyInstaller --onefile
  * re-execs a worker child; killing the bootloader does NOT kill the worker
  * on Windows. The Set holds bootloader PIDs; `_killTree` walks the tree.
+ * `_SPAWN_LOG` is a human-readable record (binary/port/pid) of everything
+ * this run spawned, printed in the ATTENDED-SAFE summary at the end.
  */
 const _LIVE_PIDS = new Set();
+const _SPAWN_LOG = [];
 let _CLEANUP_REGISTERED = false;
 
 function _registerCleanup() {
   if (_CLEANUP_REGISTERED) return;
   _CLEANUP_REGISTERED = true;
   const runCleanup = () => {
+    // Only ever touches PIDs THIS run spawned and is still tracking — never
+    // a name-based system scan. Safe to run unconditionally, including on a
+    // machine where the operator's own vysted-* processes are alive.
     for (const pid of _LIVE_PIDS) {
       _killTree(pid);
+      _forgetChild(pid);
     }
     _LIVE_PIDS.clear();
   };
@@ -135,54 +213,121 @@ function _killTree(pid) {
   }
 }
 
-/** Pre-flight: refuse to run if leaked sidecars are alive. */
-function _checkNoOrphans() {
-  if (isWin) {
-    let out = "";
+/** True if `pid` is a live process this user can signal. */
+function _isPidAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Best-effort confirmation that a live PID recorded in a PRIOR run's ledger
+ * is still that same spawned-by-us process (defends against PID reuse
+ * between the crash and this pre-flight — an unrelated process could have
+ * been assigned the same PID since). On Linux this reads the process's own
+ * `/proc/<pid>/environ` for the exact marker env var this script sets on
+ * every child. macOS/Windows have no non-root way to read another process's
+ * environment, so those platforms fall back to a command-name match against
+ * the binary THIS SAME LEDGER ENTRY recorded — still scoped to a PID we
+ * ourselves wrote down, never a system-wide name scan.
+ */
+async function _confirmOwnedByMarker(entry) {
+  if (platform() === "linux") {
     try {
-      out = execFileSync(
+      const environ = readFileSync(`/proc/${entry.pid}/environ`, "utf8");
+      return environ.split("\0").includes(`${_SMOKE_MARKER_ENV}=${entry.marker}`);
+    } catch {
+      return false;
+    }
+  }
+  if (isWin) {
+    try {
+      const out = execFileSync(
         "powershell",
         [
           "-NoProfile",
           "-Command",
-          "Get-Process | Where-Object { $_.ProcessName -like 'vysted-*' } | Select-Object -ExpandProperty Id",
+          `(Get-Process -Id ${entry.pid} -ErrorAction SilentlyContinue).Path`,
         ],
         { encoding: "utf8" },
-      );
+      ).trim();
+      return out.length > 0 && out.endsWith(entry.binary);
     } catch {
-      return; // PowerShell unavailable — skip the check.
-    }
-    const pids = out
-      .split(/\r?\n/)
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (pids.length > 0) {
-      throw new Error(
-        `[smoke] PRE-FLIGHT: ${pids.length} orphaned vysted-* process(es) already running ` +
-          `(PIDs: ${pids.join(", ")}). A prior run leaked workers; racing on the same binary ` +
-          `file lock would produce noise. Kill them first:\n` +
-          `    Get-Process vysted-* | Stop-Process -Force\n` +
-          `Then re-run \`node scripts/smoke-test-sidecars.mjs\`.`,
-      );
-    }
-  } else {
-    let out = "";
-    try {
-      out = execFileSync("pgrep", ["-f", "vysted-.*sidecar"], { encoding: "utf8" });
-    } catch {
-      return; // pgrep exits 1 when nothing matches — that's the happy path.
-    }
-    const pids = out
-      .split(/\r?\n/)
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (pids.length > 0) {
-      throw new Error(
-        `[smoke] PRE-FLIGHT: ${pids.length} orphaned vysted-* process(es) already running ` +
-          `(PIDs: ${pids.join(", ")}). Kill them first: \`pkill -9 -f vysted-.*sidecar\`.`,
-      );
+      return false;
     }
   }
+  try {
+    const out = execFileSync("ps", ["-p", String(entry.pid), "-o", "comm="], {
+      encoding: "utf8",
+    }).trim();
+    return out.length > 0 && out.endsWith(entry.binary);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Scoped orphan pre-flight (CLAUDE.md Gotcha: "a pre-flight orphan check").
+ * Reaps ONLY children a PRIOR RUN OF THIS SCRIPT recorded in `_STATE_FILE`
+ * and failed to clean up (e.g. a hard crash, SIGKILL of the node process
+ * itself). This is the replacement for the old blanket
+ * `pgrep -f vysted-.*sidecar` scan: that scan matched every vysted-*sidecar*
+ * process on the box BY NAME, including the operator's own running app, and
+ * told the operator to `pkill -9 -f vysted-.*sidecar` to proceed — killing
+ * the app they're using. This function never inspects, matches, or touches
+ * any PID it did not itself write to its own ledger file in a previous run.
+ */
+async function _scopedOrphanPreflight() {
+  const entries = _readState();
+  if (entries.length === 0) {
+    console.log(
+      "[smoke] pre-flight (ATTENDED-SAFE): no leaked children from a prior smoke-test " +
+        "run's PID ledger — nothing to reap. (This check never inspects processes it did " +
+        "not itself spawn, so it cannot see — and will never touch — the operator's own " +
+        "running vysted-terminal app.)",
+    );
+    return;
+  }
+  let reaped = 0;
+  let stale = 0;
+  for (const entry of entries) {
+    if (!_isPidAlive(entry.pid)) {
+      stale += 1;
+      continue; // already gone — just a dangling ledger row
+    }
+    const owned = await _confirmOwnedByMarker(entry);
+    if (owned) {
+      console.warn(
+        `[smoke] pre-flight: reaping a leaked child from a PRIOR RUN OF THIS SCRIPT ` +
+          `(pid=${entry.pid}, binary=${entry.binary}) — confirmed via this script's own ` +
+          `marker, tree-killing.`,
+      );
+      _killTree(entry.pid);
+      reaped += 1;
+    } else {
+      // Alive, but the marker/command-name doesn't match what we recorded —
+      // the PID was almost certainly reassigned to an unrelated process
+      // (possibly the operator's own app) since the ledger row was written.
+      // Never touch it; just drop the stale row.
+      console.log(
+        `[smoke] pre-flight: dropping stale ledger row for pid=${entry.pid} — a live ` +
+          `process now holds that PID but does not match this script's marker (PID reuse), ` +
+          `so it is left untouched.`,
+      );
+      stale += 1;
+    }
+  }
+  _writeState([]); // every row has been resolved (reaped or dropped) above
+  if (reaped > 0) {
+    await sleep(500); // let the OS release file locks after the reap
+  }
+  console.log(
+    `[smoke] pre-flight (ATTENDED-SAFE) complete: reaped ${reaped} leaked child(ren), ` +
+      `dropped ${stale} stale/unowned ledger row(s).`,
+  );
 }
 
 /** Probe an HTTP GET endpoint with a single timeout. */
@@ -383,9 +528,23 @@ function _binaryPath(name, triple) {
 }
 
 /**
+ * Canonical version string (CLAUDE.md "Version lives in many sources"
+ * gotcha) — `package.json` is the bump location `/health`'s version is
+ * meant to trace back to via `sidecar/app.py FastAPI(version=...)`.
+ */
+function _packageVersion() {
+  return JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version;
+}
+
+/**
  * Spawn a child + track its PID for global cleanup. On POSIX `detached: true`
  * makes the child a process-group leader so `process.kill(-pid)` tree-kills.
- * On Windows we rely on `taskkill /T` in `_killTree`.
+ * On Windows we rely on `taskkill /T` in `_killTree`. Every child carries
+ * `_SMOKE_MARKER_ENV` (ATTENDED-SAFE: identifies it as ours, never used to
+ * match anything OTHER than a PID this exact run already holds a handle to)
+ * and stdio stays `"pipe"` — the parent's `child.stdin` Writable is never
+ * `.end()`-ed, so the pipe is held open for the binary's stdin-EOF watchdog
+ * (main sidecar) until this run explicitly tree-kills the child.
  */
 function _spawnChild(bin, args, captureStream) {
   _registerCleanup();
@@ -393,10 +552,19 @@ function _spawnChild(bin, args, captureStream) {
     stdio: ["pipe", "pipe", "pipe"],
     detached: !isWin,
     windowsHide: true,
+    env: { ...process.env, [_SMOKE_MARKER_ENV]: _SMOKE_MARKER },
   });
-  if (child.pid) _LIVE_PIDS.add(child.pid);
+  const binName = basename(bin);
+  if (child.pid) {
+    _LIVE_PIDS.add(child.pid);
+    _recordChild(child.pid, binName);
+    _SPAWN_LOG.push({ binary: binName, pid: child.pid, args });
+  }
   child.on("exit", () => {
-    if (child.pid) _LIVE_PIDS.delete(child.pid);
+    if (child.pid) {
+      _LIVE_PIDS.delete(child.pid);
+      _forgetChild(child.pid);
+    }
   });
   const buffers = [];
   if (captureStream) {
@@ -470,6 +638,15 @@ async function _smokeTestMainSidecar(triple) {
   }
   console.log(`[smoke] vysted-sidecar /health OK (port=${port}).`);
 
+  // Correct-version assertion (CLAUDE.md "Version lives in many sources"
+  // gotcha) — /health's version field must trace back to package.json, the
+  // canonical bump location; a mismatch means the frozen binary was built
+  // from a different version tag than this checkout's HEAD.
+  const healthBody = await _httpGetJson(url, 5000);
+  const expectedVersion = _packageVersion();
+  const actualVersion = healthBody && healthBody.version;
+  const versionOk = actualVersion === expectedVersion;
+
   // Screener universe probe — verifies the services/screener_universes/
   // JSON data files were bundled via --add-data. Without the --add-data
   // entry, importlib.resources cannot find sp500.json inside the frozen
@@ -501,6 +678,26 @@ async function _smokeTestMainSidecar(triple) {
     resolved.region === "IN" &&
     resolved.confidence === 1.0;
 
+  // /agents load-bearing roster probe (CLAUDE.md deferred carry-forward:
+  // "verify load-bearing endpoints (/agents count > 0)"). An empty roster
+  // means the first-party agent JSON directory never made it into the
+  // frozen binary (agents/ --add-data gap) or agent_runtime.list_agents()
+  // failed to populate its registry at import time.
+  const agentsUrl = `http://127.0.0.1:${port}/agents`;
+  console.log(`[smoke] vysted-sidecar: probing /agents roster ...`);
+  const agentsBody = await _httpGetJson(agentsUrl, 5000);
+  const agentsCount = Array.isArray(agentsBody) ? agentsBody.length : 0;
+
+  // /mcp/status probe — the main sidecar's OWN embedded FastMCP surface
+  // (mounted at /mcp, services/mcp_server.py), DISTINCT from the two
+  // separately-spawned MCP subprocess sidecars tested below. Proves the
+  // in-process MCP integration bound its tool catalog, not just that
+  // uvicorn is serving plain HTTP.
+  const mcpStatusUrl = `http://127.0.0.1:${port}/mcp/status`;
+  console.log(`[smoke] vysted-sidecar: probing /mcp/status (own MCP integration) ...`);
+  const mcpStatusBody = await _httpGetJson(mcpStatusUrl, 5000);
+  const mcpReady = mcpStatusBody && mcpStatusBody.ready === true;
+
   // /history/ICONIKSPEV probe (no-SLA) — the full bhavcopy lane needs live BSE
   // (rate-limited, geo-fenced, holiday-gapped, often no outbound net in CI), so
   // real EOD bars are a bonus signal, never a gate. The offline equivalent is
@@ -524,6 +721,16 @@ async function _smokeTestMainSidecar(triple) {
 
   await _teardown(child);
   await rm(dataDir, { recursive: true, force: true });
+  if (!versionOk) {
+    throw new Error(
+      `[smoke] vysted-sidecar FAILED version check: /health reported version ` +
+        `${JSON.stringify(actualVersion)}, expected ${JSON.stringify(expectedVersion)} ` +
+        `(package.json, the canonical version-bump source). The bundled binary was built ` +
+        `from a different version tag — rebuild via \`pnpm sidecars:build\` after a version ` +
+        `bump, per the CLAUDE.md "Version lives in many sources" gotcha.`,
+    );
+  }
+  console.log(`[smoke] vysted-sidecar version OK (${actualVersion}).`);
   if (!universeOk) {
     throw new Error(
       `[smoke] vysted-sidecar FAILED screener universe probe: ` +
@@ -550,6 +757,29 @@ async function _smokeTestMainSidecar(triple) {
     );
   }
   console.log(`[smoke] vysted-sidecar ICONIKSPEV resolution OK (deterministic BSE identity).`);
+  if (agentsCount <= 0) {
+    throw new Error(
+      `[smoke] vysted-sidecar FAILED /agents roster probe: GET ${agentsUrl} returned ` +
+        `${agentsCount} agents (expected > 0) — body: ${JSON.stringify(agentsBody)}. Root ` +
+        `cause is likely the first-party agent JSON directory not bundled (agents/ ` +
+        `--add-data gap in scripts/ensure-sidecar.mjs) or ` +
+        `services/agent_runtime.list_agents() failing to populate its registry inside the ` +
+        `frozen binary. (CLAUDE.md deferred carry-forward: "/agents count > 0".)`,
+    );
+  }
+  console.log(`[smoke] vysted-sidecar /agents roster OK (${agentsCount} agents).`);
+  if (!mcpReady) {
+    throw new Error(
+      `[smoke] vysted-sidecar FAILED /mcp/status probe: GET ${mcpStatusUrl} → ` +
+        `${JSON.stringify(mcpStatusBody)}. Expected {ready:true,...} — the embedded FastMCP ` +
+        `surface (services/mcp_server.py) never bound its tool catalog inside the frozen ` +
+        `binary.`,
+    );
+  }
+  console.log(
+    `[smoke] vysted-sidecar /mcp/status OK (ready=true, toolCount=` +
+      `${mcpStatusBody.toolCount}).`,
+  );
 }
 
 /**
@@ -659,7 +889,14 @@ function _assertAllFresh(triple) {
 }
 
 async function main() {
-  _checkNoOrphans();
+  console.log(
+    "[smoke] ATTENDED-SAFE MODE: every sidecar this run spawns uses a freshly-picked " +
+      "ephemeral port and is tree-killed only via THIS run's own PID ledger " +
+      `(${_STATE_FILE}). It never inspects, name-matches, or kills any pre-existing ` +
+      "vysted-* process by name — including the operator's own running vysted-terminal " +
+      "app, if one is up. Safe to run alongside it.",
+  );
+  await _scopedOrphanPreflight();
   const triple = _rustcTargetTriple();
   console.log(`[smoke] target triple: ${triple}`);
   _assertAllFresh(triple);
@@ -681,12 +918,24 @@ async function main() {
   await _probeBseBhavcopyNoSla();
   await _probeNseDirectNoSla();
 
+  const spawnSummary = _SPAWN_LOG.map((s) => `${s.binary}(pid=${s.pid})`).join(", ") || "none";
   if (failures.length > 0) {
     console.error("\n[smoke] FAILURES:");
     for (const f of failures) console.error(f);
+    console.error(
+      `\n[smoke] ATTENDED-SAFE: this run spawned and fully tore down: ${spawnSummary}. ` +
+        "No pre-existing vysted-* process (e.g. the operator's running app) was inspected " +
+        "or touched, even though the run failed.",
+    );
     process.exit(1);
   }
   console.log("\n[smoke] all sidecars booted cleanly.");
+  console.log(
+    `[smoke] ATTENDED-SAFE: this run spawned and fully tore down ${_SPAWN_LOG.length} ` +
+      `child process(es) on freshly-picked ephemeral ports: ${spawnSummary}. Zero ` +
+      "interaction with any pre-existing vysted-* process — safe to have run alongside " +
+      "the operator's live app.",
+  );
 }
 
 main().catch((err) => {

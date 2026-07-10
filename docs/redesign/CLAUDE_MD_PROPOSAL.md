@@ -56,3 +56,11 @@ The Gotchas line "After spawn, call `crate::wait_for_port` (port `0` → routes 
 back / 501, graceful degrade)". R8 removed the flat-15s `wait_for_port` wrapper after it
 false-flagged healthy cold boots ("Python sidecar did not come up") and skipped the FR-025
 endpoint file; the main sidecar now shares the MCP subprocesses' retry budget.
+
+## R13 proposal — smoke-test line (attended-safe pre-flight)
+
+The Verification-gates line for `node scripts/smoke-test-sidecars.mjs` should now read: "...
+spawns each built sidecar on an ephemeral port, TCP-probes MCP binds, and asserts
+`/health` version + `/agents` count + `/mcp/status`; its pre-flight is ATTENDED-SAFE (reaps
+only its own PID ledger from a prior crashed run — never a blanket `vysted-*` name match, so
+it never touches the operator's running app)."
