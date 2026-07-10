@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from services import identity_crosscheck, ownership_check
+from services import dividend_actions, identity_crosscheck, ownership_check
 
 #: Relative divergence above which the provider dividend yield and the implied
 #: yield (dividend per share / price) are a CONFLICT — flagged, and no single
@@ -152,47 +152,140 @@ def _relative_divergence(a: float, b: float) -> float:
     return abs(a - b) / denominator
 
 
-def _dividend_ttm_leg(
-    fund: dict[str, Any], dps: float | None, provider: str, currency: str | None
-) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
-    """Cross-check ``dividend_per_share`` against the trailing-12m paid history.
+def _declared_dividend(fund: dict[str, Any]) -> tuple[float, str] | None:
+    """The attached declared-but-unpaid dividend ``(amount, record_date)``, or
+    ``None`` — read from ``fund[dividend_actions.DECLARED_KEY]`` (attached
+    upstream by the snapshot builder, mirroring D66)."""
+    raw = fund.get(dividend_actions.DECLARED_KEY)
+    if not isinstance(raw, dict):
+        return None
+    amount = _num(raw, "amount")
+    record_date = raw.get("record_date")
+    if amount is None or not isinstance(record_date, str) or not record_date:
+        return None
+    return amount, record_date
 
-    Returns ``(ttm_fact_or_None, conflicts)``. Both the scalar
-    (``dividendRate``) and the paid-history sum (``dividend_per_share_ttm``,
-    attached upstream by :func:`services.research.fast.snapshot_structured`)
-    must be present; a divergence past :data:`_DIVIDEND_TTM_DIVERGENCE` flags a
-    conflict AND surfaces the paid figure as its own labeled fact (R11 / D56).
-    When they agree — or either is absent — nothing extra is emitted.
+
+def _dividend_ttm_conflict(provider: str, dps: float, ttm: float) -> dict[str, Any]:
+    """The D56 scalar-vs-paid conflict — DIRECTION-aware.
+
+    ``dividendRate`` ABOVE the paid figure reads as anticipation/inflation (it
+    may bake in a not-yet-paid declared dividend); BELOW reads as an omitted
+    special dividend. The old note only fit the BELOW case and would mislabel an
+    inflated scalar; each direction now gets its own causal story.
     """
-    ttm = _num(fund, "dividend_per_share_ttm")
-    if dps is None or ttm is None:
-        return None, []
-    if _relative_divergence(ttm, dps) <= _DIVIDEND_TTM_DIVERGENCE:
-        return None, []
-    unit = "currency"
-    ttm_basis = "corporate-action history"
-    fact = _value(
-        ttm,
-        "Dividend/share (trailing 12m paid)",
-        basis=ttm_basis,
-        formula="sum of dividends paid in the trailing 12 months",
-        unit=unit,
-    )
-    conflict = {
+    paid = round(ttm, 4)
+    if dps > ttm:
+        note = (
+            f"The provider's dividend per share (Yahoo dividendRate, {dps:g}) EXCEEDS "
+            f"the trailing-12-month dividends actually PAID ({paid:g}) by more than "
+            "10% — the scalar may anticipate a declared-but-unpaid dividend or ride a "
+            "forward/inflated basis; the paid history is the settled figure."
+        )
+    else:
+        note = (
+            f"The provider's dividend per share (Yahoo dividendRate, {dps:g}) is BELOW "
+            f"the trailing-12-month dividends actually PAID ({paid:g}) by more than "
+            "10% — dividendRate can omit a special dividend, so the paid history is "
+            "the complete figure."
+        )
+    return {
         "field": "dividend_per_share",
+        "kind": "dividend_conflict",
+        "conflict_kind": _CONFLICT_DATA,
         "sources": [
             {"provider": f"{provider} (dividendRate)", "value": dps},
-            {"provider": "derived (trailing-12m paid history)", "value": round(ttm, 4)},
+            {"provider": "derived (trailing-12m paid history)", "value": paid},
+        ],
+        "note": note,
+    }
+
+
+def _declared_reconciliation(ttm: float, amount: float, record_date: str) -> dict[str, Any]:
+    """The explicit PAID + DECLARED = forward reconciliation (PFC arithmetic).
+
+    A provider 'trailing annual' scalar that sums the paid history AND a
+    declared-but-unpaid dividend lands on ``ttm + amount``; naming that sum
+    explicitly stops the two legs being read as one figure.
+    """
+    paid = round(ttm, 4)
+    forward = round(ttm + amount, 4)
+    return {
+        "field": "dividend_per_share_ttm",
+        "kind": "dividend_reconciliation",
+        "conflict_kind": _CONFLICT_DEFINITIONAL,
+        "sources": [
+            {"provider": "derived (trailing-12m paid)", "value": paid},
+            {"provider": "NSE corporate action (declared, unpaid)", "value": amount},
         ],
         "note": (
-            "The provider's dividend per share (Yahoo dividendRate) differs from "
-            "the trailing-12-month dividends actually paid by more than 10% — "
-            "dividendRate can omit a special dividend, so the paid history is the "
-            "complete figure."
+            f"Trailing-12m PAID ({paid:g}) + declared-but-unpaid ({amount:g}, record "
+            f"date {record_date}) = {forward:g}: a provider 'trailing annual' figure "
+            "that sums both would show here. The PAID and DECLARED legs are stated "
+            "separately, never conflated."
         ),
     }
+
+
+def _dividend_ttm_leg(
+    fund: dict[str, Any], dps: float | None, provider: str, currency: str | None
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Cross-check ``dividend_per_share`` against the trailing-12m PAID history
+    and any declared-but-unpaid dividend (R11 / D56, R13 / D57).
+
+    Returns ``(facts, conflicts)``. When ``dividendRate`` and the paid-history
+    sum (``dividend_per_share_ttm``) diverge past
+    :data:`_DIVIDEND_TTM_DIVERGENCE`, a DIRECTION-aware conflict fires and the
+    paid figure is surfaced. When a declared-but-unpaid dividend is attached
+    (``dividend_declared``), it is surfaced as its OWN labeled fact, the paid
+    figure is relabeled "PAID" (so it never reads as the full/forward figure),
+    and the PAID + DECLARED reconciliation is stated explicitly. Agreement with
+    no declared dividend emits nothing extra — absence is honest.
+    """
+    ttm = _num(fund, "dividend_per_share_ttm")
+    declared = _declared_dividend(fund)
+    facts: dict[str, Any] = {}
+    conflicts: list[dict[str, Any]] = []
+
+    ttm_diverges = (
+        dps is not None
+        and ttm is not None
+        and _relative_divergence(ttm, dps) > _DIVIDEND_TTM_DIVERGENCE
+    )
+
+    # Surface the trailing-PAID fact when it diverges from the scalar OR a
+    # declared-but-unpaid dividend coexists (so "paid" vs "declared" never read
+    # as one number). "PAID" is emphasised only when a declared leg exists.
+    if ttm is not None and (ttm_diverges or declared is not None):
+        paid_label = (
+            "Dividend/share (trailing 12m PAID)"
+            if declared is not None
+            else "Dividend/share (trailing 12m paid)"
+        )
+        facts["dividend_per_share_ttm"] = _value(
+            ttm,
+            paid_label,
+            basis="corporate-action history",
+            formula="sum of dividends paid in the trailing 12 months",
+            unit="currency",
+        )
+
+    if ttm_diverges:
+        conflicts.append(_dividend_ttm_conflict(provider, dps, ttm))
+
+    if declared is not None:
+        amount, record_date = declared
+        facts["dividend_declared"] = _value(
+            amount,
+            f"Declared, not yet paid (record date {record_date})",
+            basis="NSE corporate action",
+            unit="currency",
+        )
+        if ttm is not None:
+            conflicts.append(_declared_reconciliation(ttm, amount, record_date))
+
     _ = currency  # currency rides the dps fact's basis; noted here for symmetry
-    return fact, [conflict]
+    return facts, conflicts
 
 
 def _growth_agrees(provider_value: float, computed: float) -> bool:
@@ -414,25 +507,27 @@ def _ownership_leg(
 
 def _dividend_leg(
     fund: dict[str, Any], price: float | None, provider: str
-) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any] | None, list[dict[str, Any]]]:
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
     """Reconcile dividend_yield against dividend_per_share / price, and the
-    dividend-per-share scalar against the trailing-12m paid history.
+    dividend-per-share scalar against the trailing-12m paid history + any
+    declared-but-unpaid dividend.
 
-    Returns ``(dividend_yield_value, dividend_per_share_value,
-    dividend_ttm_fact_or_None, conflicts)``. The provider yield's unit is
-    reconciled EXPLICITLY (yfinance ships both fraction and percent forms): the
-    interpretation closest to the implied yield wins; past
-    :data:`_DIVIDEND_DIVERGENCE` the disagreement is a conflict and NO single
-    dividend value is emitted. Separately, a trailing-12m-paid figure that
-    diverges from ``dividendRate`` past :data:`_DIVIDEND_TTM_DIVERGENCE` is
-    surfaced as its own fact with a conflict (R11 / D56).
+    Returns ``(dividend_yield_value, dividend_per_share_value, dividend_facts,
+    conflicts)``. ``dividend_facts`` is a dict of the extra ttm/declared cards
+    (possibly empty). The provider yield's unit is reconciled EXPLICITLY
+    (yfinance ships both fraction and percent forms): the interpretation closest
+    to the implied yield wins; past :data:`_DIVIDEND_DIVERGENCE` the disagreement
+    is a conflict and NO single dividend value is emitted. Separately, a
+    trailing-12m-paid figure diverging from ``dividendRate`` (direction-aware,
+    R11 / D56) and a declared-but-unpaid dividend (R13 / D57) are surfaced as
+    their own facts.
     """
     reported = _num(fund, "dividend_yield")
     dps = _num(fund, "dividend_per_share")
     implied = dps / price if dps is not None and price else None
     currency = fund.get("currency") if isinstance(fund.get("currency"), str) else None
     dps_basis = f"per share, {currency}" if currency else "per share, listing currency"
-    ttm_fact, ttm_conflicts = _dividend_ttm_leg(fund, dps, provider, currency)
+    ttm_facts, ttm_conflicts = _dividend_ttm_leg(fund, dps, provider, currency)
 
     yield_kwargs: dict[str, Any] = {
         "basis": "fraction of price",
@@ -456,7 +551,7 @@ def _dividend_leg(
                     **yield_kwargs,
                 ),
                 _value(dps, "Dividend per share", **dps_kwargs),
-                ttm_fact,
+                ttm_facts,
                 list(ttm_conflicts),
             )
         conflict = {
@@ -475,7 +570,7 @@ def _dividend_leg(
         return (
             _value(None, "Dividend yield", **yield_kwargs),
             _value(None, "Dividend per share", **dps_kwargs),
-            ttm_fact,
+            ttm_facts,
             [conflict, *ttm_conflicts],
         )
 
@@ -483,7 +578,7 @@ def _dividend_leg(
         return (
             _value(implied, "Dividend yield", formula="dividend per share / price", **yield_kwargs),
             _value(dps, "Dividend per share", **dps_kwargs),
-            ttm_fact,
+            ttm_facts,
             list(ttm_conflicts),
         )
 
@@ -495,14 +590,14 @@ def _dividend_leg(
         return (
             _value(reported if plausible else None, "Dividend yield", **yield_kwargs),
             _value(None, "Dividend per share", **dps_kwargs),
-            ttm_fact,
+            ttm_facts,
             list(ttm_conflicts),
         )
 
     return (
         _value(None, "Dividend yield", **yield_kwargs),
         _value(None, "Dividend per share", **dps_kwargs),
-        ttm_fact,
+        ttm_facts,
         list(ttm_conflicts),
     )
 
@@ -552,15 +647,15 @@ def derive_semantics(
         ),
     }
 
-    dividend_yield, dividend_per_share, dividend_ttm_fact, dividend_conflicts = _dividend_leg(
+    dividend_yield, dividend_per_share, dividend_facts, dividend_conflicts = _dividend_leg(
         fund, price, provider
     )
     data["dividend_yield"] = dividend_yield
     data["dividend_per_share"] = dividend_per_share
-    # D56: only present when the paid history diverges from dividendRate — an
-    # agreeing figure emits no extra card.
-    if dividend_ttm_fact is not None:
-        data["dividend_per_share_ttm"] = dividend_ttm_fact
+    # D56/D57: the trailing-PAID card appears only when it diverges from
+    # dividendRate or a declared-but-unpaid dividend coexists; the declared card
+    # appears only when one is attached — an agreeing figure emits nothing extra.
+    data.update(dividend_facts)
     conflicts.extend(dividend_conflicts)
 
     # D55: yfinance's growth is MRQ-YoY, not annual — label the basis so no
@@ -638,6 +733,7 @@ _PROMPT_KEYS = (
     "dividend_yield",
     "dividend_per_share",
     "dividend_per_share_ttm",
+    "dividend_declared",
     "revenue_growth",
     "earnings_growth",
     "revenue_growth_computed",

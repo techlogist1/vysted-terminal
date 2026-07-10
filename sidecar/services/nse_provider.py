@@ -91,6 +91,7 @@ _QUOTE_PATH = "/api/quote-equity"
 _ANNOUNCEMENTS_PATH = "/api/corporate-announcements"
 _EVENT_CALENDAR_PATH = "/api/event-calendar"
 _SHAREHOLDING_PATH = "/api/corporate-share-holdings-master"
+_CORPORATE_ACTIONS_PATH = "/api/corporates-corporateActions"
 
 # Browser headers for the API hits. TLS fingerprint, User-Agent and the
 # sec-ch-ua family come from curl_cffi's ``impersonate="chrome"``; these are the
@@ -613,6 +614,19 @@ def get_shareholding_master(symbol: str) -> list[dict]:
     return _fetch_corporate_list(_SHAREHOLDING_PATH, symbol)
 
 
+def get_corporate_actions(symbol: str) -> list[dict]:
+    """Raw corporate-action rows for ``symbol`` (dividends/bonuses/splits).
+
+    Observed item shape (live probe 2026-07-10, PFC): ``{subject "Dividend - Rs
+    3.95 Per Share", exDate "31-Jul-2026", recDate "31-Jul-2026", bcStartDate,
+    bcEndDate, faceVal, series, symbol, ...}`` newest-first. The ``subject``
+    carries the per-share amount and the ``recDate``/``exDate`` the (possibly
+    future) record/ex date — the primary source for a declared-but-unpaid
+    dividend the trailing scalars anticipate (R13 / D57).
+    """
+    return _fetch_corporate_list(_CORPORATE_ACTIONS_PATH, symbol)
+
+
 # ---------------------------------------------------------------------------
 # Resample + numeric helpers (mirror india_provider).
 # ---------------------------------------------------------------------------
@@ -669,6 +683,7 @@ def _num(value: object) -> float | None:
 
 __all__ = [
     "PROVIDER",
+    "get_corporate_actions",
     "get_corporate_announcements",
     "get_history",
     "get_quote",

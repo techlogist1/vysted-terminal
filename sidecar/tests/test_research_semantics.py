@@ -538,3 +538,83 @@ def test_ownership_facts_and_conflict_reach_the_prompt_block() -> None:
     assert "Promoter group (exchange filing)" in block
     assert "73.29%" in block
     assert "CONFLICT (held_percent_institutions)" in block
+
+
+# --- dividend: direction + declared-not-yet-paid (R11 D56 / R13 D57) --------
+
+
+def test_dividend_scalar_above_paid_uses_inflation_not_omission_wording() -> None:
+    # dividendRate (20.0) INFLATED above the trailing paid (14.6) by >10%: the
+    # note must NOT say "omit a special dividend" (backwards) — it says the
+    # scalar anticipates / rides a forward basis.
+    data = _derived(
+        _structured(price=400.0, fund={"dividend_per_share": 20.0, "dividend_per_share_ttm": 14.6})
+    )
+    div = next(c for c in data["conflicts"] if c["field"] == "dividend_per_share")
+    assert div["conflict_kind"] == "data_conflict"
+    assert "EXCEEDS" in div["note"] and "anticipate" in div["note"]
+    assert "omit a special dividend" not in div["note"]
+
+
+def test_dividend_pfc_declared_unpaid_surfaced_and_reconciled() -> None:
+    # PFC: dividendRate 15.8 ≈ trailing PAID 14.6 (7.6% < 10% → NO D56 conflict),
+    # but a declared FINAL dividend of ₹3.95 (record 2026-07-31, future) is unpaid.
+    data = _derived(
+        _structured(
+            price=400.0,
+            fund={
+                "dividend_per_share": 15.8,
+                "dividend_per_share_ttm": 14.6,
+                "dividend_declared": {
+                    "amount": 3.95,
+                    "record_date": "2026-07-31",
+                    "subject": "Dividend - Rs 3.95 Per Share",
+                },
+            },
+        )
+    )
+    # the declared-not-yet-paid dividend is its own labeled fact
+    declared = data["dividend_declared"]
+    assert declared["value"] == 3.95
+    assert "2026-07-31" in declared["label"]
+    # the trailing figure is relabeled PAID so it never reads as the full figure
+    assert data["dividend_per_share_ttm"]["label"] == "Dividend/share (trailing 12m PAID)"
+    # no scalar-vs-paid conflict fires (7.6% is below the 10% band)
+    assert all(c["field"] != "dividend_per_share" for c in data["conflicts"])
+    # the PFC arithmetic is reconciled explicitly (14.6 + 3.95 = 18.55)
+    recon = next(c for c in data["conflicts"] if c.get("kind") == "dividend_reconciliation")
+    assert recon["conflict_kind"] == "definitional_expected"
+    assert "18.55" in recon["note"] and "3.95" in recon["note"] and "14.6" in recon["note"]
+
+
+def test_dividend_ioc_omission_direction_plus_declared_fact() -> None:
+    # IOC: dividendRate 8.25 is BELOW the trailing PAID 10.0 (17.5% > 10% → D56
+    # fires, OMISSION wording) AND a declared final dividend ₹1.25 (future).
+    data = _derived(
+        _structured(
+            price=140.0,
+            fund={
+                "dividend_per_share": 8.25,
+                "dividend_per_share_ttm": 10.0,
+                "dividend_declared": {
+                    "amount": 1.25,
+                    "record_date": "2026-08-14",
+                    "subject": "Dividend - Rs 1.25 Per Share",
+                },
+            },
+        )
+    )
+    div = next(c for c in data["conflicts"] if c["field"] == "dividend_per_share")
+    assert div["conflict_kind"] == "data_conflict"
+    assert "BELOW" in div["note"] and "omit a special dividend" in div["note"]
+    assert data["dividend_per_share_ttm"]["label"] == "Dividend/share (trailing 12m PAID)"
+    assert data["dividend_declared"]["value"] == 1.25
+
+
+def test_dividend_declared_absent_leaves_ttm_label_lowercase() -> None:
+    # No declared dividend attached → the diverging paid fact keeps its plain label.
+    data = _derived(
+        _structured(fund={"dividend_per_share": 525.0, "dividend_per_share_ttm": 656.0})
+    )
+    assert data["dividend_per_share_ttm"]["label"] == "Dividend/share (trailing 12m paid)"
+    assert not any(c.get("kind") == "dividend_reconciliation" for c in data["conflicts"])
