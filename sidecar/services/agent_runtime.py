@@ -175,7 +175,14 @@ TERMINAL_CAPABILITIES_PREAMBLE = (
     "you proposed it, never claim it is done; a result that reports a failure "
     "means it did NOT happen — say plainly what could not be done. Orders are "
     "never placed by you: propose_order only ever stages an order behind the "
-    "user's explicit confirm-before-place dialog, in every mode."
+    "user's explicit confirm-before-place dialog, in every mode.\n"
+    "Stay consistent across turns: when a figure you are about to state "
+    "materially contradicts a PRIOR STATED VALUE listed in the terminal context "
+    "(the same symbol + metric you stated earlier this session), do NOT silently "
+    "switch — acknowledge both openly, state the new figure alongside the prior "
+    "one, and explain the change (a new quarter, a different provider, or a "
+    "correction). Silently flipping a number the user already saw reads as an "
+    "error, not an update."
 )
 
 
@@ -319,6 +326,53 @@ def reload(agents_dir: Path = AGENTS_DIR) -> None:
 # ---------------------------------------------------------------------------
 
 
+#: Hard cap on prior-stated-value claims rendered into the preamble (R13 JARVIS
+#: 3b) — the frontend already trims to the recent window; this bounds token cost.
+_MAX_PREAMBLE_CLAIMS = 12
+
+
+def _fmt_claim_value(value: float) -> str:
+    """Compact rendering of a stated figure for the preamble."""
+    magnitude = abs(value)
+    if magnitude != 0 and (magnitude >= 1e12 or magnitude < 1e-4):
+        return f"{value:.4g}"
+    if magnitude >= 1000:
+        return f"{value:,.2f}"
+    return f"{value:.4g}"
+
+
+def _render_prior_stated_values(claims: Any) -> str | None:
+    """The "PRIOR STATED VALUES" line (R13 JARVIS 3b): a compact, capped list of
+    figures the agent STATED this session so a materially-contradicting new value
+    is reconciled openly, never silently switched. ``None`` when there is nothing
+    to state — a thin/garbled claims list never renders a half line.
+    """
+    if not isinstance(claims, list) or not claims:
+        return None
+    parts: list[str] = []
+    for claim in claims[-_MAX_PREAMBLE_CLAIMS:]:
+        if not isinstance(claim, dict):
+            continue
+        metric = claim.get("metric")
+        value = claim.get("value")
+        symbol = claim.get("symbol") or "?"
+        if not isinstance(metric, str) or not isinstance(value, (int, float)):
+            continue
+        if isinstance(value, bool):
+            continue
+        when = ""
+        stated = claim.get("statedAt")
+        if isinstance(stated, (int, float)) and not isinstance(stated, bool):
+            try:
+                when = " @" + datetime.fromtimestamp(stated / 1000, UTC).strftime("%H:%M")
+            except (ValueError, OverflowError, OSError):
+                when = ""
+        parts.append(f"{symbol} {metric}={_fmt_claim_value(float(value))}{when}")
+    if not parts:
+        return None
+    return "PRIOR STATED VALUES (this session): " + "; ".join(parts)
+
+
 def _render_terminal_preamble(ts: dict[str, Any]) -> str:
     """Render the structured ``TerminalState`` into a SHORT labelled preamble.
 
@@ -345,6 +399,9 @@ def _render_terminal_preamble(ts: dict[str, Any]) -> str:
             lines.append(f"Prior research memory: {memory.strip()}")
         elif prior:
             lines.append(f"This space has {prior} prior conversation turn(s) on {sym}.")
+        prior_values = _render_prior_stated_values(rs.get("claims"))
+        if prior_values:
+            lines.append(prior_values)
     charts = ts.get("charts") or []
     if charts:
         c = charts[0]

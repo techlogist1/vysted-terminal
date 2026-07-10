@@ -21,7 +21,9 @@ import { create } from "zustand";
 
 import { type ChatMessage, useChatHistoryStore } from "@/store/chat-history";
 import {
+  RESEARCH_SPACE_CLAIMS_CAP,
   RESEARCH_SPACE_TRANSCRIPT_CAP,
+  type ResearchSpaceClaim,
   type ResearchSpaceMemory,
   type ResearchSpaceTurn,
   type WorkspaceResearchSpaces,
@@ -77,8 +79,18 @@ interface ResearchSpacesState {
    * Capture the LIVE chat history into the named space's memory (with a fresh
    * derived summary). No-op when `name` is empty. Use on leaving / saving a
    * space. Returns the memory it wrote (for callers that want the summary).
+   * Preserves the space's existing stated-value claims (R13 JARVIS 3a) — a save
+   * rebuilds the transcript, never the claims ledger.
    */
   saveSpace: (name: string, symbol: string) => ResearchSpaceMemory | null;
+  /**
+   * Append stated-value claims to the named space's ledger (R13 JARVIS 3a),
+   * bounded to the most recent {@link RESEARCH_SPACE_CLAIMS_CAP}. No-op when
+   * `name` is empty or no claims are supplied. Recorded DETERMINISTICALLY on a
+   * brief publish (no LLM parsing), so the copilot can reconcile a contradicting
+   * later figure openly.
+   */
+  recordClaims: (name: string, claims: readonly ResearchSpaceClaim[]) => void;
   /**
    * Restore the named space's saved transcript into the LIVE chat history,
    * replacing whatever is there. When the space has no saved memory, the live
@@ -103,14 +115,22 @@ export const useResearchSpacesStore = create<ResearchSpacesState>((set, get) => 
     // the same object reference (Zustand uses shallow equality).
     const next: Record<string, ResearchSpaceMemory> = {};
     for (const [name, memory] of Object.entries(spaces.byName ?? {})) {
-      next[name] = { ...memory, transcript: [...(memory.transcript ?? [])] };
+      next[name] = {
+        ...memory,
+        transcript: [...(memory.transcript ?? [])],
+        ...(memory.claims ? { claims: [...memory.claims] } : {}),
+      };
     }
     set({ byName: next });
   },
   snapshot: () => {
     const out: Record<string, ResearchSpaceMemory> = {};
     for (const [name, memory] of Object.entries(get().byName)) {
-      out[name] = { ...memory, transcript: [...memory.transcript] };
+      out[name] = {
+        ...memory,
+        transcript: [...memory.transcript],
+        ...(memory.claims ? { claims: [...memory.claims] } : {}),
+      };
     }
     return { byName: out };
   },
@@ -120,14 +140,40 @@ export const useResearchSpacesStore = create<ResearchSpacesState>((set, get) => 
       return null;
     }
     const transcript = captureLiveTranscript();
+    // Carry the existing claims ledger forward — a save rebuilds the transcript
+    // from live chat, never the deterministically-recorded claims (R13 JARVIS 3a).
+    const priorClaims = get().byName[name]?.claims;
     const memory: ResearchSpaceMemory = {
       symbol,
       transcript,
       summary: summarizeTranscript(transcript, symbol),
+      ...(priorClaims && priorClaims.length > 0 ? { claims: [...priorClaims] } : {}),
       updatedAt: Date.now(),
     };
     set((state) => ({ byName: { ...state.byName, [name]: memory } }));
     return memory;
+  },
+  recordClaims: (name, claims) => {
+    if (!name || claims.length === 0) {
+      return;
+    }
+    set((state) => {
+      const prior = state.byName[name];
+      // A record before the space's memory entry exists (e.g. a first brief
+      // publish) seeds a minimal memory keyed on the claims' symbol.
+      const base: ResearchSpaceMemory = prior ?? {
+        symbol: claims[0].symbol,
+        transcript: [],
+        updatedAt: Date.now(),
+      };
+      const merged = [...(base.claims ?? []), ...claims].slice(-RESEARCH_SPACE_CLAIMS_CAP);
+      return {
+        byName: {
+          ...state.byName,
+          [name]: { ...base, claims: merged, updatedAt: Date.now() },
+        },
+      };
+    });
   },
   restoreSpace: (name) => {
     const memory = get().byName[name] ?? null;

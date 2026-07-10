@@ -383,6 +383,54 @@ def test_terminal_preamble_omits_research_space_when_absent() -> None:
     assert "Research space" not in preamble
 
 
+def test_terminal_preamble_renders_prior_stated_values() -> None:
+    """R13 JARVIS 3b: a research space carrying prior stated figures renders the
+    'PRIOR STATED VALUES' line so a contradicting new figure is reconciled."""
+    preamble = agent_runtime._render_terminal_preamble(
+        {
+            "focusedSymbol": "NVDA",
+            "researchSpace": {
+                "symbol": "NVDA",
+                "priorTurns": 2,
+                "claims": [
+                    {
+                        "symbol": "NVDA",
+                        "metric": "P/E",
+                        "value": 55.0,
+                        "statedAt": 1_700_000_000_000,
+                    },
+                    {
+                        "symbol": "NVDA",
+                        "metric": "Price",
+                        "value": 900.0,
+                        "statedAt": 1_700_000_000_000,
+                    },
+                ],
+            },
+        }
+    )
+    assert "PRIOR STATED VALUES (this session):" in preamble
+    assert "NVDA P/E=55" in preamble
+    assert "NVDA Price=900" in preamble
+
+
+def test_terminal_preamble_omits_prior_values_when_no_claims() -> None:
+    """A research space with no claims renders no PRIOR STATED VALUES line."""
+    preamble = agent_runtime._render_terminal_preamble(
+        {"researchSpace": {"symbol": "NVDA", "priorTurns": 0}}
+    )
+    assert "PRIOR STATED VALUES" not in preamble
+
+
+def test_capabilities_preamble_carries_self_consistency_instruction() -> None:
+    """R13 JARVIS 3c: the shared capabilities preamble tells the agent to
+    reconcile a contradicting figure openly, never silently switch."""
+    text = agent_runtime.TERMINAL_CAPABILITIES_PREAMBLE
+    assert "PRIOR STATED VALUE" in text
+    assert "materially contradicts" in text
+    assert "acknowledge both" in text.lower()
+
+
 @pytest.mark.asyncio
 async def test_invoke_agent_emits_plan_for_compound_on_capable_model(
     monkeypatch: pytest.MonkeyPatch,

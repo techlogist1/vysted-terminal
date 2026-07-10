@@ -22,6 +22,7 @@ import {
   normalizeBriefDepth,
   normalizeBriefMode,
 } from "@/lib/brief-ingest";
+import { recordBriefClaims } from "@/lib/brief-claims";
 import {
   applyContentAwareLayout,
   applyCustomLayout,
@@ -1123,6 +1124,10 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
       if (result === "stale_run") {
         return "Kept the run in flight — this publish belonged to a different run";
       }
+      // Record the brief's stated figures into the research-space claims ledger
+      // (R13 JARVIS 3a) — deterministic, no-op outside a research space — so a
+      // later contradicting figure can be reconciled openly, never silently.
+      recordBriefClaims(brief);
       return `Published the ${brief.mode} research brief`;
     }
     case "add_to_watchlist":
