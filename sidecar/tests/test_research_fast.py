@@ -390,6 +390,188 @@ def test_fast_normal_query_quotes_the_display_name() -> None:
     assert tool.web_query == '"KSE Ltd" KSE KSE outlook news outlook'
 
 
+# --- R13 ledger #9/#10: news relevance gate + IN filings region routing -----
+
+
+class _INToolCall(_FakeToolCall):
+    """A fake ``tool_call`` resolving to an IN-listed BSE target, with canned
+    ``news``/``corporate_announcements`` results — exercises the R13 ledger #9
+    (news off-entity leakage) and #10 (filings wrong-lane) fixes."""
+
+    def __init__(
+        self,
+        *,
+        symbol: str,
+        name: str,
+        news_items: list[dict[str, Any]] | None = None,
+        announcements_result: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__()
+        self._symbol = symbol
+        self._name = name
+        self._news_items = news_items if news_items is not None else []
+        self._announcements_result = announcements_result
+
+    def _dispatch(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+        if name == "resolve_symbol":
+            return {
+                "ok": True,
+                "query": args.get("query"),
+                "region": "IN",
+                "resolved": {
+                    "symbol": self._symbol,
+                    "name": self._name,
+                    "exchange": "BSE",
+                    "region": "IN",
+                    "asset_class": "equity",
+                    "yahoo_symbol": f"{self._symbol}.BO",
+                    "confidence": 1.0,
+                    "isin": "INE000X01011",
+                    "bse_code": "500000",
+                    "industry": None,
+                },
+                "needs_disambiguation": False,
+                "candidates": [],
+            }
+        if name == "news":
+            return {"ok": True, "count": len(self._news_items), "news": list(self._news_items)}
+        if name == "corporate_announcements":
+            if self._announcements_result is not None:
+                return dict(self._announcements_result)
+            return {"ok": False, "error": "corporate_announcements failed: boom"}
+        return super()._dispatch(name, args)
+
+
+def test_fast_news_drops_off_entity_items_for_in_target() -> None:
+    """R13 ledger #9: a resolved IN equity's news leg drops off-entity rows —
+    the Yahoo per-symbol feed's foreign-namesake stories (Meta Platforms, not
+    the BSE-listed String Metaverse) and generic macro headlines never count
+    as this instrument's coverage; a genuine on-entity item is kept."""
+    off_entity = [
+        {
+            "title": "Why Microsoft is not this portfolio manager's stock pick",
+            "summary": "Niles Investment Management on Microsoft in the AI landscape.",
+            "url": "https://finance.yahoo.com/video/why-microsoft-not-portfolio-managers.html",
+            "source": "Yahoo! Finance: META News",
+        },
+        {
+            "title": "PM Modi gets special welcome in Auckland",
+            "summary": "New Zealand's iconic Sky Tower lights up in tri-colour.",
+            "url": "https://www.livemint.com/news/world/pm-modi-auckland.html",
+            "source": "mint - news",
+        },
+    ]
+    on_entity = {
+        "title": "String Metaverse Ltd shares rally on BSE after order win",
+        "summary": "The company posted a new client order.",
+        "url": "https://www.moneycontrol.com/news/string-metaverse-order-win.html",
+        "source": "Moneycontrol",
+    }
+    tool = _INToolCall(
+        symbol="META", name="String Metaverse Ltd", news_items=[*off_entity, on_entity]
+    )
+    bundle = asyncio.run(gather_fast("META outlook", region="IN", tool_call=tool))
+
+    news = bundle["structured"]["news"]
+    assert news["ok"] is True
+    assert [item["title"] for item in news["data"]] == [on_entity["title"]]
+    assert "note" not in news
+
+
+def test_fast_news_all_off_entity_yields_honest_note() -> None:
+    """R13 ledger #9: when EVERY row drops, the leg stays ok:True with an empty
+    list and an honest note — never generic filler dressed up as coverage."""
+    off_entity = [
+        {
+            "title": "Stock trading halted as Taiwan braces for Typhoon Bavi",
+            "summary": "Authorities in Taiwan evacuated residents ahead of the storm.",
+            "url": "https://www.livemint.com/news/world/typhoon-bavi.html",
+            "source": "mint - news",
+        },
+        {
+            "title": "Nykaa among 6 midcap stocks that hit 52-week highs",
+            "summary": "Nykaa and five others rallied over the past month.",
+            "url": "https://economictimes.indiatimes.com/markets/nykaa-midcaps.html",
+            "source": "Markets-Economic Times",
+        },
+    ]
+    tool = _INToolCall(symbol="META", name="String Metaverse Ltd", news_items=off_entity)
+    bundle = asyncio.run(gather_fast("META outlook", region="IN", tool_call=tool))
+
+    news = bundle["structured"]["news"]
+    assert news["ok"] is True
+    assert news["data"] == []
+    assert news["note"] == (
+        "No on-entity news found for META — 2 item(s) returned by the news feed "
+        "were off-entity/off-topic and dropped."
+    )
+
+
+def test_fast_filings_leg_routes_to_announcements_for_in_target() -> None:
+    """R13 ledger #10: an IN-listed target's filings leg pulls the exchange
+    announcements feed, never SEC EDGAR (the wrong jurisdiction's index)."""
+    announcements_result = {
+        "ok": True,
+        "symbol": "CDG",
+        "exchange": None,
+        "sources": ["NSE", "BSE"],
+        "errors": {},
+        "count": 2,
+        "announcements": [
+            {
+                "symbol": "CDG",
+                "exchange": "BSE",
+                "headline": "Board Meeting Intimation",
+                "category": "Board Meeting",
+                "attachment_url": None,
+                "ts": "2026-07-08T10:00:00+05:30",
+            },
+            {
+                "symbol": "CDG",
+                "exchange": "NSE",
+                "headline": "Outcome of Board Meeting - Q4 Results",
+                "category": "Financial Results",
+                "attachment_url": "https://x.example/cdg-q4.pdf",
+                "ts": "2026-07-05T18:30:00+05:30",
+            },
+        ],
+    }
+    tool = _INToolCall(
+        symbol="CDG", name="CDG Petchem Ltd", announcements_result=announcements_result
+    )
+    bundle = asyncio.run(gather_fast("CDG outlook", region="IN", tool_call=tool))
+
+    filings = bundle["structured"]["filings"]
+    assert filings["ok"] is True
+    assert filings["provider"] == "nse+bse"
+    assert filings["data"]["announcements"] == announcements_result["announcements"]
+    assert "sec_filings_list" not in tool.calls
+    assert "corporate_announcements" in tool.calls
+
+
+def test_fast_filings_leg_us_target_still_uses_sec_edgar() -> None:
+    """The US path is UNCHANGED by the region routing — sec_filings_list,
+    never the exchange-announcements lane."""
+    fake = _FakeToolCall(asset_class="equity", web_ok=True)
+    bundle = asyncio.run(gather_fast("Apple", region="US", tool_call=fake))
+
+    assert bundle["structured"]["filings"]["ok"] is True
+    assert "corporate_announcements" not in fake.calls
+    assert "sec_filings_list" in fake.calls
+
+
+def test_fast_filings_leg_in_target_provider_failure_is_honest() -> None:
+    """A down/erroring exchange-announcements feed for an IN target still
+    carries the SAME closed-vocabulary honesty the other legs carry (R13
+    JARVIS 2a) — never a silent absence."""
+    tool = _INToolCall(symbol="CDG", name="CDG Petchem Ltd", announcements_result=None)
+    bundle = asyncio.run(gather_fast("CDG outlook", region="IN", tool_call=tool))
+
+    filings = bundle["structured"]["filings"]
+    assert filings["ok"] is False
+    assert filings["reason"] == "provider_error"
+
+
 # --- R13 snapshot wiring: ownership_check + dividend_actions ----------------
 #
 # Mirrors the D56/D66 attach-next-to-provider pattern (see test_growth_check.py's

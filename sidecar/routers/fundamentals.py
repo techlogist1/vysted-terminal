@@ -13,11 +13,13 @@ endpoints — history / price-target-history / individual — backed by
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Header, HTTPException
 
+from config import get_region
 from models.analyst_extended import (
     IndividualAnalystResponse,
     PriceTargetHistoryResponse,
@@ -31,7 +33,15 @@ from models.fundamentals import (
     Fundamentals,
     IncomeStatement,
 )
-from services import analyst_ratings_extended, company_narrative, data_cache, provider_registry
+from services import (
+    analyst_ratings_extended,
+    company_narrative,
+    data_cache,
+    identity_crosscheck,
+    provider_registry,
+    resolution_policy,
+    symbol_resolver,
+)
 from services.errors import ProviderError
 
 logger = logging.getLogger(__name__)
@@ -39,6 +49,40 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/fundamentals", tags=["fundamentals"])
 
 _TTL_RATINGS = 6 * 60 * 60  # 6 hours
+
+
+async def _identity_note(symbol: str, fundamentals: Fundamentals) -> str | None:
+    """R13 ledger #8 (bounded, additive): flag a resolver/provider identity
+    disagreement on the plain REST surface.
+
+    Today the SAME cross-check (:mod:`services.identity_crosscheck`, D67) only
+    rides research briefs — ``/resolve`` can say "CDG Petchem Ltd" (the
+    bundled master's canonical name) while ``/fundamentals`` says "Jujhar
+    Logistics Limited" (the provider's, post-rename) with nothing reconciling
+    them for a caller that only hits this endpoint. Resolves ``symbol`` via
+    the SAME policy ``/resolve`` uses (:mod:`services.symbol_resolver` +
+    :mod:`services.resolution_policy` — called, never reimplemented) and
+    defers to :func:`identity_crosscheck.identity_conflict` for the
+    similarity judgement + note text. Returns ``None`` (never raises) when
+    the provider carried no name, the symbol did not bind, or the names
+    agree — an identity cross-check must never break the endpoint it rides.
+    """
+    if not fundamentals.name:
+        return None
+    try:
+        resolution = await asyncio.to_thread(symbol_resolver.resolve, symbol, get_region())
+    except Exception:  # noqa: BLE001 — a resolver failure must not break /fundamentals
+        return None
+    decision = resolution_policy.decide(resolution)
+    if decision.outcome != "bound" or decision.instrument is None:
+        return None
+    conflict = identity_crosscheck.identity_conflict(
+        canonical_name=decision.instrument.name,
+        provider_name=fundamentals.name,
+        provider=fundamentals.provider,
+        symbol=symbol,
+    )
+    return conflict["note"] if conflict else None
 
 
 @router.get("/{symbol}")
@@ -49,9 +93,14 @@ async def get_fundamentals(symbol: str) -> Fundamentals:
     endpoints) rather than an unhandled 500; a throttle (R11 ``ProviderError``
     ``kind='rate_limited'``) is a 429 so the client backs off instead of reading
     it as a permanent no-data miss.
+
+    R13 ledger #8 (bounded): the response additively carries ``identity_note``
+    (:func:`_identity_note`) when the resolver's canonical name and this
+    provider's company name materially disagree — e.g. an exchange rename the
+    provider has not caught up with. ``None`` when they agree; never a swap.
     """
     try:
-        return await provider_registry.get_fundamentals(symbol)
+        fundamentals = await provider_registry.get_fundamentals(symbol)
     except ProviderError as exc:
         if exc.kind == "rate_limited":
             raise HTTPException(
@@ -64,6 +113,8 @@ async def get_fundamentals(symbol: str) -> Fundamentals:
                 detail=f"No instrument matches {symbol!r} — check the symbol.",
             ) from exc
         raise HTTPException(status_code=502, detail=str(exc)) from exc
+    fundamentals.identity_note = await _identity_note(symbol, fundamentals)
+    return fundamentals
 
 
 # ---------------------------------------------------------------------------
