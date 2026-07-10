@@ -23,6 +23,7 @@ from models.fundamentals import (
     AnalystRating,
     BalanceSheet,
     CashFlowStatement,
+    FieldMeta,
     Fundamentals,
     IncomeStatement,
     StatementLine,
@@ -159,6 +160,27 @@ def _is_junk_fundamentals_name(name: str | None, yahoo_symbol: str) -> bool:
     return any(f.startswith("0P0") for f in fragments)  # a Morningstar/OTC fund id
 
 
+# Fundamentals fields that are identity / metadata, not served data VALUES —
+# excluded from the per-field provenance map (R13, deliverable 5).
+_PROVENANCE_EXCLUDED_FIELDS = frozenset({"symbol", "provider", "growth_basis", "field_meta"})
+
+
+def _served_field_meta(fund: Fundamentals, as_of: str) -> dict[str, FieldMeta]:
+    """Per-field provenance for every DATA field yfinance actually served.
+
+    One ``status="ok"`` entry per non-null data field, tagging the provider and
+    the ``info`` fetch time (``as_of``). Identity/metadata fields
+    (symbol/provider/growth_basis/field_meta) are excluded. The correctness gate
+    MERGES its withheld/flag entries onto this map downstream, so a field it nulls
+    flips from ``ok`` to ``withheld`` while the rest keep their yfinance provenance.
+    """
+    return {
+        name: FieldMeta(status="ok", provider=PROVIDER, as_of=as_of)
+        for name in type(fund).model_fields
+        if name not in _PROVENANCE_EXCLUDED_FIELDS and getattr(fund, name, None) is not None
+    }
+
+
 def _num(value: Any) -> float | None:
     """Coerce a possibly-missing/NaN value to ``float | None``."""
     if value is None:
@@ -252,6 +274,7 @@ def get_fundamentals(symbol: str) -> Fundamentals:
         raise _provider_error("fundamentals", symbol, exc) from exc
 
     provider_health.record_success(provider_health.YAHOO)
+    fetched_at = _utcnow().isoformat()  # the info snapshot's as_of for field_meta
     # An unknown/garbage symbol comes back as an EMPTY info dict, not an
     # exception — serving it as an all-null 200 reads as "instrument exists,
     # no data" (a dishonest shape; R11 gate-7 catch) and lets the deep
@@ -298,7 +321,7 @@ def get_fundamentals(symbol: str) -> Fundamentals:
     raw_de = _num(info.get("debtToEquity"))
     debt_to_equity = (raw_de / 100.0) if raw_de is not None else None
 
-    return Fundamentals(
+    fund = Fundamentals(
         symbol=yahoo,
         name=name,
         sector=info.get("sector"),
@@ -342,6 +365,10 @@ def get_fundamentals(symbol: str) -> Fundamentals:
         held_percent_institutions=_num(info.get("heldPercentInstitutions")),
         provider=PROVIDER,
     )
+    # R13: stamp per-field provenance for every value actually served (the gate
+    # then merges its withheld/flag entries on top).
+    fund.field_meta = _served_field_meta(fund, fetched_at)
+    return fund
 
 
 def _statement_lines(frame: pd.DataFrame) -> tuple[list[str], list[StatementLine]]:

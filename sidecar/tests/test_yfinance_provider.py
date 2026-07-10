@@ -340,3 +340,27 @@ def test_get_fundamentals_fund_id_blob_says_non_company_record(monkeypatch) -> N
         yfinance_provider.get_fundamentals("509470.BO")
     assert excinfo.value.kind == "not_found"
     assert "non-company (fund-id) record" in str(excinfo.value)
+
+
+# --- R13 deliverable 5: per-field provenance population -----------------------
+
+
+def test_get_fundamentals_populates_field_meta_provenance(
+    recording_ticker: type[_RecordingTicker],
+) -> None:
+    """Every non-null DATA field yfinance serves carries an 'ok' FieldMeta with
+    provider='yfinance' + an as_of (the info fetch time); identity/metadata fields
+    (symbol/provider/growth_basis) do NOT get an entry."""
+    fundamentals = yfinance_provider.get_fundamentals("BRK.B")
+    meta = fundamentals.field_meta
+    assert meta is not None
+    for field_name in ("pe_ratio", "market_cap", "name", "beta"):
+        assert meta[field_name].status == "ok"
+        assert meta[field_name].provider == "yfinance"
+        assert meta[field_name].as_of  # a non-empty ISO timestamp
+    # Identity / metadata fields never get a provenance entry.
+    assert "symbol" not in meta
+    assert "provider" not in meta
+    assert "growth_basis" not in meta
+    # A field the source did not carry (no revenue) has no entry either.
+    assert "revenue_ttm" not in meta
