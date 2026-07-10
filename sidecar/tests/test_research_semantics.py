@@ -15,6 +15,8 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
+import pytest
+
 from services.research.semantics import derive_semantics, prompt_block
 
 
@@ -759,3 +761,267 @@ def test_identity_conflict_keeps_its_type_and_defaults_nature_to_data() -> None:
     identity = next(c for c in leg["data"]["conflicts"] if c["field"] == "identity")
     assert identity["kind"] == "identity_conflict"  # TYPE discriminator preserved
     assert identity["conflict_kind"] == "data_conflict"  # NATURE default (orthogonal)
+
+
+# --- attach-key parity: the literal keys track their module constants ----------
+
+
+def test_semantics_attach_keys_match_the_module_constants() -> None:
+    # ``semantics`` reads the R13 cross-check wires by LITERAL key (to stay free
+    # of pandas/provider imports); this pins those literals against the source-of-
+    # truth module constants so the linkage can never silently drift.
+    from services import earnings_quality, market_cap_witness
+    from services.research import range_check, semantics
+
+    assert semantics._EARNINGS_KEY == earnings_quality.EARNINGS_KEY
+    assert semantics._RANGE_KEY == range_check.RANGE_KEY
+    assert semantics._MCAP_WITNESS_KEY == market_cap_witness.MCAP_WITNESS_KEY
+
+
+# --- reported-vs-adjusted earnings (R13 / D70) ---------------------------------
+#
+# The TI trap: yfinance PE ~460 / ROE ~1.08% on REPORTED earnings (₹20.9 Cr,
+# crushed by Imperial-Blue one-offs) vs the world's ~43.9 / ~13.1% on the
+# ADJUSTED basis (~₹232 Cr). Both correct on different bases — flag, never pick.
+
+_TI_EARNINGS = {
+    "reported_net_income": 2.087e8,
+    "normalized_income": 2.32e9,
+    "unusual_items": -2.11e9,
+    "tax_effect": None,
+    "one_off_net": 2.087e8 - 2.32e9,
+    "distortion_fraction": abs(2.087e8 - 2.32e9) / 2.087e8,
+    "period": "2026-03-31",
+}
+
+
+def test_ti_shape_one_off_distortion_fires_definitional_conflict() -> None:
+    data = _derived(
+        _structured(
+            fund={
+                "currency": "INR",
+                "pe_ratio": 460.0,
+                "roe": 0.0108,
+                "earnings_quality": dict(_TI_EARNINGS),
+            }
+        )
+    )
+    # both net-income bases surfaced as separately-labeled facts
+    assert data["reported_net_income"]["value"] == pytest.approx(2.087e8)
+    assert data["reported_net_income"]["label"] == "Net income (reported, incl. one-offs)"
+    assert data["normalized_net_income"]["value"] == pytest.approx(2.32e9)
+    # the conflict names the PE/ROE/EPS basis seam — definitional, both correct
+    eq = next(c for c in data["conflicts"] if c["field"] == "earnings_quality")
+    assert eq["kind"] == "earnings_quality_conflict"
+    assert eq["conflict_kind"] == "definitional_expected"
+    assert {round(s["value"], 2) for s in eq["sources"]} == {round(2.087e8, 2), round(2.32e9, 2)}
+    # the note carries real numbers (compact ₹Cr), the % and the direction
+    assert "₹20.9 Cr" in eq["note"]
+    assert "₹232.0 Cr" in eq["note"]
+    assert "DEPRESSED" in eq["note"]  # one-off CHARGES depressed reported earnings
+    assert "PE/ROE/EPS" in eq["note"]
+
+
+def test_ti_shape_one_off_gain_uses_inflation_wording() -> None:
+    # The PML shape: a one-off GAIN inflates reported earnings (reported > adjusted).
+    fund = {
+        "currency": "INR",
+        "pe_ratio": 0.59,
+        "earnings_quality": {
+            "reported_net_income": 3.0e9,
+            "normalized_income": 4.0e8,
+            "one_off_net": 3.0e9 - 4.0e8,  # positive → gains
+            "distortion_fraction": abs(3.0e9 - 4.0e8) / 3.0e9,
+            "period": "2026-03-31",
+        },
+    }
+    data = _derived(_structured(fund=fund))
+    eq = next(c for c in data["conflicts"] if c["field"] == "earnings_quality")
+    assert "INFLATED" in eq["note"]
+    assert "DEPRESSED" not in eq["note"]
+
+
+def test_clean_earnings_stay_silent() -> None:
+    fund = {
+        "pe_ratio": 20.0,
+        "earnings_quality": {
+            "reported_net_income": 1.0e9,
+            "normalized_income": 9.8e8,
+            "one_off_net": 2.0e7,
+            "distortion_fraction": 0.02,
+            "period": "2026-03-31",
+        },
+    }
+    data = _derived(_structured(fund=fund))
+    assert "reported_net_income" not in data
+    assert "normalized_net_income" not in data
+    assert all(c["field"] != "earnings_quality" for c in data["conflicts"])
+
+
+def test_earnings_quality_absent_leg_is_a_noop() -> None:
+    data = _derived(_structured(fund={"pe_ratio": 30.0}))
+    assert "reported_net_income" not in data
+    assert all(c["field"] != "earnings_quality" for c in data["conflicts"])
+
+
+def test_earnings_quality_conflict_reaches_the_prompt_block() -> None:
+    leg = derive_semantics(
+        _structured(
+            fund={"currency": "INR", "pe_ratio": 460.0, "earnings_quality": dict(_TI_EARNINGS)}
+        ),
+        "IN",
+    )
+    block = prompt_block(leg)
+    assert "CONFLICT (earnings_quality)" in block
+    assert "Net income (reported, incl. one-offs)" in block
+
+
+# --- 52-week range cross-check (R13 / D71) -------------------------------------
+#
+# BI: provider 52w high ~75 while the exchange series the chart renders shows
+# ~116. Recompute from the app's own history and flag the wrong provider bound.
+
+
+def test_bi_shape_range_high_divergence_fires() -> None:
+    data = _derived(
+        _structured(
+            fund={
+                "fifty_two_week_high": 75.0,
+                "fifty_two_week_low": 50.0,
+                "range_52w_exchange": {
+                    "high": 116.0,
+                    "low": 50.0,
+                    "coverage_days": 359,
+                    "bars": 360,
+                    "source": "nse_direct",
+                },
+            }
+        )
+    )
+    # the exchange high is surfaced beside the provider scalar (never replaced)
+    assert data["fifty_two_week_high_exchange"]["value"] == 116.0
+    assert data["fifty_two_week_high_exchange"]["label"] == "52-week high (exchange series)"
+    # the low agrees (50 vs 50) → no low fact, no low conflict
+    assert "fifty_two_week_low_exchange" not in data
+    rc = next(c for c in data["conflicts"] if c["field"] == "fifty_two_week_high")
+    assert rc["kind"] == "range_conflict"
+    assert rc["conflict_kind"] == "data_conflict"
+    assert {s["value"] for s in rc["sources"]} == {75.0, 116.0}
+    assert "nse_direct" in rc["note"]
+    assert all(c["field"] != "fifty_two_week_low" for c in data["conflicts"])
+
+
+def test_pml_shape_both_bounds_diverge() -> None:
+    # PML-shaped: provider high 645 vs exchange 823 (21.6%) and provider low 451
+    # vs exchange 380 (15.7%) — both bounds clearly past the 10% band.
+    data = _derived(
+        _structured(
+            fund={
+                "fifty_two_week_high": 645.0,
+                "fifty_two_week_low": 451.0,
+                "range_52w_exchange": {"high": 823.0, "low": 380.0, "source": "bse"},
+            }
+        )
+    )
+    assert data["fifty_two_week_high_exchange"]["value"] == 823.0
+    assert data["fifty_two_week_low_exchange"]["value"] == 380.0
+    fields = {c["field"] for c in data["conflicts"] if c.get("kind") == "range_conflict"}
+    assert fields == {"fifty_two_week_high", "fifty_two_week_low"}
+
+
+def test_agreeing_range_stays_silent() -> None:
+    data = _derived(
+        _structured(
+            fund={
+                "fifty_two_week_high": 114.0,  # 1.7% off 116 → within tolerance
+                "fifty_two_week_low": 50.5,  # 1% off 50 → within tolerance
+                "range_52w_exchange": {"high": 116.0, "low": 50.0, "source": "bse"},
+            }
+        )
+    )
+    assert "fifty_two_week_high_exchange" not in data
+    assert "fifty_two_week_low_exchange" not in data
+    assert all(c.get("kind") != "range_conflict" for c in data["conflicts"])
+
+
+def test_range_absent_leg_is_a_noop() -> None:
+    data = _derived(_structured(fund={"fifty_two_week_high": 75.0, "fifty_two_week_low": 50.0}))
+    assert "fifty_two_week_high_exchange" not in data
+    assert all(c.get("kind") != "range_conflict" for c in data["conflicts"])
+
+
+# --- market-cap share-count witness (R13 / D72) --------------------------------
+#
+# RBA: provider mcap ~₹5,233 Cr vs price × the BSE-derived share count ~₹4,236 Cr
+# (23% high, live promoter-stake churn). Breaks the circularity of the provider-
+# share-count check.
+
+_RBA_WITNESS = {
+    "shares_outstanding": 582876028,
+    "source": "BSE ListOfScripData (bundled India master) (as of 2026-06-11)",
+    "scrip_code": "543248",
+    "as_of": "2026-06-11",
+}
+
+
+def test_rba_shape_market_cap_witness_fires() -> None:
+    data = _derived(
+        _structured(
+            price=72.7, fund={"market_cap": 5.233e10, "market_cap_witness": dict(_RBA_WITNESS)}
+        )
+    )
+    implied = 72.7 * 582876028
+    assert data["market_cap_witness"]["value"] == pytest.approx(round(implied, 2))
+    mcw = next(c for c in data["conflicts"] if c.get("kind") == "market_cap_witness_conflict")
+    assert mcw["field"] == "market_cap"
+    assert mcw["conflict_kind"] == "data_conflict"
+    assert mcw["sources"][0]["value"] == pytest.approx(round(5.233e10, 2))
+    assert mcw["sources"][1]["value"] == pytest.approx(round(implied, 2))
+    # R13 D-2: the note carries the witness as-of date and stays symmetric —
+    # it must name BOTH share counts as the possibly-stale one, never assert
+    # the provider's is the stale one.
+    assert "as of 2026-06-11" in mcw["note"]
+    assert "stale" in mcw["note"]
+    lowered = mcw["note"].lower()
+    assert "provider's own share count" not in lowered
+    assert "stale provider count" not in lowered
+    assert "one of the two share counts is stale" in lowered
+
+
+def test_market_cap_witness_note_without_as_of_stays_symmetric() -> None:
+    # A witness with no ``as_of`` (bundled master missing ``_generated``) still
+    # produces a symmetric note — no fabricated date, no provider-blaming claim.
+    witness = {k: v for k, v in _RBA_WITNESS.items() if k != "as_of"}
+    witness["source"] = "BSE ListOfScripData (bundled India master)"
+    data = _derived(
+        _structured(price=72.7, fund={"market_cap": 5.233e10, "market_cap_witness": witness})
+    )
+    mcw = next(c for c in data["conflicts"] if c.get("kind") == "market_cap_witness_conflict")
+    lowered = mcw["note"].lower()
+    assert "one of the two share counts is stale" in lowered
+    assert "as of" not in lowered
+    assert "provider's own share count" not in lowered
+    assert "stale provider count" not in lowered
+
+
+def test_agreeing_market_cap_witness_stays_silent() -> None:
+    # provider mcap ≈ price × witness shares → no witness conflict.
+    data = _derived(
+        _structured(
+            price=72.7, fund={"market_cap": 4.24e10, "market_cap_witness": dict(_RBA_WITNESS)}
+        )
+    )
+    assert "market_cap_witness" not in data
+    assert all(c.get("kind") != "market_cap_witness_conflict" for c in data["conflicts"])
+
+
+def test_market_cap_witness_needs_price_and_witness() -> None:
+    # No price → cannot form the witness product; no witness leg → nothing.
+    no_price = _derived(
+        _structured(
+            price=None, fund={"market_cap": 5.233e10, "market_cap_witness": dict(_RBA_WITNESS)}
+        )
+    )
+    assert all(c.get("kind") != "market_cap_witness_conflict" for c in no_price["conflicts"])
+    no_witness = _derived(_structured(price=72.7, fund={"market_cap": 5.233e10}))
+    assert all(c.get("kind") != "market_cap_witness_conflict" for c in no_witness["conflicts"])

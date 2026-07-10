@@ -141,6 +141,31 @@ export interface BriefDerivedMetrics {
    */
   revenue_growth_computed?: BriefDerivedValue;
   earnings_growth_computed?: BriefDerivedValue;
+  /**
+   * Reported vs adjusted net income (R13 / D70) — present ONLY when reported
+   * earnings carry a large one-off distortion (the reported-vs-adjusted PE/ROE
+   * trap: e.g. TI's PE 460 reported vs 43.9 adjusted). The paired
+   * `earnings_quality` conflict names the PE/ROE/EPS basis seam. The provider
+   * ratios are never replaced.
+   */
+  reported_net_income?: BriefDerivedValue;
+  normalized_net_income?: BriefDerivedValue;
+  /**
+   * 52-week high/low recomputed from the app's own exchange-direct daily
+   * history (R13 / D71) — present ONLY when the provider's 52-week pair diverges
+   * beyond tolerance (e.g. BI provider high 75 vs exchange 116). The paired
+   * `range_conflict` carries both figures; the provider scalar is never replaced.
+   */
+  fifty_two_week_high_exchange?: BriefDerivedValue;
+  fifty_two_week_low_exchange?: BriefDerivedValue;
+  /**
+   * Market cap from price × a NON-provider (BSE-derived) share count (R13 /
+   * D72) — present ONLY when the provider market cap diverges beyond tolerance
+   * from this witness (e.g. RBA ₹5,233 Cr vs ₹4,236 Cr during live stake churn).
+   * Breaks the circularity of the provider-share-count check; the provider
+   * market cap is never replaced.
+   */
+  market_cap_witness?: BriefDerivedValue;
   /** Cross-source disagreements — flagged, never silently resolved. */
   conflicts?: BriefMetricConflict[];
 }
