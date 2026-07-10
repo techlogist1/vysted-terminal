@@ -93,8 +93,19 @@ export interface BriefMetricConflict {
    * (R12 / D66) — present only on the growth cross-check conflicts.
    */
   quarters?: { mrq: string; prior: string };
-  /** Conflict class discriminator (R12 / D67) — e.g. "identity_conflict". */
+  /**
+   * Conflict TYPE discriminator (R12 / D67) — e.g. "identity_conflict",
+   * "ownership_conflict", "growth_conflict". Names WHAT is in conflict.
+   */
   kind?: string;
+  /**
+   * Conflict NATURE discriminator (R13 / D69) — ORTHOGONAL to {@link kind}:
+   * "definitional_expected" = the divergence is explained by a known
+   * definition/basis difference (insiders vs promoter-group; bank revenue
+   * line); "data_conflict" = a genuine cross-source contradiction. Absent is
+   * read as "data_conflict", so older briefs are unchanged.
+   */
+  conflict_kind?: "definitional_expected" | "data_conflict";
   /** Token-set similarity behind an identity conflict (R12 / D67). */
   similarity?: number;
   /** The instrument the conflict names, when symbol-specific (R12 / D67). */

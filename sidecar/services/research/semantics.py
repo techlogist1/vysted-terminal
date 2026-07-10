@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from services import identity_crosscheck
+from services import dividend_actions, identity_crosscheck, ownership_check
 
 #: Relative divergence above which the provider dividend yield and the implied
 #: yield (dividend per share / price) are a CONFLICT — flagged, and no single
@@ -72,6 +72,32 @@ _MARKET_CAP_TOLERANCE = 0.05
 #: is emitted only when plausible AS A FRACTION of price (< this bound) — an
 #: ambiguous-unit figure (0.55? 55?) is withheld rather than guessed.
 _PLAUSIBLE_YIELD_FRACTION = 0.25
+
+#: Ownership cross-check tolerances (R13 / D68). The provider's
+#: ``heldPercentInsiders`` and the exchange promoter-group percentage AGREE
+#: within this absolute pp band; beyond it a conflict is flagged.
+_OWNERSHIP_PROMOTER_PP = 2.0
+#: A promoter-vs-insiders gap at or under this pp band, in the EXPECTED direction
+#: (insiders ≥ promoter — insiders is a superset), is a DEFINITIONAL divergence
+#: (insiders ≠ promoter-group), not a data contradiction; a wider gap is data.
+_OWNERSHIP_DEFINITIONAL_PP = 3.0
+#: ``heldPercentInstitutions`` vs the exchange institutional holding are a
+#: CONFLICT when the larger exceeds this factor of the smaller (a >2x gap) —
+#: institutional definitions are close enough that a gap this wide is a data
+#: contradiction, never merely definitional.
+_OWNERSHIP_INSTITUTIONS_RATIO = 2.0
+#: The zero-vs-nonzero floor (pp): a category the exchange reports as ~0 that the
+#: provider reports above this is a real divergence (not a rounding wisp).
+_OWNERSHIP_ZERO_FLOOR_PP = 0.5
+
+#: Conflict-NATURE discriminator (R13 / D69) — additive, ORTHOGONAL to the
+#: conflict-TYPE ``kind`` (e.g. "identity_conflict"/"ownership_conflict"):
+#: "definitional_expected" = the divergence is explained by a known
+#: definition/basis difference (insiders vs promoter-group; bank revenue line);
+#: "data_conflict" = a genuine cross-source contradiction. Consumers default to
+#: ``data_conflict`` when the field is absent, so existing readers are unchanged.
+_CONFLICT_DATA = "data_conflict"
+_CONFLICT_DEFINITIONAL = "definitional_expected"
 
 
 def _leg_data(structured: dict[str, Any], leg: str) -> dict[str, Any]:
@@ -126,47 +152,140 @@ def _relative_divergence(a: float, b: float) -> float:
     return abs(a - b) / denominator
 
 
-def _dividend_ttm_leg(
-    fund: dict[str, Any], dps: float | None, provider: str, currency: str | None
-) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
-    """Cross-check ``dividend_per_share`` against the trailing-12m paid history.
+def _declared_dividend(fund: dict[str, Any]) -> tuple[float, str] | None:
+    """The attached declared-but-unpaid dividend ``(amount, record_date)``, or
+    ``None`` — read from ``fund[dividend_actions.DECLARED_KEY]`` (attached
+    upstream by the snapshot builder, mirroring D66)."""
+    raw = fund.get(dividend_actions.DECLARED_KEY)
+    if not isinstance(raw, dict):
+        return None
+    amount = _num(raw, "amount")
+    record_date = raw.get("record_date")
+    if amount is None or not isinstance(record_date, str) or not record_date:
+        return None
+    return amount, record_date
 
-    Returns ``(ttm_fact_or_None, conflicts)``. Both the scalar
-    (``dividendRate``) and the paid-history sum (``dividend_per_share_ttm``,
-    attached upstream by :func:`services.research.fast.snapshot_structured`)
-    must be present; a divergence past :data:`_DIVIDEND_TTM_DIVERGENCE` flags a
-    conflict AND surfaces the paid figure as its own labeled fact (R11 / D56).
-    When they agree — or either is absent — nothing extra is emitted.
+
+def _dividend_ttm_conflict(provider: str, dps: float, ttm: float) -> dict[str, Any]:
+    """The D56 scalar-vs-paid conflict — DIRECTION-aware.
+
+    ``dividendRate`` ABOVE the paid figure reads as anticipation/inflation (it
+    may bake in a not-yet-paid declared dividend); BELOW reads as an omitted
+    special dividend. The old note only fit the BELOW case and would mislabel an
+    inflated scalar; each direction now gets its own causal story.
     """
-    ttm = _num(fund, "dividend_per_share_ttm")
-    if dps is None or ttm is None:
-        return None, []
-    if _relative_divergence(ttm, dps) <= _DIVIDEND_TTM_DIVERGENCE:
-        return None, []
-    unit = "currency"
-    ttm_basis = "corporate-action history"
-    fact = _value(
-        ttm,
-        "Dividend/share (trailing 12m paid)",
-        basis=ttm_basis,
-        formula="sum of dividends paid in the trailing 12 months",
-        unit=unit,
-    )
-    conflict = {
+    paid = round(ttm, 4)
+    if dps > ttm:
+        note = (
+            f"The provider's dividend per share (Yahoo dividendRate, {dps:g}) EXCEEDS "
+            f"the trailing-12-month dividends actually PAID ({paid:g}) by more than "
+            "10% — the scalar may anticipate a declared-but-unpaid dividend or ride a "
+            "forward/inflated basis; the paid history is the settled figure."
+        )
+    else:
+        note = (
+            f"The provider's dividend per share (Yahoo dividendRate, {dps:g}) is BELOW "
+            f"the trailing-12-month dividends actually PAID ({paid:g}) by more than "
+            "10% — dividendRate can omit a special dividend, so the paid history is "
+            "the complete figure."
+        )
+    return {
         "field": "dividend_per_share",
+        "kind": "dividend_conflict",
+        "conflict_kind": _CONFLICT_DATA,
         "sources": [
             {"provider": f"{provider} (dividendRate)", "value": dps},
-            {"provider": "derived (trailing-12m paid history)", "value": round(ttm, 4)},
+            {"provider": "derived (trailing-12m paid history)", "value": paid},
+        ],
+        "note": note,
+    }
+
+
+def _declared_reconciliation(ttm: float, amount: float, record_date: str) -> dict[str, Any]:
+    """The explicit PAID + DECLARED = forward reconciliation (PFC arithmetic).
+
+    A provider 'trailing annual' scalar that sums the paid history AND a
+    declared-but-unpaid dividend lands on ``ttm + amount``; naming that sum
+    explicitly stops the two legs being read as one figure.
+    """
+    paid = round(ttm, 4)
+    forward = round(ttm + amount, 4)
+    return {
+        "field": "dividend_per_share_ttm",
+        "kind": "dividend_reconciliation",
+        "conflict_kind": _CONFLICT_DEFINITIONAL,
+        "sources": [
+            {"provider": "derived (trailing-12m paid)", "value": paid},
+            {"provider": "NSE corporate action (declared, unpaid)", "value": amount},
         ],
         "note": (
-            "The provider's dividend per share (Yahoo dividendRate) differs from "
-            "the trailing-12-month dividends actually paid by more than 10% — "
-            "dividendRate can omit a special dividend, so the paid history is the "
-            "complete figure."
+            f"Trailing-12m PAID ({paid:g}) + declared-but-unpaid ({amount:g}, record "
+            f"date {record_date}) = {forward:g}: a provider 'trailing annual' figure "
+            "that sums both would show here. The PAID and DECLARED legs are stated "
+            "separately, never conflated."
         ),
     }
+
+
+def _dividend_ttm_leg(
+    fund: dict[str, Any], dps: float | None, provider: str, currency: str | None
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Cross-check ``dividend_per_share`` against the trailing-12m PAID history
+    and any declared-but-unpaid dividend (R11 / D56, R13 / D57).
+
+    Returns ``(facts, conflicts)``. When ``dividendRate`` and the paid-history
+    sum (``dividend_per_share_ttm``) diverge past
+    :data:`_DIVIDEND_TTM_DIVERGENCE`, a DIRECTION-aware conflict fires and the
+    paid figure is surfaced. When a declared-but-unpaid dividend is attached
+    (``dividend_declared``), it is surfaced as its OWN labeled fact, the paid
+    figure is relabeled "PAID" (so it never reads as the full/forward figure),
+    and the PAID + DECLARED reconciliation is stated explicitly. Agreement with
+    no declared dividend emits nothing extra — absence is honest.
+    """
+    ttm = _num(fund, "dividend_per_share_ttm")
+    declared = _declared_dividend(fund)
+    facts: dict[str, Any] = {}
+    conflicts: list[dict[str, Any]] = []
+
+    ttm_diverges = (
+        dps is not None
+        and ttm is not None
+        and _relative_divergence(ttm, dps) > _DIVIDEND_TTM_DIVERGENCE
+    )
+
+    # Surface the trailing-PAID fact when it diverges from the scalar OR a
+    # declared-but-unpaid dividend coexists (so "paid" vs "declared" never read
+    # as one number). "PAID" is emphasised only when a declared leg exists.
+    if ttm is not None and (ttm_diverges or declared is not None):
+        paid_label = (
+            "Dividend/share (trailing 12m PAID)"
+            if declared is not None
+            else "Dividend/share (trailing 12m paid)"
+        )
+        facts["dividend_per_share_ttm"] = _value(
+            ttm,
+            paid_label,
+            basis="corporate-action history",
+            formula="sum of dividends paid in the trailing 12 months",
+            unit="currency",
+        )
+
+    if ttm_diverges:
+        conflicts.append(_dividend_ttm_conflict(provider, dps, ttm))
+
+    if declared is not None:
+        amount, record_date = declared
+        facts["dividend_declared"] = _value(
+            amount,
+            f"Declared, not yet paid (record date {record_date})",
+            basis="NSE corporate action",
+            unit="currency",
+        )
+        if ttm is not None:
+            conflicts.append(_declared_reconciliation(ttm, amount, record_date))
+
     _ = currency  # currency rides the dps fact's basis; noted here for symmetry
-    return fact, [conflict]
+    return facts, conflicts
 
 
 def _growth_agrees(provider_value: float, computed: float) -> bool:
@@ -193,6 +312,7 @@ def _growth_leg(fund: dict[str, Any], provider: str) -> tuple[dict[str, Any], li
     """
     quarters = fund.get("growth_computed_quarters")
     quarters = quarters if isinstance(quarters, dict) else None
+    financial = _is_financial_sector(fund)
     facts: dict[str, Any] = {}
     conflicts: list[dict[str, Any]] = []
     for provider_key, computed_key, scalar_name, label in _GROWTH_CHECKS:
@@ -214,8 +334,23 @@ def _growth_leg(fund: dict[str, Any], provider: str) -> tuple[dict[str, Any], li
             if quarters and quarters.get("mrq") and quarters.get("prior")
             else ""
         )
+        # The bank-revenue case (D69): a financial-sector REVENUE divergence rides
+        # different revenue-line definitions (interest income vs total income),
+        # a known DEFINITIONAL mismatch — not a data contradiction. Earnings, and
+        # any non-financial revenue divergence, stay data_conflict.
+        bank_revenue = provider_key == "revenue_growth" and financial
+        line_note = (
+            "the scalar rides the bank/financial revenue-line definition "
+            "(interest income vs total income), which differs from the computed "
+            "figure by construction"
+            if bank_revenue
+            else "the scalar may ride a different line definition (bank revenue) "
+            "or a restated base quarter"
+        )
         conflict: dict[str, Any] = {
             "field": provider_key,
+            "kind": "growth_conflict",
+            "conflict_kind": _CONFLICT_DEFINITIONAL if bank_revenue else _CONFLICT_DATA,
             "sources": [
                 {
                     "provider": f"{provider} ({scalar_name})",
@@ -233,9 +368,8 @@ def _growth_leg(fund: dict[str, Any], provider: str) -> tuple[dict[str, Any], li
                 "MRQ YoY but disagrees with the figure computed from its own "
                 f"quarterly income statements{quarter_note} beyond tolerance — "
                 "the statement-derived figure reconciles against reported "
-                "quarterly results; the scalar may ride a different line "
-                "definition (bank revenue) or a restated base quarter. The "
-                "provider value is shown unchanged."
+                f"quarterly results; {line_note}. The provider value is shown "
+                "unchanged."
             ),
         }
         if quarters:
@@ -244,27 +378,185 @@ def _growth_leg(fund: dict[str, Any], provider: str) -> tuple[dict[str, Any], li
     return facts, conflicts
 
 
+#: yfinance ``sector`` labels whose "revenue" is definitionally ambiguous — a
+#: bank/financial reports interest income vs total income vs net interest
+#: income, so ``revenueGrowth`` (scalar) and the statement-computed figure ride
+#: DIFFERENT revenue lines. A revenue-growth divergence for these is a
+#: DEFINITIONAL mismatch (D69), not a data contradiction.
+_FINANCIAL_SECTORS = frozenset({"financial services", "financials", "financial"})
+
+
+def _is_financial_sector(fund: dict[str, Any]) -> bool:
+    """True when the fundamentals leg reports a bank/financial sector."""
+    sector = fund.get("sector")
+    return isinstance(sector, str) and sector.strip().lower() in _FINANCIAL_SECTORS
+
+
+def _diverges_by_factor(a: float, b: float, factor: float) -> bool:
+    """True when the larger of ``|a|``/``|b|`` exceeds ``factor``× the smaller.
+
+    A zero-vs-nonzero pair diverges when the nonzero side clears
+    :data:`_OWNERSHIP_ZERO_FLOOR_PP` — so 0.06% vs 8.455% fires while 0 vs a
+    rounding wisp does not.
+    """
+    hi, lo = max(abs(a), abs(b)), min(abs(a), abs(b))
+    if lo == 0:
+        return hi > _OWNERSHIP_ZERO_FLOOR_PP
+    return hi / lo > factor
+
+
+def _ownership_promoter_conflict(
+    provider: str, yf_pct: float, promoter_pct: float, source: str, as_of: str | None
+) -> dict[str, Any]:
+    """The insiders-vs-promoter conflict — direction/definition/as-of aware."""
+    gap = abs(yf_pct - promoter_pct)
+    # insiders is a SUPERSET of promoter-group; a small over-count in that
+    # direction is definitional, a large gap (or the wrong direction) is data.
+    definitional = gap <= _OWNERSHIP_DEFINITIONAL_PP and yf_pct >= promoter_pct
+    as_of_note = f" as of {as_of}" if as_of else ""
+    return {
+        "field": "held_percent_insiders",
+        "kind": "ownership_conflict",
+        "conflict_kind": _CONFLICT_DEFINITIONAL if definitional else _CONFLICT_DATA,
+        "sources": [
+            {
+                "provider": f"{provider} (heldPercentInsiders)",
+                "value": round(yf_pct, 3),
+                "basis": "insiders (provider roster; mixed as-of)",
+            },
+            {
+                "provider": f"{source} shareholding filing",
+                "value": round(promoter_pct, 3),
+                "basis": f"promoter group{as_of_note}",
+            },
+        ],
+        "note": (
+            f"The provider's heldPercentInsiders ({yf_pct:.2f}%) counts INSIDERS — "
+            "a superset that mixes promoter-group holders with other insider rows "
+            "and can carry stale, individually-dated as-of dates — while the "
+            f"{source} shareholding filing reports the strict PROMOTER GROUP at "
+            f"{promoter_pct:.2f}%{as_of_note}. Insiders and promoter-group are "
+            "different by definition; both figures are shown, neither replaced."
+        ),
+    }
+
+
+def _ownership_institutions_conflict(
+    provider: str, yf_pct: float, institutions_pct: float, source: str, as_of: str | None
+) -> dict[str, Any]:
+    """The institutions divergence conflict (always a data contradiction)."""
+    as_of_note = f" as of {as_of}" if as_of else ""
+    return {
+        "field": "held_percent_institutions",
+        "kind": "ownership_conflict",
+        "conflict_kind": _CONFLICT_DATA,
+        "sources": [
+            {
+                "provider": f"{provider} (heldPercentInstitutions)",
+                "value": round(yf_pct, 3),
+                "basis": "institutions (provider snapshot)",
+            },
+            {
+                "provider": f"{source} shareholding filing",
+                "value": round(institutions_pct, 3),
+                "basis": f"institutional holding{as_of_note}",
+            },
+        ],
+        "note": (
+            f"The provider's heldPercentInstitutions ({yf_pct:.2f}%) diverges from "
+            f"the {source} exchange filing's institutional holding "
+            f"({institutions_pct:.2f}%{as_of_note}) by more than "
+            f"{_OWNERSHIP_INSTITUTIONS_RATIO:g}x — the provider scalar is "
+            "unreliable for this listing; both are shown, neither replaced."
+        ),
+    }
+
+
+def _ownership_leg(
+    fund: dict[str, Any], provider: str
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Cross-check yfinance insider/institution % against the exchange SHP
+    (R13 / D68).
+
+    Returns ``(facts, conflicts)``. The exchange promoter (and institutions,
+    where the filing carried them) are surfaced as SEPARATELY-LABELED facts;
+    a divergence past tolerance flags a conflict carrying BOTH values, BOTH
+    definitions, and BOTH as-of dates. The provider ownership scalars are NEVER
+    replaced — disclosure, not substitution. The exchange pattern rides
+    ``fund[ownership_check.OWNERSHIP_KEY]`` (attached upstream by the snapshot
+    builder, mirroring D66); an absent leg emits nothing (absence is honest).
+    """
+    exchange = fund.get(ownership_check.OWNERSHIP_KEY)
+    if not isinstance(exchange, dict):
+        return {}, []
+    source = exchange.get("source") if isinstance(exchange.get("source"), str) else "exchange"
+    raw_as_of = exchange.get("as_of_quarter")
+    as_of = raw_as_of if isinstance(raw_as_of, str) and raw_as_of else None
+    promoter_pct = _num(exchange, "promoter_percent")
+    institutions_pct = _num(exchange, "institutions_percent")
+    basis = f"{source} shareholding filing" + (f", {as_of}" if as_of else "")
+
+    facts: dict[str, Any] = {}
+    conflicts: list[dict[str, Any]] = []
+
+    if promoter_pct is not None:
+        facts["promoter_percent_exchange"] = _value(
+            round(promoter_pct / 100.0, 6),
+            "Promoter group (exchange filing)",
+            basis=basis,
+            unit="percent",
+        )
+        yf_insiders = _num(fund, "held_percent_insiders")  # a fraction (0-1)
+        if yf_insiders is not None:
+            yf_pct = yf_insiders * 100.0
+            if abs(yf_pct - promoter_pct) > _OWNERSHIP_PROMOTER_PP:
+                conflicts.append(
+                    _ownership_promoter_conflict(provider, yf_pct, promoter_pct, source, as_of)
+                )
+
+    if institutions_pct is not None:
+        facts["institutions_percent_exchange"] = _value(
+            round(institutions_pct / 100.0, 6),
+            "Institutional holding (exchange filing)",
+            basis=basis,
+            unit="percent",
+        )
+        yf_inst = _num(fund, "held_percent_institutions")  # a fraction (0-1)
+        if yf_inst is not None:
+            yf_pct = yf_inst * 100.0
+            if _diverges_by_factor(yf_pct, institutions_pct, _OWNERSHIP_INSTITUTIONS_RATIO):
+                conflicts.append(
+                    _ownership_institutions_conflict(
+                        provider, yf_pct, institutions_pct, source, as_of
+                    )
+                )
+
+    return facts, conflicts
+
+
 def _dividend_leg(
     fund: dict[str, Any], price: float | None, provider: str
-) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any] | None, list[dict[str, Any]]]:
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
     """Reconcile dividend_yield against dividend_per_share / price, and the
-    dividend-per-share scalar against the trailing-12m paid history.
+    dividend-per-share scalar against the trailing-12m paid history + any
+    declared-but-unpaid dividend.
 
-    Returns ``(dividend_yield_value, dividend_per_share_value,
-    dividend_ttm_fact_or_None, conflicts)``. The provider yield's unit is
-    reconciled EXPLICITLY (yfinance ships both fraction and percent forms): the
-    interpretation closest to the implied yield wins; past
-    :data:`_DIVIDEND_DIVERGENCE` the disagreement is a conflict and NO single
-    dividend value is emitted. Separately, a trailing-12m-paid figure that
-    diverges from ``dividendRate`` past :data:`_DIVIDEND_TTM_DIVERGENCE` is
-    surfaced as its own fact with a conflict (R11 / D56).
+    Returns ``(dividend_yield_value, dividend_per_share_value, dividend_facts,
+    conflicts)``. ``dividend_facts`` is a dict of the extra ttm/declared cards
+    (possibly empty). The provider yield's unit is reconciled EXPLICITLY
+    (yfinance ships both fraction and percent forms): the interpretation closest
+    to the implied yield wins; past :data:`_DIVIDEND_DIVERGENCE` the disagreement
+    is a conflict and NO single dividend value is emitted. Separately, a
+    trailing-12m-paid figure diverging from ``dividendRate`` (direction-aware,
+    R11 / D56) and a declared-but-unpaid dividend (R13 / D57) are surfaced as
+    their own facts.
     """
     reported = _num(fund, "dividend_yield")
     dps = _num(fund, "dividend_per_share")
     implied = dps / price if dps is not None and price else None
     currency = fund.get("currency") if isinstance(fund.get("currency"), str) else None
     dps_basis = f"per share, {currency}" if currency else "per share, listing currency"
-    ttm_fact, ttm_conflicts = _dividend_ttm_leg(fund, dps, provider, currency)
+    ttm_facts, ttm_conflicts = _dividend_ttm_leg(fund, dps, provider, currency)
 
     yield_kwargs: dict[str, Any] = {
         "basis": "fraction of price",
@@ -288,7 +580,7 @@ def _dividend_leg(
                     **yield_kwargs,
                 ),
                 _value(dps, "Dividend per share", **dps_kwargs),
-                ttm_fact,
+                ttm_facts,
                 list(ttm_conflicts),
             )
         conflict = {
@@ -307,7 +599,7 @@ def _dividend_leg(
         return (
             _value(None, "Dividend yield", **yield_kwargs),
             _value(None, "Dividend per share", **dps_kwargs),
-            ttm_fact,
+            ttm_facts,
             [conflict, *ttm_conflicts],
         )
 
@@ -315,7 +607,7 @@ def _dividend_leg(
         return (
             _value(implied, "Dividend yield", formula="dividend per share / price", **yield_kwargs),
             _value(dps, "Dividend per share", **dps_kwargs),
-            ttm_fact,
+            ttm_facts,
             list(ttm_conflicts),
         )
 
@@ -327,14 +619,14 @@ def _dividend_leg(
         return (
             _value(reported if plausible else None, "Dividend yield", **yield_kwargs),
             _value(None, "Dividend per share", **dps_kwargs),
-            ttm_fact,
+            ttm_facts,
             list(ttm_conflicts),
         )
 
     return (
         _value(None, "Dividend yield", **yield_kwargs),
         _value(None, "Dividend per share", **dps_kwargs),
-        ttm_fact,
+        ttm_facts,
         list(ttm_conflicts),
     )
 
@@ -384,15 +676,15 @@ def derive_semantics(
         ),
     }
 
-    dividend_yield, dividend_per_share, dividend_ttm_fact, dividend_conflicts = _dividend_leg(
+    dividend_yield, dividend_per_share, dividend_facts, dividend_conflicts = _dividend_leg(
         fund, price, provider
     )
     data["dividend_yield"] = dividend_yield
     data["dividend_per_share"] = dividend_per_share
-    # D56: only present when the paid history diverges from dividendRate — an
-    # agreeing figure emits no extra card.
-    if dividend_ttm_fact is not None:
-        data["dividend_per_share_ttm"] = dividend_ttm_fact
+    # D56/D57: the trailing-PAID card appears only when it diverges from
+    # dividendRate or a declared-but-unpaid dividend coexists; the declared card
+    # appears only when one is attached — an agreeing figure emits nothing extra.
+    data.update(dividend_facts)
     conflicts.extend(dividend_conflicts)
 
     # D55: yfinance's growth is MRQ-YoY, not annual — label the basis so no
@@ -416,6 +708,14 @@ def derive_semantics(
     growth_facts, growth_conflicts = _growth_leg(fund, provider)
     data.update(growth_facts)
     conflicts.extend(growth_conflicts)
+
+    # D68: cross-check yfinance insider/institution % against the exchange
+    # shareholding pattern (attached upstream as ``ownership_exchange``). The
+    # exchange promoter/institutions are surfaced as separately-labeled facts,
+    # and a divergence flags a conflict carrying BOTH definitions + as-of dates.
+    ownership_facts, ownership_conflicts = _ownership_leg(fund, provider)
+    data.update(ownership_facts)
+    conflicts.extend(ownership_conflicts)
 
     market_cap = _num(fund, "market_cap")
     shares = _num(fund, "shares_outstanding")
@@ -451,6 +751,13 @@ def derive_semantics(
     if identity is not None:
         conflicts.append(identity)
 
+    # D69: every conflict carries a NATURE discriminator. The ownership/dividend/
+    # growth legs set it explicitly; a builder that didn't (dividend_yield,
+    # market_cap, identity) defaults to data_conflict — a genuine cross-source
+    # contradiction — so existing readers are unchanged and every entry is typed.
+    for conflict in conflicts:
+        conflict.setdefault("conflict_kind", _CONFLICT_DATA)
+
     data["conflicts"] = conflicts
     return {"ok": True, "provider": "derived", "data": data}
 
@@ -462,10 +769,13 @@ _PROMPT_KEYS = (
     "dividend_yield",
     "dividend_per_share",
     "dividend_per_share_ttm",
+    "dividend_declared",
     "revenue_growth",
     "earnings_growth",
     "revenue_growth_computed",
     "earnings_growth_computed",
+    "promoter_percent_exchange",
+    "institutions_percent_exchange",
 )
 
 #: Growth keys rendered as a SIGNED percent in the prompt block (D67): a raw

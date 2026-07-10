@@ -13,7 +13,9 @@ ICONIKSPEV is the acceptance instrument: a real BSE-only group-X micro-cap
 
 from __future__ import annotations
 
+import json
 from datetime import date
+from pathlib import Path
 
 import httpx
 import pytest
@@ -281,3 +283,111 @@ def test_token_bucket_allows_burst_then_throttles() -> None:
     bucket.take()
     bucket.take()
     assert time.monotonic() - start < 0.05
+
+
+# --- shareholding pattern — SEBI XBRL via BSE (R13 / WITNESS) ----------------
+#
+# The network seam (``_http_get``) is monkeypatched to serve two recorded
+# fixtures captured live 2026-07-10: the SHPQNewFormat quarter INDEX and the
+# trimmed SEBI XBRL for BOMOXY-B1 (scrip 509470, Jun 2026) — the case the R13
+# probe measured at promoter 73.29% / institutions 0.06% (BSE truth), against
+# yfinance's overstated 8.455% institutions.
+
+_BSE_FIXTURES = Path(__file__).parent / "fixtures" / "bse"
+_SHP_INDEX = json.loads((_BSE_FIXTURES / "shp_quarters_509470.json").read_text())
+_SHP_XBRL = (_BSE_FIXTURES / "shp_xbrl_509470_jun2026.xml").read_text()
+
+
+def _shp_http_stub(index=None, xbrl=None):
+    """A ``_http_get`` stub dispatching by URL: index JSON vs XBRL text."""
+    payload = index if index is not None else _SHP_INDEX
+
+    def fake(url: str) -> httpx.Response:
+        if "SHPQNewFormat" in url:
+            return httpx.Response(200, json=payload)
+        if url.endswith(".xml"):
+            body = xbrl if xbrl is not None else _SHP_XBRL
+            if isinstance(body, int):  # a status code → an error response
+                return httpx.Response(body, content=b"")
+            return httpx.Response(200, content=body.encode("utf-8"))
+        raise AssertionError(f"unexpected SHP url {url}")
+
+    return fake
+
+
+def test_parse_shp_xbrl_reads_summary_categories() -> None:
+    summary = bse_provider.parse_shp_xbrl(_SHP_XBRL)
+    # The R13 truth: promoter 73.29%, institutions 0.06% (domestic only), public 26.71%.
+    assert summary["promoter_percent"] == 73.29
+    assert summary["public_percent"] == 26.71
+    assert summary["institutions_percent"] == 0.06
+    assert summary["dii_percent"] == 0.06
+    assert "fii_percent" not in summary  # no foreign institutions for this microcap
+
+
+def test_parse_shp_xbrl_bad_body_yields_empty() -> None:
+    assert bse_provider.parse_shp_xbrl("not xml at all") == {}
+    assert bse_provider.parse_shp_xbrl("") == {}
+
+
+def test_get_shareholding_assembles_index_plus_xbrl(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(bse_provider, "_http_get", _shp_http_stub())
+
+    rows = bse_provider.get_shareholding("BOMOXY-B1")
+    assert len(rows) == len(_SHP_INDEX["Table"]) == 4
+    latest = rows[0]
+    assert latest["quarter_end"] == date(2026, 6, 30)
+    assert latest["submission_date"] == date(2026, 7, 8)
+    assert latest["promoter_percent"] == 73.29
+    assert latest["institutions_percent"] == 0.06
+    assert latest["source"] == "BSE"
+    assert latest["xbrl_url"].startswith("https://www.bseindia.com/XBRLFILES/")
+
+
+def test_get_shareholding_caches_parsed_xbrl(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    calls = {"n": 0}
+
+    def counting(url: str) -> httpx.Response:
+        calls["n"] += 1
+        return _shp_http_stub()(url)
+
+    monkeypatch.setattr(bse_provider, "_http_get", counting)
+    bse_provider.get_shareholding("BOMOXY-B1")
+    first = calls["n"]
+    # Second call: the index is refetched but every XBRL is now cached → no new XBRL GETs.
+    bse_provider.get_shareholding("BOMOXY-B1")
+    xbrl_gets_first = first - 1  # minus the one index call
+    assert calls["n"] - first == 1  # only the index refetch, no XBRL re-GET
+    assert xbrl_gets_first >= 1
+
+
+def test_get_shareholding_offline_xbrl_serves_null_percentages(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    # Index reachable, every XBRL 404s → rows carry quarter_end + link, no percentages.
+    monkeypatch.setattr(bse_provider, "_http_get", _shp_http_stub(xbrl=404))
+    rows = bse_provider.get_shareholding("BOMOXY-B1")
+    assert rows and all("promoter_percent" not in r for r in rows)
+    assert rows[0]["quarter_end"] == date(2026, 6, 30)
+    assert rows[0]["xbrl_url"] and rows[0]["source"] == "BSE"
+
+
+def test_get_shareholding_index_failure_raises(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+
+    def dead(url: str) -> httpx.Response:
+        return httpx.Response(503, content=b"")
+
+    monkeypatch.setattr(bse_provider, "_http_get", dead)
+    with pytest.raises(ProviderError, match="index HTTP 503"):
+        bse_provider.get_shareholding("BOMOXY-B1")
+
+
+def test_get_shareholding_non_bse_symbol_fast_fails() -> None:
+    with pytest.raises(ProviderError, match="not a known BSE instrument"):
+        bse_provider.get_shareholding("AAPL")

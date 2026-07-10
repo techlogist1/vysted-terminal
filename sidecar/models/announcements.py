@@ -95,12 +95,22 @@ class ShareholdingPattern(BaseModel):
     promoter_percent: float | None = None
     fii_percent: float | None = None
     dii_percent: float | None = None
+    #: Total institutional holding (FII + DII), percent of equity. The NSE
+    #: quarterly master does not carry it (the split lives in the XBRL), so it
+    #: is ``None`` on that lane; the BSE lane parses it from the SEBI XBRL and
+    #: populates it (with ``fii``/``dii`` when the foreign/domestic split is
+    #: present). Never fabricated.
+    institutions_percent: float | None = None
     public_percent: float | None = None
     employee_trusts_percent: float | None = None
     #: Date the pattern was filed with the exchange.
     submission_date: date | None = None
     #: The XBRL filing URL carrying the full category-level split (FII/DII detail).
     xbrl_url: str | None = None
+    #: The exchange lane that served this pattern — ``"NSE"`` (quarterly master)
+    #: or ``"BSE"`` (SEBI XBRL). Lets a consumer state the provenance and the
+    #: as-of quarter of an exchange figure verbatim.
+    source: str | None = None
 
 
 class ShareholdingResponse(BaseModel):

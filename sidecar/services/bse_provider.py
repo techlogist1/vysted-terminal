@@ -40,14 +40,17 @@ regenerated the same way the NSE master is — see that file's header note.
 
 from __future__ import annotations
 
+import calendar
 import csv
 import io
+import json
 import logging
 import os
 import threading
 import time
 import zipfile
 from datetime import UTC, date, datetime, timedelta
+from xml.etree import ElementTree as ET
 
 import httpx
 import pandas as pd
@@ -558,6 +561,291 @@ def _quote_from_bhavcopy(bare: str, code: str | None) -> Quote:
 
 
 # ---------------------------------------------------------------------------
+# Shareholding pattern — the SEBI XBRL via BSE (R13 / WITNESS).
+# ---------------------------------------------------------------------------
+#
+# BSE exposes no non-interactive JSON with the PARSED category percentages (its
+# CorporatesSHPSecuritybeta lane returns ``{}`` to a non-browser caller), but it
+# DOES expose two stable, keyless surfaces the site's own Angular app drives:
+#
+#   * ``SHPQNewFormat`` — the per-scrip quarter INDEX, one cheap JSON call:
+#     ``{"Table": [{qtrid, qtr "June 2026", XbrlFile, filing_date_time,
+#     xbrlurl "/XBRLFILES/.../<...>_SP.html"}, ...]}`` newest-first.
+#   * the SEBI shareholding-pattern **XBRL** for each quarter, at
+#     ``/XBRLFILES/SHPXBRLDataXML/<XbrlFile>`` — the AUTHORITATIVE, regulator-
+#     mandated filing. The summary category percentages are the
+#     ``in-bse-shp:ShareholdingAsAPercentageOfTotalNumberOfShares`` facts, one
+#     per single-category context (promoter / public / institutions / …). This
+#     is the SAME primary source screener.in / trendlyne aggregate — read direct.
+#
+# The XBRL is parsed for up to :data:`_MAX_SHP_XBRL_PARSES` recent quarters per
+# call and each parse is cached on disk keyed by the immutable filing name, so a
+# warm cache is free and deep history fills in across sessions (mirroring the
+# bhavcopy cold-download discipline). Offline — or a parse miss — degrades to
+# null percentages with the quarter-end + XBRL link still served; never guessed.
+
+_SHP_INDEX_URL = "https://api.bseindia.com/BseIndiaAPI/api/SHPQNewFormat/w"
+_SHP_XBRL_BASE = "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/"
+_SHP_SITE_BASE = "https://www.bseindia.com"
+#: Live XBRL parses ATTEMPTED per call; cached quarters cost nothing (so a warm
+#: cache serves full history, and offline caps the network to this many misses).
+_MAX_SHP_XBRL_PARSES = 8
+#: The SEBI SHP concept carrying a category's holding as a fraction (0-1).
+_SHP_PCT_CONCEPT = "ShareholdingAsAPercentageOfTotalNumberOfShares"
+#: XBRL category-member localname → our summary field.
+_SHP_CATEGORY = {
+    "ShareholdingOfPromoterAndPromoterGroupMember": "promoter",
+    "PublicShareholdingMember": "public",
+    "InstitutionsMember": "institutions",
+    "InstitutionsDomesticMember": "institutions_domestic",
+    "InstitutionsForeignMember": "institutions_foreign",
+    "NonInstitutionsMember": "non_institutions",
+}
+_MONTHS = {name.lower(): index for index, name in enumerate(calendar.month_name) if name}
+
+
+def _shp_cache_dir() -> str:
+    """On-disk cache dir for parsed SHP summaries (under the bhavcopy base)."""
+    return os.path.join(_cache_dir(), "shp")
+
+
+def get_shareholding(symbol: str) -> list[dict]:
+    """Quarterly shareholding-pattern rows for a BSE instrument, newest-first.
+
+    Each row: ``{quarter_end (date), submission_date (date|None), xbrl_url,
+    source "BSE"}`` plus — for the recent parsed quarters — ``promoter_percent``,
+    ``public_percent``, ``institutions_percent`` and the ``dii``/``fii`` split
+    (0-100 floats) read from the SEBI XBRL. Older quarters beyond the per-call
+    parse budget carry the quarter-end + XBRL link with the percentages absent —
+    honest, never fabricated; the warm cache fills them in over sessions.
+
+    Raises :class:`ProviderError` only when the quarter index itself is
+    unreachable (so the caller records the lane failure); a non-BSE ticker
+    fast-fails without a network call.
+    """
+    bare = _require_bse(symbol)
+    code = _scrip_code(bare)
+    if not code:
+        raise ProviderError(f"bse shareholding: no scrip code for {bare!r} in the master")
+    quarters = _fetch_shp_index(code)
+    rows: list[dict] = []
+    budget = _MAX_SHP_XBRL_PARSES
+    for quarter in quarters:
+        if not isinstance(quarter, dict):
+            continue
+        xbrl_file = _clean_str(quarter.get("XbrlFile"))
+        summary = _shp_cached_summary(xbrl_file) if xbrl_file else None
+        if summary is None and xbrl_file and budget > 0:
+            budget -= 1  # one network attempt spent (success or miss)
+            summary = _fetch_and_parse_shp_xbrl(xbrl_file)
+        row: dict = {
+            "quarter_end": _shp_quarter_end(quarter.get("qtr")),
+            "submission_date": _shp_filing_date(quarter.get("filing_date_time")),
+            "xbrl_url": _shp_site_url(quarter.get("xbrlurl")),
+            "source": PROVIDER.upper(),
+        }
+        if summary:
+            row.update(summary)
+        rows.append(row)
+    return rows
+
+
+def _fetch_shp_index(code: str) -> list[dict]:
+    """The SHPQNewFormat quarter index for ``code`` — the raw row dicts."""
+    url = f"{_SHP_INDEX_URL}?scripcode={code}"
+    try:
+        resp = _http_get(url)
+    except Exception as exc:  # noqa: BLE001 - surfaced as a lane error
+        raise ProviderError(f"bse shareholding: transport failure: {exc}") from exc
+    if resp.status_code != 200:
+        raise ProviderError(f"bse shareholding: index HTTP {resp.status_code}")
+    try:
+        payload = resp.json()
+    except Exception as exc:  # noqa: BLE001 - a non-JSON body is a lane error
+        raise ProviderError(f"bse shareholding: non-JSON index: {exc}") from exc
+    table = payload.get("Table") if isinstance(payload, dict) else None
+    if not isinstance(table, list):
+        raise ProviderError(f"bse shareholding: malformed index for scrip {code}")
+    return [row for row in table if isinstance(row, dict)]
+
+
+def _fetch_and_parse_shp_xbrl(xbrl_file: str) -> dict | None:
+    """Download + parse ONE quarter's SEBI XBRL; cache + return its summary.
+
+    ``None`` on any transport/parse failure (offline no-op) — the caller then
+    serves that quarter's row without percentages.
+    """
+    url = _SHP_XBRL_BASE + xbrl_file
+    try:
+        resp = _http_get(url)
+    except Exception as exc:  # noqa: BLE001 - a fetch miss is non-fatal
+        logger.debug("bse: SHP XBRL fetch failed for %s: %s", xbrl_file, exc)
+        return None
+    if resp.status_code != 200:
+        logger.debug("bse: SHP XBRL %s returned HTTP %s", xbrl_file, resp.status_code)
+        return None
+    summary = parse_shp_xbrl(resp.text)
+    if summary:
+        _shp_write_cache(xbrl_file, summary)
+        return summary
+    return None
+
+
+def parse_shp_xbrl(xml_text: str) -> dict:
+    """Parse a SEBI SHP XBRL into summary category percentages (0-100 floats).
+
+    Returns any of ``promoter_percent`` / ``public_percent`` /
+    ``institutions_percent`` / ``dii_percent`` / ``fii_percent`` the filing
+    carried; a missing category is simply absent (never fabricated). A
+    non-XBRL / unparseable body yields ``{}``. Pure + synchronous so tests pin
+    it against a recorded fixture.
+    """
+    text = (xml_text or "").lstrip("﻿")
+    if not text.strip():
+        return {}
+    try:
+        root = ET.fromstring(text.encode("utf-8"))
+    except ET.ParseError:
+        return {}
+    contexts: dict[str, list[str]] = {}
+    for ctx in root.iter():
+        if _xml_local(ctx.tag) != "context":
+            continue
+        cid = ctx.get("id")
+        if not cid:
+            continue
+        contexts[cid] = [
+            (member.text or "").strip().rsplit(":", 1)[-1]
+            for member in ctx.iter()
+            if _xml_local(member.tag) == "explicitMember"
+        ]
+    found: dict[str, float] = {}
+    for element in root.iter():
+        if _xml_local(element.tag) != _SHP_PCT_CONCEPT or not (
+            element.text and element.text.strip()
+        ):
+            continue
+        members = contexts.get(element.get("contextRef", ""), [])
+        if len(members) != 1:  # a summary category has exactly one member
+            continue
+        field = _SHP_CATEGORY.get(members[0])
+        if field is None or field in found:
+            continue
+        try:
+            found[field] = round(float(element.text.strip()) * 100.0, 4)
+        except ValueError:
+            continue
+    return _shp_summary_from_categories(found)
+
+
+def _shp_summary_from_categories(found: dict[str, float]) -> dict:
+    """Category percentages → the summary row, deriving the institutions total.
+
+    Institutions total prefers the explicit ``InstitutionsMember``; else the
+    domestic+foreign sum; else public − non-institutions. FII/DII map from the
+    foreign/domestic institution members (the split the NSE master lacks)."""
+    out: dict = {}
+    if "promoter" in found:
+        out["promoter_percent"] = found["promoter"]
+    if "public" in found:
+        out["public_percent"] = found["public"]
+    domestic = found.get("institutions_domestic")
+    foreign = found.get("institutions_foreign")
+    if domestic is not None:
+        out["dii_percent"] = domestic
+    if foreign is not None:
+        out["fii_percent"] = foreign
+    institutions = found.get("institutions")
+    if institutions is None and (domestic is not None or foreign is not None):
+        institutions = round((domestic or 0.0) + (foreign or 0.0), 4)
+    elif institutions is None and "public" in found and "non_institutions" in found:
+        institutions = round(found["public"] - found["non_institutions"], 4)
+    if institutions is not None:
+        out["institutions_percent"] = institutions
+    return out
+
+
+def _shp_cached_summary(xbrl_file: str) -> dict | None:
+    """The cached parsed summary for a filing, or ``None``."""
+    path = os.path.join(_shp_cache_dir(), f"{xbrl_file}.json")
+    try:
+        if os.path.exists(path):
+            with open(path, encoding="utf-8") as fp:
+                data = json.load(fp)
+            return data if isinstance(data, dict) else None
+    except (OSError, ValueError) as exc:
+        logger.debug("bse: SHP cache read failed for %s: %s", xbrl_file, exc)
+    return None
+
+
+def _shp_write_cache(xbrl_file: str, summary: dict) -> None:
+    """Cache a parsed summary keyed by the immutable filing name."""
+    cache = _shp_cache_dir()
+    path = os.path.join(cache, f"{xbrl_file}.json")
+    for _attempt in range(2):
+        try:
+            os.makedirs(cache, exist_ok=True)
+            with open(path, "w", encoding="utf-8") as fp:
+                json.dump(summary, fp)
+            return
+        except FileExistsError:
+            continue  # cache-dir race — ensure dir + retry once
+        except OSError as exc:  # pragma: no cover - disk failure is non-fatal
+            logger.debug("bse: SHP cache write failed for %s: %s", path, exc)
+            return
+
+
+def _shp_quarter_end(qtr: object) -> date | None:
+    """``"June 2026"`` → the last calendar day of that month (2026-06-30)."""
+    raw = _clean_str(qtr)
+    if not raw:
+        return None
+    parts = raw.split()
+    if len(parts) != 2:
+        return None
+    month = _MONTHS.get(parts[0].lower())
+    if not month:
+        return None
+    try:
+        year = int(parts[1])
+    except ValueError:
+        return None
+    return date(year, month, calendar.monthrange(year, month)[1])
+
+
+def _shp_filing_date(raw: object) -> date | None:
+    """``"2026-07-08T15:21:20.487"`` → the calendar day; ``None`` if unparseable."""
+    text = _clean_str(raw)
+    if not text:
+        return None
+    try:
+        return datetime.fromisoformat(text).date()
+    except ValueError:
+        return None
+
+
+def _shp_site_url(path: object) -> str | None:
+    """A site-relative ``xbrlurl`` → an absolute bseindia.com URL."""
+    text = _clean_str(path)
+    if not text:
+        return None
+    return text if text.startswith("http") else _SHP_SITE_BASE + text
+
+
+def _clean_str(value: object) -> str | None:
+    """A stripped non-empty string (coercing numbers), else ``None``."""
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
+
+
+def _xml_local(tag: str) -> str:
+    """The local (namespace-stripped) name of an XML tag."""
+    return tag.rsplit("}", 1)[-1]
+
+
+# ---------------------------------------------------------------------------
 # Resample + small numeric helpers (mirror india_provider).
 # ---------------------------------------------------------------------------
 
@@ -623,4 +911,12 @@ def _num(value: object) -> float | None:
         return None
 
 
-__all__ = ["PROVIDER", "get_history", "get_quote", "is_available", "parse_bhavcopy"]
+__all__ = [
+    "PROVIDER",
+    "get_history",
+    "get_quote",
+    "get_shareholding",
+    "is_available",
+    "parse_bhavcopy",
+    "parse_shp_xbrl",
+]

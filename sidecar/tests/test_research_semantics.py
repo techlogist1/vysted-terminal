@@ -389,3 +389,303 @@ def test_identity_agreement_stays_silent() -> None:
         structured, "IN", canonical_name="Deepak Nitrite Limited", symbol="DEEPAKNTR.NS"
     )
     assert all(c.get("kind") != "identity_conflict" for c in derived["data"]["conflicts"])
+
+
+# --- ownership cross-check (R13 / D68) --------------------------------------
+#
+# yfinance heldPercentInsiders/heldPercentInstitutions vs the exchange
+# shareholding pattern attached upstream as ``ownership_exchange``. The R13
+# probe: institutions ~141x overstated (yf 8.455% vs BSE 0.06%) and insiders
+# overstating the promoter group by 2.5-5.4pp on NSE/BSE names.
+
+
+def _ownership_fund(*, insiders=None, institutions=None, exchange=None) -> dict[str, Any]:
+    fund: dict[str, Any] = {}
+    if insiders is not None:
+        fund["held_percent_insiders"] = insiders
+    if institutions is not None:
+        fund["held_percent_institutions"] = institutions
+    if exchange is not None:
+        fund["ownership_exchange"] = exchange
+    return fund
+
+
+def test_ownership_institutions_141x_and_promoter_drift_both_fire() -> None:
+    data = _derived(
+        _structured(
+            fund=_ownership_fund(
+                insiders=0.75806,
+                institutions=0.08455,
+                exchange={
+                    "promoter_percent": 73.29,
+                    "institutions_percent": 0.06,
+                    "public_percent": 26.71,
+                    "as_of_quarter": "2026-06-30",
+                    "source": "BSE",
+                },
+            )
+        )
+    )
+    # separately-labeled exchange facts, with the as-of quarter in the basis
+    assert data["promoter_percent_exchange"]["value"] == 0.7329
+    assert data["promoter_percent_exchange"]["label"] == "Promoter group (exchange filing)"
+    assert "2026-06-30" in data["promoter_percent_exchange"]["basis"]
+    assert data["institutions_percent_exchange"]["value"] == 0.0006
+    # institutions 141x → data_conflict carrying BOTH values + BOTH definitions
+    inst = next(c for c in data["conflicts"] if c["field"] == "held_percent_institutions")
+    assert inst["conflict_kind"] == "data_conflict"
+    assert inst["kind"] == "ownership_conflict"
+    values = {s["value"] for s in inst["sources"]}
+    assert 8.455 in values and 0.06 in values
+    assert len({s["basis"] for s in inst["sources"]}) == 2
+    # promoter 2.5pp drift (insiders superset, small gap) → definitional_expected
+    prom = next(c for c in data["conflicts"] if c["field"] == "held_percent_insiders")
+    assert prom["conflict_kind"] == "definitional_expected"
+    assert "2026-06-30" in prom["note"]
+    assert {s["value"] for s in prom["sources"]} == {75.806, 73.29}
+
+
+def test_ownership_kiriindus_promoter_5pp_fires_data_conflict() -> None:
+    # insiders 41.714% vs the strict quarter-end promoter 36.72% → ~5pp gap:
+    # too wide to be pure definitional drift, so a data_conflict.
+    data = _derived(
+        _structured(
+            fund=_ownership_fund(
+                insiders=0.41714,
+                exchange={
+                    "promoter_percent": 36.72,
+                    "as_of_quarter": "2026-03-31",
+                    "source": "NSE",
+                },
+            )
+        )
+    )
+    prom = next(c for c in data["conflicts"] if c["field"] == "held_percent_insiders")
+    assert prom["conflict_kind"] == "data_conflict"
+    assert prom["sources"][0]["value"] == 41.714
+    assert prom["sources"][1]["value"] == 36.72
+    # the filing carried no institutions category → no institutions fact/conflict
+    assert "institutions_percent_exchange" not in data
+    assert all(c["field"] != "held_percent_institutions" for c in data["conflicts"])
+
+
+def test_ownership_unseen_shape_institutions_3x_off_fires() -> None:
+    # A case the fix was NOT written against: promoter agrees, institutions 3x off.
+    data = _derived(
+        _structured(
+            fund=_ownership_fund(
+                insiders=0.401,
+                institutions=0.03,
+                exchange={
+                    "promoter_percent": 39.5,
+                    "institutions_percent": 1.0,
+                    "as_of_quarter": "2026-06-30",
+                    "source": "NSE",
+                },
+            )
+        )
+    )
+    assert all(c["field"] != "held_percent_insiders" for c in data["conflicts"])  # 0.6pp: agrees
+    inst = next(c for c in data["conflicts"] if c["field"] == "held_percent_institutions")
+    assert inst["conflict_kind"] == "data_conflict"
+    assert {s["value"] for s in inst["sources"]} == {3.0, 1.0}
+
+
+def test_ownership_agreeing_emits_facts_but_no_conflict() -> None:
+    data = _derived(
+        _structured(
+            fund=_ownership_fund(
+                insiders=0.501,
+                institutions=0.205,
+                exchange={
+                    "promoter_percent": 50.0,
+                    "institutions_percent": 20.55,
+                    "as_of_quarter": "2026-03-31",
+                    "source": "BSE",
+                },
+            )
+        )
+    )
+    assert data["promoter_percent_exchange"]["value"] == 0.5
+    assert data["institutions_percent_exchange"]["value"] == 0.2055
+    assert all(
+        c["field"] not in ("held_percent_insiders", "held_percent_institutions")
+        for c in data["conflicts"]
+    )
+
+
+def test_ownership_absent_exchange_leg_is_a_noop() -> None:
+    data = _derived(_structured(fund=_ownership_fund(insiders=0.5, institutions=0.2)))
+    assert "promoter_percent_exchange" not in data
+    assert "institutions_percent_exchange" not in data
+    assert data["conflicts"] == []
+
+
+def test_ownership_facts_and_conflict_reach_the_prompt_block() -> None:
+    structured = _structured(
+        fund=_ownership_fund(
+            insiders=0.75806,
+            institutions=0.08455,
+            exchange={
+                "promoter_percent": 73.29,
+                "institutions_percent": 0.06,
+                "as_of_quarter": "2026-06-30",
+                "source": "BSE",
+            },
+        )
+    )
+    block = prompt_block(derive_semantics(structured, "IN"))
+    assert "Promoter group (exchange filing)" in block
+    assert "73.29%" in block
+    assert "CONFLICT (held_percent_institutions)" in block
+
+
+# --- dividend: direction + declared-not-yet-paid (R11 D56 / R13 D57) --------
+
+
+def test_dividend_scalar_above_paid_uses_inflation_not_omission_wording() -> None:
+    # dividendRate (20.0) INFLATED above the trailing paid (14.6) by >10%: the
+    # note must NOT say "omit a special dividend" (backwards) — it says the
+    # scalar anticipates / rides a forward basis.
+    data = _derived(
+        _structured(price=400.0, fund={"dividend_per_share": 20.0, "dividend_per_share_ttm": 14.6})
+    )
+    div = next(c for c in data["conflicts"] if c["field"] == "dividend_per_share")
+    assert div["conflict_kind"] == "data_conflict"
+    assert "EXCEEDS" in div["note"] and "anticipate" in div["note"]
+    assert "omit a special dividend" not in div["note"]
+
+
+def test_dividend_pfc_declared_unpaid_surfaced_and_reconciled() -> None:
+    # PFC: dividendRate 15.8 ≈ trailing PAID 14.6 (7.6% < 10% → NO D56 conflict),
+    # but a declared FINAL dividend of ₹3.95 (record 2026-07-31, future) is unpaid.
+    data = _derived(
+        _structured(
+            price=400.0,
+            fund={
+                "dividend_per_share": 15.8,
+                "dividend_per_share_ttm": 14.6,
+                "dividend_declared": {
+                    "amount": 3.95,
+                    "record_date": "2026-07-31",
+                    "subject": "Dividend - Rs 3.95 Per Share",
+                },
+            },
+        )
+    )
+    # the declared-not-yet-paid dividend is its own labeled fact
+    declared = data["dividend_declared"]
+    assert declared["value"] == 3.95
+    assert "2026-07-31" in declared["label"]
+    # the trailing figure is relabeled PAID so it never reads as the full figure
+    assert data["dividend_per_share_ttm"]["label"] == "Dividend/share (trailing 12m PAID)"
+    # no scalar-vs-paid conflict fires (7.6% is below the 10% band)
+    assert all(c["field"] != "dividend_per_share" for c in data["conflicts"])
+    # the PFC arithmetic is reconciled explicitly (14.6 + 3.95 = 18.55)
+    recon = next(c for c in data["conflicts"] if c.get("kind") == "dividend_reconciliation")
+    assert recon["conflict_kind"] == "definitional_expected"
+    assert "18.55" in recon["note"] and "3.95" in recon["note"] and "14.6" in recon["note"]
+
+
+def test_dividend_ioc_omission_direction_plus_declared_fact() -> None:
+    # IOC: dividendRate 8.25 is BELOW the trailing PAID 10.0 (17.5% > 10% → D56
+    # fires, OMISSION wording) AND a declared final dividend ₹1.25 (future).
+    data = _derived(
+        _structured(
+            price=140.0,
+            fund={
+                "dividend_per_share": 8.25,
+                "dividend_per_share_ttm": 10.0,
+                "dividend_declared": {
+                    "amount": 1.25,
+                    "record_date": "2026-08-14",
+                    "subject": "Dividend - Rs 1.25 Per Share",
+                },
+            },
+        )
+    )
+    div = next(c for c in data["conflicts"] if c["field"] == "dividend_per_share")
+    assert div["conflict_kind"] == "data_conflict"
+    assert "BELOW" in div["note"] and "omit a special dividend" in div["note"]
+    assert data["dividend_per_share_ttm"]["label"] == "Dividend/share (trailing 12m PAID)"
+    assert data["dividend_declared"]["value"] == 1.25
+
+
+def test_dividend_declared_absent_leaves_ttm_label_lowercase() -> None:
+    # No declared dividend attached → the diverging paid fact keeps its plain label.
+    data = _derived(
+        _structured(fund={"dividend_per_share": 525.0, "dividend_per_share_ttm": 656.0})
+    )
+    assert data["dividend_per_share_ttm"]["label"] == "Dividend/share (trailing 12m paid)"
+    assert not any(c.get("kind") == "dividend_reconciliation" for c in data["conflicts"])
+
+
+# --- conflict kinds: definitional vs data (R13 / D69) -----------------------
+
+
+def test_bank_revenue_growth_divergence_is_definitional_expected() -> None:
+    # A financial-sector (bank) revenue-growth divergence rides different revenue
+    # lines (interest income vs total income) — a DEFINITIONAL mismatch.
+    data = _derived(
+        _structured(
+            fund={
+                "sector": "Financial Services",
+                "revenue_growth": 0.669,
+                "revenue_growth_computed": 0.02,
+            }
+        )
+    )
+    conflict = next(c for c in data["conflicts"] if c["field"] == "revenue_growth")
+    assert conflict["conflict_kind"] == "definitional_expected"
+    assert conflict["kind"] == "growth_conflict"
+
+
+def test_bank_earnings_growth_divergence_stays_data_conflict() -> None:
+    # Earnings (net income) is not definitionally ambiguous the way bank revenue
+    # is — even for a financial, an earnings divergence stays a data_conflict.
+    data = _derived(
+        _structured(
+            fund={
+                "sector": "Financial Services",
+                "earnings_growth": -0.031,
+                "earnings_growth_computed": 0.056,
+            }
+        )
+    )
+    conflict = next(c for c in data["conflicts"] if c["field"] == "earnings_growth")
+    assert conflict["conflict_kind"] == "data_conflict"
+
+
+def test_non_bank_revenue_growth_divergence_is_data_conflict() -> None:
+    data = _derived(
+        _structured(
+            fund={
+                "sector": "Technology",
+                "revenue_growth": 0.669,
+                "revenue_growth_computed": 0.02,
+            }
+        )
+    )
+    conflict = next(c for c in data["conflicts"] if c["field"] == "revenue_growth")
+    assert conflict["conflict_kind"] == "data_conflict"
+
+
+def test_market_cap_conflict_defaults_to_data_conflict() -> None:
+    # price 80 x shares 10 = 800 implied vs provider market_cap 2000 → >5% gap.
+    data = _derived(
+        _structured(price=80.0, fund={"market_cap": 2000.0, "shares_outstanding": 10.0})
+    )
+    conflict = next(c for c in data["conflicts"] if c["field"] == "market_cap")
+    assert conflict["conflict_kind"] == "data_conflict"
+
+
+def test_identity_conflict_keeps_its_type_and_defaults_nature_to_data() -> None:
+    leg = derive_semantics(
+        _structured(fund={"name": "Gujarat Energy Limited"}),
+        "IN",
+        canonical_name="Gujarat Gas Limited",
+        symbol="GUJGASLTD",
+    )
+    identity = next(c for c in leg["data"]["conflicts"] if c["field"] == "identity")
+    assert identity["kind"] == "identity_conflict"  # TYPE discriminator preserved
+    assert identity["conflict_kind"] == "data_conflict"  # NATURE default (orthogonal)
