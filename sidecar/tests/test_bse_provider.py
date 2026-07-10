@@ -330,6 +330,101 @@ def test_parse_shp_xbrl_bad_body_yields_empty() -> None:
     assert bse_provider.parse_shp_xbrl("") == {}
 
 
+# --- R13 hardening: the historical-split-corruption fix -----------------------
+#
+# Root cause (live-verified against TCI, scrip 532349): the
+# ShareholdingAsAPercentageOfTotalNumberOfShares concept is a 0-1 fraction on
+# every RECENT filing (this module's baseline fixture), but every BSE filing
+# up to and including June-2025 emits the SAME concept — same unitRef="pure",
+# same decimals="INF" — already scaled to a 0-100 percentage (promoter 68.73
+# where the fraction-form filing carries 0.6873). Nothing in the XML declares
+# which convention is in play, so blindly multiplying by 100 (the pre-fix
+# behaviour) inflated every older quarter 100x (promoter 68.73% -> "6873.0%").
+
+
+def _older_schema_shp_xbrl() -> str:
+    """The baseline fixture re-expressed in the OLDER already-percent schema
+    (values * 100, same tags/attributes — the real-world ambiguity: nothing
+    in the XML marks the schema switch)."""
+    text = _SHP_XBRL
+    for fraction, percent in (
+        ("0.7329", "73.29"),
+        ("0.0006", "0.06"),
+        ("0.2665", "26.65"),
+        ("0.2671", "26.71"),
+    ):
+        text = text.replace(f">{fraction}<", f">{percent}<")
+    return text
+
+
+def _corrupt_shp_xbrl() -> str:
+    """A filing whose promoter category is out of range under EITHER schema
+    interpretation (150 -> 150.0 as already-percent, or 15000 as a naive
+    fraction*100) — the class-level bounds guard must invalidate the whole
+    quarter's split rather than serve a partly-nonsensical mix."""
+    return _SHP_XBRL.replace(">0.7329<", ">150.0<")
+
+
+def test_parse_shp_xbrl_older_schema_recovers_real_values() -> None:
+    """The older already-percent schema parses to the SAME real percentages as
+    the fraction-form baseline — the parse-level fix, not just the guard."""
+    summary = bse_provider.parse_shp_xbrl(_older_schema_shp_xbrl())
+    assert summary["promoter_percent"] == 73.29
+    assert summary["public_percent"] == 26.71
+    assert summary["institutions_percent"] == 0.06
+    assert summary["dii_percent"] == 0.06
+    for value in summary.values():
+        assert 0.0 <= value <= 100.5
+
+
+def test_parse_shp_xbrl_corrupt_quarter_invalidates_whole_split() -> None:
+    """A category outside [0, 100.5] under either schema interpretation
+    invalidates the ENTIRE quarter's split — never a partial/half-corrupt mix."""
+    assert bse_provider.parse_shp_xbrl(_corrupt_shp_xbrl()) == {}
+
+
+def test_get_shareholding_mixed_schema_history_never_exceeds_100_percent(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A TCI-shaped history — one sane fraction-form quarter plus one corrupt
+    quarter — yields a clean split for the sane quarter and ``None`` (absent)
+    split fields for the corrupt one; no category ever exceeds 100%."""
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    index = {
+        "Table": [
+            {**_SHP_INDEX["Table"][0], "qtr": "June 2026", "XbrlFile": "good.xml"},
+            {**_SHP_INDEX["Table"][0], "qtr": "March 2026", "XbrlFile": "corrupt.xml"},
+        ]
+    }
+    xbrl_by_file = {"good.xml": _SHP_XBRL, "corrupt.xml": _corrupt_shp_xbrl()}
+
+    def fake(url: str) -> httpx.Response:
+        if "SHPQNewFormat" in url:
+            return httpx.Response(200, json=index)
+        for name, body in xbrl_by_file.items():
+            if url.endswith(name):
+                return httpx.Response(200, content=body.encode("utf-8"))
+        raise AssertionError(f"unexpected SHP url {url}")
+
+    monkeypatch.setattr(bse_provider, "_http_get", fake)
+    rows = bse_provider.get_shareholding("BOMOXY-B1")
+    assert len(rows) == 2
+    good_row, corrupt_row = rows
+    assert good_row["promoter_percent"] == 73.29
+    assert "promoter_percent" not in corrupt_row
+    for row in rows:
+        for field_name in (
+            "promoter_percent",
+            "public_percent",
+            "institutions_percent",
+            "fii_percent",
+            "dii_percent",
+        ):
+            value = row.get(field_name)
+            if value is not None:
+                assert 0.0 <= value <= 100.5
+
+
 def test_get_shareholding_assembles_index_plus_xbrl(
     tmp_path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
