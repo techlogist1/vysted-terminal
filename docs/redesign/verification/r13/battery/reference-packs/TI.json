@@ -1,0 +1,57 @@
+{
+  "symbol": "TI",
+  "exchange": ["NSE", "BSE"],
+  "bse_code": "507205",
+  "isin": "INE133E01013",
+  "legal_name": "Tilaknagar Industries Ltd",
+  "former_names": null,
+  "sector_industry": "Consumer Staples / Alcoholic Beverages (IMFL — Indian Made Foreign Liquor; flagship Mansion House Brandy, India's largest-selling brandy)",
+  "collected_at": "2026-07-10T10:07:46Z",
+  "collected_from": [
+    "https://www.screener.in/company/TI/consolidated/",
+    "https://scanx.trade/stock-market-news/companies/tilaknagar-industries-posts-q4fy26-earnings-call-audio/41869966",
+    "https://www.business-standard.com/markets/news/tilaknagar-industries-share-price-falls-7-as-company-swings-to-loss-in-q4-126060101026_1.html",
+    "https://www.whalesbook.com/corporate-news/English/consumer-products/Tilaknagar-Industries-Reports-indian-rupee2087-Cr-Profit-Eyes-Nigeria-Expansion/6a19c9f46ec823f1f292c87d",
+    "https://insights.dsij.in/dsijarticledetail/top-performing-liquor-stocks-by-1-year-3-year-and-5-year-returns-radico-khaitan-united-spirits-tilaknagar-industries-lead-the-charts-58150"
+  ],
+  "reference": {
+    "price_close_recent": {"value": 448.0, "as_of": "2026-07-10"},
+    "market_cap_cr": 11089.0,
+    "pe": 43.9,
+    "pb": 3.7,
+    "roe_pct": 13.1,
+    "dividend_yield_pct": 0.22,
+    "dividend_declared_vs_paid_note": "Company declared a Rs 1.00/share dividend announced 14 May 2025 with record date 23 Sep 2025 (FY25 final dividend); trailing dividend yield of 0.22% reflects this payout relative to current elevated share price — payout lags declaration by the standard record-date/payment window.",
+    "52w_high": 550.0,
+    "52w_low": 335.0,
+    "shareholding": {
+      "promoter_pct": 31.71,
+      "fii_pct": 16.87,
+      "dii_pct": 5.92,
+      "public_pct": 45.50,
+      "as_of_quarter": "Mar 2026"
+    },
+    "latest_quarter": {
+      "revenue_cr": 949.0,
+      "net_profit_cr": -14.91,
+      "period": "Q4 FY26"
+    },
+    "recent_filings": [
+      {"date": "2026-07-01", "title": "Trading window closure notification"},
+      {"date": "2026-06-26", "title": "Investment in Bartisans Trading & Consulting Pvt Ltd, raising stake to 41.45%"},
+      {"date": "2026-06-24", "title": "Record June 2026 sales of 3.4 million cases"},
+      {"date": "2026-05-30", "title": "Transcript of Q4 & FY26 earnings conference call"}
+    ],
+    "peers": [
+      "United Spirits Ltd",
+      "Radico Khaitan Ltd",
+      "United Breweries Ltd",
+      "Globus Spirits Ltd"
+    ]
+  },
+  "world_gaps": [
+    "Market cap deliberate mid-cap contrast confirmed: Rs 11,089 Cr as of 2026-07-10 (screener), materially above the Rs 2,000 Cr threshold — well clear of the rest of the small/micro-cap battery.",
+    "FY26 full-year reported net profit (Rs 20.87 Cr) diverges sharply from FY26 adjusted PAT (~Rs 232 Cr, excluding exceptional items) due to one-off exceptional costs tied to the Imperial Blue acquisition from Pernod Ricard India and Labour Code gratuity adjustments — Q4 alone swung to a net loss of Rs 14.91 Cr on interest-cost and depreciation spikes post-acquisition. Reported (not adjusted) figures used throughout this pack.",
+    "Former name history not independently verified (assumed none beyond current legal name)."
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "symbol": "GEE",
+  "exchange": ["BSE"],
+  "bse_code": "504028",
+  "isin": "INE064H01021",
+  "legal_name": "GEE Ltd",
+  "former_names": ["General Electrodes and Equipments Limited"],
+  "sector_industry": "Capital Goods / Electrical Equipment (welding electrodes, copper coated wires, flux cored wires, welding fluxes; Maharashtra & West Bengal plants)",
+  "collected_at": "2026-07-10T10:07:46Z",
+  "collected_from": [
+    "https://www.screener.in/company/504028/",
+    "https://www.screener.in/company/504028/consolidated/",
+    "https://www.icicidirect.com/stocks/gee-ltd-share-price",
+    "https://www.business-standard.com/company/gee-1663.html"
+  ],
+  "reference": {
+    "price_close_recent": {"value": 105, "as_of": "2026-07-10"},
+    "market_cap_cr": 546,
+    "pe": 35.7,
+    "pb": 2.54,
+    "roe_pct": 7.48,
+    "dividend_yield_pct": 0.00,
+    "dividend_declared_vs_paid_note": "Screener shows trailing dividend yield of 0.00% — no dividend appears to have been declared/paid in the recent trailing period.",
+    "52w_high": 127,
+    "52w_low": 53.6,
+    "shareholding": {"promoter_pct": 63.97, "fii_pct": 1.37, "dii_pct": 0.00, "public_pct": 34.68, "as_of_quarter": "Mar 2026"},
+    "latest_quarter": {"revenue_cr": 112.16, "net_profit_cr": 3.54, "period": "Q4 FY26 (quarter ended Mar 2026)"},
+    "recent_filings": [
+      {"date": "2026-06-02", "title": "Dematerialisation certificate confirmation"},
+      {"date": "2026-06-22", "title": "Navy warship tri-commissioning supply announcement"},
+      {"date": "2026-06-25", "title": "Trading window closure notice"},
+      {"date": "2026-06-25", "title": "Investor/analyst one-on-one meetings announced"}
+    ],
+    "peers": []
+  },
+  "world_gaps": [
+    "Peer comparison list could not be retrieved — screener.in's peer table is JS-rendered ('Loading peers table...') and did not resolve via WebFetch; no other source (moneycontrol/tickertape/trendlyne) was checked to return a usable peer list for this thin-coverage name.",
+    "Exact promoter pledge percentage (screener flagged 43.4% pledged as a key concern) was not captured as a structured field in this schema but is noted here for context.",
+    "Face value (Rs 2 per screener) and exact incorporation/renaming date (renamed to GEE Limited in March 2004, per multiple aggregator blurbs) were found but have no field in this schema.",
+    "This is a numeric-scrip-identified name in practice: most price/data sources (BSE, Equitymaster, Kotak Neo, Groww, Stockopedia, Nirmal Bang, Tradebrains) key their URLs off the BSE scrip code 504028 rather than the alphabetic ticker 'GEE', consistent with its designation as a deliberately obscure, thin-coverage BSE-only illiquid (group X) name."
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "symbol": "BABA",
+  "exchange": ["BSE"],
+  "bse_code": "532380",
+  "isin": "INE893A01036",
+  "legal_name": "Baba Arts Ltd",
+  "former_names": ["Galaxy Multimedia Limited"],
+  "sector_industry": "Media & Entertainment - film/TV content production, distribution, IP trading",
+  "collected_at": "2026-07-10T10:07:46Z",
+  "collected_from": [
+    "https://www.screener.in/company/532380/",
+    "https://www.whalesbook.com/news/English/media-and-entertainment/Baba-Arts-Open-Offer-Skybridge-Interactive-to-Acquire-2532percent-Stake-at-indian-rupee6/699f03eb04a25a58c85495b9"
+  ],
+  "reference": {
+    "price_close_recent": {"value": 16.7, "as_of": "2026-07-10"},
+    "market_cap_cr": 87.8,
+    "pe": 135,
+    "pb": 3.10,
+    "roe_pct": 2.40,
+    "dividend_yield_pct": 0.00,
+    "dividend_declared_vs_paid_note": null,
+    "52w_high": 17.2,
+    "52w_low": 6.01,
+    "shareholding": {"promoter_pct": 74.68, "fii_pct": 0.00, "dii_pct": null, "public_pct": 25.31, "as_of_quarter": "Mar 2026"},
+    "latest_quarter": {"revenue_cr": 5.16, "net_profit_cr": 0.10, "period": "Q4 FY26"},
+    "recent_filings": [
+      {"date": "2026-07-06", "title": "Compliances - Certificate under Reg. 74(5) of SEBI (DP) Regulations, 2018"},
+      {"date": "2026-06-23", "title": "Closure of Trading Window"},
+      {"date": "2026-06-08", "title": "Updates on Open Offer"},
+      {"date": "2026-06-05", "title": "Recommendation of the Committee of Independent Directors (IDC) on Skybridge Interactive LLP open offer"},
+      {"date": "2026-06-01", "title": "Letter of Offer - Skybridge Interactive LLP open offer at Rs 6.00/share for 25.32% stake"}
+    ],
+    "peers": []
+  },
+  "world_gaps": [
+    "DII shareholding % not broken out for latest quarter; only Promoters and Public reported (sum to ~100%)",
+    "Peer comparison table on Screener did not render specific peer company names; no independent peer list found elsewhere",
+    "ISIN not displayed on the Screener page actually fetched; pre-confirmed value used per task brief",
+    "Company is currently subject to an open offer (Skybridge Interactive LLP acquiring ~74.67% promoter stake + 25.32% public open offer at Rs 6/share) - reference numbers above may be stale relative to any post-acquisition restatement"
+  ]
+}

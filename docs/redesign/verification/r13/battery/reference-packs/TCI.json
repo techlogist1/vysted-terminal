@@ -1,0 +1,50 @@
+{
+  "symbol": "TCI",
+  "exchange": ["NSE", "BSE"],
+  "bse_code": "532349",
+  "isin": "INE688A01022",
+  "legal_name": "Transport Corporation of India Ltd",
+  "former_names": null,
+  "sector_industry": "Services - Transport Services - Logistics Solution Provider (multimodal freight transport, supply chain solutions, coastal shipping via road/rail/sea, SAARC region reach). Business segments: Freight, Supply Chain Solutions, Seaways, Energy.",
+  "collected_at": "2026-07-10T10:07:46Z",
+  "collected_from": [
+    "https://www.screener.in/company/TCI/consolidated/",
+    "https://trendlyne.com/equity/1368/TCI/transport-corporation-of-india-ltd/",
+    "https://www.nseindia.com/get-quote/equity/TCI/Transport-Corporation-of-India-Limited",
+    "https://www.samco.in/share-price/transport-corporation-of-india-ltd/TCI/INE688A01022",
+    "https://aliceblueonline.com/vrl-logistics-vs-allcargo-logistics-best-logistics-stocks/",
+    "https://www.thestockobserver.com/2026/07/09/transcontinental-realty-investors-nysetci-major-shareholder-purchases-17740-00-in-stock.html",
+    "https://en.wikipedia.org/wiki/Tele-Communications_Inc."
+  ],
+  "reference": {
+    "price_close_recent": {"value": 937, "as_of": "2026-07-10"},
+    "market_cap_cr": 7198,
+    "pe": 15.9,
+    "pb": 2.80,
+    "roe_pct": 19.2,
+    "dividend_yield_pct": 1.06,
+    "dividend_declared_vs_paid_note": "No specific declared-vs-paid date discrepancy found; screener shows historical dividend payout ratio in the 10-17% range but no distinct record/payment date breakdown for the most recent dividend.",
+    "52w_high": 1299,
+    "52w_low": 868,
+    "shareholding": {
+      "promoter_pct": 68.74,
+      "fii_pct": 3.03,
+      "dii_pct": 12.86,
+      "public_pct": 15.37,
+      "as_of_quarter": "Mar 2026"
+    },
+    "latest_quarter": {"revenue_cr": 1324, "net_profit_cr": 124, "period": "Q4 FY26"},
+    "recent_filings": [
+      {"date": "2026-07-06", "title": "FY2025-26 Annual Report filed"},
+      {"date": "2026-07-06", "title": "Business Responsibility and Sustainability Report (BRSR) filed"},
+      {"date": "2026-07-30", "title": "31st Annual General Meeting notice issued"}
+    ],
+    "peers": ["Allcargo Logistics", "VRL Logistics"]
+  },
+  "world_gaps": [
+    "Peer list is thin (only Allcargo Logistics and VRL Logistics confirmed) because screener.in's dynamic peer-comparison table did not render in fetched content; a fuller peer set (e.g. Mahindra Logistics, Gati) was not independently verified against a primary source and was therefore omitted rather than guessed.",
+    "No independent second-source cross-check obtained for the exact Rs 937 / Rs 7,198 Cr snapshot beyond screener.in itself; treat as approximate for the trading session, not a certified closing print.",
+    "GENUINE LIVE TICKER COLLISION CONFIRMED: ticker 'TCI' is currently and simultaneously used by (a) Transcontinental Realty Investors Inc, an actively trading NYSE-listed REIT (market cap ~$401.71M per Simply Wall St, headquartered Dallas, distinct 8-K/SEC EDGAR filing history under CIK 0000733590), and (b) historically by Tele-Communications Inc, John Malone's 1990s cable giant, acquired by AT&T in 1999 for ~$43.5B and heavily referenced in SEC EDGAR archives. A bare 'TCI stock' web search surfaces these US entities before Transport Corporation of India Ltd, confirming the collision hypothesis is real, not speculative.",
+    "Screener.in slug for this company is 'TCI' (not 'TCIEXPRESS' or similar); confirmed via page description mentioning Freight/Supply Chain Solutions/Seaways segments and SAARC-region multimodal logistics, distinct from TCI Express Ltd which is a separate listed entity."
+  ]
+}

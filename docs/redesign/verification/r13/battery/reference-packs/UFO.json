@@ -1,0 +1,55 @@
+{
+  "symbol": "UFO",
+  "exchange": ["NSE", "BSE"],
+  "bse_code": "539141",
+  "isin": "INE527H01019",
+  "legal_name": "UFO Moviez India Ltd",
+  "former_names": null,
+  "sector_industry": "Media & Entertainment / Digital Cinema (satellite-based digital cinema distribution and in-cinema advertising, ~4,049 screens)",
+  "collected_at": "2026-07-10T10:07:46Z",
+  "collected_from": [
+    "https://www.screener.in/company/UFO/consolidated/",
+    "https://www.tickertape.in/stocks/ufo-moviez-india-UFOM",
+    "https://www.business-standard.com/markets/capital-market-news/ufo-moviez-india-reports-consolidated-net-profit-of-rs-4-48-crore-in-the-march-2026-quarter-126052200158_1.html",
+    "https://www.marketsmojo.com/news/result-analysis/ufo-moviez-q4-fy26-profitability-surge-amid-revenue-growth-but-margin-pressures-loom-4005364"
+  ],
+  "reference": {
+    "price_close_recent": {"value": 69.68, "as_of": "2026-07-10"},
+    "market_cap_cr": 271.27,
+    "pe": 10.89,
+    "pb": 0.91,
+    "roe_pct": 8.0,
+    "dividend_yield_pct": 0.0,
+    "dividend_declared_vs_paid_note": "No dividend paid in the last 5 years; last dividend was an interim of Rs 15.00/share paid on 11 Mar 2020. Trailing dividend yield is correctly 0.00% (not a timing artifact).",
+    "52w_high": 92.97,
+    "52w_low": 53.75,
+    "shareholding": {
+      "promoter_pct": 22.33,
+      "fii_pct": 0.84,
+      "dii_pct": 24.22,
+      "public_pct": 52.62,
+      "as_of_quarter": "Mar 2026"
+    },
+    "latest_quarter": {
+      "revenue_cr": 136.37,
+      "net_profit_cr": 4.48,
+      "period": "Q4 FY26"
+    },
+    "recent_filings": [
+      {"date": "2026-06-30", "title": "ICRA reaffirmed credit rating with positive outlook"},
+      {"date": "2026-06-23", "title": "ESOP allotment of 10,000 equity shares"},
+      {"date": "2026-05-27", "title": "Q4 & FY26 audited results: revenue up 15% YoY, net profit up 161% YoY (FY basis)"}
+    ],
+    "peers": [
+      "Saregama India Ltd",
+      "Tips Music Ltd",
+      "Network18 Media & Investments Ltd",
+      "Panorama Studios International Ltd",
+      "Balaji Telefilms Ltd"
+    ]
+  },
+  "world_gaps": [
+    "Q4 FY26 revenue figure varies slightly by source (tickertape: Rs 136.37 Cr vs marketsmojo: Rs 133.22 Cr) — likely consolidated vs standalone or restated basis difference; not independently reconciled against the BSE filing.",
+    "Promoters have pledged part of their holding (26.2% of promoter stake per one source) — pledge percentage not independently re-verified across multiple sources for this pack."
+  ]
+}

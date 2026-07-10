@@ -1,0 +1,43 @@
+{
+  "symbol": "SIL",
+  "exchange": ["NSE", "BSE"],
+  "bse_code": "530017",
+  "isin": "INE173A01025",
+  "legal_name": "Standard Industries Ltd",
+  "former_names": ["Standard Mills Company Limited"],
+  "sector_industry": "Trading/Diversified (textiles and chemical products trading; Property, Trading, Manufacturing segments; incorporated 1892); screener.in currently classifies it under Consumer Discretionary / Realty / Real Estate related services",
+  "collected_at": "2026-07-10T10:07:46Z",
+  "collected_from": [
+    "https://www.screener.in/company/SIL/consolidated/",
+    "https://trendlyne.com/equity/1239/SIL/standard-industries-ltd/",
+    "https://www.equitymaster.com/share-price/STDI/SIL-530017/STANDARD-INDUSTRIES-Share-Price",
+    "https://business-standard.com/company/standard-inds-529/information/company-history"
+  ],
+  "reference": {
+    "price_close_recent": {"value": 16.6, "as_of": "2026-07-10"},
+    "market_cap_cr": 107,
+    "pe": null,
+    "pb": 0.92,
+    "roe_pct": -16.6,
+    "dividend_yield_pct": 3.33,
+    "dividend_declared_vs_paid_note": "Screener's own fetch showed trailing dividend yield of 3.33%, but an earlier-cached aggregator snapshot (dated on/around 8 Jul 2026) showed 1.6% for the same metric — likely a stale cache or a standalone-vs-consolidated difference; treat the 3.33% figure (direct 10 Jul consolidated-page fetch) as more current, but this discrepancy was not fully reconciled.",
+    "52w_high": 21.7,
+    "52w_low": 11.7,
+    "shareholding": {"promoter_pct": 20.31, "fii_pct": 38.86, "dii_pct": 4.04, "public_pct": 36.79, "as_of_quarter": "Mar 2026"},
+    "latest_quarter": {"revenue_cr": 9.72, "net_profit_cr": -7.21, "period": "Q4 FY26 (quarter ended Mar 2026)"},
+    "recent_filings": [
+      {"date": "2026-05-13", "title": "Submission of newspaper clippings of extract of statement of audited financial results (quarter and year ended 31 Mar 2026)"},
+      {"date": "2026-05-14", "title": "Assignment / Transfer of Development Rights of Freehold Land and Building — Dadar land development rights deed executed (Rs 169.5 Cr plus four flats)"},
+      {"date": "2026-05-14", "title": "Compliances-Reg.24(A) — Annual Secretarial Compliance Report for FY2025-26, no non-compliances reported"},
+      {"date": "2026-06-24", "title": "Closure of Trading Window (from 1 Jul 2026 until 48 hours after Q1 FY27 results)"}
+    ],
+    "peers": []
+  },
+  "world_gaps": [
+    "PE ratio not meaningful/not displayed on screener.in given trailing negative EPS (loss-making, EPS -Rs 1.12 in latest quarter) — recorded as null rather than a fabricated multiple.",
+    "Peer comparison list could not be retrieved — screener.in's peer table showed 'Loading peers table...' and did not resolve via WebFetch.",
+    "Dividend yield figures conflict between two sources (3.33% on direct 10 Jul fetch vs 1.6% on an earlier-dated aggregator snapshot) — could not fully reconcile which reflects the truly current trailing yield; flagged in dividend_declared_vs_paid_note rather than silently picking one.",
+    "FII holding of 38.86% (Mar 2026) is unusually high for a distressed, thinly-traded micro-cap and could not be cross-verified against a second independent source within the politeness/thin-coverage constraints of this pass — treated as reported by screener.in but flagged for scrutiny.",
+    "As noted in the brief, ticker 'SIL' is globally dominated by the Global X Silver Miners ETF (NYSEArca: SIL) — a bare web search for 'SIL stock' returns essentially all ETF results. Separately, 'Standard Industries' is also the name of an unrelated, much larger private US roofing/building-materials conglomerate (owns GAF, Continental Building Products, standardindustries.com) with no corporate connection to this BSE/NSE-listed Mumbai textiles-and-chemicals trading company — both collisions confirmed present in search results during this research pass."
+  ]
+}

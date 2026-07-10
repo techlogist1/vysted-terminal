@@ -1,0 +1,41 @@
+{
+  "symbol": "PVP",
+  "exchange": ["NSE", "BSE"],
+  "bse_code": "517556",
+  "isin": "INE362A01016",
+  "legal_name": "PVP Ventures Ltd",
+  "former_names": null,
+  "sector_industry": "Real Estate / Realty (Urban Infrastructure & Residential-Commercial Development) — Hyderabad-based; also has Health Care Services and Media & Movie Production/Financing segments; multi-segment, currently unprofitable",
+  "collected_at": "2026-07-10T10:07:46Z",
+  "collected_from": [
+    "https://www.screener.in/company/PVP/consolidated/",
+    "https://www.tickertape.in/stocks/pvp-ventures-PVPV"
+  ],
+  "reference": {
+    "price_close_recent": {"value": 27.7, "as_of": "2026-07-10"},
+    "market_cap_cr": 721,
+    "pe": null,
+    "pb": 3.30,
+    "roe_pct": -2.35,
+    "dividend_yield_pct": 0.00,
+    "dividend_declared_vs_paid_note": null,
+    "52w_high": 39.9,
+    "52w_low": 18.3,
+    "shareholding": {"promoter_pct": 61.30, "fii_pct": 0.50, "dii_pct": 0.00, "public_pct": 38.20, "as_of_quarter": "Mar 2026"},
+    "latest_quarter": {"revenue_cr": 41.44, "net_profit_cr": -3.19, "period": "Q4 FY26"},
+    "recent_filings": [
+      {"date": "2026-07-08", "title": "Announcement under Regulation 30 (LODR) - Updates on Acquisition: completed acquisition of 4,263 shares in 7 Med India; stake rose to 41.23%"},
+      {"date": "2026-07-03", "title": "Amendment To NCD - Transaction Document: principal repayment on NCDs deferred from June 2026 to June 2027"},
+      {"date": "2026-07-03", "title": "Announcement under Regulation 30 (LODR) - Newspaper Publication"},
+      {"date": "2026-06-29", "title": "Closure of Trading Window"},
+      {"date": "2026-06-17", "title": "Intimation of Record Date for Payment of Interest for the NCDs (record date 23 June 2026)"}
+    ],
+    "peers": ["Unitech", "Arihant Superstructures", "Eldeco Housing"]
+  },
+  "world_gaps": [
+    "P/E ratio not disclosed on screener.in (company has negative trailing EPS of -0.01); a third-party aggregator snippet cited a PE of 553.36 that could not be corroborated against the primary source and was excluded as unreliable rather than reported as fact.",
+    "No dividend has been paid (0.00% yield); no declared-vs-paid timing discrepancy to report.",
+    "Peer-comparison table on screener.in did not render (JS-loaded, showed 'Loading peers table...'); the peers list above was sourced from a Tickertape search summary instead of a direct peer-table fetch, and may not be exhaustive.",
+    "No former/previous company name found in any source checked."
+  ]
+}

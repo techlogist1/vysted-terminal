@@ -1,0 +1,41 @@
+{
+  "symbol": "BMW",
+  "exchange": ["BSE"],
+  "bse_code": "542669",
+  "isin": "INE374E01021",
+  "legal_name": "BMW Industries Ltd",
+  "former_names": null,
+  "sector_industry": "Metals/Steel - Iron & Steel Products (tubular poles, transmission towers, rebars, steel service centre)",
+  "collected_at": "2026-07-10T10:07:46Z",
+  "collected_from": [
+    "https://www.screener.in/company/542669/",
+    "https://www.bseindia.com/stock-share-price/bmw-industries-ltd/BMW/542669/"
+  ],
+  "reference": {
+    "price_close_recent": {"value": 54.0, "as_of": "2026-07-10"},
+    "market_cap_cr": 1216,
+    "pe": 14.9,
+    "pb": 1.51,
+    "roe_pct": 10.9,
+    "dividend_yield_pct": 0.81,
+    "dividend_declared_vs_paid_note": null,
+    "52w_high": 65.19,
+    "52w_low": 26.06,
+    "shareholding": {"promoter_pct": 74.36, "fii_pct": 0.00, "dii_pct": null, "public_pct": 25.63, "as_of_quarter": "Mar 2026"},
+    "latest_quarter": {"revenue_cr": 209, "net_profit_cr": 33, "period": "Q4 FY26"},
+    "recent_filings": [
+      {"date": "2026-07-01", "title": "Compliances - Certificate under Reg. 74(5) of SEBI (DP) Regulations, 2018 for quarter ended 30 June 2026"},
+      {"date": "2026-06-27", "title": "Closure of Trading Window"},
+      {"date": "2026-06-01", "title": "Announcement under Regulation 30 (LODR) - No Deal Road Show, 4-5 June 2026"},
+      {"date": "2026-05-30", "title": "Compliances - Reg. 24(A) Annual Secretarial Compliance Report FY2026"},
+      {"date": "2026-05-29", "title": "Announcement under Regulation 30 (LODR) - No Deal Road Show, 3 June 2026"}
+    ],
+    "peers": []
+  },
+  "world_gaps": [
+    "DII shareholding % not broken out for latest quarter (Mar 2026); historical DII data exists (e.g. 24.43% Mar 2021) but current split not reported, likely folded into Public/Government categories which sum with Promoters to 100%",
+    "Peer comparison table on Screener did not render specific peer company names (dynamic/JS-loaded content); no explicit peer list found on other sources checked",
+    "No explicit distinction found between dividend declared vs dividend paid/trailing in available sources",
+    "ISIN not displayed on the Screener/BSE pages actually fetched; pre-confirmed value used per task brief"
+  ]
+}

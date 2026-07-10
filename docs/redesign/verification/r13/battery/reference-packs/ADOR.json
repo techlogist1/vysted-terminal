@@ -1,0 +1,47 @@
+{
+  "symbol": "ADOR",
+  "exchange": ["NSE", "BSE"],
+  "bse_code": "517041",
+  "isin": "INE045A01017",
+  "legal_name": "Ador Welding Ltd",
+  "former_names": ["Advani-Oerlikon Limited"],
+  "sector_industry": "Industrials - Capital Goods - Industrial Products (welding equipment, consumables, automation and welding technology manufacturer)",
+  "collected_at": "2026-07-10T10:07:46Z",
+  "collected_from": [
+    "https://www.screener.in/company/ADOR/consolidated/",
+    "https://watchoutinvestors.com/namechange_update.asp?comp_name=ADOR+WELDING+LTD.",
+    "https://en.wikipedia.org/wiki/Ador_Welding",
+    "https://www.marketsmojo.com/news/stocks-in-action/who-are-the-peers-of-the-ador-welding-2753451",
+    "https://www.indiainfoline.com/company/ador-welding-ltd/peer-comparison"
+  ],
+  "reference": {
+    "price_close_recent": {"value": 1327, "as_of": "2026-07-10"},
+    "market_cap_cr": 2309,
+    "pe": 27.5,
+    "pb": 4.16,
+    "roe_pct": 15.8,
+    "dividend_yield_pct": 1.75,
+    "dividend_declared_vs_paid_note": "FY26 final dividend of Rs 23/share declared with record date fixed 16 July 2026; 73rd AGM (approval venue) scheduled 23 July 2026 via virtual conference; payout ratio ~48.4%.",
+    "52w_high": 1360,
+    "52w_low": 848,
+    "shareholding": {
+      "promoter_pct": 53.76,
+      "fii_pct": 0.37,
+      "dii_pct": 12.63,
+      "public_pct": 33.26,
+      "as_of_quarter": "Mar 2026"
+    },
+    "latest_quarter": {"revenue_cr": 319, "net_profit_cr": 34, "period": "Q4 FY26"},
+    "recent_filings": [
+      {"date": "2026-07-06", "title": "Record date fixed (16 July 2026) for Rs 23 final dividend FY26"},
+      {"date": "2026-07-23", "title": "73rd Annual General Meeting (virtual conference)"}
+    ],
+    "peers": ["ESAB India", "Inox India", "PTC Industries", "KRN Heat Exchanger", "Kirloskar Industries", "Diffusion Engineering", "Mallcom (India)", "Sealmatic India"]
+  },
+  "world_gaps": [
+    "Cross-source price/market-cap snapshots for ADOR disagreed materially within the same week (observed range roughly Rs 1130-1327 and market cap Rs 1930-2309 Cr across screener.in, business-standard, indmoney and other aggregators dated between 12 Jun and 10 Jul 2026), likely reflecting aggregator caching lag rather than a single true tick; screener.in's own reported 'as of Jul 10, 3:30pm' figure was used as the reference point but should be treated as approximate, not a verified live NSE/BSE closing print.",
+    "Peer list sourced from secondary aggregators (marketsmojo, indiainfoline) since screener.in's dynamic peer-comparison table did not render in fetched content; not independently cross-checked against a second source.",
+    "No official 'formerly known as' disclosure text pulled directly from BSE/NSE company master; former name (Advani-Oerlikon Limited, changed 16 Oct 2003) is sourced from a name-change tracking site plus Wikipedia, not a primary exchange filing.",
+    "No real evidence found of an active brand/trademark collision between Ador Welding's ADOR mark and other global 'Ador'-branded consumer goods; flagged hypothesis not substantiated and therefore omitted rather than forced."
+  ]
+}

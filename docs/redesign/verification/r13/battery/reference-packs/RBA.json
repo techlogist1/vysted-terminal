@@ -1,0 +1,55 @@
+{
+  "symbol": "RBA",
+  "exchange": ["NSE", "BSE"],
+  "bse_code": "543248",
+  "isin": "INE07T201019",
+  "legal_name": "Restaurant Brands Asia Ltd",
+  "former_names": ["Burger King India Limited"],
+  "sector_industry": "Consumer Discretionary / QSR - Restaurants (master franchisee Burger King India; Burger King and Popeyes Indonesia)",
+  "collected_at": "2026-07-10T10:07:46Z",
+  "collected_from": [
+    "https://www.screener.in/company/RBA/consolidated/",
+    "https://scanx.trade/stock-market-news/companies/f-b-asia-ventures-sells-1-share-in-restaurant-brands-asia/45127144",
+    "https://scanx.trade/stock-market-news/companies/cci-approves-acquisition-of-restaurant-brands-asia/40845052",
+    "https://www.indiainfoline.com/company/restaurant-brands-asia-ltd/peer-comparison"
+  ],
+  "reference": {
+    "price_close_recent": {"value": 72.7, "as_of": "2026-07-10"},
+    "market_cap_cr": 4236.0,
+    "pe": null,
+    "pb": 5.90,
+    "roe_pct": -22.7,
+    "dividend_yield_pct": 0.0,
+    "dividend_declared_vs_paid_note": "No dividend declared or paid; company has been posting losses (trailing ROE -22.7%), consistent with zero trailing dividend yield (not a timing artifact).",
+    "52w_high": 87.65,
+    "52w_low": 57.15,
+    "shareholding": {
+      "promoter_pct": 9.22,
+      "fii_pct": 8.19,
+      "dii_pct": 39.98,
+      "public_pct": 42.60,
+      "as_of_quarter": "Jun 2026"
+    },
+    "latest_quarter": {
+      "revenue_cr": 707.0,
+      "net_profit_cr": -47.0,
+      "period": "Q4 FY26"
+    },
+    "recent_filings": [
+      {"date": "2026-06-30", "title": "Penalty of Rs 1,15,000 imposed by Additional District Magistrate, Agra for Food Safety and Standards Act violation"},
+      {"date": "2026-06-08", "title": "Mandatory open offer opens: Lenexis Foodworks Pvt Ltd and other acquirers, up to 26.00% at Rs 70.39/share (offer closed 2026-06-19)"},
+      {"date": "2026-07-08", "title": "F&B Asia Ventures (Singapore) Pte Ltd off-market disposal of 1 equity share disclosed"}
+    ],
+    "peers": [
+      "Jubilant Foodworks Ltd",
+      "Devyani International Ltd",
+      "Sapphire Foods India Ltd",
+      "Westlife Foodworld Ltd"
+    ]
+  },
+  "world_gaps": [
+    "PE ratio not published/not meaningful (screener shows 'Not available') due to negative trailing earnings.",
+    "Promoter shareholding is unusually low (9.22% as of Jun 2026) amid an active, still-unfolding ownership-change event: a mandatory open offer by Lenexis Foodworks Pvt Ltd and other acquirers for up to 26% at ~Rs 70.39/share (open-close window 8-19 Jun 2026) plus stake sell-downs by prior promoter-linked entity F&B Asia Ventures (Singapore) Pte Ltd. The resulting post-open-offer promoter/acquirer group stake was not independently confirmed as settled as of collection date — this is a live, moving data point.",
+    "Company name change from Burger King India Limited to Restaurant Brands Asia Limited occurred Feb 2022 per one source; the exact former-name effective date was not cross-verified against a second source."
+  ]
+}

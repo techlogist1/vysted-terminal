@@ -1,0 +1,41 @@
+{
+  "symbol": "APEX",
+  "exchange": ["NSE", "BSE"],
+  "bse_code": "540692",
+  "isin": "INE346W01013",
+  "legal_name": "Apex Frozen Foods Ltd",
+  "former_names": null,
+  "sector_industry": "Food Processing / Seafood Export (FMCG > Food Products > Seafood) — B2B processed frozen shrimp, exports to USA/EU/China via HORECA and retail channels; nearly debt-free with a healthy dividend payout history",
+  "collected_at": "2026-07-10T10:07:46Z",
+  "collected_from": [
+    "https://www.screener.in/company/APEX/",
+    "https://www.screener.in/company/APEX/consolidated/",
+    "https://www.tickertape.in/stocks/apex-frozen-foods-APEX",
+    "https://www.tickertape.in/stocks/collections/aquaculture-stocks"
+  ],
+  "reference": {
+    "price_close_recent": {"value": 392, "as_of": "2026-07-10"},
+    "market_cap_cr": 1225,
+    "pe": 31.5,
+    "pb": 2.32,
+    "roe_pct": 7.60,
+    "dividend_yield_pct": 0.50,
+    "dividend_declared_vs_paid_note": "Board approved a dividend on 30 May 2026 per filings; screener's trailing dividend-yield figure (0.50%) reflects the last declared dividend, but the exact per-share amount and record date could not be confirmed in sources checked — see world_gaps.",
+    "52w_high": 514,
+    "52w_low": 203,
+    "shareholding": {"promoter_pct": 72.62, "fii_pct": 6.00, "dii_pct": 0.66, "public_pct": 20.73, "as_of_quarter": "Mar 2026"},
+    "latest_quarter": {"revenue_cr": 167.82, "net_profit_cr": 7.79, "period": "Q4 FY26"},
+    "recent_filings": [
+      {"date": "2026-06-26", "title": "Closure of Trading Window"},
+      {"date": "2026-06-05", "title": "Earnings Call Transcript Q4FY26"},
+      {"date": "2026-06-01", "title": "Investor Presentation Q4FY26"},
+      {"date": "2026-05-30", "title": "Board approved dividend"}
+    ],
+    "peers": ["Avanti Feeds", "Coastal Corporation", "Waterbase", "Zeal Aqua", "Sharat Industries"]
+  },
+  "world_gaps": [
+    "Exact per-share dividend amount and record date for the 30 May 2026 board-approved dividend not found in sources checked (screener shows only a trailing 0.50% yield); a BSE/NSE corporate-action filing would be needed to confirm declared-vs-paid amount and timing.",
+    "Peer-comparison table on screener.in did not render (JS-loaded / appeared partly login-gated on the consolidated view); peers list above was sourced from Tickertape's aquaculture-stocks collection and a web-search summary of Avanti Feeds' competitors rather than a direct peer-table fetch.",
+    "No former/previous company name found in any source checked."
+  ]
+}

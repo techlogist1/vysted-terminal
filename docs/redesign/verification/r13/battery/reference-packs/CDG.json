@@ -1,0 +1,44 @@
+{
+  "symbol": "CDG",
+  "exchange": ["BSE"],
+  "bse_code": "534796",
+  "isin": "INE198N01017",
+  "legal_name": "CDG Petchem Ltd",
+  "former_names": ["Pankaj Polypack Limited", "Urbaknitt Fabs Limited"],
+  "sector_industry": "Chemicals/Diversified Manufacturing (knitted fabrics, mattresses, pillows, trading of minerals/plasticizers/construction materials/pharma chemicals); screener.in currently classifies it under Industrials > Capital Goods > Plastic Products - Industrial",
+  "collected_at": "2026-07-10T10:07:46Z",
+  "collected_from": [
+    "https://www.screener.in/company/534796/consolidated/",
+    "https://groww.in/stocks/pankaj-polypack-ltd",
+    "https://trendlyne.com/equity/about/3946/PANKAJPOLY/cdg-petchem-ltd/",
+    "https://www.investing.com/equities/pankaj-polypack-bo"
+  ],
+  "reference": {
+    "price_close_recent": {"value": 287, "as_of": "2026-07-10"},
+    "market_cap_cr": 265,
+    "pe": 60.1,
+    "pb": 4.84,
+    "roe_pct": 17.2,
+    "dividend_yield_pct": 0.00,
+    "dividend_declared_vs_paid_note": "Screener shows trailing dividend yield of 0.00% — no dividend appears to have been declared/paid in the recent trailing period.",
+    "52w_high": 289,
+    "52w_low": 52.6,
+    "shareholding": {"promoter_pct": 73.75, "fii_pct": null, "dii_pct": 0.70, "public_pct": 25.55, "as_of_quarter": "Mar 2026"},
+    "latest_quarter": {"revenue_cr": 52.22, "net_profit_cr": 5.32, "period": "Q4 FY26 (quarter ended Mar 2026)"},
+    "recent_filings": [
+      {"date": "2026-05-30", "title": "Audited financials for Q4 FY26"},
+      {"date": "2026-06-01", "title": "FY26 full-year results: Rs 74.88 Cr revenue, Rs 7.67 Cr PAT"},
+      {"date": "2026-06-26", "title": "Trading window closure notice"},
+      {"date": "2026-07-02", "title": "Company name change to Jujhar Logistics Limited effective"}
+    ],
+    "peers": []
+  },
+  "world_gaps": [
+    "MATERIAL TIMING NOTE: this entity's name changed from CDG Petchem Limited to Jujhar Logistics Limited effective 2 Jul 2026 (per screener.in's own filing feed), only days before this collection date of 10 Jul 2026 — most data sources (screener, groww, trendlyne, investing.com) still surface it under the old 'CDG Petchem' / 'Pankaj Polypack' branding/URLs, so any live resolver check right now is likely to hit a name in transition.",
+    "Full corporate-name lineage found: Pankaj Polypack Limited (inc. 2011, listed 2012 in 'T' group) -> renamed Urbaknitt Fabs Limited -> renamed CDG Petchem Limited (2020) -> renamed Jujhar Logistics Limited (2 Jul 2026). Only the most recent two names could be confirmed with source URLs; exact date of the Urbaknitt Fabs -> CDG Petchem 2020 rename was not pinned down beyond 'in 2020'.",
+    "An earlier press mention found promoters reclassified from 53% to 0% under SEBI open-offer rules at some prior point, which conflicts with the Mar 2026 shareholding pattern showing promoters at 73.75% — likely reflects a change-of-control/new-promoter event around the Jujhar Logistics transition, but the exact date and mechanics of that reclassification could not be confirmed.",
+    "FII shareholding percentage for Mar 2026 was not shown as a separate line item on screener.in (only promoter/DII/public were listed, summing to 100%); left null rather than assumed zero.",
+    "Peer comparison list could not be retrieved — screener.in's peer table did not resolve via WebFetch for this thin-coverage BSE-XT (trade-to-trade) name, and no other source was checked further given politeness constraints.",
+    "As noted in the brief, ticker 'CDG' is globally dominated by Paris Charles de Gaulle Airport (IATA CDG) and Comme des Garçons — a bare web search for 'CDG' surfaces essentially none of this company; in practice this name is BSE-code-identified (534796 appears in most URLs, e.g. bseindia.com/.../cdg/534796), matching the numeric-scrip-identified pattern noted for GEE."
+  ]
+}

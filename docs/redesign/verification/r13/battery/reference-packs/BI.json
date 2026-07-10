@@ -1,0 +1,43 @@
+{
+  "symbol": "BI",
+  "exchange": ["NSE", "BSE"],
+  "bse_code": "526853",
+  "isin": "INE986A01012",
+  "legal_name": "Bilcare Ltd",
+  "former_names": null,
+  "sector_industry": "Industrials / Pharma Packaging (aluminum foils, polymer films, anti-counterfeiting packaging for pharma); screener.in classifies it under Healthcare > Healthcare Services > Healthcare Research, Analytics & Technology",
+  "collected_at": "2026-07-10T10:07:46Z",
+  "collected_from": [
+    "https://www.screener.in/company/526853/consolidated/",
+    "https://trendlyne.com/equity/3208/BI/bilcare-ltd/",
+    "https://www.equitymaster.com/share-price/BIIN/526853/BILCARE-Share-Price"
+  ],
+  "reference": {
+    "price_close_recent": {"value": 62.6, "as_of": "2026-07-10"},
+    "market_cap_cr": 147,
+    "pe": 26.7,
+    "pb": 0.76,
+    "roe_pct": 1.66,
+    "dividend_yield_pct": 0.00,
+    "dividend_declared_vs_paid_note": "Screener shows trailing dividend yield of 0.00% — no dividend appears to have been declared/paid in the recent trailing period, consistent with the company's post-NCLT distressed financial history.",
+    "52w_high": 116,
+    "52w_low": 50.0,
+    "shareholding": {"promoter_pct": 30.01, "fii_pct": 0.04, "dii_pct": 0.00, "public_pct": 69.95, "as_of_quarter": "Mar 2026"},
+    "latest_quarter": {"revenue_cr": 187.66, "net_profit_cr": 7.85, "period": "Q4 FY26 (quarter ended Mar 2026)"},
+    "recent_filings": [
+      {"date": "2026-06-12", "title": "NCLT directive regarding Rs 2.52 Cr fixed-deposit repayment to IEPF by 15 Jul 2026"},
+      {"date": "2026-06-22", "title": "Postal ballot notice for independent director appointment"},
+      {"date": "2026-06-23", "title": "Newspaper publication announcement regarding postal ballot"},
+      {"date": "2026-06-26", "title": "Trading window closure notice"},
+      {"date": "2026-07-02", "title": "Compliance certificate filing under SEBI regulations"}
+    ],
+    "peers": []
+  },
+  "world_gaps": [
+    "Peer comparison list could not be retrieved from screener.in (JS-rendered table did not resolve) or trendlyne.com (behind subscription paywall for detailed valuation/peers); no further sources were checked given politeness constraints.",
+    "DII shareholding is not explicitly labeled as a separate line item on screener.in's Mar 2026 table — only Promoters (30.01%), FIIs (0.04%) and Public (69.95%) are shown, summing exactly to 100.00%, so DII was recorded as 0.00% by inference from the accounting identity rather than an explicit disclosed figure.",
+    "One earlier-cached search snippet (dated 20-May-2026) showed a different book value (Rs 193, implying P/B ~0.3x) than the current fetch (Rs 83.6 book value, P/B 0.76x) — likely reflects a standalone-vs-consolidated view difference or an intervening data revision; the more recent consolidated-view figures (fetched 10 Jul 2026) were used as canonical.",
+    "Company carries significant contingent liabilities (~Rs 727 Cr per screener's flagged concerns) tied to its 2013 default / 2019 NCLT admission / 2023 one-time-settlement history (Caprihans India Ltd subsidiary acquired operating assets to enable lender repayment) — full settlement terms and current litigation status were not independently verified beyond this summary.",
+    "As noted in the brief, ticker 'BI' is an ambiguous multi-entity global collision (Bank Indonesia, Microsoft Power BI, Biogen Inc, a Korean BI/analytics firm) rather than one single dominant shadow; Bilcare itself only surfaces reliably on India-specific finance aggregators (screener, trendlyne, equitymaster, bseindia) and its NSE symbol 'BI' was confirmed matching BSE code 526853."
+  ]
+}

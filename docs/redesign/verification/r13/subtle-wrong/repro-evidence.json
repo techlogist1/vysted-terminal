@@ -1,0 +1,187 @@
+{
+  "probe_run": {
+    "date": "2026-07-10",
+    "sidecar_venv": "/Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/.venv/bin/python3",
+    "yfinance_version": "1.3.0",
+    "mode": "headless, direct yfinance calls (bypassed provider wrappers per instructions), repo lanes read/exercised directly via sidecar import"
+  },
+  "case_A_bombay_oxygen_holdings": {
+    "verdict": "REPRODUCED (with a critical symbol-resolution caveat) + repo NSE-only shareholding lane has NO BSE coverage (confirmed blocker/coverage-fact, not a bug)",
+    "ticker_resolution_finding": {
+      "note": "The literal probe in the brief, yf.Ticker('509470.BO').info, does NOT reproduce the suspicion as stated -- that raw scrip-code-as-ticker string resolves on Yahoo to an UNRELATED/misclassified record (quoteType MUTUALFUND, longName null, shortName '509470.BO,0P0000BN3V,31', only 62 sparse info keys, no heldPercentInstitutions/heldPercentInsiders keys at all). The repo's own symbol_resolver correctly resolves BSE scrip 509470 to the real ticker 'BOMOXY-B1' (bse_instruments.json row: name='Bombay Oxygen Investments Ltd', group='X', code='509470'); the correct Yahoo symbol is 'BOMOXY-B1.BO' (quoteType EQUITY, 139 info keys, longName='Bombay Oxygen Investments Limited'). Using the CORRECT ticker reproduces the suspicion exactly.",
+      "naive_509470.BO_probe": {
+        "quoteType": "MUTUALFUND",
+        "typeDisp": "Fund",
+        "longName": null,
+        "shortName": "509470.BO,0P0000BN3V,31",
+        "heldPercentInstitutions": null,
+        "heldPercentInsiders": null,
+        "info_key_count": 62,
+        "major_holders": "empty DataFrame",
+        "institutional_holders": "empty DataFrame",
+        "quoteSummary_error": "HTTP Error 404: No fundamentals data found for symbol: 509470.BO"
+      },
+      "correct_BOMOXY-B1.BO_probe": {
+        "quoteType": "EQUITY",
+        "longName": "Bombay Oxygen Investments Limited",
+        "shortName": "BOMBAY OXYGEN INVESTMENTS LIMI",
+        "heldPercentInstitutions": 0.08455,
+        "heldPercentInsiders": 0.75806,
+        "info_key_count": 139
+      }
+    },
+    "provider_value": {
+      "source": "yfinance 1.3.0, yf.Ticker('BOMOXY-B1.BO').info, live probe 2026-07-10",
+      "heldPercentInstitutions": 0.08455,
+      "heldPercentInstitutions_pct": "8.455%",
+      "heldPercentInsiders": 0.75806,
+      "heldPercentInsiders_pct": "75.806%"
+    },
+    "exchange_truth": {
+      "source": "BSE shareholding pattern, Jun 2026 quarter (corroborated independently by trendlyne.com and screener.in)",
+      "as_of_quarter": "Jun 2026",
+      "promoter_percent": 73.29,
+      "institutional_percent_DII_plus_banks": 0.06,
+      "fii_percent": 0.0,
+      "public_percent": 26.65,
+      "citations": [
+        "https://trendlyne.com/equity/share-holding/4434/BOMOXY-B1/latest/bombay-oxygen-investments-ltd/",
+        "https://www.screener.in/company/509470/"
+      ],
+      "trendlyne_verbatim_note": "Institutional Investors holding remains unchanged at 0.06% in Jun 2026 qtr"
+    },
+    "repo_lane_coverage": {
+      "corporate_disclosures.get_shareholding('BOMOXY-B1')": "ProviderError: nse_direct: 'BOMOXY-B1' is not a known NSE instrument",
+      "corporate_disclosures.get_shareholding('509470')": "ProviderError: nse_direct: '509470' is not a known NSE instrument",
+      "root_cause": "nse_provider.get_shareholding_master() -> _fetch_corporate_list() -> _require_nse() hard-gates on symbol_resolver.is_nse_symbol(); there is NO BSE-side shareholding function anywhere in services/bse_provider.py or services/corporate_disclosures.py. The module docstring only claims an NSE quarterly shareholding MASTER. 509470/BOMOXY-B1 is BSE-only (is_bse_symbol=True, is_nse_symbol=False), so the repo's shareholding lane is structurally blind to it -- this is a genuine, confirmed COVERAGE GAP, not a fetch failure.",
+      "BSE_truth_source_used": "public web (trendlyne.com/screener.in aggregating BSE corporate filings) via WebFetch/WebSearch since the repo has no direct BSE shareholding-pattern API integration to call non-interactively"
+    },
+    "computed_discrepancies": {
+      "heldPercentInstitutions_provider_vs_truth": "8.455% (provider) vs 0.06% (BSE truth) -- ~141x overstatement, 8.395pp absolute drift. This exactly matches the brief's stated suspicion (~0.08455 vs ~0.06%).",
+      "heldPercentInsiders_provider_vs_promoter_truth": "75.806% (provider, insiders proxy) vs 73.29% (BSE promoter truth) -- 2.516pp drift, SAME DIRECTION and closely matching magnitude as the Case B ~2.5pp hypothesis (bonus cross-case corroboration)."
+    }
+  },
+  "case_B_promoter_insider_drift": {
+    "verdict": "REPRODUCED (direction confirmed on 3/4 names; magnitude runs larger than the ~2.5pp hypothesis, typically 3.5-5.4pp; the as-of-date-skew sub-mechanism is CONCRETELY demonstrated on KIRIINDUS)",
+    "methodology": "yfinance heldPercentInsiders (Ticker.info) vs NSE quarterly shareholding-master promoter_percent (services.corporate_disclosures.get_shareholding via services.nse_provider.get_shareholding_master, live NSE fetch)",
+    "names": [
+      {
+        "symbol": "KIRIINDUS",
+        "company": "Kiri Industries Limited",
+        "yf_heldPercentInsiders": 0.41714,
+        "yf_heldPercentInsiders_pct": 41.714,
+        "yf_major_holders_insidersPercentHeld": 0.41714,
+        "nse_promoter_percent_latest": {"quarter_end": "2026-04-11", "value": 41.71, "submission_date": "2026-04-13"},
+        "nse_promoter_percent_prior_quarter": {"quarter_end": "2026-03-31", "value": 36.72, "submission_date": "2026-04-06"},
+        "drift_vs_latest_pp": 0.004,
+        "drift_vs_prior_quarter_pp": 4.994,
+        "note": "STRIKING as-of-date-skew evidence: the NSE shareholding master carries an off-cycle amendment dated 2026-04-11 (submitted 2026-04-13, promoter jumped 36.72% -> 41.71%, presumably a creeping-acquisition/open-offer event). yfinance's insider ROSTER (t.insider_roster_holders) shows the promoter-family rows individually dated 2026-04-11 -- i.e. yfinance's heldPercentInsiders (41.714%) matches the FRESH post-event filing almost exactly, not the 'official' quarter-end (2026-03-31) figure. Comparing against the wrong NSE snapshot manufactures a fake ~5pp 'drift' that is actually just two different, both-correct, as-of dates. The insider roster ALSO mixes entries from wildly different dates in one scalar (Lotus Global Investments Ltd. dated 2024-08-21 sits alongside rows dated 2026-04-11) -- heldPercentInsiders is not a coherent point-in-time cross-section the way the NSE quarterly master is."
+      },
+      {
+        "symbol": "TIRUMALCHM",
+        "company": "Thirumalai Chemicals Limited",
+        "yf_heldPercentInsiders": 0.41946,
+        "yf_heldPercentInsiders_pct": 41.946,
+        "nse_promoter_percent_latest": {"quarter_end": "2026-03-31", "value": 37.13, "submission_date": "2026-04-21"},
+        "drift_pp": 4.816,
+        "insider_roster_positions": "10 holders, ALL labeled 'Promoter' (individuals + family trusts + Ultramarine & Pigments Ltd.) -- no date column populated, so no as-of-skew evidence available for this name, but the roster composition still overstates the strict NSE promoter-group percentage."
+      },
+      {
+        "symbol": "ORIENTBELL",
+        "company": "Orient Bell Limited",
+        "yf_heldPercentInsiders": 0.71287,
+        "yf_heldPercentInsiders_pct": 71.287,
+        "nse_promoter_percent_latest": {"quarter_end": "2026-03-31", "value": 65.92, "submission_date": "2026-04-06"},
+        "drift_pp": 5.367,
+        "insider_roster_positions": "roster mixes 'Promoter'-labeled rows with 'UNREPORTED'-position rows (e.g. Agarwal (Anil), Gupta (Sanjeev)) -- heldPercentInsiders is not filtered to promoter-labeled rows only, a likely definitional-mismatch driver."
+      },
+      {
+        "symbol": "GOKEX",
+        "company": "Gokaldas Exports Limited",
+        "yf_heldPercentInsiders": 0.12639,
+        "yf_heldPercentInsiders_pct": 12.639,
+        "nse_promoter_percent_latest": {"quarter_end": "2026-03-31", "value": 9.15, "submission_date": "2026-04-21"},
+        "drift_pp": 3.489,
+        "insider_roster_positions": "single 'UNREPORTED'-position holder listed"
+      }
+    ],
+    "summary_stats": {
+      "drifts_pp_using_strict_quarter_end_match": [4.994, 4.816, 5.367, 3.489],
+      "mean_drift_pp": 4.667,
+      "direction": "yfinance heldPercentInsiders consistently OVERSTATES NSE promoter_percent, same sign in all 4 names",
+      "hypothesis_assessment": "The definitional-mismatch mechanism (insiders != strict promoter/promoter-group; the roster includes UNREPORTED-position and individually-dated rows) is directly confirmed. The as-of-date-skew mechanism is directly confirmed via KIRIINDUS's roster Date column. The exact ~2.5pp magnitude from the brief undershoots what was observed here (mean ~4.7pp on this 4-name sample) but Case A's BOMOXY-B1 pair (75.806% insiders vs 73.29% promoter = 2.516pp) lands almost exactly on the ~2.5pp figure -- so ~2.5pp appears to be a real, achievable value for SOME names, with the drift's actual magnitude varying materially name-to-name rather than being a fixed constant."
+    }
+  },
+  "case_C_dividend_declared_vs_paid": {
+    "verdict": "REPRODUCED (mechanism), but on a DIFFERENT yfinance field than the one the repo consumes -- D56 as implemented would NOT catch/correctly-label this specific declared-not-paid pattern",
+    "candidates_investigated": {
+      "IOC.NS": {
+        "role": "control case -- reproduces the ALREADY-DOCUMENTED 'omission' pattern, not the declared-not-paid pattern",
+        "declared_pending_dividend": {
+          "type": "Final Dividend FY2025-26",
+          "amount_per_share": 1.25,
+          "declared_date": "2026-05-18",
+          "record_date": "2026-08-14",
+          "status_as_of_probe_2026-07-10": "declared, NOT yet gone ex-date (record date is 5 weeks in the future), definitely not yet paid",
+          "source": "NSE corporate announcement (services.nse_provider.get_corporate_announcements('IOC')), sort_date 2026-06-30 14:08:13 and 2026-05-18 21:44:29"
+        },
+        "yf_dividendRate": 8.25,
+        "yf_trailingAnnualDividendRate": 8.25,
+        "repo_computed_ttm_paid_via_dividend_history.get_dividend_ttm": 10.0,
+        "ex_dated_dividends_trailing_365d": [
+          {"ex_date": "2025-08-08", "amount": 3.0},
+          {"ex_date": "2025-12-18", "amount": 5.0},
+          {"ex_date": "2026-03-12", "amount": 2.0}
+        ],
+        "relative_divergence": 0.175,
+        "D56_result": {
+          "fires": true,
+          "fact_emitted_value": 10.0,
+          "conflict_note": "The provider's dividend per share (Yahoo dividendRate) differs from the trailing-12-month dividends actually paid by more than 10% -- dividendRate can omit a special dividend, so the paid history is the complete figure."
+        },
+        "interpretation": "Here dividendRate/trailingAnnualDividendRate (8.25) UNDERSTATE the actual trailing-paid sum (10.0), and the pending Rs 1.25 declared dividend is NOT baked into either Yahoo scalar (if it were, dividendRate would be closer to ~9.5+, not below the true paid figure). D56 fires and its causal note (omission) is DIRECTIONALLY CORRECT for this case -- but this is not an instance of the declared-vs-paid conflation the brief is hunting for."
+      },
+      "PFC.NS": {
+        "role": "TARGET case -- demonstrates the declared-not-paid conflation, but only on trailingAnnualDividendRate, a field the repo does NOT map to dividend_per_share",
+        "declared_pending_dividend": {
+          "type": "Final Dividend FY2025-26",
+          "amount_per_share": 3.95,
+          "declared_date": "2026-05-13",
+          "record_date": "2026-07-31",
+          "status_as_of_probe_2026-07-10": "declared, record date 3 weeks in the future, NOT yet gone ex-date, payment due within 30 days of AGM sanction (i.e. expected ~August 2026)",
+          "sources": [
+            "NSE corporate announcement (services.nse_provider.get_corporate_announcements('PFC')), sort_date 2026-06-24 13:26:05: 'Record date for the purpose of ... Final Dividend for the FY 2025-26 is 31-Jul-2026'",
+            "https://www.angelone.in/news/stocks/pfc-declares-final-dividend-for-fy26-sets-record-date-of-july-31-2026",
+            "https://elitewealth.in/pfc-declares-fy26-final-dividend-of-%E2%82%B93-95-per-share-record-date-fixed-as-july-31-2026/"
+          ]
+        },
+        "yf_dividendRate": 15.8,
+        "yf_trailingAnnualDividendRate": 18.55,
+        "repo_computed_ttm_paid_via_dividend_history.get_dividend_ttm": 14.6,
+        "ex_dated_dividends_trailing_365d": [
+          {"ex_date": "2025-08-18", "amount": 3.70},
+          {"ex_date": "2025-11-26", "amount": 3.65},
+          {"ex_date": "2026-02-20", "amount": 4.00},
+          {"ex_date": "2026-03-23", "amount": 3.25}
+        ],
+        "arithmetic_check": "14.6 (repo-computed TTM paid) + 3.95 (declared-not-yet-paid final dividend) = 18.55, which EXACTLY equals yf trailingAnnualDividendRate. This is a clean, exact reproduction of the hypothesized conflation -- but on trailingAnnualDividendRate, not dividendRate.",
+        "dividendRate_vs_ttm_paid": {
+          "relative_divergence": 0.0759,
+          "threshold": 0.10,
+          "verdict": "BELOW threshold -- D56 does not fire on the field the repo actually uses"
+        },
+        "D56_result_live_call": {
+          "fires": false,
+          "fact_emitted": null,
+          "conflicts_emitted": []
+        },
+        "interpretation": "The repo maps dividend_per_share = info['dividendRate'] (services/yfinance_provider.py:293), NOT trailingAnnualDividendRate. For PFC, dividendRate (15.8) happens to sit close to the true TTM-paid figure (14.6, 7.6% divergence) and evades the 10% D56 threshold, even though a real, confirmed, declared-but-unpaid Rs 3.95 dividend is sitting one field over in trailingAnnualDividendRate (18.55 = 14.6 + 3.95 exactly). D56 is SILENT on this real discrepancy."
+      }
+    },
+    "does_D56_label_declared_vs_paid_correctly": {
+      "answer": "NO -- it only flags a generic magnitude divergence, it does not distinguish direction/cause.",
+      "evidence": "services/research/semantics.py _dividend_ttm_leg() (lines 129-169) computes only a SYMMETRIC relative divergence (_relative_divergence, abs(a-b)/max(|a|,|b|)) with no sign/direction branch. When triggered, it always emits the SAME hardcoded note: \"The provider's dividend per share (Yahoo dividendRate) differs from the trailing-12-month dividends actually paid by more than 10% -- dividendRate can omit a special dividend, so the paid history is the complete figure.\" This note text assumes ONE specific causal story (dividendRate < ttm, an OMISSION). It has no code path or wording for the opposite case (dividendRate > ttm because it anticipates a declared-but-unpaid dividend) -- INFLATION. If a future name ever has dividendRate itself (not just trailingAnnualDividendRate) inflated by a declared-not-paid amount past the 10% threshold, D56 would fire and mislabel it with the 'omit a special dividend' narrative, which would be factually backwards for that case.",
+      "additional_gap": "D56 is a fixed 10%-relative-divergence gate with no minimum-magnitude floor and no awareness of pending corporate actions (record dates) at all -- it cannot distinguish 'stale/incomplete provider scalar' from 'provider scalar anticipating a not-yet-paid declared dividend' from 'provider scalar lagging a corporate action it hasn't ingested yet'. All three collapse to the same generic conflict shape when they cross threshold, and stay fully silent below it (as happened for PFC)."
+    }
+  }
+}

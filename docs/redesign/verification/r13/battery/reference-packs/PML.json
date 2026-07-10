@@ -1,0 +1,55 @@
+{
+  "symbol": "PML",
+  "exchange": ["NSE", "BSE"],
+  "bse_code": "539113",
+  "isin": "INE291E01019",
+  "legal_name": "Paul Merchants Ltd",
+  "former_names": null,
+  "sector_industry": "Financial Services / Forex and International Money Transfer (RBI-authorized Dealer Category II; sub-agent for inbound remittance; IATA-accredited travel agency; also holds NBFC subsidiary Paul Merchants Finance)",
+  "collected_at": "2026-07-10T10:07:46Z",
+  "collected_from": [
+    "https://www.screener.in/company/PML/consolidated/",
+    "https://scanx.trade/stock-market-news/companies/paul-merchants-fy26-profit-rises-on-sale-of-gold-loan-business/41462513",
+    "https://www.marketsmojo.com/news/stocks-in-action/paul-merchants-ltd-valuation-shifts-to-fair-amidst-weak-returns-and-sector-comparison-4045700",
+    "https://www.tijorifinance.com/company/paul-merchants-limited/"
+  ],
+  "reference": {
+    "price_close_recent": {"value": 488.0, "as_of": "2026-07-10"},
+    "market_cap_cr": 150.0,
+    "pe": 16.5,
+    "pb": 0.17,
+    "roe_pct": 1.20,
+    "dividend_yield_pct": 0.0,
+    "dividend_declared_vs_paid_note": "Screener shows trailing dividend yield of 0.00%, but the company issued an unclaimed-dividend transfer reminder in June-July 2026 with a deadline of 16 Aug 2026, indicating a dividend was declared/paid in a prior period that falls outside the current trailing-yield window — a genuine declared-vs-shown-trailing timing gap.",
+    "52w_high": 823.0,
+    "52w_low": 407.0,
+    "shareholding": {
+      "promoter_pct": 74.66,
+      "fii_pct": 0.0,
+      "dii_pct": 0.0,
+      "public_pct": 25.35,
+      "as_of_quarter": "Mar 2026"
+    },
+    "latest_quarter": {
+      "revenue_cr": null,
+      "net_profit_cr": null,
+      "period": null
+    },
+    "recent_filings": [
+      {"date": "2026-05-27", "title": "Board approved audited standalone and consolidated financial results for quarter and year ended 31 Mar 2026"},
+      {"date": "2026-06-01", "title": "RBI reclassified subsidiary Paul Merchants Finance from Middle Layer to Base Layer NBFC"},
+      {"date": "2026-07-01", "title": "Quarterly compliance certificate filed regarding dematerialization requests"}
+    ],
+    "peers": [
+      "Delphi World Money Ltd",
+      "MMTC Ltd",
+      "Multi Commodity Exchange of India Ltd",
+      "LKP Securities Ltd"
+    ]
+  },
+  "world_gaps": [
+    "Q4 FY26 quarter-only revenue and net profit could not be found published separately from full-year figures after checking screener, tickertape (404), and two targeted news searches. Only full-year FY26 (year ended Mar 2026) figures were found: consolidated revenue Rs 2,114.45 Cr, consolidated net profit Rs 268.74 Cr; standalone revenue Rs 2,086.94 Cr, standalone net profit Rs 13.19 Cr.",
+    "PE ratio is highly inconsistent across sources: screener shows 16.5, marketsmojo computes ~0.59x (consolidated-earnings basis), and a peer-comparison source shows 51.06 — the spread is driven by a one-off Rs 259.69 Cr gain from the sale of the discontinued gold-loan business inflating consolidated FY26 net profit relative to standalone/continuing-operations earnings. This is exactly the multi-segment revenue/earnings split subtlety flagged for this symbol; screener's 16.5 was used as the primary figure per instructions but should be treated with caution.",
+    "No collision with 'Pakistan Muslim League' confirmed per pre-verification; treated as a plain hostile pick with no collision framing."
+  ]
+}

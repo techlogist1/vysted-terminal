@@ -1,0 +1,40 @@
+{
+  "symbol": "DEN",
+  "exchange": ["NSE", "BSE"],
+  "bse_code": "533137",
+  "isin": "INE947J01015",
+  "legal_name": "Den Networks Ltd",
+  "former_names": null,
+  "sector_industry": "Communication Services / Media, Entertainment & Publication — Cable TV Distribution & Broadband (TV Broadcasting & Software Production sub-industry); one of India's largest cable TV distributors, ~11 million subscribers across 8 states; nearly debt-free",
+  "collected_at": "2026-07-10T10:07:46Z",
+  "collected_from": [
+    "https://www.screener.in/company/DEN/consolidated/",
+    "https://tickertape.in/stocks/den-networks-DENN/peers"
+  ],
+  "reference": {
+    "price_close_recent": {"value": 29.2, "as_of": "2026-07-10"},
+    "market_cap_cr": 1394,
+    "pe": 8.42,
+    "pb": 0.36,
+    "roe_pct": 4.48,
+    "dividend_yield_pct": 0.00,
+    "dividend_declared_vs_paid_note": null,
+    "52w_high": 42.8,
+    "52w_low": 22.5,
+    "shareholding": {"promoter_pct": 74.90, "fii_pct": 0.46, "dii_pct": 0.14, "public_pct": 24.42, "as_of_quarter": "Mar 2026"},
+    "latest_quarter": {"revenue_cr": 241, "net_profit_cr": 36, "period": "Q4 FY26"},
+    "recent_filings": [
+      {"date": "2026-07-14", "title": "Board Meeting Intimation for Consideration and Approval of Standalone and Consolidated Unaudited Financial Results (scheduled, Q1 FY27)"},
+      {"date": "2026-06-30", "title": "Closure of Trading Window"},
+      {"date": "2026-06-16", "title": "Clarification With Respect To Increase In The Volume Of Shares"},
+      {"date": "2026-06-15", "title": "Newspaper Clippings - Special Window For Transfer And Dematerialization (Demat) Of Physical Shares"}
+    ],
+    "peers": ["GTPL Hathway", "Hathway Cable and Datacom", "Siti Networks"]
+  },
+  "world_gaps": [
+    "No former/previous company name found in any source checked.",
+    "Peer-comparison table on screener.in did not render (JS-loaded, showed 'Loading peers table...'); peers list above was sourced from Tickertape search summaries rather than a direct peer-table fetch.",
+    "Minor cross-source variance noted: a Tickertape snapshot dated 19 Jun 2026 showed market cap Rs 1492.75 Cr and 52w range 42.60/22.52 vs screener.in (10 Jul 2026, used as primary) showing Rs 1394 Cr and 42.8/22.5 — within normal price-drift over ~3 weeks, not a data-quality flag.",
+    "Dividend payout has been 0% every year from Mar 2015 through Mar 2026 per screener history; no declared-vs-paid discrepancy to report."
+  ]
+}
