@@ -99,6 +99,35 @@ _OWNERSHIP_ZERO_FLOOR_PP = 0.5
 _CONFLICT_DATA = "data_conflict"
 _CONFLICT_DEFINITIONAL = "definitional_expected"
 
+#: Fundamentals-leg keys the snapshot builder attaches for the R13 cross-checks,
+#: mirroring the module constants ``earnings_quality.EARNINGS_KEY`` /
+#: ``range_check.RANGE_KEY`` / ``market_cap_witness.MCAP_WITNESS_KEY``. Kept as
+#: LITERALS here — like the growth ``*_computed`` keys — so this pure semantics
+#: module imports no fetch/provider/pandas deps. ``test_research_semantics`` pins
+#: each literal against its module constant so the linkage cannot drift.
+_EARNINGS_KEY = "earnings_quality"
+_RANGE_KEY = "range_52w_exchange"
+_MCAP_WITNESS_KEY = "market_cap_witness"
+
+#: Reported-vs-adjusted earnings (R13 / D70): the after-tax one-off component of
+#: reported net income is MATERIAL — every ratio built on the reported basis
+#: (PE/ROE/EPS) is meaningfully off the adjusted basis — when it is at least this
+#: fraction of |reported net income|. 40% sits well below the TI-shaped >1000%
+#: distortion yet above the noise of a routine small exceptional item.
+_EARNINGS_ONE_OFF_FRACTION = 0.40
+
+#: 52-week range cross-check (R13 / D71): the exchange-series high/low and the
+#: provider pair AGREE within this relative band on EACH bound; beyond it the
+#: bound is a conflict. 10% tolerates intraday-high-vs-close and session-timing
+#: differences while catching the BI (75 vs 116) / PML (645 vs 823) misses.
+_RANGE_TOLERANCE = 0.10
+
+#: Market-cap witness (R13 / D72): the provider market cap and price × the
+#: exchange-master (NON-provider) share count AGREE within this relative band;
+#: beyond it a conflict flags the non-circular disagreement. 10% catches the
+#: RBA 23% miss while tolerating session/rounding drift.
+_MARKET_CAP_WITNESS_TOLERANCE = 0.10
+
 
 def _leg_data(structured: dict[str, Any], leg: str) -> dict[str, Any]:
     """The ``data`` dict of an ok leg, or ``{}`` — never raises on thin shapes."""
@@ -567,6 +596,255 @@ def _ownership_leg(
     return facts, conflicts
 
 
+def _compact_currency(value: float, currency: str | None) -> str:
+    """A human-scaled amount for a NOTE string: ``₹X Cr`` for INR, ``X M`` else.
+
+    Income-statement amounts are raw (rupees/dollars); a bare ``208700000`` reads
+    as noise. INR scales to crore (÷1e7, the Indian convention); anything else
+    to millions so the note stays legible whatever the listing currency.
+    """
+    if currency and currency.strip().upper() == "INR":
+        return f"₹{value / 1e7:,.1f} Cr"
+    scaled = f"{value / 1e6:,.1f}M"
+    return f"{scaled} {currency}".strip() if currency else scaled
+
+
+def _earnings_quality_conflict(
+    provider: str,
+    reported: float,
+    adjusted: float,
+    one_off: float,
+    distortion: float,
+    currency: str | None,
+    period: str | None,
+) -> dict[str, Any]:
+    """The reported-vs-adjusted earnings conflict — DIRECTION aware (R13 / D70).
+
+    One-off CHARGES (``one_off < 0``) depress reported earnings, so reported PE
+    reads high and ROE low (the TI shape); one-off GAINS inflate them, so PE
+    reads low (the PML shape). Both bases are valid — this is the flag-never-pick
+    "both correct on different bases" case, hence ``definitional_expected``.
+    """
+    pct = distortion * 100.0
+    period_note = f" (FY {period})" if period else ""
+    if one_off < 0:
+        direction = (
+            "reported earnings are DEPRESSED by one-off charges, so PE reads high and "
+            "ROE reads low on the reported basis"
+        )
+    else:
+        direction = (
+            "reported earnings are INFLATED by one-off gains, so PE reads low on the reported basis"
+        )
+    note = (
+        f"Reported net income ({_compact_currency(reported, currency)}{period_note}) includes "
+        f"large one-off/exceptional items (~{_compact_currency(abs(one_off), currency)}, "
+        f"{pct:.0f}% of reported) — {direction}. PE/ROE/EPS here are on the REPORTED basis; "
+        f"the adjusted (normalized) basis ({_compact_currency(adjusted, currency)}) differs "
+        "materially. Both bases are valid; neither number is replaced."
+    )
+    return {
+        "field": "earnings_quality",
+        "kind": "earnings_quality_conflict",
+        "conflict_kind": _CONFLICT_DEFINITIONAL,
+        "sources": [
+            {
+                "provider": f"{provider} (reported net income)",
+                "value": round(reported, 2),
+                "basis": "reported (incl. one-off items)",
+            },
+            {
+                "provider": "derived (adjusted / normalized)",
+                "value": round(adjusted, 2),
+                "basis": "adjusted (ex one-off items)",
+            },
+        ],
+        "note": note,
+    }
+
+
+def _earnings_quality_leg(
+    fund: dict[str, Any], provider: str
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Flag ratios biased by a large one-off earnings distortion (R13 / D70).
+
+    Returns ``(facts, conflicts)``. Reads the annual-income-statement evidence
+    attached upstream under :data:`_EARNINGS_KEY`
+    (:func:`services.earnings_quality.get_earnings_quality`); when the after-tax
+    one-off component clears :data:`_EARNINGS_ONE_OFF_FRACTION` of reported net
+    income, the reported + adjusted net income are surfaced as separately-labeled
+    facts and a ``definitional_expected`` conflict names the PE/ROE/EPS basis
+    seam. Below the threshold — or with no evidence attached — nothing is emitted
+    (absence is honest); the provider ratios are NEVER replaced.
+    """
+    eq = fund.get(_EARNINGS_KEY)
+    if not isinstance(eq, dict):
+        return {}, []
+    distortion = _num(eq, "distortion_fraction")
+    reported = _num(eq, "reported_net_income")
+    one_off = _num(eq, "one_off_net")
+    if (
+        distortion is None
+        or reported is None
+        or one_off is None
+        or distortion < _EARNINGS_ONE_OFF_FRACTION
+    ):
+        return {}, []
+    normalized = _num(eq, "normalized_income")
+    adjusted = normalized if normalized is not None else reported - one_off
+    currency = fund.get("currency") if isinstance(fund.get("currency"), str) else None
+    period = eq.get("period") if isinstance(eq.get("period"), str) else None
+    basis = f"annual income statement{f', FY {period}' if period else ''}"
+
+    facts: dict[str, Any] = {
+        "reported_net_income": _value(
+            reported,
+            "Net income (reported, incl. one-offs)",
+            basis=basis,
+            unit="currency",
+        ),
+        "normalized_net_income": _value(
+            adjusted,
+            "Net income (adjusted, ex one-offs)",
+            basis=basis,
+            unit="currency",
+        ),
+    }
+    conflict = _earnings_quality_conflict(
+        provider, reported, adjusted, one_off, distortion, currency, period
+    )
+    return facts, [conflict]
+
+
+def _range_conflict(
+    field: str, label: str, provider: str, prov: float, exchange: float, source: str
+) -> dict[str, Any]:
+    """One 52-week-bound conflict — the provider scalar vs the exchange series."""
+    return {
+        "field": field,
+        "kind": "range_conflict",
+        "conflict_kind": _CONFLICT_DATA,
+        "sources": [
+            {
+                "provider": f"{provider} ({label})",
+                "value": round(prov, 2),
+                "basis": "provider 52-week scalar",
+            },
+            {
+                "provider": f"derived ({source} daily history)",
+                "value": round(exchange, 2),
+                "basis": "recomputed from the exchange series",
+            },
+        ],
+        "note": (
+            f"The provider's {label} ({prov:g}) disagrees with the {label} recomputed from "
+            f"the app's own {source} daily history ({exchange:g}) by more than 10% — the "
+            "provider 52-week pair can be stale/wrong while the exchange series the chart "
+            "renders is correct. Both are shown, neither replaced."
+        ),
+    }
+
+
+def _range_leg(fund: dict[str, Any], provider: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Cross-check the provider 52-week pair against the exchange series (D71).
+
+    Returns ``(facts, conflicts)``. Reads the recomputed high/low attached
+    upstream under :data:`_RANGE_KEY`
+    (:func:`services.research.range_check.get_52w_range`); a bound diverging past
+    :data:`_RANGE_TOLERANCE` from the provider scalar surfaces the exchange value
+    as a labeled fact and flags a data conflict carrying both figures. An
+    agreeing bound — or no attached series — emits nothing; the provider values
+    are NEVER replaced.
+    """
+    rng = fund.get(_RANGE_KEY)
+    if not isinstance(rng, dict):
+        return {}, []
+    source = rng.get("source") if isinstance(rng.get("source"), str) else "exchange"
+    facts: dict[str, Any] = {}
+    conflicts: list[dict[str, Any]] = []
+    for exch_key, prov_key, fact_key, label in (
+        ("high", "fifty_two_week_high", "fifty_two_week_high_exchange", "52-week high"),
+        ("low", "fifty_two_week_low", "fifty_two_week_low_exchange", "52-week low"),
+    ):
+        exchange = _num(rng, exch_key)
+        provider_value = _num(fund, prov_key)
+        if exchange is None or provider_value is None:
+            continue
+        if _relative_divergence(exchange, provider_value) <= _RANGE_TOLERANCE:
+            continue
+        facts[fact_key] = _value(
+            exchange,
+            f"{label} (exchange series)",
+            basis=f"{source} daily history",
+            unit="currency",
+        )
+        conflicts.append(
+            _range_conflict(prov_key, label, provider, provider_value, exchange, source)
+        )
+    return facts, conflicts
+
+
+def _market_cap_witness_leg(
+    fund: dict[str, Any], price: float | None, provider: str
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Witness the provider market cap against price × a NON-provider share count
+    (R13 / D72).
+
+    Returns ``(facts, conflicts)``. The existing price×shares check uses the
+    provider's OWN share count (circular); this reads a BSE-derived share count
+    attached upstream under :data:`_MCAP_WITNESS_KEY`
+    (:func:`services.market_cap_witness.get_market_cap_witness`) and flags a
+    provider market cap that diverges past :data:`_MARKET_CAP_WITNESS_TOLERANCE`
+    from ``price × witness shares``. Agreement — or no witness/no price — emits
+    nothing; the provider market cap is NEVER replaced.
+    """
+    witness = fund.get(_MCAP_WITNESS_KEY)
+    if not isinstance(witness, dict):
+        return {}, []
+    market_cap = _num(fund, "market_cap")
+    shares = _num(witness, "shares_outstanding")
+    source = witness.get("source") if isinstance(witness.get("source"), str) else "exchange master"
+    if market_cap is None or price is None or shares is None or shares <= 0:
+        return {}, []
+    implied = price * shares
+    if implied <= 0 or _relative_divergence(market_cap, implied) <= _MARKET_CAP_WITNESS_TOLERANCE:
+        return {}, []
+    facts = {
+        "market_cap_witness": _value(
+            round(implied, 2),
+            "Market cap (price × exchange share count)",
+            basis=source,
+            formula="price × exchange-master shares outstanding",
+            unit="currency",
+        )
+    }
+    conflict = {
+        "field": "market_cap",
+        "kind": "market_cap_witness_conflict",
+        "conflict_kind": _CONFLICT_DATA,
+        "sources": [
+            {
+                "provider": f"{provider} (reported market cap)",
+                "value": round(market_cap, 2),
+                "basis": "provider market cap (provider share count)",
+            },
+            {
+                "provider": "derived (price × exchange share count)",
+                "value": round(implied, 2),
+                "basis": source,
+            },
+        ],
+        "note": (
+            f"The provider market cap ({market_cap:,.0f}) diverges more than 10% from price × "
+            f"the exchange master's share count ({implied:,.0f}) — the plain price×shares check "
+            "uses the provider's OWN share count (circular), so a stale provider count (e.g. "
+            "live promoter-stake churn) hides there; this NON-provider witness catches it. "
+            "Both are shown, neither replaced."
+        ),
+    }
+    return facts, [conflict]
+
+
 def _dividend_leg(
     fund: dict[str, Any], price: float | None, provider: str
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
@@ -802,6 +1080,22 @@ def derive_semantics(
     data.update(ownership_facts)
     conflicts.extend(ownership_conflicts)
 
+    # D70: reported-vs-adjusted earnings — when reported net income carries a
+    # large one-off distortion (attached upstream as ``earnings_quality``), the
+    # PE/ROE/EPS basis seam is flagged and both net-income bases surfaced. The
+    # provider ratios are never replaced (disclosure, not substitution).
+    earnings_facts, earnings_conflicts = _earnings_quality_leg(fund, provider)
+    data.update(earnings_facts)
+    conflicts.extend(earnings_conflicts)
+
+    # D71: 52-week range — recompute the high/low from the app's own exchange-
+    # direct daily history (attached upstream as ``range_52w_exchange``) and flag
+    # a provider pair that disagrees beyond tolerance; the exchange value is
+    # surfaced beside it, the provider scalar never replaced.
+    range_facts, range_conflicts = _range_leg(fund, provider)
+    data.update(range_facts)
+    conflicts.extend(range_conflicts)
+
     market_cap = _num(fund, "market_cap")
     shares = _num(fund, "shares_outstanding")
     if market_cap is not None and shares is not None and price is not None:
@@ -828,6 +1122,14 @@ def derive_semantics(
                 }
             )
 
+    # D72: the market-cap WITNESS — price × a NON-provider (BSE-derived) share
+    # count breaks the circularity of the check above (which uses the provider's
+    # own share count). A divergence flags the provider mcap; it is never
+    # replaced. Attached upstream as ``market_cap_witness``.
+    mcap_facts, mcap_conflicts = _market_cap_witness_leg(fund, price, provider)
+    data.update(mcap_facts)
+    conflicts.extend(mcap_conflicts)
+
     # R12 (D67): the resolver's canonical name vs the provider's company name —
     # a material disagreement (rename/mis-resolution) is FLAGGED, never picked.
     identity = identity_crosscheck.identity_conflict(
@@ -851,6 +1153,8 @@ def derive_semantics(
 _PROMPT_KEYS = (
     "drawdown_from_high",
     "fifty_two_week_change",
+    "fifty_two_week_high_exchange",
+    "fifty_two_week_low_exchange",
     "dividend_yield",
     "dividend_per_share",
     "dividend_per_share_ttm",
@@ -859,6 +1163,9 @@ _PROMPT_KEYS = (
     "earnings_growth",
     "revenue_growth_computed",
     "earnings_growth_computed",
+    "reported_net_income",
+    "normalized_net_income",
+    "market_cap_witness",
     "promoter_percent_exchange",
     "institutions_percent_exchange",
 )

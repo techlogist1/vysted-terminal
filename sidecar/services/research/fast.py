@@ -245,9 +245,28 @@ async def snapshot_structured(
     nearest declared-but-not-yet-paid dividend, separated from the D56 TTM-paid
     figure so a future record date never collapses into "paid". Both never raise
     (every failure becomes ``None``); an absent figure attaches nothing.
+
+    R13 (D70/D71/D72): three more disclosure-only cross-checks ride the same
+    fan-out. ``earnings_quality``
+    (:func:`services.earnings_quality.get_earnings_quality`) measures the one-off
+    distortion in reported net income (the reported-vs-adjusted PE/ROE trap).
+    ``range_52w_exchange``
+    (:func:`services.research.range_check.get_52w_range`) recomputes the 52-week
+    high/low from the app's own exchange-direct history to catch a wrong provider
+    pair. ``market_cap_witness``
+    (:func:`services.market_cap_witness.get_market_cap_witness`) supplies a
+    NON-provider (BSE-derived) share count so the market-cap check is not
+    circular. All three never raise; an absent figure attaches nothing.
     """
-    from services import dividend_actions, growth_check, ownership_check
+    from services import (
+        dividend_actions,
+        earnings_quality,
+        growth_check,
+        market_cap_witness,
+        ownership_check,
+    )
     from services.dividend_history import get_dividend_ttm
+    from services.research import range_check
     from services.research.semantics import derive_semantics
 
     price_res, fund_res = await asyncio.gather(
@@ -278,11 +297,34 @@ async def snapshot_structured(
                 return None
             return await ownership_check.get_exchange_ownership(listing)
 
-        ttm, yoy, own, declared = await asyncio.gather(
+        # R13 (D70/D71/D72): three more disclosure-only cross-checks ride the same
+        # fan-out — reported-vs-adjusted earnings (annual income statement), the
+        # 52-week range (exchange-direct history), and the market-cap witness (a
+        # NON-provider BSE share count). Each is applicability-gated, never raises,
+        # and attaches nothing when it has no comparison to make.
+        async def _earn() -> earnings_quality.EarningsQuality | None:
+            if not earnings_quality.should_cross_check(fund_data):
+                return None
+            return await earnings_quality.get_earnings_quality(listing)
+
+        async def _range() -> range_check.Range52w | None:
+            if not range_check.should_cross_check(fund_data):
+                return None
+            return await range_check.get_52w_range(listing)
+
+        async def _mcap() -> market_cap_witness.MarketCapWitness | None:
+            if not market_cap_witness.should_cross_check(fund_data):
+                return None
+            return await market_cap_witness.get_market_cap_witness(listing)
+
+        ttm, yoy, own, declared, earn, rng, mcw = await asyncio.gather(
             get_dividend_ttm(listing),
             _yoy(),
             _own(),
             dividend_actions.get_declared_unpaid_dividend(listing),
+            _earn(),
+            _range(),
+            _mcap(),
         )
         if ttm is not None:
             fund_data["dividend_per_share_ttm"] = ttm
@@ -296,6 +338,12 @@ async def snapshot_structured(
             fund_data[ownership_check.OWNERSHIP_KEY] = own.as_wire()
         if declared is not None:
             fund_data[dividend_actions.DECLARED_KEY] = declared.as_wire()
+        if earn is not None:
+            fund_data[earnings_quality.EARNINGS_KEY] = earn.as_wire()
+        if rng is not None:
+            fund_data[range_check.RANGE_KEY] = rng.as_wire()
+        if mcw is not None:
+            fund_data[market_cap_witness.MCAP_WITNESS_KEY] = mcw.as_wire()
     out["derived"] = derive_semantics(out, region, canonical_name=canonical_name, symbol=symbol)
     return out
 
