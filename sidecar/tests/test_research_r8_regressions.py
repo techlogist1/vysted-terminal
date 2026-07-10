@@ -162,14 +162,24 @@ def test_heavy_resolves_exactly_once() -> None:
 def test_heavy_snapshot_is_shared_not_repulled_per_angle() -> None:
     tool = _SpyTool()
     _heavy(tool)
-    # The up-front price/fundamentals snapshot is pulled ONCE for the panel
-    # (researcher legs may add more, but never one snapshot per explorer).
-    price_calls = [name for name, _ in tool.calls if name == "price_data"]
-    assert price_calls.count("price_data") >= 1
-    # All snapshot pulls happened before the first web round (panel-level).
-    first_web = next(i for i, (n, _) in enumerate(tool.calls) if n == "web_search")
-    snapshot_before_web = [n for n, _ in tool.calls[:first_web] if n == "price_data"]
-    assert len(snapshot_before_web) == 1
+    names = [n for n, _ in tool.calls]
+    # The panel snapshot ran up front (price_data before the first web round).
+    first_web = next(i for i, n in enumerate(names) if n == "web_search")
+    assert "price_data" in names[:first_web]
+    # It is pulled ONCE for the panel, not once per explorer. R13: round-1
+    # researchers may add their OWN price leg (a "price action" sub-question),
+    # so counting price_data before the first web is no longer a clean signal —
+    # instead count the SNAPSHOT's signature: price_data immediately followed by
+    # fundamentals (snapshot_structured gathers the pair together up front). A
+    # researcher pulls a SINGLE structured tool gathered with web, never the
+    # pair — so the adjacent pair occurs exactly once (a per-explorer re-pull
+    # would show one pair per angle).
+    snapshot_pairs = sum(
+        1
+        for i in range(len(names) - 1)
+        if names[i] == "price_data" and names[i + 1] == "fundamentals"
+    )
+    assert snapshot_pairs == 1
 
 
 # --- (iii): a results PDF in hand yields its numbers ------------------------------

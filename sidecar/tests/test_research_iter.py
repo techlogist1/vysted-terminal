@@ -136,7 +136,11 @@ def test_iter_starved_wall_winds_down_cleanly_not_an_abort() -> None:
 
 def test_iter_context_is_reconstructed_not_appended() -> None:
     """The KEY IterResearch property: a later round's plan context carries the
-    distilled report + only the latest round's evidence — NOT the full history."""
+    distilled report + only the latest round's evidence — NOT the full history.
+
+    R13: round 1 is seeded deterministically (no planning turn), so 3 rounds
+    produce 2 planning turns — the reconstruction property is asserted on round 3
+    (the last plan turn)."""
     llm = FakeLLM(distill="DISTILLED_REPORT", reflect="gaps remain")  # never "complete"
     _run(
         run_iter_research(
@@ -146,8 +150,9 @@ def test_iter_context_is_reconstructed_not_appended() -> None:
             budget=BudgetGuard(max_steps=3),  # exactly 3 rounds, then abort→synthesize
         )
     )
-    assert len(llm.plan_prompts) == 3
-    round3 = llm.plan_prompts[2]
+    # Round 1 seeds its fan-out (no plan turn); rounds 2 + 3 plan → 2 prompts.
+    assert len(llm.plan_prompts) == 2
+    round3 = llm.plan_prompts[-1]
     # Round 3 sees the distilled report …
     assert "DISTILLED_REPORT" in round3
     # … and the LATEST round's findings (round 2 = FIND#4..6) …
@@ -168,8 +173,9 @@ def test_iter_report_render_is_capped() -> None:
             budget=BudgetGuard(max_steps=2),
         )
     )
-    # The round-2 plan prompt embeds report.render(); it must be bounded.
-    assert len(llm.plan_prompts[1]) < _REPORT_CHAR_CAP * 2
+    # The round-2 plan prompt (the FIRST plan turn — round 1 is seeded, R13)
+    # embeds report.render(); it must be bounded.
+    assert len(llm.plan_prompts[0]) < _REPORT_CHAR_CAP * 2
 
 
 def test_iter_distill_empty_keeps_shipping() -> None:
@@ -653,3 +659,29 @@ def test_filings_floor_wants_disclosures_floor_fires_for_any_indian_target() -> 
     )
     assert disclosures.wants_disclosures_floor(us) is False
     assert disclosures.wants_disclosures_floor(None) is False
+
+
+# --- R13 depth integrity: round-1 planning skip -------------------------------
+
+
+def test_round_one_skips_the_planning_llm_turn() -> None:
+    """R13: round 1 has nothing to plan against — it seeds its fan-out
+    deterministically (no planning LLM turn), reclaiming the ~60s the funded lane
+    spent planning while its researchers starved. The plan step still traces."""
+    llm = FakeLLM(reflect="complete")
+    brief = _run(
+        run_iter_research(
+            "research NVDA",
+            tool_call=fake_tool,
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=1),  # exactly one round runs, then abort
+        )
+    )
+    assert isinstance(brief, ResearchBrief)
+    # No planning turn was issued for round 1 (the fan-out was seeded).
+    assert llm.plan_prompts == []
+    # …but the plan STEP is still traced, marked as seeded.
+    plan_steps = [s for s in brief.steps if s.kind == "plan"]
+    assert plan_steps and "seeded" in plan_steps[0].detail
+    # Researchers still ran on the seed (findings/sources gathered).
+    assert any(s.kind == "tool" and "researcher" in s.detail for s in brief.steps)

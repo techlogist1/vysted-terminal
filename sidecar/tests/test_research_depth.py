@@ -277,9 +277,10 @@ def test_report_char_cap_knob_bounds_the_working_report() -> None:
             report_char_cap=cap,
         )
     )
-    # The round-2 plan prompt embeds report.render(); the ULTRA/DEEP cap knob
-    # (not the module default) must bound it.
-    assert len(llm.plan_prompts[1]) < cap * 3
+    # The round-2 plan prompt (the FIRST plan turn — round 1 is seeded, R13)
+    # embeds report.render(); the ULTRA/DEEP cap knob (not the module default)
+    # must bound it.
+    assert len(llm.plan_prompts[0]) < cap * 3
 
 
 def test_every_research_prompt_carries_the_server_date() -> None:
@@ -399,3 +400,55 @@ def test_composer_slider_is_the_floor_model_may_escalate() -> None:
     assert _resolve_depth("normal", "ultra") == "ultra"
     # both normal → normal.
     assert _resolve_depth(None, None) == "normal"
+
+
+# --- R13 depth integrity: slow-lane wall + adaptive round slice --------------
+
+
+def test_deep_wall_raised_for_slow_lanes_report_cap_unchanged() -> None:
+    """R13: DEEP's wall bumped 120→180s so the round-1 planning skip + adaptive
+    slice have headroom for a real second round; the report length (cap) is
+    unchanged, and NORMAL's fast path is untouched."""
+    normal = depth_mod.PROFILES[depth_mod.DEPTH_NORMAL]
+    deep_p = depth_mod.PROFILES[depth_mod.DEPTH_DEEP]
+    ultra = depth_mod.PROFILES[depth_mod.DEPTH_ULTRA]
+    assert deep_p.wall_seconds == 180
+    assert ultra.wall_seconds == 360
+    assert normal.wall_seconds == 0  # NORMAL fast path unchanged (its 33s is good)
+    assert deep_p.report_char_cap == 6000  # cap unchanged by the wall bump
+    assert deep_p.rounds == 3 and deep_p.researchers == 3
+    assert ultra.wall_seconds > deep_p.wall_seconds
+
+
+class _FakeBudget:
+    """A fake clock for the adaptive round-slice unit — ``wall_seconds`` is fixed."""
+
+    def __init__(self, *, max_wall_seconds: float | None, elapsed: float) -> None:
+        self.max_wall_seconds = max_wall_seconds
+        self._elapsed = elapsed
+
+    def wall_seconds(self) -> float:
+        return self._elapsed
+
+
+def test_round_wall_limit_adapts_to_observed_latency() -> None:
+    from services.research.deep import (
+        _PER_ROUND_WALL_SECS,
+        ROUND_SLICE_LATENCY_MULT,
+        _round_wall_limit,
+    )
+
+    # No observation → the flat per-round cap (backward compatible).
+    unbounded = _FakeBudget(max_wall_seconds=None, elapsed=0.0)
+    assert _round_wall_limit(unbounded) == _PER_ROUND_WALL_SECS
+    assert _round_wall_limit(unbounded, observed_latency=0.0) == _PER_ROUND_WALL_SECS
+    # A slow lane (60s turn) → 2.5× = 150s when the wall has room.
+    assert _round_wall_limit(unbounded, observed_latency=60.0) == ROUND_SLICE_LATENCY_MULT * 60.0
+    # A fast lane (10s) → still floored at the flat per-round cap.
+    assert _round_wall_limit(unbounded, observed_latency=10.0) == _PER_ROUND_WALL_SECS
+    # Bounded by remaining wall: 200s budget, 120s elapsed → 80s left caps the slice.
+    tight = _FakeBudget(max_wall_seconds=200.0, elapsed=120.0)
+    assert _round_wall_limit(tight, observed_latency=60.0) == 80.0
+    # Never negative (over-budget).
+    spent = _FakeBudget(max_wall_seconds=100.0, elapsed=150.0)
+    assert _round_wall_limit(spent, observed_latency=60.0) == 0.0

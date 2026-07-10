@@ -87,6 +87,13 @@ _PER_ROUND_WALL_SECS = 90.0
 #: after a round timeout.
 MIN_ROUND_WALL_SECS = 25.0
 
+#: Adaptive round-slice multiplier (R13): a round gets AT LEAST this many times
+#: the slowest LLM turn observed so far, so a slow "thinking" lane (a 60s
+#: planning turn on the funded OpenRouter lane) is not choked by the flat 90s
+#: per-round cap — its researchers still get room within the round. Bounded above
+#: by the run's remaining wall, so it can never outlive the wall ceiling.
+ROUND_SLICE_LATENCY_MULT = 2.5
+
 #: The HUMAN note a budget-stopped brief carries (R8). The raw breach reason
 #: (token/spend/wall/step ceilings) is a dev detail on the step trace;
 #: ``brief.note`` renders to the USER and must read like a sentence — never
@@ -103,15 +110,21 @@ def remaining_wall(budget: BudgetGuard) -> float | None:
     return budget.max_wall_seconds - budget.wall_seconds()
 
 
-def _round_wall_limit(budget: BudgetGuard) -> float:
+def _round_wall_limit(budget: BudgetGuard, *, observed_latency: float | None = None) -> float:
     """Seconds the CURRENT round may run before the per-round guard fires.
 
-    The per-round cap (:data:`_PER_ROUND_WALL_SECS`), further bounded by the run's
+    The per-round cap (:data:`_PER_ROUND_WALL_SECS`), ADAPTIVELY RAISED (R13) to
+    at least :data:`ROUND_SLICE_LATENCY_MULT` × the slowest LLM turn seen so far
+    (``observed_latency``, seconds) so a slow lane's researchers are not choked by
+    the flat cap after a slow planning turn — then further bounded by the run's
     remaining wall budget so a round can never outlive the wall ceiling. Always a
-    finite, non-negative number (even with no wall budget the per-round cap
-    applies), so ``asyncio.timeout`` is never a silent no-op for a research round.
+    finite, non-negative number (even with no wall budget the cap applies), so
+    ``asyncio.timeout`` is never a silent no-op for a research round.
     """
-    limit = _PER_ROUND_WALL_SECS
+    base = _PER_ROUND_WALL_SECS
+    if observed_latency and observed_latency > 0:
+        base = max(base, ROUND_SLICE_LATENCY_MULT * observed_latency)
+    limit = base
     if budget.max_wall_seconds is not None:
         limit = min(limit, budget.max_wall_seconds - budget.wall_seconds())
     return max(limit, 0.0)
@@ -1289,6 +1302,7 @@ __all__ = [
     "LLMCall",
     "MIN_ROUND_WALL_SECS",
     "OnStep",
+    "ROUND_SLICE_LATENCY_MULT",
     "ToolCall",
     "VisitCall",
     "build_structured_floor",
