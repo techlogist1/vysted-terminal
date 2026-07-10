@@ -306,3 +306,51 @@ def test_fast_one_leg_failure_is_non_fatal() -> None:
     # The other legs still came through.
     assert bundle["structured"]["price"]["ok"] is True
     assert bundle["structured"]["news"]["ok"] is True
+
+
+# --- R13 entity-anchored NORMAL (fast-path) web query -----------------------
+
+
+class _QueryCapturingToolCall(_FakeToolCall):
+    """Records the web_search query so the anchored NORMAL query can be pinned."""
+
+    def __init__(self, *, symbol: str, name: str) -> None:
+        super().__init__()
+        self._symbol = symbol
+        self._name = name
+        self.web_query: str | None = None
+
+    def _dispatch(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+        if name == "resolve_symbol":
+            return {
+                "ok": True,
+                "query": args.get("query"),
+                "region": "IN",
+                "resolved": {
+                    "symbol": self._symbol,
+                    "name": self._name,
+                    "exchange": "BSE",
+                    "region": "IN",
+                    "asset_class": "equity",
+                    "yahoo_symbol": f"{self._symbol}.BO",
+                    "confidence": 1.0,
+                    "isin": "INE953E01022",
+                    "bse_code": "519421",
+                    "industry": None,
+                },
+                "needs_disambiguation": False,
+                "candidates": [],
+            }
+        if name == "web_search":
+            self.web_query = args.get("query")
+            return {"ok": True, "citations": [], "results": []}
+        return super()._dispatch(name, args)
+
+
+def test_fast_normal_query_quotes_the_display_name() -> None:
+    """NORMAL fast path anchors on the QUOTED display name + bare symbol so a
+    famous foreign namesake can't shadow a ≤3-char ticker (KSE ← Karachi)."""
+    tool = _QueryCapturingToolCall(symbol="KSE", name="KSE Ltd")
+    out = asyncio.run(gather_fast("KSE outlook", region="IN", tool_call=tool))
+    assert out["symbol"] == "KSE"
+    assert tool.web_query == '"KSE Ltd" KSE KSE outlook news outlook'

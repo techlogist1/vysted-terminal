@@ -714,16 +714,28 @@ async def _run_researcher(
 def _researcher_web_query(sub_question: str, *, target: ResearchTarget | None, query: str) -> str:
     """The researcher's web query, anchored on the BOUND instrument.
 
-    With a target: ``"{name}" {symbol} {sub_question}`` — the quoted display
-    name pins the engine on the company (the bare-ticker query is what let
-    crypto "Router Protocol" rows flood a Route Mobile run). Without a target:
-    the clean user query + the sub-question.
+    With a target: ``"{name}" {symbol} {anchor} {sub_question}`` — the quoted
+    display name pins the engine on the company (the bare-ticker query is what
+    let crypto "Router Protocol" rows flood a Route Mobile run), and ``{anchor}``
+    (R13) adds ONE corroborating identity token beyond it — the exchange
+    qualifier ("BSE"/"NSE") for an Indian listing, plus a concise industry term
+    on a fundamentals-shaped sub-question — so a ≤3-char ticker (KSE) is pinned
+    to the Indian exchange, not its famous foreign namesake (Karachi's KSE-100).
+    Without a target: the clean user query + the sub-question.
     """
     if target is None:
         return f"{query} {sub_question}".strip()
+    anchor = finance.anchor_tokens(
+        region=target.region,
+        exchange=target.exchange,
+        industry=target.industry,
+        sub_question=sub_question,
+    )
     if target.name and target.name.upper() != target.symbol:
-        return f'"{target.name}" {target.symbol} {sub_question}'
-    return f"{target.symbol} {sub_question}"
+        parts = [f'"{target.name}"', target.symbol, anchor, sub_question]
+    else:
+        parts = [target.symbol, anchor, sub_question]
+    return " ".join(p for p in parts if p).strip()
 
 
 def _synthesize_brief(
