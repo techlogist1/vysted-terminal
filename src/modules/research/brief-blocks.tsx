@@ -109,6 +109,19 @@ interface MetricItem {
   title?: string;
 }
 
+/**
+ * One conflict flag line + its NATURE tier (R13 / D69) — orthogonal to the
+ * conflict's field-level `kind` (identity/ownership/growth/…): `data_conflict`
+ * is a genuine cross-source contradiction (warning tone); `definitional_expected`
+ * is a divergence a known definition/basis difference already explains (e.g. a
+ * bank's revenue-line definition, insiders vs promoter-group) — a quiet info
+ * note, never alarmed like a real conflict.
+ */
+interface ConflictLine {
+  text: string;
+  kind: "definitional_expected" | "data_conflict";
+}
+
 interface MetricsModel {
   symbol?: string;
   provider?: string;
@@ -122,7 +135,7 @@ interface MetricsModel {
   items: MetricItem[];
   /** Cross-source disagreements the pipeline FLAGGED instead of silently
    *  picking (R10 E8) — rendered as a caption flag row, never reconciled here. */
-  conflicts: string[];
+  conflicts: ConflictLine[];
 }
 
 function isLeg(
@@ -208,43 +221,88 @@ function withBasis(formatted: string, v: BriefDerivedValue): string {
   return `${formatted} · ${basis}`;
 }
 
+/** A derived-leg entry that carries a real, labeled value (a `BriefDerivedValue`
+ *  shape) — as opposed to `conflicts`, the leg's one non-value array key. */
+function isDerivedValueLike(v: unknown): v is BriefDerivedValue {
+  return (
+    typeof v === "object" &&
+    v !== null &&
+    "value" in v &&
+    "label" in v &&
+    typeof (v as { label: unknown }).label === "string"
+  );
+}
+
+/** Fields whose direction is meaningful (growth, 52w change) render with an
+ *  explicit +/− sign; level facts (yields, holdings, per-share amounts,
+ *  the ownership cross-check's percentages) render unsigned. Matched as a
+ *  whole underscore-delimited token — a plain substring test would false-
+ *  positive "exchange" (contains "change") on the ownership cross-check keys. */
+function isSignedDerivedField(key: string): boolean {
+  return key.split("_").some((part) => part === "growth" || part === "change");
+}
+
 /**
  * The semantics-leg cards (R10 E8) — rendered FIRST, before the raw provider
- * grid, because these are the values with explicit labels/bases/formulas:
- * drawdown-from-high and 52w-change as SEPARATE cards (the conflation the
- * operator caught), dividend with its basis, growth with its basis suffix.
- * A null value renders nothing — never a fabricated figure (Constitution VI).
+ * grid, because these are the values with explicit labels/bases/formulas.
+ *
+ * Iterates EVERY entry the derived leg carries rather than naming each field —
+ * R13's ownership cross-check (`promoter_percent_exchange`,
+ * `institutions_percent_exchange`) and the D56/D57 dividend facts
+ * (`dividend_per_share_ttm`, `dividend_declared`) already arrive as ordinary
+ * labeled `BriefDerivedValue`s on this same leg; a new fact the sidecar starts
+ * emitting renders automatically, with no per-field code added here (the wire
+ * carries more keys than the `BriefDerivedMetrics` interface names, by design —
+ * this loop is how they surface without widening the contract). A null value
+ * is skipped — never a fabricated figure (Constitution VI).
  */
 function derivedItems(derived: BriefDerivedMetrics, currency?: string | null): MetricItem[] {
   const items: MetricItem[] = [];
-  const push = (v: BriefDerivedValue | undefined, format: (v: BriefDerivedValue) => string) => {
-    if (!v || typeof v.value !== "number" || Number.isNaN(v.value)) {
-      return;
+  const entries = Object.entries(derived) as [string, unknown][];
+  for (const [key, raw] of entries) {
+    if (key === "conflicts" || !isDerivedValueLike(raw)) {
+      continue;
     }
+    if (typeof raw.value !== "number" || Number.isNaN(raw.value)) {
+      continue;
+    }
+    const format = (v: BriefDerivedValue): string => {
+      // Drawdown reads as a NEGATIVE magnitude ("below the high"), whatever
+      // sign the wire carried — it can never wear 52w-change's upward-looking
+      // label. The one field-specific exception to the otherwise-generic loop.
+      if (key === "drawdown_from_high") {
+        return formatFractionPct(-Math.abs(v.value as number));
+      }
+      return formatDerived(v, isSignedDerivedField(key), currency);
+    };
     items.push({
-      label: v.label,
-      value: withBasis(format(v), v),
-      title: v.formula ?? v.basis,
+      label: raw.label,
+      value: withBasis(format(raw), raw),
+      title: raw.formula ?? raw.basis,
     });
-  };
-  // Drawdown reads as a NEGATIVE magnitude ("below the high"), whatever sign
-  // the wire carried — it can never wear 52w-change's upward-looking label.
-  push(derived.drawdown_from_high, (v) => formatFractionPct(-Math.abs(v.value as number)));
-  push(derived.fifty_two_week_change, (v) => formatDerived(v, true));
-  push(derived.dividend_yield, (v) => formatDerived(v, false));
-  push(derived.dividend_per_share, (v) => formatDerived(v, false, currency));
-  push(derived.revenue_growth, (v) => formatDerived(v, true));
-  push(derived.earnings_growth, (v) => formatDerived(v, true));
+  }
   return items;
 }
 
-/** One human line per flagged conflict — provenance-named values + the
- *  pipeline's note, never silently reconciled (R10 E8). */
-function conflictLines(conflicts: readonly BriefMetricConflict[] | undefined): string[] {
+function capitalizeFirst(s: string): string {
+  return s.length > 0 ? s[0].toUpperCase() + s.slice(1) : s;
+}
+
+/**
+ * One human line per flagged conflict — provenance-named values + the
+ * pipeline's note, never silently reconciled (R10 E8) — tagged with its NATURE
+ * tier (R13 / D69): `conflict_kind === "definitional_expected"` (a known
+ * definition/basis difference — bank revenue-line, insiders vs promoter-group)
+ * leads with an "expected definitional difference" framing instead of the
+ * alarmed "Sources disagree" lead-in; a genuine `data_conflict` (or an absent
+ * `conflict_kind`, the contract's stated default) keeps the original framing.
+ * `MetricsBlock` renders the two tiers with distinct tone + chip.
+ */
+function conflictLines(conflicts: readonly BriefMetricConflict[] | undefined): ConflictLine[] {
   if (!Array.isArray(conflicts)) {
     return [];
   }
-  const lines: string[] = [];
+  const lines: ConflictLine[] = [];
   for (const conflict of conflicts) {
     if (!conflict || typeof conflict !== "object") {
       continue;
@@ -262,7 +320,19 @@ function conflictLines(conflicts: readonly BriefMetricConflict[] | undefined): s
     if (!field && !detail) {
       continue;
     }
-    lines.push(field ? `Sources disagree on ${field}: ${detail}` : detail);
+    const kind: ConflictLine["kind"] =
+      conflict.conflict_kind === "definitional_expected"
+        ? "definitional_expected"
+        : "data_conflict";
+    const text =
+      kind === "definitional_expected"
+        ? field
+          ? `${capitalizeFirst(field)} — expected definitional difference: ${detail}`
+          : detail
+        : field
+          ? `Sources disagree on ${field}: ${detail}`
+          : detail;
+    lines.push({ text, kind });
   }
   return lines;
 }
@@ -750,21 +820,38 @@ function MetricsBlock({ model }: { model: MetricsModel }) {
           ))}
         </div>
       ) : null}
-      {/* Cross-source conflicts (R10 E8) — flagged, never silently reconciled:
-          a quiet caption flag row under the grid, warning-tinted edge only. */}
+      {/* Cross-source conflicts (R10 E8), tiered by NATURE (R13 / D69): a genuine
+          data_conflict keeps the warning-tinted edge + CONFLICT chip; a known
+          definitional_expected divergence (bank revenue-line, insiders vs
+          promoter-group) is a quiet zinc info note + DEFINITIONAL chip — never
+          alarmed like a real contradiction, never silently reconciled either. */}
       {model.conflicts.length > 0 ? (
         <ul
           className="border-charcoal-800 flex flex-col gap-1 border-t px-3 py-2"
           aria-label="Source conflicts"
         >
-          {model.conflicts.map((line, i) => (
-            <li
-              key={i}
-              className="border-warning/40 text-caption text-charcoal-300 border-l-2 pl-2 leading-relaxed"
-            >
-              {line}
-            </li>
-          ))}
+          {model.conflicts.map((line, i) => {
+            const definitional = line.kind === "definitional_expected";
+            return (
+              <li
+                key={i}
+                className={`text-caption border-l-2 pl-2 leading-relaxed ${
+                  definitional
+                    ? "border-charcoal-600 text-charcoal-400"
+                    : "border-warning/40 text-charcoal-300"
+                }`}
+              >
+                <span
+                  className={`text-micro mr-1 inline-block align-baseline font-medium tracking-wide ${
+                    definitional ? "text-charcoal-500" : "text-warning"
+                  }`}
+                >
+                  {definitional ? "DEFINITIONAL" : "CONFLICT"}
+                </span>
+                {line.text}
+              </li>
+            );
+          })}
         </ul>
       ) : null}
     </section>

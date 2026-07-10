@@ -63,6 +63,14 @@ export interface EquityOverview {
   symbol: string;
   quote: Quote | null;
   fundamentals: Fundamentals | null;
+  /**
+   * Why the fundamentals leg failed, when it did (R13) — a 404 (the sidecar no
+   * longer serves an all-null shell) or any other rejection surfaces its real
+   * reason here instead of `fundamentals` collapsing to a bare `null` the panel
+   * can't explain. `null` when the leg succeeded, or failed with nothing more
+   * specific to say.
+   */
+  fundamentalsError: string | null;
   income: IncomeStatement | null;
   balance: BalanceSheet | null;
   cashFlow: CashFlowStatement | null;
@@ -73,6 +81,20 @@ export interface EquityOverview {
 
 function settled<T>(result: PromiseSettledResult<T>): T | null {
   return result.status === "fulfilled" ? result.value : null;
+}
+
+/** The human reason a leg was rejected — the sidecar's own detail via
+ *  `SidecarError`, an `Error#message`, or a generic fallback. `null` for a
+ *  fulfilled leg. */
+function rejectionReason(result: PromiseSettledResult<unknown>): string | null {
+  if (result.status !== "rejected") {
+    return null;
+  }
+  const reason: unknown = result.reason;
+  if (reason instanceof SidecarError || reason instanceof Error) {
+    return reason.message;
+  }
+  return "Failed to load fundamentals.";
 }
 
 /** Fetch every section for one symbol; partial failures degrade gracefully. */
@@ -93,6 +115,7 @@ export async function loadEquityOverview(symbol: string): Promise<EquityOverview
     symbol,
     quote: settled(quote),
     fundamentals: settled(fundamentals),
+    fundamentalsError: rejectionReason(fundamentals),
     income: settled(income),
     balance: settled(balance),
     cashFlow: settled(cashFlow),
