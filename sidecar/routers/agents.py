@@ -51,12 +51,17 @@ class ActionAckRequest(BaseModel):
     #: Optional applied-brief identity ({run_id, created_at, symbol,
     #: source_count}) so the divergence notice can name what actually rendered.
     brief: dict[str, Any] | None = None
+    #: Optional generic host-action descriptor ({action, symbol/panel}) — the
+    #: read-back the runtime folds into the in-loop grounded tool-result so the
+    #: model narrates the real outcome of EVERY host action (R13 JARVIS), not
+    #: just publish_brief. Additive; older frontends omit it.
+    detail: dict[str, Any] | None = None
 
 
 @router.post("/actions/ack")
 def ack_action(payload: ActionAckRequest) -> dict[str, bool]:
     """Record the frontend's outcome for one dispatched host action."""
-    action_ledger.record(payload.tool_call_id, payload.status, payload.brief)
+    action_ledger.record(payload.tool_call_id, payload.status, payload.brief, payload.detail)
     return {"ok": True}
 
 

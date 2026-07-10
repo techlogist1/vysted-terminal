@@ -25,6 +25,23 @@ export interface ResearchSpaceTurn {
   createdAt: number;
 }
 
+/**
+ * One figure the agent STATED this session (R13 JARVIS 3a) — recorded
+ * DETERMINISTICALLY from a published brief's structured metric cards (no LLM
+ * parsing), so a later turn that contradicts it materially can be reconciled
+ * openly instead of silently switched.
+ */
+export interface ResearchSpaceClaim {
+  /** The instrument the figure is about (upper-case ticker). */
+  symbol: string;
+  /** The metric label as the brief stated it (e.g. "P/E", "Revenue growth"). */
+  metric: string;
+  /** The stated numeric value. */
+  value: number;
+  /** Epoch milliseconds the figure was stated. */
+  statedAt: number;
+}
+
 /** Durable agent memory for a single research space. */
 export interface ResearchSpaceMemory {
   /** The symbol this space researches (mirrors `SerializedWorkspace.researchSymbol`). */
@@ -40,6 +57,14 @@ export interface ResearchSpaceMemory {
    * Optional — derived from the transcript when not set explicitly.
    */
   summary?: string;
+  /**
+   * Prior stated figures for this space (R13 JARVIS 3a) — a bounded,
+   * deterministically-recorded ledger of the metrics the agent published here, so
+   * the copilot can reconcile a materially-contradicting new figure openly rather
+   * than silently switching. Capped to {@link RESEARCH_SPACE_CLAIMS_CAP}. Optional
+   * — older blobs omit it.
+   */
+  claims?: ResearchSpaceClaim[];
   /** Epoch milliseconds the memory was last written. */
   updatedAt: number;
 }
@@ -56,3 +81,6 @@ export interface WorkspaceResearchSpaces {
 
 /** Hard cap on transcript turns persisted per space (keeps the blob bounded). */
 export const RESEARCH_SPACE_TRANSCRIPT_CAP = 40;
+
+/** Hard cap on stated-value claims retained per space (keeps the blob bounded). */
+export const RESEARCH_SPACE_CLAIMS_CAP = 50;

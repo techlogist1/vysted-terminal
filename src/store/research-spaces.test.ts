@@ -116,6 +116,61 @@ describe("research-spaces store — per-space agent memory", () => {
     expect(useResearchSpacesStore.getState().getMemory("Research: NVDA")?.symbol).toBe("NVDA");
   });
 
+  // --- R13 JARVIS 3a: stated-value claims ledger -----------------------------
+
+  it("recordClaims appends bounded claims and seeds a memory entry when absent", () => {
+    useResearchSpacesStore.getState().recordClaims("Research: NVDA", [
+      { symbol: "NVDA", metric: "P/E", value: 55, statedAt: 1 },
+      { symbol: "NVDA", metric: "Price", value: 900, statedAt: 1 },
+    ]);
+    const mem = useResearchSpacesStore.getState().getMemory("Research: NVDA");
+    expect(mem?.symbol).toBe("NVDA");
+    expect(mem?.claims).toHaveLength(2);
+    // A second record appends (a later turn adds to the ledger).
+    useResearchSpacesStore
+      .getState()
+      .recordClaims("Research: NVDA", [{ symbol: "NVDA", metric: "P/E", value: 52, statedAt: 2 }]);
+    expect(useResearchSpacesStore.getState().getMemory("Research: NVDA")?.claims).toHaveLength(3);
+  });
+
+  it("recordClaims caps the ledger at 50 (keeps the most recent)", () => {
+    const many = Array.from({ length: 60 }, (_, i) => ({
+      symbol: "NVDA",
+      metric: `M${i}`,
+      value: i,
+      statedAt: i,
+    }));
+    useResearchSpacesStore.getState().recordClaims("Research: NVDA", many);
+    const claims = useResearchSpacesStore.getState().getMemory("Research: NVDA")?.claims ?? [];
+    expect(claims).toHaveLength(50);
+    expect(claims[claims.length - 1].metric).toBe("M59");
+  });
+
+  it("recordClaims is a no-op for an empty name or empty list", () => {
+    useResearchSpacesStore
+      .getState()
+      .recordClaims("", [{ symbol: "NVDA", metric: "P/E", value: 55, statedAt: 1 }]);
+    useResearchSpacesStore.getState().recordClaims("Research: NVDA", []);
+    expect(useResearchSpacesStore.getState().getMemory("Research: NVDA")).toBeNull();
+  });
+
+  it("saveSpace preserves the claims ledger; snapshot/replaceAll round-trip it", () => {
+    useResearchSpacesStore
+      .getState()
+      .recordClaims("Research: NVDA", [{ symbol: "NVDA", metric: "P/E", value: 55, statedAt: 1 }]);
+    // A save rebuilds the transcript but must NOT wipe the claims.
+    useResearchSpacesStore.getState().saveSpace("Research: NVDA", "NVDA");
+    expect(useResearchSpacesStore.getState().getMemory("Research: NVDA")?.claims).toHaveLength(1);
+    // Round-trip through the workspace-blob shape.
+    const snap = useResearchSpacesStore.getState().snapshot();
+    expect(snap.byName["Research: NVDA"].claims).toHaveLength(1);
+    useResearchSpacesStore.setState({ byName: {} });
+    useResearchSpacesStore.getState().replaceAll(snap);
+    expect(useResearchSpacesStore.getState().getMemory("Research: NVDA")?.claims).toEqual([
+      { symbol: "NVDA", metric: "P/E", value: 55, statedAt: 1 },
+    ]);
+  });
+
   it("summarizeTranscript handles an empty transcript and trims/condenses recent questions", () => {
     expect(summarizeTranscript([], "NVDA")).toMatch(/New research space for NVDA/);
     const summary = summarizeTranscript(

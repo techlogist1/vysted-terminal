@@ -175,7 +175,14 @@ TERMINAL_CAPABILITIES_PREAMBLE = (
     "you proposed it, never claim it is done; a result that reports a failure "
     "means it did NOT happen — say plainly what could not be done. Orders are "
     "never placed by you: propose_order only ever stages an order behind the "
-    "user's explicit confirm-before-place dialog, in every mode."
+    "user's explicit confirm-before-place dialog, in every mode.\n"
+    "Stay consistent across turns: when a figure you are about to state "
+    "materially contradicts a PRIOR STATED VALUE listed in the terminal context "
+    "(the same symbol + metric you stated earlier this session), do NOT silently "
+    "switch — acknowledge both openly, state the new figure alongside the prior "
+    "one, and explain the change (a new quarter, a different provider, or a "
+    "correction). Silently flipping a number the user already saw reads as an "
+    "error, not an update."
 )
 
 
@@ -319,6 +326,53 @@ def reload(agents_dir: Path = AGENTS_DIR) -> None:
 # ---------------------------------------------------------------------------
 
 
+#: Hard cap on prior-stated-value claims rendered into the preamble (R13 JARVIS
+#: 3b) — the frontend already trims to the recent window; this bounds token cost.
+_MAX_PREAMBLE_CLAIMS = 12
+
+
+def _fmt_claim_value(value: float) -> str:
+    """Compact rendering of a stated figure for the preamble."""
+    magnitude = abs(value)
+    if magnitude != 0 and (magnitude >= 1e12 or magnitude < 1e-4):
+        return f"{value:.4g}"
+    if magnitude >= 1000:
+        return f"{value:,.2f}"
+    return f"{value:.4g}"
+
+
+def _render_prior_stated_values(claims: Any) -> str | None:
+    """The "PRIOR STATED VALUES" line (R13 JARVIS 3b): a compact, capped list of
+    figures the agent STATED this session so a materially-contradicting new value
+    is reconciled openly, never silently switched. ``None`` when there is nothing
+    to state — a thin/garbled claims list never renders a half line.
+    """
+    if not isinstance(claims, list) or not claims:
+        return None
+    parts: list[str] = []
+    for claim in claims[-_MAX_PREAMBLE_CLAIMS:]:
+        if not isinstance(claim, dict):
+            continue
+        metric = claim.get("metric")
+        value = claim.get("value")
+        symbol = claim.get("symbol") or "?"
+        if not isinstance(metric, str) or not isinstance(value, (int, float)):
+            continue
+        if isinstance(value, bool):
+            continue
+        when = ""
+        stated = claim.get("statedAt")
+        if isinstance(stated, (int, float)) and not isinstance(stated, bool):
+            try:
+                when = " @" + datetime.fromtimestamp(stated / 1000, UTC).strftime("%H:%M")
+            except (ValueError, OverflowError, OSError):
+                when = ""
+        parts.append(f"{symbol} {metric}={_fmt_claim_value(float(value))}{when}")
+    if not parts:
+        return None
+    return "PRIOR STATED VALUES (this session): " + "; ".join(parts)
+
+
 def _render_terminal_preamble(ts: dict[str, Any]) -> str:
     """Render the structured ``TerminalState`` into a SHORT labelled preamble.
 
@@ -345,6 +399,9 @@ def _render_terminal_preamble(ts: dict[str, Any]) -> str:
             lines.append(f"Prior research memory: {memory.strip()}")
         elif prior:
             lines.append(f"This space has {prior} prior conversation turn(s) on {sym}.")
+        prior_values = _render_prior_stated_values(rs.get("claims"))
+        if prior_values:
+            lines.append(prior_values)
     charts = ts.get("charts") or []
     if charts:
         c = charts[0]
@@ -881,13 +938,65 @@ _ACK_GRACE_SECONDS = 0.8
 _ACK_POLL_SECONDS = 0.1
 
 
+def _ack_brief(entry: dict[str, Any] | None) -> dict[str, Any]:
+    """The applied-brief identity dict off an ack entry, or ``{}``."""
+    brief = entry.get("brief") if isinstance(entry, dict) else None
+    return brief if isinstance(brief, dict) else {}
+
+
+def _ack_symbol(entry: dict[str, Any] | None) -> str | None:
+    """The normalised symbol an ack's brief identity names, or ``None``."""
+    sym = _ack_brief(entry).get("symbol")
+    return sym.strip().upper() if isinstance(sym, str) and sym.strip() else None
+
+
+def _ack_brief_label(entry: dict[str, Any] | None) -> str:
+    """``" (SYMBOL, N sources)"`` from the ack's applied-brief identity, else
+    ``""`` — names what is ACTUALLY on screen so a notice is concrete, not the
+    old hardcoded "richer brief" claim (R13 JARVIS 1c)."""
+    brief = _ack_brief(entry)
+    sym = brief.get("symbol")
+    count = brief.get("source_count")
+    parts: list[str] = []
+    if isinstance(sym, str) and sym.strip():
+        parts.append(sym.strip().upper())
+    if isinstance(count, (int, float)) and not isinstance(count, bool):
+        n = int(count)
+        parts.append(f"{n} source{'' if n == 1 else 's'}")
+    return f" ({', '.join(parts)})" if parts else ""
+
+
+def _superseded_by_later_apply(pos: int, entries: list[tuple[str, dict[str, Any] | None]]) -> bool:
+    """True when a LATER entry is an APPLIED publish of the same panel/symbol.
+
+    The brief panel is single-slot: once a later publish of the SAME symbol (or
+    of an unknown symbol — the slot is occupied either way) lands ``applied``,
+    it is the artifact on screen, so this earlier non-applied call is SUPERSEDED,
+    not a real divergence. Suppressing its notice kills tonight's false
+    contradiction — a per-call ``kept_previous`` chip firing while the panel
+    already shows the later, successful publish (R13 JARVIS 1c).
+    """
+    this_symbol = _ack_symbol(entries[pos][1])
+    for _cid, entry in entries[pos + 1 :]:
+        if not entry or entry.get("status") != "applied":
+            continue
+        later_symbol = _ack_symbol(entry)
+        if this_symbol is None or later_symbol is None or later_symbol == this_symbol:
+            return True
+    return False
+
+
 async def _publish_divergence_notices(publish_calls: list[str]) -> list[LLMResearchStepEvent]:
     """The end-of-stream read-back (E3.3): one quiet notice per publish whose
     panel outcome DIVERGED from the dispatched optimism.
 
     Checks the ack ledger for every ``publish_brief`` tool call of this turn:
-    no ack → "the panel did not confirm"; ``kept_previous`` → the D33 shrink
-    guard kept the richer brief; ``failed`` → the apply failed. Rides the
+    no ack → "the panel did not confirm"; ``kept_previous`` → the panel kept the
+    artifact already on screen (NAMED from the ack — never the old hardcoded
+    "richer brief" claim); ``failed`` → the apply failed. A call SUPERSEDED by a
+    later successful publish of the same panel/symbol in the SAME turn emits
+    NOTHING (:func:`_superseded_by_later_apply`) — the panel shows the applied
+    one, so a per-call contradiction would lie (R13 JARVIS 1c). Rides the
     existing ``research_step`` event vocabulary (the step/notice channel) — the
     frontend renders these as quiet system chips (Team FRONTEND-BRIEF).
     """
@@ -898,34 +1007,140 @@ async def _publish_divergence_notices(publish_calls: list[str]) -> list[LLMResea
     while pending and time.monotonic() < deadline:
         await asyncio.sleep(_ACK_POLL_SECONDS)
         pending = {cid for cid in pending if action_ledger.get(cid) is None}
+    entries = [(cid, action_ledger.get(cid)) for cid in publish_calls]
     notices: list[LLMResearchStepEvent] = []
-    for index, call_id in enumerate(publish_calls, start=1):
-        entry = action_ledger.get(call_id)
+    for index, (call_id, entry) in enumerate(entries, start=1):
+        status = entry.get("status") if entry else None
+        if status == "applied":
+            continue  # the optimistic dispatch was right; nothing to say.
+        # A later successful publish of the same panel/symbol already replaced
+        # whatever this call did — suppress the false contradiction.
+        if _superseded_by_later_apply(index - 1, entries):
+            continue
+        label = _ack_brief_label(entry)
         if entry is None:
             detail = (
                 "The brief panel did not confirm the publish — treat it as NOT "
                 "rendered until get_terminal_state shows it."
             )
-            status = "error"
-        elif entry.get("status") == "kept_previous":
-            detail = "The panel kept the previous, richer brief."
-            status = "ok"
-        elif entry.get("status") == "failed":
-            detail = "The brief panel reported the publish failed."
-            status = "error"
-        else:  # applied — the optimistic dispatch was right; nothing to say.
-            continue
+            step_status = "error"
+        elif status == "kept_previous":
+            detail = (
+                f"The panel kept the brief already on screen{label} — this publish "
+                "did not replace it; do not claim the new one rendered."
+            )
+            step_status = "ok"
+        else:  # failed / unknown status — the apply did not land.
+            detail = f"The brief panel reported the publish failed{label}."
+            step_status = "error"
         notices.append(
             LLMResearchStepEvent(
                 tool_call_id=call_id,
                 tool="publish_brief",
                 step_kind="engine",
                 detail=detail,
-                status=status,
+                status=step_status,
                 index=index,
             )
         )
     return notices
+
+
+_HOST_ACTION_IDS: frozenset[str] | None = None
+
+
+def _host_action_ids() -> frozenset[str]:
+    """The host-action tool ids (lazy + cached — avoids an import cycle at
+    module load, since the schemas module reaches back through the catalog)."""
+    global _HOST_ACTION_IDS
+    if _HOST_ACTION_IDS is None:
+        from services.agent_tools.schemas import HOST_ACTION_TOOLS
+
+        _HOST_ACTION_IDS = frozenset(HOST_ACTION_TOOLS)
+    return _HOST_ACTION_IDS
+
+
+async def _await_host_action_acks(call_ids: list[str]) -> None:
+    """Grace-bounded poll of the ack ledger for a set of dispatched host-action
+    call ids (E3.3 pattern, R13 JARVIS 1b).
+
+    Returns once every id carries an ack or the shared ``_ACK_GRACE_SECONDS``
+    window closes — the in-loop read-back then rewrites each tool-result from the
+    real outcome instead of the optimistic "dispatched". One window covers the
+    whole round's host actions (not one wait per call) so the loop never stalls.
+    """
+    from services import action_ledger
+
+    deadline = time.monotonic() + _ACK_GRACE_SECONDS
+    pending = {cid for cid in call_ids if action_ledger.get(cid) is None}
+    while pending and time.monotonic() < deadline:
+        await asyncio.sleep(_ACK_POLL_SECONDS)
+        pending = {cid for cid in pending if action_ledger.get(cid) is None}
+
+
+def _grounded_host_action_result(tool_call: LLMToolUseEvent, entry: dict[str, Any] | None) -> str:
+    """Rewrite a dispatched host-action's tool-result from the panel's real ack
+    (R13 JARVIS 1b) so the model's NEXT narration is grounded, never optimistic.
+
+    No ack in the grace window → an explicit "dispatched, not yet confirmed —
+    verify before claiming success" (strengthened from today's soft advisory).
+    ``applied`` → confirmed (the model may state it done); ``kept_previous`` /
+    ``failed`` → say plainly it did NOT render. The ``detail`` names the action +
+    symbol/panel (from the ack, falling back to the call args) so the grounded
+    result is concrete.
+    """
+    action = tool_call.name
+    args = tool_call.input if isinstance(tool_call.input, dict) else {}
+    ack_detail = entry.get("detail") if isinstance(entry, dict) else None
+    ack_detail = ack_detail if isinstance(ack_detail, dict) else {}
+    descriptor: dict[str, Any] = {"action": action}
+    for key in ("symbol", "panel"):
+        val = ack_detail.get(key)
+        if not (isinstance(val, str) and val):
+            candidate = args.get(key)
+            val = candidate if isinstance(candidate, str) and candidate else None
+        if val:
+            descriptor[key] = val
+    if entry is None:
+        payload: dict[str, Any] = {
+            "ok": True,
+            "status": "dispatched_unconfirmed",
+            "detail": descriptor,
+            "note": (
+                "Dispatched to the panel but NOT yet confirmed — verify with "
+                "get_terminal_state before claiming success; do not report it as done."
+            ),
+        }
+    else:
+        status = entry.get("status")
+        if status == "applied":
+            payload = {
+                "ok": True,
+                "status": "applied",
+                "detail": descriptor,
+                "note": "The panel confirmed this applied — you may state it as done.",
+            }
+        elif status == "kept_previous":
+            payload = {
+                "ok": True,
+                "status": "kept_previous",
+                "detail": descriptor,
+                "note": (
+                    "The panel KEPT its previous state (a richer artifact or a stale "
+                    "run superseded this) — do NOT claim this change rendered."
+                ),
+            }
+        else:  # failed / unknown — an honest non-application.
+            payload = {
+                "ok": False,
+                "status": status or "failed",
+                "detail": descriptor,
+                "note": "The panel reported this did NOT apply — say plainly it did not happen.",
+            }
+    try:
+        return json.dumps(payload, default=str)
+    except (TypeError, ValueError):  # pragma: no cover — defensive
+        return str(payload)
 
 
 def _build_local_tools(
@@ -1322,6 +1537,12 @@ async def invoke_agent(
         )
         # Dispatch every pending tool, append tool-result messages keyed
         # on the call ids, and re-enter the loop.
+        # E3.3 read-back (R13 JARVIS 1b): (tool_call, tool_result_msg) pairs for
+        # this round's NON-ORDER host actions dispatched under AUTO autonomy —
+        # rewritten from the panel's real ack after the dispatch loop so the
+        # model's next narration is grounded, not the optimistic "dispatched".
+        host_action_readbacks: list[tuple[LLMToolUseEvent, LLMMessage]] = []
+        _host_ids = _host_action_ids()
         for tool_call in pending_tools:
             if tool_call.name == "web_search":
                 # FR-081: bound per-search billing per run.
@@ -1348,19 +1569,27 @@ async def invoke_agent(
                         result_str = item.result
                     else:
                         yield item
-            messages.append(
-                LLMMessage(
-                    role="tool",
-                    content=result_str,
-                    tool_call_id=tool_call.tool_call_id,
-                    # Carry the tool NAME alongside the id: Gemini pairs a
-                    # function_response to its call by name (not id), so a
-                    # tool-result message with no name serialises name="" and
-                    # breaks Gemini multi-round tool use. Anthropic/OpenAI key by
-                    # tool_call_id and ignore this. (FR-024 / closes the §4 break.)
-                    metadata={"name": tool_call.name},
-                )
+            tool_result_msg = LLMMessage(
+                role="tool",
+                content=result_str,
+                tool_call_id=tool_call.tool_call_id,
+                # Carry the tool NAME alongside the id: Gemini pairs a
+                # function_response to its call by name (not id), so a
+                # tool-result message with no name serialises name="" and
+                # breaks Gemini multi-round tool use. Anthropic/OpenAI key by
+                # tool_call_id and ignore this. (FR-024 / closes the §4 break.)
+                metadata={"name": tool_call.name},
             )
+            messages.append(tool_result_msg)
+            # Queue a non-order host action dispatched under AUTO for the grounded
+            # read-back below (§6.5: orders never auto-apply, so their staged
+            # awaiting_user_review result is left untouched).
+            if (
+                autonomy == "auto"
+                and tool_call.name in _host_ids
+                and tool_call.name != "propose_order"
+            ):
+                host_action_readbacks.append((tool_call, tool_result_msg))
             # Auto-publish the brief deterministically (Track 3): the full brief
             # is in result_str but only the model sees it. Emit a synthetic
             # publish_brief so the panel ALWAYS renders — even when a weak model
@@ -1379,6 +1608,17 @@ async def invoke_agent(
                 if auto_brief is not None:
                     publish_brief_calls.append(auto_brief.tool_call_id)
                     yield auto_brief
+        # Grounded host-action read-back (R13 JARVIS 1b): ONE grace-bounded poll
+        # of the ack ledger for this round's dispatched host actions, then
+        # rewrite each tool-result from the panel's REAL outcome (applied /
+        # kept_previous / failed / not-yet-confirmed) so the model's NEXT stream
+        # narrates the ground truth instead of the optimistic "dispatched".
+        if host_action_readbacks:
+            from services import action_ledger
+
+            await _await_host_action_acks([tc.tool_call_id for tc, _ in host_action_readbacks])
+            for tc, msg in host_action_readbacks:
+                msg.content = _grounded_host_action_result(tc, action_ledger.get(tc.tool_call_id))
         rounds += 1
         if rounds >= _MAX_TOOL_ROUNDS:
             # Hit the cap — let the next provider stream finalise. The

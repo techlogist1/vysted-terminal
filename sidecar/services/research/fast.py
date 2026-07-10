@@ -150,12 +150,39 @@ def _provider_in(payload: Any) -> str | None:
     return None
 
 
+#: Closed reason vocabulary for a FAILED structured leg (R13 JARVIS 2a) — so the
+#: model reads the CAUSE of a missing leg, never a bare "unavailable" it can round
+#: up to "the world doesn't publish X". A provider/app failure is OUR feed's gap
+#: (``provider_error``); a transient throttle is ``rate_limited``; a genuine
+#: no-such-instrument is ``not_found``. Absent → the consumer defaults to a gap,
+#: never a world-absence claim.
+_LEG_REASONS = ("provider_error", "rate_limited", "not_found")
+_LEG_RATE_LIMIT_MARKERS = ("rate limit", "rate-limit", "ratelimit", "429", "throttl")
+_LEG_NOT_FOUND_MARKERS = ("not found", "no data", "no such", "delisted", "404", "not available")
+
+
+def _leg_reason(result: dict[str, Any]) -> str:
+    """The failed leg's closed-vocabulary reason: the tool's own ``reason`` when
+    it is a known token, else inferred from the error/message text."""
+    reason = result.get("reason")
+    if isinstance(reason, str) and reason in _LEG_REASONS:
+        return reason
+    text = str(result.get("error") or result.get("message") or "").lower()
+    if any(marker in text for marker in _LEG_RATE_LIMIT_MARKERS):
+        return "rate_limited"
+    if any(marker in text for marker in _LEG_NOT_FOUND_MARKERS):
+        return "not_found"
+    return "provider_error"
+
+
 def _structured_value(result: dict[str, Any], payload_key: str) -> dict[str, Any]:
     """Wrap one leg's result as a provenance-tagged structured value.
 
-    Shape: ``{"ok": bool, "provider": str|None, "data": <payload>, "error": ...}``
-    — uniform across legs so a consumer reads provenance the same way for price,
-    fundamentals, news, and filings.
+    Shape: ``{"ok": bool, "provider": str|None, "data": <payload>, "error": ...,
+    "reason": ...}`` — uniform across legs so a consumer reads provenance the
+    same way for price, fundamentals, news, and filings. A FAILED leg carries a
+    closed-vocabulary ``reason`` (R13 JARVIS 2a) so the model narrates the cause
+    of the gap, never a silent absence it can round up to a world-absence claim.
     """
     ok = bool(result.get("ok"))
     value: dict[str, Any] = {"ok": ok, "provider": _provider_of(result)}
@@ -170,6 +197,7 @@ def _structured_value(result: dict[str, Any], payload_key: str) -> dict[str, Any
             }
     else:
         value["error"] = result.get("error") or result.get("message") or "unavailable"
+        value["reason"] = _leg_reason(result)
     return value
 
 

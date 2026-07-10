@@ -22,6 +22,7 @@ import {
   normalizeBriefDepth,
   normalizeBriefMode,
 } from "@/lib/brief-ingest";
+import { recordBriefClaims } from "@/lib/brief-claims";
 import {
   applyContentAwareLayout,
   applyCustomLayout,
@@ -1123,6 +1124,10 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
       if (result === "stale_run") {
         return "Kept the run in flight — this publish belonged to a different run";
       }
+      // Record the brief's stated figures into the research-space claims ledger
+      // (R13 JARVIS 3a) — deterministic, no-op outside a research space — so a
+      // later contradicting figure can be reconciled openly, never silently.
+      recordBriefClaims(brief);
       return `Published the ${brief.mode} research brief`;
     }
     case "add_to_watchlist":
@@ -1396,11 +1401,13 @@ export async function applyHostActionAsync(
   }
 }
 
-/** How a publish_brief apply resolved — the ack vocabulary (D39 §4). */
+/** How a host-action apply resolved — the ack vocabulary (D39 §4). */
 export type PublishAckStatus = "applied" | "kept_previous" | "failed";
 
-/** Map the publish apply label onto the ack status: null → failed, a "Kept …"
- *  arbitration (shrink guard / stale run) → kept_previous, else applied. */
+/** Map a host-action apply label onto the ack status: null → failed, a "Kept …"
+ *  arbitration (shrink guard / stale run) → kept_previous, else applied. Generic
+ *  across every host action (R13 JARVIS): only publish_brief ever labels "Kept",
+ *  so this reduces to null→failed / else→applied for the rest. */
 export function publishAckStatus(label: string | null): PublishAckStatus {
   if (label === null) {
     return "failed";
@@ -1408,19 +1415,50 @@ export function publishAckStatus(label: string | null): PublishAckStatus {
   return label.startsWith("Kept") ? "kept_previous" : "applied";
 }
 
+/** The generic host-action descriptor threaded on the ack (R13 JARVIS 1a) so
+ *  the runtime's grounded tool-result can NAME what resolved (action +
+ *  symbol/panel). Additive to the publish_brief brief-identity payload. */
+export interface HostActionAckDetail {
+  action: string;
+  symbol?: string;
+  panel?: string;
+}
+
+/** Build the light ack descriptor from a host action's name + input — the
+ *  symbol or panel it targets, when the input carries one. */
+export function hostActionAckDetail(
+  name: string,
+  input: Record<string, unknown>,
+): HostActionAckDetail {
+  const symbol = str(input, "symbol");
+  const panel = str(input, "panel");
+  return {
+    action: name,
+    ...(symbol ? { symbol } : {}),
+    ...(panel ? { panel } : {}),
+  };
+}
+
 /**
- * Read back a publish_brief outcome to the sidecar's action ledger
- * (`POST /agents/actions/ack`, Team RUNTIME) so the runtime can surface a
- * divergence notice when its synthesized "dispatched to the panel" narration
- * and the panel's reality disagree (E3.3). Fire-and-forget: an unreachable
- * sidecar must never block the apply path — the missing ack itself reads as
- * "the panel did not confirm" on the runtime side, which is the honest state.
+ * Read back a host-action outcome to the sidecar's action ledger
+ * (`POST /agents/actions/ack`, Team RUNTIME) so the runtime can ground its
+ * synthesized "dispatched to the panel" narration in the panel's reality
+ * (E3.3, generalized to EVERY host action in R13 JARVIS 1a — was publish-only).
+ * The publish_brief brief-identity payload is preserved; other actions carry a
+ * light `detail` ({action, symbol/panel}). Fire-and-forget: an unreachable
+ * sidecar must never block the apply path — a missing ack reads as "the panel
+ * did not confirm" on the runtime side, which is the honest state.
  */
-export function ackPublishBrief(toolCallId: string, status: PublishAckStatus): void {
+export function ackHostAction(
+  toolCallId: string,
+  status: PublishAckStatus,
+  detail?: HostActionAckDetail,
+): void {
   if (!toolCallId) {
     return;
   }
-  const brief = useBriefStore.getState().brief;
+  const isPublish = detail?.action === "publish_brief";
+  const brief = isPublish ? useBriefStore.getState().brief : null;
   void (async () => {
     const base = await getSidecarBaseUrl();
     await fetch(new URL("/agents/actions/ack", base).toString(), {
@@ -1429,6 +1467,7 @@ export function ackPublishBrief(toolCallId: string, status: PublishAckStatus): v
       body: JSON.stringify({
         tool_call_id: toolCallId,
         status,
+        ...(detail ? { detail } : {}),
         ...(brief
           ? {
               brief: {

@@ -383,6 +383,54 @@ def test_terminal_preamble_omits_research_space_when_absent() -> None:
     assert "Research space" not in preamble
 
 
+def test_terminal_preamble_renders_prior_stated_values() -> None:
+    """R13 JARVIS 3b: a research space carrying prior stated figures renders the
+    'PRIOR STATED VALUES' line so a contradicting new figure is reconciled."""
+    preamble = agent_runtime._render_terminal_preamble(
+        {
+            "focusedSymbol": "NVDA",
+            "researchSpace": {
+                "symbol": "NVDA",
+                "priorTurns": 2,
+                "claims": [
+                    {
+                        "symbol": "NVDA",
+                        "metric": "P/E",
+                        "value": 55.0,
+                        "statedAt": 1_700_000_000_000,
+                    },
+                    {
+                        "symbol": "NVDA",
+                        "metric": "Price",
+                        "value": 900.0,
+                        "statedAt": 1_700_000_000_000,
+                    },
+                ],
+            },
+        }
+    )
+    assert "PRIOR STATED VALUES (this session):" in preamble
+    assert "NVDA P/E=55" in preamble
+    assert "NVDA Price=900" in preamble
+
+
+def test_terminal_preamble_omits_prior_values_when_no_claims() -> None:
+    """A research space with no claims renders no PRIOR STATED VALUES line."""
+    preamble = agent_runtime._render_terminal_preamble(
+        {"researchSpace": {"symbol": "NVDA", "priorTurns": 0}}
+    )
+    assert "PRIOR STATED VALUES" not in preamble
+
+
+def test_capabilities_preamble_carries_self_consistency_instruction() -> None:
+    """R13 JARVIS 3c: the shared capabilities preamble tells the agent to
+    reconcile a contradicting figure openly, never silently switch."""
+    text = agent_runtime.TERMINAL_CAPABILITIES_PREAMBLE
+    assert "PRIOR STATED VALUE" in text
+    assert "materially contradicts" in text
+    assert "acknowledge both" in text.lower()
+
+
 @pytest.mark.asyncio
 async def test_invoke_agent_emits_plan_for_compound_on_capable_model(
     monkeypatch: pytest.MonkeyPatch,
@@ -1302,7 +1350,10 @@ async def test_kept_previous_ack_yields_kept_notice(monkeypatch: pytest.MonkeyPa
     action_ledger.record("pub-1", "kept_previous")
     events = await _collect_auto_publish_events(monkeypatch)
     details = _notice_details(events)
-    assert any("kept the previous" in d for d in details)
+    # R13 JARVIS 1c: the hardcoded "richer" wording is gone — the notice now
+    # names the artifact ACTUALLY on screen (falls back to a bare phrase when the
+    # ack carried no brief identity, as here).
+    assert any("kept the brief already on screen" in d for d in details)
     action_ledger.reset_for_tests()
 
 
@@ -1340,6 +1391,200 @@ async def test_no_divergence_check_outside_auto_autonomy(
     ):
         events.append(event)
     assert _notice_details(events) == []
+
+
+@pytest.mark.asyncio
+async def test_superseded_publish_emits_no_contradicting_notice(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R13 JARVIS 1c: a publish that ended kept_previous but was SUPERSEDED by a
+    later successful publish of the same symbol in the same turn emits NO notice
+    — the panel shows the applied one, so a contradiction would lie (tonight's
+    false 'kept the previous' chip firing next to the NEW brief)."""
+    from services import action_ledger
+
+    action_ledger.reset_for_tests()
+    monkeypatch.setattr(agent_runtime, "_ACK_GRACE_SECONDS", 0.0)
+    # Call A shrank (kept_previous); call B published the richer brief (applied).
+    action_ledger.record("pub-A", "kept_previous", {"symbol": "NVDA", "source_count": 3})
+    action_ledger.record("pub-B", "applied", {"symbol": "NVDA", "source_count": 8})
+    notices = await agent_runtime._publish_divergence_notices(["pub-A", "pub-B"])
+    assert notices == []
+    action_ledger.reset_for_tests()
+
+
+@pytest.mark.asyncio
+async def test_kept_previous_notice_names_what_is_on_screen(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R13 JARVIS 1c: a genuine kept_previous (no later apply) DOES notice, and
+    the notice NAMES the artifact on screen from the ack — never the old
+    hardcoded 'richer brief' claim."""
+    from services import action_ledger
+
+    action_ledger.reset_for_tests()
+    monkeypatch.setattr(agent_runtime, "_ACK_GRACE_SECONDS", 0.0)
+    action_ledger.record("pub-A", "kept_previous", {"symbol": "NVDA", "source_count": 5})
+    notices = await agent_runtime._publish_divergence_notices(["pub-A"])
+    assert len(notices) == 1
+    assert "kept the brief already on screen" in notices[0].detail
+    assert "NVDA" in notices[0].detail
+    assert "5 sources" in notices[0].detail
+    assert "richer" not in notices[0].detail
+    action_ledger.reset_for_tests()
+
+
+# ---------------------------------------------------------------------------
+# R13 JARVIS 1b — in-loop grounded host-action read-back
+# ---------------------------------------------------------------------------
+
+
+class _HostActionThenAnswerProvider:
+    """Round 1 issues ONE host-action tool call; round 2 streams the final text.
+    Records the messages handed to each round so a test can inspect the grounded
+    tool-result the runtime rewrote from the panel's ack."""
+
+    def __init__(self, *, call_id: str = "hact-1", name: str = "set_chart_symbol") -> None:
+        self._round = 0
+        self._call_id = call_id
+        self._name = name
+        self.round_messages: list[list[LLMMessage]] = []
+
+    async def stream_chat(
+        self,
+        messages: list[LLMMessage],
+        model: str,
+        api_key: str | None = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[Any]:
+        self.round_messages.append(list(messages))
+        if self._round == 0:
+            self._round += 1
+            yield LLMToolUseEvent(
+                tool_call_id=self._call_id, name=self._name, input={"symbol": "SPY"}
+            )
+            yield LLMDoneEvent(usage=LLMUsage(input_tokens=5, output_tokens=1))
+            return
+        yield LLMDeltaEvent(text="Done.")
+        yield LLMDoneEvent(usage=LLMUsage(input_tokens=3, output_tokens=2))
+
+
+def _tool_result_for(messages: list[LLMMessage], call_id: str) -> LLMMessage | None:
+    for msg in messages:
+        if msg.role == "tool" and msg.tool_call_id == call_id:
+            return msg
+    return None
+
+
+async def _run_host_action_readback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> _HostActionThenAnswerProvider:
+    agent_runtime.reload()
+    provider = _HostActionThenAnswerProvider()
+    _patch_provider(monkeypatch, provider)
+    monkeypatch.setattr(agent_runtime, "_ACK_GRACE_SECONDS", 0.0)  # no grace wait in tests
+    async for _ in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="load SPY",
+        api_key="sk-test",
+        mode="edit",
+        autonomy="auto",
+    ):
+        pass
+    return provider
+
+
+@pytest.mark.asyncio
+async def test_failed_ack_grounds_host_action_tool_result(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R13 JARVIS 1b (the required unit-level end-to-end): a host action whose
+    ack=failed produces a GROUNDED tool-result the model's NEXT round sees — 'did
+    not happen', not the optimistic 'dispatched'."""
+    from services import action_ledger
+
+    action_ledger.reset_for_tests()
+    action_ledger.record("hact-1", "failed", detail={"action": "set_chart_symbol", "symbol": "SPY"})
+    provider = await _run_host_action_readback(monkeypatch)
+    assert len(provider.round_messages) == 2
+    msg = _tool_result_for(provider.round_messages[1], "hact-1")
+    assert msg is not None, "the round-2 prompt must carry the grounded tool-result"
+    payload = json.loads(msg.content)
+    assert payload["ok"] is False
+    assert payload["status"] == "failed"
+    assert "did not happen" in payload["note"]
+    assert payload["detail"] == {"action": "set_chart_symbol", "symbol": "SPY"}
+    action_ledger.reset_for_tests()
+
+
+@pytest.mark.asyncio
+async def test_ackless_host_action_says_not_yet_confirmed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R13 JARVIS 1b: a dispatched host action with NO ack in the grace window is
+    rewritten to 'dispatched, not yet confirmed — verify before claiming success'
+    (strengthened from today's soft advisory)."""
+    from services import action_ledger
+
+    action_ledger.reset_for_tests()
+    provider = await _run_host_action_readback(monkeypatch)
+    msg = _tool_result_for(provider.round_messages[1], "hact-1")
+    assert msg is not None
+    payload = json.loads(msg.content)
+    assert payload["status"] == "dispatched_unconfirmed"
+    assert "not yet confirmed" in payload["note"].lower()
+    assert "verify" in payload["note"].lower()
+    # The descriptor still names the action + symbol from the call args.
+    assert payload["detail"]["action"] == "set_chart_symbol"
+    assert payload["detail"]["symbol"] == "SPY"
+    action_ledger.reset_for_tests()
+
+
+@pytest.mark.asyncio
+async def test_applied_ack_grounds_host_action_as_done(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R13 JARVIS 1b: an applied ack rewrites the tool-result to a confirmed
+    'applied' so the model may truthfully state the action landed."""
+    from services import action_ledger
+
+    action_ledger.reset_for_tests()
+    action_ledger.record(
+        "hact-1", "applied", detail={"action": "set_chart_symbol", "symbol": "SPY"}
+    )
+    provider = await _run_host_action_readback(monkeypatch)
+    msg = _tool_result_for(provider.round_messages[1], "hact-1")
+    assert msg is not None
+    payload = json.loads(msg.content)
+    assert payload["ok"] is True
+    assert payload["status"] == "applied"
+    action_ledger.reset_for_tests()
+
+
+@pytest.mark.asyncio
+async def test_host_action_readback_skipped_outside_auto(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Under ask/review autonomy the action is STAGED (never dispatched), so the
+    in-loop read-back does NOT run — the staged awaiting_user_review result is
+    left untouched for the model."""
+    from services import action_ledger
+
+    action_ledger.reset_for_tests()
+    agent_runtime.reload()
+    provider = _HostActionThenAnswerProvider()
+    _patch_provider(monkeypatch, provider)
+    monkeypatch.setattr(agent_runtime, "_ACK_GRACE_SECONDS", 0.0)
+    async for _ in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="load SPY",
+        api_key="sk-test",
+        mode="edit",
+        autonomy="ask",
+    ):
+        pass
+    msg = _tool_result_for(provider.round_messages[1], "hact-1")
+    assert msg is not None
+    payload = json.loads(msg.content)
+    assert payload["status"] == "awaiting_user_review"
+    assert payload.get("status") != "dispatched_unconfirmed"
+    action_ledger.reset_for_tests()
 
 
 # ---------------------------------------------------------------------------

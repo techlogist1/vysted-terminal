@@ -74,6 +74,13 @@ export interface BriefDerivedValue {
   formula?: string;
   /** How to render the value. */
   unit?: "percent" | "currency" | "ratio";
+  /**
+   * Why a null {@link value} is null (R13 JARVIS 2a) — a withheld/unavailable
+   * `field_meta` note ("provider value withheld as implausible") or a leg-level
+   * gap ("provider_error"/"rate_limited"). Present only on a null value; states
+   * the CAUSE so a missing metric never reads as a silent world-absence.
+   */
+  reason?: string;
 }
 
 /** A cross-source numeric disagreement the pipeline flagged instead of silently picking. */

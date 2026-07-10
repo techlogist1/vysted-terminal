@@ -19,6 +19,11 @@ import { useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 import type { BriefDepth } from "../../../types/brief";
+import type { ResearchSpaceClaim } from "../../../types/research-space";
+
+/** How many prior stated values ride the terminal snapshot (the preamble caps
+ *  further) — bounded so the per-turn context stays compact. */
+const MAX_CONTEXT_CLAIMS = 20;
 
 export interface TerminalChart {
   panelId: string;
@@ -70,6 +75,12 @@ export interface TerminalResearchSpace {
   memory?: string;
   /** Count of prior conversation turns retained for this space. */
   priorTurns: number;
+  /**
+   * Prior figures the agent STATED in this space (R13 JARVIS 3b) — the sidecar
+   * renders them as "PRIOR STATED VALUES" so a materially-contradicting new
+   * figure is reconciled openly, never silently switched. Compact + capped.
+   */
+  claims?: ResearchSpaceClaim[];
 }
 
 /**
@@ -296,6 +307,9 @@ export function captureTerminalState(): TerminalState {
       symbol: researchSymbol,
       ...(memory?.summary ? { memory: memory.summary } : {}),
       priorTurns: memory?.transcript.length ?? 0,
+      ...(memory?.claims && memory.claims.length > 0
+        ? { claims: memory.claims.slice(-MAX_CONTEXT_CLAIMS) }
+        : {}),
     };
   }
 
