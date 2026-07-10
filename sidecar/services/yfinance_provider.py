@@ -109,15 +109,27 @@ def _yahoo_symbol(symbol: str) -> str:
     s = symbol.strip().upper()
     if s.endswith((".NS", ".BO")):
         return s
-    # Region-aware NSE resolution. The symbol's intrinsic hint wins; else the
-    # active session region. In an IN context a bare (dot-free) ticker takes the
-    # NSE listing — this covers (a) in-master NSE names, (b) DUAL-listed names like
-    # INFY where the IN user wants the INR NSE listing, not the US ADR, and (c)
-    # names NOT in the bundled master (Yahoo 404s an unknown .NS, surfacing an
-    # honest "unavailable" rather than silently serving a wrong/empty US row). A
-    # dotted US quirk ticker (BRK.B) is left to the dash path below.
+    # Region-aware India resolution. The symbol's intrinsic hint wins; else the
+    # active session region. In an IN context a bare (dot-free) ticker picks the
+    # exchange the instrument actually lists on — NSE by default, BUT a BSE-ONLY
+    # listing must take ``.BO``:
+    #   (a) an in-master NSE name (or a DUAL-listed name like INFY, where the IN
+    #       user wants the INR NSE listing, not the US ADR) → ``.NS``;
+    #   (b) a BSE-ONLY listing (KSE = BSE 519421, never on NSE) → ``.BO`` — Yahoo
+    #       answers a bare-``.NS`` BSE-only ticker with a NAMELESS husk (KSE.NS is
+    #       a 43-key shell, NOT a 404), while KSE.BO carries the full KSE Limited
+    #       profile; forcing ``.NS`` here silently killed the fundamentals of
+    #       every alphabetic BSE-only scrip (R13 root cause);
+    #   (c) a name in NEITHER master → keep ``.NS`` so Yahoo 404s an unknown
+    #       symbol, surfacing an honest "unavailable" rather than a wrong/empty
+    #       US row.
+    # A dotted US quirk ticker (BRK.B) is left to the dash path below.
     region = symbol_resolver.region_hint(s) or config.get_region()
     if region == "IN" and "." not in s:
+        if symbol_resolver.is_nse_symbol(s):
+            return f"{s}.NS"
+        if symbol_resolver.is_bse_symbol(s):
+            return f"{s}.BO"
         return f"{s}.NS"
     if symbol_resolver.is_nse_symbol(s) and not symbol_resolver.is_us_symbol(s):
         return f"{s}.NS"
@@ -249,11 +261,23 @@ def get_fundamentals(symbol: str) -> Fundamentals:
         for key in ("longName", "shortName", "regularMarketPrice", "marketCap", "currency")
     ):
         raise ProviderError(f"yfinance has no instrument data for {symbol!r}", kind="not_found")
-    # A numeric .BO scrip code makes Yahoo return a JUNK fund-ish record with a
-    # non-empty but garbled name ("509470.BO,0P0000BN3V,31") — it passes the
-    # empty-info gate above but is NOT a real instrument. Reject it as an honest
-    # 404 rather than serving fabricated PE/mcap/52w against a nonsense name.
+    # Two DISTINCT junk shapes reach here (both pass the empty-info gate because
+    # SOME identity key is set), and the error must say which actually happened:
+    #   * a NAMELESS husk — Yahoo answered with keys but NO company name (the
+    #     ``KSE.NS`` 43-key shell a bare BSE-only ticker used to hit): there is no
+    #     company record for this symbol, full stop;
+    #   * a garbled fund-id BLOB — a non-empty but nonsense name carrying the
+    #     queried symbol / an ``0P``-Morningstar id ("509470.BO,0P0000BN3V,31"),
+    #     which a numeric ``.BO`` scrip code provokes.
+    # Both are an honest 404, but the OLD code reported the nameless husk as a
+    # "non-company (fund-id) record" — a misleading message that pointed at the
+    # wrong failure mode.
     name = info.get("longName") or info.get("shortName")
+    if not name or not str(name).strip():
+        raise ProviderError(
+            f"Yahoo has no company record for {yahoo!r}",
+            kind="not_found",
+        )
     if _is_junk_fundamentals_name(name, yahoo):
         raise ProviderError(
             f"yfinance returned a non-company (fund-id) record for {symbol!r}",
