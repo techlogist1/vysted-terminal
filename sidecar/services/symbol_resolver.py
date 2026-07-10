@@ -849,9 +849,7 @@ def _enrich_instrument(inst: Instrument) -> Instrument:
         and former_name == inst.former_name
     ):
         return inst
-    return replace(
-        inst, isin=isin, bse_code=bse_code, industry=industry, former_name=former_name
-    )
+    return replace(inst, isin=isin, bse_code=bse_code, industry=industry, former_name=former_name)
 
 
 def _enrich_resolution(resolution: Resolution) -> Resolution:

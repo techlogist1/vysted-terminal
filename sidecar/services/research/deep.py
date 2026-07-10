@@ -521,9 +521,7 @@ def _floor_announcement_lines(announcements: list[Any], *, limit: int = 12) -> l
     return lines
 
 
-def build_structured_floor(
-    *, query: str, symbol: str, structured: dict[str, Any]
-) -> str | None:
+def build_structured_floor(*, query: str, symbol: str, structured: dict[str, Any]) -> str | None:
     """A deterministic brief assembled from the STRUCTURED legs + exchange
     filings when web findings are empty/thin and no distilled report exists (R13).
 
