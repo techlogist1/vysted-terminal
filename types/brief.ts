@@ -29,6 +29,12 @@ export interface BriefStructuredLeg<T = unknown> {
   data?: T;
   /** A short human reason when the leg failed. */
   error?: string;
+  /**
+   * An honest disclosure that still rides an `ok: true` leg — e.g. the news
+   * leg's relevance gate (R13) dropped every returned item as off-entity and
+   * `data` is deliberately empty rather than fabricated filler.
+   */
+  note?: string;
 }
 
 /**

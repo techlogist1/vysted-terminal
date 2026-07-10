@@ -24,9 +24,12 @@ import asyncio
 import inspect
 import time
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from .models import ResearchStep
+
+if TYPE_CHECKING:  # import-light: no runtime dependency (see module docstring)
+    from services.research.target import ResearchTarget
 
 #: Injected tool dispatcher — ``await tool_call(name, args) -> dict``.
 ToolCall = Callable[[str, dict[str, Any]], Awaitable[dict[str, Any]]]
@@ -300,6 +303,101 @@ async def snapshot_structured(
     return out
 
 
+#: How many exchange announcements the IN filings leg fetches (R13 ledger #10)
+#: — mirrors :data:`services.research.disclosures._ANNOUNCEMENT_LIMIT`'s order
+#: of magnitude without importing a private constant.
+_FAST_ANNOUNCEMENTS_LIMIT = 20
+
+
+async def _filings_leg(tool_call: ToolCall, target: ResearchTarget) -> dict[str, Any]:
+    """The filings leg, routed by REGION (R13 ledger #10).
+
+    SEC EDGAR indexes US filings — for an IN-listed target it is the WRONG
+    lane (a different jurisdiction's index entirely, and its MCP sidecar can
+    independently be down), so an Indian listing routes to the exchange
+    announcements feed instead: the SAME ``corporate_announcements`` tool the
+    DEEP path already consults for disclosures
+    (:func:`services.research.disclosures.gather_floor`) — mirrored here, not
+    reimplemented. The US path is UNCHANGED: ``sec_filings_list``, including
+    its own honest "sidecar unavailable" shape (:func:`_leg_reason` still
+    classifies a down sidecar as ``provider_error``).
+    """
+    from services.research.relevance import is_india_target
+
+    if is_india_target(target):
+        result = await _safe_call(
+            tool_call,
+            "corporate_announcements",
+            {"symbol": target.symbol, "limit": _FAST_ANNOUNCEMENTS_LIMIT},
+        )
+        value = _structured_value(result, "filings")
+        # corporate_announcements carries no top-level provider/source/mode key
+        # (unlike sec_filings_list's per-item "sec-edgar" tag) — stamp the
+        # exchange feed's own provenance so the FR-041 badge still renders.
+        if value.get("ok") and not value.get("provider"):
+            value["provider"] = "nse+bse"
+        return value
+    result = await _safe_call(tool_call, "sec_filings_list", {"symbol": target.symbol})
+    return _structured_value(result, "filings")
+
+
+def _news_row(item: dict[str, Any]) -> dict[str, Any]:
+    """Map a ``NewsItem`` wire dict to the relevance gate's row shape."""
+    return {
+        "title": item.get("title"),
+        "excerpt": item.get("summary"),
+        "url": item.get("url"),
+        "source": item.get("source"),
+    }
+
+
+#: Honest note when the relevance gate drops EVERY item off an ok:True news
+#: pull (R13 ledger #9) — never generic filler dressed up as coverage.
+def _no_on_entity_news_note(symbol: str, dropped: int) -> str:
+    return (
+        f"No on-entity news found for {symbol} — {dropped} item(s) returned by "
+        "the news feed were off-entity/off-topic and dropped."
+    )
+
+
+def _news_value(result: dict[str, Any], *, target: ResearchTarget) -> dict[str, Any]:
+    """The news leg, relevance-gated for a resolved IN equity (R13 ledger #9).
+
+    The ``news`` tool blends region-wide market feeds with a per-symbol Yahoo
+    feed keyed by the BARE ticker. For a short/common Indian symbol (META,
+    BMW, ...) that per-symbol feed can serve the FOREIGN namesake's own
+    stories (Meta Platforms, not the BSE-listed String Metaverse), and the
+    region feeds serve generic macro headlines unrelated to any one name —
+    both ride back stamped ``ok: True`` with nothing distinguishing on-entity
+    from off-entity. Reuse the SAME entity-relevance gate the web-evidence
+    loop uses (:func:`services.research.relevance.row_relevant`) — no new
+    scoring — to drop off-entity rows; when NOTHING on-entity survives the leg
+    stays ``ok: True`` with an empty list and an honest note (never generic
+    filler dressed up as coverage).
+    """
+    value = _structured_value(result, "news")
+    if not value.get("ok"):
+        return value
+    from services.research.relevance import is_india_target, row_relevant
+
+    if not (is_india_target(target) and target.is_equity_like()):
+        return value
+    items = value.get("data")
+    if not isinstance(items, list) or not items:
+        return value
+    kept = [
+        item
+        for item in items
+        if isinstance(item, dict) and row_relevant(_news_row(item), target=target)
+    ]
+    if kept:
+        value["data"] = kept
+    else:
+        value["data"] = []
+        value["note"] = _no_on_entity_news_note(target.symbol, len(items))
+    return value
+
+
 async def _web_round(tool_call: ToolCall, web_query: str) -> dict[str, Any]:
     """ONE web round → the bundle's honest ``web`` section.
 
@@ -422,18 +520,25 @@ async def gather_fast(
     # provider failure surfaces as ok:False in that slot, not a gather crash.
     # Price + fundamentals ride snapshot_structured — the ONE seam that also
     # computes the derived metric-semantics leg (R10, E8) for every path.
+    # R13 ledger #10: the filings leg is ROUTED by region (:func:`_filings_leg`)
+    # — SEC EDGAR for a US listing (unchanged), exchange announcements for an
+    # IN one, so the wrong-jurisdiction/wrong-sidecar lane is never consulted
+    # for an Indian name.
     t1 = time.perf_counter()
     await _emit(on_step, ResearchStep("tool", f"pulling market data for {symbol}"))
-    news_res, filings_res, snapshot = await asyncio.gather(
+    news_res, filings_value, snapshot = await asyncio.gather(
         _safe_call(tool_call, "news", {"symbols": [symbol]}),
-        _safe_call(tool_call, "sec_filings_list", {"symbol": symbol}),
+        _filings_leg(tool_call, target),
         snapshot_structured(tool_call, symbol, region=region, canonical_name=target.name),
     )
 
+    # R13 ledger #9: the news leg is relevance-gated for a resolved IN equity
+    # (:func:`_news_value`) — off-entity rows (a foreign namesake's feed,
+    # generic macro headlines) never count as this instrument's coverage.
     structured = {
         **snapshot,
-        "news": _structured_value(news_res, "news"),
-        "filings": _structured_value(filings_res, "filings"),
+        "news": _news_value(news_res, target=target),
+        "filings": filings_value,
     }
     _ok_legs = sum(
         1
