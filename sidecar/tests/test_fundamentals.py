@@ -121,3 +121,46 @@ def test_get_fundamentals_unknown_symbol_is_honest_404(client, monkeypatch) -> N
     resp = client.get("/fundamentals/NOTAREALSYMBOL123")
     assert resp.status_code == 404
     assert "check the symbol" in resp.json()["detail"]
+
+
+# ---------------------------------------------------------------------------
+# R13 — the additive field_meta contract (per-field provenance / coverage)
+# ---------------------------------------------------------------------------
+
+
+def test_field_meta_is_additive_and_absent_by_default() -> None:
+    """A Fundamentals built without field_meta carries ``None`` and a legacy
+    consumer that never reads the key is unaffected — the wire stays additive."""
+    from models.fundamentals import Fundamentals
+
+    fund = Fundamentals(symbol="AAPL", provider="yfinance", pe_ratio=31.2)
+    assert fund.field_meta is None
+    # An OLD payload (no field_meta key at all) still validates.
+    legacy = Fundamentals.model_validate({"symbol": "AAPL", "provider": "yfinance"})
+    assert legacy.field_meta is None
+
+
+def test_field_meta_roundtrips_all_three_statuses() -> None:
+    """FieldMeta serialises + revalidates for ok / withheld / unavailable."""
+    from models.fundamentals import FieldMeta, Fundamentals
+
+    fund = Fundamentals(
+        symbol="KSE.BO",
+        provider="yfinance",
+        pe_ratio=6.93,
+        field_meta={
+            "pe_ratio": FieldMeta(
+                status="ok", provider="yfinance", as_of="2026-07-10T00:00:00+00:00"
+            ),
+            "dividend_yield": FieldMeta(status="withheld", reason="ambiguous unit"),
+            "beta": FieldMeta(status="unavailable"),
+        },
+    )
+    wire = fund.model_dump(mode="json")
+    back = Fundamentals.model_validate(wire)
+    assert back.field_meta is not None
+    assert back.field_meta["pe_ratio"].status == "ok"
+    assert back.field_meta["pe_ratio"].as_of == "2026-07-10T00:00:00+00:00"
+    assert back.field_meta["dividend_yield"].status == "withheld"
+    assert back.field_meta["dividend_yield"].reason == "ambiguous unit"
+    assert back.field_meta["beta"].status == "unavailable"

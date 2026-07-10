@@ -16,6 +16,33 @@ class GrowthQuarters(BaseModel):
     prior: str
 
 
+class FieldMeta(BaseModel):
+    """Per-field provenance / coverage metadata riding a :class:`Fundamentals`
+    payload (R13 data-bedrock).
+
+    One entry per data field the payload speaks to. ``status`` is one of:
+
+      * ``"ok"`` — the field carries a real value the named provider served
+        (``provider`` + ``as_of`` record who and when). A ``reason`` MAY still be
+        present as a soft FLAG (e.g. the correctness gate kept the value but noted
+        it disagrees with a cross-check).
+      * ``"withheld"`` — a value existed but the correctness gate NULLED it as
+        implausible; ``reason`` says exactly why (e.g. an ownership fraction above
+        1, an ambiguous-unit dividend yield). The field on the payload is ``None``.
+      * ``"unavailable"`` — the source carried no value for the field.
+
+    ``as_of`` is an ISO-8601 string (the provider's ``info`` fetch time for
+    yfinance). All fields beyond ``status`` are optional. The whole ``field_meta``
+    map is ADDITIVE — an absent map must never break an existing consumer.
+    """
+
+    status: str
+    provider: str | None = None
+    as_of: str | None = None
+    reason: str | None = None
+    label: str | None = None
+
+
 class Fundamentals(BaseModel):
     """Snapshot of valuation ratios, profitability, health, and profile for one
     symbol. All new screener-grade fields are optional (``None`` when the source
@@ -93,6 +120,12 @@ class Fundamentals(BaseModel):
     earnings_growth_computed: float | None = None
     #: The quarter-end pair the computed growth compared, for disclosure.
     growth_computed_quarters: GrowthQuarters | None = None
+    #: Per-field provenance / coverage metadata (R13). Keyed by the data-field
+    #: name; each entry records whether the field is ``ok``/``withheld``/
+    #: ``unavailable`` plus the serving provider, its ``as_of``, and any
+    #: withhold/flag reason. Additive — ``None`` on providers that do not populate
+    #: it, and an absent map never changes how the value fields are read.
+    field_meta: dict[str, FieldMeta] | None = None
     provider: str
 
 
