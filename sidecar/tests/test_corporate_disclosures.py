@@ -260,18 +260,82 @@ def test_shareholding_parses_quarters_newest_first(monkeypatch: pytest.MonkeyPat
     assert latest.promoter_percent == 50.0
     assert latest.public_percent == 50.0
     assert latest.employee_trusts_percent == 0.0
-    # FII/DII live only in the XBRL — honest None, with the filing link served.
+    # NSE-first for a dual-listed name — the source label + honest None FII/DII.
+    assert latest.source == "NSE"
     assert latest.fii_percent is None and latest.dii_percent is None
+    assert latest.institutions_percent is None
     assert latest.xbrl_url and latest.xbrl_url.startswith("https://nsearchives.nseindia.com/")
     assert latest.submission_date == date(2026, 4, 21)
     assert prior.quarter_end == date(2025, 12, 31)
     assert prior.promoter_percent == 50.01
 
 
-def test_shareholding_for_a_non_nse_symbol_raises() -> None:
-    # ICONIKSPEV is BSE-only; the NSE master raw accessor refuses it honestly.
-    with pytest.raises(ProviderError, match="not a known NSE instrument"):
-        corporate_disclosures.get_shareholding("ICONIKSPEV")
+def test_shareholding_bse_only_symbol_routes_to_bse_lane(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # BOMOXY-B1 (scrip 509470) is BSE-only — the NSE lane is not applicable, so
+    # the BSE SEBI-XBRL lane serves it (the R13 coverage gap now closed). The
+    # BSE provider seam is mocked so this stays offline.
+    from services import bse_provider
+
+    def nse_must_not_run(symbol: str) -> list[dict]:
+        raise AssertionError("NSE lane must not run for a BSE-only symbol")
+
+    monkeypatch.setattr(nse_provider, "get_shareholding_master", nse_must_not_run)
+    monkeypatch.setattr(
+        bse_provider,
+        "get_shareholding",
+        lambda symbol: [
+            {
+                "quarter_end": date(2026, 6, 30),
+                "submission_date": date(2026, 7, 8),
+                "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/x_SP.html",
+                "source": "BSE",
+                "promoter_percent": 73.29,
+                "public_percent": 26.71,
+                "institutions_percent": 0.06,
+                "dii_percent": 0.06,
+            }
+        ],
+    )
+    response = corporate_disclosures.get_shareholding("BOMOXY-B1")
+    assert response.count == 1
+    latest = response.patterns[0]
+    assert latest.source == "BSE"
+    assert latest.promoter_percent == 73.29
+    assert latest.institutions_percent == 0.06
+    assert latest.dii_percent == 0.06 and latest.fii_percent is None
+    assert latest.quarter_end == date(2026, 6, 30)
+
+
+def test_shareholding_nse_first_falls_back_to_bse_on_nse_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A dual-listed name whose NSE lane errors falls back to BSE (still served).
+    from services import bse_provider
+
+    monkeypatch.setattr(
+        nse_provider,
+        "get_shareholding_master",
+        lambda symbol: (_ for _ in ()).throw(ProviderError("nse_direct: blocked")),
+    )
+    monkeypatch.setattr(symbol_resolver, "is_nse_symbol", lambda symbol: True)
+    monkeypatch.setattr(symbol_resolver, "is_bse_symbol", lambda symbol: True)
+    monkeypatch.setattr(
+        bse_provider,
+        "get_shareholding",
+        lambda symbol: [
+            {"quarter_end": date(2026, 6, 30), "source": "BSE", "promoter_percent": 50.0}
+        ],
+    )
+    response = corporate_disclosures.get_shareholding("RELIANCE")
+    assert response.count == 1 and response.patterns[0].source == "BSE"
+
+
+def test_shareholding_for_a_non_listed_symbol_raises() -> None:
+    # A symbol on NEITHER exchange fast-fails without a network call.
+    with pytest.raises(ProviderError, match="not a known NSE/BSE instrument"):
+        corporate_disclosures.get_shareholding("AAPL")
 
 
 # ---------------------------------------------------------------------------
@@ -345,6 +409,7 @@ def test_shareholding_pattern_tool_round_trip(
 
 
 def test_shareholding_pattern_tool_surfaces_provider_error(_registered_tools: Any) -> None:
-    result = asyncio.run(agent_tools.invoke_tool("shareholding_pattern", {"symbol": "ICONIKSPEV"}))
+    # AAPL is on neither Indian exchange — fast-fails without a network call.
+    result = asyncio.run(agent_tools.invoke_tool("shareholding_pattern", {"symbol": "AAPL"}))
     assert result["ok"] is False
-    assert "not a known NSE instrument" in result["error"]
+    assert "not a known NSE/BSE instrument" in result["error"]

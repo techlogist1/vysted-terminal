@@ -354,15 +354,50 @@ def get_results_calendar(symbol: str) -> ResultsCalendarResponse:
 def get_shareholding(symbol: str) -> ShareholdingResponse:
     """Quarterly shareholding patterns for ``symbol``, newest quarter first.
 
-    The NSE master carries promoter(+group)/public/employee-trust percentages;
-    FII/DII stay ``None`` (the split lives in the linked XBRL — never fabricated).
+    NSE-first, BSE-fallback: a dual-listed name is served from the NSE quarterly
+    master (promoter/public/employee-trust percentages; FII/DII stay ``None`` —
+    that split lives only in the linked NSE XBRL); a BSE-only name — or one the
+    NSE lane cannot serve — falls back to the BSE lane, which parses the SEBI
+    XBRL and additionally carries the institutions total + FII/DII split. Every
+    pattern carries a ``source`` label ("NSE"/"BSE") and its as-of quarter; a
+    lane that is applicable but fails is recorded and the next lane is tried,
+    and no figure is ever fabricated.
     """
     bare = locale.strip_exchange_suffix(symbol.strip().upper())
     if not bare:
         raise ProviderError("disclosures: empty symbol")
-    rows = nse_provider.get_shareholding_master(bare)
+    lanes: list[tuple[str, bool, object]] = [
+        (EXCHANGE_NSE, symbol_resolver.is_nse_symbol(bare), _nse_shareholding),
+        (EXCHANGE_BSE, symbol_resolver.is_bse_symbol(bare), _bse_shareholding),
+    ]
+    applicable = [(name, fetch) for name, listed, fetch in lanes if listed]
+    if not applicable:
+        raise ProviderError(f"disclosures: {bare!r} is not a known NSE/BSE instrument")
+
+    errors: dict[str, str] = {}
+    for name, fetch in applicable:  # NSE first — it wins for a dual-listed name
+        try:
+            patterns = fetch(bare)
+        except ProviderError as exc:
+            logger.debug("disclosures: %s shareholding failed for %s: %s", name, bare, exc)
+            errors[name] = str(exc)
+            continue
+        if patterns:
+            patterns.sort(key=lambda p: p.quarter_end, reverse=True)
+            return ShareholdingResponse(symbol=bare, count=len(patterns), patterns=patterns)
+    if errors:
+        detail = "; ".join(f"{name}: {msg}" for name, msg in errors.items())
+        raise ProviderError(
+            f"disclosures: every shareholding source failed for {bare!r} ({detail})"
+        )
+    # Every applicable lane was reachable but carried no pattern — honest empty.
+    return ShareholdingResponse(symbol=bare, count=0, patterns=[])
+
+
+def _nse_shareholding(bare: str) -> list[ShareholdingPattern]:
+    """The NSE quarterly-master lane → typed patterns (source ``"NSE"``)."""
     patterns: list[ShareholdingPattern] = []
-    for row in rows:
+    for row in nse_provider.get_shareholding_master(bare):
         if not isinstance(row, dict):
             continue
         quarter_end = _parse_day(row.get("date"))
@@ -375,14 +410,45 @@ def get_shareholding(symbol: str) -> ShareholdingResponse:
                 promoter_percent=_pct(row.get("pr_and_prgrp")),
                 fii_percent=None,
                 dii_percent=None,
+                institutions_percent=None,
                 public_percent=_pct(row.get("public_val")),
                 employee_trusts_percent=_pct(row.get("employeeTrusts")),
                 submission_date=_parse_day(row.get("submissionDate")),
                 xbrl_url=_clean(row.get("xbrl")) or None,
+                source=EXCHANGE_NSE,
             )
         )
-    patterns.sort(key=lambda p: p.quarter_end, reverse=True)
-    return ShareholdingResponse(symbol=bare, count=len(patterns), patterns=patterns)
+    return patterns
+
+
+def _bse_shareholding(bare: str) -> list[ShareholdingPattern]:
+    """The BSE SEBI-XBRL lane → typed patterns (source ``"BSE"``)."""
+    from services import bse_provider
+
+    patterns: list[ShareholdingPattern] = []
+    for row in bse_provider.get_shareholding(bare):
+        if not isinstance(row, dict):
+            continue
+        quarter_end = row.get("quarter_end")
+        if not isinstance(quarter_end, date):
+            continue
+        submission = row.get("submission_date")
+        patterns.append(
+            ShareholdingPattern(
+                symbol=bare,
+                quarter_end=quarter_end,
+                promoter_percent=_as_float(row.get("promoter_percent")),
+                fii_percent=_as_float(row.get("fii_percent")),
+                dii_percent=_as_float(row.get("dii_percent")),
+                institutions_percent=_as_float(row.get("institutions_percent")),
+                public_percent=_as_float(row.get("public_percent")),
+                employee_trusts_percent=None,
+                submission_date=submission if isinstance(submission, date) else None,
+                xbrl_url=_clean(row.get("xbrl_url")) or None,
+                source=EXCHANGE_BSE,
+            )
+        )
+    return patterns
 
 
 # ---------------------------------------------------------------------------
@@ -423,6 +489,16 @@ def _pct(value: object) -> float | None:
         return float(value)
     except (TypeError, ValueError):
         return None
+
+
+def _as_float(value: object) -> float | None:
+    """A numeric (non-bool) value as float, else ``None`` — for the BSE lane's
+    already-typed rows (never coerces a bool or a string into a percentage)."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    return None
 
 
 __all__ = [

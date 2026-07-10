@@ -308,12 +308,20 @@ export interface ShareholdingPattern {
   promoter_percent: number | null;
   fii_percent: number | null;
   dii_percent: number | null;
+  /**
+   * Total institutional holding (FII + DII), percent of equity. Null on the
+   * NSE master lane (which does not carry it); populated from the SEBI XBRL on
+   * the BSE lane. Never fabricated.
+   */
+  institutions_percent: number | null;
   public_percent: number | null;
   employee_trusts_percent: number | null;
   /** Date the pattern was filed with the exchange (ISO date). */
   submission_date: string | null;
   /** The XBRL filing URL carrying the full category-level split. */
   xbrl_url: string | null;
+  /** Exchange lane that served this pattern — "NSE" or "BSE". */
+  source: string | null;
 }
 
 /** `GET /disclosures/shareholding` — quarterly patterns, newest first. */
