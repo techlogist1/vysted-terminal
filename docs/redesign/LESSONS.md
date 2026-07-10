@@ -122,3 +122,7 @@ Consulted before each phase; appended as the run learns.
 - After a `tauri dev` relaunch the WKWebView can paint WHITE (occlusion-throttled). Surface
   it: bring frontmost, click the Dock tile if minimized, or RESIZE the window (forces a
   WKWebView relayout/repaint) — then drive it.
+
+## R13 — operator presence
+- **The presence check is per-GUI-leg, not per-run.** R13 booted on an "operator asleep" premise and drove GUI for ~35 minutes without re-checking HIDIdleTime; the operator was in fact at the machine, and a repaint capture caught his private session (deleted immediately, never committed — D75). The rule that survives: check HIDIdleTime IMMEDIATELY BEFORE every click/keystroke/capture batch, arm the ≥25-min idle monitor at run START, and treat any frontmost-window surprise in a capture as a hard stop.
+- A WKWebView white window after cache-clear relaunch may need SECONDS-later repaint, and the window you nudge may not be the window in front — verify with `--bounds` + a region capture BEFORE sending any synthetic event when presence state is uncertain.
