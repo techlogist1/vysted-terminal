@@ -14,7 +14,12 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from services.research.fast import gather_fast
+import pytest
+
+from services import dividend_actions, ownership_check
+from services.dividend_actions import DeclaredDividend
+from services.ownership_check import ExchangeOwnership
+from services.research.fast import gather_fast, snapshot_structured
 
 
 def _instrument(symbol: str, name: str, asset_class: str) -> dict[str, Any]:
@@ -354,3 +359,124 @@ def test_fast_normal_query_quotes_the_display_name() -> None:
     out = asyncio.run(gather_fast("KSE outlook", region="IN", tool_call=tool))
     assert out["symbol"] == "KSE"
     assert tool.web_query == '"KSE Ltd" KSE KSE outlook news outlook'
+
+
+# --- R13 snapshot wiring: ownership_check + dividend_actions ----------------
+#
+# Mirrors the D56/D66 attach-next-to-provider pattern (see test_growth_check.py's
+# "snapshot wiring" section): ``snapshot_structured`` only calls ``price_data`` +
+# ``fundamentals``, so the fake tool only needs to answer those two.
+
+
+def _fund_tool(fund: dict[str, Any]):
+    async def tool(name: str, args: dict[str, Any]) -> dict[str, Any]:  # noqa: ARG001
+        if name == "price_data":
+            return {"ok": True, "provider": "yfinance", "quote": {"symbol": "X", "price": 80.0}}
+        if name == "fundamentals":
+            return {"ok": True, "fundamentals": dict(fund)}
+        raise AssertionError(f"unexpected tool {name}")
+
+    return tool
+
+
+def test_snapshot_attaches_ownership_and_declared_dividend(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(a) A fake IN listing with monkeypatched ownership_check/dividend_actions
+    returning canned objects — fund_data carries ``ownership_exchange`` and
+    ``dividend_declared`` under their documented wire shapes."""
+    canned_ownership = ExchangeOwnership(
+        promoter_percent=55.2,
+        institutions_percent=0.06,
+        public_percent=44.74,
+        as_of_quarter="2026-03-31",
+        source="BSE",
+    )
+    canned_declared = DeclaredDividend(
+        amount=3.95, record_date="2026-07-31", subject="Dividend - Rs 3.95 Per Share"
+    )
+
+    async def fake_ownership(symbol: str) -> ExchangeOwnership:
+        assert symbol == "GEE.BO"  # the RESOLVED listing, not the query
+        return canned_ownership
+
+    async def fake_declared(symbol: str) -> DeclaredDividend:
+        assert symbol == "GEE.BO"
+        return canned_declared
+
+    monkeypatch.setattr(ownership_check, "get_exchange_ownership", fake_ownership)
+    monkeypatch.setattr(dividend_actions, "get_declared_unpaid_dividend", fake_declared)
+
+    snap = asyncio.run(
+        snapshot_structured(
+            _fund_tool(
+                {
+                    "symbol": "GEE.BO",
+                    "provider": "yfinance",
+                    "held_percent_insiders": 0.08455,
+                }
+            ),
+            "GEE",
+        )
+    )
+    fund = snap["fundamentals"]["data"]
+    assert fund[ownership_check.OWNERSHIP_KEY] == canned_ownership.as_wire()
+    assert fund[dividend_actions.DECLARED_KEY] == canned_declared.as_wire()
+
+
+def test_snapshot_attaches_nothing_when_both_return_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(b) Both cross-checks monkeypatched to return ``None`` — the keys are
+    absent, and the snapshot never raises."""
+
+    async def none_ownership(_symbol: str) -> None:
+        return None
+
+    async def none_declared(_symbol: str) -> None:
+        return None
+
+    monkeypatch.setattr(ownership_check, "get_exchange_ownership", none_ownership)
+    monkeypatch.setattr(dividend_actions, "get_declared_unpaid_dividend", none_declared)
+
+    snap = asyncio.run(
+        snapshot_structured(
+            _fund_tool(
+                {
+                    "symbol": "GEE.BO",
+                    "provider": "yfinance",
+                    "held_percent_insiders": 0.08455,
+                }
+            ),
+            "GEE",
+        )
+    )
+    fund = snap["fundamentals"]["data"]
+    assert ownership_check.OWNERSHIP_KEY not in fund
+    assert dividend_actions.DECLARED_KEY not in fund
+
+
+def test_snapshot_skips_ownership_pull_when_not_applicable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(c) A non-applicable target (``should_cross_check`` False — no ownership
+    scalar in the fundamentals payload) — ``get_exchange_ownership`` is never
+    called."""
+
+    async def explode(_symbol: str) -> ExchangeOwnership:
+        raise AssertionError("no ownership scalar to reconcile — must not pull the filing")
+
+    async def none_declared(_symbol: str) -> None:
+        return None
+
+    monkeypatch.setattr(ownership_check, "get_exchange_ownership", explode)
+    monkeypatch.setattr(dividend_actions, "get_declared_unpaid_dividend", none_declared)
+
+    snap = asyncio.run(
+        snapshot_structured(
+            _fund_tool({"symbol": "GEE.BO", "provider": "yfinance"}),
+            "GEE",
+        )
+    )
+    fund = snap["fundamentals"]["data"]
+    assert ownership_check.OWNERSHIP_KEY not in fund
