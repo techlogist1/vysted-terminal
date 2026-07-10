@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from services import identity_crosscheck
+from services import identity_crosscheck, ownership_check
 
 #: Relative divergence above which the provider dividend yield and the implied
 #: yield (dividend per share / price) are a CONFLICT — flagged, and no single
@@ -72,6 +72,32 @@ _MARKET_CAP_TOLERANCE = 0.05
 #: is emitted only when plausible AS A FRACTION of price (< this bound) — an
 #: ambiguous-unit figure (0.55? 55?) is withheld rather than guessed.
 _PLAUSIBLE_YIELD_FRACTION = 0.25
+
+#: Ownership cross-check tolerances (R13 / D68). The provider's
+#: ``heldPercentInsiders`` and the exchange promoter-group percentage AGREE
+#: within this absolute pp band; beyond it a conflict is flagged.
+_OWNERSHIP_PROMOTER_PP = 2.0
+#: A promoter-vs-insiders gap at or under this pp band, in the EXPECTED direction
+#: (insiders ≥ promoter — insiders is a superset), is a DEFINITIONAL divergence
+#: (insiders ≠ promoter-group), not a data contradiction; a wider gap is data.
+_OWNERSHIP_DEFINITIONAL_PP = 3.0
+#: ``heldPercentInstitutions`` vs the exchange institutional holding are a
+#: CONFLICT when the larger exceeds this factor of the smaller (a >2x gap) —
+#: institutional definitions are close enough that a gap this wide is a data
+#: contradiction, never merely definitional.
+_OWNERSHIP_INSTITUTIONS_RATIO = 2.0
+#: The zero-vs-nonzero floor (pp): a category the exchange reports as ~0 that the
+#: provider reports above this is a real divergence (not a rounding wisp).
+_OWNERSHIP_ZERO_FLOOR_PP = 0.5
+
+#: Conflict-NATURE discriminator (R13 / D69) — additive, ORTHOGONAL to the
+#: conflict-TYPE ``kind`` (e.g. "identity_conflict"/"ownership_conflict"):
+#: "definitional_expected" = the divergence is explained by a known
+#: definition/basis difference (insiders vs promoter-group; bank revenue line);
+#: "data_conflict" = a genuine cross-source contradiction. Consumers default to
+#: ``data_conflict`` when the field is absent, so existing readers are unchanged.
+_CONFLICT_DATA = "data_conflict"
+_CONFLICT_DEFINITIONAL = "definitional_expected"
 
 
 def _leg_data(structured: dict[str, Any], leg: str) -> dict[str, Any]:
@@ -241,6 +267,148 @@ def _growth_leg(fund: dict[str, Any], provider: str) -> tuple[dict[str, Any], li
         if quarters:
             conflict["quarters"] = dict(quarters)
         conflicts.append(conflict)
+    return facts, conflicts
+
+
+def _diverges_by_factor(a: float, b: float, factor: float) -> bool:
+    """True when the larger of ``|a|``/``|b|`` exceeds ``factor``× the smaller.
+
+    A zero-vs-nonzero pair diverges when the nonzero side clears
+    :data:`_OWNERSHIP_ZERO_FLOOR_PP` — so 0.06% vs 8.455% fires while 0 vs a
+    rounding wisp does not.
+    """
+    hi, lo = max(abs(a), abs(b)), min(abs(a), abs(b))
+    if lo == 0:
+        return hi > _OWNERSHIP_ZERO_FLOOR_PP
+    return hi / lo > factor
+
+
+def _ownership_promoter_conflict(
+    provider: str, yf_pct: float, promoter_pct: float, source: str, as_of: str | None
+) -> dict[str, Any]:
+    """The insiders-vs-promoter conflict — direction/definition/as-of aware."""
+    gap = abs(yf_pct - promoter_pct)
+    # insiders is a SUPERSET of promoter-group; a small over-count in that
+    # direction is definitional, a large gap (or the wrong direction) is data.
+    definitional = gap <= _OWNERSHIP_DEFINITIONAL_PP and yf_pct >= promoter_pct
+    as_of_note = f" as of {as_of}" if as_of else ""
+    return {
+        "field": "held_percent_insiders",
+        "kind": "ownership_conflict",
+        "conflict_kind": _CONFLICT_DEFINITIONAL if definitional else _CONFLICT_DATA,
+        "sources": [
+            {
+                "provider": f"{provider} (heldPercentInsiders)",
+                "value": round(yf_pct, 3),
+                "basis": "insiders (provider roster; mixed as-of)",
+            },
+            {
+                "provider": f"{source} shareholding filing",
+                "value": round(promoter_pct, 3),
+                "basis": f"promoter group{as_of_note}",
+            },
+        ],
+        "note": (
+            f"The provider's heldPercentInsiders ({yf_pct:.2f}%) counts INSIDERS — "
+            "a superset that mixes promoter-group holders with other insider rows "
+            "and can carry stale, individually-dated as-of dates — while the "
+            f"{source} shareholding filing reports the strict PROMOTER GROUP at "
+            f"{promoter_pct:.2f}%{as_of_note}. Insiders and promoter-group are "
+            "different by definition; both figures are shown, neither replaced."
+        ),
+    }
+
+
+def _ownership_institutions_conflict(
+    provider: str, yf_pct: float, institutions_pct: float, source: str, as_of: str | None
+) -> dict[str, Any]:
+    """The institutions divergence conflict (always a data contradiction)."""
+    as_of_note = f" as of {as_of}" if as_of else ""
+    return {
+        "field": "held_percent_institutions",
+        "kind": "ownership_conflict",
+        "conflict_kind": _CONFLICT_DATA,
+        "sources": [
+            {
+                "provider": f"{provider} (heldPercentInstitutions)",
+                "value": round(yf_pct, 3),
+                "basis": "institutions (provider snapshot)",
+            },
+            {
+                "provider": f"{source} shareholding filing",
+                "value": round(institutions_pct, 3),
+                "basis": f"institutional holding{as_of_note}",
+            },
+        ],
+        "note": (
+            f"The provider's heldPercentInstitutions ({yf_pct:.2f}%) diverges from "
+            f"the {source} exchange filing's institutional holding "
+            f"({institutions_pct:.2f}%{as_of_note}) by more than "
+            f"{_OWNERSHIP_INSTITUTIONS_RATIO:g}x — the provider scalar is "
+            "unreliable for this listing; both are shown, neither replaced."
+        ),
+    }
+
+
+def _ownership_leg(
+    fund: dict[str, Any], provider: str
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Cross-check yfinance insider/institution % against the exchange SHP
+    (R13 / D68).
+
+    Returns ``(facts, conflicts)``. The exchange promoter (and institutions,
+    where the filing carried them) are surfaced as SEPARATELY-LABELED facts;
+    a divergence past tolerance flags a conflict carrying BOTH values, BOTH
+    definitions, and BOTH as-of dates. The provider ownership scalars are NEVER
+    replaced — disclosure, not substitution. The exchange pattern rides
+    ``fund[ownership_check.OWNERSHIP_KEY]`` (attached upstream by the snapshot
+    builder, mirroring D66); an absent leg emits nothing (absence is honest).
+    """
+    exchange = fund.get(ownership_check.OWNERSHIP_KEY)
+    if not isinstance(exchange, dict):
+        return {}, []
+    source = exchange.get("source") if isinstance(exchange.get("source"), str) else "exchange"
+    raw_as_of = exchange.get("as_of_quarter")
+    as_of = raw_as_of if isinstance(raw_as_of, str) and raw_as_of else None
+    promoter_pct = _num(exchange, "promoter_percent")
+    institutions_pct = _num(exchange, "institutions_percent")
+    basis = f"{source} shareholding filing" + (f", {as_of}" if as_of else "")
+
+    facts: dict[str, Any] = {}
+    conflicts: list[dict[str, Any]] = []
+
+    if promoter_pct is not None:
+        facts["promoter_percent_exchange"] = _value(
+            round(promoter_pct / 100.0, 6),
+            "Promoter group (exchange filing)",
+            basis=basis,
+            unit="percent",
+        )
+        yf_insiders = _num(fund, "held_percent_insiders")  # a fraction (0-1)
+        if yf_insiders is not None:
+            yf_pct = yf_insiders * 100.0
+            if abs(yf_pct - promoter_pct) > _OWNERSHIP_PROMOTER_PP:
+                conflicts.append(
+                    _ownership_promoter_conflict(provider, yf_pct, promoter_pct, source, as_of)
+                )
+
+    if institutions_pct is not None:
+        facts["institutions_percent_exchange"] = _value(
+            round(institutions_pct / 100.0, 6),
+            "Institutional holding (exchange filing)",
+            basis=basis,
+            unit="percent",
+        )
+        yf_inst = _num(fund, "held_percent_institutions")  # a fraction (0-1)
+        if yf_inst is not None:
+            yf_pct = yf_inst * 100.0
+            if _diverges_by_factor(yf_pct, institutions_pct, _OWNERSHIP_INSTITUTIONS_RATIO):
+                conflicts.append(
+                    _ownership_institutions_conflict(
+                        provider, yf_pct, institutions_pct, source, as_of
+                    )
+                )
+
     return facts, conflicts
 
 
@@ -417,6 +585,14 @@ def derive_semantics(
     data.update(growth_facts)
     conflicts.extend(growth_conflicts)
 
+    # D68: cross-check yfinance insider/institution % against the exchange
+    # shareholding pattern (attached upstream as ``ownership_exchange``). The
+    # exchange promoter/institutions are surfaced as separately-labeled facts,
+    # and a divergence flags a conflict carrying BOTH definitions + as-of dates.
+    ownership_facts, ownership_conflicts = _ownership_leg(fund, provider)
+    data.update(ownership_facts)
+    conflicts.extend(ownership_conflicts)
+
     market_cap = _num(fund, "market_cap")
     shares = _num(fund, "shares_outstanding")
     if market_cap is not None and shares is not None and price is not None:
@@ -466,6 +642,8 @@ _PROMPT_KEYS = (
     "earnings_growth",
     "revenue_growth_computed",
     "earnings_growth_computed",
+    "promoter_percent_exchange",
+    "institutions_percent_exchange",
 )
 
 #: Growth keys rendered as a SIGNED percent in the prompt block (D67): a raw

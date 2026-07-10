@@ -389,3 +389,152 @@ def test_identity_agreement_stays_silent() -> None:
         structured, "IN", canonical_name="Deepak Nitrite Limited", symbol="DEEPAKNTR.NS"
     )
     assert all(c.get("kind") != "identity_conflict" for c in derived["data"]["conflicts"])
+
+
+# --- ownership cross-check (R13 / D68) --------------------------------------
+#
+# yfinance heldPercentInsiders/heldPercentInstitutions vs the exchange
+# shareholding pattern attached upstream as ``ownership_exchange``. The R13
+# probe: institutions ~141x overstated (yf 8.455% vs BSE 0.06%) and insiders
+# overstating the promoter group by 2.5-5.4pp on NSE/BSE names.
+
+
+def _ownership_fund(*, insiders=None, institutions=None, exchange=None) -> dict[str, Any]:
+    fund: dict[str, Any] = {}
+    if insiders is not None:
+        fund["held_percent_insiders"] = insiders
+    if institutions is not None:
+        fund["held_percent_institutions"] = institutions
+    if exchange is not None:
+        fund["ownership_exchange"] = exchange
+    return fund
+
+
+def test_ownership_institutions_141x_and_promoter_drift_both_fire() -> None:
+    data = _derived(
+        _structured(
+            fund=_ownership_fund(
+                insiders=0.75806,
+                institutions=0.08455,
+                exchange={
+                    "promoter_percent": 73.29,
+                    "institutions_percent": 0.06,
+                    "public_percent": 26.71,
+                    "as_of_quarter": "2026-06-30",
+                    "source": "BSE",
+                },
+            )
+        )
+    )
+    # separately-labeled exchange facts, with the as-of quarter in the basis
+    assert data["promoter_percent_exchange"]["value"] == 0.7329
+    assert data["promoter_percent_exchange"]["label"] == "Promoter group (exchange filing)"
+    assert "2026-06-30" in data["promoter_percent_exchange"]["basis"]
+    assert data["institutions_percent_exchange"]["value"] == 0.0006
+    # institutions 141x → data_conflict carrying BOTH values + BOTH definitions
+    inst = next(c for c in data["conflicts"] if c["field"] == "held_percent_institutions")
+    assert inst["conflict_kind"] == "data_conflict"
+    assert inst["kind"] == "ownership_conflict"
+    values = {s["value"] for s in inst["sources"]}
+    assert 8.455 in values and 0.06 in values
+    assert len({s["basis"] for s in inst["sources"]}) == 2
+    # promoter 2.5pp drift (insiders superset, small gap) → definitional_expected
+    prom = next(c for c in data["conflicts"] if c["field"] == "held_percent_insiders")
+    assert prom["conflict_kind"] == "definitional_expected"
+    assert "2026-06-30" in prom["note"]
+    assert {s["value"] for s in prom["sources"]} == {75.806, 73.29}
+
+
+def test_ownership_kiriindus_promoter_5pp_fires_data_conflict() -> None:
+    # insiders 41.714% vs the strict quarter-end promoter 36.72% → ~5pp gap:
+    # too wide to be pure definitional drift, so a data_conflict.
+    data = _derived(
+        _structured(
+            fund=_ownership_fund(
+                insiders=0.41714,
+                exchange={
+                    "promoter_percent": 36.72,
+                    "as_of_quarter": "2026-03-31",
+                    "source": "NSE",
+                },
+            )
+        )
+    )
+    prom = next(c for c in data["conflicts"] if c["field"] == "held_percent_insiders")
+    assert prom["conflict_kind"] == "data_conflict"
+    assert prom["sources"][0]["value"] == 41.714
+    assert prom["sources"][1]["value"] == 36.72
+    # the filing carried no institutions category → no institutions fact/conflict
+    assert "institutions_percent_exchange" not in data
+    assert all(c["field"] != "held_percent_institutions" for c in data["conflicts"])
+
+
+def test_ownership_unseen_shape_institutions_3x_off_fires() -> None:
+    # A case the fix was NOT written against: promoter agrees, institutions 3x off.
+    data = _derived(
+        _structured(
+            fund=_ownership_fund(
+                insiders=0.401,
+                institutions=0.03,
+                exchange={
+                    "promoter_percent": 39.5,
+                    "institutions_percent": 1.0,
+                    "as_of_quarter": "2026-06-30",
+                    "source": "NSE",
+                },
+            )
+        )
+    )
+    assert all(c["field"] != "held_percent_insiders" for c in data["conflicts"])  # 0.6pp: agrees
+    inst = next(c for c in data["conflicts"] if c["field"] == "held_percent_institutions")
+    assert inst["conflict_kind"] == "data_conflict"
+    assert {s["value"] for s in inst["sources"]} == {3.0, 1.0}
+
+
+def test_ownership_agreeing_emits_facts_but_no_conflict() -> None:
+    data = _derived(
+        _structured(
+            fund=_ownership_fund(
+                insiders=0.501,
+                institutions=0.205,
+                exchange={
+                    "promoter_percent": 50.0,
+                    "institutions_percent": 20.55,
+                    "as_of_quarter": "2026-03-31",
+                    "source": "BSE",
+                },
+            )
+        )
+    )
+    assert data["promoter_percent_exchange"]["value"] == 0.5
+    assert data["institutions_percent_exchange"]["value"] == 0.2055
+    assert all(
+        c["field"] not in ("held_percent_insiders", "held_percent_institutions")
+        for c in data["conflicts"]
+    )
+
+
+def test_ownership_absent_exchange_leg_is_a_noop() -> None:
+    data = _derived(_structured(fund=_ownership_fund(insiders=0.5, institutions=0.2)))
+    assert "promoter_percent_exchange" not in data
+    assert "institutions_percent_exchange" not in data
+    assert data["conflicts"] == []
+
+
+def test_ownership_facts_and_conflict_reach_the_prompt_block() -> None:
+    structured = _structured(
+        fund=_ownership_fund(
+            insiders=0.75806,
+            institutions=0.08455,
+            exchange={
+                "promoter_percent": 73.29,
+                "institutions_percent": 0.06,
+                "as_of_quarter": "2026-06-30",
+                "source": "BSE",
+            },
+        )
+    )
+    block = prompt_block(derive_semantics(structured, "IN"))
+    assert "Promoter group (exchange filing)" in block
+    assert "73.29%" in block
+    assert "CONFLICT (held_percent_institutions)" in block
