@@ -1,7 +1,7 @@
 # R13 DATA BEDROCK — run state
 
 ## ⬛ RUN COMPLETE (2026-07-10 ~21:05) — ALL 8 GATES PASS, tagged r13-bedrock
-Final chain: pytest 2502 passed / 1 skipped · vitest 1504/135 · tsc clean · eslint 0 warnings · prettier clean · attended-safe smoke test END-TO-END GREEN beside the live app (3/3 binaries, ICONIKSPEV, 13 agents, MCP ready, zero interference). Sacred file byte-identical at close (5cb28e0d…abdbe). §6.5: audit_orders 0 rows, surface byte-identical to 393e8e5. App left RUNNING on the operator's session (his workspace state, not reset — R12 precedent). Evidence: R13_RUN_REPORT.md (gates table), r13/kse-resurrection/, r13/jarvis/, r13/battery/ (manifest + packs + collected + diffs + COLLECTION_SUMMARY + REVALIDATION_SUMMARY), D71–D80.
+Final chain: pytest 2502 passed / 1 skipped · vitest 1504/135 · tsc clean · eslint 0 warnings · prettier clean · attended-safe smoke test END-TO-END GREEN beside the live app (3/3 binaries, ICONIKSPEV, 13 agents, MCP ready, zero interference). Sacred file byte-identical at close (5cb28e0d…abdbe). §6.5: audit_orders 0 rows, surface byte-identical to 393e8e5. App left RUNNING (post-close correction: the session-scoped host task was reaped ~21:10 taking the dev stack down; relaunched DETACHED (nohup/disown) at ~21:35 during operator-away, health-verified, workspace restored from autosave — the left-running state now survives session end). Evidence: R13_RUN_REPORT.md (gates table), r13/kse-resurrection/, r13/jarvis/, r13/battery/ (manifest + packs + collected + diffs + COLLECTION_SUMMARY + REVALIDATION_SUMMARY), D71–D80.
 
 Single source of truth for the R13 autonomous run. Updated at every loop boundary. Any fresh context resumes from here.
 
