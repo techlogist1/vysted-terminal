@@ -68,6 +68,14 @@ class ResearchTarget:
     asset_class: str | None
     confidence: float
     region: str | None
+    #: R13 additive identity enrichment mirrored from the resolver reply — the
+    #: anchors the web-query builder + relevance gate use to disambiguate a
+    #: ≤3-char ticker (KSE) shadowed by a famous foreign entity. ``None`` when
+    #: the bundled data does not carry it (never fabricated).
+    isin: str | None = None
+    bse_code: str | None = None
+    industry: str | None = None
+    former_name: str | None = None
     raw: dict[str, Any] = field(default_factory=dict, compare=False, repr=False)
 
     def is_equity_like(self) -> bool:
@@ -188,8 +196,18 @@ def target_from_payload(
         region=(
             str(inst_region) if isinstance(inst_region, str) and inst_region else (region or None)
         ),
+        isin=_opt_str(instrument.get("isin")),
+        bse_code=_opt_str(instrument.get("bse_code")),
+        industry=_opt_str(instrument.get("industry")),
+        former_name=_opt_str(instrument.get("former_name")),
         raw=payload,
     )
+
+
+def _opt_str(value: Any) -> str | None:
+    """A non-empty string, or ``None`` — the additive enrichment fields never
+    carry a fabricated value, so a blank/absent/non-string reads as ``None``."""
+    return str(value) if isinstance(value, str) and value.strip() else None
 
 
 async def _resolve_once(
@@ -282,6 +300,10 @@ def resolved_payload(target: ResearchTarget | None) -> dict[str, Any]:
             "region": target.region,
             "asset_class": target.asset_class,
             "confidence": target.confidence,
+            "isin": target.isin,
+            "bse_code": target.bse_code,
+            "industry": target.industry,
+            "former_name": target.former_name,
         },
     }
 

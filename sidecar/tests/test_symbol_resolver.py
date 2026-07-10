@@ -226,7 +226,7 @@ def test_exchange_agrees_with_yahoo_suffix_across_full_masters() -> None:
     for sym in symbol_resolver._nse_master():
         inst = symbol_resolver._instrument_nse(sym, 1.0)
         assert inst.exchange == "NSE" and inst.yahoo_symbol == f"{sym}.NS"
-    for sym, (_name, _group, code) in symbol_resolver._bse_master().items():
+    for sym, (_name, _group, code, _isin) in symbol_resolver._bse_master().items():
         inst = symbol_resolver._instrument_bse(sym, 1.0)
         assert inst.exchange == "BSE" and inst.yahoo_symbol == f"{sym}.BO"
         assert code.isdigit(), f"BSE master row {sym} lacks a numeric scrip code"
@@ -512,3 +512,58 @@ def test_autocomplete_stays_keystroke_fast_over_full_masters() -> None:
         symbol_resolver.autocomplete(queries[_ % len(queries)], "IN", limit=8)
     elapsed = time.monotonic() - start
     assert elapsed < 1.0, f"25 autocomplete calls took {elapsed:.2f}s (>1.0s budget)"
+
+
+# --- R13 identity enrichment: the read-only ISIN / scrip / industry join ------
+
+
+def test_kse_resolves_with_isin_and_bse_code() -> None:
+    """The collision case: KSE Ltd (BSE-only scrip 519421, ISIN INE953E01022 —
+    formerly Kerala Solvent Extractions) is anchored to the ONE real company by
+    its ISIN + numeric scrip, not its Karachi-Stock-Exchange ticker collision."""
+    best = symbol_resolver.resolve("KSE", "IN").best
+    assert best is not None
+    assert best.symbol == "KSE"
+    assert best.exchange == "BSE"
+    assert best.isin == "INE953E01022"
+    assert best.bse_code == "519421"
+
+
+def test_scrip_code_query_carries_identity() -> None:
+    """Resolving by the bare BSE scrip code also carries the enriched identity."""
+    best = symbol_resolver.resolve("519421", "IN").best
+    assert best is not None and best.symbol == "KSE" and best.isin == "INE953E01022"
+
+
+def test_industry_join_populates_for_a_covered_name() -> None:
+    """The sector-map join fills a real industry for a covered large-cap — proof
+    the mechanism works even though KSE's own industry is legitimately absent."""
+    reliance = symbol_resolver.resolve("RELIANCE", "IN").best
+    assert reliance is not None
+    assert reliance.industry is not None and reliance.industry.strip()
+    assert reliance.isin == "INE002A01018" and reliance.bse_code == "500325"
+
+
+def test_uncovered_micro_cap_industry_stays_none_never_fabricated() -> None:
+    """KSE is present in the sector map with industry_raw None (a group-X data
+    gap) — the join surfaces None honestly, never an invented sector."""
+    best = symbol_resolver.resolve("KSE", "IN").best
+    assert best is not None and best.industry is None
+
+
+def test_us_ticker_enrichment_is_all_none() -> None:
+    """A US listing has no India identity data — every enrichment field is None,
+    additive and harmless."""
+    best = symbol_resolver.resolve("AAPL", "US").best
+    assert best is not None
+    assert best.isin is None and best.bse_code is None and best.industry is None
+
+
+def test_enrichment_flows_to_candidates() -> None:
+    """Enrichment is applied to every candidate, not just the best."""
+    res = symbol_resolver.resolve("ITC", "IN")
+    assert res.best is not None and res.best.isin == "INE154A01025"
+    for cand in res.candidates:
+        # every India candidate that is BSE-listed carries its scrip code
+        if cand.exchange in ("NSE", "BSE") and symbol_resolver.is_bse_symbol(cand.symbol):
+            assert cand.bse_code is not None, cand.symbol

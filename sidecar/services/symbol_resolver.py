@@ -69,7 +69,7 @@ import logging
 import threading
 import time
 from collections import OrderedDict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from difflib import SequenceMatcher
 from functools import lru_cache
 from importlib import resources
@@ -211,6 +211,18 @@ class Instrument:
     score: float = 1.0
     band: int = BAND_FUZZY
     rename: RenameAnnotation | None = None
+    # --- additive identity enrichment (R13) --------------------------------
+    # A READ-ONLY join over the bundled BSE master + india_sector_map.json,
+    # applied at resolve time (:func:`_enrich_instrument`). Every field stays
+    # ``None`` when the bundled data does not carry it — NEVER fabricated. These
+    # anchor the entity for the research query builder and the collision-proof
+    # relevance gate: a ≤3-char ticker (KSE, ITC) shadowed by a famous foreign
+    # entity is disambiguated by its ISIN / exchange / industry, not just its
+    # colliding symbol.
+    isin: str | None = None  # INE953E01022 (KSE Ltd) — BSE master / sector map
+    bse_code: str | None = None  # numeric BSE scrip code (519421) when BSE-listed
+    industry: str | None = None  # india_sector_map industry_raw (None for uncovered names)
+    former_name: str | None = None  # the retired symbol, when answered as its renamed form
 
 
 @dataclass(frozen=True)
@@ -252,23 +264,49 @@ def _nse_master() -> dict[str, tuple[str, str]]:
 
 
 @lru_cache(maxsize=1)
-def _bse_master() -> dict[str, tuple[str, str, str]]:
-    """``{SYMBOL: (name, group, scrip_code)}`` for BSE equities.
+def _bse_master() -> dict[str, tuple[str, str, str, str]]:
+    """``{SYMBOL: (name, group, scrip_code, isin)}`` for BSE equities.
 
     Rows in ``bse_instruments.json`` are ``[SCRIP_CODE, SYMBOL, NAME, GROUP,
-    ISIN]``. The micro-cap tail (groups B/X/XT/T/Z) is the coverage NSE never
-    listed — keyed by the bare ticker for ``is_bse_symbol``/``region_hint`` and
-    carrying the numeric scrip code the BSE quote header endpoint needs.
+    ISIN, STATUS]``. The micro-cap tail (groups B/X/XT/T/Z) is the coverage NSE
+    never listed — keyed by the bare ticker for ``is_bse_symbol``/``region_hint``
+    and carrying the numeric scrip code the BSE quote header endpoint needs. The
+    ISIN (R13) is the instrument's stable global identity; it rides the resolve
+    payload so a BSE-only micro-cap (KSE Ltd, INE953E01022) is anchored to the
+    ONE real company, never its foreign-ticker collision.
     """
     raw = _load_master("bse_instruments.json")
-    out: dict[str, tuple[str, str, str]] = {}
+    out: dict[str, tuple[str, str, str, str]] = {}
     for row in raw.get("instruments", []):
         code = str(row[0]).strip() if len(row) > 0 else ""
         sym = str(row[1]).strip().upper() if len(row) > 1 else ""
         name = str(row[2]).strip() if len(row) > 2 else ""
         group = str(row[3]).strip().upper() if len(row) > 3 else ""
+        isin = str(row[4]).strip().upper() if len(row) > 4 else ""
         if sym:
-            out[sym] = (name, group, code)
+            out[sym] = (name, group, code, isin)
+    return out
+
+
+@lru_cache(maxsize=1)
+def _india_sector_map() -> dict[str, dict]:
+    """``{BASE_SYMBOL: record}`` from bundled ``india_sector_map.json`` (R13).
+
+    The SAME bundled file :mod:`services.screener_universe_india` reads — each
+    record carries ``isin / scrip_code / industry_raw / sector / sector_source /
+    shares_outstanding``. Read-only join at resolve time; a missing/garbled map
+    degrades to ``{}`` so resolution never depends on the sector data. An
+    uncovered micro-cap (KSE) is PRESENT with ``industry_raw: None`` — the join
+    surfaces that honestly (``industry = None``), never a fabricated sector.
+    """
+    raw = _load_master("india_sector_map.json", fallback={"records": []})
+    out: dict[str, dict] = {}
+    for rec in raw.get("records", []):
+        if not isinstance(rec, dict):
+            continue
+        sym = str(rec.get("symbol") or "").strip().upper()
+        if sym and sym not in out:
+            out[sym] = rec
     return out
 
 
@@ -283,7 +321,7 @@ def _bse_scrip_index() -> dict[str, str]:
     carries the scrip code per row); on a duplicate code the first row wins.
     """
     out: dict[str, str] = {}
-    for sym, (_name, _group, code) in _bse_master().items():
+    for sym, (_name, _group, code, _isin) in _bse_master().items():
         if code and code not in out:
             out[code] = sym
     return out
@@ -331,6 +369,7 @@ def reset_caches_for_tests() -> None:
     _bse_scrip_index.cache_clear()
     _us_master.cache_clear()
     _marquee_aliases.cache_clear()
+    _india_sector_map.cache_clear()
     _reset_live_lookup_for_tests()
 
 
@@ -428,7 +467,7 @@ def _instrument_nse(symbol: str, score: float, band: int = BAND_FUZZY) -> Instru
 
 
 def _instrument_bse(symbol: str, score: float, band: int = BAND_FUZZY) -> Instrument:
-    name, _group, _code = _bse_master()[symbol]
+    name, _group, _code, _isin = _bse_master()[symbol]
     return Instrument(
         symbol=symbol,
         name=name,
@@ -587,9 +626,11 @@ def resolve(query: str, region: str) -> Resolution:
     The banded result then passes through the NSE symbol-change lane (R12, D66):
     a resolved OLD symbol whose change date has passed is answered as its CURRENT
     symbol with an explicit :class:`RenameAnnotation` — never a silent swap, and
-    an honest no-op when the rename master is unavailable.
+    an honest no-op when the rename master is unavailable. Finally (R13) every
+    surviving candidate is enriched with its additive identity metadata (ISIN,
+    BSE scrip code, industry, former name) — a read-only join, never a fabricator.
     """
-    return _annotate_renamed_symbols(_resolve_masters(query, region))
+    return _enrich_resolution(_annotate_renamed_symbols(_resolve_masters(query, region)))
 
 
 def _resolve_masters(query: str, region: str) -> Resolution:
@@ -666,7 +707,7 @@ def _resolve_masters(query: str, region: str) -> Resolution:
     nse_symbols = _nse_master()
     for sym, (name, _typ) in nse_symbols.items():
         _append(_name_score(query_lc, name.lower(), n_words), _instrument_nse, sym)
-    for sym, (name, _group, _code) in _bse_master().items():
+    for sym, (name, _group, _code, _isin) in _bse_master().items():
         if sym in nse_symbols:
             continue  # canonical row is the NSE instrument (dual-listed)
         _append(_name_score(query_lc, name.lower(), n_words), _instrument_bse, sym)
@@ -768,6 +809,62 @@ def _annotate_renamed_symbols(resolution: Resolution) -> Resolution:
     )
 
 
+# ---------------------------------------------------------------------------
+# Identity enrichment (R13) — the read-only ISIN / scrip / industry join.
+# ---------------------------------------------------------------------------
+
+
+def _enrich_instrument(inst: Instrument) -> Instrument:
+    """Attach the additive identity metadata to a resolved instrument.
+
+    A READ-ONLY join, never a fabricator: ``bse_code`` + ``isin`` come from the
+    bundled BSE master (the ISIN falls back to the sector map for an NSE-only
+    listing), ``industry`` from ``india_sector_map.json`` (``industry_raw``, else
+    the broad ``sector``), and ``former_name`` from the NSE rename lane's retired
+    symbol when this instrument was answered as its current form. A field the
+    bundled data does not carry stays ``None`` — a group-X micro-cap present in
+    the sector map with ``industry_raw: None`` (KSE) surfaces ``industry = None``,
+    never an invented sector. Idempotent: returns the same object when nothing to
+    add (US tickers, or an already-enriched instrument)."""
+    bare = strip_exchange_suffix(inst.symbol).upper()
+    bse_entry = _bse_master().get(bare)
+    bse_code = bse_entry[2] if bse_entry and bse_entry[2] else None
+    isin: str | None = bse_entry[3] if bse_entry and bse_entry[3] else None
+
+    industry: str | None = None
+    record = _india_sector_map().get(bare)
+    if record is not None:
+        if isin is None:
+            rec_isin = record.get("isin")
+            isin = rec_isin if isinstance(rec_isin, str) and rec_isin else None
+        raw_industry = record.get("industry_raw") or record.get("sector")
+        industry = raw_industry if isinstance(raw_industry, str) and raw_industry else None
+
+    former_name = inst.rename.renamed_from if inst.rename is not None else None
+
+    if (
+        isin == inst.isin
+        and bse_code == inst.bse_code
+        and industry == inst.industry
+        and former_name == inst.former_name
+    ):
+        return inst
+    return replace(
+        inst, isin=isin, bse_code=bse_code, industry=industry, former_name=former_name
+    )
+
+
+def _enrich_resolution(resolution: Resolution) -> Resolution:
+    """Enrich the best + every candidate of a resolution (R13). No-op on a miss."""
+    if resolution.best is None:
+        return resolution
+    return Resolution(
+        query=resolution.query,
+        best=_enrich_instrument(resolution.best),
+        candidates=[_enrich_instrument(c) for c in resolution.candidates],
+    )
+
+
 def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[Instrument]:
     """Masters-only, network-free candidate list for on-keystroke autocomplete.
 
@@ -805,7 +902,7 @@ def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[
     # BSE-only names (the micro-cap tail) — dual-listed symbols are skipped so
     # the canonical NSE row is the one (and only) candidate for that instrument,
     # keeping the list deduplicated and NSE-preferred without a second pass.
-    for sym, (name, _group, _code) in _bse_master().items():
+    for sym, (name, _group, _code, _isin) in _bse_master().items():
         if sym in nse_symbols:
             continue
         s = _score(sym, name)
