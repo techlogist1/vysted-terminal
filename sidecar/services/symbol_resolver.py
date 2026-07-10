@@ -865,7 +865,20 @@ def _enrich_instrument(inst: Instrument) -> Instrument:
     bundled data does not carry stays ``None`` — a group-X micro-cap present in
     the sector map with ``industry_raw: None`` (KSE) surfaces ``industry = None``,
     never an invented sector. Idempotent: returns the same object when nothing to
-    add (US tickers, or an already-enriched instrument)."""
+    add (US tickers, or an already-enriched instrument).
+
+    GUARD (R13 hardening — the ISIN-leak fix): this is an INDIAN-identity
+    join keyed on the bare ticker STRING alone, which collides across
+    exchanges — a US "TCI" candidate sitting beside NSE "TCI" (Transport
+    Corporation of India) in the SAME candidate list must never borrow the
+    Indian company's ISIN/bse_code/industry just because the ticker text
+    matches. Enrichment applies ONLY to an instrument that IS itself an
+    Indian listing (``exchange`` NSE/BSE — every IN-region instrument in this
+    module carries one of those two, by the master-hygiene invariant above);
+    every other candidate returns unchanged with its identity fields at their
+    default ``None``."""
+    if inst.exchange not in ("NSE", "BSE"):
+        return inst
     bare = strip_exchange_suffix(inst.symbol).upper()
     bse_entry = _bse_master().get(bare)
     bse_code = bse_entry[2] if bse_entry and bse_entry[2] else None

@@ -635,3 +635,23 @@ def test_enrichment_flows_to_candidates() -> None:
         # every India candidate that is BSE-listed carries its scrip code
         if cand.exchange in ("NSE", "BSE") and symbol_resolver.is_bse_symbol(cand.symbol):
             assert cand.bse_code is not None, cand.symbol
+
+
+def test_mixed_collision_candidates_enrich_only_the_indian_row() -> None:
+    """The ISIN-leak fix (R13 hardening): TCI collides across exchanges — NSE/BSE
+    "TCI" is Transport Corporation of India, but the ticker string ALSO matches a
+    US listing. Both land in the same candidate list (a bare ticker query under
+    GLOBAL carries every exchange hit); only the Indian row may carry the Indian
+    identity join — the US row must keep every enrichment field ``None`` even
+    though ``_bse_master()`` has an entry for the bare string "TCI"."""
+    res = symbol_resolver.resolve("TCI", "GLOBAL")
+    assert res.best is not None
+    exchanges = {cand.exchange for cand in res.candidates}
+    assert "US" in exchanges, "fixture assumption: TCI collides with a US listing"
+    for cand in res.candidates:
+        if cand.exchange in ("NSE", "BSE"):
+            assert cand.isin is not None, cand.symbol
+        else:
+            assert cand.isin is None
+            assert cand.bse_code is None
+            assert cand.industry is None

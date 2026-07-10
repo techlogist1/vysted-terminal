@@ -699,6 +699,21 @@ def parse_shp_xbrl(xml_text: str) -> dict:
     carried; a missing category is simply absent (never fabricated). A
     non-XBRL / unparseable body yields ``{}``. Pure + synchronous so tests pin
     it against a recorded fixture.
+
+    Schema note (R13 hardening — the historical-split-corruption fix): the
+    ``ShareholdingAsAPercentageOfTotalNumberOfShares`` concept is documented
+    as a 0-1 fraction (``unitRef="pure"``) and every RECENT BSE filing (~Sep
+    2025 onward) follows that convention — but older filings emit the SAME
+    concept, with the SAME ``unitRef``/``decimals`` attributes, already
+    scaled to a 0-100 percentage (observed live: TCI's June-2025-and-older
+    quarters carry ``68.73`` where the March-2026 quarter carries ``0.6873``
+    for the identical promoter category). Nothing in the XML declares which
+    convention is in play, so the scale is inferred per-filing: a single
+    category can never legitimately exceed ``1.0`` as a true fraction (that
+    would be >100% of one member), so any raw value > 1.0 anywhere in the
+    filing is conclusive proof it uses the already-percent convention.
+    :func:`_validate_shp_summary` is the backstop for anything this inference
+    still gets wrong.
     """
     text = (xml_text or "").lstrip("﻿")
     if not text.strip():
@@ -719,7 +734,7 @@ def parse_shp_xbrl(xml_text: str) -> dict:
             for member in ctx.iter()
             if _xml_local(member.tag) == "explicitMember"
         ]
-    found: dict[str, float] = {}
+    raw: dict[str, float] = {}
     for element in root.iter():
         if _xml_local(element.tag) != _SHP_PCT_CONCEPT or not (
             element.text and element.text.strip()
@@ -729,13 +744,19 @@ def parse_shp_xbrl(xml_text: str) -> dict:
         if len(members) != 1:  # a summary category has exactly one member
             continue
         field = _SHP_CATEGORY.get(members[0])
-        if field is None or field in found:
+        if field is None or field in raw:
             continue
         try:
-            found[field] = round(float(element.text.strip()) * 100.0, 4)
+            raw[field] = float(element.text.strip())
         except ValueError:
             continue
-    return _shp_summary_from_categories(found)
+    if not raw:
+        return {}
+    # A genuine fraction never exceeds 1.0 for a single category — any raw
+    # value above that is decisive proof of the older already-percent schema.
+    scale = 1.0 if any(abs(value) > 1.0 for value in raw.values()) else 100.0
+    found = {field: round(value * scale, 4) for field, value in raw.items()}
+    return _validate_shp_summary(_shp_summary_from_categories(found))
 
 
 def _shp_summary_from_categories(found: dict[str, float]) -> dict:
@@ -770,14 +791,54 @@ def _shp_summary_from_categories(found: dict[str, float]) -> dict:
     return out
 
 
+#: The summary fields that are genuine percentages of total shares — every one
+#: of them must land in [0, 100.5] (a small tolerance over 100 for rounding)
+#: or the filing's split is unreliable end to end.
+_SHP_PCT_FIELDS = (
+    "promoter_percent",
+    "public_percent",
+    "institutions_percent",
+    "dii_percent",
+    "fii_percent",
+    "public_non_institutional_percent",
+)
+
+
+def _validate_shp_summary(summary: dict) -> dict:
+    """Class-level guard against a corrupt/unknown-schema quarter (R13 hardening).
+
+    Any parsed category percentage outside ``[0, 100.5]`` invalidates the
+    WHOLE quarter's split — a partially-nonsensical mix (some fields sane,
+    one at 1500%) is worse than none, since a consumer has no way to tell
+    which half to trust. Returns ``{}`` on any violation so the caller's
+    quarter row keeps its ``quarter_end``/``xbrl_url`` but every split field
+    stays ``None`` — honest, never fabricated, never half-corrupt."""
+    for field_name in _SHP_PCT_FIELDS:
+        value = summary.get(field_name)
+        if value is not None and not (0.0 <= value <= 100.5):
+            return {}
+    return summary
+
+
 def _shp_cached_summary(xbrl_file: str) -> dict | None:
-    """The cached parsed summary for a filing, or ``None``."""
+    """The cached parsed summary for a filing, or ``None``.
+
+    Re-validated on every read (not just at write time): a disk cache
+    written by a pre-fix build carries the 100x-scaled corruption forever
+    otherwise — :func:`_validate_shp_summary` self-heals a stale corrupt
+    entry back to ``{}`` (treated as a cache miss below), so the next call
+    re-parses the filing under the corrected scale inference instead of
+    replaying the old bug from disk indefinitely.
+    """
     path = os.path.join(_shp_cache_dir(), f"{xbrl_file}.json")
     try:
         if os.path.exists(path):
             with open(path, encoding="utf-8") as fp:
                 data = json.load(fp)
-            return data if isinstance(data, dict) else None
+            if not isinstance(data, dict):
+                return None
+            validated = _validate_shp_summary(data)
+            return validated or None
     except (OSError, ValueError) as exc:
         logger.debug("bse: SHP cache read failed for %s: %s", xbrl_file, exc)
     return None
