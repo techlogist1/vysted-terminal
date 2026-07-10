@@ -339,6 +339,74 @@ def test_query_cleaning_strips_lead_verbs_and_trailing_punctuation(monkeypatch) 
     assert r2.best is not None and r2.best.symbol == "RELIANCE"
 
 
+# ---------------------------------------------------------------------------
+# R13 — full-legal-name resolution across the Ltd⟺Limited corporate-suffix seam.
+# ---------------------------------------------------------------------------
+
+
+def test_full_legal_name_binds_across_ltd_limited_seam(monkeypatch) -> None:  # noqa: ANN001
+    """A company's own legal name ("Bilcare Ltd") must BIND its instrument even
+    though the NSE master spells it "…Limited": normalizing the corporate-suffix
+    seam BEFORE scoring lands the match in the name-exact band (4, score 1.0)
+    instead of stranding it fuzzy under the accept band (the 0.846 bug). All six
+    dual-listed battery names bind at their correct NSE instrument."""
+    from services import resolution_policy
+
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", _raise_if_network)
+    expected = {
+        "Bilcare Ltd": "BI",
+        "Standard Industries Ltd": "SIL",
+        "UFO Moviez India Ltd": "UFO",
+        "Paul Merchants Ltd": "PML",
+        "Tilaknagar Industries Ltd": "TI",
+        "Restaurant Brands Asia Ltd": "RBA",
+    }
+    for query, symbol in expected.items():
+        r = symbol_resolver.resolve(query, "IN")
+        decision = resolution_policy.decide(r)
+        assert decision.outcome == "bound", (query, decision.outcome)
+        assert r.best is not None and r.best.symbol == symbol, query
+        assert r.best.exchange == "NSE" and r.best.band == resolution_policy.BAND_NAME_EXACT
+        assert r.best.score == 1.0
+
+
+def test_corporate_seam_canonicalizes_ltd_and_pvt_symmetrically() -> None:
+    """The seam map normalizes Ltd⟺Limited, &⟺and, Pvt⟺Private on BOTH sides so an
+    exact-modulo-suffix name scores name-exact — but a DIFFERENT multi-word name is
+    NEVER promoted (it stays fuzzy: the E1 wrong-entity guard is untouched)."""
+    from services.resolution_policy import BAND_NAME_EXACT
+
+    # Exact modulo the seam → name-exact (band 4), full confidence.
+    assert symbol_resolver._name_score("bilcare ltd", "bilcare limited", 2) == (
+        BAND_NAME_EXACT,
+        1.0,
+    )
+    assert symbol_resolver._name_score("larsen and toubro ltd", "larsen & toubro limited", 4) == (
+        BAND_NAME_EXACT,
+        1.0,
+    )
+    assert symbol_resolver._name_score("acme pvt ltd", "acme private limited", 3) == (
+        BAND_NAME_EXACT,
+        1.0,
+    )
+    # A genuinely different multi-word name is not promoted to name-exact.
+    assert symbol_resolver._name_score("bilcare industries ltd", "bilcare limited", 3) is None
+    diff = symbol_resolver._name_score("reliance power ltd", "reliance industries limited", 3)
+    assert diff is not None and diff[0] < BAND_NAME_EXACT  # fuzzy, never bound outright
+
+
+def test_ltd_seam_leaves_genuine_ambiguity_disambiguating(monkeypatch) -> None:  # noqa: ANN001
+    """The seam fix must not collapse genuine ambiguity: a curated marquee family
+    ("Bajaj") still forces an explicit choice rather than binding one member — the
+    R10/R11 tie-guard + curated choosers are untouched."""
+    from services import resolution_policy
+
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", _raise_if_network)
+    r = symbol_resolver.resolve("Bajaj", "IN")
+    assert resolution_policy.decide(r).outcome == "disambiguate"
+    assert len(r.candidates) > 1
+
+
 def test_marquee_alias_two_word_generic_key(monkeypatch) -> None:  # noqa: ANN001
     monkeypatch.setattr(symbol_resolver, "_live_lookup", _raise_if_network)
     r = symbol_resolver.resolve("tata stock", "IN")

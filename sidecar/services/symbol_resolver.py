@@ -173,6 +173,20 @@ _CORP_SUFFIXES = frozenset(
     }
 )
 
+# Corporate-name SEAM canonicalization (R13): token spellings that differ only
+# cosmetically between a company's legal name and the exchange master
+# ("&"⟺"and", "pvt"⟺"private") — normalized symmetrically on BOTH query and name
+# so an exact-modulo-suffix legal name ("Bilcare Ltd" vs the master's "Bilcare
+# Limited") lands in the name-exact band and binds, instead of scoring fuzzy and
+# stranding under the accept band. The Ltd⟺Limited half is handled by the shared
+# corporate-suffix strip (both are in ``_CORP_SUFFIXES``).
+_NAME_CANON_MAP = {
+    "&": "and",
+    "pvt": "private",
+    "pvt.": "private",
+    "&amp;": "and",
+}
+
 
 @dataclass(frozen=True)
 class RenameAnnotation:
@@ -527,6 +541,22 @@ def _strip_corporate_suffix(name_lc: str) -> str:
     return " ".join(tokens)
 
 
+def _canonical_name(name_lc: str) -> str:
+    """Canonicalize a name for the exact-modulo-suffix comparison (R13).
+
+    Normalizes the corporate-name SEAM — "&"⟺"and", "pvt"⟺"private" (via
+    :data:`_NAME_CANON_MAP`) — then drops trailing corporate suffixes (so
+    "Ltd"⟺"Limited" collapse too). Applied SYMMETRICALLY to query and name so a
+    company's own legal name ("bilcare ltd") canonicalizes to the same string as
+    the master spelling ("bilcare limited") → "bilcare". Purely an equality key:
+    it never loosens fuzzy scoring (that rung is untouched)."""
+    tokens = [t.strip(_EDGE_PUNCT) for t in name_lc.split()]
+    tokens = [_NAME_CANON_MAP.get(t, t) for t in tokens if t]
+    while len(tokens) > 1 and tokens[-1] in _CORP_SUFFIXES:
+        tokens.pop()
+    return " ".join(tokens)
+
+
 def _name_score(query_lc: str, name_lc: str, query_words: int) -> tuple[int, float] | None:
     """Score a name match as ``(band, raw_score)``, or ``None`` for no match.
 
@@ -539,8 +569,18 @@ def _name_score(query_lc: str, name_lc: str, query_words: int) -> tuple[int, flo
     if query_lc == name_lc:
         return BAND_NAME_EXACT, 1.0
     stripped = _strip_corporate_suffix(name_lc)
-    if query_words > 1 and query_lc == stripped:
-        return BAND_NAME_EXACT, 1.0
+    if query_words > 1:
+        if query_lc == stripped:
+            return BAND_NAME_EXACT, 1.0
+        # Exact modulo the corporate-suffix seam (Ltd⟺Limited, &⟺and, Pvt⟺Private):
+        # a company's own legal name matching the master except for that seam is a
+        # NAME-EXACT hit, not a fuzzy one — so "Bilcare Ltd" binds "Bilcare Limited"
+        # instead of stranding at 0.846 under the accept band. An equality of
+        # canonical keys, so it can only promote a genuine same-name match — the
+        # fuzzy rung (the E1 wrong-entity guard) is left untouched.
+        query_canon = _canonical_name(query_lc)
+        if query_canon and query_canon == _canonical_name(name_lc):
+            return BAND_NAME_EXACT, 1.0
     if query_words == 1:
         first_word = stripped.split(None, 1)[0] if stripped else ""
         if query_lc == first_word:
