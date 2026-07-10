@@ -57,6 +57,7 @@ from services.research.deep import (
     _safe_llm,
     _split_subquestions,
     _synthesize_brief,
+    build_structured_floor,
     coverage_floor_met,
     finalize_markdown,
     record_snapshot_sources,
@@ -262,6 +263,12 @@ async def _synthesis_from_report(
     rendered = report.render()
     if rendered and rendered != "(no findings distilled yet)":
         return f"# Research brief: {query}\n\nSymbol: {symbol}\n\n{rendered}"
+    # R13 filings floor: a dead-LLM wind-down with no distilled report still
+    # ships a brief built from the structured legs + exchange filings — never the
+    # bare "No findings" line when price/announcements/fundamentals were gathered.
+    floor = build_structured_floor(query=query, symbol=symbol, structured=structured or {})
+    if floor is not None:
+        return floor
     return (
         f"# Research brief: {query}\n\nSymbol: {symbol}\n\n"
         "_No findings were gathered before the run ended._"
@@ -334,6 +341,26 @@ async def run_iter_research(
             )
         structured.update(snapshot)
         record_snapshot_sources(findings, target.symbol, structured)
+        # R13 filings floor: pull exchange announcements up front for ANY Indian
+        # listing (wants_disclosures_floor) so a thin-web name still has dated
+        # filings even if planning eats the wall before a researcher fires. Shared
+        # by the heavy panel via the snapshot dict, so guard on absence to pull once.
+        from services.research import disclosures as _disclosures
+
+        if _disclosures.wants_disclosures_floor(target) and structured.get("disclosures") is None:
+            floor = await _disclosures.gather_floor(tool_call, target=target)
+            structured["disclosures"] = {
+                "ok": floor["ok"],
+                "announcements": floor["announcements"],
+                "rows": floor["rows"],
+            }
+            if floor["rows"]:
+                _record_web(
+                    findings,
+                    {"ok": True, "citations": floor["rows"], "results": []},
+                    target=target,
+                    query=query,
+                )
 
     last_round_findings: list[str] = []
 
@@ -864,6 +891,18 @@ async def run_heavy_research(
         snapshot = await snapshot_structured(
             tool_call, target.symbol, region=region, canonical_name=target.name
         )
+        # R13 filings floor: pull exchange announcements ONCE for the whole panel
+        # and share via the snapshot dict — every angle's structured floor (and
+        # each explorer that winds down thin) then carries the same dated filings.
+        from services.research import disclosures as _disclosures
+
+        if _disclosures.wants_disclosures_floor(target):
+            floor = await _disclosures.gather_floor(tool_call, target=target)
+            snapshot["disclosures"] = {
+                "ok": floor["ok"],
+                "announcements": floor["announcements"],
+                "rows": floor["rows"],
+            }
 
     # --- panel plan: split into N distinct, non-overlapping angles -----------
     t0 = time.monotonic()

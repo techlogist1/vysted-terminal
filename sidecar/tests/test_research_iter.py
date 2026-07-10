@@ -521,3 +521,135 @@ def test_run_loop_deep_fallback_is_never_silent(monkeypatch):
     )
     assert isinstance(brief, ResearchBrief)
     assert brief.note is not None and "fallback" in brief.note
+
+
+# --- R13 filings floor: never "No findings" when structured data exists --------
+
+
+class _DeadLLM:
+    """Every completion is blank — forces the deterministic fallback path so the
+    structured floor is what ships (the live wind-down failure mode)."""
+
+    async def __call__(self, messages: list[Any]) -> str:
+        return ""
+
+
+def _kse_floor_tool_factory():
+    """A tool_call for a KSE-shaped IN target: web_search returns EMPTY, but the
+    price snapshot and corporate_announcements carry real data."""
+
+    async def _tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
+        if name == "resolve_symbol":
+            return {
+                "ok": True,
+                "status": "bound",
+                "resolved": {
+                    "symbol": "KSE",
+                    "name": "KSE Ltd",
+                    "exchange": "BSE",
+                    "region": "IN",
+                    "asset_class": "equity",
+                    "confidence": 1.0,
+                    "isin": "INE953E01022",
+                    "bse_code": "519421",
+                    "industry": None,
+                },
+            }
+        if name == "web_search":
+            return {"ok": True, "citations": [], "results": []}  # thin web — the whole point
+        if name == "price_data":
+            return {"ok": True, "provider": "bse", "quote": {"symbol": "KSE", "price": 142.5}}
+        if name == "fundamentals":
+            return {"ok": False, "error": "no fundamentals provider covers this micro-cap"}
+        if name == "corporate_announcements":
+            return {
+                "ok": True,
+                "announcements": [
+                    {
+                        "ts": "2026-06-30",
+                        "category": "Trading Window",
+                        "headline": "Closure of trading window",
+                        "attachment_url": None,
+                    },
+                    {
+                        "ts": "2026-06-17",
+                        "category": "Board Meeting",
+                        "headline": "Outcome of board meeting",
+                        "attachment_url": "https://www.bseindia.com/xml/kse_bm.pdf",
+                        "exchange": "BSE",
+                    },
+                    {
+                        "ts": "2026-07-03",
+                        "category": "Certificate",
+                        "headline": "SEBI Regulation 74(5) certificate",
+                        "attachment_url": None,
+                    },
+                ],
+            }
+        return {"ok": True, "provider": "test"}
+
+    return _tool
+
+
+def test_filings_floor_replaces_no_findings_when_structured_data_exists() -> None:
+    """The live failure: DEEP round-1 planning ate the wall, the run wound down,
+    and the brief said 'No findings were gathered before the run ended' — while
+    the price snapshot and BSE announcements HAD real data. The floor now builds
+    the brief from those structured legs; the bare 'No findings' line is
+    unreachable whenever a structured leg returned data."""
+    brief = _run(
+        run_iter_research(
+            "KSE outlook",
+            region="IN",
+            tool_call=_kse_floor_tool_factory(),
+            llm_call=_DeadLLM(),
+            budget=BudgetGuard(max_steps=1),  # breach immediately → wind down
+        )
+    )
+    assert isinstance(brief, ResearchBrief)
+    md = brief.markdown
+    assert "No findings were gathered before the run ended" not in md
+    # Built from the structured legs + exchange filings, explicitly framed.
+    assert "exchange data and filings" in md
+    assert "Price & action" in md
+    assert "Outcome of board meeting" in md  # a dated BSE filing reached the body
+    assert "2026-06-17" in md
+    # The floor is honest about the absent fundamentals feed.
+    assert "No fundamentals feed covered this instrument this run" in md
+
+
+def test_filings_floor_wants_disclosures_floor_fires_for_any_indian_target() -> None:
+    from services.research import disclosures
+    from services.research.target import target_from_payload
+
+    kse = target_from_payload(
+        {
+            "ok": True,
+            "resolved": {
+                "symbol": "KSE",
+                "name": "KSE Ltd",
+                "exchange": "BSE",
+                "region": "IN",
+                "asset_class": "equity",
+                "confidence": 1.0,
+            },
+        }
+    )
+    # Fires for ANY India target regardless of sub-question shape…
+    assert disclosures.wants_disclosures_floor(kse) is True
+    # …but a US target never triggers the floor pull.
+    us = target_from_payload(
+        {
+            "ok": True,
+            "resolved": {
+                "symbol": "NVDA",
+                "name": "NVIDIA Corporation",
+                "exchange": "NASDAQ",
+                "region": "US",
+                "asset_class": "equity",
+                "confidence": 1.0,
+            },
+        }
+    )
+    assert disclosures.wants_disclosures_floor(us) is False
+    assert disclosures.wants_disclosures_floor(None) is False

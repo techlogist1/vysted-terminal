@@ -443,6 +443,125 @@ def snapshot_context(structured: dict[str, Any]) -> str:
     )
 
 
+def _floor_price_line(leg: dict[str, Any]) -> str:
+    """A compact, HONEST one-liner from the price leg (R13 floor) — names the
+    provider and any obvious last price/change actually present, never invented."""
+    provider = leg.get("provider") if isinstance(leg.get("provider"), str) else None
+    data = leg.get("data")
+    quote = (
+        data.get("quote")
+        if isinstance(data, dict) and isinstance(data.get("quote"), dict)
+        else data
+    )
+    bits: list[str] = []
+    seen_labels: set[str] = set()
+    if isinstance(quote, dict):
+        for key, label in (
+            ("price", "last"),
+            ("last", "last"),
+            ("close", "close"),
+            ("change_percent", "change %"),
+            ("changePercent", "change %"),
+        ):
+            val = quote.get(key)
+            if val is not None and label not in seen_labels:
+                seen_labels.add(label)
+                bits.append(f"{label} {val}")
+    prefix = "Price / price-history data was gathered this run"
+    if provider:
+        prefix += f" (via {provider})"
+    return prefix + (": " + ", ".join(bits) + "." if bits else ".")
+
+
+def _floor_fundamentals_line(leg: dict[str, Any]) -> str:
+    """A compact one-liner from the fundamentals leg (R13 floor)."""
+    provider = leg.get("provider") if isinstance(leg.get("provider"), str) else None
+    data = leg.get("data")
+    bits: list[str] = []
+    if isinstance(data, dict):
+        for key, label in (
+            ("market_cap", "market cap"),
+            ("pe_ratio", "P/E"),
+            ("dividend_per_share_ttm", "dividend/share (ttm)"),
+        ):
+            val = data.get(key)
+            if val is not None:
+                bits.append(f"{label} {val}")
+    prefix = "Fundamentals snapshot gathered this run"
+    if provider:
+        prefix += f" (via {provider})"
+    return prefix + (": " + ", ".join(bits) + "." if bits else ".")
+
+
+def _floor_announcement_lines(announcements: list[Any], *, limit: int = 12) -> list[str]:
+    """Dated exchange-filing bullets for the R13 floor (newest first)."""
+    lines: list[str] = []
+    for item in announcements[:limit]:
+        if not isinstance(item, dict):
+            continue
+        ts = str(item.get("ts") or "?")
+        category = str(item.get("category") or "").strip()
+        headline = str(item.get("headline") or "").strip()
+        attach = " [PDF]" if item.get("attachment_url") else ""
+        label = f"{category}: {headline}" if category else headline
+        lines.append(f"- {ts} · {label}{attach}".rstrip())
+    return lines
+
+
+def build_structured_floor(
+    *, query: str, symbol: str, structured: dict[str, Any]
+) -> str | None:
+    """A deterministic brief assembled from the STRUCTURED legs + exchange
+    filings when web findings are empty/thin and no distilled report exists (R13).
+
+    Returns ``None`` ONLY when no structured leg carried data — so the literal
+    "No findings were gathered before the run ended" line is UNREACHABLE whenever
+    a price / fundamentals / announcements leg returned something. The brief is
+    explicitly FRAMED as exchange-and-filings evidence (not thin web coverage
+    dressed up) and states an honest per-section absence where a feed missed.
+    """
+    if not symbol:
+        return None
+    price = structured.get("price")
+    fundamentals = structured.get("fundamentals")
+    disclosures = structured.get("disclosures")
+    price_ok = isinstance(price, dict) and bool(price.get("ok"))
+    fund_ok = isinstance(fundamentals, dict) and bool(fundamentals.get("ok"))
+    ann = disclosures.get("announcements") if isinstance(disclosures, dict) else None
+    ann = ann if isinstance(ann, list) else []
+    if not (price_ok or fund_ok or ann):
+        return None
+
+    lines = [
+        f"# Research brief: {query}",
+        "",
+        f"Symbol: {symbol}",
+        "",
+        (
+            "_Web coverage for this name is thin; this brief is built from "
+            "exchange data and filings gathered this run._"
+        ),
+        "",
+    ]
+    if price_ok:
+        lines += ["## Price & action", _floor_price_line(price), ""]
+    if ann:
+        lines += ["## Exchange filings & announcements", *_floor_announcement_lines(ann), ""]
+    elif isinstance(disclosures, dict):
+        lines += [
+            "## Exchange filings & announcements",
+            "_No exchange announcements were returned for this listing this run._",
+            "",
+        ]
+    lines += ["## Fundamentals snapshot"]
+    lines += [
+        _floor_fundamentals_line(fundamentals)
+        if fund_ok
+        else "_No fundamentals feed covered this instrument this run._"
+    ]
+    return "\n".join(lines).rstrip()
+
+
 def _record_web(
     findings: _Findings,
     result: dict[str, Any],
@@ -843,8 +962,13 @@ async def _final_synthesis(
     if findings.findings:
         lines.append("## Findings")
         lines.extend(f"- {f}" for f in findings.findings)
-    else:
-        lines.append("_No findings were gathered before the run ended._")
+        return "\n".join(lines)
+    # R13 filings floor: never "No findings" when structured legs carried data —
+    # build the brief from the price/announcements/fundamentals snapshot instead.
+    floor = build_structured_floor(query=query, symbol=symbol, structured=structured or {})
+    if floor is not None:
+        return floor
+    lines.append("_No findings were gathered before the run ended._")
     return "\n".join(lines)
 
 
@@ -1167,6 +1291,7 @@ __all__ = [
     "OnStep",
     "ToolCall",
     "VisitCall",
+    "build_structured_floor",
     "coverage_floor_met",
     "distinct_web_domains",
     "finalize_markdown",

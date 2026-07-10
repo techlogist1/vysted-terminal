@@ -596,3 +596,40 @@ def test_researcher_web_query_web_only_target_unanchored() -> None:
     # No bound instrument → the clean query + sub-question, no anchor tokens.
     q = deep._researcher_web_query("what is the outlook", target=None, query="some theme")
     assert q == "some theme what is the outlook"
+
+
+# --- R13 structured floor unit contract -------------------------------------
+
+
+def test_build_structured_floor_none_when_no_structured_data() -> None:
+    from services.research.deep import build_structured_floor
+
+    assert build_structured_floor(query="x", symbol="", structured={}) is None
+    empty = {"price": {"ok": False}, "fundamentals": {"ok": False}}
+    assert build_structured_floor(query="x", symbol="KSE", structured=empty) is None
+
+
+def test_build_structured_floor_renders_price_and_dated_filings() -> None:
+    from services.research.deep import build_structured_floor
+
+    structured = {
+        "price": {"ok": True, "provider": "bse", "data": {"quote": {"price": 142.5}}},
+        "fundamentals": {"ok": False},
+        "disclosures": {
+            "ok": True,
+            "announcements": [
+                {
+                    "ts": "2026-06-17",
+                    "category": "Board Meeting",
+                    "headline": "Outcome of board meeting",
+                },
+            ],
+            "rows": [],
+        },
+    }
+    md = build_structured_floor(query="KSE outlook", symbol="KSE", structured=structured)
+    assert md is not None
+    assert "exchange data and filings" in md
+    assert "142.5" in md
+    assert "2026-06-17" in md and "Outcome of board meeting" in md
+    assert "No findings" not in md
