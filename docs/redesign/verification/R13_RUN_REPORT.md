@@ -14,7 +14,15 @@ Mission: any-symbol data bedrock — profile contract, foreign witness, entity-a
 | T6 | RETRIEVAL implementer (worktree-agent-retrieval) | opus | opus 4.8 | dispatched 15:20 |
 | T7 | Battery curator (≥16 names + reference packs) | sonnet | sonnet | done — 17 packs + manifest, 6 BSE-only, 10 collision-class, all masters-verified (124k tokens, 72 tools) |
 | T8 | Agent-runtime scout (Jarvis design input) | sonnet | sonnet | done — full ack/narration map; found the kept_previous false-notice mechanism (160k tokens) |
-| T9 | SPINE fresh-context adversarial verifier | opus | opus 4.8 | dispatched ~15:50 |
+| T9 | SPINE fresh-context adversarial verifier | opus | opus 4.8 | done — MERGE, all 5 claims confirmed, 0 regressions (88k tokens) |
+| T10 | WITNESS fresh-context adversarial verifier | opus | opus 4.8 | dispatched ~16:20 |
+| T11 | RETRIEVAL fresh-context adversarial verifier | opus | opus 4.8 | dispatched ~16:30, priority hunt: the 4 rewritten regression tests |
+
+- RETRIEVAL landed (worktree-agent-retrieval, 6 commits, pushed, suite 2339/1 claimed): identity enrichment (KSE → ISIN INE953E01022 + bse_code 519421; industry honestly None — sector-map gap, logged), entity-anchored queries (pinned strings), collision-proof relevance (Karachi rejected / ITC-Moneycontrol kept / ITC-Holdings-US rejected), structured floor ("No findings" unreachable with data), depth fix (round-1 planning skip + adaptive slice + DEEP wall 180s). Lead review: two honesty calls APPROVED; CDG BSE-rename class flagged as expected battery finding (rename lane is NSE-only).
+
+## Phase B progress (cont.)
+- SPINE merged to 004 @ 9a3616e (after MERGE verdict); Phase A docs committed 8437737; targeted integration pytest 103 passed.
+- WITNESS landed (worktree-agent-witness, 4 commits, pushed): BSE XBRL shareholding lane (SHPQNewFormat + SEBI XBRL, live BOMOXY-B1 promoter 73.29%/institutions 0.06% source BSE), ownership_check.py + _ownership_leg (141x → data_conflict, 2.5pp promoter → definitional_expected), D56 direction-aware + declared-not-paid (PFC ₹3.95 record 2026-07-31, "trailing 12m PAID" relabel), conflict_kind wire contract. Suite 2350/1 claimed. Lead review: 4 flagged decisions APPROVED (conflict_kind orthogonal to kind; sector-gated bank rule; nse_provider accessor no partition clash). fast.py wire-up deferred to Jarvis implementer (owns that file next). Verifier dispatched.
 
 ## Phase B progress
 - SPINE landed (worktree-agent-spine @ cf83b5e, pushed): _yahoo_symbol BSE-only→.BO; husk honesty; registry fallback_ok never serves all-null shell; correctness_gate withhold/flag bounds; FieldMeta contract + types/data.ts mirror. Suite 2311→2335/1skip. Live smoke: get_fundamentals('KSE') → PE 6.913, ROE 0.260, provider yfinance, field_meta 32 entries. Lead diff review: APPROVED (is_bse_symbol pre-exists at base — no partition violation; PE×EPS price-proxy design accepted: intra-snapshot consistency check, non-circular). Awaiting adversarial verifier before merge.
