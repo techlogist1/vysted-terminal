@@ -31,8 +31,12 @@ R7 Component 3. Models the RAW exchange feeds into the typed shapes in
 
 * **Shareholding** — the NSE quarterly shareholding MASTER (promoter+group,
   public, employee-trust percentages + the XBRL filing URL). The FII/DII split
-  lives only inside the XBRL, so those fields are honest ``None`` — never
-  fabricated; the ``xbrl_url`` is returned so deeper analysis can pull it.
+  lives only inside the XBRL, so on the NSE lane those fields are ``None`` — but
+  for a DUAL-LISTED name the split is MERGED in from the BSE SEBI-XBRL lane
+  (institutions/FII/DII + the non-institutional public float, as-of-labeled), so
+  a name like SIL no longer loses its FII 38.86%/DII 4.04% to the NSE master. The
+  ``public`` bucket is labeled ``incl. institutions`` on both lanes so it is never
+  mistaken for the non-institutional float; nothing is ever fabricated.
 
 All public functions are synchronous (matching every provider the registry
 drives); async callers wrap them in ``asyncio.to_thread``. Network is reached
@@ -66,6 +70,14 @@ EXCHANGES = (EXCHANGE_NSE, EXCHANGE_BSE)
 
 DEFAULT_LIMIT = 50
 MAX_LIMIT = 200
+
+# The exchange "Public" category (NSE quarterly master ``public_val`` and the BSE
+# SEBI ``PublicShareholdingMember``) FOLDS institutions in — it is the full public
+# category, not the non-institutional float. Every ``public_percent`` we serve
+# carries this basis label so a consumer never mistakes it for the true public
+# float (which lives in ``public_non_institutional_percent`` when the XBRL splits
+# it out).
+PUBLIC_BASIS_INCL_INSTITUTIONS = "incl. institutions"
 
 # BSE announcements API (observed live 2026-06-10 — module docstring).
 _BSE_ANN_URL = "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w"
@@ -354,21 +366,27 @@ def get_results_calendar(symbol: str) -> ResultsCalendarResponse:
 def get_shareholding(symbol: str) -> ShareholdingResponse:
     """Quarterly shareholding patterns for ``symbol``, newest quarter first.
 
-    NSE-first, BSE-fallback: a dual-listed name is served from the NSE quarterly
-    master (promoter/public/employee-trust percentages; FII/DII stay ``None`` —
-    that split lives only in the linked NSE XBRL); a BSE-only name — or one the
-    NSE lane cannot serve — falls back to the BSE lane, which parses the SEBI
-    XBRL and additionally carries the institutions total + FII/DII split. Every
-    pattern carries a ``source`` label ("NSE"/"BSE") and its as-of quarter; a
-    lane that is applicable but fails is recorded and the next lane is tried,
-    and no figure is ever fabricated.
+    NSE-first, BSE-fallback with a MERGE for dual-listed names. The NSE quarterly
+    master carries promoter/public/employee-trust percentages but NO FII/DII split
+    (that lives only in the SEBI XBRL), and its "public" bucket FOLDS institutions
+    in — so a dual-listed name with a large FII position (SIL: FII 38.86%, public
+    36.79% true vs 79.69% institution-inclusive) loses its institutional picture on
+    the NSE lane alone. When a name is ALSO BSE-listed, each NSE pattern is enriched
+    with the BSE SEBI-XBRL split (institutions/FII/DII + the non-institutional
+    public float) for the matching quarter — or the nearest BSE quarter carrying a
+    split, honestly stamped via ``split_source``/``split_as_of``. A BSE-only name
+    (or one the NSE lane cannot serve) is served from the BSE lane directly. Every
+    pattern carries a ``source`` label ("NSE"/"BSE"), a ``public_basis`` label
+    ("incl. institutions"), and its as-of quarter; a lane that is applicable but
+    fails is recorded and the next lane is tried, and no figure is ever fabricated.
     """
     bare = locale.strip_exchange_suffix(symbol.strip().upper())
     if not bare:
         raise ProviderError("disclosures: empty symbol")
+    is_bse = symbol_resolver.is_bse_symbol(bare)
     lanes: list[tuple[str, bool, object]] = [
         (EXCHANGE_NSE, symbol_resolver.is_nse_symbol(bare), _nse_shareholding),
-        (EXCHANGE_BSE, symbol_resolver.is_bse_symbol(bare), _bse_shareholding),
+        (EXCHANGE_BSE, is_bse, _bse_shareholding),
     ]
     applicable = [(name, fetch) for name, listed, fetch in lanes if listed]
     if not applicable:
@@ -383,6 +401,10 @@ def get_shareholding(symbol: str) -> ShareholdingResponse:
             errors[name] = str(exc)
             continue
         if patterns:
+            # A dual-listed NSE result recovers its FII/DII split from the BSE
+            # SEBI XBRL (the NSE master carries none) — the highest-leverage fix.
+            if name == EXCHANGE_NSE and is_bse:
+                patterns = _merge_bse_split(bare, patterns)
             patterns.sort(key=lambda p: p.quarter_end, reverse=True)
             return ShareholdingResponse(symbol=bare, count=len(patterns), patterns=patterns)
     if errors:
@@ -411,7 +433,13 @@ def _nse_shareholding(bare: str) -> list[ShareholdingPattern]:
                 fii_percent=None,
                 dii_percent=None,
                 institutions_percent=None,
+                # The NSE master's ``public_val`` is the exchange "Public"
+                # category — it FOLDS institutions in. Label it so no consumer
+                # reads it as the non-institutional float (the BSE merge fills
+                # in ``public_non_institutional_percent`` for a dual-listed name).
                 public_percent=_pct(row.get("public_val")),
+                public_basis=PUBLIC_BASIS_INCL_INSTITUTIONS,
+                public_non_institutional_percent=None,
                 employee_trusts_percent=_pct(row.get("employeeTrusts")),
                 submission_date=_parse_day(row.get("submissionDate")),
                 xbrl_url=_clean(row.get("xbrl")) or None,
@@ -441,7 +469,14 @@ def _bse_shareholding(bare: str) -> list[ShareholdingPattern]:
                 fii_percent=_as_float(row.get("fii_percent")),
                 dii_percent=_as_float(row.get("dii_percent")),
                 institutions_percent=_as_float(row.get("institutions_percent")),
+                # The BSE "Public" category (``PublicShareholdingMember``) also
+                # includes institutions; the non-institutional slice rides its
+                # own field. Both labeled for an unambiguous read.
                 public_percent=_as_float(row.get("public_percent")),
+                public_basis=PUBLIC_BASIS_INCL_INSTITUTIONS,
+                public_non_institutional_percent=_as_float(
+                    row.get("public_non_institutional_percent")
+                ),
                 employee_trusts_percent=None,
                 submission_date=submission if isinstance(submission, date) else None,
                 xbrl_url=_clean(row.get("xbrl_url")) or None,
@@ -449,6 +484,63 @@ def _bse_shareholding(bare: str) -> list[ShareholdingPattern]:
             )
         )
     return patterns
+
+
+def _pattern_has_split(pattern: ShareholdingPattern) -> bool:
+    """True when a BSE pattern carries any of the institution split fields —
+    the parts the NSE master lacks and the merge exists to recover."""
+    return (
+        pattern.institutions_percent is not None
+        or pattern.fii_percent is not None
+        or pattern.dii_percent is not None
+    )
+
+
+def _merge_bse_split(
+    bare: str, nse_patterns: list[ShareholdingPattern]
+) -> list[ShareholdingPattern]:
+    """Enrich NSE-master patterns with the BSE SEBI-XBRL institution split.
+
+    For each NSE quarter, the split (institutions/FII/DII + the non-institutional
+    public float) is taken from the BSE pattern of the SAME quarter-end, or — when
+    that quarter has not filed on BSE yet — the NEAREST BSE quarter that carries a
+    split, stamped ``split_source="BSE"`` + ``split_as_of=<that quarter>`` so a
+    consumer sees the as-of honestly (never silently aligned). The BSE lane failing
+    or carrying no split is a no-op: the labeled NSE patterns stand unchanged (the
+    split stays ``None``, never fabricated).
+    """
+    try:
+        bse_patterns = _bse_shareholding(bare)
+    except Exception as exc:  # noqa: BLE001 — best-effort enrichment over an
+        # already-successful NSE lane must never break it (same doctrine as the
+        # dividend cross-check, services.dividend_history) — a bug/timeout deep
+        # in the BSE lane (e.g. an unexpected KeyError from bse_provider) must
+        # degrade to "no split enrichment", never surface as a 500.
+        logger.debug("disclosures: BSE split enrich unavailable for %s: %s", bare, exc)
+        return nse_patterns
+    with_split = [p for p in bse_patterns if _pattern_has_split(p)]
+    if not with_split:
+        return nse_patterns
+    with_split.sort(key=lambda p: p.quarter_end, reverse=True)
+    by_quarter = {p.quarter_end: p for p in with_split}
+    enriched: list[ShareholdingPattern] = []
+    for pattern in nse_patterns:
+        match = by_quarter.get(pattern.quarter_end)
+        if match is None:
+            match = min(with_split, key=lambda p: abs((p.quarter_end - pattern.quarter_end).days))
+        enriched.append(
+            pattern.model_copy(
+                update={
+                    "fii_percent": match.fii_percent,
+                    "dii_percent": match.dii_percent,
+                    "institutions_percent": match.institutions_percent,
+                    "public_non_institutional_percent": match.public_non_institutional_percent,
+                    "split_source": EXCHANGE_BSE,
+                    "split_as_of": match.quarter_end,
+                }
+            )
+        )
+    return enriched
 
 
 # ---------------------------------------------------------------------------

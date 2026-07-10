@@ -320,8 +320,9 @@ export interface ResultsCalendarResponse {
 
 /**
  * One quarterly shareholding-pattern row. Percentages are 0-100 as published.
- * `fii_percent`/`dii_percent` are null when the source feed does not carry the
- * split (the NSE master does not — the linked XBRL filing does); never fabricated.
+ * `fii_percent`/`dii_percent` are null on the NSE master lane (which does not
+ * carry the split); for a dual-listed name they are MERGED in from the BSE SEBI
+ * XBRL (`split_source`/`split_as_of` record the provenance). Never fabricated.
  */
 export interface ShareholdingPattern {
   symbol: string;
@@ -333,11 +334,23 @@ export interface ShareholdingPattern {
   dii_percent: number | null;
   /**
    * Total institutional holding (FII + DII), percent of equity. Null on the
-   * NSE master lane (which does not carry it); populated from the SEBI XBRL on
-   * the BSE lane. Never fabricated.
+   * NSE master lane alone; populated from the SEBI XBRL (BSE lane, or merged onto
+   * a dual-listed NSE pattern). Never fabricated.
    */
   institutions_percent: number | null;
+  /**
+   * The PUBLIC bucket, percent of equity — INCLUDES institutions on both lanes
+   * (the exchange "Public" category), so a large-FII name overstates its true
+   * public float here. See `public_basis` and `public_non_institutional_percent`.
+   */
   public_percent: number | null;
+  /** What `public_percent` counts — "incl. institutions" (the only exchange basis). */
+  public_basis: string | null;
+  /**
+   * The non-institutional public float (SEBI NonInstitutionsMember) — the "true
+   * public" carved out of `public_percent`. From the BSE SEBI XBRL only; else null.
+   */
+  public_non_institutional_percent: number | null;
   employee_trusts_percent: number | null;
   /** Date the pattern was filed with the exchange (ISO date). */
   submission_date: string | null;
@@ -345,6 +358,17 @@ export interface ShareholdingPattern {
   xbrl_url: string | null;
   /** Exchange lane that served this pattern — "NSE" or "BSE". */
   source: string | null;
+  /**
+   * The lane that supplied the FII/DII/institutions split when MERGED from a
+   * different lane than `source` — "BSE" on a dual-listed NSE pattern enriched
+   * from the SEBI XBRL; null when the split (if any) is native to `source`.
+   */
+  split_source: string | null;
+  /**
+   * The quarter-end the merged split came from (ISO date). Equals `quarter_end`
+   * on an exact-quarter merge; differs when the nearest BSE quarter supplied it.
+   */
+  split_as_of: string | null;
 }
 
 /** `GET /disclosures/shareholding` — quarterly patterns, newest first. */

@@ -201,6 +201,60 @@ def _structured_value(result: dict[str, Any], payload_key: str) -> dict[str, Any
     return value
 
 
+def _apply_dividend_ttm(fund_data: dict[str, Any], ttm: Any) -> None:
+    """Thread the trailing-12m PAID result onto the fundamentals leg (R13, D56+).
+
+    A ``DividendTTM`` carries the null-vs-affirmed-zero distinction the raw scalar
+    cannot: a ``"paid"`` value is set as before; an ``"affirmed_zero"`` sets the
+    field to ``0.0`` with a ``field_meta`` entry LABELED "no dividends paid
+    (trailing 12m)" (an honest, stateable zero, not a null); an ``"unavailable"``
+    leaves the field null but stamps a ``field_meta`` reason so a consumer reads
+    "unknown, and why" rather than a bare, unexplained dash.
+    """
+    status = getattr(ttm, "status", None)
+    if status == "paid" and ttm.value is not None:
+        fund_data["dividend_per_share_ttm"] = ttm.value
+        _stamp_field_meta(fund_data, "dividend_per_share_ttm", status="ok")
+    elif status == "affirmed_zero":
+        fund_data["dividend_per_share_ttm"] = 0.0
+        _stamp_field_meta(
+            fund_data, "dividend_per_share_ttm", status="ok", reason=ttm.reason, label=ttm.reason
+        )
+    else:  # unavailable — leave the value null, but say why
+        _stamp_field_meta(
+            fund_data,
+            "dividend_per_share_ttm",
+            status="unavailable",
+            reason=getattr(ttm, "reason", None),
+        )
+
+
+def _stamp_field_meta(
+    fund_data: dict[str, Any],
+    field: str,
+    *,
+    status: str,
+    reason: str | None = None,
+    label: str | None = None,
+) -> None:
+    """Set one ``field_meta`` entry on the fundamentals wire dict (additive).
+
+    ``field_meta`` rides the fundamentals payload as a plain dict of dicts here
+    (not the typed model), so a derived cross-check can annotate a field's coverage
+    without re-serialising the whole payload.
+    """
+    meta = fund_data.get("field_meta")
+    if not isinstance(meta, dict):
+        meta = {}
+        fund_data["field_meta"] = meta
+    entry: dict[str, Any] = {"status": status, "provider": "yfinance"}
+    if reason is not None:
+        entry["reason"] = reason
+    if label is not None:
+        entry["label"] = label
+    meta[field] = entry
+
+
 async def snapshot_structured(
     tool_call: ToolCall,
     symbol: str,
@@ -284,8 +338,7 @@ async def snapshot_structured(
             _own(),
             dividend_actions.get_declared_unpaid_dividend(listing),
         )
-        if ttm is not None:
-            fund_data["dividend_per_share_ttm"] = ttm
+        _apply_dividend_ttm(fund_data, ttm)
         if yoy is not None:
             if yoy.revenue_growth is not None:
                 fund_data["revenue_growth_computed"] = yoy.revenue_growth

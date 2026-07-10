@@ -101,7 +101,22 @@ class ShareholdingPattern(BaseModel):
     #: populates it (with ``fii``/``dii`` when the foreign/domestic split is
     #: present). Never fabricated.
     institutions_percent: float | None = None
+    #: The PUBLIC bucket, percent of equity. IMPORTANT: on BOTH the NSE quarterly
+    #: master and the BSE SEBI "Public" category this INCLUDES institutions
+    #: (FII/DII) — a name with a large FII position (SIL: FII 38.86%) reports a
+    #: public % that dwarfs its true non-institutional float. ``public_basis``
+    #: labels this; ``public_non_institutional_percent`` carries the split-out
+    #: non-institutional slice when the SEBI XBRL supplies it.
     public_percent: float | None = None
+    #: What ``public_percent`` counts — ``"incl. institutions"`` for the exchange
+    #: "Public" category (the only basis either lane reports). Labeled so a
+    #: consumer never reads the public bucket as the non-institutional float.
+    public_basis: str | None = None
+    #: The NON-INSTITUTIONAL public float (SEBI ``NonInstitutionsMember``), percent
+    #: of equity — the "true public" the FII/DII split carves out of
+    #: ``public_percent``. Populated only from the BSE SEBI XBRL (native or merged
+    #: onto a dual-listed NSE pattern); ``None`` when unavailable. Never fabricated.
+    public_non_institutional_percent: float | None = None
     employee_trusts_percent: float | None = None
     #: Date the pattern was filed with the exchange.
     submission_date: date | None = None
@@ -111,6 +126,16 @@ class ShareholdingPattern(BaseModel):
     #: or ``"BSE"`` (SEBI XBRL). Lets a consumer state the provenance and the
     #: as-of quarter of an exchange figure verbatim.
     source: str | None = None
+    #: The lane that supplied the FII/DII/institutions split when it was MERGED
+    #: from a DIFFERENT lane than ``source`` — set to ``"BSE"`` on an NSE-master
+    #: pattern enriched with the BSE SEBI-XBRL split for a dual-listed name;
+    #: ``None`` when the split (if any) is native to ``source``.
+    split_source: str | None = None
+    #: The quarter-end the merged split was sourced from. Equals ``quarter_end``
+    #: on an exact-quarter merge; differs when the nearest available BSE quarter
+    #: supplied the split (an honest as-of, never silently aligned). ``None`` when
+    #: no split was merged.
+    split_as_of: date | None = None
 
 
 class ShareholdingResponse(BaseModel):

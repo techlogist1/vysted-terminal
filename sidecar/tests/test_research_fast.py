@@ -509,3 +509,65 @@ def test_snapshot_skips_ownership_pull_when_not_applicable(
     )
     fund = snap["fundamentals"]["data"]
     assert ownership_check.OWNERSHIP_KEY not in fund
+
+
+def _stub_offline_crosschecks(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Silence the network cross-checks so a snapshot test stays offline+deterministic."""
+
+    async def none_declared(_symbol: str) -> None:
+        return None
+
+    monkeypatch.setattr(dividend_actions, "get_declared_unpaid_dividend", none_declared)
+
+
+def test_snapshot_affirmed_zero_dividend_sets_field_and_meta(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """UFO shape: a trailing-12m PAID computation with real history depth that sums
+    to zero AFFIRMS 0.0 on the fundamentals field, labeled "no dividends paid
+    (trailing 12m)" — not a null indistinguishable from unknown."""
+    from services import dividend_history
+
+    _stub_offline_crosschecks(monkeypatch)
+
+    async def affirmed(_symbol: str) -> dividend_history.DividendTTM:
+        return dividend_history.DividendTTM(
+            0.0, "affirmed_zero", dividend_history.AFFIRMED_ZERO_LABEL
+        )
+
+    monkeypatch.setattr(dividend_history, "get_dividend_ttm", affirmed)
+
+    snap = asyncio.run(
+        snapshot_structured(_fund_tool({"symbol": "UFO.NS", "provider": "yfinance"}), "UFO")
+    )
+    fund = snap["fundamentals"]["data"]
+    assert fund["dividend_per_share_ttm"] == 0.0
+    meta = fund["field_meta"]["dividend_per_share_ttm"]
+    assert meta["status"] == "ok"
+    assert meta["label"] == dividend_history.AFFIRMED_ZERO_LABEL
+
+
+def test_snapshot_insufficient_dividend_depth_stays_null_with_reason(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """When history depth is insufficient, the field stays NULL — but carries a
+    field_meta reason so a consumer reads "unknown, and why", not a bare dash."""
+    from services import dividend_history
+
+    _stub_offline_crosschecks(monkeypatch)
+
+    async def unavailable(_symbol: str) -> dividend_history.DividendTTM:
+        return dividend_history.DividendTTM(
+            None, "unavailable", dividend_history.INSUFFICIENT_DEPTH_REASON
+        )
+
+    monkeypatch.setattr(dividend_history, "get_dividend_ttm", unavailable)
+
+    snap = asyncio.run(
+        snapshot_structured(_fund_tool({"symbol": "RBA.NS", "provider": "yfinance"}), "RBA")
+    )
+    fund = snap["fundamentals"]["data"]
+    assert "dividend_per_share_ttm" not in fund  # value honestly null
+    meta = fund["field_meta"]["dividend_per_share_ttm"]
+    assert meta["status"] == "unavailable"
+    assert meta["reason"] == dividend_history.INSUFFICIENT_DEPTH_REASON

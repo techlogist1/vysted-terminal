@@ -749,6 +749,11 @@ def _shp_summary_from_categories(found: dict[str, float]) -> dict:
         out["promoter_percent"] = found["promoter"]
     if "public" in found:
         out["public_percent"] = found["public"]
+    if "non_institutions" in found:
+        # The SEBI "Non-Institutions" member — the true non-institutional public
+        # float the FII/DII split carves out of the (institution-inclusive)
+        # "Public" category. Surfaced so a consumer can distinguish the two.
+        out["public_non_institutional_percent"] = found["non_institutions"]
     domestic = found.get("institutions_domestic")
     foreign = found.get("institutions_foreign")
     if domestic is not None:
