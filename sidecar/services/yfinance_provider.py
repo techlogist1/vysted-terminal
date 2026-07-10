@@ -164,21 +164,55 @@ def _is_junk_fundamentals_name(name: str | None, yahoo_symbol: str) -> bool:
 # excluded from the per-field provenance map (R13, deliverable 5).
 _PROVENANCE_EXCLUDED_FIELDS = frozenset({"symbol", "provider", "growth_basis", "field_meta"})
 
+# Fields ``get_fundamentals`` does NOT source from yfinance's ``info`` snapshot —
+# they are computed downstream (the research derived leg: trailing-12m dividends,
+# quarterly-statement growth). They are ``None`` here for a reason other than
+# "provider did not publish", so they must not be pre-stamped "unavailable" (the
+# derived leg stamps their real provenance — an affirmed-zero label, a computed
+# value, or an insufficient-depth reason — when it runs).
+_DERIVED_FIELDS = frozenset(
+    {
+        "dividend_per_share_ttm",
+        "revenue_growth_computed",
+        "earnings_growth_computed",
+        "growth_computed_quarters",
+    }
+)
+
+#: The reason stamped on a DATA field yfinance's ``info`` snapshot carried no
+#: value for — so a null field reads as "the provider did not publish this",
+#: never a bare dash the panel can't explain.
+_NULL_FIELD_REASON = "provider did not publish this field"
+
 
 def _served_field_meta(fund: Fundamentals, as_of: str) -> dict[str, FieldMeta]:
-    """Per-field provenance for every DATA field yfinance actually served.
+    """Per-field provenance for EVERY data field yfinance's snapshot speaks to.
 
-    One ``status="ok"`` entry per non-null data field, tagging the provider and
-    the ``info`` fetch time (``as_of``). Identity/metadata fields
-    (symbol/provider/growth_basis/field_meta) are excluded. The correctness gate
-    MERGES its withheld/flag entries onto this map downstream, so a field it nulls
-    flips from ``ok`` to ``withheld`` while the rest keep their yfinance provenance.
+    A ``status="ok"`` entry for each non-null data field (tagging the provider and
+    the ``info`` fetch time ``as_of``), and a ``status="unavailable"`` entry — with
+    an explicit ``reason`` — for each data field the snapshot carried NO value for,
+    so a null field is never a bare, unexplained dash. Identity/metadata fields
+    (symbol/provider/growth_basis/field_meta) and the downstream-DERIVED fields
+    (dividend TTM, computed growth) are excluded — the latter get their real
+    provenance from the derived leg, not a premature "unavailable". The correctness
+    gate MERGES its withheld/flag entries onto this map downstream, so a field it
+    nulls flips from ``ok`` to ``withheld`` while the rest keep their provenance.
     """
-    return {
-        name: FieldMeta(status="ok", provider=PROVIDER, as_of=as_of)
-        for name in type(fund).model_fields
-        if name not in _PROVENANCE_EXCLUDED_FIELDS and getattr(fund, name, None) is not None
-    }
+    skip = _PROVENANCE_EXCLUDED_FIELDS | _DERIVED_FIELDS
+    meta: dict[str, FieldMeta] = {}
+    for name in type(fund).model_fields:
+        if name in skip:
+            continue
+        if getattr(fund, name, None) is not None:
+            meta[name] = FieldMeta(status="ok", provider=PROVIDER, as_of=as_of)
+        else:
+            meta[name] = FieldMeta(
+                status="unavailable",
+                provider=PROVIDER,
+                as_of=as_of,
+                reason=_NULL_FIELD_REASON,
+            )
+    return meta
 
 
 def _num(value: Any) -> float | None:

@@ -350,7 +350,9 @@ def test_get_fundamentals_populates_field_meta_provenance(
 ) -> None:
     """Every non-null DATA field yfinance serves carries an 'ok' FieldMeta with
     provider='yfinance' + an as_of (the info fetch time); identity/metadata fields
-    (symbol/provider/growth_basis) do NOT get an entry."""
+    (symbol/provider/growth_basis) do NOT get an entry; and — R13 fix — a null DATA
+    field carries an explicit 'unavailable' entry so the panel never renders a
+    bare, unexplained dash."""
     fundamentals = yfinance_provider.get_fundamentals("BRK.B")
     meta = fundamentals.field_meta
     assert meta is not None
@@ -362,5 +364,13 @@ def test_get_fundamentals_populates_field_meta_provenance(
     assert "symbol" not in meta
     assert "provider" not in meta
     assert "growth_basis" not in meta
-    # A field the source did not carry (no revenue) has no entry either.
-    assert "revenue_ttm" not in meta
+    # A field the source did not carry now carries an explicit 'unavailable' entry
+    # with the reason (was: no entry at all — the bare-dash bug).
+    assert meta["revenue_ttm"].status == "unavailable"
+    assert meta["revenue_ttm"].provider == "yfinance"
+    assert meta["revenue_ttm"].reason == "provider did not publish this field"
+    assert meta["revenue_ttm"].as_of  # stamped with the same info fetch time
+    # A downstream-DERIVED field (computed by the research leg, not this snapshot)
+    # is NOT pre-stamped 'unavailable' — the derived leg owns its provenance.
+    assert "dividend_per_share_ttm" not in meta
+    assert "revenue_growth_computed" not in meta
